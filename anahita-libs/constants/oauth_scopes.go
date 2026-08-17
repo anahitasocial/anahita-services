@@ -1,6 +1,6 @@
 package constants
 
-// OAuth scope identifiers. Scopes are published via the Anahita microservices
+// OAuth scope identifiers. Scopes are published via the Anahita Services
 // OAuth discovery endpoint and declared on each oauth_client row.
 //
 // Naming convention: lowercase, colon-separated.
@@ -84,7 +84,7 @@ type OAuthScopeDefinition struct {
 //     layer. Role lives in the person_type checks inside handler
 //     permissions, per the doctrine above.
 //
-//   - "Public" is false for every resource scope — Anahita microservices
+//   - "Public" is false for every resource scope — Anahita Services
 //     has no third-party integrations yet. When/if we add third-party
 //     developer apps, we'd flip the appropriate scopes to Public so
 //     external clients can request them.

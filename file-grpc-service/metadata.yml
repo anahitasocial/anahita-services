@@ -1,5 +1,5 @@
 name: file-grpc-service
-description: File gRPC Service for managing file uploads and metadata in Anahita Microservices.
+description: File gRPC Service for managing file uploads and metadata in Anahita Services.
 version: 0.9.0
 copyright: 2025 Rastin Mehr Design Studio Inc. (rmdStudio)
 license: Rastin Mehr Design Studio License

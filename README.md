@@ -1,103 +1,162 @@
 # anahita-services
-Anahita as a microservices architecture
 
-This is the source code Anahita written in Golang. This project
-consists of a number of loosely coupled microservices, all written in Go:
+Anahita as a microservices architecture — the Go rewrite of the Anahita
+social networking platform.
 
-<!--- - broker-service: an optional single entry point to connect to all services from one place (accepts JSON;
-sends JSON, makes calls via gRPC, and pushes to RabbitMQ) -->
-- authentication-service: authenticates users against a Postgres database (accepts JSON)
-<!--- - logger-service: logs important events to a MongoDB database (accepts RPC, gRPC, and JSON) -->
-<!--- - queue-listener-service: consumes messages from amqp (RabbitMQ) and initiates actions based on payload (sends via RPC) -->
-<!--- - mail-service: sends email (accepts JSON) -->
+The project is a Go workspace (`go.work`, Go 1.25) of loosely coupled
+services plus one shared library. Everything is fronted by nginx, which is
+the single public entry point; there is no broker service and no etcd —
+service addresses are plain DNS names inside the Docker/Kubernetes network,
+injected as environment variables.
 
-All services (except the broker) register their access urls with etcd, and renew their leases automatically.
-This allows us to implement a simple service discovery system, where all service URLs are accessible with
-"service maps" in the Config type used to share application configuration in the broker service.
+## Architecture
 
-In addition to the microservices, the included `docker-compose.yml` at the root level of the project
-starts the following services:
+Three kinds of components:
 
-- MySQL - used by the authentication service to store user accounts
-- Redis - used to store user sessions
-<!--- - MongoDB - used by the logger service to save logs from all services -->
-<!--- - etcd - used for service discovery -->
-<!--- - mailhog - used as a fake mail server to work with the mail service -->
+**HTTP services** (JSON, behind nginx) own an API resource family. They do
+not talk to each other over HTTP.
+
+**gRPC services** are shared infrastructure the HTTP services call
+directly: `graph-grpc-service` owns the node/edge graph and every read
+against it, `file-grpc-service` owns file storage, `mail-grpc-service`
+owns outbound email.
+
+**RabbitMQ** carries asynchronous fan-out. Services publish domain events
+to the `anahita_events` exchange; consumers (notifications, feed, search)
+react. Event names are versioned constants in `anahita-libs/event`, shaped
+`node.<type>.<service>.<entity>.<action>.v1` and
+`edge.<type>.<service>.<action>.v1`.
+
+### Services
+
+| Service | HTTP port | gRPC port | Responsibility |
+| --- | --- | --- | --- |
+| `nginx` | 80 | — | Gateway, routing, CORS, token validation subrequest |
+| `auth-service` | 8081 | — | OAuth 2.0 / OIDC provider, sign-up, password, TOTP, WebAuthn, invites, clients |
+| `group-service` | 8082 | — | Groups |
+| `person-service` | 8083 | — | People |
+| `text-service` | 8084 | — | Text media: articles, notes, topics |
+| `photo-service` | 8085 | — | Photos |
+| `hashtag-service` | 8086 | — | Hashtags |
+| `location-service` | 8087 | — | Locations and geocoding |
+| `story-service` | 8090 | — | Stories |
+| `notification-service` | 8091 | 50057 | Notifications |
+| `socialgraph-service` | 8092 | — | Follow, block, subscribe relationships |
+| `search-service` | 8093 | — | Search |
+| `comment-service` | 8094 | — | Comments |
+| `like-service` | 8095 | 50058 | Votes / likes |
+| `avatar-service` | 8096 | — | Actor avatars |
+| `cover-service` | 8097 | — | Actor cover images |
+| `feed-service` | 8098 | 50059 | Feeds and reposts |
+| `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
+| `file-grpc-service` | — | 50055 | File upload and metadata (S3) |
+| `mail-grpc-service` | — | 50056 | Email delivery (SMTP, AWS SES, or Mailgun) |
+| `migration-job` | — | — | One-shot database migrations |
+
+Backing services in `docker-compose.yml`:
+
+- **MySQL** (3306) — all persistent data
+- **Redis** (6379) — sessions
+- **RabbitMQ** (5672) — the `anahita_events` exchange
+
+### Routing
+
+nginx maps public paths to services. The full map lives in
+`nginx/nginx.conf`:
+
+| Path prefix | Service |
+| --- | --- |
+| `/oauth/`, `/auth`, `/signups`, `/password`, `/totp/`, `/webauthn`, `/invites`, `/clients`, `/authlogs/`, `/oauth-signing-keys`, `/.well-known/`, `/static/` | `auth-service` |
+| `/articles/`, `/notes/`, `/topics/` | `text-service` |
+| `/people/` | `person-service` |
+| `/groups/` | `group-service` |
+| `/photos/` | `photo-service` |
+| `/avatars/` | `avatar-service` |
+| `/covers/` | `cover-service` |
+| `/comments/` | `comment-service` |
+| `/likes/` | `like-service` |
+| `/hashtags/` | `hashtag-service` |
+| `/locations/` | `location-service` |
+| `/stories/` | `story-service` |
+| `/feeds/`, `/reposts/` | `feed-service` |
+| `/notifications/` | `notification-service` |
+| `/socialgraph/` | `socialgraph-service` |
+| `/search/` | `search-service` |
+
+`/internal/oauth/validate` is an internal-only subrequest target used by
+nginx to validate bearer tokens against `auth-service`.
+
+### anahita-libs
+
+The shared module every service imports:
+
+| Package | Contents |
+| --- | --- |
+| `constants` | OAuth scopes, shared enums |
+| `proto` | Generated gRPC stubs: `graphpb`, `filepb`, `mailpb`, `typespb` |
+| `event` | RabbitMQ connect/publish/consume, event name constants |
+| `sessions` | Redis-backed sessions and cookies |
+| `storage` | S3 storage backend |
+| `crypt` | Encryption with pluggable local / AWS KMS backends |
+| `data`, `requests`, `responses`, `validators` | Request/response shapes and validation |
+| `middleware`, `cors` | HTTP middleware |
+| `geocoding`, `utils`, `cmd` | Supporting helpers |
 
 ## Running the project
-From the root level of the project, execute this command (this assumes that you have 
-[GNU make](https://www.gnu.org/software/make/) and a recent version
-of [Docker](https://www.docker.com/products/docker-desktop) installed on your machine):
 
+Requires [GNU make](https://www.gnu.org/software/make/) and a recent
+[Docker](https://www.docker.com/products/docker-desktop). A `.env` file at
+the project root is required before the first run and is not committed —
+it supplies `DSN`, `REDIS_ADDR` and `AMQP_ADDR`, the AWS/S3 and mailer
+credentials, the `CRYPT_*` encryption backend, the `OAUTH_*` issuer and
+signing-key settings, and the site identity (`SITE_NAME`, `DOMAIN_NAME`,
+`SYSTEM_EMAIL`, `SUPPORT_EMAIL`). The signing-key and TLS `.pem` files it
+points at are likewise gitignored.
+
+From the root of the project:
+
+~~~sh
+make up_build
 ~~~
-make up_build 
-~~~
 
-If the code has not changed, subsequent runs can just be `make up`.
+If the code has not changed, subsequent runs can just be `make up`. To stop
+everything:
 
-Then start the front end:
-
-~~~
-make start
-~~~
-
-Hit the front end with your web browser at `http://localhost:80`. You can also access a web 
-front end to the logger service by going to `http://localhost:8082` (or whatever port you
-specify in the `docker-compose.yml file`).
-
-To stop everything:
-
-~~~
-make stop
+~~~sh
 make down
 ~~~
 
-While working on code, you can rebuild just the service you are working on by
-executing
+The API is then at `http://localhost:80`. The front end lives in a separate
+repository (`anahita-react`) and runs at `http://localhost:3000`, which is
+the origin nginx allows for CORS.
 
-`make auth`
+While working on code you can rebuild a single service:
 
-Where `auth` is one of the services:
-
-1. actor-grpc-service
-1. article-service
-1. auth-service
-1. avatar-service
-1. comment-service
-1. cover-service
-1. file-grpc-service
-1. group-service
-1. hashtag-service
-1. like-service
-1. location-service
-1. mail-grpc-service
-1. medium-grpc-service
-1. note-service
-1. notification-service
-1. person-service
-1. photo-service
-1. search-service
-1. socialgraph-service
-1. story-service
-1. topic-service
-
-All make commands:
-
+~~~sh
+make auth
 ~~~
-rastinmehr@mysteriusisland anahita-services % make help
- Choose a command:
-  up                  starts all containers in the background without forcing build
-  down                stop docker compose
-  build_dockerfiles   builds all dockerfile images
-  push_dockerfiles    pushes tagged versions to docker hub
-  swarm_up            starts the swarm
-  swarm_down          stops the swarm
-  build_auth          builds the authentication binary as a linux executable
-  up_build            stops docker-compose (if running), builds all projects and starts docker compose
-  auth                stops authentication-service, removes docker image, builds service, and starts it
-  test                runs all tests
-  clean               runs go clean and deletes binaries
-  help                displays help
+
+which stops that service, removes its image, rebuilds the binary, and
+starts it again. Available service targets:
+
+`auth`, `avatar`, `comment`, `cover`, `feed`, `file`, `graph`, `group`,
+`hashtag`, `like`, `location`, `mail`, `nginx`, `notification`, `person`,
+`photo`, `search`, `socialgraph`, `story`, `text`
+
+Each has a matching `build_*` target that only compiles the Linux binary,
+and `make migration` runs the migration job on its own.
+
+Run `make help` for the full list, which also covers Docker Hub publishing
+(`build_dockerfiles`, `push_dockerfiles`), Swarm (`swarm_up`,
+`swarm_down`), and Kubernetes/Minikube (`k8s-build`, `k8s-deploy`,
+`k8s-build-deploy`, `k8s-cleanup`, `minikube-cleanup`). Manifests are in
+`k8s/`, ordered by filename prefix: config and secrets, then backing
+services, then gRPC services, then HTTP services, then the ingress.
+
+Tests:
+
+~~~sh
+make test
 ~~~
 
 ## OAuth scopes and clients
@@ -118,6 +177,24 @@ guard catches a reintroduced literal.
 Scopes describe **API surface**. Authority (admin / super-admin) is a
 separate role check inside each handler's permission method, layered on
 top of the write scope. There is deliberately no `admin:*` scope tier.
+
+A scope family covers its sub-resources rather than giving each one its
+own scope: `actors:*` covers avatars, covers, access, features and group
+admins; `media:*` covers photos, articles, notes, topics and their
+hashtag/location tags. Reads of public content need no scope at all — a
+read scope gates the authenticated-visibility uplift, not the public
+surface — which is why `taxonomy` has no read half.
+
+The current catalog: `openid`, `profile`, `email`, `offline_access`,
+`actors:read`, `actors:write`, `media:read`, `media:write`,
+`comments:write`, `likes:write`, `socialgraph:read`, `socialgraph:write`,
+`notifications:read`, `notifications:write`, `taxonomy:write`,
+`account:read`, `account:write`, `oauth:read`, `oauth:write`.
+
+`oauth:*` is the sole super-admin-only family. A token carrying
+`oauth:write` is equivalent to owning the identity provider — its holder
+can add a redirect URI to any client and harvest authorization codes for
+every person on the site.
 
 ### Seeding clients
 
@@ -146,6 +223,12 @@ Scopes are validated against the catalog both at boot (a typo fails
 startup) and at the `/clients` BREAD boundary (a bad scope returns 400
 naming it).
 
-# Resources
+## Resources
 
-- Anahita nodes and entities examples on go playground: https://go.dev/play/p/96bs5YHt84x
+- Anahita nodes and entities examples on the Go playground: https://go.dev/play/p/96bs5YHt84x
+- Website: https://www.anahita.io
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).
+Copyright 2025 Rastin Mehr Design Studio Inc. (rmdStudio).
