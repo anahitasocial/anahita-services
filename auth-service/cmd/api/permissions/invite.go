@@ -26,14 +26,14 @@ func NewInvitePerm(env *Env) *InvitePerm {
 }
 
 // Invites are inherently a "managing people" operation. Browse uses
-// people:read; add/delete use people:write. The scope catalog already
+// actors:read; add/delete use actors:write. The scope catalog already
 // gates these as AdminOnly at token-mint time, so a non-admin will
 // never have these scopes — the redundant role check below is defense
 // in depth.
 
 // CanBrowse checks if the viewer can browse invites.
 func (prm *InvitePerm) CanBrowse(viewer *entities.Viewer) error {
-	if !viewer.HasScope(libs_constants.OAuthScopePeopleRead) {
+	if !viewer.HasScope(libs_constants.OAuthScopeActorsRead) {
 		return errors.New(ErrInviteInsufficientScope)
 	}
 	if !viewer.IsAdminOrSuperAdmin() {
@@ -44,7 +44,7 @@ func (prm *InvitePerm) CanBrowse(viewer *entities.Viewer) error {
 
 // CanAdd checks if the viewer can add invites.
 func (prm *InvitePerm) CanAdd(viewer *entities.Viewer) error {
-	if !viewer.HasScope(libs_constants.OAuthScopePeopleWrite) {
+	if !viewer.HasScope(libs_constants.OAuthScopeActorsWrite) {
 		return errors.New(ErrInviteInsufficientScope)
 	}
 	if !viewer.IsAdminOrSuperAdmin() {
@@ -55,7 +55,7 @@ func (prm *InvitePerm) CanAdd(viewer *entities.Viewer) error {
 
 // CanDelete checks if the viewer can delete invites.
 func (prm *InvitePerm) CanDelete(viewer *entities.Viewer) error {
-	if !viewer.HasScope(libs_constants.OAuthScopePeopleWrite) {
+	if !viewer.HasScope(libs_constants.OAuthScopeActorsWrite) {
 		return errors.New(ErrInviteInsufficientScope)
 	}
 	if !viewer.IsAdminOrSuperAdmin() {

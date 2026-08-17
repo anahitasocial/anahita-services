@@ -31,7 +31,11 @@ const (
 	JWTClaimEmail      = "email"
 
 	// Anahita-specific claims (in access token).
-	JWTClaimPersonType = "person_type" // person.type value (super_admin, admin, registered)
+	// usertype role value: guest, registered, administrator,
+	// super-administrator. Hydrated into Viewer.UserType, which is what
+	// IsAdmin/IsSuperAdmin/IsGuest read — NOT Viewer.Type, which is the
+	// node entity type.
+	JWTClaimPersonType = "person_type"
 
 	// Stable internal identifiers — included in access tokens to avoid
 	// per-request DB lookups for permission checks. BIGINTs are immutable

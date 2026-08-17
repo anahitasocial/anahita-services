@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	libs_constants "anahita-libs/constants"
 	"auth/data/entities"
 	"auth/data/repositories"
 	"auth/internal/signing"
@@ -265,6 +266,17 @@ type seedClient struct {
 // client must go through the /clients admin endpoint — the seed file
 // is bootstrap-only, not a source of truth.
 //
+// The skip is deliberate and it is a footgun: editing scopes in the
+// seed file and restarting does NOTHING to an already-seeded client,
+// and the only signal is one easily-missed "already exists, skipping"
+// log line. It is the right default because it guarantees a redeploy
+// never silently reverts an operator's edit made through /clients.
+//
+// To apply a changed shipped scope list you must delete the
+// oauth_clients row and restart — which cascades to that client's
+// refresh tokens and authorizations and logs every one of its users
+// out. On a live site, PATCH /clients/:id instead.
+//
 // Confidential clients in the seed file are rejected with an error.
 // Confidential clients need secrets that can't be safely committed to
 // a repo; register them via the admin endpoint instead.
@@ -307,6 +319,16 @@ func seedSingleClient(repos *repositories.Repositories, sc seedClient) error {
 	}
 	if sc.Confidential {
 		return errors.New("confidential clients cannot be seeded from file; use the admin endpoint")
+	}
+
+	// A scope the catalog doesn't know is unusable — authorize would
+	// reject the whole request with invalid_scope. Fail at boot, where a
+	// typo in the shipped JSON is one log line away from the person who
+	// made it, rather than seeding a client nobody can log in with.
+	for _, scope := range sc.Scopes {
+		if !libs_constants.OAuthScopeExists(scope) {
+			return fmt.Errorf("unknown scope %q", scope)
+		}
 	}
 
 	if existing, err := repos.OAuthClients.ReadByClientID(sc.ClientID); err == nil && existing != nil {

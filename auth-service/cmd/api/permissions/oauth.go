@@ -41,7 +41,7 @@ func NewOAuthPerm(env *Env) *OAuthPerm {
 
 // OAuth client management is restricted to global super admins:
 //
-//   - Scope gate (oauth_clients:read or :write): SuperAdminOnly at
+//   - Scope gate (oauth:read or :write): SuperAdminOnly at
 //     token-mint time, so a non-super-admin will never have a token
 //     with these scopes. Re-checked here as defense in depth.
 //
@@ -54,14 +54,14 @@ func NewOAuthPerm(env *Env) *OAuthPerm {
 //     response does not expose client secrets — if that changes, the
 //     gate must be extended to reads as well.
 //
-// Read operations require oauth_clients:read; write operations require
-// oauth_clients:write. The client argument on per-client methods is
+// Read operations require oauth:read; write operations require
+// oauth:write. The client argument on per-client methods is
 // unused today (policy is uniform across all clients) but kept on the
 // signature for future per-client checks (e.g., locking certain clients
 // from edit).
 
 func (prm *OAuthPerm) CanBrowseClients(viewer *libs_entities.Viewer) (bool, error) {
-	if !viewer.HasScope(libs_constants.OAuthScopeOAuthClientsRead) {
+	if !viewer.HasScope(libs_constants.OAuthScopeOAuthRead) {
 		return false, errors.New(ErrOAuthClientInsufficientScope)
 	}
 	if !viewer.IsSuperAdmin() {
@@ -71,7 +71,7 @@ func (prm *OAuthPerm) CanBrowseClients(viewer *libs_entities.Viewer) (bool, erro
 }
 
 func (prm *OAuthPerm) CanReadClient(viewer *libs_entities.Viewer, client *entities.OAuthClient) (bool, error) {
-	if !viewer.HasScope(libs_constants.OAuthScopeOAuthClientsRead) {
+	if !viewer.HasScope(libs_constants.OAuthScopeOAuthRead) {
 		return false, errors.New(ErrOAuthClientInsufficientScope)
 	}
 	if !viewer.IsSuperAdmin() {
@@ -81,7 +81,7 @@ func (prm *OAuthPerm) CanReadClient(viewer *libs_entities.Viewer, client *entiti
 }
 
 func (prm *OAuthPerm) CanEditClient(viewer *libs_entities.Viewer, client *entities.OAuthClient) (bool, error) {
-	if !viewer.HasScope(libs_constants.OAuthScopeOAuthClientsWrite) {
+	if !viewer.HasScope(libs_constants.OAuthScopeOAuthWrite) {
 		return false, errors.New(ErrOAuthClientInsufficientScope)
 	}
 	if !viewer.IsSuperAdmin() {
@@ -94,7 +94,7 @@ func (prm *OAuthPerm) CanEditClient(viewer *libs_entities.Viewer, client *entiti
 }
 
 func (prm *OAuthPerm) CanAddClient(viewer *libs_entities.Viewer) (bool, error) {
-	if !viewer.HasScope(libs_constants.OAuthScopeOAuthClientsWrite) {
+	if !viewer.HasScope(libs_constants.OAuthScopeOAuthWrite) {
 		return false, errors.New(ErrOAuthClientInsufficientScope)
 	}
 	if !viewer.IsSuperAdmin() {
@@ -107,7 +107,7 @@ func (prm *OAuthPerm) CanAddClient(viewer *libs_entities.Viewer) (bool, error) {
 }
 
 func (prm *OAuthPerm) CanDeleteClient(viewer *libs_entities.Viewer, client *entities.OAuthClient) (bool, error) {
-	if !viewer.HasScope(libs_constants.OAuthScopeOAuthClientsWrite) {
+	if !viewer.HasScope(libs_constants.OAuthScopeOAuthWrite) {
 		return false, errors.New(ErrOAuthClientInsufficientScope)
 	}
 	if !viewer.IsSuperAdmin() {

@@ -94,7 +94,6 @@ services:
       OAUTH_SEED_CLIENT_PATH: ${OAUTH_SEED_CLIENT_PATH}
     volumes:
       - ./oauth-signing.pem:/run/secrets/oauth-signing.pem:ro
-      - ./auth-defaults/oauth_scopes.json:/app/defaults/oauth_scopes.json:ro
       - ./auth-defaults/oauth_seed_clients.json:/app/defaults/oauth_seed_clients.json:ro
     networks:
       anahita-network:

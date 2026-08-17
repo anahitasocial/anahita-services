@@ -2,10 +2,13 @@ package permissions
 
 import (
 	"anahita-libs/cmd/api/permissions"
+	libs_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"errors"
 	"fmt"
 )
+
+const ErrInsufficientScope = "insufficient scope"
 
 type LikePermissionsInterface interface {
 	CanBrowse(viewer *entities.Viewer, node *entities.AnahitaNode) (bool, error)
@@ -88,6 +91,13 @@ func (p *LikePermissions) CanBrowse(viewer *entities.Viewer, node *entities.Anah
 
 func (p *LikePermissions) CanAdd(viewer *entities.Viewer, node *entities.AnahitaNode) (bool, error) {
 	var err error
+
+	// Before the admin short-circuit: a role never bypasses the scope
+	// gate, or a token deliberately narrowed to exclude likes would
+	// still be able to like as soon as its holder is an admin.
+	if !viewer.HasScope(libs_constants.OAuthScopeLikesWrite) {
+		return false, errors.New(ErrInsufficientScope)
+	}
 
 	if viewer.IsAdmin() {
 		return true, nil
@@ -172,6 +182,10 @@ func (p *LikePermissions) CanAdd(viewer *entities.Viewer, node *entities.Anahita
 }
 
 func (p *LikePermissions) CanDelete(viewer *entities.Viewer, node *entities.AnahitaNode) (bool, error) {
+	if !viewer.HasScope(libs_constants.OAuthScopeLikesWrite) {
+		return false, errors.New(ErrInsufficientScope)
+	}
+
 	if node.IsLikedByViewer {
 		return true, nil
 	}

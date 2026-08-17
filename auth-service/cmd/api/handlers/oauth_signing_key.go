@@ -33,7 +33,7 @@ func newOAuthSigningKeyHandler(env *Env) *oauthSigningKeyHandler {
 // UI. Excludes private key material. Sorted newest-first.
 //
 // 200: { "data": [...] }
-// 403: viewer lacks oauth_signing_keys:read scope or super-admin role
+// 403: viewer lacks oauth:read scope or super-admin role
 // 500: database error
 func (h *oauthHandler) BrowseSigningKeys(c echo.Context) error {
 	viewer := h.viewerFrom(c)
@@ -69,7 +69,7 @@ func (h *oauthHandler) BrowseSigningKeys(c echo.Context) error {
 //
 // 200: { "data": <signing key> }
 // 400: missing kid
-// 403: viewer lacks oauth_signing_keys:read scope or super-admin role
+// 403: viewer lacks oauth:read scope or super-admin role
 // 404: no key with that kid
 // 500: database error
 func (h *oauthHandler) ReadSigningKey(c echo.Context) error {
@@ -118,7 +118,7 @@ func (h *oauthHandler) ReadSigningKey(c echo.Context) error {
 //
 // 200: { "data": <updated signing key> }
 // 400: missing kid or malformed body
-// 403: viewer lacks oauth_signing_keys:write scope or super-admin role
+// 403: viewer lacks oauth:write scope or super-admin role
 // 404: no key with that kid
 // 409: would leave zero active keys
 // 500: database error

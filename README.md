@@ -100,6 +100,52 @@ rastinmehr@mysteriusisland anahita-services % make help
   help                displays help
 ~~~
 
+## OAuth scopes and clients
+
+Scope identifiers are defined **once**, in Go, at
+`anahita-libs/constants/oauth_scopes.go`. Every permission check must
+reference an `OAuthScope*` constant — never a string literal. `make test`
+runs a guard that walks the whole workspace and fails on any
+`HasScope("...")` / `RequireScope("...")` with a literal argument.
+
+That guard exists because the fleet once carried three generations of
+scope names simultaneously. Since `HasScope` is a plain slice lookup, a
+literal matching no constant fails closed and silently — the gate returns
+"insufficient scope" forever, for everyone, with nothing in the logs
+naming the cause. The compiler catches a mistyped constant; only the
+guard catches a reintroduced literal.
+
+Scopes describe **API surface**. Authority (admin / super-admin) is a
+separate role check inside each handler's permission method, layered on
+top of the write scope. There is deliberately no `admin:*` scope tier.
+
+### Seeding clients
+
+`auth-defaults/oauth_seed_clients.json` bootstraps the first-party
+clients (`anahita-web`, `anahita-mobile`) on first boot.
+
+**The seed file is bootstrap-only, not a source of truth.** A client_id
+that already exists is left untouched, so editing `scopes` in this file
+and restarting does *nothing* — the only signal is a single
+`already exists, skipping` log line. That is the right default: it
+guarantees a redeploy never silently reverts an edit made through the
+`/clients` admin endpoint.
+
+To apply a changed shipped scope list:
+
+~~~sh
+docker compose exec mysql mysql -uroot -proot anahita \
+  -e "DELETE FROM oauth_clients WHERE client_id = 'anahita-web';"
+docker compose restart auth-service
+~~~
+
+This cascades to that client's refresh tokens and authorizations, logging
+every one of its users out. On a live site, `PATCH /clients/:id` instead.
+
+Scopes are validated against the catalog both at boot (a typo fails
+startup) and at the `/clients` BREAD boundary (a bad scope returns 400
+naming it).
+
 # Resources
 
 - Anahita nodes and entities examples on go playground: https://go.dev/play/p/96bs5YHt84x

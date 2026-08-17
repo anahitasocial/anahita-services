@@ -3,11 +3,13 @@ package permissions
 import (
 	"errors"
 
+	libs_constants "anahita-libs/constants"
 	libs_entities "anahita-libs/data/entities"
 	"auth/data/entities"
 )
 
 const (
+	ErrAuthLogInsufficientScope      = "insufficient scope"
 	ErrAuthLogNotAdminOrSuperAdmin   = "viewer is not admin or super admin"
 	ErrAuthLogNotAllowedToAddAuthLog = "now allowed to add authentication log"
 )
@@ -25,6 +27,10 @@ func NewAuthLogPerm(env *Env) *AuthLogPerm {
 
 // CanBrowse checks if the viewer can browse the authentication logs of a person
 func (prm *AuthLogPerm) CanBrowse(viewer *libs_entities.Viewer, user *entities.User) error {
+	if !viewer.HasScope(libs_constants.OAuthScopeAccountRead) {
+		return errors.New(ErrAuthLogInsufficientScope)
+	}
+
 	if viewer.ID != user.ID {
 		if !viewer.IsAdminOrSuperAdmin() {
 			err := errors.New(ErrAuthLogNotAdminOrSuperAdmin)
@@ -47,6 +53,10 @@ func (prm *AuthLogPerm) CanAdd(user *entities.User) error {
 
 // CanDelete checks if the viewer can delete an authentication log of a person
 func (prm *AuthLogPerm) CanDelete(viewer *libs_entities.Viewer, user *entities.User) error {
+	if !viewer.HasScope(libs_constants.OAuthScopeAccountWrite) {
+		return errors.New(ErrAuthLogInsufficientScope)
+	}
+
 	if viewer.ID != user.ID {
 		if !viewer.IsAdminOrSuperAdmin() {
 			err := errors.New(ErrAuthLogNotAdminOrSuperAdmin)

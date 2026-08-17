@@ -1,6 +1,7 @@
 package permissions
 
 import (
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"errors"
 )
@@ -74,7 +75,7 @@ func (c *CommentPermissions) CanRead(ctx *CommentAccessContext) (bool, error) {
 
 // CanEdit checks if the viewer can edit the comment
 func (c *CommentPermissions) CanEdit(ctx *CommentAccessContext) (bool, error) {
-	if !ctx.Viewer.RequireScope("write:media") {
+	if !ctx.Viewer.RequireScope(constants.OAuthScopeCommentsWrite) {
 		return false, errors.New(ErrCommentInsufficientScope)
 	}
 
@@ -112,7 +113,7 @@ func (c *CommentPermissions) CanEdit(ctx *CommentAccessContext) (bool, error) {
 
 // CanAdd checks if the viewer can add a comment
 func (c *CommentPermissions) CanAdd(ctx *CommentAccessContext) (bool, error) {
-	if !ctx.Viewer.RequireScope("write:media") {
+	if !ctx.Viewer.RequireScope(constants.OAuthScopeCommentsWrite) {
 		return false, errors.New(ErrCommentInsufficientScope)
 	}
 
@@ -159,7 +160,7 @@ func (c *CommentPermissions) CanAdd(ctx *CommentAccessContext) (bool, error) {
 
 // CanDelete checks if the viewer can delete the comment
 func (c *CommentPermissions) CanDelete(ctx *CommentAccessContext) (bool, error) {
-	if !ctx.Viewer.RequireScope("write:media") {
+	if !ctx.Viewer.RequireScope(constants.OAuthScopeCommentsWrite) {
 		return false, errors.New(ErrCommentInsufficientScope)
 	}
 
@@ -173,7 +174,7 @@ func (c *CommentPermissions) CanDelete(ctx *CommentAccessContext) (bool, error) 
 
 // CanAdministrate checks if the viewer can administrate the comment
 func (c *CommentPermissions) CanAdministrate(ctx *CommentAccessContext) (bool, error) {
-	if !ctx.Viewer.RequireScope("admin:media") {
+	if !ctx.Viewer.RequireScope(constants.OAuthScopeCommentsWrite) {
 		return false, errors.New(ErrCommentInsufficientScope)
 	}
 

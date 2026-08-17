@@ -34,16 +34,13 @@ func (r *Routes) Init(e *echo.Echo) {
 	locations.GET("/", r.handler.Location.Browse, r.setViewer)
 	locations.GET("/:id", r.handler.Location.Read, r.setViewer)
 
-	// inbound
-	//
-	// NOTE: Add and Delete are unauthenticated. This preserves the
-	// behaviour of the previous route table, where both were registered
-	// above the group-level Authorize call and so never picked it up.
-	// That looks unintended for write routes — switch them to
-	// r.authorize if it was.
+	// inbound — browsing is public like the reads above; tagging and
+	// untagging are writes and require a token. They previously sat on
+	// setViewer only, which was a leftover from an older route table
+	// rather than a decision, and left both open to anonymous callers.
 	locations.GET("/:id/inbounds", r.handler.Inbound.Browse, r.setViewer)
-	locations.POST("/:id/inbounds/", r.handler.Inbound.Add, r.setViewer)
-	locations.DELETE("/:id/inbounds/:source_id", r.handler.Inbound.Delete, r.setViewer)
+	locations.POST("/:id/inbounds/", r.handler.Inbound.Add, r.authorize)
+	locations.DELETE("/:id/inbounds/:source_id", r.handler.Inbound.Delete, r.authorize)
 
 	// admin — requires a valid OAuth access token.
 	locations.PATCH("/:id", r.handler.Location.Edit, r.authorize)

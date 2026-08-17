@@ -36,7 +36,7 @@ func (p *WebAuthnPerm) CanBrowse(viewer *libs_entities.Viewer) (bool, error) {
 	if viewer == nil || !viewer.Authenticated {
 		return false, errors.New(ErrWebAuthnNoViewer)
 	}
-	if !viewer.HasScope(libs_constants.OAuthScopeWebAuthnRead) {
+	if !viewer.HasScope(libs_constants.OAuthScopeAccountRead) {
 		return false, errors.New(ErrWebAuthnInsufficientScope)
 	}
 	return true, nil
@@ -54,7 +54,7 @@ func (p *WebAuthnPerm) CanAdd(viewer *libs_entities.Viewer) (bool, error) {
 	if viewer == nil || !viewer.Authenticated {
 		return false, errors.New(ErrWebAuthnNoViewer)
 	}
-	if !viewer.HasScope(libs_constants.OAuthScopeWebAuthnWrite) {
+	if !viewer.HasScope(libs_constants.OAuthScopeAccountWrite) {
 		return false, errors.New(ErrWebAuthnInsufficientScope)
 	}
 	return true, nil
@@ -89,7 +89,7 @@ func (p *WebAuthnPerm) canMutate(
 	if viewer == nil || !viewer.Authenticated {
 		return false, errors.New(ErrWebAuthnNoViewer)
 	}
-	if !viewer.HasScope(libs_constants.OAuthScopeWebAuthnWrite) {
+	if !viewer.HasScope(libs_constants.OAuthScopeAccountWrite) {
 		return false, errors.New(ErrWebAuthnInsufficientScope)
 	}
 	if cred == nil || cred.UserID != viewer.ID {
@@ -137,7 +137,7 @@ func (p *WebAuthnPerm) CanDeleteAll(
 	if viewer == nil || !viewer.Authenticated {
 		return false, errors.New(ErrWebAuthnNoViewer)
 	}
-	if !viewer.HasScope(libs_constants.OAuthScopeWebAuthnWrite) {
+	if !viewer.HasScope(libs_constants.OAuthScopeAccountWrite) {
 		return false, errors.New(ErrWebAuthnInsufficientScope)
 	}
 	if actor == nil {
@@ -202,7 +202,7 @@ func (p *WebAuthnPerm) CanReadCount(
 	if viewer == nil || !viewer.Authenticated {
 		return false, errors.New(ErrWebAuthnNoViewer)
 	}
-	if !viewer.HasScope(libs_constants.OAuthScopeWebAuthnWrite) {
+	if !viewer.HasScope(libs_constants.OAuthScopeAccountWrite) {
 		return false, errors.New(ErrWebAuthnInsufficientScope)
 	}
 	if actor == nil {

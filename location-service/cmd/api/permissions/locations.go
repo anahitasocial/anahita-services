@@ -1,6 +1,7 @@
 package permissions
 
 import (
+	libs_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"errors"
 )
@@ -28,7 +29,7 @@ func (p *locationsPermissions) CanRead(viewer *entities.Viewer, entity interface
 }
 
 func (p *locationsPermissions) CanEdit(viewer *entities.Viewer, entity interface{}) (bool, error) {
-	if !viewer.HasScope("write:locations") {
+	if !viewer.HasScope(libs_constants.OAuthScopeTaxonomyWrite) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 
@@ -40,7 +41,7 @@ func (p *locationsPermissions) CanEdit(viewer *entities.Viewer, entity interface
 }
 
 func (p *locationsPermissions) CanAdd(viewer *entities.Viewer, entity interface{}) (bool, error) {
-	if !viewer.HasScope("write:locations") {
+	if !viewer.HasScope(libs_constants.OAuthScopeTaxonomyWrite) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 
@@ -52,7 +53,7 @@ func (p *locationsPermissions) CanAdd(viewer *entities.Viewer, entity interface{
 }
 
 func (p *locationsPermissions) CanDelete(viewer *entities.Viewer, entity interface{}) (bool, error) {
-	if !viewer.HasScope("write:locations") {
+	if !viewer.HasScope(libs_constants.OAuthScopeTaxonomyWrite) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 
@@ -64,7 +65,7 @@ func (p *locationsPermissions) CanDelete(viewer *entities.Viewer, entity interfa
 }
 
 func (p *locationsPermissions) CanAdministrate(viewer *entities.Viewer, entity interface{}) (bool, error) {
-	if !viewer.HasScope("admin:locations") {
+	if !viewer.HasScope(libs_constants.OAuthScopeTaxonomyWrite) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 

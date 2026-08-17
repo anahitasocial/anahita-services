@@ -57,9 +57,12 @@ func (h *oauthHandler) ReadConsent(c echo.Context) error {
 	displayedScopes := filterScopes(authReq.Scope, grantable)
 
 	return h.renderTemplate(c, "consent.html", map[string]any{
-		"ClientName":  client.Name,
-		"ViewerName":  strings.TrimSpace(user.GivenName + " " + user.FamilyName),
-		"Scopes":      displayedScopes,
+		"ClientName": client.Name,
+		"ViewerName": strings.TrimSpace(user.GivenName + " " + user.FamilyName),
+		// Descriptions, not raw identifiers — "View your notifications"
+		// rather than "notifications:read". This is the only place a
+		// scope string would otherwise be end-user-visible text.
+		"Scopes":      h.OAuth.ScopeDescriptions(displayedScopes),
 		"RedirectURI": authReq.RedirectURI,
 		"CSRFToken":   csrfToken,
 	})

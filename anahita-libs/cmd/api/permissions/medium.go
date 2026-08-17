@@ -111,7 +111,7 @@ func (m *MediumPermissions) CanRead(ctx *MediumAccessContext) (bool, error) {
 
 // CanEdit returns true if the viewer is allowed to edit the medium node
 func (m *MediumPermissions) CanEdit(ctx *MediumAccessContext) (bool, error) {
-	if !ctx.Viewer.HasScope("write:media") {
+	if !ctx.Viewer.HasScope(constants.OAuthScopeMediaWrite) {
 		return false, errors.New(ErrMediumInsufficientScope)
 	}
 
@@ -149,7 +149,7 @@ func (m *MediumPermissions) CanEdit(ctx *MediumAccessContext) (bool, error) {
 
 // CanAdd returns true if the viewer is allowed to add a medium node
 func (m *MediumPermissions) CanAdd(ctx *MediumAccessContext) (bool, error) {
-	if !ctx.Viewer.HasScope("write:media") {
+	if !ctx.Viewer.HasScope(constants.OAuthScopeMediaWrite) {
 		return false, errors.New(ErrMediumInsufficientScope)
 	}
 
@@ -198,7 +198,7 @@ func (m *MediumPermissions) CanAdd(ctx *MediumAccessContext) (bool, error) {
 
 // CanDelete returns true if the viewer is allowed to delete the medium node
 func (m *MediumPermissions) CanDelete(ctx *MediumAccessContext) (bool, error) {
-	if !ctx.Viewer.HasScope("write:media") {
+	if !ctx.Viewer.HasScope(constants.OAuthScopeMediaWrite) {
 		return false, errors.New(ErrMediumInsufficientScope)
 	}
 
@@ -236,7 +236,7 @@ func (m *MediumPermissions) CanDelete(ctx *MediumAccessContext) (bool, error) {
 
 // CanAdministrate returns true if the viewer is allowed to administrate the medium node
 func (m *MediumPermissions) CanAdministrate(ctx *MediumAccessContext) (bool, error) {
-	if !ctx.Viewer.HasScope("admin:media") {
+	if !ctx.Viewer.HasScope(constants.OAuthScopeMediaWrite) {
 		return false, errors.New(ErrMediumInsufficientScope)
 	}
 

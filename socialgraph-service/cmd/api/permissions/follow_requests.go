@@ -2,6 +2,7 @@ package permissions
 
 import (
 	"anahita-libs/cmd/api/permissions"
+	libs_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"errors"
 	"fmt"
@@ -18,7 +19,7 @@ func newFollowRequestsPermissions(env *Env) PermissionsInterface {
 }
 
 func (p *followRequestsPermissions) CanBrowse(actor *entities.AnahitaNode, viewer *entities.Viewer) (bool, error) {
-	if !viewer.HasScope("read:socialgraph") {
+	if !viewer.HasScope(libs_constants.OAuthScopeSocialgraphRead) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 
@@ -53,7 +54,7 @@ func (p *followRequestsPermissions) CanBrowse(actor *entities.AnahitaNode, viewe
 }
 
 func (p *followRequestsPermissions) CanEdit(source *entities.AnahitaNode, target *entities.AnahitaNode, viewer *entities.Viewer) (bool, error) {
-	if !viewer.HasScope("write:socialgraph") {
+	if !viewer.HasScope(libs_constants.OAuthScopeSocialgraphWrite) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 
@@ -88,7 +89,7 @@ func (p *followRequestsPermissions) CanEdit(source *entities.AnahitaNode, target
 }
 
 func (p *followRequestsPermissions) CanAdd(source *entities.AnahitaNode, target *entities.AnahitaNode, viewer *entities.Viewer) (bool, error) {
-	if !viewer.HasScope("write:socialgraph") {
+	if !viewer.HasScope(libs_constants.OAuthScopeSocialgraphWrite) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 
@@ -126,7 +127,7 @@ func (p *followRequestsPermissions) CanAdd(source *entities.AnahitaNode, target 
 }
 
 func (p *followRequestsPermissions) CanDelete(target *entities.AnahitaNode, source *entities.AnahitaNode, viewer *entities.Viewer) (bool, error) {
-	if !viewer.HasScope("write:socialgraph") {
+	if !viewer.HasScope(libs_constants.OAuthScopeSocialgraphWrite) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 

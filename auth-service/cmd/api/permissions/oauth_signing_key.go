@@ -41,7 +41,7 @@ func NewOAuthSigningKeyPerm(env *Env) *OAuthSigningKeyPerm {
 
 // OAuth signing-key management is restricted to global super admins:
 //
-//   - Scope gate (oauth_signing_keys:read or :write): SuperAdminOnly
+//   - Scope gate (oauth:read or :write): SuperAdminOnly
 //     at token-mint time, so a non-super-admin will never have a
 //     token with these scopes. Re-checked here as defense in depth.
 //
@@ -55,8 +55,8 @@ func NewOAuthSigningKeyPerm(env *Env) *OAuthSigningKeyPerm {
 //     TOTP on the viewer's account. Read and browse are exempt
 //     because the read response exposes only metadata.
 //
-// Read operations require oauth_signing_keys:read; Edit (the only
-// mutation, toggling active) requires oauth_signing_keys:write. Add
+// Read operations require oauth:read; Edit (the only
+// mutation, toggling active) requires oauth:write. Add
 // and Delete are not exposed here by design — provisioning happens
 // through deploy + SeedKMSSigningKey, cleanup through DeleteExpired.
 //
@@ -66,7 +66,7 @@ func NewOAuthSigningKeyPerm(env *Env) *OAuthSigningKeyPerm {
 // rotation).
 
 func (prm *OAuthSigningKeyPerm) CanBrowseSigningKeys(viewer *libs_entities.Viewer) (bool, error) {
-	if !viewer.HasScope(libs_constants.OAuthScopeOAuthSigningKeysRead) {
+	if !viewer.HasScope(libs_constants.OAuthScopeOAuthRead) {
 		return false, errors.New(ErrOAuthSigningKeyInsufficientScope)
 	}
 	if !viewer.IsSuperAdmin() {
@@ -76,7 +76,7 @@ func (prm *OAuthSigningKeyPerm) CanBrowseSigningKeys(viewer *libs_entities.Viewe
 }
 
 func (prm *OAuthSigningKeyPerm) CanReadSigningKey(viewer *libs_entities.Viewer, key *entities.OAuthSigningKey) (bool, error) {
-	if !viewer.HasScope(libs_constants.OAuthScopeOAuthSigningKeysRead) {
+	if !viewer.HasScope(libs_constants.OAuthScopeOAuthRead) {
 		return false, errors.New(ErrOAuthSigningKeyInsufficientScope)
 	}
 	if !viewer.IsSuperAdmin() {
@@ -86,7 +86,7 @@ func (prm *OAuthSigningKeyPerm) CanReadSigningKey(viewer *libs_entities.Viewer, 
 }
 
 func (prm *OAuthSigningKeyPerm) CanEditSigningKey(viewer *libs_entities.Viewer, key *entities.OAuthSigningKey) (bool, error) {
-	if !viewer.HasScope(libs_constants.OAuthScopeOAuthSigningKeysWrite) {
+	if !viewer.HasScope(libs_constants.OAuthScopeOAuthWrite) {
 		return false, errors.New(ErrOAuthSigningKeyInsufficientScope)
 	}
 	if !viewer.IsSuperAdmin() {

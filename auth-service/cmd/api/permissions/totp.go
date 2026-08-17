@@ -62,8 +62,8 @@ func (prm *TotpPerm) CanDelete(viewer *libs_entities.Viewer, user *entities.User
 		return nil
 	}
 
-	// Cross-user disable requires the people:write scope.
-	if !viewer.HasScope(libs_constants.OAuthScopePeopleWrite) {
+	// Cross-user disable requires the actors:write scope.
+	if !viewer.HasScope(libs_constants.OAuthScopeActorsWrite) {
 		return errors.New(ErrTotpInsufficientScope)
 	}
 

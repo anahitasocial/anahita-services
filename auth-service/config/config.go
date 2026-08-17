@@ -29,14 +29,12 @@ const (
 	ErrMissingAmqpAddr            = "AMQP address is missing"
 	ErrMissingOAuthIssuer         = "OAuth issuer is missing"
 	ErrMissingOAuthJWKSURL        = "OAuth JWKS URL is missing"
-	ErrMissingOAuthScopesPath     = "OAuth scopes path is missing"
 	ErrMissingOAuthSeedClientPath = "OAuth seed client path is missing"
 	ErrInvalidOAuthKeyLifetime    = "OAuth key lifetime must be positive"
 	ErrMissingOAuthKMSKeyAlias    = "OAuth KMS key alias is missing"
 )
 
 const (
-	defaultOAuthScopesPath     = "defaults/oauth_scopes.json"
 	defaultOAuthSeedClientPath = "defaults/oauth_seed_clients.json"
 	// defaultOAuthKeyLifetimeDays is the default key rotation interval.
 	// 90 days is the common operational sweet spot — long enough to
@@ -83,7 +81,6 @@ type Config struct {
 	// OAuth
 	OAuthIssuer         string
 	OAuthJWKSURL        string
-	OAuthScopesPath     string
 	OAuthSeedClientPath string
 	// OAuthPrivateKeyPath is an optional dev-mode shortcut: if set,
 	// SeedSigningKey reads the PEM at this path instead of generating
@@ -127,7 +124,6 @@ func NewConfig() *Config {
 		// OAuth
 		OAuthIssuer:         os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:        os.Getenv("OAUTH_JWKS_URL"),
-		OAuthScopesPath:     getEnv("OAUTH_SCOPES_PATH", defaultOAuthScopesPath),
 		OAuthSeedClientPath: getEnv("OAUTH_SEED_CLIENT_PATH", defaultOAuthSeedClientPath),
 		OAuthPrivateKeyPath: os.Getenv("OAUTH_PRIVATE_KEY_PATH"),
 		OAuthKeyLifetime:    parseKeyLifetime(),
@@ -241,10 +237,6 @@ func (config *Config) Validate() error {
 
 	if config.OAuthJWKSURL == "" {
 		missingFields = append(missingFields, ErrMissingOAuthJWKSURL)
-	}
-
-	if config.OAuthScopesPath == "" {
-		missingFields = append(missingFields, ErrMissingOAuthScopesPath)
 	}
 
 	if config.OAuthSeedClientPath == "" {
@@ -398,13 +390,6 @@ func (config *Config) GetOAuthIssuer() string {
 // the standard OIDC layout.
 func (config *Config) GetOAuthJWKSURL() string {
 	return config.OAuthJWKSURL
-}
-
-// GetOAuthScopesPath returns the filesystem path to the JSON file
-// containing OAuth scope definitions. Loaded once at startup by
-// services.LoadScopes.
-func (config *Config) GetOAuthScopesPath() string {
-	return config.OAuthScopesPath
 }
 
 // GetOAuthSeedClientPath returns the filesystem path to the JSON file

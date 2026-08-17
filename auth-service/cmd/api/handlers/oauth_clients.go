@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"log"
 	"net/http"
+	"strings"
 
 	"auth/data/entities"
 	"auth/requests"
@@ -97,6 +98,17 @@ func (h *oauthHandler) AddClient(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	// Reject unknown scopes here rather than letting them persist. An
+	// unregistered scope on a client row is silent until authorize time,
+	// where it surfaces as an opaque invalid_scope for real users — so
+	// name the offending scope while the operator is still looking at it.
+	if err := h.OAuth.ValidateScopes(strings.Join(req.Scopes, " ")); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error":       "invalid_scope",
+			"description": err.Error(),
+		})
+	}
+
 	client := entities.NewOAuthClient()
 	client.ClientID = req.ClientID
 	client.Name = req.Name
@@ -159,6 +171,13 @@ func (h *oauthHandler) EditClient(c echo.Context) error {
 	if ok, err := h.Perms.OAuth.CanEditClient(viewer, client); !ok {
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
+	}
+
+	if err := h.OAuth.ValidateScopes(strings.Join(req.Scopes, " ")); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error":       "invalid_scope",
+			"description": err.Error(),
+		})
 	}
 
 	client.Name = req.Name

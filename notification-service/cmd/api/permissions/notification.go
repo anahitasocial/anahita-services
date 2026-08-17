@@ -1,6 +1,7 @@
 package permissions
 
 import (
+	libs_constants "anahita-libs/constants"
 	an_entities "anahita-libs/data/entities"
 	"errors"
 	"notification/data/entities"
@@ -21,7 +22,7 @@ func newNotificationsPermissions() *notificationsPermissions {
 }
 
 func (p *notificationsPermissions) CanBrowse(viewer *an_entities.Viewer) (bool, error) {
-	if !viewer.HasScope("read:notifications") {
+	if !viewer.HasScope(libs_constants.OAuthScopeNotificationsRead) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 
@@ -33,7 +34,7 @@ func (p *notificationsPermissions) CanBrowse(viewer *an_entities.Viewer) (bool, 
 }
 
 func (p *notificationsPermissions) CanEdit(viewer *an_entities.Viewer, notification *entities.Notification) (bool, error) {
-	if !viewer.HasScope("write:notifications") {
+	if !viewer.HasScope(libs_constants.OAuthScopeNotificationsWrite) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 
@@ -45,7 +46,7 @@ func (p *notificationsPermissions) CanEdit(viewer *an_entities.Viewer, notificat
 }
 
 func (p *notificationsPermissions) CanDelete(viewer *an_entities.Viewer, notification *entities.Notification) (bool, error) {
-	if !viewer.HasScope("write:notifications") {
+	if !viewer.HasScope(libs_constants.OAuthScopeNotificationsWrite) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 
@@ -57,7 +58,7 @@ func (p *notificationsPermissions) CanDelete(viewer *an_entities.Viewer, notific
 }
 
 func (p *notificationsPermissions) CanAdministrate(viewer *an_entities.Viewer, notification *entities.Notification) (bool, error) {
-	if !viewer.HasScope("admin:actors") {
+	if !viewer.HasScope(libs_constants.OAuthScopeNotificationsWrite) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 

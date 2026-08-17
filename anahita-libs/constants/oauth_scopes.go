@@ -19,18 +19,28 @@ const (
 	OAuthScopeOfflineAccess = "offline_access"
 
 	// Resource scopes — read/write per resource family.
-	OAuthScopePeopleRead            = "people:read"
-	OAuthScopePeopleWrite           = "people:write"
-	OAuthScopeNotificationsRead     = "notifications:read"
-	OAuthScopeNotificationsWrite    = "notifications:write"
-	OAuthScopeAuthLogsRead          = "authlogs:read"
-	OAuthScopeAuthLogsWrite         = "authlogs:write"
-	OAuthScopeOAuthClientsRead      = "oauth_clients:read"
-	OAuthScopeOAuthClientsWrite     = "oauth_clients:write"
-	OAuthScopeOAuthSigningKeysRead  = "oauth_signing_keys:read"
-	OAuthScopeOAuthSigningKeysWrite = "oauth_signing_keys:write"
-	OAuthScopeWebAuthnRead          = "webauthn:read"
-	OAuthScopeWebAuthnWrite         = "webauthn:write"
+	//
+	// A family covers its sub-resources rather than giving each one its
+	// own scope: actors covers avatars, covers, access, features and
+	// group admins; media covers photos, articles, notes, topics and
+	// their hashtag/location tags. Reads on public content need no scope
+	// at all — a read scope gates the authenticated-visibility uplift,
+	// not the public surface — which is why taxonomy has no read half.
+	OAuthScopeActorsRead         = "actors:read"
+	OAuthScopeActorsWrite        = "actors:write"
+	OAuthScopeMediaRead          = "media:read"
+	OAuthScopeMediaWrite         = "media:write"
+	OAuthScopeCommentsWrite      = "comments:write"
+	OAuthScopeLikesWrite         = "likes:write"
+	OAuthScopeSocialgraphRead    = "socialgraph:read"
+	OAuthScopeSocialgraphWrite   = "socialgraph:write"
+	OAuthScopeNotificationsRead  = "notifications:read"
+	OAuthScopeNotificationsWrite = "notifications:write"
+	OAuthScopeTaxonomyWrite      = "taxonomy:write"
+	OAuthScopeAccountRead        = "account:read"
+	OAuthScopeAccountWrite       = "account:write"
+	OAuthScopeOAuthRead          = "oauth:read"
+	OAuthScopeOAuthWrite         = "oauth:write"
 )
 
 // OAuthScopeDefinition describes a single scope: who can grant it, who
@@ -68,19 +78,27 @@ type OAuthScopeDefinition struct {
 //
 // Notes on flag choices:
 //
-//   - Most resource scopes have no role flag because the per-resource
-//     handlers enforce role and tenancy. The OAuth layer only gates
-//     scopes whose mere presence implies elevated authority (billing,
-//     oauth_clients).
+//   - AdminOnly is deliberately unused. Gating a write scope on admin
+//     would break self-service — a person editing their own profile
+//     needs actors:write — and it duplicates authority at the wrong
+//     layer. Role lives in the person_type checks inside handler
+//     permissions, per the doctrine above.
 //
-//   - "Public" is currently false for all resource scopes — Anahita
-//     microservices has no third-party integrations yet. When/if we add
-//     third-party developer apps, we'd flip the appropriate scopes
-//     to Public so external clients can request them.
+//   - "Public" is false for every resource scope — Anahita microservices
+//     has no third-party integrations yet. When/if we add third-party
+//     developer apps, we'd flip the appropriate scopes to Public so
+//     external clients can request them.
 //
-//   - authlogs scopes are not admin-gated: every user can view and
-//     revoke their own session log. Handlers enforce that they only
-//     touch their own log entries unless they're admin+.
+//   - oauth:* is the sole SuperAdminOnly family. Possession of a token
+//     carrying oauth:write is equivalent to owning the identity
+//     provider: its holder can add a redirect URI to any client and
+//     harvest authorization codes for every person on the site. Refusing
+//     to mint it for anyone below super_admin is defence in depth on top
+//     of the handler role check.
+//
+// Descriptions are user-facing consent copy. Each one completes the
+// sentence "This application will be able to: ..." — see
+// auth-service/web/templates/consent.html.
 var OAuthScopeDefinitions = map[string]OAuthScopeDefinition{
 	// OIDC standard — always public, no role gating.
 	OAuthScopeOpenID: {
@@ -104,82 +122,91 @@ var OAuthScopeDefinitions = map[string]OAuthScopeDefinition{
 		Public:      true,
 	},
 
-	// People — admin-gated; non-admins can't manage members.
-	OAuthScopePeopleRead: {
-		Scope:       OAuthScopePeopleRead,
-		Description: "View people on this site",
-		AdminOnly:   false,
+	// Actors — people and groups, plus their avatars, covers, privacy
+	// settings, features and administrators. Admin authority over
+	// someone else's actor is a role check in the handler, not a scope.
+	OAuthScopeActorsRead: {
+		Scope:       OAuthScopeActorsRead,
+		Description: "View people and groups on this site",
 	},
-	OAuthScopePeopleWrite: {
-		Scope:       OAuthScopePeopleWrite,
-		Description: "Invite, edit, and disable people on this site",
-		AdminOnly:   true,
+	OAuthScopeActorsWrite: {
+		Scope:       OAuthScopeActorsWrite,
+		Description: "Create and edit people and groups, their avatars, covers, privacy settings, and administrators",
 	},
 
-	// Notifications — every user can read/manage their own.
+	// Media — photos, articles, notes and topics, plus their covers,
+	// privacy settings and hashtag/location tags.
+	OAuthScopeMediaRead: {
+		Scope:       OAuthScopeMediaRead,
+		Description: "View posts, photos, articles, notes, and their comments",
+	},
+	OAuthScopeMediaWrite: {
+		Scope:       OAuthScopeMediaWrite,
+		Description: "Create, edit, and delete posts, photos, articles, and notes, and tag them with hashtags and locations",
+	},
+
+	// Engaging with content someone else owns is separated from owning
+	// it, so a client can be granted one without the other. Reads ride
+	// on media:read — there is no comments:read or likes:read.
+	OAuthScopeCommentsWrite: {
+		Scope:       OAuthScopeCommentsWrite,
+		Description: "Write, edit, and delete comments",
+	},
+	OAuthScopeLikesWrite: {
+		Scope:       OAuthScopeLikesWrite,
+		Description: "Like and repost content",
+	},
+
+	// Social graph — follows, follow requests, blocks and mutuals.
+	OAuthScopeSocialgraphRead: {
+		Scope:       OAuthScopeSocialgraphRead,
+		Description: "View follows, followers, and blocks",
+	},
+	OAuthScopeSocialgraphWrite: {
+		Scope:       OAuthScopeSocialgraphWrite,
+		Description: "Follow, unfollow, block, and unblock",
+	},
+
+	// Notifications — every person can read and manage their own.
 	OAuthScopeNotificationsRead: {
 		Scope:       OAuthScopeNotificationsRead,
 		Description: "View your notifications",
 	},
 	OAuthScopeNotificationsWrite: {
 		Scope:       OAuthScopeNotificationsWrite,
-		Description: "Mark notifications as read or dismiss them",
+		Description: "Manage your notifications and subscriptions",
 	},
 
-	// Auth logs — every user can view and revoke their own sessions.
-	// Handlers enforce that they only touch their own entries unless
-	// they're admin+.
-	OAuthScopeAuthLogsRead: {
-		Scope:       OAuthScopeAuthLogsRead,
-		Description: "View authentication and session activity",
-	},
-	OAuthScopeAuthLogsWrite: {
-		Scope:       OAuthScopeAuthLogsWrite,
-		Description: "Revoke active sessions",
+	// Taxonomy — the hashtag and location vocabularies themselves.
+	// Tagging content with a term is a media write, not a taxonomy
+	// write. Reads are public, so there is no read half.
+	OAuthScopeTaxonomyWrite: {
+		Scope:       OAuthScopeTaxonomyWrite,
+		Description: "Create and edit hashtags and locations",
 	},
 
-	// Passkeys — every person manages their own, so no role gate.
-	// Same reasoning as auth logs: this is a person acting on their
-	// own credentials, not on anyone else's. There is deliberately no
-	// admin path at all — permissions/webauthn.go checks ownership
-	// against the credential row and has no admin branch, because an
-	// admin has no legitimate reason to enumerate which devices a
-	// person carries.
-	OAuthScopeWebAuthnRead: {
-		Scope:       OAuthScopeWebAuthnRead,
-		Description: "View the passkeys on your account",
+	// Account — the person's own security surface: password, TOTP,
+	// passkeys, and session/auth-log history. Self-service, so no role
+	// gate; handlers enforce that a person only touches their own.
+	OAuthScopeAccountRead: {
+		Scope:       OAuthScopeAccountRead,
+		Description: "View your account and security settings",
 	},
-	OAuthScopeWebAuthnWrite: {
-		Scope:       OAuthScopeWebAuthnWrite,
-		Description: "Add and remove passkeys on your account",
+	OAuthScopeAccountWrite: {
+		Scope:       OAuthScopeAccountWrite,
+		Description: "Manage your password, two-factor authentication, passkeys, and sessions",
 	},
 
-	// OAuth clients — global super-admin only. Handlers further
-	// restrict to global admins; this gate just refuses to mint
-	// the scope for anyone who isn't at least a super_admin.
-	OAuthScopeOAuthClientsRead: {
-		Scope:          OAuthScopeOAuthClientsRead,
-		Description:    "View OAuth client registrations",
+	// OAuth infrastructure — client registrations and signing keys.
+	// Super-admin only at mint time; see the note above.
+	OAuthScopeOAuthRead: {
+		Scope:          OAuthScopeOAuthRead,
+		Description:    "View OAuth client registrations and signing keys",
 		SuperAdminOnly: true,
 	},
-	OAuthScopeOAuthClientsWrite: {
-		Scope:          OAuthScopeOAuthClientsWrite,
-		Description:    "Create, edit, and delete OAuth client registrations",
-		SuperAdminOnly: true,
-	},
-
-	// OAuth signing keys — global super-admin only. These are used to sign
-	// tokens across all orgs, so we gate them at the highest level. Handlers
-	// further restrict to global admins; this gate just refuses to mint
-	// the scope for anyone who isn't at least a super_admin.
-	OAuthScopeOAuthSigningKeysRead: {
-		Scope:          OAuthScopeOAuthSigningKeysRead,
-		Description:    "View OAuth signing keys",
-		SuperAdminOnly: true,
-	},
-	OAuthScopeOAuthSigningKeysWrite: {
-		Scope:          OAuthScopeOAuthSigningKeysWrite,
-		Description:    "Create and delete OAuth signing keys",
+	OAuthScopeOAuthWrite: {
+		Scope:          OAuthScopeOAuthWrite,
+		Description:    "Create, edit, and delete OAuth client registrations and signing keys",
 		SuperAdminOnly: true,
 	},
 }

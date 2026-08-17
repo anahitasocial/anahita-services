@@ -169,7 +169,8 @@ func extractToken(c echo.Context) (string, error) {
 // BuildViewer constructs a Viewer from JWT claims. Claims expected:
 //
 //	sub                — person UUID string (required)
-//	person_type        — person.type enum value (super_admin, admin, registered)
+//	person_type        — usertype role value (guest, registered,
+//	                     administrator, super-administrator)
 //	person_pk — internal BIGINT identifiers
 //	scope              — space-separated scope string
 //	client_id          — OAuth client identifier
@@ -202,8 +203,12 @@ func BuildViewer(claims jwt.MapClaims) (*entities.Viewer, error) {
 	viewer.ID = personID
 	viewer.Authenticated = true
 
+	// person_type carries the ROLE (see constants/users.go), which is what
+	// IsAdmin/IsSuperAdmin/IsGuest read. It is deliberately not assigned to
+	// viewer.Type — that field holds the node entity type set by NewViewer
+	// and the node helpers depend on it.
 	if personType, ok := claims[constants.JWTClaimPersonType].(string); ok && personType != "" {
-		viewer.Type = personType
+		viewer.UserType = personType
 	}
 
 	if scope, ok := claims[constants.JWTClaimScope].(string); ok {

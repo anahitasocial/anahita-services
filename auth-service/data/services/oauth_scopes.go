@@ -7,7 +7,6 @@ import (
 	"auth/data/entities"
 
 	libs_constants "anahita-libs/constants"
-	libs_entities "anahita-libs/data/entities"
 )
 
 // ValidateScopes checks that all provided scopes are registered in the
@@ -42,26 +41,14 @@ func (s *OAuthService) ValidateScopesForClient(scopes string, client *entities.O
 	return nil
 }
 
-// ValidateScopesForPerson checks that the authenticated person has the
-// privilege level required for each scope. Admin-only scopes require
-// person_type admin or super_admin; super-admin-only scopes require
-// super_admin.
-func (s *OAuthService) ValidateScopesForPerson(scopes string, person *libs_entities.Person) error {
-	for _, scope := range strings.Fields(scopes) {
-		def, ok := libs_constants.OAuthScopeDefinitions[scope]
-		if !ok {
-			return fmt.Errorf("unknown scope: %s", scope)
-		}
-
-		if def.SuperAdminOnly && !person.IsSuperAdmin() {
-			return fmt.Errorf("scope %s requires super admin privileges", scope)
-		}
-		if def.AdminOnly && !person.IsAdminOrSuperAdmin() {
-			return fmt.Errorf("scope %s requires admin privileges", scope)
-		}
-	}
-	return nil
-}
+// Note: there is deliberately no ValidateScopesForPerson. Privilege
+// filtering happens in AvailableScopesForConsent below, which SILENTLY
+// DROPS what the viewer may not grant rather than erroring. That is what
+// lets a first-party app request its full scope list from every viewer
+// and receive a narrower token instead of invalid_scope. A second
+// function with the opposite semantics sitting next to it is a loaded
+// gun — if a future non-interactive grant needs strict validation, add
+// it back deliberately.
 
 // ScopeDescriptions returns human-readable descriptions for display on
 // the consent screen. Unknown scopes are echoed through unchanged.

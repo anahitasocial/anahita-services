@@ -630,3 +630,13 @@ k8s-stop:
 	@echo "Stopping kubernetes..."
 	minikube stop
 	@echo "Done!"
+
+## test: runs the unit tests. anahita-libs carries the scope drift
+## guard, which fails on any HasScope("literal") anywhere in the
+## workspace — run this before shipping a permission change.
+test:
+	@echo "Testing anahita-libs..."
+	cd anahita-libs && go test ./...
+	@echo "Testing auth-service..."
+	cd auth-service && go test ./...
+	@echo "Done!"

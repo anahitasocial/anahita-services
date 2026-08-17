@@ -174,14 +174,6 @@ func main() {
 		log.Fatalf("failed to seed default OAuth clients: %v", err)
 	}
 
-	// TODO: LoadScopes reads OAUTH_SCOPES_PATH for runtime scope
-	// metadata (descriptions, etc.). Skipped for now — scope names
-	// live in anahita-libs/constants and are sufficient until consent
-	// UI needs the descriptions.
-	// if err := services.LoadScopes(cfg.GetOAuthScopesPath()); err != nil {
-	// 	log.Printf("failed to load scope definitions: %v", err)
-	// }
-
 	// 9. Signer sanity check. Confirms the configured signer can
 	// actually resolve an active key after seeding completed. Catches
 	// misconfigurations where seeding succeeded but the signer's

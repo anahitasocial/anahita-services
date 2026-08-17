@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"slices"
+
 	"log"
 	"net/http"
 
@@ -114,10 +116,21 @@ func (h *oauthHandler) JWKS(c echo.Context) error {
 // discovery document. Sourced from the canonical scope registry in
 // anahita-libs so additions to the catalog automatically appear in
 // discovery without having to edit two places.
+//
+// Deliberately unfiltered. Public is false for all but the four OIDC
+// scopes, so filtering on it would advertise almost nothing and mislead
+// the first-party apps that are the only consumers today. Per RFC 8414
+// scopes_supported is documentation, not authorization — the real gates
+// are ValidateScopesForClient and AvailableScopesForConsent. Revisit
+// when the first third-party client is registered.
+//
+// Sorted because map iteration order is random, which would otherwise
+// change the discovery document on every request.
 func supportedScopes() []string {
 	scopes := make([]string, 0, len(libs_constants.OAuthScopeDefinitions))
 	for scope := range libs_constants.OAuthScopeDefinitions {
 		scopes = append(scopes, scope)
 	}
+	slices.Sort(scopes)
 	return scopes
 }

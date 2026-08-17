@@ -1,6 +1,7 @@
 package permissions
 
 import (
+	libs_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"errors"
 )
@@ -32,7 +33,7 @@ func (p *feedPermissions) CanDelete(viewer *entities.Viewer, entity interface{})
 
 // CanAdministrate - only site admins
 func (p *feedPermissions) CanAdministrate(viewer *entities.Viewer, entity interface{}) (bool, error) {
-	if !viewer.HasScope("admin:media") {
+	if !viewer.HasScope(libs_constants.OAuthScopeMediaWrite) {
 		return false, errors.New(ErrInsufficientScope)
 	}
 

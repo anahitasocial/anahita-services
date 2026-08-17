@@ -2,6 +2,7 @@ package permissions
 
 import (
 	"anahita-libs/cmd/api/permissions"
+	libs_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"errors"
 	"fmt"
@@ -55,6 +56,10 @@ func (p *repostPermissions) CanBrowse(viewer *entities.Viewer, node *entities.An
 // CanAdd
 func (p *repostPermissions) CanAdd(viewer *entities.Viewer, node *entities.AnahitaNode) (bool, error) {
 	var err error
+
+	if !viewer.HasScope(libs_constants.OAuthScopeLikesWrite) {
+		return false, errors.New(ErrInsufficientScope)
+	}
 
 	if viewer.IsAdmin() {
 		return true, nil
@@ -110,6 +115,10 @@ func (p *repostPermissions) CanAdd(viewer *entities.Viewer, node *entities.Anahi
 
 // CanDelete
 func (p *repostPermissions) CanDelete(viewer *entities.Viewer, repost *entities.AnahitaNode) (bool, error) {
+	if !viewer.HasScope(libs_constants.OAuthScopeLikesWrite) {
+		return false, errors.New(ErrInsufficientScope)
+	}
+
 	if viewer.IsAdmin() {
 		return true, nil
 	}
@@ -123,5 +132,5 @@ func (p *repostPermissions) CanDelete(viewer *entities.Viewer, repost *entities.
 
 // CanAdministrate returns true if the viewer is allowed to administrate the repost
 func (p *repostPermissions) CanAdministrate(viewer *entities.Viewer, entity interface{}) (bool, error) {
-	return true, errors.New("you are not allowed to administrate this repost")
+	return false, errors.New("you are not allowed to administrate this repost")
 }

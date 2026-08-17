@@ -1,6 +1,7 @@
 package permissions
 
 import (
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"errors"
 )
@@ -46,7 +47,7 @@ func (t *TaggablePermissions) CanEdit(viewer *entities.Viewer, taggable Taggable
 
 // CanAdd - author, owner, or admin can tag content
 func (t *TaggablePermissions) CanAdd(viewer *entities.Viewer, taggable TaggableInterface) (bool, error) {
-	if !viewer.HasScope("write:media") {
+	if !viewer.HasScope(constants.OAuthScopeMediaWrite) {
 		return false, errors.New(ErrTaggableInsufficientScope)
 	}
 
@@ -67,7 +68,7 @@ func (t *TaggablePermissions) CanAdd(viewer *entities.Viewer, taggable TaggableI
 
 // CanDelete - author, owner, or admin can remove tags
 func (t *TaggablePermissions) CanDelete(viewer *entities.Viewer, taggable TaggableInterface) (bool, error) {
-	if !viewer.HasScope("write:media") {
+	if !viewer.HasScope(constants.OAuthScopeMediaWrite) {
 		return false, errors.New(ErrTaggableInsufficientScope)
 	}
 
@@ -88,7 +89,7 @@ func (t *TaggablePermissions) CanDelete(viewer *entities.Viewer, taggable Taggab
 
 // CanAdministrate - admin only
 func (t *TaggablePermissions) CanAdministrate(viewer *entities.Viewer, taggable TaggableInterface) (bool, error) {
-	if !viewer.HasScope("admin:media") {
+	if !viewer.HasScope(constants.OAuthScopeMediaWrite) {
 		return false, errors.New(ErrTaggableInsufficientScope)
 	}
 

@@ -59,7 +59,6 @@ func validConfig() *Config {
 		CryptLocalKey:       "abcdefghijklmnopqrstuvwxyz012345",
 		OAuthIssuer:         "https://auth.example.com",
 		OAuthJWKSURL:        "https://auth.example.com/.well-known/jwks.json",
-		OAuthScopesPath:     defaultOAuthScopesPath,
 		OAuthSeedClientPath: defaultOAuthSeedClientPath,
 		OAuthKeyLifetime:    24 * time.Hour,
 		OAuthSignerBackend:  constants.OAuthSignerBackendLocal,

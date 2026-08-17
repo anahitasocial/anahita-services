@@ -4,7 +4,6 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"errors"
-	"log"
 )
 
 const (
@@ -87,7 +86,7 @@ func (p *ActorsPermissions) CanRead(ctx *ActorAccessContext) (bool, error) {
 }
 
 func (p *ActorsPermissions) CanEdit(ctx *ActorAccessContext) (bool, error) {
-	if !ctx.Viewer.HasScope("write:actors") {
+	if !ctx.Viewer.HasScope(constants.OAuthScopeActorsWrite) {
 		return false, errors.New(ErrActorInsufficientScope)
 	}
 
@@ -107,7 +106,7 @@ func (p *ActorsPermissions) CanEdit(ctx *ActorAccessContext) (bool, error) {
 }
 
 func (p *ActorsPermissions) CanAdd(ctx *ActorAccessContext) (bool, error) {
-	if !ctx.Viewer.HasScope("write:actors") {
+	if !ctx.Viewer.HasScope(constants.OAuthScopeActorsWrite) {
 		return false, errors.New(ErrActorInsufficientScope)
 	}
 
@@ -119,7 +118,7 @@ func (p *ActorsPermissions) CanAdd(ctx *ActorAccessContext) (bool, error) {
 }
 
 func (p *ActorsPermissions) CanDelete(ctx *ActorAccessContext) (bool, error) {
-	if !ctx.Viewer.HasScope("write:actors") {
+	if !ctx.Viewer.HasScope(constants.OAuthScopeActorsWrite) {
 		return false, errors.New(ErrActorInsufficientScope)
 	}
 
@@ -139,9 +138,7 @@ func (p *ActorsPermissions) CanDelete(ctx *ActorAccessContext) (bool, error) {
 }
 
 func (p *ActorsPermissions) CanAdministrate(ctx *ActorAccessContext) (bool, error) {
-	log.Println("Checking if viewer can administrate actor", ctx.Viewer.Scopes)
-
-	if !ctx.Viewer.HasScope("admin:actors") {
+	if !ctx.Viewer.HasScope(constants.OAuthScopeActorsWrite) {
 		return false, errors.New(ErrActorInsufficientScope)
 	}
 
@@ -161,7 +158,7 @@ func (p *ActorsPermissions) CanAdministrate(ctx *ActorAccessContext) (bool, erro
 }
 
 func (p *ActorsPermissions) CanAddAdmin(ctx *ActorAccessContext, admin *entities.AnahitaNode) (bool, error) {
-	if !ctx.Viewer.HasScope("admin:actors") {
+	if !ctx.Viewer.HasScope(constants.OAuthScopeActorsWrite) {
 		return false, errors.New(ErrActorInsufficientScope)
 	}
 
@@ -177,7 +174,7 @@ func (p *ActorsPermissions) CanAddAdmin(ctx *ActorAccessContext, admin *entities
 }
 
 func (p *ActorsPermissions) CanDeleteAdmin(ctx *ActorAccessContext, admin *entities.AnahitaNode) (bool, error) {
-	if !ctx.Viewer.HasScope("admin:actors") {
+	if !ctx.Viewer.HasScope(constants.OAuthScopeActorsWrite) {
 		return false, errors.New(ErrActorInsufficientScope)
 	}
 
