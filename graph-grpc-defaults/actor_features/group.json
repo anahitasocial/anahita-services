@@ -1,0 +1,30 @@
+[
+    {
+        "service": "socialgraph-service",
+        "add_permissions": [
+            { "entity": "follower", "access": "admins" }
+        ]
+    },
+    {
+        "service": "text-service",
+        "node_types": ["note", "article", "topic"],
+        "composers": ["note", "article", "topic"],
+        "enabled": true,
+        "add_permissions": [
+            { "entity": "note", "access": "followers" },
+            { "entity": "article", "access": "followers" },
+            { "entity": "topic", "access": "followers" }
+        ],
+        "include_common_permissions": ["content_creator"]
+    },
+    {
+        "service": "photo-service",
+        "node_types": ["photo"],
+        "composers": ["photo"],
+        "enabled": true,
+        "add_permissions": [
+            { "entity": "photo", "access": "followers" }
+        ],
+        "include_common_permissions": ["content_creator"]
+    }
+]

@@ -1,0 +1,15 @@
+{{define "title"}}Error{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>{{.ErrorTitle}}</h2>
+
+    <p>{{.ErrorMessage}}</p>
+
+    <a href="{{.FrontendURL}}" class="btn btn-primary">Return Home</a>
+</div>
+{{end}}

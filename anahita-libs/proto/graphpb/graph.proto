@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/node.proto";
+import "proto/graphpb/edge.proto";
+import "proto/graphpb/context.proto";
+import "google/protobuf/timestamp.proto";
+
+message BrowseNeighboursRequest {
+    int64 node_id = 1;
+    repeated string edge_types = 2;
+    string direction = 3; // "IN", "OUT", "BOTH"
+    uint64 limit = 4;
+    uint64 offset = 5;
+    string ordering = 6;
+    string ordering_dir = 7; // "ASC", "DESC"
+    Viewer viewer = 8;
+    bool access_check = 9;
+}
+
+message BrowseNeighboursResponse {
+    repeated Node nodes = 1;
+    uint64 total = 2;
+}
+
+message BrowseConnectionNodesRequest {
+    int64 node_id = 1;
+    string edge_type = 2;
+    string direction = 3; // "IN", "OUT", "BOTH"
+    uint32 hops = 4;
+    bool distinct = 5;
+    uint64 limit = 6;
+    uint64 offset = 7;
+    string ordering = 8;
+    string ordering_dir = 9;
+    Viewer viewer = 10;
+    bool access_check = 11;
+}
+
+message BrowseConnectionNodesResponse {
+    repeated Node nodes = 1;
+    uint64 total = 2;
+}
+
+message BrowseOrderedByDegreeRequest {
+    string node_type = 1;
+    repeated string edge_types = 2;
+    string direction = 3; // "IN", "OUT", "BOTH"
+    uint64 limit = 4;
+    uint64 offset = 5;
+    string ordering_dir = 6; // "ASC", "DESC"
+    Viewer viewer = 7;
+    bool access_check = 8;
+}
+
+message BrowseOrderedByDegreeResponse {
+    repeated Node nodes = 1;
+    uint64 total = 2;
+}
+
+message ReadNeighbourhoodRequest {
+    int64 node_id = 1;
+    repeated string edge_types = 2;
+    uint32 depth = 3;
+    string direction = 4; // "IN", "OUT", "BOTH"
+    Viewer viewer = 5;
+    bool access_check = 6;
+}
+
+message ReadNeighbourhoodResponse {
+    Node center = 1;
+    repeated Node neighbours = 2;
+    repeated Edge edges = 3;
+    google.protobuf.Timestamp created_on = 4;
+}
+
+message TraverseRequest {
+    int64 start_node_id = 1;
+    repeated string edge_types = 2;
+    string direction = 3; // "IN", "OUT", "BOTH"
+    uint32 max_depth = 4;
+    string strategy = 5; // "BFS", "DFS"
+    uint64 limit = 6;
+}
+
+message TraverseResponse {
+    repeated Node nodes = 1;
+    repeated Edge edges = 2;
+    uint32 depth_reached = 3;
+    google.protobuf.Timestamp created_on = 4;
+}
+
+message ReadShortestPathRequest {
+    int64 start_node_id = 1;
+    int64 end_node_id = 2;
+    repeated string edge_types = 3;
+    string direction = 4; // "IN", "OUT", "BOTH"
+    uint32 max_depth = 5;
+}
+
+message ReadShortestPathResponse {
+    repeated Node nodes = 1;
+    repeated Edge edges = 2;
+    uint32 hops = 3;
+    bool found = 4;
+    google.protobuf.Timestamp created_on = 5;
+    string strategy = 6; // "BFS", "DFS"
+}
+
+message TrendingRequest {
+    string node_type = 1;
+    repeated string edge_types = 2;
+    string direction = 3; // "IN", "OUT", "BOTH"
+    string time_window = 4; // "1h", "6h", "24h", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"
+    uint64 limit = 5;
+    Viewer viewer = 6;
+    bool access_check = 7;
+}
+
+message TrendingResponse {
+    repeated Node nodes = 1;
+}
+
+service GraphService {
+    rpc BrowseNeighbours(BrowseNeighboursRequest) returns (BrowseNeighboursResponse);
+    rpc BrowseConnectionNodes(BrowseConnectionNodesRequest) returns (BrowseConnectionNodesResponse);
+    rpc BrowseOrderedByDegree(BrowseOrderedByDegreeRequest) returns (BrowseOrderedByDegreeResponse);
+    rpc ReadNeighbourhood(ReadNeighbourhoodRequest) returns (ReadNeighbourhoodResponse);
+    rpc Traverse (TraverseRequest) returns (TraverseResponse);
+    rpc ReadShortestPath(ReadShortestPathRequest) returns (ReadShortestPathResponse);
+    rpc Trending(TrendingRequest) returns (TrendingResponse);
+}

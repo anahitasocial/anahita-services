@@ -1,0 +1,281 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+
+message Node {
+    int64 id = 1;
+    string type = 2;
+    string service = 3;
+    bool enabled = 4;
+    string access = 5;
+    string name = 6;
+    string alias = 7;
+    string body = 8;
+    string excerpt = 9;
+    string filename = 10;
+    string cover_filename = 11;
+    int64 filesize = 12;
+    string meta = 13;
+    google.protobuf.Timestamp created_on = 14;
+    google.protobuf.Timestamp modified_on = 15;
+    int64 follower_count = 16;
+    int64 leader_count = 17;
+    int64 mutual_count = 18;
+    int64 subscriber_count = 19;
+    bool comment_status = 20;
+    int64 comment_count = 21;
+    int64 likes_count = 22;
+    int64 dislikes_count = 23;
+    bool is_liked_by_viewer = 24;
+    int64 repost_count = 26;
+    int64 quote_count = 27;
+    string features_raw = 28;
+    repeated NodeFeature features = 29;
+    map<string, google.protobuf.Any> information = 30;
+    Node owner = 31;
+    Node parent = 32;
+    Node author = 33;
+    Node editor = 34;
+    bool is_subscribed_by_viewer = 35;
+    bool is_reposted_by_viewer = 36;
+    bool is_quoted_by_viewer = 37;
+    bool is_following_viewer = 38;
+    bool is_leading_viewer = 39;
+    bool is_blocked_by_viewer = 40;
+    bool is_admined_by_viewer = 41;
+    bool allow_follow_request = 42;
+    google.protobuf.Timestamp start_date = 43;
+    google.protobuf.Timestamp end_date = 44;
+    string owner_type = 45;
+    int64 owner_id = 46;
+    int64 last_comment_id = 47;
+    int64 last_comment_by = 48;
+    google.protobuf.Timestamp last_comment_on = 49;
+    int32 ordering = 50;
+    bool verified = 51;
+    bool pinned = 52;
+    bool is_default = 53;
+    int64 hits_count = 54;
+    int64 parent_id = 55;
+    string parent_type = 56;
+    double geo_latitude = 57;
+    double geo_longitude = 58;
+    string geo_address = 59;
+    string geo_city = 60;
+    string geo_state_province = 61;
+    string geo_country = 62;
+    string geo_postalcode = 63;
+    google.protobuf.Timestamp creation_time = 64;
+    int64 created_by = 65;
+    google.protobuf.Timestamp update_time = 66;
+    int64 modified_by = 67;
+    int64 cover_filesize = 68;
+    string cover_mimetype = 69;
+    string status = 70;
+    google.protobuf.Timestamp status_update_time = 71;
+    string mimetype = 72;
+    int32 timezone = 73;
+    string language = 74;
+    int64 edge_count = 75;
+}
+
+message Nodes {
+    repeated Node nodes = 1;
+}
+
+message NodeBrowseRequest {
+    repeated string types = 1;
+    repeated int64 owner_ids = 2;
+    repeated int64 parent_ids = 3;
+    double nearby_latitude = 4;
+    double nearby_longitude = 5;
+    uint64 nearby_radius = 6;
+    string ordering = 7;
+    string ordering_dir = 8;
+    uint64 limit = 9;
+    uint64 offset = 10;
+    string search = 11;
+    Viewer viewer = 12;
+    bool access_check = 13;
+}
+
+message NodeBrowseResponse {
+    repeated Node nodes = 1;
+}
+
+message NodeReadRequest {
+    int64 id = 1;
+}
+
+message NodeReadResponse {
+    Node node = 1;
+}
+
+message NodeReadByAliasRequest {
+    string alias = 1;
+    string node_type = 2;
+}
+
+message NodeReadByAliasResponse {
+    Node node = 1;
+}
+
+message NodeEditRequest {
+    Node node = 1;
+}
+
+message NodeEditResponse {
+    Node node = 1;
+}
+
+message NodeAddRequest {
+    Node node = 1;
+}
+
+message NodeAddResponse {
+    Node node = 1;
+}
+
+message NodeDeleteRequest {
+    int64 id = 1;
+}
+
+message NodeDeleteResponse {
+    bool success = 1;
+}
+
+message NodeCountRequest {
+    repeated string types = 1;
+    repeated int64 owner_ids = 2;
+    repeated int64 parent_ids = 3;
+    string search = 4;
+    double nearby_latitude = 5;
+    double nearby_longitude = 6;
+    uint64 nearby_radius = 7;
+    Viewer viewer = 8;
+    bool access_check = 9;
+}
+
+message NodeCountResponse {
+    uint64 total = 1;
+}
+
+message NodeBatchReadRequest {
+    repeated int64 ids = 1;
+    string ordering = 2;
+    string ordering_dir = 3;
+}
+
+message NodeBatchReadResponse {
+    repeated Node nodes = 1;
+}
+
+message NodeBatchReadByAliasesRequest {
+    repeated string aliases = 1;
+    string node_type = 2;
+    string ordering = 3;
+    string ordering_dir = 4;
+}
+
+message NodeBatchReadByAliasesResponse {
+    repeated Node nodes = 1;
+}
+
+message NodeBatchEditRequest {
+    repeated Node nodes = 1;
+    Viewer viewer = 2;
+}
+
+message NodeBatchEditResponse {
+    repeated Node nodes = 1;
+}
+
+message NodeBatchAddRequest {
+    repeated Node nodes = 1;
+    Viewer viewer = 2;
+}
+
+message NodeBatchAddResponse {
+    repeated Node nodes = 1;
+}
+
+message NodeBatchDeleteRequest {
+    repeated int64 ids = 1;
+}
+
+message NodeBatchDeleteResponse {
+    bool success = 1;
+}
+
+message BrowseMutualConnectionsRequest {
+    int64 node_a_id = 1;
+    int64 node_b_id = 2;
+    string edge_type = 3;
+    string direction = 4; // "in", "out", "mutual"
+    string ordering = 5;
+    uint64 limit = 6;
+    uint64 offset = 7;
+    Viewer viewer = 8;
+    bool access_check = 9;
+}
+
+message BrowseMutualConnectionsResponse {
+    repeated Node nodes = 1;
+}
+
+message CountConnectionsRequest {
+    int64 node_id = 1;
+    string edge_type = 2;
+    Viewer viewer = 3;
+    bool access_check = 4;
+}
+
+message CountConnectionsResponse {
+    uint64 total = 1;
+}
+
+message ReadConnectionStatsRequest {
+    int64 node_id = 1;
+    Viewer viewer = 2;
+    bool access_check = 3;
+}
+
+message ReadConnectionStatsResponse {
+    uint64 follower_count = 1;
+    uint64 leader_count = 2;
+    uint64 mutual_count = 3;
+    uint64 subscriber_count = 4;
+    uint64 comment_count = 5;
+    uint64 vote_up_count = 6;
+    uint64 vote_down_count = 7;
+    uint64 repost_count = 8;
+    uint64 quote_count = 9;
+}
+
+service NodeService {
+    rpc Browse(NodeBrowseRequest) returns (NodeBrowseResponse);
+    rpc Read(NodeReadRequest) returns (NodeReadResponse);
+    rpc ReadByAlias(NodeReadByAliasRequest) returns (NodeReadByAliasResponse);
+    rpc Edit(NodeEditRequest) returns (NodeEditResponse);
+    rpc Add(NodeAddRequest) returns (NodeAddResponse);
+    rpc Delete(NodeDeleteRequest) returns (NodeDeleteResponse);
+    rpc Count(NodeCountRequest) returns (NodeCountResponse);
+
+    // Batch operations
+    rpc BatchRead(NodeBatchReadRequest) returns (NodeBatchReadResponse);
+    rpc BatchReadByAliases(NodeBatchReadByAliasesRequest) returns (NodeBatchReadByAliasesResponse);
+    rpc BatchEdit(NodeBatchEditRequest) returns (NodeBatchEditResponse);
+    rpc BatchAdd(NodeBatchAddRequest) returns (NodeBatchAddResponse);
+    rpc BatchDelete(NodeBatchDeleteRequest) returns (NodeBatchDeleteResponse);
+
+    // Relationship Queries
+    rpc BrowseMutualConnections(BrowseMutualConnectionsRequest) returns (BrowseMutualConnectionsResponse);
+    rpc CountConnections(CountConnectionsRequest) returns (CountConnectionsResponse);
+    rpc ReadConnectionStats(ReadConnectionStatsRequest) returns (ReadConnectionStatsResponse);
+}

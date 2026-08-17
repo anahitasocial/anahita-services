@@ -1,0 +1,44 @@
+{{define "title"}}Authorize Application{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Authorize {{.ClientName}}</h2>
+
+    <p>
+        <strong>{{.ClientName}}</strong> is requesting access to your account
+        <strong>{{.ViewerName}}</strong>.
+    </p>
+
+    <hr class="divider">
+
+    <p>This application will be able to:</p>
+
+    <ul class="scope-list">
+        {{range .Scopes}}
+        <li class="scope-item">
+            <span class="scope-icon">&#10003;</span>
+            {{.}}
+        </li>
+        {{end}}
+    </ul>
+
+    <hr class="divider">
+
+    <form method="POST" action="/oauth/authorize">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        <div class="btn-actions">
+            <button type="submit" name="approved" value="false" class="btn btn-outline">Deny</button>
+            <button type="submit" name="approved" value="true" class="btn btn-primary">Allow</button>
+        </div>
+    </form>
+
+    <p class="footer-text">
+        You can revoke access at any time from your account settings.
+    </p>
+</div>
+{{end}}

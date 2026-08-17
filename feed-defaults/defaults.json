@@ -1,0 +1,13 @@
+{
+    "media_entity_types": [
+        "node.medium.text-service.article.v1",
+        "node.medium.text-service.note.v1",
+        "node.medium.photo-service.photo.v1",
+        "node.medium.photo-service.photo-set.v1",
+        "node.medium.text-service.topic.v1"
+    ],
+    "actor_entity_types": [
+        "node.actor.group-service.group.v1",
+        "node.actor.person-service.person.v1"
+    ]
+}

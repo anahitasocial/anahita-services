@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+message NodeAddPermission {
+    string entity = 1;
+    string access = 2;
+}
+
+message NodeFeature {
+    string service = 1;
+    repeated string node_types = 2;
+    repeated string composers = 3;
+    bool optional = 4;
+    bool enabled = 5;
+    repeated NodeAddPermission add_permissions = 6;
+    int32 ordering = 7;
+}
+
+message Target {
+    int64 id = 1;
+    string type = 2;
+}
+
+message Source {
+    int64 id = 1;
+    string type = 2;
+}
+
+message Viewer {
+    int64 id = 1;
+    string user_type = 2;
+    string email = 3;
+    string username = 4;
+    repeated string scopes = 5;
+    string client_id = 6;
+    bool authenticated = 7;
+    bool enabled = 8;
+}

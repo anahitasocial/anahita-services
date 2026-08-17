@@ -1,0 +1,96 @@
+{{define "title"}}Verify Your Identity{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Two-factor authentication</h2>
+
+    <p>
+        Open your authenticator app and enter the 6-digit code for
+        <strong>{{.Email}}</strong>.
+    </p>
+
+    {{if .Error}}
+    <div class="error-message" role="alert">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/oauth/login/totp" id="totp-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        <div class="text-field">
+            <input
+                type="text"
+                id="totp_passcode"
+                name="totp_passcode"
+                class="code-input"
+                placeholder=" "
+                required
+                autocomplete="one-time-code"
+                inputmode="numeric"
+                pattern="[0-9]{6}"
+                maxlength="6"
+                autofocus
+            >
+            <label for="totp_passcode">6-digit code</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="totp-submit">Verify</button>
+    </form>
+
+    <hr class="divider">
+
+    <p class="text-center">
+        <a href="/oauth/login" class="text-link">Back to sign in</a>
+    </p>
+
+    <p class="footer-text">
+        <a href="{{.FrontendURL}}" class="text-link">Cancel and return to {{.SiteName}}</a>
+    </p>
+</div>
+
+<script>
+    // Strip non-digits, auto-submit on 6 digits, and lock the form
+    // once a submission is in flight. The submit lock matters: a slow
+    // network on auto-submit otherwise leaves the Verify button live,
+    // and clicking it (or pressing Enter) fires a native submit that
+    // bypasses the `submitted` guard. Auto-submit is a UX nicety —
+    // the form works fine without JS, and the server validates
+    // everything regardless.
+    (function () {
+        var input = document.getElementById('totp_passcode');
+        var form  = document.getElementById('totp-form');
+        var btn   = document.getElementById('totp-submit');
+        if (!input || !form || !btn) return;
+
+        var submitted = false;
+
+        function lockUI() {
+            input.readOnly = true;
+            btn.disabled = true;
+            btn.textContent = 'Verifying…';
+        }
+
+        input.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '');
+            if (this.value.length === 6 && !submitted) {
+                submitted = true;
+                lockUI();
+                form.submit();
+            }
+        });
+
+        // Native form submission (Enter, Verify button) — same lock.
+        form.addEventListener('submit', function (e) {
+            if (submitted) {
+                e.preventDefault();
+                return;
+            }
+            submitted = true;
+            lockUI();
+        });
+    })();
+</script>
+{{end}}

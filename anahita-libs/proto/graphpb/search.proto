@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+import "proto/graphpb/node.proto";
+
+message SearchBrowseRequest {
+    uint64 offset = 1;
+    uint64 limit = 2;
+    string ordering = 3;
+    string ordering_dir = 4;
+    string keywords = 5;
+    string scope = 6;
+    bool include_comments = 7;
+    int32 coord_radius = 8;
+    float coord_lng = 9;
+    float coord_lat = 10;
+    Viewer viewer = 11;
+    bool access_check = 12;
+}
+
+message SearchBrowseResponse {
+    repeated Node nodes = 1;
+}
+
+message SearchCountRequest {
+    string keywords = 5;
+    string scope = 6;
+    bool include_comments = 7;
+    int32 coord_radius = 8;
+    float coord_lng = 9;
+    float coord_lat = 10;
+    Viewer viewer = 11;
+    bool access_check = 12;
+}
+
+message SearchCountResponse {
+    uint64 total = 1;
+}
+
+service SearchService {
+    rpc Browse(SearchBrowseRequest) returns (SearchBrowseResponse);
+    rpc Count(SearchCountRequest) returns (SearchCountResponse);
+}

@@ -1,0 +1,9 @@
+name: socialgraph-service
+description: Social Graph Service for managing social connections in Anahita Microservices.
+version: 0.9.0
+copyright: 2025 Rastin Mehr Design Studio Inc. (rmdStudio)
+license: Rastin Mehr Design Studio License
+website: https://www.Anahita.io
+author:
+  - name: Rastin Mehr
+  - website: https://www.rmdstudio.com

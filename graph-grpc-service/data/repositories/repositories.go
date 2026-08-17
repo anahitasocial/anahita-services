@@ -1,0 +1,37 @@
+package repositories
+
+import (
+	"database/sql"
+)
+
+func NewRepositories(db *sql.DB) *Repositories {
+	return &Repositories{
+		ActorAdmins:       NewActorAdminRepo(db),
+		Edges:             NewEdgesRepo(db),
+		FeedActor:         NewFeedActorRepo(db),
+		FeedLeaders:       NewFeedLeadersRepo(db),
+		Graph:             NewGraphRepo(db),
+		LikesRel:          NewLikesRelRepo(db),
+		Nodes:             NewNodesRepo(db),
+		Reposts:           NewRepostsRepo(db),
+		Search:            NewSearchRepo(db),
+		SocialgraphRel:    NewSocialgraphRelRepo(db),
+		SocialGraphCounts: NewSocialGraphCountsRepo(db),
+		SubscriptionsRel:  NewSubscriptionsRelRepo(db),
+	}
+}
+
+type Repositories struct {
+	ActorAdmins       ActorAdminRepoInterface
+	Edges             EdgesRepoInterface
+	FeedActor         FeedActorRepoInterface
+	FeedLeaders       FeedLeadersRepoInterface
+	Graph             GraphRepoInterface
+	LikesRel          LikesRelInterface
+	Nodes             NodesRepoInterface
+	Reposts           RepostsRepoInterface
+	Search            SearchRepoInterface
+	SocialgraphRel    SocialgraphRelInterface
+	SocialGraphCounts SocialGraphCountsInterface
+	SubscriptionsRel  SubscriptionsRelInterface
+}

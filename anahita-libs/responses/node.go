@@ -1,0 +1,127 @@
+package responses
+
+import (
+	"anahita-libs/data/entities"
+	"time"
+)
+
+type NodeItem struct {
+	ID                 int64     `json:"id"`
+	Type               string    `json:"type"`
+	Name               string    `json:"name,omitempty"`
+	Alias              string    `json:"alias,omitempty"`
+	Body               string    `json:"body,omitempty"`
+	QuoteCount         int64     `json:"quote_count,omitempty"`
+	Verified           bool      `json:"verified,omitempty"`
+	CreationTime       time.Time `json:"creation_time,omitempty"`
+	FollowerCount      int64     `json:"follower_count,omitempty"`
+	Mimetype           string    `json:"mimetype,omitempty"`
+	Access             string    `json:"access,omitempty"`
+	LikesCount         int64     `json:"likes_count,omitempty"`
+	IsLikedByViewer    bool      `json:"is_liked_by_viewer,omitempty"`
+	RepostCount        int64     `json:"repost_count,omitempty"`
+	IsRepostedByViewer bool      `json:"is_reposted_by_viewer,omitempty"`
+	IsLeadingViewer    bool      `json:"is_leading_viewer,omitempty"`
+	IsAdminedByViewer  bool      `json:"is_admined_by_viewer,omitempty"`
+	IsFollowingViewer  bool      `json:"is_following_viewer,omitempty"`
+	IsBlockedByViewer  bool      `json:"is_blocked_by_viewer,omitempty"`
+
+	// Related Entities
+	Author *Author `json:"author,omitempty"`
+	Editor *Editor `json:"editor,omitempty"`
+	Parent *Parent `json:"parent,omitempty"`
+	Owner  *Owner  `json:"owner,omitempty"`
+
+	// Media URLs
+	Avatar   map[string]Image `json:"avatar_urls,omitempty"`
+	Cover    map[string]Image `json:"cover_urls,omitempty"`
+	Portrait map[string]Image `json:"portrait_urls,omitempty"`
+}
+
+type NodeResponse struct{}
+
+func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
+	if node == nil {
+		return nil
+	}
+
+	return &NodeItem{
+		ID:                 node.ID,
+		Type:               node.Type,
+		Name:               node.Name,
+		Alias:              node.Alias,
+		Body:               node.Body,
+		QuoteCount:         node.QuoteCount,
+		Verified:           node.Verified,
+		CreationTime:       node.CreationTime,
+		FollowerCount:      node.FollowerCount,
+		Mimetype:           node.Mimetype,
+		Access:             node.Access,
+		LikesCount:         node.LikesCount,
+		IsLikedByViewer:    node.IsLikedByViewer,
+		RepostCount:        node.RepostCount,
+		IsRepostedByViewer: node.IsRepostedByViewer,
+		IsLeadingViewer:    node.IsLeadingViewer,
+		IsAdminedByViewer:  node.IsAdminedByViewer,
+		IsFollowingViewer:  node.IsFollowingViewer,
+		IsBlockedByViewer:  node.IsBlockedByViewer,
+		Author: func() *Author {
+			if node.Author != nil {
+				return NewAuthor(node.Author)
+			}
+			return nil
+		}(),
+		Editor: func() *Editor {
+			if node.Editor != nil {
+				return NewEditor(node.Editor)
+			}
+			return nil
+		}(),
+		Parent: func() *Parent {
+			if node.Parent != nil {
+				p := NewParent(node.Parent)
+				if node.Parent.Owner != nil {
+					p.Owner = NewOwner(node.Parent.Owner)
+				}
+				return p
+			}
+			return nil
+		}(),
+		Owner: func() *Owner {
+			if node.Owner != nil {
+				return NewOwner(node.Owner)
+			}
+			return nil
+		}(),
+		Avatar: func() map[string]Image {
+			if node.Avatar != nil {
+				return NewAvatar(node.Avatar)
+			}
+			return nil
+		}(),
+		Cover: func() map[string]Image {
+			if node.Cover != nil {
+				return NewCover(node.Cover)
+			}
+			return nil
+		}(),
+		Portrait: func() map[string]Image {
+			if node.Portrait != nil {
+				return NewPortrait(node.Portrait)
+			}
+			return nil
+		}(),
+	}
+}
+
+func (r *NodeResponse) MapNodeItems(nodes []*entities.AnahitaNode) []*NodeItem {
+	if nodes == nil {
+		return nil
+	}
+
+	results := make([]*NodeItem, 0, len(nodes))
+	for _, node := range nodes {
+		results = append(results, r.MapNodeItem(node))
+	}
+	return results
+}

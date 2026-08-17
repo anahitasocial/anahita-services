@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+
+// Block
+message SocialgraphBlockAddRequest {
+    Target target = 1;
+    Source source = 2;
+    Viewer viewer = 3;
+}
+
+message SocialgraphBlockAddResponse {
+    bool success = 1;
+}
+
+message SocialgraphBlockDeleteRequest {
+    Target target = 1;
+    Source source = 2;
+    Viewer viewer = 3;
+}
+
+message SocialgraphBlockDeleteResponse {
+    bool success = 1;
+}
+
+service SocialgraphBlockService {
+    rpc Add(SocialgraphBlockAddRequest) returns (SocialgraphBlockAddResponse);
+    rpc Delete(SocialgraphBlockDeleteRequest) returns (SocialgraphBlockDeleteResponse);
+}

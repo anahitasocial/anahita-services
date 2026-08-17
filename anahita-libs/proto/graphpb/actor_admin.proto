@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+import "proto/graphpb/node.proto";
+
+// Actor Admin
+message ActorAdminBrowseRequest {
+    int64 actor_id = 1;
+}
+
+message ActorAdminBrowseResponse {
+    repeated Node admins = 1;
+}
+
+message ActorAdminAddRequest {
+    Node actor = 1;
+    Node admin = 2;
+    Viewer viewer = 3;
+}
+
+message ActorAdminAddResponse {
+    Node admin = 1;
+}
+
+message ActorAdminDeleteRequest {
+    Node actor = 1;
+    Node admin = 2;
+    Viewer viewer = 3;
+}
+
+message ActorAdminDeleteResponse {
+    Node admin = 1;
+}
+
+service ActorAdminService {
+    rpc Browse(ActorAdminBrowseRequest) returns (ActorAdminBrowseResponse);
+    rpc Add(ActorAdminAddRequest) returns (ActorAdminAddResponse);
+    rpc Delete(ActorAdminDeleteRequest) returns (ActorAdminDeleteResponse);
+}

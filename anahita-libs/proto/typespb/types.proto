@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package types;
+
+option go_package = "/typespb";
+
+message PingRequest {
+    string message = 1;
+}
+
+message PingResponse {
+    string message = 1;
+}
+
+service TypesService {
+    rpc Ping(PingRequest) returns (PingResponse);
+}

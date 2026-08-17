@@ -1,0 +1,49 @@
+{
+    "version": "1.0",
+    "services": [
+        {
+            "service": "feed-service",
+            "node_types": [],
+            "composers": [],
+            "optional": false,
+            "enabled": true,
+            "add_permissions": [],
+            "ordering": 1
+        },
+        {
+            "service": "socialgraph-service",
+            "node_types": [],
+            "composers": [],
+            "optional": false,
+            "enabled": true,
+            "add_permissions": [
+                { "entity": "follower", "access": "admins" }
+            ],
+            "ordering": 2
+        },
+        {
+            "service": "text-service",
+            "node_types": [],
+            "composers": [],
+            "optional": false,
+            "enabled": true,
+            "add_permissions": [],
+            "ordering": 3
+        },
+        {
+            "service": "photo-service",
+            "node_types": [],
+            "composers": [],
+            "optional": true,
+            "enabled": true,
+            "add_permissions": [],
+            "ordering": 4
+        }
+    ],
+    "common_permissions": {
+        "content_creator": [
+            { "entity": "comment", "access": "followers" },
+            { "entity": "like", "access": "followers" }
+        ]
+    }
+}

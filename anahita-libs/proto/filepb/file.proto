@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package file;
+
+option go_package = "/filepb";
+
+message File {
+    bytes content = 1;  // Use 'bytes' for a binary content buffer
+    string path = 2;
+    string mimetype = 3;
+    int64 size = 4;
+}
+
+message ReadRequest {
+    string path = 1;
+}
+
+message ReadResponse {
+    File file = 1;
+}
+
+message EditRequest {
+    File file = 1;
+}
+
+message EditResponse {
+    File file = 1;
+}
+
+message AddRequest {
+    File file = 1;
+}
+
+message AddResponse {
+    File file = 1;
+}
+
+message DeleteRequest {
+    string path = 1;
+}
+
+message DeleteResponse {}
+
+message ExistsRequest {
+    string path = 1;
+}
+
+message ExistsResponse {
+    bool exists = 1;
+}
+
+message PresignRequest {
+    string path = 1;
+}
+
+message PresignResponse {
+    string url = 1;
+}
+
+message BatchPresignRequest {
+    repeated string paths = 1;
+}
+
+message BatchPresignResponse {
+    repeated string urls = 1;
+}
+
+message PingRequest {
+    string message = 1;
+}
+
+message PingResponse {
+    string message = 1;
+}
+
+service FileService {
+    rpc Read(ReadRequest) returns (ReadResponse) {}
+    rpc Edit(EditRequest) returns (EditResponse) {}
+    rpc Add(AddRequest) returns (AddResponse) {}
+    rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+    rpc Exists(ExistsRequest) returns (ExistsResponse) {}
+    rpc Presign(PresignRequest) returns (PresignResponse) {}
+    rpc BatchPresign(BatchPresignRequest) returns (BatchPresignResponse) {}
+    rpc Ping(PingRequest) returns (PingResponse) {}
+}

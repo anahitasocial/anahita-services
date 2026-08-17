@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+
+message SocialgraphFollowEditRequest {
+    Target target = 1;
+    Source source = 2;
+    Viewer viewer = 3;
+    bool accept_follow_request = 4;
+}
+
+message SocialgraphFollowEditResponse {}
+
+message SocialgraphFollowAddRequest {
+    Target target = 1;
+    Source source = 2;
+    Viewer viewer = 3;
+    bool is_follow_request = 4;
+}
+
+message SocialgraphFollowAddResponse {}
+
+message SocialgraphFollowDeleteRequest {
+    Target target = 1;
+    Source source = 2;
+    Viewer viewer = 3;
+}
+
+message SocialgraphFollowDeleteResponse {}
+
+service SocialgraphFollowService {
+    rpc Edit(SocialgraphFollowEditRequest) returns (SocialgraphFollowEditResponse);
+    rpc Add(SocialgraphFollowAddRequest) returns (SocialgraphFollowAddResponse);
+    rpc Delete(SocialgraphFollowDeleteRequest) returns (SocialgraphFollowDeleteResponse);
+}

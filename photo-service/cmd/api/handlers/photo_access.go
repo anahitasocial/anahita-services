@@ -1,0 +1,84 @@
+package handlers
+
+import (
+	"anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
+	"anahita-libs/data/entities"
+	"anahita-libs/requests"
+	"log"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+)
+
+// EditAccess updates the access of a photo
+func (h *photoHandler) EditAccess(c echo.Context) error {
+	var (
+		req    = requests.NewMediumRequest().EditAccess
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	medium, err := h.Srv.MediaGRPC.Read(req.ID, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if ok, err := h.Perms.Media.CanEdit(mediumAccessCtx); !ok {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	medium.Access = handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
+
+	if medium, err = h.Srv.MediaGRPC.Edit(medium, viewer); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if err = h.onAfterFetched(c, medium); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	return c.JSON(http.StatusOK, medium)
+}
+
+// getMediumAccessContext retrieves the MediumAccessContext for the given CommentAccessContext
+func (h *photoHandler) getMediumAccessContext(medium *entities.AnahitaNode, viewer *entities.Viewer) (*permissions.MediumAccessContext, error) {
+	var (
+		err error
+		ctx *permissions.MediumAccessContext
+	)
+
+	ctx = &permissions.MediumAccessContext{
+		Viewer: viewer,
+		Medium: medium,
+	}
+
+	actorIds := []int64{medium.GetOwnerID(), medium.GetAuthorID()}
+	relationships, err := h.Srv.SocialgraphGRPC.Browse(actorIds, viewer.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.OwnerViewerRel = relationships[medium.GetOwnerID()]
+	ctx.AuthorViewerRel = relationships[medium.GetAuthorID()]
+
+	return ctx, nil
+}

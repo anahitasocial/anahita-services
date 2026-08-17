@@ -1,0 +1,41 @@
+{{define "title"}}Signed In{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>You're signed in</h2>
+
+    <p>
+        You're now signed in to <strong>{{.AppName}}</strong>.
+        You can return to the app and close this tab.
+    </p>
+
+    <a href="{{.CallbackURL}}" class="btn btn-primary" id="open-app">Open {{.AppName}}</a>
+
+    <hr class="divider">
+
+    <p class="footer-text">
+        If {{.AppName}} didn't open automatically, click the button above.
+    </p>
+</div>
+
+<script>
+    // Auto-launch the desktop app. The link's href carries the custom
+    // URI scheme (e.g. myapp://callback?code=…); programmatic
+    // .click() triggers the same OS handler a manual click would.
+    //
+    // The short delay lets the success state paint before the OS
+    // prompt potentially steals focus, so a person who declines the
+    // launch dialog still sees confirmation that they're signed in.
+    //
+    // No JS? The button still works — it's a plain link.
+    (function () {
+        var link = document.getElementById('open-app');
+        if (!link) return;
+        setTimeout(function () { link.click(); }, 250);
+    })();
+</script>
+{{end}}

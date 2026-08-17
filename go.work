@@ -1,0 +1,25 @@
+go 1.25.0
+
+use (
+	./anahita-libs
+	./auth-service
+	./avatar-service
+	./comment-service
+	./cover-service
+	./feed-service
+	./file-grpc-service
+	./graph-grpc-service
+	./group-service
+	./hashtag-service
+	./like-service
+	./location-service
+	./mail-grpc-service
+	./notification-service
+	./person-service
+	./photo-service
+	./scripts/s3-migration
+	./search-service
+	./socialgraph-service
+	./story-service
+	./text-service
+)

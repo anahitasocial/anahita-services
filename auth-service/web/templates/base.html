@@ -1,0 +1,364 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.SiteName}} - {{template "title" .}}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            letter-spacing: 0.00938em;
+            color: var(--mui-text-primary);
+            background-color: var(--mui-background-default);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        /* Paper (elevation 3) */
+        .card {
+            background-color: var(--mui-background-paper);
+            border-radius: 4px;
+            box-shadow: var(--mui-elevation-3);
+            padding: 32px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .logo { text-align: center; margin-bottom: 24px; }
+        .logo img { height: 40px; }
+
+        /* Typography: h6 */
+        .logo h1,
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            line-height: 1.6;
+            letter-spacing: 0.0075em;
+            color: var(--mui-text-primary);
+        }
+        .logo h1 { margin-top: 12px; }
+        h2 { margin-bottom: 24px; }
+
+        /* Typography: body2 */
+        p {
+            font-size: 0.875rem;
+            line-height: 1.43;
+            letter-spacing: 0.01071em;
+            color: var(--mui-text-secondary);
+            margin-bottom: 16px;
+        }
+        p strong { color: var(--mui-text-primary); font-weight: 500; }
+
+        /* Outlined TextField with floating label */
+        .text-field {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .text-field input {
+            width: 100%;
+            padding: 18.5px 14px;
+            border: 1px solid var(--mui-outline);
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: inherit;
+            line-height: 1.1875em;
+            color: var(--mui-text-primary);
+            background-color: transparent;
+            outline: none;
+            transition: border-color 0.2s, padding 0.2s;
+        }
+
+        .text-field input:hover:not(:focus) {
+            border-color: var(--mui-outline-hover);
+        }
+
+        .text-field input:focus {
+            border-color: var(--mui-primary-main);
+            border-width: 2px;
+            padding: 17.5px 13px;
+        }
+
+        /* Center & enlarge the TOTP input — feels like a "code field" */
+        .text-field input.code-input {
+            text-align: center;
+            font-size: 1.5rem;
+            letter-spacing: 0.5em;
+            padding-right: 0; /* compensate for letter-spacing on last char */
+        }
+
+        .text-field label {
+            position: absolute;
+            top: 18px;
+            left: 14px;
+            color: var(--mui-text-secondary);
+            font-size: 1rem;
+            line-height: 1;
+            pointer-events: none;
+            transform-origin: left top;
+            transition: transform 0.2s ease-out, color 0.2s ease-out;
+            background-color: var(--mui-background-paper);
+            padding: 0 4px;
+        }
+
+        /* Float label on focus or when filled */
+        .text-field input:focus + label,
+        .text-field input:not(:placeholder-shown) + label {
+            transform: translate(-4px, -26px) scale(0.75);
+        }
+
+        .text-field input:focus + label {
+            color: var(--mui-primary-main);
+        }
+
+        /* Password show/hide toggle.
+         *
+         * Layered on top of .text-field. Right-padding on the input
+         * reserves room so the toggle button never overlaps typed
+         * characters. The toggle is keyboard-focusable and exposes
+         * its pressed state via aria-pressed for screen readers. */
+        .text-field.has-toggle input {
+            padding-right: 64px;
+        }
+        .text-field.has-toggle input:focus {
+            padding-right: 63px;
+        }
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--mui-primary-main);
+            font: inherit;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.02857em;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 4px;
+            line-height: 1;
+        }
+        .password-toggle:hover {
+            background-color: var(--mui-primary-hover-bg);
+        }
+        .password-toggle:focus-visible {
+            outline: 2px solid var(--mui-primary-main);
+            outline-offset: 1px;
+        }
+
+        .helper-text {
+            display: block;
+            font-size: 0.75rem;
+            line-height: 1.66;
+            letter-spacing: 0.03333em;
+            color: var(--mui-text-secondary);
+            margin-top: 4px;
+            margin-left: 14px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 16px;
+            min-width: 64px;
+            min-height: 36px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            font-family: inherit;
+            line-height: 1.75;
+            letter-spacing: 0.02857em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                        border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary {
+            background-color: var(--mui-primary-main);
+            color: var(--mui-primary-contrast);
+            box-shadow: var(--mui-elevation-2);
+            width: 100%;
+        }
+        .btn-primary:hover {
+            background-color: var(--mui-primary-dark);
+            box-shadow: var(--mui-elevation-4);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--mui-primary-main);
+            border: 1px solid var(--mui-primary-outline);
+            padding: 5px 15px;
+            width: 100%;
+        }
+        .btn-outline:hover {
+            background-color: var(--mui-primary-hover-bg);
+            border-color: var(--mui-primary-main);
+        }
+
+        .btn-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 24px;
+        }
+        .btn-actions .btn { flex: 1; }
+
+        /* Inline text link (MUI Link, primary color) */
+        .text-link {
+            color: var(--mui-primary-main);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .text-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Button styled as a link (used inside a POST form) */
+        .link-button {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            font: inherit;
+            color: var(--mui-primary-main);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .link-button:hover {
+            text-decoration: underline;
+        }
+
+        /* Right-aligned helper row (e.g. "Forgot password?") */
+        .form-meta-row {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 0.875rem;
+            margin-top: -8px;
+            margin-bottom: 16px;
+        }
+
+        /* Centered auxiliary text (sign-up prompt) */
+        .text-center {
+            text-align: center;
+        }
+
+        /* List (scopes) */
+        .scope-list {
+            list-style: none;
+            margin: 8px 0;
+            padding: 0;
+        }
+        .scope-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 0.875rem;
+            color: var(--mui-text-primary);
+        }
+        .scope-icon {
+            margin-right: 16px;
+            color: var(--mui-primary-main);
+            font-size: 1.25rem;
+            line-height: 1;
+            width: 24px;
+            display: inline-flex;
+            justify-content: center;
+        }
+
+        /* Alert (error) */
+        .error-message {
+            display: flex;
+            align-items: center;
+            padding: 6px 16px;
+            background-color: var(--mui-error-bg);
+            color: var(--mui-error-fg);
+            border-radius: 4px;
+            font-size: 0.875rem;
+            line-height: 1.43;
+            letter-spacing: 0.01071em;
+            margin-bottom: 16px;
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background-color: var(--mui-divider);
+            margin: 16px 0;
+            border: none;
+        }
+
+        /* Caption */
+        .footer-text {
+            text-align: center;
+            font-size: 0.75rem;
+            line-height: 1.66;
+            letter-spacing: 0.03333em;
+            color: var(--mui-text-secondary);
+            margin-top: 24px;
+        }
+    </style>
+</head>
+<body>
+    {{template "content" .}}
+
+    <script>
+        // Password show/hide toggle. Attaches to any
+        // <button class="password-toggle" data-target="input-id">.
+        //
+        // Toggles the target's type between "password" and "text".
+        // Switching to "text" preserves the typed value (so the user
+        // can verify it) and doesn't affect form submission — the
+        // input's name attribute is what matters server-side, not the
+        // type. autocomplete="new-password" stays in place so OS
+        // password generators and managers continue to work.
+        //
+        // No-JS fallback: the password field still works, the toggle
+        // just doesn't do anything. The form is fully functional.
+        (function () {
+            var toggles = document.querySelectorAll('.password-toggle');
+            for (var i = 0; i < toggles.length; i++) {
+                (function (btn) {
+                    btn.addEventListener('click', function () {
+                        var id = btn.getAttribute('data-target');
+                        var input = document.getElementById(id);
+                        if (!input) return;
+                        var nowVisible = input.type === 'password';
+                        input.type = nowVisible ? 'text' : 'password';
+                        btn.textContent = nowVisible ? 'Hide' : 'Show';
+                        btn.setAttribute('aria-pressed', nowVisible ? 'true' : 'false');
+                        btn.setAttribute(
+                            'aria-label',
+                            nowVisible ? 'Hide password' : 'Show password'
+                        );
+                    });
+                })(toggles[i]);
+            }
+        })();
+    </script>
+</body>
+</html>
+{{end}}

@@ -1,0 +1,78 @@
+{{define "title"}}Accept Invitation{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Join {{.SiteName}}</h2>
+
+    <p>
+        You've been invited to join <strong>{{.SiteName}}</strong>
+        {{if .Email}}as <strong>{{.Email}}</strong>{{end}}. Set your name and a password to get started.
+    </p>
+
+    <p>Your password must be at least 15 characters long. Use a unique passphrase that you don't use elsewhere.</p>
+
+    {{if .Error}}
+    <div class="error-message">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/invites/accept" novalidate>
+        <input type="hidden" name="token" value="{{.Token}}">
+
+        <div class="text-field">
+            <input
+                type="text"
+                id="first_name"
+                name="first_name"
+                placeholder=" "
+                required
+                minlength="1"
+                maxlength="50"
+                autocomplete="given-name"
+                autofocus
+            >
+            <label for="first_name">First name</label>
+        </div>
+
+        <div class="text-field">
+            <input
+                type="text"
+                id="last_name"
+                name="last_name"
+                placeholder=" "
+                required
+                minlength="1"
+                maxlength="50"
+                autocomplete="family-name"
+            >
+            <label for="last_name">Last name</label>
+        </div>
+
+        <div class="text-field has-toggle">
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder=" "
+                required
+                minlength="15"
+                maxlength="150"
+                autocomplete="new-password"
+            >
+            <label for="password">Password</label>
+            <button
+                type="button"
+                class="password-toggle"
+                data-target="password"
+                aria-label="Show password"
+                aria-pressed="false"
+            >Show</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create account</button>
+    </form>
+</div>
+{{end}}

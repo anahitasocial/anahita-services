@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+import "proto/graphpb/node.proto";
+
+message Media {
+    repeated Node mediums = 1;
+}
+
+message MediumCountRequest {
+    repeated string types = 1;
+    int64 owner_id = 2;
+    string search = 3;
+    Viewer viewer = 4;
+    bool access_check = 5;
+}
+
+message MediumCountResponse {
+    uint64 total = 1;
+}
+
+message MediumBrowseRequest {
+    repeated string types = 1;
+    int64 owner_id = 2;
+    string ordering = 3;
+    string direction = 4;
+    uint64 limit = 5;
+    uint64 offset = 6;
+    string search = 7;
+    bool access_check = 8;
+
+    Viewer viewer = 9;
+}
+
+message MediumBrowseResponse {
+    repeated Node media = 1;
+}
+
+message MediumReadRequest {
+    int64 id = 1;
+    Viewer viewer = 2;
+}
+
+message MediumReadResponse {
+    Node medium = 1;
+}
+
+message MediumBatchReadRequest {
+    repeated int64 ids = 1;
+    string ordering = 2;
+    string direction = 3;
+    Viewer viewer = 4;
+}
+
+message MediumBatchReadResponse {
+    repeated Node media = 1;
+}
+
+message MediumEditRequest {
+    Node medium = 1;
+    Viewer viewer = 2;
+}
+
+message MediumEditResponse {
+    Node medium = 1;
+}
+
+message MediumAddRequest {
+    Node medium = 1;
+    Viewer viewer = 2;
+}
+
+message MediumAddResponse {
+    Node medium = 1;
+}
+
+message MediumDeleteRequest {
+    int64 id = 1;
+    Viewer viewer = 2;
+}
+
+message MediumDeleteResponse {
+    int64 id = 1;
+}
+
+message MediumPingRequest {
+    string message = 1;
+}
+
+message MediumPingResponse {
+    string message = 1;
+}
+
+service MediumService {
+    rpc Count(MediumCountRequest) returns (MediumCountResponse) {}
+    rpc Browse(MediumBrowseRequest) returns (MediumBrowseResponse) {}
+    rpc Read(MediumReadRequest) returns (MediumReadResponse) {}
+    rpc BatchRead(MediumBatchReadRequest) returns (MediumBatchReadResponse) {}
+    rpc Edit(MediumEditRequest) returns (MediumEditResponse) {}
+    rpc Add(MediumAddRequest) returns (MediumAddResponse) {}
+    rpc Delete(MediumDeleteRequest) returns (MediumDeleteResponse) {}
+    rpc Ping(MediumPingRequest) returns (MediumPingResponse) {}
+}

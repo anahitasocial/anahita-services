@@ -1,0 +1,423 @@
+package services
+
+import (
+	"anahita-libs/data/entities"
+	"anahita-libs/proto/graphpb"
+	"context"
+	"log"
+	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+)
+
+var graphNodeGRPCConnectCounts int
+
+type GraphNodeGRPCConfigInterface interface {
+	GetGraphServiceAddr() string
+}
+
+// GraphNodeGRPCInterface is the interface for graph node service
+type GraphNodeGRPCInterface interface {
+	// Browse returns a list of graph nodes
+	Browse(req *GraphNodeBrowseRequest) ([]*entities.AnahitaNode, error)
+
+	// Read returns a single graph node
+	Read(id int64) (*entities.AnahitaNode, error)
+
+	// ReadByAlias returns a single graph node by alias
+	ReadByAlias(req *GraphNodeReadByAlias) (*entities.AnahitaNode, error)
+
+	// Edit edits a graph node
+	Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
+
+	// Add adds a new graph node
+	Add(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
+
+	// Delete deletes a graph node
+	Delete(id int64) (bool, error)
+
+	// Count returns the total number of graph nodes
+	Count(req *GraphNodeBrowseRequest) (uint64, error)
+
+	// BatchRead reads multiple graph nodes
+	BatchRead(req *GraphNodeBatchReadRequest) ([]*entities.AnahitaNode, error)
+
+	// BatchReadByAliases reads multiple graph nodes by aliases
+	BatchReadByAliases(req *GraphNodeBatchReadByAliasesRequest) ([]*entities.AnahitaNode, error)
+
+	// BatchEdit edits multiple graph nodes
+	BatchEdit(nodes []*entities.AnahitaNode) ([]*entities.AnahitaNode, error)
+
+	// BatchAdd adds multiple graph nodes
+	BatchAdd(nodes []*entities.AnahitaNode) ([]*entities.AnahitaNode, error)
+
+	// BatchDelete deletes multiple graph nodes
+	BatchDelete(ids []int64) (bool, error)
+}
+
+// NewGraphNodeGRPC creates a new graph node service
+func NewGraphNodeGRPC(config GraphNodeGRPCConfigInterface) GraphNodeGRPCInterface {
+	return &GraphNodeGRPC{
+		config: config,
+	}
+}
+
+// GraphNodeGRPC is the graph node service
+type GraphNodeGRPC struct {
+	config GraphNodeGRPCConfigInterface
+}
+
+// GetClient returns the grpc client
+func (srv *GraphNodeGRPC) getClient() (graphpb.NodeServiceClient, error) {
+	var opts []grpc.DialOption
+	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
+
+	for {
+		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
+
+		if err != nil {
+			log.Println("GraphNode GRPC not ready...")
+			graphNodeGRPCConnectCounts++
+		} else {
+			log.Println("Connected to GraphNode GRPC!")
+			return graphpb.NewNodeServiceClient(cc), nil
+		}
+
+		if graphNodeGRPCConnectCounts > 10 {
+			log.Println(err)
+			return nil, err
+		}
+
+		log.Println("Backing off for two seconds...")
+		time.Sleep(2 * time.Second)
+		continue
+	}
+}
+
+// Browse returns a list of graph nodes
+func (srv *GraphNodeGRPC) Browse(req *GraphNodeBrowseRequest) ([]*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	resp, err := client.Browse(context.Background(), &graphpb.NodeBrowseRequest{
+		Types:           req.Types,
+		OwnerIds:        req.OwnerIDs,
+		ParentIds:       req.ParentIDs,
+		NearbyLatitude:  req.NearbyLatitude,
+		NearbyLongitude: req.NearbyLongitude,
+		NearbyRadius:    req.NearbyRadius,
+		Search:          req.Search,
+		Ordering:        req.Ordering,
+		OrderingDir:     req.OrderingDir,
+		Limit:           req.Limit,
+		Offset:          req.Offset,
+		AccessCheck:     req.AccessCheck,
+		Viewer: &graphpb.Viewer{
+			Id:       req.Viewer.ID,
+			UserType: req.Viewer.UserType,
+			Email:    req.Viewer.Email,
+			Username: req.Viewer.Username,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNodes(resp.Nodes), nil
+}
+
+// Read returns a single graph node
+func (srv *GraphNodeGRPC) Read(id int64) (*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	resp, err := client.Read(context.Background(), &graphpb.NodeReadRequest{
+		Id: id,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNode(resp.Node), nil
+}
+
+// ReadByAlias returns a single graph node by alias
+func (srv *GraphNodeGRPC) ReadByAlias(req *GraphNodeReadByAlias) (*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	resp, err := client.ReadByAlias(context.Background(), &graphpb.NodeReadByAliasRequest{
+		Alias:    req.Alias,
+		NodeType: req.NodeType,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNode(resp.Node), nil
+}
+
+// Edit edits a graph node
+func (srv *GraphNodeGRPC) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	req := &graphpb.NodeEditRequest{
+		Node: graphNodeToGrpc(node),
+	}
+
+	resp, err := client.Edit(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNode(resp.Node), nil
+}
+
+// Add adds a new graph node
+func (srv *GraphNodeGRPC) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	req := &graphpb.NodeAddRequest{
+		Node: graphNodeToGrpc(node),
+	}
+
+	resp, err := client.Add(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNode(resp.Node), nil
+}
+
+// Delete deletes a graph node
+func (srv *GraphNodeGRPC) Delete(id int64) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.Delete(context.Background(), &graphpb.NodeDeleteRequest{
+		Id: id,
+	})
+	if err != nil {
+		return false, err
+	}
+	if resp == nil {
+		return false, nil
+	}
+
+	return resp.Success, nil
+}
+
+// Count returns the total number of graph nodes
+func (srv *GraphNodeGRPC) Count(req *GraphNodeBrowseRequest) (uint64, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return 0, err
+	}
+	if client == nil {
+		return 0, nil
+	}
+
+	r, err := client.Count(context.Background(), &graphpb.NodeCountRequest{
+		Types:           req.Types,
+		OwnerIds:        req.OwnerIDs,
+		ParentIds:       req.ParentIDs,
+		Search:          req.Search,
+		NearbyLatitude:  req.NearbyLatitude,
+		NearbyLongitude: req.NearbyLongitude,
+		NearbyRadius:    req.NearbyRadius,
+		AccessCheck:     req.AccessCheck,
+		Viewer: &graphpb.Viewer{
+			Id:       req.Viewer.ID,
+			UserType: req.Viewer.UserType,
+			Email:    req.Viewer.Email,
+			Username: req.Viewer.Username,
+		},
+	})
+	if err != nil {
+		return 0, err
+	}
+	if r == nil {
+		return 0, nil
+	}
+
+	return r.Total, nil
+}
+
+// BatchRead reads multiple graph nodes
+func (srv *GraphNodeGRPC) BatchRead(req *GraphNodeBatchReadRequest) ([]*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	resp, err := client.BatchRead(context.Background(), &graphpb.NodeBatchReadRequest{
+		Ids:         req.IDs,
+		Ordering:    req.Ordering,
+		OrderingDir: req.OrderingDir,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNodes(resp.Nodes), nil
+}
+
+// BatchReadByAliases reads multiple graph nodes by aliases
+func (srv *GraphNodeGRPC) BatchReadByAliases(req *GraphNodeBatchReadByAliasesRequest) ([]*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	resp, err := client.BatchReadByAliases(context.Background(), &graphpb.NodeBatchReadByAliasesRequest{
+		Aliases:     req.Aliases,
+		NodeType:    req.NodeType,
+		Ordering:    req.Ordering,
+		OrderingDir: req.OrderingDir,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNodes(resp.Nodes), nil
+}
+
+// BatchEdit edits multiple graph nodes
+func (srv *GraphNodeGRPC) BatchEdit(nodes []*entities.AnahitaNode) ([]*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	var grpcNodes []*graphpb.Node
+	for _, n := range nodes {
+		grpcNodes = append(grpcNodes, graphNodeToGrpc(n))
+	}
+
+	resp, err := client.BatchEdit(context.Background(), &graphpb.NodeBatchEditRequest{
+		Nodes: grpcNodes,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNodes(resp.Nodes), nil
+}
+
+// BatchAdd adds multiple graph nodes
+func (srv *GraphNodeGRPC) BatchAdd(nodes []*entities.AnahitaNode) ([]*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	var grpcNodes []*graphpb.Node
+	for _, n := range nodes {
+		grpcNodes = append(grpcNodes, graphNodeToGrpc(n))
+	}
+
+	resp, err := client.BatchAdd(context.Background(), &graphpb.NodeBatchAddRequest{
+		Nodes: grpcNodes,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNodes(resp.Nodes), nil
+}
+
+// BatchDelete deletes multiple graph nodes
+func (srv *GraphNodeGRPC) BatchDelete(ids []int64) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.BatchDelete(context.Background(), &graphpb.NodeBatchDeleteRequest{
+		Ids: ids,
+	})
+	if err != nil {
+		return false, err
+	}
+	if resp == nil {
+		return false, nil
+	}
+
+	return resp.Success, nil
+}

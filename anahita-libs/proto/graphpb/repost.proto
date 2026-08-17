@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+import "proto/graphpb/node.proto";
+
+message RepostBrowseRequest {
+    int64 owner_id = 1;
+    string ordering = 2;
+    string direction = 3;
+    uint64 limit = 4;
+    uint64 offset = 5;
+    Viewer viewer = 6;
+}
+
+message RepostBrowseResponse {
+    repeated Node reposts = 1;
+}
+
+message RepostBrowseAuthorsRequest {
+    int64 parent_id = 1;
+    string ordering = 2;
+    string direction = 3;
+    uint64 limit = 4;
+    uint64 offset = 5;
+    Viewer viewer = 6;
+}
+
+message RepostBrowseAuthorsResponse {
+    repeated Node authors = 1;
+}
+
+message RepostReadRequest {
+     int64 parent_id = 1;
+    int64 author_id = 2;
+}
+
+message RepostReadResponse {
+    Node repost = 1;
+}
+
+message RepostAddRequest {
+    int64 owner_id = 1;
+    int64 parent_id = 3;
+    string service = 5;
+    string access = 6;
+    Viewer viewer = 7;
+}
+
+message RepostAddResponse {
+    Node repost = 1;
+}
+
+message RepostDeleteRequest {
+    int64 parent_id = 1;
+    int64 author_id = 2;
+}
+
+message RepostDeleteResponse {
+    bool success = 1;
+}
+
+message RepostCountRequest {
+    int64 owner_id = 1;
+    Viewer viewer = 2;
+}
+
+message RepostCountResponse {
+    uint64 total = 1;
+}
+
+message IsRepostedRequest {
+    int64 author_id = 1;
+    int64 node_id = 2;
+}
+
+message IsRepostedResponse {
+    bool is_reposted = 1;
+}
+
+message IsRepostedManyRequest {
+    int64 author_id = 1;
+    repeated int64 node_ids = 2;
+}
+
+message IsRepostedManyResponse {
+    map<int64, bool> results = 1;
+}
+
+service RepostService {
+    rpc Browse(RepostBrowseRequest) returns (RepostBrowseResponse);
+    rpc BrowseAuthors(RepostBrowseAuthorsRequest) returns (RepostBrowseAuthorsResponse);
+    rpc Read(RepostReadRequest) returns (RepostReadResponse);
+    rpc Add(RepostAddRequest) returns (RepostAddResponse);
+    rpc Delete(RepostDeleteRequest) returns (RepostDeleteResponse);
+    rpc Count(RepostCountRequest) returns (RepostCountResponse);
+    rpc IsReposted(IsRepostedRequest) returns (IsRepostedResponse);
+    rpc IsRepostedMany(IsRepostedManyRequest) returns (IsRepostedManyResponse);
+}

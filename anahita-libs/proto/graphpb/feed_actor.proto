@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+import "proto/graphpb/node.proto";
+
+message FeedActorCountRequest {
+    int64 actor_id = 1;
+    bool include_comments = 2;
+    bool include_reposts = 3;
+    bool include_liked = 4;
+    repeated string medium_entity_types = 5;
+    Viewer viewer = 6;
+}
+
+message FeedActorCountResponse {
+    uint64 total = 1;
+}
+
+message FeedActorBrowseRequest {
+    int64 actor_id = 1;
+    bool include_comments = 2;
+    bool include_reposts = 3;
+    bool include_liked = 4;
+    repeated string medium_entity_types = 5;
+    uint64 limit = 6;
+    uint64 offset = 7;
+    Viewer viewer = 8;
+}
+
+message FeedActorBrowseResponse {
+    repeated Node nodes = 1;
+}
+
+service FeedActorService {
+    rpc Count(FeedActorCountRequest) returns (FeedActorCountResponse);
+    rpc Browse(FeedActorBrowseRequest) returns (FeedActorBrowseResponse);
+}

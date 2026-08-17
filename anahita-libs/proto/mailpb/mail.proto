@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package mail;
+
+option go_package = "/mailpb";
+
+// Define the mail service
+service MailService {
+  // Sends a simple email
+  rpc Send(SendRequest) returns (SendResponse);
+
+  // Sends an email using a template
+  rpc SendFromTemplate(SendFromTemplateRequest) returns (SendResponse);
+}
+
+// Request for sending a simple email
+message SendRequest {
+  string from = 1;         // Sender's email address
+  repeated string to = 2;  // List of recipient email addresses
+  repeated string cc = 3; // List of CC email addresses
+  repeated string bcc = 4; // List of BCC email addresses
+  string subject = 5;      // Subject of the email
+  string message = 6;      // Plain text or HTML content of the email
+  bool is_html = 7;        // Flag indicating if the message is HTML
+}
+
+// Request for sending an email from a template
+message SendFromTemplateRequest {
+  string from = 1;         // Sender's email address
+  repeated string to = 2;  // List of recipient email addresses
+  repeated string cc = 3; // List of CC email addresses
+  repeated string bcc = 4; // List of BCC email addresses
+  string subject = 5;      // Subject of the email
+  string template = 6;     // Template name or identifier
+  string template_data = 7; // JSON-encoded data for template variables
+}
+
+// Response message for sending email
+message SendResponse {
+  string message_id = 1;   // Unique identifier for the sent email
+  string status = 2;       // Status message or code
+}

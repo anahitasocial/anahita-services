@@ -1,0 +1,188 @@
+package repositories
+
+import (
+	"anahita-libs/data/entities"
+	"anahita-libs/proto/graphpb"
+	"fmt"
+	"time"
+
+	"anahita-libs/constants"
+	"context"
+	"database/sql"
+
+	sq "github.com/Masterminds/squirrel"
+)
+
+const earthRadius = 6371000 // km
+
+type SearchRepoInterface interface {
+	// Count returns the number of Searchs
+	Count(req *graphpb.SearchCountRequest, viewer *entities.Viewer) (uint64, error)
+
+	// Browse returns a list of Searchs
+	Browse(req *graphpb.SearchBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
+}
+
+// NewSearchRepo creates a new Search repository
+func NewSearchRepo(db *sql.DB) SearchRepoInterface {
+	return &SearchRepo{
+		db:        db,
+		dbTimeout: constants.DBTimeout,
+	}
+}
+
+// SearchRepo is the Search repository
+type SearchRepo struct {
+	db        *sql.DB
+	dbTimeout time.Duration
+}
+
+// getBaseSelectQuery returns the base select query
+func (repo *SearchRepo) getBaseSelectQuery(req *graphpb.SearchBrowseRequest) sq.SelectBuilder {
+	query := GetBaseSelectQuery()
+
+	if req.CoordLat != 0.0 && req.CoordLng != 0.0 {
+		// Use INNER JOIN since we only want nodes that have a location
+		query = query.Join(
+			fmt.Sprintf("edges AS location_edge ON location_edge.node_b_id = node.id AND location_edge.type = '%s'", constants.EdgeTagLocationType),
+		).Join(
+			"nodes AS location ON location_edge.node_a_id = location.id",
+		)
+	}
+
+	if req.IncludeComments {
+		query = query.LeftJoin(
+			"nodes AS comment_parent_node ON comment_parent_node.id = node.parent_id",
+		)
+	}
+
+	return query
+}
+
+func (repo *SearchRepo) calculateDistance(lat float32, lng float32) string {
+	return fmt.Sprintf(
+		"CEIL((ACOS(SIN(%.3f * PI()/180) * SIN(location.geo_latitude * PI()/180) + COS(%.3f * PI()/180) * COS(location.geo_latitude * PI()/180) * COS((%.3f * PI()/180) - (location.geo_longitude * PI()/180))) * %d))",
+		lat, lat, lng, earthRadius,
+	)
+}
+
+func (repo *SearchRepo) GetRelevantSortQuery() string {
+	return "(COALESCE(node.comment_count,0) + COALESCE(node.vote_up_count,0) + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0)) DESC"
+}
+
+// Count returns the number of Searchs
+func (repo *SearchRepo) Count(req *graphpb.SearchCountRequest, viewer *entities.Viewer) (uint64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	query := sq.Select("COUNT(*)").From("nodes AS node")
+	query = query.LeftJoin("nodes AS owner ON owner.id = node.owner_id")
+
+	if req.CoordLat != 0.0 && req.CoordLng != 0.0 {
+		// Use INNER JOIN since we only want nodes that have a location
+		query = query.Join(
+			fmt.Sprintf("edges AS location_edge ON location_edge.node_b_id = node.id AND location_edge.type = '%s'", constants.EdgeTagLocationType),
+		).Join(
+			"nodes AS location ON location_edge.node_a_id = location.id",
+		)
+	}
+
+	if req.IncludeComments {
+		query = query.LeftJoin(
+			"nodes AS comment_parent_node ON comment_parent_node.id = node.parent_id",
+		)
+	}
+
+	query = repo.getScopeQuery(query, req.Scope, req.IncludeComments)
+	query = SetSearchAccessQuery(query, viewer, req.IncludeComments)
+
+	if req.Keywords != "" {
+		query = query.Where(sq.Or{
+			sq.Like{"node.name": "%" + req.Keywords + "%"},
+			sq.Like{"node.alias": "%" + req.Keywords + "%"},
+			sq.Like{"node.body": "%" + req.Keywords + "%"},
+		})
+	}
+
+	if req.CoordLat != 0.0 && req.CoordLng != 0.0 {
+		calculateDistance := repo.calculateDistance(req.CoordLat, req.CoordLng)
+		query = query.Where(fmt.Sprintf("%s <= %d", calculateDistance, req.CoordRadius))
+	}
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return 0, err
+	}
+
+	var count uint64
+	err = repo.db.QueryRowContext(ctx, sql, args...).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+// Browse returns a list of Searchs
+func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
+	query := repo.getBaseSelectQuery(req)
+	query = repo.getScopeQuery(query, req.Scope, req.IncludeComments)
+	query = SetSearchAccessQuery(query, viewer, req.IncludeComments)
+
+	if req.Keywords != "" {
+		query = query.Where(sq.Or{
+			sq.Like{"node.name": "%" + req.Keywords + "%"},
+			sq.Like{"node.alias": "%" + req.Keywords + "%"},
+			sq.Like{"node.body": "%" + req.Keywords + "%"},
+		})
+	}
+
+	if req.CoordLat != 0.0 && req.CoordLng != 0.0 {
+		calculateDistance := repo.calculateDistance(req.CoordLat, req.CoordLng)
+		query = query.Where(fmt.Sprintf("%s <= %d", calculateDistance, req.CoordRadius*1000))
+	}
+
+	if req.Ordering == "relevant" {
+		relevantSortQuery := repo.GetRelevantSortQuery()
+		query = query.OrderBy(relevantSortQuery)
+	} else {
+		query = query.OrderBy("node.created_on DESC")
+	}
+
+	if req.CoordLat != 0.0 && req.CoordLng != 0.0 {
+		distanceCalculation := repo.calculateDistance(req.CoordLat, req.CoordLng)
+		query = query.OrderBy(fmt.Sprintf("%s ASC", distanceCalculation))
+	}
+
+	query = query.Limit(req.Limit).Offset(req.Offset)
+
+	return FetchNodes(repo.db, query)
+}
+
+func (repo *SearchRepo) getScopeQuery(query sq.SelectBuilder, scope string, includeComments bool) sq.SelectBuilder {
+	actorCondition := sq.Like{"node.type": constants.NodeActorPrefixEntityType + "%"}
+	mediumCondition := sq.Like{"node.type": constants.NodeMediumPrefixEntityType + "%"}
+	commentCondition := sq.Eq{"node.type": constants.NodeBaseCommentEntityType}
+
+	if includeComments {
+		switch scope {
+		case constants.SearchScopeActor:
+			query = query.Where(sq.Or{actorCondition})
+		case constants.SearchScopeMedium:
+			query = query.Where(sq.Or{mediumCondition, commentCondition})
+		default:
+			query = query.Where(sq.Or{actorCondition, mediumCondition, commentCondition})
+		}
+	} else {
+		switch scope {
+		case constants.SearchScopeActor:
+			query = query.Where(sq.Or{actorCondition})
+		case constants.SearchScopeMedium:
+			query = query.Where(sq.Or{mediumCondition})
+		default:
+			query = query.Where(sq.Or{actorCondition, mediumCondition})
+		}
+	}
+
+	return query
+}

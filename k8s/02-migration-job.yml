@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migration-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: migration-job
+        image: anahita/migration-job:0.9.0
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: MYSQL_HOST
+            value: 'mysql-svc'
+          - name: MYSQL_USER
+            valueFrom:
+              configMapKeyRef:
+                name: anahita-config-map
+                key: MYSQL_USER
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: anahita-secret
+                key: MYSQL_PASSWORD
+          - name: MYSQL_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                name: anahita-config-map
+                key: MYSQL_DATABASE
+      restartPolicy: Never  # Ensure job does not restart indefinitely
+  backoffLimit: 4  # Retry up to 4 times before marking the job as failed

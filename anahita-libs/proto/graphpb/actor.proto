@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+import "proto/graphpb/node.proto";
+
+message Actors {
+    repeated Node actors = 1;
+}
+
+message ActorCountRequest {
+    repeated string types = 1;
+    string search = 2;
+    Viewer viewer = 3;
+    bool access_check = 4;
+}
+
+message ActorCountResponse {
+    uint64 total = 1;
+}
+
+message ActorBrowseRequest {
+    repeated string types = 1;
+    string ordering = 2;
+    string direction = 3;
+    uint64 limit = 4;
+    uint64 offset = 5;
+    string search = 6;
+    Viewer viewer = 7;
+    bool access_check = 8;
+}
+
+message ActorBrowseResponse {
+    repeated Node actors = 1;
+}
+
+message ActorReadRequest {
+    int64 id = 1;
+    Viewer viewer = 2;
+}
+
+message ActorReadResponse {
+    Node actor = 1;
+}
+
+message ActorBatchReadRequest {
+    repeated int64 ids = 1;
+    string ordering = 2;
+    string direction = 3;
+    Viewer viewer = 4;
+}
+
+message ActorBatchReadResponse {
+    repeated Node actors = 1;
+}
+
+message ActorEditRequest {
+    Node actor = 1;
+    Viewer viewer = 2;
+}
+
+message ActorEditResponse {
+    Node actor = 1;
+}
+
+message ActorAddRequest {
+    Node actor = 1;
+    Viewer viewer = 2;
+}
+
+message ActorAddResponse {
+    Node actor = 1;
+}
+
+message ActorDeleteRequest {
+    int64 id = 1;
+    Viewer viewer = 2;
+}
+
+message ActorDeleteResponse {
+    Node actor = 1;
+}
+
+message ActorPingRequest {
+    string message = 1;
+}
+
+message ActorPingResponse {
+    string message = 1;
+}
+
+service ActorService {
+    rpc Count(ActorCountRequest) returns (ActorCountResponse) {}
+    rpc Browse(ActorBrowseRequest) returns (ActorBrowseResponse) {}
+    rpc Read(ActorReadRequest) returns (ActorReadResponse) {}
+    rpc BatchRead(ActorBatchReadRequest) returns (ActorBatchReadResponse) {}
+    rpc Edit(ActorEditRequest) returns (ActorEditResponse) {}
+    rpc Add(ActorAddRequest) returns (ActorAddResponse) {}
+    rpc Delete(ActorDeleteRequest) returns (ActorDeleteResponse) {}
+    rpc Ping(ActorPingRequest) returns (ActorPingResponse) {}
+}

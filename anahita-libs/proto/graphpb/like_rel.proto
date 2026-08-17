@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+
+message LikeIsLikedRequest {
+    Viewer viewer = 1;
+    int64 source_id = 2;
+    int64 target_id = 3;
+}
+
+message LikeIsLikedResponse {
+    int64 id = 1;
+    bool is_liked = 2;
+}
+
+message LikeIsLikedManyRequest {
+    Viewer viewer = 1;
+    int64 source_id = 2;
+    repeated int64 target_ids = 3;
+}
+
+message LikeStatus {
+    int64 id = 1;
+    bool is_liked = 2;
+}
+
+message LikeIsLikedManyResponse {
+    repeated LikeStatus results = 1;
+}
+
+message LikeAddRequest {
+    Target target = 1;
+    Source source = 2;
+    Viewer viewer = 3;
+}
+
+message LikeAddResponse {
+    bool success = 1;
+}
+
+message LikeDeleteRequest {
+    Target target = 1;
+    Source source = 2;
+}
+
+message LikeDeleteResponse {
+    bool success = 1;
+}
+
+service LikeService {
+    rpc IsLiked(LikeIsLikedRequest) returns (LikeIsLikedResponse);
+    rpc IsLikedMany(LikeIsLikedManyRequest) returns (LikeIsLikedManyResponse);
+    rpc Add(LikeAddRequest) returns (LikeAddResponse);
+    rpc Delete(LikeDeleteRequest) returns (LikeDeleteResponse);
+}

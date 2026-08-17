@@ -1,0 +1,81 @@
+{{define "title"}}Sign In{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Sign in to continue</h2>
+
+    {{if .Error}}
+    <div class="error-message" role="alert">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/oauth/login" id="login-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        <div class="text-field">
+            <input
+                type="text"
+                id="identifier"
+                name="identifier"
+                placeholder=" "
+                required
+                autocomplete="email"
+                autofocus
+            >
+            <label for="identifier">Email</label>
+        </div>
+
+        <div class="text-field has-toggle">
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder=" "
+                required
+                autocomplete="current-password"
+            >
+            <label for="password">Password</label>
+            <button
+                type="button"
+                class="password-toggle"
+                data-target="password"
+                aria-label="Show password"
+                aria-pressed="false"
+            >Show</button>
+        </div>
+
+        <div class="form-meta-row">
+            <a href="/password/forgot" class="text-link">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="login-submit">Sign In</button>
+    </form>
+
+    <hr class="divider">
+
+    <p class="text-center">
+        Don't have an account?
+        <a href="/signup" class="text-link">Sign up</a>
+    </p>
+
+    <p class="footer-text">
+        <a href="{{.FrontendURL}}" class="text-link">Cancel and return to {{.SiteName}}</a>
+    </p>
+</div>
+
+<script>
+    // Prevent double-submit on slow networks. Works without JS too.
+    (function () {
+        var form = document.getElementById('login-form');
+        var btn  = document.getElementById('login-submit');
+        if (!form || !btn) return;
+        form.addEventListener('submit', function () {
+            btn.disabled = true;
+            btn.textContent = 'Signing in…';
+        });
+    })();
+</script>
+{{end}}

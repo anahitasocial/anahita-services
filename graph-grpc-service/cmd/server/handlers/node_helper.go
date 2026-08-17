@@ -1,0 +1,172 @@
+package handlers
+
+import (
+	"anahita-libs/data/entities"
+	"anahita-libs/proto/graphpb"
+
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
+)
+
+func extractNodeIDs(nodes []*entities.AnahitaNode) []int64 {
+	ids := make([]int64, 0, len(nodes))
+	for _, node := range nodes {
+		ids = append(ids, node.ID)
+	}
+	return ids
+}
+
+func nodesToGrpc(nodes []*entities.AnahitaNode) []*graphpb.Node {
+	grpcNodes := make([]*graphpb.Node, 0, len(nodes))
+	for _, node := range nodes {
+		grpcNodes = append(grpcNodes, nodeToGrpc(node))
+	}
+	return grpcNodes
+}
+
+func nodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
+	if node == nil {
+		return nil
+	}
+
+	grpcNode := &graphpb.Node{
+		Id:                   node.ID,
+		Type:                 node.Type,
+		Service:              node.Service,
+		Enabled:              node.Enabled,
+		Access:               node.Access,
+		Name:                 node.Name,
+		Alias:                node.Alias,
+		Body:                 node.Body,
+		Excerpt:              node.Excerpt,
+		Filename:             node.Filename,
+		CoverFilename:        node.CoverFilename,
+		Filesize:             node.Filesize,
+		Meta:                 string(node.Meta),
+		CreatedOn:            timestamppb.New(node.CreationTime),
+		ModifiedOn:           timestamppb.New(node.UpdateTime),
+		FollowerCount:        node.FollowerCount,
+		LeaderCount:          node.LeaderCount,
+		MutualCount:          node.MutualCount,
+		SubscriberCount:      node.SubscriberCount,
+		CommentStatus:        node.CommentStatus,
+		CommentCount:         node.CommentCount,
+		LikesCount:           node.LikesCount,
+		DislikesCount:        node.DislikesCount,
+		IsLikedByViewer:      node.IsLikedByViewer,
+		RepostCount:          node.RepostCount,
+		QuoteCount:           node.QuoteCount,
+		IsSubscribedByViewer: node.IsSubscribedByViewer,
+		IsRepostedByViewer:   node.IsRepostedByViewer,
+		IsFollowingViewer:    node.IsFollowingViewer,
+		IsLeadingViewer:      node.IsLeadingViewer,
+		IsAdminedByViewer:    node.IsAdminedByViewer,
+		AllowFollowRequest:   node.AllowFollowRequest,
+		StartDate:            timestamppb.New(node.StartDate),
+		EndDate:              timestamppb.New(node.EndDate),
+		OwnerType:            node.OwnerType,
+		OwnerId:              node.OwnerID,
+		LastCommentId:        node.LastCommentID,
+		LastCommentBy:        node.LastCommentBy,
+		LastCommentOn:        timestamppb.New(node.LastCommentOn),
+		Ordering:             node.Ordering,
+		Verified:             node.Verified,
+		Pinned:               node.Pinned,
+		IsDefault:            node.IsDefault,
+		HitsCount:            node.HitsCount,
+		ParentId:             node.ParentID,
+		ParentType:           node.ParentType,
+		GeoLatitude:          node.GeoLatitude,
+		GeoLongitude:         node.GeoLongitude,
+		GeoAddress:           node.GeoAddress,
+		GeoCity:              node.GeoCity,
+		GeoStateProvince:     node.GeoStateProvince,
+		GeoCountry:           node.GeoCountry,
+		GeoPostalcode:        node.GeoPostalcode,
+		CreationTime:         timestamppb.New(node.CreationTime),
+		CreatedBy:            node.CreatedBy,
+		UpdateTime:           timestamppb.New(node.UpdateTime),
+		ModifiedBy:           node.ModifiedBy,
+		CoverFilesize:        node.CoverFilesize,
+		CoverMimetype:        node.CoverMimetype,
+		Status:               node.Status,
+		StatusUpdateTime:     timestamppb.New(node.StatusUpdateTime),
+		Mimetype:             node.Mimetype,
+		Timezone:             node.Timezone,
+		Language:             node.Language,
+		EdgeCount:            node.EdgeCount,
+		FeaturesRaw:          string(node.FeaturesRaw),
+	}
+
+	// Information map
+	if len(node.Information) > 0 {
+		grpcNode.Information = make(map[string]*anypb.Any)
+
+		for k, v := range node.Information {
+			// Convert interface{} → structpb.Value
+			structVal, err := structpb.NewValue(v)
+			if err != nil {
+				continue // invalid type, skip or handle
+			}
+
+			// Pack structpb.Value into Any
+			anyVal, err := anypb.New(structVal)
+			if err != nil {
+				continue
+			}
+
+			grpcNode.Information[k] = anyVal
+		}
+	}
+
+	// Only create Owner if it has data
+	if node.Owner != nil && node.Owner.ID != 0 {
+		grpcNode.Owner = nodeToGrpc(node.Owner)
+	}
+
+	// Only create Parent if it has data
+	if node.Parent != nil && node.Parent.ID != 0 {
+		grpcNode.Parent = nodeToGrpc(node.Parent)
+	}
+
+	// Only create Author if it has data
+	if node.Author != nil && node.Author.ID != 0 {
+		grpcNode.Author = nodeToGrpc(node.Author)
+	}
+
+	// Only create Editor if it has data
+	if node.Editor != nil && node.Editor.ID != 0 {
+		grpcNode.Editor = nodeToGrpc(node.Editor)
+	}
+
+	return grpcNode
+}
+
+func edgesToGrpc(edges []*entities.AnahitaEdge) []*graphpb.Edge {
+	grpcEdges := make([]*graphpb.Edge, 0, len(edges))
+	for _, edge := range edges {
+		grpcEdges = append(grpcEdges, edgeToGrpc(edge))
+	}
+	return grpcEdges
+}
+
+func edgeToGrpc(edge *entities.AnahitaEdge) *graphpb.Edge {
+	grpcEdge := &graphpb.Edge{
+		Id:         edge.ID,
+		Type:       edge.Type,
+		NodeAId:    edge.NodeAID,
+		NodeAType:  edge.NodeAType,
+		NodeBId:    edge.NodeBID,
+		NodeBType:  edge.NodeBType,
+		Meta:       edge.Meta,
+		CreatedOn:  timestamppb.New(edge.CreatedOn),
+		CreatedBy:  edge.CreatedBy,
+		ModifiedOn: timestamppb.New(edge.ModifiedOn),
+		ModifiedBy: edge.ModifiedBy,
+		Ordering:   edge.Ordering,
+		StartDate:  timestamppb.New(edge.StartDate),
+		EndDate:    timestamppb.New(edge.EndDate),
+	}
+	return grpcEdge
+}

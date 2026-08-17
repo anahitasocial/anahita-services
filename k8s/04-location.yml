@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: location-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: location-service
+  template:
+    metadata:
+      labels:
+        app: location-service
+    spec:
+      containers:
+        - name: location-service
+          image: "anahita/location-service:0.9.0"
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config-map
+                  key: ENV
+            - name: SECURE_COOKIE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secret
+                  key: SECURE_COOKIE_KEY
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config-map
+                  key: REDIS_ADDR
+            - name: REDIS_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config-map
+                  key: REDIS_DB
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secret
+                  key: REDIS_PASSWORD
+            - name: FILE_SERVICE_ADDR
+              value: "file-grpc-service-svc:50051"
+            - name: GRAPH_SERVICE_ADDR
+              value: "graph-grpc-service-svc:50051"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: location-service-svc
+spec:
+  type: NodePort
+  selector:
+    app: location-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+

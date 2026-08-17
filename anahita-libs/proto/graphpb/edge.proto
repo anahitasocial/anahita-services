@@ -1,0 +1,177 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "google/protobuf/timestamp.proto";
+
+message Edge {
+    int64 id = 1;
+    string type = 2;
+    int64 node_a_id = 3;
+    string node_a_type = 4;
+    int64 node_b_id = 5;
+    string node_b_type = 6;
+    string meta = 7;
+    google.protobuf.Timestamp created_on = 8;
+    int64 created_by = 9;
+    google.protobuf.Timestamp modified_on = 10;
+    int64 modified_by = 11;
+    int32 ordering = 12;
+    google.protobuf.Timestamp start_date = 13;
+    google.protobuf.Timestamp end_date = 14;
+}
+
+message Edges {
+    repeated Edge edges = 1;
+}
+
+message EdgeBrowseRequest {
+    int64 node_a_id = 1;
+    string node_a_type = 2;
+    repeated string types = 3;
+    int64 node_b_id = 4;
+    string node_b_type = 5;
+    uint64 limit = 6;
+    uint64 offset = 7;
+    string order_by = 8;
+    string order_dir = 9;
+}
+
+message EdgeBrowseResponse {
+    repeated Edge edges = 1;
+}
+
+message EdgeReadRequest {
+    int64 id = 1;
+}
+
+message EdgeReadResponse {
+    Edge edge = 1;
+}
+
+message EdgeEditRequest {
+    Edge edge = 1;
+}
+
+message EdgeEditResponse {
+    Edge edge = 1;
+}
+
+message EdgeAddRequest {
+    Edge edge = 1;
+}
+
+message EdgeAddResponse {
+    Edge edge = 1;
+}
+
+message EdgeDeleteRequest {
+    int64 id = 1;
+}
+
+message EdgeDeleteResponse {
+    bool success = 1;
+}
+
+message EdgeCountRequest {
+    int64 node_a_id = 1;
+    string node_a_type = 2;
+    repeated string types = 3;
+    int64 node_b_id = 4;
+    string node_b_type = 5;
+}
+
+message EdgeCountResponse {
+    uint64 count = 1;
+}
+
+message EdgeCheckExistsRequest {
+    int64 node_a_id = 1;
+    string node_a_type = 2;
+    string type = 3;
+    int64 node_b_id = 4;
+    string node_b_type = 5;
+}
+
+message EdgeCheckExistsResponse {
+    bool exists = 1;
+    Edge edge = 2;
+}
+
+message EdgeBatchReadRequest {
+    repeated int64 ids = 1;
+}
+
+message EdgeBatchReadResponse {
+    repeated Edge edges = 1;
+}
+
+message EdgeBatchReadByFiltersRequest {
+    int64 node_a_id = 1;
+    string node_a_type = 2;
+    repeated string types = 3;
+    int64 node_b_id = 4;
+    string node_b_type = 5;
+    string order_by = 6;
+    string order_dir = 7;
+}
+
+message EdgeBatchReadByFiltersResponse {
+    repeated Edge edges = 1;
+}
+
+message EdgeBatchEditRequest {
+    repeated Edge edges = 1;
+}
+
+message EdgeBatchEditResponse {
+    repeated Edge edges = 1;
+}
+
+message EdgeBatchAddRequest {
+    repeated Edge edges = 1;
+}
+
+message EdgeBatchAddResponse {
+    repeated Edge edges = 1;
+}
+
+message EdgeBatchDeleteRequest {
+    repeated int64 ids = 1;
+}
+
+message EdgeBatchDeleteResponse {
+    uint32 deleted_count = 1;
+}
+
+message EdgeBatchDeleteByFiltersRequest {
+    int64 node_a_id = 1;
+    string node_a_type = 2;
+    repeated string types = 3;
+    int64 node_b_id = 4;
+    string node_b_type = 5;
+}
+
+message EdgeBatchDeleteByFiltersResponse {
+    uint32 deleted_count = 1;
+}
+
+service EdgeService {
+    rpc Browse(EdgeBrowseRequest) returns (EdgeBrowseResponse);
+    rpc Read(EdgeReadRequest) returns (EdgeReadResponse);
+    rpc Edit(EdgeEditRequest) returns (EdgeEditResponse);
+    rpc Add(EdgeAddRequest) returns (EdgeAddResponse);
+    rpc Delete(EdgeDeleteRequest) returns (EdgeDeleteResponse);
+    rpc Count(EdgeCountRequest) returns (EdgeCountResponse);
+    rpc CheckExists(EdgeCheckExistsRequest) returns (EdgeCheckExistsResponse);
+
+    // Batch operations
+    rpc BatchRead(EdgeBatchReadRequest) returns (EdgeBatchReadResponse);
+    rpc BatchReadByFilters(EdgeBatchReadByFiltersRequest) returns (EdgeBatchReadByFiltersResponse);
+    rpc BatchEdit(EdgeBatchEditRequest) returns (EdgeBatchEditResponse);
+    rpc BatchAdd(EdgeBatchAddRequest) returns (EdgeBatchAddResponse);
+    rpc BatchDelete(EdgeBatchDeleteRequest) returns (EdgeBatchDeleteResponse);
+    rpc BatchDeleteByFilters(EdgeBatchDeleteByFiltersRequest) returns (EdgeBatchDeleteByFiltersResponse);
+}

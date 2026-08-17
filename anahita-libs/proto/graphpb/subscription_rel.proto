@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+
+// Subscription
+message SubscriptionBrowseSourcesRequest {
+    Target target = 1;
+}
+
+message SubscriptionBrowseSourcesResponse {
+    repeated Source sources = 1;
+}
+
+message SubscriptionAddRequest {
+    Target target = 1;
+    Source source = 2;
+    Viewer viewer = 3;
+}
+
+message SubscriptionAddResponse {
+    bool success = 1;
+}
+
+message SubscriptionDeleteRequest {
+    Target target = 1;
+    Source source = 2;
+}
+
+message SubscriptionDeleteResponse {
+    bool success = 1;
+}
+
+message SubscriptionIsSubscribedToRequest {
+    int64 source_id = 1;
+    int64 target_id = 2;
+}
+
+message SubscriptionIsSubscribedToResponse {
+    bool is_subscribed = 1;
+}
+
+message SubscriptionIsSubscribedToManyRequest {
+    int64 source_id = 1;
+    repeated int64 target_ids = 2;
+}
+
+message SubscriptionStatus {
+    int64 id = 1;
+    bool is_subscribed = 2;
+}
+
+message SubscriptionIsSubscribedToManyResponse {
+    repeated SubscriptionStatus results = 1;
+}
+
+service SubscriptionService {
+    rpc BrowseSources(SubscriptionBrowseSourcesRequest) returns (SubscriptionBrowseSourcesResponse);
+    rpc Add(SubscriptionAddRequest) returns (SubscriptionAddResponse);
+    rpc Delete(SubscriptionDeleteRequest) returns (SubscriptionDeleteResponse);
+    rpc IsSubscribedTo(SubscriptionIsSubscribedToRequest) returns (SubscriptionIsSubscribedToResponse);
+    rpc IsSubscribedToMany(SubscriptionIsSubscribedToManyRequest) returns (SubscriptionIsSubscribedToManyResponse);
+}

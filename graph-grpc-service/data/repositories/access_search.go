@@ -1,0 +1,236 @@
+package repositories
+
+import (
+	"anahita-libs/constants"
+	"anahita-libs/data/entities"
+
+	sq "github.com/Masterminds/squirrel"
+)
+
+// SetSearchAccessQuery returns the access query for media repository
+func SetSearchAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, includeCommentParentNode bool) sq.SelectBuilder {
+	if viewer.IsAdmin() {
+		return sb
+	}
+
+	vID := viewer.ID
+
+	// Common relation shortcuts for "owner" and "node"
+	// (We still use owner->node two-step like your original)
+	// ownerNotBlocked := relNotBlockedEitherWay("owner", vID)
+	// nodeNotBlocked := relNotBlockedEitherWay("node", vID)
+	ownerNotBlocked := relNotBlockedEitherWay(vID)
+	nodeNotBlocked := relNotBlockedEitherWay(vID)
+
+	ownerFollows := relViewerFollows("owner", vID)
+	ownerLeads := relAliasFollowsViewer("owner", vID)
+	ownerMutual := sq.And{ownerFollows, ownerLeads}
+	ownerAdmin := relViewerAdmins("owner", vID)
+	ownerSelfAdm := relSelfOrAdmin("owner", vID)
+
+	nodeFollows := relViewerFollows("node", vID)
+	nodeLeads := relAliasFollowsViewer("node", vID)
+	nodeMutual := sq.And{nodeFollows, nodeLeads}
+	nodeAdmin := relViewerAdmins("node", vID)
+	nodeSelfAdm := relSelfOrAdmin("node", vID)
+
+	// Hard deny on blocks, applied to both owner and node
+	sb = sb.Where(ownerNotBlocked).Where(nodeNotBlocked)
+
+	// ---- OWNER gate (coarse gate) ----
+	ownerGate := sq.Or{
+		sq.Expr("owner.access IS NULL"),
+		sq.Expr("FIND_IN_SET(?, owner.access)", constants.AnahitaAccessPublic),
+	}
+	if vID != 0 {
+		ownerGate = append(ownerGate,
+			// registered
+			sq.Expr("FIND_IN_SET(?, owner.access)", constants.AnahitaAccessRegistered),
+
+			// myself (person ⇒ self; non-person ⇒ admin)
+			sq.And{
+				sq.Expr("FIND_IN_SET(?, owner.access)", constants.AnahitaAccessMyself),
+				ownerSelfAdm,
+			},
+
+			// followers (inclusive: follow/leader/mutual/admin)
+			sq.And{
+				sq.Expr("FIND_IN_SET(?, owner.access)", constants.AnahitaAccessFollowers),
+				sq.Or{ownerFollows, ownerLeads, ownerMutual, ownerAdmin},
+			},
+
+			// leaders (inclusive)
+			sq.And{
+				sq.Expr("FIND_IN_SET(?, owner.access)", constants.AnahitaAccessLeaders),
+				sq.Or{ownerLeads, ownerMutual, ownerAdmin},
+			},
+
+			// mutuals (inclusive)
+			sq.And{
+				sq.Expr("FIND_IN_SET(?, owner.access)", constants.AnahitaAccessMutuals),
+				sq.Or{ownerMutual, ownerAdmin},
+			},
+
+			// admins
+			sq.And{
+				sq.Expr("FIND_IN_SET(?, owner.access)", constants.AnahitaAccessAdmins),
+				ownerAdmin,
+			},
+		)
+	}
+
+	// ---- NODE gate (fine gate) ----
+	nodeGate := sq.Or{
+		sq.Expr("node.access IS NULL"),
+		sq.Expr("FIND_IN_SET(?, node.access)", constants.AnahitaAccessPublic),
+	}
+	if vID != 0 {
+		nodeGate = append(nodeGate,
+			// registered
+			sq.Expr("FIND_IN_SET(?, node.access)", constants.AnahitaAccessRegistered),
+
+			// myself (person ⇒ self; non-person ⇒ admin)
+			sq.And{
+				sq.Expr("FIND_IN_SET(?, node.access)", constants.AnahitaAccessMyself),
+				nodeSelfAdm,
+			},
+
+			// followers (inclusive)
+			sq.And{
+				sq.Expr("FIND_IN_SET(?, node.access)", constants.AnahitaAccessFollowers),
+				sq.Or{nodeFollows, nodeLeads, nodeMutual, nodeAdmin},
+			},
+
+			// leaders (inclusive)
+			sq.And{
+				sq.Expr("FIND_IN_SET(?, node.access)", constants.AnahitaAccessLeaders),
+				sq.Or{nodeLeads, nodeMutual, nodeAdmin},
+			},
+
+			// mutuals (inclusive)
+			sq.And{
+				sq.Expr("FIND_IN_SET(?, node.access)", constants.AnahitaAccessMutuals),
+				sq.Or{nodeMutual, nodeAdmin},
+			},
+
+			// admins
+			sq.And{
+				sq.Expr("FIND_IN_SET(?, node.access)", constants.AnahitaAccessAdmins),
+				nodeAdmin,
+			},
+		)
+	}
+
+	sb = sb.Where(ownerGate).Where(nodeGate)
+
+	// ---- Optional: comment parent gate ----
+	if includeCommentParentNode {
+		//cpNotBlocked := relNotBlockedEitherWay("comment_parent_node", vID)
+		cpNotBlocked := relNotBlockedEitherWay(vID)
+		cpFollows := relViewerFollows("comment_parent_node", vID)
+		cpLeads := relAliasFollowsViewer("comment_parent_node", vID)
+		cpMutual := sq.And{cpFollows, cpLeads}
+		cpAdmin := relViewerAdmins("comment_parent_node", vID)
+		cpSelfAdm := relSelfOrAdmin("comment_parent_node", vID)
+
+		// Deny comments if the relationship with the comment's parent is blocked
+		sb = sb.Where(cpNotBlocked)
+
+		cpGate := sq.Or{
+			sq.Expr("comment_parent_node.access IS NULL"),
+			sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessPublic),
+		}
+		if vID != 0 {
+			cpGate = append(cpGate,
+				sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessRegistered),
+
+				sq.And{
+					sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessMyself),
+					cpSelfAdm,
+				},
+
+				sq.And{
+					sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessFollowers),
+					sq.Or{cpFollows, cpLeads, cpMutual, cpAdmin},
+				},
+
+				sq.And{
+					sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessLeaders),
+					sq.Or{cpLeads, cpMutual, cpAdmin},
+				},
+
+				sq.And{
+					sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessMutuals),
+					sq.Or{cpMutual, cpAdmin},
+				},
+
+				sq.And{
+					sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessAdmins),
+					cpAdmin,
+				},
+			)
+		}
+
+		sb = sb.Where(cpGate)
+	}
+
+	return sb
+}
+
+func relViewerFollows(alias string, viewerID int64) sq.Sqlizer {
+	return sq.Expr(`
+        EXISTS (
+          SELECT 1 FROM edges e
+          WHERE e.type = ?
+            AND e.node_a_id = ?
+            AND e.node_b_id = `+alias+`.id
+        )`, constants.EdgeFollowEntityType, viewerID)
+}
+
+func relAliasFollowsViewer(alias string, viewerID int64) sq.Sqlizer {
+	return sq.Expr(`
+        EXISTS (
+          SELECT 1 FROM edges e
+          WHERE e.type = ?
+            AND e.node_a_id = `+alias+`.id
+            AND e.node_b_id = ?
+        )`, constants.EdgeFollowEntityType, viewerID)
+}
+
+func relViewerAdmins(alias string, viewerID int64) sq.Sqlizer {
+	return sq.Expr(`
+        EXISTS (
+          SELECT 1 FROM edges e
+          WHERE e.type = ?
+            AND e.node_a_id = ?
+            AND e.node_b_id = `+alias+`.id
+        )`, constants.EdgeActorAdminEntityType, viewerID)
+}
+
+// func relNotBlockedEitherWay(alias string, viewerID int64) sq.Sqlizer {
+// 	return sq.Expr(`
+//         NOT EXISTS (
+//           SELECT 1 FROM edges e
+//           WHERE e.type = ?
+//             AND (
+//                  (e.node_a_id = ? AND e.node_b_id = `+alias+`.id)
+//               OR (e.node_b_id = ? AND e.node_a_id = `+alias+`.id)
+//             )
+//         )`, constants.EdgeBlockEntityType, viewerID, viewerID)
+// }
+
+// If alias is a person actor: myself ⇒ viewer == alias.id
+// Else (group/event/...): myself ⇒ viewer admins alias
+func relSelfOrAdmin(alias string, viewerID int64) sq.Sqlizer {
+	return sq.Expr(`
+        (
+          (`+alias+`.type LIKE 'node.actor.person.%' AND `+alias+`.id = ?)
+          OR
+          (`+alias+`.type NOT LIKE 'node.actor.person.%' AND EXISTS (
+              SELECT 1 FROM edges e
+              WHERE e.type = ?
+                AND e.node_a_id = ?
+                AND e.node_b_id = `+alias+`.id
+          ))
+        )`, viewerID, constants.EdgeActorAdminEntityType, viewerID)
+}

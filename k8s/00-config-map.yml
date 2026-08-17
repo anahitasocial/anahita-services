@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: anahita-config-map
+data:
+  ENV: "dev"
+  DSN: "root:root@(mysql-svc:3306)/anahita?parseTime=true"
+  AWS_PROFILE: "anahitapolis"
+  AWS_DEFAULT_REGION: "ca-central-1"
+  AWS_FILES_S3_BUCKET: "staging.anahita.io"
+  AWS_FILES_S3_ASSETS_DIR: "assets/v2"
+  AWS_KMS_KEY_ID: ""
+  # Secrets-at-rest encryption backend: "local" or "kms". Local needs
+  # only the CRYPT_LOCAL_KEY secret; kms needs AWS_KMS_KEY_ID above.
+  CRYPT_BACKEND: "local"
+  AMQP_ADDR: "amqp://rabbitmq:5672"
+  MAILER_PROVIDER: "mailgun"
+  MYSQL_USER: "root"
+  MYSQL_DATABASE: "anahita"
+  SMTP_USER: postmaster@mail.anahita.io
+  SMTP_HOST: smtp.mailgun.org
+  SMTP_PORT: "587"
+  REDIS_ADDR: "redis:6379"
+  REDIS_DB: "0"
+  my.cnf: |
+    [mysqld]
+    group_concat_max_len = 64000

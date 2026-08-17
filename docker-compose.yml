@@ -1,0 +1,637 @@
+services:
+
+# nginx - reverse proxy
+  nginx:
+    # container_name: nginx
+    # image: nginx:alpine
+    build:
+      context: .
+      dockerfile: ./dockerfiles/nginx.dockerfile
+    restart: always
+    hostname: nginx
+    ports:
+      - "80:80"
+    volumes:
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+        - ./nginx/index.html:/etc/nginx/html/index.html
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.2
+
+# MySQL - database
+  mysql:
+    platform: linux/arm64 # Use this line if you are on an ARM64 architecture (e.g., Apple Silicon)
+    image: mysql:9.6
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: anahita
+      MYSQL_ROOT_PASSWORD: root
+      # MYSQL_USER: root
+      # MYSQL_PASSWORD: root
+    volumes:
+      - ./db-data/mysql:/var/lib/mysql
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.3
+    command:
+      --group_concat_max_len=64000
+
+# Redis - session store
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory-policy noeviction --appendonly yes
+    volumes:
+      - ./db-data/redis:/data
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.4
+
+
+# auth-service - handles user auth
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/auth-service.dockerfile
+    restart: always
+    ports:
+      - "8081:80"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      MAX_DB_CONNECTIONS: ${MAX_DB_CONNECTIONS}
+      AWS_PROFILE: ${AWS_PROFILE}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      # Secrets-at-rest encryption. "local" (the default) needs only
+      # CRYPT_LOCAL_KEY; "kms" needs AWS_KMS_KEY_ID and credentials.
+      CRYPT_BACKEND: ${CRYPT_BACKEND}
+      CRYPT_LOCAL_KEY: ${CRYPT_LOCAL_KEY}
+      AWS_KMS_KEY_ID: ${AWS_KMS_KEY_ID}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      SYSTEM_EMAIL: ${SYSTEM_EMAIL}
+      SUPPORT_EMAIL: ${SUPPORT_EMAIL}
+      MAIL_SERVICE_ADDR: "mail-grpc-service:50051"
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      AMQP_ADDR: ${AMQP_ADDR}
+      # OAUTH
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      OAUTH_PRIVATE_KEY_PATH: ${OAUTH_PRIVATE_KEY_PATH}
+      OAUTH_SIGNER_BACKEND: ${OAUTH_SIGNER_BACKEND}
+      OAUTH_KMS_KEY_ALIAS: ${OAUTH_KMS_KEY_ALIAS}
+      OAUTH_SEED_CLIENT_PATH: ${OAUTH_SEED_CLIENT_PATH}
+    volumes:
+      - ./oauth-signing.pem:/run/secrets/oauth-signing.pem:ro
+      - ./auth-defaults/oauth_scopes.json:/app/defaults/oauth_scopes.json:ro
+      - ./auth-defaults/oauth_seed_clients.json:/app/defaults/oauth_seed_clients.json:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.10
+
+# group-service - handles groups
+  group-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/group-service.dockerfile
+    restart: always
+    ports:
+      - "8082:80"
+    depends_on:
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      #     SETTINGS_PATH: "/app/assets/settings.json"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    # volumes:
+    #   - ./assets/custom-group-settings.json:/app/assets/settings.json
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.11
+
+# person-service - handles people
+  person-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/person-service.dockerfile
+    restart: always
+    ports:
+      - "8083:80"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.12
+
+# text-service - handles texts
+  text-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/text-service.dockerfile
+    restart: always
+    ports:
+      - "8084:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.13
+
+# photo-service - handles photos
+  photo-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/photo-service.dockerfile
+    restart: always
+    ports:
+      - "8085:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.14
+
+# hashtag-service - handles hashtags
+  hashtag-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/hashtag-service.dockerfile
+    restart: always
+    ports:
+      - "8086:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.15
+
+# location-service - handles locations
+  location-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/location-service.dockerfile
+    restart: always
+    ports:
+      - "8087:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.16
+
+# story-service - handles stories
+  story-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/story-service.dockerfile
+    restart: always
+    ports:
+      - "8090:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.19
+
+# notification-service - handles notifications
+  notification-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/notification-service.dockerfile
+    restart: always
+    ports:
+      - "8091:80"
+      - "50057:50051"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.20
+
+# socialgraph-service - handles notifications
+  socialgraph-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/socialgraph-service.dockerfile
+    restart: always
+    ports:
+      - "8092:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.21
+
+# search-service - handles search
+  search-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/search-service.dockerfile
+    restart: always
+    ports:
+      - "8093:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.22
+
+# comment-service - handles comments
+  comment-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/comment-service.dockerfile
+    restart: always
+    ports:
+      - "8094:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.23
+
+# like-service - handles likes
+  like-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/like-service.dockerfile
+    restart: always
+    ports:
+      - "8095:80"
+      - "50058:50051"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.24
+
+# file-grpc-service - handles file
+  file-grpc-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/file-grpc-service.dockerfile
+    restart: always
+    ports:
+      - "50055:50051"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      AWS_REGION: ${AWS_DEFAULT_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_FILES_S3_BUCKET: ${AWS_FILES_S3_BUCKET}
+      AWS_FILES_S3_ASSETS_DIR: ${AWS_FILES_S3_ASSETS_DIR}
+      AWS_KMS_KEY_ID: ${AWS_KMS_KEY_ID}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.28
+
+# avatar-service - handles avatar
+  avatar-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/avatar-service.dockerfile
+    restart: always
+    ports:
+      - "8096:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.29
+
+# cover-service - handles cover
+  cover-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/cover-service.dockerfile
+    restart: always
+    ports:
+      - "8097:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.30
+
+# RabbitMQ - message broker
+  rabbitmq:
+    image: 'rabbitmq:3.12-alpine'
+    restart: always
+    ports:
+        - "5672:5672"
+    deploy:
+        mode: replicated
+        replicas: 1
+    volumes:
+        - ./db-data/rabbitmq/:/var/lib/rabbitmq/
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.31
+
+# mail-service - handles email notifications
+  mail-grpc-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/mail-grpc-service.dockerfile
+    restart: always
+    ports:
+      - "50056:50051"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      MAILER_PROVIDER: ${MAILER_PROVIDER}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_PORT: ${SMTP_PORT}
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.32
+
+# migration-job - handles database migrations
+  migration-job:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/migration-job.dockerfile
+    restart: "no"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: anahita
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    depends_on:
+      - mysql
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.33
+
+# feed-service - handles feeds
+  feed-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/feed-service.dockerfile
+    restart: always
+    ports:
+      - "8098:80"
+      - "50059:50051"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      DEFAULTS_PATH: /feed-defaults
+    volumes:
+      - ./feed-defaults:/feed-defaults:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.34
+
+# graph-grpc-service - handles graph
+  graph-grpc-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/graph-grpc-service.dockerfile
+    restart: always
+    ports:
+      - "50054:50051"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      AMQP_ADDR: ${AMQP_ADDR}
+      ACTOR_FEATURES_PATH: /defaults/actor_features
+    volumes:
+      - ./graph-grpc-defaults/actor_features:/defaults/actor_features:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.27
+
+networks:
+    anahita-network:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.20.1.0/24

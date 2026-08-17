@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+message Socialgraph {
+    int64 actor_a_id = 1; // The ID of the first actor in the relationship
+    int64 actor_b_id = 2; // The ID of the second actor in the relationship
+    bool is_leading = 3;
+    bool is_following = 4;
+    bool is_mutual = 5;
+    bool is_blocking = 6;
+    bool has_admin = 7;
+}
+
+message SocialgraphReadRequest {
+    int64 actor_a_id = 1;
+    int64 actor_b_id = 2;
+}
+
+message SocialgraphReadResponse {
+    Socialgraph relation = 1;
+}
+
+message SocialgraphBrowseRequest {
+    repeated int64 actor_a_ids = 1;
+    int64 actor_b_id = 2;
+}
+
+message SocialgraphBrowseResponse {
+    map<int64, Socialgraph> relations = 1; // key is actor_id
+}
+
+service SocialgraphService {
+    rpc Read(SocialgraphReadRequest) returns (SocialgraphReadResponse);
+    rpc Browse(SocialgraphBrowseRequest) returns (SocialgraphBrowseResponse);
+}
+
+
