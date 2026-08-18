@@ -68,6 +68,10 @@ func (repo *authLogs) Browse(user *entities.User) ([]*entities.AuthLog, error) {
 			return nil, err
 		}
 
+		if refreshTokenID.Valid {
+			authLog.OAuthRefreshTokenID = refreshTokenID.Int64
+		}
+
 		results = append(results, authLog)
 	}
 

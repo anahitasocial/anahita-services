@@ -58,5 +58,9 @@ func (repo *authLogs) getOne(query sq.SelectBuilder) (*entities.AuthLog, error) 
 		return nil, err
 	}
 
+	if refreshTokenID.Valid {
+		authLog.OAuthRefreshTokenID = refreshTokenID.Int64
+	}
+
 	return authLog, nil
 }

@@ -156,7 +156,11 @@ func (r *Routes) Init(e *echo.Echo) {
 	authlogs := e.Group("/authlogs")
 	authlogs.Use(r.authorize)
 	authlogs.GET("/:id", h.Authlog.Browse)
-	authlogs.DELETE("/:id/:authloguuid", h.Authlog.Delete)
+	// Path is /authlogs/{userID}/{authlogID}. The param names must match
+	// the `param:` tags on AuthlogDeleteRequest — Echo binds by name, so
+	// a mismatch here leaves the field zero and fails validation rather
+	// than erroring at bind time.
+	authlogs.DELETE("/:uid/:id", h.Authlog.Delete)
 
 	// Invite admin operations — same /invites path as the public
 	// accept routes above, but Browse, Add, and Delete are gated by

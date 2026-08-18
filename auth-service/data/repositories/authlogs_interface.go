@@ -16,6 +16,12 @@ type AuthLogsInterface interface {
 	// to update on rotation.
 	ReadByOAuthRefreshTokenID(refreshTokenID int64) (*entities.AuthLog, error)
 
+	// ReadLatestByAgent returns the most recent auth log for the given
+	// person, client and agent fingerprint, or sql.ErrNoRows if none
+	// exists. Used by the silent re-auth path to find the row for this
+	// browser instead of inserting a duplicate every 15 minutes.
+	ReadLatestByAgent(createdBy int64, clientID, device, os, name, ip string) (*entities.AuthLog, error)
+
 	// ReadLatestByCreatedByAndClient returns the most recent auth log
 	// for the given (created_by, client_id) pair, or sql.ErrNoRows if
 	// none exists. Used to suppress duplicate login-notification

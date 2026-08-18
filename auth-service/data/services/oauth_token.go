@@ -193,7 +193,7 @@ func (s *OAuthService) RefreshTokenPair(
 	// Update the auth log pointer to follow the rotated refresh token.
 	// Best-effort — log on failure but don't fail the refresh, since
 	// the new token pair is already valid and useful to the caller.
-	if authLog, err := s.Repos.AuthLogs.ReadByID(stored.ID); err == nil {
+	if authLog, err := s.Repos.AuthLogs.ReadByOAuthRefreshTokenID(stored.ID); err == nil {
 		if err := s.Repos.AuthLogs.UpdateOAuthRefreshTokenID(
 			authLog.ID,
 			persistedRefreshNew.ID,

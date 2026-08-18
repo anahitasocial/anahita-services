@@ -241,12 +241,20 @@ func (h *oauthHandler) recordAuthLogAfterIssuance(
 		return
 	}
 
-	authLog, err := authlogHandler.AddSystem(c, rt.ID, clientID, user)
+	authLog, reused, err := authlogHandler.AddOrReuseSystem(c, rt.ID, clientID, user)
 	if err != nil {
 		log.Println("authlog: add after token issuance failed:", err)
 		return
 	}
-	log.Println("authlog: recorded new auth log", authLog.ID, "for viewer", viewer.ID, "client", clientID)
+	if reused {
+		// Same browser re-authenticating silently. The row moved to the
+		// new refresh token; nothing about this is a sign-in event, so
+		// the notification is suppressed regardless of the time window.
+		log.Println("authlog: reused auth log", authLog.ID, "for viewer", viewer.ID, "client", clientID)
+		suppressEmail = true
+	} else {
+		log.Println("authlog: recorded new auth log", authLog.ID, "for viewer", viewer.ID, "client", clientID)
+	}
 
 	if err := authlogHandler.DeleteRedundantSessions(c, user); err != nil {
 		log.Println("authlog: cleanup of redundant sessions failed:", err)
