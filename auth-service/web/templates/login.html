@@ -22,7 +22,7 @@
                 name="identifier"
                 placeholder=" "
                 required
-                autocomplete="email"
+                autocomplete="username webauthn"
                 autofocus
             >
             <label for="identifier">Email</label>
@@ -54,17 +54,90 @@
         <button type="submit" class="btn btn-primary" id="login-submit">Sign In</button>
     </form>
 
+    {{/*
+        Passkey path.
+
+        Kept below the password form on purpose. Passwords are what
+        everyone has on day one, and leading with a control most
+        visitors can't use yet reads as a broken page. Once enrolment
+        is common this ordering is worth revisiting — and the autofill
+        prompt in the email field already surfaces a passkey ahead of
+        the button for anyone who has one.
+
+        Hidden by default and revealed by web_authn.js only after it
+        confirms the browser supports the ceremony. A button that does
+        nothing is worse than no button.
+    */}}
+    <div id="passkey-section" class="passkey-section" style="display: none;">
+        <div class="or-divider"><span>or</span></div>
+
+        <div
+            id="passkey-error"
+            class="error-message"
+            role="alert"
+            style="display: none;"
+        ></div>
+
+        <button type="button" class="btn btn-outline" id="passkey-button">
+            Sign in with a passkey
+        </button>
+
+        <span class="helper-text passkey-hint">
+            Use your fingerprint, face, or device PIN. No verification code needed.
+        </span>
+    </div>
+
     <hr class="divider">
 
     <p class="text-center">
         Don't have an account?
-        <a href="/signup" class="text-link">Sign up</a>
+        <a href="{{.FrontendURL}}/auth/signup{{.ReturnParam}}" class="text-link">Sign up</a>
     </p>
 
     <p class="footer-text">
         <a href="{{.FrontendURL}}" class="text-link">Cancel and return to {{.SiteName}}</a>
     </p>
 </div>
+
+<style>
+    /* Labelled rule separating the two sign-in paths. A plain
+     * .divider would read as "section break"; the "or" makes it clear
+     * these are alternatives, not steps. */
+    .or-divider {
+        display: flex;
+        align-items: center;
+        margin: 24px 0 16px;
+        color: var(--mui-text-secondary);
+        font-size: 0.875rem;
+    }
+    .or-divider::before,
+    .or-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background-color: var(--mui-divider);
+    }
+    .or-divider span {
+        padding: 0 12px;
+    }
+
+    .passkey-section .btn-outline:disabled {
+        color: var(--mui-text-disabled);
+        border-color: var(--mui-divider);
+        cursor: default;
+        background-color: transparent;
+    }
+
+    /* .helper-text is indented to line up under a text field's label;
+     * this one sits under a full-width button, so it centres instead. */
+    .passkey-hint {
+        text-align: center;
+        margin-left: 0;
+        margin-top: 8px;
+    }
+</style>
+
+<script src="/static/js/web_authn.js" defer></script>
 
 <script>
     // Prevent double-submit on slow networks. Works without JS too.

@@ -343,11 +343,13 @@ CREATE TABLE auth_logs (
     `city` varchar(255) DEFAULT NULL,
     `country` varchar(255) DEFAULT NULL,
     `oauth_refresh_token_id` bigint(11) unsigned NOT NULL,
-    `oauth_client_id` varchar(255) NOT NULL,
+    `client_id` varchar(255) NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARACTER SET=utf8;
 CREATE INDEX idx_auth_logs_created_by ON auth_logs (created_by);
 CREATE INDEX idx_auth_logs_created_on ON auth_logs (created_on);
+CREATE INDEX idx_auth_logs_created_by_client_id_created_on ON auth_logs (created_by, client_id, created_on DESC);
+CREATE INDEX idx_auth_logs_oauth_refresh_token_id ON auth_logs (oauth_refresh_token_id);
 
 -- --------------------------------------------------------
 -- OAuth tables
@@ -364,7 +366,9 @@ CREATE TABLE oauth_authorizations (
     `code_challenge_method` varchar(10) DEFAULT NULL,
     `nonce` varchar(255) DEFAULT NULL,
     `expires_at` datetime NOT NULL,
-    `created_at` datetime NOT NULL,
+    -- Defaulted, not supplied by the insert: under MySQL strict mode a
+    -- NOT NULL column with no default and no value is error 1364.
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `idx_code_hash` (`code_hash`),
     KEY `idx_client_id` (`client_id`),
@@ -385,10 +389,21 @@ CREATE TABLE oauth_clients (
     `token_expiry` int(11) NOT NULL DEFAULT 900,
     `confidential` tinyint(1) NOT NULL DEFAULT 1,
     `skip_consent` tinyint(1) NOT NULL DEFAULT 0,
+    -- First-party clients are the apps we ship ourselves. Separate from
+    -- skip_consent: a first-party client may still need a consent
+    -- screen, and a third-party client is never ours regardless of how
+    -- consent is configured.
+    `first_party` tinyint(1) NOT NULL DEFAULT 0,
     `active` tinyint(1) NOT NULL DEFAULT 1,
-    `created_by` bigint(11) unsigned NOT NULL,
-    `create_time` datetime NOT NULL,
-    `update_time` datetime NOT NULL,
+    -- Defaulted because seeded first-party clients have no creating
+    -- person — SeedDefaultClients runs at startup, before any request.
+    `created_by` bigint(11) unsigned NOT NULL DEFAULT 0,
+    -- created_at/updated_at rather than create_time/update_time: the
+    -- repository selects created_at, and every other oauth_* table
+    -- already uses the _at suffix. Both defaulted — neither Add nor
+    -- Edit supplies them.
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `idx_client_id` (`client_id`),
     KEY `idx_active` (`active`),
@@ -405,7 +420,8 @@ CREATE TABLE oauth_refresh_tokens (
     `scopes` text DEFAULT NULL,
     `revoked` tinyint(1) NOT NULL DEFAULT 0,
     `expires_at` datetime NOT NULL,
-    `created_at` datetime NOT NULL,
+    -- Defaulted: the insert does not name it. See oauth_authorizations.
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `idx_token_hash` (`token_hash`),
     KEY `idx_user_id` (`user_id`),
@@ -423,12 +439,93 @@ CREATE TABLE oauth_signing_keys (
     `private_key` text DEFAULT NULL,
     `active` tinyint(1) NOT NULL DEFAULT 1,
     `expires_at` datetime NOT NULL,
-    `created_at` datetime NOT NULL,
+    -- Defaulted: neither Add nor the KMS seeder names it. See
+    -- oauth_authorizations.
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `backend` varchar(255) NOT NULL DEFAULT 'local',
     PRIMARY KEY (`id`),
     UNIQUE KEY `idx_key_id` (`key_id`),
     KEY `idx_active` (`active`),
     KEY `idx_active_expires` (`active`, `expires_at`)
+) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+
+-- --------------------------------------------------------
+
+-- Single-use tokens emailed to a person: password resets and invites.
+-- created_by / updated_by are node ids, the same soft reference
+-- auth_logs.created_by uses.
+
+CREATE TABLE tokens (
+    `id` SERIAL,
+    `recipient_email` varchar(255) NOT NULL,
+    -- 'passwordreset' or 'invite' (constants.TokenType*). A varchar
+    -- rather than an ENUM so adding a token type is a code change.
+    `type` varchar(50) NOT NULL,
+    -- 64 random bytes, hex-encoded. Indexed because ReadByBody is the
+    -- lookup every reset/invite link performs.
+    `body` varchar(255) NOT NULL,
+    -- Defaulted: Token.NewToken sets StartTime in Go but tokens.Add
+    -- does not include it in the insert column list.
+    `start_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Lifetime in seconds from start_time. Expiry is computed in Go
+    -- (Token.SetStatus) rather than stored.
+    `expired_after` int(11) NOT NULL DEFAULT 0,
+    `is_used` tinyint(1) NOT NULL DEFAULT 0,
+    `created_at` datetime NOT NULL,
+    `created_by` bigint(11) unsigned NOT NULL,
+    `updated_at` datetime NOT NULL,
+    `updated_by` bigint(11) unsigned NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_tokens_body` (`body`),
+    KEY `idx_tokens_type` (`type`),
+    KEY `idx_tokens_recipient_email` (`recipient_email`),
+    KEY `idx_tokens_created_by` (`created_by`),
+    KEY `idx_tokens_created_at` (`created_at`)
+) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+
+-- --------------------------------------------------------
+
+-- WebAuthn (passkey) credentials. One row per authenticator a person
+-- has enrolled. user_id is a node id, a soft reference like the rest of
+-- this schema, so person deletion must call DeleteByPersonID
+-- explicitly: a recycled node id would otherwise inherit a stranger's
+-- passkey.
+
+CREATE TABLE webauthn_credentials (
+    `id` SERIAL,
+    `user_id` bigint(11) unsigned NOT NULL,
+    -- Raw authenticator-generated identifier, stored as bytes rather
+    -- than base64url so the login lookup does not depend on encoding
+    -- choices matching across library versions. VARBINARY(255) is the
+    -- spec maximum and, unlike BLOB, can carry a UNIQUE index directly.
+    `credential_id` varbinary(255) NOT NULL,
+    -- COSE-encoded public key. The private key never leaves the device.
+    `public_key` blob NOT NULL,
+    `attestation_type` varchar(255) NOT NULL DEFAULT '',
+    -- Authenticator model identifier. Drives the name/icon shown in the
+    -- passkey list, not any security decision.
+    `aaguid` varbinary(16) DEFAULT NULL,
+    -- Monotonic counter for clone detection. Synced platform
+    -- authenticators always report 0, which is expected.
+    `sign_count` bigint(20) unsigned NOT NULL DEFAULT 0,
+    `clone_warning` tinyint(1) NOT NULL DEFAULT 0,
+    -- Transport hints ("internal", "hybrid", "usb", "nfc", "ble"). JSON
+    -- because MySQL has no array type; read and written through
+    -- entities.StringSlice.
+    `transports` JSON NOT NULL,
+    -- BE / BS flags: whether this passkey can sync to a cloud keychain,
+    -- and whether it currently is.
+    `backup_eligible` tinyint(1) NOT NULL DEFAULT 0,
+    `backup_state` tinyint(1) NOT NULL DEFAULT 0,
+    -- Person-supplied label. Required: three unlabelled passkeys is not
+    -- a list anyone can safely revoke from.
+    `nickname` varchar(255) NOT NULL,
+    `last_used_at` datetime DEFAULT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_webauthn_credentials_credential_id` (`credential_id`),
+    KEY `idx_webauthn_credentials_user_id` (`user_id`)
 ) ENGINE=InnoDB CHARACTER SET=utf8mb4;
 
 -- --------------------------------------------------------

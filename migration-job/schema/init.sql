@@ -172,11 +172,13 @@ CREATE TABLE auth_logs (
     `city` varchar(255) DEFAULT NULL,
     `country` varchar(255) DEFAULT NULL,
     `oauth_refresh_token_id` bigint(11) unsigned NOT NULL,
-    `oauth_client_id` varchar(255) NOT NULL,
+    `client_id` varchar(255) NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARACTER SET=utf8;
 CREATE INDEX idx_auth_logs_created_by ON auth_logs (created_by);
 CREATE INDEX idx_auth_logs_created_on ON auth_logs (created_on);
+CREATE INDEX idx_auth_logs_created_by_client_id_created_on ON auth_logs (created_by, client_id, created_on DESC);
+CREATE INDEX idx_auth_logs_oauth_refresh_token_id ON auth_logs (oauth_refresh_token_id);
 
 -- Add indices
 
