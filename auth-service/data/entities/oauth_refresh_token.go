@@ -24,6 +24,16 @@ type OAuthRefreshToken struct {
 	Revoked   bool      `db:"revoked"    json:"revoked"`
 	ExpiresAt time.Time `db:"expires_at" json:"expiresAt"`
 	CreatedAt time.Time `db:"created_at" json:"createdAt"`
+
+	// RevokedAt is when Revoked was set, or nil for a token that is still
+	// active — or that was revoked before the column existed.
+	//
+	// Reuse detection uses it to tell a rotation race from a replay: a
+	// token revoked moments ago is a concurrent refresh, one revoked long
+	// ago is an attacker. A nil value on a revoked row means the timestamp
+	// predates the column, and must be read as "long ago" so those tokens
+	// still trip the cascade.
+	RevokedAt *time.Time `db:"revoked_at" json:"revokedAt,omitempty"`
 }
 
 // NewOAuthRefreshToken returns a new OAuthRefreshToken with a generated UUID.
@@ -56,4 +66,16 @@ var (
 	ErrRefreshTokenRevoked  = errors.New("refresh token revoked")
 	ErrRefreshTokenExpired  = errors.New("refresh token expired")
 	ErrRefreshTokenReuse    = errors.New("refresh token reuse detected")
+
+	// ErrRefreshTokenRaced means another in-flight request rotated this
+	// token first. It is NOT reuse: the token was valid when this request
+	// read it, and both requests are legitimate holders of the same
+	// plaintext. It carries no cascade revocation, because cascading here
+	// would revoke the token pair the winning request just minted and
+	// sign out a user who did nothing wrong.
+	//
+	// A client seeing this should re-read its token store rather than
+	// retry with the same plaintext — the winner has already persisted a
+	// fresh pair.
+	ErrRefreshTokenRaced = errors.New("refresh token rotation raced")
 )

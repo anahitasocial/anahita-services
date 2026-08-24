@@ -276,10 +276,22 @@ CREATE TABLE oauth_refresh_tokens (
     `client_id` varchar(255) NOT NULL,
     `scopes` text DEFAULT NULL,
     `revoked` tinyint(1) NOT NULL DEFAULT 0,
+    -- Records WHEN the token was revoked, which reuse detection needs in
+    -- order to tell a rotation race from a replay: revoked moments ago is
+    -- a client refreshing concurrently with itself, revoked long ago is an
+    -- attacker replaying a stolen token, and the two want opposite
+    -- responses. See ReuseGracePeriod in auth-service.
+    --
+    -- Nullable on purpose: a revoked row carrying no timestamp reads as
+    -- "revoked long ago" and still trips the containment cascade, which is
+    -- the safe direction to be wrong in.
+    `revoked_at` datetime DEFAULT NULL,
     `expires_at` datetime NOT NULL,
     -- Defaulted: the insert does not name it. See oauth_authorizations.
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
+    -- No index on revoked_at: reuse detection finds the row by token_hash,
+    -- which is already UNIQUE, and reads revoked/revoked_at off it.
     UNIQUE KEY `idx_token_hash` (`token_hash`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_client_id` (`client_id`),

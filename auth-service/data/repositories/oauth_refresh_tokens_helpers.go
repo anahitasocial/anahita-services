@@ -27,6 +27,7 @@ var oauthRefreshTokenFields = []string{
 	"revoked",
 	"expires_at",
 	"created_at",
+	"revoked_at",
 }
 
 // getBaseSelectQuery returns the base select query for oauth refresh tokens.
@@ -48,6 +49,7 @@ func (repo *oauthRefreshTokens) getOne(query sq.SelectBuilder) (*entities.OAuthR
 	token := entities.NewOAuthRefreshToken()
 
 	var scopes sql.NullString
+	var revokedAt sql.NullTime
 	err = row.Scan(
 		&token.ID,
 		&token.TokenHash,
@@ -57,6 +59,7 @@ func (repo *oauthRefreshTokens) getOne(query sq.SelectBuilder) (*entities.OAuthR
 		&token.Revoked,
 		&token.ExpiresAt,
 		&token.CreatedAt,
+		&revokedAt,
 	)
 
 	if err != nil {
@@ -64,6 +67,9 @@ func (repo *oauthRefreshTokens) getOne(query sq.SelectBuilder) (*entities.OAuthR
 	}
 
 	token.Scopes = scopes.String
+	if revokedAt.Valid {
+		token.RevokedAt = &revokedAt.Time
+	}
 	return token, nil
 }
 
@@ -93,6 +99,11 @@ func (repo *oauthRefreshTokens) browseWhere(pred sq.Sqlizer) ([]*entities.OAuthR
 	for rows.Next() {
 		token := entities.NewOAuthRefreshToken()
 		var scopes sql.NullString
+		// Declared inside the loop, not above it: a shared NullTime would
+		// let a row with a NULL revoked_at inherit the previous row's
+		// timestamp, since Scan leaves the value untouched when Valid is
+		// false.
+		var revokedAt sql.NullTime
 		err := rows.Scan(
 			&token.ID,
 			&token.TokenHash,
@@ -102,6 +113,7 @@ func (repo *oauthRefreshTokens) browseWhere(pred sq.Sqlizer) ([]*entities.OAuthR
 			&token.Revoked,
 			&token.ExpiresAt,
 			&token.CreatedAt,
+			&revokedAt,
 		)
 
 		if err != nil {
@@ -109,6 +121,9 @@ func (repo *oauthRefreshTokens) browseWhere(pred sq.Sqlizer) ([]*entities.OAuthR
 		}
 
 		token.Scopes = scopes.String
+		if revokedAt.Valid {
+			token.RevokedAt = &revokedAt.Time
+		}
 		results = append(results, token)
 	}
 
@@ -119,13 +134,22 @@ func (repo *oauthRefreshTokens) browseWhere(pred sq.Sqlizer) ([]*entities.OAuthR
 	return results, nil
 }
 
-// revokeWhere marks all matching non-revoked tokens as revoked.
+// revokeWhere marks all matching non-revoked tokens as revoked, stamping
+// when it happened.
+//
+// revoked_at comes from the database's NOW() rather than the application
+// clock so that every auth-service replica writes on one clock; reuse
+// detection compares against it to tell a rotation race from a replay.
+// The revoked = false guard means an already-revoked row keeps its
+// original timestamp instead of having it pushed forward, which would
+// otherwise let a replayed token look freshly rotated on every attempt.
 func (repo *oauthRefreshTokens) revokeWhere(pred sq.Sqlizer) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	query := repo.sb.Update("oauth_refresh_tokens").
 		Set("revoked", true).
+		Set("revoked_at", sq.Expr("NOW()")).
 		Where(pred).
 		Where(sq.Eq{"revoked": false})
 
