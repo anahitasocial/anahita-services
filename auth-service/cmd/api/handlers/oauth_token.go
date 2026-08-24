@@ -145,11 +145,30 @@ func (h *oauthHandler) tokenRefreshToken(
 		return c.JSON(http.StatusBadRequest, &responses.OAuthErrorResponse{
 			Error:       "invalid_grant",
 			Description: err.Error(),
+			ErrorCode:   refreshErrorCode(err),
 		})
 	}
 
 	oauthResp := &responses.OAuthTokenResponse{}
 	return c.JSON(http.StatusOK, oauthResp.MapTokenPair(tokenPair))
+}
+
+// refreshErrorCode maps a refresh failure to a machine-readable code so
+// clients don't have to string-match the description. An unrecognised
+// error returns "", which clients treat as terminal.
+func refreshErrorCode(err error) string {
+	switch {
+	case errors.Is(err, entities.ErrRefreshTokenExpired):
+		return responses.OAuthErrorCodeRefreshExpired
+	case errors.Is(err, entities.ErrRefreshTokenNotFound):
+		return responses.OAuthErrorCodeRefreshNotFound
+	case errors.Is(err, entities.ErrRefreshTokenReuse):
+		return responses.OAuthErrorCodeRefreshReuse
+	case errors.Is(err, entities.ErrRefreshTokenRaced):
+		return responses.OAuthErrorCodeRefreshRaced
+	default:
+		return ""
+	}
 }
 
 func (h *oauthHandler) tokenClientCredentials(

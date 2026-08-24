@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
@@ -122,6 +123,25 @@ func authenticateOAuth(c echo.Context, config ConfigInterface, jwks *JWKSClient)
 			return jwks.PublicKeyForKID(kid)
 		},
 		jwt.WithIssuer(config.GetOAuthIssuer()),
+
+		// Pin the algorithm before the keyfunc runs. The RSA type
+		// assertion above already blocks alg confusion, so this is
+		// defence in depth rather than a hole being closed — but it
+		// rejects the token earlier and narrows "any RSA method" to the
+		// one algorithm auth-service actually signs with.
+		//
+		// auth-service pins RS256 in both the local and KMS signers
+		// (internal/signing/factory.go). If the planned ES256 migration
+		// happens, this list and the SigningMethodRSA assertion above
+		// both need updating, and both will fail closed until they are.
+		jwt.WithValidMethods([]string{"RS256"}),
+
+		// exp and nbf are otherwise validated with zero tolerance for
+		// clock skew, against a token that only lives 15 minutes. A few
+		// seconds of drift between the signing pod and a verifying one
+		// is ordinary; rejecting on it produces intermittent 401s that
+		// look like nothing at all.
+		jwt.WithLeeway(30*time.Second),
 	)
 	if err != nil {
 		log.Println("oauth middleware: token parse failed:", err)

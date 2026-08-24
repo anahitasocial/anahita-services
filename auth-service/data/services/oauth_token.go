@@ -16,6 +16,28 @@ import (
 // RefreshTokenLifetime is the validity window for refresh tokens.
 const RefreshTokenLifetime = 30 * 24 * time.Hour
 
+// ReuseGracePeriod is how recently a refresh token must have been revoked
+// for a second presentation of it to be forgiven as a rotation race rather
+// than punished as a replay.
+//
+// Refresh tokens are single-use, so presenting a revoked one normally means
+// an attacker is replaying a stolen token, and the response is to revoke
+// every token the user holds for that client. A client that races itself is
+// indistinguishable at the protocol level: two concurrent refreshes with the
+// same token, one rotates it, the other arrives milliseconds later to find
+// it revoked. Punishing that signs out a user who did nothing wrong,
+// including their sessions on other devices.
+//
+// The trade is explicit: an attacker replaying a stolen token inside this
+// window escapes the containment cascade. They still get no token — the
+// request fails either way — so what is given up is only the automatic
+// revocation of the user's other sessions for that window. RFC 6819 and the
+// OAuth 2.1 draft both allow a grace period here for exactly this reason.
+//
+// 60s comfortably covers a racing client's retry cycle while keeping the
+// window where containment is suspended short.
+const ReuseGracePeriod = 60 * time.Second
+
 // IssueTokenPairForViewer issues an access + refresh token pair for the
 // authenticated Viewer. Used by the /authorize consent handler after the
 // user has approved the grant, and called via /token's
@@ -124,8 +146,19 @@ func (s *OAuthService) IssueClientAccessToken(
 // Best-effort — a failure here doesn't fail the refresh, since the
 // token pair is already valid; the auth log just falls out of sync.
 //
-// If a revoked refresh token is presented, all of this client's tokens
-// for the owning user are revoked (OAuth 2.1 reuse-detection guidance).
+// If a refresh token that was revoked longer ago than ReuseGracePeriod is
+// presented, all of this client's tokens for the owning user are revoked
+// (OAuth 2.1 reuse-detection guidance). The blast radius is deliberately
+// user+client, never client-wide — a client-wide revocation here would
+// sign out every user of the client on every device. Inside the grace
+// period the presentation is read as a rotation race instead and nothing
+// is revoked; see ReuseGracePeriod.
+//
+// Rotation is made atomic by RevokeIfActive: the old token is claimed with
+// a conditional update before any new state is written, so two requests
+// racing with the same plaintext cannot both mint a token pair. The loser
+// gets ErrRefreshTokenRaced — not reuse, because cascading would revoke the
+// pair the winner just issued to a user who did nothing wrong.
 //
 // If requestedScopes is non-empty, it must be a subset of the original
 // grant.
@@ -141,7 +174,30 @@ func (s *OAuthService) RefreshTokenPair(
 	}
 
 	if stored.Revoked {
-		_ = s.Repos.OAuthRefreshTokens.RevokeByClientID(client.ClientID)
+		// Revoked moments ago: a concurrent or retrying client presenting a
+		// token that was still valid when it read it. Refuse the exchange —
+		// the token is spent — but do not cascade, because the request that
+		// won the race has already minted a pair the user is relying on.
+		//
+		// A client genuinely stuck on a dead token still converges: it gets
+		// ErrRefreshTokenRaced for the first minute and ErrRefreshTokenReuse
+		// after it, so it is eventually told to re-authenticate rather than
+		// retrying forever.
+		//
+		// A nil RevokedAt means the row was revoked before the column
+		// existed, which is treated as long ago — fail toward containment.
+		if stored.RevokedAt != nil && time.Since(*stored.RevokedAt) < ReuseGracePeriod {
+			return nil, entities.ErrRefreshTokenRaced
+		}
+
+		// Scope the cascade to the token's OWN client, not the presenting
+		// one. This branch runs before the ownership check below, so the
+		// two can differ: a public client needs no secret, so an attacker
+		// holding a stolen anahita-web token can present it as
+		// anahita-mobile. Cascading on client.ClientID there would revoke
+		// the user's mobile sessions and leave the actually-compromised
+		// web tokens live — containment aimed at the wrong family.
+		_ = s.Repos.OAuthRefreshTokens.RevokeByUserAndClient(stored.UserID, stored.ClientID)
 		return nil, entities.ErrRefreshTokenReuse
 	}
 	if stored.IsExpired() {
@@ -165,8 +221,23 @@ func (s *OAuthService) RefreshTokenPair(
 		return nil, fmt.Errorf("resolve person: %w", err)
 	}
 
-	if err := s.Repos.OAuthRefreshTokens.Revoke(stored.ID); err != nil {
+	// Claim the old token. This is the serialization point for the whole
+	// rotation: everything above is read-only, so two requests presenting
+	// the same plaintext both reach here, but the conditional update lets
+	// exactly one proceed to mint a pair.
+	//
+	// It sits after the user lookup deliberately. That lookup is read-only
+	// and can fail transiently; claiming before it would burn the user's
+	// refresh token on a blip and force a needless re-login. Claiming here
+	// is just as atomic and leaves the token usable when the lookup fails.
+	claimed, err := s.Repos.OAuthRefreshTokens.RevokeIfActive(stored.ID)
+	if err != nil {
 		return nil, err
+	}
+	if !claimed {
+		// Another request rotated this token between our read and now.
+		// Not reuse — see ErrRefreshTokenRaced. No cascade revocation.
+		return nil, entities.ErrRefreshTokenRaced
 	}
 
 	refreshPlaintextNew, persistedRefreshNew, err := s.persistRefreshToken(
