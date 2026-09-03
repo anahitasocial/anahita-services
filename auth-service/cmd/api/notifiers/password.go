@@ -93,18 +93,32 @@ func (h *passwordNotifier) EmailResetSuccess(user *entities.User) error {
 // EmailUpdateSuccess notifies the user that their password was
 // changed via the authenticated settings flow (PATCH /password/change).
 //
+// revokedSessions is how many other signed-in sessions the change
+// ended, and is reported in the body — see the switch below.
+//
 // Same recovery as EmailResetSuccess: if this email is unexpected,
 // the attacker chose the new password and the legitimate user no
 // longer knows it. Signing in wouldn't work — they'd need the
 // attacker's password. Forgot-password is what takes the account
 // back, because it invalidates whatever the attacker set. The
 // action button starts that recovery.
-func (h *passwordNotifier) EmailUpdateSuccess(user *entities.User) error {
+func (h *passwordNotifier) EmailUpdateSuccess(user *entities.User, revokedSessions int) error {
 	body := fmt.Sprintf(
 		messages.PasswordUpdateBody,
 		user.GivenName,
 		user.FamilyName,
 	)
+
+	// Say what else the change did. Someone reading this to work out
+	// whether they have been attacked is served by knowing that four
+	// other sessions just ended — it either matches what they did or
+	// tells them how far in the attacker already was.
+	switch {
+	case revokedSessions == 1:
+		body += messages.PasswordUpdateSessionsOne
+	case revokedSessions > 1:
+		body += fmt.Sprintf(messages.PasswordUpdateSessionsMany, revokedSessions)
+	}
 
 	actionURL := fmt.Sprintf(
 		"%s/password/forgot",

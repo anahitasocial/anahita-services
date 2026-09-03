@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -34,12 +35,17 @@ func (h *passwordHandler) ForgotForm(c echo.Context) error {
 // Forgot processes the forgot-password submission. Always renders the
 // same confirmation page regardless of whether the email exists, to
 // prevent user enumeration. Token creation and email sending happen
-// only if a matching person is found, and the email send is fire-and-
+// only if a matching user is found, and the email send is fire-and-
 // forget.
 //
 //	POST /password/forgot
 //
-// TODO: add rate limiting (per IP and per email) to prevent abuse.
+// Throttled per target email and per source IP. Unauthenticated and it
+// sends mail, so without a limit it is a way to flood someone's inbox
+// and burn our sending reputation. Both counters are checked before the
+// lookup, and a throttled request renders the identical page — a
+// visibly different response would turn the limiter into the
+// enumeration oracle the rest of this handler avoids.
 func (h *passwordHandler) Forgot(c echo.Context) error {
 	req := &requests.PasswordForgot{}
 	if err := c.Bind(req); err != nil {
@@ -56,12 +62,26 @@ func (h *passwordHandler) Forgot(c echo.Context) error {
 		})
 	}
 
+	// Throttle before the lookup. Both counters advance even when the
+	// address matches nothing, so the cost of probing is the same
+	// either way.
+	//
+	// The || short-circuits, so the IP counter stops advancing once the
+	// per-address limit trips. That is intended, not a bug to tidy: the
+	// two limits catch different abuse. Hammering ONE address is caught
+	// by the email counter, and the IP counter has nothing to add.
+	// Spraying MANY addresses passes each fresh email check, so the IP
+	// counter is reached and increments every time — which is the case
+	// it exists for.
+	throttled := h.rateLimitExceeded(rateLimitScopePasswordEmail, req.Email) ||
+		h.rateLimitExceeded(rateLimitScopePasswordIP, getClientIP(c))
+
 	// Best-effort lookup. Any error (including not-found) is swallowed
 	// so the caller cannot distinguish registered emails from
 	// unregistered ones.
 	user, _ := h.Repos.Users.ReadByEmail(req.Email)
 
-	if user != nil {
+	if user != nil && !throttled {
 		token := entities.NewToken()
 		token.Status = constants.TokenStatusPending
 		token.ExpiredAfter = 15 * 60
@@ -138,7 +158,7 @@ func (h *passwordHandler) ResetForm(c echo.Context) error {
 //	POST /password/reset
 //
 // On success: the password is updated, the token is consumed, the
-// person's passkeys and active sessions are revoked, a notification
+// user's passkeys and active sessions are revoked, a notification
 // email is sent, and a success page is rendered with a link to
 // /oauth/login.
 //
@@ -151,10 +171,10 @@ func (h *passwordHandler) ResetForm(c echo.Context) error {
 //
 // Auto-login is intentionally NOT performed here. The login flow
 // enforces TOTP and account-disabled checks — silently bypassing
-// those after a password reset would be a
-// security downgrade, especially for users with TOTP enabled. Sending
-// the user through /oauth/login confirms the new password works and
-// exercises the second factor where applicable.
+// those after a password reset would be a security downgrade,
+// especially for users with TOTP enabled. Sending the user through
+// /oauth/login confirms the new password works and exercises the
+// second factor where applicable.
 func (h *passwordHandler) Reset(c echo.Context) error {
 	req := &requests.PasswordReset{}
 	if err := c.Bind(req); err != nil {
@@ -191,6 +211,49 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 		log.Println(err)
 		return h.renderError(c, "Account Not Found",
 			"We could not find an account associated with this reset link.")
+	}
+
+	// The new password has to actually be new. This flow exists to take
+	// an account back, and it acts like it: below, every passkey and
+	// every session goes, and the user is mailed a confirmation that
+	// their password was reset. Landing on the same value performs that
+	// whole ritual while leaving the credential the reset was for
+	// exactly where it was — the account reads as recovered while the
+	// password an attacker may know still opens it.
+	//
+	// The token is deliberately NOT consumed here. IsUsed is set only
+	// after a successful update, so the person corrects what they typed
+	// and resubmits on the same link rather than going back for another
+	// email.
+	//
+	// That is also what makes the throttle part of this check rather
+	// than a nicety bolted on beside it. This comparison is the only
+	// thing on the unauthenticated side that can answer "is this the
+	// current password?", and a rejected attempt leaves the link live —
+	// so without a counter, whoever holds the token gets an unmetered
+	// password oracle for the token's fifteen minutes, at one bcrypt
+	// per guess. They already hold the mailbox at that point and could
+	// simply take the account; what is being denied them is walking off
+	// with the plaintext to try somewhere else.
+	//
+	// Keyed on the token, not the email, and that distinction is the
+	// whole reason this does not hurt anybody: a fresh link starts with
+	// a fresh budget, while issuing fresh links is itself already
+	// capped by rateLimitScopePasswordEmail. Keying on the email would
+	// instead let a probe lock the owner out of resetting at all.
+	//
+	// Only this branch increments. An ordinary form error is not a
+	// probe and should not spend from the same budget.
+	if user.CheckPassword(req.Password) {
+		if h.rateLimitExceeded(rateLimitScopePasswordReset, req.Token) {
+			return h.renderError(c, "Too Many Attempts",
+				"There have been too many attempts on this link. Please request a new password reset email.")
+		}
+
+		return h.renderTemplate(c, "password_reset.html", map[string]any{
+			"Token": req.Token,
+			"Error": "Your new password must be different from your current password.",
+		})
 	}
 
 	if err := user.SetPassword(req.Password); err != nil {
@@ -287,35 +350,42 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 
 // Edit processes a password change for an authenticated user.
 //
-// JSON-only, called by the Anahita web app from the settings page.
+// JSON-only, called by anahita-web from the settings page.
 // Auth is enforced upstream by the standard Authorize middleware
 // (JWT bearer or X-OAuth-Token from the BFF). The viewer is read
 // from the echo context the same way every other authenticated
 // handler does it.
 //
-// The current password is required as a re-authentication step
-// even though the session is already valid — the IdP session alone
-// is not sufficient proof for a credential mutation. A stolen
-// laptop with an unlocked browser would otherwise let anyone change
-// the password.
+// Gated on a recent step-up rather than a current-password field. The
+// session alone is still not sufficient proof for a credential
+// mutation — a stolen laptop with an unlocked browser is a session —
+// but the proof now comes from /reauth/*, which accepts a passkey,
+// or a password plus a passcode, or a password.
+//
+// That is what lets a passkey user change their password. Requiring
+// the old one kept exactly those people out: someone who signs in by
+// passkey daily may not recall it, and their only route was
+// forgot-password, which deletes every passkey on the account.
 //
 //	PATCH /password/change
 //
 // Status codes:
 //
-//	204 — success
+//	200 — success, with the count of other sessions signed out
 //	400 — bad request body or validation failure
-//	401 — current password is incorrect
-//	500 — gRPC or hashing failure
-//
-// TODO: after persisting the new password, invalidate any other
-// active sessions belonging to this person. Same caveat as Reset
-// — requires a person→session-ids index which doesn't currently
-// exist.
+//	403 — no recent step-up; the client re-authenticates and retries
+//	409 — the new password is the current one
+//	429 — too many attempts
+//	500 — store, database, or hashing failure
 func (h *passwordHandler) Edit(c echo.Context) error {
 	viewer := getViewer(c)
 	if viewer == nil || viewer.ID == 0 {
 		return c.NoContent(http.StatusUnauthorized)
+	}
+
+	subject := fmt.Sprintf("%d", viewer.ID)
+	if h.rateLimitExceeded(rateLimitScopePasswordEdit, subject) {
+		return c.NoContent(http.StatusTooManyRequests)
 	}
 
 	req := &requests.PasswordEdit{}
@@ -328,17 +398,46 @@ func (h *passwordHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	// Re-read the person from gRPC rather than trusting the cached
-	// viewer — matches the posture the login handler takes when
-	// re-fetching before TOTP verification.
+	// Re-read the user rather than trusting the cached viewer —
+	// matches the posture the login handler takes when re-fetching
+	// before TOTP verification. The viewer carries no password hash
+	// anyway, so this read is also what makes the comparison below
+	// possible at all.
 	user, err := h.Repos.Users.ReadByID(viewer.ID)
 	if err != nil || user == nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	if !user.CheckPassword(req.CurrentPassword) {
-		return c.NoContent(http.StatusUnauthorized)
+	if err := h.requireStepUp(user.ID); err != nil {
+		log.Println("password change:", err)
+		return c.NoContent(reauthStatus(err))
+	}
+
+	// The new password has to actually be new. Below, this endpoint
+	// revokes every other session and mails "your password has been
+	// updated" — someone rotating a password they believe is
+	// compromised gets that entire reassurance while the compromised
+	// value stays exactly where it was.
+	//
+	// AFTER the step-up gate, and that ordering is load-bearing rather
+	// than tidiness. This is the only comparison against the stored
+	// hash anywhere in this flow, so ahead of the gate it turns
+	// /password/change into a password-confirmation oracle for anyone
+	// merely holding a session — and a stolen laptop with an unlocked
+	// browser is a session. Behind it, the caller has already proven a
+	// passkey, or the password itself, at /reauth/*.
+	//
+	// A rejected attempt still costs one of the five in the window:
+	// rateLimitReset and clearStepUp run only on success, further down.
+	// Moving this guard below either of them would quietly hand back
+	// the probe budget it is meant to spend.
+	//
+	// 409 rather than 400: the payload is well-formed, it conflicts
+	// with stored state.
+	if user.CheckPassword(req.Password) {
+		log.Println("password change: new password matches current")
+		return c.NoContent(http.StatusConflict)
 	}
 
 	if err := user.SetPassword(req.Password); err != nil {
@@ -351,15 +450,56 @@ func (h *passwordHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// One step-up authorises one credential change.
+	h.clearStepUp(user.ID)
+	h.rateLimitReset(rateLimitScopePasswordEdit, subject)
+
+	// --- Revoke every OTHER session ---------------------------------
+	//
+	// Reset does this too, but Edit is the endpoint someone reaches for
+	// when they think their account is compromised — leaving it as the
+	// one that revokes nothing had the asymmetry exactly backwards.
+	//
+	// The acting session is preserved: this is an authenticated request
+	// and signing the person out of the tab they are working in is
+	// gratuitous. Both helpers take the identifiers that pin it.
+	//
+	// PASSKEYS ARE DELIBERATELY NOT REVOKED, unlike Reset. The person
+	// has a per-passkey delete control on this same page, and wiping
+	// them here would recreate the very trap this flow exists to close:
+	// a passkey holder changing their password would lose the
+	// credential they use to sign in.
+	//
+	// Best-effort throughout: the password has already changed, and
+	// failing now would tell the person it did not.
+	revoked := 0
+
+	authlogHandler := newAuthLogHandler(h.Env)
+	if count, err := authlogHandler.DeleteAllSessionsExcept(user, viewer.OAuthRefreshTokenID); err != nil {
+		log.Println("password change: session revocation failed:", err)
+	} else {
+		revoked = count
+	}
+
+	oauthHandler := newOAuthHandler(h.Env)
+	if _, err := oauthHandler.revokeIdPSessionsExcept(c, user); err != nil {
+		log.Println("password change: IdP session revocation failed:", err)
+	}
+
 	// Fire-and-forget update-confirmation email. Different threat
 	// model than Reset — an unexpected update means session access,
 	// not email access, so the recovery action in the email is
 	// "sign in" rather than "request a fresh reset."
 	go func() {
-		if err := h.Notif.Password.EmailUpdateSuccess(user); err != nil {
+		if err := h.Notif.Password.EmailUpdateSuccess(user, revoked); err != nil {
 			log.Println(err)
 		}
 	}()
 
-	return c.NoContent(http.StatusNoContent)
+	// A body rather than 204 so the UI can say how many sessions ended.
+	// "You have been signed out everywhere else" is only reassuring if
+	// the person can see it happened.
+	return c.JSON(http.StatusOK, map[string]int{
+		"revoked_sessions": revoked,
+	})
 }

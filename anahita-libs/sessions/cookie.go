@@ -166,3 +166,25 @@ func (s *cookieSession) SAdd(key string, member string, ttl time.Duration) error
 func (s *cookieSession) SMembers(key string) ([]string, error) {
 	return []string{}, nil
 }
+
+// Incr always reports 1.
+//
+// KNOWN LIMITATION, same shape as SAdd above. There is no shared
+// server-side store behind this backend, so there is nowhere to keep
+// a counter that survives the request. Every call looks like the
+// first one in a fresh window, which means a caller using this to
+// rate limit is not rate limiting at all.
+//
+// Reporting 1 rather than erroring is deliberate: a limiter that
+// errors here would fail every request on the backend that exists
+// precisely so local development works without Redis. The honest
+// summary is that rate limiting, like remote session revocation,
+// requires Redis.
+func (s *cookieSession) Incr(key string, ttl time.Duration) (int64, error) {
+	return 1, nil
+}
+
+// Exists always reports false. See Incr.
+func (s *cookieSession) Exists(key string) (bool, error) {
+	return false, nil
+}

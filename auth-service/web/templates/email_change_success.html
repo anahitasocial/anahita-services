@@ -1,0 +1,22 @@
+{{define "title"}}Email Changed{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Email address changed</h2>
+
+    <p>Your account now uses <strong>{{.NewEmail}}</strong>. Sign in with that address from now on.</p>
+
+    <!-- Says what was revoked, because the person is about to discover
+         it. Every session ended and every passkey was removed, so their
+         other devices will ask them to sign in again and their passkeys
+         will be gone from the prompt. Unexplained, that reads as a
+         broken account rather than a deliberate precaution. -->
+    <p>For your security, you have been signed out everywhere and any passkeys on the account were removed. You can add passkeys again from your settings once you have signed back in.</p>
+
+    <a href="{{.FrontendURL}}" class="btn btn-primary">Continue</a>
+</div>
+{{end}}

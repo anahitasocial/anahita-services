@@ -5,7 +5,6 @@ import "anahita-libs/constants"
 type UserRequest struct {
 	Browse *UserBrowseRequest
 	Read   *UserReadRequest
-	Edit   *UserEditRequest
 	Add    *UserAddRequest
 	Delete *UserDeleteRequest
 }
@@ -19,7 +18,6 @@ func NewUserRequest() *UserRequest {
 			Ordering:  "id",
 		},
 		Read:   &UserReadRequest{},
-		Edit:   &UserEditRequest{},
 		Add:    &UserAddRequest{},
 		Delete: &UserDeleteRequest{},
 	}
@@ -39,12 +37,6 @@ type UserBrowseRequest struct {
 type UserReadRequest struct {
 	ID       int64  `param:"id" validate:"required,numeric"`
 	Username string `param:"username" validate:"required,max=32,username"`
-}
-
-type UserEditRequest struct {
-	ID       int64  `param:"id" validate:"required,numeric"`
-	Username string `form:"username" validate:"required,min=3,max=32,username"`
-	Email    string `form:"email" validate:"required,min=3,max=64,email"`
 }
 
 type UserAddRequest struct{}

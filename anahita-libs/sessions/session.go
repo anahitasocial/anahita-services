@@ -42,6 +42,24 @@ type SessionInterface interface {
 	// be the wrong place for it.
 	SAdd(key string, member string, ttl time.Duration) error
 	SMembers(key string) ([]string, error)
+
+	// Counter operations.
+	//
+	// Present so callers can rate limit. A limiter needs an atomic
+	// read-modify-write — anything built out of Read-then-Edit races
+	// exactly when it matters, which is when a lot of requests arrive
+	// at once. Incr is that operation.
+	//
+	// Incr increments the counter at key and returns its new value,
+	// applying ttl on the increment that creates it and leaving the
+	// expiry alone afterwards. That gives a fixed window: the counter
+	// dies ttl after the FIRST request in it, so a caller hammering
+	// the key cannot push its own reset further away.
+	//
+	// Exists reports whether a key is present, for markers where the
+	// value carries no information and only the presence does.
+	Incr(key string, ttl time.Duration) (int64, error)
+	Exists(key string) (bool, error)
 }
 
 func NewSession(config ConfigInterface) SessionInterface {

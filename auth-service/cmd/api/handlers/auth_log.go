@@ -380,7 +380,36 @@ func (h *authLogHandler) Delete(c echo.Context) error {
 // and skipped rather than aborting: a partial revocation is strictly
 // better than stopping at the first failure and leaving the rest
 // live.
+//
+// Spares nothing, including the caller's own session. That is right
+// for recovery flows, which do not run inside a session worth keeping
+// — password reset is unauthenticated by construction. Authenticated
+// callers want DeleteAllSessionsExcept.
 func (h *authLogHandler) DeleteAllSessions(user *entities.User) (int, error) {
+	return h.DeleteAllSessionsExcept(user, 0)
+}
+
+// DeleteAllSessionsExcept revokes every active refresh token a person
+// holds apart from one.
+//
+// Same purge as DeleteAllSessions, for the flows that run inside a
+// session worth keeping. An authenticated password change is the case
+// it exists for: the person is deliberately signing every other device
+// out, and signing out the tab they are doing it from turns a security
+// action into a logout.
+//
+// exceptRefreshTokenID is the caller's own refresh token — in practice
+// viewer.OAuthRefreshTokenID, the claim that identifies the session
+// this request arrived on. Pass 0 to spare nothing, which is what
+// DeleteAllSessions does.
+//
+// A zero value cannot be an accidental match: rows with no refresh
+// token are skipped before the comparison, so "spare token 0" and
+// "spare nothing" mean the same thing rather than colliding.
+func (h *authLogHandler) DeleteAllSessionsExcept(
+	user *entities.User,
+	exceptRefreshTokenID int64,
+) (int, error) {
 	authLogs, err := h.Repos.AuthLogs.Browse(user)
 	if err != nil {
 		return 0, err
@@ -391,6 +420,10 @@ func (h *authLogHandler) DeleteAllSessions(user *entities.User) (int, error) {
 
 	for i := range authLogs {
 		if authLogs[i].OAuthRefreshTokenID == 0 {
+			continue
+		}
+
+		if authLogs[i].OAuthRefreshTokenID == exceptRefreshTokenID {
 			continue
 		}
 

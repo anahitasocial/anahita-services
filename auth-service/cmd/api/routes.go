@@ -42,6 +42,18 @@ func (r *Routes) Init(e *echo.Echo) {
 	// flows. Change (PATCH) is JSON-only and authenticated; registered
 	// further down with the other JWT-protected routes so it picks up
 	// the authorize middleware.
+	// Email-change confirmation. Public and token-gated, like the
+	// password reset pages beside it: the person arrives from a link in
+	// their mailbox, on a device that may hold no session at all — which
+	// is the point, since the whole control is "the current inbox has to
+	// approve this".
+	//
+	// The token in the link is the only credential, so these must NOT
+	// carry authorize.
+	emailChange := e.Group("/email/change")
+	emailChange.GET("/confirm", h.EmailChange.ConfirmForm)
+	emailChange.POST("/confirm", h.EmailChange.Confirm)
+
 	password := e.Group("/password")
 	password.GET("/forgot", h.Password.ForgotForm)
 	password.POST("/forgot", h.Password.Forgot)
@@ -153,6 +165,43 @@ func (r *Routes) Init(e *echo.Echo) {
 	passwordAuth.Use(r.authorize)
 	passwordAuth.PATCH("/change", h.Password.Edit)
 
+	// Email change, step one. Authenticated and step-up gated; mails a
+	// confirmation link to the person's CURRENT address and changes
+	// nothing by itself.
+	//
+	// A separate group from /email/change above rather than one group
+	// with method-level middleware, matching the split used for
+	// /password and /invites: it makes which paths require auth legible
+	// at a glance. Echo resolves the more specific path first, so
+	// /email/change/confirm is unaffected by the authorize on this one.
+	emailChangeAuth := e.Group("/email")
+	emailChangeAuth.Use(r.authorize)
+	emailChangeAuth.PATCH("/change", h.EmailChange.Edit)
+
+	// Username change. Authenticated and step-up gated, and unlike the
+	// email change it is one step: a handle move does not relocate any
+	// recovery path, so there is nothing for the mailbox to approve
+	// first. See the note on usernameChangeHandler.
+	usernameChangeAuth := e.Group("/username")
+	usernameChangeAuth.Use(r.authorize)
+	usernameChangeAuth.PATCH("/change", h.UsernameChange.Edit)
+
+	// Step-up re-authentication. Proves the caller is who the session
+	// says they are and records a short-lived marker; the endpoints
+	// that mutate credentials check for it. Nothing here changes
+	// anything, which is why it can sit behind plain authorize with no
+	// step-up gate of its own — it IS the gate.
+	//
+	// Note the asymmetry with the passkey LOGIN routes, which are
+	// unauthenticated by construction: asserting a passkey to sign in
+	// has no session yet, while asserting one to authorise a change
+	// starts from a session that is simply not sufficient on its own.
+	reauth := e.Group("/reauth")
+	reauth.Use(r.authorize)
+	reauth.POST("/password", h.Reauth.AddPassword)
+	reauth.POST("/passkey/begin", h.Reauth.AddPasskeyBegin)
+	reauth.POST("/passkey/finish", h.Reauth.AddPasskeyFinish)
+
 	authlogs := e.Group("/authlogs")
 	authlogs.Use(r.authorize)
 	authlogs.GET("/:id", h.Authlog.Browse)
@@ -173,6 +222,10 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	totps := e.Group("/totp")
 	totps.Use(r.authorize)
+	// Status read. Registered on "" so the path is /totp, matching the
+	// POST and PATCH below — Echo matches paths literally, so /totp/
+	// with a trailing slash is a different path and answers 404.
+	totps.GET("", h.Totp.Read)
 	totps.POST("/verify", h.Totp.Verify)
 	totps.POST("", h.Totp.Add)
 	totps.PATCH("", h.Totp.Edit)

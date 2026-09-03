@@ -18,21 +18,25 @@ type Env struct {
 }
 
 type Notifiers struct {
-	Auth     *authNotifier
-	Invite   *inviteNotifier
-	Password *passwordNotifier
-	Signup   *signupNotifier
-	Totp     *totpNotifier
-	WebAuthn *webAuthnNotifier
+	Auth           *authNotifier
+	Invite         *inviteNotifier
+	Password       *passwordNotifier
+	EmailChange    *emailChangeNotifier
+	UsernameChange *usernameChangeNotifier
+	Signup         *signupNotifier
+	Totp           *totpNotifier
+	WebAuthn       *webAuthnNotifier
 }
 
 func NewNotifiers(env *Env) *Notifiers {
 	return &Notifiers{
-		Auth:     newAuthNotifier(env),
-		Invite:   newInviteNotifier(env),
-		Password: newPasswordNotifier(env),
-		Signup:   newSignupNotifier(env),
-		Totp:     newTotpNotifier(env),
-		WebAuthn: newWebAuthnNotifier(env),
+		Auth:           newAuthNotifier(env),
+		Invite:         newInviteNotifier(env),
+		Password:       newPasswordNotifier(env),
+		EmailChange:    newEmailChangeNotifier(env),
+		UsernameChange: newUsernameChangeNotifier(env),
+		Signup:         newSignupNotifier(env),
+		Totp:           newTotpNotifier(env),
+		WebAuthn:       newWebAuthnNotifier(env),
 	}
 }

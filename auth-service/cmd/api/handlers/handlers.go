@@ -1,29 +1,35 @@
 package handlers
 
 type Handlers struct {
-	Authlog       *authLogHandler
-	Invite        *inviteHandler
-	Is            *isHandler
-	OAuth         *oauthHandler
-	Password      *passwordHandler
-	Signup        *signupHandler
-	Token         *tokenHandler
-	Totp          *totpHandler
-	TotpValidator *totpValidatorHandler
-	WebAuthn      *webAuthnHandler
+	Authlog        *authLogHandler
+	EmailChange    *emailChangeHandler
+	Invite         *inviteHandler
+	Is             *isHandler
+	OAuth          *oauthHandler
+	Password       *passwordHandler
+	Reauth         *reauthHandler
+	Signup         *signupHandler
+	Token          *tokenHandler
+	Totp           *totpHandler
+	UsernameChange *usernameChangeHandler
+	TotpValidator  *totpValidatorHandler
+	WebAuthn       *webAuthnHandler
 }
 
 func NewHandlers(env *Env) *Handlers {
 	return &Handlers{
-		Authlog:       newAuthLogHandler(env),
-		Invite:        newInviteHandler(env),
-		Is:            newIsHandlers(env),
-		OAuth:         newOAuthHandler(env),
-		Password:      newPasswordHandler(env),
-		Signup:        newSignupHandler(env),
-		Token:         newTokenHandler(env),
-		Totp:          newTotpHandler(env),
-		TotpValidator: newTotpValidatorHandler(env),
-		WebAuthn:      newWebAuthnHandler(env),
+		Authlog:        newAuthLogHandler(env),
+		EmailChange:    newEmailChangeHandler(env),
+		Invite:         newInviteHandler(env),
+		Is:             newIsHandlers(env),
+		OAuth:          newOAuthHandler(env),
+		Password:       newPasswordHandler(env),
+		Reauth:         newReauthHandler(env),
+		Signup:         newSignupHandler(env),
+		Token:          newTokenHandler(env),
+		Totp:           newTotpHandler(env),
+		UsernameChange: newUsernameChangeHandler(env),
+		TotpValidator:  newTotpValidatorHandler(env),
+		WebAuthn:       newWebAuthnHandler(env),
 	}
 }

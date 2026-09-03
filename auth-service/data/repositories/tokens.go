@@ -99,6 +99,7 @@ func (repo *tokens) Browse(tokenType string, req *requests.Browse) ([]*entities.
 		if err := rows.Scan(
 			&token.ID,
 			&token.RecipientEmail,
+			&token.NewEmail,
 			&token.Type,
 			&token.Body,
 			&token.StartTime,
@@ -147,6 +148,11 @@ func (repo *tokens) Add(token *entities.Token) (*entities.Token, error) {
 		"type",
 		"body",
 		"recipient_email",
+		// Empty for every type but emailchange, which is fine: the column
+		// is nullable and an empty string is as good as NULL for a value
+		// nothing reads on those types. Omitting it here is what silently
+		// dropped the destination address of every email change.
+		"new_email",
 		"expired_after",
 		"is_used",
 		"created_at",
@@ -157,6 +163,7 @@ func (repo *tokens) Add(token *entities.Token) (*entities.Token, error) {
 		token.Type,
 		token.Body,
 		token.RecipientEmail,
+		token.NewEmail,
 		token.ExpiredAfter,
 		token.IsUsed,
 		token.CreatedAt,

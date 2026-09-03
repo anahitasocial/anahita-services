@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"log"
 
+	libs_constants "anahita-libs/constants"
 	"anahita-libs/sessions"
+
+	"github.com/labstack/echo/v4"
 )
 
 // personSessionIndexPrefix namespaces the per-person index of IdP
@@ -76,8 +79,50 @@ func (h *oauthHandler) indexIdPSession(userID int64, sessionID string) {
 //
 // The person's own cookie is invalidated too, which is intended — the
 // reset flow deliberately does not auto-login, so they were going to
-// sign in again regardless.
+// sign in again regardless. Authenticated callers, who are running
+// inside a session they mean to keep, want revokeIdPSessionsExcept.
 func (h *oauthHandler) revokeAllIdPSessions(user *entities.User) (int, error) {
+	return h.revokeIdPSessions(user, "")
+}
+
+// revokeIdPSessionsExcept deletes every IdP session belonging to a
+// person apart from the one this request arrived on.
+//
+// The authenticated counterpart to revokeAllIdPSessions, for flows
+// that run inside a session worth keeping — an authenticated password
+// change signs the person out everywhere else, not everywhere.
+//
+// The session to spare is identified from the person_session cookie on
+// this request. WHEN THAT COOKIE IS ABSENT THIS REVOKES EVERYTHING,
+// which is the common case rather than an edge one: the SPA reaches
+// this endpoint through the BFF with an X-OAuth-Token, and the auth
+// host's cookie does not travel on that hop.
+//
+// That fallback is the deliberate choice of the two available. Sparing
+// nothing costs the person a fresh sign-in the next time they pass
+// through /oauth/authorize — their BFF session and its refresh token
+// are untouched here, so nothing breaks under them in the meantime.
+// Sparing everything, which is the only alternative when the acting
+// session cannot be named, would leave an attacker's IdP cookie live
+// through the exact request meant to lock them out.
+func (h *oauthHandler) revokeIdPSessionsExcept(
+	c echo.Context,
+	user *entities.User,
+) (int, error) {
+	// Errors are swallowed on purpose: no cookie and an unreadable
+	// cookie lead to the same place, which is that this request cannot
+	// name its own IdP session and therefore spares none.
+	currentSessionID, _ := h.Session.GetViewerSessionID(c, libs_constants.UserSessionKey)
+
+	return h.revokeIdPSessions(user, currentSessionID)
+}
+
+// revokeIdPSessions is the shared implementation. exceptSessionID is
+// the store key to keep, or "" to keep none.
+func (h *oauthHandler) revokeIdPSessions(
+	user *entities.User,
+	exceptSessionID string,
+) (int, error) {
 	if user == nil {
 		return 0, nil
 	}
@@ -89,10 +134,22 @@ func (h *oauthHandler) revokeAllIdPSessions(user *entities.User) (int, error) {
 		return 0, fmt.Errorf("read session index: %w", err)
 	}
 
-	if len(sessionIDs) == 0 {
-		// Still drop the index key: it may hold only stale members,
-		// and leaving it costs a set that never shrinks.
-		_ = h.Session.Del(indexKey)
+	doomed := make([]string, 0, len(sessionIDs))
+	for _, sessionID := range sessionIDs {
+		if exceptSessionID != "" && sessionID == exceptSessionID {
+			continue
+		}
+		doomed = append(doomed, sessionID)
+	}
+
+	if len(doomed) == 0 {
+		// Nothing to revoke. The index key goes only when it is being
+		// emptied — dropping it while a spared session is still listed
+		// would leave that session live and unreachable by any future
+		// revocation, which is worse than a set that never shrinks.
+		if exceptSessionID == "" || len(sessionIDs) == 0 {
+			_ = h.Session.Del(indexKey)
+		}
 		return 0, nil
 	}
 
@@ -101,11 +158,22 @@ func (h *oauthHandler) revokeAllIdPSessions(user *entities.User) (int, error) {
 	// returned here is sessions that *could* have been live rather
 	// than a precise figure. Good enough for a log line, and not used
 	// for anything else.
-	if err := h.Session.Del(sessionIDs...); err != nil {
+	if err := h.Session.Del(doomed...); err != nil {
 		return 0, fmt.Errorf("delete sessions: %w", err)
 	}
 
-	_ = h.Session.Del(indexKey)
+	if exceptSessionID == "" {
+		_ = h.Session.Del(indexKey)
+	} else {
+		// Rebuild the index around the survivor rather than dropping
+		// it. SAdd re-applies the TTL, so the spared session stays
+		// revocable later; the members just deleted are left behind
+		// and are harmless, since a stale ID deletes to a no-op.
+		if err := h.Session.SAdd(indexKey, exceptSessionID, sessions.SessionTimeout); err != nil {
+			log.Printf("session index: failed to reindex spared session (user=%d): %v",
+				user.ID, err)
+		}
+	}
 
-	return len(sessionIDs), nil
+	return len(doomed), nil
 }

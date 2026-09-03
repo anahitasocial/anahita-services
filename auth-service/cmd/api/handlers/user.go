@@ -4,7 +4,6 @@ import (
 	"auth/requests"
 	"auth/responses"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -76,48 +75,16 @@ func (h *userHandler) Read(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, resp)
 }
 
-// Edit updates a user
-func (h *userHandler) Edit(c echo.Context) error {
-	var (
-		req    = requests.NewUserRequest().Edit
-		viewer = getViewer(c)
-	)
-
-	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
-	}
-
-	user, err := h.Repos.Users.ReadByID(req.ID)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
-	}
-
-	if ok, err := h.Perms.Users.CanEdit(viewer, user); !ok {
-		return c.JSON(http.StatusForbidden, err)
-	}
-
-	user.Username = req.Username
-	user.Email = req.Email
-	user.UpdateTime = time.Now()
-
-	if err = user.Validate(); err != nil {
-		return c.JSON(http.StatusForbidden, err)
-	}
-
-	user, err = h.Repos.Users.Edit(user)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-
-	userResp := &responses.UserResponse{}
-	resp := userResp.MapNode(user)
-
-	return c.JSON(http.StatusAccepted, resp)
-}
+// Edit is gone. It set Username and Email together from a single
+// unauthenticated-by-anything-but-a-session payload, which is the shape
+// this service has moved away from: a handle is a sign-in identifier and
+// a public address, an address is what password reset delivers to, and
+// both now move only through their own step-up-gated flows —
+// PATCH /username/change and PATCH /email/change.
+//
+// It could not have worked in any case. Users.Edit no longer writes
+// either column, so the handler would have reported success and changed
+// nothing. Nothing routed it.
 
 // Delete deletes a user
 func (h *userHandler) Delete(c echo.Context) error {

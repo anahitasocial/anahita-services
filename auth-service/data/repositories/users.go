@@ -21,7 +21,11 @@ type UsersInterface interface {
 	Add(user *entities.User) (*entities.User, error)
 	Edit(user *entities.User) (*entities.User, error)
 	EditPassword(password string, id int64) error
+	EditEmail(email string, id int64) error
+	EditUsername(username string, id int64) error
 	Delete(id int64) error
+	IsEmail(email string) (bool, error)
+	IsUsername(username string) (bool, error)
 }
 
 // NewUsers creates a new user repository
@@ -159,6 +163,15 @@ func (repo *Users) ReadByID(id int64) (*entities.User, error) {
 		"totp_enabled",
 		"COALESCE(totp_recovery_codes, '') AS totp_recovery_codes",
 		"COALESCE(totp_last_verified_at, NOW()) AS totp_last_verified_at",
+		// The encrypted TOTP secret. Selected because Edit writes the
+		// whole row from the struct it is given: a read that omits this
+		// column produces a User with an empty TotpSecret, and the next
+		// Edit persists that emptiness over a real secret.
+		//
+		// COALESCE because the column is nullable in the legacy schema
+		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
+		// the scan into a string for every person who has never enrolled.
+		"COALESCE(totp_secret, '') AS totp_secret",
 	).From(
 		"people_people",
 	).LeftJoin(
@@ -192,6 +205,7 @@ func (repo *Users) ReadByID(id int64) (*entities.User, error) {
 		&item.TotpEnabled,
 		&item.TotpRecoveryCodes,
 		&item.TotpLastVerifiedAt,
+		&item.TotpSecret,
 	)
 
 	if err != nil {
@@ -229,6 +243,15 @@ func (repo *Users) ReadByEmail(email string) (*entities.User, error) {
 		"totp_enabled",
 		"COALESCE(totp_recovery_codes, '') AS totp_recovery_codes",
 		"COALESCE(totp_last_verified_at, NOW()) AS totp_last_verified_at",
+		// The encrypted TOTP secret. Selected because Edit writes the
+		// whole row from the struct it is given: a read that omits this
+		// column produces a User with an empty TotpSecret, and the next
+		// Edit persists that emptiness over a real secret.
+		//
+		// COALESCE because the column is nullable in the legacy schema
+		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
+		// the scan into a string for every person who has never enrolled.
+		"COALESCE(totp_secret, '') AS totp_secret",
 	).From(
 		"people_people",
 	).LeftJoin(
@@ -262,6 +285,7 @@ func (repo *Users) ReadByEmail(email string) (*entities.User, error) {
 		&item.TotpEnabled,
 		&item.TotpRecoveryCodes,
 		&item.TotpLastVerifiedAt,
+		&item.TotpSecret,
 	)
 
 	if err != nil {
@@ -299,6 +323,15 @@ func (repo *Users) ReadByUsername(username string) (*entities.User, error) {
 		"totp_enabled",
 		"COALESCE(totp_recovery_codes, '') AS totp_recovery_codes",
 		"COALESCE(totp_last_verified_at, NOW()) AS totp_last_verified_at",
+		// The encrypted TOTP secret. Selected because Edit writes the
+		// whole row from the struct it is given: a read that omits this
+		// column produces a User with an empty TotpSecret, and the next
+		// Edit persists that emptiness over a real secret.
+		//
+		// COALESCE because the column is nullable in the legacy schema
+		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
+		// the scan into a string for every person who has never enrolled.
+		"COALESCE(totp_secret, '') AS totp_secret",
 	).From(
 		"people_people",
 	).LeftJoin(
@@ -332,6 +365,7 @@ func (repo *Users) ReadByUsername(username string) (*entities.User, error) {
 		&item.TotpEnabled,
 		&item.TotpRecoveryCodes,
 		&item.TotpLastVerifiedAt,
+		&item.TotpSecret,
 	)
 
 	if err != nil {
@@ -369,6 +403,15 @@ func (repo *Users) ReadByEmailOrUsername(emailOrUsername string) (*entities.User
 		"totp_enabled",
 		"COALESCE(totp_recovery_codes, '') AS totp_recovery_codes",
 		"COALESCE(totp_last_verified_at, NOW()) AS totp_last_verified_at",
+		// The encrypted TOTP secret. Selected because Edit writes the
+		// whole row from the struct it is given: a read that omits this
+		// column produces a User with an empty TotpSecret, and the next
+		// Edit persists that emptiness over a real secret.
+		//
+		// COALESCE because the column is nullable in the legacy schema
+		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
+		// the scan into a string for every person who has never enrolled.
+		"COALESCE(totp_secret, '') AS totp_secret",
 	).From(
 		"people_people",
 	).LeftJoin(
@@ -405,6 +448,7 @@ func (repo *Users) ReadByEmailOrUsername(emailOrUsername string) (*entities.User
 		&item.TotpEnabled,
 		&item.TotpRecoveryCodes,
 		&item.TotpLastVerifiedAt,
+		&item.TotpSecret,
 	)
 
 	if err != nil {
@@ -520,20 +564,32 @@ func (repo *Users) Edit(user *entities.User) (*entities.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
+	// Neither email NOR username/alias is in this SET clause. Both move
+	// only through their own single-purpose methods — EditEmail and
+	// EditUsername — which the step-up-gated change flows call.
+	//
+	// Email is what password reset delivers to, so whoever can set it
+	// can take the account. Username is a sign-in identifier
+	// (ReadByEmailOrUsername) and the profile slug, so whoever can set
+	// it can be mistaken for somebody else.
+	//
+	// Leaving them here was a live hazard rather than a stylistic one:
+	// Edit writes the whole row from the struct it is handed, so any
+	// caller holding a User read before a concurrent change — a TOTP
+	// verify, a recovery-code burn — would silently write the old
+	// values back over the new ones.
 	query := `
 		UPDATE nodes
 		INNER JOIN people_people ON people_people.node_id = nodes.id
 		SET
-			alias = ?,
 			enabled = ?,
 			usertype = ?,
-			email = ?,
-			username = ?,
 			password = ?,
 			modified_on = ?,
 			totp_enabled = ?,
 			totp_recovery_codes = ?,
-			totp_last_verified_at = ?
+			totp_last_verified_at = ?,
+			totp_secret = ?
 		WHERE
 			nodes.id = ? AND
 			people_people.node_id = ?`
@@ -541,16 +597,14 @@ func (repo *Users) Edit(user *entities.User) (*entities.User, error) {
 	_, err := repo.db.ExecContext(
 		ctx,
 		query,
-		user.Username,
 		user.Enabled,
 		user.UserType,
-		user.Email,
-		user.Username,
 		user.Password,
 		user.UpdateTime,
 		user.TotpEnabled,
 		user.TotpRecoveryCodes,
 		user.TotpLastVerifiedAt,
+		user.TotpSecret,
 		user.ID,
 		user.ID,
 	)
@@ -578,6 +632,75 @@ func (repo *Users) EditPassword(password string, id int64) error {
 		ctx,
 		query,
 		password,
+		id,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// EditEmail updates a user's email
+func (repo *Users) EditEmail(email string, id int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		UPDATE people_people
+		SET
+			email = ?
+		WHERE
+			node_id = ?`
+
+	_, err := repo.db.ExecContext(
+		ctx,
+		query,
+		email,
+		id,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// EditUsername updates a user's username.
+//
+// Writes BOTH people_people.username and nodes.alias, because the two
+// are one value wearing two hats: username is the sign-in identifier
+// that ReadByEmailOrUsername resolves, alias is the profile slug the
+// public URL is built from. Users.Edit used to keep them in step by
+// writing both from user.Username; now that it writes neither, this is
+// the only place that relationship is maintained. Updating one without
+// the other leaves a person who can sign in under a handle their
+// profile does not answer to, or the reverse.
+//
+// One statement over the same join Users.Edit uses, so the pair cannot
+// half-apply.
+func (repo *Users) EditUsername(username string, id int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		UPDATE nodes
+		INNER JOIN people_people ON people_people.node_id = nodes.id
+		SET
+			nodes.alias = ?,
+			people_people.username = ?
+		WHERE
+			nodes.id = ? AND
+			people_people.node_id = ?`
+
+	_, err := repo.db.ExecContext(
+		ctx,
+		query,
+		username,
+		username,
+		id,
 		id,
 	)
 
@@ -627,4 +750,67 @@ func (repo *Users) afterRead(user *entities.User) error {
 	user.GetAvatars()
 
 	return nil
+}
+
+// IsEmail checks if an email is already taken by another user.
+func (repo *Users) IsEmail(email string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	// LOWER on both sides rather than trusting the column's collation.
+	// people_people declares no collation, so this comparison inherits
+	// the server default — case-insensitive on MySQL 8, but a database
+	// created with a binary collation would let two accounts hold the
+	// same address in different cases, and the caller lowercases its
+	// candidate while stored addresses keep whatever case they were
+	// registered with.
+	//
+	// The unique index on email is not a substitute: it has the same
+	// collation dependency, and it would surface a collision as a 500
+	// on a page the person cannot act on rather than as the 409 this
+	// check produces.
+	//
+	// Costs the index on email, which is fine — this runs twice per
+	// email change and nowhere else.
+	query := `
+		SELECT COUNT(*)
+		FROM people_people
+		WHERE LOWER(email) = LOWER(?)`
+
+	var count int
+	err := repo.db.QueryRowContext(ctx, query, email).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+// IsUsername checks whether a username is already taken.
+//
+// Case-insensitive for the same reason IsEmail is, and with more at
+// stake: two handles differing only in case are the same handle to a
+// reader, which is the whole mechanism of an impersonation. The unique
+// index on username inherits the server collation and so cannot be
+// relied on to catch it.
+//
+// Note this counts the caller's own row too. The change handler returns
+// early when the requested handle is the one already held, so a person
+// never collides with themselves here.
+func (repo *Users) IsUsername(username string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		SELECT COUNT(*)
+		FROM people_people
+		WHERE LOWER(username) = LOWER(?)`
+
+	var count int
+	err := repo.db.QueryRowContext(ctx, query, username).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }

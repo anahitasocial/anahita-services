@@ -15,4 +15,15 @@ const (
 	PasswordUpdateTitle       = "Password changed"
 	PasswordUpdateBody        = "Hello %s %s, your password was just changed from your account settings. If this was you, no further action is needed. If it wasn't, reset your password immediately to take back your account, then contact support."
 	PasswordUpdateActionLabel = "Reset password"
+
+	// Appended to PasswordUpdateBody when the change ended other
+	// sessions. Two forms rather than "1 session(s)": this email is
+	// read by someone deciding whether they are being attacked, and
+	// the sentence should not read like a debug line.
+	//
+	// Nothing is appended when the count is zero. "0 other sessions
+	// were ended" is noise, and the absence of the sentence says the
+	// same thing without asking the reader to parse a number.
+	PasswordUpdateSessionsOne  = " One other signed-in session was ended."
+	PasswordUpdateSessionsMany = " %d other signed-in sessions were ended."
 )

@@ -20,17 +20,22 @@ type PasswordReset struct {
 	Password string `form:"password" validate:"required,min=15,max=150"`
 }
 
-// PasswordEdit is submitted as JSON by the Anahita web app when a
+// PasswordEdit is submitted as JSON by anahita-web when a
 // logged-in user changes their password via the settings page.
 // Carries JSON tags rather than form tags because this is an API
 // endpoint, not a server-rendered form.
 //
-// CurrentPassword is required as a re-authentication step — the IdP
-// session alone is not sufficient proof for a credential mutation.
+// NO CurrentPassword FIELD. Re-authentication moved to /reauth/*, which
+// records a marker this endpoint checks — the IdP session alone is
+// still not sufficient proof, but the proof no longer travels here.
+//
+// That is what lets someone who signs in by passkey change their
+// password without recalling the old one. Requiring it kept exactly
+// those people out: their only route was forgot-password, and Reset
+// deletes every passkey on the account.
 //
 // No confirm field — the SPA form has a show/hide toggle on the new-
 // password field, same reasoning as PasswordReset above.
 type PasswordEdit struct {
-	CurrentPassword string `json:"current_password" validate:"required"`
-	Password        string `json:"password"        validate:"required,min=15,max=150"`
+	Password string `json:"password" validate:"required,min=15,max=150"`
 }

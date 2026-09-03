@@ -12,6 +12,11 @@ func (repo *tokens) getBaseSelectQuery() sq.SelectBuilder {
 	var fields = []string{
 		"t.id",
 		"t.recipient_email",
+		// Destination address, on emailchange tokens only. COALESCE
+		// because the column is NULL on every other type and Token.NewEmail
+		// is a plain string — a NULL would fail the scan for every password
+		// reset and invite that passes through here.
+		"COALESCE(t.new_email, '') AS new_email",
 		"t.type",
 		"t.body",
 		"t.start_time",
@@ -71,6 +76,7 @@ func (repo *tokens) getOne(query sq.SelectBuilder) (*entities.Token, error) {
 	if err := row.Scan(
 		&token.ID,
 		&token.RecipientEmail,
+		&token.NewEmail,
 		&token.Type,
 		&token.Body,
 		&token.StartTime,

@@ -238,3 +238,42 @@ func (s *redisSession) SMembers(key string) ([]string, error) {
 	}
 	return members, nil
 }
+
+// Incr increments a counter and returns its new value.
+//
+// The TTL is applied only on the increment that creates the key,
+// which is what makes this a fixed window rather than a sliding one.
+// Refreshing the expiry on every call would let a caller hammering
+// the key push its own reset indefinitely into the future — the
+// counter would never expire while abuse continued, which sounds
+// strict but in practice means an attacker can lock a legitimate
+// owner out of the same key forever.
+//
+// Not transactional. Two callers can both see a missing key and both
+// call Expire; the second is a no-op against the same value, so the
+// worst case is an identical expiry set twice. A crash between INCR
+// and EXPIRE leaves a counter without a TTL, which fails closed —
+// stricter than intended, never looser.
+func (s *redisSession) Incr(key string, ttl time.Duration) (int64, error) {
+	count, err := s.client.Incr(key).Result()
+	if err != nil {
+		return 0, err
+	}
+
+	if count == 1 {
+		if err := s.client.Expire(key, ttl).Err(); err != nil {
+			return count, err
+		}
+	}
+
+	return count, nil
+}
+
+// Exists reports whether a key is present.
+func (s *redisSession) Exists(key string) (bool, error) {
+	n, err := s.client.Exists(key).Result()
+	if err != nil {
+		return false, err
+	}
+	return n > 0, nil
+}

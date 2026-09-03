@@ -53,10 +53,25 @@ type Config struct {
 	RedisDB          int
 	DomainName       string
 	SystemEmail      string
-	SupportEmail     string
-	MailServiceAddr  string
-	FileServiceAddr  string
-	AmqpAddr         string
+	// TotpIssuer is the label an authenticator app shows beside a
+	// person's 2FA code — the "Anahita" in "Anahita (you@example.com)".
+	//
+	// Optional. Unset, GetTotpIssuer derives one from DomainName, which
+	// is what makes this a config value rather than the hardcoded
+	// "anahita.io" it replaces: that string was wrong for every
+	// deployment but ours, and it is baked into the QR code, so nobody
+	// could correct it after the fact without re-enrolling.
+	//
+	// Cosmetic, not a security control. The issuer travels in the
+	// otpauth:// URI and is displayed; it is not mixed into the code.
+	// Changing it does not invalidate existing enrolments — already-
+	// paired authenticators keep the label they were given, so a change
+	// shows up only for people who enrol after it.
+	TotpIssuer      string
+	SupportEmail    string
+	MailServiceAddr string
+	FileServiceAddr string
+	AmqpAddr        string
 
 	// Crypt — symmetric encryption of secrets at rest (currently TOTP
 	// secrets).
@@ -113,6 +128,7 @@ func NewConfig() *Config {
 		RedisDB:          getIntEnv("REDIS_DB", 0),
 		DomainName:       os.Getenv("DOMAIN_NAME"),
 		SystemEmail:      os.Getenv("SYSTEM_EMAIL"),
+		TotpIssuer:       os.Getenv("TOTP_ISSUER"),
 		SupportEmail:     os.Getenv("SUPPORT_EMAIL"),
 		CryptBackend:     getEnv("CRYPT_BACKEND", constants.CryptBackendLocal),
 		CryptLocalKey:    os.Getenv("CRYPT_LOCAL_KEY"),
@@ -343,6 +359,35 @@ func (config *Config) GetAmqpAddr() string {
 
 // GetDomainName returns the domain name
 func (config *Config) GetDomainName() string {
+	return config.DomainName
+}
+
+// GetTotpIssuer returns the label authenticator apps show for this
+// deployment's 2FA entries.
+//
+// TOTP_ISSUER when set, verbatim — including in staging. An operator
+// who names the issuer has said what they want it to read, and quietly
+// appending "Staging" to it would be us overriding that.
+//
+// Otherwise derived from DomainName, which Validate already requires,
+// so the fallback is never empty in a deployment that starts at all.
+// The staging suffix exists on the derived path because both
+// environments share DOMAIN_NAME: without it, someone with 2FA on both
+// gets two identically-labelled entries in their authenticator and no
+// way to tell which code goes where.
+//
+// Deliberately not run through Validate. An issuer is a display label;
+// refusing to boot over one would take out sign-in for everybody to fix
+// a cosmetic problem for the people enrolling today.
+func (config *Config) GetTotpIssuer() string {
+	if config.TotpIssuer != "" {
+		return config.TotpIssuer
+	}
+
+	if config.IsStaging() {
+		return fmt.Sprintf("%s Staging", config.DomainName)
+	}
+
 	return config.DomainName
 }
 

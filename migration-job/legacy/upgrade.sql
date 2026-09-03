@@ -326,6 +326,10 @@ ALTER TABLE nodes ADD COLUMN `repost_count` INT(11) UNSIGNED NOT NULL DEFAULT 0 
 ALTER TABLE nodes ADD COLUMN `quote_count` INT(11) UNSIGNED NOT NULL DEFAULT 0 AFTER `repost_count`;
 
 -- Add new TOTP fields to people_people table
+-- Destination address for an emailchange token. NULL on every other
+-- token type. See tokens.new_email in schema/init.sql.
+ALTER TABLE tokens ADD COLUMN `new_email` VARCHAR(255) DEFAULT NULL;
+
 ALTER TABLE people_people ADD COLUMN `totp_secret` VARCHAR(255) DEFAULT '';
 ALTER TABLE people_people ADD COLUMN `totp_enabled` TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE people_people ADD COLUMN `totp_recovery_codes` TEXT DEFAULT NULL;

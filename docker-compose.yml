@@ -82,6 +82,11 @@ services:
       DOMAIN_NAME: ${DOMAIN_NAME}
       SYSTEM_EMAIL: ${SYSTEM_EMAIL}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL}
+      # Label authenticator apps show for 2FA entries. Optional —
+      # unset, it is derived from DOMAIN_NAME (with a "Staging" suffix
+      # on staging, so the two environments are distinguishable in an
+      # authenticator that holds both).
+      TOTP_ISSUER: ${TOTP_ISSUER:-}
       MAIL_SERVICE_ADDR: "mail-grpc-service:50051"
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       AMQP_ADDR: ${AMQP_ADDR}

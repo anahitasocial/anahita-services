@@ -143,14 +143,30 @@ func (h *totpHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusNotAcceptable)
 	}
 
-	issuer := constants.TotpIssuer
-	if h.Config.IsStaging() {
-		issuer = constants.TotpIssuerStaging
+	// AccountName comes from the person record, NOT from the viewer.
+	//
+	// The viewer is built from the access token, and the token
+	// deliberately carries no profile data — see BuildViewer in
+	// anahita-libs/middleware/oauth.go, which keeps it thin rather than
+	// trusting claims that go stale after a profile change. So
+	// viewer.Email is always empty here, totp.Generate rejected the
+	// options with "AccountName must be set", and enrolment answered
+	// 500 for everyone. `user` was already read from the database above
+	// and has the address.
+	//
+	// AccountName stays per-person and cannot be configured away: it is
+	// the "(you@example.com)" an authenticator shows, and the only thing
+	// distinguishing two entries for the same site. The deployment-wide
+	// half of that label is the issuer, which is what GetTotpIssuer
+	// supplies.
+	if user.Email == "" {
+		log.Printf("totp add: person has no email address (person=%d)", user.ID)
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	key, err := totp.Generate(totp.GenerateOpts{
-		Issuer:      issuer,
-		AccountName: viewer.Email,
+		Issuer:      h.Config.GetTotpIssuer(),
+		AccountName: user.Email,
 	})
 
 	if err != nil {
@@ -235,7 +251,15 @@ func (h *totpHandler) AddRecoveryCodes(c echo.Context) error {
 
 	rCodes := rc.generateCodes(constants.TotpNumRecoveryCodes, constants.TotpRecoveryCodeLength)
 
-	user.SetRecoveryCodes(rCodes)
+	// The error was dropped here. SetRecoveryCodes bcrypts each code
+	// before storing it, and on failure it leaves the field untouched —
+	// so the response still handed the person sixteen codes that would
+	// match nothing, which they would only discover when locked out and
+	// reaching for one.
+	if err := user.SetRecoveryCodes(rCodes); err != nil {
+		log.Println("totp recovery codes:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
 
 	user, err = h.Repos.Users.Edit(user)
 	if err != nil {
@@ -303,6 +327,54 @@ func (h *totpHandler) Delete(c echo.Context) error {
 	// }()
 
 	return c.NoContent(http.StatusOK)
+}
+
+// Read handles GET /totp
+//
+// Reports whether the viewer has TOTP enrolled, and whether that
+// enrolment's last verification has aged out.
+//
+// The viewer's own account only — no :person_id parameter, deliberately.
+// A status endpoint that took an identifier would answer "does this
+// person have 2FA?" for anyone who asked, which is a map of which
+// accounts are worth phishing. /auth/is/totp accepts an email because
+// the login page needs it before there is a session; there is no such
+// excuse behind authorize.
+//
+// This is the read the settings card and the step-up dialog both need.
+// Without it neither can tell an enrolled account from a fresh one:
+// the enrolment wizard opened on step one regardless of state, and the
+// step-up dialog rendered no passcode field, so a TOTP-enrolled person
+// submitted a password alone and the server rejected it forever.
+//
+//	200 — {"data": {"enabled": bool, "expired": bool}}
+//	500 — database failure
+//
+// expired is false whenever enabled is false. An account with no TOTP
+// has nothing to have expired, and reporting the raw IsMfaExpired for
+// one would be true — a value the client would reasonably read as
+// "re-verify your second factor" for a factor that does not exist.
+func (h *totpHandler) Read(c echo.Context) error {
+	var (
+		viewer = getViewer(c)
+	)
+
+	if viewer == nil || viewer.ID == 0 {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+
+	user, err := h.Repos.Users.ReadByID(viewer.ID)
+	if err != nil || user == nil {
+		log.Println("totp read:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"data": map[string]any{
+			"enabled": user.TotpEnabled,
+			"expired": user.TotpEnabled && user.IsMfaExpired(),
+		},
+	})
 }
 
 // IsExpired

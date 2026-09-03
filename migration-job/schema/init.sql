@@ -327,7 +327,16 @@ CREATE TABLE oauth_signing_keys (
 -- rest of this schema.
 CREATE TABLE tokens (
     `id` SERIAL,
+    -- Where the token is SENT. For an emailchange token that is the
+    -- person's current address, not the one they are moving to: the
+    -- current inbox is what has to approve the move, so a stolen session
+    -- alone cannot repoint the account.
     `recipient_email` varchar(255) NOT NULL,
+    -- The requested address, on emailchange tokens only; NULL on every
+    -- other type. Separate from recipient_email precisely so the two
+    -- cannot be confused — swapping them turns the confirmation flow
+    -- from a control into a way to hand the account away.
+    `new_email` varchar(255) DEFAULT NULL,
     -- 'passwordreset' or 'invite' (constants.TokenType*). A varchar
     -- rather than an ENUM so adding a token type is a code change, not
     -- an ALTER TABLE on a table that gets written on every reset.
