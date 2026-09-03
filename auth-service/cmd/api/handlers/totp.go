@@ -276,57 +276,119 @@ func (h *totpHandler) AddRecoveryCodes(c echo.Context) error {
 	return c.JSON(http.StatusOK, rCodes)
 }
 
-// Disables a person's TOTP 2FA
+// Delete disables 2FA on an account.
+//
+//	DELETE /totp/:person_id
+//
+// Two callers: a person turning off their own second factor, and an
+// administrator recovering somebody who has lost their authenticator and their
+// recovery codes with it. Permissions.Totp.CanDelete allows the first
+// unconditionally and the second with the actors:write scope.
+//
+// Step-up gated, because this WEAKENS an account: it is the one change here
+// that leaves the door easier to open than it found it, so it wants the same
+// proof as changing a password.
+//
+// Status codes:
+//
+//	204 — disabled, or already off
+//	400 — bad person id
+//	403 — with a JSON body, the caller may not act on this account;
+//	      with an EMPTY body, no recent step-up. The client tells them apart
+//	      by the body: a bare 403 means re-authenticate and retry, and a
+//	      403 carrying `error` means stop. They share a status because the
+//	      step-up contract across /password, /email and /username is 403, and
+//	      the permission failure genuinely is a forbidden.
+//	404 — no such person
+//	500 — database failure
 func (h *totpHandler) Delete(c echo.Context) error {
 	var (
 		viewer = getViewer(c)
 		req    = requests.NewTotpRequest().Delete
 	)
 
+	if viewer == nil || viewer.ID == 0 {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+
 	if err := c.Bind(req); err != nil {
-		log.Println(err)
+		log.Println("totp delete bind:", err)
 		return c.NoContent(http.StatusBadRequest)
 	}
 
 	if err := c.Validate(req); err != nil {
-		log.Println(err)
+		log.Println("totp delete validate:", err)
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	user, err := h.Repos.Users.ReadByEmailOrUsername(req.EmailOrUsername)
-	if err != nil {
-		log.Println(err)
+	user, err := h.Repos.Users.ReadByID(req.PersonID)
+	if err != nil || user == nil {
+		log.Println("totp delete lookup:", err)
 		return c.NoContent(http.StatusNotFound)
 	}
 
+	// Before the step-up, so a self-service 403 can only ever mean
+	// "re-authenticate" — which is what lets the client act on it without
+	// inspecting the body first.
 	if err := h.Perms.Totp.CanDelete(viewer, user); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusNotImplemented)
+		log.Println("totp delete permission:", err)
+		return c.JSON(http.StatusForbidden, map[string]string{
+			"error":       "forbidden",
+			"description": err.Error(),
+		})
 	}
 
+	// Already off. Answered before the step-up so nobody is sent through a
+	// re-authentication to change nothing; the caller has already proved it
+	// may act on this account, so this reveals nothing it could not read.
+	if !user.TotpEnabled && user.TotpSecret == "" {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("totp delete:", err)
+		return c.NoContent(reauthStatus(err))
+	}
+
+	// The secret goes with the flag. Leaving it behind would let a later
+	// enrolment silently inherit a secret somebody else may hold, and
+	// Users.Edit now writes the column, so clearing it here finally takes.
 	user.TotpSecret = ""
 	user.TotpRecoveryCodes = ""
 	user.TotpEnabled = false
+
 	user, err = h.Repos.Users.Edit(user)
 	if err != nil {
-		log.Println(err)
+		log.Println("totp delete:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	// Update session
-	if err = h.updateSession(c, user); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
+	// One step-up authorises one credential change.
+	h.clearStepUp(viewer.ID)
+
+	// SELF ONLY. updateSession writes the record it is handed into the
+	// CURRENT session, so calling it on an administrator disabling somebody
+	// else's 2FA would replace the administrator's own session with their
+	// target's. Best-effort besides: the change is already committed, and the
+	// session is refreshed on the next request anyway.
+	if viewer.ID == user.ID {
+		if err := h.updateSession(c, user); err != nil {
+			log.Println("totp delete: session refresh failed:", err)
+		}
 	}
 
-	// Email
-	// go func() {
-	// 	if err := h.Notif.Totp.EmailTotpDisabled(user); err != nil {
-	// 		log.Println(err)
-	// 	}
-	// }()
+	log.Printf("totp: disabled (person=%d by=%d)", user.ID, viewer.ID)
 
-	return c.NoContent(http.StatusOK)
+	// Fire-and-forget. This is the tripwire: an unexpected "your 2FA was
+	// turned off" is how somebody finds out an administrator, or an attacker
+	// holding a step-up, has weakened their account.
+	go func() {
+		if err := h.Notif.Totp.EmailTotpDisabled(user); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 // Read handles GET /totp

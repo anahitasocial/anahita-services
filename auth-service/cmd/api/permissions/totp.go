@@ -67,8 +67,11 @@ func (prm *TotpPerm) CanDelete(viewer *libs_entities.Viewer, user *entities.User
 		return errors.New(ErrTotpInsufficientScope)
 	}
 
-	// Global admins (admin or super_admin from HQ org) can disable for anyone.
-	if viewer.IsSuperAdmin() {
+	// Administrators and super-administrators alike. Locking a person out of
+	// their own account is the failure this exists to undo — a lost phone with
+	// no recovery codes left — and routing every one of those through a single
+	// super-admin makes the recovery slower than the problem.
+	if viewer.IsAdminOrSuperAdmin() {
 		return nil
 	}
 
