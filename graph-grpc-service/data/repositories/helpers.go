@@ -78,6 +78,9 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(node.language, '') AS language",
 		"COALESCE(node.access, '') AS access",
 		"COALESCE(node.features, '') AS features",
+		// Not COALESCEd: NULL means "not deleted" and a zero time would mean
+		// every actor was scheduled for deletion at the start of the epoch.
+		"node.deleted_at",
 	}
 
 	// Owner fields
@@ -246,6 +249,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.Language,
 		&item.Access,
 		&item.FeaturesRaw,
+		&item.DeletedAt,
 		// Owner fields
 		&item.Owner.ID,
 		&item.Owner.Type,
@@ -391,6 +395,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.Language,
 			&item.Access,
 			&item.FeaturesRaw,
+			&item.DeletedAt,
 			// Owner fields
 			&item.Owner.ID,
 			&item.Owner.Type,

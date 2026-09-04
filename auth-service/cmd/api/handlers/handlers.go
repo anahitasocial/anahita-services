@@ -1,6 +1,7 @@
 package handlers
 
 type Handlers struct {
+	AccountDeleted *accountDeletedHandler
 	Authlog        *authLogHandler
 	EmailChange    *emailChangeHandler
 	Invite         *inviteHandler
@@ -18,6 +19,7 @@ type Handlers struct {
 
 func NewHandlers(env *Env) *Handlers {
 	return &Handlers{
+		AccountDeleted: newAccountDeletedHandler(env),
 		Authlog:        newAuthLogHandler(env),
 		EmailChange:    newEmailChangeHandler(env),
 		Invite:         newInviteHandler(env),

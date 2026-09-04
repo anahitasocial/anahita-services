@@ -103,6 +103,14 @@ func (r *Routes) Init(e *echo.Echo) {
 	oauth.POST("/login/totp", h.OAuth.AddTotp)
 	oauth.POST("/login/passkey/begin", h.OAuth.AddPasskeyLoginBegin)
 	oauth.POST("/login/passkey/finish", h.OAuth.AddPasskeyLoginFinish)
+
+	// Account restore, reached only from the login form after a correct
+	// password on an account scheduled for deletion. Unauthenticated by
+	// construction, like the rest of this group — the account is disabled, so
+	// there is no session to hold and no way to authorize this except by the
+	// password that was just checked.
+	oauth.GET("/login/restore", h.OAuth.ReadRestore)
+	oauth.POST("/login/restore", h.OAuth.AddRestore)
 	oauth.GET("/authorize", h.OAuth.ReadAuthorize)
 	oauth.GET("/consent", h.OAuth.ReadConsent)
 	oauth.POST("/consent", h.OAuth.AddConsent)

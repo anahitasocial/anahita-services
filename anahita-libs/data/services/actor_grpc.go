@@ -40,6 +40,10 @@ type ActorsGRPCInterface interface {
 	// Delete removes a node
 	Delete(id int64, viewer *entities.Viewer) error
 
+	// Restore reverses a Delete within the grace period, reporting whether
+	// there was anything to restore.
+	Restore(id int64, viewer *entities.Viewer) (bool, error)
+
 	// getClient returns the grpc client
 	getClient() (graphpb.ActorServiceClient, error)
 }
@@ -259,6 +263,36 @@ func (srv *ActorsGRPC) Add(item *entities.AnahitaNode, viewer *entities.Viewer) 
 	}
 
 	return grpcToGraphNode(resp.Actor), nil
+}
+
+// Restore reverses a Delete within the grace period.
+//
+// Returns whether anything was restored: false means the account was already
+// purged or was never deleted, which the caller has to tell apart from success
+// so it can say so rather than claiming a group is back when it is not.
+func (srv *ActorsGRPC) Restore(id int64, viewer *entities.Viewer) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.Restore(context.Background(), &graphpb.ActorRestoreRequest{
+		Id: id,
+		Viewer: &graphpb.Viewer{
+			Id:       viewer.ID,
+			UserType: viewer.UserType,
+			Email:    viewer.Email,
+			Username: viewer.Username,
+		},
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return resp.Restored, nil
 }
 
 // Delete removes a media

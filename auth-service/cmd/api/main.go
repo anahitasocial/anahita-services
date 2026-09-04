@@ -229,6 +229,21 @@ func main() {
 	}
 	h := handlers.NewHandlers(hEnv)
 
+	// 12b. Event consumer.
+	//
+	// Listens for actor deletion so the credentials go with the account. Until
+	// this existed, deleting a profile revoked nothing — a refresh token minted
+	// beforehand kept working, and the IdP cookie kept minting more.
+	//
+	// Panics on failure rather than degrading: a silently absent consumer means
+	// deleted accounts quietly stay signed in, which is exactly the class of
+	// failure nobody notices.
+	go func() {
+		if err := startEventListener(h, cfg); err != nil {
+			log.Panic(err)
+		}
+	}()
+
 	// 13. Routes.
 	// authorize and setViewer are passed through so route groups can
 	// apply per-group middleware. setViewer is NOT applied globally —

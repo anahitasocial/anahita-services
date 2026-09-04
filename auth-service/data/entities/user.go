@@ -23,6 +23,16 @@ type User struct {
 	FamilyName    string    `json:"family_name"`
 	LastVisitDate time.Time `json:"last_visit_date,omitempty"`
 
+	// DeletedAt is set when the account is scheduled for deletion, and nil
+	// otherwise — which is almost always.
+	//
+	// Deleting also clears Enabled, so every login path already refuses the
+	// account without consulting this. What this adds is the ability to tell
+	// the two apart: an account an administrator disabled should stay refused,
+	// while one the person deleted themselves should be offered back during the
+	// grace period. Without it both look identical and neither can be restored.
+	DeletedAt *time.Time `json:"-"`
+
 	// TOTP fields
 	TotpSecret         string
 	TotpRecoveryCodes  string

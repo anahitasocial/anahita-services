@@ -48,12 +48,18 @@ func main() {
 		log.Panic(err)
 	}
 
+	repos := repositories.NewRepositories(conn)
+
 	hEnv := &handlers.Env{
 		Config:    config,
-		Repos:     repositories.NewRepositories(conn),
+		Repos:     repos,
 		Publisher: publisher,
 	}
 	h := handlers.NewHandlers(hEnv)
+
+	// NO SWEEPER HERE. Purging expired accounts is a job — see cmd/sweeper and
+	// the CronJob in k8s. This service runs three replicas, so a goroutine here
+	// would put three concurrent sweeps on the same queue.
 
 	// start the gRPC server
 	if err := startGrpcServer(h); err != nil {

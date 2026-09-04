@@ -22,6 +22,7 @@ type Notifiers struct {
 	Invite         *inviteNotifier
 	Password       *passwordNotifier
 	EmailChange    *emailChangeNotifier
+	AccountDelete  *accountDeleteNotifier
 	UsernameChange *usernameChangeNotifier
 	Signup         *signupNotifier
 	Totp           *totpNotifier
@@ -34,6 +35,7 @@ func NewNotifiers(env *Env) *Notifiers {
 		Invite:         newInviteNotifier(env),
 		Password:       newPasswordNotifier(env),
 		EmailChange:    newEmailChangeNotifier(env),
+		AccountDelete:  newAccountDeleteNotifier(env),
 		UsernameChange: newUsernameChangeNotifier(env),
 		Signup:         newSignupNotifier(env),
 		Totp:           newTotpNotifier(env),

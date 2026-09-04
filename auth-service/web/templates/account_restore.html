@@ -1,0 +1,29 @@
+{{define "title"}}Restore Your Account{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Your account is scheduled for deletion</h2>
+
+    {{if .PurgeDate}}
+    <p>Nothing has been lost yet. Your account and everything in it will be permanently erased on <strong>{{.PurgeDate}}</strong>.</p>
+    {{else}}
+    <p>Nothing has been lost yet, but your account and everything in it will be permanently erased shortly.</p>
+    {{end}}
+
+    <p>Restoring brings back your profile and all of your content. Your sessions and passkeys were removed when the deletion was requested, so you will need to sign in again on your other devices and add any passkeys back.</p>
+
+    <form method="POST" action="/oauth/login/restore" novalidate>
+        <button type="submit" class="btn btn-primary">Restore my account</button>
+    </form>
+
+    <!-- No "confirm deletion" button. Doing nothing already deletes the
+         account, so offering a button for it would add a way to make the
+         irreversible choice faster on a page whose whole purpose is the
+         reversible one. -->
+    <p><a href="/oauth/logout">No thanks, continue with deletion</a></p>
+</div>
+{{end}}

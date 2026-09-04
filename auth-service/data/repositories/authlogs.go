@@ -24,6 +24,22 @@ type authLogs struct {
 	sql sq.StatementBuilderType
 }
 
+// DeleteByPersonID removes every auth log belonging to a person.
+//
+// Zero is a success: somebody who never signed in has nothing to remove.
+func (repo *authLogs) DeleteByPersonID(personID int64) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	result, err := repo.db.ExecContext(ctx,
+		`DELETE FROM auth_logs WHERE created_by = ?`, personID)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
+}
+
 // Browse returns all authlogs for a given user
 func (repo *authLogs) Browse(user *entities.User) ([]*entities.AuthLog, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)

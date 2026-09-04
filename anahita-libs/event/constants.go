@@ -17,6 +17,14 @@ const (
 	EventFormatNodeActorEdited  = "node.actor.%s.%s.edited.v1"
 	EventFormatNodeActorDeleted = "node.actor.%s.%s.deleted.v1"
 
+	// Purged is the second half of deletion, published by the sweeper once the
+	// grace period has expired and the content is gone for good.
+	//
+	// Distinct from "deleted", which now means "scheduled": consumers react to
+	// the two differently. Deleted revokes credentials but leaves the account
+	// restorable; purged removes what is left of it and cannot be undone.
+	EventFormatNodeActorPurged = "node.actor.%s.%s.purged.v1"
+
 	EventFormatNodeMediumAdded   = "node.medium.%s.%s.added.v1"
 	EventFormatNodeMediumEdited  = "node.medium.%s.%s.edited.v1"
 	EventFormatNodeMediumDeleted = "node.medium.%s.%s.deleted.v1"

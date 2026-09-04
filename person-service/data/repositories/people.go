@@ -33,9 +33,6 @@ type PersonInterface interface {
 
 	// Edit updates a Person
 	Edit(*entities.Person) error
-
-	// Delete deletes a Person
-	Delete(int64) error
 }
 
 // NewPerson creates a new Person repository
@@ -254,19 +251,16 @@ func (repo *Person) Edit(item *entities.Person) error {
 	return nil
 }
 
-// Delete deletes a Person
-func (repo *Person) Delete(id int64) error {
-	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
-	defer cancel()
-
-	query := `DELETE FROM people_people WHERE node_id = ?`
-	_, err := repo.db.ExecContext(ctx, query, id)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+// Deleting a person no longer happens here.
+//
+// This hard-deleted the people_people row, and the handler called it before
+// asking graph-grpc to remove the node — two destructive writes across two
+// services with no transaction between them. A failure on the second leg left
+// an account nobody could sign into and nobody could remove.
+//
+// Deletion is now a soft mark on the node. The credentials row is what the
+// person signs in with to restore themselves during the grace period, and
+// auth-service removes it when the sweeper reports the account purged.
 
 // afterRead
 func (repo *Person) afterRead(person *entities.Person) error {

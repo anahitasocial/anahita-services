@@ -279,7 +279,7 @@ func (h *personHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	person, err := h.Repos.People.ReadByUsername(req.Username)
+	person, err := h.Repos.People.ReadByID(req.ID)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -295,11 +295,17 @@ func (h *personHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	if err = h.Repos.People.Delete(person.ID); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
+	// ONE write, and a soft one.
+	//
+	// This used to delete the people_people row here and then call graph-grpc to
+	// delete the node — two hard deletes across two services with no transaction
+	// between them. A failure on the second leg left an account nobody could log
+	// into and nobody could remove, because this handler finds the person
+	// through the row that had already gone.
+	//
+	// The credentials row now stays put: it is what the person signs in with to
+	// restore themselves during the grace period. The sweeper removes it when
+	// the window closes.
 	if err = h.Srv.ActorsGRPC.Delete(person.ID, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

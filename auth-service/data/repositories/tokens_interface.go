@@ -15,4 +15,12 @@ type TokensInterface interface {
 	Add(*entities.Token) (*entities.Token, error)
 	Edit(*entities.Token) (*entities.Token, error)
 	Delete(id int64) error
+
+	// DeleteByRecipientEmail removes every pending token addressed to one
+	// address, returning how many rows went.
+	//
+	// For account purge only. A tokens row holds the person's email address in
+	// plain text alongside a live password-reset or email-change link, and both
+	// outlived the account until the sweeper started calling this.
+	DeleteByRecipientEmail(email string) (int64, error)
 }

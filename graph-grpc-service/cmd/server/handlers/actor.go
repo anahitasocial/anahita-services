@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	features "graph/data/actor_features"
+	"graph/data/repositories"
 	"graph/data/validators"
 )
 
@@ -303,6 +304,16 @@ func (h *actorHandler) Add(ctx context.Context, req *graphpb.ActorAddRequest) (*
 }
 
 // Delete remove a medium
+// Delete SOFT-deletes an actor: it is marked and disabled, and nothing is
+// destroyed.
+//
+// This used to call PurgeByOwner, which hard-deleted the actor, everything it
+// owned, every descendant of those by parent_id — other people's comments on
+// the actor's posts included — and every edge touching any of them. There was
+// no way back from a misclick and no record that it had happened.
+//
+// PurgeByOwner still exists and still does exactly that, but it now runs from
+// the sweeper once the grace period has expired, not from a request.
 func (h *actorHandler) Delete(ctx context.Context, req *graphpb.ActorDeleteRequest) (*graphpb.ActorDeleteResponse, error) {
 	log.Printf("Received Delete request: %v", req.Id)
 	actor, err := h.env.Repos.Nodes.Read(req.Id)
@@ -310,12 +321,87 @@ func (h *actorHandler) Delete(ctx context.Context, req *graphpb.ActorDeleteReque
 		return nil, err
 	}
 
-	_, err = h.env.Repos.Nodes.PurgeByOwner(actor.ID)
+	deleted, err := h.env.Repos.Nodes.SoftDeleteActor(actor.ID)
 	if err != nil {
 		return nil, err
 	}
 
+	// Already deleted. Not an error — a repeated request should not restart the
+	// grace period, and the caller wanted the account gone, which it is. No
+	// audit row either: nothing happened this time.
+	if !deleted {
+		log.Printf("actor %d was already marked deleted", actor.ID)
+		return &graphpb.ActorDeleteResponse{}, nil
+	}
+
+	// Who deleted what, and when. Best-effort: the deletion has already
+	// committed, and failing the request over the audit row would leave the
+	// caller believing nothing happened when it did.
+	//
+	// req.ViewerId equals the actor for a self-service deletion and differs for
+	// an administrator removing somebody else — which is the case this row
+	// exists to answer for.
+	var deletedBy int64
+	if req.Viewer != nil {
+		deletedBy = req.Viewer.Id
+	}
+
+	if err := h.env.Repos.NodeDeletionLogs.Add(
+		actor.ID, actor.Alias, actor.Type, deletedBy,
+		repositories.DeletionActionScheduled,
+	); err != nil {
+		log.Println("actor delete: audit write failed:", err)
+	}
+
 	return &graphpb.ActorDeleteResponse{}, nil
+}
+
+// Restore reverses a Delete, within the grace period.
+//
+// People restore themselves by signing in — the password is the proof, and the
+// login page offers it. A group cannot sign in, so its administrators restore
+// it from the group's own settings page, and this is what that calls.
+//
+// The permission check lives in group-service, which knows who administers the
+// group; this service knows only nodes. Restoring is gated on the same
+// permission as deleting, on the reasoning that undoing an action should never
+// need more authority than doing it.
+func (h *actorHandler) Restore(ctx context.Context, req *graphpb.ActorRestoreRequest) (*graphpb.ActorRestoreResponse, error) {
+	log.Printf("Received Restore request: %v", req.Id)
+
+	restored, err := h.env.Repos.Nodes.RestoreActor(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !restored {
+		// Already purged, or never deleted. Not an error — the caller needs to
+		// tell it from success, which the response field carries.
+		log.Printf("actor %d had nothing to restore", req.Id)
+		return &graphpb.ActorRestoreResponse{Restored: false}, nil
+	}
+
+	var restoredBy int64
+	if req.Viewer != nil {
+		restoredBy = req.Viewer.Id
+	}
+
+	node, err := h.env.Repos.Nodes.Read(req.Id)
+	if err != nil {
+		// Restored, but we cannot describe what. Log rather than fail: the
+		// group is back, which is what was asked for.
+		log.Println("actor restore: audit read failed:", err)
+		return &graphpb.ActorRestoreResponse{Restored: true}, nil
+	}
+
+	if err := h.env.Repos.NodeDeletionLogs.Add(
+		node.ID, node.Alias, node.Type, restoredBy,
+		repositories.DeletionActionRestored,
+	); err != nil {
+		log.Println("actor restore: audit write failed:", err)
+	}
+
+	return &graphpb.ActorRestoreResponse{Restored: true}, nil
 }
 
 // Ping return a pong message

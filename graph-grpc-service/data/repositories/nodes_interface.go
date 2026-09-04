@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"time"
+
 	"anahita-libs/data/entities"
 	"graph/requests"
 	"graph/responses"
@@ -44,9 +46,29 @@ type NodesRepoInterface interface {
 	// DeleteSubtree deletes rootID, all descendants via parent_id, and all edges attached to any of them.
 	DeleteSubtree(rootID int64) (bool, error)
 
-	// PurgeByOwner deletes the owner node, all nodes owned by it, all descendants via parent_id,
-	// and all edges connected to any of those nodes (including the owner).
-	PurgeByOwner(ownerID int64) (bool, error)
+	// SoftDeleteActor marks an actor deleted and disables it, leaving everything
+	// it owns in place so a restore brings the profile back whole.
+	SoftDeleteActor(id int64) (bool, error)
+
+	// RestoreActor reverses SoftDeleteActor within the grace period.
+	RestoreActor(id int64) (bool, error)
+
+	// BrowseDeletedBefore returns the ids of actors soft-deleted before the
+	// cutoff — the sweeper's queue. Ids only: the sweeper reads each node it is
+	// about to purge anyway, and the queue is small.
+	BrowseDeletedBefore(cutoff time.Time, limit uint64) ([]int64, error)
+
+	// PurgeActorContent removes everything an actor owns and every edge
+	// touching it, but LEAVES THE ACTOR NODE so it can be tombstoned.
+	PurgeActorContent(ownerID int64) (bool, error)
+
+	// TombstoneActor strips an actor node to an identity marker: the id, the
+	// handle, and the fact that it is gone.
+	TombstoneActor(id int64) (bool, error)
+
+	// BrowseActorFiles returns the actor and everything it owns that carries an
+	// uploaded file, so the blobs can be deleted before the rows are.
+	BrowseActorFiles(ownerID int64) ([]*entities.AnahitaNode, error)
 
 	// Count returns the total number of nodes matching the provided browse request and viewer context.
 	Count(req *requests.NodeCountRequest) (uint64, error)
