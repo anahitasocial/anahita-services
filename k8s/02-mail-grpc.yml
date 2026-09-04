@@ -49,6 +49,26 @@ spec:
             secretKeyRef:
               name: anahita-secret
               key: SMTP_PASSWORD
+        - name: MAILGUN_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              name: anahita-config-map
+              key: MAILGUN_DOMAIN
+              optional: true
+        - name: MAILGUN_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: anahita-secret
+              key: MAILGUN_API_KEY
+              optional: true
+        # Only read when ENV=dev, where the service refuses to start without
+        # it. optional so a production cluster needs no such key.
+        - name: DEVELOPER_EMAIL
+          valueFrom:
+            configMapKeyRef:
+              name: anahita-config-map
+              key: DEVELOPER_EMAIL
+              optional: true
 ---
 apiVersion: v1
 kind: Service

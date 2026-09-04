@@ -12,7 +12,9 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var mailsGRPCConnectCounts int
+// mailsGRPCMaxConnectAttempts bounds the dial retries for ONE call. It replaces
+// a package-level counter that was incremented but never reset — see getClient.
+const mailsGRPCMaxConnectAttempts = 10
 
 type MailGRPCConfigInterface interface {
 	GetMailServiceAddr() string
@@ -45,25 +47,35 @@ func (srv *MailGRPC) getClient() (mailpb.MailServiceClient, error) {
 	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
 
+	// Attempts are counted PER CALL, not for the lifetime of the process.
+	//
+	// This used to increment a package-level counter that nothing ever reset,
+	// so the ten retries were a budget spent once and never refilled: after ten
+	// cumulative failures — a mail service that was slow to start, or briefly
+	// restarted — every later call in that process returned immediately without
+	// dialling, for as long as the service ran. Since every notifier is
+	// fire-and-forget, the result was mail silently ceasing to send with
+	// nothing to show for it.
+	attempts := 0
+
 	for {
 		cc, err := grpc.NewClient(srv.config.GetMailServiceAddr(), opts...)
 
-		if err != nil {
-			log.Println("Mail GRPC not ready...")
-			mailsGRPCConnectCounts++
-		} else {
+		if err == nil {
 			log.Println("Connected to Mail GRPC!")
 			return mailpb.NewMailServiceClient(cc), nil
 		}
 
-		if mailsGRPCConnectCounts > 10 {
+		log.Println("Mail GRPC not ready...")
+		attempts++
+
+		if attempts > mailsGRPCMaxConnectAttempts {
 			log.Println(err)
 			return nil, err
 		}
 
 		log.Println("Backing off for two seconds...")
 		time.Sleep(2 * time.Second)
-		continue
 	}
 }
 

@@ -28,7 +28,7 @@ func NewAwsSesMailer(config *config.Config) (*AwsSesMailer, error) {
 	}, nil
 }
 
-func (s *AwsSesMailer) SendFromTemplate(from string, to []string, subject string, template string, data string) (string, error) {
+func (s *AwsSesMailer) SendFromTemplate(from string, to []string, cc []string, bcc []string, subject string, template string, data string) (string, error) {
 	s.template = template
 	s.dataMap = make(map[string]any)
 	err := json.Unmarshal([]byte(data), &s.dataMap)
@@ -36,14 +36,16 @@ func (s *AwsSesMailer) SendFromTemplate(from string, to []string, subject string
 		return "", err
 	}
 
-	return s.Send(from, to, subject, "")
+	return s.Send(from, to, cc, bcc, subject, "")
 }
 
-func (s *AwsSesMailer) Send(from string, to []string, subject string, message string) (string, error) {
-	// Define `destinations` explicitly as []*string
-	destinations := make([]string, len(to))
-	for i, recipient := range to {
-		destinations[i] = recipient
+func (s *AwsSesMailer) Send(from string, to []string, cc []string, bcc []string, subject string, message string) (string, error) {
+	// SES takes the three lists separately and handles the blind part itself —
+	// BccAddresses never reaches the other recipients' headers.
+	destination := &types.Destination{
+		ToAddresses:  to,
+		CcAddresses:  cc,
+		BccAddresses: bcc,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -56,10 +58,9 @@ func (s *AwsSesMailer) Send(from string, to []string, subject string, message st
 			return "", err
 		}
 
-		// Use destinations directly in the struct for ToAddresses
 		input := &ses.SendTemplatedEmailInput{
 			Source:       aws.String(from),
-			Destination:  &types.Destination{ToAddresses: destinations},
+			Destination:  destination,
 			Template:     aws.String(s.template),
 			TemplateData: aws.String(string(templateData)),
 		}
@@ -74,10 +75,8 @@ func (s *AwsSesMailer) Send(from string, to []string, subject string, message st
 	} else {
 		// Handle non-templated email
 		input := &ses.SendEmailInput{
-			Source: aws.String(from),
-			Destination: &types.Destination{
-				ToAddresses: destinations,
-			},
+			Source:      aws.String(from),
+			Destination: destination,
 			Message: &types.Message{
 				Subject: &types.Content{Data: aws.String(subject)},
 				Body: &types.Body{

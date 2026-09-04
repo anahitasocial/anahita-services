@@ -7,10 +7,15 @@ import (
 	"mail/constants"
 )
 
-// MailProviderInterface is the interface that all mail providers must implement
+// MailProviderInterface is the interface that all mail providers must implement.
+//
+// cc and bcc are part of the signature because the proto carries them and the
+// Go client sends them. Without them here the handler had nowhere to pass
+// req.Cc and req.Bcc, so it dropped both silently — a caller could copy an
+// address and watch nothing arrive.
 type MailProviderInterface interface {
-	SendFromTemplate(from string, to []string, subject string, template string, data string) (string, error)
-	Send(from string, to []string, subject string, message string) (string, error)
+	SendFromTemplate(from string, to []string, cc []string, bcc []string, subject string, template string, data string) (string, error)
+	Send(from string, to []string, cc []string, bcc []string, subject string, message string) (string, error)
 }
 
 // NewProvider initializes a new mail provider based on the configuration

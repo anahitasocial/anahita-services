@@ -557,6 +557,14 @@ services:
       SMTP_HOST: ${SMTP_HOST}
       SMTP_SECURE: ${SMTP_SECURE}
       SMTP_PORT: ${SMTP_PORT}
+      # Mailgun's own credentials. The provider used to read the domain from
+      # SMTP_HOST and the API key from SMTP_PASSWORD.
+      MAILGUN_API_KEY: ${MAILGUN_API_KEY:-}
+      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN:-}
+      # Where every message goes when ENV=dev. Required in development — the
+      # service refuses to start without it rather than mailing real people
+      # from a development machine.
+      DEVELOPER_EMAIL: ${DEVELOPER_EMAIL:-}
     networks:
       anahita-network:
         ipv4_address: 172.20.1.32

@@ -17,16 +17,21 @@ type MailGunMailer struct {
 }
 
 // NewMailGunMailer initializes a new MailGunMailer instance
+//
+// Reads the dedicated MAILGUN_* configuration. It used to take the domain from
+// SMTP_HOST and the API key from SMTP_PASSWORD, which meant a Mailgun
+// deployment had to populate SMTP settings it never used, and anyone reading
+// the config would conclude the service was speaking SMTP.
 func NewMailGunMailer(config *config.Config) *MailGunMailer {
-	client := mailgun.NewMailgun(config.Smtp.SmtpHost, config.Smtp.SmtpPassword)
+	client := mailgun.NewMailgun(config.Mailgun.Domain, config.Mailgun.ApiKey)
 	return &MailGunMailer{
 		client: client,
-		domain: config.Smtp.SmtpHost,
+		domain: config.Mailgun.Domain,
 	}
 }
 
 // SendFromTemplate sends an email using a predefined Mailgun template
-func (m *MailGunMailer) SendFromTemplate(from string, to []string, subject string, template string, data string) (string, error) {
+func (m *MailGunMailer) SendFromTemplate(from string, to []string, cc []string, bcc []string, subject string, template string, data string) (string, error) {
 	m.template = template
 
 	m.dataMap = make(map[string]any)
@@ -35,17 +40,25 @@ func (m *MailGunMailer) SendFromTemplate(from string, to []string, subject strin
 		return "", err
 	}
 
-	return m.Send(from, to, subject, "")
+	return m.Send(from, to, cc, bcc, subject, "")
 }
 
 // Send sends an email using Mailgun, with or without a template
-func (m *MailGunMailer) Send(from string, to []string, subject string, message string) (string, error) {
+func (m *MailGunMailer) Send(from string, to []string, cc []string, bcc []string, subject string, message string) (string, error) {
 	// Create a new message using the standalone NewMessage function
 	msg := mailgun.NewMessage(from, subject, message)
 
 	// Add recipients
 	for _, recipient := range to {
 		msg.AddRecipient(recipient)
+	}
+
+	for _, recipient := range cc {
+		msg.AddCC(recipient)
+	}
+
+	for _, recipient := range bcc {
+		msg.AddBCC(recipient)
 	}
 
 	// If a template is specified, set it and add variables

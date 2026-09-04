@@ -25,11 +25,11 @@ func NewSmtpMailer(cfg *config.Config) *SmtpMailer {
 }
 
 // SendFromTemplate no implementation for smtp mailer
-func (s *SmtpMailer) SendFromTemplate(from string, to []string, subject string, templateStr string, data string) (string, error) {
+func (s *SmtpMailer) SendFromTemplate(from string, to []string, cc []string, bcc []string, subject string, templateStr string, data string) (string, error) {
 	return "", errors.New("not implemented for smtp mailer")
 }
 
-func (s *SmtpMailer) Send(from string, to []string, subject string, message string) (string, error) {
+func (s *SmtpMailer) Send(from string, to []string, cc []string, bcc []string, subject string, message string) (string, error) {
 	// Set up the SMTP server address and authentication
 	addr := fmt.Sprintf("%s:%d", s.host, s.port)
 	auth := smtp.PlainAuth("", s.username, s.password, s.host)
@@ -42,6 +42,13 @@ func (s *SmtpMailer) Send(from string, to []string, subject string, message stri
 	headers["MIME-Version"] = "1.0"
 	headers["Content-Type"] = "text/plain; charset=\"utf-8\""
 
+	// Cc is a header AND an envelope recipient. Bcc is an envelope recipient
+	// ONLY — writing it as a header is what makes a blind copy not blind,
+	// since every recipient would then see the list.
+	if len(cc) > 0 {
+		headers["Cc"] = strings.Join(cc, ", ")
+	}
+
 	// Build the email message
 	var msgBuilder strings.Builder
 	for k, v := range headers {
@@ -49,8 +56,14 @@ func (s *SmtpMailer) Send(from string, to []string, subject string, message stri
 	}
 	msgBuilder.WriteString("\r\n" + message)
 
+	// The envelope carries everyone who should receive it, headers or not.
+	recipients := make([]string, 0, len(to)+len(cc)+len(bcc))
+	recipients = append(recipients, to...)
+	recipients = append(recipients, cc...)
+	recipients = append(recipients, bcc...)
+
 	// Send the email
-	err := smtp.SendMail(addr, auth, from, to, []byte(msgBuilder.String()))
+	err := smtp.SendMail(addr, auth, from, recipients, []byte(msgBuilder.String()))
 	if err != nil {
 		return "", err
 	}

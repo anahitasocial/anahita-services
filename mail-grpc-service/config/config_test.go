@@ -56,6 +56,7 @@ func TestNewConfig_Defaults(t *testing.T) {
 }
 
 func TestConfig_Validate_AllFieldsPresent(t *testing.T) {
+	defer setEnv("ENV", "prod")()
 	defer setEnv("MAILER_PROVIDER", "smtp")()
 	defer setEnv("SMTP_USER", "user")()
 	defer setEnv("SMTP_PASSWORD", "pass")()
@@ -66,6 +67,84 @@ func TestConfig_Validate_AllFieldsPresent(t *testing.T) {
 	err := cfg.Validate()
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
+	}
+}
+
+// Validation only asks for what the selected provider uses. Requiring SMTP
+// credentials unconditionally meant a Mailgun or SES deployment could not start
+// without inventing values it would never read.
+func TestConfig_Validate_PerProvider(t *testing.T) {
+	cases := []struct {
+		name    string
+		cfg     Config
+		wantErr bool
+	}{
+		{
+			name:    "mailgun needs no smtp",
+			cfg:     Config{Env: "prod", MailerProvider: "mailgun", Mailgun: Mailgun{ApiKey: "k", Domain: "d"}},
+			wantErr: false,
+		},
+		{
+			name:    "mailgun without credentials",
+			cfg:     Config{Env: "prod", MailerProvider: "mailgun"},
+			wantErr: true,
+		},
+		{
+			name:    "ses needs a region",
+			cfg:     Config{Env: "prod", MailerProvider: "aws_ses", Aws: Aws{Region: "us-east-1"}},
+			wantErr: false,
+		},
+		{
+			name:    "ses without a region",
+			cfg:     Config{Env: "prod", MailerProvider: "aws_ses"},
+			wantErr: true,
+		},
+		{
+			name:    "unknown provider",
+			cfg:     Config{Env: "prod", MailerProvider: "carrier-pigeon"},
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.cfg.Validate()
+			if tc.wantErr && err == nil {
+				t.Error("expected an error, got nil")
+			}
+			if !tc.wantErr && err != nil {
+				t.Errorf("expected no error, got %v", err)
+			}
+		})
+	}
+}
+
+// The redirect is what stops a development machine mailing real people, so
+// booting without a target in development is refused — an empty override would
+// blank the recipient list instead. Production needs no such value.
+func TestConfig_Validate_DeveloperEmailRequiredInDevOnly(t *testing.T) {
+	base := Config{
+		MailerProvider: "mailgun",
+		Mailgun:        Mailgun{ApiKey: "k", Domain: "d"},
+	}
+
+	dev := base
+	dev.Env = "dev"
+	if err := dev.Validate(); err == nil {
+		t.Error("expected dev without DEVELOPER_EMAIL to fail, got nil")
+	}
+
+	dev.DeveloperEmail = "developer@example.com"
+	if err := dev.Validate(); err != nil {
+		t.Errorf("expected dev with DEVELOPER_EMAIL to pass, got %v", err)
+	}
+
+	for _, env := range []string{"staging", "prod"} {
+		other := base
+		other.Env = env
+		if err := other.Validate(); err != nil {
+			t.Errorf("expected %s without DEVELOPER_EMAIL to pass, got %v", env, err)
+		}
 	}
 }
 
@@ -115,6 +194,17 @@ func TestConfig_Getters(t *testing.T) {
 			SmtpPort:     123,
 			SmtpSecure:   true,
 		},
+		Mailgun:        Mailgun{ApiKey: "key", Domain: "mg.example.com"},
+		DeveloperEmail: "developer@example.com",
+	}
+	if cfg.GetMailgunApiKey() != "key" {
+		t.Error("GetMailgunApiKey failed")
+	}
+	if cfg.GetMailgunDomain() != "mg.example.com" {
+		t.Error("GetMailgunDomain failed")
+	}
+	if cfg.GetDeveloperEmail() != "developer@example.com" {
+		t.Error("GetDeveloperEmail failed")
 	}
 	if cfg.GetMailerProvider() != "smtp" {
 		t.Error("GetMailerProvider failed")

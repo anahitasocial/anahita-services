@@ -15,7 +15,14 @@ import (
 )
 
 const (
-	gRpcPort = "50056"
+	// 50051, matching what every consumer is configured to dial:
+	// MAIL_SERVICE_ADDR is "mail-grpc-service:50051" in docker-compose.yml and
+	// the k8s service targets 50051 too. This listened on 50056, so nothing was
+	// accepting connections on the port the rest of the stack used — and since
+	// every notifier is fire-and-forget, no email has been delivered and no
+	// error has ever surfaced. The compose file publishes 50056 on the host,
+	// which is why the mismatch looked plausible.
+	gRpcPort = "50051"
 )
 
 func main() {

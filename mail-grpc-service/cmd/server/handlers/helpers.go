@@ -5,16 +5,20 @@ import (
 	"html/template"
 
 	"github.com/vanng822/go-premailer/premailer"
+
+	"mail/templates"
 )
 
+// Names within the embedded template filesystem — see package mail/templates
+// for why these are no longer paths on disk.
 const (
-	HtmlEmailTemplatePath  = "../../templates/mail.html.tmpl"
-	PlainEmailTemplatePath = "../../templates/mail.plain.tmpl"
+	HtmlEmailTemplateName  = "mail.html.tmpl"
+	PlainEmailTemplateName = "mail.plain.tmpl"
 )
 
 // buildPlainTextMessage creates the plaintext version of the message
 func buildPlainTextMessage(data interface{}) (string, error) {
-	t, err := template.New("email-plain").ParseFiles(PlainEmailTemplatePath)
+	t, err := template.New("email-plain").ParseFS(templates.FS, PlainEmailTemplateName)
 	if err != nil {
 		return "", err
 	}
@@ -31,7 +35,7 @@ func buildPlainTextMessage(data interface{}) (string, error) {
 
 // buildHTMLMessage creates the HTML version of the message
 func buildHTMLMessage(data interface{}) (string, error) {
-	t, err := template.New("email-html").ParseFiles(HtmlEmailTemplatePath)
+	t, err := template.New("email-html").ParseFS(templates.FS, HtmlEmailTemplateName)
 	if err != nil {
 		return "", err
 	}
