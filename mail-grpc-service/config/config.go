@@ -6,50 +6,45 @@ import (
 	"log"
 	"os"
 	"strings"
-
-	"mail/constants"
 )
 
 const (
-	ErrMissingMailerProvider = "Mailer provider is missing"
-	ErrMissingSmtpUser       = "SMTP user is missing"
-	ErrMissingSmtpPassword   = "SMTP password is missing"
 	ErrMissingSmtpHost       = "SMTP host is missing"
 	ErrMissingSmtpPort       = "SMTP port is missing"
-	ErrMissingAwsRegion      = "AWS region is missing"
-	ErrMissingMailgunApiKey  = "Mailgun API key is missing"
-	ErrMissingMailgunDomain  = "Mailgun domain is missing"
 	ErrMissingDeveloperEmail = "Developer email is missing, and is required in development"
+	ErrInvalidSmtpSecure     = `SMTP_SECURE must be true or false ` +
+		`(true = implicit TLS, usually port 465; false = STARTTLS, usually port 587). ` +
+		`Values such as "ssl" or "tls" are not accepted, because guessing at them ` +
+		`would silently pick a transport security mode`
 )
 
 type Smtp struct {
+	// SmtpUser and SmtpPassword are OPTIONAL. An internal relay or a local
+	// mail sink that accepts unauthenticated mail from inside the network is
+	// an ordinary arrangement, and requiring credentials would exclude it.
+	// Empty user means the provider skips AUTH entirely.
 	SmtpUser     string
 	SmtpPassword string
 	SmtpHost     string
 	SmtpPort     int
-	SmtpSecure   bool
-}
 
-type Aws struct {
-	Region string
-}
+	// SmtpSecure selects implicit TLS (port 465) over STARTTLS (587).
+	SmtpSecure bool
 
-// Mailgun credentials.
-//
-// These used to be read off the Smtp struct — NewMailGunMailer took SmtpHost as
-// the domain and SmtpPassword as the API key. That worked only by coincidence
-// and made the SMTP fields required for a deployment that does not use SMTP.
-type Mailgun struct {
-	ApiKey string
-	Domain string
+	// smtpSecureInvalid records that SMTP_SECURE was set to something that
+	// could not be parsed. Validate turns that into a refusal to start — see
+	// ErrInvalidSmtpSecure.
+	//
+	// Phrased as the NEGATIVE deliberately, so the zero value means "fine".
+	// A "valid" flag would make every Config built as a struct literal — every
+	// test, and any future caller not going through NewConfig — fail validation
+	// on a field it never heard of.
+	smtpSecureInvalid bool
 }
 
 type Config struct {
-	MailerProvider string
-	Aws            Aws
-	Smtp           Smtp
-	Mailgun        Mailgun
-	Env            string
+	Smtp Smtp
+	Env  string
 
 	// DeveloperEmail is where every outbound message goes in development.
 	//
@@ -61,67 +56,92 @@ type Config struct {
 	//
 	// Required only in development; see Validate.
 	DeveloperEmail string
+
+	// SiteName is what this installation calls itself, shown in the header of
+	// every message and used as the logo's alt text.
+	//
+	// Configured HERE rather than passed in by each caller, because it is a
+	// property of the installation's mail rather than of whichever service
+	// happened to send it — a second service sending mail should not have to
+	// remember to brand it, and should not be able to brand it differently.
+	SiteName string
+
+	// SiteLogoURL is an absolute, publicly reachable URL for the logo.
+	//
+	// A URL rather than an embedded image, deliberately:
+	//
+	//   - A base64 data: URI is the option that sounds best and works worst.
+	//     Gmail strips them outright and Outlook blocks them, so the logo
+	//     would be missing in most inboxes.
+	//   - A CID attachment (multipart/related) does render, but it puts an
+	//     attachment indicator on the message. On "your password was changed"
+	//     an attachment reads as phishing, which is the opposite of what a
+	//     logo is here to do.
+	//
+	// A remote URL is what every large transactional sender uses. Some clients
+	// block remote images until asked, so the template must read correctly
+	// without it — see message_action.html.tmpl, where the site name is text
+	// beside the image rather than inside it.
+	//
+	// Empty means no image at all, which is the safe default: a broken image
+	// is worse branding than none. In production this usually points at the
+	// auth host's own asset, e.g. https://auth.example.com/static/images/logo.png
+	SiteLogoURL string
 }
 
 func NewConfig() *Config {
+	smtpSecure, smtpSecureValid := parseBoolEnv("SMTP_SECURE", false)
+
 	config := &Config{
 		Env:            getEnv("ENV", an_constants.ConfigEnvDev),
-		MailerProvider: os.Getenv("MAILER_PROVIDER"),
 		DeveloperEmail: os.Getenv("DEVELOPER_EMAIL"),
-		Aws: Aws{
-			Region: os.Getenv("AWS_REGION"),
-		},
+		SiteName:       os.Getenv("SITE_NAME"),
+		SiteLogoURL:    os.Getenv("SITE_LOGO_URL"),
 		Smtp: Smtp{
 			SmtpUser:     os.Getenv("SMTP_USER"),
 			SmtpPassword: os.Getenv("SMTP_PASSWORD"),
 			SmtpHost:     os.Getenv("SMTP_HOST"),
 			SmtpPort:     getIntEnv("SMTP_PORT", 587),
-			SmtpSecure:   getBoolEnv("SMTP_SECURE", false),
-		},
-		Mailgun: Mailgun{
-			ApiKey: os.Getenv("MAILGUN_API_KEY"),
-			Domain: os.Getenv("MAILGUN_DOMAIN"),
+			SmtpSecure:   smtpSecure,
+			// Carried so Validate can refuse an unparseable value rather than
+			// quietly running with the default.
+			smtpSecureInvalid: !smtpSecureValid,
 		},
 	}
 
 	return config
 }
 
-// Validate checks only the configuration the selected provider actually uses.
+// Validate checks the configuration the service actually needs.
 //
-// It used to require SMTP_USER, SMTP_PASSWORD, SMTP_HOST and SMTP_PORT
-// unconditionally, so a deployment running Mailgun or SES could not start
-// without inventing SMTP credentials it would never use.
+// SMTP is the only transport, so there is no provider to switch on any more.
+// Host and port are required; user and password are not — see Smtp.
 func (config *Config) Validate() error {
 	var missingFields []string
 
-	switch config.MailerProvider {
-	case constants.MailerProviderSmtp:
-		if config.Smtp.SmtpUser == "" {
-			missingFields = append(missingFields, ErrMissingSmtpUser)
-		}
-		if config.Smtp.SmtpPassword == "" {
-			missingFields = append(missingFields, ErrMissingSmtpPassword)
-		}
-		if config.Smtp.SmtpHost == "" {
-			missingFields = append(missingFields, ErrMissingSmtpHost)
-		}
-		if config.Smtp.SmtpPort == 0 {
-			missingFields = append(missingFields, ErrMissingSmtpPort)
-		}
-	case constants.MailerProviderAwsSes:
-		if config.Aws.Region == "" {
-			missingFields = append(missingFields, ErrMissingAwsRegion)
-		}
-	case constants.MailerProviderMailgun:
-		if config.Mailgun.ApiKey == "" {
-			missingFields = append(missingFields, ErrMissingMailgunApiKey)
-		}
-		if config.Mailgun.Domain == "" {
-			missingFields = append(missingFields, ErrMissingMailgunDomain)
-		}
-	default:
-		missingFields = append(missingFields, ErrMissingMailerProvider)
+	if config.Smtp.SmtpHost == "" {
+		missingFields = append(missingFields, ErrMissingSmtpHost)
+	}
+	if config.Smtp.SmtpPort == 0 {
+		missingFields = append(missingFields, ErrMissingSmtpPort)
+	}
+	// Refused rather than defaulted. This selects whether the session is
+	// encrypted from the first byte or upgraded in place, and a value nobody
+	// can parse should stop the service rather than pick one.
+	if config.Smtp.smtpSecureInvalid {
+		missingFields = append(missingFields, ErrInvalidSmtpSecure)
+	}
+
+	// Not fatal, because a server may legitimately listen anywhere — but these
+	// two pairings are almost always a mistake, and the symptom is an opaque
+	// handshake timeout rather than anything naming the cause.
+	if config.Smtp.SmtpSecure && config.Smtp.SmtpPort == 587 {
+		log.Println("mail: SMTP_SECURE=true with port 587 — 587 normally expects " +
+			"STARTTLS (SMTP_SECURE=false); implicit TLS normally uses 465")
+	}
+	if !config.Smtp.SmtpSecure && config.Smtp.SmtpPort == 465 {
+		log.Println("mail: SMTP_SECURE=false with port 465 — 465 normally expects " +
+			"implicit TLS (SMTP_SECURE=true); STARTTLS normally uses 587")
 	}
 
 	// Required in development only.
@@ -160,16 +180,6 @@ func (config *Config) IsProd() bool {
 	return config.Env == an_constants.ConfigEnvProd
 }
 
-// GetMailerProvider returns the mailer provider
-func (config *Config) GetMailerProvider() string {
-	return config.MailerProvider
-}
-
-// GetAwsRegion returns the AWS region
-func (config *Config) GetAwsRegion() string {
-	return config.Aws.Region
-}
-
 // GetSmtpUser returns the SMTP user
 func (config *Config) GetSmtpUser() string {
 	return config.Smtp.SmtpUser
@@ -195,14 +205,38 @@ func (config *Config) GetSmtpSecure() bool {
 	return config.Smtp.SmtpSecure
 }
 
-// GetMailgunApiKey returns the Mailgun API key
-func (config *Config) GetMailgunApiKey() string {
-	return config.Mailgun.ApiKey
+// GetSiteName returns the installation's name, or a neutral fallback.
+//
+// Falls back rather than rendering an empty header — the alternative is a
+// message with a blank space where the brand should be, which looks broken
+// rather than unbranded.
+func (config *Config) GetSiteName() string {
+	if config.SiteName != "" {
+		return config.SiteName
+	}
+
+	return "Notifications"
 }
 
-// GetMailgunDomain returns the Mailgun sending domain
-func (config *Config) GetMailgunDomain() string {
-	return config.Mailgun.Domain
+// GetSiteLogoURL returns the logo URL, or empty when none is configured.
+//
+// Empty is a supported state, not a misconfiguration: the template renders the
+// site name as text instead. Anything that is not an absolute http(s) URL is
+// treated as absent, because a relative path in an email resolves against
+// nothing and renders as a broken image in every client.
+func (config *Config) GetSiteLogoURL() string {
+	if strings.HasPrefix(config.SiteLogoURL, "http://") ||
+		strings.HasPrefix(config.SiteLogoURL, "https://") {
+		return config.SiteLogoURL
+	}
+
+	if config.SiteLogoURL != "" {
+		log.Printf("mail: ignoring SITE_LOGO_URL %q — an email logo needs an "+
+			"absolute http(s) URL, since a relative path resolves against "+
+			"nothing in a mail client", config.SiteLogoURL)
+	}
+
+	return ""
 }
 
 // GetDeveloperEmail returns the address every message is redirected to in

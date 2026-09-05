@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/proto/mailpb"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -15,6 +16,30 @@ type mailHandler struct {
 
 func NewMailHandler(env *Env) *mailHandler {
 	return &mailHandler{env: env}
+}
+
+// logRequest records that a send was asked for, WITHOUT the payload.
+//
+// The previous form was log.Printf("...%v", req), which prints the whole
+// protobuf — including template_data. That map carries the password-reset
+// token, the email-change token and the invite token, each of which is a live
+// credential: whoever holds the reset token can take the account without ever
+// seeing the mailbox. Logs get shipped, tailed and pasted into chat windows,
+// so a token in one has effectively escaped.
+//
+// Recipients, subject and template name are enough to trace a message. The
+// data that makes it work is not.
+func logRequest(rpc, from string, to, cc, bcc []string, subject, template string) {
+	recipients := len(to) + len(cc) + len(bcc)
+
+	if template != "" {
+		log.Printf("mail: %s from=%s to=%s recipients=%d template=%q subject=%q",
+			rpc, from, strings.Join(to, ", "), recipients, template, subject)
+		return
+	}
+
+	log.Printf("mail: %s from=%s to=%s recipients=%d subject=%q",
+		rpc, from, strings.Join(to, ", "), recipients, subject)
 }
 
 // devRedirect sends everything to the developer instead of the real recipients.
@@ -52,7 +77,11 @@ func (h *mailHandler) devRedirect(to, cc, bcc []string, subject string) ([]strin
 	log.Printf("mail: development mode, redirecting to %s (originally %s)",
 		developer, strings.Join(original, ", "))
 
-	if len(original) > 0 {
+	// Prefix only when the redirect actually moved something. Testing against
+	// your own address makes DEVELOPER_EMAIL the real recipient too, and
+	// "[dev → you@example.com]" in front of every subject is then pure noise
+	// on top of a message that went exactly where it was addressed.
+	if len(original) > 0 && !onlyRecipientIs(original, developer) {
 		subject = fmt.Sprintf("[dev → %s] %s", strings.Join(original, ", "), subject)
 	}
 
@@ -61,47 +90,46 @@ func (h *mailHandler) devRedirect(to, cc, bcc []string, subject string) ([]strin
 	return []string{developer}, nil, nil, subject
 }
 
+// onlyRecipientIs reports whether a message was already addressed solely to
+// the given address, making the redirect a no-op.
+func onlyRecipientIs(recipients []string, address string) bool {
+	if len(recipients) != 1 {
+		return false
+	}
+
+	return strings.EqualFold(strings.TrimSpace(recipients[0]), strings.TrimSpace(address))
+}
+
 // Send send an email
 func (h *mailHandler) Send(ctx context.Context, req *mailpb.SendRequest) (*mailpb.SendResponse, error) {
-	log.Printf("Received SendEmail request: %v", req)
-
-	var (
-		response string
-		err      error
-		message  string
-	)
-
-	// Both templates read {{.message}}, and the HTML one also reads {{.lang}}.
-	// req.Message was being passed through as a bare string, so every execution
-	// failed with "can't evaluate field message in type string" — this RPC has
-	// no callers yet, which is why that never surfaced.
-	data := map[string]any{
-		"message": req.Message,
-		"lang":    "en",
-	}
-
-	if req.IsHtml {
-		message, err = buildHTMLMessage(data)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		message, err = buildPlainTextMessage(data)
-		if err != nil {
-			return nil, err
-		}
-	}
+	logRequest("Send", req.From, req.To, req.Cc, req.Bcc, req.Subject, "")
 
 	to, cc, bcc, subject := h.devRedirect(req.To, req.Cc, req.Bcc, req.Subject)
 
-	response, err = h.env.Provider.Send(req.From, to, cc, bcc, subject, message)
+	// A pre-composed body, sent as-is. is_html says which half of the message
+	// the caller supplied; the other half is left empty rather than
+	// manufactured, because inventing a plain-text rendering of somebody
+	// else's HTML is guesswork.
+	msg := toMessage(req.From, to, cc, bcc, subject, req.Message, "")
+	if req.IsHtml {
+		msg.HTML = req.Message
+		// The text part is required, and a bare HTML document is a poor one,
+		// but it beats no text part at all for deliverability.
+		msg.Text = req.Message
+	}
+
+	response, err := h.env.Provider.Send(ctx, msg)
 	if err != nil {
+		log.Printf("mail: Send FAILED to %s: %v", strings.Join(to, ", "), err)
 		return nil, err
 	}
 
 	if response == "" {
+		log.Printf("mail: Send to %s reported no status", strings.Join(to, ", "))
 		return nil, fmt.Errorf("failed to send email")
 	}
+
+	log.Printf("mail: Send delivered to %s", strings.Join(to, ", "))
 
 	return &mailpb.SendResponse{
 		Status: response,
@@ -110,23 +138,47 @@ func (h *mailHandler) Send(ctx context.Context, req *mailpb.SendRequest) (*mailp
 
 // SendFromTemplate send an email using a predefined template
 func (h *mailHandler) SendFromTemplate(ctx context.Context, req *mailpb.SendFromTemplateRequest) (*mailpb.SendResponse, error) {
-	log.Printf("Received SendEmailFromTemplate request: %v", req)
+	logRequest("SendFromTemplate", req.From, req.To, req.Cc, req.Bcc, req.Subject, req.Template)
 
-	var (
-		response string
-		err      error
-	)
+	// Rendered HERE, from a template in this repository, rather than forwarded
+	// to a provider to resolve against one of theirs. That move is the whole
+	// point of the change: the appearance of every email the system sends is
+	// now in version control and covered by tests.
+	var raw map[string]string
+	if req.TemplateData != "" {
+		if err := json.Unmarshal([]byte(req.TemplateData), &raw); err != nil {
+			return nil, fmt.Errorf("template data: %w", err)
+		}
+	}
 
-	to, cc, bcc, subject := h.devRedirect(req.To, req.Cc, req.Bcc, req.Subject)
-
-	response, err = h.env.Provider.SendFromTemplate(req.From, to, cc, bcc, subject, req.Template, req.TemplateData)
+	text, html, err := renderTemplate(req.Template, h.templateData(raw))
 	if err != nil {
 		return nil, err
 	}
 
+	// AFTER rendering, so a template failure is reported before anything is
+	// addressed, and BEFORE sending, so development mail cannot escape.
+	to, cc, bcc, subject := h.devRedirect(req.To, req.Cc, req.Bcc, req.Subject)
+
+	response, err := h.env.Provider.Send(ctx, toMessage(req.From, to, cc, bcc, subject, text, html))
+	if err != nil {
+		// Logged HERE as well as returned. The caller is a fire-and-forget
+		// goroutine in another service, so a returned error reaches a log line
+		// nobody is watching; this service's log is where somebody debugging a
+		// missing email actually looks.
+		log.Printf("mail: SendFromTemplate %q FAILED to %s: %v",
+			req.Template, strings.Join(to, ", "), err)
+		return nil, err
+	}
+
 	if response == "" {
+		log.Printf("mail: SendFromTemplate %q to %s reported no status",
+			req.Template, strings.Join(to, ", "))
 		return nil, fmt.Errorf("failed to send email")
 	}
+
+	log.Printf("mail: SendFromTemplate %q delivered to %s",
+		req.Template, strings.Join(to, ", "))
 
 	return &mailpb.SendResponse{
 		Status: response,

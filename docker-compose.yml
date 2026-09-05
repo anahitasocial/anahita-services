@@ -80,6 +80,7 @@ services:
       REDIS_ADDR: ${REDIS_ADDR}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       DOMAIN_NAME: ${DOMAIN_NAME}
+      SITE_NAME: ${SITE_NAME:-}
       SYSTEM_EMAIL: ${SYSTEM_EMAIL}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL}
       # Label authenticator apps show for 2FA entries. Optional —
@@ -551,16 +552,21 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
-      MAILER_PROVIDER: ${MAILER_PROVIDER}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      # Branding, applied by this service to every message so that any sender
+      # gets the same header without having to pass it.
+      SITE_NAME: ${SITE_NAME:-}
+      SITE_LOGO_URL: ${SITE_LOGO_URL:-}
+      # SMTP is the only transport. Any provider works — point these at
+      # Mailgun's relay, SES, Postmark, an internal MTA, or a local sink.
       SMTP_HOST: ${SMTP_HOST}
-      SMTP_SECURE: ${SMTP_SECURE}
       SMTP_PORT: ${SMTP_PORT}
-      # Mailgun's own credentials. The provider used to read the domain from
-      # SMTP_HOST and the API key from SMTP_PASSWORD.
-      MAILGUN_API_KEY: ${MAILGUN_API_KEY:-}
-      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN:-}
+      # Optional: leave both empty for a relay that accepts unauthenticated
+      # mail from inside the network, such as a local mail sink.
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      # true for implicit TLS (port 465); false upgrades in place with
+      # STARTTLS (port 587), which is what most providers expect.
+      SMTP_SECURE: ${SMTP_SECURE:-false}
       # Where every message goes when ENV=dev. Required in development — the
       # service refuses to start without it rather than mailing real people
       # from a development machine.

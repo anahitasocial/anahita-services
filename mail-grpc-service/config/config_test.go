@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -19,8 +20,6 @@ func unsetEnv(key string) func() {
 
 func TestNewConfig_Defaults(t *testing.T) {
 	defer setEnv("ENV", "")()
-	defer setEnv("MAILER_PROVIDER", "smtp")()
-	defer setEnv("AWS_REGION", "us-east-1")()
 	defer setEnv("SMTP_USER", "user")()
 	defer setEnv("SMTP_PASSWORD", "pass")()
 	defer setEnv("SMTP_HOST", "smtp.example.com")()
@@ -31,12 +30,6 @@ func TestNewConfig_Defaults(t *testing.T) {
 
 	if cfg.Env == "" {
 		t.Error("expected Env to be set")
-	}
-	if cfg.MailerProvider != "smtp" {
-		t.Errorf("expected MailerProvider=smtp, got %s", cfg.MailerProvider)
-	}
-	if cfg.Aws.Region != "us-east-1" {
-		t.Errorf("expected Aws.Region=us-east-1, got %s", cfg.Aws.Region)
 	}
 	if cfg.Smtp.SmtpUser != "user" {
 		t.Errorf("expected SmtpUser=user, got %s", cfg.Smtp.SmtpUser)
@@ -57,7 +50,6 @@ func TestNewConfig_Defaults(t *testing.T) {
 
 func TestConfig_Validate_AllFieldsPresent(t *testing.T) {
 	defer setEnv("ENV", "prod")()
-	defer setEnv("MAILER_PROVIDER", "smtp")()
 	defer setEnv("SMTP_USER", "user")()
 	defer setEnv("SMTP_PASSWORD", "pass")()
 	defer setEnv("SMTP_HOST", "host")()
@@ -70,38 +62,34 @@ func TestConfig_Validate_AllFieldsPresent(t *testing.T) {
 	}
 }
 
-// Validation only asks for what the selected provider uses. Requiring SMTP
-// credentials unconditionally meant a Mailgun or SES deployment could not start
-// without inventing values it would never read.
-func TestConfig_Validate_PerProvider(t *testing.T) {
+// SMTP is the only transport, so validation no longer switches on a provider.
+// Host and port are required; credentials are not — an internal relay or a
+// local mail sink that accepts unauthenticated mail is an ordinary setup, and
+// demanding a username would make it unusable.
+func TestConfig_Validate_SmtpRules(t *testing.T) {
 	cases := []struct {
 		name    string
 		cfg     Config
 		wantErr bool
 	}{
 		{
-			name:    "mailgun needs no smtp",
-			cfg:     Config{Env: "prod", MailerProvider: "mailgun", Mailgun: Mailgun{ApiKey: "k", Domain: "d"}},
+			name:    "host and port are enough",
+			cfg:     Config{Env: "prod", Smtp: Smtp{SmtpHost: "smtp.example.com", SmtpPort: 587}},
 			wantErr: false,
 		},
 		{
-			name:    "mailgun without credentials",
-			cfg:     Config{Env: "prod", MailerProvider: "mailgun"},
-			wantErr: true,
-		},
-		{
-			name:    "ses needs a region",
-			cfg:     Config{Env: "prod", MailerProvider: "aws_ses", Aws: Aws{Region: "us-east-1"}},
+			name:    "credentials are optional",
+			cfg:     Config{Env: "prod", Smtp: Smtp{SmtpHost: "mailpit", SmtpPort: 1025}},
 			wantErr: false,
 		},
 		{
-			name:    "ses without a region",
-			cfg:     Config{Env: "prod", MailerProvider: "aws_ses"},
+			name:    "no host",
+			cfg:     Config{Env: "prod", Smtp: Smtp{SmtpPort: 587}},
 			wantErr: true,
 		},
 		{
-			name:    "unknown provider",
-			cfg:     Config{Env: "prod", MailerProvider: "carrier-pigeon"},
+			name:    "no port",
+			cfg:     Config{Env: "prod", Smtp: Smtp{SmtpHost: "smtp.example.com"}},
 			wantErr: true,
 		},
 	}
@@ -124,8 +112,7 @@ func TestConfig_Validate_PerProvider(t *testing.T) {
 // blank the recipient list instead. Production needs no such value.
 func TestConfig_Validate_DeveloperEmailRequiredInDevOnly(t *testing.T) {
 	base := Config{
-		MailerProvider: "mailgun",
-		Mailgun:        Mailgun{ApiKey: "k", Domain: "d"},
+		Smtp: Smtp{SmtpHost: "smtp.example.com", SmtpPort: 587},
 	}
 
 	dev := base
@@ -150,7 +137,6 @@ func TestConfig_Validate_DeveloperEmailRequiredInDevOnly(t *testing.T) {
 
 func TestConfig_Validate_MissingFields(t *testing.T) {
 	unset := []func(){}
-	unset = append(unset, unsetEnv("MAILER_PROVIDER"))
 	unset = append(unset, unsetEnv("SMTP_USER"))
 	unset = append(unset, unsetEnv("SMTP_PASSWORD"))
 	unset = append(unset, unsetEnv("SMTP_HOST"))
@@ -185,8 +171,6 @@ func TestConfig_IsDev_IsStaging_IsProd(t *testing.T) {
 
 func TestConfig_Getters(t *testing.T) {
 	cfg := &Config{
-		MailerProvider: "smtp",
-		Aws:            Aws{Region: "eu-west-1"},
 		Smtp: Smtp{
 			SmtpUser:     "user",
 			SmtpPassword: "pass",
@@ -194,23 +178,10 @@ func TestConfig_Getters(t *testing.T) {
 			SmtpPort:     123,
 			SmtpSecure:   true,
 		},
-		Mailgun:        Mailgun{ApiKey: "key", Domain: "mg.example.com"},
 		DeveloperEmail: "developer@example.com",
-	}
-	if cfg.GetMailgunApiKey() != "key" {
-		t.Error("GetMailgunApiKey failed")
-	}
-	if cfg.GetMailgunDomain() != "mg.example.com" {
-		t.Error("GetMailgunDomain failed")
 	}
 	if cfg.GetDeveloperEmail() != "developer@example.com" {
 		t.Error("GetDeveloperEmail failed")
-	}
-	if cfg.GetMailerProvider() != "smtp" {
-		t.Error("GetMailerProvider failed")
-	}
-	if cfg.GetAwsRegion() != "eu-west-1" {
-		t.Error("GetAwsRegion failed")
 	}
 	if cfg.GetSmtpUser() != "user" {
 		t.Error("GetSmtpUser failed")
@@ -226,5 +197,115 @@ func TestConfig_Getters(t *testing.T) {
 	}
 	if !cfg.GetSmtpSecure() {
 		t.Error("GetSmtpSecure failed")
+	}
+}
+
+// SMTP_SECURE selects whether the session is encrypted from the first byte or
+// upgraded in place. An unparseable value used to fall back to false silently,
+// so SMTP_SECURE="ssl" — a completely reasonable thing to write, and the
+// opposite of what it did — ran with STARTTLS and said nothing.
+func TestConfig_Validate_RejectsUnparseableSmtpSecure(t *testing.T) {
+	defer setEnv("ENV", "prod")()
+	defer setEnv("SMTP_HOST", "smtp.example.com")()
+	defer setEnv("SMTP_PORT", "587")()
+
+	for _, value := range []string{"ssl", "tls", "yes", "starttls"} {
+		t.Run(value, func(t *testing.T) {
+			defer setEnv("SMTP_SECURE", value)()
+
+			cfg := NewConfig()
+			err := cfg.Validate()
+			if err == nil {
+				t.Fatalf("SMTP_SECURE=%q was accepted", value)
+			}
+			if !strings.Contains(err.Error(), "SMTP_SECURE") {
+				t.Errorf("error does not name the setting: %v", err)
+			}
+		})
+	}
+}
+
+func TestConfig_Validate_AcceptsBooleanSmtpSecure(t *testing.T) {
+	defer setEnv("ENV", "prod")()
+	defer setEnv("SMTP_HOST", "smtp.example.com")()
+	defer setEnv("SMTP_PORT", "587")()
+
+	for _, tc := range []struct {
+		value string
+		want  bool
+	}{
+		{"true", true},
+		{"false", false},
+		{"1", true},
+		{"0", false},
+	} {
+		t.Run(tc.value, func(t *testing.T) {
+			defer setEnv("SMTP_SECURE", tc.value)()
+
+			cfg := NewConfig()
+			if err := cfg.Validate(); err != nil {
+				t.Fatalf("SMTP_SECURE=%q rejected: %v", tc.value, err)
+			}
+			if cfg.Smtp.SmtpSecure != tc.want {
+				t.Errorf("SmtpSecure = %v, want %v", cfg.Smtp.SmtpSecure, tc.want)
+			}
+		})
+	}
+}
+
+// Unset is fine and means STARTTLS, which is what most providers expect.
+func TestConfig_Validate_SmtpSecureMayBeUnset(t *testing.T) {
+	defer setEnv("ENV", "prod")()
+	defer setEnv("SMTP_HOST", "smtp.example.com")()
+	defer setEnv("SMTP_PORT", "587")()
+	defer unsetEnv("SMTP_SECURE")()
+
+	cfg := NewConfig()
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("unset SMTP_SECURE rejected: %v", err)
+	}
+	if cfg.Smtp.SmtpSecure {
+		t.Error("unset SMTP_SECURE should mean STARTTLS")
+	}
+}
+
+// An email logo must be an absolute URL: a relative path resolves against
+// nothing in a mail client and renders as a broken image everywhere.
+func TestGetSiteLogoURLRejectsAnythingRelative(t *testing.T) {
+	cases := []struct {
+		value string
+		want  string
+	}{
+		{"https://auth.banu.io/static/images/logo.png", "https://auth.banu.io/static/images/logo.png"},
+		{"http://localhost/static/images/logo.png", "http://localhost/static/images/logo.png"},
+		// Rejected: each of these renders as a broken image in a mail client.
+		{"/static/images/logo.png", ""},
+		{"static/images/logo.png", ""},
+		{"//auth.banu.io/logo.png", ""},
+		// Empty is a supported state — the template renders the site name.
+		{"", ""},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.value, func(t *testing.T) {
+			cfg := &Config{SiteLogoURL: tc.value}
+			if got := cfg.GetSiteLogoURL(); got != tc.want {
+				t.Errorf("GetSiteLogoURL() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// A blank header looks broken rather than unbranded, so an unset site name
+// falls back to something neutral.
+func TestGetSiteNameNeverReturnsEmpty(t *testing.T) {
+	cfg := &Config{}
+	if cfg.GetSiteName() == "" {
+		t.Error("GetSiteName() returned empty; the message header would be blank")
+	}
+
+	cfg.SiteName = "Banu"
+	if got := cfg.GetSiteName(); got != "Banu" {
+		t.Errorf("GetSiteName() = %q, want Banu", got)
 	}
 }
