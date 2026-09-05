@@ -3,6 +3,8 @@ package handlers
 import (
 	"html/template"
 	"io"
+	"os"
+	"strings"
 	"testing"
 )
 
@@ -42,6 +44,29 @@ func TestServerRenderedTemplatesParseAndExecute(t *testing.T) {
 			"PurgeDate": "",
 		}},
 		{"account_restore_success.html", map[string]any{}},
+		// The forgot/reset pages. These are the account-recovery path: nobody
+		// walks it on a good day, and a page that fails to execute returns a
+		// 500 carrying a Go template error to somebody who is already locked
+		// out.
+		{"password_forgot.html", map[string]any{}},
+		{"password_forgot.html", map[string]any{
+			"Error": "Please enter a valid email address.",
+			"Email": "ada@example.com",
+		}},
+		{"password_forgot_sent.html", map[string]any{"Email": "ada@example.com"}},
+		{"password_reset.html", map[string]any{"Token": "abc"}},
+		{"password_reset.html", map[string]any{
+			"Token": "abc",
+			"Error": "Your new password must be different from your current password.",
+		}},
+		{"password_reset_success.html", map[string]any{}},
+		// error.html is the terminal page for every unusable link in the
+		// service, so it is reached from more flows than any other.
+		{"error.html", map[string]any{
+			"ErrorTitle":   "Link Expired",
+			"ErrorMessage": "This password reset link has expired.",
+			"FrontendURL":  "https://example.com",
+		}},
 	}
 
 	for _, tc := range cases {
@@ -56,5 +81,48 @@ func TestServerRenderedTemplatesParseAndExecute(t *testing.T) {
 		if err := tmpl.ExecuteTemplate(io.Discard, "base", tc.data); err != nil {
 			t.Fatalf("%s: execute: %v", tc.name, err)
 		}
+	}
+}
+
+// Every remaining page, parsed but not executed.
+//
+// Executing needs data this test would have to invent per page; parsing
+// needs nothing and still catches the failure that actually happens — an
+// unclosed action or a misspelled partial name, introduced while editing
+// markup, in a page nobody renders until somebody is mid-flow.
+func TestEveryServerRenderedTemplateParses(t *testing.T) {
+	const dir = "../../../web/templates/"
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("read templates: %v", err)
+	}
+
+	var pages int
+	for _, entry := range entries {
+		name := entry.Name()
+		if entry.IsDir() || !strings.HasSuffix(name, ".html") {
+			continue
+		}
+		// base and logo are the set every page is parsed with, never on
+		// their own.
+		if name == "base.html" || name == "logo.html" {
+			continue
+		}
+
+		pages++
+		t.Run(name, func(t *testing.T) {
+			if _, err := template.ParseFiles(
+				dir+"base.html",
+				dir+"logo.html",
+				dir+name,
+			); err != nil {
+				t.Fatalf("parse: %v", err)
+			}
+		})
+	}
+
+	if pages == 0 {
+		t.Fatal("no templates found; the path is wrong and this test proves nothing")
 	}
 }
