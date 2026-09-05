@@ -40,21 +40,13 @@ func (h *accountDeleteNotifier) EmailScheduled(person *entities.User, deletedAt 
 
 	actionURL := fmt.Sprintf("%s/oauth/login", h.Config.GetAuthURL())
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.AccountDeleteScheduledActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.AccountDeleteScheduledTitle,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{person.Email},
-		[]string{},
-		[]string{},
+	return h.send(
+		person.Email,
 		messages.AccountDeleteScheduledSubject,
-		"message_action",
-		data,
+		messages.AccountDeleteScheduledTitle,
+		body,
+		messages.AccountDeleteScheduledActionLabel,
+		actionURL,
 	)
 }
 
@@ -73,20 +65,12 @@ func (h *accountDeleteNotifier) EmailRestored(person *entities.User) error {
 
 	actionURL := fmt.Sprintf("%s/oauth/login", h.Config.GetAuthURL())
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.AccountRestoredActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.AccountRestoredTitle,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{person.Email},
-		[]string{},
-		[]string{},
+	return h.send(
+		person.Email,
 		messages.AccountRestoredSubject,
-		"message_action",
-		data,
+		messages.AccountRestoredTitle,
+		body,
+		messages.AccountRestoredActionLabel,
+		actionURL,
 	)
 }

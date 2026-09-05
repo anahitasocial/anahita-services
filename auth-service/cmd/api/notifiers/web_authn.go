@@ -120,21 +120,13 @@ func (h *webAuthnNotifier) sendPasskeyEmail(
 	actionLabel string,
 	actionURL string,
 ) error {
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": actionLabel,
-		"actionURL":   actionURL,
-		"title":       title,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{user.Email},
-		[]string{},
-		[]string{},
+	return h.send(
+		user.Email,
 		subject,
-		"message_action",
-		data,
+		title,
+		body,
+		actionLabel,
+		actionURL,
 	)
 }
 

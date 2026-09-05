@@ -42,21 +42,13 @@ func (h *emailChangeNotifier) EmailConfirm(person *entities.User, token *entitie
 		token.Body,
 	)
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.EmailChangeActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.EmailChangeTitle,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{token.RecipientEmail},
-		[]string{},
-		[]string{},
+	return h.send(
+		token.RecipientEmail,
 		messages.EmailChangeSubject,
-		"message_action",
-		data,
+		messages.EmailChangeTitle,
+		body,
+		messages.EmailChangeActionLabel,
+		actionURL,
 	)
 }
 
@@ -89,21 +81,13 @@ func (h *emailChangeNotifier) EmailChangedOld(person *entities.User, oldEmail st
 		h.Config.GetFrontendURL(),
 	)
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.EmailChangedOldActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.EmailChangedOldTitle,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{oldEmail},
-		[]string{},
-		[]string{},
+	return h.send(
+		oldEmail,
 		messages.EmailChangedOldSubject,
-		"message_action",
-		data,
+		messages.EmailChangedOldTitle,
+		body,
+		messages.EmailChangedOldActionLabel,
+		actionURL,
 	)
 }
 
@@ -121,20 +105,12 @@ func (h *emailChangeNotifier) EmailChangedNew(person *entities.User) error {
 		h.Config.GetAuthURL(),
 	)
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.EmailChangedNewActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.EmailChangedNewTitle,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{person.Email},
-		[]string{},
-		[]string{},
+	return h.send(
+		person.Email,
 		messages.EmailChangedNewSubject,
-		"message_action",
-		data,
+		messages.EmailChangedNewTitle,
+		body,
+		messages.EmailChangedNewActionLabel,
+		actionURL,
 	)
 }

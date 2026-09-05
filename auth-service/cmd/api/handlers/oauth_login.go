@@ -227,6 +227,23 @@ func (h *oauthHandler) AddTotp(c echo.Context) error {
 
 		if state.Attempts >= maxTOTPAttempts {
 			_ = h.Session.Delete(c, sessionKeyPendingTOTP)
+
+			// Somebody is guessing passcodes on a live account, and reaching
+			// this step required the password — so a lockout means the
+			// password is already known to whoever is trying. That is worth
+			// an email; until now it reached stdout and nowhere else.
+			//
+			// Only on the lockout, not on each failed attempt: a person
+			// fat-fingering a code twice does not need mail, and sending it
+			// would turn the notification into noise on the one message that
+			// most needs to be read.
+			notifyUser := *user
+			go func() {
+				if err := h.Notif.Totp.EmailLockedOut(&notifyUser); err != nil {
+					log.Println("totp: lockout notification failed:", err)
+				}
+			}()
+
 			return c.Redirect(http.StatusFound, "/oauth/login?error=too_many_attempts")
 		}
 

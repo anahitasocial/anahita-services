@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net/mail"
 	"os"
 	"strings"
 	"testing"
@@ -200,4 +201,68 @@ func TestGetters(t *testing.T) {
 }
 func contains(s, substr string) bool {
 	return strings.Contains(s, substr)
+}
+
+// The site name appears in every notification and as the From display name,
+// so an installation that never sets SITE_NAME must still read sensibly.
+func TestGetSiteNameFallsBackToDomain(t *testing.T) {
+	cfg := &Config{DomainName: "banu.io"}
+	if got := cfg.GetSiteName(); got != "banu.io" {
+		t.Errorf("GetSiteName() = %q, want the domain as a fallback", got)
+	}
+
+	cfg.SiteName = "Banu"
+	if got := cfg.GetSiteName(); got != "Banu" {
+		t.Errorf("GetSiteName() = %q, want Banu", got)
+	}
+}
+
+// GetMailFrom output goes into a mail header, so it has to parse as an
+// address — and the SMTP provider parses it back out for the envelope, where
+// a display name is a syntax error.
+func TestGetMailFromIsAParseableAddress(t *testing.T) {
+	cases := []struct {
+		name     string
+		siteName string
+		wantName string
+	}{
+		{"plain", "Banu", "Banu"},
+		// Non-ASCII must survive RFC 2047 encoding and decoding.
+		{"non-ascii", "Bänu", "Bänu"},
+		{"cjk", "バヌ", "バヌ"},
+		// A comma is the address separator: unquoted, this would parse as two
+		// addresses and the header would be malformed.
+		{"comma", "Banu, the site", "Banu, the site"},
+		{"quote", `Banu "the site"`, `Banu "the site"`},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{DomainName: "banu.io", SiteName: tc.siteName, SystemEmail: "system@banu.io"}
+
+			addr, err := mail.ParseAddress(cfg.GetMailFrom())
+			if err != nil {
+				t.Fatalf("GetMailFrom() = %q, which does not parse: %v", cfg.GetMailFrom(), err)
+			}
+			if addr.Address != "system@banu.io" {
+				t.Errorf("address = %q, want system@banu.io", addr.Address)
+			}
+
+			// ParseAddress decodes RFC 2047 for us, so the display name should
+			// come back as it went in.
+			if addr.Name != tc.wantName {
+				t.Errorf("display name = %q, want %q", addr.Name, tc.wantName)
+			}
+		})
+	}
+}
+
+// With no site name and no domain there is nothing to display, and the bare
+// address is still valid.
+func TestGetMailFromWithoutASiteName(t *testing.T) {
+	cfg := &Config{SystemEmail: "system@banu.io"}
+
+	if got := cfg.GetMailFrom(); got != "system@banu.io" {
+		t.Errorf("GetMailFrom() = %q, want the bare address", got)
+	}
 }
