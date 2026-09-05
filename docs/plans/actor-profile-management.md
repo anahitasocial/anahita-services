@@ -25,11 +25,17 @@ Profile deletion was rebuilt from a hard delete into a reversible one:
 What follows is what was deliberately left, plus what an end-of-session audit
 turned up.
 
+**Disable and archive have moved** to `actor-lifecycle-states.md`. Both land
+in the same Danger zone and both hinge on the same question — what `enabled`
+is allowed to mean — so they are designed together there rather than as one
+more section here.
+
 ---
 
-## 1. Deletion — the two phases never built
+## 1. The phases never built
 
-Both were in the approved plan and neither is started.
+Phases 2 and 3 continue the approved deletion plan and neither is started.
+Phase 4 opens a new front, on the flow next door.
 
 ### Phase 2 — self-service friction **[react]** + **[services]**
 
@@ -63,84 +69,75 @@ ceremony for both.
   No count query exists; `ActorAdminRepoInterface` exposes only Browse/Add/
   Delete.
 
----
 
-## 2. Archive mode for non-person actors
+### Phase 4 — password reset **[services]**
 
-Requested. A group, event or other non-person actor can be **archived**: it and
-everything it owns drop out of feeds and search, but nothing is destroyed. The
-state for something that is finished rather than regretted — an event that
-happened, a group that wound down.
+Reviewed 2026-09-04. **The handler logic is sound and is now covered by
+tests; the delivery underneath it is not.** Two findings, either of which is
+enough on its own to make the flow look broken to somebody using it, and
+neither of which produces an error anybody sees — every notifier is
+fire-and-forget and only logs.
 
-**Archiving is permanent.** That is the deciding property, and it puts archive
-next to deletion rather than next to disabling:
+**The SMTP provider cannot send any notification at all.**
+`mail-grpc-service/providers/smtp.go` implements `SendFromTemplate` as
+`return "", errors.New("not implemented for smtp mailer")`. Every notifier
+in auth-service — reset, email change, username change, 2FA, invite,
+deletion — goes through `SendFromTemplate`. So with `MAILER_PROVIDER=smtp`
+nothing is delivered, the person is shown "check your email", and the log
+line goes past unread. This is the first thing to check.
 
-| | resolves publicly | in feeds/search | accepts new content | reversible |
-|---|---|---|---|---|
-| enabled / disabled | yes / no | yes / no | yes / no | **yes**, a toggle |
-| archived | yes, read-only | **no** | no | **no** |
-| deleted | no | no | no | for 30 days, then no |
+**The Mailgun path depends on a template stored at Mailgun.** The notifiers
+pass `"message_action"`, which the provider hands to `msg.SetTemplate` — it
+is a Mailgun-hosted template, not a file in this repository, so nothing here
+can tell you whether it exists on the sending domain. If it does not, the
+send is rejected. The same applies to every other template name the
+notifiers use.
 
-So the three are not a scale of severity. Disabling is a reversible switch;
-archiving and deleting are both one-way doors, and the choice between them is
-*what happens to the content* — archive keeps it readable forever, delete
-destroys it. Neither is the safe option relative to the other.
+Then, in rough order of how likely each is to bite:
 
-### The cascade is cheaper than it looks
+- **`start_time` and `created_at` come from different clocks.**
+  `tokens.Add` does not name `start_time`, so MySQL fills it from
+  `CURRENT_TIMESTAMP` in the *session* time zone, while `created_at` is
+  written from Go. The DSN sets `parseTime=true` with no `loc`, so the
+  driver reads everything back as UTC. If MySQL is not on UTC, every reset
+  link's fifteen-minute window is shifted by the offset — either dead on
+  arrival or alive well past its expiry. Confirm with
+  `SELECT @@session.time_zone` before assuming it is fine, and consider
+  writing `start_time` explicitly rather than relying on the default.
+- **A reset can be issued for a deleted or suspended account.**
+  `Users.ReadByEmail` filters on neither `deleted_at` nor `enabled`, so a
+  profile inside its 30-day deletion window still receives reset mail and
+  can complete a reset. Harmless in that login still refuses it — the
+  restore flow is what such a person actually needs — but mailing a deleted
+  account is its own problem, and the reset page says nothing about the
+  deletion.
+- **One validation message covers two different failures.** A `POST
+  /password/reset` that fails validation always reports "Password must be at
+  least 15 characters long", including when the real failure was the token
+  field. Rare, and baffling when it happens.
+- **`GetAuthURL()` returns `http://localhost` outside prod and staging**, so
+  reset links in a development environment point at the developer's own
+  machine. Correct for local work, wrong for any shared dev deployment.
 
-`medium.OwnerID` is the actor a medium is posted **to**, not its author —
-`created_by` holds the author. So a group owns its posts, photos and topics
-outright, and `GetBaseSelectQuery` already carries
-`LEFT JOIN nodes AS owner ON node.owner_id = owner.id`.
+**What the tests now cover**, so the next change to this flow has something
+holding it: enumeration parity between registered and unregistered
+addresses; token type, recipient, 15-minute expiry and 128-character body;
+that the mail carries a link containing the token; both forgot throttles;
+every rejection path on the reset link (missing, unknown, wrong type, used,
+expired); that a successful reset rehashes the password, consumes the link,
+and revokes passkeys, refresh tokens and IdP sessions; that reusing the
+current password changes nothing and does *not* consume the link; that the
+probe limiter bites and that ordinary form errors do not spend its budget;
+and that a reset never establishes a session. The authenticated change and
+the step-up markers are covered alongside them.
 
-That makes the filter a single predicate on the existing join —
-`owner.archived_at IS NULL` — with no flag to propagate to owned nodes and
-nothing to backfill or keep in sync on unarchive. Prefer that to denormalising a
-flag onto every child.
-
-### To decide
-
-- **Where the filter belongs.** Feeds and search each build their own queries;
-  adding the predicate in `GetBaseSelectQuery` catches everything at once but
-  also catches the paths that *should* still see archived content — the group's
-  own profile, and the admin views.
-- **How much ceremony archiving needs.** This is the question permanence forces.
-  We spent this session giving deletion a 30-day window precisely because
-  one-way-by-misclick is unacceptable for a shared space — and an archive with
-  no undo has the same shape. At minimum it wants what deletion has: a statement
-  of what changes, a typed confirmation, and a step-up. Worth deciding whether
-  it also wants a grace period of its own, or whether a super-administrator
-  unarchive is the escape hatch for the misclick case — section 3 already adds
-  super-admin-only recovery tooling for exactly this class of problem.
-- **Who can archive.** Given it cannot be undone by whoever does it, this is
-  probably not an ordinary group-admin action on the same footing as editing a
-  description.
-- **Whether archiving is offered beside deleting.** It is a genuine choice —
-  keep the content readable forever, or destroy it — so presenting them together
-  helps somebody pick correctly. It is *not* a softer alternative, and the copy
-  must not imply that it is.
-- **Federation.** An archived actor probably still serves its ActivityPub actor
-  object, read-only — unlike a deleted one, which should eventually answer
-  `410 Gone` (section 6).
-- **Members.** Archiving a group with active members changes what they can do
-  without removing anything. They should be told.
-
-### Work **[services]** + **[react]**
-
-`nodes.archived_at` plus a guarded migration and the legacy `upgrade.sql` entry;
-an archive action on the actor gRPC service and the group route; the read
-filter; a card in settings carrying the same weight as the delete card, since
-the action is equally final.
-
-Archiving should write to `node_deletion_logs` — the `action` column is a
-varchar precisely so a new action costs nothing. That does make the table's
-name narrower than its contents, so decide then whether it becomes
-`node_lifecycle_logs`. Cheap to rename while both are still unshipped; not
-cheap later.
+Left uncovered, and worth adding when each is next touched: the repositories
+themselves, which need a database rather than a double; and the notifier
+bodies, which are strings.
 
 ---
 
-## 3. Hard delete for super administrators
+## 2. Hard delete for super administrators
 
 Requested. A cleanup path that skips the 30-day window and purges immediately —
 for spam, abuse, and test accounts where waiting a month serves nobody, and as
@@ -154,7 +151,7 @@ schedule.
 - **Extract the purge.** `purgeAccount` is unexported in `graph/sweeper`. Lift it
   so both the job and an endpoint call one implementation — two purge paths that
   drift is exactly the trap the two restore implementations are already in
-  (section 4).
+  (section 3).
 - **Super administrator only.** `IsSuperAdmin`, not `IsAdminOrSuperAdmin`. The
   2FA-disable widening to ordinary admins was right because it recovers an
   account; this destroys one.
@@ -163,7 +160,7 @@ schedule.
   be heavier than for ordinary deletion, not lighter.
 - **Two variants to decide between.** "Purge now" keeps the tombstone, so the
   handle stays reserved. "Purge and release" scrubs the tombstone too and frees
-  the handle, which is what an erasure request may require and what section 6
+  the handle, which is what an erasure request may require and what section 5
   describes. They are different actions with different consequences; do not
   collapse them into one button.
 - **Audit is non-negotiable here.** A super administrator destroying an account
@@ -179,7 +176,7 @@ a super-admin-only card in the Danger zone.
 
 ---
 
-## 4. Correctness gaps from the audit
+## 3. Correctness gaps from the audit
 
 ### Soft-deleted actors leak into the "disabled" filter **[services]**
 
@@ -235,7 +232,7 @@ row. They agree today; nothing keeps them agreeing.
 
 ---
 
-## 5. Adjacent things noticed along the way
+## 4. Adjacent things noticed along the way
 
 **`entrypoint.sh` never records the initial schema** **[services]** — it runs
 `schema/init.sql` on an empty database and exits without writing
@@ -271,7 +268,7 @@ feature below.
 
 ---
 
-## 6. Federation groundwork
+## 5. Federation groundwork
 
 Deliberate decisions already taken, with the implementing work still to do.
 
@@ -288,7 +285,7 @@ accepts that the handle becomes reusable — not a default.
 
 ---
 
-## 7. The larger refinement: profile management
+## 6. The larger refinement: profile management
 
 Deletion is one corner of it. Worth treating together:
 
@@ -298,18 +295,11 @@ Mastodon does (a `rel="me"` back-link proving ownership) as an obvious follow-on
 Needs somewhere to live in the data model — `information` / `meta` already flow
 through reads untouched.
 
-**`enabled` is doing three jobs, and archive makes four.** Administrator
-suspension, deletion and "unpublished" already collapse into one flag, which is
-why deleted and disabled actors are indistinguishable in browse. Archive
-(section 2) is a fourth state that must not join them — hence `archived_at` as
-its own column rather than another meaning for `enabled`.
-
-Worth doing the separation properly while adding archive rather than after:
-suspension is a reversible toggle, archival and deletion are one-way doors, and
-one boolean cannot hold three answers to three different problems. Explicit
-timestamps per state — `archived_at`, `deleted_at`, with `enabled` left as the
-reversible switch it already is — would also give the moderation surface below
-something coherent to filter on.
+**`enabled` is doing three jobs.** Administrator suspension, deletion and
+"unpublished" all collapse into one flag, which is why deleted and disabled
+actors are indistinguishable in browse. Separating them properly is part of
+`actor-lifecycle-states.md`, because archive would otherwise become a fourth
+meaning for the same boolean.
 
 **No moderation surface.** There is no way for an administrator to see suspended
 or deleted actors, or to act on them in bulk. Related to the browse-filter gap
