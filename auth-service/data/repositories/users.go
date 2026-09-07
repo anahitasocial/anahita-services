@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -261,6 +262,40 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 	user.Type = constants.NodeActorPersonEntityType
 	user.Service = constants.PersonService
 
+	// Timestamps, if the caller did not set them — and neither caller did.
+	//
+	// SIGNUP AND INVITE ACCEPTANCE WERE BOTH BROKEN BY THIS. NewAnahitaNode
+	// leaves CreationTime and UpdateTime as the zero time, the INSERT below
+	// names created_on and modified_on, and MySQL runs with NO_ZERO_DATE and
+	// STRICT_TRANS_TABLES — so every registration failed on
+	// "Incorrect datetime value: '0000-00-00' for column 'created_on'" and
+	// came back as a 500. Nobody could create an account by any route; every
+	// person in the database arrived through the legacy import.
+	//
+	// Set here rather than in the two handlers because this is the layer that
+	// knows the columns are NOT NULL and that the zero time is not a date. A
+	// third caller would otherwise inherit the same failure, and it is not a
+	// failure that is obvious from reading the handler.
+	//
+	// Only when unset, so a caller with a deliberate value — a migration, a
+	// test fixture — keeps it.
+	// access is NOT NULL with no default, and the INSERT did not name it, so
+	// every registration failed on "Field 'access' doesn't have a default
+	// value" — the second of two errors standing between anybody and an
+	// account. Public matches what 751 of the 822 existing people have, and
+	// is what a profile with nothing on it yet means.
+	if user.Access == "" {
+		user.Access = constants.AnahitaAccessPublic
+	}
+
+	now := time.Now().UTC()
+	if user.CreationTime.IsZero() {
+		user.CreationTime = now
+	}
+	if user.UpdateTime.IsZero() {
+		user.UpdateTime = now
+	}
+
 	// Get a Tx for making transaction requests.
 	tx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -273,10 +308,12 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 			type,
 			service,
 			alias,
+			access,
 			enabled,
 			created_on,
 			modified_on
 		) VALUES (
+			?,
 			?,
 			?,
 			?,
@@ -291,6 +328,7 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 		user.Type,
 		user.Service,
 		user.Username,
+		user.Access,
 		user.Enabled,
 		user.CreationTime,
 		user.UpdateTime,
@@ -335,7 +373,16 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 		user.Email,
 		user.Password,
 		user.UserType,
-		user.LastVisitDate,
+		// NULL, not the zero time, when they have never signed in.
+		//
+		// last_visit_date is nullable precisely so it can say "never", and 19
+		// of the existing accounts do. Passing Go's zero time instead sent
+		// '0000-00-00', which MySQL rejects under NO_ZERO_DATE — the third and
+		// last error standing between anybody and an account.
+		//
+		// This is the write half of what scanUser does on the way back: a
+		// nullable timestamp is a nullable timestamp in both directions.
+		nullTimeOrNil(user.LastVisitDate),
 	)
 	if err != nil {
 		return nil, err
@@ -644,4 +691,16 @@ func (repo *Users) IsUsername(username string) (bool, error) {
 	}
 
 	return count > 0, nil
+}
+
+// nullTimeOrNil renders a zero time as SQL NULL.
+//
+// For nullable timestamp columns, where the zero time means "this never
+// happened" rather than "this happened in year one". MySQL running NO_ZERO_DATE
+// rejects the latter outright, which is how it was found.
+func nullTimeOrNil(t time.Time) any {
+	if t.IsZero() {
+		return nil
+	}
+	return t
 }
