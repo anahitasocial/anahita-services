@@ -1,0 +1,17 @@
+{{define "title"}}Account Restored{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Your account has been restored</h2>
+
+    <p>Your profile and your content are back, and the account is no longer scheduled for deletion. A confirmation email has been sent.</p>
+
+    <p>Sign in to continue. If you used passkeys before, you will need to add them again from your security settings.</p>
+
+    <a href="/oauth/login" class="btn btn-primary">Sign in</a>
+</div>
+{{end}}

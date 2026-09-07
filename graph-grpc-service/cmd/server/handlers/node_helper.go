@@ -99,6 +99,13 @@ func nodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		FeaturesRaw:          string(node.FeaturesRaw),
 	}
 
+	// Only set when the actor is actually scheduled for deletion.
+	// timestamppb.New on a nil-derived zero time would send the epoch, which a
+	// client reads as "deleted long ago" — the opposite of the truth.
+	if node.DeletedAt != nil {
+		grpcNode.DeletedAt = timestamppb.New(*node.DeletedAt)
+	}
+
 	// Information map
 	if len(node.Information) > 0 {
 		grpcNode.Information = make(map[string]*anypb.Any)

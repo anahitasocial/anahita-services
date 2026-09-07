@@ -50,7 +50,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `feed-service` | 8098 | 50059 | Feeds and reposts |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
 | `file-grpc-service` | — | 50055 | File upload and metadata (S3) |
-| `mail-grpc-service` | — | 50056 | Email delivery (SMTP, AWS SES, or Mailgun) |
+| `mail-grpc-service` | — | 50051 | Email delivery over SMTP |
 | `migration-job` | — | — | One-shot database migrations |
 
 Backing services in `docker-compose.yml`:
@@ -107,11 +107,17 @@ The shared module every service imports:
 Requires [GNU make](https://www.gnu.org/software/make/) and a recent
 [Docker](https://www.docker.com/products/docker-desktop). A `.env` file at
 the project root is required before the first run and is not committed —
-it supplies `DSN`, `REDIS_ADDR` and `AMQP_ADDR`, the AWS/S3 and mailer
-credentials, the `CRYPT_*` encryption backend, the `OAUTH_*` issuer and
-signing-key settings, and the site identity (`SITE_NAME`, `DOMAIN_NAME`,
-`SYSTEM_EMAIL`, `SUPPORT_EMAIL`). The signing-key and TLS `.pem` files it
-points at are likewise gitignored.
+it supplies `DSN`, `REDIS_ADDR` and `AMQP_ADDR`, the AWS/S3 credentials, the
+`SMTP_*` mail settings, the `CRYPT_*` encryption backend, the `OAUTH_*` issuer
+and signing-key settings, and the site identity (`DOMAIN_NAME`,
+`SYSTEM_EMAIL`, `SUPPORT_EMAIL`). Copy `.env.example` to `.env` and fill it in.
+The signing-key and TLS `.pem` files it points at are likewise gitignored.
+
+Mail goes out over SMTP and nothing else, so any provider works — Mailgun's or
+SES's relay, Postmark, an internal MTA, or a local sink such as
+[mailpit](https://mailpit.axllent.org/) — by pointing `SMTP_HOST`, `SMTP_PORT`
+and optionally `SMTP_USER`/`SMTP_PASSWORD` at it. Message templates live in
+`mail-grpc-service/templates/`.
 
 From the root of the project:
 

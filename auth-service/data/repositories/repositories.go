@@ -55,6 +55,7 @@ var db *sql.DB
 
 // Repositories is the struct that contains all of the repositories
 type Repositories struct {
+	NodeDeletionLogs    NodeDeletionLogsInterface
 	AuthLogs            AuthLogsInterface
 	Tokens              TokensInterface
 	OAuthClients        OAuthClientsInterface
@@ -70,6 +71,7 @@ func NewRepositories(dbPool *sql.DB) *Repositories {
 	db = dbPool
 
 	return &Repositories{
+		NodeDeletionLogs:    NewNodeDeletionLogs(db),
 		AuthLogs:            NewAuthLogs(db),
 		Tokens:              NewTokens(db),
 		OAuthClients:        NewOAuthClients(db),

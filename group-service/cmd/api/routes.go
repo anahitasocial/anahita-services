@@ -34,6 +34,9 @@ func (r *Routes) Init(e *echo.Echo) {
 	groups.POST("/", r.handler.Group.Add, r.authorize)
 	groups.PATCH("/:id", r.handler.Group.Edit, r.authorize)
 	groups.DELETE("/:id", r.handler.Group.Delete, r.authorize)
+	// Undo, within the grace period. Groups cannot sign in, so this is their
+	// equivalent of the person restore-at-login path.
+	groups.POST("/:id/restore", r.handler.Group.Restore, r.authorize)
 
 	// group edit access
 	groups.PATCH("/:id/access", r.handler.Group.EditAccess, r.authorize)

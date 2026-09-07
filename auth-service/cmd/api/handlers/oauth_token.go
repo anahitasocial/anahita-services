@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -265,12 +266,24 @@ func (h *oauthHandler) recordAuthLogAfterIssuance(
 		log.Println("authlog: add after token issuance failed:", err)
 		return
 	}
+	// Two independent reasons to stay quiet, and they are worth telling apart
+	// in the log. A reused row is not a sign-in at all; a new row inside the
+	// window IS a sign-in that is merely too soon after the last one. Reporting
+	// both as "silent re-auth" sends whoever is debugging a missing
+	// notification looking at the wrong mechanism.
+	suppressReason := ""
+	if suppressEmail {
+		suppressReason = fmt.Sprintf(
+			"another sign-in for this client within the last %s", loginEmailSuppressionWindow)
+	}
+
 	if reused {
 		// Same browser re-authenticating silently. The row moved to the
 		// new refresh token; nothing about this is a sign-in event, so
 		// the notification is suppressed regardless of the time window.
 		log.Println("authlog: reused auth log", authLog.ID, "for viewer", viewer.ID, "client", clientID)
 		suppressEmail = true
+		suppressReason = "silent re-auth reused an existing session row"
 	} else {
 		log.Println("authlog: recorded new auth log", authLog.ID, "for viewer", viewer.ID, "client", clientID)
 	}
@@ -280,7 +293,8 @@ func (h *oauthHandler) recordAuthLogAfterIssuance(
 	}
 
 	if suppressEmail {
-		log.Println("authlog: suppressing login notification (silent re-auth within window) for viewer", viewer.ID, "client", clientID)
+		log.Printf("authlog: suppressing login notification for viewer %d client %s — %s",
+			viewer.ID, clientID, suppressReason)
 		return
 	}
 
@@ -292,11 +306,13 @@ func (h *oauthHandler) recordAuthLogAfterIssuance(
 	// later mutations of viewer state (the goroutine reads its own
 	// values, not whatever the request handler has by the time the
 	// email actually sends).
-	// go func() {
-	// 	if err := h.Notif.Auth.EmailLogin(user, authLog); err != nil {
-	// 		log.Println("authlog: login notification email failed:", err)
-	// 	}
-	// }()
+	notifyUser := *user
+	notifyLog := *authLog
+	go func() {
+		if err := h.Notif.Auth.EmailLogin(&notifyUser, &notifyLog); err != nil {
+			log.Println("authlog: login notification email failed:", err)
+		}
+	}()
 }
 
 // hasRecentLoginForClient reports whether an auth_log row already

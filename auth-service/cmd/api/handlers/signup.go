@@ -4,6 +4,7 @@ import (
 	"anahita-libs/constants"
 	"auth/data/entities"
 	"auth/requests"
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -72,6 +73,21 @@ func (h *signupHandler) Add(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+
+	// Welcome email. The notifier and its copy have existed since the service
+	// was written and no handler ever called them, so signing up has always
+	// been silent — the first mail anybody received was whatever they
+	// triggered next.
+	//
+	// Fire-and-forget after the row is committed, so it describes an account
+	// that exists. A copy is captured because the response serialises the same
+	// pointer.
+	notifyUser := *user
+	go func() {
+		if err := h.Notif.Signup.EmailSignup(&notifyUser); err != nil {
+			log.Println("signup: welcome email failed:", err)
+		}
+	}()
 
 	return c.JSON(http.StatusCreated, user)
 }

@@ -7,6 +7,7 @@ import (
 func NewRepositories(db *sql.DB) *Repositories {
 	return &Repositories{
 		ActorAdmins:       NewActorAdminRepo(db),
+		NodeDeletionLogs:  NewNodeDeletionLogsRepo(db),
 		Edges:             NewEdgesRepo(db),
 		FeedActor:         NewFeedActorRepo(db),
 		FeedLeaders:       NewFeedLeadersRepo(db),
@@ -23,6 +24,7 @@ func NewRepositories(db *sql.DB) *Repositories {
 
 type Repositories struct {
 	ActorAdmins       ActorAdminRepoInterface
+	NodeDeletionLogs  NodeDeletionLogsRepoInterface
 	Edges             EdgesRepoInterface
 	FeedActor         FeedActorRepoInterface
 	FeedLeaders       FeedLeadersRepoInterface

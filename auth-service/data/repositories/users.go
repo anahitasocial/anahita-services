@@ -23,6 +23,7 @@ type UsersInterface interface {
 	EditPassword(password string, id int64) error
 	EditEmail(email string, id int64) error
 	EditUsername(username string, id int64) error
+	Restore(id int64) (bool, error)
 	Delete(id int64) error
 	IsEmail(email string) (bool, error)
 	IsUsername(username string) (bool, error)
@@ -172,6 +173,11 @@ func (repo *Users) ReadByID(id int64) (*entities.User, error) {
 		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
 		// the scan into a string for every person who has never enrolled.
 		"COALESCE(totp_secret, '') AS totp_secret",
+		// Nullable, and scanned into a *time.Time rather than COALESCEd: a
+		// zero time and "not deleted" are different states, and collapsing
+		// them would make every account look scheduled for deletion at the
+		// beginning of the epoch.
+		"nodes.deleted_at",
 	).From(
 		"people_people",
 	).LeftJoin(
@@ -206,6 +212,7 @@ func (repo *Users) ReadByID(id int64) (*entities.User, error) {
 		&item.TotpRecoveryCodes,
 		&item.TotpLastVerifiedAt,
 		&item.TotpSecret,
+		&item.DeletedAt,
 	)
 
 	if err != nil {
@@ -252,6 +259,11 @@ func (repo *Users) ReadByEmail(email string) (*entities.User, error) {
 		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
 		// the scan into a string for every person who has never enrolled.
 		"COALESCE(totp_secret, '') AS totp_secret",
+		// Nullable, and scanned into a *time.Time rather than COALESCEd: a
+		// zero time and "not deleted" are different states, and collapsing
+		// them would make every account look scheduled for deletion at the
+		// beginning of the epoch.
+		"nodes.deleted_at",
 	).From(
 		"people_people",
 	).LeftJoin(
@@ -286,6 +298,7 @@ func (repo *Users) ReadByEmail(email string) (*entities.User, error) {
 		&item.TotpRecoveryCodes,
 		&item.TotpLastVerifiedAt,
 		&item.TotpSecret,
+		&item.DeletedAt,
 	)
 
 	if err != nil {
@@ -332,6 +345,11 @@ func (repo *Users) ReadByUsername(username string) (*entities.User, error) {
 		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
 		// the scan into a string for every person who has never enrolled.
 		"COALESCE(totp_secret, '') AS totp_secret",
+		// Nullable, and scanned into a *time.Time rather than COALESCEd: a
+		// zero time and "not deleted" are different states, and collapsing
+		// them would make every account look scheduled for deletion at the
+		// beginning of the epoch.
+		"nodes.deleted_at",
 	).From(
 		"people_people",
 	).LeftJoin(
@@ -366,6 +384,7 @@ func (repo *Users) ReadByUsername(username string) (*entities.User, error) {
 		&item.TotpRecoveryCodes,
 		&item.TotpLastVerifiedAt,
 		&item.TotpSecret,
+		&item.DeletedAt,
 	)
 
 	if err != nil {
@@ -412,6 +431,11 @@ func (repo *Users) ReadByEmailOrUsername(emailOrUsername string) (*entities.User
 		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
 		// the scan into a string for every person who has never enrolled.
 		"COALESCE(totp_secret, '') AS totp_secret",
+		// Nullable, and scanned into a *time.Time rather than COALESCEd: a
+		// zero time and "not deleted" are different states, and collapsing
+		// them would make every account look scheduled for deletion at the
+		// beginning of the epoch.
+		"nodes.deleted_at",
 	).From(
 		"people_people",
 	).LeftJoin(
@@ -449,6 +473,7 @@ func (repo *Users) ReadByEmailOrUsername(emailOrUsername string) (*entities.User
 		&item.TotpRecoveryCodes,
 		&item.TotpLastVerifiedAt,
 		&item.TotpSecret,
+		&item.DeletedAt,
 	)
 
 	if err != nil {
@@ -668,6 +693,44 @@ func (repo *Users) EditEmail(email string, id int64) error {
 	return nil
 }
 
+// Restore reverses a soft delete, within the grace period.
+//
+// Clears deleted_at and restores enabled, mirroring what SoftDeleteActor in
+// graph-grpc-service set. Written here rather than reached over gRPC because
+// auth-service already owns the login path where restoring happens, and already
+// writes to nodes through this same join.
+//
+// The `deleted_at IS NOT NULL` guard is what makes this safe to call from a
+// login handler: an account that was never deleted, or whose grace period has
+// already been swept, is left exactly as it was and reports false. Without it
+// this would re-enable accounts an administrator had disabled.
+func (repo *Users) Restore(id int64) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		UPDATE nodes
+		INNER JOIN people_people ON people_people.node_id = nodes.id
+		SET
+			nodes.deleted_at = NULL,
+			nodes.enabled = 1
+		WHERE
+			nodes.id = ? AND
+			nodes.deleted_at IS NOT NULL`
+
+	result, err := repo.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return false, err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return affected > 0, nil
+}
+
 // EditUsername updates a user's username.
 //
 // Writes BOTH people_people.username and nodes.alias, because the two
@@ -711,34 +774,27 @@ func (repo *Users) EditUsername(username string, id int64) error {
 	return nil
 }
 
-// Delete deletes a user
+// Delete removes a person's CREDENTIALS row, and deliberately not their node.
+//
+// Called by the sweeper's purge, once the grace period has expired. Until then
+// this row has to stay: it is what the person signs in with to restore
+// themselves, and deleting it early would make the grace period unreachable.
+//
+// THE NODES ROW SURVIVES, as a tombstone. This used to delete both in one
+// transaction, which released the handle — and a released handle is one whose
+// next owner inherits the previous person's followers and mentions on every
+// ActivityPub instance that cached them. graph-grpc's TombstoneActor strips
+// that row of everything except its identity; what is left is the reservation.
+//
+// It also keeps `created_by`, `modified_by` and `last_comment_by` across the
+// database pointing at something, which matters in a schema with no foreign
+// keys to tidy up behind a missing row.
 func (repo *Users) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	// Get a Tx for making transaction requests.
-	tx, err := repo.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
 	query := `DELETE FROM people_people WHERE node_id = ?`
-	_, err = tx.ExecContext(ctx, query, id)
-
-	if err != nil {
-		return err
-	}
-
-	query = `DELETE FROM nodes WHERE id = ?`
-	_, err = tx.ExecContext(ctx, query, id)
-
-	if err != nil {
-		return err
-	}
-
-	// Commit the transaction.
-	if err = tx.Commit(); err != nil {
+	if _, err := repo.db.ExecContext(ctx, query, id); err != nil {
 		return err
 	}
 

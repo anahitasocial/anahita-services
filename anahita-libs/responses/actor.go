@@ -6,13 +6,18 @@ import (
 )
 
 type ActorNodeItem struct {
-	ID                int64            `json:"id"`
-	Type              string           `json:"type"`
-	Name              string           `json:"name,omitempty"`
-	Alias             string           `json:"alias,omitempty"`
-	Body              string           `json:"body,omitempty"`
-	Verified          bool             `json:"verified,omitempty"`
-	Enabled           bool             `json:"enabled,omitempty"`
+	ID       int64  `json:"id"`
+	Type     string `json:"type"`
+	Name     string `json:"name,omitempty"`
+	Alias    string `json:"alias,omitempty"`
+	Body     string `json:"body,omitempty"`
+	Verified bool   `json:"verified,omitempty"`
+	Enabled  bool   `json:"enabled,omitempty"`
+	// Present only while the actor is scheduled for deletion, so the settings
+	// page can offer Restore instead of the delete form. Deleting also clears
+	// Enabled, and a client reading only that cannot tell an account on its way
+	// out from one an administrator disabled.
+	DeletedAt         *time.Time       `json:"deleted_at,omitempty"`
 	CreationTime      time.Time        `json:"creation_time"`
 	FollowerCount     int64            `json:"follower_count,omitempty"`
 	LeaderCount       int64            `json:"leader_count,omitempty"`
@@ -96,6 +101,9 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		Body:         node.Body,
 		Verified:     node.Verified,
 		CreationTime: node.CreationTime,
+		// nil for everything not scheduled for deletion, and omitempty keeps it
+		// off the wire in that case — which is every actor but a handful.
+		DeletedAt: node.DeletedAt,
 		Author: func() *Author {
 			if node.Author != nil && node.Author.ID != 0 {
 				return NewAuthor(node.Author)

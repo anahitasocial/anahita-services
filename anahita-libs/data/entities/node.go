@@ -152,4 +152,12 @@ type AnahitaNode struct {
 
 	// @TODO remove EdgeCount field after migrating to mixins
 	EdgeCount int64
+
+	// DeletedAt is set when an actor is scheduled for deletion, nil otherwise.
+	//
+	// Deleting also clears Enabled, so a reader that only checks that flag
+	// cannot tell an account on its way out from one an administrator disabled
+	// — and the two want opposite treatment. The group settings page needs the
+	// difference to offer Restore instead of the delete form.
+	DeletedAt *time.Time
 }

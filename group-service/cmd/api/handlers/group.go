@@ -300,8 +300,85 @@ func (h *groupHandler) Add(c echo.Context) error {
 	return c.JSON(http.StatusCreated, resp)
 }
 
-// Delete deletes a group
-// NOTE: this should be a soft delete and we should not delete the group
+// Restore reverses a soft delete, within the grace period.
+//
+//	POST /groups/:id/restore
+//
+// A person restores their own account by signing in — the password is the
+// proof and the login page offers it. A group cannot sign in, so its
+// administrators restore it here instead, from the group's own settings page,
+// which stays reachable while the group is only marked deleted.
+//
+// Gated on CanDelete, the same permission as deleting: undoing an action should
+// never require more authority than doing it did.
+//
+// Status codes:
+//
+//	200 — restored
+//	400 — bad id
+//	403 — not permitted
+//	404 — no such group, or the grace period has already run out
+//	500 — graph failure
+func (h *groupHandler) Restore(c echo.Context) error {
+	var (
+		err    error
+		req    = requests.NewActorRequest().Delete
+		viewer = getViewer(c)
+	)
+
+	if err = c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err = c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	actor, err := h.Srv.ActorsGRPC.Read(req.ID, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	actorAccessCtx, err := h.getActorAccessContext(actor, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if ok, err := h.Perms.Groups.CanDelete(actorAccessCtx); !ok {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	restored, err := h.Srv.ActorsGRPC.Restore(actor.ID, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	// Nothing to restore: the sweeper reached it first, or it was never
+	// deleted. 404 rather than 200 — telling the caller a group is back when
+	// it is gone for good is the one wrong answer here.
+	if !restored {
+		log.Printf("group restore: nothing to restore (group=%d)", actor.ID)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	log.Printf("group restore: restored (group=%d by=%d)", actor.ID, viewer.ID)
+
+	actorResp := &responses.ActorResponse{}
+
+	return c.JSON(http.StatusOK, actorResp.MapNode(actor))
+}
+
+// Delete soft-deletes a group.
+//
+// The NOTE that stood here — "this should be a soft delete and we should not
+// delete the group" — is now true: ActorsGRPC.Delete marks and disables rather
+// than purging, and the sweeper does the destructive part once the grace period
+// has expired.
 func (h *groupHandler) Delete(c echo.Context) error {
 	var (
 		err    error

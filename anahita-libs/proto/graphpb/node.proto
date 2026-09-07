@@ -83,6 +83,14 @@ message Node {
     int32 timezone = 73;
     string language = 74;
     int64 edge_count = 75;
+
+    // Set when the actor is scheduled for deletion, absent otherwise.
+    //
+    // Deleting also clears `enabled`, so a client that only reads that cannot
+    // tell an account on its way out from one an administrator disabled — and
+    // those want opposite treatment. The group settings page needs the
+    // difference to offer Restore rather than the delete form.
+    google.protobuf.Timestamp deleted_at = 76;
 }
 
 message Nodes {

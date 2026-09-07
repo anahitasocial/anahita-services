@@ -80,6 +80,17 @@ message ActorDeleteRequest {
     Viewer viewer = 2;
 }
 
+message ActorRestoreRequest {
+    int64 id = 1;
+    Viewer viewer = 2;
+}
+
+message ActorRestoreResponse {
+    // False when there was nothing to restore — already purged, or never
+    // deleted. The caller needs to tell that from success.
+    bool restored = 1;
+}
+
 message ActorDeleteResponse {
     Node actor = 1;
 }
@@ -100,5 +111,9 @@ service ActorService {
     rpc Edit(ActorEditRequest) returns (ActorEditResponse) {}
     rpc Add(ActorAddRequest) returns (ActorAddResponse) {}
     rpc Delete(ActorDeleteRequest) returns (ActorDeleteResponse) {}
+    // Reverses a Delete within the grace period. People restore themselves at
+    // login; a group cannot, so its administrators restore it from the group's
+    // own settings page, which is what this serves.
+    rpc Restore(ActorRestoreRequest) returns (ActorRestoreResponse) {}
     rpc Ping(ActorPingRequest) returns (ActorPingResponse) {}
 }

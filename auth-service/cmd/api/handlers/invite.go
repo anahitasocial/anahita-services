@@ -139,14 +139,32 @@ func (h *inviteHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	// go func() {
-	// 	if err := h.Notif.Invite.EmailInvite(viewer, token.RecipientEmail, token); err != nil {
-	// 		log.Printf(
-	// 			"failed to send invite email for token %s to %s: %v",
-	// 			token.ID, token.RecipientEmail, err,
-	// 		)
-	// 	}
-	// }()
+	// The invitation itself. Until this was restored the token existed only
+	// in the JSON response, so an invitee was never sent their link and could
+	// not accept — a broken feature rather than a missing notification.
+	//
+	// The inviter is re-read rather than taken from the viewer: the message
+	// names them ("Ada Lovelace invited you to join"), and a Viewer carries a
+	// single Name off the JWT rather than the given/family pair. Same posture
+	// as the password handler, which re-reads for the same reason.
+	inviter, err := h.Repos.Users.ReadByID(viewer.ID)
+	if err != nil || inviter == nil {
+		// Not fatal. The invitation exists and the token is valid; failing the
+		// request here would leave a usable invite that the caller believes
+		// failed. Logged so a silent stop is visible.
+		log.Println("invite: could not read inviter for notification:", err)
+	} else {
+		notifyInviter := *inviter
+		recipient := token.RecipientEmail
+		go func() {
+			if err := h.Notif.Invite.EmailInvite(&notifyInviter, recipient, token); err != nil {
+				log.Printf(
+					"failed to send invite email for token %d to %s: %v",
+					token.ID, recipient, err,
+				)
+			}
+		}()
+	}
 
 	invitesResp := &responses.InviteResponse{}
 	return c.JSON(http.StatusOK, invitesResp.MapInviteItem(token))
@@ -183,6 +201,22 @@ func (h *inviteHandler) Delete(c echo.Context) error {
 	if err := h.Repos.Tokens.Delete(token.ID); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	// Tell the invitee their link is dead. Without this the invitation simply
+	// stops working, which reads as a broken site rather than a decision —
+	// and they have no account to check, so there is nowhere else to find out.
+	revoker, err := h.Repos.Users.ReadByID(viewer.ID)
+	if err != nil || revoker == nil {
+		log.Println("invite: could not read revoker for notification:", err)
+	} else {
+		notifyRevoker := *revoker
+		recipient := token.RecipientEmail
+		go func() {
+			if err := h.Notif.Invite.EmailRevoked(&notifyRevoker, recipient); err != nil {
+				log.Println("invite: revocation notification failed:", err)
+			}
+		}()
 	}
 
 	return c.JSON(http.StatusOK, token)

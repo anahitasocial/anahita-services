@@ -33,25 +33,41 @@ func (h *authNotifier) EmailLogin(user *entities.User, authLog *entities.AuthLog
 		h.Config.GetAuthURL(),
 	)
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.AuthLoginActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.AuthLoginTitle,
-	}
-
-	err := h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{user.Email},
-		[]string{},
-		[]string{},
+	return h.send(
+		user.Email,
 		messages.AuthLoginSubject,
-		"message_action",
-		data,
+		messages.AuthLoginTitle,
+		body,
+		messages.AuthLoginActionLabel,
+		actionURL,
 	)
-	if err != nil {
-		return err
-	}
+}
 
-	return nil
+// EmailSessionRevoked tells somebody an administrator ended one of their
+// sessions.
+//
+// device and location describe the session that went, because "a session was
+// signed out" is not actionable — the person needs to recognise which one, and
+// the auth log row already holds both.
+//
+// Only for administrative revocations. Somebody ending their own session is
+// looking at the screen where they did it, and mailing them about it is the
+// noise that teaches people to filter these messages.
+func (h *authNotifier) EmailSessionRevoked(user *entities.User, device, location string) error {
+	body := fmt.Sprintf(
+		messages.AuthSessionRevokedBody,
+		user.GivenName,
+		user.FamilyName,
+		device,
+		location,
+	)
+
+	return h.send(
+		user.Email,
+		messages.AuthSessionRevokedSubject,
+		messages.AuthSessionRevokedTitle,
+		body,
+		messages.AuthSessionRevokedActionLabel,
+		fmt.Sprintf("%s/oauth/login", h.Config.GetAuthURL()),
+	)
 }

@@ -41,21 +41,13 @@ func (h *inviteNotifier) EmailInvite(user *entities.User, recipientEmail string,
 		token.Body,
 	)
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.InviteActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.InviteTitle,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{recipientEmail},
-		[]string{},
-		[]string{},
+	return h.send(
+		recipientEmail,
 		messages.InviteSubject,
-		"message_action",
-		data,
+		messages.InviteTitle,
+		body,
+		messages.InviteActionLabel,
+		actionURL,
 	)
 }
 
@@ -139,26 +131,43 @@ func (h *inviteNotifier) EmailAccept(joiner *entities.User, inviter *entities.Us
 			)
 		}
 
-		data := map[string]string{
-			"body":        body,
-			"actionLabel": messages.InviteAcceptActionLabel,
-			"actionURL":   actionURL,
-			"title":       messages.InviteAcceptTitle,
-		}
-
-		if err := h.Srv.MailGRPC.SendFromTemplate(
-			h.Config.SystemEmail,
-			[]string{admin.Email},
-			[]string{},
-			[]string{},
+		if err := h.send(
+			admin.Email,
 			messages.InviteAcceptSubject,
-			"message_action",
-			data,
+			messages.InviteAcceptTitle,
+			body,
+			messages.InviteAcceptActionLabel,
+			actionURL,
 		); err != nil {
+			// Accumulated rather than returned: one administrator with a
+			// dead address must not stop the others being told.
 			sendErrors = append(sendErrors,
 				fmt.Errorf("invite accept email to admin %d failed: %w", admin.ID, err))
 		}
 	}
 
 	return errors.Join(sendErrors...)
+}
+
+// EmailRevoked tells somebody their pending invitation was withdrawn.
+//
+// Sent to an address with no account behind it, which is why there is no
+// action link: the recipient has nothing to sign in to and nothing to secure.
+// The alternative was silence — a link that simply stops working — which reads
+// as a broken site rather than a decision.
+func (h *inviteNotifier) EmailRevoked(revoker *entities.User, recipientEmail string) error {
+	body := fmt.Sprintf(
+		messages.InviteRevokedBody,
+		revoker.GivenName,
+		revoker.FamilyName,
+	)
+
+	return h.send(
+		recipientEmail,
+		messages.InviteRevokedSubject,
+		messages.InviteRevokedTitle,
+		body,
+		messages.InviteRevokedActionLabel,
+		h.Config.GetFrontendURL(),
+	)
 }

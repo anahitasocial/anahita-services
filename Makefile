@@ -103,7 +103,7 @@ down:
 	@echo "Docker stopped!"
 
 ## build_dockerfiles: builds all dockerfile images
-build_dockerfiles: check_docker build_auth build_comment build_graph build_group build_like build_person build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
+build_dockerfiles: check_docker build_auth build_comment build_graph build_sweeper build_group build_like build_person build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
 	@echo "Building dockerfiles..."
 	docker build -f ${DOCKERFILES}/${AUTH_SRV}.dockerfile -t ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION} .
 	docker build -f ${DOCKERFILES}/${COMMENT_SRV}.dockerfile -t ${REPOSITORY}/${COMMENT_SRV}:${COMMENT_VERSION} .
@@ -180,6 +180,12 @@ build_graph:
 	@echo "Building graph binary.."
 	cd ${GRAPH_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${GRAPH_BINARY} ./cmd/server
 	@echo "Graph binary built!"
+
+## build_sweeper: builds the account sweeper binary as a linux executable
+build_sweeper:
+	@echo "Building sweeper binary.."
+	cd ${GRAPH_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o sweeper-binary ./cmd/sweeper
+	@echo "Sweeper binary built!"
 
 ## build_group: builds the group binary as a linux executable
 build_group:

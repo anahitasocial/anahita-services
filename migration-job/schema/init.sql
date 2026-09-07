@@ -60,7 +60,22 @@ CREATE TABLE nodes (
   `access` varchar(255) NOT NULL,
   `permissions` text,
   `enabled_optional_features` text,
+  -- When an actor was scheduled for deletion. NULL for everything that is not
+  -- deleted, which is almost every row.
+  --
+  -- Deletion sets this and clears `enabled`; it does not remove anything. The
+  -- account stops resolving at every login path immediately, and the sweeper
+  -- purges the content after the grace period. Until then the person can sign
+  -- in and restore, which the previous hard delete made impossible — there was
+  -- no soft delete anywhere and no way back from a misclick.
+  --
+  -- Only actor nodes carry it. Content owned by a deleted actor stays as it is
+  -- until the sweeper runs, so a restore brings the profile back whole.
+  `deleted_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
+  -- The sweeper's only query is "actors deleted before X", and it runs against
+  -- a column that is NULL for practically every row.
+  KEY `deleted_at` (`deleted_at`),
   KEY `last_comment_by` (`last_comment_by`),
   KEY `created_by` (`created_by`),
   KEY `modified_by` (`modified_by`),
@@ -179,6 +194,46 @@ CREATE INDEX idx_auth_logs_created_by ON auth_logs (created_by);
 CREATE INDEX idx_auth_logs_created_on ON auth_logs (created_on);
 CREATE INDEX idx_auth_logs_created_by_client_id_created_on ON auth_logs (created_by, client_id, created_on DESC);
 CREATE INDEX idx_auth_logs_oauth_refresh_token_id ON auth_logs (oauth_refresh_token_id);
+
+-- Deletion audit, for any node.
+--
+-- Deletion previously left no record at all: person-service published an event
+-- nothing consumed, group-service published nothing, and the only trace was a
+-- line in a container's stdout — gone with the next restart.
+--
+-- Keyed on node_id rather than on an actor, because nothing here is specific to
+-- actors: a deleted photo, article or comment wants the same record for the
+-- same reason. Actors are simply the first thing to write to it. `node_type`
+-- carries the full type string, so one query answers "what happened to this
+-- node" and another answers "what has been deleted in this service".
+--
+-- Deliberately OUTLIVES the node. After the sweeper runs, node_id points at a
+-- tombstone rather than a profile — which is the point. An audit trail erased
+-- along with its subject is not an audit trail. It holds no personal data
+-- beyond the two ids and the alias.
+CREATE TABLE node_deletion_logs (
+    `id` SERIAL,
+    -- The node that was deleted.
+    `node_id` bigint(11) unsigned NOT NULL,
+    -- The alias at the time, kept because a tombstone can be scrubbed by a
+    -- later erasure request and this is then the only record of what went.
+    `node_alias` varchar(255) DEFAULT NULL,
+    -- Full type string, e.g. node.actor.group-service.group.v1. Doubles as the
+    -- service filter, so no separate column is needed for it.
+    `node_type` varchar(255) DEFAULT NULL,
+    -- Who asked. Equal to node_id for a self-service account deletion, and for
+    -- the sweeper, which acts on a deadline rather than for a person.
+    `deleted_by` bigint(11) unsigned NOT NULL,
+    -- 'scheduled' when the grace period starts, 'purged' when the sweeper
+    -- erases it, 'restored' when it is taken back. Up to three rows for one
+    -- node is the normal, complete story. Kept a varchar rather than an ENUM so
+    -- adding an action is a code change, not an ALTER on an audit table.
+    `action` varchar(20) NOT NULL,
+    `created_on` datetime NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB CHARACTER SET=utf8;
+CREATE INDEX idx_node_deletion_logs_node_id ON node_deletion_logs (node_id);
+CREATE INDEX idx_node_deletion_logs_created_on ON node_deletion_logs (created_on);
 
 -- Add indices
 

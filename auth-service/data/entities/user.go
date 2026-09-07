@@ -23,6 +23,16 @@ type User struct {
 	FamilyName    string    `json:"family_name"`
 	LastVisitDate time.Time `json:"last_visit_date,omitempty"`
 
+	// DeletedAt is set when the account is scheduled for deletion, and nil
+	// otherwise — which is almost always.
+	//
+	// Deleting also clears Enabled, so every login path already refuses the
+	// account without consulting this. What this adds is the ability to tell
+	// the two apart: an account an administrator disabled should stay refused,
+	// while one the person deleted themselves should be offered back during the
+	// grace period. Without it both look identical and neither can be restored.
+	DeletedAt *time.Time `json:"-"`
+
 	// TOTP fields
 	TotpSecret         string
 	TotpRecoveryCodes  string
@@ -159,6 +169,27 @@ func (u *User) ValidateRecoveryCode(code string) bool {
 	}
 
 	return false
+}
+
+// CountRecoveryCodes reports how many unused recovery codes remain.
+//
+// Splitting an empty string yields one empty element rather than none, so the
+// naive len(Split(...)) reads 1 for an account with no codes at all — which is
+// exactly the number that would be reported to somebody who has just spent
+// their last one, and exactly the person who needs to be told otherwise.
+func (u *User) CountRecoveryCodes() int {
+	if u.TotpRecoveryCodes == "" {
+		return 0
+	}
+
+	count := 0
+	for _, code := range strings.Split(u.TotpRecoveryCodes, constants.TotpRecoveryCodeSep) {
+		if strings.TrimSpace(code) != "" {
+			count++
+		}
+	}
+
+	return count
 }
 
 // IsMfaExpired checks if the user's MFA is expired

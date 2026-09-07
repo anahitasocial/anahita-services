@@ -21,6 +21,15 @@ type Config struct {
 	DSN               string
 	AmqpAddr          string
 	ActorFeaturesPath string
+
+	// FileServiceAddr lets the account sweeper delete uploaded blobs when it
+	// purges a profile.
+	//
+	// Optional, and unset by the gRPC server, which has no use for it. Without
+	// it the sweeper still purges the database and simply leaves the objects in
+	// storage — which is the behaviour everything had before, so a deployment
+	// that has not set it is no worse off than it was.
+	FileServiceAddr string
 }
 
 func NewConfig() *Config {
@@ -29,6 +38,7 @@ func NewConfig() *Config {
 		DSN:               os.Getenv("DSN"),
 		AmqpAddr:          os.Getenv("AMQP_ADDR"),
 		ActorFeaturesPath: getEnv("ACTOR_FEATURES_PATH", "/defaults/actor_features"),
+		FileServiceAddr:   os.Getenv("FILE_SERVICE_ADDR"),
 	}
 
 	return config
@@ -80,4 +90,11 @@ func (config *Config) GetAmqpAddr() string {
 
 func (config *Config) GetActorFeaturesPath() string {
 	return config.ActorFeaturesPath
+}
+
+// GetFileServiceAddr returns the file service address, satisfying
+// services.FileGRPCConfigInterface. Empty when unset — the sweeper checks for
+// that rather than dialling nothing.
+func (config *Config) GetFileServiceAddr() string {
+	return config.FileServiceAddr
 }

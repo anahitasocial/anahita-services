@@ -48,20 +48,12 @@ func (h *usernameChangeNotifier) EmailChanged(person *entities.User, oldUsername
 		person.Username,
 	)
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.UsernameChangedActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.UsernameChangedTitle,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{person.Email},
-		[]string{},
-		[]string{},
+	return h.send(
+		person.Email,
 		messages.UsernameChangedSubject,
-		"message_action",
-		data,
+		messages.UsernameChangedTitle,
+		body,
+		messages.UsernameChangedActionLabel,
+		actionURL,
 	)
 }

@@ -26,6 +26,7 @@ const (
 	ActorService_Edit_FullMethodName      = "/graph.ActorService/Edit"
 	ActorService_Add_FullMethodName       = "/graph.ActorService/Add"
 	ActorService_Delete_FullMethodName    = "/graph.ActorService/Delete"
+	ActorService_Restore_FullMethodName   = "/graph.ActorService/Restore"
 	ActorService_Ping_FullMethodName      = "/graph.ActorService/Ping"
 )
 
@@ -40,6 +41,10 @@ type ActorServiceClient interface {
 	Edit(ctx context.Context, in *ActorEditRequest, opts ...grpc.CallOption) (*ActorEditResponse, error)
 	Add(ctx context.Context, in *ActorAddRequest, opts ...grpc.CallOption) (*ActorAddResponse, error)
 	Delete(ctx context.Context, in *ActorDeleteRequest, opts ...grpc.CallOption) (*ActorDeleteResponse, error)
+	// Reverses a Delete within the grace period. People restore themselves at
+	// login; a group cannot, so its administrators restore it from the group's
+	// own settings page, which is what this serves.
+	Restore(ctx context.Context, in *ActorRestoreRequest, opts ...grpc.CallOption) (*ActorRestoreResponse, error)
 	Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error)
 }
 
@@ -121,6 +126,16 @@ func (c *actorServiceClient) Delete(ctx context.Context, in *ActorDeleteRequest,
 	return out, nil
 }
 
+func (c *actorServiceClient) Restore(ctx context.Context, in *ActorRestoreRequest, opts ...grpc.CallOption) (*ActorRestoreResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ActorRestoreResponse)
+	err := c.cc.Invoke(ctx, ActorService_Restore_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *actorServiceClient) Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ActorPingResponse)
@@ -142,6 +157,10 @@ type ActorServiceServer interface {
 	Edit(context.Context, *ActorEditRequest) (*ActorEditResponse, error)
 	Add(context.Context, *ActorAddRequest) (*ActorAddResponse, error)
 	Delete(context.Context, *ActorDeleteRequest) (*ActorDeleteResponse, error)
+	// Reverses a Delete within the grace period. People restore themselves at
+	// login; a group cannot, so its administrators restore it from the group's
+	// own settings page, which is what this serves.
+	Restore(context.Context, *ActorRestoreRequest) (*ActorRestoreResponse, error)
 	Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error)
 	mustEmbedUnimplementedActorServiceServer()
 }
@@ -173,6 +192,9 @@ func (UnimplementedActorServiceServer) Add(context.Context, *ActorAddRequest) (*
 }
 func (UnimplementedActorServiceServer) Delete(context.Context, *ActorDeleteRequest) (*ActorDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedActorServiceServer) Restore(context.Context, *ActorRestoreRequest) (*ActorRestoreResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Restore not implemented")
 }
 func (UnimplementedActorServiceServer) Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -324,6 +346,24 @@ func _ActorService_Delete_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ActorService_Restore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActorRestoreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).Restore(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_Restore_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).Restore(ctx, req.(*ActorRestoreRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ActorService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ActorPingRequest)
 	if err := dec(in); err != nil {
@@ -376,6 +416,10 @@ var ActorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _ActorService_Delete_Handler,
+		},
+		{
+			MethodName: "Restore",
+			Handler:    _ActorService_Restore_Handler,
 		},
 		{
 			MethodName: "Ping",

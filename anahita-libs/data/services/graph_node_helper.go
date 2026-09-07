@@ -45,6 +45,14 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.Meta = []byte(m.Meta)
 	n.EdgeCount = m.EdgeCount
 
+	// Only when the actor is actually scheduled for deletion. The proto field
+	// is absent otherwise, and an absent timestamp must stay nil rather than
+	// becoming the epoch, which reads as "deleted long ago".
+	if m.DeletedAt != nil {
+		deletedAt := m.DeletedAt.AsTime()
+		n.DeletedAt = &deletedAt
+	}
+
 	// Time fields
 	if m.CreatedOn != nil {
 		n.CreationTime = m.CreatedOn.AsTime()

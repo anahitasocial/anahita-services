@@ -80,6 +80,7 @@ services:
       REDIS_ADDR: ${REDIS_ADDR}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       DOMAIN_NAME: ${DOMAIN_NAME}
+      SITE_NAME: ${SITE_NAME:-}
       SYSTEM_EMAIL: ${SYSTEM_EMAIL}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL}
       # Label authenticator apps show for 2FA entries. Optional —
@@ -551,12 +552,25 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
-      MAILER_PROVIDER: ${MAILER_PROVIDER}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      # Branding, applied by this service to every message so that any sender
+      # gets the same header without having to pass it.
+      SITE_NAME: ${SITE_NAME:-}
+      SITE_LOGO_URL: ${SITE_LOGO_URL:-}
+      # SMTP is the only transport. Any provider works — point these at
+      # Mailgun's relay, SES, Postmark, an internal MTA, or a local sink.
       SMTP_HOST: ${SMTP_HOST}
-      SMTP_SECURE: ${SMTP_SECURE}
       SMTP_PORT: ${SMTP_PORT}
+      # Optional: leave both empty for a relay that accepts unauthenticated
+      # mail from inside the network, such as a local mail sink.
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      # true for implicit TLS (port 465); false upgrades in place with
+      # STARTTLS (port 587), which is what most providers expect.
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      # Where every message goes when ENV=dev. Required in development — the
+      # service refuses to start without it rather than mailing real people
+      # from a development machine.
+      DEVELOPER_EMAIL: ${DEVELOPER_EMAIL:-}
     networks:
       anahita-network:
         ipv4_address: 172.20.1.32
@@ -612,6 +626,33 @@ services:
         ipv4_address: 172.20.1.34
 
 # graph-grpc-service - handles graph
+# account-sweeper - purges profiles past their 30-day deletion grace period
+#
+# On the "jobs" profile, so it does NOT start with `docker compose up`. Run it
+# on demand with:
+#   docker compose run --rm account-sweeper
+#
+# In Kubernetes this is a CronJob (k8s/03-sweeper-cronjob.yml). There is no
+# scheduler in compose, which is fine for development — the point here is being
+# able to trigger a sweep and watch what it does.
+  account-sweeper:
+    profiles: ["jobs"]
+    build:
+      context: .
+      dockerfile: ./dockerfiles/sweeper-job.dockerfile
+    restart: "no"
+    environment:
+      ENV: ${ENV}
+      DSN: ${DSN}
+      AMQP_ADDR: ${AMQP_ADDR}
+      # So uploaded avatars, covers and photos are deleted from storage as
+      # accounts are purged. Without it the rows go and the objects stay.
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+    depends_on:
+      - mysql
+    networks:
+      anahita-network:
+
   graph-grpc-service:
     build:
       context: .

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/mail"
 	"os"
 	"strconv"
 	"strings"
@@ -53,6 +54,21 @@ type Config struct {
 	RedisDB          int
 	DomainName       string
 	SystemEmail      string
+	// SiteName is what this installation calls itself — the "Banu" in
+	// "Your Banu password was changed".
+	//
+	// It appears in two places, both of which are trust signals rather
+	// than decoration: the From display name a recipient sees in their
+	// inbox list, and the text of the notification itself. A security
+	// notice that knows which installation it is about is harder to
+	// mistake for phishing, and phishing that does not know the name is
+	// easier to spot.
+	//
+	// Config rather than a literal because another installation is
+	// Banu.io rather than Anahita. Optional — GetSiteName falls back to
+	// DomainName, so a deployment that never sets it still reads
+	// sensibly.
+	SiteName string
 	// TotpIssuer is the label an authenticator app shows beside a
 	// person's 2FA code — the "Anahita" in "Anahita (you@example.com)".
 	//
@@ -128,6 +144,7 @@ func NewConfig() *Config {
 		RedisDB:          getIntEnv("REDIS_DB", 0),
 		DomainName:       os.Getenv("DOMAIN_NAME"),
 		SystemEmail:      os.Getenv("SYSTEM_EMAIL"),
+		SiteName:         os.Getenv("SITE_NAME"),
 		TotpIssuer:       os.Getenv("TOTP_ISSUER"),
 		SupportEmail:     os.Getenv("SUPPORT_EMAIL"),
 		CryptBackend:     getEnv("CRYPT_BACKEND", constants.CryptBackendLocal),
@@ -379,6 +396,56 @@ func (config *Config) GetDomainName() string {
 // Deliberately not run through Validate. An issuer is a display label;
 // refusing to boot over one would take out sign-in for everybody to fix
 // a cosmetic problem for the people enrolling today.
+// GetSiteName returns what this installation calls itself.
+//
+// Falls back to DomainName, which Validate already requires, so this is
+// never empty in a deployment that starts at all. Same shape as
+// GetTotpIssuer below, and deliberately not run through Validate for
+// the same reason: a display name is not worth refusing to boot over.
+//
+// Unlike GetTotpIssuer there is no staging suffix. The issuer needs one
+// because a person with 2FA on both environments otherwise gets two
+// identically-labelled entries in their authenticator; an email already
+// says which environment it came from in its links, and "Banu Staging
+// password changed" reads like the product is called that.
+func (config *Config) GetSiteName() string {
+	if config.SiteName != "" {
+		return config.SiteName
+	}
+
+	return config.DomainName
+}
+
+// GetMailFrom returns the From header for outbound notifications, with
+// the site name as the display part: `Banu <system@banu.io>`.
+//
+// mail.Address.String() does the whole job: it RFC 2047-encodes a name
+// containing non-ASCII, so a site called "Bänu" arrives readable rather
+// than as mojibake, and it applies the quoting rules for a name
+// containing a comma or a quote — a comma is the address separator, so
+// an unquoted one would split the header into two addresses.
+//
+// Deliberately NOT pre-encoded with mime.QEncoding. Doing both produces
+// an already-ASCII encoded-word that String() then treats as a literal
+// name and quotes, so the recipient reads "=?utf-8?q?B=C3=A4nu?=".
+//
+// NOTE for whoever touches the mail path: this is a HEADER value and is
+// not a valid SMTP envelope sender. providers/smtp.go parses the
+// address back out for MAIL FROM; see the comment there.
+func (config *Config) GetMailFrom() string {
+	name := config.GetSiteName()
+	if name == "" {
+		return config.SystemEmail
+	}
+
+	addr := mail.Address{
+		Name:    name,
+		Address: config.SystemEmail,
+	}
+
+	return addr.String()
+}
+
 func (config *Config) GetTotpIssuer() string {
 	if config.TotpIssuer != "" {
 		return config.TotpIssuer

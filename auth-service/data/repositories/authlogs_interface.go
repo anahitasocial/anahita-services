@@ -8,6 +8,14 @@ type AuthLogsInterface interface {
 	// Browse returns all authlogs for a given user
 	Browse(user *entities.User) ([]*entities.AuthLog, error)
 
+	// DeleteByPersonID removes every auth log belonging to a person and
+	// returns how many rows went.
+	//
+	// For account purge only. These rows hold IP addresses, cities and device
+	// fingerprints — a record of where somebody has been — and they survived
+	// account deletion entirely until the sweeper started calling this.
+	DeleteByPersonID(personID int64) (int64, error)
+
 	// ReadByID returns a single authlog by its ID
 	ReadByID(ID int64) (*entities.AuthLog, error)
 

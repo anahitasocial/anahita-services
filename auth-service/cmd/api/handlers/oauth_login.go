@@ -105,6 +105,23 @@ func (h *oauthHandler) AddCredentials(c echo.Context) error {
 		return h.renderLoginError(c, "Invalid email or password.")
 	}
 
+	// Scheduled for deletion, and the password was right. Offer it back.
+	//
+	// This is the whole recovery path: deletion clears Enabled, so without this
+	// branch a person who changed their mind would meet the same "Invalid email
+	// or password" as everybody else and have no way to reach their own
+	// account.
+	//
+	// AFTER the password check, deliberately. Saying "this account is scheduled
+	// for deletion" to anyone who types an address would turn the grace period
+	// into a directory of accounts on their way out — and a deleted account is
+	// a softer target than a live one, since nobody is reading its mail. Behind
+	// the password, the person has already proved it is theirs.
+	if user.DeletedAt != nil {
+		log.Printf("login: account scheduled for deletion, offering restore (user=%d)", user.ID)
+		return h.renderRestoreForm(c, user)
+	}
+
 	// Disabled accounts return the same generic message intentionally.
 	// Distinguishing "disabled" from "wrong password" enables account
 	// enumeration against any leaked credential dump.
@@ -210,6 +227,23 @@ func (h *oauthHandler) AddTotp(c echo.Context) error {
 
 		if state.Attempts >= maxTOTPAttempts {
 			_ = h.Session.Delete(c, sessionKeyPendingTOTP)
+
+			// Somebody is guessing passcodes on a live account, and reaching
+			// this step required the password — so a lockout means the
+			// password is already known to whoever is trying. That is worth
+			// an email; until now it reached stdout and nowhere else.
+			//
+			// Only on the lockout, not on each failed attempt: a person
+			// fat-fingering a code twice does not need mail, and sending it
+			// would turn the notification into noise on the one message that
+			// most needs to be read.
+			notifyUser := *user
+			go func() {
+				if err := h.Notif.Totp.EmailLockedOut(&notifyUser); err != nil {
+					log.Println("totp: lockout notification failed:", err)
+				}
+			}()
+
 			return c.Redirect(http.StatusFound, "/oauth/login?error=too_many_attempts")
 		}
 

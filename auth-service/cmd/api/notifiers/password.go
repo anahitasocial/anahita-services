@@ -33,21 +33,13 @@ func (h *passwordNotifier) EmailToken(user *entities.User, token *entities.Token
 		token.Body,
 	)
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.PasswordActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.PasswordTitle,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{user.Email},
-		[]string{},
-		[]string{},
+	return h.send(
+		user.Email,
 		messages.PasswordSubject,
-		"message_action",
-		data,
+		messages.PasswordTitle,
+		body,
+		messages.PasswordActionLabel,
+		actionURL,
 	)
 }
 
@@ -72,21 +64,13 @@ func (h *passwordNotifier) EmailResetSuccess(user *entities.User) error {
 		h.Config.GetAuthURL(),
 	)
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.PasswordResetActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.PasswordResetTitle,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{user.Email},
-		[]string{},
-		[]string{},
+	return h.send(
+		user.Email,
 		messages.PasswordResetSubject,
-		"message_action",
-		data,
+		messages.PasswordResetTitle,
+		body,
+		messages.PasswordResetActionLabel,
+		actionURL,
 	)
 }
 
@@ -125,20 +109,12 @@ func (h *passwordNotifier) EmailUpdateSuccess(user *entities.User, revokedSessio
 		h.Config.GetAuthURL(),
 	)
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.PasswordUpdateActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.PasswordUpdateTitle,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{user.Email},
-		[]string{},
-		[]string{},
+	return h.send(
+		user.Email,
 		messages.PasswordUpdateSubject,
-		"message_action",
-		data,
+		messages.PasswordUpdateTitle,
+		body,
+		messages.PasswordUpdateActionLabel,
+		actionURL,
 	)
 }

@@ -32,7 +32,13 @@ func (r *Routes) Init(e *echo.Echo) {
 	people.GET("/", r.handler.Person.Browse, r.setViewer)
 	people.GET("/:username", r.handler.Person.Read, r.setViewer)
 	people.PATCH("/:id", r.handler.Person.Edit, r.authorize)
-	people.DELETE("/:username", r.handler.Person.Delete, r.authorize)
+	// :id, not :username. The client sends node.id here (api/create.js
+	// deleteItem builds /people/{id}), so this route matched the username
+	// against a number and answered 404 to every delete — the flow could never
+	// have run. PATCH above already keys on the id, and group-service keys its
+	// delete on the id too, so this is the consistent shape as well as the
+	// working one.
+	people.DELETE("/:id", r.handler.Person.Delete, r.authorize)
 
 	// Edit access
 	people.PATCH("/:id/access", r.handler.Person.EditAccess, r.authorize)

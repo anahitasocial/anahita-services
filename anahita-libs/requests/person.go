@@ -76,7 +76,11 @@ type PersonEditFeaturesRequest struct {
 
 type PersonAddRequest struct{}
 
+// PersonDeleteRequest identifies the person to delete by id.
+//
+// Username used to be here and `required`, bound from a :username route
+// parameter the client never sent — it sends the id — so validation failed on
+// every request before the handler ran.
 type PersonDeleteRequest struct {
-	ID       int64  `param:"id"`
-	Username string `param:"username" validate:"required,max=100,alphanumunicode"`
+	ID int64 `param:"id" validate:"required,numeric"`
 }

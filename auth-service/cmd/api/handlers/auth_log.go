@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -360,7 +361,58 @@ func (h *authLogHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// Only when somebody ELSE ended the session. A person clearing their own
+	// is looking at the screen where they did it, and mailing them about it is
+	// the kind of noise that teaches people to filter these messages — which
+	// costs the ones that matter.
+	//
+	// The administrative case is the opposite: the owner is signed out of a
+	// device mid-use with nothing anywhere to explain why.
+	if viewer.ID != user.ID {
+		notifyUser := *user
+		device := describeDevice(authLog)
+		location := describeLocation(authLog)
+		go func() {
+			if err := h.Notif.Auth.EmailSessionRevoked(&notifyUser, device, location); err != nil {
+				log.Println("authlog: session revocation notification failed:", err)
+			}
+		}()
+	}
+
 	return c.NoContent(http.StatusOK)
+}
+
+// describeDevice renders an auth log row as something a person would recognise
+// — "Firefox on a laptop running Linux".
+//
+// Falls back rather than rendering gaps: a row missing its user-agent detail
+// would otherwise produce "on a running", which reads as a bug and undermines
+// the message it appears in.
+func describeDevice(authLog *entities.AuthLog) string {
+	switch {
+	case authLog.Name != "" && authLog.OS != "":
+		return fmt.Sprintf("%s on %s", authLog.Name, authLog.OS)
+	case authLog.Name != "":
+		return authLog.Name
+	case authLog.OS != "":
+		return authLog.OS
+	default:
+		return "an unrecognised device"
+	}
+}
+
+// describeLocation renders the geo columns, reusing the same fallbacks the
+// login notification uses so the two messages describe a session identically.
+func describeLocation(authLog *entities.AuthLog) string {
+	city, country := authLog.City, authLog.Country
+	if city == "" {
+		city = messages.AuthLoginUnknownCity
+	}
+	if country == "" {
+		country = messages.AuthLoginUnknownCountry
+	}
+
+	return fmt.Sprintf("%s, %s", city, country)
 }
 
 // DeleteAllSessions revokes every active refresh token a person holds.

@@ -51,20 +51,12 @@ func (h *signupNotifier) EmailSignup(user *entities.User) error {
 		h.Config.GetCompleteDomainName(),
 	)
 
-	data := map[string]string{
-		"body":        body,
-		"actionLabel": messages.SignupActionLabel,
-		"actionURL":   actionURL,
-		"title":       messages.SignupTitle,
-	}
-
-	return h.Srv.MailGRPC.SendFromTemplate(
-		h.Config.SystemEmail,
-		[]string{user.Email},
-		[]string{},
-		[]string{},
+	return h.send(
+		user.Email,
 		messages.SignupSubject,
-		"message_action",
-		data,
+		messages.SignupTitle,
+		body,
+		messages.SignupActionLabel,
+		actionURL,
 	)
 }

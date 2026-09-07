@@ -102,12 +102,15 @@ func (h *totpHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	// Email
-	// go func() {
-	// 	if err := h.Notif.Totp.EmailTotpEnabled(user); err != nil {
-	// 		log.Println(err)
-	// 	}
-	// }()
+	// Neutral in tone, unlike the disable notice: enabling 2FA strengthens
+	// the account, and alarming somebody about an improvement is how they
+	// learn to ignore the message that matters.
+	notifyUser := *user
+	go func() {
+		if err := h.Notif.Totp.EmailTotpEnabled(&notifyUser); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	return c.NoContent(http.StatusOK)
 }
@@ -273,6 +276,19 @@ func (h *totpHandler) AddRecoveryCodes(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// Generating a set silently invalidates the previous one and mints a
+	// fresh way past 2FA, so it is worth telling the owner about. Somebody
+	// who did not do this is looking at an attacker who holds their password
+	// AND a live passcode, and who has just given themselves a durable
+	// bypass — this is the only place that surfaces.
+	notifyUser := *user
+	issued := len(rCodes)
+	go func() {
+		if err := h.Notif.Totp.EmailRecoveryCodesIssued(&notifyUser, issued); err != nil {
+			log.Println("totp: recovery codes notification failed:", err)
+		}
+	}()
+
 	return c.JSON(http.StatusOK, rCodes)
 }
 
@@ -382,8 +398,21 @@ func (h *totpHandler) Delete(c echo.Context) error {
 	// Fire-and-forget. This is the tripwire: an unexpected "your 2FA was
 	// turned off" is how somebody finds out an administrator, or an attacker
 	// holding a step-up, has weakened their account.
+	//
+	// Two messages, chosen by who acted. Asking "was this you?" of somebody
+	// who did not touch their account is worse than useless — they answer no
+	// and reset a password that was never at risk, while the actual question
+	// (why did an administrator do this?) goes unasked.
+	notifyUser := *user
+	byAdmin := viewer.ID != user.ID
 	go func() {
-		if err := h.Notif.Totp.EmailTotpDisabled(user); err != nil {
+		var err error
+		if byAdmin {
+			err = h.Notif.Totp.EmailTotpDisabledByAdmin(&notifyUser)
+		} else {
+			err = h.Notif.Totp.EmailTotpDisabled(&notifyUser)
+		}
+		if err != nil {
 			log.Println(err)
 		}
 	}()

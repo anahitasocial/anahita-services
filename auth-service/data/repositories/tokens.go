@@ -224,6 +224,23 @@ func (repo *tokens) Edit(token *entities.Token) (*entities.Token, error) {
 }
 
 // Delete deletes a token
+// DeleteByRecipientEmail removes every pending token for an address.
+//
+// Zero is a success: an account with no outstanding reset or invite has nothing
+// to remove.
+func (repo *tokens) DeleteByRecipientEmail(email string) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	result, err := repo.db.ExecContext(ctx,
+		`DELETE FROM tokens WHERE recipient_email = ?`, email)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
+}
+
 func (repo *tokens) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

@@ -64,6 +64,22 @@ func (env *Env) renderTemplate(c echo.Context, name string, data map[string]any)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+
+	// SiteName is added here rather than at every call site, because
+	// logo.html invokes {{.SiteName}} on EVERY page and no handler was
+	// passing it — so the logo's alt text and the <h1> beside it have
+	// been rendering empty on the sign-in, password-reset, invite and
+	// email-confirmation pages alike.
+	//
+	// Written only when absent, so a page that wants to say something
+	// else still can.
+	if data == nil {
+		data = map[string]any{}
+	}
+	if _, ok := data["SiteName"]; !ok {
+		data["SiteName"] = env.Config.GetSiteName()
+	}
+
 	return tmpl.ExecuteTemplate(c.Response().Writer, "base", data)
 }
 

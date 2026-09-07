@@ -330,6 +330,27 @@ ALTER TABLE nodes ADD COLUMN `quote_count` INT(11) UNSIGNED NOT NULL DEFAULT 0 A
 -- token type. See tokens.new_email in schema/init.sql.
 ALTER TABLE tokens ADD COLUMN `new_email` VARCHAR(255) DEFAULT NULL;
 
+-- Account deletion. entrypoint.sh runs THIS file for a legacy database and
+-- then exits, so it never sees schema/init.sql or the goose migrations —
+-- anything added there has to be added here too or a migrated install starts
+-- with a schema the code cannot read. Every actor read selects
+-- nodes.deleted_at, so its absence breaks far more than deletion.
+ALTER TABLE nodes ADD COLUMN `deleted_at` datetime DEFAULT NULL;
+ALTER TABLE nodes ADD INDEX `deleted_at` (`deleted_at`);
+
+CREATE TABLE node_deletion_logs (
+    `id` SERIAL,
+    `node_id` bigint(11) unsigned NOT NULL,
+    `node_alias` varchar(255) DEFAULT NULL,
+    `node_type` varchar(255) DEFAULT NULL,
+    `deleted_by` bigint(11) unsigned NOT NULL,
+    `action` varchar(20) NOT NULL,
+    `created_on` datetime NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_node_deletion_logs_node_id` (`node_id`),
+    KEY `idx_node_deletion_logs_created_on` (`created_on`)
+) ENGINE=InnoDB CHARACTER SET=utf8;
+
 ALTER TABLE people_people ADD COLUMN `totp_secret` VARCHAR(255) DEFAULT '';
 ALTER TABLE people_people ADD COLUMN `totp_enabled` TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE people_people ADD COLUMN `totp_recovery_codes` TEXT DEFAULT NULL;
