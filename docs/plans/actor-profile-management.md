@@ -292,9 +292,62 @@ pass. The outcome is recoverable — soft delete, thirty-day window,
 restore-at-login, and both are emailed — so the boundary was judged worth more
 than closing a millisecond race.
 
-**Still open: the same floor on demotion.** Changing the last super
-administrator down to `administrator` reaches zero through a different door,
-and nothing guards it.
+### Changing a usertype — decided 2026-09-07, no endpoint yet
+
+**A super administrator may not change their own usertype. Only another super
+administrator may change theirs.**
+
+**There is no usertype-change endpoint today.** Signup hardcodes `registered`,
+and nothing routes a promotion or a demotion — so this is a rule for the flow
+when it is built, not a guard on a live hole. What WAS live is recorded below.
+
+#### The self-change ban is the floor. No count needed.
+
+This is the part worth noticing, because it is a stronger result than the
+count-based floor deletion uses, and simpler:
+
+- One super administrator, A. A cannot change their own type. Nobody else is a
+  super administrator, so nobody else may change it. **A stays super.**
+- Two, A and B. B may demote A, leaving one. B cannot demote themselves.
+  **One remains.**
+
+Zero is unreachable by demotion, and no query is required to know it. The
+invariant falls out of the rule.
+
+**Handover still works**, which is the case that would have made a naive ban
+unusable. A lone super administrator A who wants to leave: A promotes C —
+allowed, since that is changing somebody else's type — and then C demotes A.
+Two steps, both permitted, ending with C as the only super administrator.
+
+#### It corrects the deletion refusal message
+
+The 409 currently says "Promote someone else, or change this account to
+administrator, and then delete it." Under this rule the second half is wrong:
+a lone super administrator cannot demote themselves. Promoting somebody else is
+sufficient on its own — once another active super administrator exists, the
+deletion floor is satisfied. **The message should drop the second clause when
+the usertype flow lands.**
+
+#### What was live, and is now closed
+
+`Users.Edit` wrote `usertype` in its SET clause. Nothing routed a change to
+it, so it was never exploitable — but Edit runs while enrolling TOTP,
+verifying a passcode and signing in, and it writes the whole row from the
+struct it is handed. A read that omitted the column would have produced an
+empty usertype and the next Edit would have persisted it over a real one.
+That is exactly what happened to `totp_secret`, which is why that column is
+COALESCEd in `userColumns`.
+
+Usertype has been removed from that statement, joining email and username,
+which left it earlier for the same reason. Until a deliberate promote/demote
+flow exists, nothing can change a privilege level at all.
+
+#### Work, when it is built
+
+**[services]** A single-purpose `EditUserType` alongside `EditEmail` and
+`EditUsername`. Step-up gated. Two refusals: the caller is not a super
+administrator, and the target is the caller. **[react]** A promote/demote
+control, super-administrator only, which does not offer itself as a target.
 
 **[react]** The `StepUp` container in front of the Danger zone delete, matching
 the password card. Copy for the refusal that says how to proceed rather than

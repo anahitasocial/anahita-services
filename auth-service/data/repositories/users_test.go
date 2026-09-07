@@ -79,6 +79,7 @@ func TestUsersEditDoesNotWriteIdentityColumns(t *testing.T) {
 	user.ID = 42
 	user.Email = "attacker@example.com"
 	user.Username = "impostor"
+	user.UserType = "super-administrator"
 	user.Password = "$2a$10$hash"
 	user.UpdateTime = time.Now()
 
@@ -96,10 +97,17 @@ func TestUsersEditDoesNotWriteIdentityColumns(t *testing.T) {
 		setClause = update[:i]
 	}
 
-	for _, forbidden := range []string{"email", "username", "alias"} {
+	// usertype joined this list on 2026-09-07, for the same reason and with
+	// the same shape of hazard. Edit runs while enrolling TOTP, verifying a
+	// passcode and signing in; a privilege level that can be rewritten as a
+	// side effect of any of those is one bad read away from being rewritten
+	// wrongly — exactly the trap totp_secret fell into. Until a deliberate
+	// promote/demote flow exists, nothing should change a usertype at all.
+	for _, forbidden := range []string{"email", "username", "alias", "usertype"} {
 		if strings.Contains(strings.ToLower(setClause), forbidden) {
-			t.Errorf("Users.Edit writes %q. Identity columns move only through "+
-				"EditEmail and EditUsername, which the step-up-gated flows call:\n%s",
+			t.Errorf("Users.Edit writes %q. Identity and privilege columns move "+
+				"only through their own single-purpose methods, which the "+
+				"step-up-gated flows call:\n%s",
 				forbidden, setClause)
 		}
 	}
