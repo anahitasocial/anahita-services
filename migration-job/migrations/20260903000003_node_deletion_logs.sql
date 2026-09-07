@@ -40,7 +40,7 @@ BEGIN
             KEY `idx_node_deletion_logs_created_on` (`created_on`)
         ) ENGINE=InnoDB CHARACTER SET=utf8;
     END IF;
-END
+END;
 -- +goose StatementEnd
 CALL anahita_add_node_deletion_logs();
 DROP PROCEDURE anahita_add_node_deletion_logs;
@@ -56,7 +56,7 @@ BEGIN
     ) THEN
         DROP TABLE node_deletion_logs;
     END IF;
-END
+END;
 -- +goose StatementEnd
 CALL anahita_drop_node_deletion_logs();
 DROP PROCEDURE anahita_drop_node_deletion_logs;

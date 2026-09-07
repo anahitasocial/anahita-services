@@ -80,15 +80,17 @@ func (repo *Users) Browse(req *requests.UserBrowseRequest) ([]*entities.User, er
 		query = query.Where(sq.Eq{"usertype": req.UserType})
 	}
 
-	if req.Ordering != "" {
-		query = query.OrderBy(req.Ordering)
-	}
-
-	if req.Ordering != "" {
+	// One clause, not two. This block appeared twice — once bare and once with
+	// a direction — so a browse with an ordering emitted
+	// "ORDER BY created_on, created_on DESC".
+	//
+	// Checked with safeOrderColumn as well as by the request's oneof tag,
+	// because ORDER BY is concatenated rather than bound. See ordering.go.
+	if column := safeOrderColumn(req.Ordering); column != "" {
 		if req.Direction == "asc" {
-			query = query.OrderBy(req.Ordering + " ASC")
+			query = query.OrderBy(column + " ASC")
 		} else {
-			query = query.OrderBy(req.Ordering + " DESC")
+			query = query.OrderBy(column + " DESC")
 		}
 	}
 

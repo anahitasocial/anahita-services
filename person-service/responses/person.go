@@ -22,7 +22,6 @@ type PersonNode struct {
 
 	UpdateTime  time.Time                 `json:"update_time,omitempty"`
 	Editor      *responses.Editor         `json:"editor,omitempty"`
-	Information map[string]any            `json:"information,omitempty"`
 	Features    []*responses.NodeFeature  `json:"features,omitempty"`
 	Authorized  *responses.NodeAuthorized `json:"authorized,omitempty"`
 	Permissions map[string]string         `json:"permissions,omitempty"`
@@ -47,7 +46,6 @@ func (r *PersonResponse) MapNode(node *entities.Person) *PersonNode {
 			}
 			return nil
 		}(),
-		Information: node.Information,
 		Features: func() []*responses.NodeFeature {
 			var features []*responses.NodeFeature
 			for _, feature := range node.Features {

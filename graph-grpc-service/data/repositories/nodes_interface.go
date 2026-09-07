@@ -15,6 +15,9 @@ type NodesRepoInterface interface {
 
 	// Read retrieves a single node based on the provided read request and viewer context.
 	Read(id int64) (*entities.AnahitaNode, error)
+	// ReadOfType is Read restricted to a type family — see the implementation
+	// for why an id-only read is not enough.
+	ReadOfType(id int64, typePrefix string) (*entities.AnahitaNode, error)
 
 	// ReadByAlias retrieves a single node based on the provided alias and viewer context.
 	ReadByAlias(req *requests.NodeReadByAliasRequest) (*entities.AnahitaNode, error)

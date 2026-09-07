@@ -40,6 +40,18 @@ message ActorBrowseResponse {
 message ActorReadRequest {
     int64 id = 1;
     Viewer viewer = 2;
+
+    // The exact type the caller expects, e.g.
+    // "node.actor.group-service.group.v1".
+    //
+    // Optional. Empty means "any actor", which is what the read falls back to
+    // — the server always restricts to the node.actor. family regardless, so
+    // an id belonging to a hashtag or a photo can never come back here.
+    //
+    // Set it when the route already determines the entity: /groups/:id means a
+    // group, and without this a person's id served under that path returned a
+    // person, with a response shape the client never asked for.
+    string node_type = 3;
 }
 
 message ActorReadResponse {

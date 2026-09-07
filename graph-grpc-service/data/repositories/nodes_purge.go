@@ -124,6 +124,7 @@ JOIN content c ON n.id = c.id;
 //
 // What survives: the id, the alias, the type, and deleted_at. What goes: the
 // name, body, excerpt, status, avatar and cover filenames, geo fields, meta,
+// website_url,
 // and the counters. Everything that made it somebody's profile.
 //
 // The alias is kept ON PURPOSE — it is the whole reservation. Scrubbing it
@@ -153,6 +154,7 @@ SET
   status = NULL,
   status_update_time = NULL,
   meta = NULL,
+  website_url = NULL,
   filename = NULL,
   filesize = NULL,
   cover_filename = NULL,

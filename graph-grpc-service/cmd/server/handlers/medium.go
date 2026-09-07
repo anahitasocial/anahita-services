@@ -115,7 +115,9 @@ func (h *mediumHandler) Browse(ctx context.Context, req *graphpb.MediumBrowseReq
 // Read return a single medium
 func (h *mediumHandler) Read(ctx context.Context, req *graphpb.MediumReadRequest) (*graphpb.MediumReadResponse, error) {
 	log.Printf("Received Read request: %v", req.Id)
-	node, err := h.env.Repos.Nodes.Read(req.Id)
+	// Media only, for the same reason the actor read is scoped: /photos/ and
+	// /topics/ both answered 200 with a hashtag for a hashtag's id.
+	node, err := h.env.Repos.Nodes.ReadOfType(req.Id, constants.NodeMediumPrefixEntityType)
 	if err != nil {
 		return nil, err
 	}

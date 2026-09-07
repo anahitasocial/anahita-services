@@ -24,6 +24,9 @@ CREATE TABLE nodes (
   `pinned` tinyint(1) NOT NULL DEFAULT 0,
   `is_default` tinyint(1) NOT NULL DEFAULT 0,
   `meta` text DEFAULT NULL,
+  -- One link on an actor profile. Replaces the website/contact/phone trio that
+  -- used to be read out of `meta`, none of which any Go request ever accepted.
+  `website_url` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
   `hits` int(11) unsigned DEFAULT NULL,
   `parent_id` bigint(11) unsigned DEFAULT NULL,
   `parent_type` varchar(255) DEFAULT NULL,

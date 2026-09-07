@@ -57,23 +57,27 @@ func NewAnahitaNode() *AnahitaNode {
 }
 
 type AnahitaNode struct {
-	ID                 int64
-	Type               string
-	Service            string
-	Name               string
-	Alias              string
-	Body               string
-	Excerpt            string
-	StartDate          time.Time
-	EndDate            time.Time
-	OwnerID            int64
-	OwnerType          string
-	ParentID           int64
-	ParentType         string
-	QuoteCount         int64
-	Ordering           int32
-	Enabled            bool
-	Verified           bool
+	ID         int64
+	Type       string
+	Service    string
+	Name       string
+	Alias      string
+	Body       string
+	Excerpt    string
+	StartDate  time.Time
+	EndDate    time.Time
+	OwnerID    int64
+	OwnerType  string
+	ParentID   int64
+	ParentType string
+	QuoteCount int64
+	Ordering   int32
+	Enabled    bool
+	Verified   bool
+	// WebsiteURL is one link on an actor profile. Validated to http(s) before
+	// it is stored — it is rendered as an anchor href, so a javascript: or
+	// data: value would be stored XSS.
+	WebsiteURL         string
 	Pinned             bool
 	IsDefault          bool
 	Meta               json.RawMessage
@@ -109,7 +113,6 @@ type AnahitaNode struct {
 	Permissions        map[string]string
 	Features           []*AnahitaNodeFeature
 	FeaturesRaw        json.RawMessage
-	Information        map[string]any
 
 	// Parsed Fields
 	Mentions []string

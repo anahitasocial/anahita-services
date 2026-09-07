@@ -27,7 +27,7 @@ BEGIN
         ALTER TABLE tokens
             ADD COLUMN `new_email` varchar(255) DEFAULT NULL AFTER `recipient_email`;
     END IF;
-END
+END;
 -- +goose StatementEnd
 CALL anahita_add_tokens_new_email();
 DROP PROCEDURE anahita_add_tokens_new_email;
@@ -44,7 +44,7 @@ BEGIN
     ) THEN
         ALTER TABLE tokens DROP COLUMN `new_email`;
     END IF;
-END
+END;
 -- +goose StatementEnd
 CALL anahita_drop_tokens_new_email();
 DROP PROCEDURE anahita_drop_tokens_new_email;

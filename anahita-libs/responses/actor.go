@@ -6,13 +6,19 @@ import (
 )
 
 type ActorNodeItem struct {
-	ID       int64  `json:"id"`
-	Type     string `json:"type"`
-	Name     string `json:"name,omitempty"`
-	Alias    string `json:"alias,omitempty"`
-	Body     string `json:"body,omitempty"`
-	Verified bool   `json:"verified,omitempty"`
-	Enabled  bool   `json:"enabled,omitempty"`
+	ID    int64  `json:"id"`
+	Type  string `json:"type"`
+	Name  string `json:"name,omitempty"`
+	Alias string `json:"alias,omitempty"`
+	Body  string `json:"body,omitempty"`
+	// One link on the profile. Rendered as an anchor, so the value is
+	// validated to http(s) on the way in — see requests/actor.go.
+	WebsiteURL string `json:"website_url,omitempty"`
+	Verified   bool   `json:"verified,omitempty"`
+	// No omitempty. false is the zero value, so omitempty would drop the field
+	// exactly when it carries information — a client could not tell a disabled
+	// actor from one whose response simply did not mention it.
+	Enabled bool `json:"enabled"`
 	// Present only while the actor is scheduled for deletion, so the settings
 	// page can offer Restore instead of the delete form. Deleting also clears
 	// Enabled, and a client reading only that cannot tell an account on its way
@@ -36,7 +42,6 @@ type ActorNode struct {
 	ActorNodeItem
 
 	UpdateTime     time.Time         `json:"update_time,omitempty"`
-	Information    map[string]any    `json:"information,omitempty"`
 	Features       []*NodeFeature    `json:"features,omitempty"`
 	Authorized     *NodeAuthorized   `json:"authorized,omitempty"`
 	Permissions    map[string]string `json:"permissions,omitempty"`
@@ -62,7 +67,6 @@ func (r *ActorResponse) MapNode(node *entities.AnahitaNode) *ActorNode {
 			}
 			return nil
 		}(),
-		Information: node.Information,
 		Features: func() []*NodeFeature {
 			var features []*NodeFeature
 			for _, feature := range node.Features {
@@ -94,12 +98,20 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 	}
 
 	return &ActorNodeItem{
-		ID:           node.ID,
-		Type:         node.Type,
-		Name:         node.Name,
-		Alias:        node.Alias,
-		Body:         node.Body,
-		Verified:     node.Verified,
+		ID:    node.ID,
+		Type:  node.Type,
+		Name:  node.Name,
+		Alias: node.Alias,
+		Body:  node.Body,
+		// Declared and never assigned until this was caught: the column, the
+		// proto and the response struct all carried it while the mapper did
+		// not, so it stored correctly and never appeared on the wire.
+		WebsiteURL: node.WebsiteURL,
+		Verified:   node.Verified,
+		// Declared since this struct was written and never assigned, so
+		// `enabled` has never appeared in the API at all and no client could
+		// tell an enabled actor from a disabled one.
+		Enabled:      node.Enabled,
 		CreationTime: node.CreationTime,
 		// nil for everything not scheduled for deletion, and omitempty keeps it
 		// off the wire in that case — which is every actor but a handful.

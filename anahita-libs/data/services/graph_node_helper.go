@@ -5,8 +5,6 @@ import (
 	"anahita-libs/proto/graphpb"
 	"strings"
 
-	"google.golang.org/protobuf/types/known/anypb"
-	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -102,6 +100,7 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.LastCommentBy = m.LastCommentBy
 	n.Ordering = m.Ordering
 	n.Verified = m.Verified
+	n.WebsiteURL = m.WebsiteUrl
 	n.Pinned = m.Pinned
 	n.IsDefault = m.IsDefault
 	n.HitsCount = m.HitsCount
@@ -160,15 +159,6 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 		})
 	}
 	n.Features = nodeFeatures
-
-	// Information map
-	if len(m.Information) > 0 {
-		n.Information = make(map[string]interface{})
-		for k, v := range m.Information {
-			// Convert protobuf Any to interface{}
-			n.Information[k] = v
-		}
-	}
 
 	// --- Owner ---
 	if m.Owner != nil {
@@ -283,6 +273,7 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		LastCommentOn:        timestamppb.New(node.LastCommentOn),
 		Ordering:             node.Ordering,
 		Verified:             node.Verified,
+		WebsiteUrl:           node.WebsiteURL,
 		Pinned:               node.Pinned,
 		IsDefault:            node.IsDefault,
 		HitsCount:            node.HitsCount,
@@ -308,27 +299,6 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Language:             node.Language,
 		EdgeCount:            node.EdgeCount,
 		FeaturesRaw:          string(node.FeaturesRaw),
-	}
-
-	// Information map
-	if len(node.Information) > 0 {
-		grpcNode.Information = make(map[string]*anypb.Any)
-
-		for k, v := range node.Information {
-			// Convert interface{} → structpb.Value
-			structVal, err := structpb.NewValue(v)
-			if err != nil {
-				continue // invalid type, skip or handle
-			}
-
-			// Pack structpb.Value into Any
-			anyVal, err := anypb.New(structVal)
-			if err != nil {
-				continue
-			}
-
-			grpcNode.Information[k] = anyVal
-		}
 	}
 
 	// Only create Owner if it has data

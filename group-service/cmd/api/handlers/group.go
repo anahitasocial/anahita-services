@@ -5,6 +5,7 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/requests"
 	"anahita-libs/responses"
+	"anahita-libs/validators"
 	"group/constants"
 	"log"
 	"net/http"
@@ -118,7 +119,7 @@ func (h *groupHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.Read(req.ID, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -160,12 +161,17 @@ func (h *groupHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	// Normalise before validating: people type "example.com", and http_url
+	// requires a scheme. Doing it afterwards would mean the scheme rule
+	// never saw the value it exists to check.
+	req.WebsiteURL = validators.NormalizeWebsiteURL(req.WebsiteURL)
+
 	if err := c.Validate(req); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.Read(req.ID, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -184,6 +190,7 @@ func (h *groupHandler) Edit(c echo.Context) error {
 	actor.Name = req.Name
 	actor.Alias = slug.Make(req.Name)
 	actor.Body = req.Body
+	actor.WebsiteURL = req.WebsiteURL
 	actor.Enabled = req.Enabled
 	actor.ModifiedBy = viewer.ID
 	actor, err = h.Srv.ActorsGRPC.Edit(actor, viewer)
@@ -192,7 +199,7 @@ func (h *groupHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	actor, err = h.Srv.ActorsGRPC.Read(req.ID, viewer)
+	actor, err = h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -225,6 +232,11 @@ func (h *groupHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	// Normalise before validating: people type "example.com", and http_url
+	// requires a scheme. Doing it afterwards would mean the scheme rule
+	// never saw the value it exists to check.
+	req.WebsiteURL = validators.NormalizeWebsiteURL(req.WebsiteURL)
+
 	if err = c.Validate(req); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
@@ -238,6 +250,7 @@ func (h *groupHandler) Add(c echo.Context) error {
 	actor.Name = req.Name
 	actor.Alias = slug.Make(req.Name)
 	actor.Body = req.Body
+	actor.WebsiteURL = req.WebsiteURL
 	actor.Enabled = req.Enabled
 	actor.CreatedBy = viewer.ID
 	actor.ModifiedBy = viewer.ID
@@ -258,13 +271,13 @@ func (h *groupHandler) Add(c echo.Context) error {
 	}
 
 	// Add the viewer as the group admin
-	admin, err := h.Srv.ActorsGRPC.Read(viewer.ID, viewer)
+	admin, err := h.Srv.ActorsGRPC.ReadOfType(viewer.ID, an_constants.NodeActorPersonEntityType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	actor, err = h.Srv.ActorsGRPC.Read(actor.ID, viewer)
+	actor, err = h.Srv.ActorsGRPC.ReadOfType(actor.ID, constants.NodeActorGroupType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -336,7 +349,7 @@ func (h *groupHandler) Restore(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.Read(req.ID, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -396,7 +409,7 @@ func (h *groupHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.Read(req.ID, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)

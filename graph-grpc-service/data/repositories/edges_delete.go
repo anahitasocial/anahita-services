@@ -8,6 +8,12 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
+// ErrEdgeDeleteNotNarrowed is returned by BatchDeleteByFilters when a request
+// carries no node id. See the comment there: without one the statement is
+// either unbounded or bounded only by edge type, and both are caller bugs.
+var ErrEdgeDeleteNotNarrowed = errors.New(
+	"edges: refusing a batch delete with no node id — it would remove every matching edge in the system")
+
 // Delete removes an edge by its ID
 func (r *edgesRepo) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
@@ -59,6 +65,29 @@ func (r *edgesRepo) BatchDelete(ids []int64) (uint32, error) {
 func (r *edgesRepo) BatchDeleteByFilters(req *requests.EdgeBatchDeleteByFiltersRequest) (uint32, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	defer cancel()
+
+	// REFUSE A DELETE THAT IS NOT NARROWED TO A NODE.
+	//
+	// Every clause below is conditional, so a request with all fields at their
+	// zero value produced `DELETE FROM edges` with no WHERE at all — every
+	// follow, block, group-admin edge, subscription and vote in the system,
+	// removed in one statement that returns a row count and no error.
+	//
+	// A type-only filter is refused for the same reason at smaller scale: it
+	// deletes every edge of that type fleet-wide, which is what a caller gets
+	// when a node lookup returns 0 and the id clauses silently drop out. That
+	// is a bug in the caller every time, never an intention.
+	//
+	// The guard lives HERE rather than in the handler because the handler is
+	// not the only caller — subscriptions and likes reach this directly — and a
+	// check at the boundary would leave the internal paths unprotected.
+	//
+	// If a fleet-wide purge of one edge type is ever genuinely wanted, it
+	// deserves its own named method rather than arriving as the fallback
+	// behaviour of a filter that happened to be empty.
+	if req.NodeAID == 0 && req.NodeBID == 0 {
+		return 0, ErrEdgeDeleteNotNarrowed
+	}
 
 	query := sq.Delete("edges")
 

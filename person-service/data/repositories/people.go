@@ -266,7 +266,6 @@ func (repo *Person) Edit(item *entities.Person) error {
 func (repo *Person) afterRead(person *entities.Person) error {
 	person.GetAvatars()
 	person.GetCovers()
-	person.GetInformation([]string{})
 
 	return nil
 }

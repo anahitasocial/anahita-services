@@ -35,7 +35,7 @@ BEGIN
     ) THEN
         ALTER TABLE nodes ADD INDEX `deleted_at` (`deleted_at`);
     END IF;
-END
+END;
 -- +goose StatementEnd
 CALL anahita_add_nodes_deleted_at();
 DROP PROCEDURE anahita_add_nodes_deleted_at;
@@ -61,7 +61,7 @@ BEGIN
     ) THEN
         ALTER TABLE nodes DROP COLUMN `deleted_at`;
     END IF;
-END
+END;
 -- +goose StatementEnd
 CALL anahita_drop_nodes_deleted_at();
 DROP PROCEDURE anahita_drop_nodes_deleted_at;

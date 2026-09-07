@@ -17,7 +17,7 @@ func SetActorAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.Select
 	leaders := relNodeFollowsViewer(vID)
 	mutual := sq.And{follows, leaders}
 	isAdmin := relViewerAdminsNode(vID)
-	notBlocked := relNotBlockedEitherWay(vID)
+	notBlocked := relNotBlockedEitherWay(vID, "node.id")
 	selfOrAdmin := relSelfOrAdminForNode(vID)
 
 	// Hard deny if blocked either way
@@ -168,9 +168,9 @@ func relViewerAdminsNode(viewerID int64) sq.Sqlizer {
 func relSelfOrAdminForNode(viewerID int64) sq.Sqlizer {
 	return sq.Expr(`
         (
-          (node.type LIKE 'node.actor.person.%' AND node.id = ?)
+          (node.type LIKE 'node.actor.person-service.person.%' AND node.id = ?)
           OR
-          (node.type NOT LIKE 'node.actor.person.%' AND EXISTS (
+          (node.type NOT LIKE 'node.actor.person-service.person.%' AND EXISTS (
               SELECT 1 FROM edges e
               WHERE e.type = ?
                 AND e.node_a_id = ?

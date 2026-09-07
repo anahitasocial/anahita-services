@@ -4,8 +4,6 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
 
-	"google.golang.org/protobuf/types/known/anypb"
-	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -72,6 +70,7 @@ func nodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		LastCommentOn:        timestamppb.New(node.LastCommentOn),
 		Ordering:             node.Ordering,
 		Verified:             node.Verified,
+		WebsiteUrl:           node.WebsiteURL,
 		Pinned:               node.Pinned,
 		IsDefault:            node.IsDefault,
 		HitsCount:            node.HitsCount,
@@ -104,27 +103,6 @@ func nodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 	// client reads as "deleted long ago" — the opposite of the truth.
 	if node.DeletedAt != nil {
 		grpcNode.DeletedAt = timestamppb.New(*node.DeletedAt)
-	}
-
-	// Information map
-	if len(node.Information) > 0 {
-		grpcNode.Information = make(map[string]*anypb.Any)
-
-		for k, v := range node.Information {
-			// Convert interface{} → structpb.Value
-			structVal, err := structpb.NewValue(v)
-			if err != nil {
-				continue // invalid type, skip or handle
-			}
-
-			// Pack structpb.Value into Any
-			anyVal, err := anypb.New(structVal)
-			if err != nil {
-				continue
-			}
-
-			grpcNode.Information[k] = anyVal
-		}
 	}
 
 	// Only create Owner if it has data

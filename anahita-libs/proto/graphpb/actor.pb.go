@@ -322,9 +322,20 @@ func (x *ActorBrowseResponse) GetActors() []*Node {
 }
 
 type ActorReadRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Viewer        *Viewer                `protobuf:"bytes,2,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Id     int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Viewer *Viewer                `protobuf:"bytes,2,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	// The exact type the caller expects, e.g.
+	// "node.actor.group-service.group.v1".
+	//
+	// Optional. Empty means "any actor", which is what the read falls back to
+	// — the server always restricts to the node.actor. family regardless, so
+	// an id belonging to a hashtag or a photo can never come back here.
+	//
+	// Set it when the route already determines the entity: /groups/:id means a
+	// group, and without this a person's id served under that path returned a
+	// person, with a response shape the client never asked for.
+	NodeType      string `protobuf:"bytes,3,opt,name=node_type,json=nodeType,proto3" json:"node_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -371,6 +382,13 @@ func (x *ActorReadRequest) GetViewer() *Viewer {
 		return x.Viewer
 	}
 	return nil
+}
+
+func (x *ActorReadRequest) GetNodeType() string {
+	if x != nil {
+		return x.NodeType
+	}
+	return ""
 }
 
 type ActorReadResponse struct {
@@ -1027,10 +1045,11 @@ const file_proto_graphpb_actor_proto_rawDesc = "" +
 	"\x06viewer\x18\a \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
 	"\faccess_check\x18\b \x01(\bR\vaccessCheck\":\n" +
 	"\x13ActorBrowseResponse\x12#\n" +
-	"\x06actors\x18\x01 \x03(\v2\v.graph.NodeR\x06actors\"I\n" +
+	"\x06actors\x18\x01 \x03(\v2\v.graph.NodeR\x06actors\"f\n" +
 	"\x10ActorReadRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12%\n" +
-	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\"6\n" +
+	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\x12\x1b\n" +
+	"\tnode_type\x18\x03 \x01(\tR\bnodeType\"6\n" +
 	"\x11ActorReadResponse\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.graph.NodeR\x05actor\"\x8a\x01\n" +
 	"\x15ActorBatchReadRequest\x12\x10\n" +

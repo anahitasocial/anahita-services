@@ -15,12 +15,16 @@ func SetSearchAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, includeC
 
 	vID := viewer.ID
 
-	// Common relation shortcuts for "owner" and "node"
-	// (We still use owner->node two-step like your original)
-	// ownerNotBlocked := relNotBlockedEitherWay("owner", vID)
-	// nodeNotBlocked := relNotBlockedEitherWay("node", vID)
-	ownerNotBlocked := relNotBlockedEitherWay(vID)
-	nodeNotBlocked := relNotBlockedEitherWay(vID)
+	// Common relation shortcuts for "owner" and "node".
+	//
+	// ONE block predicate, not two. These were previously separate names for
+	// byte-identical expressions: the helper had lost its alias parameter, so
+	// "notBlocked" and "notBlocked" both compiled to the same
+	// node.id comparison and the query carried it twice.
+	//
+	// The single predicate below covers the owner and the author as well as
+	// the row itself, which is what the two names were reaching for.
+	notBlocked := relNotBlockedEitherWay(vID, contentActorRefs("node")...)
 
 	ownerFollows := relViewerFollows("owner", vID)
 	ownerLeads := relAliasFollowsViewer("owner", vID)
@@ -35,7 +39,7 @@ func SetSearchAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, includeC
 	nodeSelfAdm := relSelfOrAdmin("node", vID)
 
 	// Hard deny on blocks, applied to both owner and node
-	sb = sb.Where(ownerNotBlocked).Where(nodeNotBlocked)
+	sb = sb.Where(notBlocked).Where(notBlocked)
 
 	// ---- OWNER gate (coarse gate) ----
 	ownerGate := sq.Or{
@@ -125,8 +129,10 @@ func SetSearchAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, includeC
 
 	// ---- Optional: comment parent gate ----
 	if includeCommentParentNode {
-		//cpNotBlocked := relNotBlockedEitherWay("comment_parent_node", vID)
-		cpNotBlocked := relNotBlockedEitherWay(vID)
+		// The comment's parent is a different row with its own owner and
+		// author, so it needs its own predicate against those aliases —
+		// previously this was the node predicate again under another name.
+		cpNotBlocked := relNotBlockedEitherWay(vID, contentActorRefs("comment_parent_node")...)
 		cpFollows := relViewerFollows("comment_parent_node", vID)
 		cpLeads := relAliasFollowsViewer("comment_parent_node", vID)
 		cpMutual := sq.And{cpFollows, cpLeads}
@@ -224,9 +230,9 @@ func relViewerAdmins(alias string, viewerID int64) sq.Sqlizer {
 func relSelfOrAdmin(alias string, viewerID int64) sq.Sqlizer {
 	return sq.Expr(`
         (
-          (`+alias+`.type LIKE 'node.actor.person.%' AND `+alias+`.id = ?)
+          (`+alias+`.type LIKE 'node.actor.person-service.person.%' AND `+alias+`.id = ?)
           OR
-          (`+alias+`.type NOT LIKE 'node.actor.person.%' AND EXISTS (
+          (`+alias+`.type NOT LIKE 'node.actor.person-service.person.%' AND EXISTS (
               SELECT 1 FROM edges e
               WHERE e.type = ?
                 AND e.node_a_id = ?
