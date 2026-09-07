@@ -326,10 +326,6 @@ ALTER TABLE nodes ADD COLUMN `repost_count` INT(11) UNSIGNED NOT NULL DEFAULT 0 
 ALTER TABLE nodes ADD COLUMN `quote_count` INT(11) UNSIGNED NOT NULL DEFAULT 0 AFTER `repost_count`;
 
 -- Add new TOTP fields to people_people table
--- Destination address for an emailchange token. NULL on every other
--- token type. See tokens.new_email in schema/init.sql.
-ALTER TABLE tokens ADD COLUMN `new_email` VARCHAR(255) DEFAULT NULL;
-
 -- Account deletion. entrypoint.sh runs THIS file for a legacy database and
 -- then exits, so it never sees schema/init.sql or the goose migrations —
 -- anything added there has to be added here too or a migrated install starts
@@ -337,6 +333,12 @@ ALTER TABLE tokens ADD COLUMN `new_email` VARCHAR(255) DEFAULT NULL;
 -- nodes.deleted_at, so its absence breaks far more than deletion.
 ALTER TABLE nodes ADD COLUMN `deleted_at` datetime DEFAULT NULL;
 ALTER TABLE nodes ADD INDEX `deleted_at` (`deleted_at`);
+
+-- One link on an actor profile. A migrated install has the legacy website,
+-- contact and phone values inside `meta`; they are deliberately NOT carried
+-- across — nothing in the Go stack ever read that map, so they have been
+-- invisible since the port and are not worth reviving.
+ALTER TABLE nodes ADD COLUMN `website_url` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL;
 
 CREATE TABLE node_deletion_logs (
     `id` SERIAL,
@@ -495,6 +497,16 @@ CREATE TABLE oauth_signing_keys (
 CREATE TABLE tokens (
     `id` SERIAL,
     `recipient_email` varchar(255) NOT NULL,
+    -- The requested address, on emailchange tokens only; NULL on every
+    -- other type. Separate from recipient_email precisely so the two
+    -- cannot be confused — swapping them turns the confirmation flow
+    -- from a control into a way to hand the account away.
+    --
+    -- Declared HERE rather than added by a later ALTER: this file creates the
+    -- table fresh, and the ALTER that used to carry this column ran 170 lines
+    -- before the CREATE, so every legacy upgrade failed with
+    -- "Table 'tokens' doesn't exist".
+    `new_email` varchar(255) DEFAULT NULL,
     -- 'passwordreset' or 'invite' (constants.TokenType*). A varchar
     -- rather than an ENUM so adding a token type is a code change.
     `type` varchar(50) NOT NULL,

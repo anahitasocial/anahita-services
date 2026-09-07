@@ -641,6 +641,8 @@ k8s-stop:
 ## guard, which fails on any HasScope("literal") anywhere in the
 ## workspace — run this before shipping a permission change.
 test:
+	@echo "Checking legacy/upgrade.sql statement order..."
+	python3 migration-job/check_sql_order.py
 	@echo "Testing anahita-libs..."
 	cd anahita-libs && go test ./...
 	@echo "Testing auth-service..."
