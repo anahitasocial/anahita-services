@@ -409,6 +409,11 @@ and it belongs with this work rather than before it.
 
 ## 2. Hard delete for super administrators
 
+**Not built.** Confirmed 2026-09-07: there is no `Purge` RPC on the actor
+service, no route on person-service or group-service, and `purgeAccount` is
+still unexported in `graph/sweeper`. The only way an account is purged today is
+by the sweeper, when a grace period runs out.
+
 Requested. A cleanup path that skips the 30-day window and purges immediately —
 for spam, abuse, and test accounts where waiting a month serves nobody, and as
 the mechanism behind a verified erasure request.
@@ -440,14 +445,40 @@ schedule.
 - **Gate it properly.** Step-up, and a typed alias. There is no undo and no
   grace period — this is the one action in the system where the ceremony should
   be heavier than for ordinary deletion, not lighter.
-- **Two variants to decide between.** "Purge now" keeps the tombstone, so the
-  handle stays reserved. "Purge and release" scrubs the tombstone too and frees
-  the handle, which is what an erasure request may require and what section 5
-  describes. They are different actions with different consequences; do not
-  collapse them into one button.
+- **Two variants to decide between, and "clean everything up" does not settle
+  it.** "Purge now" keeps the tombstone, so the handle stays reserved. "Purge
+  and release" scrubs the tombstone too and frees the handle, which is what an
+  erasure request may require and what section 5 describes. They are different
+  actions with different consequences; do not collapse them into one button.
+
+  **Still open**, and it is the one question the brute-force framing leaves
+  unanswered: does "clean everything up" extend to the tombstone and the audit
+  row? Those are not content — they are the record that something existed.
+  Keeping them is what lets a federated peer be told `410 Gone` rather than
+  `404 Not Found`, and what leaves evidence that a super administrator
+  destroyed an account. Destroying them as well is a defensible answer for an
+  erasure request and a bad default for routine cleanup.
 - **Audit is non-negotiable here.** A super administrator destroying an account
   with no waiting period is precisely the event the log exists for. Record which
   variant was used.
+- **It notifies nobody.** Confirmed 2026-09-07: not the profile owner, not the
+  group's administrators. This is a brute-force cleanup and a super
+  administrator has that authority; the person on the other end is being
+  removed, not consulted.
+
+  **This is already how the purge behaves, and the work is to keep it that
+  way rather than to add anything.** Verified: the only consumer of the purged
+  event is `handlePurged`, which removes tokens and auth logs and writes log
+  lines; notification-service never subscribes to `node.actor.*` at all; and
+  the group lifecycle notifier added on 2026-09-07 matches on `deleted` and
+  `restored` only, with a test that fails if a purge reaches it.
+
+  Note this is a different reason from the one recorded in the email plan,
+  which had it that a purged account cannot be notified because the credentials
+  row is already gone. That is true of the sweeper's purge. It is NOT true of
+  an administrator-initiated one, where the account still exists at the moment
+  of the action — so silence here is a choice, not a constraint, and worth
+  keeping written down as one.
 
 ### Work **[services]** + **[react]**
 
