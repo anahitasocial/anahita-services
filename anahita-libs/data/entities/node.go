@@ -163,4 +163,11 @@ type AnahitaNode struct {
 	// — and the two want opposite treatment. The group settings page needs the
 	// difference to offer Restore instead of the delete form.
 	DeletedAt *time.Time
+
+	// ArchivedAt is set when an actor is archived, nil otherwise.
+	//
+	// A pointer for the same reason DeletedAt is one: a zero time and "not
+	// archived" are different states, and collapsing them makes every actor
+	// look archived at the beginning of the epoch.
+	ArchivedAt *time.Time
 }

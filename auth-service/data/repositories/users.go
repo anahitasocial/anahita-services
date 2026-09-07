@@ -354,9 +354,21 @@ func (repo *Users) Edit(user *entities.User) (*entities.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	// Neither email NOR username/alias is in this SET clause. Both move
-	// only through their own single-purpose methods — EditEmail and
-	// EditUsername — which the step-up-gated change flows call.
+	// Email, username/alias and USERTYPE are none of them in this SET
+	// clause. Each moves only through its own single-purpose method —
+	// EditEmail, EditUsername — which the step-up-gated change flows
+	// call. Usertype has no such method yet, and that is the point: until
+	// a deliberate promote/demote flow exists, nothing should be able to
+	// change a privilege level at all.
+	//
+	// Usertype was here until 2026-09-07 and had the same shape of hazard
+	// as the other two. Nothing routed a change to it, so it was never
+	// exploitable — but Edit is called while enrolling TOTP, verifying a
+	// passcode and signing in, and a privilege level that can be rewritten
+	// as a side effect of any of those is one bad read away from being
+	// rewritten wrongly. It is exactly the trap totp_secret fell into: a
+	// read that omits a column produces a zero value, and the next Edit
+	// persists the zero over the real one.
 	//
 	// Email is what password reset delivers to, so whoever can set it
 	// can take the account. Username is a sign-in identifier
@@ -373,7 +385,6 @@ func (repo *Users) Edit(user *entities.User) (*entities.User, error) {
 		INNER JOIN people_people ON people_people.node_id = nodes.id
 		SET
 			enabled = ?,
-			usertype = ?,
 			password = ?,
 			modified_on = ?,
 			totp_enabled = ?,
@@ -388,7 +399,6 @@ func (repo *Users) Edit(user *entities.User) (*entities.User, error) {
 		ctx,
 		query,
 		user.Enabled,
-		user.UserType,
 		user.Password,
 		user.UpdateTime,
 		user.TotpEnabled,

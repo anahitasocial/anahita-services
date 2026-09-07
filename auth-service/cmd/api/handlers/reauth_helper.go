@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
+
+	"anahita-libs/sessions"
 )
 
 // ---------------------------------------------------------------------
@@ -38,18 +39,20 @@ import (
 // authorisation to change the password. Deliberately longer than
 // pendingTOTPTTL, which bounds a single ceremony rather than a window
 // the person navigates a UI in.
-const stepUpTTL = 5 * time.Minute
-
-const stepUpPrefix = "stepup:"
+// The key format, the TTL and the sentinel now live in anahita-libs/sessions,
+// because person-service and group-service read the same marker to gate
+// profile deletion. A prefix only one service knows is a prefix the others can
+// silently disagree with.
+const stepUpTTL = sessions.StepUpTTL
 
 // errStepUpRequired means no live proof exists for this person. Not an
 // error condition in the usual sense — it is the expected answer the
 // first time a client hits a guarded endpoint, and the client's job is
 // to re-authenticate and retry.
-var errStepUpRequired = errors.New("step-up required")
+var errStepUpRequired = sessions.ErrStepUpRequired
 
 func stepUpKey(personID int64) string {
-	return fmt.Sprintf("%s%d", stepUpPrefix, personID)
+	return sessions.StepUpKey(personID)
 }
 
 // markStepUp records a successful re-authentication.
@@ -89,16 +92,7 @@ func (env *Env) markStepUp(personID int64) error {
 // to stop. A store outage should make password changes unavailable,
 // not unguarded.
 func (env *Env) requireStepUp(personID int64) error {
-	exists, err := env.Session.Exists(stepUpKey(personID))
-	if err != nil {
-		return fmt.Errorf("read step-up marker: %w", err)
-	}
-
-	if !exists {
-		return errStepUpRequired
-	}
-
-	return nil
+	return sessions.RequireStepUp(env.Session, personID)
 }
 
 // clearStepUp consumes the marker.

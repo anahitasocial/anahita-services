@@ -177,6 +177,33 @@ itself, not only in an admin view.
 
 ---
 
+## Archive is not a tombstone
+
+Worth stating plainly, because both are end states that leave something behind
+and the two are easy to run together. They are opposites.
+
+| | the content | the profile | ActivityPub |
+|---|---|---|---|
+| **archived** | preserved, readable at its URLs forever | resolves, read-only, marked | `200` with the actor and its content |
+| **tombstoned** | destroyed — posts, comments, edges, all of it | a four-field stub: id, alias, type, `deleted_at` | `410 Gone` with a `Tombstone` |
+
+Archiving the Anahita Project group keeps its 897 posts readable. Hard-deleting
+it destroys those 897 posts and leaves a marker saying the handle is taken and
+whatever held it is gone.
+
+So a tombstone is not a gentler deletion or a stricter archive — it is **what
+remains after destruction**, and its only job is to stop the identifier being
+reissued to somebody else. `TombstoneActor` strips the name, body, excerpt,
+avatar, cover, geo fields, meta, website and every counter; `PurgeActorContent`
+removes everything the actor owned. Nothing readable survives either.
+
+ActivityStreams has no archive concept at all, and its `Tombstone` type is
+explicitly "a content object that has been deleted". The archived state maps to
+an ordinary actor that simply never emits anything again — see *Federation*
+below.
+
+---
+
 ## The three states are not a scale of severity
 
 This is the thing to get right before any of it is built, because the UI
@@ -424,6 +451,56 @@ unarchiving should all write there rather than each growing its own table.
 That does make the name narrower than the contents. **Decide when the first
 of these lands whether it becomes `node_lifecycle_logs`** — cheap to rename
 while the table is still unshipped, not cheap afterwards.
+
+---
+
+## The email and handle stay reserved, forever
+
+**Confirmed 2026-09-07, and it already holds** — recorded because it is a
+property that is easy to break later without noticing.
+
+An archived person cannot sign in, and nobody else may take their address:
+
+- Archiving writes `nodes.archived_at` and nothing else. It never touches
+  `people_people`, so the credentials row — which holds the email and the
+  username — survives intact.
+- `Users.IsEmail` and `IsUsername` count that table with no filter at all, so
+  both answer "taken" for an archived account exactly as they do for a live
+  one.
+- Nothing sweeps archived rows. Deletion has a thirty-day sweeper; archive has
+  no equivalent and should not get one.
+
+So the reservation is permanent, which is stronger than the deletion case,
+where the credentials row goes when the grace period expires and the address
+becomes available again.
+
+**This matters when signup and invite acceptance are built.** Both check
+`IsEmail` before creating an account, so both already refuse an archived
+person's address. The thing to avoid is a later job that "tidies up" archived
+accounts by removing their `people_people` rows: it would free the address of
+somebody who deliberately left, and a new account could then receive mail meant
+for them and inherit a handle people still associate with them.
+
+---
+
+## Scope — actors first, media later
+
+**Decided 2026-09-07.** Archive is being built for ACTORS only.
+
+Media nodes will get it too, and the reason it is not in this pass is not
+effort in the archive itself — it is that archived media needs somewhere to be
+seen. An archived post drops out of feeds and search by the same rule as
+everything else, which leaves it reachable only by direct link. That is fine
+for a profile, which has a URL somebody remembers; it is not fine for a post,
+which nobody has bookmarked.
+
+So media archiving needs **a browse view per actor profile listing that
+actor's archived nodes** — the place you go to find what you put away. Without
+it, archiving a post is indistinguishable from losing it.
+
+The read filter built for actors is the same predicate media will need
+(`owner.archived_at IS NULL`, derived rather than copied — see above), so the
+second pass is the browse view plus the per-node control, not a rework.
 
 ---
 

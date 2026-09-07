@@ -55,6 +55,10 @@ func userColumns() []string {
 		"COALESCE(totp_last_verified_at, NOW()) AS totp_last_verified_at",
 		"COALESCE(totp_secret, '') AS totp_secret",
 		"nodes.deleted_at",
+		// Nullable and scanned into a pointer, exactly as deleted_at is.
+		// Archiving does not clear `enabled` — that column means one thing now
+		// — so login has to ask this question separately.
+		"nodes.archived_at",
 	}
 }
 
@@ -93,6 +97,7 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		&item.TotpLastVerifiedAt,
 		&item.TotpSecret,
 		&item.DeletedAt,
+		&item.ArchivedAt,
 	); err != nil {
 		return nil, err
 	}

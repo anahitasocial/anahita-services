@@ -31,6 +31,22 @@ type ActorsGRPCInterface interface {
 	// people and groups are both actors, so the family filter alone is not enough.
 	ReadOfType(id int64, nodeType string, viewer *entities.Viewer) (*entities.AnahitaNode, error)
 
+	// ReadDeletionCounts totals what deleting this actor would take with it,
+	// for the confirmation dialog.
+	ReadDeletionCounts(id int64, viewer *entities.Viewer) (*graphpb.ActorDeletionCountsResponse, error)
+
+	// Archive marks an actor archived. Permanent; destroys nothing.
+	Archive(id int64, viewer *entities.Viewer) (bool, error)
+
+	// SetEnabled turns an actor on or off. Reversible.
+	SetEnabled(id int64, enabled bool, viewer *entities.Viewer) (bool, error)
+
+	// Purge destroys an actor immediately, skipping the grace period.
+	//
+	// SUPER ADMINISTRATORS ONLY, and the caller enforces that — graph-grpc has
+	// no notion of a usertype. Nothing about this is reversible.
+	Purge(id int64, viewer *entities.Viewer) (bool, error)
+
 	// BatchRead returns a list of media
 	BatchRead(req *ActorGRPCBatchReadRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
 
@@ -341,4 +357,118 @@ func (srv *ActorsGRPC) Delete(id int64, viewer *entities.Viewer) error {
 	}
 
 	return nil
+}
+
+// ReadDeletionCounts totals what deleting this actor would take with it.
+//
+// Returns the protobuf response rather than mapping it into an entity: every
+// field is a number destined for a dialog, and an intermediate type would be a
+// copy of this one under a different name.
+func (srv *ActorsGRPC) ReadDeletionCounts(id int64, viewer *entities.Viewer) (*graphpb.ActorDeletionCountsResponse, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+
+	if client == nil {
+		return nil, nil
+	}
+
+	return client.DeletionCounts(context.Background(), &graphpb.ActorDeletionCountsRequest{
+		Id: id,
+		Viewer: &graphpb.Viewer{
+			Id:       viewer.ID,
+			UserType: viewer.UserType,
+			Email:    viewer.Email,
+			Username: viewer.Username,
+		},
+	})
+}
+
+// Purge destroys an actor immediately, skipping the grace period.
+//
+// Returns false when there was nothing to purge, so a caller can tell that
+// from success. The authority check belongs to the caller; see the interface.
+func (srv *ActorsGRPC) Purge(id int64, viewer *entities.Viewer) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.Purge(context.Background(), &graphpb.ActorPurgeRequest{
+		Id: id,
+		Viewer: &graphpb.Viewer{
+			Id:       viewer.ID,
+			UserType: viewer.UserType,
+			Email:    viewer.Email,
+			Username: viewer.Username,
+		},
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return resp.Purged, nil
+}
+
+// Archive marks an actor archived. Permanent; destroys nothing.
+func (srv *ActorsGRPC) Archive(id int64, viewer *entities.Viewer) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.Archive(context.Background(), &graphpb.ActorArchiveRequest{
+		Id:     id,
+		Viewer: viewerToGrpc(viewer),
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return resp.Archived, nil
+}
+
+// SetEnabled turns an actor on or off. Reversible.
+func (srv *ActorsGRPC) SetEnabled(id int64, enabled bool, viewer *entities.Viewer) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.SetEnabled(context.Background(), &graphpb.ActorSetEnabledRequest{
+		Id:      id,
+		Enabled: enabled,
+		Viewer:  viewerToGrpc(viewer),
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return resp.Changed, nil
+}
+
+// viewerToGrpc maps a viewer for the actor RPCs.
+//
+// The four fields every one of them sends, in one place — they were repeated
+// inline at each call site, which is how one of them came to omit a field.
+func viewerToGrpc(viewer *entities.Viewer) *graphpb.Viewer {
+	if viewer == nil {
+		return &graphpb.Viewer{}
+	}
+	return &graphpb.Viewer{
+		Id:       viewer.ID,
+		UserType: viewer.UserType,
+		Email:    viewer.Email,
+		Username: viewer.Username,
+	}
 }

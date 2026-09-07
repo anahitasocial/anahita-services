@@ -1,6 +1,7 @@
 package main
 
 import (
+	"anahita-libs/sessions"
 	"fmt"
 	"log"
 	"net/http"
@@ -80,6 +81,7 @@ func main() {
 		Srv:       services.NewServices(config),
 		Perms:     permissions.NewPermissions(),
 		Publisher: publisher,
+		Session:   stepUpStore(config),
 	}
 	h := handlers.NewHandlers(hEnv)
 
@@ -96,4 +98,20 @@ func main() {
 	if err != nil {
 		e.Logger.Fatal(err)
 	}
+}
+
+// stepUpStore connects to Redis for the step-up marker, or returns nil.
+//
+// nil is a working state: group-service serves groups without it, and
+// refusing to start would take the service down over one guard. requireStepUp
+// treats nil as "cannot verify" and refuses the guarded action, so losing
+// Redis costs deletions rather than silently unguarding them.
+func stepUpStore(cfg *config.Config) sessions.KeyValueInterface {
+	store, err := sessions.NewKeyValueStore(cfg)
+	if err != nil {
+		log.Printf("step-up: no Redis (%v) — group deletion will be refused "+
+			"until it is reachable", err)
+		return nil
+	}
+	return store
 }

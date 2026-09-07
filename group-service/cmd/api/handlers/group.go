@@ -9,6 +9,7 @@ import (
 	"group/constants"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gosimple/slug"
 	"github.com/labstack/echo/v4"
@@ -425,15 +426,288 @@ func (h *groupHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
+	// Prove it, don't just be signed in.
+	//
+	// Deleting a group takes a shared space away from everybody in it, and
+	// takes their posts with it when the grace period ends. That it belongs to
+	// several people is the argument FOR the gate rather than against: the
+	// person clicking is spending other people's content, not only their own.
+	//
+	// Keyed on the viewer — the administrator doing it is who has to prove it.
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("group delete:", err)
+		return stepUpRefusal(c, err)
+	}
+
 	if err = h.Srv.ActorsGRPC.Delete(actor.ID, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// One proof authorises one deletion.
+	h.clearStepUp(viewer.ID)
+
 	return c.NoContent(http.StatusOK)
 }
 
 // onAfterFetched is called after a group is fetched
+// Archive marks a group archived. Permanent, and destroys nothing.
+//
+//	POST /groups/:id/archive
+//
+// For a group whose project has ended. Its posts stay readable at their URLs
+// forever; what stops is the group being live — it leaves feeds, suggestions
+// AND search, which a person's archive does not. That difference is the whole
+// reason the search rule is type-aware: a finished group should stop competing
+// with live spaces, while a memorial must stay findable.
+//
+// A group administrator may do this, unlike the hard delete. It destroys
+// nothing, so the group's own administrators are the right people to decide it
+// is finished — and unlike deletion there is no thirty-day window to change
+// their mind in, which is what the step-up and the confirmation are for.
+func (h *groupHandler) Archive(c echo.Context) error {
+	var (
+		req    = requests.NewActorRequest().Delete
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	actorAccessCtx, err := h.getActorAccessContext(actor, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if ok, err := h.Perms.Groups.CanDelete(actorAccessCtx); !ok {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("group archive:", err)
+		return stepUpRefusal(c, err)
+	}
+
+	archived, err := h.Srv.ActorsGRPC.Archive(actor.ID, viewer)
+	if err != nil {
+		log.Println("group archive:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	h.clearStepUp(viewer.ID)
+
+	if !archived {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+// SetEnabled turns a group on or off. Reversible.
+//
+//	PATCH /groups/:id/enabled
+//
+// Administrators only — site administrators, not the group's. Disabling is a
+// moderation action taken against a group; archiving is what its own
+// administrators reach for when it is finished.
+func (h *groupHandler) SetEnabled(c echo.Context) error {
+	// ONE bind, into one struct carrying both the path parameter and the body.
+	//
+	// echo's Bind consumes the request body, so calling it twice leaves the
+	// second call reading nothing — the path id arrived and `enabled` was
+	// always nil, which this handler then reported as a malformed request. It
+	// refused every call, including its own correct ones.
+	var req struct {
+		ID      int64 `param:"id"      validate:"required,numeric"`
+		Enabled *bool `json:"enabled"  validate:"required"`
+	}
+
+	viewer := getViewer(c)
+
+	if err := c.Bind(&req); err != nil {
+		log.Println("group set-enabled bind:", err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if req.ID == 0 || req.Enabled == nil {
+		log.Println("group set-enabled: missing id or enabled field")
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if viewer == nil || !viewer.IsAdmin() {
+		log.Println("group set-enabled: refused, viewer is not an administrator")
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	changed, err := h.Srv.ActorsGRPC.SetEnabled(actor.ID, *req.Enabled, viewer)
+	if err != nil {
+		log.Println("group set-enabled:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if !changed {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+// Purge destroys a group immediately, skipping the grace period.
+//
+//	DELETE /groups/:id/purge
+//
+// Super administrators only. Not a group administrator, and not an ordinary
+// site administrator: a group holds other people's posts and discussions, and
+// destroying them outright is a site-cleanup power rather than a moderation
+// one. CanDelete is deliberately not consulted — it answers a broader question
+// and a group's own administrators satisfy it.
+//
+// Notifies nobody, including the group's administrators. The lifecycle mail
+// they get is for a scheduled deletion, which they can still reverse; this
+// they cannot.
+func (h *groupHandler) Purge(c echo.Context) error {
+	var (
+		req    = requests.NewActorRequest().Delete
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if viewer == nil || viewer.UserType != an_constants.UserTypeSuperAdmin {
+		log.Println("group purge: refused, viewer is not a super administrator")
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("group purge:", err)
+		return stepUpRefusal(c, err)
+	}
+
+	// Read through ReadOfType, so a medium id cannot be purged as a group.
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	purged, err := h.Srv.ActorsGRPC.Purge(actor.ID, viewer)
+	if err != nil {
+		log.Println("group purge:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	h.clearStepUp(viewer.ID)
+
+	if !purged {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+// DeletionCounts reports what deleting this group would cost.
+//
+//	GET /groups/:id/deletion-counts
+//
+// Shown in the Danger zone before the confirmation. A group holds other
+// people's content — that is what a group IS — so the figures matter more here
+// than on a personal profile: the person clicking is spending posts and
+// discussions somebody else wrote.
+//
+// Gated on the same permission as the deletion, not a weaker read permission.
+// If you may not delete the group, you may not enumerate what is in it.
+//
+// No step-up. This is a read that changes nothing, and requiring a proof to
+// see the consequences before deciding would put the friction in the wrong
+// place — somebody would authenticate to find out they did not want to.
+func (h *groupHandler) DeletionCounts(c echo.Context) error {
+	var (
+		req    = requests.NewActorRequest().Delete
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	actorAccessCtx, err := h.getActorAccessContext(actor, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if ok, err := h.Perms.Groups.CanDelete(actorAccessCtx); !ok {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	counts, err := h.Srv.ActorsGRPC.ReadDeletionCounts(actor.ID, viewer)
+	if err != nil || counts == nil {
+		log.Println("deletion counts:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	type Response struct {
+		Posts       int64  `json:"posts"`
+		Comments    int64  `json:"comments"`
+		Followers   int64  `json:"followers"`
+		Admins      int64  `json:"admins"`
+		MemberSince string `json:"member_since,omitempty"`
+	}
+
+	// "Following" and "groups administered" are omitted rather than sent as
+	// zero: a group follows nobody and administers nothing, so the fields would
+	// be permanently zero and the dialog would have to know to hide them.
+	// Better that the shape says what a group has.
+	resp := &Response{
+		Posts:     counts.Posts,
+		Comments:  counts.Comments,
+		Followers: counts.Followers,
+		Admins:    counts.Admins,
+	}
+
+	if counts.MemberSinceUnix > 0 {
+		resp.MemberSince = time.Unix(counts.MemberSinceUnix, 0).UTC().Format(time.RFC3339)
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
 func (h *groupHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode) error {
 	var (
 		err    error

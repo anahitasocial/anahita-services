@@ -160,15 +160,37 @@ func (r *socialgraphRelRepo) getRelations(actorAIDs []int64, actorBID int64) (ma
 		}
 	}
 
-	// 4) actorA has actorB as admin (HasAdmin)
+	// 4) actorB administers actorA (HasAdmin)
+	//
+	// READ THE DIRECTION CAREFULLY — it is the opposite of the three relations
+	// above, and it was wrong until 2026-09-07.
+	//
+	// An admin edge runs node_a (the administrator) -> node_b (the thing
+	// administered). Every consumer of HasAdmin asks the same question: may
+	// this VIEWER act on this ACTOR because they administer it. See
+	// permissions/actor.go, where an actor whose access is "admins" is visible
+	// when HasAdmin; permissions/medium.go and comment.go, which grant
+	// follower-level reach to administrators; and feed-service's repost rules.
+	//
+	// The query used to select node_a_id IN actorAIDs AND node_b_id = actorBID
+	// — "the ACTOR administers the VIEWER" — which is the reverse, and is a
+	// relation that essentially never exists: a group does not administer a
+	// person. So HasAdmin was false for everybody, and every permission
+	// resting on it silently failed. A group administrator could not edit or
+	// delete their own group, and admins-only content was invisible to the
+	// very people it was restricted to.
+	//
+	// The other three relations here are genuinely actorA -> actorB and are
+	// unchanged; this one is not symmetric with them, which is exactly how it
+	// came to be written the wrong way round.
 	{
 		q := sq.
-			Select("e.node_a_id AS actor_id").
+			Select("e.node_b_id AS actor_id").
 			From("edges e").
 			Where(sq.Eq{
 				"e.type":      constants.EdgeActorAdminEntityType,
-				"e.node_b_id": actorBID,
-				"e.node_a_id": actorAIDs,
+				"e.node_a_id": actorBID,
+				"e.node_b_id": actorAIDs,
 			})
 		sqlStr, args, err := q.ToSql()
 		if err != nil {

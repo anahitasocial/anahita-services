@@ -107,6 +107,104 @@ message ActorDeleteResponse {
     Node actor = 1;
 }
 
+// What a person loses by deleting their profile, in numbers.
+//
+// The Danger zone described the consequences in the abstract — "your posts
+// will be removed" — which reads as boilerplate. Naming the actual figures is
+// what makes somebody stop and think, so this exists to be shown BEFORE the
+// deletion, not to report on it afterwards.
+//
+// Counts, not a list: the point is the weight of it, and a profile with
+// thousands of posts cannot be enumerated into a dialog anyway.
+//
+// The figures describe WHAT DELETING DESTROYS, which is not the same as what
+// the actor wrote — a post made into a group is owned by the group and
+// survives; a comment somebody else left on their post does not. See the
+// repository implementation.
+message ActorDeletionCountsRequest {
+    int64 id = 1;
+    Viewer viewer = 2;
+}
+
+message ActorDeletionCountsResponse {
+    // Media authored by this actor, anywhere — their own profile and every
+    // group they posted into.
+    int64 posts = 1;
+
+    // Comments they wrote, including on other people's content. Deleting the
+    // profile takes these too, which is the part people do not expect.
+    int64 comments = 2;
+
+    // Actors following them, and actors they follow. Both directions, because
+    // losing an audience and losing a feed are different losses.
+    int64 followers = 3;
+    int64 following = 4;
+
+    // Who administers this actor. Meaningful for a group — deleting one takes
+    // a shared space away from everybody running it — and zero for a person.
+    int64 admins = 7;
+
+    // What this actor administers. The mirror of the above, read from the
+    // other end of the same edge: meaningful for a person, zero for a group.
+    // The one that most often changes somebody's mind, since a group left with
+    // no other administrator has nobody who can run it.
+    int64 groups_administered = 5;
+
+    // When they joined, so the dialog can say how long this account has been
+    // theirs. Zero when unknown rather than an epoch date.
+    int64 member_since_unix = 6;
+}
+
+// Destroy an actor and everything it owned, now, with no grace period.
+//
+// Super administrators only, and the authority check lives in the calling
+// service — graph-grpc has no notion of a usertype. What it does enforce is
+// that this is not reachable by accident: a distinct RPC rather than a flag on
+// Delete, so nothing that means "schedule for deletion" can be made to mean
+// "destroy immediately" by setting a boolean.
+message ActorPurgeRequest {
+    int64 id = 1;
+    Viewer viewer = 2;
+}
+
+message ActorPurgeResponse {
+    // False when there was nothing to purge — already gone, or never there.
+    // The caller needs to tell that from success.
+    bool purged = 1;
+}
+
+// Archive an actor. Permanent, and destroys nothing.
+//
+// There is no unarchive. Archiving is for an actor that is finished — a group
+// whose project ended, a person who has left or died — and an undo would make
+// it the soft option people reach for instead of thinking. That friction is
+// the design.
+message ActorArchiveRequest {
+    int64 id = 1;
+    Viewer viewer = 2;
+}
+
+message ActorArchiveResponse {
+    // False when there was nothing to archive: already archived, deleted, or
+    // absent. The caller needs to tell that from success.
+    bool archived = 1;
+}
+
+// Turn an actor on or off. Reversible, and the counterpart to archiving.
+//
+// Its own RPC rather than a field on Edit, because `enabled` was carrying
+// three meanings at once and this is the one that is genuinely a switch.
+message ActorSetEnabledRequest {
+    int64 id = 1;
+    bool enabled = 2;
+    Viewer viewer = 3;
+}
+
+message ActorSetEnabledResponse {
+    // False when nothing changed — already in that state, or deleted.
+    bool changed = 1;
+}
+
 message ActorPingRequest {
     string message = 1;
 }
@@ -127,5 +225,14 @@ service ActorService {
     // login; a group cannot, so its administrators restore it from the group's
     // own settings page, which is what this serves.
     rpc Restore(ActorRestoreRequest) returns (ActorRestoreResponse) {}
+    // What deleting this actor would cost, for the confirmation dialog.
+    rpc DeletionCounts(ActorDeletionCountsRequest) returns (ActorDeletionCountsResponse) {}
+    // Destroys an actor immediately, skipping the grace period. Super
+    // administrators only; the caller enforces that.
+    rpc Purge(ActorPurgeRequest) returns (ActorPurgeResponse) {}
+    // Archives an actor. Permanent; destroys nothing. No unarchive by design.
+    rpc Archive(ActorArchiveRequest) returns (ActorArchiveResponse) {}
+    // Turns an actor on or off. Reversible.
+    rpc SetEnabled(ActorSetEnabledRequest) returns (ActorSetEnabledResponse) {}
     rpc Ping(ActorPingRequest) returns (ActorPingResponse) {}
 }

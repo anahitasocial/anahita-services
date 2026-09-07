@@ -11,9 +11,12 @@ import (
 	"log"
 	"strings"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	features "graph/data/actor_features"
 	"graph/data/repositories"
 	"graph/data/validators"
+	"graph/purge"
 )
 
 type actorHandler struct {
@@ -482,6 +485,215 @@ func (h *actorHandler) Restore(ctx context.Context, req *graphpb.ActorRestoreReq
 		event.EventFormatNodeActorRestored, node, restoredBy, restoreViewerType)
 
 	return &graphpb.ActorRestoreResponse{Restored: true}, nil
+}
+
+// DeletionCounts reports what deleting this actor would cost.
+//
+// Read-only and gathered before the fact — the Danger zone shows these to
+// somebody deciding, which is the only moment they are useful.
+//
+// A missing actor yields zeroes rather than an error. The dialog can render
+// "0 posts" harmlessly, while an error would leave it with nothing to show at
+// the moment it most needs to say something.
+func (h *actorHandler) DeletionCounts(ctx context.Context, req *graphpb.ActorDeletionCountsRequest) (*graphpb.ActorDeletionCountsResponse, error) {
+	counts, err := h.env.Repos.Nodes.ReadDeletionCounts(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &graphpb.ActorDeletionCountsResponse{
+		Posts:              counts.Posts,
+		Comments:           counts.Comments,
+		Followers:          counts.Followers,
+		Following:          counts.Following,
+		Admins:             counts.Admins,
+		GroupsAdministered: counts.GroupsAdministered,
+	}
+
+	// Zero rather than the epoch when unknown, so the client can tell "we do
+	// not know when they joined" from "they joined in 1970".
+	if !counts.MemberSince.IsZero() {
+		resp.MemberSinceUnix = counts.MemberSince.Unix()
+	}
+
+	return resp, nil
+}
+
+// Purge destroys an actor and everything it owned, immediately.
+//
+// The hard delete. No grace period, no restore, nothing to undo — which is why
+// it is a separate RPC rather than a flag on Delete. A boolean on the ordinary
+// deletion would mean the difference between "recoverable for thirty days" and
+// "gone" was one field somebody could set by mistake, or a client could set by
+// default.
+//
+// AUTHORITY IS THE CALLER'S TO CHECK. graph-grpc has no notion of a usertype —
+// that lives in people_people, which this service has never read — so
+// person-service and group-service enforce super-administrator only, the same
+// way they enforce every other permission before calling here.
+//
+// It notifies nobody. The purged event exists so auth-service removes the
+// credentials, auth logs and pending tokens it still holds; it is plumbing,
+// not a message to a person. A super administrator clearing out an account is
+// not a conversation.
+//
+// What survives: the tombstone, which reserves the handle so a later account
+// cannot inherit this one's identity on a remote server, and the deletion log
+// row recording who did it. Both are deliberate — see docs/plans.
+func (h *actorHandler) Purge(ctx context.Context, req *graphpb.ActorPurgeRequest) (*graphpb.ActorPurgeResponse, error) {
+	log.Printf("Received Purge request: %v", req.Id)
+
+	// Read first, so the audit row and the event can say what was destroyed.
+	// After purge.Account runs there is nothing left to ask.
+	actor, err := h.env.Repos.Nodes.Read(req.Id)
+	if err != nil {
+		// Nothing there. Not an error: a repeated purge of something already
+		// gone is the same outcome the caller wanted.
+		log.Printf("actor purge: %d not found, nothing to purge", req.Id)
+		return &graphpb.ActorPurgeResponse{Purged: false}, nil
+	}
+
+	// Actors only. purge.Account walks owner_id and parent_id from this node,
+	// so pointing it at a medium would destroy that medium's comments and
+	// leave the actor untouched — a destructive operation doing something
+	// entirely different from its name.
+	if !strings.HasPrefix(actor.Type, constants.NodeActorPrefixEntityType) {
+		log.Printf("actor purge: %d is %q, not an actor", req.Id, actor.Type)
+		return nil, status.Errorf(codes.InvalidArgument,
+			"purge is for actors, not %s", actor.Type)
+	}
+
+	if err := purge.Account(h.env.Repos, h.env.Publisher, h.env.Files, req.Id); err != nil {
+		log.Println("actor purge:", err)
+		return nil, err
+	}
+
+	// Who did it, over the top of the row purge.Account already wrote. That
+	// one records the purge; this one records that a person chose it rather
+	// than a deadline forcing it, which is the whole distinction worth
+	// auditing about a hard delete.
+	var purgedBy int64
+	if req.Viewer != nil {
+		purgedBy = req.Viewer.Id
+	}
+	if err := h.env.Repos.NodeDeletionLogs.Add(
+		actor.ID, actor.Alias, actor.Type, purgedBy,
+		repositories.DeletionActionHardDeleted,
+	); err != nil {
+		log.Println("actor purge: audit write failed:", err)
+	}
+
+	return &graphpb.ActorPurgeResponse{Purged: true}, nil
+}
+
+// Archive marks an actor archived. Permanent, and destroys nothing.
+//
+// The content keeps its URLs and stays readable forever; what stops is being
+// pushed at people who did not ask for it, and — for a group — appearing in
+// search. See SetArchiveQuery and SetArchiveSearchQuery.
+//
+// No Unarchive RPC, deliberately. Archiving is for an actor that is finished,
+// and an undo would make it the gentle-sounding option somebody picks instead
+// of deciding.
+func (h *actorHandler) Archive(ctx context.Context, req *graphpb.ActorArchiveRequest) (*graphpb.ActorArchiveResponse, error) {
+	log.Printf("Received Archive request: %v", req.Id)
+
+	actor, err := h.env.Repos.Nodes.Read(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.HasPrefix(actor.Type, constants.NodeActorPrefixEntityType) {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"archive is for actors, not %s", actor.Type)
+	}
+
+	archived, err := h.env.Repos.Nodes.ArchiveActor(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !archived {
+		// Already archived, or deleted. Not an error — the caller wanted it
+		// archived and it is, or it is on its way out instead.
+		log.Printf("actor %d was not archived; already archived or deleted", req.Id)
+		return &graphpb.ActorArchiveResponse{Archived: false}, nil
+	}
+
+	var archivedBy int64
+	if req.Viewer != nil {
+		archivedBy = req.Viewer.Id
+	}
+
+	if err := h.env.Repos.NodeDeletionLogs.Add(
+		actor.ID, actor.Alias, actor.Type, archivedBy,
+		repositories.DeletionActionArchived,
+	); err != nil {
+		log.Println("actor archive: audit write failed:", err)
+	}
+
+	h.publishActorLifecycle(
+		event.EventFormatNodeActorArchived, actor, archivedBy, viewerUserType(req.Viewer))
+
+	return &graphpb.ActorArchiveResponse{Archived: true}, nil
+}
+
+// SetEnabled turns an actor on or off.
+//
+// The reversible one. Its own RPC rather than a field on Edit because
+// `enabled` had accumulated three meanings, and separating them is the point:
+// this is a switch an administrator flips, not a by-product of deleting.
+func (h *actorHandler) SetEnabled(ctx context.Context, req *graphpb.ActorSetEnabledRequest) (*graphpb.ActorSetEnabledResponse, error) {
+	log.Printf("Received SetEnabled request: %v -> %v", req.Id, req.Enabled)
+
+	actor, err := h.env.Repos.Nodes.Read(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.HasPrefix(actor.Type, constants.NodeActorPrefixEntityType) {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"enable/disable is for actors, not %s", actor.Type)
+	}
+
+	changed, err := h.env.Repos.Nodes.SetEnabled(req.Id, req.Enabled)
+	if err != nil {
+		return nil, err
+	}
+
+	if !changed {
+		return &graphpb.ActorSetEnabledResponse{Changed: false}, nil
+	}
+
+	var changedBy int64
+	if req.Viewer != nil {
+		changedBy = req.Viewer.Id
+	}
+
+	action := repositories.DeletionActionDisabled
+	format := event.EventFormatNodeActorDisabled
+	if req.Enabled {
+		action = repositories.DeletionActionEnabled
+		format = event.EventFormatNodeActorEnabled
+	}
+
+	if err := h.env.Repos.NodeDeletionLogs.Add(
+		actor.ID, actor.Alias, actor.Type, changedBy, action,
+	); err != nil {
+		log.Println("actor set-enabled: audit write failed:", err)
+	}
+
+	h.publishActorLifecycle(format, actor, changedBy, viewerUserType(req.Viewer))
+
+	return &graphpb.ActorSetEnabledResponse{Changed: true}, nil
+}
+
+// viewerUserType reads the type off a possibly-absent viewer.
+func viewerUserType(v *graphpb.Viewer) string {
+	if v == nil {
+		return ""
+	}
+	return v.UserType
 }
 
 // Ping return a pong message

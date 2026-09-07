@@ -334,6 +334,12 @@ ALTER TABLE nodes ADD COLUMN `quote_count` INT(11) UNSIGNED NOT NULL DEFAULT 0 A
 ALTER TABLE nodes ADD COLUMN `deleted_at` datetime DEFAULT NULL;
 ALTER TABLE nodes ADD INDEX `deleted_at` (`deleted_at`);
 
+-- nodes.archived_at, the third lifecycle state. Permanent, and unlike deletion
+-- it destroys nothing — the content keeps its URLs and stops being pushed at
+-- people. Its own column rather than a fourth meaning for `enabled`.
+ALTER TABLE nodes ADD COLUMN `archived_at` datetime DEFAULT NULL;
+ALTER TABLE nodes ADD INDEX `archived_at` (`archived_at`);
+
 -- One link on an actor profile. A migrated install has the legacy website,
 -- contact and phone values inside `meta`; they are deliberately NOT carried
 -- across — nothing in the Go stack ever read that map, so they have been

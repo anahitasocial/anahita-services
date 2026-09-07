@@ -13,6 +13,20 @@ const (
 	DeletionActionScheduled = "scheduled"
 	DeletionActionPurged    = "purged"
 	DeletionActionRestored  = "restored"
+
+	// A super administrator destroyed the account outright, skipping the grace
+	// period. Distinct from "purged", which is the sweeper acting on a
+	// deadline: the row says a person chose this, which is the part worth
+	// auditing about a hard delete. Both rows are written — one records the
+	// destruction, the other records the decision.
+	DeletionActionHardDeleted = "hard-deleted"
+
+	// The other two lifecycle transitions. The table's name is now narrower
+	// than its contents — see the note in docs/plans about renaming it to
+	// node_lifecycle_logs while it is still cheap.
+	DeletionActionArchived = "archived"
+	DeletionActionDisabled = "disabled"
+	DeletionActionEnabled  = "enabled"
 )
 
 // NodeDeletionLogsRepoInterface records who deleted what, and when.

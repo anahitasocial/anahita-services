@@ -2,6 +2,7 @@ package main
 
 import (
 	"anahita-libs/data"
+	"anahita-libs/data/services"
 	"anahita-libs/event"
 	"anahita-libs/proto/graphpb"
 	"anahita-libs/proto/typespb"
@@ -50,10 +51,21 @@ func main() {
 
 	repos := repositories.NewRepositories(conn)
 
+	// The file client, for the hard delete. Optional and nil-safe, the same
+	// way the sweeper treats it: a purge without it clears the database and
+	// leaves the uploaded objects, which beats refusing to purge.
+	var files services.FilesGRPCInterface
+	if config.GetFileServiceAddr() == "" {
+		log.Println("FILE_SERVICE_ADDR unset, purged uploads will not be deleted")
+	} else {
+		files = services.NewFilesGRPC(config)
+	}
+
 	hEnv := &handlers.Env{
 		Config:    config,
 		Repos:     repos,
 		Publisher: publisher,
+		Files:     files,
 	}
 	h := handlers.NewHandlers(hEnv)
 

@@ -610,3 +610,71 @@ func TestForgotRetiresTheEarlierLink(t *testing.T) {
 		t.Error("the new link was retired along with the old one")
 	}
 }
+
+// The reset form validates two fields and renders one message, so a truncated
+// or mangled link reported "Password must be at least 15 characters long" —
+// sending somebody back to correct the only part of the submission that was
+// already right.
+//
+// The two failures must reach different pages, and a bad link must reach the
+// one that offers a fresh link rather than a form whose hidden field is the
+// fault.
+func TestResetTellsALinkProblemFromAPasswordProblem(t *testing.T) {
+	serviceRoot(t)
+	e := newTestEcho()
+
+	longEnough := strings.Repeat("a", passwordResetTokenLength)
+
+	cases := []struct {
+		name        string
+		token       string
+		password    string
+		wantContain string
+		wantAbsent  string
+	}{
+		{
+			name:        "short password, good-shaped token",
+			token:       longEnough,
+			password:    "short",
+			wantContain: "Password must be at least",
+			wantAbsent:  "request a new one",
+		},
+		{
+			name:        "truncated token, good password",
+			token:       "too-short",
+			password:    "a perfectly acceptable password",
+			wantContain: "not valid",
+			wantAbsent:  "Password must be at least",
+		},
+		{
+			name:        "empty token",
+			token:       "",
+			password:    "a perfectly acceptable password",
+			wantContain: "not valid",
+			wantAbsent:  "Password must be at least",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			env := newTestEnv()
+			c, rec := postForm(e, "/password/reset", url.Values{
+				"token":    {tc.token},
+				"password": {tc.password},
+			})
+
+			if err := newPasswordHandler(env.Env).Reset(c); err != nil {
+				t.Fatalf("Reset: %v", err)
+			}
+
+			body := rec.Body.String()
+			if !strings.Contains(body, tc.wantContain) {
+				t.Errorf("page does not mention %q", tc.wantContain)
+			}
+			if strings.Contains(body, tc.wantAbsent) {
+				t.Errorf("page mentions %q, which is the other failure",
+					tc.wantAbsent)
+			}
+		})
+	}
+}
