@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/data/services"
 	"anahita-libs/event"
 	"graph/config"
 	"graph/data/repositories"
@@ -10,6 +11,12 @@ type Env struct {
 	Config    *config.Config
 	Publisher *event.Publisher
 	Repos     *repositories.Repositories
+
+	// Files deletes uploaded avatars, covers and photos when an actor is
+	// purged. Optional, exactly as it is for the sweeper: without
+	// FILE_SERVICE_ADDR the purge still clears the database and leaves the
+	// objects, which is better than refusing to purge at all.
+	Files services.FilesGRPCInterface
 }
 
 type Handlers struct {

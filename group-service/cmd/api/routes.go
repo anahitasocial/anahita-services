@@ -37,6 +37,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	// What the deletion would cost, for the Danger zone. Same permission as
 	// the deletion itself — see the handler.
 	groups.GET("/:id/deletion-counts", r.handler.Group.DeletionCounts, r.authorize)
+	// Hard delete. Super administrators only — enforced in the handler.
+	groups.DELETE("/:id/purge", r.handler.Group.Purge, r.authorize)
 	// Undo, within the grace period. Groups cannot sign in, so this is their
 	// equivalent of the person restore-at-login path.
 	groups.POST("/:id/restore", r.handler.Group.Restore, r.authorize)

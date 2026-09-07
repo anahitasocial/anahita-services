@@ -13,6 +13,13 @@ const (
 	DeletionActionScheduled = "scheduled"
 	DeletionActionPurged    = "purged"
 	DeletionActionRestored  = "restored"
+
+	// A super administrator destroyed the account outright, skipping the grace
+	// period. Distinct from "purged", which is the sweeper acting on a
+	// deadline: the row says a person chose this, which is the part worth
+	// auditing about a hard delete. Both rows are written — one records the
+	// destruction, the other records the decision.
+	DeletionActionHardDeleted = "hard-deleted"
 )
 
 // NodeDeletionLogsRepoInterface records who deleted what, and when.

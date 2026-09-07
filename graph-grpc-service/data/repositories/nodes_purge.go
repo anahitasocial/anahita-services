@@ -122,6 +122,17 @@ JOIN content c ON n.id = c.id;
 
 // TombstoneActor strips an actor node down to an identity marker.
 //
+// It named three columns that do not exist on `nodes` — actor_gender,
+// permissions and enabled_optional_features — so the UPDATE failed with
+// "Unknown column" every time. That was invisible until something actually
+// purged an account: PurgeActorContent runs FIRST and succeeds, so the failure
+// left content destroyed, no tombstone written, and the row still flagged
+// deleted — back in the sweeper's queue to fail again on the next run, forever.
+//
+// Nothing had ever purged anything, so nothing had ever run it. Gender lives on
+// people_people, not here; the other two appear to be from a schema this was
+// ported from.
+//
 // What survives: the id, the alias, the type, and deleted_at. What goes: the
 // name, body, excerpt, status, avatar and cover filenames, geo fields, meta,
 // website_url,
@@ -167,9 +178,6 @@ SET
   geo_state_province = NULL,
   geo_country = NULL,
   geo_postalcode = NULL,
-  actor_gender = NULL,
-  permissions = NULL,
-  enabled_optional_features = NULL,
   comment_count = 0,
   repost_count = 0,
   quote_count = 0,

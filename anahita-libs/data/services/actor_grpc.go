@@ -35,6 +35,12 @@ type ActorsGRPCInterface interface {
 	// for the confirmation dialog.
 	ReadDeletionCounts(id int64, viewer *entities.Viewer) (*graphpb.ActorDeletionCountsResponse, error)
 
+	// Purge destroys an actor immediately, skipping the grace period.
+	//
+	// SUPER ADMINISTRATORS ONLY, and the caller enforces that — graph-grpc has
+	// no notion of a usertype. Nothing about this is reversible.
+	Purge(id int64, viewer *entities.Viewer) (bool, error)
+
 	// BatchRead returns a list of media
 	BatchRead(req *ActorGRPCBatchReadRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
 
@@ -371,4 +377,33 @@ func (srv *ActorsGRPC) ReadDeletionCounts(id int64, viewer *entities.Viewer) (*g
 			Username: viewer.Username,
 		},
 	})
+}
+
+// Purge destroys an actor immediately, skipping the grace period.
+//
+// Returns false when there was nothing to purge, so a caller can tell that
+// from success. The authority check belongs to the caller; see the interface.
+func (srv *ActorsGRPC) Purge(id int64, viewer *entities.Viewer) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.Purge(context.Background(), &graphpb.ActorPurgeRequest{
+		Id: id,
+		Viewer: &graphpb.Viewer{
+			Id:       viewer.ID,
+			UserType: viewer.UserType,
+			Email:    viewer.Email,
+			Username: viewer.Username,
+		},
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return resp.Purged, nil
 }

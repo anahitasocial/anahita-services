@@ -11,9 +11,12 @@ import (
 	"log"
 	"strings"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	features "graph/data/actor_features"
 	"graph/data/repositories"
 	"graph/data/validators"
+	"graph/purge"
 )
 
 type actorHandler struct {
@@ -514,6 +517,73 @@ func (h *actorHandler) DeletionCounts(ctx context.Context, req *graphpb.ActorDel
 	}
 
 	return resp, nil
+}
+
+// Purge destroys an actor and everything it owned, immediately.
+//
+// The hard delete. No grace period, no restore, nothing to undo — which is why
+// it is a separate RPC rather than a flag on Delete. A boolean on the ordinary
+// deletion would mean the difference between "recoverable for thirty days" and
+// "gone" was one field somebody could set by mistake, or a client could set by
+// default.
+//
+// AUTHORITY IS THE CALLER'S TO CHECK. graph-grpc has no notion of a usertype —
+// that lives in people_people, which this service has never read — so
+// person-service and group-service enforce super-administrator only, the same
+// way they enforce every other permission before calling here.
+//
+// It notifies nobody. The purged event exists so auth-service removes the
+// credentials, auth logs and pending tokens it still holds; it is plumbing,
+// not a message to a person. A super administrator clearing out an account is
+// not a conversation.
+//
+// What survives: the tombstone, which reserves the handle so a later account
+// cannot inherit this one's identity on a remote server, and the deletion log
+// row recording who did it. Both are deliberate — see docs/plans.
+func (h *actorHandler) Purge(ctx context.Context, req *graphpb.ActorPurgeRequest) (*graphpb.ActorPurgeResponse, error) {
+	log.Printf("Received Purge request: %v", req.Id)
+
+	// Read first, so the audit row and the event can say what was destroyed.
+	// After purge.Account runs there is nothing left to ask.
+	actor, err := h.env.Repos.Nodes.Read(req.Id)
+	if err != nil {
+		// Nothing there. Not an error: a repeated purge of something already
+		// gone is the same outcome the caller wanted.
+		log.Printf("actor purge: %d not found, nothing to purge", req.Id)
+		return &graphpb.ActorPurgeResponse{Purged: false}, nil
+	}
+
+	// Actors only. purge.Account walks owner_id and parent_id from this node,
+	// so pointing it at a medium would destroy that medium's comments and
+	// leave the actor untouched — a destructive operation doing something
+	// entirely different from its name.
+	if !strings.HasPrefix(actor.Type, constants.NodeActorPrefixEntityType) {
+		log.Printf("actor purge: %d is %q, not an actor", req.Id, actor.Type)
+		return nil, status.Errorf(codes.InvalidArgument,
+			"purge is for actors, not %s", actor.Type)
+	}
+
+	if err := purge.Account(h.env.Repos, h.env.Publisher, h.env.Files, req.Id); err != nil {
+		log.Println("actor purge:", err)
+		return nil, err
+	}
+
+	// Who did it, over the top of the row purge.Account already wrote. That
+	// one records the purge; this one records that a person chose it rather
+	// than a deadline forcing it, which is the whole distinction worth
+	// auditing about a hard delete.
+	var purgedBy int64
+	if req.Viewer != nil {
+		purgedBy = req.Viewer.Id
+	}
+	if err := h.env.Repos.NodeDeletionLogs.Add(
+		actor.ID, actor.Alias, actor.Type, purgedBy,
+		repositories.DeletionActionHardDeleted,
+	); err != nil {
+		log.Println("actor purge: audit write failed:", err)
+	}
+
+	return &graphpb.ActorPurgeResponse{Purged: true}, nil
 }
 
 // Ping return a pong message

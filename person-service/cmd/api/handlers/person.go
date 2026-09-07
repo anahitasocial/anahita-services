@@ -382,6 +382,94 @@ func (h *personHandler) Delete(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// Purge destroys a profile immediately, skipping the grace period.
+//
+//	DELETE /people/:id/purge
+//
+// The hard delete, for site cleanup — clearing out stale and abandoned
+// accounts. Super administrators only, and unlike every other permission in
+// this service that check is written here rather than in CanDelete: CanDelete
+// answers "may this caller remove this profile", which an ordinary
+// administrator and the owner both may. This asks something narrower, and
+// conflating them would let either of them reach it.
+//
+// A separate route from DELETE /people/:id for the same reason the RPC is
+// separate from Delete — the difference between "recoverable for thirty days"
+// and "gone" should not be a parameter.
+//
+// Notifies nobody. See docs/plans: a super administrator clearing out an
+// account is not a conversation, and the grace-period notification is for
+// people who might still act on it.
+func (h *personHandler) Purge(c echo.Context) error {
+	var (
+		req    = requests.NewPersonRequest().Delete
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	// Super administrators only. Not IsAdmin — an ordinary administrator may
+	// schedule a deletion, which is recoverable; this is not.
+	if viewer == nil || viewer.UserType != constants.UserTypeSuperAdmin {
+		log.Println("person purge: refused, viewer is not a super administrator")
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	// Prove it. The heaviest action in the system gets the same gate as the
+	// reversible one, which is the floor rather than the ceiling.
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("person purge:", err)
+		return stepUpRefusal(c, err)
+	}
+
+	person, err := h.Repos.People.ReadByID(req.ID)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	// The same floor deletion has, and for the same reason — more so, since
+	// there is no thirty-day window to notice the mistake in.
+	if person.UserType == constants.UserTypeSuperAdmin {
+		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
+		if err != nil {
+			log.Println("person purge: super administrator count failed:", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if others == 0 {
+			log.Printf("person purge: refused, %d is the last super administrator",
+				person.ID)
+			return c.JSON(http.StatusConflict, map[string]string{
+				"error": "last_super_administrator",
+				"message": "This is the only super administrator. Promote " +
+					"someone else before destroying this account.",
+			})
+		}
+	}
+
+	purged, err := h.Srv.ActorsGRPC.Purge(person.ID, viewer)
+	if err != nil {
+		log.Println("person purge:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	h.clearStepUp(viewer.ID)
+
+	if !purged {
+		// Nothing there to destroy. The caller wanted it gone and it is.
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
 // DeletionCounts reports what deleting this profile would cost.
 //
 //	GET /people/:id/deletion-counts

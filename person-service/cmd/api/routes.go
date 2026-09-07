@@ -42,6 +42,10 @@ func (r *Routes) Init(e *echo.Echo) {
 	// What the deletion would cost, for the Danger zone. Same permission as
 	// the deletion itself — see the handler.
 	people.GET("/:id/deletion-counts", r.handler.Person.DeletionCounts, r.authorize)
+	// Hard delete. A separate route from DELETE /people/:id because the
+	// difference between recoverable and gone should not be a parameter.
+	// Super administrators only — enforced in the handler.
+	people.DELETE("/:id/purge", r.handler.Person.Purge, r.authorize)
 
 	// Edit access
 	people.PATCH("/:id/access", r.handler.Person.EditAccess, r.authorize)

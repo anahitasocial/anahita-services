@@ -1,4 +1,4 @@
-package sweeper
+package purge
 
 import (
 	"strings"
