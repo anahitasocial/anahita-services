@@ -355,6 +355,58 @@ only that it was refused.
 
 ---
 
+## 1c. Registration — after phases 3 and 4
+
+Not to be built yet; sequenced after the remaining phases. Recorded here
+because it was found and fixed on 2026-09-07 and then **reverted as out of
+sequence** — the work is verified and one command away.
+
+    git cherry-pick a6a181f
+
+### Nobody can create an account, and never could
+
+Found by accident: a control test in the deletion work signed up with a free
+email address and got a 500. Every person in the database arrived through the
+legacy import, which is consistent with registration having never worked
+against a MySQL running `NO_ZERO_DATE` and `STRICT_TRANS_TABLES`.
+
+Three missing values, each hidden behind the one before, so fixing one only
+reveals the next:
+
+1. **`created_on` and `modified_on` are the zero time.** `NewAnahitaNode`
+   leaves them unset and `signup.go` never assigns them, so the INSERT sends
+   `'0000-00-00'`.
+2. **`access` is NOT NULL with no default and the INSERT does not name it.**
+3. **`last_visit_date` is sent as a zero date.** The column is nullable
+   precisely so it can say "never", which 19 existing accounts do.
+
+And a fourth behind those: **signup leaves `enabled` false**, so the account
+would exist and be unable to sign in. `invite_accept.go` sets both `Enabled`
+and `CreationTime`; signup was simply never finished.
+
+### Where each fix belongs, when the time comes
+
+Worth writing down, because the reverted commit made a deliberate split:
+
+- **Timestamps and `access` in `Users.Add`.** That is the layer that knows the
+  columns are NOT NULL and that the zero time is not a date. A third caller
+  would otherwise inherit the same failure, and it is not visible from reading
+  a handler. Only filled when unset, so invite acceptance keeps its own.
+- **`enabled` in the handler.** A false there is indistinguishable from a
+  deliberate one, so the repository must not guess.
+- **`last_visit_date` as NULL.** The write half of what `scanUser` already does
+  reading back — a nullable timestamp in both directions.
+
+### The open product question
+
+**Should a new account start enabled, or disabled pending email verification?**
+The reverted fix set it enabled, matching invite acceptance, which is what makes
+the flow work at all. But `people_people.activation_code` exists and is unused,
+which suggests verification was once intended. That is a decision, not a bug,
+and it belongs with this work rather than before it.
+
+---
+
 ## 2. Hard delete for super administrators
 
 Requested. A cleanup path that skips the 30-day window and purges immediately —
