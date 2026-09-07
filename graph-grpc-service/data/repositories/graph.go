@@ -73,10 +73,15 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 			query = query.OrderBy("(COALESCE(node.repost_count,0) + COALESCE(node.comment_count,0) + COALESCE(node.vote_up_count,0) + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0)) DESC")
 		} else if req.Ordering == constants.OrderingRecent {
 			query = query.OrderBy("node.created_on DESC")
-		} else if req.OrderingDir == constants.DirAsc {
-			query = query.OrderBy(req.Ordering + " ASC")
-		} else {
-			query = query.OrderBy(req.Ordering + " DESC")
+		} else if column := safeOrderColumn(req.Ordering); column != "" {
+			// Checked here as well as at the API boundary: ORDER BY is
+			// concatenated, and gRPC callers never passed through that
+			// boundary. See ordering.go.
+			if req.OrderingDir == constants.DirAsc {
+				query = query.OrderBy(column + " ASC")
+			} else {
+				query = query.OrderBy(column + " DESC")
+			}
 		}
 	}
 

@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"anahita-libs/data/entities"
-	"fmt"
 	"graph/requests"
 	"graph/responses"
 	"strings"
@@ -71,10 +70,20 @@ func (r *nodesRepo) ReadByAlias(req *requests.NodeReadByAliasRequest) (*entities
 func (r *nodesRepo) BatchRead(req *requests.NodeBatchReadRequest) ([]*entities.AnahitaNode, error) {
 	query := GetBaseSelectQuery().Where(sq.Eq{"node.id": req.IDs})
 
-	// Create ORDER BY clause to maintain the same order as the input IDs
-	idStrings := strings.Fields(strings.Trim(fmt.Sprint(req.IDs), "[]"))
-	fieldClause := "FIELD(node.id, " + strings.Join(idStrings, ", ") + ")"
-	query = query.OrderBy(fieldClause)
+	// Order the results the way the caller asked for them. These are int64s
+	// rather than strings, so the old formatting round-trip through
+	// fmt.Sprint was not injectable — but placeholders make that true by
+	// construction rather than by the element type.
+	if len(req.IDs) > 0 {
+		placeholders := make([]string, len(req.IDs))
+		args := make([]interface{}, len(req.IDs))
+		for i, id := range req.IDs {
+			placeholders[i] = "?"
+			args[i] = id
+		}
+		fieldClause := "FIELD(node.id, " + strings.Join(placeholders, ", ") + ")"
+		query = query.OrderByClause(fieldClause, args...)
+	}
 
 	return FetchNodes(r.db, query)
 }
@@ -83,13 +92,25 @@ func (r *nodesRepo) BatchRead(req *requests.NodeBatchReadRequest) ([]*entities.A
 func (r *nodesRepo) BatchReadByAliases(req *requests.NodeBatchReadByAliasesRequest) ([]*entities.AnahitaNode, error) {
 	query := GetBaseSelectQuery().Where(sq.Eq{"node.alias": req.Aliases}).Where(sq.Eq{"node.type": req.NodeType})
 
-	// Create ORDER BY clause to maintain the same order as the input aliases
-	aliasStrings := make([]string, len(req.Aliases))
-	for i, alias := range req.Aliases {
-		aliasStrings[i] = "'" + alias + "'"
+	// Order the results the way the caller asked for them, via placeholders.
+	//
+	// This used to build the FIELD() list by wrapping each alias in single
+	// quotes and concatenating. An alias containing a quote would have closed
+	// the string and continued the statement. No caller can reach it with one
+	// today — the only one is hashtag-service, whose aliases come out of
+	// HashtagRegexPattern and so can only hold word characters and emoji — but
+	// that is a property of one regex in another repository, not of this
+	// function, and nothing here would fail if it changed.
+	if len(req.Aliases) > 0 {
+		placeholders := make([]string, len(req.Aliases))
+		args := make([]interface{}, len(req.Aliases))
+		for i, alias := range req.Aliases {
+			placeholders[i] = "?"
+			args[i] = alias
+		}
+		fieldClause := "FIELD(node.alias, " + strings.Join(placeholders, ", ") + ")"
+		query = query.OrderByClause(fieldClause, args...)
 	}
-	fieldClause := "FIELD(node.alias, " + strings.Join(aliasStrings, ", ") + ")"
-	query = query.OrderBy(fieldClause)
 
 	return FetchNodes(r.db, query)
 }

@@ -58,8 +58,8 @@ func (r *edgesRepo) Browse(req *requests.EdgeBrowseRequest) ([]*entities.Anahita
 		query = query.Offset(uint64(req.Offset))
 	}
 
-	if req.Ordering != "" {
-		query = query.OrderBy(req.Ordering)
+	if column := safeOrderColumn(req.Ordering); column != "" {
+		query = query.OrderBy(column)
 	}
 
 	sqlQuery, args, err := query.ToSql()

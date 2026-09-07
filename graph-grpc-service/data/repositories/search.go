@@ -96,11 +96,14 @@ func (repo *SearchRepo) Count(req *graphpb.SearchCountRequest, viewer *entities.
 	query = repo.getScopeQuery(query, req.Scope, req.IncludeComments)
 	query = SetSearchAccessQuery(query, viewer, req.IncludeComments)
 
-	if req.Keywords != "" {
+	// Strip LIKE metacharacters, as the node browse does. Without this a
+	// search for "%" matches every row. Count and Browse must sanitise
+	// identically or the total describes a different set than the rows.
+	if keywords := sanitizeSearchString(req.Keywords); keywords != "" {
 		query = query.Where(sq.Or{
-			sq.Like{"node.name": "%" + req.Keywords + "%"},
-			sq.Like{"node.alias": "%" + req.Keywords + "%"},
-			sq.Like{"node.body": "%" + req.Keywords + "%"},
+			sq.Like{"node.name": "%" + keywords + "%"},
+			sq.Like{"node.alias": "%" + keywords + "%"},
+			sq.Like{"node.body": "%" + keywords + "%"},
 		})
 	}
 
@@ -129,11 +132,14 @@ func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entitie
 	query = repo.getScopeQuery(query, req.Scope, req.IncludeComments)
 	query = SetSearchAccessQuery(query, viewer, req.IncludeComments)
 
-	if req.Keywords != "" {
+	// Strip LIKE metacharacters, as the node browse does. Without this a
+	// search for "%" matches every row. Count and Browse must sanitise
+	// identically or the total describes a different set than the rows.
+	if keywords := sanitizeSearchString(req.Keywords); keywords != "" {
 		query = query.Where(sq.Or{
-			sq.Like{"node.name": "%" + req.Keywords + "%"},
-			sq.Like{"node.alias": "%" + req.Keywords + "%"},
-			sq.Like{"node.body": "%" + req.Keywords + "%"},
+			sq.Like{"node.name": "%" + keywords + "%"},
+			sq.Like{"node.alias": "%" + keywords + "%"},
+			sq.Like{"node.body": "%" + keywords + "%"},
 		})
 	}
 

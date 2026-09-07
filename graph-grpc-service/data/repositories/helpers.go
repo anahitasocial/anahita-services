@@ -11,11 +11,24 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-// sanitizeSearchString
+// sanitizeSearchString strips the characters that mean something to LIKE.
+//
+// The search term itself is always bound, so this is not about SQL injection —
+// it is about pattern injection. Inside "%term%", a "%" the searcher typed is
+// a second wildcard and a "_" matches any single character, so searching for
+// "%" returns the whole table and "_" matches everything of the right length.
+// Against a text column that is also a cheap way to make the database do a
+// great deal of work for one request.
+//
+// The backslash goes too, and that one is easy to miss: it is MySQL's default
+// LIKE escape character, so a term ending in one escapes the closing "%" of
+// the pattern the caller wrapped around it. "abc\" becomes "%abc\%", which
+// looks for a literal percent sign and matches nothing.
 func sanitizeSearchString(s string) string {
 	s = strings.TrimSpace(s)
 	s = strings.ReplaceAll(s, "%", "")
 	s = strings.ReplaceAll(s, "_", "")
+	s = strings.ReplaceAll(s, "\\", "")
 	return s
 }
 
