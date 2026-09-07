@@ -454,6 +454,35 @@ while the table is still unshipped, not cheap afterwards.
 
 ---
 
+## The email and handle stay reserved, forever
+
+**Confirmed 2026-09-07, and it already holds** — recorded because it is a
+property that is easy to break later without noticing.
+
+An archived person cannot sign in, and nobody else may take their address:
+
+- Archiving writes `nodes.archived_at` and nothing else. It never touches
+  `people_people`, so the credentials row — which holds the email and the
+  username — survives intact.
+- `Users.IsEmail` and `IsUsername` count that table with no filter at all, so
+  both answer "taken" for an archived account exactly as they do for a live
+  one.
+- Nothing sweeps archived rows. Deletion has a thirty-day sweeper; archive has
+  no equivalent and should not get one.
+
+So the reservation is permanent, which is stronger than the deletion case,
+where the credentials row goes when the grace period expires and the address
+becomes available again.
+
+**This matters when signup and invite acceptance are built.** Both check
+`IsEmail` before creating an account, so both already refuse an archived
+person's address. The thing to avoid is a later job that "tidies up" archived
+accounts by removing their `people_people` rows: it would free the address of
+somebody who deliberately left, and a new account could then receive mail meant
+for them and inherit a handle people still associate with them.
+
+---
+
 ## Scope — actors first, media later
 
 **Decided 2026-09-07.** Archive is being built for ACTORS only.
