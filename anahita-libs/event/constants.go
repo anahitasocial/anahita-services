@@ -25,6 +25,14 @@ const (
 	// restorable; purged removes what is left of it and cannot be undone.
 	EventFormatNodeActorPurged = "node.actor.%s.%s.purged.v1"
 
+	// Restored is the third outcome of a deletion: the grace period ended in
+	// the account coming back rather than being purged.
+	//
+	// A consumer that reacted to "deleted" needs this to undo whatever it did.
+	// Without it the only way to notice a restore is to poll, and anything
+	// that revoked access on the way down stays revoked on the way up.
+	EventFormatNodeActorRestored = "node.actor.%s.%s.restored.v1"
+
 	EventFormatNodeMediumAdded   = "node.medium.%s.%s.added.v1"
 	EventFormatNodeMediumEdited  = "node.medium.%s.%s.edited.v1"
 	EventFormatNodeMediumDeleted = "node.medium.%s.%s.deleted.v1"

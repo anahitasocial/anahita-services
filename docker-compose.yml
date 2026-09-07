@@ -90,6 +90,9 @@ services:
       TOTP_ISSUER: ${TOTP_ISSUER:-}
       MAIL_SERVICE_ADDR: "mail-grpc-service:50051"
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      # Only for resolving who administers a group, so a group deletion can
+      # be reported to the people responsible for it. Optional.
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       AMQP_ADDR: ${AMQP_ADDR}
       # OAUTH
       OAUTH_ISSUER: ${OAUTH_ISSUER}

@@ -45,13 +45,9 @@ plan added two more gates:
 - **Consequence counts.** Name what is actually lost — posts, comments,
   followers, memberships, member since — from a new count endpoint, rather than
   describing it in the abstract. This is the piece that makes people stop.
-- **Step-up before deleting.** `/reauth/*` and the `StepUp` container already
-  exist and are used by the password, email, username and 2FA-disable flows.
-  Deletion is the only credential-grade action still gated on nothing but a
-  session — a stolen unlocked laptop currently deletes a profile.
-- **Email confirmation link**, modelled on `email_change.go`. Was chosen at
-  planning time; worth revisiting now that a 30-day window already makes the
-  action reversible.
+- **Step-up before deleting.** Confirmed and scoped in section 1b below.
+- ~~Email confirmation link~~ — considered and dropped, see section 1b. The
+  grace period already provides what it would buy.
 
 ### Phase 3 — admin tiering **[react]** + **[services]**
 
@@ -137,11 +133,158 @@ bodies, which are strings.
 
 ---
 
+## 1b. Deletion needs a step-up, and a floor on super administrators
+
+Both confirmed for the next session, 2026-09-07. Taking them together because
+one of them turns out to be the answer to the other.
+
+### Step-up before deleting — passkey, or password plus passcode
+
+Deleting a profile is **the only credential-grade action still gated on
+nothing but a session.** Password change, email change, username change and
+2FA-disable all pass through `/reauth/*`; deletion does not. `CanDelete` in
+`anahita-libs/cmd/api/permissions/actor.go:120` checks scope, then admin, then
+self, then group-admin — and never asks the caller to prove anything.
+
+So a stolen laptop with an unlocked browser deletes a profile today.
+
+The machinery all exists and is used by four other flows:
+
+- `/reauth/password` — password, plus a TOTP passcode when the account has one
+- `/reauth/passkey/*` — a passkey on its own
+- `requireStepUp` / `clearStepUp` on the handler side
+- the `StepUp` container on the React side
+
+So this is wiring rather than building: call `requireStepUp` in the delete
+handlers, return the reauth status, and put the `StepUp` container in front of
+the Danger zone card the way the password card already does. One step-up
+authorises one deletion — `clearStepUp` afterwards, matching `Password.Edit`.
+
+**Email verification as a third route was considered and is NOT recommended
+here.** The mail-link pattern exists (`email_change.go`) and suits an email
+change, where the mailbox is the thing being moved and therefore the thing
+that must approve. Deletion is different: it is already reversible for 30
+days, and the person is already signed in. Adding a round trip through the
+inbox buys nothing the grace period does not already provide, and it makes the
+flow fail for anyone whose mail is slow — at the exact moment they are trying
+to leave. Passkey, or password-plus-passcode, is the right bar.
+
+### A floor on super administrators, not a ban on self-deletion
+
+**Decided 2026-09-07. Build this.**
+
+The proposal was: a super administrator cannot delete themselves; only another
+super administrator can delete them. The instinct was right and the rule needed
+one adjustment, because **this installation has exactly one super
+administrator.**
+
+Applied literally today, that rule means the single super administrator can
+never delete their own account, and nobody else can either. A permanent
+deadlock, and not the thing worth preventing.
+
+The failure actually worth preventing is:
+
+> the last super administrator deletes themselves → thirty days pass → the
+> sweeper purges → the site has zero super administrators, and no route to
+> create one short of writing to the database by hand.
+
+That is unrecoverable, and it is reachable today by one person clicking one
+button.
+
+So the invariant is **"never zero super administrators"**, not "super
+administrators cannot delete themselves":
+
+- Refuse the deletion when the actor is a super administrator AND is the last
+  one — whoever is asking, self or another. The count is one query.
+- The message names the way out: promote somebody else first, or step down to
+  administrator, then delete.
+- This also keeps the ordinary case working. With three super administrators,
+  one leaving should not have to ask a colleague; that is friction with no
+  safety in it.
+
+Two further reasons to prefer the floor to the ban:
+
+- **The person should be able to leave.** A blanket ban means somebody with the
+  role cannot delete their own account on their own initiative, which sits
+  badly beside a right-to-erasure request and badly beside ordinary decency.
+  "Step down, then delete" preserves both the safety property and their
+  agency.
+- **The four-eyes argument is already covered.** The worry that a compromised
+  super-admin account might delete itself to cover tracks is answered by the
+  step-up above, by the 30-day window, and by `node_deletion_logs` — the
+  deletion is neither silent nor immediate nor unattributed.
+
+Worth applying the same floor to **demotion**, not only deletion: changing the
+last super administrator down to `administrator` reaches the same zero by a
+different door. Raised but not yet confirmed — decide it when the deletion
+half is built, since it is the same query behind a different handler.
+
+#### Two things the count has to get right
+
+Both follow from what the lifecycle work turned up, and both are cheap now and
+awkward later.
+
+**The count must exclude accounts that are themselves on the way out.** A
+super administrator with `deleted_at` set is twenty-nine days from being
+purged. Counting them satisfies the floor with somebody who will not be there,
+and the second deletion then succeeds — which is the exact outcome the floor
+exists to prevent, reached one step more slowly. Disabled accounts go too: a
+suspended super administrator cannot sign in to administer anything.
+
+    WHERE usertype = 'super-administrator'
+      AND deleted_at IS NULL
+      AND enabled = 1
+
+**Two concurrent deletions can both pass the check.** With exactly two super
+administrators, each request counts two, each concludes it is not the last, and
+both proceed — zero. A time-of-check-to-time-of-use race with a very small
+window and a very bad outcome.
+
+The fix is to make the count and the delete one atomic step rather than a read
+followed by a write: perform the soft delete conditionally, in a single
+statement whose WHERE clause carries the floor, and treat zero affected rows as
+the refusal. `SoftDeleteActor` already has this shape — it is idempotent by way
+of a `deleted_at IS NULL` guard in the UPDATE rather than a preceding SELECT,
+and reports what it did through the affected-row count. The floor belongs in
+the same statement, not in a permission check that runs earlier.
+
+That also settles where the rule lives. It is **not** a `CanDelete` predicate:
+`CanDelete` answers "is this caller allowed", which is about the caller, and
+this is about the state of the world at the instant of the write. Putting it in
+the permission layer would be both the wrong place and the racy one.
+
+### Work
+
+**[services]** `requireStepUp` in the person and group delete handlers, with
+`reauthStatus` on failure and `clearStepUp` on success. The super-administrator
+floor as a predicate inside the soft-delete UPDATE — not in `CanDelete`, for
+the reasons above — returning a distinct status so the UI can show the way out
+rather than a generic refusal. The same floor on the usertype-change path if
+demotion is confirmed.
+
+**[react]** The `StepUp` container in front of the Danger zone delete, matching
+the password card. Copy for the refusal that says how to proceed rather than
+only that it was refused.
+
+---
+
 ## 2. Hard delete for super administrators
 
 Requested. A cleanup path that skips the 30-day window and purges immediately —
 for spam, abuse, and test accounts where waiting a month serves nobody, and as
 the mechanism behind a verified erasure request.
+
+**Confirmed 2026-09-06, with the purpose narrowed: site cleanup — removing
+outdated accounts.** That is worth taking literally, because it decides the
+surface. A tool for clearing out stale accounts is a filtered list with a
+multi-select, reached from administration; it is not a heavier button on the
+profile page beside the ordinary delete. Someone tidying up a hundred dormant
+test accounts and someone destroying one live account are doing different jobs,
+and only the second wants a per-profile control.
+
+The erasure-request use is the same mechanism from a different door, and can
+stay a per-account action. See also `actor-lifecycle-states.md`, which now
+records the states this sits alongside.
 
 Everything needed already exists in the sweeper: `PurgeActorContent`,
 `TombstoneActor`, the blob deletion, the audit row and the `purged` event. The

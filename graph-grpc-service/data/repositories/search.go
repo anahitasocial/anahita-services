@@ -95,6 +95,7 @@ func (repo *SearchRepo) Count(req *graphpb.SearchCountRequest, viewer *entities.
 
 	query = repo.getScopeQuery(query, req.Scope, req.IncludeComments)
 	query = SetSearchAccessQuery(query, viewer, req.IncludeComments)
+	query = SetLifecycleQuery(query, viewer)
 
 	// Strip LIKE metacharacters, as the node browse does. Without this a
 	// search for "%" matches every row. Count and Browse must sanitise
@@ -131,6 +132,7 @@ func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entitie
 	query := repo.getBaseSelectQuery(req)
 	query = repo.getScopeQuery(query, req.Scope, req.IncludeComments)
 	query = SetSearchAccessQuery(query, viewer, req.IncludeComments)
+	query = SetLifecycleQuery(query, viewer)
 
 	// Strip LIKE metacharacters, as the node browse does. Without this a
 	// search for "%" matches every row. Count and Browse must sanitise

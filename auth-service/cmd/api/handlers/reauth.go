@@ -88,7 +88,29 @@ func (h *reauthHandler) AddPassword(c echo.Context) error {
 	// pass free would hand back an unmetered retry for the price of a
 	// deliberately broken payload.
 	subject := fmt.Sprintf("%d", viewer.ID)
-	if h.rateLimitExceeded(rateLimitScopeReauth, subject) {
+	if exceeded, first := h.rateLimitCheck(rateLimitScopeReauth, subject); exceeded {
+		// Tell the owner, once per window. Reaching this endpoint at all
+		// requires a live session, so whoever is guessing already holds one —
+		// this is not somebody knocking on the front door, it is somebody
+		// inside trying the locks. Nothing has changed yet, which is exactly
+		// why it is worth a message now.
+		//
+		// Only on the first crossing: see rateLimitCheck. The user is re-read
+		// because the notification needs a name and an address, and the viewer
+		// carries neither reliably.
+		if first {
+			go func() {
+				user, err := h.Repos.Users.ReadByID(viewer.ID)
+				if err != nil || user == nil {
+					log.Println("reauth lockout notification: user lookup failed:", err)
+					return
+				}
+				if err := h.Notif.Reauth.EmailLockedOut(user); err != nil {
+					log.Println("reauth lockout notification failed:", err)
+				}
+			}()
+		}
+
 		return c.NoContent(http.StatusTooManyRequests)
 	}
 

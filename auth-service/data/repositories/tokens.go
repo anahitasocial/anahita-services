@@ -224,6 +224,26 @@ func (repo *tokens) Edit(token *entities.Token) (*entities.Token, error) {
 }
 
 // Delete deletes a token
+// InvalidateOutstanding retires every unused token of one type for one address.
+//
+// A single UPDATE rather than a read-then-write loop: two forgot-password
+// requests arriving together would otherwise each read the other's token as
+// still pending and leave both live.
+func (repo *tokens) InvalidateOutstanding(tokenType, email string) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	result, err := repo.db.ExecContext(ctx,
+		`UPDATE tokens SET is_used = 1, updated_at = NOW()
+		  WHERE type = ? AND recipient_email = ? AND is_used = 0`,
+		tokenType, email)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
+}
+
 // DeleteByRecipientEmail removes every pending token for an address.
 //
 // Zero is a success: an account with no outstanding reset or invite has nothing

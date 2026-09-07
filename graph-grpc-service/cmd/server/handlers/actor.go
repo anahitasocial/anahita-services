@@ -293,6 +293,77 @@ func (h *actorHandler) Add(ctx context.Context, req *graphpb.ActorAddRequest) (*
 	}, nil
 }
 
+// actorLifecycleRoutingKey builds the routing key for an actor transition.
+//
+// Separated out because it is the part that can be quietly wrong. A key with
+// the wrong name does not fail — it publishes to a topic nothing is listening
+// on, which looks exactly like a working publish from the emitting side and
+// exactly like no event at all from the consuming side.
+//
+// The shape is node.<type>.<service>.<entity>.<action>.<version>, and both
+// middle parts are short names: "node.actor.person-service.person.v1" gives
+// the entity "person", and the service "person-service" gives "person". That
+// is the convention Add already follows and the one person-service hardcoded
+// before this took the job over.
+//
+// Reports false rather than guessing when the type is not shaped like an actor
+// type. A malformed key is worse than none: no event is at least visible as an
+// absence, while a wrong one is a message nobody receives and nobody misses.
+func actorLifecycleRoutingKey(format, nodeType, service string) (string, bool) {
+	parts := strings.Split(nodeType, ".")
+	if len(parts) < 4 || parts[3] == "" || service == "" {
+		return "", false
+	}
+
+	entityName := parts[3]
+	srvName := strings.Split(service, "-")[0]
+	if srvName == "" {
+		return "", false
+	}
+
+	return fmt.Sprintf(format, srvName, entityName), true
+}
+
+// publishActorLifecycle emits a lifecycle transition for an actor.
+//
+// From HERE rather than from each calling service, because this is where the
+// state actually changes. person-service published its own "deleted" event and
+// group-service published nothing, so deleting a person notified consumers and
+// deleting a group silently did not — an asymmetry nobody chose, and one that
+// would have grown a third case with the next actor type.
+//
+// The routing key is derived from the node rather than passed in, for the same
+// reason: a caller that hardcodes its own names is a caller that can disagree
+// with the others.
+//
+// Best-effort and asynchronous. The transition has already committed, and a
+// broker that is down is not a reason to tell the caller their group is still
+// there.
+func (h *actorHandler) publishActorLifecycle(format string, node *entities.AnahitaNode, viewerID int64, viewerType string) {
+	routingKey, ok := actorLifecycleRoutingKey(format, node.Type, node.Service)
+	if !ok {
+		log.Printf("actor lifecycle: cannot derive a routing key from type %q "+
+			"service %q, not publishing", node.Type, node.Service)
+		return
+	}
+
+	payload := &event.EventPayload{
+		Name:           routingKey,
+		SourceService:  node.Service,
+		SubjectID:      viewerID,
+		ObjectID:       node.ID,
+		TargetID:       node.ID,
+		ViewerID:       viewerID,
+		ViewerUserType: viewerType,
+	}
+
+	go func() {
+		if err := h.env.Publisher.Publish(payload, routingKey); err != nil {
+			log.Println("actor lifecycle: publish failed:", err)
+		}
+	}()
+}
+
 // Delete remove a medium
 // Delete SOFT-deletes an actor: it is marked and disabled, and nothing is
 // destroyed.
@@ -343,6 +414,15 @@ func (h *actorHandler) Delete(ctx context.Context, req *graphpb.ActorDeleteReque
 		log.Println("actor delete: audit write failed:", err)
 	}
 
+	// After the "already deleted" return above, so a repeated request does not
+	// re-announce a deletion that happened days ago.
+	var viewerType string
+	if req.Viewer != nil {
+		viewerType = req.Viewer.UserType
+	}
+	h.publishActorLifecycle(
+		event.EventFormatNodeActorDeleted, actor, deletedBy, viewerType)
+
 	return &graphpb.ActorDeleteResponse{}, nil
 }
 
@@ -390,6 +470,16 @@ func (h *actorHandler) Restore(ctx context.Context, req *graphpb.ActorRestoreReq
 	); err != nil {
 		log.Println("actor restore: audit write failed:", err)
 	}
+
+	// Only on a real restore — the "nothing to restore" branch returned above.
+	// A consumer that revoked something on the way down needs this to put it
+	// back; without it the only signal is a poll.
+	var restoreViewerType string
+	if req.Viewer != nil {
+		restoreViewerType = req.Viewer.UserType
+	}
+	h.publishActorLifecycle(
+		event.EventFormatNodeActorRestored, node, restoredBy, restoreViewerType)
 
 	return &graphpb.ActorRestoreResponse{Restored: true}, nil
 }

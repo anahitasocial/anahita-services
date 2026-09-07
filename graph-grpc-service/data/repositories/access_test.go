@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 
 	sq "github.com/Masterminds/squirrel"
@@ -190,4 +191,41 @@ func likePatterns(query string) []string {
 		}
 	}
 	return out
+}
+
+// The block predicate spans the row, its owner and its author, so it needs
+// applying once. It was applied twice — two byte-identical clauses in every
+// search query, left from when there were genuinely two under two names.
+func TestSearchAppliesTheBlockPredicateOnce(t *testing.T) {
+	viewer := &entities.Viewer{}
+	viewer.ID = 42
+
+	query := SetSearchAccessQuery(
+		sq.Select("node.id").From("nodes AS node").
+			LeftJoin("nodes AS owner ON owner.id = node.owner_id"),
+		viewer, false,
+	)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		t.Fatalf("ToSql: %v", err)
+	}
+
+	// The edge type is BOUND, not interpolated, so it is counted in the args
+	// rather than in the statement text.
+	blockArgs := 0
+	for _, arg := range args {
+		if s, ok := arg.(string); ok && s == constants.EdgeBlockEntityType {
+			blockArgs++
+		}
+	}
+
+	if blockArgs == 0 {
+		t.Fatalf("no block predicate at all — a blocked person's posts would "+
+			"show up in search:\n%s", sql)
+	}
+	if blockArgs > 1 {
+		t.Errorf("the block predicate is applied %d times; it already spans "+
+			"the row, its owner and its author, so once is enough", blockArgs)
+	}
 }

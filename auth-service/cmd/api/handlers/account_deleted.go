@@ -4,6 +4,8 @@ import (
 	"log"
 	"strings"
 
+	an_constants "anahita-libs/constants"
+	lib_entities "anahita-libs/data/entities"
 	"anahita-libs/event"
 )
 
@@ -59,14 +61,35 @@ func (h *accountDeletedHandler) HandleEvents(payload *event.EventPayload) error 
 		return h.handlePurged(payload.ObjectID)
 	}
 
+	// Groups. Deleting one used to notify nobody at all — a group can have
+	// several administrators, any one of them can delete it, and the others
+	// would discover it by visiting a space that was gone.
+	//
+	// Handled here rather than in notification-service because this is the
+	// only service that can both send mail and turn an actor id into an email
+	// address. Giving notification-service a mail client would put one line
+	// between every in-app notification and an email, which is the thing we
+	// are deliberately not building.
+	//
+	// The routing key carries the entity: node.actor.group.group.deleted.v1.
+	if parts[3] == "group" {
+		switch parts[4] {
+		case "deleted":
+			h.notifyGroupAdmins(payload.ObjectID, false)
+		case "restored":
+			h.notifyGroupAdmins(payload.ObjectID, true)
+		}
+		return nil
+	}
+
 	if parts[4] != "deleted" {
 		return nil
 	}
 
-	// ObjectID is the actor that was deleted. Groups come through this topic
-	// too and have no credentials, so a lookup miss is expected and not an
-	// error worth returning — returning one would nack the message and have the
-	// broker redeliver a group deletion forever.
+	// ObjectID is the actor that was deleted. Anything without credentials
+	// resolves to nothing here, which is expected and not an error worth
+	// returning — returning one would nack the message and have the broker
+	// redeliver it forever.
 	user, err := h.Repos.Users.ReadByID(payload.ObjectID)
 	if err != nil || user == nil {
 		log.Printf("account deleted: no credentials for actor %d, nothing to revoke",
@@ -95,6 +118,99 @@ func (h *accountDeletedHandler) HandleEvents(payload *event.EventPayload) error 
 	}
 
 	return nil
+}
+
+// systemViewer is the viewer used for auth-service's own internal reads.
+//
+// Not a person. This runs off a broker message with nobody signed in, and the
+// read it authorises is for a group whose administrators are about to be told
+// about it — the access check it would face as an anonymous viewer would fail
+// on a group that has just been hidden.
+func systemViewer() *lib_entities.Viewer {
+	viewer := lib_entities.NewViewer()
+	viewer.UserType = an_constants.UserTypeSuperAdmin
+	return viewer
+}
+
+// notifyGroupAdmins mails every administrator of a group about its deletion or
+// restoration.
+//
+// Never returns an error, and that is deliberate: this runs off a broker
+// message, so an error nacks it and the group deletion is redelivered — which
+// would re-send the mail on every redelivery. A notification that failed is
+// worth a log line, not a retry loop aimed at somebody's inbox.
+//
+// Missing configuration is a no-op rather than a failure. GRAPH_SERVICE_ADDR
+// is optional, and an installation that has not set it should lose this one
+// notification quietly rather than log an error on every group deletion.
+func (h *accountDeletedHandler) notifyGroupAdmins(groupID int64, restored bool) {
+	if h.Srv.ActorAdminsGRPC == nil {
+		return
+	}
+
+	admins, err := h.Srv.ActorAdminsGRPC.Browse(groupID)
+	if err != nil {
+		log.Printf("group lifecycle: cannot resolve administrators of %d: %v",
+			groupID, err)
+		return
+	}
+	if len(admins) == 0 {
+		log.Printf("group lifecycle: group %d has no administrators to notify", groupID)
+		return
+	}
+
+	// The group's own name and alias, for the subject line and the link.
+	// "A group you administer was deleted" without saying which one is not a
+	// usable notification.
+	//
+	// Read still resolves a group that has just been marked deleted — the soft
+	// delete sets deleted_at and the read does not filter on it — which is
+	// exactly the state the group is in when this runs.
+	groupName, groupAlias := "", ""
+	if h.Srv.ActorsGRPC != nil {
+		if group, err := h.Srv.ActorsGRPC.Read(groupID, systemViewer()); err == nil && group != nil {
+			groupName = group.Name
+			groupAlias = group.Alias
+		} else {
+			log.Printf("group lifecycle: cannot read group %d: %v", groupID, err)
+		}
+	}
+	if groupName == "" {
+		// Rather than send a message with an empty pair of quotes in the
+		// subject. Losing the name costs the notification most of its value,
+		// and a group nobody can identify is not worth mailing about.
+		log.Printf("group lifecycle: no name for group %d, not notifying", groupID)
+		return
+	}
+
+	for _, admin := range admins {
+		user, err := h.Repos.Users.ReadByID(admin.ID)
+		if err != nil || user == nil {
+			// An administrator with no credentials row: a deleted account that
+			// still holds an admin edge. Skip rather than fail the rest.
+			log.Printf("group lifecycle: no credentials for administrator %d",
+				admin.ID)
+			continue
+		}
+		if user.Email == "" {
+			continue
+		}
+
+		notifyUser := *user
+		go func() {
+			var err error
+			if restored {
+				err = h.Notif.GroupLifecycle.EmailGroupRestored(
+					&notifyUser, groupName, groupAlias)
+			} else {
+				err = h.Notif.GroupLifecycle.EmailGroupDeleted(
+					&notifyUser, groupName, groupAlias)
+			}
+			if err != nil {
+				log.Println("group lifecycle: notification failed:", err)
+			}
+		}()
+	}
 }
 
 // revokeCredentials removes everything the person could sign in or act with.

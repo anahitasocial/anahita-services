@@ -38,8 +38,12 @@ func SetSearchAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, includeC
 	nodeAdmin := relViewerAdmins("node", vID)
 	nodeSelfAdm := relSelfOrAdmin("node", vID)
 
-	// Hard deny on blocks, applied to both owner and node
-	sb = sb.Where(notBlocked).Where(notBlocked)
+	// Hard deny on blocks. ONCE — contentActorRefs already spans the row, its
+	// owner and its author, which is what "applied to both owner and node"
+	// was reaching for. Applying it twice put a byte-identical predicate in
+	// every search query, left over from when there really were two of them
+	// under two names.
+	sb = sb.Where(notBlocked)
 
 	// ---- OWNER gate (coarse gate) ----
 	ownerGate := sq.Or{

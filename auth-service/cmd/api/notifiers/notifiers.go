@@ -75,6 +75,8 @@ type Notifiers struct {
 	AccountDelete  *accountDeleteNotifier
 	UsernameChange *usernameChangeNotifier
 	Signup         *signupNotifier
+	GroupLifecycle *groupLifecycleNotifier
+	Reauth         *reauthNotifier
 	Totp           *totpNotifier
 	WebAuthn       *webAuthnNotifier
 }
@@ -88,6 +90,8 @@ func NewNotifiers(env *Env) *Notifiers {
 		AccountDelete:  newAccountDeleteNotifier(env),
 		UsernameChange: newUsernameChangeNotifier(env),
 		Signup:         newSignupNotifier(env),
+		GroupLifecycle: newGroupLifecycleNotifier(env),
+		Reauth:         newReauthNotifier(env),
 		Totp:           newTotpNotifier(env),
 		WebAuthn:       newWebAuthnNotifier(env),
 	}
