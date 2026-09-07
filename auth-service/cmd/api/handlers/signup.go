@@ -61,14 +61,6 @@ func (h *signupHandler) Add(c echo.Context) error {
 	user.Email = req.Email
 	user.Username = req.Username
 
-	// Enabled explicitly, the way invite acceptance already does it.
-	//
-	// NewUser leaves it false, and a false here is indistinguishable from a
-	// deliberate one — so the repository cannot fill it in the way it fills
-	// the timestamps. Left unset, signup created an account that existed and
-	// could not sign in.
-	user.Enabled = true
-
 	if err := user.SetPassword(req.Password); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}

@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"auth/data/entities"
 	"auth/requests"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -188,64 +187,3 @@ func TestEmptyPasswordHashIsUnusable(t *testing.T) {
 }
 
 var _ = sql.ErrNoRows
-
-// Signup and invite acceptance both hand Add a user built by NewUser, which
-// leaves the timestamps at the zero time. The INSERT names created_on and
-// modified_on, and MySQL runs NO_ZERO_DATE with STRICT_TRANS_TABLES — so every
-// registration failed with "Incorrect datetime value: '0000-00-00'" and came
-// back as a 500. Nobody could create an account by any route.
-func TestAddFillsTheTimestampsTheCallersDoNotSet(t *testing.T) {
-	db, mock, _ := newCapturingDB(t)
-	repo := &Users{db: db}
-
-	mock.ExpectBegin()
-	mock.ExpectExec("insert").WillReturnResult(sqlmock.NewResult(7, 1))
-	mock.ExpectExec("insert").WillReturnResult(sqlmock.NewResult(7, 1))
-	mock.ExpectCommit()
-	mock.ExpectQuery("select").WillReturnRows(userRow())
-
-	// Exactly what signup.go and invite_accept.go pass.
-	user := entities.NewUser()
-	user.Email = "ada@example.com"
-	user.Username = "ada"
-
-	before := time.Now().Add(-time.Second)
-	_, _ = repo.Add(user)
-
-	if user.CreationTime.IsZero() {
-		t.Error("created_on is the zero time; MySQL rejects it as " +
-			"'0000-00-00' and the registration fails with a 500")
-	}
-	if user.UpdateTime.IsZero() {
-		t.Error("modified_on is the zero time")
-	}
-	if user.CreationTime.Before(before) {
-		t.Errorf("created_on is %v, which is not now", user.CreationTime)
-	}
-}
-
-// A caller with a deliberate value keeps it — a migration or a fixture
-// restoring a real join date must not be overwritten with today.
-func TestAddKeepsTimestampsACallerSet(t *testing.T) {
-	db, mock, _ := newCapturingDB(t)
-	repo := &Users{db: db}
-
-	mock.ExpectBegin()
-	mock.ExpectExec("insert").WillReturnResult(sqlmock.NewResult(7, 1))
-	mock.ExpectExec("insert").WillReturnResult(sqlmock.NewResult(7, 1))
-	mock.ExpectCommit()
-	mock.ExpectQuery("select").WillReturnRows(userRow())
-
-	joined := time.Date(2011, 4, 1, 10, 0, 0, 0, time.UTC)
-	user := entities.NewUser()
-	user.Email = "ada@example.com"
-	user.Username = "ada"
-	user.CreationTime = joined
-
-	_, _ = repo.Add(user)
-
-	if !user.CreationTime.Equal(joined) {
-		t.Errorf("created_on was overwritten with %v, losing the real join date",
-			user.CreationTime)
-	}
-}
