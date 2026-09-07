@@ -31,6 +31,10 @@ type ActorsGRPCInterface interface {
 	// people and groups are both actors, so the family filter alone is not enough.
 	ReadOfType(id int64, nodeType string, viewer *entities.Viewer) (*entities.AnahitaNode, error)
 
+	// ReadDeletionCounts totals what deleting this actor would take with it,
+	// for the confirmation dialog.
+	ReadDeletionCounts(id int64, viewer *entities.Viewer) (*graphpb.ActorDeletionCountsResponse, error)
+
 	// BatchRead returns a list of media
 	BatchRead(req *ActorGRPCBatchReadRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
 
@@ -341,4 +345,30 @@ func (srv *ActorsGRPC) Delete(id int64, viewer *entities.Viewer) error {
 	}
 
 	return nil
+}
+
+// ReadDeletionCounts totals what deleting this actor would take with it.
+//
+// Returns the protobuf response rather than mapping it into an entity: every
+// field is a number destined for a dialog, and an intermediate type would be a
+// copy of this one under a different name.
+func (srv *ActorsGRPC) ReadDeletionCounts(id int64, viewer *entities.Viewer) (*graphpb.ActorDeletionCountsResponse, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+
+	if client == nil {
+		return nil, nil
+	}
+
+	return client.DeletionCounts(context.Background(), &graphpb.ActorDeletionCountsRequest{
+		Id: id,
+		Viewer: &graphpb.Viewer{
+			Id:       viewer.ID,
+			UserType: viewer.UserType,
+			Email:    viewer.Email,
+			Username: viewer.Username,
+		},
+	})
 }

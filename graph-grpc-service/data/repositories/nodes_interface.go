@@ -49,6 +49,10 @@ type NodesRepoInterface interface {
 	// DeleteSubtree deletes rootID, all descendants via parent_id, and all edges attached to any of them.
 	DeleteSubtree(rootID int64) (bool, error)
 
+	// ReadDeletionCounts totals what deleting this actor would take with it,
+	// for the confirmation dialog.
+	ReadDeletionCounts(actorID int64) (*DeletionCounts, error)
+
 	// SoftDeleteActor marks an actor deleted and disables it, leaving everything
 	// it owns in place so a restore brings the profile back whole.
 	SoftDeleteActor(id int64) (bool, error)

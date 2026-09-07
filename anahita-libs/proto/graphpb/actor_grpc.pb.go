@@ -19,15 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ActorService_Count_FullMethodName     = "/graph.ActorService/Count"
-	ActorService_Browse_FullMethodName    = "/graph.ActorService/Browse"
-	ActorService_Read_FullMethodName      = "/graph.ActorService/Read"
-	ActorService_BatchRead_FullMethodName = "/graph.ActorService/BatchRead"
-	ActorService_Edit_FullMethodName      = "/graph.ActorService/Edit"
-	ActorService_Add_FullMethodName       = "/graph.ActorService/Add"
-	ActorService_Delete_FullMethodName    = "/graph.ActorService/Delete"
-	ActorService_Restore_FullMethodName   = "/graph.ActorService/Restore"
-	ActorService_Ping_FullMethodName      = "/graph.ActorService/Ping"
+	ActorService_Count_FullMethodName          = "/graph.ActorService/Count"
+	ActorService_Browse_FullMethodName         = "/graph.ActorService/Browse"
+	ActorService_Read_FullMethodName           = "/graph.ActorService/Read"
+	ActorService_BatchRead_FullMethodName      = "/graph.ActorService/BatchRead"
+	ActorService_Edit_FullMethodName           = "/graph.ActorService/Edit"
+	ActorService_Add_FullMethodName            = "/graph.ActorService/Add"
+	ActorService_Delete_FullMethodName         = "/graph.ActorService/Delete"
+	ActorService_Restore_FullMethodName        = "/graph.ActorService/Restore"
+	ActorService_DeletionCounts_FullMethodName = "/graph.ActorService/DeletionCounts"
+	ActorService_Ping_FullMethodName           = "/graph.ActorService/Ping"
 )
 
 // ActorServiceClient is the client API for ActorService service.
@@ -45,6 +46,8 @@ type ActorServiceClient interface {
 	// login; a group cannot, so its administrators restore it from the group's
 	// own settings page, which is what this serves.
 	Restore(ctx context.Context, in *ActorRestoreRequest, opts ...grpc.CallOption) (*ActorRestoreResponse, error)
+	// What deleting this actor would cost, for the confirmation dialog.
+	DeletionCounts(ctx context.Context, in *ActorDeletionCountsRequest, opts ...grpc.CallOption) (*ActorDeletionCountsResponse, error)
 	Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error)
 }
 
@@ -136,6 +139,16 @@ func (c *actorServiceClient) Restore(ctx context.Context, in *ActorRestoreReques
 	return out, nil
 }
 
+func (c *actorServiceClient) DeletionCounts(ctx context.Context, in *ActorDeletionCountsRequest, opts ...grpc.CallOption) (*ActorDeletionCountsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ActorDeletionCountsResponse)
+	err := c.cc.Invoke(ctx, ActorService_DeletionCounts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *actorServiceClient) Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ActorPingResponse)
@@ -161,6 +174,8 @@ type ActorServiceServer interface {
 	// login; a group cannot, so its administrators restore it from the group's
 	// own settings page, which is what this serves.
 	Restore(context.Context, *ActorRestoreRequest) (*ActorRestoreResponse, error)
+	// What deleting this actor would cost, for the confirmation dialog.
+	DeletionCounts(context.Context, *ActorDeletionCountsRequest) (*ActorDeletionCountsResponse, error)
 	Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error)
 	mustEmbedUnimplementedActorServiceServer()
 }
@@ -195,6 +210,9 @@ func (UnimplementedActorServiceServer) Delete(context.Context, *ActorDeleteReque
 }
 func (UnimplementedActorServiceServer) Restore(context.Context, *ActorRestoreRequest) (*ActorRestoreResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Restore not implemented")
+}
+func (UnimplementedActorServiceServer) DeletionCounts(context.Context, *ActorDeletionCountsRequest) (*ActorDeletionCountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletionCounts not implemented")
 }
 func (UnimplementedActorServiceServer) Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -364,6 +382,24 @@ func _ActorService_Restore_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ActorService_DeletionCounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActorDeletionCountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).DeletionCounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_DeletionCounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).DeletionCounts(ctx, req.(*ActorDeletionCountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ActorService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ActorPingRequest)
 	if err := dec(in); err != nil {
@@ -420,6 +456,10 @@ var ActorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Restore",
 			Handler:    _ActorService_Restore_Handler,
+		},
+		{
+			MethodName: "DeletionCounts",
+			Handler:    _ActorService_DeletionCounts_Handler,
 		},
 		{
 			MethodName: "Ping",

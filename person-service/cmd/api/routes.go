@@ -39,6 +39,9 @@ func (r *Routes) Init(e *echo.Echo) {
 	// delete on the id too, so this is the consistent shape as well as the
 	// working one.
 	people.DELETE("/:id", r.handler.Person.Delete, r.authorize)
+	// What the deletion would cost, for the Danger zone. Same permission as
+	// the deletion itself — see the handler.
+	people.GET("/:id/deletion-counts", r.handler.Person.DeletionCounts, r.authorize)
 
 	// Edit access
 	people.PATCH("/:id/access", r.handler.Person.EditAccess, r.authorize)

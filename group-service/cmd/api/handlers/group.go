@@ -425,10 +425,26 @@ func (h *groupHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
+	// Prove it, don't just be signed in.
+	//
+	// Deleting a group takes a shared space away from everybody in it, and
+	// takes their posts with it when the grace period ends. That it belongs to
+	// several people is the argument FOR the gate rather than against: the
+	// person clicking is spending other people's content, not only their own.
+	//
+	// Keyed on the viewer — the administrator doing it is who has to prove it.
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("group delete:", err)
+		return stepUpRefusal(c, err)
+	}
+
 	if err = h.Srv.ActorsGRPC.Delete(actor.ID, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	// One proof authorises one deletion.
+	h.clearStepUp(viewer.ID)
 
 	return c.NoContent(http.StatusOK)
 }

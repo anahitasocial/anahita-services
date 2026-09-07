@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/labstack/echo/v4"
+
 	"anahita-libs/sessions"
 )
 
@@ -43,15 +45,23 @@ func (h *Env) clearStepUp(personID int64) {
 	}
 }
 
-// stepUpStatus maps the refusal to a status code.
+// stepUpRefusal renders the refusal, with a body that says which kind it is.
 //
-// 403 for a missing proof, because the client's job is to re-authenticate and
-// retry — the same contract auth-service's own guarded endpoints use, so the
+// 403 for a missing proof, matching auth-service's guarded endpoints so the
 // React StepUp container needs no second case. 500 for a store failure, which
-// is not something the client can fix by proving anything.
-func stepUpStatus(err error) int {
+// the client cannot fix by proving anything.
+//
+// THE BODY IS NOT DECORATION. Here, unlike in auth-service, 403 already meant
+// something else: CanDelete refusing somebody who may not delete this profile
+// at all. The React card opens the step-up dialog on a 403, so without a way
+// to tell the two apart, a person who simply lacks permission would prove
+// themselves, retry, be refused again, and be shown the dialog again — a loop
+// with no exit. "step_up_required" is what breaks it.
+func stepUpRefusal(c echo.Context, err error) error {
 	if errors.Is(err, sessions.ErrStepUpRequired) {
-		return http.StatusForbidden
+		return c.JSON(http.StatusForbidden, map[string]string{
+			"error": "step_up_required",
+		})
 	}
-	return http.StatusInternalServerError
+	return c.NoContent(http.StatusInternalServerError)
 }

@@ -933,6 +933,161 @@ func (x *ActorDeleteResponse) GetActor() *Node {
 	return nil
 }
 
+// What a person loses by deleting their profile, in numbers.
+//
+// The Danger zone described the consequences in the abstract — "your posts
+// will be removed" — which reads as boilerplate. Naming the actual figures is
+// what makes somebody stop and think, so this exists to be shown BEFORE the
+// deletion, not to report on it afterwards.
+//
+// Counts, not a list: the point is the weight of it, and a profile with four
+// thousand posts cannot be enumerated into a dialog anyway.
+type ActorDeletionCountsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Viewer        *Viewer                `protobuf:"bytes,2,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ActorDeletionCountsRequest) Reset() {
+	*x = ActorDeletionCountsRequest{}
+	mi := &file_proto_graphpb_actor_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActorDeletionCountsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActorDeletionCountsRequest) ProtoMessage() {}
+
+func (x *ActorDeletionCountsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_actor_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActorDeletionCountsRequest.ProtoReflect.Descriptor instead.
+func (*ActorDeletionCountsRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_actor_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ActorDeletionCountsRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *ActorDeletionCountsRequest) GetViewer() *Viewer {
+	if x != nil {
+		return x.Viewer
+	}
+	return nil
+}
+
+type ActorDeletionCountsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Media authored by this actor, anywhere — their own profile and every
+	// group they posted into.
+	Posts int64 `protobuf:"varint,1,opt,name=posts,proto3" json:"posts,omitempty"`
+	// Comments they wrote, including on other people's content. Deleting the
+	// profile takes these too, which is the part people do not expect.
+	Comments int64 `protobuf:"varint,2,opt,name=comments,proto3" json:"comments,omitempty"`
+	// Actors following them, and actors they follow. Both directions, because
+	// losing an audience and losing a feed are different losses.
+	Followers int64 `protobuf:"varint,3,opt,name=followers,proto3" json:"followers,omitempty"`
+	Following int64 `protobuf:"varint,4,opt,name=following,proto3" json:"following,omitempty"`
+	// Groups they administer. The one that most often changes somebody's mind:
+	// a group with no other administrator is left with nobody who can run it.
+	GroupsAdministered int64 `protobuf:"varint,5,opt,name=groups_administered,json=groupsAdministered,proto3" json:"groups_administered,omitempty"`
+	// When they joined, so the dialog can say how long this account has been
+	// theirs. Zero when unknown rather than an epoch date.
+	MemberSinceUnix int64 `protobuf:"varint,6,opt,name=member_since_unix,json=memberSinceUnix,proto3" json:"member_since_unix,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ActorDeletionCountsResponse) Reset() {
+	*x = ActorDeletionCountsResponse{}
+	mi := &file_proto_graphpb_actor_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActorDeletionCountsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActorDeletionCountsResponse) ProtoMessage() {}
+
+func (x *ActorDeletionCountsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_actor_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActorDeletionCountsResponse.ProtoReflect.Descriptor instead.
+func (*ActorDeletionCountsResponse) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_actor_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ActorDeletionCountsResponse) GetPosts() int64 {
+	if x != nil {
+		return x.Posts
+	}
+	return 0
+}
+
+func (x *ActorDeletionCountsResponse) GetComments() int64 {
+	if x != nil {
+		return x.Comments
+	}
+	return 0
+}
+
+func (x *ActorDeletionCountsResponse) GetFollowers() int64 {
+	if x != nil {
+		return x.Followers
+	}
+	return 0
+}
+
+func (x *ActorDeletionCountsResponse) GetFollowing() int64 {
+	if x != nil {
+		return x.Following
+	}
+	return 0
+}
+
+func (x *ActorDeletionCountsResponse) GetGroupsAdministered() int64 {
+	if x != nil {
+		return x.GroupsAdministered
+	}
+	return 0
+}
+
+func (x *ActorDeletionCountsResponse) GetMemberSinceUnix() int64 {
+	if x != nil {
+		return x.MemberSinceUnix
+	}
+	return 0
+}
+
 type ActorPingRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
@@ -942,7 +1097,7 @@ type ActorPingRequest struct {
 
 func (x *ActorPingRequest) Reset() {
 	*x = ActorPingRequest{}
-	mi := &file_proto_graphpb_actor_proto_msgTypes[17]
+	mi := &file_proto_graphpb_actor_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -954,7 +1109,7 @@ func (x *ActorPingRequest) String() string {
 func (*ActorPingRequest) ProtoMessage() {}
 
 func (x *ActorPingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_actor_proto_msgTypes[17]
+	mi := &file_proto_graphpb_actor_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -967,7 +1122,7 @@ func (x *ActorPingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActorPingRequest.ProtoReflect.Descriptor instead.
 func (*ActorPingRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_actor_proto_rawDescGZIP(), []int{17}
+	return file_proto_graphpb_actor_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ActorPingRequest) GetMessage() string {
@@ -986,7 +1141,7 @@ type ActorPingResponse struct {
 
 func (x *ActorPingResponse) Reset() {
 	*x = ActorPingResponse{}
-	mi := &file_proto_graphpb_actor_proto_msgTypes[18]
+	mi := &file_proto_graphpb_actor_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -998,7 +1153,7 @@ func (x *ActorPingResponse) String() string {
 func (*ActorPingResponse) ProtoMessage() {}
 
 func (x *ActorPingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_actor_proto_msgTypes[18]
+	mi := &file_proto_graphpb_actor_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1011,7 +1166,7 @@ func (x *ActorPingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActorPingResponse.ProtoReflect.Descriptor instead.
 func (*ActorPingResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_actor_proto_rawDescGZIP(), []int{18}
+	return file_proto_graphpb_actor_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ActorPingResponse) GetMessage() string {
@@ -1078,11 +1233,21 @@ const file_proto_graphpb_actor_proto_rawDesc = "" +
 	"\x14ActorRestoreResponse\x12\x1a\n" +
 	"\brestored\x18\x01 \x01(\bR\brestored\"8\n" +
 	"\x13ActorDeleteResponse\x12!\n" +
-	"\x05actor\x18\x01 \x01(\v2\v.graph.NodeR\x05actor\",\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.graph.NodeR\x05actor\"S\n" +
+	"\x1aActorDeletionCountsRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12%\n" +
+	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\"\xe8\x01\n" +
+	"\x1bActorDeletionCountsResponse\x12\x14\n" +
+	"\x05posts\x18\x01 \x01(\x03R\x05posts\x12\x1a\n" +
+	"\bcomments\x18\x02 \x01(\x03R\bcomments\x12\x1c\n" +
+	"\tfollowers\x18\x03 \x01(\x03R\tfollowers\x12\x1c\n" +
+	"\tfollowing\x18\x04 \x01(\x03R\tfollowing\x12/\n" +
+	"\x13groups_administered\x18\x05 \x01(\x03R\x12groupsAdministered\x12*\n" +
+	"\x11member_since_unix\x18\x06 \x01(\x03R\x0fmemberSinceUnix\",\n" +
 	"\x10ActorPingRequest\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\"-\n" +
 	"\x11ActorPingResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage2\xd7\x04\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage2\xb2\x05\n" +
 	"\fActorService\x12>\n" +
 	"\x05Count\x12\x18.graph.ActorCountRequest\x1a\x19.graph.ActorCountResponse\"\x00\x12A\n" +
 	"\x06Browse\x12\x19.graph.ActorBrowseRequest\x1a\x1a.graph.ActorBrowseResponse\"\x00\x12;\n" +
@@ -1091,7 +1256,8 @@ const file_proto_graphpb_actor_proto_rawDesc = "" +
 	"\x04Edit\x12\x17.graph.ActorEditRequest\x1a\x18.graph.ActorEditResponse\"\x00\x128\n" +
 	"\x03Add\x12\x16.graph.ActorAddRequest\x1a\x17.graph.ActorAddResponse\"\x00\x12A\n" +
 	"\x06Delete\x12\x19.graph.ActorDeleteRequest\x1a\x1a.graph.ActorDeleteResponse\"\x00\x12D\n" +
-	"\aRestore\x12\x1a.graph.ActorRestoreRequest\x1a\x1b.graph.ActorRestoreResponse\"\x00\x12;\n" +
+	"\aRestore\x12\x1a.graph.ActorRestoreRequest\x1a\x1b.graph.ActorRestoreResponse\"\x00\x12Y\n" +
+	"\x0eDeletionCounts\x12!.graph.ActorDeletionCountsRequest\x1a\".graph.ActorDeletionCountsResponse\"\x00\x12;\n" +
 	"\x04Ping\x12\x17.graph.ActorPingRequest\x1a\x18.graph.ActorPingResponse\"\x00B\n" +
 	"Z\b/graphpbb\x06proto3"
 
@@ -1107,71 +1273,76 @@ func file_proto_graphpb_actor_proto_rawDescGZIP() []byte {
 	return file_proto_graphpb_actor_proto_rawDescData
 }
 
-var file_proto_graphpb_actor_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_proto_graphpb_actor_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_proto_graphpb_actor_proto_goTypes = []any{
-	(*Actors)(nil),                 // 0: graph.Actors
-	(*ActorCountRequest)(nil),      // 1: graph.ActorCountRequest
-	(*ActorCountResponse)(nil),     // 2: graph.ActorCountResponse
-	(*ActorBrowseRequest)(nil),     // 3: graph.ActorBrowseRequest
-	(*ActorBrowseResponse)(nil),    // 4: graph.ActorBrowseResponse
-	(*ActorReadRequest)(nil),       // 5: graph.ActorReadRequest
-	(*ActorReadResponse)(nil),      // 6: graph.ActorReadResponse
-	(*ActorBatchReadRequest)(nil),  // 7: graph.ActorBatchReadRequest
-	(*ActorBatchReadResponse)(nil), // 8: graph.ActorBatchReadResponse
-	(*ActorEditRequest)(nil),       // 9: graph.ActorEditRequest
-	(*ActorEditResponse)(nil),      // 10: graph.ActorEditResponse
-	(*ActorAddRequest)(nil),        // 11: graph.ActorAddRequest
-	(*ActorAddResponse)(nil),       // 12: graph.ActorAddResponse
-	(*ActorDeleteRequest)(nil),     // 13: graph.ActorDeleteRequest
-	(*ActorRestoreRequest)(nil),    // 14: graph.ActorRestoreRequest
-	(*ActorRestoreResponse)(nil),   // 15: graph.ActorRestoreResponse
-	(*ActorDeleteResponse)(nil),    // 16: graph.ActorDeleteResponse
-	(*ActorPingRequest)(nil),       // 17: graph.ActorPingRequest
-	(*ActorPingResponse)(nil),      // 18: graph.ActorPingResponse
-	(*Node)(nil),                   // 19: graph.Node
-	(*Viewer)(nil),                 // 20: graph.Viewer
+	(*Actors)(nil),                      // 0: graph.Actors
+	(*ActorCountRequest)(nil),           // 1: graph.ActorCountRequest
+	(*ActorCountResponse)(nil),          // 2: graph.ActorCountResponse
+	(*ActorBrowseRequest)(nil),          // 3: graph.ActorBrowseRequest
+	(*ActorBrowseResponse)(nil),         // 4: graph.ActorBrowseResponse
+	(*ActorReadRequest)(nil),            // 5: graph.ActorReadRequest
+	(*ActorReadResponse)(nil),           // 6: graph.ActorReadResponse
+	(*ActorBatchReadRequest)(nil),       // 7: graph.ActorBatchReadRequest
+	(*ActorBatchReadResponse)(nil),      // 8: graph.ActorBatchReadResponse
+	(*ActorEditRequest)(nil),            // 9: graph.ActorEditRequest
+	(*ActorEditResponse)(nil),           // 10: graph.ActorEditResponse
+	(*ActorAddRequest)(nil),             // 11: graph.ActorAddRequest
+	(*ActorAddResponse)(nil),            // 12: graph.ActorAddResponse
+	(*ActorDeleteRequest)(nil),          // 13: graph.ActorDeleteRequest
+	(*ActorRestoreRequest)(nil),         // 14: graph.ActorRestoreRequest
+	(*ActorRestoreResponse)(nil),        // 15: graph.ActorRestoreResponse
+	(*ActorDeleteResponse)(nil),         // 16: graph.ActorDeleteResponse
+	(*ActorDeletionCountsRequest)(nil),  // 17: graph.ActorDeletionCountsRequest
+	(*ActorDeletionCountsResponse)(nil), // 18: graph.ActorDeletionCountsResponse
+	(*ActorPingRequest)(nil),            // 19: graph.ActorPingRequest
+	(*ActorPingResponse)(nil),           // 20: graph.ActorPingResponse
+	(*Node)(nil),                        // 21: graph.Node
+	(*Viewer)(nil),                      // 22: graph.Viewer
 }
 var file_proto_graphpb_actor_proto_depIdxs = []int32{
-	19, // 0: graph.Actors.actors:type_name -> graph.Node
-	20, // 1: graph.ActorCountRequest.viewer:type_name -> graph.Viewer
-	20, // 2: graph.ActorBrowseRequest.viewer:type_name -> graph.Viewer
-	19, // 3: graph.ActorBrowseResponse.actors:type_name -> graph.Node
-	20, // 4: graph.ActorReadRequest.viewer:type_name -> graph.Viewer
-	19, // 5: graph.ActorReadResponse.actor:type_name -> graph.Node
-	20, // 6: graph.ActorBatchReadRequest.viewer:type_name -> graph.Viewer
-	19, // 7: graph.ActorBatchReadResponse.actors:type_name -> graph.Node
-	19, // 8: graph.ActorEditRequest.actor:type_name -> graph.Node
-	20, // 9: graph.ActorEditRequest.viewer:type_name -> graph.Viewer
-	19, // 10: graph.ActorEditResponse.actor:type_name -> graph.Node
-	19, // 11: graph.ActorAddRequest.actor:type_name -> graph.Node
-	20, // 12: graph.ActorAddRequest.viewer:type_name -> graph.Viewer
-	19, // 13: graph.ActorAddResponse.actor:type_name -> graph.Node
-	20, // 14: graph.ActorDeleteRequest.viewer:type_name -> graph.Viewer
-	20, // 15: graph.ActorRestoreRequest.viewer:type_name -> graph.Viewer
-	19, // 16: graph.ActorDeleteResponse.actor:type_name -> graph.Node
-	1,  // 17: graph.ActorService.Count:input_type -> graph.ActorCountRequest
-	3,  // 18: graph.ActorService.Browse:input_type -> graph.ActorBrowseRequest
-	5,  // 19: graph.ActorService.Read:input_type -> graph.ActorReadRequest
-	7,  // 20: graph.ActorService.BatchRead:input_type -> graph.ActorBatchReadRequest
-	9,  // 21: graph.ActorService.Edit:input_type -> graph.ActorEditRequest
-	11, // 22: graph.ActorService.Add:input_type -> graph.ActorAddRequest
-	13, // 23: graph.ActorService.Delete:input_type -> graph.ActorDeleteRequest
-	14, // 24: graph.ActorService.Restore:input_type -> graph.ActorRestoreRequest
-	17, // 25: graph.ActorService.Ping:input_type -> graph.ActorPingRequest
-	2,  // 26: graph.ActorService.Count:output_type -> graph.ActorCountResponse
-	4,  // 27: graph.ActorService.Browse:output_type -> graph.ActorBrowseResponse
-	6,  // 28: graph.ActorService.Read:output_type -> graph.ActorReadResponse
-	8,  // 29: graph.ActorService.BatchRead:output_type -> graph.ActorBatchReadResponse
-	10, // 30: graph.ActorService.Edit:output_type -> graph.ActorEditResponse
-	12, // 31: graph.ActorService.Add:output_type -> graph.ActorAddResponse
-	16, // 32: graph.ActorService.Delete:output_type -> graph.ActorDeleteResponse
-	15, // 33: graph.ActorService.Restore:output_type -> graph.ActorRestoreResponse
-	18, // 34: graph.ActorService.Ping:output_type -> graph.ActorPingResponse
-	26, // [26:35] is the sub-list for method output_type
-	17, // [17:26] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	21, // 0: graph.Actors.actors:type_name -> graph.Node
+	22, // 1: graph.ActorCountRequest.viewer:type_name -> graph.Viewer
+	22, // 2: graph.ActorBrowseRequest.viewer:type_name -> graph.Viewer
+	21, // 3: graph.ActorBrowseResponse.actors:type_name -> graph.Node
+	22, // 4: graph.ActorReadRequest.viewer:type_name -> graph.Viewer
+	21, // 5: graph.ActorReadResponse.actor:type_name -> graph.Node
+	22, // 6: graph.ActorBatchReadRequest.viewer:type_name -> graph.Viewer
+	21, // 7: graph.ActorBatchReadResponse.actors:type_name -> graph.Node
+	21, // 8: graph.ActorEditRequest.actor:type_name -> graph.Node
+	22, // 9: graph.ActorEditRequest.viewer:type_name -> graph.Viewer
+	21, // 10: graph.ActorEditResponse.actor:type_name -> graph.Node
+	21, // 11: graph.ActorAddRequest.actor:type_name -> graph.Node
+	22, // 12: graph.ActorAddRequest.viewer:type_name -> graph.Viewer
+	21, // 13: graph.ActorAddResponse.actor:type_name -> graph.Node
+	22, // 14: graph.ActorDeleteRequest.viewer:type_name -> graph.Viewer
+	22, // 15: graph.ActorRestoreRequest.viewer:type_name -> graph.Viewer
+	21, // 16: graph.ActorDeleteResponse.actor:type_name -> graph.Node
+	22, // 17: graph.ActorDeletionCountsRequest.viewer:type_name -> graph.Viewer
+	1,  // 18: graph.ActorService.Count:input_type -> graph.ActorCountRequest
+	3,  // 19: graph.ActorService.Browse:input_type -> graph.ActorBrowseRequest
+	5,  // 20: graph.ActorService.Read:input_type -> graph.ActorReadRequest
+	7,  // 21: graph.ActorService.BatchRead:input_type -> graph.ActorBatchReadRequest
+	9,  // 22: graph.ActorService.Edit:input_type -> graph.ActorEditRequest
+	11, // 23: graph.ActorService.Add:input_type -> graph.ActorAddRequest
+	13, // 24: graph.ActorService.Delete:input_type -> graph.ActorDeleteRequest
+	14, // 25: graph.ActorService.Restore:input_type -> graph.ActorRestoreRequest
+	17, // 26: graph.ActorService.DeletionCounts:input_type -> graph.ActorDeletionCountsRequest
+	19, // 27: graph.ActorService.Ping:input_type -> graph.ActorPingRequest
+	2,  // 28: graph.ActorService.Count:output_type -> graph.ActorCountResponse
+	4,  // 29: graph.ActorService.Browse:output_type -> graph.ActorBrowseResponse
+	6,  // 30: graph.ActorService.Read:output_type -> graph.ActorReadResponse
+	8,  // 31: graph.ActorService.BatchRead:output_type -> graph.ActorBatchReadResponse
+	10, // 32: graph.ActorService.Edit:output_type -> graph.ActorEditResponse
+	12, // 33: graph.ActorService.Add:output_type -> graph.ActorAddResponse
+	16, // 34: graph.ActorService.Delete:output_type -> graph.ActorDeleteResponse
+	15, // 35: graph.ActorService.Restore:output_type -> graph.ActorRestoreResponse
+	18, // 36: graph.ActorService.DeletionCounts:output_type -> graph.ActorDeletionCountsResponse
+	20, // 37: graph.ActorService.Ping:output_type -> graph.ActorPingResponse
+	28, // [28:38] is the sub-list for method output_type
+	18, // [18:28] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_proto_graphpb_actor_proto_init() }
@@ -1187,7 +1358,7 @@ func file_proto_graphpb_actor_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_graphpb_actor_proto_rawDesc), len(file_proto_graphpb_actor_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   19,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

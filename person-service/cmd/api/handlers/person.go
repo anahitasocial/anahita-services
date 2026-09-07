@@ -314,7 +314,7 @@ func (h *personHandler) Delete(c echo.Context) error {
 	// prove it. The person being removed cannot be asked.
 	if err := h.requireStepUp(viewer.ID); err != nil {
 		log.Println("person delete:", err)
-		return c.NoContent(stepUpStatus(err))
+		return stepUpRefusal(c, err)
 	}
 
 	// The floor: never zero super administrators.
@@ -380,6 +380,88 @@ func (h *personHandler) Delete(c echo.Context) error {
 	// publish here would deliver every person deletion to consumers twice.
 
 	return c.NoContent(http.StatusOK)
+}
+
+// DeletionCounts reports what deleting this profile would cost.
+//
+//	GET /people/:id/deletion-counts
+//
+// Shown in the Danger zone before the confirmation, because "your posts will
+// be removed" reads as boilerplate while "4,826 posts" does not. This is the
+// gate that makes somebody stop, and it only works if it arrives before the
+// decision rather than after it.
+//
+// Gated on the same permission as the deletion itself, not on a weaker read
+// permission. The figures describe somebody's footprint on the site — how much
+// they have written, who follows them, how long they have been here — and that
+// is not a summary to hand to anyone who asks for it. If you may not delete
+// this profile, you may not enumerate it either.
+//
+// No step-up, though. This is a read, it changes nothing, and requiring a
+// proof to see the consequences before deciding would put the friction in the
+// wrong place: somebody would have to authenticate to find out they did not
+// want to do it.
+func (h *personHandler) DeletionCounts(c echo.Context) error {
+	var (
+		req    = requests.NewPersonRequest().Delete
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	person, err := h.Repos.People.ReadByID(req.ID)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	actorAccessCtx, err := h.getActorAccessContext(person, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if ok, err := h.Perms.People.CanDelete(actorAccessCtx); !ok {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	counts, err := h.Srv.ActorsGRPC.ReadDeletionCounts(person.ID, viewer)
+	if err != nil || counts == nil {
+		log.Println("deletion counts:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	type Response struct {
+		Posts              int64  `json:"posts"`
+		Comments           int64  `json:"comments"`
+		Followers          int64  `json:"followers"`
+		Following          int64  `json:"following"`
+		GroupsAdministered int64  `json:"groups_administered"`
+		MemberSince        string `json:"member_since,omitempty"`
+	}
+
+	resp := &Response{
+		Posts:              counts.Posts,
+		Comments:           counts.Comments,
+		Followers:          counts.Followers,
+		Following:          counts.Following,
+		GroupsAdministered: counts.GroupsAdministered,
+	}
+
+	// Omitted rather than sent as an epoch date when unknown. The dialog can
+	// leave the line out; it cannot un-say "member since 1 January 1970".
+	if counts.MemberSinceUnix > 0 {
+		resp.MemberSince = time.Unix(counts.MemberSinceUnix, 0).UTC().Format(time.RFC3339)
+	}
+
+	return c.JSON(http.StatusOK, resp)
 }
 
 // onAfterFetched sets the authorized fields for a person

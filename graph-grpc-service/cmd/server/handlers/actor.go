@@ -484,6 +484,37 @@ func (h *actorHandler) Restore(ctx context.Context, req *graphpb.ActorRestoreReq
 	return &graphpb.ActorRestoreResponse{Restored: true}, nil
 }
 
+// DeletionCounts reports what deleting this actor would cost.
+//
+// Read-only and gathered before the fact — the Danger zone shows these to
+// somebody deciding, which is the only moment they are useful.
+//
+// A missing actor yields zeroes rather than an error. The dialog can render
+// "0 posts" harmlessly, while an error would leave it with nothing to show at
+// the moment it most needs to say something.
+func (h *actorHandler) DeletionCounts(ctx context.Context, req *graphpb.ActorDeletionCountsRequest) (*graphpb.ActorDeletionCountsResponse, error) {
+	counts, err := h.env.Repos.Nodes.ReadDeletionCounts(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &graphpb.ActorDeletionCountsResponse{
+		Posts:              counts.Posts,
+		Comments:           counts.Comments,
+		Followers:          counts.Followers,
+		Following:          counts.Following,
+		GroupsAdministered: counts.GroupsAdministered,
+	}
+
+	// Zero rather than the epoch when unknown, so the client can tell "we do
+	// not know when they joined" from "they joined in 1970".
+	if !counts.MemberSince.IsZero() {
+		resp.MemberSinceUnix = counts.MemberSince.Unix()
+	}
+
+	return resp, nil
+}
+
 // Ping return a pong message
 func (h *actorHandler) Ping(ctx context.Context, req *graphpb.ActorPingRequest) (*graphpb.ActorPingResponse, error) {
 	log.Printf("Received Ping request: %v", req.Message)
