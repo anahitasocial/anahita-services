@@ -114,8 +114,13 @@ message ActorDeleteResponse {
 // what makes somebody stop and think, so this exists to be shown BEFORE the
 // deletion, not to report on it afterwards.
 //
-// Counts, not a list: the point is the weight of it, and a profile with four
-// thousand posts cannot be enumerated into a dialog anyway.
+// Counts, not a list: the point is the weight of it, and a profile with
+// thousands of posts cannot be enumerated into a dialog anyway.
+//
+// The figures describe WHAT DELETING DESTROYS, which is not the same as what
+// the actor wrote — a post made into a group is owned by the group and
+// survives; a comment somebody else left on their post does not. See the
+// repository implementation.
 message ActorDeletionCountsRequest {
     int64 id = 1;
     Viewer viewer = 2;
@@ -135,8 +140,14 @@ message ActorDeletionCountsResponse {
     int64 followers = 3;
     int64 following = 4;
 
-    // Groups they administer. The one that most often changes somebody's mind:
-    // a group with no other administrator is left with nobody who can run it.
+    // Who administers this actor. Meaningful for a group — deleting one takes
+    // a shared space away from everybody running it — and zero for a person.
+    int64 admins = 7;
+
+    // What this actor administers. The mirror of the above, read from the
+    // other end of the same edge: meaningful for a person, zero for a group.
+    // The one that most often changes somebody's mind, since a group left with
+    // no other administrator has nobody who can run it.
     int64 groups_administered = 5;
 
     // When they joined, so the dialog can say how long this account has been

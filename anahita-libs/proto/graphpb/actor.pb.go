@@ -940,8 +940,13 @@ func (x *ActorDeleteResponse) GetActor() *Node {
 // what makes somebody stop and think, so this exists to be shown BEFORE the
 // deletion, not to report on it afterwards.
 //
-// Counts, not a list: the point is the weight of it, and a profile with four
-// thousand posts cannot be enumerated into a dialog anyway.
+// Counts, not a list: the point is the weight of it, and a profile with
+// thousands of posts cannot be enumerated into a dialog anyway.
+//
+// The figures describe WHAT DELETING DESTROYS, which is not the same as what
+// the actor wrote — a post made into a group is owned by the group and
+// survives; a comment somebody else left on their post does not. See the
+// repository implementation.
 type ActorDeletionCountsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1006,8 +1011,13 @@ type ActorDeletionCountsResponse struct {
 	// losing an audience and losing a feed are different losses.
 	Followers int64 `protobuf:"varint,3,opt,name=followers,proto3" json:"followers,omitempty"`
 	Following int64 `protobuf:"varint,4,opt,name=following,proto3" json:"following,omitempty"`
-	// Groups they administer. The one that most often changes somebody's mind:
-	// a group with no other administrator is left with nobody who can run it.
+	// Who administers this actor. Meaningful for a group — deleting one takes
+	// a shared space away from everybody running it — and zero for a person.
+	Admins int64 `protobuf:"varint,7,opt,name=admins,proto3" json:"admins,omitempty"`
+	// What this actor administers. The mirror of the above, read from the
+	// other end of the same edge: meaningful for a person, zero for a group.
+	// The one that most often changes somebody's mind, since a group left with
+	// no other administrator has nobody who can run it.
 	GroupsAdministered int64 `protobuf:"varint,5,opt,name=groups_administered,json=groupsAdministered,proto3" json:"groups_administered,omitempty"`
 	// When they joined, so the dialog can say how long this account has been
 	// theirs. Zero when unknown rather than an epoch date.
@@ -1070,6 +1080,13 @@ func (x *ActorDeletionCountsResponse) GetFollowers() int64 {
 func (x *ActorDeletionCountsResponse) GetFollowing() int64 {
 	if x != nil {
 		return x.Following
+	}
+	return 0
+}
+
+func (x *ActorDeletionCountsResponse) GetAdmins() int64 {
+	if x != nil {
+		return x.Admins
 	}
 	return 0
 }
@@ -1236,12 +1253,13 @@ const file_proto_graphpb_actor_proto_rawDesc = "" +
 	"\x05actor\x18\x01 \x01(\v2\v.graph.NodeR\x05actor\"S\n" +
 	"\x1aActorDeletionCountsRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12%\n" +
-	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\"\xe8\x01\n" +
+	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\"\x80\x02\n" +
 	"\x1bActorDeletionCountsResponse\x12\x14\n" +
 	"\x05posts\x18\x01 \x01(\x03R\x05posts\x12\x1a\n" +
 	"\bcomments\x18\x02 \x01(\x03R\bcomments\x12\x1c\n" +
 	"\tfollowers\x18\x03 \x01(\x03R\tfollowers\x12\x1c\n" +
-	"\tfollowing\x18\x04 \x01(\x03R\tfollowing\x12/\n" +
+	"\tfollowing\x18\x04 \x01(\x03R\tfollowing\x12\x16\n" +
+	"\x06admins\x18\a \x01(\x03R\x06admins\x12/\n" +
 	"\x13groups_administered\x18\x05 \x01(\x03R\x12groupsAdministered\x12*\n" +
 	"\x11member_since_unix\x18\x06 \x01(\x03R\x0fmemberSinceUnix\",\n" +
 	"\x10ActorPingRequest\x12\x18\n" +

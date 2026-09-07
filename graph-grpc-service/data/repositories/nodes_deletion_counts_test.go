@@ -13,33 +13,54 @@ import (
 // alarming direction is as bad as one that is wrong in the reassuring
 // direction — the first cries wolf, the second fails to warn.
 
-func TestDeletionCountsUsesScalarSubqueriesNotJoins(t *testing.T) {
+func TestDeletionCountsDescribeWhatThePurgeDestroys(t *testing.T) {
 	db, mock, seen := newNodesTestDB(t)
 	repo := newRepo(db)
 
 	mock.ExpectQuery("select").WillReturnRows(
 		sqlmock.NewRows([]string{"posts", "comments", "followers", "following",
-			"groups", "member_since"}).
-			AddRow(4826, 3868, 219, 234, 23, time.Now()))
+			"admins", "groups", "member_since"}).
+			AddRow(2931, 1835, 219, 234, 0, 23, time.Now()))
 
 	counts, err := repo.ReadDeletionCounts(5)
 	if err != nil {
 		t.Fatalf("ReadDeletionCounts: %v", err)
 	}
 
-	if counts.Posts != 4826 || counts.Followers != 219 || counts.GroupsAdministered != 23 {
+	if counts.Posts != 2931 || counts.Followers != 219 || counts.GroupsAdministered != 23 {
 		t.Errorf("counts came back wrong: %+v", counts)
 	}
 
 	query := strings.ToLower((*seen)[0])
 
-	// Joining these together would multiply rows: 219 followers against 23
-	// groups is 5,037 of something that is not a count of either. Each total
-	// is over a different table on a different key, so each is its own scalar
-	// subquery.
-	if strings.Contains(query, " join ") {
-		t.Errorf("a join appears; counts over different keys fan out into "+
-			"products rather than totals:\n%s", query)
+	// The edge totals must each be their own scalar subquery. Joining them
+	// together would multiply rows: 219 followers against 23 groups is 5,037
+	// of something that counts neither, and it looks entirely plausible.
+	//
+	// Counting the occurrences rather than banning joins outright, because the
+	// recursion below DOES join — content to nodes, on id, one row to one row.
+	// That join is the query working correctly, which is why the earlier
+	// version of this test was wrong to forbid the word.
+	if got := strings.Count(query, "(select count(*) from edges"); got != 4 {
+		t.Errorf("expected 4 scalar edge subqueries (followers, following, "+
+			"admins, groups administered), found %d:\n%s", got, query)
+	}
+
+	// The figures must describe what the purge destroys, which is everything
+	// OWNED by the actor plus everything descending from it — not everything
+	// the actor wrote. A post made into a group is owned by the group and
+	// survives; a comment somebody else left on their post does not.
+	if !strings.Contains(query, "where owner_id = ?") {
+		t.Errorf("the content set is not defined by ownership, so it does not "+
+			"describe what deletion destroys:\n%s", query)
+	}
+	if !strings.Contains(query, "c.parent_id = p.id") {
+		t.Errorf("no recursion into descendants; comments on the actor's own "+
+			"posts are destroyed with them and would go uncounted:\n%s", query)
+	}
+	if strings.Contains(query, "created_by") {
+		t.Errorf("counts by authorship, which is a different set from what "+
+			"deletion removes:\n%s", query)
 	}
 
 	// One statement, not six. Six round trips sit in front of a dialog
@@ -58,8 +79,8 @@ func TestDeletionCountsSurvivesAnUnknownActor(t *testing.T) {
 
 	mock.ExpectQuery("select").WillReturnRows(
 		sqlmock.NewRows([]string{"posts", "comments", "followers", "following",
-			"groups", "member_since"}).
-			AddRow(0, 0, 0, 0, 0, nil))
+			"admins", "groups", "member_since"}).
+			AddRow(0, 0, 0, 0, 0, 0, nil))
 
 	counts, err := repo.ReadDeletionCounts(999999)
 	if err != nil {
@@ -100,7 +121,7 @@ func TestDeletionCountsReadsFollowInBothDirections(t *testing.T) {
 
 	mock.ExpectQuery("select").WillReturnRows(
 		sqlmock.NewRows([]string{"posts", "comments", "followers", "following",
-			"groups", "member_since"}).AddRow(0, 0, 0, 0, 0, nil))
+			"admins", "groups", "member_since"}).AddRow(0, 0, 0, 0, 0, 0, nil))
 
 	_, _ = repo.ReadDeletionCounts(5)
 

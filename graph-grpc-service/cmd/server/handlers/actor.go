@@ -503,6 +503,7 @@ func (h *actorHandler) DeletionCounts(ctx context.Context, req *graphpb.ActorDel
 		Comments:           counts.Comments,
 		Followers:          counts.Followers,
 		Following:          counts.Following,
+		Admins:             counts.Admins,
 		GroupsAdministered: counts.GroupsAdministered,
 	}
 

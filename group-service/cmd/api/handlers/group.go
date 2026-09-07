@@ -9,6 +9,7 @@ import (
 	"group/constants"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gosimple/slug"
 	"github.com/labstack/echo/v4"
@@ -450,6 +451,84 @@ func (h *groupHandler) Delete(c echo.Context) error {
 }
 
 // onAfterFetched is called after a group is fetched
+// DeletionCounts reports what deleting this group would cost.
+//
+//	GET /groups/:id/deletion-counts
+//
+// Shown in the Danger zone before the confirmation. A group holds other
+// people's content — that is what a group IS — so the figures matter more here
+// than on a personal profile: the person clicking is spending posts and
+// discussions somebody else wrote.
+//
+// Gated on the same permission as the deletion, not a weaker read permission.
+// If you may not delete the group, you may not enumerate what is in it.
+//
+// No step-up. This is a read that changes nothing, and requiring a proof to
+// see the consequences before deciding would put the friction in the wrong
+// place — somebody would authenticate to find out they did not want to.
+func (h *groupHandler) DeletionCounts(c echo.Context) error {
+	var (
+		req    = requests.NewActorRequest().Delete
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	actorAccessCtx, err := h.getActorAccessContext(actor, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if ok, err := h.Perms.Groups.CanDelete(actorAccessCtx); !ok {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	counts, err := h.Srv.ActorsGRPC.ReadDeletionCounts(actor.ID, viewer)
+	if err != nil || counts == nil {
+		log.Println("deletion counts:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	type Response struct {
+		Posts       int64  `json:"posts"`
+		Comments    int64  `json:"comments"`
+		Followers   int64  `json:"followers"`
+		Admins      int64  `json:"admins"`
+		MemberSince string `json:"member_since,omitempty"`
+	}
+
+	// "Following" and "groups administered" are omitted rather than sent as
+	// zero: a group follows nobody and administers nothing, so the fields would
+	// be permanently zero and the dialog would have to know to hide them.
+	// Better that the shape says what a group has.
+	resp := &Response{
+		Posts:     counts.Posts,
+		Comments:  counts.Comments,
+		Followers: counts.Followers,
+		Admins:    counts.Admins,
+	}
+
+	if counts.MemberSinceUnix > 0 {
+		resp.MemberSince = time.Unix(counts.MemberSinceUnix, 0).UTC().Format(time.RFC3339)
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
 func (h *groupHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode) error {
 	var (
 		err    error
