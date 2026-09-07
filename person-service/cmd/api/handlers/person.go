@@ -302,6 +302,55 @@ func (h *personHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
+	// Prove it, don't just be signed in.
+	//
+	// Deletion was the last credential-grade action gated on a session alone,
+	// while password, email, username and 2FA-disable all went through
+	// /reauth/*. A stolen laptop with an unlocked browser deleted a profile.
+	//
+	// Keyed on the VIEWER, not the person being deleted: the proof answers
+	// "is the person making this request who they claim", and for an
+	// administrator deleting somebody else it is the administrator who has to
+	// prove it. The person being removed cannot be asked.
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("person delete:", err)
+		return c.NoContent(stepUpStatus(err))
+	}
+
+	// The floor: never zero super administrators.
+	//
+	// The failure this prevents is the last super administrator deleting
+	// themselves, thirty days passing, the sweeper purging, and the site
+	// having nobody who can administer it and no route to appoint one. Short
+	// of writing to the database by hand, that is unrecoverable.
+	//
+	// Not expressed as "a super administrator cannot delete themselves". That
+	// rule deadlocks an installation with exactly one — they could never
+	// delete their account and nobody else could either — and it is heavier
+	// than the risk anyway: with three, one leaving should not have to ask a
+	// colleague.
+	//
+	// 409 rather than 403: the request is well formed and the caller is
+	// permitted, it conflicts with the state of the site. The body names the
+	// way out, because a refusal that does not is a support ticket.
+	if person.UserType == constants.UserTypeSuperAdmin {
+		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
+		if err != nil {
+			log.Println("person delete: super administrator count failed:", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if others == 0 {
+			log.Printf("person delete: refused, %d is the last super administrator",
+				person.ID)
+			return c.JSON(http.StatusConflict, map[string]string{
+				"error": "last_super_administrator",
+				"message": "This is the only super administrator. Promote " +
+					"someone else, or change this account to administrator, " +
+					"and then delete it.",
+			})
+		}
+	}
+
 	// ONE write, and a soft one.
 	//
 	// This used to delete the people_people row here and then call graph-grpc to
@@ -317,6 +366,10 @@ func (h *personHandler) Delete(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	// One proof authorises one deletion, matching how the password and email
+	// flows consume theirs. Deleting two profiles means proving twice.
+	h.clearStepUp(viewer.ID)
 
 	// No publish here. graph-grpc emits node.actor.person.person.deleted.v1
 	// from ActorsGRPC.Delete above, which is where the state actually changes.
