@@ -451,6 +451,125 @@ func (h *groupHandler) Delete(c echo.Context) error {
 }
 
 // onAfterFetched is called after a group is fetched
+// Archive marks a group archived. Permanent, and destroys nothing.
+//
+//	POST /groups/:id/archive
+//
+// For a group whose project has ended. Its posts stay readable at their URLs
+// forever; what stops is the group being live — it leaves feeds, suggestions
+// AND search, which a person's archive does not. That difference is the whole
+// reason the search rule is type-aware: a finished group should stop competing
+// with live spaces, while a memorial must stay findable.
+//
+// A group administrator may do this, unlike the hard delete. It destroys
+// nothing, so the group's own administrators are the right people to decide it
+// is finished — and unlike deletion there is no thirty-day window to change
+// their mind in, which is what the step-up and the confirmation are for.
+func (h *groupHandler) Archive(c echo.Context) error {
+	var (
+		req    = requests.NewActorRequest().Delete
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	actorAccessCtx, err := h.getActorAccessContext(actor, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if ok, err := h.Perms.Groups.CanDelete(actorAccessCtx); !ok {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("group archive:", err)
+		return stepUpRefusal(c, err)
+	}
+
+	archived, err := h.Srv.ActorsGRPC.Archive(actor.ID, viewer)
+	if err != nil {
+		log.Println("group archive:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	h.clearStepUp(viewer.ID)
+
+	if !archived {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+// SetEnabled turns a group on or off. Reversible.
+//
+//	PATCH /groups/:id/enabled
+//
+// Administrators only — site administrators, not the group's. Disabling is a
+// moderation action taken against a group; archiving is what its own
+// administrators reach for when it is finished.
+func (h *groupHandler) SetEnabled(c echo.Context) error {
+	// ONE bind, into one struct carrying both the path parameter and the body.
+	//
+	// echo's Bind consumes the request body, so calling it twice leaves the
+	// second call reading nothing — the path id arrived and `enabled` was
+	// always nil, which this handler then reported as a malformed request. It
+	// refused every call, including its own correct ones.
+	var req struct {
+		ID      int64 `param:"id"      validate:"required,numeric"`
+		Enabled *bool `json:"enabled"  validate:"required"`
+	}
+
+	viewer := getViewer(c)
+
+	if err := c.Bind(&req); err != nil {
+		log.Println("group set-enabled bind:", err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if req.ID == 0 || req.Enabled == nil {
+		log.Println("group set-enabled: missing id or enabled field")
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if viewer == nil || !viewer.IsAdmin() {
+		log.Println("group set-enabled: refused, viewer is not an administrator")
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	changed, err := h.Srv.ActorsGRPC.SetEnabled(actor.ID, *req.Enabled, viewer)
+	if err != nil {
+		log.Println("group set-enabled:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if !changed {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
 // Purge destroys a group immediately, skipping the grace period.
 //
 //	DELETE /groups/:id/purge

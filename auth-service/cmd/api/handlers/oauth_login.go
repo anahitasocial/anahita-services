@@ -122,6 +122,28 @@ func (h *oauthHandler) AddCredentials(c echo.Context) error {
 		return h.renderRestoreForm(c, user)
 	}
 
+	// Archived accounts cannot sign in, and never will again.
+	//
+	// Archiving does NOT clear `enabled` — that column means one thing now, and
+	// piling a fourth meaning onto it is what this whole separation exists to
+	// undo — so the refusal has to be its own check. Without it an archived
+	// person would sign in normally, which for a memorialised account means
+	// somebody signing in as the dead.
+	//
+	// A specific message rather than the generic one, and that is safe here for
+	// the same reason the deletion branch above is: this is BEHIND the password
+	// check, so the reader has already proved the account is theirs. It is also
+	// necessary — unlike a disabled account there is no appeal and no waiting
+	// it out, so "invalid email or password" would send somebody to reset a
+	// password that was never the problem.
+	if user.ArchivedAt != nil {
+		log.Printf("login: rejected archived account (user=%d)", user.ID)
+		return h.renderLoginError(c,
+			"This account has been archived. Its posts remain readable, but it "+
+				"can no longer be signed in to. Contact support if you believe "+
+				"this is a mistake.")
+	}
+
 	// Disabled accounts return the same generic message intentionally.
 	// Distinguishing "disabled" from "wrong password" enables account
 	// enumeration against any leaked credential dump.

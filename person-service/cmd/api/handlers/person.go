@@ -382,6 +382,167 @@ func (h *personHandler) Delete(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// Archive marks a profile archived. Permanent, and destroys nothing.
+//
+//	POST /people/:id/archive
+//
+// For somebody who has left the network, or died. The posts stay readable at
+// their URLs forever; what stops is the account being live — it leaves feeds
+// and suggestions, and it can no longer be signed in to.
+//
+// Two entry points reach this, and they are different situations wearing one
+// state. A person archiving their own profile is leaving. A super
+// administrator archiving somebody else's is memorialising an account whose
+// owner cannot ask — which is the case that makes the administrative path
+// necessary at all, since a dead person cannot click anything.
+//
+// Step-up gated, and permanent, so it is deliberately as heavy as deletion.
+// There is no unarchive: see the RPC.
+func (h *personHandler) Archive(c echo.Context) error {
+	var (
+		req    = requests.NewPersonRequest().Delete
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	person, err := h.Repos.People.ReadByID(req.ID)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	// Self, or a super administrator. NOT CanDelete, which an ordinary
+	// administrator satisfies: archiving cannot be undone, so widening it to
+	// everyone who may schedule a recoverable deletion would be strictly
+	// worse than the thing it sits beside.
+	isSelf := viewer != nil && viewer.ID == person.ID
+	isSuperAdmin := viewer != nil && viewer.UserType == constants.UserTypeSuperAdmin
+	if !isSelf && !isSuperAdmin {
+		log.Println("person archive: refused, neither the owner nor a super administrator")
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("person archive:", err)
+		return stepUpRefusal(c, err)
+	}
+
+	// The same floor deletion has. An archived super administrator cannot sign
+	// in, so archiving the last one locks the site out exactly as deleting
+	// them would.
+	if person.UserType == constants.UserTypeSuperAdmin {
+		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
+		if err != nil {
+			log.Println("person archive: super administrator count failed:", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if others == 0 {
+			return c.JSON(http.StatusConflict, map[string]string{
+				"error": "last_super_administrator",
+				"message": "This is the only super administrator. Promote " +
+					"someone else before archiving this account.",
+			})
+		}
+	}
+
+	archived, err := h.Srv.ActorsGRPC.Archive(person.ID, viewer)
+	if err != nil {
+		log.Println("person archive:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	h.clearStepUp(viewer.ID)
+
+	if !archived {
+		// Already archived, or scheduled for deletion. Nothing happened, and
+		// the caller should not be told it did.
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+// SetEnabled turns a profile on or off. Reversible.
+//
+//	PATCH /people/:id/enabled
+//
+// The counterpart to archiving, and the reason `enabled` now means one thing:
+// suspension used to arrive only as a side effect of half-deleting somebody.
+//
+// Administrators, not the owner. Disabling your own profile is not a feature —
+// it is a way to lock yourself out — and the archive path above is what
+// somebody leaving actually wants.
+func (h *personHandler) SetEnabled(c echo.Context) error {
+	// ONE bind, into one struct carrying both the path parameter and the body.
+	//
+	// echo's Bind consumes the request body, so calling it twice leaves the
+	// second call reading nothing — the path id arrived and `enabled` was
+	// always nil, which this handler then reported as a malformed request. It
+	// refused every call, including its own correct ones.
+	var req struct {
+		ID      int64 `param:"id"      validate:"required,numeric"`
+		Enabled *bool `json:"enabled"  validate:"required"`
+	}
+
+	viewer := getViewer(c)
+
+	if err := c.Bind(&req); err != nil {
+		log.Println("person set-enabled bind:", err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if req.ID == 0 || req.Enabled == nil {
+		log.Println("person set-enabled: missing id or enabled field")
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if viewer == nil || !viewer.IsAdmin() {
+		log.Println("person set-enabled: refused, viewer is not an administrator")
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	person, err := h.Repos.People.ReadByID(req.ID)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	// Disabling the last super administrator locks the site out the same way
+	// deleting or archiving them would — they cannot sign in to undo it.
+	if !*req.Enabled && person.UserType == constants.UserTypeSuperAdmin {
+		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
+		if err != nil {
+			log.Println("person set-enabled: super administrator count failed:", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if others == 0 {
+			return c.JSON(http.StatusConflict, map[string]string{
+				"error":   "last_super_administrator",
+				"message": "This is the only super administrator and cannot be disabled.",
+			})
+		}
+	}
+
+	changed, err := h.Srv.ActorsGRPC.SetEnabled(person.ID, *req.Enabled, viewer)
+	if err != nil {
+		log.Println("person set-enabled:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if !changed {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
 // Purge destroys a profile immediately, skipping the grace period.
 //
 //	DELETE /people/:id/purge

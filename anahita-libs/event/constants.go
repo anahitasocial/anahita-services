@@ -33,6 +33,13 @@ const (
 	// that revoked access on the way down stays revoked on the way up.
 	EventFormatNodeActorRestored = "node.actor.%s.%s.restored.v1"
 
+	// The reversible switch and the permanent one. Consumers react
+	// differently: disabled is temporary and enabled undoes it, while archived
+	// is forever and nothing undoes it.
+	EventFormatNodeActorArchived = "node.actor.%s.%s.archived.v1"
+	EventFormatNodeActorDisabled = "node.actor.%s.%s.disabled.v1"
+	EventFormatNodeActorEnabled  = "node.actor.%s.%s.enabled.v1"
+
 	EventFormatNodeMediumAdded   = "node.medium.%s.%s.added.v1"
 	EventFormatNodeMediumEdited  = "node.medium.%s.%s.edited.v1"
 	EventFormatNodeMediumDeleted = "node.medium.%s.%s.deleted.v1"

@@ -53,6 +53,13 @@ type NodesRepoInterface interface {
 	// for the confirmation dialog.
 	ReadDeletionCounts(actorID int64) (*DeletionCounts, error)
 
+	// ArchiveActor marks an actor archived — permanent, and destroys nothing.
+	ArchiveActor(id int64) (bool, error)
+
+	// SetEnabled turns an actor on or off. Reversible, and the only thing that
+	// writes that column on its own.
+	SetEnabled(id int64, enabled bool) (bool, error)
+
 	// SoftDeleteActor marks an actor deleted and disables it, leaving everything
 	// it owns in place so a restore brings the profile back whole.
 	SoftDeleteActor(id int64) (bool, error)

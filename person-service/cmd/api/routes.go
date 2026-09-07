@@ -46,6 +46,10 @@ func (r *Routes) Init(e *echo.Echo) {
 	// difference between recoverable and gone should not be a parameter.
 	// Super administrators only — enforced in the handler.
 	people.DELETE("/:id/purge", r.handler.Person.Purge, r.authorize)
+	// Archive: permanent, destroys nothing. Self or a super administrator.
+	people.POST("/:id/archive", r.handler.Person.Archive, r.authorize)
+	// Enable/disable: reversible, administrators only.
+	people.PATCH("/:id/enabled", r.handler.Person.SetEnabled, r.authorize)
 
 	// Edit access
 	people.PATCH("/:id/access", r.handler.Person.EditAccess, r.authorize)

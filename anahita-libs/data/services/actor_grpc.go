@@ -35,6 +35,12 @@ type ActorsGRPCInterface interface {
 	// for the confirmation dialog.
 	ReadDeletionCounts(id int64, viewer *entities.Viewer) (*graphpb.ActorDeletionCountsResponse, error)
 
+	// Archive marks an actor archived. Permanent; destroys nothing.
+	Archive(id int64, viewer *entities.Viewer) (bool, error)
+
+	// SetEnabled turns an actor on or off. Reversible.
+	SetEnabled(id int64, enabled bool, viewer *entities.Viewer) (bool, error)
+
 	// Purge destroys an actor immediately, skipping the grace period.
 	//
 	// SUPER ADMINISTRATORS ONLY, and the caller enforces that — graph-grpc has
@@ -406,4 +412,63 @@ func (srv *ActorsGRPC) Purge(id int64, viewer *entities.Viewer) (bool, error) {
 	}
 
 	return resp.Purged, nil
+}
+
+// Archive marks an actor archived. Permanent; destroys nothing.
+func (srv *ActorsGRPC) Archive(id int64, viewer *entities.Viewer) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.Archive(context.Background(), &graphpb.ActorArchiveRequest{
+		Id:     id,
+		Viewer: viewerToGrpc(viewer),
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return resp.Archived, nil
+}
+
+// SetEnabled turns an actor on or off. Reversible.
+func (srv *ActorsGRPC) SetEnabled(id int64, enabled bool, viewer *entities.Viewer) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.SetEnabled(context.Background(), &graphpb.ActorSetEnabledRequest{
+		Id:      id,
+		Enabled: enabled,
+		Viewer:  viewerToGrpc(viewer),
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return resp.Changed, nil
+}
+
+// viewerToGrpc maps a viewer for the actor RPCs.
+//
+// The four fields every one of them sends, in one place — they were repeated
+// inline at each call site, which is how one of them came to omit a field.
+func viewerToGrpc(viewer *entities.Viewer) *graphpb.Viewer {
+	if viewer == nil {
+		return &graphpb.Viewer{}
+	}
+	return &graphpb.Viewer{
+		Id:       viewer.ID,
+		UserType: viewer.UserType,
+		Email:    viewer.Email,
+		Username: viewer.Username,
+	}
 }

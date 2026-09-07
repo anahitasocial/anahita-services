@@ -586,6 +586,116 @@ func (h *actorHandler) Purge(ctx context.Context, req *graphpb.ActorPurgeRequest
 	return &graphpb.ActorPurgeResponse{Purged: true}, nil
 }
 
+// Archive marks an actor archived. Permanent, and destroys nothing.
+//
+// The content keeps its URLs and stays readable forever; what stops is being
+// pushed at people who did not ask for it, and — for a group — appearing in
+// search. See SetArchiveQuery and SetArchiveSearchQuery.
+//
+// No Unarchive RPC, deliberately. Archiving is for an actor that is finished,
+// and an undo would make it the gentle-sounding option somebody picks instead
+// of deciding.
+func (h *actorHandler) Archive(ctx context.Context, req *graphpb.ActorArchiveRequest) (*graphpb.ActorArchiveResponse, error) {
+	log.Printf("Received Archive request: %v", req.Id)
+
+	actor, err := h.env.Repos.Nodes.Read(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.HasPrefix(actor.Type, constants.NodeActorPrefixEntityType) {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"archive is for actors, not %s", actor.Type)
+	}
+
+	archived, err := h.env.Repos.Nodes.ArchiveActor(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !archived {
+		// Already archived, or deleted. Not an error — the caller wanted it
+		// archived and it is, or it is on its way out instead.
+		log.Printf("actor %d was not archived; already archived or deleted", req.Id)
+		return &graphpb.ActorArchiveResponse{Archived: false}, nil
+	}
+
+	var archivedBy int64
+	if req.Viewer != nil {
+		archivedBy = req.Viewer.Id
+	}
+
+	if err := h.env.Repos.NodeDeletionLogs.Add(
+		actor.ID, actor.Alias, actor.Type, archivedBy,
+		repositories.DeletionActionArchived,
+	); err != nil {
+		log.Println("actor archive: audit write failed:", err)
+	}
+
+	h.publishActorLifecycle(
+		event.EventFormatNodeActorArchived, actor, archivedBy, viewerUserType(req.Viewer))
+
+	return &graphpb.ActorArchiveResponse{Archived: true}, nil
+}
+
+// SetEnabled turns an actor on or off.
+//
+// The reversible one. Its own RPC rather than a field on Edit because
+// `enabled` had accumulated three meanings, and separating them is the point:
+// this is a switch an administrator flips, not a by-product of deleting.
+func (h *actorHandler) SetEnabled(ctx context.Context, req *graphpb.ActorSetEnabledRequest) (*graphpb.ActorSetEnabledResponse, error) {
+	log.Printf("Received SetEnabled request: %v -> %v", req.Id, req.Enabled)
+
+	actor, err := h.env.Repos.Nodes.Read(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.HasPrefix(actor.Type, constants.NodeActorPrefixEntityType) {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"enable/disable is for actors, not %s", actor.Type)
+	}
+
+	changed, err := h.env.Repos.Nodes.SetEnabled(req.Id, req.Enabled)
+	if err != nil {
+		return nil, err
+	}
+
+	if !changed {
+		return &graphpb.ActorSetEnabledResponse{Changed: false}, nil
+	}
+
+	var changedBy int64
+	if req.Viewer != nil {
+		changedBy = req.Viewer.Id
+	}
+
+	action := repositories.DeletionActionDisabled
+	format := event.EventFormatNodeActorDisabled
+	if req.Enabled {
+		action = repositories.DeletionActionEnabled
+		format = event.EventFormatNodeActorEnabled
+	}
+
+	if err := h.env.Repos.NodeDeletionLogs.Add(
+		actor.ID, actor.Alias, actor.Type, changedBy, action,
+	); err != nil {
+		log.Println("actor set-enabled: audit write failed:", err)
+	}
+
+	h.publishActorLifecycle(format, actor, changedBy, viewerUserType(req.Viewer))
+
+	return &graphpb.ActorSetEnabledResponse{Changed: true}, nil
+}
+
+// viewerUserType reads the type off a possibly-absent viewer.
+func viewerUserType(v *graphpb.Viewer) string {
+	if v == nil {
+		return ""
+	}
+	return v.UserType
+}
+
 // Ping return a pong message
 func (h *actorHandler) Ping(ctx context.Context, req *graphpb.ActorPingRequest) (*graphpb.ActorPingResponse, error) {
 	log.Printf("Received Ping request: %v", req.Message)

@@ -75,10 +75,16 @@ CREATE TABLE nodes (
   -- Only actor nodes carry it. Content owned by a deleted actor stays as it is
   -- until the sweeper runs, so a restore brings the profile back whole.
   `deleted_at` datetime DEFAULT NULL,
+  -- Permanent. The content stays readable at its URLs; what stops is being
+  -- pushed at people who did not ask for it. Separate from `enabled` and
+  -- `deleted_at` because each of the three maps to a different answer, and a
+  -- single flag cannot give three.
+  `archived_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   -- The sweeper's only query is "actors deleted before X", and it runs against
   -- a column that is NULL for practically every row.
   KEY `deleted_at` (`deleted_at`),
+  KEY `archived_at` (`archived_at`),
   KEY `last_comment_by` (`last_comment_by`),
   KEY `created_by` (`created_by`),
   KEY `modified_by` (`modified_by`),

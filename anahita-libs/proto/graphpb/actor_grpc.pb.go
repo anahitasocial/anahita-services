@@ -29,6 +29,8 @@ const (
 	ActorService_Restore_FullMethodName        = "/graph.ActorService/Restore"
 	ActorService_DeletionCounts_FullMethodName = "/graph.ActorService/DeletionCounts"
 	ActorService_Purge_FullMethodName          = "/graph.ActorService/Purge"
+	ActorService_Archive_FullMethodName        = "/graph.ActorService/Archive"
+	ActorService_SetEnabled_FullMethodName     = "/graph.ActorService/SetEnabled"
 	ActorService_Ping_FullMethodName           = "/graph.ActorService/Ping"
 )
 
@@ -52,6 +54,10 @@ type ActorServiceClient interface {
 	// Destroys an actor immediately, skipping the grace period. Super
 	// administrators only; the caller enforces that.
 	Purge(ctx context.Context, in *ActorPurgeRequest, opts ...grpc.CallOption) (*ActorPurgeResponse, error)
+	// Archives an actor. Permanent; destroys nothing. No unarchive by design.
+	Archive(ctx context.Context, in *ActorArchiveRequest, opts ...grpc.CallOption) (*ActorArchiveResponse, error)
+	// Turns an actor on or off. Reversible.
+	SetEnabled(ctx context.Context, in *ActorSetEnabledRequest, opts ...grpc.CallOption) (*ActorSetEnabledResponse, error)
 	Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error)
 }
 
@@ -163,6 +169,26 @@ func (c *actorServiceClient) Purge(ctx context.Context, in *ActorPurgeRequest, o
 	return out, nil
 }
 
+func (c *actorServiceClient) Archive(ctx context.Context, in *ActorArchiveRequest, opts ...grpc.CallOption) (*ActorArchiveResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ActorArchiveResponse)
+	err := c.cc.Invoke(ctx, ActorService_Archive_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *actorServiceClient) SetEnabled(ctx context.Context, in *ActorSetEnabledRequest, opts ...grpc.CallOption) (*ActorSetEnabledResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ActorSetEnabledResponse)
+	err := c.cc.Invoke(ctx, ActorService_SetEnabled_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *actorServiceClient) Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ActorPingResponse)
@@ -193,6 +219,10 @@ type ActorServiceServer interface {
 	// Destroys an actor immediately, skipping the grace period. Super
 	// administrators only; the caller enforces that.
 	Purge(context.Context, *ActorPurgeRequest) (*ActorPurgeResponse, error)
+	// Archives an actor. Permanent; destroys nothing. No unarchive by design.
+	Archive(context.Context, *ActorArchiveRequest) (*ActorArchiveResponse, error)
+	// Turns an actor on or off. Reversible.
+	SetEnabled(context.Context, *ActorSetEnabledRequest) (*ActorSetEnabledResponse, error)
 	Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error)
 	mustEmbedUnimplementedActorServiceServer()
 }
@@ -233,6 +263,12 @@ func (UnimplementedActorServiceServer) DeletionCounts(context.Context, *ActorDel
 }
 func (UnimplementedActorServiceServer) Purge(context.Context, *ActorPurgeRequest) (*ActorPurgeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Purge not implemented")
+}
+func (UnimplementedActorServiceServer) Archive(context.Context, *ActorArchiveRequest) (*ActorArchiveResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Archive not implemented")
+}
+func (UnimplementedActorServiceServer) SetEnabled(context.Context, *ActorSetEnabledRequest) (*ActorSetEnabledResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetEnabled not implemented")
 }
 func (UnimplementedActorServiceServer) Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -438,6 +474,42 @@ func _ActorService_Purge_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ActorService_Archive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActorArchiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).Archive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_Archive_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).Archive(ctx, req.(*ActorArchiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ActorService_SetEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActorSetEnabledRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).SetEnabled(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_SetEnabled_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).SetEnabled(ctx, req.(*ActorSetEnabledRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ActorService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ActorPingRequest)
 	if err := dec(in); err != nil {
@@ -502,6 +574,14 @@ var ActorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Purge",
 			Handler:    _ActorService_Purge_Handler,
+		},
+		{
+			MethodName: "Archive",
+			Handler:    _ActorService_Archive_Handler,
+		},
+		{
+			MethodName: "SetEnabled",
+			Handler:    _ActorService_SetEnabled_Handler,
 		},
 		{
 			MethodName: "Ping",

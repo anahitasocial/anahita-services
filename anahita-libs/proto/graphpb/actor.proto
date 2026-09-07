@@ -173,6 +173,38 @@ message ActorPurgeResponse {
     bool purged = 1;
 }
 
+// Archive an actor. Permanent, and destroys nothing.
+//
+// There is no unarchive. Archiving is for an actor that is finished — a group
+// whose project ended, a person who has left or died — and an undo would make
+// it the soft option people reach for instead of thinking. That friction is
+// the design.
+message ActorArchiveRequest {
+    int64 id = 1;
+    Viewer viewer = 2;
+}
+
+message ActorArchiveResponse {
+    // False when there was nothing to archive: already archived, deleted, or
+    // absent. The caller needs to tell that from success.
+    bool archived = 1;
+}
+
+// Turn an actor on or off. Reversible, and the counterpart to archiving.
+//
+// Its own RPC rather than a field on Edit, because `enabled` was carrying
+// three meanings at once and this is the one that is genuinely a switch.
+message ActorSetEnabledRequest {
+    int64 id = 1;
+    bool enabled = 2;
+    Viewer viewer = 3;
+}
+
+message ActorSetEnabledResponse {
+    // False when nothing changed — already in that state, or deleted.
+    bool changed = 1;
+}
+
 message ActorPingRequest {
     string message = 1;
 }
@@ -198,5 +230,9 @@ service ActorService {
     // Destroys an actor immediately, skipping the grace period. Super
     // administrators only; the caller enforces that.
     rpc Purge(ActorPurgeRequest) returns (ActorPurgeResponse) {}
+    // Archives an actor. Permanent; destroys nothing. No unarchive by design.
+    rpc Archive(ActorArchiveRequest) returns (ActorArchiveResponse) {}
+    // Turns an actor on or off. Reversible.
+    rpc SetEnabled(ActorSetEnabledRequest) returns (ActorSetEnabledResponse) {}
     rpc Ping(ActorPingRequest) returns (ActorPingResponse) {}
 }
