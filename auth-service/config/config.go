@@ -83,11 +83,12 @@ type Config struct {
 	// Changing it does not invalidate existing enrolments — already-
 	// paired authenticators keep the label they were given, so a change
 	// shows up only for people who enrol after it.
-	TotpIssuer      string
-	SupportEmail    string
-	MailServiceAddr string
-	FileServiceAddr string
-	AmqpAddr        string
+	TotpIssuer       string
+	SupportEmail     string
+	MailServiceAddr  string
+	FileServiceAddr  string
+	GraphServiceAddr string
+	AmqpAddr         string
 
 	// Crypt — symmetric encryption of secrets at rest (currently TOTP
 	// secrets).
@@ -153,6 +154,7 @@ func NewConfig() *Config {
 		MailServiceAddr:  os.Getenv("MAIL_SERVICE_ADDR"),
 		AmqpAddr:         os.Getenv("AMQP_ADDR"),
 		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
+		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
 
 		// OAuth
 		OAuthIssuer:         os.Getenv("OAUTH_ISSUER"),
@@ -456,6 +458,16 @@ func (config *Config) GetTotpIssuer() string {
 	}
 
 	return config.DomainName
+}
+
+// GetGraphServiceAddr returns the graph service address.
+//
+// Optional. auth-service needs it for exactly one thing — resolving who
+// administers a group, so a group deletion can be reported to the people
+// responsible for it. An installation that leaves it unset loses that one
+// notification and nothing else, which is why it is not in Validate().
+func (config *Config) GetGraphServiceAddr() string {
+	return config.GraphServiceAddr
 }
 
 // GetFileServiceAddr returns the file service address

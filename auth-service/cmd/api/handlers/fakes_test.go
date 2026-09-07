@@ -3,7 +3,9 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
+	"testing"
 	"time"
 
 	"auth/cmd/api/notifiers"
@@ -12,6 +14,7 @@ import (
 	"auth/data/repositories"
 	"auth/data/services"
 
+	lib_entities "anahita-libs/data/entities"
 	libservices "anahita-libs/data/services"
 	"anahita-libs/sessions"
 
@@ -430,4 +433,99 @@ func newTestEnv(users ...*entities.User) *testEnv {
 	}
 
 	return te
+}
+
+// ---------------------------------------------------------------------
+// graph-grpc, as far as auth-service uses it: who administers a group, and
+// what that group is called.
+
+type fakeActorAdmins struct {
+	libservices.ActorAdminsGRPCInterface
+
+	byActor map[int64][]*lib_entities.AnahitaNode
+	err     error
+}
+
+func (f *fakeActorAdmins) Browse(actorID int64) ([]*lib_entities.AnahitaNode, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.byActor[actorID], nil
+}
+
+type fakeActors struct {
+	libservices.ActorsGRPCInterface
+
+	byID map[int64]*lib_entities.AnahitaNode
+	err  error
+}
+
+func (f *fakeActors) Read(id int64, viewer *lib_entities.Viewer) (*lib_entities.AnahitaNode, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	if node, ok := f.byID[id]; ok {
+		return node, nil
+	}
+	return nil, fmt.Errorf("no actor %d", id)
+}
+
+// newActorNode builds the minimum a lifecycle notification needs.
+func newActorNode(id int64, name, alias string) *lib_entities.AnahitaNode {
+	node := lib_entities.NewAnahitaNode()
+	node.ID = id
+	node.Name = name
+	node.Alias = alias
+	return node
+}
+
+// waitFor blocks until n messages have been sent, or fails.
+//
+// The notifications go out on goroutines — the handler must not block a broker
+// message on SMTP — so a test that reads the slice immediately races them.
+func (f *fakeMail) waitFor(t *testing.T, n int) []sentMail {
+	t.Helper()
+
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if got := f.snapshot(); len(got) >= n {
+			return got
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+
+	got := f.snapshot()
+	t.Fatalf("waited for %d messages, saw %d", n, len(got))
+	return got
+}
+
+func (f *fakeMail) snapshot() []sentMail {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]sentMail(nil), f.sent...)
+}
+
+// expectNoneMatching asserts that no message whose subject contains substr
+// arrives.
+//
+// A negative assertion has to WAIT. The notifications go out on goroutines, so
+// reading the slice immediately passes whether the code is right or wrong —
+// which is exactly how three of these tests survived a mutation that made them
+// send the wrong mail entirely.
+//
+// The settle time is the cost of the assertion being real. It is short because
+// the fake mailer does no I/O; the goroutine only has to be scheduled.
+func (f *fakeMail) expectNoneMatching(t *testing.T, substr string) {
+	t.Helper()
+
+	deadline := time.Now().Add(250 * time.Millisecond)
+	for time.Now().Before(deadline) {
+		for _, m := range f.snapshot() {
+			if substr == "" || strings.Contains(m.Subject, substr) {
+				t.Fatalf("a message was sent that should not have been: %q",
+					m.Subject)
+			}
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
 }
