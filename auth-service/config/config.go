@@ -88,7 +88,20 @@ type Config struct {
 	MailServiceAddr  string
 	FileServiceAddr  string
 	GraphServiceAddr string
-	AmqpAddr         string
+
+	// AuthURL and FrontendURL override the derived public base URLs.
+	//
+	// Both are derived from ENV and DomainName below, and both fall back to
+	// localhost outside prod and staging — correct for a laptop, wrong for
+	// any SHARED development deployment, where every reset link and every
+	// notification action URL then points at the reader's own machine rather
+	// than at the server that sent it.
+	//
+	// Optional. Unset keeps the derived behaviour exactly, so nothing changes
+	// for local work.
+	AuthURL     string
+	FrontendURL string
+	AmqpAddr    string
 
 	// Crypt — symmetric encryption of secrets at rest (currently TOTP
 	// secrets).
@@ -155,6 +168,8 @@ func NewConfig() *Config {
 		AmqpAddr:         os.Getenv("AMQP_ADDR"),
 		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
 		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
+		AuthURL:          os.Getenv("AUTH_URL"),
+		FrontendURL:      os.Getenv("FRONTEND_URL"),
 
 		// OAuth
 		OAuthIssuer:         os.Getenv("OAUTH_ISSUER"),
@@ -563,6 +578,13 @@ func (config *Config) GetOAuthKMSKeyAlias() string {
 // browser delivers a Set-Cookie response targeting the auth host,
 // which is the only host that can delete the IdP session cookie.
 func (config *Config) GetAuthURL() string {
+	// An explicit value wins. Without one a shared dev deployment sends reset
+	// links to http://localhost, which resolves to whichever machine opened
+	// the mail.
+	if config.AuthURL != "" {
+		return strings.TrimRight(config.AuthURL, "/")
+	}
+
 	switch {
 	case config.IsProd():
 		return fmt.Sprintf("https://auth.%s", config.DomainName)
@@ -580,6 +602,13 @@ func (config *Config) GetAuthURL() string {
 // Use this, not GetCompleteDomainName, for any link meant to land
 // someone inside the application. See the note on that method.
 func (config *Config) GetFrontendURL() string {
+	// Same reasoning as GetAuthURL. These travel together: one reset mail
+	// carries a link from each, so fixing one and not the other leaves the
+	// message half pointing at the wrong host.
+	if config.FrontendURL != "" {
+		return strings.TrimRight(config.FrontendURL, "/")
+	}
+
 	switch {
 	case config.IsProd():
 		return fmt.Sprintf("https://%s", config.DomainName)

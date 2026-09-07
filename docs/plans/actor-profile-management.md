@@ -96,7 +96,7 @@ ceremony for both.
   Delete.
 
 
-### Phase 4 — password reset **[services]**
+### Phase 4 — password reset — DONE 2026-09-07
 
 Reviewed 2026-09-04. **The handler logic is sound and is now covered by
 tests; the delivery underneath it is not.** Two findings, either of which is
@@ -119,7 +119,27 @@ can tell you whether it exists on the sending domain. If it does not, the
 send is rejected. The same applies to every other template name the
 notifiers use.
 
-Then, in rough order of how likely each is to bite:
+All three remaining findings are fixed, and one was withdrawn:
+
+- **~~A reset can be issued for a deleted or suspended account~~ — NOT a bug.**
+  Filtering deleted accounts out of `ReadByEmail` would have broken recovery
+  for exactly the people who need it: somebody scheduled for deletion who has
+  forgotten their password resets it, signs in, and is offered the restore.
+  Verified end to end. What WAS missing is that neither the reset form nor the
+  success page said a clock was running; both now name the purge date, and the
+  success page says signing in restores it.
+- **The shared validation message** is split. A malformed token reported the
+  password rule, sending somebody back to fix the only part of the submission
+  that was right. The token's shape is now checked before validation — not by
+  inspecting the validation error, because `RequestValidator` wraps failures as
+  `echo.NewHTTPError(400, err.Error())`, a string, so the typed
+  `ValidationErrors` never reaches a handler.
+- **`AUTH_URL` and `FRONTEND_URL`** are now overridable. Both derived URLs fall
+  back to localhost outside prod and staging, which is right for a laptop and
+  wrong for a shared deployment. Both, because one reset mail carries a link
+  from each.
+
+The original findings, kept for the record:
 
 - **`start_time` and `created_at` come from different clocks.**
   `tokens.Add` does not name `start_time`, so MySQL fills it from

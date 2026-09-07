@@ -290,6 +290,25 @@
         }
 
         /* Alert (error) */
+        /* A notice, not an error. Used where the page has something the reader
+           needs to know but nothing has gone wrong — a password reset on an
+           account that is scheduled for deletion, where the countdown matters
+           and the reset itself succeeded. Styled apart from .error-message so
+           it does not read as a failure. */
+        .notice {
+            padding: 8px 16px;
+            background-color: var(--mui-warning-bg, #fff4e5);
+            color: var(--mui-warning-fg, #663c00);
+            border-radius: 4px;
+            font-size: 0.875rem;
+            line-height: 1.43;
+            margin-bottom: 16px;
+        }
+
+        .notice p {
+            margin: 4px 0;
+        }
+
         .error-message {
             display: flex;
             align-items: center;

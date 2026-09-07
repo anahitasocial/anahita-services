@@ -15,6 +15,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// passwordResetTokenLength is the hex length of a reset token body: 64 random
+// bytes, hex-encoded. Mirrors Token.GenerateToken and the `len=128` tag on
+// PasswordReset.Token — if any of the three moves, all three must.
+const passwordResetTokenLength = 128
+
 type passwordHandler struct {
 	*Env
 }
@@ -179,9 +184,28 @@ func (h *passwordHandler) ResetForm(c echo.Context) error {
 			"This password reset link has expired. Please request a new one to continue.")
 	}
 
-	return h.renderTemplate(c, "password_reset.html", map[string]any{
-		"Token": token.Body,
-	})
+	// Whether the account is on a deletion countdown, so the page can say so.
+	//
+	// Somebody resetting their password to get back in DESERVES to know there
+	// is a clock running, and this is the one screen they are certain to see.
+	// It is also the moment it is most useful: the restore happens at the next
+	// sign-in, which is exactly where this page sends them.
+	//
+	// No enumeration risk. Reaching here requires a live token from the
+	// account's own mailbox, so the reader has already proved they are the
+	// person entitled to know.
+	//
+	// Best-effort: a lookup failure costs the notice, not the reset.
+	data := map[string]any{"Token": token.Body}
+	if user, err := h.Repos.Users.ReadByEmail(token.RecipientEmail); err == nil &&
+		user != nil && user.DeletedAt != nil {
+		data["ScheduledForDeletion"] = true
+		data["PurgeDate"] = user.DeletedAt.
+			AddDate(0, 0, constants.AccountGraceDays).
+			Format("2 January 2006")
+	}
+
+	return h.renderTemplate(c, "password_reset.html", data)
 }
 
 // Reset processes the new password submission.
@@ -212,6 +236,31 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
 	}
+	// The token first, and separately.
+	//
+	// This form validates two fields and rendered one message, so a truncated
+	// or mangled link reported "Password must be at least 15 characters long"
+	// — sending somebody back to correct the only part of the submission that
+	// was already right.
+	//
+	// Checked here rather than by inspecting the validation error, because the
+	// shared RequestValidator wraps failures as
+	// echo.NewHTTPError(400, err.Error()) — a STRING. The typed
+	// validator.ValidationErrors is gone by the time a handler sees it, so
+	// there is nothing to ask which field failed. Fixing that is a change to
+	// every service's error responses; this is one handler's problem and this
+	// is where it is cheap to solve.
+	//
+	// A bad token also means the form cannot work, so this sends them for a
+	// fresh link rather than re-rendering a page whose hidden field is the
+	// fault.
+	if len(req.Token) != passwordResetTokenLength {
+		log.Printf("password reset: token is %d characters, expected %d",
+			len(req.Token), passwordResetTokenLength)
+		return h.renderError(c, "Invalid Link",
+			"This password reset link is not valid. Please request a new one.")
+	}
+
 	if err := c.Validate(req); err != nil {
 		log.Println(err)
 		return h.renderTemplate(c, "password_reset.html", map[string]any{
@@ -372,7 +421,18 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 		}
 	}()
 
-	return h.renderTemplate(c, "password_reset_success.html", map[string]any{})
+	// Tell them here too. This is the page with the sign-in button on it, and
+	// signing in is what restores the account — so the notice and the action
+	// it calls for are in the same place.
+	successData := map[string]any{}
+	if user.DeletedAt != nil {
+		successData["ScheduledForDeletion"] = true
+		successData["PurgeDate"] = user.DeletedAt.
+			AddDate(0, 0, constants.AccountGraceDays).
+			Format("2 January 2006")
+	}
+
+	return h.renderTemplate(c, "password_reset_success.html", successData)
 }
 
 // ---------------------------------------------------------------------
