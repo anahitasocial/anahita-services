@@ -86,25 +86,69 @@ The two agree on the part that matters — **nothing is hidden, and nothing is
 destroyed** — and differ only on discovery. Neither takes the content away
 from the people who came looking for it.
 
-### The rule to use: pull stays, push stops
+### The rule to use: push always stops; search depends on the type
 
-Better than "in search or not", because it decides the cases the search
-question does not:
+Revised 2026-09-06 after the actual use case surfaced, and it is worth stating
+what changed because the first version of this section got it half wrong.
 
-- **Archived profiles and their content remain at their own URLs, always.**
-  Direct links work forever. This is the entire point of archiving rather than
-  deleting, and any design that breaks it has chosen the wrong feature.
-- **They remain in search results**, marked. A memorial nobody can find is not
-  a memorial. This CONTRADICTS the "drops out of feeds and search" line
-  further down in this document, which was written before the person case was
-  considered — the search half of it should go.
-- **They leave every surface that pushes content at people**: feeds,
-  suggestions, "who to follow", notifications, and anything that would deliver
-  an archived actor to somebody who did not ask for it.
+**Two requirements are sharing one word, and they want opposite things.**
 
-So the distinction is pull versus push, not visible versus hidden. Somebody
-looking for the person finds them; the system stops putting them in front of
-people who were not.
+- **Memorial.** Somebody died. Their profile must stay findable — a memorial
+  nobody can find is not a memorial, and this is the case archive-for-people
+  exists to serve.
+- **Legacy cleanup.** The PHP-era Anahita groups. Preserved, but they should
+  stop competing with live spaces in search. That is the entire point of
+  archiving them.
+
+That is why this question kept reversing. It was not indecision; it was two
+requirements.
+
+#### Privacy does not solve the cleanup case
+
+The reasonable-sounding version of "we need no search flag" is: search already
+applies the privacy gates, so restricted actors and their content are filtered
+out already. The gates are real — `SetSearchAccessQuery` has an owner gate and
+a node gate, both checked.
+
+But the content this is FOR is public. Measured against the development
+database:
+
+| | |
+|---|---|
+| media owned by the four legacy PHP groups | **2,228** of 8,657, or 26% of everything |
+| access on those groups | `public` — Anahita Project (897), Anahita Atrium (672), Tribe Support (583), Photos App (76) |
+| media visible to a logged-out visitor | 7,972 of 8,657 |
+
+Every one of those 2,228 is public, so no privacy gate touches it. Archiving
+without a search rule would preserve the content and change nothing about the
+problem it was meant to fix.
+
+#### The rule
+
+- **Push always stops, for everything archived.** Feeds, suggestions, "who to
+  follow", notifications — nothing archived is delivered to somebody who did
+  not ask for it. This half is not type-dependent and not in question.
+- **Pull always works.** Direct URLs resolve forever, for everything archived.
+  This is the point of archiving rather than deleting.
+- **Search depends on the node type**, which the database already carries, so
+  this costs no new flag:
+  - an archived **person** stays in search results, marked. Identity is
+    something people look for by name.
+  - an archived **group** and the media it owns drop out. Finished content
+    should not compete with live spaces.
+
+The implementation cost of the group half is one predicate. `medium.OwnerID`
+is the actor a medium is posted to, and `GetBaseSelectQuery` already carries
+`LEFT JOIN nodes AS owner ON node.owner_id = owner.id`, so it is
+`owner.archived_at IS NULL` in the search query and nothing else — no flag to
+propagate to 2,228 rows and nothing to keep in sync.
+
+#### The escape hatch
+
+An **"include archived"** toggle on search, off by default. That is the
+opposite of the filter first proposed here, and it is the right way round: the
+default should be the common case, and the archive is a place you go looking
+deliberately.
 
 ### Against admin-only
 
@@ -126,8 +170,8 @@ itself, not only in an admin view.
 
 - **The exact wording.** "Archived" is right for a group that finished and
   wrong for a person who died. These may need to be two labels over one state.
-- **A filter to EXCLUDE archived results** is worth having — the reverse of
-  the checkbox originally proposed, and the one people actually reach for.
+- ~~A filter to exclude archived results~~ — settled above: archived groups
+  are excluded by default, and the toggle is "include archived".
 - **Who may archive a person.** Self, and super administrators. Whether
   ordinary administrators can is a moderation-policy question.
 
