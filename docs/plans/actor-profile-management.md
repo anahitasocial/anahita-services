@@ -491,7 +491,17 @@ username, so an ActivityPub actor URI derived from the current routes would
 embed the alias — making the alias the identity, and making the tombstone's
 alias reservation load-bearing forever.
 
-**Recommendation: build the federated actor URI on the id, not the alias.**
+**Decided 2026-09-07: nodes get a UUID.** The integer id stays internal, the
+UUID becomes the public and federated identifier, and it is what an ATProto DID
+would be derived from. That is a better answer than the one this section
+originally recommended — see below — because it does not expose a
+monotonically increasing count of every node ever created, and it gives the
+DID somewhere to live that was never a database key.
+
+The recommendation it replaces, kept because the reasoning still applies to
+whatever the public identifier turns out to be:
+
+**Build the federated actor URI on a stable identifier, not the alias.**
 The alias then becomes `preferredUsername`, which ActivityPub already treats as
 mutable and non-identifying. Three things fall out of it:
 
