@@ -318,22 +318,13 @@ func (h *personHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	// publish event
-	go func() {
-		routing_key := fmt.Sprintf(event.EventFormatNodeActorDeleted, "person", "person")
-		payload := &event.EventPayload{
-			Name:           routing_key,
-			SubjectID:      viewer.ID,
-			ObjectID:       person.ID,
-			TargetID:       person.ID,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
-		}
-		log.Println("Publishing event", routing_key)
-		if err = h.Publisher.Publish(payload, routing_key); err != nil {
-			log.Println(err)
-		}
-	}()
+	// No publish here. graph-grpc emits node.actor.person.person.deleted.v1
+	// from ActorsGRPC.Delete above, which is where the state actually changes.
+	//
+	// This handler used to publish its own copy. Group deletion published
+	// nothing, so the same action announced itself for one actor type and not
+	// the other — and once both are emitted from the one place, a second
+	// publish here would deliver every person deletion to consumers twice.
 
 	return c.NoContent(http.StatusOK)
 }
