@@ -45,13 +45,9 @@ plan added two more gates:
 - **Consequence counts.** Name what is actually lost — posts, comments,
   followers, memberships, member since — from a new count endpoint, rather than
   describing it in the abstract. This is the piece that makes people stop.
-- **Step-up before deleting.** `/reauth/*` and the `StepUp` container already
-  exist and are used by the password, email, username and 2FA-disable flows.
-  Deletion is the only credential-grade action still gated on nothing but a
-  session — a stolen unlocked laptop currently deletes a profile.
-- **Email confirmation link**, modelled on `email_change.go`. Was chosen at
-  planning time; worth revisiting now that a 30-day window already makes the
-  action reversible.
+- **Step-up before deleting.** Confirmed and scoped in section 1b below.
+- ~~Email confirmation link~~ — considered and dropped, see section 1b. The
+  grace period already provides what it would buy.
 
 ### Phase 3 — admin tiering **[react]** + **[services]**
 
@@ -134,6 +130,102 @@ the step-up markers are covered alongside them.
 Left uncovered, and worth adding when each is next touched: the repositories
 themselves, which need a database rather than a double; and the notifier
 bodies, which are strings.
+
+---
+
+## 1b. Deletion needs a step-up, and a floor on super administrators
+
+Both confirmed for the next session, 2026-09-07. Taking them together because
+one of them turns out to be the answer to the other.
+
+### Step-up before deleting — passkey, or password plus passcode
+
+Deleting a profile is **the only credential-grade action still gated on
+nothing but a session.** Password change, email change, username change and
+2FA-disable all pass through `/reauth/*`; deletion does not. `CanDelete` in
+`anahita-libs/cmd/api/permissions/actor.go:120` checks scope, then admin, then
+self, then group-admin — and never asks the caller to prove anything.
+
+So a stolen laptop with an unlocked browser deletes a profile today.
+
+The machinery all exists and is used by four other flows:
+
+- `/reauth/password` — password, plus a TOTP passcode when the account has one
+- `/reauth/passkey/*` — a passkey on its own
+- `requireStepUp` / `clearStepUp` on the handler side
+- the `StepUp` container on the React side
+
+So this is wiring rather than building: call `requireStepUp` in the delete
+handlers, return the reauth status, and put the `StepUp` container in front of
+the Danger zone card the way the password card already does. One step-up
+authorises one deletion — `clearStepUp` afterwards, matching `Password.Edit`.
+
+**Email verification as a third route was considered and is NOT recommended
+here.** The mail-link pattern exists (`email_change.go`) and suits an email
+change, where the mailbox is the thing being moved and therefore the thing
+that must approve. Deletion is different: it is already reversible for 30
+days, and the person is already signed in. Adding a round trip through the
+inbox buys nothing the grace period does not already provide, and it makes the
+flow fail for anyone whose mail is slow — at the exact moment they are trying
+to leave. Passkey, or password-plus-passcode, is the right bar.
+
+### A floor on super administrators, not a ban on self-deletion
+
+The proposal was: a super administrator cannot delete themselves; only another
+super administrator can delete them. The instinct is right and the rule needs
+one adjustment, because **this installation has exactly one super
+administrator.**
+
+Applied literally today, that rule means the single super administrator can
+never delete their own account, and nobody else can either. A permanent
+deadlock, and not the thing worth preventing.
+
+The failure actually worth preventing is:
+
+> the last super administrator deletes themselves → thirty days pass → the
+> sweeper purges → the site has zero super administrators, and no route to
+> create one short of writing to the database by hand.
+
+That is unrecoverable, and it is reachable today by one person clicking one
+button.
+
+So the invariant is **"never zero super administrators"**, not "super
+administrators cannot delete themselves":
+
+- Refuse the deletion when the actor is a super administrator AND is the last
+  one — whoever is asking, self or another. The count is one query.
+- The message names the way out: promote somebody else first, or step down to
+  administrator, then delete.
+- This also keeps the ordinary case working. With three super administrators,
+  one leaving should not have to ask a colleague; that is friction with no
+  safety in it.
+
+Two further reasons to prefer the floor to the ban:
+
+- **The person should be able to leave.** A blanket ban means somebody with the
+  role cannot delete their own account on their own initiative, which sits
+  badly beside a right-to-erasure request and badly beside ordinary decency.
+  "Step down, then delete" preserves both the safety property and their
+  agency.
+- **The four-eyes argument is already covered.** The worry that a compromised
+  super-admin account might delete itself to cover tracks is answered by the
+  step-up above, by the 30-day window, and by `node_deletion_logs` — the
+  deletion is neither silent nor immediate nor unattributed.
+
+Worth applying the same floor to **demotion**, not only deletion: changing the
+last super administrator down to `administrator` reaches the same zero by a
+different door.
+
+### Work
+
+**[services]** `requireStepUp` in the person and group delete handlers, with
+`reauthStatus` on failure and `clearStepUp` on success. A last-super-admin
+check in `CanDelete` — or beside it, since it needs a count rather than the
+access context. The same check on the usertype-change path.
+
+**[react]** The `StepUp` container in front of the Danger zone delete, matching
+the password card. Copy for the refusal that says how to proceed rather than
+only that it was refused.
 
 ---
 
