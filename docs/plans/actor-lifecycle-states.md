@@ -255,17 +255,92 @@ at its own URLs forever.
 See the visibility rule above for what "drops out" means precisely — push
 surfaces, not search.
 
-### The cascade is cheaper than it looks
+### Derive from the owner; do not copy onto the children
 
-`medium.OwnerID` is the actor a medium is posted **to**, not its author —
-`created_by` holds the author. So a group owns its posts, photos and topics
-outright, and `GetBaseSelectQuery` already carries
-`LEFT JOIN nodes AS owner ON node.owner_id = owner.id`.
+The question is whether archiving an actor should write `archived_at` onto
+every medium it owns, or whether reads should keep referring to the owner.
 
-That makes the filter a single predicate on an existing join —
-`owner.archived_at IS NULL` — with no flag to propagate to owned nodes and
-nothing to backfill or keep in sync. Prefer that to denormalising a flag
-onto every child.
+**Derive.** And the reason is not performance — it is that copying destroys
+information you need in order to undo it.
+
+#### Privacy already settled this, and 532 rows depend on it
+
+Access works exactly this way today. `SetSearchAccessQuery` builds an owner
+gate and a node gate and ANDs them:
+
+```go
+sb = sb.Where(ownerGate).Where(nodeGate)
+```
+
+So the effective visibility is the INTERSECTION: a post marked `public` inside
+a `registered` group is not visible to a logged-out visitor, because the owner
+gate fails. Nothing rewrote the post's own access to say so.
+
+That is not hypothetical. Measured against the development database:
+
+| | |
+|---|---|
+| media marked `public` whose owner is more restrictive | **532** |
+| — in `registered` groups | 442 |
+| — in `admins` groups | 86 |
+| — in `followers` / `mutuals` groups | 4 |
+| media a logged-out visitor would see on the node gate alone | 8,060 |
+| media they actually see, both gates applied | 7,528 |
+
+The owner gate is the only thing keeping those 532 out.
+
+#### Why copying is the lossy option
+
+Copy the owner's value onto the children and you merge two different facts
+into one column: *this was set here* and *this was inherited*. Nothing can
+tell them apart afterwards, and both operations need to.
+
+- **Privacy.** Reopen a `registered` group to `public`. Which of its 442
+  public-marked posts were deliberately restricted on their own merits? The
+  answer was in the column you overwrote.
+- **Archive.** Unarchive a group. Which of its media had been archived
+  individually, before the group ever was? Same loss. The unarchive either
+  resurrects posts that were meant to stay archived, or leaves archived ones
+  that should have come back — and there is no way to pick.
+
+Deriving keeps the two facts in two places, which is where they belong: the
+child column means "set on this node", the owner column means "set on the
+container", and the read takes the intersection.
+
+#### The read cost is already paid
+
+`GetBaseSelectQuery` already carries
+`LEFT JOIN nodes AS owner ON node.owner_id = owner.id`, for the owner gate
+above and for hydrating the owner into responses. So the archive filter is one
+more predicate on a row that is already being fetched, by primary key:
+
+```sql
+owner.archived_at IS NULL
+```
+
+There is a subtlety in that LEFT JOIN worth keeping: the predicate is TRUE
+both when the owner is not archived AND when there is no owner row at all.
+That is the correct reading — a node with no owner is not owned by an archived
+actor — and it comes free. A denormalised flag would need "no owner" handled
+separately.
+
+#### The write cost of the alternative
+
+Archiving Anahita Project would write 897 rows, Anahita Atrium 672, and the
+four legacy groups 2,228 between them. Each has to be transactional with the
+actor's own update or the two drift, and every one of those writes is a fact
+that can now disagree with its source.
+
+#### When denormalising WOULD be right
+
+Worth naming so this is a decision and not a reflex: if a hot path ever needs
+to filter on archived-ness without joining the owner — a covering index, say —
+then materialise it. As a measured optimisation, with the owner still the
+source of truth and the copy understood as a cache.
+
+Federation makes that less attractive rather than more: a remote owner may not
+be a local row at all, so a derived read has somewhere sensible to fail while
+a copied flag has nothing to copy from.
 
 ### To decide
 
