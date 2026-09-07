@@ -18,7 +18,7 @@ func SetFeedAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.SelectB
 	leaders := relOwnerFollowsViewer(vID)
 	mutual := sq.And{follows, leaders}
 	isAdmin := relViewerAdminsOwner(vID)
-	notBlocked := relNotBlockedEitherWay(vID)
+	notBlocked := relNotBlockedEitherWay(vID, contentActorRefs("node")...)
 	relSelfOrAdminForOwner := relSelfOrAdminForOwner(vID)
 
 	// Hard deny if blocked either way

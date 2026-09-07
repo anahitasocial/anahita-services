@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"strings"
+
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 
@@ -18,7 +20,7 @@ func SetAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.SelectBuild
 	leaders := relOwnerFollowsViewer(vID)
 	mutual := sq.And{follows, leaders}
 	isAdmin := relViewerAdminsOwner(vID)
-	notBlocked := relNotBlockedEitherWay(vID)
+	notBlocked := relNotBlockedEitherWay(vID, contentActorRefs("node")...)
 	relSelfOrAdminForOwner := relSelfOrAdminForOwner(vID)
 
 	// Hard deny if blocked either way
@@ -151,19 +153,64 @@ func relOwnerFollowsViewer(viewerID int64) sq.Sqlizer {
 	)
 }
 
-// relNotBlockedEitherWay checks if the viewer is not blocked by the owner.
-func relNotBlockedEitherWay(viewerID int64) sq.Sqlizer {
+// relNotBlockedEitherWay hides a row when the viewer has blocked, or been
+// blocked by, ANY of the actors the row belongs to.
+//
+// actorRefs are SQL expressions on the row that yield an actor id. Callers
+// pass every actor the row is attributable to, because blocking somebody means
+// not seeing their posts anywhere — not merely not seeing their profile:
+//
+//	content:  node.owner_id (the actor it was posted to)
+//	          node.created_by (who wrote it — the one that matters when
+//	          somebody posts into a group they do not own)
+//	          node.id (harmless, and correct when the row IS an actor)
+//	actors:   node.id alone. An actor's created_by is whoever created it, and
+//	          blocking a group's creator should not hide the group.
+//
+// It used to take no arguments and compare against node.id only. In an actor
+// listing node IS the actor so that worked, but in media, feed, search and
+// polymorphic queries node is the content item — a photo, an article — and no
+// block edge ever references a photo's id. The predicate could not match, so
+// blocking hid the person and left every one of their posts visible.
+//
+// Blocks are symmetric here: A blocking B hides B from A AND A from B.
+//
+// COALESCE rather than relying on NULL semantics inside IN: a NULL owner_id
+// makes the whole IN comparison NULL rather than false, which happens to give
+// the right answer but only by way of three-valued logic nobody should have to
+// re-derive when reading this.
+//
+// On cost: this is correlated, but each branch pins the viewer with an
+// equality — indexed by uc_edge on (type, node_a_id, ...) one way and by the
+// node_b_id index the other — so it probes the viewer's own block list, which
+// is small, rather than scanning edges per row.
+func relNotBlockedEitherWay(viewerID int64, actorRefs ...string) sq.Sqlizer {
+	if len(actorRefs) == 0 {
+		actorRefs = []string{"node.id"}
+	}
+
+	refs := make([]string, 0, len(actorRefs))
+	for _, ref := range actorRefs {
+		refs = append(refs, "COALESCE("+ref+", 0)")
+	}
+	list := strings.Join(refs, ", ")
+
 	return sq.Expr(`
         NOT EXISTS (
           SELECT 1 FROM edges e
           WHERE e.type = ?
             AND (
-               (e.node_a_id = ? AND e.node_b_id = node.id)
-            OR (e.node_b_id = ? AND e.node_a_id = node.id)
+               (e.node_a_id = ? AND e.node_b_id IN (`+list+`))
+            OR (e.node_b_id = ? AND e.node_a_id IN (`+list+`))
             )
         )`,
 		constants.EdgeBlockEntityType, viewerID, viewerID,
 	)
+}
+
+// contentActorRefs are the actors a content row is attributable to.
+func contentActorRefs(alias string) []string {
+	return []string{alias + ".id", alias + ".owner_id", alias + ".created_by"}
 }
 
 // relSelfOrAdminForOwner checks if the viewer is the owner itself or an admin of the owner.
@@ -172,9 +219,9 @@ func relNotBlockedEitherWay(viewerID int64) sq.Sqlizer {
 func relSelfOrAdminForOwner(viewerID int64) sq.Sqlizer {
 	return sq.Expr(`
         (
-          (owner.type LIKE 'node.actor.person.%' AND owner.id = ?)
+          (owner.type LIKE 'node.actor.person-service.person.%' AND owner.id = ?)
           OR
-          (owner.type NOT LIKE 'node.actor.person.%' AND EXISTS (
+          (owner.type NOT LIKE 'node.actor.person-service.person.%' AND EXISTS (
               SELECT 1 FROM edges e
               WHERE e.type = ?
                 AND e.node_a_id = ?
