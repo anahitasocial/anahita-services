@@ -143,6 +143,18 @@ Requested. A cleanup path that skips the 30-day window and purges immediately â€
 for spam, abuse, and test accounts where waiting a month serves nobody, and as
 the mechanism behind a verified erasure request.
 
+**Confirmed 2026-09-06, with the purpose narrowed: site cleanup â€” removing
+outdated accounts.** That is worth taking literally, because it decides the
+surface. A tool for clearing out stale accounts is a filtered list with a
+multi-select, reached from administration; it is not a heavier button on the
+profile page beside the ordinary delete. Someone tidying up a hundred dormant
+test accounts and someone destroying one live account are doing different jobs,
+and only the second wants a per-profile control.
+
+The erasure-request use is the same mechanism from a different door, and can
+stay a per-account action. See also `actor-lifecycle-states.md`, which now
+records the states this sits alongside.
+
 Everything needed already exists in the sweeper: `PurgeActorContent`,
 `TombstoneActor`, the blob deletion, the audit row and the `purged` event. The
 work is mostly making that reachable from a request rather than only from a

@@ -11,6 +11,53 @@ Spans two repositories. Items are marked **[services]** or **[react]**.
 
 ---
 
+## Decisions taken — 2026-09-06
+
+Confirmed when this became Phase 5. These settle most of the "To decide"
+list further down; what they do not settle is called out there.
+
+**The three states, restated by the person who has to live with them:**
+archive is not reversible, enable/disable is reversible, delete is permanent.
+That matches the table below, and it is worth noting that it was arrived at
+independently — the ordering is not an artefact of how the table was drawn.
+
+**All three go in the Danger zone.** Including enable/disable, which is
+reversible. It sits there not because it is severe but because it is where
+somebody looks for it, and grouping the reversible one beside the two
+one-way doors is also what makes the difference between them legible.
+
+**Hard delete is super-administrator only, and its purpose is site
+cleanup** — removing outdated accounts, not moderating live ones. That
+purpose is worth writing down because it decides the surface: a tool for
+clearing out stale accounts wants a list and a filter, not a button on one
+profile. It is not an escalation of the ordinary delete and should not be
+reachable from the same place.
+
+### Open: does archive apply to people?
+
+**This needs an answer before any of it is built.** The scope was given as
+"archive and enable/disable for actors (person, group)", and an earlier
+decision in the same conversation was "disable for all actors, archive for
+non-person actors" — which this document was written from. The two readings
+lead to materially different work.
+
+- *"person, group" names which actor types we build for at all* — so
+  archive stays non-person, and this document is unchanged.
+- *"person, group" means archive applies to both* — then archiving a person
+  raises a question nothing else here does: **a person signs in.** An
+  archived group is content with no actor behind it; an archived person is
+  an account. Can they still authenticate? If yes, they log in to a profile
+  they can no longer post from and cannot un-archive — which is a support
+  ticket, permanently. If no, then archive is delete-without-the-countdown
+  wearing a gentler name, and the copy problem below becomes acute.
+
+The second reading is buildable, but it needs its own answer to "what does
+signing in do", and that answer belongs here before the column exists.
+
+---
+
+---
+
 ## The three states are not a scale of severity
 
 This is the thing to get right before any of it is built, because the UI
@@ -103,7 +150,8 @@ onto every child.
   queries; adding the predicate in `GetBaseSelectQuery` catches everything
   at once, but also catches the paths that *should* still see archived
   content — the actor's own profile, and the admin views.
-- **How much ceremony.** Permanence forces this question. Deletion got a
+- **How much ceremony.** Permanence forces this question, and it is now
+  confirmed permanent rather than assumed. Deletion got a
   30-day window precisely because one-way-by-misclick is unacceptable in a
   shared space, and an archive with no undo has the same shape. At minimum
   it wants what deletion has: a statement of what changes, a typed
@@ -117,11 +165,55 @@ onto every child.
 - **Whether it is offered beside deleting.** It is a genuine choice — keep
   the content readable forever, or destroy it — so presenting them together
   helps somebody pick correctly. See the warning about copy above.
-- **Federation.** An archived actor probably still serves its ActivityPub
-  actor object, read-only — unlike a deleted one, which should eventually
-  answer `410 Gone`.
+- ~~**Federation.**~~ Settled as far as it needs to be — see *Federation*
+  above. An archived actor serves its actor object read-only; a deleted one
+  answers `410 Gone`.
 - **Members.** Archiving a group with active members changes what they can
   do without removing anything. They should be told.
+
+---
+
+## Federation — what to keep in mind now
+
+Not being built. ATProto and ActivityPub services are intended eventually,
+so the point of this section is only to avoid decisions that would be
+expensive to unpick — not to design for either protocol today.
+
+**The one that matters here: keep the states in separate columns.** This is
+already the recommendation above, on ordinary correctness grounds, and
+federation is a second and independent reason for it. Each state maps to a
+*different* wire behaviour, and none of them can be derived from a shared
+boolean:
+
+| state | ActivityPub | ATProto |
+|---|---|---|
+| disabled | stop delivering; actor still resolves | account `deactivated` |
+| archived | actor resolves read-only; emits nothing; rejects inbound | no direct equivalent — closest is a deactivated repo that still serves records |
+| deleted | `Delete` activity, then `Tombstone` / `410 Gone` | tombstone the DID document |
+
+An `enabled` flag carrying four meanings cannot answer "what do we serve a
+remote server", because the four meanings have four different answers. So
+the split is the federation-relevant decision, and it is already the plan.
+
+**Two things worth not foreclosing**, both cheap now and awkward later:
+
+- **A soft-deleted actor must stay distinguishable from one that never
+  existed.** A remote server needs `410 Gone` rather than `404`, and hard
+  delete destroys the ability to say which. `node_deletion_logs` is already
+  the right place for that record; the thing to avoid is a hard delete that
+  removes the log row along with the node.
+- **Identity is going to need somewhere to live.** Both protocols carry an
+  identifier the local database does not have today — a DID for ATProto, an
+  actor URI for ActivityPub — and they belong to *federated objects*
+  generally, not only to actors. Adding a nullable column later is easy; the
+  part that is not easy is that by then every query joins on the assumption
+  that a node's identity is its integer id. Nothing to build now. Worth
+  knowing that the id is a local handle and not an identity.
+
+Deliberately not decided here: whether archived actors federate at all.
+That is a policy question about a service that does not exist.
+
+---
 
 ---
 
