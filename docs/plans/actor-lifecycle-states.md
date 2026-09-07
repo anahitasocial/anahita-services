@@ -3,9 +3,10 @@
 Written 2026-09-04, split out of `actor-profile-management.md` so the two
 states can be designed together rather than one at a time.
 
-Both land in the Danger zone alongside deletion. **Disable applies to every
-actor; archive applies to non-person actors only** — a group, an event, a
-photo album, anything that holds content but does not sign in.
+Both land in the Danger zone alongside deletion, and **both apply to every
+actor** — people included. Archive was originally scoped to non-person actors;
+that was reversed on 2026-09-06 once the case for it was the one that matters
+most, somebody leaving the network or dying. See *Decisions taken*.
 
 Spans two repositories. Items are marked **[services]** or **[react]**.
 
@@ -33,28 +34,102 @@ clearing out stale accounts wants a list and a filter, not a button on one
 profile. It is not an escalation of the ordinary delete and should not be
 reachable from the same place.
 
-### Open: does archive apply to people?
+### Archive applies to people too — settled 2026-09-06
 
-**This needs an answer before any of it is built.** The scope was given as
-"archive and enable/disable for actors (person, group)", and an earlier
-decision in the same conversation was "disable for all actors, archive for
-non-person actors" — which this document was written from. The two readings
-lead to materially different work.
+Confirmed, with the case that settles it: **somebody leaves the network, or
+dies.** Deleting their profile is the wrong answer to both. Archive is what
+lets the account stop being live without the content stopping existing.
 
-- *"person, group" names which actor types we build for at all* — so
-  archive stays non-person, and this document is unchanged.
-- *"person, group" means archive applies to both* — then archiving a person
-  raises a question nothing else here does: **a person signs in.** An
-  archived group is content with no actor behind it; an archived person is
-  an account. Can they still authenticate? If yes, they log in to a profile
-  they can no longer post from and cannot un-archive — which is a support
-  ticket, permanently. If no, then archive is delete-without-the-countdown
-  wearing a gentler name, and the copy problem below becomes acute.
+That reverses the earlier "archive for non-person actors only", and it is the
+better call — the person case is arguably the *stronger* one, because a group
+that is finished can simply go quiet, while a person's account keeps looking
+active until something says otherwise.
 
-The second reading is buildable, but it needs its own answer to "what does
-signing in do", and that answer belongs here before the column exists.
+**An archived person cannot sign in.** The two entry points below make this
+unavoidable: one of them is used when the account holder is dead. An archived
+account that still authenticates is an account somebody could be signed into,
+which is precisely what archiving is meant to end.
+
+#### Two entry points, one state
+
+They need different ceremony and different copy, and conflating them would get
+one of the two badly wrong.
+
+- **Self-service** — "I am leaving." The person archives their own profile.
+  Step-up, typed confirmation, and copy that says plainly it cannot be undone
+  and that they will not be able to sign in again.
+- **Administrative** — memorialisation. The account holder cannot do it; that
+  is the whole situation. A super administrator archives on request from
+  family or an executor. This is not an escalation of the self-service path
+  and should not share its button.
+
+The administrative path is the one that does not exist for groups, and it is
+the reason archive-for-people is not just "the group flow with a different
+type filter".
 
 ---
+
+## What archived content should do — the visibility question
+
+The question as posed was: hide archived material behind a search checkbox, or
+show it only to administrators? **Neither**, and the second is worth arguing
+against explicitly.
+
+### The industry splits two ways
+
+| | what happens to the content | discoverable? |
+|---|---|---|
+| Facebook, Instagram, LinkedIn — *memorialisation* | preserved, visible to its original audience | pulled from suggestions, recommendations, ads, birthday reminders; reachable by direct link |
+| GitHub, most forums — *archive* | preserved, read-only, prominent badge | fully visible and fully searchable |
+
+The two agree on the part that matters — **nothing is hidden, and nothing is
+destroyed** — and differ only on discovery. Neither takes the content away
+from the people who came looking for it.
+
+### The rule to use: pull stays, push stops
+
+Better than "in search or not", because it decides the cases the search
+question does not:
+
+- **Archived profiles and their content remain at their own URLs, always.**
+  Direct links work forever. This is the entire point of archiving rather than
+  deleting, and any design that breaks it has chosen the wrong feature.
+- **They remain in search results**, marked. A memorial nobody can find is not
+  a memorial. This CONTRADICTS the "drops out of feeds and search" line
+  further down in this document, which was written before the person case was
+  considered — the search half of it should go.
+- **They leave every surface that pushes content at people**: feeds,
+  suggestions, "who to follow", notifications, and anything that would deliver
+  an archived actor to somebody who did not ask for it.
+
+So the distinction is pull versus push, not visible versus hidden. Somebody
+looking for the person finds them; the system stops putting them in front of
+people who were not.
+
+### Against admin-only
+
+It fails the case that motivated the feature. A dead person's profile visible
+only to administrators is invisible to their friends — the people the memorial
+is for. It also makes archive strictly worse than deletion from the account
+holder's point of view, which means nobody would choose it, which means the
+feature does not do its job.
+
+### A badge is not optional
+
+Facebook's "Remembering" prefix is the most transferable part of their design
+and the cheapest thing here. An archived profile with no visible marker is
+actively distressing: people message someone who has died and wonder why there
+is no reply. Whatever the wording, the state must be legible on the profile
+itself, not only in an admin view.
+
+### Still open
+
+- **The exact wording.** "Archived" is right for a group that finished and
+  wrong for a person who died. These may need to be two labels over one state.
+- **A filter to EXCLUDE archived results** is worth having — the reverse of
+  the checkbox originally proposed, and the one people actually reach for.
+- **Who may archive a person.** Self, and super administrators. Whether
+  ordinary administrators can is a moderation-policy question.
 
 ---
 
@@ -126,11 +201,15 @@ hard something is to undo, and this one is a toggle.
 
 ---
 
-## Archive — for non-person actors
+## Archive — for every actor
 
-A group, event or album that is *finished* rather than regretted. It and
-everything it owns drop out of feeds and search, nothing is destroyed, and
-the content stays readable at its own URLs forever.
+A group, event or album that is *finished* rather than regretted — or a person
+who has left, or died. It and everything it owns drop out of feeds and
+suggestions, nothing is destroyed, and the content stays readable and findable
+at its own URLs forever.
+
+See the visibility rule above for what "drops out" means precisely — push
+surfaces, not search.
 
 ### The cascade is cheaper than it looks
 
@@ -188,7 +267,7 @@ boolean:
 | state | ActivityPub | ATProto |
 |---|---|---|
 | disabled | stop delivering; actor still resolves | account `deactivated` |
-| archived | actor resolves read-only; emits nothing; rejects inbound | no direct equivalent — closest is a deactivated repo that still serves records |
+| archived | actor resolves read-only; emits nothing; rejects inbound. ActivityPub has no memorialisation concept, so this is the closest honest mapping | no direct equivalent — closest is a deactivated repo that still serves records |
 | deleted | `Delete` activity, then `Tombstone` / `410 Gone` | tombstone the DID document |
 
 An `enabled` flag carrying four meanings cannot answer "what do we serve a
