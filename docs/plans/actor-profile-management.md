@@ -37,17 +37,40 @@ more section here.
 Phases 2 and 3 continue the approved deletion plan and neither is started.
 Phase 4 opens a new front, on the flow next door.
 
-### Phase 2 — self-service friction **[react]** + **[services]**
+### Phase 2 — self-service friction — DONE 2026-09-07
 
-The Danger zone currently states the consequences and takes a typed alias. The
-plan added two more gates:
+Both gates built and verified against the running stack.
 
-- **Consequence counts.** Name what is actually lost — posts, comments,
-  followers, memberships, member since — from a new count endpoint, rather than
-  describing it in the abstract. This is the piece that makes people stop.
-- **Step-up before deleting.** Confirmed and scoped in section 1b below.
-- ~~Email confirmation link~~ — considered and dropped, see section 1b. The
-  grace period already provides what it would buy.
+- **Consequence counts** — `GET /:namespace/:id/deletion-counts`, served by a
+  new `DeletionCounts` RPC on the actor service. Posts, comments, followers,
+  following, groups administered, member since. Rendered in the Danger zone
+  before the typed-alias field.
+- **Step-up before deleting** — person and group delete handlers both require a
+  live `/reauth/*` proof, and the React card opens the StepUp dialog and
+  retries. Deletion was the last credential-grade action gated on a session
+  alone.
+- ~~Email confirmation link~~ — dropped, see section 1b.
+
+Things learned in the building, worth keeping:
+
+- **403 was already taken.** In auth-service it only ever meant "step up", but
+  in person-service it also meant "you may not delete this" — and the React
+  card opens the dialog on a 403. Without a distinguishing body somebody
+  lacking permission would prove themselves, retry, be refused, and be shown
+  the dialog again forever. The refusal now carries
+  `{"error":"step_up_required"}`.
+- **The step-up key had to leave auth-service.** person-service and
+  group-service read a marker auth-service writes, so the prefix, TTL and
+  sentinel are in `anahita-libs/sessions` — a prefix only one service knows is
+  one the others can silently disagree with. A narrow `KeyValueInterface` came
+  with it, so a service reading two Redis keys does not have to satisfy six
+  cookie-shaped config methods.
+- **The counts are scalar subqueries, not joins.** Joining 219 followers
+  against 23 groups gives 5,037 of something that counts neither, and it looks
+  plausible. There is a test that fails if a JOIN appears.
+- **The counts take the deletion permission**, not a read permission. They
+  describe somebody's whole footprint, so if you may not delete the profile you
+  may not enumerate it.
 
 ### Phase 3 — admin tiering **[react]** + **[services]**
 
@@ -171,7 +194,9 @@ to leave. Passkey, or password-plus-passcode, is the right bar.
 
 ### A floor on super administrators, not a ban on self-deletion
 
-**Decided 2026-09-07. Build this.**
+**Decided and built 2026-09-07.** Confirmed afterwards that the intent is
+narrow: the last-super-admin case is rare, and the point is only that they
+cannot lock themselves out. That is what the floor does and nothing more.
 
 The proposal was: a super administrator cannot delete themselves; only another
 super administrator can delete them. The instinct was right and the rule needed
@@ -255,12 +280,21 @@ the permission layer would be both the wrong place and the racy one.
 
 ### Work
 
-**[services]** `requireStepUp` in the person and group delete handlers, with
-`reauthStatus` on failure and `clearStepUp` on success. The super-administrator
-floor as a predicate inside the soft-delete UPDATE — not in `CanDelete`, for
-the reasons above — returning a distinct status so the UI can show the way out
-rather than a generic refusal. The same floor on the usertype-change path if
-demotion is confirmed.
+~~**[services]**~~ Done. One correction to what this section said before it
+was built: the floor is NOT inside the soft-delete UPDATE. `usertype` lives in
+`people_people`, and graph-grpc — which owns the soft delete — has never read
+that table. Putting it there would have been the first crossing of that
+boundary. It is a check in person-service, which owns both halves of the query.
+
+That trades away the atomicity argued for above. The honest cost: two super
+administrators deleting themselves in the same few milliseconds could both
+pass. The outcome is recoverable — soft delete, thirty-day window,
+restore-at-login, and both are emailed — so the boundary was judged worth more
+than closing a millisecond race.
+
+**Still open: the same floor on demotion.** Changing the last super
+administrator down to `administrator` reaches zero through a different door,
+and nothing guards it.
 
 **[react]** The `StepUp` container in front of the Danger zone delete, matching
 the password card. Copy for the refusal that says how to proceed rather than
