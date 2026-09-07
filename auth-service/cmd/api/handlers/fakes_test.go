@@ -98,8 +98,9 @@ type fakeTokens struct {
 
 	byBody map[string]*entities.Token
 
-	added  []*entities.Token
-	edited []*entities.Token
+	added       []*entities.Token
+	edited      []*entities.Token
+	invalidated []string
 
 	addErr error
 }
@@ -117,6 +118,21 @@ func (f *fakeTokens) ReadByBody(body string) (*entities.Token, error) {
 		return t, nil
 	}
 	return nil, fmt.Errorf("no token for body %q", body)
+}
+
+// InvalidateOutstanding records the call and retires anything matching, so a
+// test can assert that issuing a new link kills the old one.
+func (f *fakeTokens) InvalidateOutstanding(tokenType, email string) (int64, error) {
+	f.invalidated = append(f.invalidated, tokenType+"/"+email)
+
+	var retired int64
+	for _, t := range f.byBody {
+		if t.Type == tokenType && t.RecipientEmail == email && !t.IsUsed {
+			t.IsUsed = true
+			retired++
+		}
+	}
+	return retired, nil
 }
 
 func (f *fakeTokens) Add(token *entities.Token) (*entities.Token, error) {

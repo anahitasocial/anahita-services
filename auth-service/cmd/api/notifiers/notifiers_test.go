@@ -183,6 +183,7 @@ func everyNotification(n *Notifiers) []struct {
 		{"Totp.EmailRecoveryCodeUsed/1", func() error { return n.Totp.EmailRecoveryCodeUsed(user, 1) }},
 		{"Totp.EmailRecoveryCodeUsed/5", func() error { return n.Totp.EmailRecoveryCodeUsed(user, 5) }},
 		{"Totp.EmailLockedOut", func() error { return n.Totp.EmailLockedOut(user) }},
+		{"Reauth.EmailLockedOut", func() error { return n.Reauth.EmailLockedOut(user) }},
 		{"WebAuthn.EmailPasskeyAdded", func() error {
 			return n.WebAuthn.EmailPasskeyAdded(user, "iCloud Keychain")
 		}},

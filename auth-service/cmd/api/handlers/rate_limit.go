@@ -109,30 +109,53 @@ func rateLimitKey(scope rateLimitScope, subject string) string {
 // while the store is down is the exposure this service had before
 // these counters existed.
 func (env *Env) rateLimitExceeded(scope rateLimitScope, subject string) bool {
+	exceeded, _ := env.rateLimitCheck(scope, subject)
+	return exceeded
+}
+
+// rateLimitCheck is rateLimitExceeded plus whether this call is the one that
+// crossed the line.
+//
+// The second return exists for the handlers that want to TELL somebody a limit
+// tripped. Mailing on every rejected attempt would turn a guessing attack into
+// a mail flood aimed at the person being attacked — burying the warning in the
+// noise it generates, and making the notification the more effective attack of
+// the two. Notifying only on the first crossing gives exactly one message per
+// window.
+//
+// "First" is read off the counter rather than kept in a second key: the count
+// passes through limit.max exactly once per window, because the window's TTL
+// is set on the first increment and the counter only rises.
+//
+// A counter failure reports neither exceeded nor first. Failing open on the
+// limit is the existing behaviour — an outage in the session store should not
+// lock everyone out of signing in — and it follows that a limit which did not
+// trip cannot have just tripped.
+func (env *Env) rateLimitCheck(scope rateLimitScope, subject string) (exceeded, first bool) {
 	if subject == "" {
-		return false
+		return false, false
 	}
 
 	limit, ok := rateLimits[scope]
 	if !ok {
 		log.Printf("rate limit: unknown scope %q, not limiting", scope)
-		return false
+		return false, false
 	}
 
 	count, err := env.Session.Incr(rateLimitKey(scope, subject), limit.window)
 	if err != nil {
 		log.Printf("rate limit: counter failed for scope %s, allowing: %v",
 			scope, err)
-		return false
+		return false, false
 	}
 
 	if count > limit.max {
 		log.Printf("rate limit: scope %s exceeded (%d/%d)",
 			scope, count, limit.max)
-		return true
+		return true, count == limit.max+1
 	}
 
-	return false
+	return false, false
 }
 
 // rateLimitReset drops a counter.

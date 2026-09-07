@@ -575,3 +575,38 @@ func TestResetDoesNotSignThePersonIn(t *testing.T) {
 		t.Errorf("the reset set %d cookie(s); it must not establish a session", len(cookies))
 	}
 }
+
+// A second forgot-password request must retire the first link. Both land in
+// the same inbox, but a link that was forwarded, or that somebody else reached
+// first, otherwise keeps working for its full window after the owner has asked
+// for a fresh one.
+func TestForgotRetiresTheEarlierLink(t *testing.T) {
+	serviceRoot(t)
+	e := newTestEcho()
+
+	env := newTestEnv(testUser(t, 42, "ada@example.com", "correct horse battery staple"))
+
+	existing := entities.NewToken()
+	existing.Body = "the-old-link"
+	existing.Type = constants.TokenTypePasswordReset
+	existing.RecipientEmail = "ada@example.com"
+	existing.IsUsed = false
+	env.Tokens.byBody[existing.Body] = existing
+
+	c, _ := postForm(e, "/password/forgot", url.Values{"email": {"ada@example.com"}})
+	if err := newPasswordHandler(env.Env).Forgot(c); err != nil {
+		t.Fatalf("Forgot: %v", err)
+	}
+
+	if !existing.IsUsed {
+		t.Error("the earlier link is still live; two reset links now open the " +
+			"same account")
+	}
+
+	if len(env.Tokens.added) != 1 {
+		t.Fatalf("added %d tokens, want 1", len(env.Tokens.added))
+	}
+	if env.Tokens.added[0].IsUsed {
+		t.Error("the new link was retired along with the old one")
+	}
+}
