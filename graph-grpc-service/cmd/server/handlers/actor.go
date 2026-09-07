@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/event"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"encoding/json"
 	"fmt"
 	"graph/requests"
 	"log"
@@ -98,7 +98,22 @@ func (h *actorHandler) Read(ctx context.Context, req *graphpb.ActorReadRequest) 
 
 	loader := features.NewFeatureLoader(h.env.Config.GetActorFeaturesPath())
 
-	node, err := h.env.Repos.Nodes.Read(req.Id)
+	// Actors only, and the caller's exact type when it supplied one.
+	//
+	// A bare id lookup returned whatever node held that id, so
+	// GET /groups/<hashtag id> answered 200 with a hashtag body. The family
+	// filter stops that. The exact type stops the subtler version: a person
+	// and a group are both actors, so /groups/<a person id> still returned a
+	// person until the route's own type travelled with the request.
+	//
+	// Falling back to the family when node_type is empty keeps the internal
+	// callers that genuinely take any actor working unchanged.
+	nodeType := req.NodeType
+	if nodeType == "" {
+		nodeType = constants.NodeActorPrefixEntityType
+	}
+
+	node, err := h.env.Repos.Nodes.ReadOfType(req.Id, nodeType)
 	if err != nil {
 		return nil, err
 	}
@@ -167,17 +182,7 @@ func (h *actorHandler) Edit(ctx context.Context, req *graphpb.ActorEditRequest) 
 		return nil, err
 	}
 
-	node.Enabled = req.Actor.Enabled
-	node.Access = req.Actor.Access
-	node.Name = req.Actor.Name
-	node.Body = req.Actor.Body
-	node.Alias = req.Actor.Alias
-	node.Verified = req.Actor.Verified
-	node.Filename = req.Actor.Filename
-	node.CoverFilename = req.Actor.CoverFilename
-	node.AllowFollowRequest = req.Actor.AllowFollowRequest
-	node.FeaturesRaw = json.RawMessage(req.Actor.FeaturesRaw)
-	node.ModifiedBy = req.Actor.ModifiedBy
+	applyEditableActorFields(node, req.Actor)
 
 	v := validators.NewActorValidator()
 	if err := v.ValidateEdit(node); err != nil {
@@ -238,22 +243,7 @@ func (h *actorHandler) Edit(ctx context.Context, req *graphpb.ActorEditRequest) 
 func (h *actorHandler) Add(ctx context.Context, req *graphpb.ActorAddRequest) (*graphpb.ActorAddResponse, error) {
 	log.Printf("Received Add request: %v", req)
 
-	node := entities.NewAnahitaNode()
-	node.Type = req.Actor.Type
-	node.Service = req.Actor.Service
-	node.Enabled = req.Actor.Enabled
-	node.Access = req.Actor.Access
-	node.Name = req.Actor.Name
-	node.Alias = req.Actor.Alias
-	node.Body = req.Actor.Body
-	node.Verified = req.Actor.Verified
-	node.AllowFollowRequest = req.Actor.AllowFollowRequest
-	node.FeaturesRaw = json.RawMessage(req.Actor.FeaturesRaw)
-	node.Filename = req.Actor.Filename
-	node.CoverFilename = req.Actor.CoverFilename
-	node.Meta = json.RawMessage(req.Actor.Meta)
-	node.CreatedBy = req.Actor.CreatedBy
-	node.ModifiedBy = req.Actor.ModifiedBy
+	node := newActorFromRequest(req.Actor)
 
 	v := validators.NewActorValidator()
 	if err := v.ValidateAdd(node); err != nil {

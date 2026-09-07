@@ -6,7 +6,6 @@ option go_package = "/graphpb";
 
 import "proto/graphpb/context.proto";
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/any.proto";
 
 message Node {
     int64 id = 1;
@@ -37,7 +36,11 @@ message Node {
     int64 quote_count = 27;
     string features_raw = 28;
     repeated NodeFeature features = 29;
-    map<string, google.protobuf.Any> information = 30;
+    // 30 was `information`, the website/contact/phone map read out of the
+    // legacy `meta` column. Replaced by website_url below. Reserved rather
+    // than reused: a new field with this number would be decoded by older
+    // peers as the old map.
+    reserved 30;
     Node owner = 31;
     Node parent = 32;
     Node author = 33;
@@ -91,6 +94,13 @@ message Node {
     // those want opposite treatment. The group settings page needs the
     // difference to offer Restore rather than the delete form.
     google.protobuf.Timestamp deleted_at = 76;
+
+    // One link on an actor profile.
+    //
+    // Replaces the website/contact/phone values that used to be read out of
+    // the `information` map above — nothing ever populated that map in this
+    // stack, so those fields have always rendered empty.
+    string website_url = 77;
 }
 
 message Nodes {

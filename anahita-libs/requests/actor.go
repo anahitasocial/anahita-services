@@ -69,10 +69,14 @@ type ActorBatchReadRequest struct {
 }
 
 type ActorEditRequest struct {
-	ID      int64  `param:"id" validate:"required,numeric"`
-	Name    string `form:"name" validate:"required,max=100"`
-	Body    string `form:"body" validate:"required,max=8000"`
-	Enabled bool   `form:"enabled" validate:"omitempty"`
+	ID         int64  `param:"id" validate:"required,numeric"`
+	Name       string `form:"name" validate:"required,max=100"`
+	Body       string `form:"body" validate:"required,max=8000"`
+	Enabled    bool   `form:"enabled" validate:"omitempty"`
+	WebsiteURL string `form:"website_url" validate:"omitempty,http_url,max=255"`
+	// Normalised before validation so a bare "example.com" is accepted;
+	// http_url then enforces the scheme, which is what keeps a
+	// javascript: value out of an anchor href on a public profile.
 }
 
 type ActorEditAccessRequest struct {
@@ -101,9 +105,13 @@ type ActorEditFeaturesRequest struct {
 }
 
 type ActorAddRequest struct {
-	Name    string `form:"name" validate:"required,max=100"`
-	Body    string `form:"body" validate:"required,max=10000"`
-	Enabled bool   `form:"enabled" validate:"omitempty"`
+	Name       string `form:"name" validate:"required,max=100"`
+	Body       string `form:"body" validate:"required,max=10000"`
+	Enabled    bool   `form:"enabled" validate:"omitempty"`
+	WebsiteURL string `form:"website_url" validate:"omitempty,http_url,max=255"`
+	// Normalised before validation so a bare "example.com" is accepted;
+	// http_url then enforces the scheme, which is what keeps a
+	// javascript: value out of an anchor href on a public profile.
 }
 
 type ActorDeleteRequest struct {

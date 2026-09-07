@@ -52,6 +52,7 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	query = query.Set("ordering", node.Ordering)
 	query = query.Set("enabled", node.Enabled)
 	query = query.Set("verified", node.Verified)
+	query = query.Set("website_url", node.WebsiteURL)
 	query = query.Set("pinned", node.Pinned)
 	query = query.Set("is_default", node.IsDefault)
 

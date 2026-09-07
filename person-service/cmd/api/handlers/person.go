@@ -7,6 +7,7 @@ import (
 	"anahita-libs/event"
 	"anahita-libs/requests"
 	an_responses "anahita-libs/responses"
+	"anahita-libs/validators"
 	"fmt"
 	"log"
 	"net/http"
@@ -133,7 +134,7 @@ func (h *personHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.Read(person.ID, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(person.ID, constants.NodeActorPersonEntityType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -175,6 +176,11 @@ func (h *personHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	// Normalise before validating: people type "example.com", and http_url
+	// requires a scheme. Doing it afterwards would mean the scheme rule
+	// never saw the value it exists to check.
+	req.WebsiteURL = validators.NormalizeWebsiteURL(req.WebsiteURL)
+
 	if err := c.Validate(req); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
@@ -199,6 +205,7 @@ func (h *personHandler) Edit(c echo.Context) error {
 	person.GivenName = req.GivenName
 	person.FamilyName = req.FamilyName
 	person.Body = req.Body
+	person.WebsiteURL = req.WebsiteURL
 	person.ModifiedBy = viewer.ID
 	person.UpdateTime = time.Now()
 
@@ -371,7 +378,7 @@ func (h *personHandler) fetchPerson(c echo.Context, id int64) (*entities.Person,
 		return nil, err
 	}
 
-	actor, err := h.Srv.ActorsGRPC.Read(person.ID, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(person.ID, constants.NodeActorPersonEntityType, viewer)
 	if err != nil {
 		log.Println(err)
 		return nil, err

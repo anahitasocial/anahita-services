@@ -6,6 +6,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/requests"
 	"anahita-libs/responses"
+	"group/constants"
 	"log"
 	"net/http"
 
@@ -29,7 +30,7 @@ func (h *groupHandler) EditAccess(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.Read(req.ID, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)

@@ -27,6 +27,9 @@ type ActorsGRPCInterface interface {
 
 	// Read returns a single media
 	Read(id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error)
+	// ReadOfType is Read narrowed to one actor type. See the implementation:
+	// people and groups are both actors, so the family filter alone is not enough.
+	ReadOfType(id int64, nodeType string, viewer *entities.Viewer) (*entities.AnahitaNode, error)
 
 	// BatchRead returns a list of media
 	BatchRead(req *ActorGRPCBatchReadRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
@@ -146,7 +149,25 @@ func (srv *ActorsGRPC) Browse(req *ActorGRPCBrowseRequest, viewer *entities.View
 }
 
 // Read returns a single media
+// Read fetches an actor by id, of any actor type.
+//
+// Prefer ReadOfType where the caller knows what it expects — see the note
+// there. This remains for the internal lookups that genuinely take any actor,
+// such as resolving the viewer's own node.
 func (srv *ActorsGRPC) Read(id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
+	return srv.ReadOfType(id, "", viewer)
+}
+
+// ReadOfType fetches an actor by id and refuses it if it is not of nodeType.
+//
+// Node ids are unique across every type in one table, so an id-only read
+// returns whatever holds that id. The graph service already restricts this RPC
+// to the node.actor. family, which stops a hashtag or a photo coming back —
+// but people and groups are both actors, so /groups/<a person id> still
+// answered with a person until the exact type travelled with the request.
+//
+// An empty nodeType means "any actor" and keeps the family restriction.
+func (srv *ActorsGRPC) ReadOfType(id int64, nodeType string, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
 	client, err := srv.getClient()
 	if err != nil {
 		return nil, err
@@ -156,7 +177,8 @@ func (srv *ActorsGRPC) Read(id int64, viewer *entities.Viewer) (*entities.Anahit
 	}
 
 	resp, err := client.Read(context.Background(), &graphpb.ActorReadRequest{
-		Id: id,
+		Id:       id,
+		NodeType: nodeType,
 		Viewer: &graphpb.Viewer{
 			Id:       viewer.ID,
 			UserType: viewer.UserType,

@@ -41,6 +41,9 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(node.ordering, 0) AS ordering",
 		"node.enabled",
 		"node.verified",
+		// COALESCE: nullable column, non-pointer string. A NULL would fail the
+		// scan for every actor that has not set one, which is most of them.
+		"COALESCE(node.website_url, '') AS website_url",
 		"node.pinned",
 		"node.is_default",
 		"COALESCE(node.meta, '') AS meta",
@@ -212,6 +215,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.Ordering,
 		&item.Enabled,
 		&item.Verified,
+		&item.WebsiteURL,
 		&item.Pinned,
 		&item.IsDefault,
 		&item.Meta,
@@ -358,6 +362,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.Ordering,
 			&item.Enabled,
 			&item.Verified,
+			&item.WebsiteURL,
 			&item.Pinned,
 			&item.IsDefault,
 			&item.Meta,
