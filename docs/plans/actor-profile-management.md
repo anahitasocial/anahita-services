@@ -451,13 +451,62 @@ schedule.
   erasure request may require and what section 5 describes. They are different
   actions with different consequences; do not collapse them into one button.
 
-  **Still open**, and it is the one question the brute-force framing leaves
-  unanswered: does "clean everything up" extend to the tombstone and the audit
-  row? Those are not content — they are the record that something existed.
-  Keeping them is what lets a federated peer be told `410 Gone` rather than
-  `404 Not Found`, and what leaves evidence that a super administrator
-  destroyed an account. Destroying them as well is a defensible answer for an
-  erasure request and a bad default for routine cleanup.
+  **Settled 2026-09-07: both records stay.** They do different jobs, and the
+  distinction is worth holding onto:
+
+  - **The tombstone** (`TombstoneActor`) is the FEDERATION-facing record. It
+    keeps the id, the alias, the type and `deleted_at` — everything needed to
+    answer a remote server `410 Gone` rather than `404 Not Found`, and to
+    build an ActivityPub `Tombstone` with a `deleted` timestamp. The alias is
+    kept to reserve the handle, which is what stops a later account inheriting
+    a deleted one's cached follows and content on remote servers.
+  - **`node_deletion_logs`** is the ACCOUNTABILITY record: node, alias, type,
+    who did it, which action, when. Internal, never federated. A super
+    administrator destroying an account without a waiting period is exactly
+    what it exists for.
+
+  Neither is a notification, so keeping them costs nothing against the
+  no-notification decision above.
+
+### The federation decision this actually forces
+
+Recorded here because it is cheap now and expensive later, and because "clean
+everything up" runs straight into it.
+
+**The two protocols disagree about what identity is**, and Anahita currently
+has one foot in each:
+
+| | identity | handle reuse |
+|---|---|---|
+| ActivityPub | the actor URI, which embeds a handle | unsafe — cached follows and content reattach to whoever takes it next |
+| ATProto | a DID, separate from the handle | safe, because the DID carries identity |
+
+Anahita already has the ATProto-shaped half: **node ids are never reused.**
+`AUTO_INCREMENT` stands at 170228 against a maximum id of 170203, so ids
+advance past deleted rows and never come back. That is a stable identifier in
+the sense a DID is.
+
+What it does not have is a URI built on it. Person profiles resolve by
+username, so an ActivityPub actor URI derived from the current routes would
+embed the alias — making the alias the identity, and making the tombstone's
+alias reservation load-bearing forever.
+
+**Recommendation: build the federated actor URI on the id, not the alias.**
+The alias then becomes `preferredUsername`, which ActivityPub already treats as
+mutable and non-identifying. Three things fall out of it:
+
+- `410 Gone` works forever, because the id is never reissued.
+- A verified erasure request can scrub the alias from the tombstone without
+  breaking federation, which it otherwise would — the URI would stop
+  resolving at all. That is the one case where "clean everything up" and
+  "answer 410" genuinely conflict, and this dissolves it.
+- Renaming stops being a federation event.
+
+Nothing to build now. The decision is only that the eventual URI is
+`.../<id>` rather than `.../<alias>`, and it should be made before anything
+starts emitting URIs. See also the federation section in
+`actor-lifecycle-states.md`, which reaches the same conclusion from the other
+end — that a node's id is a local handle and not an identity.
 - **Audit is non-negotiable here.** A super administrator destroying an account
   with no waiting period is precisely the event the log exists for. Record which
   variant was used.
