@@ -97,6 +97,22 @@ func (h *passwordHandler) Forgot(c echo.Context) error {
 	}
 
 	if user != nil && !throttled {
+		// Retire any earlier link before minting a new one. Two live reset
+		// links for one account means the older one — possibly forwarded,
+		// possibly still sitting in an inbox somebody else can reach — keeps
+		// working for its full window after the owner asked for a fresh one.
+		//
+		// Best-effort: failing to retire the old link is not a reason to
+		// withhold the new one from somebody trying to get back into their
+		// account.
+		if retired, err := h.Repos.Tokens.InvalidateOutstanding(
+			constants.TokenTypePasswordReset, user.Email); err != nil {
+			log.Println("password forgot: retiring earlier links failed:", err)
+		} else if retired > 0 {
+			log.Printf("password forgot: retired %d earlier link(s) (person=%d)",
+				retired, user.ID)
+		}
+
 		token := entities.NewToken()
 		token.Status = constants.TokenStatusPending
 		token.ExpiredAfter = 15 * 60
