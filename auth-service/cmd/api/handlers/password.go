@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -76,10 +78,23 @@ func (h *passwordHandler) Forgot(c echo.Context) error {
 	throttled := h.rateLimitExceeded(rateLimitScopePasswordEmail, req.Email) ||
 		h.rateLimitExceeded(rateLimitScopePasswordIP, getClientIP(c))
 
-	// Best-effort lookup. Any error (including not-found) is swallowed
-	// so the caller cannot distinguish registered emails from
-	// unregistered ones.
-	user, _ := h.Repos.Users.ReadByEmail(req.Email)
+	// Best-effort lookup. The RESPONSE is the same either way, so the
+	// caller cannot distinguish registered emails from unregistered ones —
+	// but the error is logged rather than dropped.
+	//
+	// Dropping it hid a real outage: a NULL in any of several nullable
+	// columns failed the scan, this read returned an error, and the person
+	// got "check your email" for a message that was never going to arrive.
+	// Nothing anywhere recorded that it had happened. sql.ErrNoRows is the
+	// ordinary case and stays quiet; anything else is a fault worth seeing.
+	//
+	// The address is not logged. This is an unauthenticated endpoint and
+	// anyone can name any address at it, so a log of them is a log of
+	// guesses, not of members.
+	user, err := h.Repos.Users.ReadByEmail(req.Email)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Println("password forgot: user lookup failed:", err)
+	}
 
 	if user != nil && !throttled {
 		token := entities.NewToken()

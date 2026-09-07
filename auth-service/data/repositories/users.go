@@ -43,21 +43,7 @@ func (repo *Users) Browse(req *requests.UserBrowseRequest) ([]*entities.User, er
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := sq.Select(
-		"id",
-		"type",
-		"enabled",
-		"given_name",
-		"family_name",
-		"username",
-		"email",
-		"usertype",
-		"service",
-		"filename",
-		"last_visit_date",
-		"created_on",
-		"modified_on",
-	).From(
+	query := sq.Select(userBrowseColumns()...).From(
 		"people_people",
 	).LeftJoin(
 		"nodes ON people_people.node_id = nodes.id",
@@ -111,22 +97,7 @@ func (repo *Users) Browse(req *requests.UserBrowseRequest) ([]*entities.User, er
 
 	var items []*entities.User
 	for rows.Next() {
-		item := entities.NewUser()
-		err := rows.Scan(
-			&item.ID,
-			&item.Type,
-			&item.Enabled,
-			&item.GivenName,
-			&item.FamilyName,
-			&item.Username,
-			&item.Email,
-			&item.UserType,
-			&item.Service,
-			&item.Filename,
-			&item.LastVisitDate,
-			&item.CreationTime,
-			&item.UpdateTime,
-		)
+		item, err := scanBrowsedUser(rows)
 
 		if err != nil {
 			return nil, err
@@ -148,39 +119,7 @@ func (repo *Users) ReadByID(id int64) (*entities.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := sq.Select(
-		"id",
-		"type",
-		"enabled",
-		"given_name",
-		"family_name",
-		"username",
-		"email",
-		"password",
-		"usertype",
-		"service",
-		"filename",
-		"last_visit_date",
-		"created_on",
-		"modified_on",
-		"totp_enabled",
-		"COALESCE(totp_recovery_codes, '') AS totp_recovery_codes",
-		"COALESCE(totp_last_verified_at, NOW()) AS totp_last_verified_at",
-		// The encrypted TOTP secret. Selected because Edit writes the
-		// whole row from the struct it is given: a read that omits this
-		// column produces a User with an empty TotpSecret, and the next
-		// Edit persists that emptiness over a real secret.
-		//
-		// COALESCE because the column is nullable in the legacy schema
-		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
-		// the scan into a string for every person who has never enrolled.
-		"COALESCE(totp_secret, '') AS totp_secret",
-		// Nullable, and scanned into a *time.Time rather than COALESCEd: a
-		// zero time and "not deleted" are different states, and collapsing
-		// them would make every account look scheduled for deletion at the
-		// beginning of the epoch.
-		"nodes.deleted_at",
-	).From(
+	query := sq.Select(userColumns()...).From(
 		"people_people",
 	).LeftJoin(
 		"nodes ON people_people.node_id = nodes.id",
@@ -195,27 +134,7 @@ func (repo *Users) ReadByID(id int64) (*entities.User, error) {
 
 	item := entities.NewUser()
 	row := repo.db.QueryRowContext(ctx, sql, args...)
-	err = row.Scan(
-		&item.ID,
-		&item.Type,
-		&item.Enabled,
-		&item.GivenName,
-		&item.FamilyName,
-		&item.Username,
-		&item.Email,
-		&item.Password,
-		&item.UserType,
-		&item.Service,
-		&item.Filename,
-		&item.LastVisitDate,
-		&item.CreationTime,
-		&item.UpdateTime,
-		&item.TotpEnabled,
-		&item.TotpRecoveryCodes,
-		&item.TotpLastVerifiedAt,
-		&item.TotpSecret,
-		&item.DeletedAt,
-	)
+	item, err = scanUser(row)
 
 	if err != nil {
 		return nil, err
@@ -234,39 +153,7 @@ func (repo *Users) ReadByEmail(email string) (*entities.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := sq.Select(
-		"id",
-		"type",
-		"enabled",
-		"given_name",
-		"family_name",
-		"username",
-		"email",
-		"password",
-		"usertype",
-		"service",
-		"filename",
-		"last_visit_date",
-		"created_on",
-		"modified_on",
-		"totp_enabled",
-		"COALESCE(totp_recovery_codes, '') AS totp_recovery_codes",
-		"COALESCE(totp_last_verified_at, NOW()) AS totp_last_verified_at",
-		// The encrypted TOTP secret. Selected because Edit writes the
-		// whole row from the struct it is given: a read that omits this
-		// column produces a User with an empty TotpSecret, and the next
-		// Edit persists that emptiness over a real secret.
-		//
-		// COALESCE because the column is nullable in the legacy schema
-		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
-		// the scan into a string for every person who has never enrolled.
-		"COALESCE(totp_secret, '') AS totp_secret",
-		// Nullable, and scanned into a *time.Time rather than COALESCEd: a
-		// zero time and "not deleted" are different states, and collapsing
-		// them would make every account look scheduled for deletion at the
-		// beginning of the epoch.
-		"nodes.deleted_at",
-	).From(
+	query := sq.Select(userColumns()...).From(
 		"people_people",
 	).LeftJoin(
 		"nodes ON people_people.node_id = nodes.id",
@@ -281,27 +168,7 @@ func (repo *Users) ReadByEmail(email string) (*entities.User, error) {
 
 	item := entities.NewUser()
 	row := repo.db.QueryRowContext(ctx, sql, args...)
-	err = row.Scan(
-		&item.ID,
-		&item.Type,
-		&item.Enabled,
-		&item.GivenName,
-		&item.FamilyName,
-		&item.Username,
-		&item.Email,
-		&item.Password,
-		&item.UserType,
-		&item.Service,
-		&item.Filename,
-		&item.LastVisitDate,
-		&item.CreationTime,
-		&item.UpdateTime,
-		&item.TotpEnabled,
-		&item.TotpRecoveryCodes,
-		&item.TotpLastVerifiedAt,
-		&item.TotpSecret,
-		&item.DeletedAt,
-	)
+	item, err = scanUser(row)
 
 	if err != nil {
 		return nil, err
@@ -320,39 +187,7 @@ func (repo *Users) ReadByUsername(username string) (*entities.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := sq.Select(
-		"id",
-		"type",
-		"enabled",
-		"given_name",
-		"family_name",
-		"username",
-		"email",
-		"password",
-		"usertype",
-		"service",
-		"filename",
-		"last_visit_date",
-		"created_on",
-		"modified_on",
-		"totp_enabled",
-		"COALESCE(totp_recovery_codes, '') AS totp_recovery_codes",
-		"COALESCE(totp_last_verified_at, NOW()) AS totp_last_verified_at",
-		// The encrypted TOTP secret. Selected because Edit writes the
-		// whole row from the struct it is given: a read that omits this
-		// column produces a User with an empty TotpSecret, and the next
-		// Edit persists that emptiness over a real secret.
-		//
-		// COALESCE because the column is nullable in the legacy schema
-		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
-		// the scan into a string for every person who has never enrolled.
-		"COALESCE(totp_secret, '') AS totp_secret",
-		// Nullable, and scanned into a *time.Time rather than COALESCEd: a
-		// zero time and "not deleted" are different states, and collapsing
-		// them would make every account look scheduled for deletion at the
-		// beginning of the epoch.
-		"nodes.deleted_at",
-	).From(
+	query := sq.Select(userColumns()...).From(
 		"people_people",
 	).LeftJoin(
 		"nodes ON people_people.node_id = nodes.id",
@@ -367,27 +202,7 @@ func (repo *Users) ReadByUsername(username string) (*entities.User, error) {
 
 	item := entities.NewUser()
 	row := repo.db.QueryRowContext(ctx, sql, args...)
-	err = row.Scan(
-		&item.ID,
-		&item.Type,
-		&item.Enabled,
-		&item.GivenName,
-		&item.FamilyName,
-		&item.Username,
-		&item.Email,
-		&item.Password,
-		&item.UserType,
-		&item.Service,
-		&item.Filename,
-		&item.LastVisitDate,
-		&item.CreationTime,
-		&item.UpdateTime,
-		&item.TotpEnabled,
-		&item.TotpRecoveryCodes,
-		&item.TotpLastVerifiedAt,
-		&item.TotpSecret,
-		&item.DeletedAt,
-	)
+	item, err = scanUser(row)
 
 	if err != nil {
 		return nil, err
@@ -406,39 +221,7 @@ func (repo *Users) ReadByEmailOrUsername(emailOrUsername string) (*entities.User
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := sq.Select(
-		"id",
-		"type",
-		"enabled",
-		"given_name",
-		"family_name",
-		"username",
-		"email",
-		"password",
-		"usertype",
-		"service",
-		"filename",
-		"last_visit_date",
-		"created_on",
-		"modified_on",
-		"totp_enabled",
-		"COALESCE(totp_recovery_codes, '') AS totp_recovery_codes",
-		"COALESCE(totp_last_verified_at, NOW()) AS totp_last_verified_at",
-		// The encrypted TOTP secret. Selected because Edit writes the
-		// whole row from the struct it is given: a read that omits this
-		// column produces a User with an empty TotpSecret, and the next
-		// Edit persists that emptiness over a real secret.
-		//
-		// COALESCE because the column is nullable in the legacy schema
-		// (people_people.totp_secret DEFAULT ''), and a NULL would fail
-		// the scan into a string for every person who has never enrolled.
-		"COALESCE(totp_secret, '') AS totp_secret",
-		// Nullable, and scanned into a *time.Time rather than COALESCEd: a
-		// zero time and "not deleted" are different states, and collapsing
-		// them would make every account look scheduled for deletion at the
-		// beginning of the epoch.
-		"nodes.deleted_at",
-	).From(
+	query := sq.Select(userColumns()...).From(
 		"people_people",
 	).LeftJoin(
 		"nodes ON people_people.node_id = nodes.id",
@@ -456,27 +239,7 @@ func (repo *Users) ReadByEmailOrUsername(emailOrUsername string) (*entities.User
 
 	item := entities.NewUser()
 	row := repo.db.QueryRowContext(ctx, sql, args...)
-	err = row.Scan(
-		&item.ID,
-		&item.Type,
-		&item.Enabled,
-		&item.GivenName,
-		&item.FamilyName,
-		&item.Username,
-		&item.Email,
-		&item.Password,
-		&item.UserType,
-		&item.Service,
-		&item.Filename,
-		&item.LastVisitDate,
-		&item.CreationTime,
-		&item.UpdateTime,
-		&item.TotpEnabled,
-		&item.TotpRecoveryCodes,
-		&item.TotpLastVerifiedAt,
-		&item.TotpSecret,
-		&item.DeletedAt,
-	)
+	item, err = scanUser(row)
 
 	if err != nil {
 		return nil, err
