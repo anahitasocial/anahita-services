@@ -171,8 +171,10 @@ to leave. Passkey, or password-plus-passcode, is the right bar.
 
 ### A floor on super administrators, not a ban on self-deletion
 
+**Decided 2026-09-07. Build this.**
+
 The proposal was: a super administrator cannot delete themselves; only another
-super administrator can delete them. The instinct is right and the rule needs
+super administrator can delete them. The instinct was right and the rule needed
 one adjustment, because **this installation has exactly one super
 administrator.**
 
@@ -214,14 +216,51 @@ Two further reasons to prefer the floor to the ban:
 
 Worth applying the same floor to **demotion**, not only deletion: changing the
 last super administrator down to `administrator` reaches the same zero by a
-different door.
+different door. Raised but not yet confirmed — decide it when the deletion
+half is built, since it is the same query behind a different handler.
+
+#### Two things the count has to get right
+
+Both follow from what the lifecycle work turned up, and both are cheap now and
+awkward later.
+
+**The count must exclude accounts that are themselves on the way out.** A
+super administrator with `deleted_at` set is twenty-nine days from being
+purged. Counting them satisfies the floor with somebody who will not be there,
+and the second deletion then succeeds — which is the exact outcome the floor
+exists to prevent, reached one step more slowly. Disabled accounts go too: a
+suspended super administrator cannot sign in to administer anything.
+
+    WHERE usertype = 'super-administrator'
+      AND deleted_at IS NULL
+      AND enabled = 1
+
+**Two concurrent deletions can both pass the check.** With exactly two super
+administrators, each request counts two, each concludes it is not the last, and
+both proceed — zero. A time-of-check-to-time-of-use race with a very small
+window and a very bad outcome.
+
+The fix is to make the count and the delete one atomic step rather than a read
+followed by a write: perform the soft delete conditionally, in a single
+statement whose WHERE clause carries the floor, and treat zero affected rows as
+the refusal. `SoftDeleteActor` already has this shape — it is idempotent by way
+of a `deleted_at IS NULL` guard in the UPDATE rather than a preceding SELECT,
+and reports what it did through the affected-row count. The floor belongs in
+the same statement, not in a permission check that runs earlier.
+
+That also settles where the rule lives. It is **not** a `CanDelete` predicate:
+`CanDelete` answers "is this caller allowed", which is about the caller, and
+this is about the state of the world at the instant of the write. Putting it in
+the permission layer would be both the wrong place and the racy one.
 
 ### Work
 
 **[services]** `requireStepUp` in the person and group delete handlers, with
-`reauthStatus` on failure and `clearStepUp` on success. A last-super-admin
-check in `CanDelete` — or beside it, since it needs a count rather than the
-access context. The same check on the usertype-change path.
+`reauthStatus` on failure and `clearStepUp` on success. The super-administrator
+floor as a predicate inside the soft-delete UPDATE — not in `CanDelete`, for
+the reasons above — returning a distinct status so the UI can show the way out
+rather than a generic refusal. The same floor on the usertype-change path if
+demotion is confirmed.
 
 **[react]** The `StepUp` container in front of the Danger zone delete, matching
 the password card. Copy for the refusal that says how to proceed rather than
