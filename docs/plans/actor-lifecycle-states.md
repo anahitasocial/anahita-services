@@ -454,6 +454,27 @@ while the table is still unshipped, not cheap afterwards.
 
 ---
 
+## Scope — actors first, media later
+
+**Decided 2026-09-07.** Archive is being built for ACTORS only.
+
+Media nodes will get it too, and the reason it is not in this pass is not
+effort in the archive itself — it is that archived media needs somewhere to be
+seen. An archived post drops out of feeds and search by the same rule as
+everything else, which leaves it reachable only by direct link. That is fine
+for a profile, which has a URL somebody remembers; it is not fine for a post,
+which nobody has bookmarked.
+
+So media archiving needs **a browse view per actor profile listing that
+actor's archived nodes** — the place you go to find what you put away. Without
+it, archiving a post is indistinguishable from losing it.
+
+The read filter built for actors is the same predicate media will need
+(`owner.archived_at IS NULL`, derived rather than copied — see above), so the
+second pass is the browse view plus the per-node control, not a rework.
+
+---
+
 ## Work
 
 **[services]** `nodes.archived_at`, with a guarded migration and the matching

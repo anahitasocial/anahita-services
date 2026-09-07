@@ -72,7 +72,14 @@ Things learned in the building, worth keeping:
   describe somebody's whole footprint, so if you may not delete the profile you
   may not enumerate it.
 
-### Phase 3 — admin tiering **[react]** + **[services]**
+### Phase 3 — admin tiering — DROPPED 2026-09-07
+
+Not building this. The tiering is speculative, and the step-up and consequence
+counts from Phase 2 already provide the friction it was reaching for. The
+sole-administrator guard below is dropped with it: orphaned groups are
+acceptable, since administrators and super administrators can assign new ones.
+
+Kept for the record:
 
 The same card serves self-deletion and an administrator deleting somebody else
 (`sections.js` has `viewerOnly: false` on the Danger item), with identical
@@ -550,16 +557,19 @@ a super-admin-only card in the Danger zone.
 
 ## 3. Correctness gaps from the audit
 
-### Soft-deleted actors leak into the "disabled" filter **[services]**
+### ~~Soft-deleted actors leak into the "disabled" filter~~ — CLOSED by decision, 2026-09-07
 
-Nothing filters on `deleted_at` in browse or search. Exclusion relies entirely
-on `enabled = 0`, and the actors browse UI has a `disabled` filter — so an
-administrator using it sees deleted profiles mixed in with ones they disabled
-deliberately, indistinguishable from each other.
+Administrators and super administrators seeing soft-deleted profiles in their
+lists and search results is fine. They are the people who would restore one,
+and hiding it from them removes the only route back.
 
-Either filter `deleted_at IS NULL` in the browse queries, or make the distinction
-visible. The second is probably more useful: a "recently deleted" view is also
-where an administrator would go to restore something.
+Already the behaviour: `SetLifecycleQuery` returns early for an administrator,
+so the deleted/disabled filters apply to everybody else and to nobody with
+moderation authority.
+
+Not pursued: making deleted and deliberately-disabled visually distinct in the
+browse filter. Worth doing if an administrator ever reports confusing the two,
+and not worth building ahead of that.
 
 ### Group deletion notifies nobody **[services]**
 
@@ -640,7 +650,14 @@ feature below.
 
 ---
 
-## 5. Federation groundwork
+## 5. Federation groundwork — after UUIDs, 2026-09-07
+
+**Deferred until nodes carry a UUID.** Every item here depends on what the
+public identifier is, and that is being changed: the integer id becomes
+internal-only and a UUID becomes the federated identifier. Building against the
+id first would mean building it twice.
+
+
 
 Deliberate decisions already taken, with the implementing work still to do.
 
