@@ -177,6 +177,33 @@ itself, not only in an admin view.
 
 ---
 
+## Archive is not a tombstone
+
+Worth stating plainly, because both are end states that leave something behind
+and the two are easy to run together. They are opposites.
+
+| | the content | the profile | ActivityPub |
+|---|---|---|---|
+| **archived** | preserved, readable at its URLs forever | resolves, read-only, marked | `200` with the actor and its content |
+| **tombstoned** | destroyed — posts, comments, edges, all of it | a four-field stub: id, alias, type, `deleted_at` | `410 Gone` with a `Tombstone` |
+
+Archiving the Anahita Project group keeps its 897 posts readable. Hard-deleting
+it destroys those 897 posts and leaves a marker saying the handle is taken and
+whatever held it is gone.
+
+So a tombstone is not a gentler deletion or a stricter archive — it is **what
+remains after destruction**, and its only job is to stop the identifier being
+reissued to somebody else. `TombstoneActor` strips the name, body, excerpt,
+avatar, cover, geo fields, meta, website and every counter; `PurgeActorContent`
+removes everything the actor owned. Nothing readable survives either.
+
+ActivityStreams has no archive concept at all, and its `Tombstone` type is
+explicitly "a content object that has been deleted". The archived state maps to
+an ordinary actor that simply never emits anything again — see *Federation*
+below.
+
+---
+
 ## The three states are not a scale of severity
 
 This is the thing to get right before any of it is built, because the UI
