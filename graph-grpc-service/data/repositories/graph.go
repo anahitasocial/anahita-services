@@ -63,9 +63,18 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 		query = query.Where(sq.Eq{"edge.type": req.EdgeTypes})
 	}
 
-	if req.AccessCheck {
-		// query = SetPolymorphicAccessQuery(query, viewer)
-	}
+	// ALWAYS, not `if req.AccessCheck` — see the note in nodes.go. The flag is
+	// a protobuf bool that arrives false unless a caller sets it, and none do.
+	//
+	// This is what let a restricted actor into a followers list: browsing
+	// socialgraph/:id/leaders returned an admins-only profile to a logged-out
+	// visitor, at offset 100 where a first-page check did not see it.
+	//
+	// The gate was commented out rather than wrong, and the reason is visible
+	// in the count query below: SetPolymorphicAccessQuery reads owner.access,
+	// which the count query had no alias for. The browse query does —
+	// GetBaseSelectQuery joins it — so only the count needed the join added.
+	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
 
 	// Add ordering
 	if req.Ordering != "" {
@@ -128,9 +137,15 @@ func (r *graphRepo) CountNeighbours(req *graphpb.BrowseNeighboursRequest, viewer
 
 	// countQuery = countQuery.Where(sq.Eq{"node.enabled": req.Enabled})
 
-	if req.AccessCheck {
-		// query = SetPolymorphicAccessQuery(query, viewer)
-	}
+	// The owner join exists only so the gate below can read owner.access. The
+	// browse query gets it from GetBaseSelectQuery; this one is built by hand
+	// and had no owner alias, which is why the gate could not simply be
+	// uncommented here.
+	//
+	// A LEFT JOIN, so a node without an owner still counts — an actor has
+	// none, and the gate treats a NULL owner as passing.
+	query = query.LeftJoin("nodes AS owner ON owner.id = node.owner_id")
+	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
 
 	countSql, countArgs, err := query.ToSql()
 	if err != nil {

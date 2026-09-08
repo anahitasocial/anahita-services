@@ -102,8 +102,18 @@ func SetFeedAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.SelectB
 			},
 
 			// admins
+			//
+			// object.access, not node.access. Every other branch of this gate
+			// asks about the OBJECT — the thing the story is about — and this
+			// one asked about the story row instead, so the "admins" access
+			// level did not work in feeds at all.
+			//
+			// It failed closed rather than open, which is why nobody noticed:
+			// a story row's own access is usually empty, FIND_IN_SET against
+			// it is NULL, and the branch never matched — so an admins-only
+			// object was hidden from the very administrators entitled to it.
 			sq.And{
-				sq.Expr("FIND_IN_SET(?, node.access)", an_const.AnahitaAccessAdmins),
+				sq.Expr("FIND_IN_SET(?, object.access)", an_const.AnahitaAccessAdmins),
 				isAdmin,
 			},
 		)

@@ -72,3 +72,50 @@ func setAccessQueryForTypes(sb sq.SelectBuilder, viewer *entities.Viewer, types 
 
 	return SetMediumAccessQuery(sb, viewer)
 }
+
+// setNeighbourAccessQuery gates a neighbours browse, choosing the gate from
+// the EDGE types rather than the node types — because that request carries no
+// node type at all, only the edges it walks.
+//
+// The edge says what it connects. `edge.actor.*` runs actor to actor, so the
+// neighbours are actors and their audience is measured against themselves.
+// Anything else — a hashtag edge, a subscription — leads to content, whose
+// audience is measured against its owner.
+//
+// Both choices fail CLOSED if the guess is wrong, which is what makes the
+// guess acceptable. Gate a medium as an actor and the follower relations point
+// at a row with no followers, so it is hidden; gate an actor as a medium and
+// they point at an owner it does not have, so it is hidden. Neither direction
+// leaks, and the common paths — socialgraph walking actor edges, hashtags
+// walking tag edges — each get the right one.
+func setNeighbourAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, edgeTypes []string) sq.SelectBuilder {
+	if viewer == nil {
+		viewer = entities.NewViewer()
+	}
+
+	actorEdges := len(edgeTypes) > 0
+	for _, t := range edgeTypes {
+		if !strings.HasPrefix(t, "edge.actor.") {
+			actorEdges = false
+			break
+		}
+	}
+
+	if actorEdges {
+		return SetActorAccessQuery(sb, viewer)
+	}
+
+	return SetMediumAccessQuery(sb, viewer)
+}
+
+// typeFilter wraps a single optional type as the slice the dispatcher takes.
+//
+// Several requests carry one node_type rather than a list. An empty one means
+// "no filter", which must stay an empty slice so the dispatcher falls to the
+// owner-based gate rather than treating "" as an actor type.
+func typeFilter(nodeType string) []string {
+	if nodeType == "" {
+		return nil
+	}
+	return []string{nodeType}
+}
