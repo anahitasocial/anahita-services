@@ -133,7 +133,11 @@ func (h *commentHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	comment, err := h.Srv.MediaGRPC.Read(req.ID, viewer)
+	// A node read, not a medium read. Comments are node.base.comment.*, and
+	// the medium read is scoped to node.medium.* — so it never matched a
+	// comment and every edit died on "sql: no rows in result set". Delete has
+	// always read the comment this way; Edit was the one that did not.
+	comment, err := h.Srv.GraphNodeGRPC.Read(req.ID)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
