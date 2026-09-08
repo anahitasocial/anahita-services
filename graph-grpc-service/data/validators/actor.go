@@ -28,9 +28,14 @@ func (v *ActorValidator) baseValidation(node *entities.AnahitaNode) error {
 		return errors.New("alias is required")
 	}
 
-	if node.Body == "" {
-		return errors.New("body is required")
-	}
+	// No body check. A bio is optional, and requiring one here rejected every
+	// edit to a profile that had none — 717 of 823 people — including the
+	// access-only edit, which does not touch the body at all. Changing your
+	// privacy setting failed with a 500 unless you had written a bio first.
+	//
+	// Name, alias and access below are genuinely required: a node with no name
+	// or alias cannot be addressed, and one with no access has no answer to
+	// "who may see this".
 
 	if node.Name != "" && len(node.Name) > 255 {
 		return errors.New("name exceeds maximum length of 255 characters")

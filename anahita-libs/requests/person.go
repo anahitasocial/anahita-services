@@ -45,7 +45,7 @@ type PersonEditRequest struct {
 	ID         int64  `param:"id" validate:"required,numeric"`
 	GivenName  string `form:"given_name" validate:"required,max=100,alphanumunicode"`
 	FamilyName string `form:"family_name" validate:"required,max=100,alphanumunicode"`
-	Body       string `form:"body" validate:"required,max=8000"`
+	Body       string `form:"body" validate:"omitempty,max=8000"`
 	Gender     string `form:"gender" validate:"max=10,omitempty,oneof=male female other"`
 	// Normalised before validation so a bare "example.com" is accepted;
 	// http_url then enforces the scheme, which is what keeps a javascript:

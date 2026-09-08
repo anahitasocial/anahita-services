@@ -69,9 +69,11 @@ type ActorBatchReadRequest struct {
 }
 
 type ActorEditRequest struct {
-	ID         int64  `param:"id" validate:"required,numeric"`
-	Name       string `form:"name" validate:"required,max=100"`
-	Body       string `form:"body" validate:"required,max=8000"`
+	ID   int64  `param:"id" validate:"required,numeric"`
+	Name string `form:"name" validate:"required,max=100"`
+	// Optional. A profile with no bio is ordinary, and requiring one made
+	// editing anything else on such a profile impossible.
+	Body       string `form:"body" validate:"omitempty,max=8000"`
 	Enabled    bool   `form:"enabled" validate:"omitempty"`
 	WebsiteURL string `form:"website_url" validate:"omitempty,http_url,max=255"`
 	// Normalised before validation so a bare "example.com" is accepted;
@@ -106,7 +108,7 @@ type ActorEditFeaturesRequest struct {
 
 type ActorAddRequest struct {
 	Name       string `form:"name" validate:"required,max=100"`
-	Body       string `form:"body" validate:"required,max=10000"`
+	Body       string `form:"body" validate:"omitempty,max=10000"`
 	Enabled    bool   `form:"enabled" validate:"omitempty"`
 	WebsiteURL string `form:"website_url" validate:"omitempty,http_url,max=255"`
 	// Normalised before validation so a bare "example.com" is accepted;
