@@ -21,10 +21,14 @@ type NodeItem struct {
 	IsLikedByViewer    bool      `json:"is_liked_by_viewer,omitempty"`
 	RepostCount        int64     `json:"repost_count,omitempty"`
 	IsRepostedByViewer bool      `json:"is_reposted_by_viewer,omitempty"`
-	IsLeadingViewer    bool      `json:"is_leading_viewer,omitempty"`
-	IsAdminedByViewer  bool      `json:"is_admined_by_viewer,omitempty"`
-	IsFollowingViewer  bool      `json:"is_following_viewer,omitempty"`
-	IsBlockedByViewer  bool      `json:"is_blocked_by_viewer,omitempty"`
+	// Set by the subscribe and unsubscribe handlers, which answer with the
+	// node they acted on. The mapper had no field for it, so mapping their
+	// response would have silently dropped the one thing it reports.
+	IsSubscribedByViewer bool `json:"is_subscribed_by_viewer,omitempty"`
+	IsLeadingViewer      bool `json:"is_leading_viewer,omitempty"`
+	IsAdminedByViewer    bool `json:"is_admined_by_viewer,omitempty"`
+	IsFollowingViewer    bool `json:"is_following_viewer,omitempty"`
+	IsBlockedByViewer    bool `json:"is_blocked_by_viewer,omitempty"`
 
 	// Related Entities
 	Author *Author `json:"author,omitempty"`
@@ -46,25 +50,26 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 	}
 
 	return &NodeItem{
-		ID:                 node.ID,
-		Type:               node.Type,
-		Name:               node.Name,
-		Alias:              node.Alias,
-		Body:               node.Body,
-		QuoteCount:         node.QuoteCount,
-		Verified:           node.Verified,
-		CreationTime:       node.CreationTime,
-		FollowerCount:      node.FollowerCount,
-		Mimetype:           node.Mimetype,
-		Access:             node.Access,
-		LikesCount:         node.LikesCount,
-		IsLikedByViewer:    node.IsLikedByViewer,
-		RepostCount:        node.RepostCount,
-		IsRepostedByViewer: node.IsRepostedByViewer,
-		IsLeadingViewer:    node.IsLeadingViewer,
-		IsAdminedByViewer:  node.IsAdminedByViewer,
-		IsFollowingViewer:  node.IsFollowingViewer,
-		IsBlockedByViewer:  node.IsBlockedByViewer,
+		ID:                   node.ID,
+		Type:                 node.Type,
+		Name:                 node.Name,
+		Alias:                node.Alias,
+		Body:                 node.Body,
+		QuoteCount:           node.QuoteCount,
+		Verified:             node.Verified,
+		CreationTime:         node.CreationTime,
+		FollowerCount:        node.FollowerCount,
+		Mimetype:             node.Mimetype,
+		Access:               node.Access,
+		LikesCount:           node.LikesCount,
+		IsLikedByViewer:      node.IsLikedByViewer,
+		RepostCount:          node.RepostCount,
+		IsRepostedByViewer:   node.IsRepostedByViewer,
+		IsSubscribedByViewer: node.IsSubscribedByViewer,
+		IsLeadingViewer:      node.IsLeadingViewer,
+		IsAdminedByViewer:    node.IsAdminedByViewer,
+		IsFollowingViewer:    node.IsFollowingViewer,
+		IsBlockedByViewer:    node.IsBlockedByViewer,
 		Author: func() *Author {
 			if node.Author != nil {
 				return NewAuthor(node.Author)

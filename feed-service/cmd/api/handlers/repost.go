@@ -13,8 +13,6 @@ import (
 
 	"anahita-libs/responses"
 
-	an_entities "anahita-libs/data/entities"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -60,22 +58,25 @@ func (h *repostHandler) Browse(c echo.Context) error {
 	}
 
 	type Response struct {
-		Reposters  []*an_entities.AnahitaNode `json:"data"`
+		Reposters  []*responses.ActorNodeItem `json:"data"`
 		Pagination responses.Pagination       `json:"pagination"`
 	}
 	resp := &Response{}
 
 	gReq.ParentID = node.ID
 	gReq.Viewer = viewer
-	resp.Reposters, err = h.Srv.RepostGRPC.BrowseAuthors(gReq)
+	reposters, err := h.Srv.RepostGRPC.BrowseAuthors(gReq)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	for _, item := range resp.Reposters {
+	for _, item := range reposters {
 		services.PresignAvatar(h.Srv.FilesGRPC, item)
 	}
+
+	actorResp := &responses.ActorResponse{}
+	resp.Reposters = actorResp.MapNodeItems(reposters)
 
 	return c.JSON(http.StatusOK, resp)
 }
@@ -143,7 +144,9 @@ func (h *repostHandler) Add(c echo.Context) error {
 		}
 	}()
 
-	return c.JSON(http.StatusCreated, repost)
+	nodeResp := &responses.NodeResponse{}
+
+	return c.JSON(http.StatusCreated, nodeResp.MapNodeItem(repost))
 }
 
 // Delete

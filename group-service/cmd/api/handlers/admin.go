@@ -149,7 +149,12 @@ func (h *adminHandler) Add(c echo.Context) error {
 
 	an_services.PresignAvatar(h.Srv.FilesGRPC, admin)
 
-	return c.JSON(http.StatusCreated, admin)
+	// The same shape Browse answers with. Serialising the entity instead put
+	// the node's raw meta column — session_data among it — on the wire, and
+	// gave the client a different admin record than the list it belongs to.
+	actorResp := &responses.ActorResponse{}
+
+	return c.JSON(http.StatusCreated, actorResp.MapNodeItem(admin))
 }
 
 // Delete removes an admin

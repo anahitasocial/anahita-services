@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"anahita-libs/data/entities"
+	"anahita-libs/responses"
 	"log"
 	"net/http"
 	"notification/requests"
@@ -100,7 +101,9 @@ func (h *subscriptionHandler) Add(c echo.Context) error {
 
 	target.IsSubscribedByViewer = true
 
-	return c.JSON(http.StatusCreated, target)
+	nodeResp := &responses.NodeResponse{}
+
+	return c.JSON(http.StatusCreated, nodeResp.MapNodeItem(target))
 }
 
 // Delete deletes a subscription
@@ -190,7 +193,9 @@ func (h *subscriptionHandler) Delete(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(http.StatusCreated, target)
+	nodeResp := &responses.NodeResponse{}
+
+	return c.JSON(http.StatusCreated, nodeResp.MapNodeItem(target))
 }
 
 // onAfterFetched is called after fetching a note
