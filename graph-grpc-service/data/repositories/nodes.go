@@ -71,9 +71,18 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 
 	query = query.Where(sq.Eq{"node.enabled": req.Enabled})
 
-	if req.AccessCheck {
-		// query = SetAccessQuery(query, req.Viewer)
-	}
+	// ALWAYS, not `if req.AccessCheck`.
+	//
+	// AccessCheck is a protobuf bool, so it arrives false unless a caller sets
+	// it, and the handler overwrites the repository request's own `true`
+	// default with whatever came over the wire. No calling service set it. A
+	// privacy gate that a caller has to opt into is a gate that leaks the
+	// moment somebody forgets — and everybody had.
+	//
+	// There is no need for an opt-out: the gate returns early for an
+	// administrator, so a privileged read passes an administrator viewer
+	// rather than a flag.
+	query = setAccessQueryForTypes(query, req.Viewer, req.Types)
 
 	if req.Limit == 0 {
 		req.Limit = constants.DefaultPageSize
@@ -151,9 +160,18 @@ func (r *nodesRepo) Count(req *requests.NodeCountRequest) (uint64, error) {
 
 	query = query.Where(sq.Eq{"node.enabled": req.Enabled})
 
-	if req.AccessCheck {
-		// query = SetAccessQuery(query, req.Viewer)
-	}
+	// ALWAYS, not `if req.AccessCheck`.
+	//
+	// AccessCheck is a protobuf bool, so it arrives false unless a caller sets
+	// it, and the handler overwrites the repository request's own `true`
+	// default with whatever came over the wire. No calling service set it. A
+	// privacy gate that a caller has to opt into is a gate that leaks the
+	// moment somebody forgets — and everybody had.
+	//
+	// There is no need for an opt-out: the gate returns early for an
+	// administrator, so a privileged read passes an administrator viewer
+	// rather than a flag.
+	query = setAccessQueryForTypes(query, req.Viewer, req.Types)
 
 	sql, args, err := query.ToSql()
 	if err != nil {
