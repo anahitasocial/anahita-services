@@ -141,7 +141,9 @@ func (h *blockHandler) Add(c echo.Context) error {
 
 	onAfterActorFetched(h.Env, []*an_entities.AnahitaNode{target})
 
-	return c.JSON(http.StatusCreated, target)
+	actorResp := &responses.ActorResponse{}
+
+	return c.JSON(http.StatusCreated, actorResp.MapNodeItem(target))
 }
 
 // Delete a block relationship from an actor
@@ -186,5 +188,7 @@ func (h *blockHandler) Delete(c echo.Context) error {
 
 	onAfterActorFetched(h.Env, []*an_entities.AnahitaNode{target})
 
-	return c.JSON(http.StatusOK, target)
+	actorResp := &responses.ActorResponse{}
+
+	return c.JSON(http.StatusOK, actorResp.MapNodeItem(target))
 }

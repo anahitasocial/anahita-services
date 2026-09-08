@@ -162,7 +162,9 @@ func (h *followRequestHandler) Edit(c echo.Context) error {
 
 	h.onAfterFetched(target)
 
-	return c.JSON(http.StatusAccepted, target)
+	actorResp := &responses.ActorResponse{}
+
+	return c.JSON(http.StatusAccepted, actorResp.MapNodeItem(target))
 }
 
 // Add adds a follower to an actor
@@ -217,7 +219,9 @@ func (h *followRequestHandler) Add(c echo.Context) error {
 
 	h.onAfterFetched(target)
 
-	return c.JSON(http.StatusCreated, target)
+	actorResp := &responses.ActorResponse{}
+
+	return c.JSON(http.StatusCreated, actorResp.MapNodeItem(target))
 }
 
 // Delete a follower from an actor
@@ -266,7 +270,9 @@ func (h *followRequestHandler) Delete(c echo.Context) error {
 
 	h.onAfterFetched(target)
 
-	return c.JSON(http.StatusOK, target)
+	actorResp := &responses.ActorResponse{}
+
+	return c.JSON(http.StatusOK, actorResp.MapNodeItem(target))
 }
 
 // onAfterFetched presigns the avatar of the actor

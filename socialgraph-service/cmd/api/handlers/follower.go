@@ -159,9 +159,27 @@ func (h *followerHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// Re-read so follower_count describes the graph after the edge, not
+	// before it. The client stores whatever comes back.
+	target, err = h.Srv.ActorsGRPC.Read(req.TargetID, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
 	onAfterActorFetched(h.Env, []*entities.AnahitaNode{target})
 
-	return c.JSON(http.StatusCreated, target)
+	// The viewer now leads the target when the viewer is the one who followed;
+	// an admin acting for a group leaves their own relationship untouched. The
+	// read above happened before the edge existed, and an actor read does not
+	// compute the relationship anyway, so it has to be stated here.
+	if source.ID == viewer.ID {
+		target.IsLeadingViewer = true
+	}
+
+	actorResp := &responses.ActorResponse{}
+
+	return c.JSON(http.StatusCreated, actorResp.MapNodeItem(target))
 }
 
 // Delete a follower from an actor
@@ -208,7 +226,21 @@ func (h *followerHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// Re-read so follower_count describes the graph after the edge was
+	// removed, not before it.
+	target, err = h.Srv.ActorsGRPC.Read(req.TargetID, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
 	onAfterActorFetched(h.Env, []*entities.AnahitaNode{target})
 
-	return c.JSON(http.StatusOK, target)
+	if source.ID == viewer.ID {
+		target.IsLeadingViewer = false
+	}
+
+	actorResp := &responses.ActorResponse{}
+
+	return c.JSON(http.StatusOK, actorResp.MapNodeItem(target))
 }
