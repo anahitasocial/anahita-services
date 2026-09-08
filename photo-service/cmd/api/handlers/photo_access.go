@@ -5,6 +5,7 @@ import (
 	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 	"anahita-libs/requests"
+	"anahita-libs/responses"
 	"log"
 	"net/http"
 
@@ -60,7 +61,12 @@ func (h *photoHandler) EditAccess(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, medium)
+	batchPresignPaths(h.Env, []*entities.AnahitaNode{medium})
+
+	mediaResp := &responses.MediumNodeResponse{}
+	resp := mediaResp.MapMediumNode(medium)
+
+	return c.JSON(http.StatusOK, resp)
 }
 
 // getMediumAccessContext retrieves the MediumAccessContext for the given CommentAccessContext

@@ -61,6 +61,8 @@ func (h *mediumHandler) EditAccess(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	batchPresignPaths(h.Env, []*entities.AnahitaNode{medium})
+
 	mediaResp := &responses.MediumNodeResponse{}
 	resp := mediaResp.MapMediumNode(medium)
 
