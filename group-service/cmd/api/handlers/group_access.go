@@ -48,6 +48,10 @@ func (h *groupHandler) EditAccess(c echo.Context) error {
 
 	actor.AllowFollowRequest = req.AllowFollowRequest
 	actor.Access = an_handlers.DetermineActorNodeAccess(req.Access)
+
+	// Changing access is a modification, and the edit validator requires a
+	// modifier. See person_access.go for what its absence did.
+	actor.ModifiedBy = viewer.ID
 	if actor, err = h.Srv.ActorsGRPC.Edit(actor, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

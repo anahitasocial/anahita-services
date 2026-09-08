@@ -47,6 +47,10 @@ func (h *mediumHandler) EditAccess(c echo.Context) error {
 
 	medium.Access = an_handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
 
+	// Changing access is a modification, and the edit validator requires a
+	// modifier. See person_access.go for what its absence did.
+	medium.ModifiedBy = viewer.ID
+
 	if medium, err = h.Srv.MediaGRPC.Edit(medium, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

@@ -48,6 +48,17 @@ func (h *personHandler) EditAccess(c echo.Context) error {
 	person.AllowFollowRequest = req.AllowFollowRequest
 	person.Access = an_handlers.DeterminePersonNodeAccess(req.Access)
 
+	// Record who changed it. Changing access IS a modification, and the edit
+	// validator requires a modifier — so without this the whole edit was
+	// rejected for any node that had never been edited before.
+	//
+	// 344 media had modified_by NULL, which scans as 0, so their access could
+	// not be changed at all: the request came back a 500 with "invalid
+	// modifier ID" and nothing in front of the person to explain it. The actor
+	// handlers only escaped it because most profiles had been edited at least
+	// once already.
+	person.ModifiedBy = viewer.ID
+
 	_, err = h.Srv.ActorsGRPC.Edit(&person.AnahitaNode, viewer)
 	if err != nil {
 		log.Println(err)
