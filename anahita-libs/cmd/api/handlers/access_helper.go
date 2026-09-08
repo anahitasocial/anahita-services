@@ -36,7 +36,15 @@ func DetermineActorNodeAccess(accessLevel string) string {
 	case "admins":
 		return constants.AnahitaAccessAdmins
 	default:
-		return constants.AnahitaAccessPublic
+		// Fail CLOSED. An unrecognised value used to become "public", so a
+		// typo, a renamed constant or a caller that skipped validation would
+		// silently publish an actor rather than fail.
+		//
+		// Unreachable today — both callers validate `oneof` first and reject
+		// anything else with a 400 — which is exactly why it is worth setting
+		// correctly now: the next caller may not, and the wrong default there
+		// is invisible.
+		return constants.AnahitaAccessAdmins
 	}
 }
 
@@ -58,7 +66,10 @@ func DeterminePersonNodeAccess(accessLevel string) string {
 	case "myself":
 		return constants.AnahitaAccessMyself
 	default:
-		return constants.AnahitaAccessPublic
+		// Fail closed, for the reason above. "myself" is the most restrictive
+		// a person can be — the draft state — so an unrecognised value hides
+		// the profile rather than publishing it.
+		return constants.AnahitaAccessMyself
 	}
 }
 

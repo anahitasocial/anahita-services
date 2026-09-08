@@ -38,6 +38,13 @@ func fullyPopulatedNode() *entities.AnahitaNode {
 	n.WebsiteURL = "https://example.com"
 	n.Verified = true
 	n.Enabled = true
+	// The three that carry a viewer-facing setting. Access especially: the
+	// settings card seeds its dropdown from it, so a response that omits it
+	// makes the card save its default over the real value.
+	n.Access = "followers"
+	n.AllowFollowRequest = true
+	archived := time.Now()
+	n.ArchivedAt = &archived
 	n.CreationTime = time.Now()
 	n.FollowerCount = 3
 	n.LeaderCount = 4

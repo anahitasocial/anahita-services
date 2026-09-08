@@ -23,7 +23,21 @@ type ActorNodeItem struct {
 	// page can offer Restore instead of the delete form. Deleting also clears
 	// Enabled, and a client reading only that cannot tell an account on its way
 	// out from one an administrator disabled.
-	DeletedAt         *time.Time       `json:"deleted_at,omitempty"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	// Who may see this actor, and whether strangers may ask to follow.
+	//
+	// Absent from the response entirely until now, which broke the settings
+	// card that edits them: it seeds its dropdown from actor.access, got
+	// undefined, and saving wrote whatever the control defaulted to over the
+	// real setting. A field the client is expected to EDIT has to be readable.
+	//
+	// No omitempty on Access — it is never legitimately empty, and dropping it
+	// would put the card back in the state this fixes.
+	Access             string `json:"access"`
+	AllowFollowRequest bool   `json:"allow_follow_request,omitempty"`
+	// Permanent, and set only once archived, so the settings page can show the
+	// state rather than offering an action that no longer applies.
+	ArchivedAt        *time.Time       `json:"archived_at,omitempty"`
 	CreationTime      time.Time        `json:"creation_time"`
 	FollowerCount     int64            `json:"follower_count,omitempty"`
 	LeaderCount       int64            `json:"leader_count,omitempty"`
@@ -111,8 +125,11 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		// Declared since this struct was written and never assigned, so
 		// `enabled` has never appeared in the API at all and no client could
 		// tell an enabled actor from a disabled one.
-		Enabled:      node.Enabled,
-		CreationTime: node.CreationTime,
+		Enabled:            node.Enabled,
+		Access:             node.Access,
+		AllowFollowRequest: node.AllowFollowRequest,
+		ArchivedAt:         node.ArchivedAt,
+		CreationTime:       node.CreationTime,
 		// nil for everything not scheduled for deletion, and omitempty keeps it
 		// off the wire in that case — which is every actor but a handful.
 		DeletedAt: node.DeletedAt,
