@@ -3,12 +3,13 @@ package requests
 import "anahita-libs/constants"
 
 type MediumRequest struct {
-	Browse     *MediumBrowseRequest
-	Read       *MediumReadRequest
-	Edit       *MediumEditRequest
-	EditAccess *MediumEditAccessRequest
-	Add        *MediumAddRequest
-	Delete     *MediumDeleteRequest
+	Browse            *MediumBrowseRequest
+	Read              *MediumReadRequest
+	Edit              *MediumEditRequest
+	EditAccess        *MediumEditAccessRequest
+	EditCommentStatus *MediumEditCommentStatusRequest
+	Add               *MediumAddRequest
+	Delete            *MediumDeleteRequest
 }
 
 func NewMediumRequest() *MediumRequest {
@@ -32,6 +33,10 @@ func NewMediumRequest() *MediumRequest {
 		EditAccess: &MediumEditAccessRequest{
 			ID:     0,
 			Access: constants.AnahitaAccessPublic,
+		},
+		EditCommentStatus: &MediumEditCommentStatusRequest{
+			ID:     0,
+			Status: false,
 		},
 		Add: &MediumAddRequest{
 			Access:   constants.AnahitaAccessPublic,
@@ -64,6 +69,14 @@ type MediumEditRequest struct {
 type MediumEditAccessRequest struct {
 	ID     int64  `param:"id" validate:"required,numeric"`
 	Access string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
+}
+
+// MediumEditCommentStatusRequest opens or closes a medium to comments. Status
+// binds from "1"/"0" as well as "true"/"false", which is what the web client
+// sends.
+type MediumEditCommentStatusRequest struct {
+	ID     int64 `param:"id" validate:"required,numeric"`
+	Status bool  `form:"status" validate:"omitempty"`
 }
 
 type MediumAddRequest struct {
