@@ -21,7 +21,10 @@ func (a *AnahitaNode) GetFeatures() ([]*AnahitaNodeFeature, error) {
 // SetFeatures sets the features of the actor
 func (a *AnahitaNode) SetFeatures(features []*AnahitaNodeFeature) error {
 	if features == nil {
-		a.FeaturesRaw = []byte{}
+		// nil, not []byte{}. json.RawMessage marshals nil as "null" but an
+		// empty non-nil slice as nothing, which breaks any response carrying
+		// the node — see rawJSON in data/services/graph_node_helper.go.
+		a.FeaturesRaw = nil
 		return nil
 	}
 

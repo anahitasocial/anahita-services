@@ -3,10 +3,27 @@ package services
 import (
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
+	"encoding/json"
 	"strings"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+// rawJSON carries a JSON column across the gRPC boundary, where a NULL column
+// arrives as an empty string.
+//
+// The conversion has to go to nil rather than to json.RawMessage(""), because
+// the two do not marshal alike: nil writes "null", while a non-nil zero-length
+// slice writes nothing at all and fails the entire enclosing document with
+// "unexpected end of JSON input". Handlers that serialise a node directly —
+// follow, unfollow, block — answered 500 for every actor with no features row,
+// which is nearly all of them.
+func rawJSON(s string) json.RawMessage {
+	if s == "" {
+		return nil
+	}
+	return json.RawMessage(s)
+}
 
 func grpcToGraphNodes(nodes []*graphpb.Node) []*entities.AnahitaNode {
 	if nodes == nil {
@@ -40,7 +57,7 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.CoverFilename = m.CoverFilename
 	n.Filename = m.Filename
 	n.Filesize = m.Filesize
-	n.Meta = []byte(m.Meta)
+	n.Meta = rawJSON(m.Meta)
 	n.EdgeCount = m.EdgeCount
 
 	// Only when the actor is actually scheduled for deletion. The proto field
@@ -126,7 +143,7 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.GeoPostalcode = m.GeoPostalcode
 
 	// Raw features
-	n.FeaturesRaw = []byte(m.FeaturesRaw)
+	n.FeaturesRaw = rawJSON(m.FeaturesRaw)
 
 	nodeFeatures := make([]*entities.AnahitaNodeFeature, 0, len(m.Features))
 	for _, af := range m.Features {

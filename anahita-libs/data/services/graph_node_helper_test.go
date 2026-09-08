@@ -1,9 +1,11 @@
 package services
 
 import (
+	"encoding/json"
 	"testing"
 
 	"anahita-libs/data/entities"
+	"anahita-libs/proto/graphpb"
 )
 
 // A field that survives the database, the proto and the response but is
@@ -66,5 +68,44 @@ func TestEmptyWebsiteRoundTripsAsEmpty(t *testing.T) {
 	got := grpcToGraphNode(graphNodeToGrpc(original))
 	if got.WebsiteURL != "" {
 		t.Errorf("an empty website became %q", got.WebsiteURL)
+	}
+}
+
+// A node whose meta or features column is NULL arrives over gRPC as an empty
+// string. Converting that straight to json.RawMessage produces a NON-nil,
+// zero-length slice, and json.RawMessage marshals nil as "null" but a
+// zero-length slice as nothing at all — which fails the WHOLE response with
+//
+//	json: error calling MarshalJSON for type json.RawMessage:
+//	unexpected end of JSON input
+//
+// Follow and unfollow serialise the actor node directly, so every actor with
+// no features row — which is nearly all of them — made those endpoints answer
+// 500. Absent has to map to nil, not to empty.
+func TestEmptyRawJSONColumnsMarshal(t *testing.T) {
+	node := grpcToGraphNode(&graphpb.Node{Id: 42, Meta: "", FeaturesRaw: ""})
+
+	if node.Meta != nil {
+		t.Errorf("an absent meta column became a non-nil %#v", node.Meta)
+	}
+	if node.FeaturesRaw != nil {
+		t.Errorf("an absent features column became a non-nil %#v", node.FeaturesRaw)
+	}
+
+	if _, err := json.Marshal(node); err != nil {
+		t.Fatalf("a node with no meta and no features could not be marshalled: %v", err)
+	}
+}
+
+// The other half of the same trap: clearing an actor's features must leave the
+// field marshallable rather than storing an empty slice.
+func TestSetFeaturesNilLeavesNodeMarshallable(t *testing.T) {
+	node := entities.NewAnahitaNode()
+	if err := node.SetFeatures(nil); err != nil {
+		t.Fatalf("SetFeatures(nil): %v", err)
+	}
+
+	if _, err := json.Marshal(node); err != nil {
+		t.Fatalf("a node whose features were cleared could not be marshalled: %v", err)
 	}
 }
