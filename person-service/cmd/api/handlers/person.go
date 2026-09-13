@@ -333,23 +333,6 @@ func (h *personHandler) Delete(c echo.Context) error {
 	// 409 rather than 403: the request is well formed and the caller is
 	// permitted, it conflicts with the state of the site. The body names the
 	// way out, because a refusal that does not is a support ticket.
-	if person.PersonType == constants.PersonTypeSuperAdmin {
-		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
-		if err != nil {
-			log.Println("person delete: super administrator count failed:", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		if others == 0 {
-			log.Printf("person delete: refused, %d is the last super administrator",
-				person.ID)
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error": "last_super_administrator",
-				"message": "This is the only super administrator. Promote " +
-					"someone else, or change this account to administrator, " +
-					"and then delete it.",
-			})
-		}
-	}
 
 	// ONE write, and a soft one.
 	//
@@ -363,6 +346,9 @@ func (h *personHandler) Delete(c echo.Context) error {
 	// restore themselves during the grace period. The sweeper removes it when
 	// the window closes.
 	if err = h.Srv.ActorsGRPC.Delete(person.ID, viewer); err != nil {
+		if isLastSuperAdmin(err) {
+			return refuseLastSuperAdmin(c, "delete")
+		}
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -438,23 +424,12 @@ func (h *personHandler) Archive(c echo.Context) error {
 	// The same floor deletion has. An archived super administrator cannot sign
 	// in, so archiving the last one locks the site out exactly as deleting
 	// them would.
-	if person.PersonType == constants.PersonTypeSuperAdmin {
-		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
-		if err != nil {
-			log.Println("person archive: super administrator count failed:", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		if others == 0 {
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error": "last_super_administrator",
-				"message": "This is the only super administrator. Promote " +
-					"someone else before archiving this account.",
-			})
-		}
-	}
 
 	archived, err := h.Srv.ActorsGRPC.Archive(person.ID, viewer)
 	if err != nil {
+		if isLastSuperAdmin(err) {
+			return refuseLastSuperAdmin(c, "archive")
+		}
 		log.Println("person archive:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -514,24 +489,11 @@ func (h *personHandler) SetEnabled(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	// Disabling the last super administrator locks the site out the same way
-	// deleting or archiving them would — they cannot sign in to undo it.
-	if !*req.Enabled && person.PersonType == constants.PersonTypeSuperAdmin {
-		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
-		if err != nil {
-			log.Println("person set-enabled: super administrator count failed:", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		if others == 0 {
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error":   "last_super_administrator",
-				"message": "This is the only super administrator and cannot be disabled.",
-			})
-		}
-	}
-
 	changed, err := h.Srv.ActorsGRPC.SetEnabled(person.ID, *req.Enabled, viewer)
 	if err != nil {
+		if isLastSuperAdmin(err) {
+			return refuseLastSuperAdmin(c, "disable")
+		}
 		log.Println("person set-enabled:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -598,25 +560,12 @@ func (h *personHandler) Purge(c echo.Context) error {
 
 	// The same floor deletion has, and for the same reason — more so, since
 	// there is no thirty-day window to notice the mistake in.
-	if person.PersonType == constants.PersonTypeSuperAdmin {
-		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
-		if err != nil {
-			log.Println("person purge: super administrator count failed:", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		if others == 0 {
-			log.Printf("person purge: refused, %d is the last super administrator",
-				person.ID)
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error": "last_super_administrator",
-				"message": "This is the only super administrator. Promote " +
-					"someone else before destroying this account.",
-			})
-		}
-	}
 
 	purged, err := h.Srv.ActorsGRPC.Purge(person.ID, viewer)
 	if err != nil {
+		if isLastSuperAdmin(err) {
+			return refuseLastSuperAdmin(c, "delete")
+		}
 		log.Println("person purge:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}

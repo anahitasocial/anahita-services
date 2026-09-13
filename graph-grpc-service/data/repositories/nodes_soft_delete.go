@@ -35,6 +35,11 @@ func (r *nodesRepo) SoftDeleteActor(id int64) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	defer cancel()
 
+	// The floor under the installation: deleting the last super administrator leaves nobody who can administer the site once the grace period expires and the sweeper runs.
+	if err := r.guardLastSuperAdmin(ctx, id); err != nil {
+		return false, err
+	}
+
 	if id <= 0 {
 		return false, nil
 	}

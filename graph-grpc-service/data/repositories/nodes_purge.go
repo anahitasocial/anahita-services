@@ -49,6 +49,11 @@ func (r *nodesRepo) PurgeActorContent(ownerID int64) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	defer cancel()
 
+	// The floor under the installation: purging destroys the account immediately, with no grace period to notice during.
+	if err := r.guardLastSuperAdmin(ctx, ownerID); err != nil {
+		return false, err
+	}
+
 	if ownerID <= 0 {
 		return false, nil
 	}

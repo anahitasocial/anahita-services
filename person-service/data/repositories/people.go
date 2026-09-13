@@ -33,15 +33,6 @@ type PersonInterface interface {
 
 	// Edit updates a Person
 	Edit(*entities.Person) error
-
-	// CountOtherActiveSuperAdmins counts the super administrators who are not
-	// this person and are still able to act — not soft-deleted, not disabled.
-	//
-	// The floor under profile deletion. The failure it prevents is the last
-	// super administrator deleting themselves, the grace period running out,
-	// the sweeper purging, and the site being left with nobody who can
-	// administer it and no route to appoint one.
-	CountOtherActiveSuperAdmins(excludeID int64) (int, error)
 }
 
 // NewPerson creates a new Person repository
@@ -306,41 +297,4 @@ func (repo *Person) afterRead(person *entities.Person) error {
 	person.GetCovers()
 
 	return nil
-}
-
-// CountOtherActiveSuperAdmins counts super administrators other than excludeID
-// who can still act.
-//
-// "Still able to act" is doing real work in that sentence. A super
-// administrator with deleted_at set is inside their grace period and will be
-// purged; counting them satisfies the floor with somebody who will not be
-// there, and the site reaches zero one deletion later. A disabled one cannot
-// sign in to administer anything. Neither belongs in the count.
-//
-// The join is to nodes because usertype lives on people_people while the
-// deletion state lives on the node — the same split that makes this query
-// belong here, in the service that owns both halves, rather than in
-// graph-grpc, which has never read people_people and should not start.
-func (repo *Person) CountOtherActiveSuperAdmins(excludeID int64) (int, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
-	defer cancel()
-
-	const query = `
-SELECT COUNT(*)
-FROM people_people p
-JOIN nodes n ON n.id = p.node_id
-WHERE p.usertype = ?
-  AND p.node_id <> ?
-  AND n.deleted_at IS NULL
-  AND n.enabled = 1;
-`
-
-	var count int
-	err := repo.db.QueryRowContext(ctx, query,
-		constants.PersonTypeSuperAdmin, excludeID).Scan(&count)
-	if err != nil {
-		return 0, err
-	}
-
-	return count, nil
 }
