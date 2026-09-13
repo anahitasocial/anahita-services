@@ -207,16 +207,44 @@ records it.** Version, timestamp, IP, user agent and OS have to be taken from
 the request server-side, or the record is a claim the browser made about
 itself — and those columns exist precisely so it is not that.
 
-- `/oauth/userinfo` gains the acceptance state, so the viewer knows to gate.
+- `/oauth/userinfo` gains the acceptance state **per document** — accepted
+  flag and version for each — so the viewer knows which cards to show.
   The repository already reads `tos_accepted` and `tos_accepted_version` back,
   and `entities.Consent.NeedsAcceptance` already answers the question
   including the version-moved-on case.
-- A new authenticated endpoint records the acceptance through
-  `Users.EditConsent`, taking the version from config and the audit trio from
-  the request.
+- Two authenticated endpoints, one per document, each recording through a
+  split `EditConsent` — taking the version from config and the audit trio from
+  the request, never from the client.
+- `GET /agreements` already publishes the version and the URL of each, from
+  configuration (`TOS_VERSION`/`TOS_URL`, `PRIVACY_VERSION`/`PRIVACY_URL`), so
+  the interstitial has one place to ask what is in force and where to fetch
+  the text from.
 - `AuthenticatedRoute` renders the agreements interstitial instead of the
   requested route while anything is outstanding. It already runs on every
   session resolution, so "every sign-in" comes for free.
+
+#### What the interstitial looks like
+
+Modelled on an implementation of the same flow that already works elsewhere.
+
+- **One card per outstanding document**, and only the outstanding ones. A
+  document still current shows as already accepted rather than being hidden,
+  so the page explains itself rather than appearing arbitrary.
+- **The text is rendered in the page**, in a scrollable box — not linked. A
+  link is not a presentation, and "they could have clicked it" is a weaker
+  thing to have to argue than "it was on the screen they accepted from".
+- **Accepted independently, one call each, each carrying its own version.**
+  This is the part worth copying: a revision to the Privacy Policy alone must
+  not re-ask for the Terms. `Users.EditConsent` writes both at once today and
+  needs splitting, or the two versions cannot move apart.
+- A Continue button appears once nothing is outstanding.
+
+**Compare versions in order, not for equality.** `Consent.NeedsAcceptance`
+currently does string inequality, which re-prompts when a version goes
+*backwards* — a rollback, or an operator fixing a typo, and everybody is asked
+again for text they have already accepted. Parse the dotted parts and compare
+numerically, so only a genuine advance re-prompts. Empty still means "never
+accepted".
 
 **Decided: nothing collects acceptance except the interstitial.** It is
 checked on every sign-in, and the check is version-aware, so a revision
