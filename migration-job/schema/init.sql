@@ -95,7 +95,41 @@ CREATE TABLE nodes (
   -- `deleted_at` because each of the three maps to a different answer, and a
   -- single flag cannot give three.
   `archived_at` datetime DEFAULT NULL,
+  -- Person identity. guest / registered / administrator / super-administrator.
+  -- Named for the node rather than for auth: the graph owns the person, and
+  -- unlike owner_type and parent_type this holds an authority level, not a node
+  -- type string.
+  `person_type` varchar(50) DEFAULT NULL,
+  -- Free text, e.g. "she/her", "iel". Never an enum — an enum hard-codes
+  -- English grammar and is meaningless in a language with no gendered
+  -- third-person pronoun. Never used for logic; empty renders nothing.
+  `person_pronouns` varchar(50) DEFAULT NULL,
+  `last_visit_date` datetime DEFAULT NULL,
+  -- The actor handle namespace.
+  --
+  -- alias alone cannot carry a unique index: article revisions share their
+  -- article's slug, and a location, a photo-set and its photos share a place
+  -- slug. MySQL has no partial indexes, so this is NULL for everything that is
+  -- not an actor and a unique index permits any number of NULLs.
+  --
+  -- All actor types share one namespace because WebFinger resolves
+  -- acct:name@domain to exactly one actor and has no type dimension — a person
+  -- and a group with the same alias would make both unaddressable once this
+  -- instance federates.
+  --
+  -- The `actor:` prefix is redundant with one branch. It is there so a second
+  -- namespace — hashtags, which are addressed by alias — is one CASE line
+  -- rather than another column and another index.
+  `unique_alias` varchar(300) GENERATED ALWAYS AS (
+      CASE
+          WHEN alias IS NULL OR alias = '' THEN NULL
+          WHEN type LIKE 'node.actor.%'    THEN CONCAT('actor:', alias)
+          ELSE NULL
+      END
+  ) STORED,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_unique_alias` (`unique_alias`),
+  KEY `person_type` (`person_type`),
   -- The sweeper's only query is "actors deleted before X", and it runs against
   -- a column that is NULL for practically every row.
   KEY `deleted_at` (`deleted_at`),
@@ -148,6 +182,57 @@ CREATE TABLE edges (
   KEY `start_date` (`start_date`),
   KEY `end_date` (`end_date`),
   CONSTRAINT uc_edge UNIQUE(`type`,`node_a_id`,`node_a_type`,`node_b_id`,`node_b_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- --------------------------------------------------------
+
+-- The auth half of a person: credentials, and what they agreed to.
+--
+-- Named auth_accounts rather than auth_credentials because it holds legal
+-- consent as well as secrets, and "credentials" is the wrong label for a record
+-- of what somebody agreed to. One table rather than two — it is 1:1 with the
+-- node, so splitting would buy a join and nothing else.
+--
+-- The person half lives on `nodes`. Nothing here is identity: no name, no
+-- alias, no person_type. email is here rather than on the node because
+-- graphpb.Node is the universal payload returned to sixteen callers, and a
+-- login identifier is one missing access check away from public.
+CREATE TABLE auth_accounts (
+    `node_id`               bigint unsigned NOT NULL,
+    `email`                 varchar(255) DEFAULT NULL,
+    `password`              varchar(255) DEFAULT NULL,
+    `totp_secret`           varchar(255) DEFAULT '',
+    `totp_enabled`          tinyint(1) NOT NULL DEFAULT 0,
+    `totp_recovery_codes`   mediumtext DEFAULT NULL,
+    `totp_last_verified_at` datetime DEFAULT NULL,
+
+    -- Terms of Service acceptance. The version sits alongside the timestamp so
+    -- a revision can re-prompt only those on an older one, and the
+    -- ip/user_agent/os trio is what makes the record evidential rather than
+    -- merely a boolean.
+    --
+    -- *_accepted_at defaults to NULL, not NOW(). A row that never accepted
+    -- anything must not carry a timestamp, or (accepted=0, accepted_at=<a
+    -- date>) is ambiguous and the audit trail cannot be read.
+    `tos_accepted`            tinyint(1) NOT NULL DEFAULT 0,
+    `tos_accepted_at`         datetime     DEFAULT NULL,
+    `tos_accepted_version`    varchar(20)  DEFAULT NULL,
+    `tos_accepted_ip`         varchar(45)  DEFAULT NULL,
+    `tos_accepted_user_agent` varchar(255) DEFAULT NULL,
+    `tos_accepted_os`         varchar(100) DEFAULT NULL,
+
+    -- Privacy Policy acceptance, same shape.
+    `pp_accepted`             tinyint(1) NOT NULL DEFAULT 0,
+    `pp_accepted_at`          datetime     DEFAULT NULL,
+    `pp_accepted_version`     varchar(20)  DEFAULT NULL,
+    `pp_accepted_ip`          varchar(45)  DEFAULT NULL,
+    `pp_accepted_user_agent`  varchar(255) DEFAULT NULL,
+    `pp_accepted_os`          varchar(100) DEFAULT NULL,
+
+    PRIMARY KEY (`node_id`),
+    UNIQUE KEY `email` (`email`),
+    -- Revising the terms means finding everyone still on an older version.
+    KEY `tos_accepted_version` (`tos_accepted_version`),
+    KEY `pp_accepted_version` (`pp_accepted_version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 

@@ -736,6 +736,74 @@ DEALLOCATE PREPARE stmt;
 
 -- --------------------------------------------------------
 
+-- Person identity onto `nodes`, and credentials into `auth_accounts`.
+--
+-- Additive: people_people is left exactly as it was, so this file produces the
+-- same schema as schema/init.sql while the code still reads the old shape. A
+-- later change drops it once nothing does.
+
+ALTER TABLE nodes ADD COLUMN `person_type` varchar(50) DEFAULT NULL;
+ALTER TABLE nodes ADD COLUMN `person_pronouns` varchar(50) DEFAULT NULL;
+ALTER TABLE nodes ADD COLUMN `last_visit_date` datetime DEFAULT NULL;
+ALTER TABLE nodes ADD INDEX `person_type` (`person_type`);
+
+-- name, alias, timezone and language are deliberately not copied: they are
+-- already correct on nodes. given_name and family_name are not carried at all —
+-- they are truncated at the first non-ASCII byte, while nodes.name is intact.
+UPDATE nodes n JOIN people_people p ON p.node_id = n.id
+SET n.person_type     = p.usertype,
+    n.last_visit_date = p.last_visit_date;
+
+-- The actor handle namespace. See schema/init.sql for why this is a generated
+-- column rather than a unique index on alias.
+ALTER TABLE nodes
+    ADD COLUMN `unique_alias` varchar(300)
+        GENERATED ALWAYS AS (
+            CASE
+                WHEN alias IS NULL OR alias = '' THEN NULL
+                WHEN type LIKE 'node.actor.%'    THEN CONCAT('actor:', alias)
+                ELSE NULL
+            END
+        ) STORED;
+ALTER TABLE nodes ADD UNIQUE KEY `uq_unique_alias` (`unique_alias`);
+
+CREATE TABLE auth_accounts (
+    `node_id`               bigint unsigned NOT NULL,
+    `email`                 varchar(255) DEFAULT NULL,
+    `password`              varchar(255) DEFAULT NULL,
+    `totp_secret`           varchar(255) DEFAULT '',
+    `totp_enabled`          tinyint(1) NOT NULL DEFAULT 0,
+    `totp_recovery_codes`   mediumtext DEFAULT NULL,
+    `totp_last_verified_at` datetime DEFAULT NULL,
+    `tos_accepted`            tinyint(1) NOT NULL DEFAULT 0,
+    `tos_accepted_at`         datetime     DEFAULT NULL,
+    `tos_accepted_version`    varchar(20)  DEFAULT NULL,
+    `tos_accepted_ip`         varchar(45)  DEFAULT NULL,
+    `tos_accepted_user_agent` varchar(255) DEFAULT NULL,
+    `tos_accepted_os`         varchar(100) DEFAULT NULL,
+    `pp_accepted`             tinyint(1) NOT NULL DEFAULT 0,
+    `pp_accepted_at`          datetime     DEFAULT NULL,
+    `pp_accepted_version`     varchar(20)  DEFAULT NULL,
+    `pp_accepted_ip`          varchar(45)  DEFAULT NULL,
+    `pp_accepted_user_agent`  varchar(255) DEFAULT NULL,
+    `pp_accepted_os`          varchar(100) DEFAULT NULL,
+    PRIMARY KEY (`node_id`),
+    UNIQUE KEY `email` (`email`),
+    KEY `tos_accepted_version` (`tos_accepted_version`),
+    KEY `pp_accepted_version` (`pp_accepted_version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Consent columns keep their defaults: nobody has accepted anything yet, and
+-- inventing an acceptance would be a lie in a legal record.
+INSERT INTO auth_accounts
+    (node_id, email, password, totp_secret, totp_enabled,
+     totp_recovery_codes, totp_last_verified_at)
+SELECT node_id, email, password, totp_secret, totp_enabled,
+       totp_recovery_codes, totp_last_verified_at
+FROM people_people;
+
+-- --------------------------------------------------------
+
 -- Some data updates for now, remove it in the final commit
 UPDATE nodes SET filename = '8944e519-1d9f-46c4-a16f-3da487ade61f.jpg' WHERE alias = 'rastin';
 UPDATE nodes SET filename = '423f925ce9bb8dce0c8f1876778a96a8.jpg' WHERE alias = 'rmundel';
