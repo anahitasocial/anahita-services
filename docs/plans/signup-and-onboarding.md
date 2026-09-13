@@ -94,32 +94,54 @@ One is not enough, because each answers a different question.
 
 ## What signup asks for, per mode
 
-Minimal by default. The principle is that an installation should ask for what
-it needs to make a decision, and nothing more.
+The test is **who the field is for**, not how useful it would be to have.
 
-| | `open`, and invite-accept | `approval` |
-| --- | --- | --- |
-| handle | ✅ | ✅ |
-| email | ✅ | ✅ |
-| password | ✅ | ✅ |
-| display name | ❌ | ✅ |
-| bio | ❌ | ✅ |
-| website URL | ❌ | ✅ |
-| terms acceptance | ❌ — asked at first sign-in | ❌ — same |
+| | `open` | `invite` | `approval` |
+| --- | --- | --- | --- |
+| handle | ✅ | ✅ | ✅ |
+| email | ✅ | ✅ | ✅ |
+| password | ✅ | ✅ | ✅ |
+| display name | ❌ | optional | ✅ required |
+| bio | ❌ | optional | ✅ required |
+| website URL | ❌ | optional | ✅ required |
+| pronouns | ❌ | ❌ | ❌ |
+| terms acceptance | ❌ — asked at first sign-in | ❌ | ❌ |
 
 **Neither Mastodon nor Bluesky asks for a display name at signup.** Both take
 the handle, email and password — Bluesky also a date of birth — and offer the
-display name during a skippable onboarding afterwards, where an empty one falls
-back to the handle. Anahita is currently the outlier.
+display name during a skippable onboarding, where an empty one falls back to
+the handle.
 
-**Approval mode is the exception, and for a reason.** A human is being asked to
-decide, and deciding on an email address alone is not deciding. Mastodon
-handles this with a "why do you want to join?" free-text box; the three fields
-here serve the same purpose and have the advantage of being the profile itself
-rather than a note thrown away after the decision. Somebody rejected has not
-had to write anything they would not have written anyway.
+**In `approval` they are the application, so they are required.** A human is
+being asked to decide, and deciding on an email address alone is not deciding.
+Mastodon does this with a "why do you want to join?" box; these three do the
+same job and have the advantage of being the profile itself rather than a note
+discarded after the decision. Nobody rejected has written anything they would
+not have written anyway.
 
----
+**In `invite` they are optional, not required.** The reason `approval` needs
+them does not apply — an administrator already decided, so nobody is judging.
+Requiring them at the door buys a worse version of what onboarding does a
+minute later, on a plain server-rendered form rather than a live editor with an
+avatar uploader. A required bio is also how a community ends up full of bios
+that say ".". Offered and skippable gets the profiles from people who want to
+write them and blocks nobody.
+
+**Pronouns are never collected at signup, in any mode**, and this is the one
+field where the answer is not simply "it depends on the mode":
+
+- They fail the test. Name, bio and website help an approver judge whether this
+  is a real person who belongs here. Pronouns tell them nothing about that —
+  they are not decision-relevant, so in `approval` they are being asked for
+  because they are nice to have, which is what onboarding is for.
+- Requiring them means asking somebody to disclose something personal **to a
+  stranger who is judging their application**, before they have decided to
+  join. For a person who is not out that is a real cost, and "leave it blank"
+  is not available when the field is required.
+
+Mastodon keeps pronouns in optional profile metadata and Bluesky has no
+dedicated field. Offer them prominently in onboarding, where the answer is
+given to the community rather than to a gatekeeper.
 
 ## Work items
 
