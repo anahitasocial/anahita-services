@@ -33,11 +33,18 @@ completeness is onboarding, not a gate.
 
 | item | state | depends on | commit |
 | --- | --- | --- | --- |
-| 1. `REGISTRATION_MODE` + NodeInfo | ⬜ | — | |
+| 1. `REGISTRATION_MODE` + NodeInfo | ✅ | — | `c4eb52b` |
 | 2. Signup moves to auth-service | ⬜ | 1, 8 | |
 | 3. Email verification | ⬜ | — | |
 | 4. Anti-bot baseline | ⬜ | 2 | |
 | 5. Approval queue (backend only) | ⬜ | 1, 2, 3 | |
+
+**`approval` refuses to boot until item 5 lands.** The predicates already
+answer correctly and signup already treats an applicant as permitted — which is
+right, and is exactly why it cannot ship yet: with nowhere for an application to
+go, an operator asking for approval would get open registration on an
+installation they believe is gated, and nothing would look wrong. The guard is
+in `validateBootstrap` and its test says to remove both when the queue exists.
 | 6a. Invite rate limits | ✅ | — | `3f9c978` |
 | 6b. `INVITES_FROM` + pending cap | ⬜ | 1 | |
 | 7. Agreements checked at every sign-in | ⛔ | real ToS text | |
