@@ -33,8 +33,8 @@ completeness is onboarding, not a gate.
 
 | item | state | depends on | commit |
 | --- | --- | --- | --- |
-| 1. `REGISTRATION_MODE` + NodeInfo | ✅ | — | `c4eb52b` |
-| 2. Signup moves to auth-service | ⬜ | 1, 8 | |
+| 1. `REGISTRATION_MODE` + NodeInfo | ✅ | — | `e7d47c2` |
+| 2. Signup moves to auth-service | ✅ | 1, 8 | `225b72c` |
 | 3. Email verification | ⬜ | — | |
 | 4. Anti-bot baseline | ⬜ | 2 | |
 | 5. Approval queue (backend only) | ⬜ | 1, 2, 3 | |
@@ -48,7 +48,7 @@ in `validateBootstrap` and its test says to remove both when the queue exists.
 | 6a. Invite rate limits | ✅ | — | `3f9c978` |
 | 6b. `INVITES_FROM` + pending cap | ⬜ | 1 | |
 | 7. Agreements checked at every sign-in | ⛔ | real ToS text | |
-| 8. Display name becomes optional | ⬜ | — | |
+| 8. Display name becomes optional | ✅ | — | `d6ce390` (react) |
 | 9. Onboarding | ⬜ | separate plan | |
 
 Landed alongside, because they stood on their own: configurable agreement URLs
@@ -57,7 +57,7 @@ invitation always returned 500, and a permission failure answered 402.
 
 ### Order, and why
 
-**1 → 6b → 3 → 8 → 2 → 5 → 4 → 7**
+**~~1~~ → ~~8~~ → ~~2~~ → 6b → 3 → 5 → 4 → 7**
 
 - **1 first** because 2, 5 and 6b all read the mode.
 - **8 before 2.** Signup stops collecting a display name in item 2, so the
