@@ -101,6 +101,22 @@ services:
       OAUTH_SIGNER_BACKEND: ${OAUTH_SIGNER_BACKEND}
       OAUTH_KMS_KEY_ALIAS: ${OAUTH_KMS_KEY_ALIAS}
       OAUTH_SEED_CLIENT_PATH: ${OAUTH_SEED_CLIENT_PATH}
+      # Agreement versions currently in force. The TEXT lives in the web app
+      # under src/assets/default/pages/; bumping one of these without editing
+      # the matching page re-prompts everybody for text that has not changed.
+      TOS_VERSION: ${TOS_VERSION:-}
+      PRIVACY_VERSION: ${PRIVACY_VERSION:-}
+      # The first super administrator, seeded at boot.
+      #
+      # Does nothing unless the installation has NO active super administrator,
+      # so it is inert on every existing deployment and can be left set. On a
+      # fresh install it creates the account with an unusable password and
+      # prints a set-password link to this container's log — read it with
+      # `docker compose logs auth-service`. The link is also emailed, but the
+      # log is the path that works when SMTP is not configured yet.
+      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-}
+      SUPER_ADMIN_USERNAME: ${SUPER_ADMIN_USERNAME:-}
+      SUPER_ADMIN_NAME: ${SUPER_ADMIN_NAME:-}
     volumes:
       - ./oauth-signing.pem:/run/secrets/oauth-signing.pem:ro
       - ./auth-defaults/oauth_seed_clients.json:/app/defaults/oauth_seed_clients.json:ro

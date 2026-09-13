@@ -229,6 +229,42 @@ func main() {
 	}
 	h := handlers.NewHandlers(hEnv)
 
+	// 12a. The first super administrator.
+	//
+	// Runs after the notifiers so the set-password link can be emailed, and
+	// does nothing at all unless SUPER_ADMIN_EMAIL is set AND the installation
+	// has no active super administrator. Every existing deployment has one, so
+	// for them this is a single COUNT and a return.
+	//
+	// It exists because nothing else in the Go stack ever WRITES the
+	// super-administrator authority level — only compares against it — so a
+	// fresh install from schema/init.sql had no way to produce an owner, and
+	// no route to a working site except hand-written SQL.
+	//
+	// Logged rather than fatal. An installation that cannot seed an
+	// administrator is still one its existing members can sign in to, and
+	// refusing to boot would turn a bootstrap problem into an outage.
+	seedEnv := &services.SuperAdminSeedEnv{
+		Repos:    repos,
+		Actors:   srv.ActorsGRPC,
+		Config:   cfg,
+		SendLink: notif.Password.EmailToken,
+	}
+	if created, err := services.SeedSuperAdmin(seedEnv); err != nil {
+		log.Println("super admin seed:", err)
+	} else if !created {
+		// Re-issued on every boot while a previously seeded account is still
+		// unclaimed, so a link nobody read before it expired is never a dead
+		// end. Skipped when the seed just ran — it issued one already, and a
+		// second would retire the first and leave two links in the log, one of
+		// them dead.
+		if user, needed := services.NeedsSuperAdminBootstrapLink(seedEnv); needed {
+			if err := services.IssueSuperAdminBootstrapLink(seedEnv, user); err != nil {
+				log.Println("super admin seed:", err)
+			}
+		}
+	}
+
 	// 12b. Event consumer.
 	//
 	// Listens for actor deletion so the credentials go with the account. Until
