@@ -40,16 +40,18 @@ This overturns the decision recorded at
 | 6. person-service loses its repositories | ✅ done | `e4713e8` |
 | 7. Mention relations to graph | ✅ done | `65224e4` |
 | 5. Last-super-admin guard into graph | ✅ done | `57c181c` |
-| 10. Signup, invite-accept, first super admin | ⬜ next | |
-| 3. Backfill and drop `people_people` | ⬜ | |
-| 9. anahita-react | ⬜ | |
+| 10. Signup, invite-accept, first super admin | ⬜ | |
+| 3. Backfill and drop `people_people` | ⬜ next | |
+| 9. anahita-react | ✅ done | `b515bb5` (anahita-react) |
 
 Also landed alongside: `fcbae16` (one `make test` target instead of two
 shadowing each other) and `30297f1` (these plan documents).
 
 **Sequencing correction.** The order below omitted item 4, but item 8 has to set
 `person_type` through `ActorsGRPC` and cannot until the graph accepts the field.
-The real order is **1 → 2 → 4 → 8 → 5 → 6 → 7 → 10 → 3 → 9**. Item 5 also
+The real order used was **1 → 2 → 4 → 8 → 5 → 6 → 7 → 9 → 3 → 10**. Item 9
+moved ahead of 3 and 10 because item 6 renamed `usertype` to `person_type` on
+the wire, which silently disabled every administration control in the client. Item 5 also
 had to move ahead of item 6: person-service cannot drop its repository while
 four of its handlers still call `CountOtherActiveSuperAdmins` on it.
 
@@ -356,7 +358,7 @@ handler forgets it.
 - Delete `cmd/api/handlers/user.go` — dead code, `NewUserHandler` is never
   called and no `/users` route exists.
 
-### 9. anahita-react  ⬜ TODO
+### 9. anahita-react  ✅ DONE (anahita-react b515bb5)
 
 - `src/utils/node.js` — `getPersonName` (`:100`) and `getActorInitials` (`:78`)
   already prefer `name` with a `givenName familyName` fallback; simplify once the
