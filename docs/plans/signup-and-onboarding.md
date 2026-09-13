@@ -29,19 +29,40 @@ completeness is onboarding, not a gate.
 
 ## Status
 
-| item | state | commit |
-| --- | --- | --- |
-| 1. `REGISTRATION_MODE` + NodeInfo | ⬜ | |
-| 2. Signup moves to auth-service | ⬜ | |
-| 3. Email verification | ⬜ | |
-| 4. Anti-bot baseline | ⬜ | |
-| 5. Approval queue (backend only) | ⬜ | |
-| 6. Who may invite, and how many | ⬜ | |
-| 7. Agreements checked at every sign-in | ⬜ | |
-| 8. Display name becomes optional | ⬜ | |
-| 9. Onboarding | ⬜ separate plan | |
+`⬜ todo` · `🚧 in progress` · `✅ done` · `⛔ blocked`
 
----
+| item | state | depends on | commit |
+| --- | --- | --- | --- |
+| 1. `REGISTRATION_MODE` + NodeInfo | ⬜ | — | |
+| 2. Signup moves to auth-service | ⬜ | 1, 8 | |
+| 3. Email verification | ⬜ | — | |
+| 4. Anti-bot baseline | ⬜ | 2 | |
+| 5. Approval queue (backend only) | ⬜ | 1, 2, 3 | |
+| 6a. Invite rate limits | ✅ | — | `3f9c978` |
+| 6b. `INVITES_FROM` + pending cap | ⬜ | 1 | |
+| 7. Agreements checked at every sign-in | ⛔ | real ToS text | |
+| 8. Display name becomes optional | ⬜ | — | |
+| 9. Onboarding | ⬜ | separate plan | |
+
+Landed alongside, because they stood on their own: configurable agreement URLs
+(`4534831`), and the two invite bugs that item 6a's work exposed — sending an
+invitation always returned 500, and a permission failure answered 402.
+
+### Order, and why
+
+**1 → 6b → 3 → 8 → 2 → 5 → 4 → 7**
+
+- **1 first** because 2, 5 and 6b all read the mode.
+- **8 before 2.** Signup stops collecting a display name in item 2, so the
+  render fallback has to exist first — otherwise every account created in
+  between renders as "Unknown" with `??` for initials.
+- **3 before 5**, so an application reaches the queue already verified and
+  administrators are not moderating unverified junk.
+- **4 after 2**, because honeypot and timing need the server-rendered form to
+  put them on.
+- **7 is blocked**, and not on code: the Terms and Privacy Policy are still
+  boilerplate with `[Your Organisation]` in them. Shipping the gate first
+  records 822 people as accepting a template.
 
 ## Registration modes
 
