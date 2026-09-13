@@ -36,9 +36,10 @@ completeness is onboarding, not a gate.
 | 3. Email verification | ⬜ | |
 | 4. Anti-bot baseline | ⬜ | |
 | 5. Approval queue (backend only) | ⬜ | |
-| 6. Agreements checked at every sign-in | ⬜ | |
-| 7. Display name becomes optional | ⬜ | |
-| 8. Onboarding | ⬜ separate plan | |
+| 6. Who may invite, and how many | ⬜ | |
+| 7. Agreements checked at every sign-in | ⬜ | |
+| 8. Display name becomes optional | ⬜ | |
+| 9. Onboarding | ⬜ separate plan | |
 
 ---
 
@@ -180,6 +181,7 @@ Ranked by what actually works, not by what is most visible.
 | --- | --- |
 | invite-only | the most effective measure there is; already built |
 | approval queue | very high, human in the loop; item 5 |
+| capping and rate-limiting invites | bounds a compromised or careless account; item 6 |
 | email verification | high, kills volume; item 3 |
 | rate limit per IP and per subnet | high; the limiter already exists, signup just has no scope |
 | honeypot field + submission timing | free, no user friction, low ceiling |
@@ -223,7 +225,100 @@ settings plan lands. Worth considering as a bridge: approve and reject by
 tokenised link in the notification email to administrators, which reuses the
 invite machinery and makes the feature usable on day one.
 
-### 6. Agreements checked at every sign-in — in the web app
+### 6. Who may invite, and how many
+
+Invites are administrator-only today. Two settings open that up and bound it.
+
+#### Who
+
+`INVITES_FROM`, either `administrators` (the default, and what happens today,
+so no installation changes behaviour on upgrade) or `members`.
+
+**Opening this up changes what an invitation means**, and the approval queue
+has to change with it. An administrator's invitation is a decision — they are
+the person who would otherwise clear the queue. An ordinary member's is a
+recommendation: they are vouching, not admitting.
+
+So the rule is not "invites skip the queue", it is **"an invitation skips the
+queue when an administrator issued it"**:
+
+| mode | admin invites | member invites |
+| --- | --- | --- |
+| `open` | straight in | straight in |
+| `approval` | straight in | **into the queue, naming the voucher** |
+| `invite` | straight in | straight in |
+| `closed` | refused | refused |
+
+A member-issued invitation landing in the queue with the inviter's name
+attached is a better signal than a cold application, and it is the reason to
+allow member invites at all — the member does the finding, the administrator
+keeps the decision.
+
+#### How many
+
+**One cap: outstanding invitations.** `INVITE_PENDING_MAX`, how many
+unaccepted invitations a person may hold at once. Default 5 for members,
+`INVITE_PENDING_MAX_ADMIN` defaulting high for administrators — somebody
+onboarding a department should not hit a limit set for members, but not
+unlimited either, since the cap is also what stops a compromised administrator
+account turning the mail service into a relay.
+
+It **self-heals**. A slot frees when an invitation is accepted, expires, or is
+revoked, so an honest member is never permanently stuck and nobody has to
+administer a reset.
+
+**Deliberately no lifetime cap.** It was considered and dropped:
+
+- It is not a safety control. The pending cap bounds how much damage one
+  account can do at any moment, and the rate limit below bounds how fast — a
+  lifetime total adds nothing to either.
+- It is a rationing mechanic — the Gmail-beta, early-Bluesky device for making
+  growth deliberate. That is a product decision about how fast a community
+  should grow, not an abuse control, and both of those examples dropped it once
+  they opened up.
+- It is the only one of the three with **no self-service remedy**. A member who
+  has brought in twenty good people over two years hits a wall and has to ask
+  an administrator, who has no obvious basis for saying yes or no.
+
+It also takes a rule with it: with a lifetime count, revoking an invitation
+could not refund it, or the cap would be bypassed by sending, revoking and
+resending forever. With only a pending cap, revoking simply frees a slot and
+there is nothing to reason about.
+
+If rationing is ever wanted, it is a separate feature with a quota that
+administrators can grant — not a constant in the configuration.
+
+#### Rate limits are a separate thing, and also needed
+
+A cap bounds the **stock** of outstanding invitations; a rate limit bounds the
+**flow**. Somebody with a pending cap of 5 can still send five, have them
+accepted, and send five more, all within a minute — which is exactly the shape
+of a mail flood, and the pending cap does not touch it. Add an invite scope to
+the limiter that already exists.
+
+This is the pairing that makes a lifetime cap unnecessary rather than merely
+unpopular: stock and flow are both bounded, and a lifetime total is a third
+thing that constrains neither.
+
+#### What this needs from the repository
+
+`tokens.Count(tokenType, req)` **takes a request and ignores it** — it counts
+every token of that type, unscoped to anybody. Any caller passing a filter
+gets a number that answers a different question, silently. Counting one
+person's pending invitations needs a real method, and that signature should
+stop lying while the file is open.
+
+Pending is computable from what is already there: type `invite`, `created_by`
+the person, not used, not past `start_time + expired_after`.
+
+#### The client needs to know
+
+The web app has to decide whether to show "Invite someone" at all, and whether
+to say "you have 2 of 5 left". That is instance configuration plus a per-viewer
+count, and it belongs with the surface item 1 introduces rather than as another
+one-off endpoint.
+
+### 7. Agreements checked at every sign-in — in the web app
 
 **Decided: client-side, after login.** The alternative was gating token
 issuance in auth-service, which would be enforcement rather than UX; the
@@ -309,7 +404,7 @@ first would record all 822 existing members as having accepted a template, and
 the acceptance record — the entire point of the version and IP columns — would
 be worth nothing.
 
-### 7. Display name becomes optional
+### 8. Display name becomes optional
 
 Follows from the field table. The interesting part is what "absent" means.
 
@@ -329,7 +424,7 @@ the onboarding step has no signal to act on.
 - `PersonEditRequest.Name` is `required,max=100` and becomes `omitempty`, or
   people can set a display name and never clear it.
 
-### 8. Onboarding — separate plan
+### 9. Onboarding — separate plan
 
 Post-login, skippable, and **not a gate**. Avatar, bio, pronouns, topics.
 
@@ -376,7 +471,7 @@ service; a bio is a product preference, and the two want different enforcement.
 
 - **Settings UI** — the approval queue's administration screen, alongside the
   other settings work.
-- **Onboarding** — item 8.
+- **Onboarding** — item 9.
 
 ---
 
@@ -422,6 +517,14 @@ service; a bio is a product preference, and the two want different enforcement.
 - `REGISTRATION_MODE=approval` — an application lands in the table with no node
   and no `auth_accounts` row; approving creates both; rejecting emails the
   applicant and leaves no actor behind.
+- `INVITES_FROM=members`, mode `approval` — a member's invitee lands in the
+  queue naming the voucher, while an administrator's goes straight in. Testing
+  only one of those leaves the whole distinction untested.
+- Send invitations up to `INVITE_PENDING_MAX`; the next is refused with a
+  message naming the cap. Revoke one and the next succeeds. Let one expire and
+  the same. Accept one and the same.
+- `INVITES_FROM=administrators` — a registered member's attempt is refused by
+  the server, not merely hidden in the client.
 - A person with no acceptance on record is bounced to the interstitial after
   login, and the row afterwards carries the version, the timestamp and a real
   IP and user agent.
