@@ -145,6 +145,17 @@ type Config struct {
 	// not the full ARN, e.g. "alias/auth-service-signing-key". The KMS key must
 	// allow the "kms:Sign" action for the IAM role of auth-service.
 	OAuthKMSKeyAlias string
+
+	// TosVersion and PrivacyVersion are the agreement versions currently in
+	// force. See bootstrap.go.
+	TosVersion     string
+	PrivacyVersion string
+
+	// SuperAdmin* seed the first super administrator at boot. Optional; see
+	// bootstrap.go and services/super_admin_seed.go.
+	SuperAdminEmail    string
+	SuperAdminUsername string
+	SuperAdminName     string
 }
 
 func NewConfig() *Config {
@@ -186,6 +197,8 @@ func NewConfig() *Config {
 	// themselves are already lowercase; this just normalizes input.
 	config.OAuthSignerBackend = strings.ToLower(config.OAuthSignerBackend)
 	config.CryptBackend = strings.ToLower(config.CryptBackend)
+
+	config.bootstrapFromEnv()
 
 	// If JWKS URL is unset, derive it from the issuer.
 	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
@@ -317,6 +330,8 @@ func (config *Config) Validate() error {
 	if config.OAuthSignerBackend == constants.OAuthSignerBackendKMS && config.OAuthKMSKeyAlias == "" {
 		missingFields = append(missingFields, ErrMissingOAuthKMSKeyAlias)
 	}
+
+	missingFields = config.validateBootstrap(missingFields)
 
 	if len(missingFields) > 0 {
 		return errors.New("missing fields: " + strings.Join(missingFields, ", "))

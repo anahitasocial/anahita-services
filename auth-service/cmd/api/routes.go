@@ -70,6 +70,11 @@ func (r *Routes) Init(e *echo.Echo) {
 	signups := e.Group("/signups")
 	signups.POST("", h.Signup.Add)
 
+	// The agreement versions the signup form has to send back with an
+	// acceptance. Public: the page that reads it belongs to somebody who does
+	// not have an account yet.
+	e.GET("/agreements", h.Agreements.Read)
+
 	// OIDC discovery and JWKS — fully public.
 	e.GET("/.well-known/openid-configuration", h.OAuth.Discovery)
 	e.GET("/.well-known/jwks.json", h.OAuth.JWKS)

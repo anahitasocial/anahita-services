@@ -5,6 +5,7 @@ import (
 	lib_entities "anahita-libs/data/entities"
 	"auth/data/entities"
 	"auth/requests"
+	auth_responses "auth/responses"
 	"log"
 	"net/http"
 	"strings"
@@ -87,6 +88,17 @@ func (h *signupHandler) Add(c echo.Context) error {
 	user.PersonType = constants.PersonTypeRegistered
 	user.Email = req.Email
 	user.Alias = req.Username
+	user.Name = strings.TrimSpace(req.Name)
+
+	// Before the password, so a stale agreement version costs nothing but a
+	// bcrypt that was going to be thrown away.
+	if err := h.recordAgreements(c, user, req.TosVersion, req.PpVersion); err != nil {
+		// 409, not 400: nothing the person typed is wrong. The terms moved
+		// under them, and the client's job is to fetch the current version
+		// from /agreements and show it again.
+		return c.JSON(http.StatusConflict,
+			"The terms have been updated. Please reload the page and read them again.")
+	}
 
 	if err := user.SetPassword(req.Password); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
@@ -106,7 +118,10 @@ func (h *signupHandler) Add(c echo.Context) error {
 	actor.Type = constants.NodeActorPersonEntityType
 	actor.Service = constants.PersonService
 	actor.Alias = req.Username
-	actor.Name = req.Username
+	// The display name the person gave, not their handle. Signup collected no
+	// name at all before this, so every Go-created account landed with its
+	// handle showing where its name should be.
+	actor.Name = user.Name
 	actor.Access = constants.AnahitaAccessPublic
 	actor.PersonType = constants.PersonTypeRegistered
 	actor.Enabled = true
@@ -158,7 +173,12 @@ func (h *signupHandler) Add(c echo.Context) error {
 		}
 	}()
 
-	return c.JSON(http.StatusCreated, user)
+	// Mapped, not the entity. This returned the whole *entities.User to an
+	// unauthenticated caller — every node field, plus TotpSecret and
+	// TotpRecoveryCodes. Both are empty on a brand-new account, so nothing
+	// leaked; it was one enrolment away from doing so, and the mapper it
+	// should have used was already sitting in responses/user.go.
+	return c.JSON(http.StatusCreated, (&auth_responses.UserResponse{}).MapNode(user))
 }
 
 func (h *signupHandler) Confirm(c echo.Context) error {

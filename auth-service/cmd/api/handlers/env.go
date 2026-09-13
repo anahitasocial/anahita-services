@@ -80,6 +80,19 @@ func (env *Env) renderTemplate(c echo.Context, name string, data map[string]any)
 		data["SiteName"] = env.Config.GetSiteName()
 	}
 
+	// Where the terms live, for the pages that ask somebody to accept them.
+	//
+	// Added here for the same reason SiteName is: an agreement checkbox whose
+	// link is blank is a checkbox asking people to accept something they
+	// cannot read, and that is exactly the sort of thing that renders fine and
+	// is wrong. Nothing has to remember to pass it.
+	if _, ok := data["TosURL"]; !ok {
+		data["TosURL"] = env.Config.GetFrontendURL() + "/pages/tos"
+	}
+	if _, ok := data["PrivacyURL"]; !ok {
+		data["PrivacyURL"] = env.Config.GetFrontendURL() + "/pages/privacy"
+	}
+
 	return tmpl.ExecuteTemplate(c.Response().Writer, "base", data)
 }
 

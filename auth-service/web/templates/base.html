@@ -322,6 +322,38 @@
             margin-bottom: 16px;
         }
 
+        /* Agreement checkboxes. Used by invite_accept.html and by
+           password_reset.html when the account has nothing on record yet.
+
+           The label wraps the input so the text is part of the hit target —
+           a 16px box on a phone is a miss waiting to happen, and this is a
+           control somebody has to tick before they can have an account. The
+           links inside get their own click; align-items: flex-start keeps
+           the box level with the first line when the text wraps. */
+        .consent {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 0.875rem;
+            line-height: 1.43;
+            color: var(--mui-text-secondary);
+            cursor: pointer;
+        }
+
+        .consent input[type="checkbox"] {
+            flex: none;
+            width: 18px;
+            height: 18px;
+            margin: 2px 0 0;
+            accent-color: var(--mui-primary-main);
+            cursor: pointer;
+        }
+
+        .consent a {
+            color: var(--mui-primary-main);
+        }
+
         /* Divider */
         .divider {
             height: 1px;

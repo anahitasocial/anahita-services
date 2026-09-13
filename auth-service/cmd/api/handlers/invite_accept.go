@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"regexp"
@@ -43,10 +45,11 @@ func inviteAlias(email string) string {
 // friendly error page instead of the form.
 //
 // The form displays the invited email as read-only context — the user
-// fills in their name and password.
-// ToS/Privacy agreement is NOT collected here; that happens in the
-// SPA after auto-login via the AgreementsPage interstitial gated by
-// the SPA's AuthenticatedRoute.
+// fills in their name and password, and accepts the terms.
+//
+// The versions in force ride as hidden fields so the submission records what
+// the person was actually shown. Accept refuses a submission whose versions
+// have moved on rather than recording an acceptance of text nobody read.
 //
 //	GET /invites/accept?token=...
 func (h *inviteHandler) AcceptForm(c echo.Context) error {
@@ -78,14 +81,16 @@ func (h *inviteHandler) AcceptForm(c echo.Context) error {
 	}
 
 	return h.renderTemplate(c, "invite_accept.html", map[string]any{
-		"Token": token.Body,
-		"Email": token.RecipientEmail,
+		"Token":          token.Body,
+		"Email":          token.RecipientEmail,
+		"TosVersion":     h.Config.GetTosVersion(),
+		"PrivacyVersion": h.Config.GetPrivacyVersion(),
 	})
 }
 
 // Accept processes the invite-acceptance submission. On success:
 //
-//   - Creates the user record (registered type, no agreements yet)
+//   - Creates the user record (registered type, terms accepted)
 //   - Marks the token used
 //   - Builds and persists the IdP session (auto-login)
 //   - Fires accept notifications/emails to org admins
@@ -108,8 +113,10 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	if err := c.Validate(req); err != nil {
 		log.Println(err)
 		return h.renderTemplate(c, "invite_accept.html", map[string]any{
-			"Token": req.Token,
-			"Error": "Please fill in your name and a password of at least 15 characters.",
+			"Token":          req.Token,
+			"Error":          "Please fill in your name, choose a password of at least 15 characters, and accept the Terms of Service and Privacy Policy.",
+			"TosVersion":     h.Config.GetTosVersion(),
+			"PrivacyVersion": h.Config.GetPrivacyVersion(),
 		})
 	}
 
@@ -133,9 +140,15 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	// Race check: did someone else create an account with this email
 	// between invite creation and acceptance? If so, refuse rather
 	// than overwriting.
+	// sql.ErrNoRows is the ANSWER here, not a failure: it means nobody holds
+	// this address, which is the whole point of checking.
+	//
+	// Treating every error as fatal meant this branch fired on every
+	// invitation, so accepting one has always ended on "Something Went Wrong"
+	// — an error page for the successful case. Only a real fault stops it now.
 	exists, err := h.Repos.Users.ReadByEmail(token.RecipientEmail)
-	if err != nil {
-		log.Println(err)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Println("invite accept: existing-account check failed:", err)
 		return h.renderError(c, "Something Went Wrong",
 			"We couldn't verify your account right now. Please try again in a moment.")
 	}
@@ -166,17 +179,30 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	user.PersonType = constants.PersonTypeRegistered
 	user.Enabled = true
 	user.CreationTime = time.Now()
-	// ToS/Privacy agreement intentionally NOT set here — the SPA's
-	// AuthenticatedRoute will bounce the user to AgreementsPage on
-	// first sign-in to collect agreement (with the current version)
-	// before granting access to the app.
+
+	// Agreement is captured HERE, at account creation.
+	//
+	// It used to say it happened in the SPA, on an AgreementsPage gated by
+	// AuthenticatedRoute. That component was never written and there was no
+	// column to write to, so acceptance was recorded nowhere at all.
+	if err := h.recordAgreements(c, user, req.TosVersion, req.PpVersion); err != nil {
+		return h.renderTemplate(c, "invite_accept.html", map[string]any{
+			"Token":          req.Token,
+			"Email":          token.RecipientEmail,
+			"TosVersion":     h.Config.GetTosVersion(),
+			"PrivacyVersion": h.Config.GetPrivacyVersion(),
+			"Error":          "The terms have been updated since this page was opened. Please read them again.",
+		})
+	}
 
 	if err := user.SetPassword(req.Password); err != nil {
 		log.Println(err)
 		return h.renderTemplate(c, "invite_accept.html", map[string]any{
-			"Token": req.Token,
-			"Email": token.RecipientEmail,
-			"Error": "Could not create your account. Please try again.",
+			"Token":          req.Token,
+			"Email":          token.RecipientEmail,
+			"Error":          "Could not create your account. Please try again.",
+			"TosVersion":     h.Config.GetTosVersion(),
+			"PrivacyVersion": h.Config.GetPrivacyVersion(),
 		})
 	}
 
@@ -202,9 +228,11 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	if err != nil {
 		log.Println("invite accept: could not create the actor:", err)
 		return h.renderTemplate(c, "invite_accept.html", map[string]any{
-			"Token": req.Token,
-			"Email": token.RecipientEmail,
-			"Error": "Could not create your account. Please try again.",
+			"Token":          req.Token,
+			"Email":          token.RecipientEmail,
+			"Error":          "Could not create your account. Please try again.",
+			"TosVersion":     h.Config.GetTosVersion(),
+			"PrivacyVersion": h.Config.GetPrivacyVersion(),
 		})
 	}
 
@@ -224,9 +252,11 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 			log.Printf("invite accept: orphaned actor %d: %v (purge also failed: %v)", createdActor.ID, err, purgeErr)
 		}
 		return h.renderTemplate(c, "invite_accept.html", map[string]any{
-			"Token": req.Token,
-			"Email": token.RecipientEmail,
-			"Error": "Could not create your account. Please try again.",
+			"Token":          req.Token,
+			"Email":          token.RecipientEmail,
+			"Error":          "Could not create your account. Please try again.",
+			"TosVersion":     h.Config.GetTosVersion(),
+			"PrivacyVersion": h.Config.GetPrivacyVersion(),
 		})
 	}
 
@@ -290,8 +320,7 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 
 	// Redirect to the BFF root. The BFF sees no oauth_tokens cookie,
 	// initiates /oauth/authorize, finds the IdP session we just set,
-	// and completes the OAuth flow silently. The SPA's
-	// AuthenticatedRoute then sees no ToS/Privacy agreement and
-	// routes to AgreementsPage.
+	// and completes the OAuth flow silently. The terms were accepted on
+	// the form above, so there is nothing left to collect before the app.
 	return c.Redirect(http.StatusSeeOther, h.Config.GetCompleteDomainName())
 }

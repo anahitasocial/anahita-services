@@ -36,6 +36,17 @@ type User struct {
 	TotpRecoveryCodes  string
 	TotpEnabled        bool
 	TotpLastVerifiedAt time.Time
+
+	// What this account agreed to, and when. Captured at account creation —
+	// an account should not exist without it — and again whenever the version
+	// in force moves on. See consent.go.
+	//
+	// Written in full; only Accepted and Version are read back. The audit
+	// trio is evidence for a person reading the row, not input to any
+	// decision the code makes, and carrying three more strings through every
+	// sign-in to never look at them is not worth the column reads.
+	TermsOfService Consent `json:"-"`
+	PrivacyPolicy  Consent `json:"-"`
 }
 
 // NewUser creates a new user

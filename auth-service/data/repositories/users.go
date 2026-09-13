@@ -23,9 +23,11 @@ type UsersInterface interface {
 	Edit(user *entities.User) (*entities.User, error)
 	EditPassword(password string, id int64) error
 	EditEmail(email string, id int64) error
+	EditConsent(user *entities.User) error
 	Delete(id int64) error
 	IsEmail(email string) (bool, error)
 	IsUsername(username string) (bool, error)
+	CountSuperAdmins() (int, error)
 }
 
 // NewUsers creates a new user repository
@@ -299,18 +301,36 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 	user.Type = constants.NodeActorPersonEntityType
 	user.Service = constants.PersonService
 
-	// Only the credential half. The node already exists — the caller created
-	// it through ActorsGRPC — and carries the name, the handle and the
-	// authority level, none of which are copied here any more.
+	// Only the credential half, plus what the person agreed to. The node
+	// already exists — the caller created it through ActorsGRPC — and carries
+	// the name, the handle and the authority level, none of which are copied
+	// here any more.
+	//
+	// Consent is written by the same statement that creates the account rather
+	// than by a later update, because an account that exists without a record
+	// of what it accepted is the gap this closes. If the trail is empty, it is
+	// empty for a reason the caller can explain.
 	query := `
 		INSERT INTO auth_accounts (
 			node_id,
 			email,
-			password
+			password,
+			tos_accepted,
+			tos_accepted_at,
+			tos_accepted_version,
+			tos_accepted_ip,
+			tos_accepted_user_agent,
+			tos_accepted_os,
+			pp_accepted,
+			pp_accepted_at,
+			pp_accepted_version,
+			pp_accepted_ip,
+			pp_accepted_user_agent,
+			pp_accepted_os
 		) VALUES (
-			?,
-			?,
-			?
+			?, ?, ?,
+			?, ?, ?, ?, ?, ?,
+			?, ?, ?, ?, ?, ?
 		)`
 
 	_, err := repo.db.ExecContext(
@@ -319,6 +339,18 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 		user.ID,
 		user.Email,
 		user.Password,
+		user.TermsOfService.Accepted,
+		user.TermsOfService.AcceptedAt,
+		user.TermsOfService.Version,
+		user.TermsOfService.IP,
+		user.TermsOfService.UserAgent,
+		user.TermsOfService.OS,
+		user.PrivacyPolicy.Accepted,
+		user.PrivacyPolicy.AcceptedAt,
+		user.PrivacyPolicy.Version,
+		user.PrivacyPolicy.IP,
+		user.PrivacyPolicy.UserAgent,
+		user.PrivacyPolicy.OS,
 	)
 	if err != nil {
 		return nil, err
@@ -426,6 +458,95 @@ func (repo *Users) EditPassword(password string, id int64) error {
 	}
 
 	return nil
+}
+
+// EditConsent writes both acceptance records for an account that already
+// exists.
+//
+// Separate from Edit for the same reason email and password are: Edit writes
+// the whole row from whatever struct it was handed, so a caller holding a User
+// read before a concurrent change would put the old acceptance back. This is
+// also the only write that can move a consent record, which keeps the audit
+// trail auditable — one statement to look at, not a field that could have been
+// set from anywhere.
+//
+// Single-purpose in the other direction too: it never touches credentials, so
+// the set-password page can record an acceptance without being able to alter a
+// password as a side effect.
+func (repo *Users) EditConsent(user *entities.User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		UPDATE auth_accounts
+		SET
+			tos_accepted            = ?,
+			tos_accepted_at         = ?,
+			tos_accepted_version    = ?,
+			tos_accepted_ip         = ?,
+			tos_accepted_user_agent = ?,
+			tos_accepted_os         = ?,
+			pp_accepted             = ?,
+			pp_accepted_at          = ?,
+			pp_accepted_version     = ?,
+			pp_accepted_ip          = ?,
+			pp_accepted_user_agent  = ?,
+			pp_accepted_os          = ?
+		WHERE
+			node_id = ?`
+
+	_, err := repo.db.ExecContext(
+		ctx,
+		query,
+		user.TermsOfService.Accepted,
+		user.TermsOfService.AcceptedAt,
+		user.TermsOfService.Version,
+		user.TermsOfService.IP,
+		user.TermsOfService.UserAgent,
+		user.TermsOfService.OS,
+		user.PrivacyPolicy.Accepted,
+		user.PrivacyPolicy.AcceptedAt,
+		user.PrivacyPolicy.Version,
+		user.PrivacyPolicy.IP,
+		user.PrivacyPolicy.UserAgent,
+		user.PrivacyPolicy.OS,
+		user.ID,
+	)
+
+	return err
+}
+
+// CountSuperAdmins reports how many live super administrators the installation
+// has. Used at boot to decide whether the first one needs seeding.
+//
+// Reads `nodes` rather than joining through auth_accounts on purpose: the
+// question is whether the INSTALLATION has an owner, and a super-administrator
+// node whose account row is missing still means somebody owns this site — the
+// seed must not hand it to a stranger because the join came up empty.
+//
+// Disabled and soft-deleted rows are excluded. Both are states an
+// administrator can be put into and taken out of, but neither can currently
+// sign in, and an installation whose only super administrator is disabled has
+// no one who can re-enable them.
+func (repo *Users) CountSuperAdmins() (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		SELECT COUNT(*)
+		FROM nodes
+		WHERE person_type = ?
+		  AND deleted_at IS NULL
+		  AND enabled = 1`
+
+	var count int
+	if err := repo.db.QueryRowContext(
+		ctx, query, constants.PersonTypeSuperAdmin,
+	).Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 // EditEmail updates a user's email

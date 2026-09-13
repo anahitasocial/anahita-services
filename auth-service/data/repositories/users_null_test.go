@@ -105,12 +105,15 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 			"last_visit_date", "created_on", "modified_on", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",
+			"tos_accepted", "tos_accepted_version",
+			"pp_accepted", "pp_accepted_version",
 		}).AddRow(
 			7, "node.actor.person-service.person.v1", true, "", "",
 			"", "", "", "", "",
 			nil, nil, nil, false,
 			"", time.Now(), "",
 			nil, nil,
+			false, "", false, "",
 		))
 
 	user, err := repo.ReadByEmail("someone@example.com")
@@ -168,10 +171,13 @@ func TestEmptyPasswordHashIsUnusable(t *testing.T) {
 			"last_visit_date", "created_on", "modified_on", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",
+			"tos_accepted", "tos_accepted_version",
+			"pp_accepted", "pp_accepted_version",
 		}).AddRow(
 			7, "node.actor.person-service.person.v1", true, "", "invited",
 			"invited@example.com", "", "registered", "person-service", "",
 			nil, nil, nil, false, "", time.Now(), "", nil, nil,
+			false, "", false, "",
 		))
 
 	user, err := repo.ReadByEmail("invited@example.com")

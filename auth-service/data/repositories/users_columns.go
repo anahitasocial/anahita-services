@@ -56,6 +56,17 @@ func userColumns() []string {
 		"COALESCE(auth_accounts.totp_secret, '') AS totp_secret",
 		"nodes.deleted_at",
 		"nodes.archived_at",
+		// Consent: the flag and the version, and not the audit trio.
+		//
+		// These two answer "does this person still need to accept something?",
+		// which is asked on every sign-in. The ip/user_agent/os columns answer
+		// "who accepted it, and from where", which is asked by a person
+		// looking at a row and never by the code — so they are written and not
+		// carried through every read.
+		"auth_accounts.tos_accepted",
+		"COALESCE(auth_accounts.tos_accepted_version, '') AS tos_accepted_version",
+		"auth_accounts.pp_accepted",
+		"COALESCE(auth_accounts.pp_accepted_version, '') AS pp_accepted_version",
 	}
 }
 
@@ -94,6 +105,10 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		&item.TotpSecret,
 		&item.DeletedAt,
 		&item.ArchivedAt,
+		&item.TermsOfService.Accepted,
+		&item.TermsOfService.Version,
+		&item.PrivacyPolicy.Accepted,
+		&item.PrivacyPolicy.Version,
 	); err != nil {
 		return nil, err
 	}

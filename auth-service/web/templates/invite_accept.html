@@ -22,34 +22,31 @@
     <form method="POST" action="/invites/accept" novalidate>
         <input type="hidden" name="token" value="{{.Token}}">
 
+        <!-- The versions the reader was actually shown. The handler refuses
+             the submission if they are no longer the ones in force, rather
+             than recording an acceptance of text that has since changed. -->
+        <input type="hidden" name="tos_version" value="{{.TosVersion}}">
+        <input type="hidden" name="pp_version" value="{{.PrivacyVersion}}">
+
+        <!-- One display name. This was a first_name/last_name pair posting to
+             a handler that binds `name`, so every submission failed
+             validation with "please fill in your name" — for a form on which
+             the name had been filled in. -->
         <div class="text-field">
             <input
                 type="text"
-                id="first_name"
-                name="first_name"
+                id="name"
+                name="name"
                 placeholder=" "
                 required
                 minlength="1"
-                maxlength="50"
-                autocomplete="given-name"
+                maxlength="100"
+                autocomplete="name"
                 autofocus
             >
-            <label for="first_name">First name</label>
+            <label for="name">Display name</label>
         </div>
-
-        <div class="text-field">
-            <input
-                type="text"
-                id="last_name"
-                name="last_name"
-                placeholder=" "
-                required
-                minlength="1"
-                maxlength="50"
-                autocomplete="family-name"
-            >
-            <label for="last_name">Last name</label>
-        </div>
+        <span class="helper-text">This is how your name appears to other people.</span>
 
         <div class="text-field has-toggle">
             <input
@@ -71,6 +68,18 @@
                 aria-pressed="false"
             >Show</button>
         </div>
+
+        <hr class="divider">
+
+        <label class="consent">
+            <input type="checkbox" name="tos_accepted" value="true" required>
+            <span>I agree to the <a href="{{.TosURL}}" target="_blank" rel="noopener">Terms of Service</a>.</span>
+        </label>
+
+        <label class="consent">
+            <input type="checkbox" name="pp_accepted" value="true" required>
+            <span>I have read the <a href="{{.PrivacyURL}}" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+        </label>
 
         <button type="submit" class="btn btn-primary">Create account</button>
     </form>
