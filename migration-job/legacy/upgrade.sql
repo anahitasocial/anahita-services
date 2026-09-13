@@ -1,5 +1,19 @@
 -- Step 1: Rename tables by removing the prefix
-SET @prefix = (SELECT SUBSTRING_INDEX(TABLE_NAME, '_', 1) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'anahita' LIMIT 1);
+-- DATABASE(), not a hardcoded 'anahita': entrypoint.sh connects to
+-- $MYSQL_DATABASE, which is configurable, so anyone whose database is called
+-- anything else got a NULL prefix here and a RENAME of `_nodes` that cannot
+-- resolve.
+--
+-- The prefix is taken from the nodes table specifically rather than from an
+-- arbitrary row, which is also what entrypoint.sh looks for. Splitting on the
+-- first underscore of whichever table came back first gets the wrong answer for
+-- any prefix that itself contains one.
+SET @prefix = (
+    SELECT SUBSTRING_INDEX(TABLE_NAME, '_nodes', 1)
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE '%\_nodes'
+    LIMIT 1
+);
 
 SET @rename_edges = CONCAT('RENAME TABLE ', @prefix, '_edges TO edges;');
 SET @rename_nodes = CONCAT('RENAME TABLE ', @prefix, '_nodes TO nodes;');
@@ -28,7 +42,7 @@ SET SESSION group_concat_max_len = 1000000;
 SET @drop_tables = (
     SELECT GROUP_CONCAT(TABLE_NAME SEPARATOR ',')
     FROM INFORMATION_SCHEMA.TABLES
-    WHERE TABLE_SCHEMA = 'anahita'
+    WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME NOT IN ('edges', 'nodes', 'people_people')
 );
 
@@ -228,7 +242,11 @@ CREATE TABLE notifications (
     `comment_id` int(11) unsigned DEFAULT NULL,
     `created_on` datetime DEFAULT NULL,
     `modified_on` datetime DEFAULT NULL,
-    `meta` text DEFAULT NULL,
+    -- mediumtext, not text. An existing database reaches utf8mb4 through
+    -- CONVERT TO CHARACTER SET, which promotes text to preserve its character
+    -- capacity; a fresh one is created as utf8mb4 outright and would keep
+    -- text. Declaring the wider type is what makes the two paths agree.
+    `meta` mediumtext DEFAULT NULL,
     `is_read` tinyint(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `recipient_id` (`recipient_id`),
@@ -641,7 +659,36 @@ CREATE TABLE webauthn_credentials (
 -- nodes, edges and people_people arrive from the legacy database and have to
 -- be altered into it.
 
--- The type columns first, and this order is not optional.
+-- Zero dates before anything that rebuilds a table, which is both the MODIFY
+-- below and the CONVERT after it.
+--
+-- A rebuild is a write, and under the strict sql_mode every supported MySQL
+-- runs by default '0000-00-00 00:00:00' is rejected on the way back in: the
+-- ALTER dies with "Incorrect datetime value" and leaves the upgrade half
+-- finished, every table created but none of them converted. The PHP schema is
+-- full of these — MySQL accepted them then.
+--
+-- NULL, not a fabricated timestamp. The columns are nullable and "unknown" is
+-- what these mean; inventing an epoch date would date real relationships to
+-- 1970.
+UPDATE edges SET created_on  = NULL WHERE CAST(created_on  AS CHAR) LIKE '0000%';
+UPDATE edges SET modified_on = NULL WHERE CAST(modified_on AS CHAR) LIKE '0000%';
+UPDATE edges SET start_date  = NULL WHERE CAST(start_date  AS CHAR) LIKE '0000%';
+UPDATE edges SET end_date    = NULL WHERE CAST(end_date    AS CHAR) LIKE '0000%';
+
+UPDATE nodes SET created_on         = NULL WHERE CAST(created_on         AS CHAR) LIKE '0000%';
+UPDATE nodes SET modified_on        = NULL WHERE CAST(modified_on        AS CHAR) LIKE '0000%';
+UPDATE nodes SET start_date         = NULL WHERE CAST(start_date         AS CHAR) LIKE '0000%';
+UPDATE nodes SET end_date           = NULL WHERE CAST(end_date           AS CHAR) LIKE '0000%';
+UPDATE nodes SET last_comment_on    = NULL WHERE CAST(last_comment_on    AS CHAR) LIKE '0000%';
+UPDATE nodes SET status_update_time = NULL WHERE CAST(status_update_time AS CHAR) LIKE '0000%';
+UPDATE nodes SET deleted_at         = NULL WHERE CAST(deleted_at         AS CHAR) LIKE '0000%';
+UPDATE nodes SET archived_at        = NULL WHERE CAST(archived_at        AS CHAR) LIKE '0000%';
+
+UPDATE people_people SET last_visit_date       = NULL WHERE CAST(last_visit_date       AS CHAR) LIKE '0000%';
+UPDATE people_people SET totp_last_verified_at = NULL WHERE CAST(totp_last_verified_at AS CHAR) LIKE '0000%';
+
+-- The type columns next, and this order is not optional either.
 --
 -- These hold machine-generated ASCII identifiers from a fixed grammar, longest
 -- 42 characters, so varchar(255) was never needed. It is also unusable: the

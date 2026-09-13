@@ -193,7 +193,11 @@ CREATE TABLE notifications (
     `comment_id` int(11) unsigned DEFAULT NULL,
     `created_on` datetime DEFAULT NULL,
     `modified_on` datetime DEFAULT NULL,
-    `meta` text DEFAULT NULL,
+    -- mediumtext, not text. An existing database reaches utf8mb4 through
+    -- CONVERT TO CHARACTER SET, which promotes text to preserve its character
+    -- capacity; a fresh one is created as utf8mb4 outright and would keep
+    -- text. Declaring the wider type is what makes the two paths agree.
+    `meta` mediumtext DEFAULT NULL,
     `is_read` tinyint(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `recipient_id` (`recipient_id`),
