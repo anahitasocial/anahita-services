@@ -203,23 +203,44 @@ Ranked by what actually works, not by what is most visible.
 | --- | --- |
 | invite-only | the most effective measure there is; already built |
 | approval queue | very high, human in the loop; item 5 |
-| capping and rate-limiting invites | bounds a compromised or careless account; item 6 |
+| capping and rate-limiting invites | bounds a compromised or careless account; item 6 ✅ |
 | email verification | high, kills volume; item 3 |
 | rate limit per IP and per subnet | high; the limiter already exists, signup just has no scope |
 | honeypot field + submission timing | free, no user friction, low ceiling |
-| proof-of-work (Altcha / mCaptcha shape) | the one to add if `open` is ever used |
-| CAPTCHA | last resort |
+| proof-of-work (Altcha / mCaptcha shape) | a tax on volume; only worth it if `open` is used |
 | disposable-domain blocklists | an MX check gets most of the value without the churn |
 
 In scope here: **rate limiting, honeypot and timing.** All three are a day's
 work and need no dependency.
 
-**Proof-of-work over CAPTCHA, when it comes to that.** Commercial solver
-services defeat the major CAPTCHAs for about a dollar per thousand, so they now
-filter the lazy and tax the legitimate. Proof-of-work costs an attacker per
-attempt, needs no third party, and asks the person signing up for nothing —
-which also means not handing a view of every sign-up to Cloudflare or Google,
-on a platform whose whole direction is federation and self-hosting.
+**No CAPTCHA.** Not as a fallback, not as a last resort — it is not on the
+list at all.
+
+The obvious reason is that the puzzles are solved: vision models read the
+image grids, and the audio challenges went first. The less obvious reason
+matters more, because it also rules out the "invisible" ones that are not
+puzzles. **The defeat is economic, not perceptual.** A solved CAPTCHA is a
+transferable token, so there is a market in them — a few dollars per thousand,
+solved by whatever mix of models and people is cheapest that week. Making the
+challenge harder raises the price a little and changes nothing structural. What
+it reliably does is tax the legitimate: the people who fail CAPTCHAs most are
+those on screen readers, older devices, shared or VPN addresses, and anyone
+whose first language is not the one the puzzle is written in.
+
+**Proof-of-work is a tax, not a wall, and it should be described that way.** It
+is better than a CAPTCHA for two specific reasons: the work is bound to the
+challenge so it cannot be solved elsewhere and resold, and it asks the person
+signing up for nothing at all. It is not a solution — an attacker with a GPU
+buys through it — it just makes volume cost something. That is worth having in
+`open` mode and pointless anywhere else.
+
+**Which is the real conclusion of this item.** The measures that actually stop
+bots on this platform are the registration modes, and they are already the
+design: the default is `closed`, and a curated community running `invite` or
+`approval` has no bot problem to solve, because there is no unauthenticated
+path to an account. Everything in the table above `honeypot` exists for the
+installation that chooses `open` — and an installation that never chooses it
+never needs proof-of-work either.
 
 ### 5. Approval queue — backend only
 
