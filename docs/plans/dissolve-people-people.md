@@ -485,22 +485,34 @@ account that does not exist yet.
 
 **The userinfo claims were not a naming leftover — they were a live outage.**
 I recorded them as harmless. That was wrong. The claims were `username` and
-`usertype`, and `/oauth/userinfo` is the ONE response the web app does not run
-through its camel-casing interceptor — so the viewer arrived in raw wire
-spelling while every permission helper read `viewer.personType`. **Every
-administration control in the client was off for everybody, super
-administrators included.** `Token.jsx` read `viewer.alias` and redirected to
-`/people/undefined`; `getAvatarURL` read `avatarUrls` and the viewer carried
-`avatar_urls`, so the viewer's own avatar never rendered. Three symptoms, one
-cause.
+`usertype`, and **`usertype` is a single word, so it camel-cases to itself**:
+the response interceptor ran, the key arrived looking converted, and every
+permission helper in the client read `viewer.personType` against a viewer that
+carried `usertype`. **Every administration control was off for everybody,
+super administrators included.** Separately `Token.jsx` read `viewer.alias`
+while the claim was `username`, so "go to my profile" redirected to
+`/people/undefined`.
 
-Fixed on both sides: the claims are `alias` and `person_type`
-(`preferred_username` stays — OIDC names it, the others were named by nobody),
-and `api/session.js` now camel-cases the response like every other API call, so
-the viewer is shaped like every other actor.
-`data/services/oauth_user_info_test.go` pins the claim names, including that
-the retired spellings are *not* emitted alongside the new ones — two names for
-one value is how they drifted apart to begin with.
+(An earlier draft of this note said userinfo bypassed the camel-casing
+interceptor. It does not — the interceptor is on the default axios instance and
+keyed on baseURL, so a relative request from `api/session.js` is covered. The
+single-word coincidence is the whole mechanism, and it is the same one recorded
+at `src/utils/node.js:37`.)
+
+Fixed server-side, which is where it belonged: the claims are `alias` and
+`person_type` (`preferred_username` stays — OIDC names it, the others were
+named by nobody), so the interceptor now produces `alias` and `personType` on
+its own. `data/services/oauth_user_info_test.go` pins the claim names,
+including that the retired spellings are *not* emitted alongside the new ones —
+two names for one value is how they drifted apart to begin with.
+
+**And the conversion itself was resting on nothing.** `src/utils/api.js` and
+`src/api/index.js` both use `_` with no lodash import, behind an
+`eslint-disable no-undef`. It works in the browser only because a dependency's
+UMD bundle happens to leave lodash on `window`; it throws outright anywhere
+else, which is why `src/api/` had no tests at all. Both now import lodash, and
+`src/api/__tests__/camelCase.test.js` covers the transform and the
+interceptor.
 
 Three gaps found while checking how a person node gets created. The first two
 block this refactor; the third blocks any fresh install.
