@@ -28,6 +28,36 @@ This overturns the decision recorded at
 
 ---
 
+## Status
+
+| item | state | commit |
+| --- | --- | --- |
+| 0. `UserType*` → `PersonType*` | ✅ done | `ce6401b` |
+| 1. Rewrite `init.sql` / `upgrade.sql` | ✅ done | `2241802`, `54d0e88` |
+| 2. New columns + actor-alias index | ✅ done | `1273320` |
+| 4. graph carries the new fields | ✅ done | `5f8ffeb` |
+| 8. auth stops writing `nodes` | ✅ done | `e426286` |
+| 6. person-service loses its repositories | ⬜ next | |
+| 7. Mention relations to graph | ⬜ | |
+| 5. Last-super-admin guard into graph | ⬜ | |
+| 10. Signup, invite-accept, first super admin | ⬜ | |
+| 3. Backfill and drop `people_people` | ⬜ | |
+| 9. anahita-react | ⬜ | |
+
+Also landed alongside: `fcbae16` (one `make test` target instead of two
+shadowing each other) and `30297f1` (these plan documents).
+
+**Sequencing correction.** The order below omitted item 4, but item 8 has to set
+`person_type` through `ActorsGRPC` and cannot until the graph accepts the field.
+The real order is **1 → 2 → 4 → 8 → 6 → 7 → 5 → 10 → 3 → 9**.
+
+**Applied to the reference database.** Items 1 and 2 have been run against the
+live `anahita` database, which was recreated from `db-data/production.data.sql`
+through the rewritten `upgrade.sql`: 23,058 nodes, 31,431 edges, 822 people,
+zero data defects.
+
+---
+
 ## What the live data says
 
 Measured on the running `anahita` database, 823 people.
@@ -93,7 +123,7 @@ specification for no gain.
 
 ## Work items
 
-### 0. Mechanical rename: `UserType*` → `PersonType*`
+### 0. Mechanical rename: `UserType*` → `PersonType*`  ✅ DONE (ce6401b)
 
 Its own commit, landed **before** anything else, because it touches services
 this plan does not otherwise go near — group-service, middleware, feed-service —
@@ -113,7 +143,7 @@ The **values** are untouched — `guest`, `registered`, `administrator`,
 `super-administrator` are what the database holds and what any existing token
 carries.
 
-### 1. Rewrite `init.sql` and `legacy/upgrade.sql`
+### 1. Rewrite `init.sql` and `legacy/upgrade.sql`  ✅ DONE (2241802, 54d0e88)
 
 `init.sql` cannot currently produce a working install. It declares `time_zone`,
 `enabled_optional_features`, `actor_gender` and `permissions`; the live schema
@@ -131,7 +161,7 @@ Rewrite both to match the live schema plus the target below. Also:
   `ComComponentsDomainEntityAssignment,…`, which `legacy/upgrade.sql:45` misses
   because it deletes by `component NOT IN (...)`.
 
-### 2. Add the new columns and the actor-alias index
+### 2. Add the new columns and the actor-alias index  ✅ DONE (1273320)
 
 ```sql
 ALTER TABLE nodes
@@ -226,7 +256,7 @@ Notes on the index:
 - The `actor:` prefix looks redundant with one branch; it is there so a second
   namespace is a one-line `CASE` addition rather than a new column and index.
 
-### 3. Backfill and drop
+### 3. Backfill and drop  ⬜ TODO
 
 ```sql
 UPDATE nodes n JOIN people_people p ON p.node_id = n.id
@@ -247,7 +277,7 @@ Only two columns move to `nodes`; `name`, `alias`, `timezone` and `language` are
 already correct there. Export `gender` to a file first if you want the 263
 values recoverable — they are dropped, not converted.
 
-### 4. graph-grpc-service: carry the new fields
+### 4. graph-grpc-service: carry the new fields  ✅ DONE (5f8ffeb)
 
 - `data/repositories/helpers.go` — add `person_type`, `person_pronouns`,
   `last_visit_date` to the shared select. This file keeps the column list and
@@ -263,7 +293,7 @@ values recoverable — they are dropped, not converted.
   group whose alias matches a person's will start failing; nothing enforces
   that today.
 
-### 5. graph-grpc-service: own the last-super-admin guard
+### 5. graph-grpc-service: own the last-super-admin guard  ⬜ TODO
 
 Add `CountOtherActiveSuperAdmins` to `NodesRepoInterface`. With `person_type` on
 `nodes` it is a single-table query:
@@ -279,7 +309,7 @@ Call it from `SoftDeleteActor`, `ArchiveActor`, `SetEnabled` and
 the lifecycle methods removes all four copies and closes the gap where a new
 handler forgets it.
 
-### 6. person-service: delete both repositories
+### 6. person-service: delete both repositories  ⬜ TODO
 
 - Delete `data/repositories/` entirely and the `Repositories` wiring in
   `cmd/api/main.go:84`. The service becomes structurally identical to
@@ -295,7 +325,7 @@ handler forgets it.
   `alphanumunicode`: it is `^[\p{L}\p{N}]+$`, so `Jean-Luc`, `O'Brien` and
   `van der Berg` cannot be saved today.
 
-### 7. Move mention relations to graph
+### 7. Move mention relations to graph  ⬜ TODO
 
 `mention_relation.go` needs no new RPCs — every query maps to an existing one:
 
@@ -306,7 +336,7 @@ handler forgets it.
 | `INSERT INTO edges` | `EdgeService.BatchAdd` |
 | `DELETE FROM edges` | `EdgeService.BatchDeleteByFilters` |
 
-### 8. auth-service: stop writing `nodes`
+### 8. auth-service: stop writing `nodes`  ✅ DONE (e426286)
 
 - `data/repositories/users.go` — the `INSERT INTO nodes` / `UPDATE nodes`
   statements (`:272,384,487,527`) become `ActorsGRPC` calls. The repository
@@ -324,7 +354,7 @@ handler forgets it.
 - Delete `cmd/api/handlers/user.go` — dead code, `NewUserHandler` is never
   called and no `/users` route exists.
 
-### 9. anahita-react
+### 9. anahita-react  ⬜ TODO
 
 - `src/utils/node.js` — `getPersonName` (`:100`) and `getActorInitials` (`:78`)
   already prefer `name` with a `givenName familyName` fallback; simplify once the
@@ -345,7 +375,7 @@ handler forgets it.
 
 ---
 
-### 10. Signup, invite-accept and the first super administrator
+### 10. Signup, invite-accept and the first super administrator  ⬜ TODO
 
 Three gaps found while checking how a person node gets created. The first two
 block this refactor; the third blocks any fresh install.
