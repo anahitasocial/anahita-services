@@ -356,6 +356,57 @@
             margin-bottom: 16px;
         }
 
+        /* Messages arrive rather than appear.
+           These pages are server-rendered, so the message is in the HTML at
+           load — there is nothing to toggle and no JavaScript involved. A
+           keyframe animation runs once on first paint, which is exactly the
+           moment it should.
+
+           IN ONLY, NEVER OUT. An error says why the form was refused and has
+           to stay while the person fixes the field; one that dismisses itself
+           takes the explanation away at the moment they look back up. Auto
+           dismissal is for a success toast, and none of these are that.
+
+           The slide is 4px. Enough to read as movement, small enough that it
+           never looks like the layout is settling. */
+        @keyframes message-in {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .error-message,
+        .notice {
+            animation: message-in 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        /* The availability line changes in place rather than arriving, so it
+           gets a transition instead of an animation — the colour moves, the
+           text does not slide around under the cursor while being read. */
+        .helper-text {
+            transition: color 160ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Anybody who has asked their system for less motion gets none.
+           Vestibular disorders are the reason this setting exists, and a
+           decorative 4px slide is not worth making somebody ill over. The
+           message still appears — it simply does so at once. */
+        @media (prefers-reduced-motion: reduce) {
+            .error-message,
+            .notice {
+                animation: none;
+            }
+
+            .helper-text {
+                transition: none;
+            }
+        }
+
         /* Agreement checkboxes. Used by invite_accept.html and by
            password_reset.html when the account has nothing on record yet.
 
