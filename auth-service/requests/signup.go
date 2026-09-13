@@ -10,35 +10,25 @@ func NewSignupRequest() *SignupRequest {
 	}
 }
 
-// SignupAddRequest is the public account-creation request, submitted as JSON
-// by the web app.
+// SignupAddRequest is the server-rendered signup form.
 //
-// It and InviteAccept create the same thing by two routes and had drifted into
-// two different sets of rules — six characters here against fifteen there, a
-// name required there and not collected here at all. They now match.
+// Three fields, which is what Mastodon asks for and one fewer than Bluesky.
+// Everything else a profile could carry is offered by onboarding afterwards,
+// where it is skippable and the editor is better than a plain form.
+//
+// NO DISPLAY NAME. nodes.name is left empty and rendering falls back to the
+// handle — which is what both federation protocols expect, and what lets
+// onboarding tell "never set one" from "chose their handle".
+//
+// NO AGREEMENT FIELDS. Acceptance is collected after sign-in and checked on
+// every sign-in, so that a revision re-prompts by itself. Account creation
+// happens once; the terms change more than once.
 type SignupAddRequest struct {
-	// Name is the display name. It goes to nodes.name, which is THE name
-	// everywhere now, so signup has to collect it — a Go-created account used
-	// to land with none at all, and the 823 legacy people only have one
-	// because they predate this path.
-	//
-	// No alphanumunicode: that tag is ^[\p{L}\p{N}]+$, which rejects the space
-	// between two words along with Jean-Luc, O'Brien and van der Berg.
-	Name     string `form:"name" json:"name" validate:"required,min=1,max=100"`
+	// The CSRF token, matched against the one put in the session when the
+	// form was rendered.
+	CSRFToken string `form:"csrf_token" validate:"required"`
+
 	Email    string `form:"email" validate:"required,email,min=3,max=64"`
 	Username string `form:"username" validate:"required,username,min=3,max=32"`
-	// Fifteen, matching invite-accept. Six was the outlier, and the asymmetry
-	// ran the wrong way: the public path anyone can reach had the weaker rule.
 	Password string `form:"password" validate:"required,min=15,max=150"`
-
-	// What the person agreed to, and which version of it they were shown.
-	//
-	// `eq=true` rather than `required`: a bool that is false IS its zero
-	// value, so `required` passes an unticked box straight through. The
-	// version is checked against the one in force by the handler, not here —
-	// this only enforces its shape.
-	TosAccepted bool   `form:"tos_accepted" json:"tos_accepted" validate:"eq=true"`
-	TosVersion  string `form:"tos_version" json:"tos_version" validate:"required,max=20"`
-	PpAccepted  bool   `form:"pp_accepted" json:"pp_accepted" validate:"eq=true"`
-	PpVersion   string `form:"pp_version" json:"pp_version" validate:"required,max=20"`
 }

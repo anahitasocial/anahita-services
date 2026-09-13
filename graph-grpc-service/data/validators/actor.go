@@ -21,10 +21,21 @@ func (v *ActorValidator) baseValidation(node *entities.AnahitaNode) error {
 		return errors.New("service is required")
 	}
 
-	if node.Name == "" {
-		return errors.New("name is required")
-	}
-
+	// NO NAME CHECK. A display name is optional.
+	//
+	// It was required, which made signup unable to create an account without
+	// one — and asking for a display name at the door is exactly what was
+	// removed, because neither Mastodon nor Bluesky does it and the profile
+	// belongs in onboarding.
+	//
+	// An empty name is also what both federation protocols expect to handle:
+	// an ActivityPub consumer falls back from `name` to `preferredUsername`,
+	// ATProto from `displayName` to the handle. The web app does the same, in
+	// getActorName.
+	//
+	// The ALIAS is what makes an actor addressable, and that is still
+	// required below — a node with no handle has no URL, no WebFinger answer
+	// and nothing to fall back to.
 	if node.Alias == "" {
 		return errors.New("alias is required")
 	}
@@ -34,9 +45,10 @@ func (v *ActorValidator) baseValidation(node *entities.AnahitaNode) error {
 	// access-only edit, which does not touch the body at all. Changing your
 	// privacy setting failed with a 500 unless you had written a bio first.
 	//
-	// Name, alias and access below are genuinely required: a node with no name
-	// or alias cannot be addressed, and one with no access has no answer to
-	// "who may see this".
+	// Alias and access below are genuinely required: a node with no handle
+	// cannot be addressed at all, and one with no access has no answer to
+	// "who may see this". A name is neither — it is a label on something
+	// already addressable.
 
 	if node.Name != "" && len(node.Name) > 255 {
 		return errors.New("name exceeds maximum length of 255 characters")

@@ -67,8 +67,13 @@ func (r *Routes) Init(e *echo.Echo) {
 	invitesPublic.GET("/accept", h.Invite.AcceptForm)
 	invitesPublic.POST("/accept", h.Invite.Accept)
 
-	signups := e.Group("/signups")
-	signups.POST("", h.Signup.Add)
+	// Signup — server-rendered, beside the other credential flows.
+	//
+	// The JSON POST /signups the web app used to call is gone. A client
+	// cannot enforce whether a site takes registrations, and it was posting a
+	// password through a bundle with hundreds of packages behind it.
+	e.GET("/signup", h.Signup.Form)
+	e.POST("/signup", h.Signup.Add)
 
 	// The agreement versions the signup form has to send back with an
 	// acceptance. Public: the page that reads it belongs to somebody who does

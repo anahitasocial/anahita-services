@@ -1,0 +1,101 @@
+{{define "title"}}Create an account{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Join {{.SiteName}}</h2>
+
+    <p>Choose a handle and a password. You can add a name, a photo and anything
+       else you want on your profile once you are in.</p>
+
+    <p>Your password must be at least 15 characters long. Use a unique passphrase that you don't use elsewhere.</p>
+
+    {{if .Error}}
+    <div class="error-message">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/signup" novalidate>
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        <!-- The handle. Lowercase on the way in because it is the address of a
+             profile and "Ada" and "ada" are the same person to a reader — the
+             uniqueness check folds case, so accepting mixed case here would
+             hand somebody a handle that is then refused. -->
+        <div class="text-field">
+            <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder=" "
+                required
+                minlength="3"
+                maxlength="32"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                autofocus
+            >
+            <label for="username">Handle</label>
+        </div>
+        <span class="helper-text">This is your address on the network, and part of your profile's link.</span>
+
+        <div class="text-field">
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder=" "
+                required
+                maxlength="64"
+                autocomplete="email"
+                autocapitalize="none"
+                spellcheck="false"
+            >
+            <label for="email">Email</label>
+        </div>
+
+        <div class="text-field has-toggle">
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder=" "
+                required
+                minlength="15"
+                maxlength="150"
+                autocomplete="new-password"
+            >
+            <label for="password">Password</label>
+            <button
+                type="button"
+                class="password-toggle"
+                data-target="password"
+                aria-label="Show password"
+                aria-pressed="false"
+            >Show</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create account</button>
+    </form>
+
+    <hr class="divider">
+
+    <!-- Shown rather than collected. Acceptance is asked for after signing in,
+         where the text is on the screen it is accepted from, and asked again
+         whenever it is revised. This is here so nobody can say they were never
+         told. -->
+    <p class="helper-text">
+        By creating an account you agree to the
+        <a href="{{.TosURL}}" target="_blank" rel="noopener">Terms of Service</a>
+        and the
+        <a href="{{.PrivacyURL}}" target="_blank" rel="noopener">Privacy Policy</a>.
+    </p>
+
+    <p class="text-center">
+        <a class="text-link" href="/oauth/login">Already have an account? Sign in</a>
+    </p>
+</div>
+{{end}}

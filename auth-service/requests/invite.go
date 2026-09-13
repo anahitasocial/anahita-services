@@ -22,9 +22,14 @@ type InviteAdd struct {
 // exist without it.
 type InviteAccept struct {
 	Token string `form:"token"      validate:"required,len=128"`
-	// One name, free-form, matching the profile edit request. The pair it
-	// replaces each capped at 50 and rejected the space between them.
-	Name     string `form:"name" validate:"required,min=1,max=100"`
+	// Optional, and offered rather than required.
+	//
+	// Somebody vouched for this person, so there is nothing for a required
+	// name to support — no one is judging the answer. Onboarding asks again a
+	// minute later with a better editor, and a required field here would
+	// mostly produce names typed to get past it. Empty falls back to the
+	// handle, as it does for a self-serve signup.
+	Name     string `form:"name" validate:"omitempty,max=100"`
 	Password string `form:"password"   validate:"required,min=15,max=150"`
 
 	// See SignupAddRequest for why these are `eq=true` and not `required`.
