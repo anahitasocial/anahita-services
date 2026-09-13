@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"auth/constants"
@@ -98,19 +102,56 @@ func (h *inviteHandler) Add(c echo.Context) error {
 
 	if err := h.Perms.Invite.CanAdd(viewer); err != nil {
 		log.Println(err)
-		return c.NoContent(http.StatusPaymentRequired)
+		// 403. This said StatusPaymentRequired — 402 — which is not a
+		// permission failure and is not something any client knows how to
+		// act on.
+		return c.NoContent(http.StatusForbidden)
 	}
 
 	browseReq := libs_requests.NewBrowse()
 	browseReq.Limit = libs_constants.MaxPageSize
 
+	// sql.ErrNoRows is the ANSWER, not a failure: nobody holds this address,
+	// which is the whole point of inviting them.
+	//
+	// Treating every error as a fault meant this returned 500 for every
+	// legitimate invitation — the only address that did NOT 500 was one that
+	// already had an account, which is the case that is supposed to be
+	// refused. Sending an invite has never worked. Same bug, same shape, as
+	// the existing-account check in invite_accept.go.
 	user, err := h.Repos.Users.ReadByEmail(req.Email)
-	if err != nil {
-		log.Println(err)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Println("invite add: existing-account check failed:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if user != nil {
 		return c.NoContent(http.StatusConflict)
+	}
+
+	// Metered here, after the cheap refusals and before anything is written
+	// or sent.
+	//
+	// Two counters, because they answer different questions. The per-person
+	// one bounds how fast one account can turn the mail service into an
+	// outbound relay. The per-recipient one bounds how often ONE address can
+	// be mailed by this site — a thing no single inviter's budget can see,
+	// since a person who does not want to be invited is not made happier by
+	// the invitations coming from different members.
+	//
+	// Both count, so they belong on the path where the attempt happens. See
+	// the note on rateLimitExceeded.
+	if h.rateLimitExceeded(rateLimitScopeInvitePerson, strconv.FormatInt(viewer.ID, 10)) {
+		log.Printf("invite add: rate limited (person=%d)", viewer.ID)
+		return c.NoContent(http.StatusTooManyRequests)
+	}
+
+	if h.rateLimitExceeded(rateLimitScopeInviteEmail, strings.ToLower(req.Email)) {
+		// Deliberately the same status as the counter above, and nothing in
+		// the body. Saying "that address has been invited too often" would
+		// tell an inviter something about somebody else's mail — including
+		// that another member invited them.
+		log.Println("invite add: recipient rate limited")
+		return c.NoContent(http.StatusTooManyRequests)
 	}
 
 	token := entities.NewToken()

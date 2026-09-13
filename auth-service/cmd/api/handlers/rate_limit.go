@@ -59,6 +59,28 @@ const (
 	// attacker walk off with the plaintext to try elsewhere, which is
 	// worth more to them than the account they already hold.
 	rateLimitScopeReauth rateLimitScope = "reauth_person"
+
+	// rateLimitScopeInvitePerson caps invitations sent by one person.
+	//
+	// Inviting sends mail to an address the recipient never gave us, so an
+	// unmetered invite endpoint is an authenticated way to relay mail — and
+	// the account doing it need not be malicious, only compromised.
+	//
+	// Distinct from the pending-invitation cap, which bounds the STOCK of
+	// outstanding invitations. This bounds the FLOW: somebody capped at five
+	// outstanding can still send five, have them accepted within a minute,
+	// and send five more, which the cap cannot see.
+	rateLimitScopeInvitePerson rateLimitScope = "invite_person"
+
+	// rateLimitScopeInviteEmail caps how often ONE address can be invited,
+	// by anybody.
+	//
+	// The per-person counter cannot see this case: somebody who does not want
+	// to be invited is not made happier by the invitations arriving from
+	// different members, each of them within their own budget. Same shape as
+	// pw_forgot_email, and for the same reason — it guards the recipient
+	// rather than the sender.
+	rateLimitScopeInviteEmail rateLimitScope = "invite_email"
 )
 
 type rateLimit struct {
@@ -82,6 +104,18 @@ var rateLimits = map[rateLimitScope]rateLimit{
 	rateLimitScopePasswordReset: {max: 5, window: 15 * time.Minute},
 	rateLimitScopePasswordEdit:  {max: 5, window: 15 * time.Minute},
 	rateLimitScopeReauth:        {max: 5, window: 15 * time.Minute},
+
+	// Generous per person, because inviting in bursts is the legitimate
+	// pattern — an administrator onboarding a department does thirty in an
+	// afternoon, and a budget that makes real work feel broken gets raised
+	// until it means nothing. The pending-invitation cap is what bounds an
+	// ordinary member; this bounds the relay.
+	rateLimitScopeInvitePerson: {max: 30, window: time.Hour},
+
+	// Tight per recipient, and over a day rather than an hour. Being invited
+	// twice in a week is an oversight; three times in a day is somebody being
+	// mailed by a site they have chosen not to join.
+	rateLimitScopeInviteEmail: {max: 3, window: 24 * time.Hour},
 }
 
 func rateLimitKey(scope rateLimitScope, subject string) string {
