@@ -39,7 +39,7 @@ This overturns the decision recorded at
 | 8. auth stops writing `nodes` | ✅ done | `e426286` |
 | 6. person-service loses its repositories | ⬜ next | |
 | 7. Mention relations to graph | ⬜ | |
-| 5. Last-super-admin guard into graph | ⬜ | |
+| 5. Last-super-admin guard into graph | ✅ done | `57c181c` |
 | 10. Signup, invite-accept, first super admin | ⬜ | |
 | 3. Backfill and drop `people_people` | ⬜ | |
 | 9. anahita-react | ⬜ | |
@@ -49,7 +49,9 @@ shadowing each other) and `30297f1` (these plan documents).
 
 **Sequencing correction.** The order below omitted item 4, but item 8 has to set
 `person_type` through `ActorsGRPC` and cannot until the graph accepts the field.
-The real order is **1 → 2 → 4 → 8 → 6 → 7 → 5 → 10 → 3 → 9**.
+The real order is **1 → 2 → 4 → 8 → 5 → 6 → 7 → 10 → 3 → 9**. Item 5 also
+had to move ahead of item 6: person-service cannot drop its repository while
+four of its handlers still call `CountOtherActiveSuperAdmins` on it.
 
 **Applied to the reference database.** Items 1 and 2 have been run against the
 live `anahita` database, which was recreated from `db-data/production.data.sql`
@@ -293,7 +295,7 @@ values recoverable — they are dropped, not converted.
   group whose alias matches a person's will start failing; nothing enforces
   that today.
 
-### 5. graph-grpc-service: own the last-super-admin guard  ⬜ TODO
+### 5. graph-grpc-service: own the last-super-admin guard  ✅ DONE (57c181c)
 
 Add `CountOtherActiveSuperAdmins` to `NodesRepoInterface`. With `person_type` on
 `nodes` it is a single-table query:
