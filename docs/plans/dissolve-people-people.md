@@ -40,8 +40,8 @@ This overturns the decision recorded at
 | 6. person-service loses its repositories | ✅ done | `e4713e8` |
 | 7. Mention relations to graph | ✅ done | `65224e4` |
 | 5. Last-super-admin guard into graph | ✅ done | `57c181c` |
-| 10. Signup, invite-accept, first super admin | ⬜ | |
-| 3. Backfill and drop `people_people` | ⬜ next | |
+| 3. Backfill and drop `people_people` | ✅ done | |
+| 10. Signup, invite-accept, first super admin | ⬜ next | |
 | 9. anahita-react | ✅ done | `b515bb5` (anahita-react) |
 
 Also landed alongside: `fcbae16` (one `make test` target instead of two
@@ -260,7 +260,7 @@ Notes on the index:
 - The `actor:` prefix looks redundant with one branch; it is there so a second
   namespace is a one-line `CASE` addition rather than a new column and index.
 
-### 3. Backfill and drop  ⬜ TODO
+### 3. Backfill and drop  ✅ DONE
 
 ```sql
 UPDATE nodes n JOIN people_people p ON p.node_id = n.id
@@ -280,6 +280,44 @@ DROP TABLE people_people;
 Only two columns move to `nodes`; `name`, `alias`, `timezone` and `language` are
 already correct there. Export `gender` to a file first if you want the 263
 values recoverable — they are dropped, not converted.
+
+**What actually landed**, as `migrations/20260913000004_drop_people_people.sql`:
+
+- The backfill runs a second time, as `INSERT IGNORE` plus an UPDATE narrowed to
+  rows with no `person_type` yet. Items 2 and 3 are separated by however long a
+  deployment takes, and an account created in that window has a `people_people`
+  row and no `auth_accounts` row — without the second pass it would be dropped
+  with the table and the person locked out. `IGNORE` rather than `REPLACE`, and
+  the narrowed UPDATE, so a password or pronoun changed through the new path is
+  not overwritten by the stale value.
+- `schema/init.sql` no longer creates the table, and `legacy/upgrade.sql` drops
+  it at the end of its own backfill. Both are required: `entrypoint.sh` runs one
+  of the three paths and then stamps every migration as applied, so whatever a
+  branch does not do never happens.
+- There is no `Down`. It raises instead of returning quietly — recreating the
+  table empty would be a deployment where every sign-in fails and every password
+  reset silently does nothing, which reads as a broken database rather than a
+  bad rollback.
+
+**Two bugs this turned up, both of which only the running stack could show.**
+`ReadByEmailOrUsername` still narrowed on a bare `username`, so *sign-in failed
+for everyone* with `Unknown column 'username' in 'where clause'`; and `Browse`
+concatenated a bare `created_on` into its `ORDER BY`, which was about to fail
+the same way. Both are invisible to sqlmock, which returns whatever rows it is
+handed and never parses the statement.
+
+`users_qualified_test.go` now asserts the rule instead of the schema: in a
+select that joins `auth_accounts` to `nodes`, every column reference in a
+`WHERE` or `ORDER BY` carries its table. It says nothing about whether the
+column exists — that is what the stack is for — but an unqualified name cannot
+be correct here even when it happens to work, because the next column added to
+either table silently turns it ambiguous. Verified by reintroducing both bugs
+and watching it fail.
+
+Found alongside, pre-existing: `UserBrowseRequest.PersonTypes` was set by the
+invite-accept notifier and never read by `Browse`, so the "new member joined"
+email went to every account on the site rather than to the administrators the
+notifier's own comment names. Filter added, with a test.
 
 ### 4. graph-grpc-service: carry the new fields  ✅ DONE (5f8ffeb)
 
