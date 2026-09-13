@@ -44,17 +44,39 @@ completeness is onboarding, not a gate.
 
 ## Registration modes
 
-Modelled on Mastodon, which is the convention the fediverse already knows.
+Two independent questions: **how somebody starts** — they find you, or an
+administrator invites them — and **whether a human decides**. The mode answers
+both.
 
-| mode | who can get in | notes |
+| mode | self-serve | invites |
 | --- | --- | --- |
-| `open` | anybody | the anti-bot baseline matters most here |
-| `approval` | anybody may apply; an administrator decides | the strongest filter that still allows strangers |
-| `invite` | only somebody holding an invite token | the flow already exists and works |
-| `closed` | nobody | the seed still runs — it is not a signup |
+| `open` | anybody, instantly | work |
+| `approval` | anybody may apply; an administrator decides | work, **skipping the queue** |
+| `invite` | none | work |
+| `closed` | none | **do not work** |
 
-`REGISTRATION_MODE`, defaulting to `invite`. A default of `open` means an
-installation that has not thought about it is open to the internet.
+Default `closed`. An installation that has not thought about it should not be
+open to the internet.
+
+**`invite` and `closed` are not the same thing, and that is why both exist.**
+`invite` is the ordinary running state for a private community: no strangers,
+but administrators can let people in. `closed` is a kill switch — nothing gets
+in, and **outstanding invite tokens stop working too**. That distinction only
+matters on the day it matters: locking down during an abuse incident, or
+freezing an archived community, where "stop issuing invites" is not enough
+because the ones already sent are still live.
+
+**An invitation is already an approval.** In `approval` mode an invited person
+does not join the queue: an administrator decided when they sent it, and
+queueing would mean approving the same person twice — once by sending, once by
+clearing them from a list. Administrators should not have to approve people
+they personally invited.
+
+That holds only while invites are administrator-only, which they are today —
+the permission calls them "inherently a managing people operation". If invites
+are ever opened to ordinary members, an invitation becomes a recommendation
+rather than a decision, and queueing it would be the right call. Worth
+revisiting then, not before.
 
 ### Enforced in three places
 
@@ -74,10 +96,10 @@ One is not enough, because each answers a different question.
 Minimal by default. The principle is that an installation should ask for what
 it needs to make a decision, and nothing more.
 
-| | `open` / `invite` | `approval` |
+| | `open`, and invite-accept | `approval` |
 | --- | --- | --- |
 | handle | ✅ | ✅ |
-| email | ✅ | ✅ (invite carries it) |
+| email | ✅ | ✅ |
 | password | ✅ | ✅ |
 | display name | ❌ | ✅ |
 | bio | ❌ | ✅ |
@@ -103,7 +125,7 @@ had to write anything they would not have written anyway.
 ### 1. `REGISTRATION_MODE` and NodeInfo
 
 - `config/bootstrap.go` — `REGISTRATION_MODE`, validated against the four
-  values, defaulting to `invite`.
+  values, defaulting to `closed`.
 - `SignupPermissions.CanAdd` gains the mode check.
 - `/.well-known/nodeinfo` and the NodeInfo 2.1 document, carrying
   `openRegistrations` and `usage.users.total`. New surface; it is also the
@@ -111,9 +133,14 @@ had to write anything they would not have written anyway.
   it is worth doing properly rather than as a one-field stub.
 - The web app reads it instead of `REACT_APP_SIGNUP_CLOSED`, which goes.
 
-**`closed` must not break the super-administrator seed.** That path does not go
-through signup, and an installation that cannot seed its first administrator
-because registration is closed is one nobody can ever administer.
+**`closed` must not break the super-administrator seed.** That does not go
+through signup at all, and an installation that cannot seed its first
+administrator because registration is closed is one nobody can ever administer.
+
+**`closed` must break outstanding invites**, which is the one place it differs
+from `invite` and the reason both exist. The token stays in the table and the
+accept page refuses it, so lifting the lockdown brings the invitation back
+rather than silently destroying it.
 
 ### 2. Signup moves to auth-service
 
@@ -377,9 +404,15 @@ service; a bio is a product preference, and the two want different enforcement.
 ## Verification
 
 - `REGISTRATION_MODE=closed` — `POST /signup` refuses, the page says so,
-  NodeInfo reports `openRegistrations: false`, and the super-admin seed still
-  runs on a fresh database.
-- `REGISTRATION_MODE=invite` — the same, and an invite link still completes.
+  NodeInfo reports `openRegistrations: false`, **an outstanding invite link is
+  refused**, and the super-admin seed still runs on a fresh database.
+- `REGISTRATION_MODE=invite` — self-serve refuses, and the same invite link
+  completes. This pair is the whole reason both modes exist, so test them
+  together or the difference is untested.
+- Lift `closed` back to `invite`: the invitation refused a moment ago works
+  again. The token was suspended, not destroyed.
+- `REGISTRATION_MODE=approval` — an invited person **skips the queue** and
+  lands with an account, while a self-serve applicant waits in it.
 - `REGISTRATION_MODE=open` — a signup completes end to end and lands signed in,
   and the same address cannot sign up twice.
 - Sign up, then try to sign in before clicking the confirmation link: refused.
