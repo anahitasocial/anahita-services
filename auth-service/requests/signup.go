@@ -32,3 +32,13 @@ type SignupAddRequest struct {
 	Username string `form:"username" validate:"required,username,min=3,max=32"`
 	Password string `form:"password" validate:"required,min=15,max=150"`
 }
+
+// UsernameAvailability backs GET /auth/is/username, the check the signup form
+// makes as the field is left.
+//
+// The same rules the signup request applies, so the two cannot disagree — an
+// endpoint that reported a username available and a form that then refused it
+// would be worse than no check at all.
+type UsernameAvailability struct {
+	Username string `query:"username" validate:"required,username,min=3,max=32"`
+}

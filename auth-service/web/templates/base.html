@@ -172,6 +172,26 @@
             margin-left: 14px;
         }
 
+        /* Helper text belongs to the field ABOVE it, and has to look like it.
+           .text-field carries margin-bottom: 16px, and .helper-text carried no
+           bottom margin at all — so the gap landed above the helper and it sat
+           flush against the NEXT field, reading as that field's label. Pull it
+           up under the field it describes, and let it carry the 16px onward so
+           the rhythm between fields stays even whether or not one has help. */
+        .text-field + .helper-text {
+            margin-top: -12px;
+            margin-bottom: 16px;
+        }
+
+        /* Availability feedback, shown beside the username as it is typed. */
+        .helper-text.is-taken {
+            color: var(--mui-error-fg);
+        }
+
+        .helper-text.is-free {
+            color: var(--mui-primary-dark);
+        }
+
         /* Buttons */
         .btn {
             display: inline-flex;
@@ -408,6 +428,68 @@
                     });
                 })(toggles[i]);
             }
+        })();
+
+        // Username availability, checked as the field is left.
+        //
+        // Attaches to <input data-availability-url="..."> and writes into the
+        // element named by data-availability-target. The endpoint answers 200
+        // for taken and 404 for free.
+        //
+        // ONLY the username. Checking the email the same way would tell an
+        // anonymous caller whether an address has an account here, and this
+        // form is reachable by anybody — a handle is already public, since it
+        // is the profile's address, and an email is not. An email collision
+        // surfaces on submit instead.
+        //
+        // Advisory, never blocking. The server checks both on submit, and it
+        // is the server's answer that decides; a failed request here leaves no
+        // message rather than a wrong one.
+        (function () {
+            var input = document.querySelector('[data-availability-url]');
+            if (!input) return;
+
+            var target = document.getElementById(
+                input.getAttribute('data-availability-target')
+            );
+            if (!target) return;
+
+            var base = target.textContent;
+            var lastChecked = '';
+
+            function reset() {
+                target.textContent = base;
+                target.classList.remove('is-taken', 'is-free');
+            }
+
+            input.addEventListener('input', function () {
+                if (input.value !== lastChecked) reset();
+            });
+
+            input.addEventListener('blur', function () {
+                var value = input.value.trim();
+
+                // Nothing to say about a value the form will reject anyway.
+                if (value.length < 3 || value === lastChecked) return;
+                lastChecked = value;
+
+                var url = input.getAttribute('data-availability-url') +
+                    '?username=' + encodeURIComponent(value);
+
+                fetch(url, { credentials: 'omit' }).then(function (response) {
+                    if (response.status === 200) {
+                        target.textContent = 'That username is already taken.';
+                        target.classList.add('is-taken');
+                        target.classList.remove('is-free');
+                    } else if (response.status === 404) {
+                        target.textContent = value + ' is available.';
+                        target.classList.add('is-free');
+                        target.classList.remove('is-taken');
+                    } else {
+                        reset();
+                    }
+                }).catch(reset);
+            });
         })();
     </script>
 </body>

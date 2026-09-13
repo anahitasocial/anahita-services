@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -165,9 +166,7 @@ func (h *signupHandler) Add(c echo.Context) error {
 
 	if err := c.Validate(req); err != nil {
 		log.Println("signup:", err)
-		return h.renderSignupError(c,
-			"Please enter a valid email address, a handle of at least 3 "+
-				"characters, and a password of at least 15 characters.")
+		return h.renderSignupError(c, signupValidationMessage(req))
 	}
 
 	// Both taken-checks before anything is created. They are also enforced by
@@ -181,10 +180,10 @@ func (h *signupHandler) Add(c echo.Context) error {
 	}
 
 	if taken, err := h.Repos.Users.IsUsername(req.Username); err != nil {
-		log.Println("signup: handle check failed:", err)
+		log.Println("signup: username check failed:", err)
 		return h.renderSignupError(c, "Could not create your account. Please try again.")
 	} else if taken {
-		return h.renderSignupError(c, "That handle is already taken.")
+		return h.renderSignupError(c, "That username is already taken.")
 	}
 
 	user := entities.NewUser()
@@ -227,7 +226,7 @@ func (h *signupHandler) Add(c echo.Context) error {
 	if err != nil {
 		log.Println("signup: could not create the actor:", err)
 		if isDuplicateHandle(err) {
-			return h.renderSignupError(c, "That handle is already taken.")
+			return h.renderSignupError(c, "That username is already taken.")
 		}
 		return h.renderSignupError(c, "Could not create your account. Please try again.")
 	}
@@ -288,6 +287,56 @@ func (h *signupHandler) writeSignupSession(c echo.Context, user *entities.User) 
 
 	return nil
 }
+
+// signupValidationMessage says which field is wrong.
+//
+// The fields are re-checked here rather than read out of the validation error,
+// because the shared RequestValidator wraps failures as
+// echo.NewHTTPError(400, err.Error()) — a STRING. The typed
+// validator.ValidationErrors is gone by the time a handler sees it, so there
+// is nothing left to ask which field failed. Same problem, and the same local
+// answer, as the token check in password.go.
+//
+// One message rather than a list, and the first problem in the order the form
+// is read. Three complaints at once about a form with three fields tells
+// somebody their whole submission was wrong when one character was.
+func signupValidationMessage(req *requests.SignupAddRequest) string {
+	username := strings.TrimSpace(req.Username)
+
+	switch {
+	case username == "":
+		return "Please choose a username."
+	case len(username) < 3:
+		return "That username is too short — it needs at least 3 characters."
+	case len(username) > 32:
+		return "That username is too long — 32 characters at most."
+	case !usernameCharacters.MatchString(username):
+		return "A username can contain letters, numbers, hyphens and " +
+			"underscores, and nothing else."
+	}
+
+	if !strings.Contains(req.Email, "@") || len(req.Email) < 3 {
+		return "Please enter a valid email address."
+	}
+	if len(req.Email) > 64 {
+		return "That email address is too long — 64 characters at most."
+	}
+
+	if len(req.Password) < 15 {
+		return "Your password needs to be at least 15 characters long."
+	}
+	if len(req.Password) > 150 {
+		return "That password is too long — 150 characters at most."
+	}
+
+	// Everything checked above passed, so the validator refused something this
+	// function does not know about. Say so plainly rather than guessing.
+	return "Please check the form and try again."
+}
+
+// usernameCharacters mirrors the `username` validator tag, so the message and
+// the rule cannot disagree about what is allowed.
+var usernameCharacters = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
 // renderSignupError re-renders the form with a message and a fresh CSRF token.
 //

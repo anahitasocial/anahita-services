@@ -8,10 +8,8 @@
 
     <h2>Join {{.SiteName}}</h2>
 
-    <p>Choose a handle and a password. You can add a name, a photo and anything
-       else you want on your profile once you are in.</p>
-
-    <p>Your password must be at least 15 characters long. Use a unique passphrase that you don't use elsewhere.</p>
+    <p>Choose a username and a password. You can add a name, a photo and
+       anything else you want on your profile once you are in.</p>
 
     {{if .Error}}
     <div class="error-message">{{.Error}}</div>
@@ -20,10 +18,16 @@
     <form method="POST" action="/signup" novalidate>
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
-        <!-- The handle. Lowercase on the way in because it is the address of a
-             profile and "Ada" and "ada" are the same person to a reader — the
-             uniqueness check folds case, so accepting mixed case here would
-             hand somebody a handle that is then refused. -->
+        <!-- "Username", not "handle".
+             Mastodon's signup says username, and so does every one of the 115
+             places this codebase names the same thing — ReadByUsername,
+             IsUsername, /username/change. Calling it something else on the one
+             screen where somebody first meets it teaches a word we then never
+             use again.
+
+             autocapitalize is off because a phone keyboard will otherwise
+             offer "Ada" for a field whose uniqueness check folds case: the
+             signup would refuse a name the form had just suggested. -->
         <div class="text-field">
             <input
                 type="text"
@@ -37,10 +41,12 @@
                 autocapitalize="none"
                 spellcheck="false"
                 autofocus
+                data-availability-url="/auth/is/username"
+                data-availability-target="username-help"
             >
-            <label for="username">Handle</label>
+            <label for="username">Username</label>
         </div>
-        <span class="helper-text">This is your address on the network, and part of your profile's link.</span>
+        <span class="helper-text" id="username-help">This is your address on the network, and part of your profile's link.</span>
 
         <div class="text-field">
             <input
@@ -77,6 +83,10 @@
                 aria-pressed="false"
             >Show</button>
         </div>
+        <!-- Beside the field it describes. It was a paragraph at the top of
+             the page, which is where somebody reads it before they have a
+             password in mind and has forgotten it by the time they do. -->
+        <span class="helper-text">At least 15 characters. Use a unique passphrase that you don't use anywhere else.</span>
 
         <button type="submit" class="btn btn-primary">Create account</button>
     </form>

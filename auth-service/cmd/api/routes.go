@@ -36,6 +36,7 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	auth := e.Group("/auth")
 	auth.GET("/is/email", h.Is.Email)
+	auth.GET("/is/username", h.Is.Username)
 	auth.GET("/is/totp", h.Is.Totp)
 
 	// Password — forgot and reset are server-rendered, unauthenticated
