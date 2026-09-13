@@ -9,11 +9,9 @@
     <h2>Join {{.SiteName}}</h2>
 
     <p>
-        You've been invited to join <strong>{{.SiteName}}</strong>
-        {{if .Email}}as <strong>{{.Email}}</strong>{{end}}. Set your name and a password to get started.
+        You've been invited to join <strong>{{.SiteName}}</strong>.
+        Choose a username and a password to get started.
     </p>
-
-    <p>Your password must be at least 15 characters long. Use a unique passphrase that you don't use elsewhere.</p>
 
     {{if .Error}}
     <div class="error-message">{{.Error}}</div>
@@ -22,31 +20,62 @@
     <form method="POST" action="/invites/accept" novalidate>
         <input type="hidden" name="token" value="{{.Token}}">
 
-        <!-- The versions the reader was actually shown. The handler refuses
-             the submission if they are no longer the ones in force, rather
-             than recording an acceptance of text that has since changed. -->
-        <input type="hidden" name="tos_version" value="{{.TosVersion}}">
-        <input type="hidden" name="pp_version" value="{{.PrivacyVersion}}">
+        <!-- The invited address, shown and not editable.
+             It is the one field on this form the person did not choose and
+             cannot change — the invitation was issued to it. Shown as a
+             disabled field rather than buried in the paragraph above, so the
+             form reads as one thing and it is obvious which account is being
+             created. -->
+        {{if .Email}}
+        <div class="text-field">
+            <input type="text" id="email" value="{{.Email}}" placeholder=" " disabled>
+            <label for="email">Email</label>
+        </div>
+        <span class="helper-text">Your invitation was sent to this address.</span>
+        {{end}}
 
-        <!-- One display name. This was a first_name/last_name pair posting to
-             a handler that binds `name`, so every submission failed
-             validation with "please fill in your name" — for a form on which
-             the name had been filled in. -->
+        <!-- Prefilled with a suggestion from the email, and only when that
+             suggestion is actually free. This used to be derived silently and
+             never shown, so two people invited as alice@ at different domains
+             collided and the second was told to "try again" — which derived
+             the same name every time. -->
+        <div class="text-field">
+            <input
+                type="text"
+                id="username"
+                name="username"
+                value="{{.Username}}"
+                placeholder=" "
+                required
+                minlength="3"
+                maxlength="32"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                autofocus
+                data-availability-url="/auth/is/username"
+                data-availability-target="username-help"
+            >
+            <label for="username">Username</label>
+        </div>
+        <span class="helper-text" id="username-help">This is your address on the network, and part of your profile's link.</span>
+
+        <!-- Optional, and says so. Somebody vouched for this person, so there
+             is nothing a required name would support — and onboarding asks
+             again shortly with a better editor. Empty falls back to the
+             username. -->
         <div class="text-field">
             <input
                 type="text"
                 id="name"
                 name="name"
                 placeholder=" "
-                required
-                minlength="1"
                 maxlength="100"
                 autocomplete="name"
-                autofocus
             >
-            <label for="name">Display name</label>
+            <label for="name">Display name (optional)</label>
         </div>
-        <span class="helper-text">This is how your name appears to other people.</span>
+        <span class="helper-text">How your name appears to other people. You can add this later.</span>
 
         <div class="text-field has-toggle">
             <input
@@ -68,20 +97,21 @@
                 aria-pressed="false"
             >Show</button>
         </div>
-
-        <hr class="divider">
-
-        <label class="consent">
-            <input type="checkbox" name="tos_accepted" value="true" required>
-            <span>I agree to the <a href="{{.TosURL}}" target="_blank" rel="noopener">Terms of Service</a>.</span>
-        </label>
-
-        <label class="consent">
-            <input type="checkbox" name="pp_accepted" value="true" required>
-            <span>I have read the <a href="{{.PrivacyURL}}" target="_blank" rel="noopener">Privacy Policy</a>.</span>
-        </label>
+        <span class="helper-text">At least 15 characters. Use a unique passphrase that you don't use anywhere else.</span>
 
         <button type="submit" class="btn btn-primary">Create account</button>
     </form>
+
+    <hr class="divider">
+
+    <!-- Shown, not collected — the same as signup. Acceptance is asked for
+         after signing in, where the text is on the screen it is accepted from,
+         and asked again whenever it is revised. -->
+    <p class="helper-text">
+        By creating an account you agree to the
+        <a href="{{.TosURL}}" target="_blank" rel="noopener">Terms of Service</a>
+        and the
+        <a href="{{.PrivacyURL}}" target="_blank" rel="noopener">Privacy Policy</a>.
+    </p>
 </div>
 {{end}}

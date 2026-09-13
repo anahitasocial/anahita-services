@@ -104,19 +104,51 @@ func TestNoPathRequiresADisplayName(t *testing.T) {
 	}
 }
 
-// `required` on a bool is satisfied by false, which is an unticked box. Still
-// asserted where checkboxes remain — invite-accept and the set-password page
-// keep collecting until the post-login interstitial replaces them, and
-// removing them before it exists would leave nothing collecting anything.
-func TestRemainingAgreementCheckboxesCannotBeLeftUnticked(t *testing.T) {
-	req := &InviteAccept{}
+// No account-creation path collects agreement any more.
+//
+// Acceptance is asked for after signing in and checked on every sign-in, so a
+// revision re-prompts by itself. A path that also collected at the door would
+// mean two places writing the same record, and a form that grows a field back
+// every time somebody worries about the gap.
+//
+// The set-password page is the one exception left, and it is deliberate: the
+// seeded super administrator reaches it before they have ever signed in. It
+// goes when the interstitial lands.
+func TestAccountCreationDoesNotCollectAgreement(t *testing.T) {
+	for name, req := range map[string]any{
+		"signup":        &SignupAddRequest{},
+		"invite-accept": &InviteAccept{},
+	} {
+		for _, field := range []string{"TosAccepted", "TosVersion", "PpAccepted", "PpVersion"} {
+			t.Run(name+"/"+field, func(t *testing.T) {
+				if hasField(req, field) {
+					t.Errorf("%s still collects %s. Acceptance belongs in one "+
+						"place, and that place is after sign-in where a "+
+						"revision can re-prompt", name, field)
+				}
+			})
+		}
+	}
+}
 
-	for _, field := range []string{"TosAccepted", "PpAccepted"} {
-		t.Run(field, func(t *testing.T) {
-			if tag := tagOf(t, req, field, "validate"); tag != "eq=true" {
-				t.Errorf("%s is validated as %q. `required` on a bool is "+
-					"satisfied by false, so an unticked box would create an "+
-					"account claiming to have accepted the terms", field, tag)
+// Both paths ask for a username, because it is the account's address and not a
+// profile field. Invite-accept derived one from the email and never showed it,
+// which meant two people invited as alice@ at different domains collided and
+// the second was told to try again — forever.
+func TestBothPathsChooseAUsername(t *testing.T) {
+	for name, req := range map[string]any{
+		"signup":        &SignupAddRequest{},
+		"invite-accept": &InviteAccept{},
+	} {
+		t.Run(name, func(t *testing.T) {
+			tag := tagOf(t, req, "Username", "validate")
+
+			for _, rule := range []string{"required", "username", "min=3", "max=32"} {
+				if !strings.Contains(tag, rule) {
+					t.Errorf("username is validated as %q, missing %q — the two "+
+						"paths must agree, or one offers a name the other refuses",
+						tag, rule)
+				}
 			}
 		})
 	}

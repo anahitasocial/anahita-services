@@ -183,6 +183,20 @@
             margin-bottom: 16px;
         }
 
+        /* A field shown for context that cannot be edited — the invited
+           address on the invite-accept form. Muted rather than greyed to
+           illegibility: it still has to be readable, since the whole point is
+           to show which account is being created. */
+        .text-field input:disabled {
+            background-color: var(--mui-action-hover);
+            color: var(--mui-text-secondary);
+            cursor: not-allowed;
+        }
+
+        .text-field input:disabled + label {
+            color: var(--mui-text-disabled);
+        }
+
         /* Availability feedback, shown beside the username as it is typed. */
         .helper-text.is-taken {
             color: var(--mui-error-fg);

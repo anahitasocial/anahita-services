@@ -19,19 +19,22 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// inviteAlias derives an actor handle from the invited address.
+// suggestedUsername derives a username to PREFILL the form with, from the
+// invited address.
 //
-// Invite-accept collects a name and a password but never a username, while
-// every actor needs a handle — so it comes from the email local part, lowercased
-// and stripped of anything that is not a handle character.
+// A suggestion, not an assignment. It used to be the actual username, never
+// shown: two people invited as alice@ at different domains both got "alice",
+// the second was refused with "could not create your account, please try
+// again", and trying again derived the same name. A permanent failure with
+// nothing the person could do about it, and no hint of what was wrong.
 //
-// Not unique on its own: two invitations to alice@a.com and alice@b.com both
-// want "alice". The graph's actor namespace rejects the second, and the caller
-// surfaces that rather than guessing a suffix — a handle is a person's name on
-// the network and should not be silently chosen for them.
+// It is also the account's address on the network, which is not something to
+// choose for somebody without telling them. Now they see it, can change it,
+// and are told whether it is free before they submit — while the common case
+// stays one glance and a click.
 var inviteAliasStrip = regexp.MustCompile(`[^a-z0-9_-]+`)
 
-func inviteAlias(email string) string {
+func suggestedUsername(email string) string {
 	local, _, _ := strings.Cut(email, "@")
 	return inviteAliasStrip.ReplaceAllString(strings.ToLower(local), "")
 }
@@ -97,12 +100,73 @@ func (h *inviteHandler) AcceptForm(c echo.Context) error {
 			"This invitation has expired. Please ask the person who invited you to send a new one.")
 	}
 
-	return h.renderTemplate(c, "invite_accept.html", map[string]any{
-		"Token":          token.Body,
-		"Email":          token.RecipientEmail,
+	return h.renderTemplate(c, "invite_accept.html",
+		h.inviteAcceptContext(token.Body, token.RecipientEmail, "", ""))
+}
+
+// inviteAcceptContext builds the form's context in one place, so a re-render
+// after an error cannot quietly lose a field the form needs.
+//
+// That has happened here before: a re-render that dropped the agreement
+// versions produced a form whose hidden fields were empty, and the next
+// submission failed for a reason the person could not see. Every render goes
+// through this now.
+func (h *inviteHandler) inviteAcceptContext(
+	token, email, username, errMsg string,
+) map[string]any {
+	// The suggestion is only offered when it is actually free. Prefilling a
+	// username that is already taken invites somebody to submit it and be
+	// refused, which is the failure this replaced.
+	if username == "" {
+		suggestion := suggestedUsername(email)
+		if len(suggestion) >= 3 {
+			if taken, err := h.Repos.Users.IsUsername(suggestion); err == nil && !taken {
+				username = suggestion
+			}
+		}
+	}
+
+	return map[string]any{
+		"Token":          token,
+		"Email":          email,
+		"Username":       username,
+		"Error":          errMsg,
 		"TosVersion":     h.Config.GetTosVersion(),
 		"PrivacyVersion": h.Config.GetPrivacyVersion(),
-	})
+	}
+}
+
+// inviteValidationMessage says which field is wrong, for the same reason
+// signupValidationMessage does: the shared validator has flattened the typed
+// error to a string by the time a handler sees it, so there is nothing left to
+// ask which field failed.
+func inviteValidationMessage(req *requests.InviteAccept) string {
+	username := strings.TrimSpace(req.Username)
+
+	switch {
+	case username == "":
+		return "Please choose a username."
+	case len(username) < 3:
+		return "That username is too short — it needs at least 3 characters."
+	case len(username) > 32:
+		return "That username is too long — 32 characters at most."
+	case !usernameCharacters.MatchString(username):
+		return "A username can contain letters, numbers, hyphens and " +
+			"underscores, and nothing else."
+	}
+
+	if len(req.Name) > 100 {
+		return "That display name is too long — 100 characters at most."
+	}
+
+	if len(req.Password) < 15 {
+		return "Your password needs to be at least 15 characters long."
+	}
+	if len(req.Password) > 150 {
+		return "That password is too long — 150 characters at most."
+	}
+
+	return "Please check the form and try again."
 }
 
 // Accept processes the invite-acceptance submission. On success:
@@ -146,12 +210,8 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	}
 	if err := c.Validate(req); err != nil {
 		log.Println(err)
-		return h.renderTemplate(c, "invite_accept.html", map[string]any{
-			"Token":          req.Token,
-			"Error":          "Please fill in your name, choose a password of at least 15 characters, and accept the Terms of Service and Privacy Policy.",
-			"TosVersion":     h.Config.GetTosVersion(),
-			"PrivacyVersion": h.Config.GetPrivacyVersion(),
-		})
+		return h.renderTemplate(c, "invite_accept.html",
+			h.inviteAcceptContext(req.Token, "", req.Username, inviteValidationMessage(req)))
 	}
 
 	token, err := h.Repos.Tokens.ReadByBody(req.Token)
@@ -214,30 +274,28 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	user.Enabled = true
 	user.CreationTime = time.Now()
 
-	// Agreement is captured HERE, at account creation.
-	//
-	// It used to say it happened in the SPA, on an AgreementsPage gated by
-	// AuthenticatedRoute. That component was never written and there was no
-	// column to write to, so acceptance was recorded nowhere at all.
-	if err := h.recordAgreements(c, user, req.TosVersion, req.PpVersion); err != nil {
-		return h.renderTemplate(c, "invite_accept.html", map[string]any{
-			"Token":          req.Token,
-			"Email":          token.RecipientEmail,
-			"TosVersion":     h.Config.GetTosVersion(),
-			"PrivacyVersion": h.Config.GetPrivacyVersion(),
-			"Error":          "The terms have been updated since this page was opened. Please read them again.",
-		})
+	// Checked before anything is created, so the message can name the field.
+	// The graph enforces it too — the check below catches the race — but a
+	// duplicate-key error surfaced raw is what used to make this a dead end.
+	if taken, err := h.Repos.Users.IsUsername(req.Username); err != nil {
+		log.Println("invite accept: username check failed:", err)
+		return h.renderTemplate(c, "invite_accept.html",
+			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username,
+				"Could not create your account. Please try again."))
+	} else if taken {
+		return h.renderTemplate(c, "invite_accept.html",
+			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username,
+				"That username is already taken."))
 	}
+
+	// No agreement capture. Acceptance is collected after signing in and
+	// checked on every sign-in, so a revision re-prompts by itself — see the
+	// note on InviteAccept. The form shows the terms and links them.
 
 	if err := user.SetPassword(req.Password); err != nil {
 		log.Println(err)
-		return h.renderTemplate(c, "invite_accept.html", map[string]any{
-			"Token":          req.Token,
-			"Email":          token.RecipientEmail,
-			"Error":          "Could not create your account. Please try again.",
-			"TosVersion":     h.Config.GetTosVersion(),
-			"PrivacyVersion": h.Config.GetPrivacyVersion(),
-		})
+		return h.renderTemplate(c, "invite_accept.html",
+			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username, "Could not create your account. Please try again."))
 	}
 
 	// The actor node first, through the graph — see signup.go for why this is
@@ -248,7 +306,7 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	actor := libs_entities.NewAnahitaNode()
 	actor.Type = constants.NodeActorPersonEntityType
 	actor.Service = constants.PersonService
-	actor.Alias = inviteAlias(token.RecipientEmail)
+	actor.Alias = strings.ToLower(strings.TrimSpace(req.Username))
 	actor.Name = strings.TrimSpace(req.Name)
 	actor.Access = constants.AnahitaAccessPublic
 	actor.PersonType = constants.PersonTypeRegistered
@@ -261,13 +319,17 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	createdActor, err := h.Srv.ActorsGRPC.Add(actor, signupViewer())
 	if err != nil {
 		log.Println("invite accept: could not create the actor:", err)
-		return h.renderTemplate(c, "invite_accept.html", map[string]any{
-			"Token":          req.Token,
-			"Email":          token.RecipientEmail,
-			"Error":          "Could not create your account. Please try again.",
-			"TosVersion":     h.Config.GetTosVersion(),
-			"PrivacyVersion": h.Config.GetPrivacyVersion(),
-		})
+
+		// Somebody took the username between the check above and this call.
+		// Rare, and the only honest thing to say about it is the same thing
+		// the check says.
+		message := "Could not create your account. Please try again."
+		if isDuplicateHandle(err) {
+			message = "That username is already taken."
+		}
+
+		return h.renderTemplate(c, "invite_accept.html",
+			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username, message))
 	}
 
 	user.ID = createdActor.ID
@@ -285,13 +347,8 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 		if _, purgeErr := h.Srv.ActorsGRPC.Purge(createdActor.ID, signupViewer()); purgeErr != nil {
 			log.Printf("invite accept: orphaned actor %d: %v (purge also failed: %v)", createdActor.ID, err, purgeErr)
 		}
-		return h.renderTemplate(c, "invite_accept.html", map[string]any{
-			"Token":          req.Token,
-			"Email":          token.RecipientEmail,
-			"Error":          "Could not create your account. Please try again.",
-			"TosVersion":     h.Config.GetTosVersion(),
-			"PrivacyVersion": h.Config.GetPrivacyVersion(),
-		})
+		return h.renderTemplate(c, "invite_accept.html",
+			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username, "Could not create your account. Please try again."))
 	}
 
 	// Mark the token used. If this fails after the person was
