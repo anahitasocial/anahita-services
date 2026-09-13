@@ -41,7 +41,7 @@ This overturns the decision recorded at
 | 7. Mention relations to graph | ✅ done | `65224e4` |
 | 5. Last-super-admin guard into graph | ✅ done | `57c181c` |
 | 3. Backfill and drop `people_people` | ✅ done | |
-| 10. Signup, invite-accept, first super admin | ⬜ next | |
+| 10. Signup, invite-accept, first super admin | ✅ done | |
 | 9. anahita-react | ✅ done | `b515bb5` (anahita-react) |
 
 Also landed alongside: `fcbae16` (one `make test` target instead of two
@@ -417,7 +417,62 @@ handler forgets it.
 
 ---
 
-### 10. Signup, invite-accept and the first super administrator  ⬜ TODO
+### 10. Signup, invite-accept and the first super administrator  ✅ DONE
+
+**What actually landed.**
+
+- `SUPER_ADMIN_EMAIL` seeds the first super administrator at boot, with
+  `SUPER_ADMIN_USERNAME` and `SUPER_ADMIN_NAME` optional. Two guards, because
+  they answer different questions: `CountSuperAdmins` asks whether anybody owns
+  the installation, and the email lookup asks whether this account already
+  exists. If the address belongs to somebody who signed up ordinarily it
+  refuses to promote them and says so — an env var is not consent.
+- The set-password link is **printed to the container log** as well as emailed,
+  with a 48-hour TTL, and re-issued on each boot while the account is still
+  unclaimed. The log line is the guarantee: on a fresh deployment SMTP is
+  routinely the last thing configured, and email alone would lock the operator
+  out of a brand-new installation with no recovery but hand-written SQL.
+- Signup collects a Display Name (`required,max=100`, no `alphanumunicode`) and
+  both paths now require `min=15`. `requests/account_creation_test.go` reads the
+  struct tags so the two cannot drift apart again.
+- ToS and Privacy acceptance is captured at account creation on all three
+  paths, writing all twelve `auth_accounts` columns. `GET /agreements` publishes
+  the versions in force; a submission whose version has moved on is refused
+  rather than recorded as accepting text nobody read. The checkboxes validate as
+  `eq=true`, not `required` — `required` on a bool is satisfied by `false`.
+- `TOS_VERSION` / `PRIVACY_VERSION` (config, defaulting to `1.0`) are the
+  authority — **this answers open question 7**. The text lives in the web app
+  under `src/assets/default/pages/`; nothing links the two, so keeping them in
+  step is the operator's job. Both pages were replaced with boilerplate: the
+  previous ones named one specific deployment and the privacy page still
+  described a signup that collected a first and last name.
+- Open question 4 (signup atomicity) was **already solved** — signup and
+  invite-accept both carry a compensating `ActorService.Purge`. The seed uses
+  the same pattern.
+
+**Four live bugs this turned up, none of which any test could see.**
+
+1. **Invite acceptance has never worked.** The existing-account check treated
+   `sql.ErrNoRows` as fatal — and no rows is the normal case for an invitation —
+   so every acceptance ended on "Something Went Wrong".
+2. **The invite-accept form posted `first_name`/`last_name`** to a handler that
+   binds `name`, so every submission failed with "please fill in your name" on a
+   form where the name had been filled in.
+3. **The React signup page crashed on render.** `AuthSignupForm` read
+   `SIGNUP.FIELDS.NAME` while `constants/signup.js` still declared
+   `GIVEN_NAME`/`FAMILY_NAME`, so `NAME.MAX_LENGTH` was a TypeError.
+   `constants/__tests__/signup.test.js` now reads the component's source and
+   checks the two agree.
+4. **Signup returned the raw `entities.User`** to an unauthenticated caller —
+   every node field plus `TotpSecret` and `TotpRecoveryCodes`. Empty on a new
+   account, so nothing leaked, but one enrolment away from it. It uses the
+   mapper that was already sitting in `responses/user.go`.
+
+**Still open.** Nothing writes `last_visit_date` on login (open question 3), and
+`/oauth/userinfo` still emits the non-standard `username` and `usertype`
+alongside `preferred_username`. React's session reducer reads `usertype`, so
+nothing is broken — but by this plan's own naming rule they are leftovers rather
+than protocol surface.
 
 Three gaps found while checking how a person node gets created. The first two
 block this refactor; the third blocks any fresh install.
@@ -646,14 +701,19 @@ End-to-end through nginx at `http://localhost:80`:
 3. **`last_visit_date`** — written only at INSERT and never on login, so it is
    stale for all 823 people. Wire auth to update it through graph at login, or
    drop the column?
-4. **Signup atomicity** — signup becomes two writes across two services (graph
-   creates the node, auth inserts the `auth_accounts` row) with no transaction;
-   a failure on the second leg leaves an orphan person node that owns a handle
-   nobody can sign into. Suggest a compensating `ActorService.Purge` from auth
-   on failure. This now also applies to the super-admin seed in item 10. Decide
-   before item 10.
-7. **Terms version source.** Where does the current ToS/Privacy version come
-   from — a config value, or read from `anahita-react/src/assets/default/pages/`?
+4. ~~**Signup atomicity**~~ — **ANSWERED: a compensating purge.** Signup is two
+   writes across two services (graph creates the node, auth inserts the
+   `auth_accounts` row) with no transaction, and a failure on the second leg
+   would leave an orphan person node holding a handle nobody can sign into.
+   Signup, invite-accept and the super-admin seed all call
+   `ActorService.Purge` to unwind the node when the credential write fails.
+7. ~~**Terms version source.**~~ **ANSWERED: a config value.** `TOS_VERSION`
+   and `PRIVACY_VERSION` are the authority, published by `GET /agreements` and
+   defaulting to `1.0`. The text stays in
+   `anahita-react/src/assets/default/pages/`, and nothing links the two — so
+   bumping a version without editing the page, or the reverse, is possible and
+   is the operator's job to avoid. The original question was whether it should
+   come from a config value or be read from the page;
    Something has to be the authority the signup request is validated against,
    since `version_number` validation only checks the shape.
 5. **Handle release after purge** — `Users.Delete` leaves the `nodes` row so a
