@@ -37,8 +37,8 @@ This overturns the decision recorded at
 | 2. New columns + actor-alias index | ✅ done | `1273320` |
 | 4. graph carries the new fields | ✅ done | `5f8ffeb` |
 | 8. auth stops writing `nodes` | ✅ done | `e426286` |
-| 6. person-service loses its repositories | ⬜ next | |
-| 7. Mention relations to graph | ⬜ | |
+| 6. person-service loses its repositories | ✅ done | `e4713e8` |
+| 7. Mention relations to graph | ⬜ next | |
 | 5. Last-super-admin guard into graph | ✅ done | `57c181c` |
 | 10. Signup, invite-accept, first super admin | ⬜ | |
 | 3. Backfill and drop `people_people` | ⬜ | |
@@ -311,7 +311,7 @@ Call it from `SoftDeleteActor`, `ArchiveActor`, `SetEnabled` and
 the lifecycle methods removes all four copies and closes the gap where a new
 handler forgets it.
 
-### 6. person-service: delete both repositories  ⬜ TODO
+### 6. person-service: delete both repositories  ✅ DONE (e4713e8)
 
 - Delete `data/repositories/` entirely and the `Repositories` wiring in
   `cmd/api/main.go:84`. The service becomes structurally identical to
