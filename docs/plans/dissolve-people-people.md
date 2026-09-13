@@ -756,6 +756,22 @@ End-to-end through nginx at `http://localhost:80`:
 
 ## Adjacent findings — out of scope
 
+- **There is no promote/demote flow, and no create-person endpoint.**
+  `person_type` is written by signup and by the first-super-administrator seed,
+  and by nothing else — no route edits it, and `PersonEditRequest` has no field
+  for it. The client's role radio group has been removed (it could neither show
+  a role nor change one); a deliberate flow — super-admin only, guarded against
+  removing the last super administrator, audited, published as an event — is
+  what should replace it.
+
+  Separately, **`POST /people/` is a 405**: `PersonAddRequest` is an empty
+  struct and person-service registers no create route, so the admin "Add
+  person" page renders a form that cannot submit. Invitation is the working
+  path for bringing somebody in, and now actually works. Whether the Add page
+  should be built out or removed is a product decision, not a bug fix.
+
+
+
 Recorded so they are not lost. None block this work.
 
 - **`website_url` untouched**, as agreed. A multi-link profile — an
