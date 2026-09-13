@@ -43,7 +43,18 @@ func applyEditableActorFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.AllowFollowRequest = req.AllowFollowRequest
 	node.FeaturesRaw = json.RawMessage(req.FeaturesRaw)
 	node.ModifiedBy = req.ModifiedBy
+	node.PersonPronouns = req.PersonPronouns
 }
+
+// personTypeIsEditable is deliberately absent from the whitelist above.
+//
+// person_type is an authority level. Putting it in the editable set would mean
+// any caller able to edit an actor could promote it to super-administrator by
+// setting a string on the request — the profile edit form included. It is set
+// at creation and changed only through a path that checks who is asking.
+//
+// person_pronouns IS editable: it is display text a person writes about
+// themselves, and drives nothing.
 
 // newActorFromRequest builds a NEW node from a create request.
 //
@@ -64,6 +75,10 @@ func newActorFromRequest(req *graphpb.Node) *entities.AnahitaNode {
 	node.Service = req.Service
 	node.Meta = json.RawMessage(req.Meta)
 	node.CreatedBy = req.CreatedBy
+	// Settable once, at creation: signup has to be able to say "registered",
+	// and the first-boot seed has to be able to say "super-administrator".
+	// Changing it afterwards is not this path's job — see the note above.
+	node.PersonType = req.PersonType
 
 	return node
 }

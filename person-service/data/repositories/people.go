@@ -66,6 +66,19 @@ func (repo *Person) getBaseSelectQuery() sq.SelectBuilder {
 		"username",
 		"email",
 		"usertype",
+		// Scanned through sql.NullTime, not COALESCEd. The column is nullable
+		// while Person.LastVisitDate is a time.Time, and NULL will not scan
+		// into one — "unsupported Scan, storing driver.Value type <nil>" —
+		// which fails the whole read and 404s the person.
+		//
+		// COALESCE to a literal does not fix it: the result comes back as a
+		// string rather than a DATETIME, and parseTime only converts real
+		// datetime columns, so the same scan fails on []uint8 instead.
+		//
+		// Legacy rows held '0000-00-00', which the driver does map to the zero
+		// time. Normalising those to NULL — required, since a table rebuild
+		// under strict mode rejects them — made twenty-one people unreadable.
+		// The zero time preserves the original meaning: never seen.
 		"last_visit_date",
 		"COALESCE(given_name, '') AS given_name",
 		"COALESCE(family_name, '') AS family_name",
@@ -84,6 +97,10 @@ func (repo *Person) Browse(ids []int64) ([]*entities.Person, error) {
 
 	query := repo.getBaseSelectQuery()
 	query = query.Where(sq.Eq{"node_id": ids})
+
+	// Declared before the local `sql` below, which shadows the database/sql
+	// package for the rest of the function.
+	var lastVisit sql.NullTime
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -104,7 +121,7 @@ func (repo *Person) Browse(ids []int64) ([]*entities.Person, error) {
 			&item.Username,
 			&item.Email,
 			&item.PersonType,
-			&item.LastVisitDate,
+			&lastVisit,
 			&item.GivenName,
 			&item.FamilyName,
 			&item.Gender,
@@ -112,6 +129,10 @@ func (repo *Person) Browse(ids []int64) ([]*entities.Person, error) {
 
 		if err != nil {
 			return nil, err
+		}
+
+		if lastVisit.Valid {
+			item.LastVisitDate = lastVisit.Time
 		}
 
 		repo.afterRead(item)
@@ -155,6 +176,10 @@ func (repo *Person) getOneEntity(q *sq.SelectBuilder) (*entities.Person, error) 
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
 
+	// Declared before the local `sql` below, which shadows the database/sql
+	// package for the rest of the function.
+	var lastVisit sql.NullTime
+
 	sql, args, err := q.ToSql()
 	if err != nil {
 		return nil, err
@@ -168,7 +193,7 @@ func (repo *Person) getOneEntity(q *sq.SelectBuilder) (*entities.Person, error) 
 		&item.Username,
 		&item.Email,
 		&item.PersonType,
-		&item.LastVisitDate,
+		&lastVisit,
 		&item.GivenName,
 		&item.FamilyName,
 		&item.Gender,
@@ -176,6 +201,10 @@ func (repo *Person) getOneEntity(q *sq.SelectBuilder) (*entities.Person, error) 
 
 	if err != nil {
 		return nil, err
+	}
+
+	if lastVisit.Valid {
+		item.LastVisitDate = lastVisit.Time
 	}
 
 	repo.afterRead(item)
