@@ -31,6 +31,7 @@ const (
 	ActorService_Purge_FullMethodName          = "/graph.ActorService/Purge"
 	ActorService_Archive_FullMethodName        = "/graph.ActorService/Archive"
 	ActorService_SetEnabled_FullMethodName     = "/graph.ActorService/SetEnabled"
+	ActorService_TouchLastVisit_FullMethodName = "/graph.ActorService/TouchLastVisit"
 	ActorService_Ping_FullMethodName           = "/graph.ActorService/Ping"
 )
 
@@ -58,6 +59,8 @@ type ActorServiceClient interface {
 	Archive(ctx context.Context, in *ActorArchiveRequest, opts ...grpc.CallOption) (*ActorArchiveResponse, error)
 	// Turns an actor on or off. Reversible.
 	SetEnabled(ctx context.Context, in *ActorSetEnabledRequest, opts ...grpc.CallOption) (*ActorSetEnabledResponse, error)
+	// Records that this actor just signed in.
+	TouchLastVisit(ctx context.Context, in *ActorTouchLastVisitRequest, opts ...grpc.CallOption) (*ActorTouchLastVisitResponse, error)
 	Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error)
 }
 
@@ -189,6 +192,16 @@ func (c *actorServiceClient) SetEnabled(ctx context.Context, in *ActorSetEnabled
 	return out, nil
 }
 
+func (c *actorServiceClient) TouchLastVisit(ctx context.Context, in *ActorTouchLastVisitRequest, opts ...grpc.CallOption) (*ActorTouchLastVisitResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ActorTouchLastVisitResponse)
+	err := c.cc.Invoke(ctx, ActorService_TouchLastVisit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *actorServiceClient) Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ActorPingResponse)
@@ -223,6 +236,8 @@ type ActorServiceServer interface {
 	Archive(context.Context, *ActorArchiveRequest) (*ActorArchiveResponse, error)
 	// Turns an actor on or off. Reversible.
 	SetEnabled(context.Context, *ActorSetEnabledRequest) (*ActorSetEnabledResponse, error)
+	// Records that this actor just signed in.
+	TouchLastVisit(context.Context, *ActorTouchLastVisitRequest) (*ActorTouchLastVisitResponse, error)
 	Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error)
 	mustEmbedUnimplementedActorServiceServer()
 }
@@ -269,6 +284,9 @@ func (UnimplementedActorServiceServer) Archive(context.Context, *ActorArchiveReq
 }
 func (UnimplementedActorServiceServer) SetEnabled(context.Context, *ActorSetEnabledRequest) (*ActorSetEnabledResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetEnabled not implemented")
+}
+func (UnimplementedActorServiceServer) TouchLastVisit(context.Context, *ActorTouchLastVisitRequest) (*ActorTouchLastVisitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TouchLastVisit not implemented")
 }
 func (UnimplementedActorServiceServer) Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -510,6 +528,24 @@ func _ActorService_SetEnabled_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ActorService_TouchLastVisit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActorTouchLastVisitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).TouchLastVisit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_TouchLastVisit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).TouchLastVisit(ctx, req.(*ActorTouchLastVisitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ActorService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ActorPingRequest)
 	if err := dec(in); err != nil {
@@ -582,6 +618,10 @@ var ActorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetEnabled",
 			Handler:    _ActorService_SetEnabled_Handler,
+		},
+		{
+			MethodName: "TouchLastVisit",
+			Handler:    _ActorService_TouchLastVisit_Handler,
 		},
 		{
 			MethodName: "Ping",

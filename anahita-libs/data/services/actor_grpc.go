@@ -41,6 +41,9 @@ type ActorsGRPCInterface interface {
 	// SetEnabled turns an actor on or off. Reversible.
 	SetEnabled(id int64, enabled bool, viewer *entities.Viewer) (bool, error)
 
+	// TouchLastVisit records that an actor just signed in.
+	TouchLastVisit(id int64) (bool, error)
+
 	// Purge destroys an actor immediately, skipping the grace period.
 	//
 	// SUPER ADMINISTRATORS ONLY, and the caller enforces that — graph-grpc has
@@ -449,6 +452,29 @@ func (srv *ActorsGRPC) SetEnabled(id int64, enabled bool, viewer *entities.Viewe
 		Id:      id,
 		Enabled: enabled,
 		Viewer:  viewerToGrpc(viewer),
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return resp.Changed, nil
+}
+
+// TouchLastVisit records that an actor just signed in.
+//
+// No viewer: the person is acting as themselves and the caller has already
+// authenticated them.
+func (srv *ActorsGRPC) TouchLastVisit(id int64) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.TouchLastVisit(context.Background(), &graphpb.ActorTouchLastVisitRequest{
+		Id: id,
 	})
 	if err != nil {
 		return false, err

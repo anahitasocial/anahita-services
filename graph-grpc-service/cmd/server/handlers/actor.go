@@ -638,6 +638,38 @@ func (h *actorHandler) Archive(ctx context.Context, req *graphpb.ActorArchiveReq
 	return &graphpb.ActorArchiveResponse{Archived: true}, nil
 }
 
+// TouchLastVisit records that an actor just signed in.
+//
+// No viewer and no permission check: the caller has already authenticated the
+// person, and there is nothing here that could be used against somebody else's
+// account beyond moving a timestamp forward on it.
+//
+// Narrowed to people. Only a person signs in — a group or an event has no
+// credentials — so a request naming any other actor type is a caller bug and
+// says so rather than quietly stamping a group.
+func (h *actorHandler) TouchLastVisit(ctx context.Context, req *graphpb.ActorTouchLastVisitRequest) (*graphpb.ActorTouchLastVisitResponse, error) {
+	actor, err := h.env.Repos.Nodes.Read(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if actor.Type != constants.NodeActorPersonEntityType {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"only a person signs in, not %s", actor.Type)
+	}
+
+	changed, err := h.env.Repos.Nodes.TouchLastVisit(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	// No audit entry and no event. A sign-in is already recorded in the auth
+	// log, which carries the device and the address this does not; publishing
+	// it again here would put a lifecycle event on the bus for every sign-in
+	// on the site.
+	return &graphpb.ActorTouchLastVisitResponse{Changed: changed}, nil
+}
+
 // SetEnabled turns an actor on or off.
 //
 // The reversible one. Its own RPC rather than a field on Edit because

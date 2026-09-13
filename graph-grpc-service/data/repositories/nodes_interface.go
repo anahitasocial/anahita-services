@@ -60,6 +60,10 @@ type NodesRepoInterface interface {
 	// writes that column on its own.
 	SetEnabled(id int64, enabled bool) (bool, error)
 
+	// TouchLastVisit records that an actor just signed in. See
+	// nodes_last_visit.go for why it is not a field on Edit.
+	TouchLastVisit(id int64) (bool, error)
+
 	// SoftDeleteActor marks an actor deleted and disables it, leaving everything
 	// it owns in place so a restore brings the profile back whole.
 	SoftDeleteActor(id int64) (bool, error)

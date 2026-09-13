@@ -324,7 +324,38 @@ func (h *oauthHandler) writeViewerSession(c echo.Context, user *entities.User) e
 
 	h.indexIdPSession(user.ID, sessionID)
 
+	h.touchLastVisit(user)
+
 	return nil
+}
+
+// touchLastVisit records that this person just signed in.
+//
+// Placed in writeViewerSession because that is the one thing both login paths
+// share — password and passkey — so neither can be added to without getting
+// this too.
+//
+// The column has been there all along and was written only by the INSERT that
+// created the account, so for every existing person it holds their join date
+// under a name that says otherwise. Anything reading it to find dormant
+// accounts was reading the wrong number.
+//
+// Through the graph, not a direct UPDATE: `nodes` belongs to
+// graph-grpc-service, and this is the last write auth had any reason to make
+// to it.
+//
+// FIRE AND FORGET, and that is the point. A sign-in must not fail, or wait, on
+// a bookkeeping stamp — an unresponsive graph would otherwise hold the login
+// form open while the person's credentials were already accepted. Landing a
+// few milliseconds after the redirect costs nothing that matters.
+func (h *oauthHandler) touchLastVisit(user *entities.User) {
+	personID := user.ID
+
+	go func() {
+		if _, err := h.Srv.ActorsGRPC.TouchLastVisit(personID); err != nil {
+			log.Printf("login: could not record the visit (person=%d): %v", personID, err)
+		}
+	}()
 }
 
 // finalizeLogin builds the Viewer, persists it to the IdP session,
