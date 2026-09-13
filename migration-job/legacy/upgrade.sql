@@ -736,11 +736,13 @@ DEALLOCATE PREPARE stmt;
 
 -- --------------------------------------------------------
 
--- Person identity onto `nodes`, and credentials into `auth_accounts`.
+-- Person identity onto `nodes`, and credentials into `auth_accounts`, then
+-- `people_people` is dropped.
 --
--- Additive: people_people is left exactly as it was, so this file produces the
--- same schema as schema/init.sql while the code still reads the old shape. A
--- later change drops it once nothing does.
+-- The drop belongs here rather than being left to goose: entrypoint.sh runs
+-- this file INSTEAD of the migrations and then stamps them all as applied, so
+-- whatever this file does not do never happens. It has to arrive at the same
+-- schema schema/init.sql produces, which no longer has the table.
 
 ALTER TABLE nodes ADD COLUMN `person_type` varchar(50) DEFAULT NULL;
 ALTER TABLE nodes ADD COLUMN `person_pronouns` varchar(50) DEFAULT NULL;
@@ -801,6 +803,21 @@ INSERT INTO auth_accounts
 SELECT node_id, email, password, totp_secret, totp_enabled,
        totp_recovery_codes, totp_last_verified_at
 FROM people_people;
+
+-- Everything worth keeping is now on `nodes` and in `auth_accounts`.
+--
+-- Not carried over, and gone once this runs: given_name and family_name
+-- (truncated at the first non-ASCII byte, while nodes.name is intact),
+-- username (identical to nodes.alias on every row), time_zone and language
+-- (identical to nodes.timezone and nodes.language), network_presence and
+-- activation_code (dead), and gender — replaced by nodes.person_pronouns,
+-- which is free text; "male"/"female" is not a pronoun and converting it
+-- would be guessing on somebody's behalf.
+--
+-- This file only ever runs against a copy of a legacy database, and the
+-- original is still wherever it was dumped from, so there is nothing here to
+-- lose that is not already held somewhere else.
+DROP TABLE people_people;
 
 -- --------------------------------------------------------
 

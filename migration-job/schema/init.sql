@@ -236,34 +236,6 @@ CREATE TABLE auth_accounts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
-CREATE TABLE people_people (
-    `people_person_id` bigint unsigned NOT NULL AUTO_INCREMENT,
-    `node_id` BIGINT UNSIGNED NOT NULL,
-    `email` varchar(255) DEFAULT NULL,
-    `username` varchar(255) DEFAULT NULL,
-    `password` varchar(255) DEFAULT NULL,
-    `usertype` varchar(50) DEFAULT NULL,
-    `gender` varchar(50) DEFAULT NULL,
-    `given_name` varchar(255) DEFAULT NULL,
-    `family_name` varchar(255) DEFAULT NULL,
-    `network_presence` tinyint(3) NOT NULL DEFAULT 0,
-    `last_visit_date` datetime DEFAULT NULL,
-    `time_zone` int(11) DEFAULT NULL,
-    `language` varchar(100) DEFAULT NULL,
-    `activation_code` varchar(255) DEFAULT NULL,
-    `totp_secret` varchar(255) DEFAULT '',
-    `totp_enabled` tinyint(1) NOT NULL DEFAULT 0,
-    `totp_recovery_codes` mediumtext DEFAULT NULL,
-    `totp_last_verified_at` datetime DEFAULT NULL,
-    PRIMARY KEY (`people_person_id`),
-    KEY `usertype` (`usertype`),
-    UNIQUE KEY `username` (`username`),
-    UNIQUE KEY `email` (`email`),
-    UNIQUE KEY `node_id` (`node_id`),
-    KEY `last_visit_date` (`last_visit_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
--- --------------------------------------------------------
-
 CREATE TABLE notifications (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `type` varchar(255) NOT NULL,
