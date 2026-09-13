@@ -1,12 +1,18 @@
 -- --------------------------------------------------------
 
 CREATE TABLE nodes (
-  `id` SERIAL,
-  `type` varchar(255) NOT NULL,
-  `service` varchar(100) NOT NULL,
-  `name` varchar(255) CHARACTER SET utf8mb4,
-  `alias` varchar(255) CHARACTER SET utf8mb4,
-  `body` mediumtext CHARACTER SET utf8mb4,
+  -- Not SERIAL. SERIAL expands to BIGINT UNSIGNED AUTO_INCREMENT UNIQUE, so
+  -- every row carried a redundant unique index on `id` alongside the primary
+  -- key, and every insert maintained both.
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  -- 128 for the same reason as edges: an ASCII identifier from a fixed
+  -- grammar, longest 42 characters. It also carries five composite indexes,
+  -- so the width is paid for five times over.
+  `type` varchar(128) NOT NULL,
+  `service` varchar(255) NOT NULL,
+  `name` varchar(255),
+  `alias` varchar(255),
+  `body` mediumtext,
   `start_date` datetime DEFAULT NULL,
   `end_date` datetime DEFAULT NULL,
   `owner_type` varchar(255) DEFAULT NULL,
@@ -23,10 +29,14 @@ CREATE TABLE nodes (
   `verified` tinyint(1) NOT NULL DEFAULT 0,
   `pinned` tinyint(1) NOT NULL DEFAULT 0,
   `is_default` tinyint(1) NOT NULL DEFAULT 0,
-  `meta` text DEFAULT NULL,
+  -- mediumtext, not text: CONVERT TO CHARACTER SET utf8mb4 promotes a text
+  -- column to preserve its character capacity, so a database migrated by
+  -- legacy/upgrade.sql ends up with mediumtext. Declared here so the two
+  -- paths produce the same schema.
+  `meta` mediumtext DEFAULT NULL,
   -- One link on an actor profile. Replaces the website/contact/phone trio that
   -- used to be read out of `meta`, none of which any Go request ever accepted.
-  `website_url` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
+  `website_url` varchar(255) DEFAULT NULL,
   `hits` int(11) unsigned DEFAULT NULL,
   `parent_id` bigint(11) unsigned DEFAULT NULL,
   `parent_type` varchar(255) DEFAULT NULL,
@@ -41,13 +51,12 @@ CREATE TABLE nodes (
   `created_by` bigint(11) unsigned DEFAULT NULL,
   `modified_on` datetime DEFAULT NULL,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
-  `actor_gender` varchar(50) DEFAULT NULL,
   `filename` varchar(255) DEFAULT NULL,
   `filesize` int(11) DEFAULT NULL,
   `cover_filename` varchar(255) DEFAULT NULL,
   `cover_filesize` int(11) DEFAULT NULL,
   `cover_mimetype` varchar(100) DEFAULT NULL,
-  `status` text,
+  `status` mediumtext,
   `status_update_time` datetime DEFAULT NULL,
   `follower_count` int(11) unsigned DEFAULT NULL,
   `leader_count` int(11) unsigned DEFAULT NULL,
@@ -56,13 +65,19 @@ CREATE TABLE nodes (
   `subscriber_count` int(11) unsigned DEFAULT NULL,
   `vote_up_count` int(11) unsigned DEFAULT NULL,
   `vote_down_count` int(11) unsigned DEFAULT NULL,
-  `excerpt` text CHARACTER SET utf8mb4,
+  `excerpt` text,
   `mimetype` varchar(100) DEFAULT NULL,
-  `time_zone` int(11) DEFAULT NULL,
-  `language` varchar(100) DEFAULT NULL,
+  -- `timezone`, not `time_zone`: the Go read path selects `node.timezone`
+  -- (graph-grpc-service/data/repositories/helpers.go), and this file spelled it
+  -- with an underscore while the column the code needs was never created here
+  -- at all. A fresh install therefore failed every node read.
+  `timezone` int(11) DEFAULT NULL,
+  `language` varchar(50) DEFAULT NULL,
   `access` varchar(255) NOT NULL,
-  `permissions` text,
-  `enabled_optional_features` text,
+  -- The per-node-type optional feature set, as JSON. Named `features` because
+  -- that is what the code selects; this file called it
+  -- `enabled_optional_features`, which nothing has ever read.
+  `features` mediumtext,
   -- When an actor was scheduled for deletion. NULL for everything that is not
   -- deleted, which is almost every row.
   --
@@ -99,17 +114,26 @@ CREATE TABLE nodes (
   KEY `type_created_on` (`type`,`created_on`),
   KEY `type_status_update_time` (`type`,`status_update_time`),
   KEY `type_default` (`type`,`is_default`)
-) ENGINE=InnoDB CHARACTER SET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
 CREATE TABLE edges (
-  `id` SERIAL,
-  `type` varchar(255) NOT NULL,
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  -- 128, not 255. These are machine-generated ASCII identifiers from a fixed
+  -- grammar — `edge.<family>.<name>.v1`, `node.<family>.<service>.<entity>.v1`
+  -- — and the longest in the database is 42 characters.
+  --
+  -- The size is load-bearing, not cosmetic: uc_edge spans all three type
+  -- columns, and at varchar(255) under utf8mb4 that key is 3*255*4 + 16 =
+  -- 3076 bytes, four over InnoDB's 3072 limit. The table simply will not
+  -- create. It fitted only while the schema was utf8 at three bytes a
+  -- character.
+  `type` varchar(128) NOT NULL,
   `node_a_id` bigint(11) unsigned NOT NULL,
-  `node_a_type` varchar(255) NOT NULL,
+  `node_a_type` varchar(128) NOT NULL,
   `node_b_id` bigint(11) unsigned NOT NULL,
-  `node_b_type` varchar(255) NOT NULL,
-  `meta` text,
+  `node_b_type` varchar(128) NOT NULL,
+  `meta` mediumtext,
   `created_on` datetime DEFAULT NULL,
   `created_by` bigint(11) unsigned DEFAULT NULL,
   `modified_on` datetime DEFAULT NULL,
@@ -124,11 +148,11 @@ CREATE TABLE edges (
   KEY `start_date` (`start_date`),
   KEY `end_date` (`end_date`),
   CONSTRAINT uc_edge UNIQUE(`type`,`node_a_id`,`node_a_type`,`node_b_id`,`node_b_type`)
-) ENGINE=InnoDB CHARACTER SET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
 CREATE TABLE people_people (
-    `people_person_id` SERIAL,
+    `people_person_id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `node_id` BIGINT UNSIGNED NOT NULL,
     `email` varchar(255) DEFAULT NULL,
     `username` varchar(255) DEFAULT NULL,
@@ -144,7 +168,7 @@ CREATE TABLE people_people (
     `activation_code` varchar(255) DEFAULT NULL,
     `totp_secret` varchar(255) DEFAULT '',
     `totp_enabled` tinyint(1) NOT NULL DEFAULT 0,
-    `totp_recovery_codes` text DEFAULT NULL,
+    `totp_recovery_codes` mediumtext DEFAULT NULL,
     `totp_last_verified_at` datetime DEFAULT NULL,
     PRIMARY KEY (`people_person_id`),
     KEY `usertype` (`usertype`),
@@ -152,11 +176,11 @@ CREATE TABLE people_people (
     UNIQUE KEY `email` (`email`),
     UNIQUE KEY `node_id` (`node_id`),
     KEY `last_visit_date` (`last_visit_date`)
-) ENGINE=InnoDB CHARACTER SET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
 CREATE TABLE notifications (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `type` varchar(255) NOT NULL,
     `service` varchar(255) NOT NULL,
     `recipient_id` bigint(11) unsigned DEFAULT NULL,
@@ -182,11 +206,11 @@ CREATE TABLE notifications (
     KEY `comment_id` (`comment_id`),
     KEY `created_on` (`created_on`),
     KEY `modified_on` (`modified_on`)
-) ENGINE=InnoDB CHARACTER SET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
 CREATE TABLE auth_logs (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `created_on` datetime DEFAULT NULL,
     `created_by` BIGINT UNSIGNED NOT NULL,
     `agent_device` varchar(50) DEFAULT 'bot',
@@ -198,7 +222,7 @@ CREATE TABLE auth_logs (
     `oauth_refresh_token_id` bigint(11) unsigned NOT NULL,
     `client_id` varchar(255) NOT NULL,
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB CHARACTER SET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 CREATE INDEX idx_auth_logs_created_by ON auth_logs (created_by);
 CREATE INDEX idx_auth_logs_created_on ON auth_logs (created_on);
 CREATE INDEX idx_auth_logs_created_by_client_id_created_on ON auth_logs (created_by, client_id, created_on DESC);
@@ -221,7 +245,7 @@ CREATE INDEX idx_auth_logs_oauth_refresh_token_id ON auth_logs (oauth_refresh_to
 -- along with its subject is not an audit trail. It holds no personal data
 -- beyond the two ids and the alias.
 CREATE TABLE node_deletion_logs (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     -- The node that was deleted.
     `node_id` bigint(11) unsigned NOT NULL,
     -- The alias at the time, kept because a tombstone can be scrubbed by a
@@ -240,7 +264,7 @@ CREATE TABLE node_deletion_logs (
     `action` varchar(20) NOT NULL,
     `created_on` datetime NOT NULL,
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB CHARACTER SET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 CREATE INDEX idx_node_deletion_logs_node_id ON node_deletion_logs (node_id);
 CREATE INDEX idx_node_deletion_logs_created_on ON node_deletion_logs (created_on);
 
@@ -274,7 +298,7 @@ CREATE INDEX idx_edges_type_nodeb_nodea  ON edges (type, node_b_id, node_a_id);
 -- --------------------------------------------------------
 
 CREATE TABLE oauth_authorizations (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `code_hash` varchar(255) NOT NULL,
     `client_id` varchar(255) NOT NULL,
     `user_id` bigint(11) unsigned NOT NULL,
@@ -294,12 +318,12 @@ CREATE TABLE oauth_authorizations (
     KEY `idx_client_id` (`client_id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_expires_at` (`expires_at`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
 CREATE TABLE oauth_clients (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `client_id` varchar(255) NOT NULL,
     `secret_hash` varchar(255) NOT NULL,
     `name` varchar(128) NOT NULL,
@@ -329,12 +353,12 @@ CREATE TABLE oauth_clients (
     UNIQUE KEY `idx_client_id` (`client_id`),
     KEY `idx_active` (`active`),
     KEY `idx_created_by` (`created_by`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
 CREATE TABLE oauth_refresh_tokens (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `token_hash` varchar(255) NOT NULL,
     `user_id` bigint(11) unsigned NOT NULL,
     `client_id` varchar(255) NOT NULL,
@@ -360,12 +384,12 @@ CREATE TABLE oauth_refresh_tokens (
     KEY `idx_user_id` (`user_id`),
     KEY `idx_client_id` (`client_id`),
     KEY `idx_revoked_expires` (`revoked`, `expires_at`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
 CREATE TABLE oauth_signing_keys (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `key_id` varchar(255) NOT NULL,
     `algorithm` varchar(10) NOT NULL DEFAULT 'RS256',
     `public_key` text NOT NULL,
@@ -380,7 +404,7 @@ CREATE TABLE oauth_signing_keys (
     UNIQUE KEY `idx_key_id` (`key_id`),
     KEY `idx_active` (`active`),
     KEY `idx_active_expires` (`active`, `expires_at`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -390,7 +414,7 @@ CREATE TABLE oauth_signing_keys (
 -- reference auth_logs.created_by uses. No foreign key, matching the
 -- rest of this schema.
 CREATE TABLE tokens (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     -- Where the token is SENT. For an emailchange token that is the
     -- person's current address, not the one they are moving to: the
     -- current inbox is what has to approve the move, so a stolen session
@@ -426,7 +450,7 @@ CREATE TABLE tokens (
     KEY `idx_tokens_recipient_email` (`recipient_email`),
     KEY `idx_tokens_created_by` (`created_by`),
     KEY `idx_tokens_created_at` (`created_at`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -438,7 +462,7 @@ CREATE TABLE tokens (
 -- deletion must call DeleteByPersonID explicitly: a recycled node id
 -- would otherwise inherit a stranger's passkey.
 CREATE TABLE webauthn_credentials (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `user_id` bigint(11) unsigned NOT NULL,
     -- Raw authenticator-generated identifier, stored as bytes rather
     -- than base64url so the login lookup does not depend on encoding
@@ -477,4 +501,4 @@ CREATE TABLE webauthn_credentials (
     -- is the login lookup.
     UNIQUE KEY `idx_webauthn_credentials_credential_id` (`credential_id`),
     KEY `idx_webauthn_credentials_user_id` (`user_id`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
