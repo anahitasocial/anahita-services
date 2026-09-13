@@ -111,14 +111,10 @@ func (repo *tokens) Browse(tokenType string, req *requests.Browse) ([]*entities.
 			&token.UpdatedBy,
 			&token.Creator.ID,
 			&token.Creator.Type,
-			&token.Creator.GivenName,
-			&token.Creator.FamilyName,
-			&token.Creator.Email,
+			&token.Creator.Name,
 			&token.Editor.ID,
 			&token.Editor.Type,
-			&token.Editor.GivenName,
-			&token.Editor.FamilyName,
-			&token.Editor.Email,
+			&token.Editor.Name,
 		); err != nil {
 			return nil, err
 		}

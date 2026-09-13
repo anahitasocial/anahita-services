@@ -38,15 +38,27 @@ func NewPersonRequest() *PersonRequest {
 }
 
 type PersonReadRequest struct {
-	Username string `param:"username" validate:"required,max=100,alphanumunicode"`
+	// The handle, which is nodes.alias. `alphanumunicode` is gone: it is
+	// ^[\p{L}\p{N}]+$, so it rejects the hyphen that slugged handles use.
+	Alias string `param:"username" validate:"required,max=100"`
 }
 
 type PersonEditRequest struct {
-	ID         int64  `param:"id" validate:"required,numeric"`
-	GivenName  string `form:"given_name" validate:"required,max=100,alphanumunicode"`
-	FamilyName string `form:"family_name" validate:"required,max=100,alphanumunicode"`
-	Body       string `form:"body" validate:"omitempty,max=8000"`
-	Gender     string `form:"gender" validate:"max=10,omitempty,oneof=male female other"`
+	ID int64 `param:"id" validate:"required,numeric"`
+	// One name, free-form.
+	//
+	// given_name and family_name are gone. They assumed a Western name
+	// structure, and `alphanumunicode` — ^[\p{L}\p{N}]+$ — rejected every
+	// space, hyphen and apostrophe, so "Jean-Luc", "O'Brien" and "van der
+	// Berg" could not be saved at all. nodes.name already held the right value
+	// while those two were truncated at the first non-ASCII byte.
+	Name string `form:"name" validate:"required,max=100"`
+	Body string `form:"body" validate:"omitempty,max=8000"`
+	// Free text, e.g. "she/her" or "iel". The gender enum it replaces was
+	// broken in both directions: the validator allowed "other", which the
+	// handler discarded, and the handler stored "neutral", which the validator
+	// rejected.
+	PersonPronouns string `form:"person_pronouns" validate:"omitempty,max=50"`
 	// Normalised before validation so a bare "example.com" is accepted;
 	// http_url then enforces the scheme, which is what keeps a javascript:
 	// value out of an anchor href on a public profile.

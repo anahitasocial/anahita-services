@@ -2,24 +2,27 @@ package entities
 
 import (
 	"anahita-libs/constants"
-	"errors"
 	"time"
 )
 
+// Person is an actor node of the person type.
+//
+// It carries no fields of its own any more. Every one it used to declare —
+// PersonType, Email, Username, GivenName, FamilyName, Gender, LastVisitDate —
+// was a copy of a people_people column read by person-service and merged onto
+// the embedded node at request time.
+//
+// Those copies were worse than redundant once person_type, name, alias and
+// last_visit_date moved onto the node: an outer field of the same name SHADOWS
+// the embedded one, so assigning the node left the outer copy empty and every
+// reader of `person.PersonType` got "". The type stays as a name for "an actor
+// that is a person", which is what the handlers and the response mapper talk
+// about.
 type Person struct {
 	AnahitaNode
-
-	PersonType    string    `json:"usertype"`
-	Email         string    `json:"email"`
-	Username      string    `json:"username"`
-	Password      string    `json:"-"`
-	LastVisitDate time.Time `json:"last_visit_date"`
-	GivenName     string    `json:"given_name,omitempty"`
-	FamilyName    string    `json:"family_name,omitempty"`
-	Gender        string    `json:"gender,omitempty"`
 }
 
-// NewUser creates a new user
+// NewPerson returns an empty person node with the type defaults set.
 func NewPerson() *Person {
 	person := &Person{}
 
@@ -29,31 +32,15 @@ func NewPerson() *Person {
 	person.Service = constants.PersonService
 	person.CreationTime = time.Now()
 	person.UpdateTime = time.Now()
-	person.LastVisitDate = time.Now()
 
 	return person
 }
 
-// Validate validates the person
-func (p *Person) Validate() error {
-	if p.Username == "" {
-		return errors.New("username is required")
-	}
-
-	// if p.Password == "" {
-	// 	return errors.New("password is required")
-	// }
-
-	if p.Email == "" {
-		return errors.New("email is required")
-	}
-
-	if p.PersonType == "" {
-		return errors.New("user type is required")
-	}
-
-	return nil
-}
+// Validate is gone with the fields it checked.
+//
+// It required a username, an email and a usertype — all of them people_people
+// columns. The node's own validation lives in graph-grpc-service, next to the
+// insert it guards.
 
 func (p *Person) IsGuest() bool {
 	return p.PersonType == constants.PersonTypeGuest
