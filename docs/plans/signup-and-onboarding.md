@@ -306,6 +306,30 @@ the onboarding step has no signal to act on.
 
 Post-login, skippable, and **not a gate**. Avatar, bio, pronouns, topics.
 
+**Accepting an invitation does not create a follow.** Invites are admin and
+super-admin only — the permission calls them "inherently a managing people
+operation" — so the inviter is usually somebody doing a job, not a friend.
+Auto-following would build a graph centred on staff as an artifact of the
+mechanism: an administrator who onboards fifty people collects fifty followers
+they never chose, and every new member's first relationship is with whoever
+processed them.
+
+It is also a public claim made on somebody's behalf. `follower_count` and
+`leader_count` are public, the edge is public, and `AllowFollowRequest` exists
+precisely so an actor can require approval first — which an automatic follow
+would have to either honour, dragging a pending-request state into signup, or
+deliberately bypass.
+
+Neither Mastodon nor Bluesky creates a follow from an invite.
+
+The problem underneath is real, though: an account with no follows has an empty
+feed, which is the worst possible first impression. That is what this item is
+for. **Put the inviter at the top of the suggested follows, pre-ticked** — the
+relationship is the best signal available — and let one click decline it. If
+invites are ever opened to ordinary members the friend case becomes common and
+the argument weakens, but a pre-ticked suggestion is still the right shape: the
+click is the difference between suggesting and deciding for somebody.
+
 Measured on the live data, hard-gating on profile completeness would bounce
 most of the member base out of the app on their next login:
 
