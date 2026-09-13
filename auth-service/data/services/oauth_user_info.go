@@ -10,13 +10,22 @@ import (
 )
 
 // GetUserInfo returns the OIDC userinfo claims for the authenticated
-// viewer. Returns a hybrid payload: standard OIDC claims (sub, email,
-// name, given_name, family_name) for OIDC-conformant clients, plus
-// the full user shape that client side apps expect.
+// viewer. Returns a hybrid payload: the standard OIDC claims (sub, email,
+// name, preferred_username) for OIDC-conformant clients, plus the actor
+// shape client-side apps expect.
+//
+// The non-standard half is named like the rest of the platform — `alias`,
+// `person_type` — not like the OIDC half. Only a claim an external
+// specification actually names keeps protocol vocabulary, and
+// preferred_username is the only one here that does. `username` and
+// `usertype` were neither: they were leftovers, and because this endpoint
+// is the ONLY one whose response the web app does not run through its
+// camel-casing interceptor, they were leftovers nothing else in the client
+// agreed with.
 //
 // Field selection is scope-gated per OIDC §5.4:
 //   - "openid"  → sub (always)
-//   - "profile" → name, given_name, family_name, person fields
+//   - "profile" → name, preferred_username, and the actor fields
 //   - "email"   → email
 //
 // Scopes the client wasn't granted are silently omitted; this is the
@@ -42,7 +51,7 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 		// this and the numeric id does not resolve those routes, so a
 		// viewer without it cannot look itself up.
 		info["preferred_username"] = user.Alias // OIDC standard claim
-		info["username"] = user.Alias           // custom
+		info["alias"] = user.Alias              // custom, and what every other actor calls it
 
 		// Avatar, keyed by size and shaped like every other node
 		// response so clients can reuse the same rendering path.
@@ -56,9 +65,9 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 			info["avatar_urls"] = libs_responses.NewAvatar(user.Avatar)
 		}
 
-		// Anahita–specific person fields. Snake_case to match
-		// the rest of the auth-service JSON conventions; axios
-		// interceptors on the frontend convert to camelCase.
+		// Anahita-specific actor fields. Snake_case to match the rest of
+		// the platform's JSON; the web app camel-cases them on the way in,
+		// as it does every other response.
 		info["id"] = user.ID
 		info["type"] = user.Type
 		info["enabled"] = user.Enabled
@@ -66,7 +75,13 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 		// The viewer's role. Clients gate their authenticated routes on
 		// this — a viewer whose cached profile is missing it reads as an
 		// unauthenticated guest and gets bounced to the login screen.
-		info["usertype"] = user.PersonType
+		//
+		// `person_type`, matching nodes.person_type and every other actor
+		// payload. As `usertype` it did not match, and the web app's
+		// permission helpers all read the actor spelling — so every
+		// administration control in the client was off for everybody,
+		// super administrators included.
+		info["person_type"] = user.PersonType
 		info["totp_enabled"] = user.TotpEnabled
 		info["last_visit_date"] = user.LastVisitDate
 	}
