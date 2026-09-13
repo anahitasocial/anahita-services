@@ -448,7 +448,21 @@ the onboarding step has no signal to act on.
 
 ### 9. Onboarding — separate plan
 
-Post-login, skippable, and **not a gate**. Avatar, bio, pronouns, topics.
+Post-login, skippable, and **not a gate**. Avatar, display name, bio, website,
+pronouns, topics.
+
+**Pronouns belong here rather than at signup**, and the component is already
+built: `SelectPronouns` takes its options from the language files rather than a
+constant, so each locale ships the set that makes sense in its own language and
+one with nothing to offer ships none. "Unset" is a real option and the default,
+which is exactly the property that makes it wrong to require at signup and fine
+to offer here — the answer is given to the community, not to a gatekeeper
+deciding whether to admit you.
+
+The same fields `approval` mode required, `invite` mode offered and `open` mode
+never asked for all converge here. Somebody who filled them in at the door
+arrives with them pre-filled and skips ahead; somebody who did not is asked
+once, kindly, and may decline.
 
 **Accepting an invitation does not create a follow.** Invites are admin and
 super-admin only — the permission calls them "inherently a managing people
