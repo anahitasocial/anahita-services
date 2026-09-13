@@ -47,7 +47,12 @@ func userColumns() []string {
 		"COALESCE(usertype, '') AS usertype",
 		"COALESCE(service, '') AS service",
 		"COALESCE(filename, '') AS filename",
-		"last_visit_date",
+		// Qualified, because `nodes` now has a last_visit_date too and every
+		// query here joins the two tables. An unqualified reference is
+		// "Column 'last_visit_date' in field list is ambiguous", which fails
+		// the read outright — it took out /oauth/authorize the moment the
+		// column landed on nodes.
+		"people_people.last_visit_date",
 		"created_on",
 		"modified_on",
 		"totp_enabled",
@@ -135,7 +140,12 @@ func userBrowseColumns() []string {
 		"COALESCE(usertype, '') AS usertype",
 		"COALESCE(service, '') AS service",
 		"COALESCE(filename, '') AS filename",
-		"last_visit_date",
+		// Qualified, because `nodes` now has a last_visit_date too and every
+		// query here joins the two tables. An unqualified reference is
+		// "Column 'last_visit_date' in field list is ambiguous", which fails
+		// the read outright — it took out /oauth/authorize the moment the
+		// column landed on nodes.
+		"people_people.last_visit_date",
 		"created_on",
 		"modified_on",
 	}

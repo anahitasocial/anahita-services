@@ -1,6 +1,7 @@
 package validators
 
 import (
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"errors"
 )
@@ -73,8 +74,22 @@ func (v *ActorValidator) ValidateAdd(node *entities.AnahitaNode) error {
 		return err
 	}
 
-	if node.CreatedBy <= 0 {
-		return errors.New("invalid creator ID for note creation")
+	// A person has no creator; every other actor does.
+	//
+	// A group or an event is made BY somebody, and recording who is worth
+	// requiring. A person node is the somebody: at signup there is no other
+	// party, and no id to name even in principle, because the id being
+	// validated is the one the insert is about to assign. Invite-accept is the
+	// same — the invitation came from an administrator, but the account is the
+	// invitee's own.
+	//
+	// This check never ran on that path before. Signup wrote `nodes` with a
+	// direct INSERT from auth-service, which reached no validator at all and
+	// left created_by NULL. Routing signup through ActorService is what
+	// surfaced it, and the honest answer is that the requirement does not
+	// apply to a person rather than that signup should invent a creator.
+	if node.Type != constants.NodeActorPersonEntityType && node.CreatedBy <= 0 {
+		return errors.New("an actor must record who created it")
 	}
 
 	return nil

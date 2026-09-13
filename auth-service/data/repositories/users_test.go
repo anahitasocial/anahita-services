@@ -265,12 +265,12 @@ func TestEditEmailNarrowsOnTheOwner(t *testing.T) {
 // The handle is both the sign-in identifier and the profile slug, stored in
 // two columns. A statement that set only one leaves them disagreeing, so the
 // profile URL and the login name drift apart.
-func TestEditUsernameWritesBothColumns(t *testing.T) {
+func TestEditUsernameLeavesTheNodeAlone(t *testing.T) {
 	db, mock, seen := newCapturingDB(t)
 	repo := &Users{db: db}
 
 	mock.ExpectExec("update").
-		WithArgs("newhandle", "newhandle", int64(42), int64(42)).
+		WithArgs("newhandle", int64(42)).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	if err := repo.EditUsername("newhandle", 42); err != nil {
@@ -278,11 +278,19 @@ func TestEditUsernameWritesBothColumns(t *testing.T) {
 	}
 
 	stmt := strings.ToLower(statementTouching(t, seen, "UPDATE"))
-	if !strings.Contains(stmt, "alias") {
-		t.Errorf("the profile slug was not updated with the handle:\n%s", stmt)
-	}
 	if !strings.Contains(stmt, "username") {
 		t.Errorf("the sign-in handle was not updated:\n%s", stmt)
+	}
+
+	// The handle and the profile slug are still the same value, but the slug
+	// is nodes.alias and belongs to graph-grpc-service. This statement used to
+	// write both through a join, which bypassed the actor namespace the graph
+	// enforces — so a handle already taken by another actor was accepted here.
+	//
+	// username_change.go now moves the alias through ActorsGRPC first and only
+	// calls this once the graph has accepted it.
+	if strings.Contains(stmt, "nodes") || strings.Contains(stmt, "alias") {
+		t.Errorf("the credential update reached into the graph's table:\n%s", stmt)
 	}
 }
 
@@ -290,34 +298,9 @@ func TestEditUsernameWritesBothColumns(t *testing.T) {
 // Restore
 // ---------------------------------------------------------------------
 
-// Restore reports whether it actually changed a row. Without that, somebody
-// signing in during the grace period could be told their account was back when
-// the sweeper had already purged it.
-func TestRestoreReportsWhetherARowChanged(t *testing.T) {
-	cases := []struct {
-		name     string
-		affected int64
-		want     bool
-	}{
-		{"a deleted account comes back", 1, true},
-		{"nothing was scheduled", 0, false},
-	}
+// The Restore test is gone with the method. Restoring an account is
+// ActorService.Restore now: the graph writes the node_deletion_logs entry and
+// publishes the event, neither of which an UPDATE from this side did. What is
+// worth asserting about it belongs to graph-grpc-service, which has its own
+// lifecycle tests.
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			db, mock, _ := newCapturingDB(t)
-			repo := &Users{db: db}
-
-			mock.ExpectExec("update").WithArgs(int64(42)).
-				WillReturnResult(sqlmock.NewResult(0, tc.affected))
-
-			ok, err := repo.Restore(42)
-			if err != nil {
-				t.Fatalf("restore: %v", err)
-			}
-			if ok != tc.want {
-				t.Errorf("Restore() = %v, want %v", ok, tc.want)
-			}
-		})
-	}
-}

@@ -6,6 +6,7 @@ import (
 	"auth/requests"
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 
 	sq "github.com/Masterminds/squirrel"
@@ -23,7 +24,6 @@ type UsersInterface interface {
 	EditPassword(password string, id int64) error
 	EditEmail(email string, id int64) error
 	EditUsername(username string, id int64) error
-	Restore(id int64) (bool, error)
 	Delete(id int64) error
 	IsEmail(email string) (bool, error)
 	IsUsername(username string) (bool, error)
@@ -258,53 +258,28 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
+	// The node is NOT created here any more.
+	//
+	// This used to INSERT INTO nodes directly, inside a transaction with the
+	// row below. `nodes` belongs to graph-grpc-service, and writing it from
+	// here meant signup, invite-accept and username change all bypassed every
+	// validator, default and event the graph applies on actor creation — a
+	// person node created by this path got no default features and published
+	// no "actor added" event.
+	//
+	// The caller now creates the actor through ActorsGRPC and passes a user
+	// whose ID is already set. See signup.go and invite_accept.go, which also
+	// carry the compensating delete: the two writes are no longer one
+	// transaction and cannot be, so a failure here has to unwind the node
+	// rather than roll back.
+	if user.ID == 0 {
+		return nil, errors.New("user.ID must be set by the caller: create the actor through ActorsGRPC first")
+	}
+
 	user.Type = constants.NodeActorPersonEntityType
 	user.Service = constants.PersonService
 
-	// Get a Tx for making transaction requests.
-	tx, err := repo.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
 	query := `
-		INSERT INTO nodes (
-			type,
-			service,
-			alias,
-			enabled,
-			created_on,
-			modified_on
-		) VALUES (
-			?,
-			?,
-			?,
-			?,
-			?,
-			?
-		)`
-
-	result, err := tx.ExecContext(
-		ctx,
-		query,
-		user.Type,
-		user.Service,
-		user.Username,
-		user.Enabled,
-		user.CreationTime,
-		user.UpdateTime,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	user.ID, err = result.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
-
-	query = `
 		INSERT INTO people_people (
 			node_id,
 			given_name,
@@ -325,7 +300,7 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 			?
 		)`
 
-	_, err = tx.ExecContext(
+	_, err := repo.db.ExecContext(
 		ctx,
 		query,
 		user.ID,
@@ -338,11 +313,6 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 		user.LastVisitDate,
 	)
 	if err != nil {
-		return nil, err
-	}
-
-	// Commit the transaction.
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 
@@ -380,32 +350,40 @@ func (repo *Users) Edit(user *entities.User) (*entities.User, error) {
 	// caller holding a User read before a concurrent change — a TOTP
 	// verify, a recovery-code burn — would silently write the old
 	// values back over the new ones.
+	// `nodes` is no longer in this statement, and neither is `enabled`.
+	//
+	// The join existed to write nodes.enabled and nodes.modified_on alongside
+	// the credential columns. Nothing routed a change to either: every caller
+	// of Edit — TOTP enrolment, passcode verification, recovery-code burn,
+	// sign-in — sets only TOTP fields, so `enabled` was written back with
+	// whatever value the caller's read happened to hold.
+	//
+	// That is the same hazard the comment above describes for usertype and
+	// email, one step from becoming real: a read that omits the column yields
+	// false, and the next Edit disables the account as a side effect of
+	// verifying a passcode. Removing the column removes the class.
+	//
+	// Enabling and disabling an actor is ActorService.SetEnabled, which is a
+	// single-purpose RPC that says what it does.
 	query := `
-		UPDATE nodes
-		INNER JOIN people_people ON people_people.node_id = nodes.id
+		UPDATE people_people
 		SET
-			enabled = ?,
 			password = ?,
-			modified_on = ?,
 			totp_enabled = ?,
 			totp_recovery_codes = ?,
 			totp_last_verified_at = ?,
 			totp_secret = ?
 		WHERE
-			nodes.id = ? AND
-			people_people.node_id = ?`
+			node_id = ?`
 
 	_, err := repo.db.ExecContext(
 		ctx,
 		query,
-		user.Enabled,
 		user.Password,
-		user.UpdateTime,
 		user.TotpEnabled,
 		user.TotpRecoveryCodes,
 		user.TotpLastVerifiedAt,
 		user.TotpSecret,
-		user.ID,
 		user.ID,
 	)
 
@@ -468,43 +446,16 @@ func (repo *Users) EditEmail(email string, id int64) error {
 	return nil
 }
 
-// Restore reverses a soft delete, within the grace period.
+// Restore is gone from this repository.
 //
-// Clears deleted_at and restores enabled, mirroring what SoftDeleteActor in
-// graph-grpc-service set. Written here rather than reached over gRPC because
-// auth-service already owns the login path where restoring happens, and already
-// writes to nodes through this same join.
+// It cleared nodes.deleted_at and set nodes.enabled with an UPDATE from here.
+// That is graph's lifecycle: the same transition there writes the
+// node_deletion_logs entry and publishes the restore event, so doing it from
+// this side brought an account back with no audit trail and nothing notified.
 //
-// The `deleted_at IS NOT NULL` guard is what makes this safe to call from a
-// login handler: an account that was never deleted, or whose grace period has
-// already been swept, is left exactly as it was and reports false. Without it
-// this would re-enable accounts an administrator had disabled.
-func (repo *Users) Restore(id int64) (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
-	defer cancel()
-
-	query := `
-		UPDATE nodes
-		INNER JOIN people_people ON people_people.node_id = nodes.id
-		SET
-			nodes.deleted_at = NULL,
-			nodes.enabled = 1
-		WHERE
-			nodes.id = ? AND
-			nodes.deleted_at IS NOT NULL`
-
-	result, err := repo.db.ExecContext(ctx, query, id)
-	if err != nil {
-		return false, err
-	}
-
-	affected, err := result.RowsAffected()
-	if err != nil {
-		return false, err
-	}
-
-	return affected > 0, nil
-}
+// oauth_restore.go calls ActorsGRPC.Restore instead. Removed rather than left
+// as a stub that always errors — an interface method nothing can call is a
+// trap for the next person to reach for it.
 
 // EditUsername updates a user's username.
 //
@@ -523,22 +474,24 @@ func (repo *Users) EditUsername(username string, id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
+	// Only the credential half. nodes.alias is the caller's to change, through
+	// ActorsGRPC, because it is the actor's handle: the graph enforces the
+	// namespace it belongs to, and a write from here bypasses that.
+	//
+	// The two must still move together — the alias IS the username — so
+	// username_change.go sets the alias first and calls this only once the
+	// graph has accepted it. Doing it in that order means a rejected handle
+	// never reaches this table, and the failure the person sees is "that name
+	// is taken" rather than a half-applied change.
 	query := `
-		UPDATE nodes
-		INNER JOIN people_people ON people_people.node_id = nodes.id
-		SET
-			nodes.alias = ?,
-			people_people.username = ?
-		WHERE
-			nodes.id = ? AND
-			people_people.node_id = ?`
+		UPDATE people_people
+		SET username = ?
+		WHERE node_id = ?`
 
 	_, err := repo.db.ExecContext(
 		ctx,
 		query,
 		username,
-		username,
-		id,
 		id,
 	)
 

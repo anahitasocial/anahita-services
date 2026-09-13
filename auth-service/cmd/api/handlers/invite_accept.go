@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 
 	"auth/data/entities"
@@ -14,6 +16,23 @@ import (
 
 	"github.com/labstack/echo/v4"
 )
+
+// inviteAlias derives an actor handle from the invited address.
+//
+// Invite-accept collects a name and a password but never a username, while
+// every actor needs a handle — so it comes from the email local part, lowercased
+// and stripped of anything that is not a handle character.
+//
+// Not unique on its own: two invitations to alice@a.com and alice@b.com both
+// want "alice". The graph's actor namespace rejects the second, and the caller
+// surfaces that rather than guessing a suffix — a handle is a person's name on
+// the network and should not be silently chosen for them.
+var inviteAliasStrip = regexp.MustCompile(`[^a-z0-9_-]+`)
+
+func inviteAlias(email string) string {
+	local, _, _ := strings.Cut(email, "@")
+	return inviteAliasStrip.ReplaceAllString(strings.ToLower(local), "")
+}
 
 // ---------------------------------------------------------------------
 // Invite-accept flow (unauthenticated, token-gated, server-rendered)
@@ -139,7 +158,13 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 
 	user := entities.NewUser()
 	user.Email = token.RecipientEmail
-	user.Type = constants.PersonTypeRegistered
+	// PersonType, not Type. `Type` is the NODE type — it wants
+	// node.actor.person-service.person.v1 — and this assigned "registered" to
+	// it, which Users.Add then silently overwrote. The effect was that an
+	// invited person got an EMPTY usertype: not guest, not registered, so
+	// every IsRegistered/IsGuest check answered false and the account had no
+	// permissions at all.
+	user.PersonType = constants.PersonTypeRegistered
 	user.Enabled = true
 	user.GivenName = req.GivenName
 	user.FamilyName = req.FamilyName
@@ -158,9 +183,50 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 		})
 	}
 
+	// The actor node first, through the graph — see signup.go for why this is
+	// no longer a direct insert.
+	//
+	// The handle comes from the email local part, since invite-accept collects
+	// a name and a password but never a username.
+	actor := libs_entities.NewAnahitaNode()
+	actor.Type = constants.NodeActorPersonEntityType
+	actor.Service = constants.PersonService
+	actor.Alias = inviteAlias(token.RecipientEmail)
+	actor.Name = strings.TrimSpace(req.GivenName + " " + req.FamilyName)
+	actor.Access = constants.AnahitaAccessPublic
+	actor.PersonType = constants.PersonTypeRegistered
+	actor.Enabled = true
+	// See signup.go: NewAnahitaNode leaves these at Go's zero time, which a
+	// MySQL DATETIME cannot store.
+	actor.CreationTime = time.Now()
+	actor.UpdateTime = time.Now()
+
+	createdActor, err := h.Srv.ActorsGRPC.Add(actor, signupViewer())
+	if err != nil {
+		log.Println("invite accept: could not create the actor:", err)
+		return h.renderTemplate(c, "invite_accept.html", map[string]any{
+			"Token": req.Token,
+			"Email": token.RecipientEmail,
+			"Error": "Could not create your account. Please try again.",
+		})
+	}
+
+	user.ID = createdActor.ID
+	user.Username = createdActor.Alias
+	// See signup.go: Go's zero time is '0000-00-00' to MySQL, which strict mode
+	// rejects.
+	user.LastVisitDate = time.Now()
+	user.UpdateTime = time.Now()
+
 	user, err = h.Repos.Users.Add(user)
 	if err != nil {
 		log.Println(err)
+		// Compensating delete, as in signup: two writes across two services
+		// with no transaction between them, so the node has to be unwound or
+		// it holds a handle nobody can sign into.
+		if _, purgeErr := h.Srv.ActorsGRPC.Purge(createdActor.ID, signupViewer()); purgeErr != nil {
+			log.Printf("invite accept: orphaned actor %d: %v (purge also failed: %v)", createdActor.ID, err, purgeErr)
+		}
 		return h.renderTemplate(c, "invite_accept.html", map[string]any{
 			"Token": req.Token,
 			"Email": token.RecipientEmail,
