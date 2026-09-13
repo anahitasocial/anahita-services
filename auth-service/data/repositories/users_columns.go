@@ -32,37 +32,29 @@ import (
 // match scanUser.
 func userColumns() []string {
 	return []string{
-		"id",
-		"type",
-		"enabled",
-		// Nullable in the legacy schema, every one of them.
-		"COALESCE(given_name, '') AS given_name",
-		"COALESCE(family_name, '') AS family_name",
-		"COALESCE(username, '') AS username",
-		"COALESCE(email, '') AS email",
+		"nodes.id",
+		"nodes.type",
+		"nodes.enabled",
+		// The display name and the handle come from the node. They were
+		// given_name/family_name and username on people_people, which is gone.
+		"COALESCE(nodes.name, '') AS name",
+		"COALESCE(nodes.alias, '') AS alias",
+		"COALESCE(auth_accounts.email, '') AS email",
 		// A NULL password is a real state — an account created by invitation
 		// that has never set one. It must read as an empty hash, which
 		// CheckPassword then refuses, rather than failing the whole read.
-		"COALESCE(password, '') AS password",
-		"COALESCE(usertype, '') AS usertype",
-		"COALESCE(service, '') AS service",
-		"COALESCE(filename, '') AS filename",
-		// Qualified, because `nodes` now has a last_visit_date too and every
-		// query here joins the two tables. An unqualified reference is
-		// "Column 'last_visit_date' in field list is ambiguous", which fails
-		// the read outright — it took out /oauth/authorize the moment the
-		// column landed on nodes.
-		"people_people.last_visit_date",
-		"created_on",
-		"modified_on",
-		"totp_enabled",
-		"COALESCE(totp_recovery_codes, '') AS totp_recovery_codes",
-		"COALESCE(totp_last_verified_at, NOW()) AS totp_last_verified_at",
-		"COALESCE(totp_secret, '') AS totp_secret",
+		"COALESCE(auth_accounts.password, '') AS password",
+		"COALESCE(nodes.person_type, '') AS person_type",
+		"COALESCE(nodes.service, '') AS service",
+		"COALESCE(nodes.filename, '') AS filename",
+		"nodes.last_visit_date",
+		"nodes.created_on",
+		"nodes.modified_on",
+		"auth_accounts.totp_enabled",
+		"COALESCE(auth_accounts.totp_recovery_codes, '') AS totp_recovery_codes",
+		"COALESCE(auth_accounts.totp_last_verified_at, NOW()) AS totp_last_verified_at",
+		"COALESCE(auth_accounts.totp_secret, '') AS totp_secret",
 		"nodes.deleted_at",
-		// Nullable and scanned into a pointer, exactly as deleted_at is.
-		// Archiving does not clear `enabled` — that column means one thing now
-		// — so login has to ask this question separately.
 		"nodes.archived_at",
 	}
 }
@@ -86,9 +78,8 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		&item.ID,
 		&item.Type,
 		&item.Enabled,
-		&item.GivenName,
-		&item.FamilyName,
-		&item.Username,
+		&item.Name,
+		&item.Alias,
 		&item.Email,
 		&item.Password,
 		&item.PersonType,
@@ -107,7 +98,12 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		return nil, err
 	}
 
-	item.LastVisitDate = nullTime(lastVisit)
+	// LastVisitDate is a *time.Time on the node: nil means never signed in,
+	// which a zero time cannot express.
+	if lastVisit.Valid {
+		t := lastVisit.Time
+		item.LastVisitDate = &t
+	}
 	item.CreationTime = nullTime(createdOn)
 	item.UpdateTime = nullTime(modifiedOn)
 
@@ -130,24 +126,18 @@ func nullTime(v sql.NullTime) time.Time {
 // administrator's entire user list rather than just itself.
 func userBrowseColumns() []string {
 	return []string{
-		"id",
-		"type",
-		"enabled",
-		"COALESCE(given_name, '') AS given_name",
-		"COALESCE(family_name, '') AS family_name",
-		"COALESCE(username, '') AS username",
-		"COALESCE(email, '') AS email",
-		"COALESCE(usertype, '') AS usertype",
-		"COALESCE(service, '') AS service",
-		"COALESCE(filename, '') AS filename",
-		// Qualified, because `nodes` now has a last_visit_date too and every
-		// query here joins the two tables. An unqualified reference is
-		// "Column 'last_visit_date' in field list is ambiguous", which fails
-		// the read outright — it took out /oauth/authorize the moment the
-		// column landed on nodes.
-		"people_people.last_visit_date",
-		"created_on",
-		"modified_on",
+		"nodes.id",
+		"nodes.type",
+		"nodes.enabled",
+		"COALESCE(nodes.name, '') AS name",
+		"COALESCE(nodes.alias, '') AS alias",
+		"COALESCE(auth_accounts.email, '') AS email",
+		"COALESCE(nodes.person_type, '') AS person_type",
+		"COALESCE(nodes.service, '') AS service",
+		"COALESCE(nodes.filename, '') AS filename",
+		"nodes.last_visit_date",
+		"nodes.created_on",
+		"nodes.modified_on",
 	}
 }
 
@@ -162,9 +152,8 @@ func scanBrowsedUser(row rowScanner) (*entities.User, error) {
 		&item.ID,
 		&item.Type,
 		&item.Enabled,
-		&item.GivenName,
-		&item.FamilyName,
-		&item.Username,
+		&item.Name,
+		&item.Alias,
 		&item.Email,
 		&item.PersonType,
 		&item.Service,
@@ -176,7 +165,10 @@ func scanBrowsedUser(row rowScanner) (*entities.User, error) {
 		return nil, err
 	}
 
-	item.LastVisitDate = nullTime(lastVisit)
+	if lastVisit.Valid {
+		t := lastVisit.Time
+		item.LastVisitDate = &t
+	}
 	item.CreationTime = nullTime(createdOn)
 	item.UpdateTime = nullTime(modifiedOn)
 

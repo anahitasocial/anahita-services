@@ -2,7 +2,6 @@ package services
 
 import (
 	"auth/data/entities"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -33,18 +32,17 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 	}
 
 	if scopeSet["profile"] {
-		// OIDC standard claims
-		info["name"] = strings.TrimSpace(fmt.Sprintf("%s %s", user.GivenName, user.FamilyName))
-		info["given_name"] = user.GivenName
-		info["family_name"] = user.FamilyName
-		info["first_name"] = user.GivenName // custom
-		info["last_name"] = user.FamilyName // custom
+		// `name` only. given_name and family_name are OPTIONAL in OIDC and
+		// there is nothing to fill them from: a profile carries one display
+		// name, not a Western first/last pair. The first_name and last_name
+		// customs go with them.
+		info["name"] = strings.TrimSpace(user.Name)
 
 		// The person's alias. Clients key their /people/<alias> URLs on
 		// this and the numeric id does not resolve those routes, so a
 		// viewer without it cannot look itself up.
-		info["preferred_username"] = user.Username // OIDC standard claim
-		info["username"] = user.Username           // custom
+		info["preferred_username"] = user.Alias // OIDC standard claim
+		info["username"] = user.Alias           // custom
 
 		// Avatar, keyed by size and shaped like every other node
 		// response so clients can reuse the same rendering path.

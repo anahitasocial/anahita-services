@@ -11,27 +11,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// User is a person node plus the account that signs in as it.
+//
+// Only the credential half is declared here. PersonType, Username, GivenName,
+// FamilyName, LastVisitDate and DeletedAt are all gone: each was a copy of
+// something the embedded node already carries, and an outer field of the same
+// name SHADOWS the embedded one — so the node's value was loaded and then read
+// from the wrong place. Person had the identical problem and the identical fix.
+//
+//	Name       the display name, where GivenName and FamilyName used to be
+//	Alias      the handle, where Username used to be
+//	PersonType the authority level
+//
+// What remains comes from auth_accounts, and none of it belongs on a node that
+// sixteen callers can read.
 type User struct {
 	entities.AnahitaNode
 
-	PersonType string `json:"usertype"`
-	Email      string `json:"email"`
-	Username   string `json:"username"`
-	Password   string `json:"-"`
-
-	GivenName     string    `json:"given_name"`
-	FamilyName    string    `json:"family_name"`
-	LastVisitDate time.Time `json:"last_visit_date,omitempty"`
-
-	// DeletedAt is set when the account is scheduled for deletion, and nil
-	// otherwise — which is almost always.
-	//
-	// Deleting also clears Enabled, so every login path already refuses the
-	// account without consulting this. What this adds is the ability to tell
-	// the two apart: an account an administrator disabled should stay refused,
-	// while one the person deleted themselves should be offered back during the
-	// grace period. Without it both look identical and neither can be restored.
-	DeletedAt *time.Time `json:"-"`
+	Email    string `json:"email"`
+	Password string `json:"-"`
 
 	// TOTP fields
 	TotpSecret         string
@@ -70,8 +68,10 @@ func (u *User) CheckPassword(password string) bool {
 
 // Validate validates the user
 func (u *User) Validate() error {
-	if u.Username == "" {
-		return errors.New("username is required")
+	// The handle is nodes.alias, validated by the graph when the actor is
+	// created. Checking it here would be checking a copy.
+	if u.Alias == "" {
+		return errors.New("alias is required")
 	}
 
 	if u.Password == "" {

@@ -66,8 +66,7 @@ func testUser(t *testing.T, id int64, email, password string) *entities.User {
 	u := entities.NewUser()
 	u.ID = id
 	u.Email = email
-	u.GivenName = "Ada"
-	u.FamilyName = "Lovelace"
+	u.Name = "Ada Lovelace"
 	if err := u.SetPassword(password); err != nil {
 		t.Fatalf("hash password: %v", err)
 	}

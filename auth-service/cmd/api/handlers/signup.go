@@ -86,7 +86,7 @@ func (h *signupHandler) Add(c echo.Context) error {
 	user := entities.NewUser()
 	user.PersonType = constants.PersonTypeRegistered
 	user.Email = req.Email
-	user.Username = req.Username
+	user.Alias = req.Username
 
 	if err := user.SetPassword(req.Password); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
@@ -130,16 +130,6 @@ func (h *signupHandler) Add(c echo.Context) error {
 	}
 
 	user.ID = created.ID
-	// Set explicitly, for the same reason the actor's timestamps are: Go's zero
-	// time reaches MySQL as '0000-00-00', which a DATETIME cannot hold under the
-	// strict sql_mode.
-	//
-	// This is not new — Users.Add has always inserted user.LastVisitDate while
-	// no creation path ever set it — so signup has been failing on this
-	// database independently of the change around it.
-	user.LastVisitDate = time.Now()
-	user.CreationTime = time.Now()
-	user.UpdateTime = time.Now()
 
 	user, err = h.Repos.Users.Add(user)
 	if err != nil {

@@ -66,8 +66,6 @@ func (h *oauthHandler) Discovery(c echo.Context) error {
 
 			// OIDC profile claims (in ID token / userinfo)
 			libs_constants.JWTClaimName,
-			libs_constants.JWTClaimGivenName,
-			libs_constants.JWTClaimFamilyName,
 			libs_constants.JWTClaimEmail,
 
 			// Anahita custom claims

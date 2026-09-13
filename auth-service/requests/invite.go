@@ -16,10 +16,11 @@ type InviteAdd struct {
 // and Privacy acceptance happens in the SPA via the post-login
 // AgreementsPage interstitial.
 type InviteAccept struct {
-	Token      string `form:"token"      validate:"required,len=128"`
-	GivenName  string `form:"given_name" validate:"required,min=1,max=50"`
-	FamilyName string `form:"family_name"  validate:"required,min=1,max=50"`
-	Password   string `form:"password"   validate:"required,min=15,max=150"`
+	Token string `form:"token"      validate:"required,len=128"`
+	// One name, free-form, matching the profile edit request. The pair it
+	// replaces each capped at 50 and rejected the space between them.
+	Name     string `form:"name" validate:"required,min=1,max=100"`
+	Password string `form:"password"   validate:"required,min=15,max=150"`
 }
 
 type InviteDelete struct {

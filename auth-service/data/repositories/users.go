@@ -23,7 +23,6 @@ type UsersInterface interface {
 	Edit(user *entities.User) (*entities.User, error)
 	EditPassword(password string, id int64) error
 	EditEmail(email string, id int64) error
-	EditUsername(username string, id int64) error
 	Delete(id int64) error
 	IsEmail(email string) (bool, error)
 	IsUsername(username string) (bool, error)
@@ -44,26 +43,39 @@ func (repo *Users) Browse(req *requests.UserBrowseRequest) ([]*entities.User, er
 	defer cancel()
 
 	query := sq.Select(userBrowseColumns()...).From(
-		"people_people",
+		"auth_accounts",
 	).LeftJoin(
-		"nodes ON people_people.node_id = nodes.id",
+		"nodes ON auth_accounts.node_id = nodes.id",
 	)
 
 	if req.Disabled {
-		query = query.Where(sq.Eq{"enabled": 0})
+		query = query.Where(sq.Eq{"nodes.enabled": 0})
 	} else {
-		query = query.Where(sq.Eq{"enabled": 1})
+		query = query.Where(sq.Eq{"nodes.enabled": 1})
 	}
 
 	if req.Keywords != "" {
 		query = query.Where(sq.Or{
-			sq.Like{"username": "%" + req.Keywords + "%"},
-			sq.Like{"email": "%" + req.Keywords + "%"},
+			sq.Like{"nodes.alias": "%" + req.Keywords + "%"},
+			sq.Like{"auth_accounts.email": "%" + req.Keywords + "%"},
 		})
 	}
 
 	if req.PersonType != "" {
-		query = query.Where(sq.Eq{"usertype": req.PersonType})
+		query = query.Where(sq.Eq{"nodes.person_type": req.PersonType})
+	}
+
+	// The plural form, which is not a query parameter — no endpoint sets it.
+	// It exists for internal callers that need a set rather than one value,
+	// and today that is the invite-accept notifier asking for every admin and
+	// super-admin so it can tell them somebody joined.
+	//
+	// The field was here and unread, which is a quiet failure rather than a
+	// loud one: the notifier set it, the filter never happened, and the
+	// "new member joined" email went to every account on the site instead of
+	// to the handful of administrators it names in its own comment.
+	if len(req.PersonTypes) > 0 {
+		query = query.Where(sq.Eq{"nodes.person_type": req.PersonTypes})
 	}
 
 	// One clause, not two. This block appeared twice — once bare and once with
@@ -72,11 +84,16 @@ func (repo *Users) Browse(req *requests.UserBrowseRequest) ([]*entities.User, er
 	//
 	// Checked with safeOrderColumn as well as by the request's oneof tag,
 	// because ORDER BY is concatenated rather than bound. See ordering.go.
+	//
+	// Qualified with the table, because every one of the four sortable
+	// columns lives on `nodes` now and this select joins two tables. A bare
+	// `person_type` or `created_on` is an unknown column here, and the read
+	// fails outright rather than sorting oddly.
 	if column := safeOrderColumn(req.Ordering); column != "" {
 		if req.Direction == "asc" {
-			query = query.OrderBy(column + " ASC")
+			query = query.OrderBy("nodes." + column + " ASC")
 		} else {
-			query = query.OrderBy(column + " DESC")
+			query = query.OrderBy("nodes." + column + " DESC")
 		}
 	}
 
@@ -120,11 +137,11 @@ func (repo *Users) ReadByID(id int64) (*entities.User, error) {
 	defer cancel()
 
 	query := sq.Select(userColumns()...).From(
-		"people_people",
+		"auth_accounts",
 	).LeftJoin(
-		"nodes ON people_people.node_id = nodes.id",
+		"nodes ON auth_accounts.node_id = nodes.id",
 	).Where(
-		sq.Eq{"node_id": id},
+		sq.Eq{"auth_accounts.node_id": id},
 	)
 
 	sql, args, err := query.ToSql()
@@ -154,11 +171,11 @@ func (repo *Users) ReadByEmail(email string) (*entities.User, error) {
 	defer cancel()
 
 	query := sq.Select(userColumns()...).From(
-		"people_people",
+		"auth_accounts",
 	).LeftJoin(
-		"nodes ON people_people.node_id = nodes.id",
+		"nodes ON auth_accounts.node_id = nodes.id",
 	).Where(
-		sq.Eq{"email": email},
+		sq.Eq{"auth_accounts.email": email},
 	)
 
 	sql, args, err := query.ToSql()
@@ -188,11 +205,11 @@ func (repo *Users) ReadByUsername(username string) (*entities.User, error) {
 	defer cancel()
 
 	query := sq.Select(userColumns()...).From(
-		"people_people",
+		"auth_accounts",
 	).LeftJoin(
-		"nodes ON people_people.node_id = nodes.id",
+		"nodes ON auth_accounts.node_id = nodes.id",
 	).Where(
-		sq.Eq{"username": username},
+		sq.Eq{"nodes.alias": username},
 	)
 
 	sql, args, err := query.ToSql()
@@ -222,13 +239,16 @@ func (repo *Users) ReadByEmailOrUsername(emailOrUsername string) (*entities.User
 	defer cancel()
 
 	query := sq.Select(userColumns()...).From(
-		"people_people",
+		"auth_accounts",
 	).LeftJoin(
-		"nodes ON people_people.node_id = nodes.id",
+		"nodes ON auth_accounts.node_id = nodes.id",
 	).Where(
+		// Both sides qualified. `email` is unambiguous today but the join
+		// brings two tables into scope, and the handle moved: it is
+		// nodes.alias now, not a username column on this side.
 		sq.Or{
-			sq.Eq{"email": emailOrUsername},
-			sq.Eq{"username": emailOrUsername},
+			sq.Eq{"auth_accounts.email": emailOrUsername},
+			sq.Eq{"nodes.alias": emailOrUsername},
 		},
 	)
 
@@ -279,22 +299,15 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 	user.Type = constants.NodeActorPersonEntityType
 	user.Service = constants.PersonService
 
+	// Only the credential half. The node already exists — the caller created
+	// it through ActorsGRPC — and carries the name, the handle and the
+	// authority level, none of which are copied here any more.
 	query := `
-		INSERT INTO people_people (
+		INSERT INTO auth_accounts (
 			node_id,
-			given_name,
-			family_name,
-			username,
 			email,
-			password,
-			usertype,
-			last_visit_date
+			password
 		) VALUES (
-			?,
-			?,
-			?,
-			?,
-			?,
 			?,
 			?,
 			?
@@ -304,13 +317,8 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 		ctx,
 		query,
 		user.ID,
-		user.GivenName,
-		user.FamilyName,
-		user.Username,
 		user.Email,
 		user.Password,
-		user.PersonType,
-		user.LastVisitDate,
 	)
 	if err != nil {
 		return nil, err
@@ -366,7 +374,7 @@ func (repo *Users) Edit(user *entities.User) (*entities.User, error) {
 	// Enabling and disabling an actor is ActorService.SetEnabled, which is a
 	// single-purpose RPC that says what it does.
 	query := `
-		UPDATE people_people
+		UPDATE auth_accounts
 		SET
 			password = ?,
 			totp_enabled = ?,
@@ -400,7 +408,7 @@ func (repo *Users) EditPassword(password string, id int64) error {
 	defer cancel()
 
 	query := `
-		UPDATE people_people
+		UPDATE auth_accounts
 		SET
 			password = ?
 		WHERE
@@ -426,7 +434,7 @@ func (repo *Users) EditEmail(email string, id int64) error {
 	defer cancel()
 
 	query := `
-		UPDATE people_people
+		UPDATE auth_accounts
 		SET
 			email = ?
 		WHERE
@@ -457,50 +465,15 @@ func (repo *Users) EditEmail(email string, id int64) error {
 // as a stub that always errors — an interface method nothing can call is a
 // trap for the next person to reach for it.
 
-// EditUsername updates a user's username.
+// EditUsername is gone.
 //
-// Writes BOTH people_people.username and nodes.alias, because the two
-// are one value wearing two hats: username is the sign-in identifier
-// that ReadByEmailOrUsername resolves, alias is the profile slug the
-// public URL is built from. Users.Edit used to keep them in step by
-// writing both from user.Username; now that it writes neither, this is
-// the only place that relationship is maintained. Updating one without
-// the other leaves a person who can sign in under a handle their
-// profile does not answer to, or the reverse.
+// The handle is nodes.alias and nothing else: auth_accounts has no username
+// column, because the credential half never needed one. username_change.go
+// moves the alias through ActorsGRPC, which owns the actor namespace and is
+// the only thing that can refuse a handle already taken.
 //
-// One statement over the same join Users.Edit uses, so the pair cannot
-// half-apply.
-func (repo *Users) EditUsername(username string, id int64) error {
-	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
-	defer cancel()
-
-	// Only the credential half. nodes.alias is the caller's to change, through
-	// ActorsGRPC, because it is the actor's handle: the graph enforces the
-	// namespace it belongs to, and a write from here bypasses that.
-	//
-	// The two must still move together — the alias IS the username — so
-	// username_change.go sets the alias first and calls this only once the
-	// graph has accepted it. Doing it in that order means a rejected handle
-	// never reaches this table, and the failure the person sees is "that name
-	// is taken" rather than a half-applied change.
-	query := `
-		UPDATE people_people
-		SET username = ?
-		WHERE node_id = ?`
-
-	_, err := repo.db.ExecContext(
-		ctx,
-		query,
-		username,
-		id,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+// Removed rather than left as a no-op — a method that writes nothing while
+// looking like it writes something is worse than no method at all.
 
 // Delete removes a person's CREDENTIALS row, and deliberately not their node.
 //
@@ -521,7 +494,7 @@ func (repo *Users) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `DELETE FROM people_people WHERE node_id = ?`
+	query := `DELETE FROM auth_accounts WHERE node_id = ?`
 	if _, err := repo.db.ExecContext(ctx, query, id); err != nil {
 		return err
 	}
@@ -542,12 +515,10 @@ func (repo *Users) IsEmail(email string) (bool, error) {
 	defer cancel()
 
 	// LOWER on both sides rather than trusting the column's collation.
-	// people_people declares no collation, so this comparison inherits
-	// the server default — case-insensitive on MySQL 8, but a database
-	// created with a binary collation would let two accounts hold the
-	// same address in different cases, and the caller lowercases its
-	// candidate while stored addresses keep whatever case they were
-	// registered with.
+	// A database created with a binary collation would otherwise let two
+	// accounts hold the same address in different cases, and the caller
+	// lowercases its candidate while stored addresses keep whatever case
+	// they were registered with.
 	//
 	// The unique index on email is not a substitute: it has the same
 	// collation dependency, and it would surface a collision as a 500
@@ -558,7 +529,7 @@ func (repo *Users) IsEmail(email string) (bool, error) {
 	// email change and nowhere else.
 	query := `
 		SELECT COUNT(*)
-		FROM people_people
+		FROM auth_accounts
 		WHERE LOWER(email) = LOWER(?)`
 
 	var count int
@@ -570,13 +541,24 @@ func (repo *Users) IsEmail(email string) (bool, error) {
 	return count > 0, nil
 }
 
-// IsUsername checks whether a username is already taken.
+// IsUsername checks whether a handle is already taken.
+//
+// The handle lives on nodes.alias now, and the namespace is every actor
+// rather than every person: WebFinger resolves acct:name@domain to one
+// actor with no type dimension, so a group holding the handle makes it
+// unavailable to a person too. That is the same scope as the
+// uq_unique_alias index, which is the actual enforcement — this check
+// exists to turn a collision into a 409 the person can act on instead of
+// a duplicate-key 500.
+//
+// Tombstoned rows count. Their whole purpose is to keep the handle
+// reserved so a later account cannot inherit the previous person's
+// followers on every instance that cached them, so there is no
+// deleted_at filter here.
 //
 // Case-insensitive for the same reason IsEmail is, and with more at
 // stake: two handles differing only in case are the same handle to a
-// reader, which is the whole mechanism of an impersonation. The unique
-// index on username inherits the server collation and so cannot be
-// relied on to catch it.
+// reader, which is the whole mechanism of an impersonation.
 //
 // Note this counts the caller's own row too. The change handler returns
 // early when the requested handle is the one already held, so a person
@@ -587,8 +569,9 @@ func (repo *Users) IsUsername(username string) (bool, error) {
 
 	query := `
 		SELECT COUNT(*)
-		FROM people_people
-		WHERE LOWER(username) = LOWER(?)`
+		FROM nodes
+		WHERE LOWER(alias) = LOWER(?)
+		  AND type LIKE 'node.actor.%'`
 
 	var count int
 	err := repo.db.QueryRowContext(ctx, query, username).Scan(&count)

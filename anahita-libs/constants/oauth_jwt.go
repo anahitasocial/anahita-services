@@ -26,8 +26,6 @@ const (
 
 	// OIDC standard Anahita claims (in ID token / /userinfo response).
 	JWTClaimName       = "name"
-	JWTClaimGivenName  = "given_name"
-	JWTClaimFamilyName = "family_name"
 	JWTClaimEmail      = "email"
 
 	// Anahita-specific claims (in access token).

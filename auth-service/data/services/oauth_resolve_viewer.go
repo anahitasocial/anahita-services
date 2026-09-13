@@ -35,8 +35,10 @@ func (s *OAuthService) ResolveViewerByID(id int64) (*libs_entities.Viewer, error
 	viewer.ID = user.ID
 	viewer.Type = user.Type
 	viewer.Name = user.Name
-	viewer.Username = user.Username
-	viewer.LastVisitDate = user.LastVisitDate
+	viewer.Username = user.Alias
+	if user.LastVisitDate != nil {
+		viewer.LastVisitDate = *user.LastVisitDate
+	}
 	viewer.Authenticated = true
 
 	return viewer, nil

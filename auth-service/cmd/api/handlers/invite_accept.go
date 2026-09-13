@@ -152,8 +152,7 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	if err != nil || inviter == nil {
 		log.Printf("invite accept: could not load inviter (person=%d): %v", token.CreatedBy, err)
 		inviter = entities.NewUser()
-		inviter.GivenName = "A team"
-		inviter.FamilyName = "administrator"
+		inviter.Name = "A team administrator"
 	}
 
 	user := entities.NewUser()
@@ -166,8 +165,6 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	// permissions at all.
 	user.PersonType = constants.PersonTypeRegistered
 	user.Enabled = true
-	user.GivenName = req.GivenName
-	user.FamilyName = req.FamilyName
 	user.CreationTime = time.Now()
 	// ToS/Privacy agreement intentionally NOT set here — the SPA's
 	// AuthenticatedRoute will bounce the user to AgreementsPage on
@@ -192,7 +189,7 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	actor.Type = constants.NodeActorPersonEntityType
 	actor.Service = constants.PersonService
 	actor.Alias = inviteAlias(token.RecipientEmail)
-	actor.Name = strings.TrimSpace(req.GivenName + " " + req.FamilyName)
+	actor.Name = strings.TrimSpace(req.Name)
 	actor.Access = constants.AnahitaAccessPublic
 	actor.PersonType = constants.PersonTypeRegistered
 	actor.Enabled = true
@@ -212,10 +209,9 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	}
 
 	user.ID = createdActor.ID
-	user.Username = createdActor.Alias
+	user.Alias = createdActor.Alias
 	// See signup.go: Go's zero time is '0000-00-00' to MySQL, which strict mode
 	// rejects.
-	user.LastVisitDate = time.Now()
 	user.UpdateTime = time.Now()
 
 	user, err = h.Repos.Users.Add(user)

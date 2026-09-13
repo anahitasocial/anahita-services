@@ -58,7 +58,7 @@ func (h *oauthHandler) ReadConsent(c echo.Context) error {
 
 	return h.renderTemplate(c, "consent.html", map[string]any{
 		"ClientName": client.Name,
-		"ViewerName": strings.TrimSpace(user.GivenName + " " + user.FamilyName),
+		"ViewerName": strings.TrimSpace(user.Name),
 		// Descriptions, not raw identifiers — "View your notifications"
 		// rather than "notifications:read". This is the only place a
 		// scope string would otherwise be end-user-visible text.

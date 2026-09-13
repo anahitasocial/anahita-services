@@ -28,12 +28,11 @@ func (repo *tokens) getBaseSelectQuery() sq.SelectBuilder {
 		"t.updated_by",
 	}
 
-	// There is no "people" table in this schema — a person is a nodes
-	// row joined to its people_people row, which is how users.go
-	// assembles one. All of it comes from nodes now: the display name is
-	// nodes.name, where it used to be given_name and family_name read from
-	// people_people and joined back on. Coalesced because a LEFT JOIN that
-	// misses would otherwise fail the scan rather than yield an empty creator.
+	// A person is a nodes row; there is no separate people table. The
+	// display name is nodes.name, where it used to be a given_name and
+	// family_name pair on the old profile table. Coalesced because a LEFT
+	// JOIN that misses would otherwise fail the scan rather than yield an
+	// empty creator.
 	//
 	// The creator's email is no longer selected. It was never read outside
 	// this repository — the hydrated creator is serialised into the token's
