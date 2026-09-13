@@ -415,6 +415,10 @@ func (h *oauthHandler) loginContext(c echo.Context, errMsg string) map[string]an
 		"Error":       errMsg,
 		"FrontendURL": h.Config.GetFrontendURL(),
 		"ReturnParam": h.returnToParam(c),
+		// Whether to offer a link to the signup page at all. The page itself
+		// refuses when the mode does not allow it, so this only decides
+		// whether somebody is sent somewhere that will turn them away.
+		"SignupOpen": h.Config.AllowsSelfServeRegistration(),
 	}
 }
 

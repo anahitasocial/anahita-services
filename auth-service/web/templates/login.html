@@ -89,10 +89,19 @@
 
     <hr class="divider">
 
+    <!-- Shown only when this installation takes self-serve registrations.
+         Offering a link that lands on "Registration Closed" is worse than
+         offering none — it reads as a broken site rather than a private one.
+
+         /signup on THIS host. It pointed at the web app, which is where
+         signup used to live; following it now bounces out to the app and
+         straight back, or to a page that no longer exists. -->
+    {{if .SignupOpen}}
     <p class="text-center">
         Don't have an account?
-        <a href="{{.FrontendURL}}/auth/signup{{.ReturnParam}}" class="text-link">Sign up</a>
+        <a href="/signup" class="text-link">Sign up</a>
     </p>
+    {{end}}
 
     <p class="footer-text">
         <a href="{{.FrontendURL}}" class="text-link">Cancel and return to {{.SiteName}}</a>
