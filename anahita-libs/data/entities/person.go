@@ -9,7 +9,7 @@ import (
 type Person struct {
 	AnahitaNode
 
-	UserType      string    `json:"usertype"`
+	PersonType    string    `json:"usertype"`
 	Email         string    `json:"email"`
 	Username      string    `json:"username"`
 	Password      string    `json:"-"`
@@ -24,7 +24,7 @@ func NewPerson() *Person {
 	person := &Person{}
 
 	// Set the defaults
-	person.UserType = constants.UserTypeGuest
+	person.PersonType = constants.PersonTypeGuest
 	person.Type = constants.NodeActorPersonEntityType
 	person.Service = constants.PersonService
 	person.CreationTime = time.Now()
@@ -48,7 +48,7 @@ func (p *Person) Validate() error {
 		return errors.New("email is required")
 	}
 
-	if p.UserType == "" {
+	if p.PersonType == "" {
 		return errors.New("user type is required")
 	}
 
@@ -56,19 +56,19 @@ func (p *Person) Validate() error {
 }
 
 func (p *Person) IsGuest() bool {
-	return p.UserType == constants.UserTypeGuest
+	return p.PersonType == constants.PersonTypeGuest
 }
 
 func (p *Person) IsRegistered() bool {
-	return p.UserType == constants.UserTypeRegistered
+	return p.PersonType == constants.PersonTypeRegistered
 }
 
 func (p *Person) IsAdmin() bool {
-	return p.IsSuperAdmin() || p.UserType == constants.UserTypeAdmin
+	return p.IsSuperAdmin() || p.PersonType == constants.PersonTypeAdmin
 }
 
 func (p *Person) IsSuperAdmin() bool {
-	return p.UserType == constants.UserTypeSuperAdmin
+	return p.PersonType == constants.PersonTypeSuperAdmin
 }
 
 func (p *Person) IsAdminOrSuperAdmin() bool {

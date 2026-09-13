@@ -127,16 +127,16 @@ func (h *repostHandler) Add(c echo.Context) error {
 		entityName := strings.Split(repost.Parent.Type, ".")[3]
 		routing_key := fmt.Sprintf(event.EventFormatNodeRepostAdded, entityName)
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  repost.Service,
-			SubjectID:      viewer.ID,
-			SubjectType:    viewer.Type,
-			ObjectID:       repost.ID,
-			ObjectType:     repost.Type,
-			TargetID:       repost.Owner.ID,
-			TargetType:     repost.Owner.Type,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    repost.Service,
+			SubjectID:        viewer.ID,
+			SubjectType:      viewer.Type,
+			ObjectID:         repost.ID,
+			ObjectType:       repost.Type,
+			TargetID:         repost.Owner.ID,
+			TargetType:       repost.Owner.Type,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		log.Println("Publishing event", routing_key)
 		if err = h.Publisher.Publish(payload, routing_key); err != nil {
@@ -200,16 +200,16 @@ func (h *repostHandler) Delete(c echo.Context) error {
 		entityName := strings.Split(repost.Parent.Type, ".")[3]
 		routing_key := fmt.Sprintf(event.EventFormatNodeRepostDeleted, entityName)
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  repost.Service,
-			SubjectID:      viewer.ID,
-			SubjectType:    viewer.Type,
-			ObjectID:       repost.ID,
-			ObjectType:     repost.Type,
-			TargetID:       repost.Owner.ID,
-			TargetType:     repost.Owner.Type,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    repost.Service,
+			SubjectID:        viewer.ID,
+			SubjectType:      viewer.Type,
+			ObjectID:         repost.ID,
+			ObjectType:       repost.Type,
+			TargetID:         repost.Owner.ID,
+			TargetType:       repost.Owner.Type,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		h.Publisher.Publish(payload, routing_key)
 	}()

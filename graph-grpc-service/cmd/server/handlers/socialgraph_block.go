@@ -128,13 +128,13 @@ func (h *socialgraphBlockGrpcHandler) Add(ctx context.Context, req *graphpb.Soci
 		srvName := "socialgraph"
 		routingKey := fmt.Sprintf(event.EventFormatEdgeBlockAdded, srvName)
 		payload := &event.EventPayload{
-			Name:           routingKey,
-			SourceService:  "graph-grpc-service",
-			SubjectID:      req.Viewer.Id,
-			ObjectID:       source.ID,
-			TargetID:       target.ID,
-			ViewerID:       req.Viewer.Id,
-			ViewerUserType: req.Viewer.UserType,
+			Name:             routingKey,
+			SourceService:    "graph-grpc-service",
+			SubjectID:        req.Viewer.Id,
+			ObjectID:         source.ID,
+			TargetID:         target.ID,
+			ViewerID:         req.Viewer.Id,
+			ViewerPersonType: req.Viewer.PersonType,
 		}
 		log.Println("Publishing event", routingKey)
 		h.env.Publisher.Publish(payload, routingKey)
@@ -181,13 +181,13 @@ func (h *socialgraphBlockGrpcHandler) Delete(ctx context.Context, req *graphpb.S
 		srvName := "socialgraph"
 		routingKey := fmt.Sprintf(event.EventFormatEdgeBlockDeleted, srvName)
 		payload := &event.EventPayload{
-			Name:           routingKey,
-			SourceService:  "graph-grpc-service",
-			SubjectID:      req.Viewer.Id,
-			ObjectID:       source.ID,
-			TargetID:       target.ID,
-			ViewerID:       req.Viewer.Id,
-			ViewerUserType: req.Viewer.UserType,
+			Name:             routingKey,
+			SourceService:    "graph-grpc-service",
+			SubjectID:        req.Viewer.Id,
+			ObjectID:         source.ID,
+			TargetID:         target.ID,
+			ViewerID:         req.Viewer.Id,
+			ViewerPersonType: req.Viewer.PersonType,
 		}
 		log.Println("Publishing event", routingKey)
 		h.env.Publisher.Publish(payload, routingKey)

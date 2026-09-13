@@ -7,7 +7,7 @@ import (
 
 type UserNode struct {
 	ID          int64                      `json:"id"`
-	UserType    string                     `json:"user_type"`
+	PersonType  string                     `json:"user_type"`
 	Username    string                     `json:"username,omitempty"`
 	Name        string                     `json:"name,omitempty"`
 	GivenName   string                     `json:"given_name,omitempty"`
@@ -19,7 +19,7 @@ type UserNode struct {
 
 type UserNodeItem struct {
 	ID          int64                      `json:"id"`
-	UserType    string                     `json:"user_type"`
+	PersonType  string                     `json:"user_type"`
 	Username    string                     `json:"username,omitempty"`
 	Name        string                     `json:"name,omitempty"`
 	GivenName   string                     `json:"given_name,omitempty"`
@@ -38,7 +38,7 @@ func (r *UserResponse) MapNode(node *entities.User) *UserNode {
 
 	return &UserNode{
 		ID:         node.ID,
-		UserType:   node.UserType,
+		PersonType: node.PersonType,
 		GivenName:  node.GivenName,
 		FamilyName: node.FamilyName,
 		Name:       node.Name,
@@ -61,7 +61,7 @@ func (r *UserResponse) MapNodeItem(node *entities.User) *UserNodeItem {
 
 	return &UserNodeItem{
 		ID:         node.ID,
-		UserType:   node.UserType,
+		PersonType: node.PersonType,
 		GivenName:  node.GivenName,
 		FamilyName: node.FamilyName,
 		Name:       node.Name,

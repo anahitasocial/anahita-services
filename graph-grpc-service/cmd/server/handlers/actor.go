@@ -34,7 +34,7 @@ func (h *actorHandler) Count(ctx context.Context, req *graphpb.ActorCountRequest
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -61,7 +61,7 @@ func (h *actorHandler) Browse(ctx context.Context, req *graphpb.ActorBrowseReque
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -147,7 +147,7 @@ func (h *actorHandler) BatchRead(ctx context.Context, req *graphpb.ActorBatchRea
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -211,7 +211,7 @@ func (h *actorHandler) Edit(ctx context.Context, req *graphpb.ActorEditRequest) 
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	actor.IsSubscribedByViewer, err = h.env.Repos.SubscriptionsRel.IsSubscribedToOne(viewer.ID, actor.Id)
 	if err != nil {
 		return nil, err
@@ -223,13 +223,13 @@ func (h *actorHandler) Edit(ctx context.Context, req *graphpb.ActorEditRequest) 
 		srvName := strings.Split(actor.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatNodeActorEdited, srvName, entityName)
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  actor.Service,
-			SubjectID:      req.Viewer.Id,
-			ObjectID:       actor.Id,
-			TargetID:       actor.Id,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    actor.Service,
+			SubjectID:        req.Viewer.Id,
+			ObjectID:         actor.Id,
+			TargetID:         actor.Id,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		log.Println("Publishing event", routing_key)
 		if err = h.env.Publisher.Publish(payload, routing_key); err != nil {
@@ -272,7 +272,7 @@ func (h *actorHandler) Add(ctx context.Context, req *graphpb.ActorAddRequest) (*
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 
 	// publish event
 	go func() {
@@ -280,13 +280,13 @@ func (h *actorHandler) Add(ctx context.Context, req *graphpb.ActorAddRequest) (*
 		srvName := strings.Split(actor.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatNodeActorAdded, srvName, entityName)
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  actor.Service,
-			SubjectID:      req.Viewer.Id,
-			ObjectID:       actor.Id,
-			TargetID:       actor.Id,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    actor.Service,
+			SubjectID:        req.Viewer.Id,
+			ObjectID:         actor.Id,
+			TargetID:         actor.Id,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		h.env.Publisher.Publish(payload, routing_key)
 	}()
@@ -351,13 +351,13 @@ func (h *actorHandler) publishActorLifecycle(format string, node *entities.Anahi
 	}
 
 	payload := &event.EventPayload{
-		Name:           routingKey,
-		SourceService:  node.Service,
-		SubjectID:      viewerID,
-		ObjectID:       node.ID,
-		TargetID:       node.ID,
-		ViewerID:       viewerID,
-		ViewerUserType: viewerType,
+		Name:             routingKey,
+		SourceService:    node.Service,
+		SubjectID:        viewerID,
+		ObjectID:         node.ID,
+		TargetID:         node.ID,
+		ViewerID:         viewerID,
+		ViewerPersonType: viewerType,
 	}
 
 	go func() {
@@ -421,7 +421,7 @@ func (h *actorHandler) Delete(ctx context.Context, req *graphpb.ActorDeleteReque
 	// re-announce a deletion that happened days ago.
 	var viewerType string
 	if req.Viewer != nil {
-		viewerType = req.Viewer.UserType
+		viewerType = req.Viewer.PersonType
 	}
 	h.publishActorLifecycle(
 		event.EventFormatNodeActorDeleted, actor, deletedBy, viewerType)
@@ -479,7 +479,7 @@ func (h *actorHandler) Restore(ctx context.Context, req *graphpb.ActorRestoreReq
 	// back; without it the only signal is a poll.
 	var restoreViewerType string
 	if req.Viewer != nil {
-		restoreViewerType = req.Viewer.UserType
+		restoreViewerType = req.Viewer.PersonType
 	}
 	h.publishActorLifecycle(
 		event.EventFormatNodeActorRestored, node, restoredBy, restoreViewerType)
@@ -633,7 +633,7 @@ func (h *actorHandler) Archive(ctx context.Context, req *graphpb.ActorArchiveReq
 	}
 
 	h.publishActorLifecycle(
-		event.EventFormatNodeActorArchived, actor, archivedBy, viewerUserType(req.Viewer))
+		event.EventFormatNodeActorArchived, actor, archivedBy, viewerPersonType(req.Viewer))
 
 	return &graphpb.ActorArchiveResponse{Archived: true}, nil
 }
@@ -683,17 +683,17 @@ func (h *actorHandler) SetEnabled(ctx context.Context, req *graphpb.ActorSetEnab
 		log.Println("actor set-enabled: audit write failed:", err)
 	}
 
-	h.publishActorLifecycle(format, actor, changedBy, viewerUserType(req.Viewer))
+	h.publishActorLifecycle(format, actor, changedBy, viewerPersonType(req.Viewer))
 
 	return &graphpb.ActorSetEnabledResponse{Changed: true}, nil
 }
 
-// viewerUserType reads the type off a possibly-absent viewer.
-func viewerUserType(v *graphpb.Viewer) string {
+// viewerPersonType reads the type off a possibly-absent viewer.
+func viewerPersonType(v *graphpb.Viewer) string {
 	if v == nil {
 		return ""
 	}
-	return v.UserType
+	return v.PersonType
 }
 
 // Ping return a pong message

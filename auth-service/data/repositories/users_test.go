@@ -79,7 +79,7 @@ func TestUsersEditDoesNotWriteIdentityColumns(t *testing.T) {
 	user.ID = 42
 	user.Email = "attacker@example.com"
 	user.Username = "impostor"
-	user.UserType = "super-administrator"
+	user.PersonType = "super-administrator"
 	user.Password = "$2a$10$hash"
 	user.UpdateTime = time.Now()
 

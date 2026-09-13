@@ -23,7 +23,7 @@ func (h *personHandler) HandleEvents(payload *event.EventPayload) error {
 func (h *personHandler) updateTags(payload *event.EventPayload) error {
 	viewer := entities.NewViewer()
 	viewer.ID = payload.ViewerID
-	viewer.UserType = payload.ViewerUserType
+	viewer.PersonType = payload.ViewerPersonType
 
 	item, err := h.Srv.GraphNodeGRPC.Read(payload.ObjectID)
 	if err != nil {

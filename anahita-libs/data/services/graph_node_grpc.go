@@ -120,10 +120,10 @@ func (srv *GraphNodeGRPC) Browse(req *GraphNodeBrowseRequest) ([]*entities.Anahi
 		Offset:          req.Offset,
 		AccessCheck:     req.AccessCheck,
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 	})
 	if err != nil {
@@ -276,10 +276,10 @@ func (srv *GraphNodeGRPC) Count(req *GraphNodeBrowseRequest) (uint64, error) {
 		NearbyRadius:    req.NearbyRadius,
 		AccessCheck:     req.AccessCheck,
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 	})
 	if err != nil {

@@ -228,7 +228,7 @@ func BuildViewer(claims jwt.MapClaims) (*entities.Viewer, error) {
 	// viewer.Type — that field holds the node entity type set by NewViewer
 	// and the node helpers depend on it.
 	if personType, ok := claims[constants.JWTClaimPersonType].(string); ok && personType != "" {
-		viewer.UserType = personType
+		viewer.PersonType = personType
 	}
 
 	if scope, ok := claims[constants.JWTClaimScope].(string); ok {

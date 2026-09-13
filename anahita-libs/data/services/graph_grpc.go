@@ -103,10 +103,10 @@ func (srv *GraphGRPC) BrowseNeighbours(req *GrapBrowseNeighboursRequest) ([]*ent
 		Ordering:    req.Ordering,
 		OrderingDir: req.OrderingDir,
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 		AccessCheck: req.AccessCheck,
 	})
@@ -141,10 +141,10 @@ func (srv *GraphGRPC) BrowseConnectionNodes(req *GraphBrowseConnectionNodesReque
 		Ordering:    req.Ordering,
 		OrderingDir: req.OrderingDir,
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 		AccessCheck: req.AccessCheck,
 	})
@@ -176,10 +176,10 @@ func (srv *GraphGRPC) BrowseOrderedByDegree(req *GraphBrowseOrderedByDegreeReque
 		Limit:       req.Limit,
 		OrderingDir: req.OrderingDir,
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 		AccessCheck: req.AccessCheck,
 	})
@@ -209,10 +209,10 @@ func (srv *GraphGRPC) ReadNeighbourhood(req *GraphReadNeighbourhoodRequest) (*dt
 		Depth:     req.Depth,
 		Direction: req.Direction,
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 		AccessCheck: req.AccessCheck,
 	})
@@ -327,10 +327,10 @@ func (srv *GraphGRPC) Trending(req *GraphTrendingRequest) ([]*entities.AnahitaNo
 		TimeWindow: req.TimeWindow,
 		Limit:      req.Limit,
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 		AccessCheck: req.AccessCheck,
 	})

@@ -27,7 +27,7 @@ func (h *hashtagHandler) HandleEvents(payload *event.EventPayload) error {
 func (h *hashtagHandler) updateHashtags(payload *event.EventPayload) error {
 	viewer := entities.NewViewer()
 	viewer.ID = payload.ViewerID
-	viewer.UserType = payload.ViewerUserType
+	viewer.PersonType = payload.ViewerPersonType
 
 	node, err := h.Srv.GraphNodeGRPC.Read(payload.ObjectID)
 	if err != nil {

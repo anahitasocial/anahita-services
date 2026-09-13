@@ -29,7 +29,7 @@ func (h *mediumHandler) Count(ctx context.Context, req *graphpb.MediumCountReque
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -61,7 +61,7 @@ func (h *mediumHandler) Browse(ctx context.Context, req *graphpb.MediumBrowseReq
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -153,7 +153,7 @@ func (h *mediumHandler) BatchRead(ctx context.Context, req *graphpb.MediumBatchR
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -205,7 +205,7 @@ func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -255,16 +255,16 @@ func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest
 		srvName := strings.Split(node.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatNodeMediumEdited, srvName, entityName)
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  node.Service,
-			SubjectID:      viewer.ID,
-			SubjectType:    constants.NodeActorPersonEntityType,
-			ObjectID:       node.ID,
-			ObjectType:     node.Type,
-			TargetID:       node.Owner.ID,
-			TargetType:     node.Owner.Type,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    node.Service,
+			SubjectID:        viewer.ID,
+			SubjectType:      constants.NodeActorPersonEntityType,
+			ObjectID:         node.ID,
+			ObjectType:       node.Type,
+			TargetID:         node.Owner.ID,
+			TargetType:       node.Owner.Type,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		log.Println("Publishing event", routing_key)
 		if err = h.env.Publisher.Publish(payload, routing_key); err != nil {
@@ -283,7 +283,7 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -324,16 +324,16 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 		srvName := strings.Split(node.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatNodeMediumAdded, srvName, entityName)
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  node.Service,
-			SubjectID:      viewer.ID,
-			SubjectType:    constants.NodeActorPersonEntityType,
-			ObjectID:       node.ID,
-			ObjectType:     node.Type,
-			TargetID:       node.Owner.ID,
-			TargetType:     node.Owner.Type,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    node.Service,
+			SubjectID:        viewer.ID,
+			SubjectType:      constants.NodeActorPersonEntityType,
+			ObjectID:         node.ID,
+			ObjectType:       node.Type,
+			TargetID:         node.Owner.ID,
+			TargetType:       node.Owner.Type,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		h.env.Publisher.Publish(payload, routing_key)
 	}()
@@ -349,7 +349,7 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -369,16 +369,16 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 		srvName := strings.Split(node.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatNodeMediumDeleted, srvName, entityName)
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  node.Service,
-			SubjectID:      viewer.ID,
-			SubjectType:    constants.NodeActorPersonEntityType,
-			ObjectID:       node.ID,
-			ObjectType:     node.Type,
-			TargetID:       node.Owner.ID,
-			TargetType:     node.Owner.Type,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    node.Service,
+			SubjectID:        viewer.ID,
+			SubjectType:      constants.NodeActorPersonEntityType,
+			ObjectID:         node.ID,
+			ObjectType:       node.Type,
+			TargetID:         node.Owner.ID,
+			TargetType:       node.Owner.Type,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		h.env.Publisher.Publish(payload, routing_key)
 	}()

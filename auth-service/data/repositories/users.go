@@ -62,8 +62,8 @@ func (repo *Users) Browse(req *requests.UserBrowseRequest) ([]*entities.User, er
 		})
 	}
 
-	if req.UserType != "" {
-		query = query.Where(sq.Eq{"usertype": req.UserType})
+	if req.PersonType != "" {
+		query = query.Where(sq.Eq{"usertype": req.PersonType})
 	}
 
 	// One clause, not two. This block appeared twice — once bare and once with
@@ -334,7 +334,7 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 		user.Username,
 		user.Email,
 		user.Password,
-		user.UserType,
+		user.PersonType,
 		user.LastVisitDate,
 	)
 	if err != nil {

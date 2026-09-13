@@ -31,7 +31,7 @@ const (
 func newViewer(id int64, userType string, scopes ...string) *libs_entities.Viewer {
 	v := libs_entities.NewViewer()
 	v.ID = id
-	v.UserType = userType
+	v.PersonType = userType
 	v.Authenticated = true
 	v.Scopes = scopes
 	return v
@@ -80,7 +80,7 @@ func TestUsersCanEdit(t *testing.T) {
 	}{
 		{
 			name:   "self with account:write",
-			viewer: newViewer(viewerID, libs_constants.UserTypeRegistered, libs_constants.OAuthScopeAccountWrite),
+			viewer: newViewer(viewerID, libs_constants.PersonTypeRegistered, libs_constants.OAuthScopeAccountWrite),
 			target: self,
 			want:   true,
 		},
@@ -89,25 +89,25 @@ func TestUsersCanEdit(t *testing.T) {
 			// actors:write instead is not a substitute — a token scoped for
 			// managing OTHER people should not silently manage your own.
 			name:   "self without account:write",
-			viewer: newViewer(viewerID, libs_constants.UserTypeRegistered, scopeless(libs_constants.OAuthScopeAccountWrite)...),
+			viewer: newViewer(viewerID, libs_constants.PersonTypeRegistered, scopeless(libs_constants.OAuthScopeAccountWrite)...),
 			target: self,
 			want:   false,
 		},
 		{
 			name:   "ordinary person editing somebody else",
-			viewer: newViewer(viewerID, libs_constants.UserTypeRegistered, libs_constants.OAuthScopeActorsWrite),
+			viewer: newViewer(viewerID, libs_constants.PersonTypeRegistered, libs_constants.OAuthScopeActorsWrite),
 			target: target,
 			want:   false,
 		},
 		{
 			name:   "admin editing somebody else",
-			viewer: newViewer(viewerID, libs_constants.UserTypeAdmin, libs_constants.OAuthScopeActorsWrite),
+			viewer: newViewer(viewerID, libs_constants.PersonTypeAdmin, libs_constants.OAuthScopeActorsWrite),
 			target: target,
 			want:   true,
 		},
 		{
 			name:   "super admin editing somebody else",
-			viewer: newViewer(viewerID, libs_constants.UserTypeSuperAdmin, libs_constants.OAuthScopeActorsWrite),
+			viewer: newViewer(viewerID, libs_constants.PersonTypeSuperAdmin, libs_constants.OAuthScopeActorsWrite),
 			target: target,
 			want:   true,
 		},
@@ -116,7 +116,7 @@ func TestUsersCanEdit(t *testing.T) {
 			// actors:write is still refused. Without this ordering the scope
 			// system would be decorative for anyone holding a role.
 			name:   "admin without actors:write",
-			viewer: newViewer(viewerID, libs_constants.UserTypeAdmin, scopeless(libs_constants.OAuthScopeActorsWrite)...),
+			viewer: newViewer(viewerID, libs_constants.PersonTypeAdmin, scopeless(libs_constants.OAuthScopeActorsWrite)...),
 			target: target,
 			want:   false,
 		},
@@ -134,7 +134,7 @@ func TestUsersCanDelete(t *testing.T) {
 	p := NewUsersPermissions(&Env{})
 
 	t.Run("self", func(t *testing.T) {
-		v := newViewer(viewerID, libs_constants.UserTypeRegistered, libs_constants.OAuthScopeAccountWrite)
+		v := newViewer(viewerID, libs_constants.PersonTypeRegistered, libs_constants.OAuthScopeAccountWrite)
 		ok, err := p.CanDelete(v, newUser(viewerID))
 		assertPermission(t, ok, err, true)
 	})
@@ -143,19 +143,19 @@ func TestUsersCanDelete(t *testing.T) {
 	// unauthenticated viewer has ID 0. Without the guard, a zero-id viewer
 	// would match a zero-id target and delete it as "their own".
 	t.Run("zero id viewer does not match a zero id user", func(t *testing.T) {
-		v := newViewer(0, libs_constants.UserTypeGuest, libs_constants.OAuthScopeAccountWrite)
+		v := newViewer(0, libs_constants.PersonTypeGuest, libs_constants.OAuthScopeAccountWrite)
 		ok, err := p.CanDelete(v, newUser(0))
 		assertPermission(t, ok, err, false)
 	})
 
 	t.Run("ordinary person deleting somebody else", func(t *testing.T) {
-		v := newViewer(viewerID, libs_constants.UserTypeRegistered, libs_constants.OAuthScopeActorsWrite)
+		v := newViewer(viewerID, libs_constants.PersonTypeRegistered, libs_constants.OAuthScopeActorsWrite)
 		ok, err := p.CanDelete(v, newUser(otherID))
 		assertPermission(t, ok, err, false)
 	})
 
 	t.Run("admin deleting somebody else", func(t *testing.T) {
-		v := newViewer(viewerID, libs_constants.UserTypeAdmin, libs_constants.OAuthScopeActorsWrite)
+		v := newViewer(viewerID, libs_constants.PersonTypeAdmin, libs_constants.OAuthScopeActorsWrite)
 		ok, err := p.CanDelete(v, newUser(otherID))
 		assertPermission(t, ok, err, true)
 	})
@@ -168,9 +168,9 @@ func TestUsersCanBrowseIsAdminOnly(t *testing.T) {
 		userType string
 		want     bool
 	}{
-		{libs_constants.UserTypeRegistered, false},
-		{libs_constants.UserTypeAdmin, true},
-		{libs_constants.UserTypeSuperAdmin, true},
+		{libs_constants.PersonTypeRegistered, false},
+		{libs_constants.PersonTypeAdmin, true},
+		{libs_constants.PersonTypeSuperAdmin, true},
 	} {
 		t.Run(tc.userType, func(t *testing.T) {
 			v := newViewer(viewerID, tc.userType, libs_constants.OAuthScopeActorsWrite)
@@ -185,7 +185,7 @@ func TestUsersCanBrowseIsAdminOnly(t *testing.T) {
 func TestUsersCanReadSeparatesSelfFromOthers(t *testing.T) {
 	p := NewUsersPermissions(&Env{})
 
-	v := newViewer(viewerID, libs_constants.UserTypeRegistered, libs_constants.OAuthScopeAccountRead)
+	v := newViewer(viewerID, libs_constants.PersonTypeRegistered, libs_constants.OAuthScopeAccountRead)
 
 	ok, err := p.CanRead(v, newUser(viewerID))
 	assertPermission(t, ok, err, true)
@@ -217,14 +217,14 @@ func TestTotpCanDelete(t *testing.T) {
 			// before reaching one.
 			name:     "self",
 			viewerID: viewerID,
-			userType: libs_constants.UserTypeRegistered,
+			userType: libs_constants.PersonTypeRegistered,
 			targetID: viewerID,
 			wantErr:  false,
 		},
 		{
 			name:     "admin disabling somebody else",
 			viewerID: viewerID,
-			userType: libs_constants.UserTypeAdmin,
+			userType: libs_constants.PersonTypeAdmin,
 			scopes:   []string{libs_constants.OAuthScopeActorsWrite},
 			targetID: otherID,
 			wantErr:  false,
@@ -232,7 +232,7 @@ func TestTotpCanDelete(t *testing.T) {
 		{
 			name:     "super admin disabling somebody else",
 			viewerID: viewerID,
-			userType: libs_constants.UserTypeSuperAdmin,
+			userType: libs_constants.PersonTypeSuperAdmin,
 			scopes:   []string{libs_constants.OAuthScopeActorsWrite},
 			targetID: otherID,
 			wantErr:  false,
@@ -240,7 +240,7 @@ func TestTotpCanDelete(t *testing.T) {
 		{
 			name:     "ordinary person disabling somebody else",
 			viewerID: viewerID,
-			userType: libs_constants.UserTypeRegistered,
+			userType: libs_constants.PersonTypeRegistered,
 			scopes:   []string{libs_constants.OAuthScopeActorsWrite},
 			targetID: otherID,
 			wantErr:  true,
@@ -248,7 +248,7 @@ func TestTotpCanDelete(t *testing.T) {
 		{
 			name:     "admin without actors:write",
 			viewerID: viewerID,
-			userType: libs_constants.UserTypeAdmin,
+			userType: libs_constants.PersonTypeAdmin,
 			scopes:   []string{libs_constants.OAuthScopeAccountWrite},
 			targetID: otherID,
 			wantErr:  true,
@@ -275,7 +275,7 @@ func TestTotpCanDelete(t *testing.T) {
 // would hold that account's second factor.
 func TestTotpMutationsAreSelfOnly(t *testing.T) {
 	p := NewTotpPerm(&Env{})
-	admin := newViewer(viewerID, libs_constants.UserTypeSuperAdmin,
+	admin := newViewer(viewerID, libs_constants.PersonTypeSuperAdmin,
 		libs_constants.OAuthScopeActorsWrite, libs_constants.OAuthScopeAccountWrite)
 
 	checks := map[string]func(*libs_entities.Viewer, *entities.User) error{
@@ -306,7 +306,7 @@ func TestAuthLogCanBrowse(t *testing.T) {
 	p := NewAuthLogPerm(&Env{})
 
 	t.Run("own logs", func(t *testing.T) {
-		v := newViewer(viewerID, libs_constants.UserTypeRegistered, libs_constants.OAuthScopeAccountRead)
+		v := newViewer(viewerID, libs_constants.PersonTypeRegistered, libs_constants.OAuthScopeAccountRead)
 		if err := p.CanBrowse(v, newUser(viewerID)); err != nil {
 			t.Errorf("refused own logs: %v", err)
 		}
@@ -315,21 +315,21 @@ func TestAuthLogCanBrowse(t *testing.T) {
 	// Auth logs hold IP addresses, cities and device fingerprints — a record of
 	// where somebody has been. Reading another person's is admin-only.
 	t.Run("somebody else's logs as an ordinary person", func(t *testing.T) {
-		v := newViewer(viewerID, libs_constants.UserTypeRegistered, libs_constants.OAuthScopeAccountRead)
+		v := newViewer(viewerID, libs_constants.PersonTypeRegistered, libs_constants.OAuthScopeAccountRead)
 		if err := p.CanBrowse(v, newUser(otherID)); err == nil {
 			t.Error("an ordinary person read another person's location history")
 		}
 	})
 
 	t.Run("somebody else's logs as an admin", func(t *testing.T) {
-		v := newViewer(viewerID, libs_constants.UserTypeAdmin, libs_constants.OAuthScopeAccountRead)
+		v := newViewer(viewerID, libs_constants.PersonTypeAdmin, libs_constants.OAuthScopeAccountRead)
 		if err := p.CanBrowse(v, newUser(otherID)); err != nil {
 			t.Errorf("admin was refused: %v", err)
 		}
 	})
 
 	t.Run("without account:read", func(t *testing.T) {
-		v := newViewer(viewerID, libs_constants.UserTypeSuperAdmin, scopeless(libs_constants.OAuthScopeAccountRead)...)
+		v := newViewer(viewerID, libs_constants.PersonTypeSuperAdmin, scopeless(libs_constants.OAuthScopeAccountRead)...)
 		if err := p.CanBrowse(v, newUser(viewerID)); err == nil {
 			t.Error("scope was not checked")
 		}
@@ -341,12 +341,12 @@ func TestAuthLogCanBrowse(t *testing.T) {
 func TestAuthLogCanDeleteRequiresWriteScope(t *testing.T) {
 	p := NewAuthLogPerm(&Env{})
 
-	readOnly := newViewer(viewerID, libs_constants.UserTypeSuperAdmin, libs_constants.OAuthScopeAccountRead)
+	readOnly := newViewer(viewerID, libs_constants.PersonTypeSuperAdmin, libs_constants.OAuthScopeAccountRead)
 	if err := p.CanDelete(readOnly, newUser(viewerID)); err == nil {
 		t.Error("a read-only token ended a session")
 	}
 
-	writer := newViewer(viewerID, libs_constants.UserTypeAdmin, libs_constants.OAuthScopeAccountWrite)
+	writer := newViewer(viewerID, libs_constants.PersonTypeAdmin, libs_constants.OAuthScopeAccountWrite)
 	if err := p.CanDelete(writer, newUser(otherID)); err != nil {
 		t.Errorf("admin was refused: %v", err)
 	}
@@ -373,7 +373,7 @@ func TestAuthLogCanAddRejectsAnUnsavedUser(t *testing.T) {
 // which is person-supplied.
 func TestWebAuthnMutationChecksOwnership(t *testing.T) {
 	p := NewWebAuthnPerm(&Env{})
-	v := newViewer(viewerID, libs_constants.UserTypeSuperAdmin, libs_constants.OAuthScopeAccountWrite)
+	v := newViewer(viewerID, libs_constants.PersonTypeSuperAdmin, libs_constants.OAuthScopeAccountWrite)
 
 	mine := &entities.WebAuthnCredential{UserID: viewerID}
 	theirs := &entities.WebAuthnCredential{UserID: otherID}
@@ -424,10 +424,10 @@ func TestWebAuthnRejectsUnauthenticatedViewers(t *testing.T) {
 // is not by itself authority to strip credentials.
 func TestWebAuthnCanDeleteAll(t *testing.T) {
 	p := NewWebAuthnPerm(&Env{})
-	v := newViewer(viewerID, libs_constants.UserTypeSuperAdmin, libs_constants.OAuthScopeAccountWrite)
+	v := newViewer(viewerID, libs_constants.PersonTypeSuperAdmin, libs_constants.OAuthScopeAccountWrite)
 
 	freshSuper := newUser(viewerID)
-	freshSuper.UserType = libs_constants.UserTypeSuperAdmin
+	freshSuper.PersonType = libs_constants.PersonTypeSuperAdmin
 	freshSuper.TotpEnabled = true
 	freshSuper.TotpLastVerifiedAt = time.Now()
 
@@ -446,7 +446,7 @@ func TestWebAuthnCanDeleteAll(t *testing.T) {
 
 	t.Run("ordinary admin is not enough", func(t *testing.T) {
 		admin := newUser(viewerID)
-		admin.UserType = libs_constants.UserTypeAdmin
+		admin.PersonType = libs_constants.PersonTypeAdmin
 		admin.TotpEnabled = true
 		admin.TotpLastVerifiedAt = time.Now()
 
@@ -461,7 +461,7 @@ func TestWebAuthnCanDeleteAll(t *testing.T) {
 
 	t.Run("super admin without totp", func(t *testing.T) {
 		noTotp := newUser(viewerID)
-		noTotp.UserType = libs_constants.UserTypeSuperAdmin
+		noTotp.PersonType = libs_constants.PersonTypeSuperAdmin
 
 		if ok, _ := p.CanDeleteAll(v, noTotp, newUser(otherID)); ok {
 			t.Error("a super admin with no second factor stripped somebody's passkeys")
@@ -470,7 +470,7 @@ func TestWebAuthnCanDeleteAll(t *testing.T) {
 
 	t.Run("super admin with a stale totp verification", func(t *testing.T) {
 		stale := newUser(viewerID)
-		stale.UserType = libs_constants.UserTypeSuperAdmin
+		stale.PersonType = libs_constants.PersonTypeSuperAdmin
 		stale.TotpEnabled = true
 		stale.TotpLastVerifiedAt = time.Now().Add(-365 * 24 * time.Hour)
 
@@ -495,10 +495,10 @@ func TestWebAuthnCanDeleteAll(t *testing.T) {
 // card rather than destroying anything, and a count is not a list.
 func TestWebAuthnCanReadCountDoesNotRequireFreshTotp(t *testing.T) {
 	p := NewWebAuthnPerm(&Env{})
-	v := newViewer(viewerID, libs_constants.UserTypeSuperAdmin, libs_constants.OAuthScopeAccountWrite)
+	v := newViewer(viewerID, libs_constants.PersonTypeSuperAdmin, libs_constants.OAuthScopeAccountWrite)
 
 	stale := newUser(viewerID)
-	stale.UserType = libs_constants.UserTypeSuperAdmin
+	stale.PersonType = libs_constants.PersonTypeSuperAdmin
 
 	if ok, err := p.CanReadCount(v, stale, newUser(otherID)); !ok {
 		t.Errorf("a super admin with a stale session could not read a count: %v", err)
@@ -506,7 +506,7 @@ func TestWebAuthnCanReadCountDoesNotRequireFreshTotp(t *testing.T) {
 
 	// Still super-admin only, though.
 	admin := newUser(viewerID)
-	admin.UserType = libs_constants.UserTypeAdmin
+	admin.PersonType = libs_constants.PersonTypeAdmin
 	if ok, _ := p.CanReadCount(v, admin, newUser(otherID)); ok {
 		t.Error("an ordinary admin read another person's passkey count")
 	}
@@ -519,9 +519,9 @@ func TestWebAuthnCanReadCountDoesNotRequireFreshTotp(t *testing.T) {
 func TestInvitePermissionsAreAdminOnly(t *testing.T) {
 	p := NewInvitePerm(&Env{})
 
-	registered := newViewer(viewerID, libs_constants.UserTypeRegistered,
+	registered := newViewer(viewerID, libs_constants.PersonTypeRegistered,
 		libs_constants.OAuthScopeActorsRead, libs_constants.OAuthScopeActorsWrite)
-	admin := newViewer(viewerID, libs_constants.UserTypeAdmin,
+	admin := newViewer(viewerID, libs_constants.PersonTypeAdmin,
 		libs_constants.OAuthScopeActorsRead, libs_constants.OAuthScopeActorsWrite)
 
 	for name, check := range map[string]func(*libs_entities.Viewer) error{
@@ -544,7 +544,7 @@ func TestInvitePermissionsAreAdminOnly(t *testing.T) {
 // revoke an invitation.
 func TestInviteSeparatesReadFromWrite(t *testing.T) {
 	p := NewInvitePerm(&Env{})
-	readOnly := newViewer(viewerID, libs_constants.UserTypeAdmin, libs_constants.OAuthScopeActorsRead)
+	readOnly := newViewer(viewerID, libs_constants.PersonTypeAdmin, libs_constants.OAuthScopeActorsRead)
 
 	if err := p.CanBrowse(readOnly); err != nil {
 		t.Errorf("browse was refused to a read scope: %v", err)
@@ -561,7 +561,7 @@ func TestSignupIsForGuestsOnly(t *testing.T) {
 	p := NewSignupPermissions(&Env{})
 
 	guest := libs_entities.NewViewer()
-	guest.UserType = libs_constants.UserTypeGuest
+	guest.PersonType = libs_constants.PersonTypeGuest
 
 	if ok, err := p.CanAdd(guest, nil); !ok {
 		t.Errorf("a guest could not sign up: %v", err)
@@ -570,7 +570,7 @@ func TestSignupIsForGuestsOnly(t *testing.T) {
 		t.Errorf("a nil viewer could not sign up: %v", err)
 	}
 
-	signedIn := newViewer(viewerID, libs_constants.UserTypeRegistered)
+	signedIn := newViewer(viewerID, libs_constants.PersonTypeRegistered)
 	if ok, _ := p.CanAdd(signedIn, nil); ok {
 		t.Error("a signed-in person created a second account")
 	}

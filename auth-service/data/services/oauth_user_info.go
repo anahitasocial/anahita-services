@@ -68,7 +68,7 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 		// The viewer's role. Clients gate their authenticated routes on
 		// this — a viewer whose cached profile is missing it reads as an
 		// unauthenticated guest and gets bounced to the login screen.
-		info["usertype"] = user.UserType
+		info["usertype"] = user.PersonType
 		info["totp_enabled"] = user.TotpEnabled
 		info["last_visit_date"] = user.LastVisitDate
 	}

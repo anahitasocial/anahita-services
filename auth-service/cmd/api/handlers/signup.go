@@ -57,7 +57,7 @@ func (h *signupHandler) Add(c echo.Context) error {
 
 	// Creating the user
 	user := entities.NewUser()
-	user.UserType = constants.UserTypeRegistered
+	user.PersonType = constants.PersonTypeRegistered
 	user.Email = req.Email
 	user.Username = req.Username
 

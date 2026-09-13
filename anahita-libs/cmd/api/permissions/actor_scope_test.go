@@ -23,7 +23,7 @@ func viewerWith(userType string, scopes ...string) *entities.Viewer {
 	v := entities.NewViewer()
 	v.ID = 100
 	v.Authenticated = true
-	v.UserType = userType
+	v.PersonType = userType
 	v.Scopes = scopes
 	return v
 }
@@ -54,32 +54,32 @@ func TestCanAdministrateEncodesTheDoctrine(t *testing.T) {
 		},
 		{
 			name:    "registered with the scope but no relationship is denied",
-			viewer:  viewerWith(constants.UserTypeRegistered, constants.OAuthScopeActorsWrite),
+			viewer:  viewerWith(constants.PersonTypeRegistered, constants.OAuthScopeActorsWrite),
 			rel:     &entities.ActorRelation{},
 			allowed: false,
 		},
 		{
 			name:    "registered with the scope and an admin relationship is allowed",
-			viewer:  viewerWith(constants.UserTypeRegistered, constants.OAuthScopeActorsWrite),
+			viewer:  viewerWith(constants.PersonTypeRegistered, constants.OAuthScopeActorsWrite),
 			rel:     &entities.ActorRelation{HasAdmin: true},
 			allowed: true,
 		},
 		{
 			name:    "site admin with the scope is allowed",
-			viewer:  viewerWith(constants.UserTypeAdmin, constants.OAuthScopeActorsWrite),
+			viewer:  viewerWith(constants.PersonTypeAdmin, constants.OAuthScopeActorsWrite),
 			rel:     &entities.ActorRelation{},
 			allowed: true,
 		},
 		{
 			// The doctrine row: role must not rescue a missing scope.
 			name:    "site admin WITHOUT the scope is denied",
-			viewer:  viewerWith(constants.UserTypeAdmin),
+			viewer:  viewerWith(constants.PersonTypeAdmin),
 			rel:     &entities.ActorRelation{},
 			allowed: false,
 		},
 		{
 			name:    "super admin WITHOUT the scope is denied",
-			viewer:  viewerWith(constants.UserTypeSuperAdmin),
+			viewer:  viewerWith(constants.PersonTypeSuperAdmin),
 			rel:     &entities.ActorRelation{},
 			allowed: false,
 		},

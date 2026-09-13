@@ -82,7 +82,7 @@ func TestCountOtherActiveSuperAdminsPassesTheRightArguments(t *testing.T) {
 	repo := &Person{db: db, dbTimeout: 3 * time.Second}
 
 	mock.ExpectQuery("select").
-		WithArgs(constants.UserTypeSuperAdmin, int64(5)).
+		WithArgs(constants.PersonTypeSuperAdmin, int64(5)).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
 	if _, err := repo.CountOtherActiveSuperAdmins(5); err != nil {

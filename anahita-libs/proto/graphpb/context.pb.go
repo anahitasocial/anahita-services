@@ -272,7 +272,7 @@ func (x *Source) GetType() string {
 type Viewer struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserType      string                 `protobuf:"bytes,2,opt,name=user_type,json=userType,proto3" json:"user_type,omitempty"`
+	PersonType    string                 `protobuf:"bytes,2,opt,name=person_type,json=personType,proto3" json:"person_type,omitempty"`
 	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
 	Username      string                 `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty"`
 	Scopes        []string               `protobuf:"bytes,5,rep,name=scopes,proto3" json:"scopes,omitempty"`
@@ -320,9 +320,9 @@ func (x *Viewer) GetId() int64 {
 	return 0
 }
 
-func (x *Viewer) GetUserType() string {
+func (x *Viewer) GetPersonType() string {
 	if x != nil {
-		return x.UserType
+		return x.PersonType
 	}
 	return ""
 }
@@ -391,10 +391,11 @@ const file_proto_graphpb_context_proto_rawDesc = "" +
 	"\x04type\x18\x02 \x01(\tR\x04type\",\n" +
 	"\x06Source\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
-	"\x04type\x18\x02 \x01(\tR\x04type\"\xdc\x01\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\"\xe0\x01\n" +
 	"\x06Viewer\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1b\n" +
-	"\tuser_type\x18\x02 \x01(\tR\buserType\x12\x14\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1f\n" +
+	"\vperson_type\x18\x02 \x01(\tR\n" +
+	"personType\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x1a\n" +
 	"\busername\x18\x04 \x01(\tR\busername\x12\x16\n" +
 	"\x06scopes\x18\x05 \x03(\tR\x06scopes\x12\x1b\n" +

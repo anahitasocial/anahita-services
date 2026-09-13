@@ -139,7 +139,7 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 
 	user := entities.NewUser()
 	user.Email = token.RecipientEmail
-	user.Type = constants.UserTypeRegistered
+	user.Type = constants.PersonTypeRegistered
 	user.Enabled = true
 	user.GivenName = req.GivenName
 	user.FamilyName = req.FamilyName

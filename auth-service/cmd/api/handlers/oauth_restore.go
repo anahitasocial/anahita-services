@@ -140,7 +140,7 @@ func (h *oauthHandler) AddRestore(c echo.Context) error {
 	// Best-effort: the account is already back, and failing the request over
 	// the audit row would tell the person the restore had not worked.
 	if err := h.Repos.NodeDeletionLogs.Add(
-		user.ID, user.Username, user.UserType, user.ID,
+		user.ID, user.Username, user.PersonType, user.ID,
 		repositories.DeletionActionRestored,
 	); err != nil {
 		log.Println("restore: audit write failed:", err)

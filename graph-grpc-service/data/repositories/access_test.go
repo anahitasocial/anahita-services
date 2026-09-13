@@ -21,7 +21,7 @@ import (
 func testViewer(id int64) *entities.Viewer {
 	v := entities.NewViewer()
 	v.ID = id
-	v.UserType = "registered"
+	v.PersonType = "registered"
 	return v
 }
 
@@ -155,7 +155,7 @@ func TestGuestSeesOnlyPublicContent(t *testing.T) {
 func TestAdminBypassesAccessGates(t *testing.T) {
 	admin := entities.NewViewer()
 	admin.ID = 7
-	admin.UserType = "administrator"
+	admin.PersonType = "administrator"
 
 	query := generatedSQL(t, func(b sq.SelectBuilder) sq.SelectBuilder {
 		return SetMediumAccessQuery(b, admin)

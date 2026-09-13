@@ -103,7 +103,7 @@ func (repo *Person) Browse(ids []int64) ([]*entities.Person, error) {
 			&item.ID,
 			&item.Username,
 			&item.Email,
-			&item.UserType,
+			&item.PersonType,
 			&item.LastVisitDate,
 			&item.GivenName,
 			&item.FamilyName,
@@ -167,7 +167,7 @@ func (repo *Person) getOneEntity(q *sq.SelectBuilder) (*entities.Person, error) 
 		&item.ID,
 		&item.Username,
 		&item.Email,
-		&item.UserType,
+		&item.PersonType,
 		&item.LastVisitDate,
 		&item.GivenName,
 		&item.FamilyName,
@@ -216,7 +216,7 @@ func (repo *Person) Add(item *entities.Person) (int64, error) {
 		item.Username,
 		item.Email,
 		item.Password,
-		item.UserType,
+		item.PersonType,
 		item.LastVisitDate,
 	)
 	if err != nil {
@@ -308,7 +308,7 @@ WHERE p.usertype = ?
 
 	var count int
 	err := repo.db.QueryRowContext(ctx, query,
-		constants.UserTypeSuperAdmin, excludeID).Scan(&count)
+		constants.PersonTypeSuperAdmin, excludeID).Scan(&count)
 	if err != nil {
 		return 0, err
 	}

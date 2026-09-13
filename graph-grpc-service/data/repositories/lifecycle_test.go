@@ -78,7 +78,7 @@ func TestLifecycleGateLetsThroughNodesWithNoOwner(t *testing.T) {
 func TestLifecycleGateIsBypassedForAdministrators(t *testing.T) {
 	admin := &entities.Viewer{}
 	admin.ID = 1
-	admin.UserType = "super-administrator"
+	admin.PersonType = "super-administrator"
 
 	if !admin.IsAdmin() {
 		t.Skip("fixture is not an admin; IsAdmin reads a field this test does not set")
@@ -221,7 +221,7 @@ func TestArchiveSearchKeepsPeopleAndDropsGroups(t *testing.T) {
 func TestArchiveFiltersAreBypassedForAdministrators(t *testing.T) {
 	admin := &entities.Viewer{}
 	admin.ID = 1
-	admin.UserType = constants.UserTypeSuperAdmin
+	admin.PersonType = constants.PersonTypeSuperAdmin
 
 	if !admin.IsAdmin() {
 		t.Skip("fixture is not an admin")

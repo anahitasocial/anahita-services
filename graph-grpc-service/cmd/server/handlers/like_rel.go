@@ -51,7 +51,7 @@ func (h *likeGrpcHandler) Add(ctx context.Context, req *graphpb.LikeAddRequest) 
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 
 	edge := entities.NewAnahitaEdge()
 	edge.Type = constants.EdgeBaseLikeEntityType

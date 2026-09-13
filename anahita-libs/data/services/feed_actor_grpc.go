@@ -84,10 +84,10 @@ func (srv *FeedActorGRPC) Count(req *FeedActorCountRequest, viewer *entities.Vie
 		IncludeLiked:      req.IncludeLiked,
 		MediumEntityTypes: req.MediumEntityTypes,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 
@@ -114,10 +114,10 @@ func (srv *FeedActorGRPC) Browse(req *FeedActorBrowseRequest, viewer *entities.V
 		Limit:             req.Limit,
 		Offset:            req.Offset,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {

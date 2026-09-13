@@ -75,13 +75,13 @@ func (h *socialgraphFollowGrpcHandler) Edit(ctx context.Context, req *graphpb.So
 			srvName := "socialgraph"
 			routingKey := fmt.Sprintf(event.EventFormatEdgeFollowAdded, srvName)
 			payload := &event.EventPayload{
-				Name:           routingKey,
-				SourceService:  "graph-grpc-service",
-				SubjectID:      req.Viewer.Id,
-				ObjectID:       source.ID,
-				TargetID:       target.ID,
-				ViewerID:       req.Viewer.Id,
-				ViewerUserType: req.Viewer.UserType,
+				Name:             routingKey,
+				SourceService:    "graph-grpc-service",
+				SubjectID:        req.Viewer.Id,
+				ObjectID:         source.ID,
+				TargetID:         target.ID,
+				ViewerID:         req.Viewer.Id,
+				ViewerPersonType: req.Viewer.PersonType,
 			}
 			log.Println("Publishing event", routingKey)
 			h.env.Publisher.Publish(payload, routingKey)
@@ -155,13 +155,13 @@ func (h *socialgraphFollowGrpcHandler) Add(ctx context.Context, req *graphpb.Soc
 			srvName := "socialgraph"
 			routingKey := fmt.Sprintf(event.EventFormatEdgeFollowAdded, srvName)
 			payload := &event.EventPayload{
-				Name:           routingKey,
-				SourceService:  "graph-grpc-service",
-				SubjectID:      req.Viewer.Id,
-				ObjectID:       source.ID,
-				TargetID:       target.ID,
-				ViewerID:       req.Viewer.Id,
-				ViewerUserType: req.Viewer.UserType,
+				Name:             routingKey,
+				SourceService:    "graph-grpc-service",
+				SubjectID:        req.Viewer.Id,
+				ObjectID:         source.ID,
+				TargetID:         target.ID,
+				ViewerID:         req.Viewer.Id,
+				ViewerPersonType: req.Viewer.PersonType,
 			}
 			log.Println("Publishing event", routingKey)
 			h.env.Publisher.Publish(payload, routingKey)
@@ -219,13 +219,13 @@ func (h *socialgraphFollowGrpcHandler) Delete(ctx context.Context, req *graphpb.
 		srvName := "socialgraph"
 		routingKey := fmt.Sprintf(event.EventFormatEdgeFollowDeleted, srvName)
 		payload := &event.EventPayload{
-			Name:           routingKey,
-			SourceService:  "graph-grpc-service",
-			SubjectID:      req.Viewer.Id,
-			ObjectID:       source.ID,
-			TargetID:       target.ID,
-			ViewerID:       req.Viewer.Id,
-			ViewerUserType: req.Viewer.UserType,
+			Name:             routingKey,
+			SourceService:    "graph-grpc-service",
+			SubjectID:        req.Viewer.Id,
+			ObjectID:         source.ID,
+			TargetID:         target.ID,
+			ViewerID:         req.Viewer.Id,
+			ViewerPersonType: req.Viewer.PersonType,
 		}
 		log.Println("Publishing event", routingKey)
 		h.env.Publisher.Publish(payload, routingKey)

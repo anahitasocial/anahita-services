@@ -8,15 +8,15 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// TestBuildViewerPopulatesUserType is the regression test for a bug
+// TestBuildViewerPopulatesPersonType is the regression test for a bug
 // that made every role check in the fleet useless.
 //
 // The person_type claim was being hydrated into Viewer.Type (the node
 // entity type) while IsAdmin/IsSuperAdmin/IsGuest all read
-// Viewer.UserType, which NewViewer pins to "guest". The result: every
+// Viewer.PersonType, which NewViewer pins to "guest". The result: every
 // token-authenticated viewer was permanently a guest, so admin branches
 // were dead and even ordinary `if !viewer.IsGuest()` gates failed.
-func TestBuildViewerPopulatesUserType(t *testing.T) {
+func TestBuildViewerPopulatesPersonType(t *testing.T) {
 	cases := []struct {
 		name           string
 		personType     string
@@ -24,10 +24,10 @@ func TestBuildViewerPopulatesUserType(t *testing.T) {
 		wantSuperAdmin bool
 		wantGuest      bool
 	}{
-		{"registered", constants.UserTypeRegistered, false, false, false},
-		{"administrator", constants.UserTypeAdmin, true, false, false},
-		{"super administrator", constants.UserTypeSuperAdmin, true, true, false},
-		{"guest", constants.UserTypeGuest, false, false, true},
+		{"registered", constants.PersonTypeRegistered, false, false, false},
+		{"administrator", constants.PersonTypeAdmin, true, false, false},
+		{"super administrator", constants.PersonTypeSuperAdmin, true, true, false},
+		{"guest", constants.PersonTypeGuest, false, false, true},
 	}
 
 	for _, tc := range cases {
@@ -42,8 +42,8 @@ func TestBuildViewerPopulatesUserType(t *testing.T) {
 				t.Fatalf("BuildViewer: %v", err)
 			}
 
-			if viewer.UserType != tc.personType {
-				t.Errorf("UserType = %q, want %q — the role claim must land on UserType, not Type", viewer.UserType, tc.personType)
+			if viewer.PersonType != tc.personType {
+				t.Errorf("PersonType = %q, want %q — the role claim must land on PersonType, not Type", viewer.PersonType, tc.personType)
 			}
 			if got := viewer.IsAdmin(); got != tc.wantAdmin {
 				t.Errorf("IsAdmin() = %v, want %v", got, tc.wantAdmin)
@@ -69,7 +69,7 @@ func TestBuildViewerPopulatesUserType(t *testing.T) {
 func TestBuildViewerPopulatesScopes(t *testing.T) {
 	viewer, err := BuildViewer(jwt.MapClaims{
 		constants.JWTClaimSub:        "7",
-		constants.JWTClaimPersonType: constants.UserTypeRegistered,
+		constants.JWTClaimPersonType: constants.PersonTypeRegistered,
 		constants.JWTClaimScope:      constants.OAuthScopeNotificationsRead + " " + constants.OAuthScopeMediaWrite,
 		constants.JWTClaimPersonPK:   float64(7),
 	})

@@ -158,26 +158,26 @@ func (h *likeHandler) Add(c echo.Context) error {
 		routing_key := fmt.Sprintf(event.EventFormatEdgeVoteupAdded, entityName)
 		if node.IsComment() {
 			payload := &event.EventPayload{
-				Name:           routing_key,
-				SourceService:  constants.ConfigServiceName,
-				OwnerID:        node.Author.ID,
-				SubjectID:      viewer.ID,
-				ObjectID:       node.ID,
-				TargetID:       node.Parent.Author.ID,
-				ViewerID:       viewer.ID,
-				ViewerUserType: viewer.UserType,
+				Name:             routing_key,
+				SourceService:    constants.ConfigServiceName,
+				OwnerID:          node.Author.ID,
+				SubjectID:        viewer.ID,
+				ObjectID:         node.ID,
+				TargetID:         node.Parent.Author.ID,
+				ViewerID:         viewer.ID,
+				ViewerPersonType: viewer.PersonType,
 			}
 			h.Publisher.Publish(payload, routing_key)
 		} else {
 			payload := &event.EventPayload{
-				Name:           routing_key,
-				SourceService:  constants.ConfigServiceName,
-				OwnerID:        node.Author.ID,
-				SubjectID:      viewer.ID,
-				ObjectID:       node.ID,
-				TargetID:       node.Author.ID,
-				ViewerID:       viewer.ID,
-				ViewerUserType: viewer.UserType,
+				Name:             routing_key,
+				SourceService:    constants.ConfigServiceName,
+				OwnerID:          node.Author.ID,
+				SubjectID:        viewer.ID,
+				ObjectID:         node.ID,
+				TargetID:         node.Author.ID,
+				ViewerID:         viewer.ID,
+				ViewerPersonType: viewer.PersonType,
 			}
 			h.Publisher.Publish(payload, routing_key)
 		}
@@ -255,26 +255,26 @@ func (h *likeHandler) Delete(c echo.Context) error {
 		routing_key := fmt.Sprintf(event.EventFormatEdgeVoteupDeleted, entityName)
 		if node.IsComment() {
 			payload := &event.EventPayload{
-				Name:           routing_key,
-				SourceService:  constants.ConfigServiceName,
-				OwnerID:        node.Author.ID,
-				SubjectID:      viewer.ID,
-				ObjectID:       node.ID,
-				TargetID:       node.Parent.Author.ID,
-				ViewerID:       viewer.ID,
-				ViewerUserType: viewer.UserType,
+				Name:             routing_key,
+				SourceService:    constants.ConfigServiceName,
+				OwnerID:          node.Author.ID,
+				SubjectID:        viewer.ID,
+				ObjectID:         node.ID,
+				TargetID:         node.Parent.Author.ID,
+				ViewerID:         viewer.ID,
+				ViewerPersonType: viewer.PersonType,
 			}
 			h.Publisher.Publish(payload, routing_key)
 		} else {
 			payload := &event.EventPayload{
-				Name:           routing_key,
-				SourceService:  constants.ConfigServiceName,
-				OwnerID:        node.Author.ID,
-				SubjectID:      viewer.ID,
-				ObjectID:       node.ID,
-				TargetID:       node.Author.ID,
-				ViewerID:       viewer.ID,
-				ViewerUserType: viewer.UserType,
+				Name:             routing_key,
+				SourceService:    constants.ConfigServiceName,
+				OwnerID:          node.Author.ID,
+				SubjectID:        viewer.ID,
+				ObjectID:         node.ID,
+				TargetID:         node.Author.ID,
+				ViewerID:         viewer.ID,
+				ViewerPersonType: viewer.PersonType,
 			}
 			h.Publisher.Publish(payload, routing_key)
 		}

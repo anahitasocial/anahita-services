@@ -84,9 +84,9 @@ func (h *inviteNotifier) NotifyAccept(user *entities.User) error {
 // not silently skip the remaining admins.
 func (h *inviteNotifier) EmailAccept(joiner *entities.User, inviter *entities.User) error {
 	personReq := requests.NewUserRequest().Browse
-	personReq.UserTypes = []string{
-		an_constants.UserTypeAdmin,
-		an_constants.UserTypeSuperAdmin,
+	personReq.PersonTypes = []string{
+		an_constants.PersonTypeAdmin,
+		an_constants.PersonTypeSuperAdmin,
 	}
 
 	admins, err := h.Repos.Users.Browse(personReq)

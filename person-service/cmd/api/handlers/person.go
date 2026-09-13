@@ -241,12 +241,12 @@ func (h *personHandler) Edit(c echo.Context) error {
 	go func() {
 		routing_key := fmt.Sprintf(event.EventFormatNodeActorEdited, "person", "person")
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SubjectID:      viewer.ID,
-			ObjectID:       person.ID,
-			TargetID:       person.ID,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SubjectID:        viewer.ID,
+			ObjectID:         person.ID,
+			TargetID:         person.ID,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		log.Println("Publishing event", routing_key)
 		if err = h.Publisher.Publish(payload, routing_key); err != nil {
@@ -333,7 +333,7 @@ func (h *personHandler) Delete(c echo.Context) error {
 	// 409 rather than 403: the request is well formed and the caller is
 	// permitted, it conflicts with the state of the site. The body names the
 	// way out, because a refusal that does not is a support ticket.
-	if person.UserType == constants.UserTypeSuperAdmin {
+	if person.PersonType == constants.PersonTypeSuperAdmin {
 		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
 		if err != nil {
 			log.Println("person delete: super administrator count failed:", err)
@@ -424,7 +424,7 @@ func (h *personHandler) Archive(c echo.Context) error {
 	// everyone who may schedule a recoverable deletion would be strictly
 	// worse than the thing it sits beside.
 	isSelf := viewer != nil && viewer.ID == person.ID
-	isSuperAdmin := viewer != nil && viewer.UserType == constants.UserTypeSuperAdmin
+	isSuperAdmin := viewer != nil && viewer.PersonType == constants.PersonTypeSuperAdmin
 	if !isSelf && !isSuperAdmin {
 		log.Println("person archive: refused, neither the owner nor a super administrator")
 		return c.NoContent(http.StatusForbidden)
@@ -438,7 +438,7 @@ func (h *personHandler) Archive(c echo.Context) error {
 	// The same floor deletion has. An archived super administrator cannot sign
 	// in, so archiving the last one locks the site out exactly as deleting
 	// them would.
-	if person.UserType == constants.UserTypeSuperAdmin {
+	if person.PersonType == constants.PersonTypeSuperAdmin {
 		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
 		if err != nil {
 			log.Println("person archive: super administrator count failed:", err)
@@ -516,7 +516,7 @@ func (h *personHandler) SetEnabled(c echo.Context) error {
 
 	// Disabling the last super administrator locks the site out the same way
 	// deleting or archiving them would — they cannot sign in to undo it.
-	if !*req.Enabled && person.UserType == constants.UserTypeSuperAdmin {
+	if !*req.Enabled && person.PersonType == constants.PersonTypeSuperAdmin {
 		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
 		if err != nil {
 			log.Println("person set-enabled: super administrator count failed:", err)
@@ -578,7 +578,7 @@ func (h *personHandler) Purge(c echo.Context) error {
 
 	// Super administrators only. Not IsAdmin — an ordinary administrator may
 	// schedule a deletion, which is recoverable; this is not.
-	if viewer == nil || viewer.UserType != constants.UserTypeSuperAdmin {
+	if viewer == nil || viewer.PersonType != constants.PersonTypeSuperAdmin {
 		log.Println("person purge: refused, viewer is not a super administrator")
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -598,7 +598,7 @@ func (h *personHandler) Purge(c echo.Context) error {
 
 	// The same floor deletion has, and for the same reason — more so, since
 	// there is no thirty-day window to notice the mistake in.
-	if person.UserType == constants.UserTypeSuperAdmin {
+	if person.PersonType == constants.PersonTypeSuperAdmin {
 		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
 		if err != nil {
 			log.Println("person purge: super administrator count failed:", err)

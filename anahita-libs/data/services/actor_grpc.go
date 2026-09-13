@@ -120,10 +120,10 @@ func (srv *ActorsGRPC) Count(req *ActorGRPCBrowseRequest, viewer *entities.Viewe
 		Types:  req.Types,
 		Search: req.Search,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -151,10 +151,10 @@ func (srv *ActorsGRPC) Browse(req *ActorGRPCBrowseRequest, viewer *entities.View
 		Direction: req.Direction,
 		Search:    req.Search,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -196,10 +196,10 @@ func (srv *ActorsGRPC) ReadOfType(id int64, nodeType string, viewer *entities.Vi
 		Id:       id,
 		NodeType: nodeType,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -229,10 +229,10 @@ func (srv *ActorsGRPC) BatchRead(req *ActorGRPCBatchReadRequest, viewer *entitie
 		Ordering:  req.Ordering,
 		Direction: req.Direction,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -258,10 +258,10 @@ func (srv *ActorsGRPC) Edit(item *entities.AnahitaNode, viewer *entities.Viewer)
 	resp, err := client.Edit(context.Background(), &graphpb.ActorEditRequest{
 		Actor: graphNodeToGrpc(item),
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -287,10 +287,10 @@ func (srv *ActorsGRPC) Add(item *entities.AnahitaNode, viewer *entities.Viewer) 
 	resp, err := client.Add(context.Background(), &graphpb.ActorAddRequest{
 		Actor: graphNodeToGrpc(item),
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -320,10 +320,10 @@ func (srv *ActorsGRPC) Restore(id int64, viewer *entities.Viewer) (bool, error) 
 	resp, err := client.Restore(context.Background(), &graphpb.ActorRestoreRequest{
 		Id: id,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -346,10 +346,10 @@ func (srv *ActorsGRPC) Delete(id int64, viewer *entities.Viewer) error {
 	_, err = client.Delete(context.Background(), &graphpb.ActorDeleteRequest{
 		Id: id,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -377,10 +377,10 @@ func (srv *ActorsGRPC) ReadDeletionCounts(id int64, viewer *entities.Viewer) (*g
 	return client.DeletionCounts(context.Background(), &graphpb.ActorDeletionCountsRequest{
 		Id: id,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 }
@@ -401,10 +401,10 @@ func (srv *ActorsGRPC) Purge(id int64, viewer *entities.Viewer) (bool, error) {
 	resp, err := client.Purge(context.Background(), &graphpb.ActorPurgeRequest{
 		Id: id,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -466,9 +466,9 @@ func viewerToGrpc(viewer *entities.Viewer) *graphpb.Viewer {
 		return &graphpb.Viewer{}
 	}
 	return &graphpb.Viewer{
-		Id:       viewer.ID,
-		UserType: viewer.UserType,
-		Email:    viewer.Email,
-		Username: viewer.Username,
+		Id:         viewer.ID,
+		PersonType: viewer.PersonType,
+		Email:      viewer.Email,
+		Username:   viewer.Username,
 	}
 }

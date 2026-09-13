@@ -84,10 +84,10 @@ func (srv *FeedLeadersGRPC) Count(req *FeedLeadersCountRequest, viewer *entities
 		LeaderEntityTypes: req.LeaderEntityTypes,
 		MediumEntityTypes: req.MediumEntityTypes,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 
@@ -115,10 +115,10 @@ func (srv *FeedLeadersGRPC) Browse(req *FeedLeadersBrowseRequest, viewer *entiti
 		LeaderEntityTypes: req.LeaderEntityTypes,
 		MediumEntityTypes: req.MediumEntityTypes,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 		Offset: req.Offset,
 		Limit:  req.Limit,

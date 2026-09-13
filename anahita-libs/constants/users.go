@@ -1,14 +1,12 @@
 package constants
 
+// Gender is on its way out — it drives no logic, and the request validator and
+// the handler have never agreed on its values. See the person/user refactor
+// plan; these remain only until the profile form stops sending the field.
 const (
-	UserTypeSuperAdmin = "super-administrator"
-	UserTypeAdmin      = "administrator"
-	UserTypeRegistered = "registered"
-	UserTypeGuest      = "guest"
-
 	UserGenderMale    = "male"
 	UserGenderFemale  = "female"
 	UserGenderNeutral = "neutral"
-
-	UserSessionKey = "_anahita_session"
 )
+
+const UserSessionKey = "_anahita_session"

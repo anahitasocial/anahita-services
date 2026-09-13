@@ -14,10 +14,10 @@ import (
 type User struct {
 	entities.AnahitaNode
 
-	UserType string `json:"usertype"`
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Password string `json:"-"`
+	PersonType string `json:"usertype"`
+	Email      string `json:"email"`
+	Username   string `json:"username"`
+	Password   string `json:"-"`
 
 	GivenName     string    `json:"given_name"`
 	FamilyName    string    `json:"family_name"`
@@ -82,7 +82,7 @@ func (u *User) Validate() error {
 		return errors.New("email is required")
 	}
 
-	if u.UserType == "" {
+	if u.PersonType == "" {
 		return errors.New("user type is required")
 	}
 
@@ -90,19 +90,19 @@ func (u *User) Validate() error {
 }
 
 func (u *User) IsGuest() bool {
-	return u.UserType == constants.UserTypeGuest
+	return u.PersonType == constants.PersonTypeGuest
 }
 
 func (u *User) IsRegistered() bool {
-	return u.UserType == constants.UserTypeRegistered
+	return u.PersonType == constants.PersonTypeRegistered
 }
 
 func (u *User) IsAdmin() bool {
-	return u.UserType == constants.UserTypeAdmin
+	return u.PersonType == constants.PersonTypeAdmin
 }
 
 func (u *User) IsSuperAdmin() bool {
-	return u.UserType == constants.UserTypeSuperAdmin
+	return u.PersonType == constants.PersonTypeSuperAdmin
 }
 
 func (u *User) IsAdminOrSuperAdmin() bool {

@@ -9,7 +9,7 @@ import (
 type PersonNodeItem struct {
 	responses.ActorNodeItem
 
-	UserType   string `json:"usertype,omitempty"`
+	PersonType string `json:"usertype,omitempty"`
 	Email      string `json:"email,omitempty"`
 	Username   string `json:"username,omitempty"`
 	GivenName  string `json:"given_name,omitempty"`
@@ -71,7 +71,7 @@ func (r *PersonResponse) MapNodeItem(node *entities.Person) *PersonNodeItem {
 
 	return &PersonNodeItem{
 		ActorNodeItem: *r.ActorResponse.MapNodeItem(&node.AnahitaNode),
-		UserType:      node.UserType,
+		PersonType:    node.PersonType,
 		Email:         node.Email,
 		Username:      node.Username,
 		GivenName:     node.GivenName,
