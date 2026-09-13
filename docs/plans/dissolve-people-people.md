@@ -38,9 +38,9 @@ This overturns the decision recorded at
 | 4. graph carries the new fields | ✅ done | `5f8ffeb` |
 | 8. auth stops writing `nodes` | ✅ done | `e426286` |
 | 6. person-service loses its repositories | ✅ done | `e4713e8` |
-| 7. Mention relations to graph | ⬜ next | |
+| 7. Mention relations to graph | ✅ done | `65224e4` |
 | 5. Last-super-admin guard into graph | ✅ done | `57c181c` |
-| 10. Signup, invite-accept, first super admin | ⬜ | |
+| 10. Signup, invite-accept, first super admin | ⬜ next | |
 | 3. Backfill and drop `people_people` | ⬜ | |
 | 9. anahita-react | ⬜ | |
 
@@ -327,7 +327,7 @@ handler forgets it.
   `alphanumunicode`: it is `^[\p{L}\p{N}]+$`, so `Jean-Luc`, `O'Brien` and
   `van der Berg` cannot be saved today.
 
-### 7. Move mention relations to graph  ⬜ TODO
+### 7. Move mention relations to graph  ✅ DONE (65224e4)
 
 `mention_relation.go` needs no new RPCs — every query maps to an existing one:
 
