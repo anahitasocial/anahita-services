@@ -28,6 +28,7 @@ type UsersInterface interface {
 	IsEmail(email string) (bool, error)
 	IsUsername(username string) (bool, error)
 	CountSuperAdmins() (int, error)
+	CountInstanceUsage() (*InstanceUsage, error)
 }
 
 // NewUsers creates a new user repository
@@ -547,6 +548,77 @@ func (repo *Users) CountSuperAdmins() (int, error) {
 	}
 
 	return count, nil
+}
+
+// InstanceUsage is the population of this installation, for NodeInfo.
+type InstanceUsage struct {
+	Total          int
+	ActiveMonth    int
+	ActiveHalfYear int
+	LocalPosts     int
+}
+
+// CountInstanceUsage totals what NodeInfo publishes about this installation.
+//
+// One statement rather than four round trips, because this is answered for any
+// fediverse server that asks and there is no reason to make it four queries.
+//
+// The "active" figures come from nodes.last_visit_date, which is only
+// meaningful because that column is now written on sign-in. Before that it
+// held the date the account was created, so any active-user figure derived
+// from it would have been a count of recent SIGNUPS reported to the wider
+// network as engagement. Worth knowing if the numbers look wrong for the first
+// six months after this ships: they are honest, and they start low because the
+// column only began telling the truth recently.
+//
+// Deleted and disabled people are excluded from every figure. A count of
+// members should mean people who could sign in today.
+func (repo *Users) CountInstanceUsage() (*InstanceUsage, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		SELECT
+			COUNT(*),
+			SUM(last_visit_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)),
+			SUM(last_visit_date >= DATE_SUB(NOW(), INTERVAL 180 DAY))
+		FROM nodes
+		WHERE type = ?
+		  AND deleted_at IS NULL
+		  AND enabled = 1`
+
+	usage := &InstanceUsage{}
+
+	// SUM over no rows is NULL, and SUM over rows whose last_visit_date is all
+	// NULL is NULL too — a brand-new installation, and one where nobody has
+	// signed in since the column started being written.
+	var activeMonth, activeHalfYear sql.NullInt64
+
+	if err := repo.db.QueryRowContext(
+		ctx, query, constants.NodeActorPersonEntityType,
+	).Scan(&usage.Total, &activeMonth, &activeHalfYear); err != nil {
+		return nil, err
+	}
+
+	usage.ActiveMonth = int(activeMonth.Int64)
+	usage.ActiveHalfYear = int(activeHalfYear.Int64)
+
+	// Posts are media nodes — notes, articles, photos. Counted separately
+	// because it narrows on a prefix rather than an exact type and cannot
+	// share the statement above.
+	postQuery := `
+		SELECT COUNT(*)
+		FROM nodes
+		WHERE type LIKE CONCAT(?, '%')
+		  AND deleted_at IS NULL`
+
+	if err := repo.db.QueryRowContext(
+		ctx, postQuery, constants.NodeMediumPrefixEntityType,
+	).Scan(&usage.LocalPosts); err != nil {
+		return nil, err
+	}
+
+	return usage, nil
 }
 
 // EditEmail updates a user's email

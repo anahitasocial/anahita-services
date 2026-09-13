@@ -1,12 +1,16 @@
 package permissions
 
 import (
+	"errors"
 	"strings"
 	"testing"
 	"time"
 
 	libs_constants "anahita-libs/constants"
 	libs_entities "anahita-libs/data/entities"
+
+	"auth/config"
+	auth_constants "auth/constants"
 	"auth/data/entities"
 )
 
@@ -557,8 +561,18 @@ func TestInviteSeparatesReadFromWrite(t *testing.T) {
 	}
 }
 
+// Signup answers to two things now: whether the caller is already somebody,
+// and whether this installation takes self-serve registrations at all.
+//
+// The second is why REACT_APP_SIGNUP_CLOSED was not enough. It hid a tab while
+// POST /signups stayed open, so "signups are closed" was true of the interface
+// and false of the service.
 func TestSignupIsForGuestsOnly(t *testing.T) {
-	p := NewSignupPermissions(&Env{})
+	p := NewSignupPermissions(&Env{
+		Config: &config.Config{
+			RegistrationMode: auth_constants.RegistrationModeOpen,
+		},
+	})
 
 	guest := libs_entities.NewViewer()
 	guest.PersonType = libs_constants.PersonTypeGuest
@@ -573,6 +587,46 @@ func TestSignupIsForGuestsOnly(t *testing.T) {
 	signedIn := newViewer(viewerID, libs_constants.PersonTypeRegistered)
 	if ok, _ := p.CanAdd(signedIn, nil); ok {
 		t.Error("a signed-in person created a second account")
+	}
+}
+
+func TestSignupFollowsTheRegistrationMode(t *testing.T) {
+	guest := libs_entities.NewViewer()
+	guest.PersonType = libs_constants.PersonTypeGuest
+
+	for _, tc := range []struct {
+		mode    string
+		want    bool
+		because string
+	}{
+		{auth_constants.RegistrationModeOpen, true, "open takes anybody"},
+		{
+			auth_constants.RegistrationModeApproval, true,
+			"an applicant starts an application, not an account — refusing " +
+				"them here makes the approval queue unreachable",
+		},
+		{auth_constants.RegistrationModeInvite, false, "invitations only"},
+		{auth_constants.RegistrationModeClosed, false, "nothing gets in"},
+		{"", false, "unset reads as closed"},
+	} {
+		t.Run(tc.mode, func(t *testing.T) {
+			p := NewSignupPermissions(&Env{
+				Config: &config.Config{RegistrationMode: tc.mode},
+			})
+
+			ok, err := p.CanAdd(guest, nil)
+			if ok != tc.want {
+				t.Errorf("CanAdd = %v, want %v — %s (err: %v)",
+					ok, tc.want, tc.because, err)
+			}
+
+			// A refusal has to say which refusal it is. "Forbidden" alone
+			// cannot tell a client to show an invitation notice rather than
+			// a sign-in link.
+			if !tc.want && !errors.Is(err, ErrRegistrationClosed) {
+				t.Errorf("refusal was %v, want ErrRegistrationClosed", err)
+			}
+		})
 	}
 }
 

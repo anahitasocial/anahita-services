@@ -100,6 +100,16 @@ func (h *inviteHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	// `closed` suspends invitations along with self-serve registration, and
+	// it is the only mode that does. Checked before the permission so an
+	// administrator is told the site is locked down rather than that they
+	// lack a privilege they plainly have.
+	if !h.Config.AllowsInvitations() {
+		log.Println("invite add: refused, registration is closed")
+		return c.JSON(http.StatusForbidden,
+			"This site is locked down and is not issuing invitations.")
+	}
+
 	if err := h.Perms.Invite.CanAdd(viewer); err != nil {
 		log.Println(err)
 		// 403. This said StatusPaymentRequired — 402 — which is not a

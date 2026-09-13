@@ -53,6 +53,23 @@ func inviteAlias(email string) string {
 //
 //	GET /invites/accept?token=...
 func (h *inviteHandler) AcceptForm(c echo.Context) error {
+	// `closed` suspends outstanding invitations, which is the one thing it
+	// does that `invite` does not.
+	//
+	// Checked on BOTH the form and the submission. Checking only the form
+	// would leave a page somebody already had open as a working way in, which
+	// is precisely the case a lockdown is for.
+	//
+	// The token is untouched — not consumed, not marked — so lifting the
+	// lockdown brings the invitation back rather than having quietly
+	// destroyed it while nobody was looking.
+	if !h.Config.AllowsInvitations() {
+		return h.renderError(c, "Invitations Are Paused",
+			"This site is not accepting new members right now. Your invitation "+
+				"has not been used, so it will still work once invitations "+
+				"resume. Please contact whoever invited you.")
+	}
+
 	tokenBody := c.QueryParam("token")
 	if tokenBody == "" {
 		return h.renderError(c, "Invalid Link",
@@ -105,6 +122,23 @@ func (h *inviteHandler) AcceptForm(c echo.Context) error {
 //
 //	POST /invites/accept
 func (h *inviteHandler) Accept(c echo.Context) error {
+	// `closed` suspends outstanding invitations, which is the one thing it
+	// does that `invite` does not.
+	//
+	// Checked on BOTH the form and the submission. Checking only the form
+	// would leave a page somebody already had open as a working way in, which
+	// is precisely the case a lockdown is for.
+	//
+	// The token is untouched — not consumed, not marked — so lifting the
+	// lockdown brings the invitation back rather than having quietly
+	// destroyed it while nobody was looking.
+	if !h.Config.AllowsInvitations() {
+		return h.renderError(c, "Invitations Are Paused",
+			"This site is not accepting new members right now. Your invitation "+
+				"has not been used, so it will still work once invitations "+
+				"resume. Please contact whoever invited you.")
+	}
+
 	req := &requests.InviteAccept{}
 	if err := c.Bind(req); err != nil {
 		log.Println(err)

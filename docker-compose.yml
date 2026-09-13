@@ -101,6 +101,14 @@ services:
       OAUTH_SIGNER_BACKEND: ${OAUTH_SIGNER_BACKEND}
       OAUTH_KMS_KEY_ALIAS: ${OAUTH_KMS_KEY_ALIAS}
       OAUTH_SEED_CLIENT_PATH: ${OAUTH_SEED_CLIENT_PATH}
+      # How this installation lets people in: open, approval, invite or
+      # closed. Governs SELF-SERVE registration; invitations are their own
+      # door, except under `closed`, which suspends outstanding ones too.
+      #
+      # UNSET MEANS CLOSED. An installation nobody has configured should not
+      # be open to the internet — a closed one is noticed in a minute by the
+      # operator, an open one when the spam arrives.
+      REGISTRATION_MODE: ${REGISTRATION_MODE:-}
       # Agreement versions currently in force. The TEXT lives in the web app
       # under src/assets/default/pages/; bumping one of these without editing
       # the matching page re-prompts everybody for text that has not changed.

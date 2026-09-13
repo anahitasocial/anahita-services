@@ -6,6 +6,7 @@ type Handlers struct {
 	Authlog        *authLogHandler
 	EmailChange    *emailChangeHandler
 	Invite         *inviteHandler
+	NodeInfo       *nodeInfoHandler
 	Is             *isHandler
 	OAuth          *oauthHandler
 	Password       *passwordHandler
@@ -25,6 +26,7 @@ func NewHandlers(env *Env) *Handlers {
 		Authlog:        newAuthLogHandler(env),
 		EmailChange:    newEmailChangeHandler(env),
 		Invite:         newInviteHandler(env),
+		NodeInfo:       newNodeInfoHandler(env),
 		Is:             newIsHandlers(env),
 		OAuth:          newOAuthHandler(env),
 		Password:       newPasswordHandler(env),

@@ -1,9 +1,13 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
+
+	"auth/constants"
 )
 
 // Settings for the two things an installation needs before anybody can use it:
@@ -124,6 +128,53 @@ func (config *Config) agreementURL(configured, fallbackPath string) string {
 	return strings.TrimRight(config.GetFrontendURL(), "/") + value
 }
 
+// GetRegistrationMode returns how this installation lets people in.
+//
+// **Defaults to closed**, and that is a decision rather than caution. The
+// alternative is an installation that nobody has configured being open to the
+// internet, and the failure modes are not comparable: a closed installation is
+// noticed within a minute by the operator trying to use it, while an open one
+// is noticed when the spam arrives.
+//
+// It governs SELF-SERVE registration. Invitations are their own door — see the
+// constants — except under `closed`, which shuts both.
+func (config *Config) GetRegistrationMode() string {
+	mode := strings.ToLower(strings.TrimSpace(config.RegistrationMode))
+	if mode == "" {
+		return constants.RegistrationModeClosed
+	}
+
+	return mode
+}
+
+// AllowsSelfServeRegistration reports whether a stranger can start an account
+// without an invitation. Under `approval` they can — they start an
+// application, which is a different thing from an account and is item 5's
+// problem, not this one's.
+func (config *Config) AllowsSelfServeRegistration() bool {
+	switch config.GetRegistrationMode() {
+	case constants.RegistrationModeOpen, constants.RegistrationModeApproval:
+		return true
+	default:
+		return false
+	}
+}
+
+// RequiresRegistrationApproval reports whether a self-serve applicant waits
+// for an administrator.
+func (config *Config) RequiresRegistrationApproval() bool {
+	return config.GetRegistrationMode() == constants.RegistrationModeApproval
+}
+
+// AllowsInvitations reports whether invitations may be issued and accepted.
+//
+// True in every mode but `closed`. An invitation is an administrator's
+// explicit decision about one person, so it does not need self-serve
+// registration to be open — and turning it off is the whole point of `closed`.
+func (config *Config) AllowsInvitations() bool {
+	return config.GetRegistrationMode() != constants.RegistrationModeClosed
+}
+
 // GetSuperAdminEmail returns the address the first super administrator is
 // seeded against, or "" when the operator has not set one.
 //
@@ -159,6 +210,7 @@ func (config *Config) GetSuperAdminName() string {
 func (config *Config) bootstrapFromEnv() {
 	config.TosVersion = getEnv("TOS_VERSION", defaultAgreementVersion)
 	config.PrivacyVersion = getEnv("PRIVACY_VERSION", defaultAgreementVersion)
+	config.RegistrationMode = os.Getenv("REGISTRATION_MODE")
 	config.TosURL = os.Getenv("TOS_URL")
 	config.PrivacyURL = os.Getenv("PRIVACY_URL")
 	config.SuperAdminEmail = os.Getenv("SUPER_ADMIN_EMAIL")
@@ -178,6 +230,38 @@ func (config *Config) validateBootstrap(missingFields []string) []string {
 
 	if config.PrivacyVersion != "" && !agreementVersion.MatchString(config.PrivacyVersion) {
 		missingFields = append(missingFields, ErrInvalidPrivacyVersion)
+	}
+
+	// A mistyped mode must not fall back to a default. "invites" or "Open " is
+	// an operator who believes they have configured something, and silently
+	// answering `closed` would look like the setting was ignored — while
+	// silently answering `open` would be worse. Empty is the only value that
+	// means "not set".
+	if config.RegistrationMode != "" &&
+		!slices.Contains(constants.RegistrationModes, config.GetRegistrationMode()) {
+		missingFields = append(missingFields, fmt.Sprintf(
+			"REGISTRATION_MODE must be one of %s (got %q)",
+			strings.Join(constants.RegistrationModes, ", "), config.RegistrationMode))
+	}
+
+	// `approval` is refused until the queue behind it exists.
+	//
+	// The predicates already describe it correctly and signup already treats
+	// an applicant as allowed — which is right, and is exactly the hazard
+	// while there is nowhere for the application to go: an operator asking
+	// for approval would get OPEN registration, on an installation they
+	// believe is gated. Nothing would look wrong.
+	//
+	// Refusing to boot is the loud version of that, and the right one for a
+	// setting whose whole purpose is to keep strangers out. Remove this when
+	// the queue lands; the tests covering `approval` describe the intended
+	// behaviour and already pass.
+	if config.GetRegistrationMode() == constants.RegistrationModeApproval {
+		missingFields = append(missingFields,
+			"REGISTRATION_MODE=approval is not available yet — the approval "+
+				"queue is not built, so this would accept registrations "+
+				"immediately while appearing to hold them. Use `invite` or "+
+				"`closed` until it lands")
 	}
 
 	// SUPER_ADMIN_EMAIL is optional, but a malformed one is not: the seed

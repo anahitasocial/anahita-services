@@ -56,9 +56,16 @@ func (h *signupHandler) Add(c echo.Context) error {
 		viewer = getViewer(c)
 	)
 
-	ok, err := h.Perms.Signup.CanAdd(viewer, nil)
-	if !ok || err != nil {
-		return c.JSON(http.StatusForbidden, err)
+	// The refusal carries its reason as text. `c.JSON(403, err)` serialised an
+	// error value, which marshals to {} — so a caller was told "forbidden" and
+	// nothing else, whether they were signed in already or the site takes no
+	// registrations at all. Those want different responses from a client.
+	if ok, err := h.Perms.Signup.CanAdd(viewer, nil); !ok || err != nil {
+		message := "You cannot sign up."
+		if err != nil {
+			message = err.Error()
+		}
+		return c.JSON(http.StatusForbidden, message)
 	}
 
 	if err := c.Bind(req); err != nil {

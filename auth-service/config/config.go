@@ -155,6 +155,10 @@ type Config struct {
 	TosURL         string
 	PrivacyURL     string
 
+	// RegistrationMode is how this installation lets people in — see
+	// constants.RegistrationMode*. Empty means unset, which reads as closed.
+	RegistrationMode string
+
 	// SuperAdmin* seed the first super administrator at boot. Optional; see
 	// bootstrap.go and services/super_admin_seed.go.
 	SuperAdminEmail    string

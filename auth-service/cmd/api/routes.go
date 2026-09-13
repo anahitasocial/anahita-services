@@ -79,6 +79,15 @@ func (r *Routes) Init(e *echo.Echo) {
 	e.GET("/.well-known/openid-configuration", h.OAuth.Discovery)
 	e.GET("/.well-known/jwks.json", h.OAuth.JWKS)
 
+	// NodeInfo — how this installation describes itself to the fediverse and
+	// to its own web app. Public by definition: the point is that a server
+	// which has never spoken to this one can read it.
+	//
+	// Two hops because that is the protocol: the well-known document is a
+	// list of links, and a consumer follows the schema version it knows.
+	e.GET("/.well-known/nodeinfo", h.NodeInfo.Discovery)
+	e.GET("/nodeinfo/2.1", h.NodeInfo.Read)
+
 	// ---------------------------------------------------------------
 	// OAuth user-facing endpoints (HTML flows + BFF endpoints).
 	//
