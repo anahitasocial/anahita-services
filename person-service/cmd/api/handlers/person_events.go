@@ -31,7 +31,7 @@ func (h *personHandler) updateTags(payload *event.EventPayload) error {
 		return err
 	}
 
-	if err := h.Repos.MentionRelations.Update(item, item.Mentions, viewer); err != nil {
+	if err := h.Srv.Mentions.Update(item, item.Mentions, viewer); err != nil {
 		log.Println(err)
 		return err
 	}

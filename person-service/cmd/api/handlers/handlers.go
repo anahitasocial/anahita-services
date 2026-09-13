@@ -5,13 +5,11 @@ import (
 	"anahita-libs/sessions"
 	"person/cmd/api/permissions"
 	"person/config"
-	"person/data/repositories"
 	"person/data/services"
 )
 
 type Env struct {
 	Config    *config.Config
-	Repos     *repositories.Repositories
 	Srv       *services.Services
 	Perms     *permissions.Permissions
 	Publisher *event.Publisher

@@ -231,7 +231,7 @@ func (h *personHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	if err := h.Repos.MentionRelations.Update(person, person.Mentions, viewer); err != nil {
+	if err := h.Srv.Mentions.Update(person, person.Mentions, viewer); err != nil {
 		log.Println(err)
 		return err
 	}

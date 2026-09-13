@@ -15,7 +15,7 @@ func (r *edgesRepo) Read(id int64) (*entities.AnahitaEdge, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	defer cancel()
 
-	query := sq.Select("*").From("edges AS edge").Where(sq.Eq{"edge.id": id})
+	query := sq.Select(edgeColumns()...).From("edges AS edge").Where(sq.Eq{"edge.id": id})
 
 	sqlQuery, args, err := query.ToSql()
 	if err != nil {
@@ -91,7 +91,7 @@ func (r *edgesRepo) BatchRead(ids []int64) ([]*entities.AnahitaEdge, error) {
 		return nil, errors.New("ids are required")
 	}
 
-	query := sq.Select("*").From("edges AS edge").Where(sq.Eq{"edge.id": ids})
+	query := sq.Select(edgeColumns()...).From("edges AS edge").Where(sq.Eq{"edge.id": ids})
 
 	sqlQuery, args, err := query.ToSql()
 	if err != nil {
@@ -150,7 +150,7 @@ func (r *edgesRepo) BatchReadByFilters(req *requests.EdgeBatchReadByFiltersReque
 	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	defer cancel()
 
-	query := sq.Select("*").From("edges AS edge")
+	query := sq.Select(edgeColumns()...).From("edges AS edge")
 
 	if len(req.Types) > 0 {
 		query = query.Where(sq.Eq{"edge.type": req.Types})
