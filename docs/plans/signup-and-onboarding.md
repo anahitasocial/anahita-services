@@ -21,8 +21,9 @@ calls. That asymmetry costs more than tidiness:
 
 **Outcome:** signup is server-rendered by auth-service, the installation
 chooses how open it is, and what a person has to supply depends on that choice.
-Agreements are accepted after login, in the web app. Profile completeness is
-onboarding, not a gate.
+Agreements are accepted in the web app after login, checked on every sign-in so
+a revision re-prompts by itself, and collected in exactly one place. Profile
+completeness is onboarding, not a gate.
 
 ---
 
@@ -35,7 +36,7 @@ onboarding, not a gate.
 | 3. Email verification | ⬜ | |
 | 4. Anti-bot baseline | ⬜ | |
 | 5. Approval queue (backend only) | ⬜ | |
-| 6. Agreements after login | ⬜ | |
+| 6. Agreements checked at every sign-in | ⬜ | |
 | 7. Display name becomes optional | ⬜ | |
 | 8. Onboarding | ⬜ separate plan | |
 
@@ -81,6 +82,7 @@ it needs to make a decision, and nothing more.
 | display name | ❌ | ✅ |
 | bio | ❌ | ✅ |
 | website URL | ❌ | ✅ |
+| terms acceptance | ❌ — asked at first sign-in | ❌ — same |
 
 **Neither Mastodon nor Bluesky asks for a display name at signup.** Both take
 the handle, email and password — Bluesky also a date of birth — and offer the
@@ -194,7 +196,7 @@ settings plan lands. Worth considering as a bridge: approve and reject by
 tokenised link in the notification email to administrators, which reuses the
 invite machinery and makes the feature usable on day one.
 
-### 6. Agreements after login — in the web app
+### 6. Agreements checked at every sign-in — in the web app
 
 **Decided: client-side, after login.** The alternative was gating token
 issuance in auth-service, which would be enforcement rather than UX; the
@@ -213,14 +215,37 @@ itself — and those columns exist precisely so it is not that.
   `Users.EditConsent`, taking the version from config and the audit trio from
   the request.
 - `AuthenticatedRoute` renders the agreements interstitial instead of the
-  requested route while anything is outstanding.
+  requested route while anything is outstanding. It already runs on every
+  session resolution, so "every sign-in" comes for free.
 
-**Assumed, and easily overturned: signup drops its checkboxes.** With the
-interstitial catching everybody, keeping them means acceptance happens in two
-places and the signup form grows again. The consequence is that an account
-exists for the span of one redirect having agreed to nothing, which is how most
-platforms work. If you would rather they stay, say so — it is a small change
-either way, but the two have to be decided together.
+**Decided: nothing collects acceptance except the interstitial.** It is
+checked on every sign-in, and the check is version-aware, so a revision
+re-prompts everybody automatically rather than needing a migration or a
+one-off sweep. That is the argument for putting it here rather than at account
+creation: creation happens once, and the terms change more than once.
+
+"Checked every sign-in" is not "asked every sign-in".
+`Consent.NeedsAcceptance(current)` answers true only when nothing is on record
+or the recorded version is not the one in force, so somebody current is never
+interrupted.
+
+**Three places stop collecting it**, all of them shipped in the
+`people_people` refactor's item 10:
+
+- the signup form — the four request fields go with it;
+- the invite-accept form — same;
+- the set-password page, where the seeded super administrator accepted. That
+  administrator is now asked at first sign-in like everybody else, and
+  `password.go` loses a branch it should never have needed.
+
+What that item built is still the substrate and none of it is wasted: the
+twelve columns, `entities.Consent`, `Users.EditConsent`, the version check and
+the audit trio all stay. Only the three collection points move into one.
+
+**Worth keeping on the signup form even without a checkbox:** the sentence
+"By creating an account you agree to the Terms of Service and Privacy Policy",
+with both linked. It costs nothing, it is what Bluesky does, and it means
+nobody can say they were never shown them.
 
 **This item must not ship before the Terms and the Privacy Policy are real.**
 They are currently the boilerplate in `src/assets/default/pages/`, with
