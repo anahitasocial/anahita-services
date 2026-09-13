@@ -6,6 +6,6 @@ package messages
 const (
 	SignupSubject     = "Welcome to {{site}}"
 	SignupTitle       = "Welcome to {{site}}"
-	SignupBody        = "Hi %s %s, thanks for signing up to {{site}}. Your account is ready to use."
+	SignupBody        = "Hi %s, thanks for signing up to {{site}}. Your account is ready to use."
 	SignupActionLabel = "Get started"
 )

@@ -31,8 +31,7 @@ func newEmailChangeNotifier(env *Env) *emailChangeNotifier {
 func (h *emailChangeNotifier) EmailConfirm(person *entities.User, token *entities.Token) error {
 	body := fmt.Sprintf(
 		messages.EmailChangeBody,
-		person.GivenName,
-		person.FamilyName,
+		person.Name,
 		token.NewEmail,
 	)
 
@@ -67,8 +66,7 @@ func (h *emailChangeNotifier) EmailConfirm(person *entities.User, token *entitie
 func (h *emailChangeNotifier) EmailChangedOld(person *entities.User, oldEmail string) error {
 	body := fmt.Sprintf(
 		messages.EmailChangedOldBody,
-		person.GivenName,
-		person.FamilyName,
+		person.Name,
 		oldEmail,
 		person.Email,
 	)
@@ -96,8 +94,7 @@ func (h *emailChangeNotifier) EmailChangedOld(person *entities.User, oldEmail st
 func (h *emailChangeNotifier) EmailChangedNew(person *entities.User) error {
 	body := fmt.Sprintf(
 		messages.EmailChangedNewBody,
-		person.GivenName,
-		person.FamilyName,
+		person.Name,
 	)
 
 	actionURL := fmt.Sprintf(

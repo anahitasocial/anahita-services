@@ -33,10 +33,9 @@ func newUsernameChangeNotifier(env *Env) *usernameChangeNotifier {
 func (h *usernameChangeNotifier) EmailChanged(person *entities.User, oldUsername string) error {
 	body := fmt.Sprintf(
 		messages.UsernameChangedBody,
-		person.GivenName,
-		person.FamilyName,
+		person.Name,
 		oldUsername,
-		person.Username,
+		person.Alias,
 	)
 
 	// Built from the NEW handle, which is also the new profile alias —
@@ -45,7 +44,7 @@ func (h *usernameChangeNotifier) EmailChanged(person *entities.User, oldUsername
 	actionURL := fmt.Sprintf(
 		"%s/people/%s/settings/password",
 		h.Config.GetFrontendURL(),
-		person.Username,
+		person.Alias,
 	)
 
 	return h.send(

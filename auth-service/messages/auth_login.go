@@ -7,7 +7,7 @@ package messages
 const (
 	AuthLoginSubject        = "New sign-in to your {{site}} account"
 	AuthLoginTitle          = "New sign-in detected"
-	AuthLoginBody           = "Hello %s %s, your {{site}} account was just signed in to using %s on a %s running %s from %s, %s. If this was you, no further action is needed. If it wasn't, reset your password immediately and contact support."
+	AuthLoginBody           = "Hello %s, your {{site}} account was just signed in to using %s on a %s running %s from %s, %s. If this was you, no further action is needed. If it wasn't, reset your password immediately and contact support."
 	AuthLoginActionLabel    = "Reset password"
 	AuthLoginUnknownCity    = "an unknown city"
 	AuthLoginUnknownCountry = "unknown country"
@@ -29,6 +29,6 @@ const (
 	// Four verbs: given name, family name, device description, location.
 	AuthSessionRevokedSubject     = "One of your sessions was signed out"
 	AuthSessionRevokedTitle       = "Session signed out"
-	AuthSessionRevokedBody        = "Hello %s %s, an administrator signed out one of your {{site}} sessions — the one on %s from %s. Your other devices are unaffected and you can sign in again at any time. If you were not expecting this, contact support."
+	AuthSessionRevokedBody        = "Hello %s, an administrator signed out one of your {{site}} sessions — the one on %s from %s. Your other devices are unaffected and you can sign in again at any time. If you were not expecting this, contact support."
 	AuthSessionRevokedActionLabel = "Sign in"
 )

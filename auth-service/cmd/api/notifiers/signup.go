@@ -42,8 +42,7 @@ func (h *signupNotifier) NotifySignup(person *an_entities.Person) error {
 func (h *signupNotifier) EmailSignup(user *entities.User) error {
 	body := fmt.Sprintf(
 		messages.SignupBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 	)
 
 	actionURL := fmt.Sprintf(

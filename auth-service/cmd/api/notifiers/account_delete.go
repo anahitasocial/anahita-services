@@ -33,8 +33,7 @@ func (h *accountDeleteNotifier) EmailScheduled(person *entities.User, deletedAt 
 
 	body := fmt.Sprintf(
 		messages.AccountDeleteScheduledBody,
-		person.GivenName,
-		person.FamilyName,
+		person.Name,
 		purgeDate,
 	)
 
@@ -59,8 +58,7 @@ func (h *accountDeleteNotifier) EmailScheduled(person *entities.User, deletedAt 
 func (h *accountDeleteNotifier) EmailRestored(person *entities.User) error {
 	body := fmt.Sprintf(
 		messages.AccountRestoredBody,
-		person.GivenName,
-		person.FamilyName,
+		person.Name,
 	)
 
 	actionURL := fmt.Sprintf("%s/oauth/login", h.Config.GetAuthURL())

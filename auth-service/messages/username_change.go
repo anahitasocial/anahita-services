@@ -19,6 +19,6 @@ const (
 	// or the password — so the password is what to assume is known.
 	UsernameChangedSubject     = "Your {{site}} username was changed"
 	UsernameChangedTitle       = "Username changed"
-	UsernameChangedBody        = "Hello %s %s, the username on your {{site}} account was changed from %s to %s. You can sign in with either the new username or your email address. Links to your old profile address will no longer reach you. If you did not do this, change your password immediately and then contact support."
+	UsernameChangedBody        = "Hello %s, the username on your {{site}} account was changed from %s to %s. You can sign in with either the new username or your email address. Links to your old profile address will no longer reach you. If you did not do this, change your password immediately and then contact support."
 	UsernameChangedActionLabel = "Change password"
 )

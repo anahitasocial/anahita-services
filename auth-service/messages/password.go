@@ -6,17 +6,17 @@ package messages
 const (
 	PasswordSubject     = "Reset your {{site}} password"
 	PasswordTitle       = "Reset your password"
-	PasswordBody        = "Hi %s %s, forgot your {{site}} password? It happens to the best of us. Click the button below to set a new one. If you didn't request a reset, you can safely ignore this email."
+	PasswordBody        = "Hi %s, forgot your {{site}} password? It happens to the best of us. Click the button below to set a new one. If you didn't request a reset, you can safely ignore this email."
 	PasswordActionLabel = "Reset password"
 
 	PasswordResetSubject     = "Your {{site}} password was reset"
 	PasswordResetTitle       = "Password reset"
-	PasswordResetBody        = "Hello %s %s, your {{site}} password was just reset using a password reset email link. Any passkeys on your account were removed as a precaution — you can add them again from your account settings. If this was you, no further action is needed. If it wasn't, request a new password reset immediately to take back your account, then contact support."
+	PasswordResetBody        = "Hello %s, your {{site}} password was just reset using a password reset email link. Any passkeys on your account were removed as a precaution — you can add them again from your account settings. If this was you, no further action is needed. If it wasn't, request a new password reset immediately to take back your account, then contact support."
 	PasswordResetActionLabel = "Reset password"
 
 	PasswordUpdateSubject     = "Your {{site}} password was changed"
 	PasswordUpdateTitle       = "Password changed"
-	PasswordUpdateBody        = "Hello %s %s, your {{site}} password was just changed from your account settings. If this was you, no further action is needed. If it wasn't, reset your password immediately to take back your account, then contact support."
+	PasswordUpdateBody        = "Hello %s, your {{site}} password was just changed from your account settings. If this was you, no further action is needed. If it wasn't, reset your password immediately to take back your account, then contact support."
 	PasswordUpdateActionLabel = "Reset password"
 
 	// Appended to PasswordUpdateBody when the change ended other

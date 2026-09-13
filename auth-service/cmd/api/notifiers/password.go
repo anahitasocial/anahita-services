@@ -20,8 +20,7 @@ func newPasswordNotifier(env *Env) *passwordNotifier {
 func (h *passwordNotifier) EmailToken(user *entities.User, token *entities.Token) error {
 	body := fmt.Sprintf(
 		messages.PasswordBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 	)
 
 	// Point at the auth-service form. The token rides as a query
@@ -55,8 +54,7 @@ func (h *passwordNotifier) EmailToken(user *entities.User, token *entities.Token
 func (h *passwordNotifier) EmailResetSuccess(user *entities.User) error {
 	body := fmt.Sprintf(
 		messages.PasswordResetBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 	)
 
 	actionURL := fmt.Sprintf(
@@ -89,8 +87,7 @@ func (h *passwordNotifier) EmailResetSuccess(user *entities.User) error {
 func (h *passwordNotifier) EmailUpdateSuccess(user *entities.User, revokedSessions int) error {
 	body := fmt.Sprintf(
 		messages.PasswordUpdateBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 	)
 
 	// Say what else the change did. Someone reading this to work out

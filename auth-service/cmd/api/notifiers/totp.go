@@ -22,8 +22,7 @@ func newTotpNotifier(env *Env) *totpNotifier {
 func (h *totpNotifier) EmailTotpEnabled(user *entities.User) error {
 	body := fmt.Sprintf(
 		messages.TotpEnabledBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 	)
 
 	actionURL := fmt.Sprintf("%s/support", h.Config.GetCompleteDomainName())
@@ -42,8 +41,7 @@ func (h *totpNotifier) EmailTotpEnabled(user *entities.User) error {
 func (h *totpNotifier) EmailTotpDisabled(user *entities.User) error {
 	body := fmt.Sprintf(
 		messages.TotpDisabledBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 	)
 
 	actionURL := fmt.Sprintf("%s/support", h.Config.GetCompleteDomainName())
@@ -68,8 +66,7 @@ func (h *totpNotifier) EmailTotpDisabled(user *entities.User) error {
 func (h *totpNotifier) EmailTotpDisabledByAdmin(user *entities.User) error {
 	body := fmt.Sprintf(
 		messages.TotpDisabledByAdminBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 	)
 
 	return h.send(
@@ -90,8 +87,7 @@ func (h *totpNotifier) EmailTotpDisabledByAdmin(user *entities.User) error {
 func (h *totpNotifier) EmailRecoveryCodesIssued(user *entities.User, count int) error {
 	body := fmt.Sprintf(
 		messages.TotpRecoveryCodesIssuedBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 		count,
 	)
 
@@ -117,20 +113,17 @@ func (h *totpNotifier) EmailRecoveryCodeUsed(user *entities.User, remaining int)
 	case remaining <= 0:
 		body = fmt.Sprintf(
 			messages.TotpRecoveryCodeUsedBodyNone,
-			user.GivenName,
-			user.FamilyName,
+			user.Name,
 		)
 	case remaining == 1:
 		body = fmt.Sprintf(
 			messages.TotpRecoveryCodeUsedBodyOne,
-			user.GivenName,
-			user.FamilyName,
+			user.Name,
 		)
 	default:
 		body = fmt.Sprintf(
 			messages.TotpRecoveryCodeUsedBody,
-			user.GivenName,
-			user.FamilyName,
+			user.Name,
 			remaining,
 		)
 	}
@@ -149,8 +142,7 @@ func (h *totpNotifier) EmailRecoveryCodeUsed(user *entities.User, remaining int)
 func (h *totpNotifier) EmailLockedOut(user *entities.User) error {
 	body := fmt.Sprintf(
 		messages.TotpLockedOutBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 	)
 
 	return h.send(
@@ -174,6 +166,6 @@ func (h *totpNotifier) passwordChangeURL(user *entities.User) string {
 	return fmt.Sprintf(
 		"%s/people/%s/settings/password",
 		h.Config.GetFrontendURL(),
-		user.Username,
+		user.Alias,
 	)
 }

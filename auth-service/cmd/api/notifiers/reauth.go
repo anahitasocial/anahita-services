@@ -30,14 +30,13 @@ func newReauthNotifier(env *Env) *reauthNotifier {
 func (h *reauthNotifier) EmailLockedOut(user *entities.User) error {
 	body := fmt.Sprintf(
 		messages.ReauthLockedOutBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 	)
 
 	actionURL := fmt.Sprintf(
 		"%s/people/%s/settings/security",
 		h.Config.GetFrontendURL(),
-		user.Username,
+		user.Alias,
 	)
 
 	return h.send(

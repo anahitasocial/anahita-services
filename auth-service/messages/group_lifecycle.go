@@ -21,7 +21,7 @@ const (
 	// Three verbs: given name, family name, group name.
 	GroupDeletedSubject     = "The {{site}} group \"%s\" is scheduled for deletion"
 	GroupDeletedTitle       = "A group you administer is scheduled for deletion"
-	GroupDeletedBody        = "Hello %s %s, the group \"%s\" that you administer on {{site}} has been scheduled for deletion. It is no longer visible to members, and its posts, photos and discussions will be permanently removed when the grace period ends. Until then this can still be undone by any of its administrators. If this was not intended, restore it now."
+	GroupDeletedBody        = "Hello %s, the group \"%s\" that you administer on {{site}} has been scheduled for deletion. It is no longer visible to members, and its posts, photos and discussions will be permanently removed when the grace period ends. Until then this can still be undone by any of its administrators. If this was not intended, restore it now."
 	GroupDeletedActionLabel = "Restore the group"
 
 	// Sent to each administrator when a group comes back.
@@ -34,6 +34,6 @@ const (
 	// Three verbs: given name, family name, group name.
 	GroupRestoredSubject     = "The {{site}} group \"%s\" has been restored"
 	GroupRestoredTitle       = "A group you administer has been restored"
-	GroupRestoredBody        = "Hello %s %s, the group \"%s\" that you administer on {{site}} has been restored before its grace period ended. It is visible to members again, and nothing was lost. If you did not expect this, review who administers the group."
+	GroupRestoredBody        = "Hello %s, the group \"%s\" that you administer on {{site}} has been restored before its grace period ended. It is visible to members again, and nothing was lost. If you did not expect this, review who administers the group."
 	GroupRestoredActionLabel = "Open the group"
 )

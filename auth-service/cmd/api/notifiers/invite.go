@@ -28,8 +28,7 @@ func newInviteNotifier(env *Env) *inviteNotifier {
 func (h *inviteNotifier) EmailInvite(user *entities.User, recipientEmail string, token *entities.Token) error {
 	body := fmt.Sprintf(
 		messages.InviteBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 	)
 
 	// Point at the auth-service form. The token rides as a query
@@ -119,15 +118,15 @@ func (h *inviteNotifier) EmailAccept(joiner *entities.User, inviter *entities.Us
 		if inviter.ID != 0 && admin.ID == inviter.ID {
 			body = fmt.Sprintf(
 				messages.InviteAcceptBodyToInviter,
-				admin.GivenName,
-				joiner.GivenName, joiner.FamilyName,
+				admin.Name,
+				joiner.Name,
 			)
 		} else {
 			body = fmt.Sprintf(
 				messages.InviteAcceptBody,
-				admin.GivenName,
-				joiner.GivenName, joiner.FamilyName,
-				inviter.GivenName, inviter.FamilyName,
+				admin.Name,
+				joiner.Name,
+				inviter.Name,
 			)
 		}
 
@@ -158,8 +157,7 @@ func (h *inviteNotifier) EmailAccept(joiner *entities.User, inviter *entities.Us
 func (h *inviteNotifier) EmailRevoked(revoker *entities.User, recipientEmail string) error {
 	body := fmt.Sprintf(
 		messages.InviteRevokedBody,
-		revoker.GivenName,
-		revoker.FamilyName,
+		revoker.Name,
 	)
 
 	return h.send(
