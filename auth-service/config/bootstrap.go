@@ -15,6 +15,13 @@ import (
 // has to be known by a signup that may be the first row in the table.
 
 const (
+	// defaultTosPath and defaultPrivacyPath are where the web app serves the
+	// documents from today. Overridable, because where the terms live is a
+	// deployment's decision — a path when they are pages of the app, or a
+	// whole URL when legal keeps them somewhere else entirely.
+	defaultTosPath     = "/pages/tos"
+	defaultPrivacyPath = "/pages/privacy"
+
 	// defaultAgreementVersion is what an installation runs on until the
 	// operator sets one. It is a real version rather than an empty string so
 	// an acceptance is always recorded against something; the alternative is a
@@ -50,9 +57,11 @@ type AgreementConfig interface {
 // across a terms revision is asked again rather than silently recorded as
 // having accepted text they never saw.
 //
-// The TEXT lives in the web app (src/assets/default/pages/tos.md). Nothing
-// links the two automatically, so bumping this without editing the page — or
-// the reverse — is possible and is the operator's job to keep in step.
+// The version and the URL are set together, in this one place, so an
+// installation has a single answer to "which terms are in force, and where are
+// they". Nothing verifies that the document at the URL actually IS that
+// version — that is the operator's job, and it is the reason the two settings
+// sit next to each other rather than in different files.
 func (config *Config) GetTosVersion() string {
 	if config.TosVersion == "" {
 		return defaultAgreementVersion
@@ -69,6 +78,50 @@ func (config *Config) GetPrivacyVersion() string {
 	}
 
 	return config.PrivacyVersion
+}
+
+// GetTosURL returns where the Terms of Service can be read.
+//
+// TOS_URL takes either form:
+//
+//	/legal/terms                   a path, resolved against the web app
+//	https://example.org/terms      a whole URL, for documents hosted elsewhere
+//
+// Both are wanted. A deployment that renames the route needs the first; one
+// whose legal team keeps the canonical text on a corporate site needs the
+// second, and forcing that through the app would mean maintaining a copy that
+// can silently disagree with the original.
+func (config *Config) GetTosURL() string {
+	return config.agreementURL(config.TosURL, defaultTosPath)
+}
+
+// GetPrivacyURL returns where the Privacy Policy can be read. Same contract as
+// GetTosURL.
+func (config *Config) GetPrivacyURL() string {
+	return config.agreementURL(config.PrivacyURL, defaultPrivacyPath)
+}
+
+// agreementURL resolves a configured value, falling back to a default path.
+//
+// An absolute URL is returned untouched. Anything else is treated as a path on
+// the web app — with a leading slash added if it is missing, because
+// "legal/terms" and "/legal/terms" are the same intention and only one of them
+// produces a working link.
+func (config *Config) agreementURL(configured, fallbackPath string) string {
+	value := strings.TrimSpace(configured)
+	if value == "" {
+		value = fallbackPath
+	}
+
+	if strings.HasPrefix(value, "http://") || strings.HasPrefix(value, "https://") {
+		return value
+	}
+
+	if !strings.HasPrefix(value, "/") {
+		value = "/" + value
+	}
+
+	return strings.TrimRight(config.GetFrontendURL(), "/") + value
 }
 
 // GetSuperAdminEmail returns the address the first super administrator is
@@ -106,6 +159,8 @@ func (config *Config) GetSuperAdminName() string {
 func (config *Config) bootstrapFromEnv() {
 	config.TosVersion = getEnv("TOS_VERSION", defaultAgreementVersion)
 	config.PrivacyVersion = getEnv("PRIVACY_VERSION", defaultAgreementVersion)
+	config.TosURL = os.Getenv("TOS_URL")
+	config.PrivacyURL = os.Getenv("PRIVACY_URL")
 	config.SuperAdminEmail = os.Getenv("SUPER_ADMIN_EMAIL")
 	config.SuperAdminUsername = os.Getenv("SUPER_ADMIN_USERNAME")
 	config.SuperAdminName = os.Getenv("SUPER_ADMIN_NAME")

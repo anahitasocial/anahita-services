@@ -147,9 +147,13 @@ type Config struct {
 	OAuthKMSKeyAlias string
 
 	// TosVersion and PrivacyVersion are the agreement versions currently in
-	// force. See bootstrap.go.
+	// force, and TosURL / PrivacyURL are where those documents can be read.
+	// Set together, so an installation has one answer to "which terms, and
+	// where". See bootstrap.go.
 	TosVersion     string
 	PrivacyVersion string
+	TosURL         string
+	PrivacyURL     string
 
 	// SuperAdmin* seed the first super administrator at boot. Optional; see
 	// bootstrap.go and services/super_admin_seed.go.

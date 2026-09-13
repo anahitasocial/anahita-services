@@ -87,10 +87,10 @@ func (env *Env) renderTemplate(c echo.Context, name string, data map[string]any)
 	// cannot read, and that is exactly the sort of thing that renders fine and
 	// is wrong. Nothing has to remember to pass it.
 	if _, ok := data["TosURL"]; !ok {
-		data["TosURL"] = env.Config.GetFrontendURL() + "/pages/tos"
+		data["TosURL"] = env.Config.GetTosURL()
 	}
 	if _, ok := data["PrivacyURL"]; !ok {
-		data["PrivacyURL"] = env.Config.GetFrontendURL() + "/pages/privacy"
+		data["PrivacyURL"] = env.Config.GetPrivacyURL()
 	}
 
 	return tmpl.ExecuteTemplate(c.Response().Writer, "base", data)
