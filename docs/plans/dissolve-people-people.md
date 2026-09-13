@@ -468,11 +468,39 @@ handler forgets it.
    account, so nothing leaked, but one enrolment away from it. It uses the
    mapper that was already sitting in `responses/user.go`.
 
-**Still open.** Nothing writes `last_visit_date` on login (open question 3), and
-`/oauth/userinfo` still emits the non-standard `username` and `usertype`
-alongside `preferred_username`. React's session reducer reads `usertype`, so
-nothing is broken — but by this plan's own naming rule they are leftovers rather
-than protocol surface.
+**Both follow-ups are now closed**, and the second was worse than it looked.
+
+**`last_visit_date` (open question 3) — wired, not dropped.** It is written by
+`ActorService.TouchLastVisit`, a new narrow RPC, called from
+`writeViewerSession` — the one thing the password and passkey login paths
+share, so neither can be extended without getting this too. Its own RPC rather
+than a field on `Edit`, because `Edit` writes the whole actor from the payload
+it is handed and publishes an "actor edited" event: routing a login through it
+would republish every signing-in actor to search and the feeds, and let a stale
+read overwrite a profile as a side effect of a sign-in. Fire-and-forget, so an
+unresponsive graph cannot hold a login open. Skips soft-deleted rows, because a
+deleted account can still reach the sign-in form — that is how restore-on-login
+works — and a visit stamped before the restore is decided records a visit to an
+account that does not exist yet.
+
+**The userinfo claims were not a naming leftover — they were a live outage.**
+I recorded them as harmless. That was wrong. The claims were `username` and
+`usertype`, and `/oauth/userinfo` is the ONE response the web app does not run
+through its camel-casing interceptor — so the viewer arrived in raw wire
+spelling while every permission helper read `viewer.personType`. **Every
+administration control in the client was off for everybody, super
+administrators included.** `Token.jsx` read `viewer.alias` and redirected to
+`/people/undefined`; `getAvatarURL` read `avatarUrls` and the viewer carried
+`avatar_urls`, so the viewer's own avatar never rendered. Three symptoms, one
+cause.
+
+Fixed on both sides: the claims are `alias` and `person_type`
+(`preferred_username` stays — OIDC names it, the others were named by nobody),
+and `api/session.js` now camel-cases the response like every other API call, so
+the viewer is shaped like every other actor.
+`data/services/oauth_user_info_test.go` pins the claim names, including that
+the retired spellings are *not* emitted alongside the new ones — two names for
+one value is how they drifted apart to begin with.
 
 Three gaps found while checking how a person node gets created. The first two
 block this refactor; the third blocks any fresh install.
@@ -698,9 +726,10 @@ End-to-end through nginx at `http://localhost:80`:
    `usertype`? Renaming breaks any non-`anahita-react` client.
 2. **Pronoun display scope** — every author line, or profile and hover card
    only? Front-end only, no schema impact.
-3. **`last_visit_date`** — written only at INSERT and never on login, so it is
-   stale for all 823 people. Wire auth to update it through graph at login, or
-   drop the column?
+3. ~~**`last_visit_date`**~~ — **ANSWERED: wired, through the graph.** It was
+   written only at INSERT and never on login, so for all 822 people it held
+   their join date under a name that says otherwise. `ActorService.TouchLastVisit`
+   stamps it from `writeViewerSession`, which both login paths share.
 4. ~~**Signup atomicity**~~ — **ANSWERED: a compensating purge.** Signup is two
    writes across two services (graph creates the node, auth inserts the
    `auth_accounts` row) with no transaction, and a failure on the second leg
