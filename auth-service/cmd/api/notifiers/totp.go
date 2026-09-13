@@ -25,7 +25,7 @@ func (h *totpNotifier) EmailTotpEnabled(user *entities.User) error {
 		user.Name,
 	)
 
-	actionURL := fmt.Sprintf("%s/support", h.Config.GetCompleteDomainName())
+	actionURL := fmt.Sprintf("%s/support", h.Config.GetFrontendURL())
 
 	return h.send(
 		user.Email,
@@ -44,7 +44,7 @@ func (h *totpNotifier) EmailTotpDisabled(user *entities.User) error {
 		user.Name,
 	)
 
-	actionURL := fmt.Sprintf("%s/support", h.Config.GetCompleteDomainName())
+	actionURL := fmt.Sprintf("%s/support", h.Config.GetFrontendURL())
 
 	return h.send(
 		user.Email,
@@ -75,7 +75,7 @@ func (h *totpNotifier) EmailTotpDisabledByAdmin(user *entities.User) error {
 		messages.TotpDisabledByAdminTitle,
 		body,
 		messages.TotpDisabledByAdminActionLabel,
-		fmt.Sprintf("%s/support", h.Config.GetCompleteDomainName()),
+		fmt.Sprintf("%s/support", h.Config.GetFrontendURL()),
 	)
 }
 

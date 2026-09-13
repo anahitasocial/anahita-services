@@ -322,5 +322,5 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	// initiates /oauth/authorize, finds the IdP session we just set,
 	// and completes the OAuth flow silently. The terms were accepted on
 	// the form above, so there is nothing left to collect before the app.
-	return c.Redirect(http.StatusSeeOther, h.Config.GetCompleteDomainName())
+	return c.Redirect(http.StatusSeeOther, h.Config.GetFrontendURL())
 }

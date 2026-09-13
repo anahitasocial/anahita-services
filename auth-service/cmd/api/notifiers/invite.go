@@ -95,7 +95,7 @@ func (h *inviteNotifier) EmailAccept(joiner *entities.User, inviter *entities.Us
 
 	actionURL := fmt.Sprintf(
 		"%s/people/%d",
-		h.Config.GetCompleteDomainName(),
+		h.Config.GetFrontendURL(),
 		joiner.ID,
 	)
 

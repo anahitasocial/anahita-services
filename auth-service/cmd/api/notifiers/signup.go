@@ -45,9 +45,17 @@ func (h *signupNotifier) EmailSignup(user *entities.User) error {
 		user.Name,
 	)
 
+	// /dashboard, and the frontend URL rather than the "complete domain name".
+	//
+	// This was "%s/downloads" on GetCompleteDomainName(), and both halves were
+	// wrong: Anahita has no downloads route, and that getter builds
+	// "https://www." + DOMAIN_NAME, which in development is
+	// https://www.localhost:3000 — not a host that exists. GetFrontendURL is
+	// the configured address of the web app and the one every other link
+	// should use.
 	actionURL := fmt.Sprintf(
-		"%s/downloads",
-		h.Config.GetCompleteDomainName(),
+		"%s/dashboard",
+		h.Config.GetFrontendURL(),
 	)
 
 	return h.send(
