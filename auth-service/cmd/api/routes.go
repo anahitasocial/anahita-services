@@ -83,10 +83,13 @@ func (r *Routes) Init(e *echo.Echo) {
 	e.GET("/signup/confirm/resend", h.Signup.ResendForm)
 	e.POST("/signup/confirm/resend", h.Signup.Resend)
 
-	// The agreement versions the signup form has to send back with an
-	// acceptance. Public: the page that reads it belongs to somebody who does
-	// not have an account yet.
-	e.GET("/agreements", h.Agreements.Read)
+	// Accepting the Terms and the Privacy Policy, one document per request.
+	// Authenticated, and acting on the signed-in viewer — no person id, so
+	// nobody can record an acceptance on somebody else's behalf.
+	agreements := e.Group("/agreements")
+	agreements.Use(r.authorize)
+	agreements.PATCH("/tos", h.Agreements.EditTos)
+	agreements.PATCH("/privacy", h.Agreements.EditPrivacy)
 
 	// OIDC discovery and JWKS — fully public.
 	e.GET("/.well-known/openid-configuration", h.OAuth.Discovery)

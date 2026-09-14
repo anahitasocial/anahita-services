@@ -84,6 +84,19 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 		info["person_type"] = user.PersonType
 		info["totp_enabled"] = user.TotpEnabled
 		info["last_visit_date"] = user.LastVisitDate
+
+		// What this person has accepted, one entry per document.
+		//
+		// The web app compares each version against the one in
+		// statics/legal/index.js and sends anybody behind to the agreements
+		// page. Shaped as an object per document rather than two flat fields,
+		// so a third document is a third key and not a naming scheme.
+		//
+		// The audit trio — ip, user agent, os — is deliberately NOT here. It is
+		// evidence for a person reading the row, not input to anything the
+		// client decides, and it has no business in a token-bearing response.
+		info["tos_agreement"] = agreementClaim(user.TermsOfService)
+		info["privacy_agreement"] = agreementClaim(user.PrivacyPolicy)
 	}
 
 	if scopeSet["email"] {
@@ -91,4 +104,13 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 	}
 
 	return info
+}
+
+// agreementClaim is the part of a consent record the web app needs to decide
+// whether to ask again.
+func agreementClaim(c entities.Consent) map[string]any {
+	return map[string]any{
+		"accepted": c.Accepted,
+		"version":  c.Version,
+	}
 }

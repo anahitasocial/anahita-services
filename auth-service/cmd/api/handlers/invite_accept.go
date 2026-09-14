@@ -127,12 +127,10 @@ func (h *inviteHandler) inviteAcceptContext(
 	}
 
 	return map[string]any{
-		"Token":          token,
-		"Email":          email,
-		"Username":       username,
-		"Error":          errMsg,
-		"TosVersion":     h.Config.GetTosVersion(),
-		"PrivacyVersion": h.Config.GetPrivacyVersion(),
+		"Token":    token,
+		"Email":    email,
+		"Username": username,
+		"Error":    errMsg,
 	}
 }
 

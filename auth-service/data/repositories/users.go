@@ -23,7 +23,8 @@ type UsersInterface interface {
 	Edit(user *entities.User) (*entities.User, error)
 	EditPassword(password string, id int64) error
 	EditEmail(email string, id int64) error
-	EditConsent(user *entities.User) error
+	EditTosConsent(id int64, consent *entities.Consent) error
+	EditPrivacyConsent(id int64, consent *entities.Consent) error
 	MarkEmailVerified(id int64) error
 	Delete(id int64) error
 	IsEmail(email string) (bool, error)
@@ -468,57 +469,59 @@ func (repo *Users) EditPassword(password string, id int64) error {
 	return nil
 }
 
-// EditConsent writes both acceptance records for an account that already
-// exists.
+// EditTosConsent records acceptance of the Terms of Service.
 //
-// Separate from Edit for the same reason email and password are: Edit writes
-// the whole row from whatever struct it was handed, so a caller holding a User
-// read before a concurrent change would put the old acceptance back. This is
-// also the only write that can move a consent record, which keeps the audit
-// trail auditable — one statement to look at, not a field that could have been
-// set from anywhere.
+// One document per write. The two are versioned separately, so a revision to
+// the Privacy Policy alone must re-ask for that and nothing else — and a single
+// write covering both would re-stamp the Terms with a fresh date every time
+// somebody accepted a privacy update, rewriting when they agreed to a document
+// they had not been shown again.
 //
-// Single-purpose in the other direction too: it never touches credentials, so
-// the set-password page can record an acceptance without being able to alter a
-// password as a side effect.
-func (repo *Users) EditConsent(user *entities.User) error {
+// Single-purpose, like EditEmail and EditPassword beside it: Edit writes the
+// whole row from whatever struct it was handed, so a caller holding a stale
+// read would otherwise put an old acceptance back. This is the only thing that
+// moves a consent record, which keeps the audit trail auditable.
+func (repo *Users) EditTosConsent(id int64, consent *entities.Consent) error {
+	return repo.editConsent(id, "tos", consent)
+}
+
+// EditPrivacyConsent records acceptance of the Privacy Policy. See
+// EditTosConsent.
+func (repo *Users) EditPrivacyConsent(id int64, consent *entities.Consent) error {
+	return repo.editConsent(id, "pp", consent)
+}
+
+// editConsent writes one document's six columns.
+//
+// The prefix is chosen from two constants by the two callers above and is
+// never caller-supplied, which is the only reason concatenating it into the
+// statement is safe. Do not export this.
+func (repo *Users) editConsent(id int64, prefix string, consent *entities.Consent) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	query := `
 		UPDATE auth_accounts
 		SET
-			tos_accepted            = ?,
-			tos_accepted_at         = ?,
-			tos_accepted_version    = ?,
-			tos_accepted_ip         = ?,
-			tos_accepted_user_agent = ?,
-			tos_accepted_os         = ?,
-			pp_accepted             = ?,
-			pp_accepted_at          = ?,
-			pp_accepted_version     = ?,
-			pp_accepted_ip          = ?,
-			pp_accepted_user_agent  = ?,
-			pp_accepted_os          = ?
+			` + prefix + `_accepted            = ?,
+			` + prefix + `_accepted_at         = ?,
+			` + prefix + `_accepted_version    = ?,
+			` + prefix + `_accepted_ip         = ?,
+			` + prefix + `_accepted_user_agent = ?,
+			` + prefix + `_accepted_os         = ?
 		WHERE
 			node_id = ?`
 
 	_, err := repo.db.ExecContext(
 		ctx,
 		query,
-		user.TermsOfService.Accepted,
-		user.TermsOfService.AcceptedAt,
-		user.TermsOfService.Version,
-		user.TermsOfService.IP,
-		user.TermsOfService.UserAgent,
-		user.TermsOfService.OS,
-		user.PrivacyPolicy.Accepted,
-		user.PrivacyPolicy.AcceptedAt,
-		user.PrivacyPolicy.Version,
-		user.PrivacyPolicy.IP,
-		user.PrivacyPolicy.UserAgent,
-		user.PrivacyPolicy.OS,
-		user.ID,
+		consent.Accepted,
+		consent.AcceptedAt,
+		consent.Version,
+		consent.IP,
+		consent.UserAgent,
+		consent.OS,
+		id,
 	)
 
 	return err

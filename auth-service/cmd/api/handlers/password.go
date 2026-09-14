@@ -152,30 +152,13 @@ func (h *passwordHandler) Forgot(c echo.Context) error {
 // ---------------------------------------------------------------------
 
 // resetFormError re-renders the reset form with a message.
-//
-// It exists to carry NeedsAgreements across a re-render. Without it, an
-// account with nothing on record that hits any ordinary form error — a
-// password matching the old one, a failed write — gets the form back WITHOUT
-// the checkboxes, and the next submission then carries no version, skips the
-// agreement branch entirely, and sets a password on an account that never
-// accepted anything. The page would look fine at every step.
 func (h *passwordHandler) resetFormError(
-	c echo.Context, tokenBody string, user *entities.User, message string,
+	c echo.Context, tokenBody string, _ *entities.User, message string,
 ) error {
-	data := map[string]any{
-		"Token":          tokenBody,
-		"Error":          message,
-		"TosVersion":     h.Config.GetTosVersion(),
-		"PrivacyVersion": h.Config.GetPrivacyVersion(),
-	}
-
-	if user != nil {
-		data["NeedsAgreements"] =
-			user.TermsOfService.NeedsAcceptance(h.Config.GetTosVersion()) ||
-				user.PrivacyPolicy.NeedsAcceptance(h.Config.GetPrivacyVersion())
-	}
-
-	return h.renderTemplate(c, "password_reset.html", data)
+	return h.renderTemplate(c, "password_reset.html", map[string]any{
+		"Token": tokenBody,
+		"Error": message,
+	})
 }
 
 // ResetForm validates the reset token from the URL and renders the new
@@ -223,11 +206,7 @@ func (h *passwordHandler) ResetForm(c echo.Context) error {
 	// person entitled to know.
 	//
 	// Best-effort: a lookup failure costs the notice, not the reset.
-	data := map[string]any{
-		"Token":          token.Body,
-		"TosVersion":     h.Config.GetTosVersion(),
-		"PrivacyVersion": h.Config.GetPrivacyVersion(),
-	}
+	data := map[string]any{"Token": token.Body}
 	if user, err := h.Repos.Users.ReadByEmail(token.RecipientEmail); err == nil && user != nil {
 		if user.DeletedAt != nil {
 			data["ScheduledForDeletion"] = true
@@ -235,17 +214,6 @@ func (h *passwordHandler) ResetForm(c echo.Context) error {
 				AddDate(0, 0, constants.AccountGraceDays).
 				Format("2 January 2006")
 		}
-
-		// Ask for agreement only when there is nothing on record.
-		//
-		// In practice this is the seeded super administrator claiming the
-		// installation: the only account that comes into existence without
-		// passing through signup or invite-accept, and so the only one whose
-		// consent has nowhere else to be collected. Asking on every reset
-		// would teach people to tick past the boxes, which is worse than not
-		// asking.
-		data["NeedsAgreements"] = user.TermsOfService.NeedsAcceptance(h.Config.GetTosVersion()) ||
-			user.PrivacyPolicy.NeedsAcceptance(h.Config.GetPrivacyVersion())
 	}
 
 	return h.renderTemplate(c, "password_reset.html", data)
@@ -311,11 +279,8 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 		// version only when it did. Dropping them here would hand back a form
 		// missing the fields the next submission needs.
 		return h.renderTemplate(c, "password_reset.html", map[string]any{
-			"Token":           req.Token,
-			"Error":           "Password must be at least 15 characters long.",
-			"NeedsAgreements": req.TosVersion != "",
-			"TosVersion":      h.Config.GetTosVersion(),
-			"PrivacyVersion":  h.Config.GetPrivacyVersion(),
+			"Token": req.Token,
+			"Error": "Password must be at least 15 characters long.",
 		})
 	}
 
@@ -388,51 +353,6 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 		log.Println(err)
 		return h.resetFormError(c, req.Token, user,
 			"Could not update your password. Please try again.")
-	}
-
-	// Agreement, when the page asked for it.
-	//
-	// Checked BEFORE the password is written, so a refused acceptance leaves
-	// the account exactly as it was and the link still usable. The other order
-	// would set a password and then reject the submission, leaving somebody
-	// looking at an error page over an account they can now sign into.
-	//
-	// The form is the authority on whether it asked: an ordinary reset sends
-	// no version and this does nothing.
-	needsAgreements := user.TermsOfService.NeedsAcceptance(h.Config.GetTosVersion()) ||
-		user.PrivacyPolicy.NeedsAcceptance(h.Config.GetPrivacyVersion())
-
-	if needsAgreements && req.TosVersion != "" {
-		if !req.TosAccepted || !req.PpAccepted {
-			return h.renderTemplate(c, "password_reset.html", map[string]any{
-				"Token":           req.Token,
-				"NeedsAgreements": true,
-				"TosVersion":      h.Config.GetTosVersion(),
-				"PrivacyVersion":  h.Config.GetPrivacyVersion(),
-				"Error":           "Please accept the Terms of Service and the Privacy Policy to continue.",
-			})
-		}
-
-		if err := h.recordAgreements(c, user, req.TosVersion, req.PpVersion); err != nil {
-			return h.renderTemplate(c, "password_reset.html", map[string]any{
-				"Token":           req.Token,
-				"NeedsAgreements": true,
-				"TosVersion":      h.Config.GetTosVersion(),
-				"PrivacyVersion":  h.Config.GetPrivacyVersion(),
-				"Error":           "The terms have been updated since this page was opened. Please read them again.",
-			})
-		}
-
-		if err := h.Repos.Users.EditConsent(user); err != nil {
-			log.Println("password reset: recording agreement failed:", err)
-			return h.renderTemplate(c, "password_reset.html", map[string]any{
-				"Token":           req.Token,
-				"NeedsAgreements": true,
-				"TosVersion":      h.Config.GetTosVersion(),
-				"PrivacyVersion":  h.Config.GetPrivacyVersion(),
-				"Error":           "Could not record your agreement. Please try again.",
-			})
-		}
 	}
 
 	if err := h.Repos.Users.EditPassword(user.Password, user.ID); err != nil {

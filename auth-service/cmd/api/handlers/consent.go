@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"regexp"
 
 	"auth/data/entities"
 
@@ -9,23 +10,38 @@ import (
 	"github.com/mileusna/useragent"
 )
 
-// Capturing what somebody agreed to, shared by every path that creates or
-// claims an account: signup, invite-accept, and the set-password page the
-// seeded super administrator lands on.
+// Recording what somebody agreed to.
 //
-// One implementation because the record is only useful if it is the same
-// record everywhere. Three handlers each assembling their own would be three
-// chances for one of them to record a version it made up, or to forget the
-// audit trio, and the difference would not be visible until somebody asked the
-// table a question it could no longer answer.
+// WHO DECIDES THE VERSION. The web app does: statics/legal/index.js carries the
+// version of each document, and whoever changes the text raises it. A viewer
+// whose accepted version is behind is sent to the agreements page on their next
+// request, whether they joined years ago or a minute ago.
+//
+// WHAT THE SERVER STILL DECIDES is everything that makes the record evidence
+// rather than a claim: the timestamp, the IP address, the user agent and the
+// operating system. Those are read from the request here, never taken from a
+// form. A client can say which version it is accepting; it cannot say when, or
+// from where.
+//
+// The version the client sends is checked for SHAPE only. It is not compared
+// against anything, because there is nothing on this side to compare it
+// against — and a person who sends a nonsense version for themselves has only
+// misrecorded their own acceptance.
 
-// ErrAgreementVersionStale is returned when the submitted version is not the
-// one in force.
-var ErrAgreementVersionStale = errors.New("the agreement version submitted is not the current one")
+// ErrAgreementVersionMalformed is returned for a version that is not a dotted
+// number.
+var ErrAgreementVersionMalformed = errors.New(
+	"agreement version must be a dotted version number, e.g. 1.0 or 2.1.3")
 
-// consentSource is what the request itself contributes: not the checkbox, but
-// the circumstances. Taken from the request rather than the form, because a
-// field the client fills in is a claim and these are meant to be a record.
+// agreementVersionShape is a dotted numeric version: 1, 1.0, 2.1.3.
+//
+// Anchored, bounded to three parts, and digits only. The version is compared
+// numerically in the web app, part by part, so "v2", "1.0-beta" or "current"
+// would compare as something nobody intended.
+var agreementVersionShape = regexp.MustCompile(`^[0-9]{1,6}(\.[0-9]{1,6}){0,2}$`)
+
+// consentSource is what the request contributes: not the checkbox, but the
+// circumstances.
 type consentSource struct {
 	ip        string
 	userAgent string
@@ -38,8 +54,8 @@ func newConsentSource(c echo.Context) consentSource {
 
 	// X-Client-OS first: the native apps send it explicitly because their
 	// User-Agent strings are not browser-shaped and parse to nothing. Same
-	// precedence auth_log.go uses, so a person's consent row and their
-	// sign-in history describe the same device the same way.
+	// precedence auth_log.go uses, so a person's consent row and their sign-in
+	// history describe the same device the same way.
 	os := c.Request().Header.Get("X-Client-OS")
 	if os == "" {
 		os = ua.OS
@@ -56,7 +72,7 @@ func newConsentSource(c echo.Context) consentSource {
 //
 // A User-Agent longer than 255 bytes is not unusual, and MySQL under a strict
 // sql_mode rejects the row outright rather than trimming it — which would turn
-// an unusual browser into "could not create your account".
+// an unusual browser into "could not record your agreement".
 func truncate(value string, max int) string {
 	if len(value) <= max {
 		return value
@@ -65,33 +81,15 @@ func truncate(value string, max int) string {
 	return value[:max]
 }
 
-// recordAgreements writes both acceptances onto the user, after checking that
-// the versions submitted are the ones in force.
-//
-// The version check is the point of carrying a version at all. Without it,
-// somebody who left the signup page open across a revision is recorded as
-// having accepted text they were never shown — and the record would say
-// otherwise, which is worse than having no record. They are asked again
-// instead.
-//
-// The booleans are not re-checked here: `eq=true` on the request already
-// refused an unticked box, and a second check in a different place is a second
-// place for the two to disagree.
-func (h *Env) recordAgreements(
-	c echo.Context,
-	user *entities.User,
-	tosVersion, ppVersion string,
-) error {
-	if tosVersion != h.Config.GetTosVersion() || ppVersion != h.Config.GetPrivacyVersion() {
-		return ErrAgreementVersionStale
+// acceptInto records one acceptance onto a consent, with the version the
+// client names and the circumstances the request supplies.
+func acceptInto(c echo.Context, consent *entities.Consent, version string) error {
+	if !agreementVersionShape.MatchString(version) {
+		return ErrAgreementVersionMalformed
 	}
 
 	source := newConsentSource(c)
-
-	user.TermsOfService.Accept(
-		h.Config.GetTosVersion(), source.ip, source.userAgent, source.os)
-	user.PrivacyPolicy.Accept(
-		h.Config.GetPrivacyVersion(), source.ip, source.userAgent, source.os)
+	consent.Accept(version, source.ip, source.userAgent, source.os)
 
 	return nil
 }

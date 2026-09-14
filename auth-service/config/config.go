@@ -146,14 +146,11 @@ type Config struct {
 	// allow the "kms:Sign" action for the IAM role of auth-service.
 	OAuthKMSKeyAlias string
 
-	// TosVersion and PrivacyVersion are the agreement versions currently in
-	// force, and TosURL / PrivacyURL are where those documents can be read.
-	// Set together, so an installation has one answer to "which terms, and
-	// where". See bootstrap.go.
-	TosVersion     string
-	PrivacyVersion string
-	TosURL         string
-	PrivacyURL     string
+	// TosURL and PrivacyURL are where the legal documents can be read. Their
+	// VERSIONS are not here: the web app holds them, beside the text, in
+	// statics/legal/index.js. See bootstrap.go.
+	TosURL     string
+	PrivacyURL string
 
 	// SupportPhone and SupportWebsite complete the contact details published
 	// for the public support page. SupportEmail, above, is required; these two

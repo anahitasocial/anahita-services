@@ -55,3 +55,12 @@ type SignupAddRequest struct {
 type UsernameAvailability struct {
 	Username string `query:"username" validate:"required,username,min=3,max=32"`
 }
+
+// AgreementAccept is what the agreements page sends for one document.
+//
+// The version is the web app's — statics/legal/index.js — and is checked for
+// shape by the handler. The accepted flag is required to be true there.
+type AgreementAccept struct {
+	Version  string `form:"version" json:"version" validate:"required,max=20"`
+	Accepted bool   `form:"accepted" json:"accepted"`
+}

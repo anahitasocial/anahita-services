@@ -125,12 +125,9 @@ services:
       # members and 100 for administrators.
       INVITE_PENDING_MAX: ${INVITE_PENDING_MAX:-}
       INVITE_PENDING_MAX_ADMIN: ${INVITE_PENDING_MAX_ADMIN:-}
-      # Agreement versions currently in force. The TEXT lives in the web app
-      # under src/assets/default/pages/; bumping one of these without editing
-      # the matching page re-prompts everybody for text that has not changed.
-      TOS_VERSION: ${TOS_VERSION:-}
-      PRIVACY_VERSION: ${PRIVACY_VERSION:-}
-      # Where those documents can be read. Either a path on the web app —
+      # Where the Terms and the Privacy Policy can be read. Their VERSIONS are
+      # not set here — the web app holds them beside the text, in
+      # statics/legal/index.js, and raising one is what re-prompts people. Either a path on the web app —
       # "/legal/terms" — or a whole URL when the canonical text is hosted
       # somewhere else. Defaults to /pages/tos and /pages/privacy.
       TOS_URL: ${TOS_URL:-}

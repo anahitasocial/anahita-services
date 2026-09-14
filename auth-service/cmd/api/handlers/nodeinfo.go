@@ -158,14 +158,12 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 		// `false` cannot tell a locked-down site from one that takes
 		// invitations, and the web app needs to know which.
 		Metadata: map[string]any{
-			"nodeName":              h.Config.GetSiteName(),
-			"registrationMode":      h.Config.GetRegistrationMode(),
-			"approvalRequired":      h.Config.RequiresRegistrationApproval(),
-			"invitationsAccepted":   h.Config.AllowsInvitations(),
-			"termsOfServiceUrl":     h.Config.GetTosURL(),
-			"privacyPolicyUrl":      h.Config.GetPrivacyURL(),
-			"termsOfServiceVersion": h.Config.GetTosVersion(),
-			"privacyPolicyVersion":  h.Config.GetPrivacyVersion(),
+			"nodeName":            h.Config.GetSiteName(),
+			"registrationMode":    h.Config.GetRegistrationMode(),
+			"approvalRequired":    h.Config.RequiresRegistrationApproval(),
+			"invitationsAccepted": h.Config.AllowsInvitations(),
+			"termsOfServiceUrl":   h.Config.GetTosURL(),
+			"privacyPolicyUrl":    h.Config.GetPrivacyURL(),
 
 			// How to reach a person. Published here, rather than baked into
 			// the web app as REACT_APP_ variables, for two reasons:

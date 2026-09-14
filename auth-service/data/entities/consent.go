@@ -5,6 +5,11 @@ import "time"
 // Consent is one recorded acceptance — of the Terms of Service, or of the
 // Privacy Policy. Both are the same shape, so both use this.
 //
+// WHETHER somebody needs to accept again is not decided here. The web app holds
+// the current version of each document and compares, numerically and part by
+// part, so that 1.0 -> 1.1 asks again and a rollback does not. The server only
+// records what was accepted and the circumstances of it.
+//
 // A boolean on its own answers "did they agree?" and nothing else. It cannot
 // say WHICH text they agreed to, so a revision has no way to find who still
 // needs asking; and it cannot say from where, so it is an assertion rather
@@ -41,15 +46,4 @@ func (c *Consent) Accept(version, ip, userAgent, os string) {
 	c.IP = ip
 	c.UserAgent = userAgent
 	c.OS = os
-}
-
-// NeedsAcceptance reports whether this consent is missing or predates the
-// version now in force.
-//
-// An account that accepted 1.0 when 2.0 is current is treated the same as one
-// that accepted nothing: it has not agreed to what it is being held to. This
-// is a string comparison, not an ordering — a version that goes backwards
-// re-prompts, which is the safe direction to be wrong in.
-func (c *Consent) NeedsAcceptance(current string) bool {
-	return !c.Accepted || c.Version != current
 }
