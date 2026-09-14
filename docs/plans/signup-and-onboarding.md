@@ -35,7 +35,7 @@ completeness is onboarding, not a gate.
 | --- | --- | --- | --- |
 | 1. `REGISTRATION_MODE` + NodeInfo | ✅ | — | `e7d47c2` |
 | 2. Signup moves to auth-service | ✅ | 1, 8 | `225b72c` |
-| 3. Email verification | ⬜ | — | |
+| 3. Email verification | ✅ | — | `3ab5bef` |
 | 4. Anti-bot baseline | ⬜ | 2 | |
 | 5. Approval queue (backend only) | ⬜ | 1, 2, 3 | |
 
@@ -57,7 +57,7 @@ invitation always returned 500, and a permission failure answered 402.
 
 ### Order, and why
 
-**~~1~~ → ~~8~~ → ~~2~~ → 6b → 3 → 5 → 4 → 7**
+**~~1~~ → ~~8~~ → ~~2~~ → ~~3~~ → 6b → 4 → 5 → 7**
 
 - **1 first** because 2, 5 and 6b all read the mode.
 - **8 before 2.** Signup stops collecting a display name in item 2, so the
@@ -65,6 +65,9 @@ invitation always returned 500, and a permission failure answered 402.
   between renders as "Unknown" with `??` for initials.
 - **3 before 5**, so an application reaches the queue already verified and
   administrators are not moderating unverified junk.
+- **4 moved ahead of 5.** The honeypot and timing checks want the same form
+  item 5 will branch, and doing them first means the approval path inherits
+  them rather than needing them retrofitted.
 - **4 after 2**, because honeypot and timing need the server-rendered form to
   put them on.
 - **7 is blocked**, and not on code: the Terms and Privacy Policy are still
