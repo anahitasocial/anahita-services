@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -65,7 +66,7 @@ func (h *inviteHandler) Browse(c echo.Context) error {
 		},
 	}
 
-	resp.Pagination.Total, err = h.Repos.Tokens.Count(constants.TokenTypeInvite, req)
+	resp.Pagination.Total, err = h.Repos.Tokens.Count(constants.TokenTypeInvite)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -136,6 +137,36 @@ func (h *inviteHandler) Add(c echo.Context) error {
 	}
 	if user != nil {
 		return c.NoContent(http.StatusConflict)
+	}
+
+	// The cap on outstanding invitations, before the rate limits.
+	//
+	// Checked first because hitting your own cap is not abuse and should not
+	// spend rate-limit budget — the counters exist to meter somebody sending
+	// too fast, and this person is not sending at all.
+	//
+	// Self-healing: pending excludes used and expired invitations, so a slot
+	// frees when somebody accepts, when a link lapses, and when it is revoked.
+	// Nobody has to administer a reset.
+	isAdmin := viewer != nil && viewer.IsAdminOrSuperAdmin()
+	maxPending := h.Config.GetInvitePendingMax(isAdmin)
+
+	pending, err := h.Repos.Tokens.CountPendingFrom(constants.TokenTypeInvite, viewer.ID)
+	if err != nil {
+		log.Println("invite add: could not count outstanding invitations:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if pending >= maxPending {
+		log.Printf("invite add: at the cap (person=%d, pending=%d, max=%d)",
+			viewer.ID, pending, maxPending)
+		// Says the number and how a slot frees. "You have reached your limit"
+		// leaves somebody with nothing to do but wait for something they have
+		// not been told about.
+		return c.JSON(http.StatusConflict, fmt.Sprintf(
+			"You have %d invitations outstanding, which is the limit. "+
+				"One frees up when an invitation is accepted, expires, or you "+
+				"revoke it.", pending))
 	}
 
 	// Metered here, after the cheap refusals and before anything is written
@@ -238,15 +269,21 @@ func (h *inviteHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if err := h.Perms.Invite.CanDelete(viewer); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusForbidden)
-	}
-
+	// The token is read BEFORE the permission check, because who may revoke it
+	// depends on who issued it — an administrator may revoke any, a member
+	// only their own.
+	//
+	// Reading first discloses nothing: the answer to a caller who may not
+	// revoke is 403 either way, and the id was already theirs to guess.
 	token, err := h.Repos.Tokens.ReadByID(req.TokenID)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
+	}
+
+	if err := h.Perms.Invite.CanDeleteOwn(viewer, token.CreatedBy); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
 	}
 
 	if err := h.Repos.Tokens.Delete(token.ID); err != nil {

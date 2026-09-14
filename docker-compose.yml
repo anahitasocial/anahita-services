@@ -109,6 +109,17 @@ services:
       # be open to the internet — a closed one is noticed in a minute by the
       # operator, an open one when the spam arrives.
       REGISTRATION_MODE: ${REGISTRATION_MODE:-}
+      # Who may issue an invitation: administrators (the default) or members.
+      #
+      # Under `members` an invitation becomes a recommendation rather than a
+      # decision — the member is not the person who would otherwise be
+      # deciding. Browsing and revoking stay with administrators either way.
+      INVITES_FROM: ${INVITES_FROM:-}
+      # How many invitations one person may have OUTSTANDING at once. A slot
+      # frees when one is accepted, expires, or is revoked. Defaults to 5 for
+      # members and 100 for administrators.
+      INVITE_PENDING_MAX: ${INVITE_PENDING_MAX:-}
+      INVITE_PENDING_MAX_ADMIN: ${INVITE_PENDING_MAX_ADMIN:-}
       # Agreement versions currently in force. The TEXT lives in the web app
       # under src/assets/default/pages/; bumping one of these without editing
       # the matching page re-prompts everybody for text that has not changed.

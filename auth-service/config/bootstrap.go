@@ -175,6 +175,54 @@ func (config *Config) AllowsInvitations() bool {
 	return config.GetRegistrationMode() != constants.RegistrationModeClosed
 }
 
+// GetInvitesFrom returns who may issue an invitation.
+//
+// Defaults to administrators, which is what happened before this setting
+// existed — so no installation changes behaviour by upgrading into it.
+func (config *Config) GetInvitesFrom() string {
+	value := strings.ToLower(strings.TrimSpace(config.InvitesFrom))
+	if value == "" {
+		return constants.InvitesFromAdministrators
+	}
+
+	return value
+}
+
+// MembersMayInvite reports whether an ordinary registered person may invite.
+func (config *Config) MembersMayInvite() bool {
+	return config.GetInvitesFrom() == constants.InvitesFromMembers
+}
+
+// GetInvitePendingMax returns how many outstanding invitations one person may
+// hold, which depends on whether they administer the site.
+//
+// Two numbers rather than one because the two cases are not comparable: five
+// is right for a member and absurd for somebody onboarding a department, and a
+// single figure generous enough for the second is no cap at all on the first.
+//
+// Zero means UNSET and falls back to the default. "Nobody may invite" is
+// already expressible — REGISTRATION_MODE=closed suspends invitations
+// entirely — so the cap does not need a second way to say it, and reading a
+// bare 0 as a lockout would turn a typo into one.
+//
+// Negative is refused by Validate rather than read as unlimited: an operator
+// writing -1 for "no limit" would otherwise get a cap that refuses every
+// invitation, since any count exceeds a negative one.
+func (config *Config) GetInvitePendingMax(isAdmin bool) int {
+	if isAdmin {
+		if config.InvitePendingMaxAdmin != 0 {
+			return config.InvitePendingMaxAdmin
+		}
+		return constants.DefaultInvitePendingMaxAdmin
+	}
+
+	if config.InvitePendingMax != 0 {
+		return config.InvitePendingMax
+	}
+
+	return constants.DefaultInvitePendingMax
+}
+
 // GetSuperAdminEmail returns the address the first super administrator is
 // seeded against, or "" when the operator has not set one.
 //
@@ -211,6 +259,9 @@ func (config *Config) bootstrapFromEnv() {
 	config.TosVersion = getEnv("TOS_VERSION", defaultAgreementVersion)
 	config.PrivacyVersion = getEnv("PRIVACY_VERSION", defaultAgreementVersion)
 	config.RegistrationMode = os.Getenv("REGISTRATION_MODE")
+	config.InvitesFrom = os.Getenv("INVITES_FROM")
+	config.InvitePendingMax = getIntEnv("INVITE_PENDING_MAX", 0)
+	config.InvitePendingMaxAdmin = getIntEnv("INVITE_PENDING_MAX_ADMIN", 0)
 	config.TosURL = os.Getenv("TOS_URL")
 	config.PrivacyURL = os.Getenv("PRIVACY_URL")
 	config.SuperAdminEmail = os.Getenv("SUPER_ADMIN_EMAIL")
@@ -242,6 +293,27 @@ func (config *Config) validateBootstrap(missingFields []string) []string {
 		missingFields = append(missingFields, fmt.Sprintf(
 			"REGISTRATION_MODE must be one of %s (got %q)",
 			strings.Join(constants.RegistrationModes, ", "), config.RegistrationMode))
+	}
+
+	if config.InvitesFrom != "" &&
+		!slices.Contains(constants.InvitesFromValues, config.GetInvitesFrom()) {
+		missingFields = append(missingFields, fmt.Sprintf(
+			"INVITES_FROM must be one of %s (got %q)",
+			strings.Join(constants.InvitesFromValues, ", "), config.InvitesFrom))
+	}
+
+	// Negative is refused rather than read as unlimited. An operator who
+	// wrote -1 meaning "no limit" would otherwise get a cap that refuses
+	// every invitation, since any count is greater than a negative one.
+	if config.InvitePendingMax < 0 {
+		missingFields = append(missingFields,
+			"INVITE_PENDING_MAX cannot be negative — to stop invitations "+
+				"entirely, set REGISTRATION_MODE=closed")
+	}
+	if config.InvitePendingMaxAdmin < 0 {
+		missingFields = append(missingFields,
+			"INVITE_PENDING_MAX_ADMIN cannot be negative — to stop invitations "+
+				"entirely, set REGISTRATION_MODE=closed")
 	}
 
 	// `approval` is refused until the queue behind it exists.

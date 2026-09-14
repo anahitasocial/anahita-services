@@ -155,6 +155,12 @@ type Config struct {
 	TosURL         string
 	PrivacyURL     string
 
+	// InvitesFrom is who may issue an invitation, and InvitePendingMax* cap
+	// how many may be outstanding at once. See bootstrap.go.
+	InvitesFrom           string
+	InvitePendingMax      int
+	InvitePendingMaxAdmin int
+
 	// RegistrationMode is how this installation lets people in — see
 	// constants.RegistrationMode*. Empty means unset, which reads as closed.
 	RegistrationMode string

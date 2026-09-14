@@ -521,7 +521,11 @@ func TestWebAuthnCanReadCountDoesNotRequireFreshTotp(t *testing.T) {
 // ---------------------------------------------------------------------
 
 func TestInvitePermissionsAreAdminOnly(t *testing.T) {
-	p := NewInvitePerm(&Env{})
+	p := NewInvitePerm(&Env{
+		Config: &config.Config{
+			InvitesFrom: auth_constants.InvitesFromAdministrators,
+		},
+	})
 
 	registered := newViewer(viewerID, libs_constants.PersonTypeRegistered,
 		libs_constants.OAuthScopeActorsRead, libs_constants.OAuthScopeActorsWrite)
@@ -544,10 +548,56 @@ func TestInvitePermissionsAreAdminOnly(t *testing.T) {
 	}
 }
 
+// INVITES_FROM opens issuing to ordinary members, and only issuing.
+//
+// Browsing and revoking stay with administrators whatever it is set to: the
+// list of outstanding invitations is a list of who is being brought in and by
+// whom, and revoking somebody else's is a moderation action. A member gets to
+// invite, not to administer invitations.
+//
+// The role check is the ONLY gate on any of this. A comment claimed the scope
+// catalog gated these as AdminOnly at token-mint time and the role check was
+// defence in depth; actors:write is an ordinary scope every registered person
+// holds, so that second layer never existed.
+func TestInvitesFromMembersOpensIssuingOnly(t *testing.T) {
+	p := NewInvitePerm(&Env{
+		Config: &config.Config{InvitesFrom: auth_constants.InvitesFromMembers},
+	})
+
+	registered := newViewer(viewerID, libs_constants.PersonTypeRegistered,
+		libs_constants.OAuthScopeActorsRead, libs_constants.OAuthScopeActorsWrite)
+
+	if err := p.CanAdd(registered); err != nil {
+		t.Errorf("a member was refused an invitation under `members`: %v", err)
+	}
+
+	if err := p.CanBrowse(registered); err == nil {
+		t.Error("a member could list every outstanding invitation on the site, " +
+			"which is a list of who is being brought in and by whom")
+	}
+	if err := p.CanDelete(registered); err == nil {
+		t.Error("a member could revoke somebody else's invitation")
+	}
+}
+
+// A guest is never a member, whatever the setting says.
+func TestInvitesFromMembersStillExcludesGuests(t *testing.T) {
+	p := NewInvitePerm(&Env{
+		Config: &config.Config{InvitesFrom: auth_constants.InvitesFromMembers},
+	})
+
+	guest := newViewer(viewerID, libs_constants.PersonTypeGuest,
+		libs_constants.OAuthScopeActorsWrite)
+
+	if err := p.CanAdd(guest); err == nil {
+		t.Error("a guest issued an invitation")
+	}
+}
+
 // Browse reads; add and delete write. A read-only token must not create or
 // revoke an invitation.
 func TestInviteSeparatesReadFromWrite(t *testing.T) {
-	p := NewInvitePerm(&Env{})
+	p := NewInvitePerm(&Env{Config: &config.Config{}})
 	readOnly := newViewer(viewerID, libs_constants.PersonTypeAdmin, libs_constants.OAuthScopeActorsRead)
 
 	if err := p.CanBrowse(readOnly); err != nil {
