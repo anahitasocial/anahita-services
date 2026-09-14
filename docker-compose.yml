@@ -129,7 +129,7 @@ services:
       # not set here — the web app holds them beside the text, in
       # statics/legal/index.js, and raising one is what re-prompts people. Either a path on the web app —
       # "/legal/terms" — or a whole URL when the canonical text is hosted
-      # somewhere else. Defaults to /pages/tos and /pages/privacy.
+      # somewhere else. Defaults to /legal/tos and /legal/privacy.
       TOS_URL: ${TOS_URL:-}
       PRIVACY_URL: ${PRIVACY_URL:-}
       # The first super administrator, seeded at boot.
