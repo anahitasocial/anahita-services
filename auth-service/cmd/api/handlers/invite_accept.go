@@ -262,6 +262,21 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 		inviter.Name = "A team administrator"
 	}
 
+	// Whose invitation was it? That decides whether this person joins now or
+	// joins a queue.
+	//
+	// An ADMINISTRATOR's invitation is already the decision an approver would
+	// be making — asking them to clear it from a list afterwards is asking the
+	// same person to approve the same person twice. A MEMBER's is a
+	// recommendation: they are vouching, not admitting, and under `approval`
+	// an administrator still decides.
+	//
+	// Only reachable at all when INVITES_FROM allows members; otherwise every
+	// invitation is an administrator's by construction.
+	if h.Config.RequiresRegistrationApproval() && !inviter.IsAdminOrSuperAdmin() {
+		return h.acceptIntoQueue(c, req, token, inviter)
+	}
+
 	user := entities.NewUser()
 	user.Email = token.RecipientEmail
 	// PersonType, not Type. `Type` is the NODE type — it wants
@@ -419,4 +434,75 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	// and completes the OAuth flow silently. The terms were accepted on
 	// the form above, so there is nothing left to collect before the app.
 	return c.Redirect(http.StatusSeeOther, h.Config.GetFrontendURL())
+}
+
+// acceptIntoQueue turns an accepted member invitation into an application.
+//
+// Under `approval`, a member vouching for somebody is a recommendation rather
+// than an admission — so the invitation gets them as far as the queue, with
+// the voucher's name attached, and an administrator decides from there.
+//
+// A vouched application is a better thing to read than a cold one, and that is
+// the reason to allow member invitations at all: the member does the finding,
+// the administrator keeps the decision.
+func (h *inviteHandler) acceptIntoQueue(
+	c echo.Context,
+	req *requests.InviteAccept,
+	token *entities.Token,
+	inviter *entities.User,
+) error {
+	app := entities.NewRegistrationApplication()
+	app.Username = strings.ToLower(strings.TrimSpace(req.Username))
+	app.Email = token.RecipientEmail
+	app.Name = strings.TrimSpace(req.Name)
+	app.InvitedBy = inviter.ID
+
+	// Verified on arrival, and straight into the queue.
+	//
+	// They reached this form through a link sent to that address and nowhere
+	// else, which is exactly what a confirmation email asks somebody to prove.
+	// A cold applicant has to confirm first; this one already has.
+	now := time.Now()
+	app.EmailVerifiedAt = &now
+	app.Status = entities.ApplicationStatusPending
+
+	source := newConsentSource(c)
+	app.CreatedIP = source.ip
+	app.CreatedUserAgent = source.userAgent
+
+	if err := app.SetPassword(req.Password); err != nil {
+		log.Println("invite accept: could not hash the application password:", err)
+		return h.renderTemplate(c, "invite_accept.html",
+			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username,
+				"Could not send your application. Please try again."))
+	}
+
+	stored, err := h.Repos.Applications.Add(app)
+	if err != nil {
+		log.Println("invite accept: could not store the application:", err)
+		return h.renderTemplate(c, "invite_accept.html",
+			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username,
+				"Could not send your application. Please try again."))
+	}
+
+	// The invitation is spent either way. It brought them here, and leaving it
+	// live would let one invitation produce a second application after this
+	// one is decided.
+	token.IsUsed = true
+	token.UpdatedAt = time.Now()
+	if _, err := h.Repos.Tokens.Edit(token); err != nil {
+		log.Printf("invite accept: could not consume token %d: %v", token.ID, err)
+	}
+
+	notifyApp := *stored
+	go func() {
+		if err := h.Notif.Signup.EmailApplicationReceived(&notifyApp); err != nil {
+			log.Println("invite accept: notifying administrators failed:", err)
+		}
+	}()
+
+	return h.renderTemplate(c, "signup_application_sent.html", map[string]any{
+		"Email":    stored.Email,
+		"Verified": true,
+	})
 }
