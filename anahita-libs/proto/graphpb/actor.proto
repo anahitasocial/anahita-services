@@ -205,6 +205,25 @@ message ActorSetEnabledResponse {
     bool changed = 1;
 }
 
+// TouchLastVisit stamps nodes.last_visit_date with the current time.
+//
+// Its own RPC rather than an Edit, because Edit writes the whole actor from
+// the payload it is handed and publishes an "actor edited" event. Routing a
+// login through that would republish every actor to search and the feeds on
+// every sign-in, and would let a stale read overwrite a profile as a side
+// effect of somebody signing in.
+//
+// No viewer: the person is signing in as themselves, and there is no decision
+// to make about whether they may. The caller has already authenticated them.
+message ActorTouchLastVisitRequest {
+    int64 id = 1;
+}
+
+message ActorTouchLastVisitResponse {
+    // False when no row was stamped — no such actor, or it is deleted.
+    bool changed = 1;
+}
+
 message ActorPingRequest {
     string message = 1;
 }
@@ -234,5 +253,7 @@ service ActorService {
     rpc Archive(ActorArchiveRequest) returns (ActorArchiveResponse) {}
     // Turns an actor on or off. Reversible.
     rpc SetEnabled(ActorSetEnabledRequest) returns (ActorSetEnabledResponse) {}
+    // Records that this actor just signed in.
+    rpc TouchLastVisit(ActorTouchLastVisitRequest) returns (ActorTouchLastVisitResponse) {}
     rpc Ping(ActorPingRequest) returns (ActorPingResponse) {}
 }

@@ -1,8 +1,13 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"auth/constants"
@@ -61,7 +66,7 @@ func (h *inviteHandler) Browse(c echo.Context) error {
 		},
 	}
 
-	resp.Pagination.Total, err = h.Repos.Tokens.Count(constants.TokenTypeInvite, req)
+	resp.Pagination.Total, err = h.Repos.Tokens.Count(constants.TokenTypeInvite)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -96,21 +101,98 @@ func (h *inviteHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	// `closed` suspends invitations along with self-serve registration, and
+	// it is the only mode that does. Checked before the permission so an
+	// administrator is told the site is locked down rather than that they
+	// lack a privilege they plainly have.
+	if !h.Config.AllowsInvitations() {
+		log.Println("invite add: refused, registration is closed")
+		return c.JSON(http.StatusForbidden,
+			"This site is locked down and is not issuing invitations.")
+	}
+
 	if err := h.Perms.Invite.CanAdd(viewer); err != nil {
 		log.Println(err)
-		return c.NoContent(http.StatusPaymentRequired)
+		// 403. This said StatusPaymentRequired — 402 — which is not a
+		// permission failure and is not something any client knows how to
+		// act on.
+		return c.NoContent(http.StatusForbidden)
 	}
 
 	browseReq := libs_requests.NewBrowse()
 	browseReq.Limit = libs_constants.MaxPageSize
 
+	// sql.ErrNoRows is the ANSWER, not a failure: nobody holds this address,
+	// which is the whole point of inviting them.
+	//
+	// Treating every error as a fault meant this returned 500 for every
+	// legitimate invitation — the only address that did NOT 500 was one that
+	// already had an account, which is the case that is supposed to be
+	// refused. Sending an invite has never worked. Same bug, same shape, as
+	// the existing-account check in invite_accept.go.
 	user, err := h.Repos.Users.ReadByEmail(req.Email)
-	if err != nil {
-		log.Println(err)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Println("invite add: existing-account check failed:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if user != nil {
 		return c.NoContent(http.StatusConflict)
+	}
+
+	// The cap on outstanding invitations, before the rate limits.
+	//
+	// Checked first because hitting your own cap is not abuse and should not
+	// spend rate-limit budget — the counters exist to meter somebody sending
+	// too fast, and this person is not sending at all.
+	//
+	// Self-healing: pending excludes used and expired invitations, so a slot
+	// frees when somebody accepts, when a link lapses, and when it is revoked.
+	// Nobody has to administer a reset.
+	isAdmin := viewer != nil && viewer.IsAdminOrSuperAdmin()
+	maxPending := h.Config.GetInvitePendingMax(isAdmin)
+
+	pending, err := h.Repos.Tokens.CountPendingFrom(constants.TokenTypeInvite, viewer.ID)
+	if err != nil {
+		log.Println("invite add: could not count outstanding invitations:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if pending >= maxPending {
+		log.Printf("invite add: at the cap (person=%d, pending=%d, max=%d)",
+			viewer.ID, pending, maxPending)
+		// Says the number and how a slot frees. "You have reached your limit"
+		// leaves somebody with nothing to do but wait for something they have
+		// not been told about.
+		return c.JSON(http.StatusConflict, fmt.Sprintf(
+			"You have %d invitations outstanding, which is the limit. "+
+				"One frees up when an invitation is accepted, expires, or you "+
+				"revoke it.", pending))
+	}
+
+	// Metered here, after the cheap refusals and before anything is written
+	// or sent.
+	//
+	// Two counters, because they answer different questions. The per-person
+	// one bounds how fast one account can turn the mail service into an
+	// outbound relay. The per-recipient one bounds how often ONE address can
+	// be mailed by this site — a thing no single inviter's budget can see,
+	// since a person who does not want to be invited is not made happier by
+	// the invitations coming from different members.
+	//
+	// Both count, so they belong on the path where the attempt happens. See
+	// the note on rateLimitExceeded.
+	if h.rateLimitExceeded(rateLimitScopeInvitePerson, strconv.FormatInt(viewer.ID, 10)) {
+		log.Printf("invite add: rate limited (person=%d)", viewer.ID)
+		return c.NoContent(http.StatusTooManyRequests)
+	}
+
+	if h.rateLimitExceeded(rateLimitScopeInviteEmail, strings.ToLower(req.Email)) {
+		// Deliberately the same status as the counter above, and nothing in
+		// the body. Saying "that address has been invited too often" would
+		// tell an inviter something about somebody else's mail — including
+		// that another member invited them.
+		log.Println("invite add: recipient rate limited")
+		return c.NoContent(http.StatusTooManyRequests)
 	}
 
 	token := entities.NewToken()
@@ -187,15 +269,21 @@ func (h *inviteHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if err := h.Perms.Invite.CanDelete(viewer); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusForbidden)
-	}
-
+	// The token is read BEFORE the permission check, because who may revoke it
+	// depends on who issued it — an administrator may revoke any, a member
+	// only their own.
+	//
+	// Reading first discloses nothing: the answer to a caller who may not
+	// revoke is 403 either way, and the id was already theirs to guess.
 	token, err := h.Repos.Tokens.ReadByID(req.TokenID)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
+	}
+
+	if err := h.Perms.Invite.CanDeleteOwn(viewer, token.CreatedBy); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
 	}
 
 	if err := h.Repos.Tokens.Delete(token.ID); err != nil {

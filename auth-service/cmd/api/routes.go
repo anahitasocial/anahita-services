@@ -36,6 +36,7 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	auth := e.Group("/auth")
 	auth.GET("/is/email", h.Is.Email)
+	auth.GET("/is/username", h.Is.Username)
 	auth.GET("/is/totp", h.Is.Totp)
 
 	// Password — forgot and reset are server-rendered, unauthenticated
@@ -67,12 +68,41 @@ func (r *Routes) Init(e *echo.Echo) {
 	invitesPublic.GET("/accept", h.Invite.AcceptForm)
 	invitesPublic.POST("/accept", h.Invite.Accept)
 
-	signups := e.Group("/signups")
-	signups.POST("", h.Signup.Add)
+	// Signup — server-rendered, beside the other credential flows.
+	//
+	// The JSON POST /signups the web app used to call is gone. A client
+	// cannot enforce whether a site takes registrations, and it was posting a
+	// password through a bundle with hundreds of packages behind it.
+	e.GET("/signup", h.Signup.Form)
+	e.POST("/signup", h.Signup.Add)
+
+	// Email confirmation. Public and token-gated, like the password reset
+	// pages beside it — the person arrives from a link in their mailbox, on a
+	// device that may hold no session at all.
+	e.GET("/signup/confirm", h.Signup.Confirm)
+	e.GET("/signup/confirm/resend", h.Signup.ResendForm)
+	e.POST("/signup/confirm/resend", h.Signup.Resend)
+
+	// Accepting the Terms and the Privacy Policy, one document per request.
+	// Authenticated, and acting on the signed-in viewer — no person id, so
+	// nobody can record an acceptance on somebody else's behalf.
+	agreements := e.Group("/agreements")
+	agreements.Use(r.authorize)
+	agreements.PATCH("/tos", h.Agreements.EditTos)
+	agreements.PATCH("/privacy", h.Agreements.EditPrivacy)
 
 	// OIDC discovery and JWKS — fully public.
 	e.GET("/.well-known/openid-configuration", h.OAuth.Discovery)
 	e.GET("/.well-known/jwks.json", h.OAuth.JWKS)
+
+	// NodeInfo — how this installation describes itself to the fediverse and
+	// to its own web app. Public by definition: the point is that a server
+	// which has never spoken to this one can read it.
+	//
+	// Two hops because that is the protocol: the well-known document is a
+	// list of links, and a consumer follows the schema version it knows.
+	e.GET("/.well-known/nodeinfo", h.NodeInfo.Discovery)
+	e.GET("/nodeinfo/2.1", h.NodeInfo.Read)
 
 	// ---------------------------------------------------------------
 	// OAuth user-facing endpoints (HTML flows + BFF endpoints).
@@ -227,6 +257,14 @@ func (r *Routes) Init(e *echo.Echo) {
 	invitesAuth.GET("", h.Invite.Browse)
 	invitesAuth.POST("", h.Invite.Add)
 	invitesAuth.DELETE("/:id", h.Invite.Delete)
+
+	// The approval queue. Administrator-only, JSON — the screen that consumes
+	// this belongs with the other settings work.
+	applications := e.Group("/applications")
+	applications.Use(r.authorize)
+	applications.GET("", h.Applications.Browse)
+	applications.POST("/:id/approve", h.Applications.Approve)
+	applications.POST("/:id/reject", h.Applications.Reject)
 
 	totps := e.Group("/totp")
 	totps.Use(r.authorize)

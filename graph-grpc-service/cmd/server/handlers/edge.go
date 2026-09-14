@@ -97,6 +97,9 @@ func (h *edgeHandler) Add(ctx context.Context, req *graphpb.EdgeAddRequest) (*gr
 	edge.NodeBType = req.Edge.NodeBType
 	edge.Meta = req.Edge.Meta
 	edge.CreatedBy = req.Edge.CreatedBy
+	// Was missing, so a single Add recorded who made the edge and never who
+	// last touched it. See BatchAdd for the mirror of this.
+	edge.ModifiedBy = req.Edge.ModifiedBy
 	edge.Ordering = req.Edge.Ordering
 	if req.Edge.StartDate != nil {
 		edge.StartDate = req.Edge.StartDate.AsTime()
@@ -218,6 +221,10 @@ func (h *edgeHandler) BatchEdit(ctx context.Context, req *graphpb.EdgeBatchEditR
 		edge.NodeBID = edgeReq.NodeBId
 		edge.NodeBType = edgeReq.NodeBType
 		edge.Meta = edgeReq.Meta
+		// Both, not one. Add carried CreatedBy and not ModifiedBy; this carried
+		// ModifiedBy and not CreatedBy — and validateAdd requires created_by,
+		// so BatchAdd could not succeed for any caller at all.
+		edge.CreatedBy = edgeReq.CreatedBy
 		edge.ModifiedBy = edgeReq.ModifiedBy
 		edge.Ordering = edgeReq.Ordering
 		if edgeReq.StartDate != nil {
@@ -252,6 +259,10 @@ func (h *edgeHandler) BatchAdd(ctx context.Context, req *graphpb.EdgeBatchAddReq
 		edge.NodeBID = edgeReq.NodeBId
 		edge.NodeBType = edgeReq.NodeBType
 		edge.Meta = edgeReq.Meta
+		// Both, not one. Add carried CreatedBy and not ModifiedBy; this carried
+		// ModifiedBy and not CreatedBy — and validateAdd requires created_by,
+		// so BatchAdd could not succeed for any caller at all.
+		edge.CreatedBy = edgeReq.CreatedBy
 		edge.ModifiedBy = edgeReq.ModifiedBy
 		edge.Ordering = edgeReq.Ordering
 		if edgeReq.StartDate != nil {

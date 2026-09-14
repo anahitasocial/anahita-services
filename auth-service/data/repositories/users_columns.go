@@ -32,33 +32,44 @@ import (
 // match scanUser.
 func userColumns() []string {
 	return []string{
-		"id",
-		"type",
-		"enabled",
-		// Nullable in the legacy schema, every one of them.
-		"COALESCE(given_name, '') AS given_name",
-		"COALESCE(family_name, '') AS family_name",
-		"COALESCE(username, '') AS username",
-		"COALESCE(email, '') AS email",
+		"nodes.id",
+		"nodes.type",
+		"nodes.enabled",
+		// The display name and the handle come from the node. They were
+		// given_name/family_name and username on people_people, which is gone.
+		"COALESCE(nodes.name, '') AS name",
+		"COALESCE(nodes.alias, '') AS alias",
+		"COALESCE(auth_accounts.email, '') AS email",
 		// A NULL password is a real state — an account created by invitation
 		// that has never set one. It must read as an empty hash, which
 		// CheckPassword then refuses, rather than failing the whole read.
-		"COALESCE(password, '') AS password",
-		"COALESCE(usertype, '') AS usertype",
-		"COALESCE(service, '') AS service",
-		"COALESCE(filename, '') AS filename",
-		"last_visit_date",
-		"created_on",
-		"modified_on",
-		"totp_enabled",
-		"COALESCE(totp_recovery_codes, '') AS totp_recovery_codes",
-		"COALESCE(totp_last_verified_at, NOW()) AS totp_last_verified_at",
-		"COALESCE(totp_secret, '') AS totp_secret",
+		"COALESCE(auth_accounts.password, '') AS password",
+		"COALESCE(nodes.person_type, '') AS person_type",
+		"COALESCE(nodes.service, '') AS service",
+		"COALESCE(nodes.filename, '') AS filename",
+		"nodes.last_visit_date",
+		"nodes.created_on",
+		"nodes.modified_on",
+		"auth_accounts.totp_enabled",
+		"COALESCE(auth_accounts.totp_recovery_codes, '') AS totp_recovery_codes",
+		"COALESCE(auth_accounts.totp_last_verified_at, NOW()) AS totp_last_verified_at",
+		"COALESCE(auth_accounts.totp_secret, '') AS totp_secret",
 		"nodes.deleted_at",
-		// Nullable and scanned into a pointer, exactly as deleted_at is.
-		// Archiving does not clear `enabled` — that column means one thing now
-		// — so login has to ask this question separately.
 		"nodes.archived_at",
+		// Consent: the flag and the version, and not the audit trio.
+		//
+		// These two answer "does this person still need to accept something?",
+		// which is asked on every sign-in. The ip/user_agent/os columns answer
+		// "who accepted it, and from where", which is asked by a person
+		// looking at a row and never by the code — so they are written and not
+		// carried through every read.
+		// Nullable, and scanned as one: NULL means the address was never
+		// confirmed, which is a state the sign-in path acts on.
+		"auth_accounts.email_verified_at",
+		"auth_accounts.tos_accepted",
+		"COALESCE(auth_accounts.tos_accepted_version, '') AS tos_accepted_version",
+		"auth_accounts.pp_accepted",
+		"COALESCE(auth_accounts.pp_accepted_version, '') AS pp_accepted_version",
 	}
 }
 
@@ -75,18 +86,17 @@ func scanUser(row rowScanner) (*entities.User, error) {
 	// Nullable timestamps. The entity holds plain time.Time values, so a NULL
 	// becomes the zero time — which is what "never signed in" looks like
 	// everywhere else in the codebase.
-	var lastVisit, createdOn, modifiedOn sql.NullTime
+	var lastVisit, createdOn, modifiedOn, emailVerified sql.NullTime
 
 	if err := row.Scan(
 		&item.ID,
 		&item.Type,
 		&item.Enabled,
-		&item.GivenName,
-		&item.FamilyName,
-		&item.Username,
+		&item.Name,
+		&item.Alias,
 		&item.Email,
 		&item.Password,
-		&item.UserType,
+		&item.PersonType,
 		&item.Service,
 		&item.Filename,
 		&lastVisit,
@@ -98,13 +108,28 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		&item.TotpSecret,
 		&item.DeletedAt,
 		&item.ArchivedAt,
+		&emailVerified,
+		&item.TermsOfService.Accepted,
+		&item.TermsOfService.Version,
+		&item.PrivacyPolicy.Accepted,
+		&item.PrivacyPolicy.Version,
 	); err != nil {
 		return nil, err
 	}
 
-	item.LastVisitDate = nullTime(lastVisit)
+	// LastVisitDate is a *time.Time on the node: nil means never signed in,
+	// which a zero time cannot express.
+	if lastVisit.Valid {
+		t := lastVisit.Time
+		item.LastVisitDate = &t
+	}
 	item.CreationTime = nullTime(createdOn)
 	item.UpdateTime = nullTime(modifiedOn)
+
+	if emailVerified.Valid {
+		t := emailVerified.Time
+		item.EmailVerifiedAt = &t
+	}
 
 	return item, nil
 }
@@ -125,19 +150,18 @@ func nullTime(v sql.NullTime) time.Time {
 // administrator's entire user list rather than just itself.
 func userBrowseColumns() []string {
 	return []string{
-		"id",
-		"type",
-		"enabled",
-		"COALESCE(given_name, '') AS given_name",
-		"COALESCE(family_name, '') AS family_name",
-		"COALESCE(username, '') AS username",
-		"COALESCE(email, '') AS email",
-		"COALESCE(usertype, '') AS usertype",
-		"COALESCE(service, '') AS service",
-		"COALESCE(filename, '') AS filename",
-		"last_visit_date",
-		"created_on",
-		"modified_on",
+		"nodes.id",
+		"nodes.type",
+		"nodes.enabled",
+		"COALESCE(nodes.name, '') AS name",
+		"COALESCE(nodes.alias, '') AS alias",
+		"COALESCE(auth_accounts.email, '') AS email",
+		"COALESCE(nodes.person_type, '') AS person_type",
+		"COALESCE(nodes.service, '') AS service",
+		"COALESCE(nodes.filename, '') AS filename",
+		"nodes.last_visit_date",
+		"nodes.created_on",
+		"nodes.modified_on",
 	}
 }
 
@@ -152,11 +176,10 @@ func scanBrowsedUser(row rowScanner) (*entities.User, error) {
 		&item.ID,
 		&item.Type,
 		&item.Enabled,
-		&item.GivenName,
-		&item.FamilyName,
-		&item.Username,
+		&item.Name,
+		&item.Alias,
 		&item.Email,
-		&item.UserType,
+		&item.PersonType,
 		&item.Service,
 		&item.Filename,
 		&lastVisit,
@@ -166,7 +189,10 @@ func scanBrowsedUser(row rowScanner) (*entities.User, error) {
 		return nil, err
 	}
 
-	item.LastVisitDate = nullTime(lastVisit)
+	if lastVisit.Valid {
+		t := lastVisit.Time
+		item.LastVisitDate = &t
+	}
 	item.CreationTime = nullTime(createdOn)
 	item.UpdateTime = nullTime(modifiedOn)
 

@@ -118,7 +118,13 @@ func (h *oauthHandler) AddRestore(c echo.Context) error {
 		return h.renderLoginError(c, "Could not restore your account. Please try again.")
 	}
 
-	restored, err := h.Repos.Users.Restore(user.ID)
+	// ActorService.Restore, not an UPDATE from here.
+	//
+	// This used to clear nodes.deleted_at and set nodes.enabled directly. The
+	// same transition in the graph also writes the node_deletion_logs entry and
+	// publishes the restore event, so restoring from this side brought an
+	// account back with no audit trail and nothing notified.
+	restored, err := h.Srv.ActorsGRPC.Restore(user.ID, systemViewer())
 	if err != nil {
 		log.Println("restore: failed:", err)
 		return h.renderLoginError(c, "Could not restore your account. Please try again.")
@@ -140,7 +146,7 @@ func (h *oauthHandler) AddRestore(c echo.Context) error {
 	// Best-effort: the account is already back, and failing the request over
 	// the audit row would tell the person the restore had not worked.
 	if err := h.Repos.NodeDeletionLogs.Add(
-		user.ID, user.Username, user.UserType, user.ID,
+		user.ID, user.Alias, user.PersonType, user.ID,
 		repositories.DeletionActionRestored,
 	); err != nil {
 		log.Println("restore: audit write failed:", err)

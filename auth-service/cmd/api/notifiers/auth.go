@@ -19,8 +19,7 @@ func newAuthNotifier(env *Env) *authNotifier {
 func (h *authNotifier) EmailLogin(user *entities.User, authLog *entities.AuthLog) error {
 	body := fmt.Sprintf(
 		messages.AuthLoginBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 		authLog.Name,
 		authLog.Device,
 		authLog.OS,
@@ -56,8 +55,7 @@ func (h *authNotifier) EmailLogin(user *entities.User, authLog *entities.AuthLog
 func (h *authNotifier) EmailSessionRevoked(user *entities.User, device, location string) error {
 	body := fmt.Sprintf(
 		messages.AuthSessionRevokedBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 		device,
 		location,
 	)

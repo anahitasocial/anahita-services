@@ -80,10 +80,10 @@ func (srv *SearchGRPC) Count(req *SearchBrowseRequest, viewer *entities.Viewer) 
 		CoordLng:        req.CoordLng,
 		CoordLat:        req.CoordLat,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 		AccessCheck: req.AccessCheck,
 	})
@@ -119,10 +119,10 @@ func (srv *SearchGRPC) Browse(req *SearchBrowseRequest, viewer *entities.Viewer)
 		CoordLng:        req.CoordLng,
 		CoordLat:        req.CoordLat,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 		AccessCheck: req.AccessCheck,
 	})

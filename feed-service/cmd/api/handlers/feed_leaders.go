@@ -32,7 +32,7 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 		viewer      = getViewer(c)
 	)
 
-	log.Printf("Viewer ID: %v, Username: %v, UserType: %v, Email: %v", viewer.ID, viewer.Username, viewer.UserType, viewer.Email)
+	log.Printf("Viewer ID: %v, Username: %v, PersonType: %v, Email: %v", viewer.ID, viewer.Username, viewer.PersonType, viewer.Email)
 
 	if ok, err := h.Perms.Feeds.CanBrowse(viewer); !ok {
 		log.Println(err)

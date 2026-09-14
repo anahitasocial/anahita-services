@@ -6,14 +6,14 @@ const (
 	// security emails.
 	TotpEnabledSubject     = "Two-factor authentication enabled on {{site}}"
 	TotpEnabledTitle       = "Two-factor authentication enabled"
-	TotpEnabledBody        = "Hello %s %s, two-factor authentication was just enabled on your {{site}} account. Your account is now more secure. If this wasn't you, contact support."
+	TotpEnabledBody        = "Hello %s, two-factor authentication was just enabled on your {{site}} account. Your account is now more secure. If this wasn't you, contact support."
 	TotpEnabledActionLabel = "Contact support"
 
 	// TOTP disabled — urgent. This is the dangerous direction; an
 	// attacker disabling 2FA is preparing to take over.
 	TotpDisabledSubject     = "Two-factor authentication disabled on {{site}}"
 	TotpDisabledTitle       = "Two-factor authentication disabled"
-	TotpDisabledBody        = "Hello %s %s, two-factor authentication was just disabled on your {{site}} account. If this was you, no further action is needed. If it wasn't, reset your password immediately and contact support."
+	TotpDisabledBody        = "Hello %s, two-factor authentication was just disabled on your {{site}} account. If this was you, no further action is needed. If it wasn't, reset your password immediately and contact support."
 	TotpDisabledActionLabel = "Reset password"
 
 	// Disabled by an ADMINISTRATOR rather than by the owner.
@@ -31,7 +31,7 @@ const (
 	// Two verbs: given name, family name.
 	TotpDisabledByAdminSubject     = "An administrator turned off two-factor authentication"
 	TotpDisabledByAdminTitle       = "Two-factor authentication disabled"
-	TotpDisabledByAdminBody        = "Hello %s %s, an administrator has turned off two-factor authentication on your {{site}} account. You can sign in with your password alone until you enable it again, so turning it back on from your security settings is worth doing soon. If you were not expecting this, contact support."
+	TotpDisabledByAdminBody        = "Hello %s, an administrator has turned off two-factor authentication on your {{site}} account. You can sign in with your password alone until you enable it again, so turning it back on from your security settings is worth doing soon. If you were not expecting this, contact support."
 	TotpDisabledByAdminActionLabel = "Contact support"
 
 	// Recovery codes issued or reissued.
@@ -47,7 +47,7 @@ const (
 	// Three verbs: given name, family name, number of codes issued.
 	TotpRecoveryCodesIssuedSubject     = "New two-factor recovery codes were generated"
 	TotpRecoveryCodesIssuedTitle       = "New recovery codes generated"
-	TotpRecoveryCodesIssuedBody        = "Hello %s %s, %d new two-factor recovery codes were just generated for your {{site}} account. Any codes you were given before this no longer work. If you did not do this, somebody else can now get past two-factor authentication on your account: change your password immediately and then contact support."
+	TotpRecoveryCodesIssuedBody        = "Hello %s, %d new two-factor recovery codes were just generated for your {{site}} account. Any codes you were given before this no longer work. If you did not do this, somebody else can now get past two-factor authentication on your account: change your password immediately and then contact support."
 	TotpRecoveryCodesIssuedActionLabel = "Change password"
 
 	// A recovery code was used to sign in.
@@ -64,7 +64,7 @@ const (
 	// Three verbs: given name, family name, number of codes remaining.
 	TotpRecoveryCodeUsedSubject     = "A recovery code was used to sign in"
 	TotpRecoveryCodeUsedTitle       = "Recovery code used"
-	TotpRecoveryCodeUsedBody        = "Hello %s %s, somebody signed in to your {{site}} account using a two-factor recovery code instead of a passcode. That code has now been used up and %d remain. If this was not you, change your password immediately and then contact support."
+	TotpRecoveryCodeUsedBody        = "Hello %s, somebody signed in to your {{site}} account using a two-factor recovery code instead of a passcode. That code has now been used up and %d remain. If this was not you, change your password immediately and then contact support."
 	TotpRecoveryCodeUsedActionLabel = "Change password"
 
 	// Singular and the empty case. Two more constants rather than
@@ -73,8 +73,8 @@ const (
 	//
 	// Two verbs on each: given name, family name. The count is in the wording
 	// rather than a verb, which is the point of having separate constants.
-	TotpRecoveryCodeUsedBodyOne  = "Hello %s %s, somebody signed in to your {{site}} account using a two-factor recovery code instead of a passcode. That code has now been used up and one remains. If this was not you, change your password immediately and then contact support."
-	TotpRecoveryCodeUsedBodyNone = "Hello %s %s, somebody signed in to your {{site}} account using a two-factor recovery code instead of a passcode. That was your last one — generate a new set from your security settings, or you may be locked out if you lose your authenticator. If this was not you, change your password immediately and then contact support."
+	TotpRecoveryCodeUsedBodyOne  = "Hello %s, somebody signed in to your {{site}} account using a two-factor recovery code instead of a passcode. That code has now been used up and one remains. If this was not you, change your password immediately and then contact support."
+	TotpRecoveryCodeUsedBodyNone = "Hello %s, somebody signed in to your {{site}} account using a two-factor recovery code instead of a passcode. That was your last one — generate a new set from your security settings, or you may be locked out if you lose your authenticator. If this was not you, change your password immediately and then contact support."
 
 	// Too many failed passcode attempts.
 	//
@@ -86,6 +86,6 @@ const (
 	// Two verbs: given name, family name.
 	TotpLockedOutSubject     = "Too many two-factor attempts on your account"
 	TotpLockedOutTitle       = "Two-factor sign-in blocked"
-	TotpLockedOutBody        = "Hello %s %s, somebody entered the wrong two-factor passcode too many times on your {{site}} account, and that sign-in attempt was blocked. Reaching this step needs your password, so if it was not you, treat your password as known to somebody else: change it immediately and then contact support."
+	TotpLockedOutBody        = "Hello %s, somebody entered the wrong two-factor passcode too many times on your {{site}} account, and that sign-in attempt was blocked. Reaching this step needs your password, so if it was not you, treat your password as known to somebody else: change it immediately and then contact support."
 	TotpLockedOutActionLabel = "Change password"
 )

@@ -149,8 +149,8 @@ func (config *Config) Validate() error {
 	// The redirect is what stops a laptop mailing real people, so booting
 	// without it in development is the one case worth refusing outright — an
 	// empty override would silently blank the recipient list instead. Requiring
-	// it everywhere, as protect-services does, only forces production
-	// deployments to carry a value nothing reads.
+	// it in every environment would only force production deployments to carry
+	// a value nothing reads.
 	if config.IsDev() && config.DeveloperEmail == "" {
 		missingFields = append(missingFields, ErrMissingDeveloperEmail)
 	}

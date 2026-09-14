@@ -114,7 +114,7 @@ func TestAccessAgainstRealData(t *testing.T) {
 
 	alice := entities.NewViewer()
 	alice.ID = aliceID
-	alice.UserType = "registered"
+	alice.PersonType = "registered"
 
 	visible := visibleMedia(t, db, alice)
 
@@ -160,7 +160,7 @@ func TestBlockingIsSymmetric(t *testing.T) {
 
 	alice := entities.NewViewer()
 	alice.ID = aliceID
-	alice.UserType = "registered"
+	alice.PersonType = "registered"
 
 	visible := visibleMedia(t, db, alice)
 

@@ -598,7 +598,7 @@ func (h *groupHandler) Purge(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if viewer == nil || viewer.UserType != an_constants.UserTypeSuperAdmin {
+	if viewer == nil || viewer.PersonType != an_constants.PersonTypeSuperAdmin {
 		log.Println("group purge: refused, viewer is not a super administrator")
 		return c.NoContent(http.StatusForbidden)
 	}

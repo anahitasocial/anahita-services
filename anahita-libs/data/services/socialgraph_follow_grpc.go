@@ -72,10 +72,10 @@ func (srv *SocialgraphFollowGRPC) Edit(req *SocialgraphFollowEditRequest) error 
 		Source: actorNodeToSocialgraphSource(req.Source),
 		Target: actorNodeToSocialgraphTarget(req.Target),
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 		AcceptFollowRequest: req.AcceptFollowRequest,
 	})
@@ -97,10 +97,10 @@ func (srv *SocialgraphFollowGRPC) Add(req *SocialgraphFollowAddRequest) error {
 		Source: actorNodeToSocialgraphSource(req.Source),
 		Target: actorNodeToSocialgraphTarget(req.Target),
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 		IsFollowRequest: req.IsFollowRequest,
 	})
@@ -122,10 +122,10 @@ func (srv *SocialgraphFollowGRPC) Delete(req *SocialgraphFollowDeleteRequest) er
 		Source: actorNodeToSocialgraphSource(req.Source),
 		Target: actorNodeToSocialgraphTarget(req.Target),
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 	})
 	if err != nil {

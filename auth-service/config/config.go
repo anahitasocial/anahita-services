@@ -145,6 +145,34 @@ type Config struct {
 	// not the full ARN, e.g. "alias/auth-service-signing-key". The KMS key must
 	// allow the "kms:Sign" action for the IAM role of auth-service.
 	OAuthKMSKeyAlias string
+
+	// TosURL and PrivacyURL are where the legal documents can be read. Their
+	// VERSIONS are not here: the web app holds them, beside the text, in
+	// statics/legal/index.js. See bootstrap.go.
+	TosURL     string
+	PrivacyURL string
+
+	// SupportPhone and SupportWebsite complete the contact details published
+	// for the public support page. SupportEmail, above, is required; these two
+	// are not — plenty of installations have no phone line.
+	SupportPhone   string
+	SupportWebsite string
+
+	// InvitesFrom is who may issue an invitation, and InvitePendingMax* cap
+	// how many may be outstanding at once. See bootstrap.go.
+	InvitesFrom           string
+	InvitePendingMax      int
+	InvitePendingMaxAdmin int
+
+	// RegistrationMode is how this installation lets people in — see
+	// constants.RegistrationMode*. Empty means unset, which reads as closed.
+	RegistrationMode string
+
+	// SuperAdmin* seed the first super administrator at boot. Optional; see
+	// bootstrap.go and services/super_admin_seed.go.
+	SuperAdminEmail    string
+	SuperAdminUsername string
+	SuperAdminName     string
 }
 
 func NewConfig() *Config {
@@ -186,6 +214,8 @@ func NewConfig() *Config {
 	// themselves are already lowercase; this just normalizes input.
 	config.OAuthSignerBackend = strings.ToLower(config.OAuthSignerBackend)
 	config.CryptBackend = strings.ToLower(config.CryptBackend)
+
+	config.bootstrapFromEnv()
 
 	// If JWKS URL is unset, derive it from the issuer.
 	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
@@ -317,6 +347,8 @@ func (config *Config) Validate() error {
 	if config.OAuthSignerBackend == constants.OAuthSignerBackendKMS && config.OAuthKMSKeyAlias == "" {
 		missingFields = append(missingFields, ErrMissingOAuthKMSKeyAlias)
 	}
+
+	missingFields = config.validateBootstrap(missingFields)
 
 	if len(missingFields) > 0 {
 		return errors.New("missing fields: " + strings.Join(missingFields, ", "))

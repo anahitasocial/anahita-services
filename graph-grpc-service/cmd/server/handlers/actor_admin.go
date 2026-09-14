@@ -41,7 +41,7 @@ func (h *actorAdminHandler) Add(ctx context.Context, req *graphpb.ActorAdminAddR
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -54,13 +54,13 @@ func (h *actorAdminHandler) Add(ctx context.Context, req *graphpb.ActorAdminAddR
 		srvName := strings.Split(req.Actor.Service, ".")[0]
 		routing_key := fmt.Sprintf(event.EventFormatEdgeAdminAdded, srvName)
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  req.Actor.Service,
-			SubjectID:      req.Viewer.Id,
-			ObjectID:       req.Admin.Id,
-			TargetID:       req.Actor.Id,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    req.Actor.Service,
+			SubjectID:        req.Viewer.Id,
+			ObjectID:         req.Admin.Id,
+			TargetID:         req.Actor.Id,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		h.env.Publisher.Publish(payload, routing_key)
 	}()
@@ -77,7 +77,7 @@ func (h *actorAdminHandler) Delete(ctx context.Context, req *graphpb.ActorAdminD
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 
 	if err = h.env.Repos.ActorAdmins.Delete(req.Admin, req.Actor); err != nil {
 		return nil, err
@@ -88,13 +88,13 @@ func (h *actorAdminHandler) Delete(ctx context.Context, req *graphpb.ActorAdminD
 		srvName := strings.Split(req.Actor.Service, ".")[0]
 		routing_key := fmt.Sprintf(event.EventFormatEdgeAdminDeleted, srvName)
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  req.Actor.Service,
-			SubjectID:      req.Viewer.Id,
-			ObjectID:       req.Admin.Id,
-			TargetID:       req.Actor.Id,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    req.Actor.Service,
+			SubjectID:        req.Viewer.Id,
+			ObjectID:         req.Admin.Id,
+			TargetID:         req.Actor.Id,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		h.env.Publisher.Publish(payload, routing_key)
 	}()

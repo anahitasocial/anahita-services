@@ -24,8 +24,7 @@ func newWebAuthnNotifier(env *Env) *webAuthnNotifier {
 func (h *webAuthnNotifier) EmailPasskeyAdded(user *entities.User, nickname string) error {
 	body := fmt.Sprintf(
 		messages.WebAuthnAddedBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 		nickname,
 	)
 
@@ -49,8 +48,7 @@ func (h *webAuthnNotifier) EmailPasskeyAdded(user *entities.User, nickname strin
 func (h *webAuthnNotifier) EmailPasskeyRemoved(user *entities.User, nickname string) error {
 	body := fmt.Sprintf(
 		messages.WebAuthnRemovedBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 		nickname,
 	)
 
@@ -90,8 +88,7 @@ func (h *webAuthnNotifier) EmailPasskeysRevoked(user *entities.User, count int64
 
 	body := fmt.Sprintf(
 		template,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 		count,
 	)
 

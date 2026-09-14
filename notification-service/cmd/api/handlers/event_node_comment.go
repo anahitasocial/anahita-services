@@ -129,7 +129,7 @@ func (h *eventHandler) eventFormatNodeCommentAdded(payload *event.EventPayload) 
 	if !isSubscribed {
 		viewer := an_entities.NewViewer()
 		viewer.ID = payload.ViewerID
-		viewer.UserType = payload.ViewerUserType
+		viewer.PersonType = payload.ViewerPersonType
 
 		objectAuthor := an_entities.NewAnahitaNode()
 		objectAuthor.ID = object.Author.ID

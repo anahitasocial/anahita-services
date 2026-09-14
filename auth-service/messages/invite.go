@@ -14,7 +14,7 @@ const (
 	// Two verbs on the body: inviter's given name, inviter's family name.
 	InviteSubject     = "You're invited to {{site}}"
 	InviteTitle       = "You're invited to {{site}}"
-	InviteBody        = "%s %s invited you to join {{site}}. Click the button below to set up your account."
+	InviteBody        = "%s invited you to join {{site}}. Click the button below to set up your account."
 	InviteActionLabel = "Accept invitation"
 
 	// Sent to administrators when somebody accepts. One subject and title
@@ -27,11 +27,11 @@ const (
 
 	// Three verbs: recipient's given name, joiner's given name, joiner's
 	// family name.
-	InviteAcceptBodyToInviter = "Hi %s, %s %s accepted your invitation and now has an account."
+	InviteAcceptBodyToInviter = "Hi %s, %s accepted your invitation and now has an account."
 
 	// Five verbs: recipient's given name, joiner's given name, joiner's family
 	// name, inviter's given name, inviter's family name.
-	InviteAcceptBody = "Hi %s, %s %s has joined {{site}} after accepting an invitation from %s %s."
+	InviteAcceptBody = "Hi %s, %s has joined {{site}} after accepting an invitation from %s."
 
 	// Sent to somebody whose pending invitation was withdrawn before they
 	// used it.
@@ -43,7 +43,7 @@ const (
 	// Two verbs: revoking administrator's given name, family name.
 	InviteRevokedSubject = "Your invitation to {{site}} was withdrawn"
 	InviteRevokedTitle   = "Invitation withdrawn"
-	InviteRevokedBody    = "%s %s has withdrawn your invitation to join {{site}}. The link you were sent no longer works. If you were expecting to join, contact the person who invited you."
+	InviteRevokedBody    = "%s has withdrawn your invitation to join {{site}}. The link you were sent no longer works. If you were expecting to join, contact the person who invited you."
 
 	// There is nothing for this recipient to do on the site — they have no
 	// account — so the button goes to the front page rather than inventing a

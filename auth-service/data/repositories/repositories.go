@@ -58,6 +58,7 @@ type Repositories struct {
 	NodeDeletionLogs    NodeDeletionLogsInterface
 	AuthLogs            AuthLogsInterface
 	Tokens              TokensInterface
+	Applications        RegistrationApplicationsInterface
 	OAuthClients        OAuthClientsInterface
 	OAuthAuthorizations OAuthAuthorizationsInterface
 	OAuthRefreshTokens  OAuthRefreshTokensInterface
@@ -74,6 +75,7 @@ func NewRepositories(dbPool *sql.DB) *Repositories {
 		NodeDeletionLogs:    NewNodeDeletionLogs(db),
 		AuthLogs:            NewAuthLogs(db),
 		Tokens:              NewTokens(db),
+		Applications:        NewRegistrationApplications(db),
 		OAuthClients:        NewOAuthClients(db),
 		OAuthAuthorizations: NewOAuthAuthorizations(db),
 		OAuthRefreshTokens:  NewOAuthRefreshTokens(db),

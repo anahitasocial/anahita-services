@@ -128,7 +128,7 @@ func (h *accountDeletedHandler) HandleEvents(payload *event.EventPayload) error 
 // on a group that has just been hidden.
 func systemViewer() *lib_entities.Viewer {
 	viewer := lib_entities.NewViewer()
-	viewer.UserType = an_constants.UserTypeSuperAdmin
+	viewer.PersonType = an_constants.PersonTypeSuperAdmin
 	return viewer
 }
 

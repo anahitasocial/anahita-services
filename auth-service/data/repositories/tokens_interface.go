@@ -8,7 +8,8 @@ import (
 
 // TokensInterface is the interface for the tokens repository
 type TokensInterface interface {
-	Count(tokenType string, reg *requests.Browse) (uint64, error)
+	Count(tokenType string) (uint64, error)
+	CountPendingFrom(tokenType string, personID int64) (int, error)
 	Browse(tokenType string, reg *requests.Browse) ([]*entities.Token, error)
 	ReadByID(id int64) (*entities.Token, error)
 	ReadByBody(body string) (*entities.Token, error)

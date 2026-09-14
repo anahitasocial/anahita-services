@@ -77,7 +77,7 @@ func (h *eventHandler) eventFormatNodeMediumAdded(payload *event.EventPayload) e
 		return err
 	}
 	viewer.ID = subject.ID
-	viewer.UserType = subject.Type
+	viewer.PersonType = subject.Type
 
 	object, err := h.Srv.GraphNodeGRPC.Read(payload.ObjectID)
 	if err != nil {

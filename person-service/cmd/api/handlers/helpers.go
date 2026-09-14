@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"net/http"
+	"strings"
+
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	an_mw "anahita-libs/middleware"
@@ -43,4 +46,31 @@ func batchPresignPaths(env *Env, actors []*entities.AnahitaNode) {
 
 	services.BatchPresignAvatar(env.Srv.FilesGRPC, avatarNodes)
 	services.BatchPresignCover(env.Srv.FilesGRPC, coverNodes)
+}
+
+// isLastSuperAdmin reports whether the graph refused a lifecycle transition
+// because it would leave the installation with nobody able to administer it.
+//
+// The check itself lives in graph-grpc-service, next to the lifecycle methods
+// it guards, because this floor was previously written out four times here —
+// Delete, Archive, SetEnabled and Purge — and a check every caller has to
+// remember is one a new caller will not. What stays on this side is the
+// translation to an HTTP answer.
+//
+// Matched on the sentinel's message, which is all gRPC carries across.
+func isLastSuperAdmin(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "last_super_administrator")
+}
+
+// refuseLastSuperAdmin is the 409 that names the way out.
+//
+// 409 rather than 403: the request is well formed and the caller is permitted;
+// it conflicts with the state of the site. The body says how to proceed,
+// because a refusal that does not is a support ticket.
+func refuseLastSuperAdmin(c echo.Context, action string) error {
+	return c.JSON(http.StatusConflict, map[string]string{
+		"error": "last_super_administrator",
+		"message": "This is the only super administrator. Promote someone " +
+			"else, or change this account to administrator, and then " + action + " it.",
+	})
 }

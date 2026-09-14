@@ -68,6 +68,14 @@
             margin-bottom: 16px;
         }
 
+        .text-field textarea {
+            width: 100%;
+            box-sizing: border-box;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 96px;
+        }
+
         .text-field input {
             width: 100%;
             padding: 18.5px 14px;
@@ -115,6 +123,8 @@
         }
 
         /* Float label on focus or when filled */
+        .text-field textarea:focus + label,
+        .text-field textarea:not(:placeholder-shown) + label,
         .text-field input:focus + label,
         .text-field input:not(:placeholder-shown) + label {
             transform: translate(-4px, -26px) scale(0.75);
@@ -170,6 +180,63 @@
             color: var(--mui-text-secondary);
             margin-top: 4px;
             margin-left: 14px;
+        }
+
+        /* Helper text belongs to the field ABOVE it, and has to look like it.
+           .text-field carries margin-bottom: 16px, and .helper-text carried no
+           bottom margin at all — so the gap landed above the helper and it sat
+           flush against the NEXT field, reading as that field's label. Pull it
+           up under the field it describes, and let it carry the 16px onward so
+           the rhythm between fields stays even whether or not one has help. */
+        .text-field + .helper-text {
+            margin-top: -12px;
+            margin-bottom: 16px;
+        }
+
+        /* A field shown for context that cannot be edited — the invited
+           address on the invite-accept form. Muted rather than greyed to
+           illegibility: it still has to be readable, since the whole point is
+           to show which account is being created. */
+        .text-field input:disabled {
+            background-color: var(--mui-action-hover);
+            color: var(--mui-text-secondary);
+            cursor: not-allowed;
+        }
+
+        .text-field input:disabled + label {
+            color: var(--mui-text-disabled);
+        }
+
+        /* The honeypot. Removed from the page for everybody who renders CSS,
+           which is every person and not every bot.
+
+           Positioned off-screen rather than display:none or visibility:hidden.
+           Those two are the first things a scraper checks for, and some
+           browsers skip a display:none field on submit entirely — which would
+           make the trap invisible to the server as well as to the reader.
+
+           aria-hidden and tabindex=-1 keep it away from screen readers and
+           from tab order, so nobody using assistive technology can land in it
+           by accident. A honeypot that catches them is a trap for the wrong
+           species. */
+        .no-fill {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Availability feedback, shown beside the username as it is typed. */
+        .helper-text.is-taken {
+            color: var(--mui-error-fg);
+        }
+
+        .helper-text.is-free {
+            color: var(--mui-primary-dark);
         }
 
         /* Buttons */
@@ -322,6 +389,89 @@
             margin-bottom: 16px;
         }
 
+        /* Messages arrive rather than appear.
+           These pages are server-rendered, so the message is in the HTML at
+           load — there is nothing to toggle and no JavaScript involved. A
+           keyframe animation runs once on first paint, which is exactly the
+           moment it should.
+
+           IN ONLY, NEVER OUT. An error says why the form was refused and has
+           to stay while the person fixes the field; one that dismisses itself
+           takes the explanation away at the moment they look back up. Auto
+           dismissal is for a success toast, and none of these are that.
+
+           The slide is 4px. Enough to read as movement, small enough that it
+           never looks like the layout is settling. */
+        @keyframes message-in {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .error-message,
+        .notice {
+            animation: message-in 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        /* The availability line changes in place rather than arriving, so it
+           gets a transition instead of an animation — the colour moves, the
+           text does not slide around under the cursor while being read. */
+        .helper-text {
+            transition: color 160ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Anybody who has asked their system for less motion gets none.
+           Vestibular disorders are the reason this setting exists, and a
+           decorative 4px slide is not worth making somebody ill over. The
+           message still appears — it simply does so at once. */
+        @media (prefers-reduced-motion: reduce) {
+            .error-message,
+            .notice {
+                animation: none;
+            }
+
+            .helper-text {
+                transition: none;
+            }
+        }
+
+        /* Agreement checkboxes. Used by invite_accept.html and by
+           password_reset.html when the account has nothing on record yet.
+
+           The label wraps the input so the text is part of the hit target —
+           a 16px box on a phone is a miss waiting to happen, and this is a
+           control somebody has to tick before they can have an account. The
+           links inside get their own click; align-items: flex-start keeps
+           the box level with the first line when the text wraps. */
+        .consent {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 0.875rem;
+            line-height: 1.43;
+            color: var(--mui-text-secondary);
+            cursor: pointer;
+        }
+
+        .consent input[type="checkbox"] {
+            flex: none;
+            width: 18px;
+            height: 18px;
+            margin: 2px 0 0;
+            accent-color: var(--mui-primary-main);
+            cursor: pointer;
+        }
+
+        .consent a {
+            color: var(--mui-primary-main);
+        }
+
         /* Divider */
         .divider {
             height: 1px;
@@ -376,6 +526,68 @@
                     });
                 })(toggles[i]);
             }
+        })();
+
+        // Username availability, checked as the field is left.
+        //
+        // Attaches to <input data-availability-url="..."> and writes into the
+        // element named by data-availability-target. The endpoint answers 200
+        // for taken and 404 for free.
+        //
+        // ONLY the username. Checking the email the same way would tell an
+        // anonymous caller whether an address has an account here, and this
+        // form is reachable by anybody — a handle is already public, since it
+        // is the profile's address, and an email is not. An email collision
+        // surfaces on submit instead.
+        //
+        // Advisory, never blocking. The server checks both on submit, and it
+        // is the server's answer that decides; a failed request here leaves no
+        // message rather than a wrong one.
+        (function () {
+            var input = document.querySelector('[data-availability-url]');
+            if (!input) return;
+
+            var target = document.getElementById(
+                input.getAttribute('data-availability-target')
+            );
+            if (!target) return;
+
+            var base = target.textContent;
+            var lastChecked = '';
+
+            function reset() {
+                target.textContent = base;
+                target.classList.remove('is-taken', 'is-free');
+            }
+
+            input.addEventListener('input', function () {
+                if (input.value !== lastChecked) reset();
+            });
+
+            input.addEventListener('blur', function () {
+                var value = input.value.trim();
+
+                // Nothing to say about a value the form will reject anyway.
+                if (value.length < 3 || value === lastChecked) return;
+                lastChecked = value;
+
+                var url = input.getAttribute('data-availability-url') +
+                    '?username=' + encodeURIComponent(value);
+
+                fetch(url, { credentials: 'omit' }).then(function (response) {
+                    if (response.status === 200) {
+                        target.textContent = 'That username is already taken.';
+                        target.classList.add('is-taken');
+                        target.classList.remove('is-free');
+                    } else if (response.status === 404) {
+                        target.textContent = value + ' is available.';
+                        target.classList.add('is-free');
+                        target.classList.remove('is-taken');
+                    } else {
+                        reset();
+                    }
+                }).catch(reset);
+            });
         })();
     </script>
 </body>

@@ -28,7 +28,7 @@ func (r *edgesRepo) Browse(req *requests.EdgeBrowseRequest) ([]*entities.Anahita
 	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	defer cancel()
 
-	query := sq.Select("*").From("edges AS edge")
+	query := sq.Select(edgeColumns()...).From("edges AS edge")
 
 	if len(req.Types) > 0 {
 		query = query.Where(sq.Eq{"edge.type": req.Types})
@@ -203,4 +203,31 @@ func (r *edgesRepo) Exists(edge *entities.AnahitaEdge) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// edgeColumns is the select list every edge read uses, in the order the scans
+// expect.
+//
+// Named rather than `SELECT *` for two reasons. The scans are positional, so a
+// column added to `edges` silently shifts every one of them; and `meta`,
+// `created_by` and `modified_by` are nullable, which a `SELECT *` hands to the
+// scan as NULL — "converting NULL to string is unsupported" — failing the whole
+// read. Every mention edge in the reference database has a NULL meta.
+func edgeColumns() []string {
+	return []string{
+		"edge.id",
+		"edge.type",
+		"edge.node_a_id",
+		"edge.node_a_type",
+		"edge.node_b_id",
+		"edge.node_b_type",
+		"COALESCE(edge.meta, '') AS meta",
+		"edge.created_on",
+		"COALESCE(edge.created_by, 0) AS created_by",
+		"edge.modified_on",
+		"COALESCE(edge.modified_by, 0) AS modified_by",
+		"COALESCE(edge.ordering, 0) AS ordering",
+		"edge.start_date",
+		"edge.end_date",
+	}
 }

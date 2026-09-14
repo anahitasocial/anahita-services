@@ -118,6 +118,8 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.Ordering = m.Ordering
 	n.Verified = m.Verified
 	n.WebsiteURL = m.WebsiteUrl
+	n.PersonType = m.PersonType
+	n.PersonPronouns = m.PersonPronouns
 	n.Pinned = m.Pinned
 	n.IsDefault = m.IsDefault
 	n.HitsCount = m.HitsCount
@@ -291,6 +293,8 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Ordering:             node.Ordering,
 		Verified:             node.Verified,
 		WebsiteUrl:           node.WebsiteURL,
+		PersonType:           node.PersonType,
+		PersonPronouns:       node.PersonPronouns,
 		Pinned:               node.Pinned,
 		IsDefault:            node.IsDefault,
 		HitsCount:            node.HitsCount,

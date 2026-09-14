@@ -30,6 +30,11 @@ func (r *nodesRepo) ArchiveActor(id int64) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	defer cancel()
 
+	// The floor under the installation: archiving is permanent and has no undo, so archiving the last one is unrecoverable.
+	if err := r.guardLastSuperAdmin(ctx, id); err != nil {
+		return false, err
+	}
+
 	if id <= 0 {
 		return false, nil
 	}
@@ -75,6 +80,16 @@ func (r *nodesRepo) SetEnabled(id int64, enabled bool) (bool, error) {
 
 	if id <= 0 {
 		return false, nil
+	}
+
+	// Only when switching OFF. Enabling cannot reduce the number of people who
+	// can administer the site, and guarding it would make the last super
+	// administrator unable to re-enable themselves — refusing the one
+	// transition that fixes the situation.
+	if !enabled {
+		if err := r.guardLastSuperAdmin(ctx, id); err != nil {
+			return false, err
+		}
 	}
 
 	const query = `

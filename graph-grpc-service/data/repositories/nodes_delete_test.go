@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 	"regexp"
 	"strings"
 	"testing"
@@ -22,6 +23,33 @@ import (
 // behaviour that exists today: purge is scoped by owner_id, so content posted
 // INTO a group stays. Changing that is a deliberate act that updates these
 // tests, rather than something discovered later from a support ticket.
+
+// statementMatching returns the first captured statement containing want.
+//
+// Positional indexing into the capture list broke the moment a destructive
+// transition grew a guard query in front of it — the assertions were about the
+// UPDATE, not about whichever statement happened to run first.
+func statementMatching(t *testing.T, seen *[]string, want string) string {
+	t.Helper()
+	for _, stmt := range *seen {
+		if strings.Contains(strings.ToLower(stmt), want) {
+			return strings.ToLower(stmt)
+		}
+	}
+	t.Fatalf("no captured statement contains %q; saw:\n%s", want, strings.Join(*seen, "\n"))
+	return ""
+}
+
+// expectSuperAdminGuard seeds the lookup guardLastSuperAdmin makes before every
+// destructive lifecycle transition.
+//
+// The guard reads person_type first and only counts other administrators when
+// the target is a super administrator, so an ordinary person costs exactly one
+// query and never reaches the count.
+func expectSuperAdminGuard(mock sqlmock.Sqlmock) {
+	mock.ExpectQuery("select").WillReturnRows(
+		sqlmock.NewRows([]string{"person_type"}).AddRow("registered"))
+}
 
 func newNodesTestDB(t *testing.T) (*sql.DB, sqlmock.Sqlmock, *[]string) {
 	t.Helper()
@@ -59,13 +87,14 @@ func TestSoftDeleteWillNotExtendAnExistingGracePeriod(t *testing.T) {
 	db, mock, seen := newNodesTestDB(t)
 	repo := newRepo(db)
 
+	expectSuperAdminGuard(mock)
 	mock.ExpectExec("update").WillReturnResult(sqlmock.NewResult(0, 1))
 
 	if _, err := repo.SoftDeleteActor(42); err != nil {
 		t.Fatalf("soft delete: %v", err)
 	}
 
-	stmt := strings.ToLower((*seen)[0])
+	stmt := statementMatching(t, seen, "update")
 	if !strings.Contains(stmt, "deleted_at is null") {
 		t.Errorf("the guard is missing; a second delete would restart the grace "+
 			"period and the sweeper would never reach the account:\n%s", stmt)
@@ -93,6 +122,7 @@ func TestSoftDeleteAndRestoreReportWhetherARowChanged(t *testing.T) {
 	} {
 		t.Run("delete/"+tc.name, func(t *testing.T) {
 			db, mock, _ := newNodesTestDB(t)
+			expectSuperAdminGuard(mock)
 			mock.ExpectExec("update").WillReturnResult(sqlmock.NewResult(0, tc.affected))
 
 			got, err := newRepo(db).SoftDeleteActor(42)
@@ -150,6 +180,7 @@ func TestPurgeDeletesContentButNotTheActor(t *testing.T) {
 	db, mock, seen := newNodesTestDB(t)
 	repo := newRepo(db)
 
+	expectSuperAdminGuard(mock)
 	mock.ExpectBegin()
 	mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 5)) // edges
 	mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 3)) // content nodes
@@ -200,6 +231,7 @@ func TestPurgeDeletesEdgesBeforeNodes(t *testing.T) {
 	db, mock, seen := newNodesTestDB(t)
 	repo := newRepo(db)
 
+	expectSuperAdminGuard(mock)
 	mock.ExpectBegin()
 	mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 5))
 	mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 3))
@@ -209,11 +241,25 @@ func TestPurgeDeletesEdgesBeforeNodes(t *testing.T) {
 		t.Fatalf("purge: %v", err)
 	}
 
-	if len(*seen) < 2 {
-		t.Fatalf("expected at least two statements, got %d", len(*seen))
+	// The ordering assertion is between the two DELETEs, not over the whole
+	// capture list: the super-administrator guard runs a SELECT before either
+	// of them.
+	var edgesAt, nodesAt = -1, -1
+	for i, stmt := range *seen {
+		lower := strings.ToLower(stmt)
+		if edgesAt == -1 && strings.Contains(lower, "from edges") {
+			edgesAt = i
+		}
+		if nodesAt == -1 && strings.Contains(lower, "from nodes") && strings.Contains(lower, "delete") {
+			nodesAt = i
+		}
 	}
-	if !strings.Contains(strings.ToLower((*seen)[0]), "from edges") {
-		t.Errorf("edges were not deleted first; their nodes would be gone:\n%s", (*seen)[0])
+	if edgesAt == -1 {
+		t.Fatalf("no delete from edges:\n%s", strings.Join(*seen, "\n"))
+	}
+	if nodesAt != -1 && edgesAt > nodesAt {
+		t.Errorf("edges were not deleted first; their nodes would be gone:\n%s",
+			strings.Join(*seen, "\n"))
 	}
 }
 
@@ -223,6 +269,7 @@ func TestPurgeRollsBackOnFailure(t *testing.T) {
 	db, mock, _ := newNodesTestDB(t)
 	repo := newRepo(db)
 
+	expectSuperAdminGuard(mock)
 	mock.ExpectBegin()
 	mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 5))
 	mock.ExpectExec("delete").WillReturnError(sql.ErrConnDone)
@@ -271,5 +318,51 @@ func TestTombstoneScrubsProfileDataButKeepsTheHandle(t *testing.T) {
 	if regexp.MustCompile(`\balias\s*=`).MatchString(setClause) {
 		t.Errorf("the alias is scrubbed, which frees the handle for somebody else "+
 			"to register:\n%s", setClause)
+	}
+}
+
+// The floor under the whole installation: losing the last person who can
+// administer it leaves nobody able to appoint another, and no route back.
+//
+// Enforced in the repository rather than in each caller because person-service
+// had this written out four times — Delete, Archive, SetEnabled and Purge — and
+// a check every caller has to remember is one a new caller will not.
+func TestLifecycleRefusesTheLastSuperAdministrator(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		others int
+		want   error
+	}{
+		{"the last one", 0, ErrLastSuperAdmin},
+		{"one of several", 2, nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			db, mock, _ := newNodesTestDB(t)
+
+			mock.ExpectQuery("select").WillReturnRows(
+				sqlmock.NewRows([]string{"person_type"}).AddRow("super-administrator"))
+			mock.ExpectQuery("select").WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).AddRow(tc.others))
+			if tc.want == nil {
+				mock.ExpectExec("update").WillReturnResult(sqlmock.NewResult(0, 1))
+			}
+
+			_, err := newRepo(db).SoftDeleteActor(42)
+			if !errors.Is(err, tc.want) {
+				t.Fatalf("got %v, want %v", err, tc.want)
+			}
+		})
+	}
+}
+
+// Enabling cannot reduce the number of people who can administer the site, and
+// guarding it would leave the last super administrator unable to re-enable
+// themselves — refusing the one transition that fixes the situation.
+func TestEnablingIsNotGuarded(t *testing.T) {
+	db, mock, _ := newNodesTestDB(t)
+	mock.ExpectExec("update").WillReturnResult(sqlmock.NewResult(0, 1))
+
+	if _, err := newRepo(db).SetEnabled(42, true); err != nil {
+		t.Fatalf("enable: %v", err)
 	}
 }

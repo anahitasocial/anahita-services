@@ -6,15 +6,17 @@ import (
 	"time"
 )
 
+// PersonNodeItem is an actor node plus the two person-only fields.
+//
+// What left: email, which is a login identifier and has no business on a public
+// profile; given_name and family_name, replaced by the actor's `name`; gender,
+// replaced by free-text pronouns; and username, which is the actor's `alias`
+// and was being sent twice under two names.
 type PersonNodeItem struct {
 	responses.ActorNodeItem
 
-	UserType   string `json:"usertype,omitempty"`
-	Email      string `json:"email,omitempty"`
-	Username   string `json:"username,omitempty"`
-	GivenName  string `json:"given_name,omitempty"`
-	FamilyName string `json:"family_name,omitempty"`
-	Gender     string `json:"gender,omitempty"`
+	PersonType     string `json:"person_type,omitempty"`
+	PersonPronouns string `json:"person_pronouns,omitempty"`
 }
 
 type PersonNode struct {
@@ -70,13 +72,9 @@ func (r *PersonResponse) MapNodeItem(node *entities.Person) *PersonNodeItem {
 	}
 
 	return &PersonNodeItem{
-		ActorNodeItem: *r.ActorResponse.MapNodeItem(&node.AnahitaNode),
-		UserType:      node.UserType,
-		Email:         node.Email,
-		Username:      node.Username,
-		GivenName:     node.GivenName,
-		FamilyName:    node.FamilyName,
-		Gender:        node.Gender,
+		ActorNodeItem:  *r.ActorResponse.MapNodeItem(&node.AnahitaNode),
+		PersonType:     node.PersonType,
+		PersonPronouns: node.PersonPronouns,
 	}
 }
 

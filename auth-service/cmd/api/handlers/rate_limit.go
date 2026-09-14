@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"net"
 	"time"
 
 	"anahita-libs/sessions"
@@ -59,6 +60,53 @@ const (
 	// attacker walk off with the plaintext to try elsewhere, which is
 	// worth more to them than the account they already hold.
 	rateLimitScopeReauth rateLimitScope = "reauth_person"
+
+	// rateLimitScopeInvitePerson caps invitations sent by one person.
+	//
+	// Inviting sends mail to an address the recipient never gave us, so an
+	// unmetered invite endpoint is an authenticated way to relay mail — and
+	// the account doing it need not be malicious, only compromised.
+	//
+	// Distinct from the pending-invitation cap, which bounds the STOCK of
+	// outstanding invitations. This bounds the FLOW: somebody capped at five
+	// outstanding can still send five, have them accepted within a minute,
+	// and send five more, which the cap cannot see.
+	rateLimitScopeInvitePerson rateLimitScope = "invite_person"
+
+	// rateLimitScopeInviteEmail caps how often ONE address can be invited,
+	// by anybody.
+	//
+	// The per-person counter cannot see this case: somebody who does not want
+	// to be invited is not made happier by the invitations arriving from
+	// different members, each of them within their own budget. Same shape as
+	// pw_forgot_email, and for the same reason — it guards the recipient
+	// rather than the sender.
+	rateLimitScopeInviteEmail rateLimitScope = "invite_email"
+
+	// rateLimitScopeSignupConfirm caps confirmation resends per address.
+	//
+	// Unauthenticated and it sends mail, so without a limit it is a way to
+	// flood the inbox of anybody who has an unconfirmed account here.
+	rateLimitScopeSignupConfirm rateLimitScope = "signup_confirm_email"
+
+	// rateLimitScopeSignupIP caps accounts created from one address.
+	//
+	// Signup is unauthenticated and sends mail, so the source address is the
+	// only subject there is to meter. Nothing else about a caller is known at
+	// this point — that is the whole difficulty of the endpoint.
+	rateLimitScopeSignupIP rateLimitScope = "signup_ip"
+
+	// rateLimitScopeSignupSubnet caps accounts created from one NETWORK.
+	//
+	// The per-address counter cannot see the case it exists for: a caller with
+	// a range to spend walks one address per account and never trips it. A /24
+	// and a /64 are the smallest blocks routinely allocated to one customer,
+	// so this meters roughly "one subscriber" without reaching across an ISP.
+	//
+	// Looser than the per-address budget rather than tighter, because a
+	// university, an office or a mobile carrier NAT legitimately shares one
+	// block — the point is to bound a farm, not to punish a shared exit.
+	rateLimitScopeSignupSubnet rateLimitScope = "signup_subnet"
 )
 
 type rateLimit struct {
@@ -82,6 +130,57 @@ var rateLimits = map[rateLimitScope]rateLimit{
 	rateLimitScopePasswordReset: {max: 5, window: 15 * time.Minute},
 	rateLimitScopePasswordEdit:  {max: 5, window: 15 * time.Minute},
 	rateLimitScopeReauth:        {max: 5, window: 15 * time.Minute},
+
+	// Generous per person, because inviting in bursts is the legitimate
+	// pattern — an administrator onboarding a department does thirty in an
+	// afternoon, and a budget that makes real work feel broken gets raised
+	// until it means nothing. The pending-invitation cap is what bounds an
+	// ordinary member; this bounds the relay.
+	rateLimitScopeInvitePerson: {max: 30, window: time.Hour},
+
+	// Tight per recipient, and over a day rather than an hour. Being invited
+	// twice in a week is an oversight; three times in a day is somebody being
+	// mailed by a site they have chosen not to join.
+	rateLimitScopeInviteEmail: {max: 3, window: 24 * time.Hour},
+
+	// Same shape as the forgot-password counter, and for the same reason:
+	// three is enough for a link that went to spam, and few enough that the
+	// endpoint is not a mail cannon.
+	rateLimitScopeSignupConfirm: {max: 3, window: time.Hour},
+
+	// Three accounts an hour from one address covers a family, a couple
+	// sharing a laptop, and somebody who mistyped their email twice. It does
+	// not cover a script.
+	rateLimitScopeSignupIP: {max: 3, window: time.Hour},
+
+	// Ten an hour across a whole /24 or /64. High enough that an office or a
+	// carrier NAT is not the thing that trips it, low enough that a range
+	// walked one address at a time still runs out.
+	rateLimitScopeSignupSubnet: {max: 10, window: time.Hour},
+}
+
+// signupSubnet reduces an address to the block it sits in, so a caller
+// spending one address per account is still counted together.
+//
+// /24 for IPv4 and /64 for IPv6: the smallest blocks routinely allocated to a
+// single customer. Going wider reaches across an ISP and meters strangers;
+// going narrower is the per-address counter again.
+//
+// An address that does not parse returns "", which rateLimitExceeded treats as
+// "nothing to key on" and does not count — the right answer, since lumping
+// every unparseable caller into one bucket would let them exhaust a budget on
+// everybody's behalf.
+func signupSubnet(ip string) string {
+	parsed := net.ParseIP(ip)
+	if parsed == nil {
+		return ""
+	}
+
+	if v4 := parsed.To4(); v4 != nil {
+		return v4.Mask(net.CIDRMask(24, 32)).String() + "/24"
+	}
+
+	return parsed.Mask(net.CIDRMask(64, 128)).String() + "/64"
 }
 
 func rateLimitKey(scope rateLimitScope, subject string) string {

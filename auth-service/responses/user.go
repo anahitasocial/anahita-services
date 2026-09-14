@@ -7,11 +7,9 @@ import (
 
 type UserNode struct {
 	ID          int64                      `json:"id"`
-	UserType    string                     `json:"user_type"`
-	Username    string                     `json:"username,omitempty"`
+	PersonType  string                     `json:"user_type"`
+	Alias       string                     `json:"alias,omitempty"`
 	Name        string                     `json:"name,omitempty"`
-	GivenName   string                     `json:"given_name,omitempty"`
-	FamilyName  string                     `json:"family_name,omitempty"`
 	Email       string                     `json:"email,omitempty"`
 	Avatar      map[string]responses.Image `json:"avatar_urls,omitempty"`
 	TotpEnabled bool                       `json:"totp_enabled,omitempty"`
@@ -19,11 +17,9 @@ type UserNode struct {
 
 type UserNodeItem struct {
 	ID          int64                      `json:"id"`
-	UserType    string                     `json:"user_type"`
-	Username    string                     `json:"username,omitempty"`
+	PersonType  string                     `json:"user_type"`
+	Alias       string                     `json:"alias,omitempty"`
 	Name        string                     `json:"name,omitempty"`
-	GivenName   string                     `json:"given_name,omitempty"`
-	FamilyName  string                     `json:"family_name,omitempty"`
 	Email       string                     `json:"email,omitempty"`
 	Avatar      map[string]responses.Image `json:"avatar_urls,omitempty"`
 	TotpEnabled bool                       `json:"totp_enabled,omitempty"`
@@ -38,11 +34,9 @@ func (r *UserResponse) MapNode(node *entities.User) *UserNode {
 
 	return &UserNode{
 		ID:         node.ID,
-		UserType:   node.UserType,
-		GivenName:  node.GivenName,
-		FamilyName: node.FamilyName,
+		PersonType: node.PersonType,
 		Name:       node.Name,
-		Username:   node.Username,
+		Alias:      node.Alias,
 		Email:      node.Email,
 		Avatar: func() map[string]responses.Image {
 			if node.Avatar != nil {
@@ -61,11 +55,9 @@ func (r *UserResponse) MapNodeItem(node *entities.User) *UserNodeItem {
 
 	return &UserNodeItem{
 		ID:         node.ID,
-		UserType:   node.UserType,
-		GivenName:  node.GivenName,
-		FamilyName: node.FamilyName,
+		PersonType: node.PersonType,
 		Name:       node.Name,
-		Username:   node.Username,
+		Alias:      node.Alias,
 		Email:      node.Email,
 		Avatar: func() map[string]responses.Image {
 			if node.Avatar != nil {

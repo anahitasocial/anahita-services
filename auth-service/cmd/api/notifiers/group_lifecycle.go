@@ -29,8 +29,7 @@ func (h *groupLifecycleNotifier) EmailGroupDeleted(admin *entities.User, groupNa
 
 	body := fmt.Sprintf(
 		messages.GroupDeletedBody,
-		admin.GivenName,
-		admin.FamilyName,
+		admin.Name,
 		groupName,
 	)
 
@@ -50,8 +49,7 @@ func (h *groupLifecycleNotifier) EmailGroupRestored(admin *entities.User, groupN
 
 	body := fmt.Sprintf(
 		messages.GroupRestoredBody,
-		admin.GivenName,
-		admin.FamilyName,
+		admin.Name,
 		groupName,
 	)
 

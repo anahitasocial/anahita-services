@@ -26,13 +26,11 @@ const (
 
 	// OIDC standard Anahita claims (in ID token / /userinfo response).
 	JWTClaimName       = "name"
-	JWTClaimGivenName  = "given_name"
-	JWTClaimFamilyName = "family_name"
 	JWTClaimEmail      = "email"
 
 	// Anahita-specific claims (in access token).
 	// usertype role value: guest, registered, administrator,
-	// super-administrator. Hydrated into Viewer.UserType, which is what
+	// super-administrator. Hydrated into Viewer.PersonType, which is what
 	// IsAdmin/IsSuperAdmin/IsGuest read — NOT Viewer.Type, which is the
 	// node entity type.
 	JWTClaimPersonType = "person_type"

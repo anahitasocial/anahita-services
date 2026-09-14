@@ -28,27 +28,26 @@ func (repo *tokens) getBaseSelectQuery() sq.SelectBuilder {
 		"t.updated_by",
 	}
 
-	// There is no "people" table in this schema — a person is a nodes
-	// row joined to its people_people row, which is how users.go
-	// assembles one. id and type come from nodes; the name and email
-	// columns live on people_people and are all nullable there, so each
-	// is coalesced: a LEFT JOIN that misses would otherwise fail the
-	// scan into Person's non-pointer string fields rather than yielding
-	// an empty creator.
+	// A person is a nodes row; there is no separate people table. The
+	// display name is nodes.name, where it used to be a given_name and
+	// family_name pair on the old profile table. Coalesced because a LEFT
+	// JOIN that misses would otherwise fail the scan rather than yield an
+	// empty creator.
+	//
+	// The creator's email is no longer selected. It was never read outside
+	// this repository — the hydrated creator is serialised into the token's
+	// JSON and nothing else touches it — and an address does not belong in a
+	// payload that exists to name who issued an invitation.
 	var creatorFields = []string{
 		"COALESCE(cn.id, 0)",
 		"COALESCE(cn.type, '')",
-		"COALESCE(cp.given_name, '')",
-		"COALESCE(cp.family_name, '')",
-		"COALESCE(cp.email, '')",
+		"COALESCE(cn.name, '')",
 	}
 
 	var editorFields = []string{
 		"COALESCE(en.id, 0)",
 		"COALESCE(en.type, '')",
-		"COALESCE(ep.given_name, '')",
-		"COALESCE(ep.family_name, '')",
-		"COALESCE(ep.email, '')",
+		"COALESCE(en.name, '')",
 	}
 
 	fields = append(fields, creatorFields...)
@@ -56,9 +55,7 @@ func (repo *tokens) getBaseSelectQuery() sq.SelectBuilder {
 
 	return repo.sb.Select(fields...).From("tokens t").
 		LeftJoin("nodes cn ON t.created_by = cn.id").
-		LeftJoin("people_people cp ON cp.node_id = cn.id").
-		LeftJoin("nodes en ON t.updated_by = en.id").
-		LeftJoin("people_people ep ON ep.node_id = en.id")
+		LeftJoin("nodes en ON t.updated_by = en.id")
 }
 
 // getOne returns one token based on the provided query
@@ -88,14 +85,10 @@ func (repo *tokens) getOne(query sq.SelectBuilder) (*entities.Token, error) {
 		&token.UpdatedBy,
 		&token.Creator.ID,
 		&token.Creator.Type,
-		&token.Creator.GivenName,
-		&token.Creator.FamilyName,
-		&token.Creator.Email,
+		&token.Creator.Name,
 		&token.Editor.ID,
 		&token.Editor.Type,
-		&token.Editor.GivenName,
-		&token.Editor.FamilyName,
-		&token.Editor.Email,
+		&token.Editor.Name,
 	); err != nil {
 		return nil, err
 	}

@@ -151,6 +151,16 @@ func (h *passwordHandler) Forgot(c echo.Context) error {
 // Reset-password flow (unauthenticated, token-gated, server-rendered)
 // ---------------------------------------------------------------------
 
+// resetFormError re-renders the reset form with a message.
+func (h *passwordHandler) resetFormError(
+	c echo.Context, tokenBody string, _ *entities.User, message string,
+) error {
+	return h.renderTemplate(c, "password_reset.html", map[string]any{
+		"Token": tokenBody,
+		"Error": message,
+	})
+}
+
 // ResetForm validates the reset token from the URL and renders the new
 // password form. Invalid, expired, or already-used tokens get a
 // friendly error page instead of the form.
@@ -197,12 +207,13 @@ func (h *passwordHandler) ResetForm(c echo.Context) error {
 	//
 	// Best-effort: a lookup failure costs the notice, not the reset.
 	data := map[string]any{"Token": token.Body}
-	if user, err := h.Repos.Users.ReadByEmail(token.RecipientEmail); err == nil &&
-		user != nil && user.DeletedAt != nil {
-		data["ScheduledForDeletion"] = true
-		data["PurgeDate"] = user.DeletedAt.
-			AddDate(0, 0, constants.AccountGraceDays).
-			Format("2 January 2006")
+	if user, err := h.Repos.Users.ReadByEmail(token.RecipientEmail); err == nil && user != nil {
+		if user.DeletedAt != nil {
+			data["ScheduledForDeletion"] = true
+			data["PurgeDate"] = user.DeletedAt.
+				AddDate(0, 0, constants.AccountGraceDays).
+				Format("2 January 2006")
+		}
 	}
 
 	return h.renderTemplate(c, "password_reset.html", data)
@@ -263,6 +274,10 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 
 	if err := c.Validate(req); err != nil {
 		log.Println(err)
+		// The account has not been looked up yet, so the SUBMISSION is what
+		// says whether the form carried the agreement checkboxes: it sends a
+		// version only when it did. Dropping them here would hand back a form
+		// missing the fields the next submission needs.
 		return h.renderTemplate(c, "password_reset.html", map[string]any{
 			"Token": req.Token,
 			"Error": "Password must be at least 15 characters long.",
@@ -330,26 +345,20 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 				"There have been too many attempts on this link. Please request a new password reset email.")
 		}
 
-		return h.renderTemplate(c, "password_reset.html", map[string]any{
-			"Token": req.Token,
-			"Error": "Your new password must be different from your current password.",
-		})
+		return h.resetFormError(c, req.Token, user,
+			"Your new password must be different from your current password.")
 	}
 
 	if err := user.SetPassword(req.Password); err != nil {
 		log.Println(err)
-		return h.renderTemplate(c, "password_reset.html", map[string]any{
-			"Token": req.Token,
-			"Error": "Could not update your password. Please try again.",
-		})
+		return h.resetFormError(c, req.Token, user,
+			"Could not update your password. Please try again.")
 	}
 
 	if err := h.Repos.Users.EditPassword(user.Password, user.ID); err != nil {
 		log.Println(err)
-		return h.renderTemplate(c, "password_reset.html", map[string]any{
-			"Token": req.Token,
-			"Error": "Could not update your password. Please try again.",
-		})
+		return h.resetFormError(c, req.Token, user,
+			"Could not update your password. Please try again.")
 	}
 
 	// Consume the token. If this fails, the password is already

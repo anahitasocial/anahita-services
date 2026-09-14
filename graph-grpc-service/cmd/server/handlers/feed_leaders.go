@@ -23,7 +23,7 @@ func (h *feedLeadersHandler) Count(ctx context.Context, req *graphpb.FeedLeaders
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -43,7 +43,7 @@ func (h *feedLeadersHandler) Browse(ctx context.Context, req *graphpb.FeedLeader
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 

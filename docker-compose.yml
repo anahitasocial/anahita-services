@@ -83,6 +83,11 @@ services:
       SITE_NAME: ${SITE_NAME:-}
       SYSTEM_EMAIL: ${SYSTEM_EMAIL}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL}
+      # The rest of the contact details on the public /support page. Both
+      # optional — plenty of installations have no phone line. Published through
+      # NodeInfo, so changing one is a restart and not a frontend rebuild.
+      SUPPORT_PHONE: ${SUPPORT_PHONE:-}
+      SUPPORT_WEBSITE: ${SUPPORT_WEBSITE:-}
       # Label authenticator apps show for 2FA entries. Optional —
       # unset, it is derived from DOMAIN_NAME (with a "Staging" suffix
       # on staging, so the two environments are distinguishable in an
@@ -101,6 +106,43 @@ services:
       OAUTH_SIGNER_BACKEND: ${OAUTH_SIGNER_BACKEND}
       OAUTH_KMS_KEY_ALIAS: ${OAUTH_KMS_KEY_ALIAS}
       OAUTH_SEED_CLIENT_PATH: ${OAUTH_SEED_CLIENT_PATH}
+      # How this installation lets people in: open, approval, invite or
+      # closed. Governs SELF-SERVE registration; invitations are their own
+      # door, except under `closed`, which suspends outstanding ones too.
+      #
+      # UNSET MEANS CLOSED. An installation nobody has configured should not
+      # be open to the internet — a closed one is noticed in a minute by the
+      # operator, an open one when the spam arrives.
+      REGISTRATION_MODE: ${REGISTRATION_MODE:-}
+      # Who may issue an invitation: administrators (the default) or members.
+      #
+      # Under `members` an invitation becomes a recommendation rather than a
+      # decision — the member is not the person who would otherwise be
+      # deciding. Browsing and revoking stay with administrators either way.
+      INVITES_FROM: ${INVITES_FROM:-}
+      # How many invitations one person may have OUTSTANDING at once. A slot
+      # frees when one is accepted, expires, or is revoked. Defaults to 5 for
+      # members and 100 for administrators.
+      INVITE_PENDING_MAX: ${INVITE_PENDING_MAX:-}
+      INVITE_PENDING_MAX_ADMIN: ${INVITE_PENDING_MAX_ADMIN:-}
+      # Where the Terms and the Privacy Policy can be read. Their VERSIONS are
+      # not set here — the web app holds them beside the text, in
+      # statics/legal/index.js, and raising one is what re-prompts people. Either a path on the web app —
+      # "/legal/terms" — or a whole URL when the canonical text is hosted
+      # somewhere else. Defaults to /legal/tos and /legal/privacy.
+      TOS_URL: ${TOS_URL:-}
+      PRIVACY_URL: ${PRIVACY_URL:-}
+      # The first super administrator, seeded at boot.
+      #
+      # Does nothing unless the installation has NO active super administrator,
+      # so it is inert on every existing deployment and can be left set. On a
+      # fresh install it creates the account with an unusable password and
+      # prints a set-password link to this container's log — read it with
+      # `docker compose logs auth-service`. The link is also emailed, but the
+      # log is the path that works when SMTP is not configured yet.
+      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-}
+      SUPER_ADMIN_USERNAME: ${SUPER_ADMIN_USERNAME:-}
+      SUPER_ADMIN_NAME: ${SUPER_ADMIN_NAME:-}
     volumes:
       - ./oauth-signing.pem:/run/secrets/oauth-signing.pem:ro
       - ./auth-defaults/oauth_seed_clients.json:/app/defaults/oauth_seed_clients.json:ro

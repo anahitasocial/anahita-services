@@ -95,10 +95,10 @@ func (srv *MediaGRPC) Count(req *MediaGRPCBrowseRequest, viewer *entities.Viewer
 		Types:   req.Types,
 		OwnerId: req.OwnerID,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -129,10 +129,10 @@ func (srv *MediaGRPC) Browse(req *MediaGRPCBrowseRequest, viewer *entities.Viewe
 		Ordering:  req.Ordering,
 		Direction: req.Direction,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -158,10 +158,10 @@ func (srv *MediaGRPC) Read(id int64, viewer *entities.Viewer) (*entities.Anahita
 	resp, err := client.Read(context.Background(), &graphpb.MediumReadRequest{
 		Id: id,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -187,10 +187,10 @@ func (srv *MediaGRPC) Edit(item *entities.AnahitaNode, viewer *entities.Viewer) 
 	resp, err := client.Edit(context.Background(), &graphpb.MediumEditRequest{
 		Medium: graphNodeToGrpc(item),
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -216,10 +216,10 @@ func (srv *MediaGRPC) Add(item *entities.AnahitaNode, viewer *entities.Viewer) (
 	resp, err := client.Add(context.Background(), &graphpb.MediumAddRequest{
 		Medium: graphNodeToGrpc(item),
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -245,10 +245,10 @@ func (srv *MediaGRPC) Delete(id int64, viewer *entities.Viewer) error {
 	_, err = client.Delete(context.Background(), &graphpb.MediumDeleteRequest{
 		Id: id,
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {

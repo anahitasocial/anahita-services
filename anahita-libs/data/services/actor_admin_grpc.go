@@ -97,10 +97,10 @@ func (srv *ActorAdminsGRPC) Add(actor *entities.AnahitaNode, admin *entities.Ana
 		Actor: graphNodeToGrpc(actor),
 		Admin: graphNodeToGrpc(admin),
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -124,10 +124,10 @@ func (srv *ActorAdminsGRPC) Delete(actor *entities.AnahitaNode, admin *entities.
 		Actor: graphNodeToGrpc(actor),
 		Admin: graphNodeToGrpc(admin),
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {

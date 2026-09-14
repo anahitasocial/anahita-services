@@ -185,16 +185,16 @@ func (h *commentHandler) Edit(c echo.Context) error {
 	go func() {
 		routing_key := fmt.Sprintf(event.EventFormatNodeCommentEdited, "comment")
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  comment.Service,
-			SubjectID:      viewer.ID,
-			SubjectType:    viewer.Type,
-			ObjectID:       comment.ID,
-			ObjectType:     comment.Type,
-			TargetID:       comment.Parent.Author.ID,
-			TargetType:     comment.Parent.Author.Type,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    comment.Service,
+			SubjectID:        viewer.ID,
+			SubjectType:      viewer.Type,
+			ObjectID:         comment.ID,
+			ObjectType:       comment.Type,
+			TargetID:         comment.Parent.Author.ID,
+			TargetType:       comment.Parent.Author.Type,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		h.Publisher.Publish(payload, routing_key)
 	}()
@@ -278,16 +278,16 @@ func (h *commentHandler) Add(c echo.Context) error {
 	go func() {
 		routing_key := fmt.Sprintf(event.EventFormatNodeCommentAdded, "comment")
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  comment.Service,
-			SubjectID:      viewer.ID,
-			SubjectType:    viewer.Type,
-			ObjectID:       comment.ID,
-			ObjectType:     comment.Type,
-			TargetID:       comment.Parent.Author.ID,
-			TargetType:     comment.Parent.Author.Type,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    comment.Service,
+			SubjectID:        viewer.ID,
+			SubjectType:      viewer.Type,
+			ObjectID:         comment.ID,
+			ObjectType:       comment.Type,
+			TargetID:         comment.Parent.Author.ID,
+			TargetType:       comment.Parent.Author.Type,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		h.Publisher.Publish(payload, routing_key)
 	}()
@@ -354,16 +354,16 @@ func (h *commentHandler) Delete(c echo.Context) error {
 	go func() {
 		routing_key := fmt.Sprintf(event.EventFormatNodeCommentDeleted, "comment")
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SourceService:  comment.Service,
-			SubjectID:      viewer.ID,
-			SubjectType:    viewer.Type,
-			ObjectID:       comment.ID,
-			ObjectType:     comment.Type,
-			TargetID:       comment.Parent.Author.ID,
-			TargetType:     comment.Parent.Author.Type,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SourceService:    comment.Service,
+			SubjectID:        viewer.ID,
+			SubjectType:      viewer.Type,
+			ObjectID:         comment.ID,
+			ObjectType:       comment.Type,
+			TargetID:         comment.Parent.Author.ID,
+			TargetType:       comment.Parent.Author.Type,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		h.Publisher.Publish(payload, routing_key)
 	}()

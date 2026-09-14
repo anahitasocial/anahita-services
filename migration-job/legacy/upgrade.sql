@@ -1,5 +1,19 @@
 -- Step 1: Rename tables by removing the prefix
-SET @prefix = (SELECT SUBSTRING_INDEX(TABLE_NAME, '_', 1) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'anahita' LIMIT 1);
+-- DATABASE(), not a hardcoded 'anahita': entrypoint.sh connects to
+-- $MYSQL_DATABASE, which is configurable, so anyone whose database is called
+-- anything else got a NULL prefix here and a RENAME of `_nodes` that cannot
+-- resolve.
+--
+-- The prefix is taken from the nodes table specifically rather than from an
+-- arbitrary row, which is also what entrypoint.sh looks for. Splitting on the
+-- first underscore of whichever table came back first gets the wrong answer for
+-- any prefix that itself contains one.
+SET @prefix = (
+    SELECT SUBSTRING_INDEX(TABLE_NAME, '_nodes', 1)
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE '%\_nodes'
+    LIMIT 1
+);
 
 SET @rename_edges = CONCAT('RENAME TABLE ', @prefix, '_edges TO edges;');
 SET @rename_nodes = CONCAT('RENAME TABLE ', @prefix, '_nodes TO nodes;');
@@ -28,7 +42,7 @@ SET SESSION group_concat_max_len = 1000000;
 SET @drop_tables = (
     SELECT GROUP_CONCAT(TABLE_NAME SEPARATOR ',')
     FROM INFORMATION_SCHEMA.TABLES
-    WHERE TABLE_SCHEMA = 'anahita'
+    WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME NOT IN ('edges', 'nodes', 'people_people')
 );
 
@@ -105,6 +119,18 @@ UPDATE edges SET node_a_type = 'node.actor.person-service.person.v1' WHERE node_
 UPDATE edges SET node_a_type = 'node.medium.photo-service.photo.v1' WHERE node_a_type LIKE '%com:photos.domain.entity.photo%';
 UPDATE edges SET node_a_type = 'node.tag.hashtag-service.hashtag.v1' WHERE node_a_type LIKE '%com:hashtags.domain.entity.tag%';
 UPDATE edges SET node_a_type = 'node.tag.location-service.location.v1' WHERE node_a_type LIKE '%com:locations.domain.entity.tag%';
+-- The two above match the EDGE's entity name ("tag"), which is not what the
+-- NODE at the other end is called. A hashtag edge is `...entity.tag` while the
+-- hashtag node it points at is `...entity.hashtag`, so neither pattern ever
+-- matched a single row and every tag edge kept its legacy node_a_type — 8,314
+-- hashtag edges and 587 location edges on the reference database.
+--
+-- That is not cosmetic: node_a_type is a query filter (edges.go, edges_read.go,
+-- edges_delete.go) and part of uc_edge, so a caller passing the modern type
+-- matched nothing, untagging silently did nothing, and re-tagging inserted a
+-- second edge rather than colliding with the first.
+UPDATE edges SET node_a_type = 'node.tag.hashtag-service.hashtag.v1' WHERE node_a_type LIKE '%com:hashtags.domain.entity.hashtag%';
+UPDATE edges SET node_a_type = 'node.tag.location-service.location.v1' WHERE node_a_type LIKE '%com:locations.domain.entity.location%';
 
 -- node_b_type
 UPDATE edges SET node_b_type = 'node.actor.group-service.group.v1' WHERE node_b_type LIKE '%com:groups.domain.entity.group%';
@@ -118,10 +144,49 @@ UPDATE edges SET node_b_type = 'node.medium.text-service.article.v1' WHERE node_
 UPDATE edges SET node_b_type = 'node.medium.text-service.topic.v1' WHERE node_b_type LIKE '%com:topics.domain.entity.topic%';
 
 -- Comment Nodes
-UPDATE edges SET node_b_type = 'node.comment.comment-service.comment.v1' WHERE node_b_type LIKE '%com:stories.domain.entity.comment%';
-UPDATE edges SET node_b_type = 'node.comment.comment-service.comment.v1' WHERE node_b_type LIKE '%com:groups.domain.entity.comment%';
-UPDATE edges SET node_b_type = 'node.comment.comment-service.comment.v1' WHERE node_b_type LIKE '%com:people.domain.entity.comment%';
-UPDATE edges SET node_b_type = 'node.comment.comment-service.comment.v1' WHERE node_b_type LIKE '%com:photos.domain.entity.comment%';
+--
+-- `node.base.comment-service.comment.v1`, matching constants.NodeBaseCommentEntityType
+-- and the `type` these rows carry in the nodes table. This wrote
+-- `node.comment.comment-service.comment.v1` — a string that appears nowhere in
+-- the nodes table, nowhere in anahita-libs/constants, and nowhere else in the
+-- workspace.
+--
+-- Every component that could be commented on needs a line here. Only four had
+-- one, so topics, notes, pages, articles and todos kept their legacy value: on
+-- the reference database 3,294 of 3,295 comment edges disagreed with the type
+-- of the node they point at, the one correct row having been written by the Go
+-- stack rather than by this file.
+UPDATE edges SET node_b_type = 'node.base.comment-service.comment.v1' WHERE node_b_type LIKE '%com:stories.domain.entity.comment%';
+UPDATE edges SET node_b_type = 'node.base.comment-service.comment.v1' WHERE node_b_type LIKE '%com:groups.domain.entity.comment%';
+UPDATE edges SET node_b_type = 'node.base.comment-service.comment.v1' WHERE node_b_type LIKE '%com:people.domain.entity.comment%';
+UPDATE edges SET node_b_type = 'node.base.comment-service.comment.v1' WHERE node_b_type LIKE '%com:photos.domain.entity.comment%';
+UPDATE edges SET node_b_type = 'node.base.comment-service.comment.v1' WHERE node_b_type LIKE '%com:topics.domain.entity.comment%';
+UPDATE edges SET node_b_type = 'node.base.comment-service.comment.v1' WHERE node_b_type LIKE '%com:notes.domain.entity.comment%';
+UPDATE edges SET node_b_type = 'node.base.comment-service.comment.v1' WHERE node_b_type LIKE '%com:pages.domain.entity.comment%';
+UPDATE edges SET node_b_type = 'node.base.comment-service.comment.v1' WHERE node_b_type LIKE '%com:articles.domain.entity.comment%';
+UPDATE edges SET node_b_type = 'node.base.comment-service.comment.v1' WHERE node_b_type LIKE '%com:todos.domain.entity.comment%';
+-- Anything already carrying the wrong rewrite from a previous run of this file.
+UPDATE edges SET node_b_type = 'node.base.comment-service.comment.v1' WHERE node_b_type = 'node.comment.comment-service.comment.v1';
+
+-- Nodes the component filter above should have removed but did not.
+--
+-- Step 3 deletes by `component NOT IN (...)`, and these rows carry a type
+-- string in place of a component, so the filter never saw them. 123 survived on
+-- the reference database and were counted by every query that does not filter
+-- on type.
+DELETE FROM nodes WHERE type LIKE 'ComComponents%';
+
+-- Edges whose endpoints no longer exist.
+--
+-- Step 3 deletes the nodes of every component that did not survive the port —
+-- todos being the large one — but never the edges pointing at them. 3,427 such
+-- edges remained on the reference database, roughly a tenth of the table, each
+-- one a relationship to a node that cannot be read.
+--
+-- After the type rewrites above, so that anything salvageable has already been
+-- salvaged and only genuine orphans are removed.
+DELETE e FROM edges e LEFT JOIN nodes n ON n.id = e.node_a_id WHERE n.id IS NULL;
+DELETE e FROM edges e LEFT JOIN nodes n ON n.id = e.node_b_id WHERE n.id IS NULL;
 
 -- Migrate component field
 -- Update `component` field to match service names
@@ -163,8 +228,55 @@ ALTER TABLE nodes DROP COLUMN `permissions`;
 
 -- Migrate notifications to `notifications` table
 
+CREATE TABLE IF NOT EXISTS registration_applications (
+    `id`       bigint unsigned NOT NULL AUTO_INCREMENT,
+    `username` varchar(32)  NOT NULL,
+    `email`    varchar(255) NOT NULL,
+    `password` varchar(255) NOT NULL,
+
+    -- What an administrator is deciding on. Required in this mode, because
+    -- deciding on an email address alone is not deciding.
+    `name`        varchar(100) DEFAULT NULL,
+    `body`        text         DEFAULT NULL,
+    `website_url` varchar(255) DEFAULT NULL,
+
+    -- unverified -> pending -> approved | rejected
+    --
+    -- An application reaches the queue only once its address is confirmed, so
+    -- administrators are not moderating junk that nobody can even receive mail
+    -- at. `unverified` is where it waits until then.
+    `status` varchar(20) NOT NULL DEFAULT 'unverified',
+    `email_verified_at` datetime DEFAULT NULL,
+
+    -- Who vouched, when a member's invitation put them here rather than a
+    -- cold application. An administrator's invitation never reaches this
+    -- table — it is already a decision.
+    `invited_by` bigint unsigned DEFAULT NULL,
+
+    `decided_by`    bigint unsigned DEFAULT NULL,
+    `decided_at`    datetime        DEFAULT NULL,
+    `decision_note` varchar(255)    DEFAULT NULL,
+
+    -- Where the application came from. The same evidential trio the consent
+    -- columns carry, and for the same reason: a queue entry that cannot say
+    -- where it came from is harder to moderate, and a spam wave is usually
+    -- recognisable by its source long before its content.
+    `created_ip`         varchar(45)  DEFAULT NULL,
+    `created_user_agent` varchar(255) DEFAULT NULL,
+
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `email` (`email`),
+    KEY `status` (`status`),
+    KEY `username` (`username`),
+    KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- --------------------------------------------------------
+
 CREATE TABLE notifications (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `type` varchar(255) NOT NULL,
     `service` varchar(255) NOT NULL,
     `recipient_id` bigint(11) unsigned DEFAULT NULL,
@@ -177,7 +289,11 @@ CREATE TABLE notifications (
     `comment_id` int(11) unsigned DEFAULT NULL,
     `created_on` datetime DEFAULT NULL,
     `modified_on` datetime DEFAULT NULL,
-    `meta` text DEFAULT NULL,
+    -- mediumtext, not text. An existing database reaches utf8mb4 through
+    -- CONVERT TO CHARACTER SET, which promotes text to preserve its character
+    -- capacity; a fresh one is created as utf8mb4 outright and would keep
+    -- text. Declaring the wider type is what makes the two paths agree.
+    `meta` mediumtext DEFAULT NULL,
     `is_read` tinyint(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `recipient_id` (`recipient_id`),
@@ -190,7 +306,7 @@ CREATE TABLE notifications (
     KEY `comment_id` (`comment_id`),
     KEY `created_on` (`created_on`),
     KEY `modified_on` (`modified_on`)
-) ENGINE=InnoDB CHARACTER SET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Migrate data from nodes to notifications
 DELIMITER $$
@@ -344,10 +460,10 @@ ALTER TABLE nodes ADD INDEX `archived_at` (`archived_at`);
 -- contact and phone values inside `meta`; they are deliberately NOT carried
 -- across — nothing in the Go stack ever read that map, so they have been
 -- invisible since the port and are not worth reviving.
-ALTER TABLE nodes ADD COLUMN `website_url` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL;
+ALTER TABLE nodes ADD COLUMN `website_url` varchar(255) DEFAULT NULL;
 
 CREATE TABLE node_deletion_logs (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `node_id` bigint(11) unsigned NOT NULL,
     `node_alias` varchar(255) DEFAULT NULL,
     `node_type` varchar(255) DEFAULT NULL,
@@ -357,7 +473,7 @@ CREATE TABLE node_deletion_logs (
     PRIMARY KEY (`id`),
     KEY `idx_node_deletion_logs_node_id` (`node_id`),
     KEY `idx_node_deletion_logs_created_on` (`created_on`)
-) ENGINE=InnoDB CHARACTER SET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 ALTER TABLE people_people ADD COLUMN `totp_secret` VARCHAR(255) DEFAULT '';
 ALTER TABLE people_people ADD COLUMN `totp_enabled` TINYINT(1) NOT NULL DEFAULT 0;
@@ -366,7 +482,7 @@ ALTER TABLE people_people ADD COLUMN `totp_last_verified_at` DATETIME DEFAULT NU
 
 -- Create auth_logs table
 CREATE TABLE auth_logs (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `created_on` datetime DEFAULT NULL,
     `created_by` BIGINT UNSIGNED NOT NULL,
     `agent_device` varchar(50) DEFAULT 'bot',
@@ -378,7 +494,7 @@ CREATE TABLE auth_logs (
     `oauth_refresh_token_id` bigint(11) unsigned NOT NULL,
     `client_id` varchar(255) NOT NULL,
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB CHARACTER SET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 CREATE INDEX idx_auth_logs_created_by ON auth_logs (created_by);
 CREATE INDEX idx_auth_logs_created_on ON auth_logs (created_on);
 CREATE INDEX idx_auth_logs_created_by_client_id_created_on ON auth_logs (created_by, client_id, created_on DESC);
@@ -389,7 +505,7 @@ CREATE INDEX idx_auth_logs_oauth_refresh_token_id ON auth_logs (oauth_refresh_to
 -- --------------------------------------------------------
 
 CREATE TABLE oauth_authorizations (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `code_hash` varchar(255) NOT NULL,
     `client_id` varchar(255) NOT NULL,
     `user_id` bigint(11) unsigned NOT NULL,
@@ -407,12 +523,12 @@ CREATE TABLE oauth_authorizations (
     KEY `idx_client_id` (`client_id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_expires_at` (`expires_at`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
 CREATE TABLE oauth_clients (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `client_id` varchar(255) NOT NULL,
     `secret_hash` varchar(255) NOT NULL,
     `name` varchar(128) NOT NULL,
@@ -441,12 +557,12 @@ CREATE TABLE oauth_clients (
     UNIQUE KEY `idx_client_id` (`client_id`),
     KEY `idx_active` (`active`),
     KEY `idx_created_by` (`created_by`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
 CREATE TABLE oauth_refresh_tokens (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `token_hash` varchar(255) NOT NULL,
     `user_id` bigint(11) unsigned NOT NULL,
     `client_id` varchar(255) NOT NULL,
@@ -472,12 +588,12 @@ CREATE TABLE oauth_refresh_tokens (
     KEY `idx_user_id` (`user_id`),
     KEY `idx_client_id` (`client_id`),
     KEY `idx_revoked_expires` (`revoked`, `expires_at`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
 CREATE TABLE oauth_signing_keys (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `key_id` varchar(255) NOT NULL,
     `algorithm` varchar(10) NOT NULL DEFAULT 'RS256',
     `public_key` text NOT NULL,
@@ -492,7 +608,7 @@ CREATE TABLE oauth_signing_keys (
     UNIQUE KEY `idx_key_id` (`key_id`),
     KEY `idx_active` (`active`),
     KEY `idx_active_expires` (`active`, `expires_at`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -501,7 +617,7 @@ CREATE TABLE oauth_signing_keys (
 -- auth_logs.created_by uses.
 
 CREATE TABLE tokens (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `recipient_email` varchar(255) NOT NULL,
     -- The requested address, on emailchange tokens only; NULL on every
     -- other type. Separate from recipient_email precisely so the two
@@ -536,7 +652,7 @@ CREATE TABLE tokens (
     KEY `idx_tokens_recipient_email` (`recipient_email`),
     KEY `idx_tokens_created_by` (`created_by`),
     KEY `idx_tokens_created_at` (`created_at`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -547,7 +663,7 @@ CREATE TABLE tokens (
 -- passkey.
 
 CREATE TABLE webauthn_credentials (
-    `id` SERIAL,
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `user_id` bigint(11) unsigned NOT NULL,
     -- Raw authenticator-generated identifier, stored as bytes rather
     -- than base64url so the login lookup does not depend on encoding
@@ -581,7 +697,178 @@ CREATE TABLE webauthn_credentials (
     PRIMARY KEY (`id`),
     UNIQUE KEY `idx_webauthn_credentials_credential_id` (`credential_id`),
     KEY `idx_webauthn_credentials_user_id` (`user_id`)
-) ENGINE=InnoDB CHARACTER SET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+-- Bring the three tables carried over from the PHP schema into line with
+-- schema/init.sql. The tables created above already have the right shape;
+-- nodes, edges and people_people arrive from the legacy database and have to
+-- be altered into it.
+
+-- Zero dates before anything that rebuilds a table, which is both the MODIFY
+-- below and the CONVERT after it.
+--
+-- A rebuild is a write, and under the strict sql_mode every supported MySQL
+-- runs by default '0000-00-00 00:00:00' is rejected on the way back in: the
+-- ALTER dies with "Incorrect datetime value" and leaves the upgrade half
+-- finished, every table created but none of them converted. The PHP schema is
+-- full of these — MySQL accepted them then.
+--
+-- NULL, not a fabricated timestamp. The columns are nullable and "unknown" is
+-- what these mean; inventing an epoch date would date real relationships to
+-- 1970.
+UPDATE edges SET created_on  = NULL WHERE CAST(created_on  AS CHAR) LIKE '0000%';
+UPDATE edges SET modified_on = NULL WHERE CAST(modified_on AS CHAR) LIKE '0000%';
+UPDATE edges SET start_date  = NULL WHERE CAST(start_date  AS CHAR) LIKE '0000%';
+UPDATE edges SET end_date    = NULL WHERE CAST(end_date    AS CHAR) LIKE '0000%';
+
+UPDATE nodes SET created_on         = NULL WHERE CAST(created_on         AS CHAR) LIKE '0000%';
+UPDATE nodes SET modified_on        = NULL WHERE CAST(modified_on        AS CHAR) LIKE '0000%';
+UPDATE nodes SET start_date         = NULL WHERE CAST(start_date         AS CHAR) LIKE '0000%';
+UPDATE nodes SET end_date           = NULL WHERE CAST(end_date           AS CHAR) LIKE '0000%';
+UPDATE nodes SET last_comment_on    = NULL WHERE CAST(last_comment_on    AS CHAR) LIKE '0000%';
+UPDATE nodes SET status_update_time = NULL WHERE CAST(status_update_time AS CHAR) LIKE '0000%';
+UPDATE nodes SET deleted_at         = NULL WHERE CAST(deleted_at         AS CHAR) LIKE '0000%';
+UPDATE nodes SET archived_at        = NULL WHERE CAST(archived_at        AS CHAR) LIKE '0000%';
+
+UPDATE people_people SET last_visit_date       = NULL WHERE CAST(last_visit_date       AS CHAR) LIKE '0000%';
+UPDATE people_people SET totp_last_verified_at = NULL WHERE CAST(totp_last_verified_at AS CHAR) LIKE '0000%';
+
+-- The type columns next, and this order is not optional either.
+--
+-- These hold machine-generated ASCII identifiers from a fixed grammar, longest
+-- 42 characters, so varchar(255) was never needed. It is also unusable: the
+-- charset conversion below widens every character from three bytes to four,
+-- and uc_edge spans all three of the edges type columns — 3*255*4 + 16 = 3076
+-- bytes, four over InnoDB's 3072 limit. Converting first fails with "Specified
+-- key was too long" and leaves the database half migrated.
+ALTER TABLE nodes MODIFY `type` varchar(128) NOT NULL;
+ALTER TABLE edges MODIFY `type` varchar(128) NOT NULL;
+ALTER TABLE edges MODIFY `node_a_type` varchar(128) NOT NULL;
+ALTER TABLE edges MODIFY `node_b_type` varchar(128) NOT NULL;
+
+-- Now the charset. utf8 in MySQL is utf8mb3, which cannot store an emoji or a
+-- supplementary-plane character at all; a name containing one is truncated at
+-- the first byte it cannot represent rather than rejected.
+ALTER TABLE nodes         CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+ALTER TABLE edges         CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+ALTER TABLE people_people CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
+-- The index on nodes.service is still called `component`: step 5 renamed the
+-- column and MySQL carried the index across under its old name, so a legacy
+-- database and a fresh install disagreed on what it is called.
+SET @rename_component_index = IF(
+    EXISTS(SELECT 1 FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'nodes'
+             AND INDEX_NAME = 'component'),
+    'ALTER TABLE nodes RENAME INDEX `component` TO `service`',
+    'SELECT 1');
+PREPARE stmt FROM @rename_component_index;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- people_people.people_person_id carries a redundant UNIQUE index alongside
+-- the primary key, the signature of a SERIAL column. Every insert maintained
+-- both. init.sql no longer produces one.
+SET @drop_pp_serial_index = IF(
+    EXISTS(SELECT 1 FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'people_people'
+             AND INDEX_NAME = 'people_person_id'),
+    'ALTER TABLE people_people DROP INDEX `people_person_id`',
+    'SELECT 1');
+PREPARE stmt FROM @drop_pp_serial_index;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- --------------------------------------------------------
+
+-- Person identity onto `nodes`, and credentials into `auth_accounts`, then
+-- `people_people` is dropped.
+--
+-- The drop belongs here rather than being left to goose: entrypoint.sh runs
+-- this file INSTEAD of the migrations and then stamps them all as applied, so
+-- whatever this file does not do never happens. It has to arrive at the same
+-- schema schema/init.sql produces, which no longer has the table.
+
+ALTER TABLE nodes ADD COLUMN `person_type` varchar(50) DEFAULT NULL;
+ALTER TABLE nodes ADD COLUMN `person_pronouns` varchar(50) DEFAULT NULL;
+ALTER TABLE nodes ADD COLUMN `last_visit_date` datetime DEFAULT NULL;
+ALTER TABLE nodes ADD INDEX `person_type` (`person_type`);
+
+-- name, alias, timezone and language are deliberately not copied: they are
+-- already correct on nodes. given_name and family_name are not carried at all —
+-- they are truncated at the first non-ASCII byte, while nodes.name is intact.
+UPDATE nodes n JOIN people_people p ON p.node_id = n.id
+SET n.person_type     = p.usertype,
+    n.last_visit_date = p.last_visit_date;
+
+-- The actor handle namespace. See schema/init.sql for why this is a generated
+-- column rather than a unique index on alias.
+ALTER TABLE nodes
+    ADD COLUMN `unique_alias` varchar(300)
+        GENERATED ALWAYS AS (
+            CASE
+                WHEN alias IS NULL OR alias = '' THEN NULL
+                WHEN type LIKE 'node.actor.%'    THEN CONCAT('actor:', alias)
+                ELSE NULL
+            END
+        ) STORED;
+ALTER TABLE nodes ADD UNIQUE KEY `uq_unique_alias` (`unique_alias`);
+
+CREATE TABLE auth_accounts (
+    `node_id`               bigint unsigned NOT NULL,
+    `email`                 varchar(255) DEFAULT NULL,
+    `password`              varchar(255) DEFAULT NULL,
+    `totp_secret`           varchar(255) DEFAULT '',
+    `totp_enabled`          tinyint(1) NOT NULL DEFAULT 0,
+    `totp_recovery_codes`   mediumtext DEFAULT NULL,
+    `totp_last_verified_at` datetime DEFAULT NULL,
+
+    -- When the address was confirmed. NULL means it has not been, and an
+    -- unverified account cannot sign in.
+    `email_verified_at`     datetime DEFAULT NULL,
+    `tos_accepted`            tinyint(1) NOT NULL DEFAULT 0,
+    `tos_accepted_at`         datetime     DEFAULT NULL,
+    `tos_accepted_version`    varchar(20)  DEFAULT NULL,
+    `tos_accepted_ip`         varchar(45)  DEFAULT NULL,
+    `tos_accepted_user_agent` varchar(255) DEFAULT NULL,
+    `tos_accepted_os`         varchar(100) DEFAULT NULL,
+    `pp_accepted`             tinyint(1) NOT NULL DEFAULT 0,
+    `pp_accepted_at`          datetime     DEFAULT NULL,
+    `pp_accepted_version`     varchar(20)  DEFAULT NULL,
+    `pp_accepted_ip`          varchar(45)  DEFAULT NULL,
+    `pp_accepted_user_agent`  varchar(255) DEFAULT NULL,
+    `pp_accepted_os`          varchar(100) DEFAULT NULL,
+    PRIMARY KEY (`node_id`),
+    UNIQUE KEY `email` (`email`),
+    KEY `tos_accepted_version` (`tos_accepted_version`),
+    KEY `pp_accepted_version` (`pp_accepted_version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Consent columns keep their defaults: nobody has accepted anything yet, and
+-- inventing an acceptance would be a lie in a legal record.
+INSERT INTO auth_accounts
+    (node_id, email, password, totp_secret, totp_enabled,
+     totp_recovery_codes, totp_last_verified_at)
+SELECT node_id, email, password, totp_secret, totp_enabled,
+       totp_recovery_codes, totp_last_verified_at
+FROM people_people;
+
+-- Everything worth keeping is now on `nodes` and in `auth_accounts`.
+--
+-- Not carried over, and gone once this runs: given_name and family_name
+-- (truncated at the first non-ASCII byte, while nodes.name is intact),
+-- username (identical to nodes.alias on every row), time_zone and language
+-- (identical to nodes.timezone and nodes.language), network_presence and
+-- activation_code (dead), and gender — replaced by nodes.person_pronouns,
+-- which is free text; "male"/"female" is not a pronoun and converting it
+-- would be guessing on somebody's behalf.
+--
+-- This file only ever runs against a copy of a legacy database, and the
+-- original is still wherever it was dumped from, so there is nothing here to
+-- lose that is not already held somewhere else.
+DROP TABLE people_people;
 
 -- --------------------------------------------------------
 

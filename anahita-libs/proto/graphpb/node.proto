@@ -101,6 +101,24 @@ message Node {
     // the `information` map above — nothing ever populated that map in this
     // stack, so those fields have always rendered empty.
     string website_url = 77;
+
+    // A person's authority on the installation: guest, registered,
+    // administrator or super-administrator.
+    //
+    // Named for the node rather than for auth, because the graph owns the
+    // person and has no notion of a "user" — that word is reserved for
+    // protocol surface an external specification names that way. Unlike
+    // owner_type and parent_type it holds an authority level, not a node type
+    // string.
+    string person_type = 78;
+
+    // Free text, e.g. "she/her", "iel". Never an enum: an enum hard-codes
+    // English grammar and is meaningless in a language with no gendered
+    // third-person pronoun. Display only — never read for logic, and empty
+    // renders nothing.
+    string person_pronouns = 79;
+
+    google.protobuf.Timestamp last_visit_date = 80;
 }
 
 message Nodes {

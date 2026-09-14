@@ -83,7 +83,7 @@ func newTestNotifiers(t *testing.T) (*Notifiers, *recordingMail) {
 	admin := testUser()
 	admin.ID = 99
 	admin.Email = "admin@example.com"
-	admin.GivenName, admin.FamilyName = "Grace", "Hopper"
+	admin.Name = "Grace Hopper"
 
 	return NewNotifiers(&Env{
 		Config: &config.Config{
@@ -103,9 +103,8 @@ func testUser() *entities.User {
 	u := entities.NewUser()
 	u.ID = 42
 	u.Email = "ada@example.com"
-	u.GivenName = "Ada"
-	u.FamilyName = "Lovelace"
-	u.Username = "ada"
+	u.Name = "Ada Lovelace"
+	u.Alias = "ada"
 	return u
 }
 
@@ -129,7 +128,7 @@ func everyNotification(n *Notifiers) []struct {
 } {
 	user := testUser()
 	inviter := testUser()
-	inviter.GivenName, inviter.FamilyName = "Charles", "Babbage"
+	inviter.Name = "Charles Babbage"
 
 	authLog := &entities.AuthLog{
 		Name: "Firefox", Device: "laptop", OS: "Linux",

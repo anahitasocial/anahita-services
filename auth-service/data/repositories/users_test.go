@@ -78,8 +78,8 @@ func TestUsersEditDoesNotWriteIdentityColumns(t *testing.T) {
 	user := entities.NewUser()
 	user.ID = 42
 	user.Email = "attacker@example.com"
-	user.Username = "impostor"
-	user.UserType = "super-administrator"
+	user.Alias = "impostor"
+	user.PersonType = "super-administrator"
 	user.Password = "$2a$10$hash"
 	user.UpdateTime = time.Now()
 
@@ -123,17 +123,22 @@ func TestUsersEditDoesNotWriteIdentityColumns(t *testing.T) {
 
 func userRow() *sqlmock.Rows {
 	return sqlmock.NewRows([]string{
-		"id", "type", "enabled", "given_name", "family_name", "username",
-		"email", "password", "usertype", "service", "filename",
+		"id", "type", "enabled", "name", "alias",
+		"email", "password", "person_type", "service", "filename",
 		"last_visit_date", "created_on", "modified_on", "totp_enabled",
 		"totp_recovery_codes", "totp_last_verified_at", "totp_secret", "deleted_at",
 		"archived_at",
+		"email_verified_at",
+		"tos_accepted", "tos_accepted_version",
+		"pp_accepted", "pp_accepted_version",
 	}).AddRow(
-		42, "com.people.person", true, "Ada", "Lovelace", "ada",
-		"ada@example.com", "$2a$10$hash", "registered", "people", "",
+		42, "node.actor.person-service.person.v1", true, "Ada Lovelace", "ada",
+		"ada@example.com", "$2a$10$hash", "registered", "person-service", "",
 		time.Now(), time.Now(), time.Now(), false,
 		"", time.Now(), "", nil,
 		nil,
+		time.Now(),
+		true, "1.0", true, "1.0",
 	)
 }
 
@@ -141,7 +146,7 @@ func userRow() *sqlmock.Rows {
 // Deletion leaves the tombstone
 // ---------------------------------------------------------------------
 
-// Deleting an account removes the people_people row and DELIBERATELY leaves
+// Deleting an account removes the auth_accounts row and DELIBERATELY leaves
 // the nodes row behind. That row is the tombstone: it reserves the handle so
 // nobody else can take it, which is what both federation protocols need — a
 // recycled handle inherits the previous person's followers on every instance
@@ -162,8 +167,8 @@ func TestUsersDeleteLeavesTheNodeRow(t *testing.T) {
 	}
 
 	stmt := strings.ToLower((*seen)[0])
-	if !strings.Contains(stmt, "delete from people_people") {
-		t.Errorf("expected a delete against people_people, got:\n%s", stmt)
+	if !strings.Contains(stmt, "delete from auth_accounts") {
+		t.Errorf("expected a delete against auth_accounts, got:\n%s", stmt)
 	}
 	// The node row is the tombstone. A DELETE reaching it frees the handle.
 	if strings.Contains(stmt, "delete from nodes") {
@@ -217,8 +222,21 @@ func TestIdentityUniquenessIgnoresCase(t *testing.T) {
 		}
 
 		stmt := strings.ToLower(statementTouching(t, seen, "SELECT"))
-		if !strings.Contains(stmt, "lower(username) = lower(?)") {
+		if !strings.Contains(stmt, "lower(alias) = lower(?)") {
 			t.Errorf("the comparison does not fold case on both sides:\n%s", stmt)
+		}
+
+		// The handle namespace is every actor, not every person: WebFinger
+		// resolves one name to one actor, so a group holding the handle
+		// takes it from a person too. Narrowing this to person nodes would
+		// hand out a handle the unique index then refuses, turning a 409
+		// into a 500.
+		if !strings.Contains(stmt, "node.actor.%") {
+			t.Errorf("the check is not scoped to the actor namespace:\n%s", stmt)
+		}
+		if strings.Contains(stmt, "deleted_at") {
+			t.Errorf("tombstoned rows are excluded, so a deleted person's "+
+				"handle can be re-issued and inherit their followers:\n%s", stmt)
 		}
 	})
 }
@@ -262,62 +280,17 @@ func TestEditEmailNarrowsOnTheOwner(t *testing.T) {
 	}
 }
 
-// The handle is both the sign-in identifier and the profile slug, stored in
-// two columns. A statement that set only one leaves them disagreeing, so the
-// profile URL and the login name drift apart.
-func TestEditUsernameWritesBothColumns(t *testing.T) {
-	db, mock, seen := newCapturingDB(t)
-	repo := &Users{db: db}
-
-	mock.ExpectExec("update").
-		WithArgs("newhandle", "newhandle", int64(42), int64(42)).
-		WillReturnResult(sqlmock.NewResult(0, 1))
-
-	if err := repo.EditUsername("newhandle", 42); err != nil {
-		t.Fatalf("edit username: %v", err)
-	}
-
-	stmt := strings.ToLower(statementTouching(t, seen, "UPDATE"))
-	if !strings.Contains(stmt, "alias") {
-		t.Errorf("the profile slug was not updated with the handle:\n%s", stmt)
-	}
-	if !strings.Contains(stmt, "username") {
-		t.Errorf("the sign-in handle was not updated:\n%s", stmt)
-	}
-}
+// The EditUsername test is gone with the method. The handle lives only on
+// nodes.alias now — auth_accounts has no username column — so there is nothing
+// on this side to assert about it. username_change.go moves the alias through
+// ActorsGRPC, and the graph's own tests cover the namespace it enforces.
 
 // ---------------------------------------------------------------------
 // Restore
 // ---------------------------------------------------------------------
 
-// Restore reports whether it actually changed a row. Without that, somebody
-// signing in during the grace period could be told their account was back when
-// the sweeper had already purged it.
-func TestRestoreReportsWhetherARowChanged(t *testing.T) {
-	cases := []struct {
-		name     string
-		affected int64
-		want     bool
-	}{
-		{"a deleted account comes back", 1, true},
-		{"nothing was scheduled", 0, false},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			db, mock, _ := newCapturingDB(t)
-			repo := &Users{db: db}
-
-			mock.ExpectExec("update").WithArgs(int64(42)).
-				WillReturnResult(sqlmock.NewResult(0, tc.affected))
-
-			ok, err := repo.Restore(42)
-			if err != nil {
-				t.Fatalf("restore: %v", err)
-			}
-			if ok != tc.want {
-				t.Errorf("Restore() = %v, want %v", ok, tc.want)
-			}
-		})
-	}
-}
+// The Restore test is gone with the method. Restoring an account is
+// ActorService.Restore now: the graph writes the node_deletion_logs entry and
+// publishes the event, neither of which an UPDATE from this side did. What is
+// worth asserting about it belongs to graph-grpc-service, which has its own
+// lifecycle tests.

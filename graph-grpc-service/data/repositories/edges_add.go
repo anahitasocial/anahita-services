@@ -80,13 +80,20 @@ func (r *edgesRepo) BatchAdd(edges []*entities.AnahitaEdge) ([]*entities.Anahita
 		return nil, errors.New("edges are required")
 	}
 
+	// Appended to a NEW slice. This ranged over `edges` while appending to it,
+	// so the returned slice was the input plus the inserted rows — every edge
+	// twice, with the caller's copies carrying no id.
+	//
+	// `range` evaluates its operand once, so it never looped forever; it just
+	// quietly returned the wrong thing to anyone who read the result.
+	added := make([]*entities.AnahitaEdge, 0, len(edges))
 	for _, edge := range edges {
 		addedEdge, err := r.Add(edge)
 		if err != nil {
 			return nil, err
 		}
-		edges = append(edges, addedEdge)
+		added = append(added, addedEdge)
 	}
 
-	return edges, nil
+	return added, nil
 }

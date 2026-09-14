@@ -116,7 +116,7 @@ func (u *WebAuthnUser) WebAuthnName() string {
 }
 
 func (u *WebAuthnUser) WebAuthnDisplayName() string {
-	name := strings.TrimSpace(u.user.GivenName + " " + u.user.FamilyName)
+	name := strings.TrimSpace(u.user.Name)
 	if name == "" {
 		return u.user.Email
 	}

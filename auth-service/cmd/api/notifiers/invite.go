@@ -28,8 +28,7 @@ func newInviteNotifier(env *Env) *inviteNotifier {
 func (h *inviteNotifier) EmailInvite(user *entities.User, recipientEmail string, token *entities.Token) error {
 	body := fmt.Sprintf(
 		messages.InviteBody,
-		user.GivenName,
-		user.FamilyName,
+		user.Name,
 	)
 
 	// Point at the auth-service form. The token rides as a query
@@ -84,9 +83,9 @@ func (h *inviteNotifier) NotifyAccept(user *entities.User) error {
 // not silently skip the remaining admins.
 func (h *inviteNotifier) EmailAccept(joiner *entities.User, inviter *entities.User) error {
 	personReq := requests.NewUserRequest().Browse
-	personReq.UserTypes = []string{
-		an_constants.UserTypeAdmin,
-		an_constants.UserTypeSuperAdmin,
+	personReq.PersonTypes = []string{
+		an_constants.PersonTypeAdmin,
+		an_constants.PersonTypeSuperAdmin,
 	}
 
 	admins, err := h.Repos.Users.Browse(personReq)
@@ -96,7 +95,7 @@ func (h *inviteNotifier) EmailAccept(joiner *entities.User, inviter *entities.Us
 
 	actionURL := fmt.Sprintf(
 		"%s/people/%d",
-		h.Config.GetCompleteDomainName(),
+		h.Config.GetFrontendURL(),
 		joiner.ID,
 	)
 
@@ -119,15 +118,15 @@ func (h *inviteNotifier) EmailAccept(joiner *entities.User, inviter *entities.Us
 		if inviter.ID != 0 && admin.ID == inviter.ID {
 			body = fmt.Sprintf(
 				messages.InviteAcceptBodyToInviter,
-				admin.GivenName,
-				joiner.GivenName, joiner.FamilyName,
+				admin.Name,
+				joiner.Name,
 			)
 		} else {
 			body = fmt.Sprintf(
 				messages.InviteAcceptBody,
-				admin.GivenName,
-				joiner.GivenName, joiner.FamilyName,
-				inviter.GivenName, inviter.FamilyName,
+				admin.Name,
+				joiner.Name,
+				inviter.Name,
 			)
 		}
 
@@ -158,8 +157,7 @@ func (h *inviteNotifier) EmailAccept(joiner *entities.User, inviter *entities.Us
 func (h *inviteNotifier) EmailRevoked(revoker *entities.User, recipientEmail string) error {
 	body := fmt.Sprintf(
 		messages.InviteRevokedBody,
-		revoker.GivenName,
-		revoker.FamilyName,
+		revoker.Name,
 	)
 
 	return h.send(

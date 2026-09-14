@@ -89,7 +89,7 @@ func (h *subscriptionGrpcHandler) Add(ctx context.Context, req *graphpb.Subscrip
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 
 	edge := entities.NewAnahitaEdge()
 	edge.Type = constants.EdgeBaseSubscriptionEntityType

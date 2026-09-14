@@ -109,7 +109,7 @@ func (h *usernameChangeHandler) Edit(c echo.Context) error {
 	// 409. Note the consequence: this flow cannot be used to restyle
 	// your own handle's capitalisation. That is a fair trade for not
 	// having to special-case the caller inside the availability query.
-	oldUsername := user.Username
+	oldUsername := user.Alias
 	if strings.EqualFold(newUsername, oldUsername) {
 		return c.NoContent(http.StatusNoContent)
 	}
@@ -123,15 +123,34 @@ func (h *usernameChangeHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusConflict)
 	}
 
-	// Writes people_people.username and nodes.alias together — the
-	// sign-in identifier and the profile slug are the same value, and
-	// they must not diverge.
-	if err := h.Repos.Users.EditUsername(newUsername, user.ID); err != nil {
-		log.Println("username change: update failed:", err)
+	// The handle first, through the graph, then the credential row.
+	//
+	// These are the same value — the sign-in identifier and the profile slug —
+	// and must not diverge, but they now live in two services and cannot share
+	// a transaction. The graph goes first because it owns the actor namespace
+	// and is the one that can refuse: a handle already taken is rejected there,
+	// and nothing has been written yet when it is.
+	//
+	// The reverse order would write the credential row, have the graph refuse,
+	// and leave the person signing in under a name their profile does not use.
+	actor, err := h.Srv.ActorsGRPC.Read(user.ID, systemViewer())
+	if err != nil || actor == nil {
+		log.Println("username change: could not read the actor:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	user.Username = newUsername
+	actor.Alias = newUsername
+	if _, err := h.Srv.ActorsGRPC.Edit(actor, systemViewer()); err != nil {
+		// The namespace rejected it — almost always because another actor
+		// already holds the handle, which is the caller's 409, not a 500.
+		log.Println("username change: the graph refused the handle:", err)
+		return c.NoContent(http.StatusConflict)
+	}
+
+	// One write, and it is the graph's. The handle lives only on nodes.alias
+	// now — there is no second copy in the credential row to keep in step, so
+	// the compensating revert this used to need is gone with it.
+	user.Alias = newUsername
 
 	// One step-up authorises one credential change.
 	h.clearStepUp(user.ID)
@@ -151,6 +170,6 @@ func (h *usernameChangeHandler) Edit(c echo.Context) error {
 	// URL it renders without a second round trip. Returns what was
 	// STORED rather than what was sent — they differ by the trim.
 	return c.JSON(http.StatusOK, map[string]string{
-		"username": user.Username,
+		"username": user.Alias,
 	})
 }

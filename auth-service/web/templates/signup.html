@@ -1,0 +1,181 @@
+{{define "title"}}Create an account{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Join {{.SiteName}}</h2>
+
+    {{if .NeedsApproval}}
+    <p>Joining {{.SiteName}} is by application. Tell us who you are and
+       somebody will read it — you'll hear back by email.</p>
+    {{else}}
+    <p>Choose a username and a password. You can add a name, a photo and
+       anything else you want on your profile once you are in.</p>
+    {{end}}
+
+    {{if .Error}}
+    <div class="error-message">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/signup" novalidate>
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        <!-- A field no person can see, and no person should fill. Its name
+             comes from the handler so the two cannot drift apart.
+
+             NOT type="hidden": a bot skipping hidden inputs would skip this,
+             and the point is that a naive one fills every text field it finds.
+             autocomplete is off so a password manager does not fill it on a
+             real person's behalf. -->
+        <div class="no-fill" aria-hidden="true">
+            <label for="{{.HoneypotField}}">Leave this field empty</label>
+            <input
+                type="text"
+                id="{{.HoneypotField}}"
+                name="{{.HoneypotField}}"
+                value=""
+                tabindex="-1"
+                autocomplete="off"
+            >
+        </div>
+
+        <!-- "Username", not "handle".
+             Mastodon's signup says username, and so does every one of the 115
+             places this codebase names the same thing — ReadByUsername,
+             IsUsername, /username/change. Calling it something else on the one
+             screen where somebody first meets it teaches a word we then never
+             use again.
+
+             autocapitalize is off because a phone keyboard will otherwise
+             offer "Ada" for a field whose uniqueness check folds case: the
+             signup would refuse a name the form had just suggested. -->
+        <div class="text-field">
+            <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder=" "
+                required
+                minlength="3"
+                maxlength="32"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                autofocus
+                data-availability-url="/auth/is/username"
+                data-availability-target="username-help"
+            >
+            <label for="username">Username</label>
+        </div>
+        <span class="helper-text" id="username-help">This is your address on the network, and part of your profile's link.</span>
+
+        <div class="text-field">
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder=" "
+                required
+                maxlength="64"
+                autocomplete="email"
+                autocapitalize="none"
+                spellcheck="false"
+            >
+            <label for="email">Email</label>
+        </div>
+
+        <!-- Asked for only under `approval`, where a person reads this and
+             decides. In every other mode the profile is onboarding's job,
+             where it is skippable and the editor is better than a plain
+             form. -->
+        {{if .NeedsApproval}}
+        <div class="text-field">
+            <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder=" "
+                required
+                maxlength="100"
+                autocomplete="name"
+            >
+            <label for="name">Your name</label>
+        </div>
+        <span class="helper-text">How your name appears to other people.</span>
+
+        <div class="text-field">
+            <textarea
+                id="body"
+                name="body"
+                placeholder=" "
+                required
+                maxlength="8000"
+                rows="4"
+            ></textarea>
+            <label for="body">About you</label>
+        </div>
+        <span class="helper-text">A few sentences. Somebody reads this before deciding.</span>
+
+        <div class="text-field">
+            <input
+                type="url"
+                id="website_url"
+                name="website_url"
+                placeholder=" "
+                maxlength="255"
+                autocapitalize="none"
+                spellcheck="false"
+            >
+            <label for="website_url">Website (optional)</label>
+        </div>
+        {{end}}
+
+        <div class="text-field has-toggle">
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder=" "
+                required
+                minlength="15"
+                maxlength="150"
+                autocomplete="new-password"
+            >
+            <label for="password">Password</label>
+            <button
+                type="button"
+                class="password-toggle"
+                data-target="password"
+                aria-label="Show password"
+                aria-pressed="false"
+            >Show</button>
+        </div>
+        <!-- Beside the field it describes. It was a paragraph at the top of
+             the page, which is where somebody reads it before they have a
+             password in mind and has forgotten it by the time they do. -->
+        <span class="helper-text">At least 15 characters. Use a unique passphrase that you don't use anywhere else.</span>
+
+        <button type="submit" class="btn btn-primary">{{if .NeedsApproval}}Send application{{else}}Create account{{end}}</button>
+    </form>
+
+    <hr class="divider">
+
+    <!-- Shown rather than collected. Acceptance is asked for after signing in,
+         where the text is on the screen it is accepted from, and asked again
+         whenever it is revised. This is here so nobody can say they were never
+         told. -->
+    <p class="helper-text">
+        By creating an account you agree to the
+        <a href="{{.TosURL}}" target="_blank" rel="noopener">Terms of Service</a>
+        and the
+        <a href="{{.PrivacyURL}}" target="_blank" rel="noopener">Privacy Policy</a>.
+    </p>
+
+    <p class="text-center">
+        <a class="text-link" href="/oauth/login">Already have an account? Sign in</a>
+    </p>
+</div>
+{{end}}

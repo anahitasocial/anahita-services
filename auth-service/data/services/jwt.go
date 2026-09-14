@@ -152,9 +152,12 @@ func (s *OAuthService) MintIDToken(ctx context.Context, in idTokenInput) (string
 
 	granted := scopeSet(in.Scopes)
 	if granted[libs_constants.OAuthScopeProfile] && in.User != nil {
-		claims[libs_constants.JWTClaimName] = strings.TrimSpace(in.User.GivenName + " " + in.User.FamilyName)
-		claims[libs_constants.JWTClaimGivenName] = in.User.GivenName
-		claims[libs_constants.JWTClaimFamilyName] = in.User.FamilyName
+		// `name` only. given_name and family_name are OPTIONAL claims in OIDC,
+		// and there is nothing to populate them from any more: the profile
+		// carries one display name, not a Western first/last pair. `name` is
+		// the claim that matters and it is now read straight from the node
+		// rather than assembled from two halves.
+		claims[libs_constants.JWTClaimName] = strings.TrimSpace(in.User.Name)
 	}
 	if granted[libs_constants.OAuthScopeEmail] && in.User != nil {
 		claims[libs_constants.JWTClaimEmail] = in.User.Email

@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"anahita-libs/constants"
-	"anahita-libs/data"
 	"anahita-libs/event"
 	an_mw "anahita-libs/middleware"
 	"anahita-libs/validators"
@@ -15,7 +14,6 @@ import (
 
 	"person/cmd/api/handlers"
 	"person/cmd/api/permissions"
-	"person/data/repositories"
 	"person/data/services"
 
 	"github.com/go-playground/validator/v10"
@@ -43,12 +41,13 @@ func main() {
 		log.Fatalf("config validation failed: %v", err)
 	}
 
-	// connect to the database
-	conn := data.ConnectToDB(config.GetDSN())
-	if conn == nil {
-		log.Panic("can't connect to MySQL!")
-	}
-	defer conn.Close()
+	// No database connection. person-service reads and writes the graph over
+	// gRPC and owns no tables, which is what group-service — the other
+	// actor-owning service — has always done.
+	//
+	// Worth keeping that way: the connection outlived the last query by a
+	// while, and a service holding a pool it never uses still fails to start
+	// when the database is unreachable.
 
 	if config.IsDev() {
 		e.Debug = true
@@ -81,7 +80,6 @@ func main() {
 	// create handlers
 	hEnv := &handlers.Env{
 		Config:    config,
-		Repos:     repositories.NewRepositories(conn),
 		Srv:       services.NewServices(config),
 		Perms:     permissions.NewPermissions(),
 		Publisher: publisher,

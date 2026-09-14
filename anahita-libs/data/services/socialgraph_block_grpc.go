@@ -70,10 +70,10 @@ func (srv *SocialgraphBlockGRPC) Add(source *entities.AnahitaNode, target *entit
 		Source: actorNodeToSocialgraphSource(source),
 		Target: actorNodeToSocialgraphTarget(target),
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {
@@ -94,10 +94,10 @@ func (srv *SocialgraphBlockGRPC) Delete(source *entities.AnahitaNode, target *en
 		Source: actorNodeToSocialgraphSource(source),
 		Target: actorNodeToSocialgraphTarget(target),
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
-			Email:    viewer.Email,
-			Username: viewer.Username,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
 		},
 	})
 	if err != nil {

@@ -74,7 +74,7 @@ func (s *OAuthService) IssueTokenPairForViewer(
 
 	accessToken, err := s.MintAccessToken(ctx, accessTokenClaims{
 		Subject:        strconv.FormatInt(user.ID, 10),
-		PersonType:     user.UserType,
+		PersonType:     user.PersonType,
 		ClientID:       client.ClientID,
 		Scopes:         scopes,
 		PersonPK:       user.ID,
@@ -251,7 +251,7 @@ func (s *OAuthService) RefreshTokenPair(
 
 	accessToken, err := s.MintAccessToken(ctx, accessTokenClaims{
 		Subject:        strconv.FormatInt(user.ID, 10),
-		PersonType:     user.UserType,
+		PersonType:     user.PersonType,
 		ClientID:       client.ClientID,
 		Scopes:         grantedScopes,
 		PersonPK:       stored.UserID,

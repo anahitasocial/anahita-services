@@ -88,18 +88,20 @@ func (h *personHandler) Browse(c echo.Context) error {
 		return c.JSON(http.StatusOK, resp)
 	}
 
-	actorIds := extractIdsFromActors(actors)
-	people, err := h.Repos.People.Browse(actorIds)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
 	batchPresignPaths(h.Env, actors)
 
-	actorsMap := mapActorNodesById(actors)
+	// The actors ARE the people. This used to read people_people for the same
+	// ids and merge the two lists by id, which also carried a nil dereference:
+	// a person whose node did not come back from the browse indexed a missing
+	// map entry.
+	people := make([]*entities.Person, 0, len(actors))
+	for _, actor := range actors {
+		person := entities.NewPerson()
+		person.AnahitaNode = *actor
+		people = append(people, person)
+	}
+
 	for _, person := range people {
-		person.AnahitaNode = *actorsMap[person.ID]
 		if err := h.onAfterFetched(c, person); err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -128,7 +130,7 @@ func (h *personHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	person, err := h.Repos.People.ReadByUsername(req.Username)
+	person, err := h.readPersonByAlias(c, req.Alias)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -202,23 +204,20 @@ func (h *personHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	person.GivenName = req.GivenName
-	person.FamilyName = req.FamilyName
+	// One name, and one write.
+	//
+	// given_name and family_name are gone: nodes.name already holds the
+	// correct value, while those two were truncated at the first non-ASCII
+	// byte — "Jos" for "José". The gender enum is gone with them, replaced by
+	// free-text pronouns, so there is no longer a second table to update and
+	// no enum to validate against a list the handler and the validator
+	// disagreed about.
+	person.Name = req.Name
+	person.PersonPronouns = req.PersonPronouns
 	person.Body = req.Body
 	person.WebsiteURL = req.WebsiteURL
 	person.ModifiedBy = viewer.ID
 	person.UpdateTime = time.Now()
-
-	if req.Gender == constants.UserGenderMale ||
-		req.Gender == constants.UserGenderFemale ||
-		req.Gender == constants.UserGenderNeutral {
-		person.Gender = req.Gender
-	}
-
-	if err = h.Repos.People.Edit(person); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
 
 	_, err = h.Srv.ActorsGRPC.Edit(&person.AnahitaNode, viewer)
 	if err != nil {
@@ -232,7 +231,7 @@ func (h *personHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	if err := h.Repos.MentionRelations.Update(person, person.Mentions, viewer); err != nil {
+	if err := h.Srv.Mentions.Update(person, person.Mentions, viewer); err != nil {
 		log.Println(err)
 		return err
 	}
@@ -241,12 +240,12 @@ func (h *personHandler) Edit(c echo.Context) error {
 	go func() {
 		routing_key := fmt.Sprintf(event.EventFormatNodeActorEdited, "person", "person")
 		payload := &event.EventPayload{
-			Name:           routing_key,
-			SubjectID:      viewer.ID,
-			ObjectID:       person.ID,
-			TargetID:       person.ID,
-			ViewerID:       viewer.ID,
-			ViewerUserType: viewer.UserType,
+			Name:             routing_key,
+			SubjectID:        viewer.ID,
+			ObjectID:         person.ID,
+			TargetID:         person.ID,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
 		log.Println("Publishing event", routing_key)
 		if err = h.Publisher.Publish(payload, routing_key); err != nil {
@@ -286,7 +285,7 @@ func (h *personHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	person, err := h.Repos.People.ReadByID(req.ID)
+	person, err := h.fetchPerson(c, req.ID)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -333,23 +332,6 @@ func (h *personHandler) Delete(c echo.Context) error {
 	// 409 rather than 403: the request is well formed and the caller is
 	// permitted, it conflicts with the state of the site. The body names the
 	// way out, because a refusal that does not is a support ticket.
-	if person.UserType == constants.UserTypeSuperAdmin {
-		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
-		if err != nil {
-			log.Println("person delete: super administrator count failed:", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		if others == 0 {
-			log.Printf("person delete: refused, %d is the last super administrator",
-				person.ID)
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error": "last_super_administrator",
-				"message": "This is the only super administrator. Promote " +
-					"someone else, or change this account to administrator, " +
-					"and then delete it.",
-			})
-		}
-	}
 
 	// ONE write, and a soft one.
 	//
@@ -363,6 +345,9 @@ func (h *personHandler) Delete(c echo.Context) error {
 	// restore themselves during the grace period. The sweeper removes it when
 	// the window closes.
 	if err = h.Srv.ActorsGRPC.Delete(person.ID, viewer); err != nil {
+		if isLastSuperAdmin(err) {
+			return refuseLastSuperAdmin(c, "delete")
+		}
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -413,7 +398,7 @@ func (h *personHandler) Archive(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	person, err := h.Repos.People.ReadByID(req.ID)
+	person, err := h.fetchPerson(c, req.ID)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -424,7 +409,7 @@ func (h *personHandler) Archive(c echo.Context) error {
 	// everyone who may schedule a recoverable deletion would be strictly
 	// worse than the thing it sits beside.
 	isSelf := viewer != nil && viewer.ID == person.ID
-	isSuperAdmin := viewer != nil && viewer.UserType == constants.UserTypeSuperAdmin
+	isSuperAdmin := viewer != nil && viewer.PersonType == constants.PersonTypeSuperAdmin
 	if !isSelf && !isSuperAdmin {
 		log.Println("person archive: refused, neither the owner nor a super administrator")
 		return c.NoContent(http.StatusForbidden)
@@ -438,23 +423,12 @@ func (h *personHandler) Archive(c echo.Context) error {
 	// The same floor deletion has. An archived super administrator cannot sign
 	// in, so archiving the last one locks the site out exactly as deleting
 	// them would.
-	if person.UserType == constants.UserTypeSuperAdmin {
-		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
-		if err != nil {
-			log.Println("person archive: super administrator count failed:", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		if others == 0 {
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error": "last_super_administrator",
-				"message": "This is the only super administrator. Promote " +
-					"someone else before archiving this account.",
-			})
-		}
-	}
 
 	archived, err := h.Srv.ActorsGRPC.Archive(person.ID, viewer)
 	if err != nil {
+		if isLastSuperAdmin(err) {
+			return refuseLastSuperAdmin(c, "archive")
+		}
 		log.Println("person archive:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -508,30 +482,17 @@ func (h *personHandler) SetEnabled(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	person, err := h.Repos.People.ReadByID(req.ID)
+	person, err := h.fetchPerson(c, req.ID)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	// Disabling the last super administrator locks the site out the same way
-	// deleting or archiving them would — they cannot sign in to undo it.
-	if !*req.Enabled && person.UserType == constants.UserTypeSuperAdmin {
-		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
-		if err != nil {
-			log.Println("person set-enabled: super administrator count failed:", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		if others == 0 {
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error":   "last_super_administrator",
-				"message": "This is the only super administrator and cannot be disabled.",
-			})
-		}
-	}
-
 	changed, err := h.Srv.ActorsGRPC.SetEnabled(person.ID, *req.Enabled, viewer)
 	if err != nil {
+		if isLastSuperAdmin(err) {
+			return refuseLastSuperAdmin(c, "disable")
+		}
 		log.Println("person set-enabled:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -578,7 +539,7 @@ func (h *personHandler) Purge(c echo.Context) error {
 
 	// Super administrators only. Not IsAdmin — an ordinary administrator may
 	// schedule a deletion, which is recoverable; this is not.
-	if viewer == nil || viewer.UserType != constants.UserTypeSuperAdmin {
+	if viewer == nil || viewer.PersonType != constants.PersonTypeSuperAdmin {
 		log.Println("person purge: refused, viewer is not a super administrator")
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -590,7 +551,7 @@ func (h *personHandler) Purge(c echo.Context) error {
 		return stepUpRefusal(c, err)
 	}
 
-	person, err := h.Repos.People.ReadByID(req.ID)
+	person, err := h.fetchPerson(c, req.ID)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -598,25 +559,12 @@ func (h *personHandler) Purge(c echo.Context) error {
 
 	// The same floor deletion has, and for the same reason — more so, since
 	// there is no thirty-day window to notice the mistake in.
-	if person.UserType == constants.UserTypeSuperAdmin {
-		others, err := h.Repos.People.CountOtherActiveSuperAdmins(person.ID)
-		if err != nil {
-			log.Println("person purge: super administrator count failed:", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		if others == 0 {
-			log.Printf("person purge: refused, %d is the last super administrator",
-				person.ID)
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error": "last_super_administrator",
-				"message": "This is the only super administrator. Promote " +
-					"someone else before destroying this account.",
-			})
-		}
-	}
 
 	purged, err := h.Srv.ActorsGRPC.Purge(person.ID, viewer)
 	if err != nil {
+		if isLastSuperAdmin(err) {
+			return refuseLastSuperAdmin(c, "delete")
+		}
 		log.Println("person purge:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -665,7 +613,7 @@ func (h *personHandler) DeletionCounts(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	person, err := h.Repos.People.ReadByID(req.ID)
+	person, err := h.fetchPerson(c, req.ID)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -744,20 +692,51 @@ func (h *personHandler) onAfterFetched(c echo.Context, node *entities.Person) er
 }
 
 // fetchPerson fetches a person by ID and then assigns the actor node
+// readPersonByAlias reads a person by their handle.
+//
+// The handle is nodes.alias now; it used to be people_people.username, kept in
+// step with the alias by whoever remembered to write both. One column, one
+// read, and the graph applies the viewer's access rules to it — which the
+// direct SELECT did not.
+func (h *personHandler) readPersonByAlias(c echo.Context, alias string) (*entities.Person, error) {
+	req := services.NewGraphNodeRequest().ReadByAlias
+	req.Alias = alias
+	req.NodeType = constants.NodeActorPersonEntityType
+
+	node, err := h.Srv.GraphNodeGRPC.ReadByAlias(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Resolved to an id, then read through the access-checked path rather than
+	// returned straight from the alias lookup. NodeService.ReadByAlias takes no
+	// viewer, so it answers the same for everybody; fetchPerson applies the
+	// viewer's rules and presigns the avatar, which every other read of a
+	// person already does.
+	return h.fetchPerson(c, node.ID)
+}
+
 func (h *personHandler) fetchPerson(c echo.Context, id int64) (*entities.Person, error) {
 	viewer := getViewer(c)
 
-	person, err := h.Repos.People.ReadByID(id)
+	// One read, not two stitched together.
+	//
+	// This used to read people_people for the person half, read the actor node
+	// for the other half, and assign one over the other. Everything the first
+	// read returned now lives on the node — name instead of given/family,
+	// alias instead of username, person_type instead of usertype — so the
+	// actor IS the person.
+	//
+	// The stitch also had a failure mode of its own: a people_people row whose
+	// node did not come back left the caller holding a Person with a zero
+	// AnahitaNode rather than an error.
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(id, constants.NodeActorPersonEntityType, viewer)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(person.ID, constants.NodeActorPersonEntityType, viewer)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
+	person := entities.NewPerson()
 	person.AnahitaNode = *actor
 
 	if err := h.onAfterFetched(c, person); err != nil {

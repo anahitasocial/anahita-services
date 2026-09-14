@@ -111,8 +111,8 @@ func (srv *SubscriptionsGRPC) Add(source *entities.AnahitaNode, target *entities
 			Type: target.Type,
 		},
 		Viewer: &graphpb.Viewer{
-			Id:       viewer.ID,
-			UserType: viewer.UserType,
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
 		},
 	})
 	if err != nil {

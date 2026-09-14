@@ -53,6 +53,9 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	query = query.Set("enabled", node.Enabled)
 	query = query.Set("verified", node.Verified)
 	query = query.Set("website_url", node.WebsiteURL)
+	// person_type is deliberately not here: it is an authority level, not a
+	// profile field. See applyEditableActorFields.
+	query = query.Set("person_pronouns", node.PersonPronouns)
 	query = query.Set("pinned", node.Pinned)
 	query = query.Set("is_default", node.IsDefault)
 

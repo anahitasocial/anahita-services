@@ -25,7 +25,7 @@ type Viewer struct {
 	OAuthRefreshTokenID int64
 
 	Enabled       bool      `json:"enabled"`
-	UserType      string    `json:"usertype"`
+	PersonType    string    `json:"usertype"`
 	Email         string    `json:"email"`
 	Username      string    `json:"username"`
 	LastVisitDate time.Time `json:"last_visit_date,omitempty"`
@@ -46,26 +46,26 @@ func NewViewer() *Viewer {
 	v.Type = constants.NodeActorPersonEntityType
 	v.Service = constants.PersonService
 	v.Enabled = false
-	v.UserType = constants.UserTypeGuest
+	v.PersonType = constants.PersonTypeGuest
 	v.LastVisitDate = time.Now()
 
 	return v
 }
 
 func (v *Viewer) IsGuest() bool {
-	return v.UserType == constants.UserTypeGuest
+	return v.PersonType == constants.PersonTypeGuest
 }
 
 func (v *Viewer) IsRegistered() bool {
-	return v.UserType == constants.UserTypeRegistered
+	return v.PersonType == constants.PersonTypeRegistered
 }
 
 func (v *Viewer) IsAdmin() bool {
-	return v.IsSuperAdmin() || v.UserType == constants.UserTypeAdmin
+	return v.IsSuperAdmin() || v.PersonType == constants.PersonTypeAdmin
 }
 
 func (v *Viewer) IsSuperAdmin() bool {
-	return v.UserType == constants.UserTypeSuperAdmin
+	return v.PersonType == constants.PersonTypeSuperAdmin
 }
 
 func (v *Viewer) IsAdminOrSuperAdmin() bool {

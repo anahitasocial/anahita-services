@@ -80,10 +80,10 @@ func (srv *RepostGRPC) Browse(req *RepostBrowseRequest) ([]*entities.AnahitaNode
 		Direction: req.OrderingDir,
 		Ordering:  req.Ordering,
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 	})
 	if err != nil {
@@ -110,10 +110,10 @@ func (srv *RepostGRPC) BrowseAuthors(req *RepostBrowseAuthorsRequest) ([]*entiti
 		Direction: req.OrderingDir,
 		Ordering:  req.Ordering,
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 	})
 	if err != nil {
@@ -160,10 +160,10 @@ func (srv *RepostGRPC) Add(req *RepostAddRequest) (*entities.AnahitaNode, error)
 		Service:  req.Service,
 		Access:   req.Access,
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 	})
 	if err != nil {
@@ -204,10 +204,10 @@ func (srv *RepostGRPC) Count(req *RepostCountRequest) (uint64, error) {
 	resp, err := client.Count(context.Background(), &graphpb.RepostCountRequest{
 		OwnerId: req.OwnerID,
 		Viewer: &graphpb.Viewer{
-			Id:       req.Viewer.ID,
-			UserType: req.Viewer.UserType,
-			Email:    req.Viewer.Email,
-			Username: req.Viewer.Username,
+			Id:         req.Viewer.ID,
+			PersonType: req.Viewer.PersonType,
+			Email:      req.Viewer.Email,
+			Username:   req.Viewer.Username,
 		},
 	})
 	if err != nil {

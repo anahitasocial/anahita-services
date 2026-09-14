@@ -6,6 +6,8 @@ import (
 
 	libs_requests "anahita-libs/requests"
 
+	"auth/requests"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -44,6 +46,46 @@ func (h *isHandler) Totp(c echo.Context) error {
 	}
 
 	if user.TotpEnabled {
+		return c.NoContent(http.StatusOK)
+	}
+
+	return c.NoContent(http.StatusNotFound)
+}
+
+// Username returns whether a username is already taken.
+//
+// 200 taken, 404 free — the same shape as Email beside it.
+//
+// Safe to expose in a way the email check is not: a username IS public. It is
+// the address of a profile, /people/<username> resolves for anybody, and the
+// actor namespace is the thing that makes it so. Confirming one is taken
+// discloses nothing that a single page load does not.
+//
+// Scoped to every actor type, because IsUsername is — a group holding the name
+// makes it unavailable to a person, and saying otherwise here would offer a
+// username the signup then refuses.
+func (h *isHandler) Username(c echo.Context) error {
+	req := &requests.UsernameAvailability{}
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err := c.Validate(req); err != nil {
+		// A malformed username is not an available one. Answering 404 would
+		// have the form say "available" about something that cannot be
+		// registered.
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	taken, err := h.Repos.Users.IsUsername(req.Username)
+	if err != nil {
+		log.Println("is username:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if taken {
 		return c.NoContent(http.StatusOK)
 	}
 

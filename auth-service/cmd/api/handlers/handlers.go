@@ -2,9 +2,12 @@ package handlers
 
 type Handlers struct {
 	AccountDeleted *accountDeletedHandler
+	Agreements     *agreementsHandler
+	Applications   *applicationsHandler
 	Authlog        *authLogHandler
 	EmailChange    *emailChangeHandler
 	Invite         *inviteHandler
+	NodeInfo       *nodeInfoHandler
 	Is             *isHandler
 	OAuth          *oauthHandler
 	Password       *passwordHandler
@@ -20,9 +23,12 @@ type Handlers struct {
 func NewHandlers(env *Env) *Handlers {
 	return &Handlers{
 		AccountDeleted: newAccountDeletedHandler(env),
+		Agreements:     newAgreementsHandler(env),
+		Applications:   newApplicationsHandler(env),
 		Authlog:        newAuthLogHandler(env),
 		EmailChange:    newEmailChangeHandler(env),
 		Invite:         newInviteHandler(env),
+		NodeInfo:       newNodeInfoHandler(env),
 		Is:             newIsHandlers(env),
 		OAuth:          newOAuthHandler(env),
 		Password:       newPasswordHandler(env),

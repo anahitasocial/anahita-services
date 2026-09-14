@@ -23,7 +23,7 @@ func (h *graphHandler) BrowseNeighbours(ctx context.Context, req *graphpb.Browse
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 
 	total, err := h.env.Repos.Graph.CountNeighbours(req, viewer)
 	if err != nil {
@@ -49,7 +49,7 @@ func (h *graphHandler) BrowseConnectionNodes(ctx context.Context, req *graphpb.B
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 
 	total, err := h.env.Repos.Graph.CountConnectionNodes(req, viewer)
 	if err != nil {
@@ -73,7 +73,7 @@ func (h *graphHandler) BrowseOrderedByDegree(ctx context.Context, req *graphpb.B
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 
 	result, err := h.env.Repos.Graph.BrowseOrderedByDegree(req, viewer)
 	if err != nil {
@@ -118,7 +118,7 @@ func (h *graphHandler) Trending(ctx context.Context, req *graphpb.TrendingReques
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 
 	result, err := h.env.Repos.Graph.Trending(req, viewer)
 	if err != nil {

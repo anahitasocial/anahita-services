@@ -24,17 +24,18 @@ import (
 
 // columnsThatMayBeNull are nullable in the schema and scanned into a
 // non-nullable Go type, so each needs COALESCE in the select.
+// Qualified, because the reads join auth_accounts to nodes and several of
+// these names exist on both sides.
 var columnsThatMayBeNull = []string{
-	"given_name",
-	"family_name",
-	"username",
-	"email",
-	"password",
-	"usertype",
-	"service",
-	"filename",
-	"totp_recovery_codes",
-	"totp_secret",
+	"nodes.name",
+	"nodes.alias",
+	"nodes.person_type",
+	"nodes.service",
+	"nodes.filename",
+	"auth_accounts.email",
+	"auth_accounts.password",
+	"auth_accounts.totp_recovery_codes",
+	"auth_accounts.totp_secret",
 }
 
 func TestUserColumnsCoalesceEveryNullableColumn(t *testing.T) {
@@ -46,7 +47,9 @@ func TestUserColumnsCoalesceEveryNullableColumn(t *testing.T) {
 		{"userColumns", userColumns(), nil},
 		// Browse selects no password and no TOTP state.
 		{"userBrowseColumns", userBrowseColumns(), map[string]bool{
-			"password": true, "totp_recovery_codes": true, "totp_secret": true,
+			"auth_accounts.password":            true,
+			"auth_accounts.totp_recovery_codes": true,
+			"auth_accounts.totp_secret":         true,
 		}},
 	} {
 		t.Run(list.name, func(t *testing.T) {
@@ -97,17 +100,22 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 	// never set a password and has no avatar.
 	mock.ExpectQuery("select").WillReturnRows(
 		sqlmock.NewRows([]string{
-			"id", "type", "enabled", "given_name", "family_name", "username",
-			"email", "password", "usertype", "service", "filename",
+			"id", "type", "enabled", "name", "alias",
+			"email", "password", "person_type", "service", "filename",
 			"last_visit_date", "created_on", "modified_on", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",
+			"email_verified_at",
+			"tos_accepted", "tos_accepted_version",
+			"pp_accepted", "pp_accepted_version",
 		}).AddRow(
-			7, "node.actor.person-service.person.v1", true, "", "", "",
+			7, "node.actor.person-service.person.v1", true, "", "",
 			"", "", "", "", "",
 			nil, nil, nil, false,
 			"", time.Now(), "",
 			nil, nil,
+			nil,
+			false, "", false, "",
 		))
 
 	user, err := repo.ReadByEmail("someone@example.com")
@@ -118,9 +126,9 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 	if user.ID != 7 {
 		t.Errorf("ID = %d, want 7", user.ID)
 	}
-	if !user.LastVisitDate.IsZero() {
-		t.Errorf("a NULL last_visit_date became %v; it should stay the zero "+
-			"time, which is what \"never signed in\" means", user.LastVisitDate)
+	if user.LastVisitDate != nil {
+		t.Errorf("a NULL last_visit_date became %v; it should stay nil, which "+
+			"is what \"never signed in\" means", *user.LastVisitDate)
 	}
 }
 
@@ -130,16 +138,16 @@ func TestBrowseSurvivesNullTimestamps(t *testing.T) {
 	repo := &Users{db: db}
 
 	columns := []string{
-		"id", "type", "enabled", "given_name", "family_name", "username",
-		"email", "usertype", "service", "filename",
+		"id", "type", "enabled", "name", "alias",
+		"email", "person_type", "service", "filename",
 		"last_visit_date", "created_on", "modified_on",
 	}
 	mock.ExpectQuery("select").WillReturnRows(
 		sqlmock.NewRows(columns).
-			AddRow(1, "node.actor.person-service.person.v1", true, "Ada", "Lovelace",
+			AddRow(1, "node.actor.person-service.person.v1", true, "Ada Lovelace",
 				"ada", "ada@example.com", "registered", "person-service", "a.png",
 				nil, nil, nil).
-			AddRow(2, "node.actor.person-service.person.v1", true, "", "", "",
+			AddRow(2, "node.actor.person-service.person.v1", true, "", "",
 				"", "", "", "", nil, nil, nil))
 
 	users, err := repo.Browse(&requests.UserBrowseRequest{Limit: 10})
@@ -160,15 +168,20 @@ func TestEmptyPasswordHashIsUnusable(t *testing.T) {
 
 	mock.ExpectQuery("select").WillReturnRows(
 		sqlmock.NewRows([]string{
-			"id", "type", "enabled", "given_name", "family_name", "username",
-			"email", "password", "usertype", "service", "filename",
+			"id", "type", "enabled", "name", "alias",
+			"email", "password", "person_type", "service", "filename",
 			"last_visit_date", "created_on", "modified_on", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",
+			"email_verified_at",
+			"tos_accepted", "tos_accepted_version",
+			"pp_accepted", "pp_accepted_version",
 		}).AddRow(
-			7, "node.actor.person-service.person.v1", true, "", "", "invited",
+			7, "node.actor.person-service.person.v1", true, "", "invited",
 			"invited@example.com", "", "registered", "person-service", "",
 			nil, nil, nil, false, "", time.Now(), "", nil, nil,
+			nil,
+			false, "", false, "",
 		))
 
 	user, err := repo.ReadByEmail("invited@example.com")

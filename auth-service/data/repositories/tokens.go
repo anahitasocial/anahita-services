@@ -27,7 +27,15 @@ type tokens struct {
 }
 
 // Count returns the number of tokens
-func (repo *tokens) Count(tokenType string, req *requests.Browse) (uint64, error) {
+// Count totals the tokens of a type.
+//
+// The `req` it used to take was never read — it counted every token of the
+// type regardless of what was passed. That is correct for the one caller, the
+// pagination total beside a Browse that filters on nothing else, but a
+// function that accepts a filter and ignores it is a trap: the next caller to
+// pass one gets a number answering a different question, silently. The
+// parameter is gone rather than documented.
+func (repo *tokens) Count(tokenType string) (uint64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -52,6 +60,36 @@ func (repo *tokens) Count(tokenType string, req *requests.Browse) (uint64, error
 		return 0, err
 	}
 	return numRows, nil
+}
+
+// CountPendingFrom totals the invitations one person has outstanding.
+//
+// Pending means issued by them, not yet used, and not yet expired. All three
+// are needed: a used or expired invitation costs its issuer nothing, which is
+// what makes the cap self-healing — a slot frees when somebody accepts, when
+// a link lapses, and when it is revoked.
+//
+// Expiry is computed rather than stored. `status` is derived in the entity,
+// not a column, so the window has to be reconstructed here — start_time plus
+// expired_after seconds, against now.
+func (repo *tokens) CountPendingFrom(tokenType string, personID int64) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		SELECT COUNT(*)
+		FROM tokens
+		WHERE type = ?
+		  AND created_by = ?
+		  AND is_used = 0
+		  AND DATE_ADD(start_time, INTERVAL expired_after SECOND) > NOW()`
+
+	var count int
+	if err := repo.db.QueryRowContext(ctx, query, tokenType, personID).Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 // Browse returns a list of tokens
@@ -111,14 +149,10 @@ func (repo *tokens) Browse(tokenType string, req *requests.Browse) ([]*entities.
 			&token.UpdatedBy,
 			&token.Creator.ID,
 			&token.Creator.Type,
-			&token.Creator.GivenName,
-			&token.Creator.FamilyName,
-			&token.Creator.Email,
+			&token.Creator.Name,
 			&token.Editor.ID,
 			&token.Editor.Type,
-			&token.Editor.GivenName,
-			&token.Editor.FamilyName,
-			&token.Editor.Email,
+			&token.Editor.Name,
 		); err != nil {
 			return nil, err
 		}

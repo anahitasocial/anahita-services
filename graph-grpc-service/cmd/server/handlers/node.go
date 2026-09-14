@@ -25,7 +25,7 @@ func (h *nodeHandler) Browse(ctx context.Context, req *graphpb.NodeBrowseRequest
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -137,7 +137,7 @@ func (h *nodeHandler) Count(ctx context.Context, req *graphpb.NodeCountRequest) 
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -261,7 +261,7 @@ func (h *nodeHandler) BrowseMutualConnections(ctx context.Context, req *graphpb.
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -286,7 +286,7 @@ func (h *nodeHandler) CountConnections(ctx context.Context, req *graphpb.CountCo
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
@@ -309,7 +309,7 @@ func (h *nodeHandler) ReadConnectionStats(ctx context.Context, req *graphpb.Read
 
 	viewer := entities.NewViewer()
 	viewer.ID = req.Viewer.Id
-	viewer.UserType = req.Viewer.UserType
+	viewer.PersonType = req.Viewer.PersonType
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 

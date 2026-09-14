@@ -53,12 +53,12 @@ func logRequest(rpc, from string, to, cc, bcc []string, subject, template string
 // Returns the recipients to send to and the subject to send, so the caller
 // cannot apply one without the other.
 //
-// THE ORIGINAL RECIPIENTS GO INTO THE SUBJECT. protect-services drops them, and
-// the result is an inbox full of identical-looking messages with no way to tell
-// which one was meant for whom — which matters most for the flows that mail
-// several different people, like the invite notifier that writes to every
-// administrator in turn. A subject prefix survives both RPCs and needs no
-// provider-specific header support.
+// THE ORIGINAL RECIPIENTS GO INTO THE SUBJECT. Dropping them gives an inbox
+// full of identical-looking messages with no way to tell which one was meant
+// for whom — which matters most for the flows that mail several different
+// people, like the invite notifier that writes to every administrator in turn.
+// A subject prefix survives both RPCs and needs no provider-specific header
+// support.
 //
 // Note this COLLAPSES rather than fans out: a message addressed to five people
 // becomes one message, not five.

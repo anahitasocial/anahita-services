@@ -1,6 +1,7 @@
 package services
 
 import (
+	libs_entities "anahita-libs/data/entities"
 	"slices"
 	"strings"
 	"testing"
@@ -112,7 +113,7 @@ func TestAvailableScopesForConsent(t *testing.T) {
 	}
 
 	t.Run("registered user is downscoped, not errored", func(t *testing.T) {
-		user := &entities.User{UserType: libs_constants.UserTypeRegistered}
+		user := &entities.User{AnahitaNode: libs_entities.AnahitaNode{PersonType: libs_constants.PersonTypeRegistered}}
 		got := s.AvailableScopesForConsent(client, user)
 
 		for _, denied := range []string{libs_constants.OAuthScopeOAuthRead, libs_constants.OAuthScopeOAuthWrite} {
@@ -128,7 +129,7 @@ func TestAvailableScopesForConsent(t *testing.T) {
 	})
 
 	t.Run("super admin keeps everything", func(t *testing.T) {
-		user := &entities.User{UserType: libs_constants.UserTypeSuperAdmin}
+		user := &entities.User{AnahitaNode: libs_entities.AnahitaNode{PersonType: libs_constants.PersonTypeSuperAdmin}}
 		if got := s.AvailableScopesForConsent(client, user); len(got) != len(client.Scopes) {
 			t.Errorf("super admin got %d scopes, want all %d", len(got), len(client.Scopes))
 		}
@@ -139,7 +140,7 @@ func TestAvailableScopesForConsent(t *testing.T) {
 	t.Run("unknown scope on the client row is skipped", func(t *testing.T) {
 		stale := *client
 		stale.Scopes = entities.StringSlice{libs_constants.OAuthScopeOpenID, "retired:scope"}
-		got := s.AvailableScopesForConsent(&stale, &entities.User{UserType: libs_constants.UserTypeRegistered})
+		got := s.AvailableScopesForConsent(&stale, &entities.User{AnahitaNode: libs_entities.AnahitaNode{PersonType: libs_constants.PersonTypeRegistered}})
 		if slices.Contains(got, "retired:scope") {
 			t.Error("an unknown scope survived consent filtering")
 		}

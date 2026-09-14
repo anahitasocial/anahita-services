@@ -21,7 +21,7 @@ const (
 	// Two verbs: given name, family name.
 	ReauthLockedOutSubject = "Someone is trying to confirm your {{site}} password"
 	ReauthLockedOutTitle   = "Too many verification attempts"
-	ReauthLockedOutBody    = "Hello %s %s, there have been several failed attempts to confirm the password on your {{site}} account. These attempts came from a device that is already signed in, so if this was not you, someone else has access to your account right now. Open your security settings, review the list of active sessions, and sign out any you do not recognise. Then change your password. If you cannot get in, contact support."
+	ReauthLockedOutBody    = "Hello %s, there have been several failed attempts to confirm the password on your {{site}} account. These attempts came from a device that is already signed in, so if this was not you, someone else has access to your account right now. Open your security settings, review the list of active sessions, and sign out any you do not recognise. Then change your password. If you cannot get in, contact support."
 
 	ReauthLockedOutActionLabel = "Review active sessions"
 )

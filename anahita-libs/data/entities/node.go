@@ -77,7 +77,28 @@ type AnahitaNode struct {
 	// WebsiteURL is one link on an actor profile. Validated to http(s) before
 	// it is stored — it is rendered as an anchor href, so a javascript: or
 	// data: value would be stored XSS.
-	WebsiteURL         string
+	WebsiteURL string
+	// PersonType is the authority a person holds on the installation: guest,
+	// registered, administrator or super-administrator
+	// (constants.PersonType*). Meaningful only on person nodes.
+	//
+	// Named for the node rather than for auth. The graph owns the person; a
+	// "user" is an auth concept, and that word is kept for protocol surface an
+	// external specification names that way.
+	PersonType string
+	// PersonPronouns is free text — "she/her", "iel", or empty. Never an enum:
+	// an enum hard-codes English grammar and is meaningless in Persian,
+	// Turkish or Finnish, which have no gendered third-person pronoun. Display
+	// only, never read for logic.
+	PersonPronouns string
+	// LastVisitDate is nil for a person who has never signed in.
+	//
+	// A pointer for the same reason DeletedAt is one: the column is nullable,
+	// and a zero time is a value rather than an absence. Scanning NULL into a
+	// time.Time fails outright — "unsupported Scan, storing driver.Value type
+	// <nil>" — which is how twenty-one people became unreadable the moment
+	// their legacy '0000-00-00' was normalised to NULL.
+	LastVisitDate      *time.Time
 	Pinned             bool
 	IsDefault          bool
 	Meta               json.RawMessage
