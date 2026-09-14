@@ -18,6 +18,25 @@
     <form method="POST" action="/signup" novalidate>
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
+        <!-- A field no person can see, and no person should fill. Its name
+             comes from the handler so the two cannot drift apart.
+
+             NOT type="hidden": a bot skipping hidden inputs would skip this,
+             and the point is that a naive one fills every text field it finds.
+             autocomplete is off so a password manager does not fill it on a
+             real person's behalf. -->
+        <div class="no-fill" aria-hidden="true">
+            <label for="{{.HoneypotField}}">Leave this field empty</label>
+            <input
+                type="text"
+                id="{{.HoneypotField}}"
+                name="{{.HoneypotField}}"
+                value=""
+                tabindex="-1"
+                autocomplete="off"
+            >
+        </div>
+
         <!-- "Username", not "handle".
              Mastodon's signup says username, and so does every one of the 115
              places this codebase names the same thing — ReadByUsername,

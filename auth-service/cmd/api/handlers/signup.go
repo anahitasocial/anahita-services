@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -73,7 +74,33 @@ func newSignupHandler(env *Env) *signupHandler {
 //   - Signing up can end signed in, in one step, because the IdP session is
 //     written here. It used to sign you up and then ask you to sign in.
 
-const sessionKeySignupCSRF = "signup_csrf_token"
+const (
+	sessionKeySignupCSRF = "signup_csrf_token"
+
+	// sessionKeySignupRendered is when the form was handed out, so the
+	// submission can be timed.
+	sessionKeySignupRendered = "signup_rendered_at"
+)
+
+// minimumSignupSeconds is how quickly a submission is assumed to be scripted.
+//
+// Two, not the five or ten often suggested. Somebody with a password manager
+// clicks the username field, has all three filled for them, and submits — that
+// is a real person and it can take under three seconds. A threshold that
+// catches them is worse than one a fast bot slips under, because the bot will
+// simply wait and the person cannot.
+//
+// It is a floor on machine speed, not a measure of human care.
+const minimumSignupSeconds = 2
+
+// honeypotField is a field no person can see and no person should fill.
+//
+// Named for something a naive bot expects on a signup form and fills because
+// it is there. Deliberately NOT "website" or "url", which password managers
+// and browser autofill will happily complete on a real person's behalf — a
+// honeypot that catches the people using a password manager is a trap for the
+// wrong species.
+const honeypotField = "company_role"
 
 // Form renders the signup page.
 //
@@ -96,9 +123,55 @@ func (h *signupHandler) Form(c echo.Context) error {
 			"We could not start the sign-up form. Please try again.")
 	}
 
+	// When the form was handed out, kept server-side.
+	//
+	// Not a hidden field: a timestamp the client holds is a timestamp the
+	// client chooses, and a bot would simply send one from two seconds ago.
+	// The session already exists for the CSRF token, so this costs nothing.
+	if _, err := h.Session.Add(c, sessionKeySignupRendered,
+		strconv.FormatInt(time.Now().Unix(), 10)); err != nil {
+		log.Println("signup: could not store the render time:", err)
+	}
+
 	return h.renderTemplate(c, "signup.html", map[string]any{
-		"CSRFToken": token,
+		"CSRFToken":     token,
+		"HoneypotField": honeypotField,
 	})
+}
+
+// looksAutomated reports whether a submission was not made by a person at the
+// form, and says which signal fired.
+//
+// Two signals, both free and neither of them a puzzle: a field no person can
+// see, and a submission faster than a person can type. Together they stop the
+// naive majority; neither pretends to stop a determined one, which is what the
+// registration modes are for.
+func (h *signupHandler) looksAutomated(c echo.Context) (bool, string) {
+	// The honeypot. Anything at all in it, including whitespace.
+	if value := strings.TrimSpace(c.FormValue(honeypotField)); value != "" {
+		return true, "honeypot"
+	}
+
+	renderedAt, err := h.Session.Read(c, sessionKeySignupRendered)
+	if err != nil || renderedAt == "" {
+		// No render time means the session was lost or the POST never went
+		// through the form. Not treated as automated on its own: the CSRF
+		// check already refuses a submission with no session behind it, and
+		// double-refusing here would turn an expired cookie into a silent
+		// failure.
+		return false, ""
+	}
+
+	seconds, err := strconv.ParseInt(renderedAt, 10, 64)
+	if err != nil {
+		return false, ""
+	}
+
+	if time.Now().Unix()-seconds < minimumSignupSeconds {
+		return true, "too fast"
+	}
+
+	return false, ""
 }
 
 // registrationRefusal returns a rendered refusal when this installation does
@@ -163,6 +236,47 @@ func (h *signupHandler) Add(c echo.Context) error {
 		log.Println("signup: CSRF token did not match")
 		return h.renderError(c, "Session Expired",
 			"This form has expired. Please start again.")
+	}
+
+	// The two automated signals, after CSRF and before anything is created.
+	//
+	// They answer DIFFERENTLY, and that is deliberate — their false positives
+	// are not comparable.
+	//
+	// The honeypot answers with success and creates nothing. No person can
+	// fill a field they cannot see, so a false positive is close to
+	// impossible, and telling a bot which field gave it away just gets the
+	// field skipped next time.
+	//
+	// The timing check answers with an error a person can act on. A false
+	// positive IS possible here — somebody with a password manager is fast —
+	// and answering with a silent success would leave a real person waiting
+	// for an email that is never coming, with nothing on screen to suggest
+	// anything went wrong. A bot learns that a floor exists and pays another
+	// round trip; that is a much cheaper leak than losing a member.
+	if automated, signal := h.looksAutomated(c); automated {
+		log.Printf("signup: refused as automated (%s)", signal)
+
+		if signal == "honeypot" {
+			return h.renderTemplate(c, "signup_confirm_sent.html", map[string]any{
+				"Email": req.Email,
+			})
+		}
+
+		return h.renderSignupError(c,
+			"That was submitted a little too quickly. Please try again.")
+	}
+
+	// Metered on the source address and on its subnet, before anything is
+	// created and before any mail is sent. The subnet counter is the one that
+	// sees a caller spending a fresh address per account.
+	clientIP := getClientIP(c)
+	if h.rateLimitExceeded(rateLimitScopeSignupIP, clientIP) ||
+		h.rateLimitExceeded(rateLimitScopeSignupSubnet, signupSubnet(clientIP)) {
+		log.Println("signup: rate limited")
+		return h.renderSignupError(c,
+			"Too many accounts have been created from your network recently. "+
+				"Please try again later.")
 	}
 
 	if err := c.Validate(req); err != nil {
@@ -391,9 +505,19 @@ func (h *signupHandler) renderSignupError(c echo.Context, message string) error 
 		return h.renderError(c, "Something Went Wrong", message)
 	}
 
+	// The render time is refreshed with the token. Without it a retry is timed
+	// from the FIRST render, which would pass trivially — and a person
+	// correcting one character would sail past a check that is supposed to
+	// apply to every submission.
+	if _, err := h.Session.Add(c, sessionKeySignupRendered,
+		strconv.FormatInt(time.Now().Unix(), 10)); err != nil {
+		log.Println("signup: could not store the render time:", err)
+	}
+
 	return h.renderTemplate(c, "signup.html", map[string]any{
-		"CSRFToken": token,
-		"Error":     message,
+		"CSRFToken":     token,
+		"HoneypotField": honeypotField,
+		"Error":         message,
 	})
 }
 

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"net"
 	"time"
 
 	"anahita-libs/sessions"
@@ -87,6 +88,25 @@ const (
 	// Unauthenticated and it sends mail, so without a limit it is a way to
 	// flood the inbox of anybody who has an unconfirmed account here.
 	rateLimitScopeSignupConfirm rateLimitScope = "signup_confirm_email"
+
+	// rateLimitScopeSignupIP caps accounts created from one address.
+	//
+	// Signup is unauthenticated and sends mail, so the source address is the
+	// only subject there is to meter. Nothing else about a caller is known at
+	// this point — that is the whole difficulty of the endpoint.
+	rateLimitScopeSignupIP rateLimitScope = "signup_ip"
+
+	// rateLimitScopeSignupSubnet caps accounts created from one NETWORK.
+	//
+	// The per-address counter cannot see the case it exists for: a caller with
+	// a range to spend walks one address per account and never trips it. A /24
+	// and a /64 are the smallest blocks routinely allocated to one customer,
+	// so this meters roughly "one subscriber" without reaching across an ISP.
+	//
+	// Looser than the per-address budget rather than tighter, because a
+	// university, an office or a mobile carrier NAT legitimately shares one
+	// block — the point is to bound a farm, not to punish a shared exit.
+	rateLimitScopeSignupSubnet rateLimitScope = "signup_subnet"
 )
 
 type rateLimit struct {
@@ -127,6 +147,40 @@ var rateLimits = map[rateLimitScope]rateLimit{
 	// three is enough for a link that went to spam, and few enough that the
 	// endpoint is not a mail cannon.
 	rateLimitScopeSignupConfirm: {max: 3, window: time.Hour},
+
+	// Three accounts an hour from one address covers a family, a couple
+	// sharing a laptop, and somebody who mistyped their email twice. It does
+	// not cover a script.
+	rateLimitScopeSignupIP: {max: 3, window: time.Hour},
+
+	// Ten an hour across a whole /24 or /64. High enough that an office or a
+	// carrier NAT is not the thing that trips it, low enough that a range
+	// walked one address at a time still runs out.
+	rateLimitScopeSignupSubnet: {max: 10, window: time.Hour},
+}
+
+// signupSubnet reduces an address to the block it sits in, so a caller
+// spending one address per account is still counted together.
+//
+// /24 for IPv4 and /64 for IPv6: the smallest blocks routinely allocated to a
+// single customer. Going wider reaches across an ISP and meters strangers;
+// going narrower is the per-address counter again.
+//
+// An address that does not parse returns "", which rateLimitExceeded treats as
+// "nothing to key on" and does not count — the right answer, since lumping
+// every unparseable caller into one bucket would let them exhaust a budget on
+// everybody's behalf.
+func signupSubnet(ip string) string {
+	parsed := net.ParseIP(ip)
+	if parsed == nil {
+		return ""
+	}
+
+	if v4 := parsed.To4(); v4 != nil {
+		return v4.Mask(net.CIDRMask(24, 32)).String() + "/24"
+	}
+
+	return parsed.Mask(net.CIDRMask(64, 128)).String() + "/64"
 }
 
 func rateLimitKey(scope rateLimitScope, subject string) string {

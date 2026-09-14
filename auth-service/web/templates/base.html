@@ -197,6 +197,29 @@
             color: var(--mui-text-disabled);
         }
 
+        /* The honeypot. Removed from the page for everybody who renders CSS,
+           which is every person and not every bot.
+
+           Positioned off-screen rather than display:none or visibility:hidden.
+           Those two are the first things a scraper checks for, and some
+           browsers skip a display:none field on submit entirely — which would
+           make the trap invisible to the server as well as to the reader.
+
+           aria-hidden and tabindex=-1 keep it away from screen readers and
+           from tab order, so nobody using assistive technology can land in it
+           by accident. A honeypot that catches them is a trap for the wrong
+           species. */
+        .no-fill {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+        }
+
         /* Availability feedback, shown beside the username as it is typed. */
         .helper-text.is-taken {
             color: var(--mui-error-fg);
