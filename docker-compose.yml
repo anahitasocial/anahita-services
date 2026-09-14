@@ -83,6 +83,11 @@ services:
       SITE_NAME: ${SITE_NAME:-}
       SYSTEM_EMAIL: ${SYSTEM_EMAIL}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL}
+      # The rest of the contact details on the public /support page. Both
+      # optional — plenty of installations have no phone line. Published through
+      # NodeInfo, so changing one is a restart and not a frontend rebuild.
+      SUPPORT_PHONE: ${SUPPORT_PHONE:-}
+      SUPPORT_WEBSITE: ${SUPPORT_WEBSITE:-}
       # Label authenticator apps show for 2FA entries. Optional —
       # unset, it is derived from DOMAIN_NAME (with a "Staging" suffix
       # on staging, so the two environments are distinguishable in an

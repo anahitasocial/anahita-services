@@ -166,6 +166,21 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			"privacyPolicyUrl":      h.Config.GetPrivacyURL(),
 			"termsOfServiceVersion": h.Config.GetTosVersion(),
 			"privacyPolicyVersion":  h.Config.GetPrivacyVersion(),
+
+			// How to reach a person. Published here, rather than baked into
+			// the web app as REACT_APP_ variables, for two reasons:
+			//
+			//   - a REACT_APP_ variable is compiled into the bundle, so
+			//     changing the support address would mean rebuilding and
+			//     redeploying the frontend. Here it is a restart;
+			//   - SUPPORT_EMAIL is already the address the transactional
+			//     emails use, and one setting cannot disagree with itself.
+			//
+			// Empty values are sent as empty rather than omitted, so a
+			// client can tell "not configured" from "field unknown".
+			"supportEmail":   h.Config.GetSupportEmail(),
+			"supportPhone":   h.Config.GetSupportPhone(),
+			"supportWebsite": h.Config.GetSupportWebsite(),
 		},
 	})
 }

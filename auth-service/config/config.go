@@ -155,6 +155,12 @@ type Config struct {
 	TosURL         string
 	PrivacyURL     string
 
+	// SupportPhone and SupportWebsite complete the contact details published
+	// for the public support page. SupportEmail, above, is required; these two
+	// are not — plenty of installations have no phone line.
+	SupportPhone   string
+	SupportWebsite string
+
 	// InvitesFrom is who may issue an invitation, and InvitePendingMax* cap
 	// how many may be outstanding at once. See bootstrap.go.
 	InvitesFrom           string

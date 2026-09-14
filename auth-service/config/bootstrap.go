@@ -23,8 +23,8 @@ const (
 	// documents from today. Overridable, because where the terms live is a
 	// deployment's decision — a path when they are pages of the app, or a
 	// whole URL when legal keeps them somewhere else entirely.
-	defaultTosPath     = "/pages/tos"
-	defaultPrivacyPath = "/pages/privacy"
+	defaultTosPath     = "/legal/tos"
+	defaultPrivacyPath = "/legal/privacy"
 
 	// defaultAgreementVersion is what an installation runs on until the
 	// operator sets one. It is a real version rather than an empty string so
@@ -223,6 +223,21 @@ func (config *Config) GetInvitePendingMax(isAdmin bool) int {
 	return constants.DefaultInvitePendingMax
 }
 
+// GetSupportEmail returns the address people are told to write to.
+func (config *Config) GetSupportEmail() string {
+	return strings.TrimSpace(config.SupportEmail)
+}
+
+// GetSupportPhone returns the support phone number, or "" when there is none.
+func (config *Config) GetSupportPhone() string {
+	return strings.TrimSpace(config.SupportPhone)
+}
+
+// GetSupportWebsite returns the support site, or "" when there is none.
+func (config *Config) GetSupportWebsite() string {
+	return strings.TrimSpace(config.SupportWebsite)
+}
+
 // GetSuperAdminEmail returns the address the first super administrator is
 // seeded against, or "" when the operator has not set one.
 //
@@ -259,6 +274,8 @@ func (config *Config) bootstrapFromEnv() {
 	config.TosVersion = getEnv("TOS_VERSION", defaultAgreementVersion)
 	config.PrivacyVersion = getEnv("PRIVACY_VERSION", defaultAgreementVersion)
 	config.RegistrationMode = os.Getenv("REGISTRATION_MODE")
+	config.SupportPhone = os.Getenv("SUPPORT_PHONE")
+	config.SupportWebsite = os.Getenv("SUPPORT_WEBSITE")
 	config.InvitesFrom = os.Getenv("INVITES_FROM")
 	config.InvitePendingMax = getIntEnv("INVITE_PENDING_MAX", 0)
 	config.InvitePendingMaxAdmin = getIntEnv("INVITE_PENDING_MAX_ADMIN", 0)

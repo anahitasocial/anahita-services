@@ -28,7 +28,7 @@ func TestAgreementURLs(t *testing.T) {
 	}{
 		{
 			name: "unset", configured: "",
-			want:    frontend + "/pages/tos",
+			want:    frontend + "/legal/tos",
 			because: "an installation that sets nothing still needs a working link",
 		},
 		{
@@ -81,7 +81,7 @@ func TestTheTwoAgreementsAreConfiguredSeparately(t *testing.T) {
 
 	config.PrivacyURL = "https://legal.example.org/privacy"
 
-	if config.GetTosURL() != "https://example.org/pages/tos" {
+	if config.GetTosURL() != "https://example.org/legal/tos" {
 		t.Errorf("setting the privacy URL moved the terms URL to %q", config.GetTosURL())
 	}
 	if config.GetPrivacyURL() != "https://legal.example.org/privacy" {
