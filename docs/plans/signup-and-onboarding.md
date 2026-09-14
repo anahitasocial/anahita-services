@@ -46,7 +46,7 @@ go, an operator asking for approval would get open registration on an
 installation they believe is gated, and nothing would look wrong. The guard is
 in `validateBootstrap` and its test says to remove both when the queue exists.
 | 6a. Invite rate limits | ✅ | — | `3f9c978` |
-| 6b. `INVITES_FROM` + pending cap | ⬜ | 1 | |
+| 6b. `INVITES_FROM` + pending cap | ✅ | 1 | `cd4a520` |
 | 7. Agreements checked at every sign-in | ⛔ | real ToS text | |
 | 8. Display name becomes optional | ✅ | — | `d6ce390` (react) |
 | 9. Onboarding | ⬜ | separate plan | |
@@ -57,7 +57,7 @@ invitation always returned 500, and a permission failure answered 402.
 
 ### Order, and why
 
-**~~1~~ → ~~8~~ → ~~2~~ → ~~3~~ → 6b → 4 → 5 → 7**
+**~~1~~ → ~~8~~ → ~~2~~ → ~~3~~ → ~~6b~~ → 4 → 5 → 7**
 
 - **1 first** because 2, 5 and 6b all read the mode.
 - **8 before 2.** Signup stops collecting a display name in item 2, so the
