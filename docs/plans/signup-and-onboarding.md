@@ -37,19 +37,17 @@ completeness is onboarding, not a gate.
 | 2. Signup moves to auth-service | ✅ | 1, 8 | `225b72c` |
 | 3. Email verification | ✅ | — | `3ab5bef` |
 | 4. Anti-bot baseline | ✅ | 2 | `9e44f96` |
-| 5. Approval queue (backend only) | ⬜ | 1, 2, 3 | |
-
-**`approval` refuses to boot until item 5 lands.** The predicates already
-answer correctly and signup already treats an applicant as permitted — which is
-right, and is exactly why it cannot ship yet: with nowhere for an application to
-go, an operator asking for approval would get open registration on an
-installation they believe is gated, and nothing would look wrong. The guard is
-in `validateBootstrap` and its test says to remove both when the queue exists.
+| 5. Approval queue (backend only) | ✅ | 1, 2, 3 | `19c7c18` |
 | 6a. Invite rate limits | ✅ | — | `3f9c978` |
 | 6b. `INVITES_FROM` + pending cap | ✅ | 1 | `cd4a520` |
 | 7. Agreements checked at every sign-in | ⛔ | real ToS text | |
 | 8. Display name becomes optional | ✅ | — | `d6ce390` (react) |
 | 9. Onboarding | ⬜ | separate plan | |
+
+**`approval` boots now.** It refused to while there was nowhere for an
+application to go — an operator asking for approval would have got open
+registration on a site they believed was gated. The guard and its test are
+gone with the queue that made them unnecessary.
 
 Landed alongside, because they stood on their own: configurable agreement URLs
 (`4534831`), and the two invite bugs that item 6a's work exposed — sending an
@@ -57,7 +55,7 @@ invitation always returned 500, and a permission failure answered 402.
 
 ### Order, and why
 
-**~~1~~ → ~~8~~ → ~~2~~ → ~~3~~ → ~~6b~~ → ~~4~~ → 5 → 7**
+**~~1~~ → ~~8~~ → ~~2~~ → ~~3~~ → ~~6b~~ → ~~4~~ → ~~5~~ → 7**
 
 - **1 first** because 2, 5 and 6b all read the mode.
 - **8 before 2.** Signup stops collecting a display name in item 2, so the
