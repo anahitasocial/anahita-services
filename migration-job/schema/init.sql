@@ -205,6 +205,10 @@ CREATE TABLE auth_accounts (
     `totp_recovery_codes`   mediumtext DEFAULT NULL,
     `totp_last_verified_at` datetime DEFAULT NULL,
 
+    -- When the address was confirmed. NULL means it has not been, and an
+    -- unverified account cannot sign in.
+    `email_verified_at`     datetime DEFAULT NULL,
+
     -- Terms of Service acceptance. The version sits alongside the timestamp so
     -- a revision can re-prompt only those on an older one, and the
     -- ip/user_agent/os trio is what makes the record evidential rather than

@@ -128,6 +128,7 @@ func userRow() *sqlmock.Rows {
 		"last_visit_date", "created_on", "modified_on", "totp_enabled",
 		"totp_recovery_codes", "totp_last_verified_at", "totp_secret", "deleted_at",
 		"archived_at",
+		"email_verified_at",
 		"tos_accepted", "tos_accepted_version",
 		"pp_accepted", "pp_accepted_version",
 	}).AddRow(
@@ -136,6 +137,7 @@ func userRow() *sqlmock.Rows {
 		time.Now(), time.Now(), time.Now(), false,
 		"", time.Now(), "", nil,
 		nil,
+		time.Now(),
 		true, "1.0", true, "1.0",
 	)
 }

@@ -8,4 +8,9 @@ const (
 	SignupTitle       = "Welcome to {{site}}"
 	SignupBody        = "Hi %s, thanks for signing up to {{site}}. Your account is ready to use."
 	SignupActionLabel = "Get started"
+
+	SignupConfirmSubject     = "Confirm your email address"
+	SignupConfirmTitle       = "Confirm your email address"
+	SignupConfirmBody        = "Hi %s, please confirm this is your email address so you can sign in to {{site}}. This link expires in 24 hours."
+	SignupConfirmActionLabel = "Confirm my email"
 )

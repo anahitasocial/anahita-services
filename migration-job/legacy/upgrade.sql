@@ -777,6 +777,10 @@ CREATE TABLE auth_accounts (
     `totp_enabled`          tinyint(1) NOT NULL DEFAULT 0,
     `totp_recovery_codes`   mediumtext DEFAULT NULL,
     `totp_last_verified_at` datetime DEFAULT NULL,
+
+    -- When the address was confirmed. NULL means it has not been, and an
+    -- unverified account cannot sign in.
+    `email_verified_at`     datetime DEFAULT NULL,
     `tos_accepted`            tinyint(1) NOT NULL DEFAULT 0,
     `tos_accepted_at`         datetime     DEFAULT NULL,
     `tos_accepted_version`    varchar(20)  DEFAULT NULL,

@@ -76,6 +76,13 @@ func (r *Routes) Init(e *echo.Echo) {
 	e.GET("/signup", h.Signup.Form)
 	e.POST("/signup", h.Signup.Add)
 
+	// Email confirmation. Public and token-gated, like the password reset
+	// pages beside it — the person arrives from a link in their mailbox, on a
+	// device that may hold no session at all.
+	e.GET("/signup/confirm", h.Signup.Confirm)
+	e.GET("/signup/confirm/resend", h.Signup.ResendForm)
+	e.POST("/signup/confirm/resend", h.Signup.Resend)
+
 	// The agreement versions the signup form has to send back with an
 	// acceptance. Public: the page that reads it belongs to somebody who does
 	// not have an account yet.

@@ -31,6 +31,13 @@ type User struct {
 	Email    string `json:"email"`
 	Password string `json:"-"`
 
+	// EmailVerifiedAt is when control of the address was proved, and nil when
+	// it has not been.
+	//
+	// A pointer, so "never" is expressible. A zero time would be both a
+	// fabricated date and, to MySQL under a strict sql_mode, '0000-00-00'.
+	EmailVerifiedAt *time.Time `json:"-"`
+
 	// TOTP fields
 	TotpSecret         string
 	TotpRecoveryCodes  string
@@ -98,6 +105,22 @@ func (u *User) Validate() error {
 	}
 
 	return nil
+}
+
+// IsEmailVerified reports whether this account has proved control of its
+// address.
+//
+// An unverified account cannot sign in. Anything softer is a verification step
+// people learn to ignore — and the address is what password reset delivers to,
+// so an unverified one is a reset link pointed at somebody else's inbox.
+func (u *User) IsEmailVerified() bool {
+	return u.EmailVerifiedAt != nil
+}
+
+// MarkEmailVerified stamps the address as confirmed, now.
+func (u *User) MarkEmailVerified() {
+	now := time.Now()
+	u.EmailVerifiedAt = &now
 }
 
 func (u *User) IsGuest() bool {

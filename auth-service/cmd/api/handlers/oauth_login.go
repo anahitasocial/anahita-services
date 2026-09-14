@@ -152,6 +152,25 @@ func (h *oauthHandler) AddCredentials(c echo.Context) error {
 		return h.renderLoginError(c, "Invalid email or password.")
 	}
 
+	// An unverified address cannot sign in.
+	//
+	// Told plainly, unlike the disabled case above, and the difference is
+	// deliberate. "Disabled" is withheld because distinguishing it from a
+	// wrong password turns any leaked credential dump into a membership
+	// check. This reveals nothing of the sort: the person has just proved
+	// they know the password, so they are the account holder, and the only
+	// thing left to tell them is the one thing they can act on.
+	//
+	// Placed after the password check so it cannot be used to probe. Without
+	// the password, "confirm your email" and "wrong password" would be two
+	// distinguishable answers to a guess.
+	if !user.IsEmailVerified() {
+		log.Printf("login: rejected unverified address (user=%d)", user.ID)
+		return h.renderLoginError(c,
+			"Please confirm your email address before signing in. "+
+				"Check your inbox, or request a new link at /signup/confirm/resend")
+	}
+
 	// Branch on TOTP enrollment.
 	if user.TotpEnabled {
 		state := pendingTOTPState{

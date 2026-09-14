@@ -1,0 +1,28 @@
+{{define "title"}}Check your email{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Check your email</h2>
+
+    <p>
+        {{if .Email}}We've sent a confirmation link to <strong>{{.Email}}</strong>.{{else}}We've sent you a confirmation link.{{end}}
+        Follow it to finish setting up your account.
+    </p>
+
+    <!-- Said plainly rather than left to be discovered at the sign-in form.
+         Somebody who closes this page believing the account is ready comes
+         back later, is refused, and has no idea why. -->
+    <div class="notice">
+        <p>You won't be able to sign in until your address is confirmed.</p>
+    </div>
+
+    <p class="helper-text">
+        The link expires in 24 hours. If it doesn't arrive, check your spam
+        folder, then <a href="/signup/confirm/resend" class="text-link">request another one</a>.
+    </p>
+</div>
+{{end}}

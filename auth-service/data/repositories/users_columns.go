@@ -63,6 +63,9 @@ func userColumns() []string {
 		// "who accepted it, and from where", which is asked by a person
 		// looking at a row and never by the code — so they are written and not
 		// carried through every read.
+		// Nullable, and scanned as one: NULL means the address was never
+		// confirmed, which is a state the sign-in path acts on.
+		"auth_accounts.email_verified_at",
 		"auth_accounts.tos_accepted",
 		"COALESCE(auth_accounts.tos_accepted_version, '') AS tos_accepted_version",
 		"auth_accounts.pp_accepted",
@@ -83,7 +86,7 @@ func scanUser(row rowScanner) (*entities.User, error) {
 	// Nullable timestamps. The entity holds plain time.Time values, so a NULL
 	// becomes the zero time — which is what "never signed in" looks like
 	// everywhere else in the codebase.
-	var lastVisit, createdOn, modifiedOn sql.NullTime
+	var lastVisit, createdOn, modifiedOn, emailVerified sql.NullTime
 
 	if err := row.Scan(
 		&item.ID,
@@ -105,6 +108,7 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		&item.TotpSecret,
 		&item.DeletedAt,
 		&item.ArchivedAt,
+		&emailVerified,
 		&item.TermsOfService.Accepted,
 		&item.TermsOfService.Version,
 		&item.PrivacyPolicy.Accepted,
@@ -121,6 +125,11 @@ func scanUser(row rowScanner) (*entities.User, error) {
 	}
 	item.CreationTime = nullTime(createdOn)
 	item.UpdateTime = nullTime(modifiedOn)
+
+	if emailVerified.Valid {
+		t := emailVerified.Time
+		item.EmailVerifiedAt = &t
+	}
 
 	return item, nil
 }

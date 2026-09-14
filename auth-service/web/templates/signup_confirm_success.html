@@ -1,0 +1,18 @@
+{{define "title"}}Email confirmed{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Email confirmed</h2>
+
+    <p>
+        {{if .Email}}<strong>{{.Email}}</strong> is confirmed.{{else}}Your email address is confirmed.{{end}}
+        You can sign in now.
+    </p>
+
+    <a href="/oauth/login" class="btn btn-primary">Sign in</a>
+</div>
+{{end}}

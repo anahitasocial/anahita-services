@@ -24,6 +24,7 @@ type UsersInterface interface {
 	EditPassword(password string, id int64) error
 	EditEmail(email string, id int64) error
 	EditConsent(user *entities.User) error
+	MarkEmailVerified(id int64) error
 	Delete(id int64) error
 	IsEmail(email string) (bool, error)
 	IsUsername(username string) (bool, error)
@@ -316,6 +317,7 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 			node_id,
 			email,
 			password,
+			email_verified_at,
 			tos_accepted,
 			tos_accepted_at,
 			tos_accepted_version,
@@ -329,7 +331,7 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 			pp_accepted_user_agent,
 			pp_accepted_os
 		) VALUES (
-			?, ?, ?,
+			?, ?, ?, ?,
 			?, ?, ?, ?, ?, ?,
 			?, ?, ?, ?, ?, ?
 		)`
@@ -340,6 +342,11 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 		user.ID,
 		user.Email,
 		user.Password,
+		// Set by the caller, not here. An invited person proved control of
+		// their address by following the link in the invitation, so
+		// invite-accept marks it verified; a self-serve signup has proved
+		// nothing yet and leaves it nil.
+		user.EmailVerifiedAt,
 		user.TermsOfService.Accepted,
 		user.TermsOfService.AcceptedAt,
 		user.TermsOfService.Version,
@@ -513,6 +520,30 @@ func (repo *Users) EditConsent(user *entities.User) error {
 		user.PrivacyPolicy.OS,
 		user.ID,
 	)
+
+	return err
+}
+
+// MarkEmailVerified stamps an account's address as confirmed.
+//
+// Single-purpose, like EditEmail and EditConsent beside it, and for the same
+// reason: Edit writes the whole row from whatever struct it was handed, so a
+// caller holding a stale read could unverify an address as a side effect of
+// something unrelated.
+//
+// Idempotent, and deliberately does NOT re-stamp an address that is already
+// verified — following a confirmation link twice should not move the date, and
+// the date is the only record of when it happened.
+func (repo *Users) MarkEmailVerified(id int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		UPDATE auth_accounts
+		SET email_verified_at = NOW()
+		WHERE node_id = ? AND email_verified_at IS NULL`
+
+	_, err := repo.db.ExecContext(ctx, query, id)
 
 	return err
 }

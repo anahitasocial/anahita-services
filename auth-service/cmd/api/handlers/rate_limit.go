@@ -81,6 +81,12 @@ const (
 	// pw_forgot_email, and for the same reason — it guards the recipient
 	// rather than the sender.
 	rateLimitScopeInviteEmail rateLimitScope = "invite_email"
+
+	// rateLimitScopeSignupConfirm caps confirmation resends per address.
+	//
+	// Unauthenticated and it sends mail, so without a limit it is a way to
+	// flood the inbox of anybody who has an unconfirmed account here.
+	rateLimitScopeSignupConfirm rateLimitScope = "signup_confirm_email"
 )
 
 type rateLimit struct {
@@ -116,6 +122,11 @@ var rateLimits = map[rateLimitScope]rateLimit{
 	// twice in a week is an oversight; three times in a day is somebody being
 	// mailed by a site they have chosen not to join.
 	rateLimitScopeInviteEmail: {max: 3, window: 24 * time.Hour},
+
+	// Same shape as the forgot-password counter, and for the same reason:
+	// three is enough for a link that went to spam, and few enough that the
+	// endpoint is not a mail cannon.
+	rateLimitScopeSignupConfirm: {max: 3, window: time.Hour},
 }
 
 func rateLimitKey(scope rateLimitScope, subject string) string {

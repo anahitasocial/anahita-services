@@ -273,6 +273,11 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	user.PersonType = constants.PersonTypeRegistered
 	user.Enabled = true
 	user.CreationTime = time.Now()
+	// Verified on arrival. This person reached the form by following a link
+	// sent to that address and nowhere else, which is exactly what a
+	// confirmation email asks them to do — asking again would be asking them
+	// to prove the same thing twice.
+	user.MarkEmailVerified()
 
 	// Checked before anything is created, so the message can name the field.
 	// The graph enforces it too — the check below catches the race — but a

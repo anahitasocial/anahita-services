@@ -145,6 +145,11 @@ func SeedSuperAdmin(env *SuperAdminSeedEnv) (bool, error) {
 	user.Enabled = true
 	user.CreationTime = time.Now()
 	user.UpdateTime = time.Now()
+	// Verified. The operator set SUPER_ADMIN_EMAIL themselves and claims the
+	// account through a link sent to it; requiring a separate confirmation
+	// would put one more thing between a fresh installation and having an
+	// administrator, which is the failure this seed exists to prevent.
+	user.MarkEmailVerified()
 	// Password deliberately left empty. An empty bcrypt hash cannot be
 	// satisfied by any input, including an empty one, so there is nothing to
 	// guess in the window between this row existing and the operator claiming

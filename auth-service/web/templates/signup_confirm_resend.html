@@ -1,0 +1,41 @@
+{{define "title"}}Resend confirmation{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Resend confirmation</h2>
+
+    <p>Enter the address you signed up with and we'll send a new link.</p>
+
+    {{if .Error}}
+    <div class="error-message">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/signup/confirm/resend" novalidate>
+        <div class="text-field">
+            <input
+                type="email"
+                id="email"
+                name="email"
+                value="{{.Email}}"
+                placeholder=" "
+                required
+                autocomplete="email"
+                autocapitalize="none"
+                spellcheck="false"
+                autofocus
+            >
+            <label for="email">Email</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Send the link</button>
+    </form>
+
+    <p class="text-center">
+        <a class="text-link" href="/oauth/login">Back to sign in</a>
+    </p>
+</div>
+{{end}}
