@@ -42,7 +42,6 @@ completeness is onboarding, not a gate.
 | 6b. `INVITES_FROM` + pending cap | ✅ | 1 | `cd4a520` |
 | 7. Agreements checked at every sign-in | ✅ | — | `62359c5`, `f03da1d` (react) |
 | 8. Display name becomes optional | ✅ | — | `d6ce390` (react) |
-| 9. Onboarding | ⬜ | separate plan | |
 
 **`approval` boots now.** It refused to while there was nowhere for an
 application to go — an operator asking for approval would have got open
@@ -108,11 +107,10 @@ queueing would mean approving the same person twice — once by sending, once by
 clearing them from a list. Administrators should not have to approve people
 they personally invited.
 
-That holds only while invites are administrator-only, which they are today —
-the permission calls them "inherently a managing people operation". If invites
-are ever opened to ordinary members, an invitation becomes a recommendation
-rather than a decision, and queueing it would be the right call. Worth
-revisiting then, not before.
+That holds only for invitations sent by administrators. With
+`INVITES_FROM=members`, an invitation from an ordinary member is a
+recommendation rather than a decision, so in `approval` mode it joins the queue
+like any other application.
 
 ### Enforced in three places
 
@@ -502,68 +500,13 @@ the onboarding step has no signal to act on.
 - `PersonEditRequest.Name` is `required,max=100` and becomes `omitempty`, or
   people can set a display name and never clear it.
 
-### 9. Onboarding — separate plan
-
-Post-login, skippable, and **not a gate**. Avatar, display name, bio, website,
-pronouns, topics.
-
-**Pronouns belong here rather than at signup**, and the component is already
-built: `SelectPronouns` takes its options from the language files rather than a
-constant, so each locale ships the set that makes sense in its own language and
-one with nothing to offer ships none. "Unset" is a real option and the default,
-which is exactly the property that makes it wrong to require at signup and fine
-to offer here — the answer is given to the community, not to a gatekeeper
-deciding whether to admit you.
-
-The same fields `approval` mode required, `invite` mode offered and `open` mode
-never asked for all converge here. Somebody who filled them in at the door
-arrives with them pre-filled and skips ahead; somebody who did not is asked
-once, kindly, and may decline.
-
-**Accepting an invitation does not create a follow.** Invites are admin and
-super-admin only — the permission calls them "inherently a managing people
-operation" — so the inviter is usually somebody doing a job, not a friend.
-Auto-following would build a graph centred on staff as an artifact of the
-mechanism: an administrator who onboards fifty people collects fifty followers
-they never chose, and every new member's first relationship is with whoever
-processed them.
-
-It is also a public claim made on somebody's behalf. `follower_count` and
-`leader_count` are public, the edge is public, and `AllowFollowRequest` exists
-precisely so an actor can require approval first — which an automatic follow
-would have to either honour, dragging a pending-request state into signup, or
-deliberately bypass.
-
-Neither Mastodon nor Bluesky creates a follow from an invite.
-
-The problem underneath is real, though: an account with no follows has an empty
-feed, which is the worst possible first impression. That is what this item is
-for. **Put the inviter at the top of the suggested follows, pre-ticked** — the
-relationship is the best signal available — and let one click decline it. If
-invites are ever opened to ordinary members the friend case becomes common and
-the argument weakens, but a pre-ticked suggestion is still the right shape: the
-click is the difference between suggesting and deciding for somebody.
-
-Measured on the live data, hard-gating on profile completeness would bounce
-most of the member base out of the app on their next login:
-
-| | missing, of 822 |
-| --- | --- |
-| display name | 0 |
-| avatar | 488 |
-| bio | 716 |
-
-Blocking on those blocks the API, breaks integrations, and teaches people to
-upload a grey square to get past the wall. Agreements are a precondition for
-service; a bio is a product preference, and the two want different enforcement.
-
 ---
 
 ## Deferred to other plans
 
 - **Settings UI** — the approval queue's administration screen, alongside the
   other settings work.
-- **Onboarding** — item 9.
+- **Onboarding** — `onboarding.md`.
 
 ---
 
