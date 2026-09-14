@@ -40,7 +40,7 @@ completeness is onboarding, not a gate.
 | 5. Approval queue (backend only) | ✅ | 1, 2, 3 | `19c7c18` |
 | 6a. Invite rate limits | ✅ | — | `3f9c978` |
 | 6b. `INVITES_FROM` + pending cap | ✅ | 1 | `cd4a520` |
-| 7. Agreements checked at every sign-in | ⛔ | real ToS text | |
+| 7. Agreements checked at every sign-in | ✅ | — | `62359c5`, `f03da1d` (react) |
 | 8. Display name becomes optional | ✅ | — | `d6ce390` (react) |
 | 9. Onboarding | ⬜ | separate plan | |
 
@@ -55,7 +55,7 @@ invitation always returned 500, and a permission failure answered 402.
 
 ### Order, and why
 
-**~~1~~ → ~~8~~ → ~~2~~ → ~~3~~ → ~~6b~~ → ~~4~~ → ~~5~~ → 7**
+**~~1~~ → ~~8~~ → ~~2~~ → ~~3~~ → ~~6b~~ → ~~4~~ → ~~5~~ → ~~7~~**
 
 - **1 first** because 2, 5 and 6b all read the mode.
 - **8 before 2.** Signup stops collecting a display name in item 2, so the
@@ -68,9 +68,15 @@ invitation always returned 500, and a permission failure answered 402.
   them rather than needing them retrofitted.
 - **4 after 2**, because honeypot and timing need the server-rendered form to
   put them on.
-- **7 is blocked**, and not on code: the Terms and Privacy Policy are still
-  boilerplate with `[Your Organisation]` in them. Shipping the gate first
-  records 822 people as accepting a template.
+- **7 was blocked**, and not on code: the Terms and Privacy Policy are
+  boilerplate. It was unblocked by treating that as a deploy step rather than
+  a code dependency — a fork has no members when its operator replaces the
+  text, and on an installation that does, replacing it is part of shipping.
+
+**Deploying 7 to a database with existing members asks every one of them to
+accept whatever `statics/legal/` says at that moment.** On this installation
+that is all 822, since none has an acceptance on record. Replace the
+boilerplate first.
 
 ## Registration modes
 
