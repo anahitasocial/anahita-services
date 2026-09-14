@@ -138,16 +138,27 @@ func (token *Token) Validate() error {
 		return fmt.Errorf("created at is required")
 	}
 
-	if token.CreatedBy == 0 {
-		return fmt.Errorf("creator is required")
-	}
-
 	if token.UpdatedAt.IsZero() {
 		return fmt.Errorf("updated at is required")
 	}
 
-	if token.UpdatedBy == 0 {
-		return fmt.Errorf("editor is required")
+	// A signup confirmation issued for an APPLICATION has no creator and no
+	// editor, and cannot have either: the applicant is not a person in this
+	// system yet, which is the entire thing the approval queue is waiting to
+	// decide. Every other token is issued by or for somebody who exists.
+	//
+	// Narrow on purpose, and by type rather than by "is it zero". Dropping the
+	// checks outright would let a password reset or an invitation be stored
+	// with no issuer, and those are the two where "who did this" is the
+	// question asked afterwards.
+	if token.Type != constants.TokenTypeSignupConfirm {
+		if token.CreatedBy == 0 {
+			return fmt.Errorf("creator is required")
+		}
+
+		if token.UpdatedBy == 0 {
+			return fmt.Errorf("editor is required")
+		}
 	}
 
 	if token.Status == "" {

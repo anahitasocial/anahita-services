@@ -8,8 +8,13 @@
 
     <h2>Join {{.SiteName}}</h2>
 
+    {{if .NeedsApproval}}
+    <p>Joining {{.SiteName}} is by application. Tell us who you are and
+       somebody will read it — you'll hear back by email.</p>
+    {{else}}
     <p>Choose a username and a password. You can add a name, a photo and
        anything else you want on your profile once you are in.</p>
+    {{end}}
 
     {{if .Error}}
     <div class="error-message">{{.Error}}</div>
@@ -82,6 +87,52 @@
             <label for="email">Email</label>
         </div>
 
+        <!-- Asked for only under `approval`, where a person reads this and
+             decides. In every other mode the profile is onboarding's job,
+             where it is skippable and the editor is better than a plain
+             form. -->
+        {{if .NeedsApproval}}
+        <div class="text-field">
+            <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder=" "
+                required
+                maxlength="100"
+                autocomplete="name"
+            >
+            <label for="name">Your name</label>
+        </div>
+        <span class="helper-text">How your name appears to other people.</span>
+
+        <div class="text-field">
+            <textarea
+                id="body"
+                name="body"
+                placeholder=" "
+                required
+                maxlength="8000"
+                rows="4"
+            ></textarea>
+            <label for="body">About you</label>
+        </div>
+        <span class="helper-text">A few sentences. Somebody reads this before deciding.</span>
+
+        <div class="text-field">
+            <input
+                type="url"
+                id="website_url"
+                name="website_url"
+                placeholder=" "
+                maxlength="255"
+                autocapitalize="none"
+                spellcheck="false"
+            >
+            <label for="website_url">Website (optional)</label>
+        </div>
+        {{end}}
+
         <div class="text-field has-toggle">
             <input
                 type="password"
@@ -107,7 +158,7 @@
              password in mind and has forgotten it by the time they do. -->
         <span class="helper-text">At least 15 characters. Use a unique passphrase that you don't use anywhere else.</span>
 
-        <button type="submit" class="btn btn-primary">Create account</button>
+        <button type="submit" class="btn btn-primary">{{if .NeedsApproval}}Send application{{else}}Create account{{end}}</button>
     </form>
 
     <hr class="divider">

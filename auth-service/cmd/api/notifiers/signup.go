@@ -1,13 +1,16 @@
 package notifiers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
 	"auth/constants"
 	"auth/data/entities"
 	"auth/messages"
+	"auth/requests"
 
+	an_constants "anahita-libs/constants"
 	an_entities "anahita-libs/data/entities"
 	an_event "anahita-libs/event"
 )
@@ -67,6 +70,96 @@ func (h *signupNotifier) EmailConfirm(user *entities.User, token *entities.Token
 		body,
 		messages.SignupConfirmActionLabel,
 		actionURL,
+	)
+}
+
+// EmailApplicationReceived tells the administrators somebody is waiting.
+//
+// Sent once the address is CONFIRMED, not when the application is submitted —
+// otherwise this is the thing a spam wave turns into a mail flood aimed at the
+// people who would otherwise be dealing with it.
+//
+// Errors are accumulated rather than short-circuiting, so one administrator
+// with a dead address does not stop the others being told.
+func (h *signupNotifier) EmailApplicationReceived(app *entities.RegistrationApplication) error {
+	personReq := requests.NewUserRequest().Browse
+	personReq.PersonTypes = []string{
+		an_constants.PersonTypeAdmin,
+		an_constants.PersonTypeSuperAdmin,
+	}
+
+	admins, err := h.Repos.Users.Browse(personReq)
+	if err != nil {
+		return err
+	}
+
+	// Straight to the queue rather than the front page. An administrator
+	// clicking through from this mail is coming to do one thing.
+	actionURL := fmt.Sprintf("%s/settings/applications", h.Config.GetFrontendURL())
+
+	var sendErrors []error
+	for _, admin := range admins {
+		body := fmt.Sprintf(
+			messages.ApplicationReceivedBody,
+			admin.Name,
+			app.Name,
+			app.Username,
+			app.Body,
+		)
+
+		if err := h.send(
+			admin.Email,
+			messages.ApplicationReceivedSubject,
+			messages.ApplicationReceivedTitle,
+			body,
+			messages.ApplicationReceivedActionLabel,
+			actionURL,
+		); err != nil {
+			sendErrors = append(sendErrors,
+				fmt.Errorf("application notice to admin %d failed: %w", admin.ID, err))
+		}
+	}
+
+	return errors.Join(sendErrors...)
+}
+
+// EmailApplicationApproved tells somebody they are in.
+func (h *signupNotifier) EmailApplicationApproved(app *entities.RegistrationApplication) error {
+	greeting := app.Name
+	if greeting == "" {
+		greeting = app.Username
+	}
+
+	return h.send(
+		app.Email,
+		messages.ApplicationApprovedSubject,
+		messages.ApplicationApprovedTitle,
+		fmt.Sprintf(messages.ApplicationApprovedBody, greeting),
+		messages.ApplicationApprovedActionLabel,
+		fmt.Sprintf("%s/oauth/login", h.Config.GetAuthURL()),
+	)
+}
+
+// EmailApplicationRejected tells somebody they are not.
+//
+// Sent, rather than silence. Somebody who is never coming should be told so
+// instead of waiting — silence reads as a broken site, and the person keeps
+// checking. No reason is given: a rejection note written for a moderator's
+// records is not written to be read by its subject, and passing it on turns
+// every decision into an argument.
+func (h *signupNotifier) EmailApplicationRejected(app *entities.RegistrationApplication) error {
+	greeting := app.Name
+	if greeting == "" {
+		greeting = app.Username
+	}
+
+	return h.send(
+		app.Email,
+		messages.ApplicationRejectedSubject,
+		messages.ApplicationRejectedTitle,
+		fmt.Sprintf(messages.ApplicationRejectedBody, greeting),
+		messages.ApplicationRejectedActionLabel,
+		h.Config.GetFrontendURL(),
 	)
 }
 

@@ -30,16 +30,31 @@ var ErrLastSuperAdmin = errors.New("last_super_administrator")
 // — and why it was duplicated across four handlers, each of which had to
 // remember to run it.
 func (r *nodesRepo) countOtherActiveSuperAdmins(ctx context.Context, excludeID int64) (int, error) {
+	// Narrowed to PERSON nodes, not merely to the person_type value.
+	//
+	// person_type is a column on `nodes`, and every node carries one — an
+	// article, a photo, a hashtag. A stray write can put a value in any of
+	// them, and one narrowed on `alias` did exactly that during development,
+	// leaving a hashtag counted as a super administrator.
+	//
+	// Here the failure is the dangerous direction: an inflated count makes the
+	// guard believe somebody else can still administer the site, and it then
+	// permits the deletion that removes the last real one.
 	const query = `
 SELECT COUNT(*)
 FROM nodes
-WHERE person_type = ?
+WHERE type = ?
+  AND person_type = ?
   AND id <> ?
   AND deleted_at IS NULL
   AND enabled = 1`
 
 	var count int
-	err := r.db.QueryRowContext(ctx, query, constants.PersonTypeSuperAdmin, excludeID).Scan(&count)
+	err := r.db.QueryRowContext(ctx, query,
+		constants.NodeActorPersonEntityType,
+		constants.PersonTypeSuperAdmin,
+		excludeID,
+	).Scan(&count)
 	if err != nil {
 		return 0, err
 	}

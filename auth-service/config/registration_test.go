@@ -99,27 +99,18 @@ func TestRegistrationModeIsNormalised(t *testing.T) {
 	}
 }
 
-// `approval` is refused at boot until the queue exists.
+// `approval` boots now that the queue exists.
 //
-// The predicates say an applicant may register, which is correct and is the
-// hazard: with nowhere for an application to go, asking for approval would
-// give open registration on an installation that believes it is gated. This
-// test goes when the queue lands.
-func TestApprovalIsRefusedUntilTheQueueExists(t *testing.T) {
+// It used to be refused, and the refusal was right at the time: with nowhere
+// for an application to go, asking for approval would have given open
+// registration on a site the operator believed was gated.
+func TestApprovalBootsNowThatTheQueueExists(t *testing.T) {
 	problems := (&Config{
 		RegistrationMode: constants.RegistrationModeApproval,
 	}).validateBootstrap(nil)
 
-	if len(problems) == 0 {
-		t.Fatal("approval mode booted with no queue behind it, which is open " +
-			"registration wearing a gate's name")
-	}
-
-	joined := strings.Join(problems, " ")
-	for _, wanted := range []string{"approval", "invite", "closed"} {
-		if !strings.Contains(joined, wanted) {
-			t.Errorf("the refusal does not tell the operator about %q: %s", wanted, joined)
-		}
+	if len(problems) != 0 {
+		t.Errorf("approval mode was refused at boot: %v", problems)
 	}
 }
 

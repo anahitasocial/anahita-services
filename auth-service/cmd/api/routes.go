@@ -255,6 +255,14 @@ func (r *Routes) Init(e *echo.Echo) {
 	invitesAuth.POST("", h.Invite.Add)
 	invitesAuth.DELETE("/:id", h.Invite.Delete)
 
+	// The approval queue. Administrator-only, JSON — the screen that consumes
+	// this belongs with the other settings work.
+	applications := e.Group("/applications")
+	applications.Use(r.authorize)
+	applications.GET("", h.Applications.Browse)
+	applications.POST("/:id/approve", h.Applications.Approve)
+	applications.POST("/:id/reject", h.Applications.Reject)
+
 	totps := e.Group("/totp")
 	totps.Use(r.authorize)
 	// Status read. Registered on "" so the path is /totp, matching the

@@ -240,6 +240,53 @@ CREATE TABLE auth_accounts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
+CREATE TABLE IF NOT EXISTS registration_applications (
+    `id`       bigint unsigned NOT NULL AUTO_INCREMENT,
+    `username` varchar(32)  NOT NULL,
+    `email`    varchar(255) NOT NULL,
+    `password` varchar(255) NOT NULL,
+
+    -- What an administrator is deciding on. Required in this mode, because
+    -- deciding on an email address alone is not deciding.
+    `name`        varchar(100) DEFAULT NULL,
+    `body`        text         DEFAULT NULL,
+    `website_url` varchar(255) DEFAULT NULL,
+
+    -- unverified -> pending -> approved | rejected
+    --
+    -- An application reaches the queue only once its address is confirmed, so
+    -- administrators are not moderating junk that nobody can even receive mail
+    -- at. `unverified` is where it waits until then.
+    `status` varchar(20) NOT NULL DEFAULT 'unverified',
+    `email_verified_at` datetime DEFAULT NULL,
+
+    -- Who vouched, when a member's invitation put them here rather than a
+    -- cold application. An administrator's invitation never reaches this
+    -- table — it is already a decision.
+    `invited_by` bigint unsigned DEFAULT NULL,
+
+    `decided_by`    bigint unsigned DEFAULT NULL,
+    `decided_at`    datetime        DEFAULT NULL,
+    `decision_note` varchar(255)    DEFAULT NULL,
+
+    -- Where the application came from. The same evidential trio the consent
+    -- columns carry, and for the same reason: a queue entry that cannot say
+    -- where it came from is harder to moderate, and a spam wave is usually
+    -- recognisable by its source long before its content.
+    `created_ip`         varchar(45)  DEFAULT NULL,
+    `created_user_agent` varchar(255) DEFAULT NULL,
+
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `email` (`email`),
+    KEY `status` (`status`),
+    KEY `username` (`username`),
+    KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- --------------------------------------------------------
+
 CREATE TABLE notifications (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `type` varchar(255) NOT NULL,

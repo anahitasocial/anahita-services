@@ -316,26 +316,6 @@ func (config *Config) validateBootstrap(missingFields []string) []string {
 				"entirely, set REGISTRATION_MODE=closed")
 	}
 
-	// `approval` is refused until the queue behind it exists.
-	//
-	// The predicates already describe it correctly and signup already treats
-	// an applicant as allowed — which is right, and is exactly the hazard
-	// while there is nowhere for the application to go: an operator asking
-	// for approval would get OPEN registration, on an installation they
-	// believe is gated. Nothing would look wrong.
-	//
-	// Refusing to boot is the loud version of that, and the right one for a
-	// setting whose whole purpose is to keep strangers out. Remove this when
-	// the queue lands; the tests covering `approval` describe the intended
-	// behaviour and already pass.
-	if config.GetRegistrationMode() == constants.RegistrationModeApproval {
-		missingFields = append(missingFields,
-			"REGISTRATION_MODE=approval is not available yet — the approval "+
-				"queue is not built, so this would accept registrations "+
-				"immediately while appearing to hold them. Use `invite` or "+
-				"`closed` until it lands")
-	}
-
 	// SUPER_ADMIN_EMAIL is optional, but a malformed one is not: the seed
 	// would create an account nobody can receive the set-password link for,
 	// and the operator would have no way to tell that from "the seed decided

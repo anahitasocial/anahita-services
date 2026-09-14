@@ -564,16 +564,31 @@ func (repo *Users) CountSuperAdmins() (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
+	// Narrowed to PERSON nodes, not merely to the person_type value.
+	//
+	// person_type is a column on `nodes`, and every node has one — an article,
+	// a photo, a hashtag. Nothing stops a stray write putting a value in one,
+	// and an UPDATE narrowed on `alias` did exactly that during development: a
+	// hashtag that happened to share a person's handle was counted here as a
+	// super administrator.
+	//
+	// It matters because this is the guard deciding whether an installation
+	// already has an owner. A false positive means the seed silently declines
+	// to create the first administrator, leaving a site nobody can administer
+	// and no message explaining why.
 	query := `
 		SELECT COUNT(*)
 		FROM nodes
-		WHERE person_type = ?
+		WHERE type = ?
+		  AND person_type = ?
 		  AND deleted_at IS NULL
 		  AND enabled = 1`
 
 	var count int
 	if err := repo.db.QueryRowContext(
-		ctx, query, constants.PersonTypeSuperAdmin,
+		ctx, query,
+		constants.NodeActorPersonEntityType,
+		constants.PersonTypeSuperAdmin,
 	).Scan(&count); err != nil {
 		return 0, err
 	}

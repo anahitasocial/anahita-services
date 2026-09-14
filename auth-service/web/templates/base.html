@@ -68,6 +68,14 @@
             margin-bottom: 16px;
         }
 
+        .text-field textarea {
+            width: 100%;
+            box-sizing: border-box;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 96px;
+        }
+
         .text-field input {
             width: 100%;
             padding: 18.5px 14px;
@@ -115,6 +123,8 @@
         }
 
         /* Float label on focus or when filled */
+        .text-field textarea:focus + label,
+        .text-field textarea:not(:placeholder-shown) + label,
         .text-field input:focus + label,
         .text-field input:not(:placeholder-shown) + label {
             transform: translate(-4px, -26px) scale(0.75);

@@ -3,6 +3,7 @@ package handlers
 type Handlers struct {
 	AccountDeleted *accountDeletedHandler
 	Agreements     *agreementsHandler
+	Applications   *applicationsHandler
 	Authlog        *authLogHandler
 	EmailChange    *emailChangeHandler
 	Invite         *inviteHandler
@@ -23,6 +24,7 @@ func NewHandlers(env *Env) *Handlers {
 	return &Handlers{
 		AccountDeleted: newAccountDeletedHandler(env),
 		Agreements:     newAgreementsHandler(env),
+		Applications:   newApplicationsHandler(env),
 		Authlog:        newAuthLogHandler(env),
 		EmailChange:    newEmailChangeHandler(env),
 		Invite:         newInviteHandler(env),

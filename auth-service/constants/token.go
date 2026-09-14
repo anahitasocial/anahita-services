@@ -1,13 +1,22 @@
 package constants
 
-// NOTE: this block is duplicated byte-for-byte in
-// anahita-libs/constants/token.go. Change both together — they must
-// agree, because the values are TOKEN_TYPE enum members in Postgres and
-// a mismatch fails at the database rather than at compile time.
+// NOTE: the token TYPE values here also appear in
+// anahita-libs/constants/token.go, and the two must agree — the value is what
+// goes in the column, so a mismatch fails at the database rather than at
+// compile time.
+//
+// They are not identical files, whatever a previous note here claimed:
+// emailchange, loginotp and the OTP settings are local to this service, and
+// libs carries only the types it needs. What has to match is any name that
+// appears in both.
 const (
 	TokenTypePasswordReset = "passwordreset"
 	TokenTypeInvite        = "invite"
 	TokenTypeEmailChange   = "emailchange"
+
+	// TokenTypeSignupConfirm proves control of the address an account — or an
+	// application — was created with. Also in anahita-libs.
+	TokenTypeSignupConfirm = "signupconfirm"
 
 	// One-time codes. Two types so a code issued to verify a handset
 	// can never be replayed to sign in.

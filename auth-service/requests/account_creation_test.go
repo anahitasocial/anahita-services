@@ -46,11 +46,13 @@ func TestAccountCreationRequiresAStrongPassword(t *testing.T) {
 	}
 }
 
-// Signup asks for a handle, an email and a password, and nothing else.
+// Signup asks for a username, an email and a password, and — only under
+// `approval` — the three fields a human needs to decide on.
 //
 // Neither Mastodon nor Bluesky asks for a display name, and every field added
-// here is a field somebody has to get past to join. The profile is onboarding's
-// job, where it is skippable and the editor is better than a plain form.
+// is one more thing between somebody and joining. Which is why the profile
+// fields are OPTIONAL in the struct and required by the handler: the same form
+// binds both modes, and only the handler knows which one is running.
 func TestSignupAsksForTheMinimum(t *testing.T) {
 	req := &SignupAddRequest{}
 
@@ -60,14 +62,25 @@ func TestSignupAsksForTheMinimum(t *testing.T) {
 		}
 	}
 
+	// Present for the approval form, and never required by the tag — an
+	// `open` signup that had to fill them in would be the opposite of the
+	// decision this whole item rests on.
+	for _, field := range []string{"Name", "Body", "WebsiteURL"} {
+		tag := tagOf(t, req, field, "validate")
+		if strings.Contains(tag, "required") {
+			t.Errorf("%s is validated as %q. It is collected only under "+
+				"`approval`, so requiring it in the tag would demand it in "+
+				"every mode", field, tag)
+		}
+	}
+
 	for _, gone := range []string{
-		"Name", "Body", "WebsiteURL", "PersonPronouns",
+		"PersonPronouns",
 		"TosAccepted", "TosVersion", "PpAccepted", "PpVersion",
 	} {
 		if hasField(req, gone) {
-			t.Errorf("signup collects %s. The minimum is a handle, an email "+
-				"and a password; a profile is onboarding's job and the terms "+
-				"are accepted after signing in", gone)
+			t.Errorf("signup collects %s. Pronouns belong to onboarding and "+
+				"the terms are accepted after signing in", gone)
 		}
 	}
 }

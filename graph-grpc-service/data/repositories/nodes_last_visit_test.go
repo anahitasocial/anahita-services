@@ -108,3 +108,46 @@ func TestTouchLastVisitReportsWhetherItStamped(t *testing.T) {
 		}
 	})
 }
+
+// The super-administrator count is narrowed to PERSON nodes, not merely to the
+// person_type value.
+//
+// person_type is a column on `nodes` and every node carries one — an article,
+// a photo, a hashtag. A stray write can put a value in any of them, and one
+// narrowed on `alias` did exactly that during development: a hashtag sharing a
+// person's handle ended up counted as a super administrator.
+//
+// Here the failure runs in the dangerous direction. An inflated count makes
+// the guard believe somebody else can still administer the site, and it then
+// permits the deletion that removes the last real one.
+func TestSuperAdminCountOnlyCountsPeople(t *testing.T) {
+	db, mock, seen := newNodesTestDB(t)
+
+	mock.ExpectQuery("select").WillReturnRows(
+		sqlmock.NewRows([]string{"person_type"}).AddRow("super-administrator"))
+	mock.ExpectQuery("select").WillReturnRows(
+		sqlmock.NewRows([]string{"count"}).AddRow(2))
+	mock.ExpectExec("update").WillReturnResult(sqlmock.NewResult(0, 1))
+
+	if _, err := newRepo(db).SoftDeleteActor(42); err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+
+	var counting string
+	for _, statement := range *seen {
+		if strings.Contains(strings.ToLower(statement), "count(*)") {
+			counting = strings.ToLower(statement)
+			break
+		}
+	}
+
+	if counting == "" {
+		t.Fatal("no counting statement was run")
+	}
+
+	if !strings.Contains(counting, "type = ?") {
+		t.Errorf("the count is not narrowed to person nodes, so anything at "+
+			"all carrying person_type is counted as an administrator:\n%s",
+			counting)
+	}
+}

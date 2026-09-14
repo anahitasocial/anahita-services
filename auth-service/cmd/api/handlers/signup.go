@@ -136,6 +136,7 @@ func (h *signupHandler) Form(c echo.Context) error {
 	return h.renderTemplate(c, "signup.html", map[string]any{
 		"CSRFToken":     token,
 		"HoneypotField": honeypotField,
+		"NeedsApproval": h.Config.RequiresRegistrationApproval(),
 	})
 }
 
@@ -299,6 +300,12 @@ func (h *signupHandler) Add(c echo.Context) error {
 		return h.renderSignupError(c, "Could not create your account. Please try again.")
 	} else if taken {
 		return h.renderSignupError(c, "That username is already taken.")
+	}
+
+	// In `approval` mode this is an APPLICATION, not an account. Nothing is
+	// created in `nodes` or `auth_accounts` until an administrator says so.
+	if h.Config.RequiresRegistrationApproval() {
+		return h.addApplication(c, req)
 	}
 
 	user := entities.NewUser()
@@ -517,6 +524,7 @@ func (h *signupHandler) renderSignupError(c echo.Context, message string) error 
 	return h.renderTemplate(c, "signup.html", map[string]any{
 		"CSRFToken":     token,
 		"HoneypotField": honeypotField,
+		"NeedsApproval": h.Config.RequiresRegistrationApproval(),
 		"Error":         message,
 	})
 }
@@ -554,6 +562,18 @@ func (h *signupHandler) Confirm(c echo.Context) error {
 	if token.Type != constants.TokenTypeSignupConfirm {
 		return h.renderError(c, "Invalid Link",
 			"This link is not valid for confirming an email address.")
+	}
+
+	// An application, or an account? The same token type serves both, because
+	// it proves the same thing — what differs is what confirming leads to.
+	//
+	// Applications are checked first: in `approval` mode there is no account
+	// to find, and looking for one would answer "account not found" to
+	// somebody whose application is sitting right there.
+	if app, err := h.Repos.Applications.ReadByEmail(token.RecipientEmail); err == nil && app != nil {
+		return h.confirmApplication(c, app, token)
+	} else if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Println("signup confirm: application lookup failed:", err)
 	}
 
 	user, err := h.Repos.Users.ReadByEmail(token.RecipientEmail)
@@ -660,5 +680,199 @@ func (h *signupHandler) Resend(c echo.Context) error {
 
 	return h.renderTemplate(c, "signup_confirm_sent.html", map[string]any{
 		"Email": req.Email,
+	})
+}
+
+// ---------------------------------------------------------------------
+// The approval queue
+// ---------------------------------------------------------------------
+
+// addApplication records somebody who has asked to join, under `approval`.
+//
+// Everything before this point — CSRF, the honeypot, the timing floor, the
+// rate limits, the username and email checks — has already run, because an
+// application is exactly as worth protecting as an account: the queue is the
+// thing a spam wave fills, and an administrator reading it is the resource
+// being wasted.
+func (h *signupHandler) addApplication(
+	c echo.Context, req *requests.SignupAddRequest,
+) error {
+	// The three fields that exist so a human has something to decide on.
+	// Required here rather than in the struct tag, because the same struct
+	// binds the open-mode form where they are not collected at all.
+	name := strings.TrimSpace(req.Name)
+	body := strings.TrimSpace(req.Body)
+
+	if name == "" {
+		return h.renderSignupError(c, "Please tell us your name.")
+	}
+	if body == "" {
+		return h.renderSignupError(c,
+			"Please say a little about yourself — somebody reads this before "+
+				"deciding.")
+	}
+
+	// One application per address. A rejected one still counts: a refusal
+	// nobody can re-submit past is the only kind worth recording.
+	if existing, err := h.Repos.Applications.ReadByEmail(req.Email); err == nil && existing != nil {
+		switch existing.Status {
+		case entities.ApplicationStatusRejected:
+			return h.renderSignupError(c,
+				"An application from this email address has already been reviewed.")
+		default:
+			return h.renderSignupError(c,
+				"An application from this email address is already being reviewed.")
+		}
+	} else if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Println("signup: application lookup failed:", err)
+		return h.renderSignupError(c, "Could not send your application. Please try again.")
+	}
+
+	app := entities.NewRegistrationApplication()
+	app.Username = strings.ToLower(strings.TrimSpace(req.Username))
+	app.Email = req.Email
+	app.Name = name
+	app.Body = body
+	app.WebsiteURL = strings.TrimSpace(req.WebsiteURL)
+
+	source := newConsentSource(c)
+	app.CreatedIP = source.ip
+	app.CreatedUserAgent = source.userAgent
+
+	if err := app.SetPassword(req.Password); err != nil {
+		log.Println("signup: could not hash the application password:", err)
+		return h.renderSignupError(c, "Could not send your application. Please try again.")
+	}
+
+	if err := app.Validate(); err != nil {
+		log.Println("signup: invalid application:", err)
+		return h.renderSignupError(c, "Could not send your application. Please try again.")
+	}
+
+	stored, err := h.Repos.Applications.Add(app)
+	if err != nil {
+		log.Println("signup: could not store the application:", err)
+		return h.renderSignupError(c, "Could not send your application. Please try again.")
+	}
+
+	// Confirm the address BEFORE the application reaches the queue.
+	//
+	// Otherwise administrators moderate entries nobody can even receive mail
+	// at — which is the work the queue exists to avoid, and the cheapest thing
+	// a spam wave can generate.
+	if err := h.sendApplicationConfirmation(stored); err != nil {
+		log.Println("signup: could not send the application confirmation:", err)
+		return h.renderError(c, "Check Your Email",
+			"Your application was received, but we could not send the "+
+				"confirmation email. Please use the resend link on the "+
+				"sign-in page.")
+	}
+
+	return h.renderTemplate(c, "signup_application_sent.html", map[string]any{
+		"Email": stored.Email,
+	})
+}
+
+// sendApplicationConfirmation issues the token that moves an application into
+// the queue.
+//
+// The same token type signup uses, because it does the same job — proving the
+// address is real. What differs is what confirming leads to: an account there,
+// a place in the queue here.
+func (h *signupHandler) sendApplicationConfirmation(
+	app *entities.RegistrationApplication,
+) error {
+	if _, err := h.Repos.Tokens.InvalidateOutstanding(
+		constants.TokenTypeSignupConfirm, app.Email,
+	); err != nil {
+		log.Println("signup: retiring earlier confirmations failed:", err)
+	}
+
+	token := entities.NewToken()
+	token.Type = constants.TokenTypeSignupConfirm
+	token.Status = constants.TokenStatusPending
+	token.RecipientEmail = app.Email
+	token.ExpiredAfter = constants.TokenExpiryTime
+	token.IsUsed = false
+	token.CreatedAt = time.Now()
+	token.UpdatedAt = time.Now()
+
+	if err := token.GenerateToken(); err != nil {
+		return fmt.Errorf("generate the confirmation token: %w", err)
+	}
+
+	if _, err := h.Repos.Tokens.Add(token); err != nil {
+		return fmt.Errorf("store the confirmation token: %w", err)
+	}
+
+	// A stand-in user, because the mail only needs a name and an address and
+	// an application has both. Building one here rather than giving the
+	// notifier a second signature keeps one template and one code path.
+	recipient := entities.NewUser()
+	recipient.Alias = app.Username
+	recipient.Name = app.Name
+	recipient.Email = app.Email
+
+	return h.Notif.Signup.EmailConfirm(recipient, token)
+}
+
+// confirmApplication moves a verified application into the queue.
+//
+// Split out because the ending differs from an account's: there is nobody to
+// sign in and nothing to welcome them to yet — the honest thing to say is that
+// they are now waiting on a person.
+func (h *signupHandler) confirmApplication(
+	c echo.Context,
+	app *entities.RegistrationApplication,
+	token *entities.Token,
+) error {
+	// Already decided. Says so rather than pretending the link worked: an
+	// applicant who was rejected a week ago and clicks an old link should not
+	// be told they are in a queue they are not in.
+	if app.IsDecided() {
+		return h.renderError(c, "Already Reviewed",
+			"This application has already been reviewed. If you believe that "+
+				"is a mistake, please contact the site administrators.")
+	}
+
+	if app.IsEmailVerified() {
+		return h.renderTemplate(c, "signup_application_sent.html", map[string]any{
+			"Email":    app.Email,
+			"Verified": true,
+		})
+	}
+
+	if token.Status != constants.TokenStatusPending {
+		return h.renderError(c, "Link No Longer Valid",
+			"This confirmation link has been used or has expired. Please "+
+				"request a new one from the sign-in page.")
+	}
+
+	if err := h.Repos.Applications.MarkEmailVerified(app.ID); err != nil {
+		log.Println("signup confirm: could not verify the application:", err)
+		return h.renderError(c, "Something Went Wrong",
+			"We could not confirm your address. Please try the link again.")
+	}
+
+	token.IsUsed = true
+	token.UpdatedAt = time.Now()
+	if _, err := h.Repos.Tokens.Edit(token); err != nil {
+		log.Printf("signup confirm: could not consume token %d: %v", token.ID, err)
+	}
+
+	// Tell the administrators there is something to do. Fire-and-forget: an
+	// application that reached the queue has reached it whether or not the
+	// notification lands, and failing the confirmation would make the
+	// applicant pay for the mail service being down.
+	notifyApp := *app
+	go func() {
+		if err := h.Notif.Signup.EmailApplicationReceived(&notifyApp); err != nil {
+			log.Println("signup confirm: notifying administrators failed:", err)
+		}
+	}()
+
+	return h.renderTemplate(c, "signup_application_sent.html", map[string]any{
+		"Email":    app.Email,
+		"Verified": true,
 	})
 }
