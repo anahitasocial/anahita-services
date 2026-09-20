@@ -82,8 +82,8 @@ delivered to it.
 
 | Variable | Effect |
 | --- | --- |
-| `INVITES_FROM` | `admins` (default) or `members` — who may send invitations |
-| `INVITE_PENDING_MAX` | Outstanding invitations a member may have at once. Default `5` |
+| `INVITES_FROM` | `registered`, `administrators` (default) or `super-administrators` — the minimum role that may send invitations |
+| `INVITE_PENDING_MAX` | Outstanding invitations one person may have at once. Default `5` |
 | `INVITE_PENDING_MAX_ADMIN` | The same for administrators. Default `100` |
 
 - The cap counts **outstanding** invitations only. A slot frees when one is
@@ -117,9 +117,9 @@ a silent dismissal; rejecting a signup request records a decision note, stamps
 the deciding administrator and sends mail.
 
 **Invitations and the queue.** An invitation from an administrator is already a
-decision, so it skips the queue. An invitation from a member
-(`INVITES_FROM=members`) is a recommendation, so in `approval` mode it joins the
-queue like any other request.
+decision, so it skips the queue. An invitation from someone who is not one
+(`INVITES_FROM=registered`) is a recommendation, so in `approval` mode it joins
+the queue like any other request.
 
 The administration screen for the queue is planned as part of the settings work
 in the web app.

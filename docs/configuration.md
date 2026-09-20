@@ -36,6 +36,8 @@ Read by auth-service, and mail-grpc-service for the branding.
 | --- | --- |
 | `DOMAIN_NAME` | The installation's domain. Public URLs are derived from it on staging and production |
 | `SITE_NAME` | Name shown on auth pages and in email |
+| `ANAHITA_INSTANCE_NAME` | How this installation introduces itself to other servers, published as `nodeName` in NodeInfo. Optional — falls back to `SITE_NAME`, then `DOMAIN_NAME` |
+| `ANAHITA_INSTANCE_DESCRIPTION` | A sentence about this installation, published as `nodeDescription`. Optional, and left empty rather than generated when unset |
 | `SITE_LOGO_URL` | Logo at the top of every email (mail-grpc-service) |
 | `SYSTEM_EMAIL` | The From address |
 | `SUPPORT_EMAIL`, `SUPPORT_PHONE`, `SUPPORT_WEBSITE` | Contact details on the web app's public `/support` page, published through NodeInfo. Phone and website are optional |
@@ -50,8 +52,8 @@ Read by auth-service.
 | Variable | Value |
 | --- | --- |
 | `REGISTRATION_MODE` | `open`, `approval`, `invite` or `closed`. **Unset means `closed`**: no self-serve sign-up, and outstanding invitations stop working |
-| `INVITES_FROM` | `admins` (default) or `members`. In `approval` mode, an invitation from a member goes to the approval queue |
-| `INVITE_PENDING_MAX` | Outstanding invitations one member may have at once. Default `5` |
+| `INVITES_FROM` | `registered`, `administrators` (default) or `super-administrators` — the minimum role that may invite. Each admits that role and every role above it. In `approval` mode, an invitation from somebody who is not an administrator goes to the approval queue |
+| `INVITE_PENDING_MAX` | Outstanding invitations one person may have at once. Default `5` |
 | `INVITE_PENDING_MAX_ADMIN` | The same for administrators. Default `100` |
 | `TOS_URL`, `PRIVACY_URL` | Where the Terms and Privacy Policy are read: a path on the web app or a full URL. Default `/legal/tos` and `/legal/privacy`. Their versions are held by the web app, not here |
 
