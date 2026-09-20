@@ -259,8 +259,8 @@ func TestConstructorsInitialiseTheirMembers(t *testing.T) {
 	if r := NewOAuthAuthorizeRequest(); r == nil || r.Authorize == nil {
 		t.Error("NewOAuthAuthorizeRequest left Authorize nil")
 	}
-	if r := NewAuthlogRequest(); r == nil || r.Browse == nil {
-		t.Error("NewAuthlogRequest left Browse nil")
+	if r := NewAuthLogRequest(); r == nil || r.Browse == nil {
+		t.Error("NewAuthLogRequest left Browse nil")
 	}
 	if r := NewTotpRequest(); r == nil {
 		t.Error("NewTotpRequest returned nil")

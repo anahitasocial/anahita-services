@@ -23,9 +23,9 @@ otherwise undo them here, in the belief it was fixing something.
   after the read, with a comment explaining exactly why. The sibling did not,
   and it was the most serious finding of the review: the permission is
   evaluated against the user named in the request while the row acted on comes
-  from a different parameter, so passing your own uid plus any authlog id
+  from a different parameter, so passing your own uid plus any auth log id
   force-logged-out someone else's session. Keep this.
-- **`authLogs.Trim`'s subquery is scoped.** `data/repositories/authlogs.go:187`
+- **`authLogs.Trim`'s subquery is scoped.** `data/repositories/auth_logs.go:187`
   repeats `WHERE created_by = ?` inside the `NOT IN`. The sibling's did not,
   so it retained the newest N rows across the entire table and deleted
   essentially every row belonging to the acting person — which also silently

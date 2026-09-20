@@ -434,72 +434,72 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, h.Config.GetFrontendURL())
 }
 
-// acceptIntoQueue turns an accepted member invitation into an application.
+// acceptIntoQueue turns an accepted member invitation into a signup request.
 //
 // Under `approval`, a member vouching for somebody is a recommendation rather
 // than an admission — so the invitation gets them as far as the queue, with
 // the voucher's name attached, and an administrator decides from there.
 //
-// A vouched application is a better thing to read than a cold one, and that is
-// the reason to allow member invitations at all: the member does the finding,
-// the administrator keeps the decision.
+// A vouched request is a better thing to read than a cold one, and that is the
+// reason to allow member invitations at all: the member does the finding, the
+// administrator keeps the decision.
 func (h *inviteHandler) acceptIntoQueue(
 	c echo.Context,
 	req *requests.InviteAccept,
 	token *entities.Token,
 	inviter *entities.User,
 ) error {
-	app := entities.NewRegistrationApplication()
-	app.Username = strings.ToLower(strings.TrimSpace(req.Username))
-	app.Email = token.RecipientEmail
-	app.Name = strings.TrimSpace(req.Name)
-	app.InvitedBy = inviter.ID
+	sr := entities.NewSignupRequest()
+	sr.Username = strings.ToLower(strings.TrimSpace(req.Username))
+	sr.Email = token.RecipientEmail
+	sr.Name = strings.TrimSpace(req.Name)
+	sr.InvitedBy = inviter.ID
 
 	// Verified on arrival, and straight into the queue.
 	//
 	// They reached this form through a link sent to that address and nowhere
 	// else, which is exactly what a confirmation email asks somebody to prove.
-	// A cold applicant has to confirm first; this one already has.
+	// A cold request has to confirm first; this one already has.
 	now := time.Now()
-	app.EmailVerifiedAt = &now
-	app.Status = entities.ApplicationStatusPending
+	sr.EmailVerifiedAt = &now
+	sr.Status = entities.SignupRequestStatusPending
 
 	source := newConsentSource(c)
-	app.CreatedIP = source.ip
-	app.CreatedUserAgent = source.userAgent
+	sr.CreatedIP = source.ip
+	sr.CreatedUserAgent = source.userAgent
 
-	if err := app.SetPassword(req.Password); err != nil {
-		log.Println("invite accept: could not hash the application password:", err)
+	if err := sr.SetPassword(req.Password); err != nil {
+		log.Println("invite accept: could not hash the signup request password:", err)
 		return h.renderTemplate(c, "invite_accept.html",
 			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username,
-				"Could not send your application. Please try again."))
+				"Could not send your request. Please try again."))
 	}
 
-	stored, err := h.Repos.Applications.Add(app)
+	stored, err := h.Repos.SignupRequests.Add(sr)
 	if err != nil {
-		log.Println("invite accept: could not store the application:", err)
+		log.Println("invite accept: could not store the signup request:", err)
 		return h.renderTemplate(c, "invite_accept.html",
 			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username,
-				"Could not send your application. Please try again."))
+				"Could not send your request. Please try again."))
 	}
 
 	// The invitation is spent either way. It brought them here, and leaving it
-	// live would let one invitation produce a second application after this
-	// one is decided.
+	// live would let one invitation produce a second request after this one is
+	// decided.
 	token.IsUsed = true
 	token.UpdatedAt = time.Now()
 	if _, err := h.Repos.Tokens.Edit(token); err != nil {
 		log.Printf("invite accept: could not consume token %d: %v", token.ID, err)
 	}
 
-	notifyApp := *stored
+	notifyRequest := *stored
 	go func() {
-		if err := h.Notif.Signup.EmailApplicationReceived(&notifyApp); err != nil {
+		if err := h.Notif.Signup.EmailSignupRequestReceived(&notifyRequest); err != nil {
 			log.Println("invite accept: notifying administrators failed:", err)
 		}
 	}()
 
-	return h.renderTemplate(c, "signup_application_sent.html", map[string]any{
+	return h.renderTemplate(c, "signup_request_sent.html", map[string]any{
 		"Email":    stored.Email,
 		"Verified": true,
 	})

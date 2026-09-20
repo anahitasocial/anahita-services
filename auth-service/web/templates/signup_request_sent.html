@@ -1,4 +1,4 @@
-{{define "title"}}Application received{{end}}
+{{define "title"}}Request received{{end}}
 
 {{define "content"}}
 <div class="card">
@@ -7,27 +7,28 @@
     <hr class="divider">
 
     {{if .Verified}}
-    <h2>Application received</h2>
+    <h2>Request received</h2>
 
     <p>
-        Thank you. Your application is with the {{.SiteName}} administrators,
-        and you'll hear from us by email once somebody has read it.
+        Thank you. Your request to join is with the {{.SiteName}}
+        administrators, and you'll hear from us by email once somebody has
+        read it.
     </p>
 
     <div class="notice">
         <p>There's nothing else to do for now. You won't be able to sign in
-           until your application is accepted.</p>
+           until your request is accepted.</p>
     </div>
     {{else}}
     <h2>Check your email</h2>
 
     <p>
         {{if .Email}}We've sent a confirmation link to <strong>{{.Email}}</strong>.{{else}}We've sent you a confirmation link.{{end}}
-        Follow it and your application goes to the administrators.
+        Follow it and your request goes to the administrators.
     </p>
 
     <div class="notice">
-        <p>Your application isn't in the queue until your address is
+        <p>Your request isn't in the queue until your address is
            confirmed, so nobody will see it before then.</p>
     </div>
 

@@ -11,7 +11,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-// NewAuthLog returns a new instance of the authlog repository
+// NewAuthLog returns a new instance of the authLog repository
 func NewAuthLogs(db *sql.DB) AuthLogsInterface {
 	return &authLogs{
 		db:  db,
@@ -40,7 +40,7 @@ func (repo *authLogs) DeleteByPersonID(personID int64) (int64, error) {
 	return result.RowsAffected()
 }
 
-// Browse returns all authlogs for a given user
+// Browse returns all authLogs for a given user
 func (repo *authLogs) Browse(user *entities.User) ([]*entities.AuthLog, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -98,7 +98,7 @@ func (repo *authLogs) Browse(user *entities.User) ([]*entities.AuthLog, error) {
 	return results, nil
 }
 
-// Add inserts a new authlog into the database
+// Add inserts a new authLog into the database
 func (repo *authLogs) Add(authLog *entities.AuthLog) (*entities.AuthLog, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -174,7 +174,7 @@ func (repo *authLogs) UpdateOAuthRefreshTokenID(authLogID, newRefreshTokenID int
 	return err
 }
 
-// Trim deletes all but the last 10 authlogs for a given user
+// Trim deletes all but the last 10 authLogs for a given user
 func (repo *authLogs) Trim(user *entities.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -197,7 +197,7 @@ func (repo *authLogs) Trim(user *entities.User) error {
 	return nil
 }
 
-// Delete removes an authlog from the database
+// Delete removes an authLog from the database
 func (repo *authLogs) Delete(ID int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

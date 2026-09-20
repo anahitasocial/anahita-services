@@ -6,7 +6,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-// ReadByID returns a single authlog by its ID
+// ReadByID returns a single authLog by its ID
 func (repo *authLogs) ReadByID(ID int64) (*entities.AuthLog, error) {
 	query := repo.getBaseSelectQuery().Where(sq.Eq{"id": ID})
 	return repo.getOne(query)

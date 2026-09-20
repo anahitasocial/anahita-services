@@ -240,14 +240,14 @@ func (r *Routes) Init(e *echo.Echo) {
 	reauth.POST("/passkey/begin", h.Reauth.AddPasskeyBegin)
 	reauth.POST("/passkey/finish", h.Reauth.AddPasskeyFinish)
 
-	authlogs := e.Group("/authlogs")
-	authlogs.Use(r.authorize)
-	authlogs.GET("/:id", h.Authlog.Browse)
-	// Path is /authlogs/{userID}/{authlogID}. The param names must match
-	// the `param:` tags on AuthlogDeleteRequest — Echo binds by name, so
+	authLogs := e.Group("/auth-logs")
+	authLogs.Use(r.authorize)
+	authLogs.GET("/:id", h.AuthLog.Browse)
+	// Path is /auth-logs/{userID}/{authLogID}. The param names must match
+	// the `param:` tags on AuthLogDeleteRequest — Echo binds by name, so
 	// a mismatch here leaves the field zero and fails validation rather
 	// than erroring at bind time.
-	authlogs.DELETE("/:uid/:id", h.Authlog.Delete)
+	authLogs.DELETE("/:uid/:id", h.AuthLog.Delete)
 
 	// Invite admin operations — same /invites path as the public
 	// accept routes above, but Browse, Add, and Delete are gated by
@@ -260,11 +260,17 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	// The approval queue. Administrator-only, JSON — the screen that consumes
 	// this belongs with the other settings work.
-	applications := e.Group("/applications")
-	applications.Use(r.authorize)
-	applications.GET("", h.Applications.Browse)
-	applications.POST("/:id/approve", h.Applications.Approve)
-	applications.POST("/:id/reject", h.Applications.Reject)
+	//
+	// approve and reject are named in the path rather than being a bare POST
+	// and DELETE the way follow requests are answered. Ignoring a follow
+	// request is a silent dismissal; rejecting a signup request records a
+	// decision note, stamps the deciding administrator and sends mail, and the
+	// route says so.
+	signupRequests := e.Group("/signup-requests")
+	signupRequests.Use(r.authorize)
+	signupRequests.GET("", h.SignupRequests.Browse)
+	signupRequests.POST("/:id/approve", h.SignupRequests.Approve)
+	signupRequests.POST("/:id/reject", h.SignupRequests.Reject)
 
 	totps := e.Group("/totp")
 	totps.Use(r.authorize)
@@ -276,7 +282,7 @@ func (r *Routes) Init(e *echo.Echo) {
 	totps.POST("", h.Totp.Add)
 	totps.PATCH("", h.Totp.Edit)
 	totps.DELETE("/:person_id", h.Totp.Delete)
-	totps.POST("/recoverycodes", h.Totp.AddRecoveryCodes)
+	totps.POST("/recovery-codes", h.Totp.AddRecoveryCodes)
 	totps.GET("/is/expired", h.Totp.IsExpired)
 
 	// Passkey (WebAuthn) credential management. Every route here is a

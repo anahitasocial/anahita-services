@@ -29,9 +29,9 @@ func (p *SignupPermissions) CanAdd(viewer *entities.Viewer, entity interface{}) 
 		return false, errors.New("you can't sign up while logged in")
 	}
 
-	// `approval` counts as allowed here. An applicant is starting an
-	// application, not an account, and refusing them at this gate would make
-	// the approval queue unreachable.
+	// `approval` counts as allowed here. They are starting a signup request,
+	// not an account, and refusing them at this gate would make the approval
+	// queue unreachable.
 	if !p.Config.AllowsSelfServeRegistration() {
 		return false, ErrRegistrationClosed
 	}

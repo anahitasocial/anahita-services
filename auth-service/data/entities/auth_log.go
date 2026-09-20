@@ -26,7 +26,7 @@ func NewAuthLog() *AuthLog {
 	return &AuthLog{}
 }
 
-// Validate checks if the authlog fields are valid
+// Validate checks if the authLog fields are valid
 func (a *AuthLog) Validate() error {
 	if a.CreatedBy == 0 {
 		return errors.New("created_by is required")

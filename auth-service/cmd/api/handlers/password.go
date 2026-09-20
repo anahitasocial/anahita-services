@@ -400,8 +400,8 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 	//
 	// This clears the BFF session; the IdP cookie is handled next.
 	// Both are needed — either alone leaves a way back in.
-	authlogHandler := newAuthLogHandler(h.Env)
-	if revokedSessions, err := authlogHandler.DeleteAllSessions(user); err != nil {
+	authLogHandler := newAuthLogHandler(h.Env)
+	if revokedSessions, err := authLogHandler.DeleteAllSessions(user); err != nil {
 		log.Println("password reset: session revocation failed:", err)
 	} else if revokedSessions > 0 {
 		log.Printf("password reset: revoked %d session(s) (person=%d)",
@@ -574,8 +574,8 @@ func (h *passwordHandler) Edit(c echo.Context) error {
 	// failing now would tell the person it did not.
 	revoked := 0
 
-	authlogHandler := newAuthLogHandler(h.Env)
-	if count, err := authlogHandler.DeleteAllSessionsExcept(user, viewer.OAuthRefreshTokenID); err != nil {
+	authLogHandler := newAuthLogHandler(h.Env)
+	if count, err := authLogHandler.DeleteAllSessionsExcept(user, viewer.OAuthRefreshTokenID); err != nil {
 		log.Println("password change: session revocation failed:", err)
 	} else {
 		revoked = count

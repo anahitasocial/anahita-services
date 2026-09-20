@@ -249,21 +249,21 @@ func (h *oauthHandler) recordAuthLogAfterIssuance(
 	refreshHash := h.OAuth.HashToken(refreshPlaintext)
 	rt, err := h.Repos.OAuthRefreshTokens.ReadByTokenHash(refreshHash)
 	if err != nil {
-		log.Println("authlog: refresh token lookup after issuance failed:", err)
+		log.Println("auth log: refresh token lookup after issuance failed:", err)
 		return
 	}
 
-	authlogHandler := newAuthLogHandler(h.Env)
+	authLogHandler := newAuthLogHandler(h.Env)
 
 	user, err := h.Repos.Users.ReadByID(viewer.ID)
 	if err != nil {
-		log.Println("authlog: user lookup after issuance failed:", err)
+		log.Println("auth log: user lookup after issuance failed:", err)
 		return
 	}
 
-	authLog, reused, err := authlogHandler.AddOrReuseSystem(c, rt.ID, clientID, user)
+	authLog, reused, err := authLogHandler.AddOrReuseSystem(c, rt.ID, clientID, user)
 	if err != nil {
-		log.Println("authlog: add after token issuance failed:", err)
+		log.Println("auth log: add after token issuance failed:", err)
 		return
 	}
 	// Two independent reasons to stay quiet, and they are worth telling apart
@@ -281,19 +281,19 @@ func (h *oauthHandler) recordAuthLogAfterIssuance(
 		// Same browser re-authenticating silently. The row moved to the
 		// new refresh token; nothing about this is a sign-in event, so
 		// the notification is suppressed regardless of the time window.
-		log.Println("authlog: reused auth log", authLog.ID, "for viewer", viewer.ID, "client", clientID)
+		log.Println("auth log: reused auth log", authLog.ID, "for viewer", viewer.ID, "client", clientID)
 		suppressEmail = true
 		suppressReason = "silent re-auth reused an existing session row"
 	} else {
-		log.Println("authlog: recorded new auth log", authLog.ID, "for viewer", viewer.ID, "client", clientID)
+		log.Println("auth log: recorded new auth log", authLog.ID, "for viewer", viewer.ID, "client", clientID)
 	}
 
-	if err := authlogHandler.DeleteRedundantSessions(c, user); err != nil {
-		log.Println("authlog: cleanup of redundant sessions failed:", err)
+	if err := authLogHandler.DeleteRedundantSessions(c, user); err != nil {
+		log.Println("auth log: cleanup of redundant sessions failed:", err)
 	}
 
 	if suppressEmail {
-		log.Printf("authlog: suppressing login notification for viewer %d client %s — %s",
+		log.Printf("auth log: suppressing login notification for viewer %d client %s — %s",
 			viewer.ID, clientID, suppressReason)
 		return
 	}
@@ -310,7 +310,7 @@ func (h *oauthHandler) recordAuthLogAfterIssuance(
 	notifyLog := *authLog
 	go func() {
 		if err := h.Notif.Auth.EmailLogin(&notifyUser, &notifyLog); err != nil {
-			log.Println("authlog: login notification email failed:", err)
+			log.Println("auth log: login notification email failed:", err)
 		}
 	}()
 }
@@ -331,7 +331,7 @@ func (h *oauthHandler) hasRecentLoginForClient(userID int64, clientID string) bo
 	latest, err := h.Repos.AuthLogs.ReadLatestByCreatedByAndClient(userID, clientID)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			log.Println("authlog: latest lookup for suppression check failed (failing open):", err)
+			log.Println("auth log: latest lookup for suppression check failed (failing open):", err)
 		}
 		return false
 	}

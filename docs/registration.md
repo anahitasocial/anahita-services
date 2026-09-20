@@ -63,7 +63,7 @@ suspends invitations already sent.
 - Passwords are at least 15 characters.
 - Usernames are 3–32 letters, numbers, `_` or `-`, and share one namespace with
   every other actor, groups included.
-- In `approval` mode the extra fields are the application: an administrator
+- In `approval` mode the extra fields are the request: an administrator
   cannot decide on an email address alone.
 - A display name is optional everywhere. An empty one displays as the username.
 - Avatar, bio and pronouns for everyone else are for onboarding, after signing
@@ -95,22 +95,31 @@ delivered to it.
 
 ## The approval queue
 
-In `approval` mode a self-serve applicant confirms their email first, and only
-then joins the queue. No account exists until the application is approved.
+In `approval` mode somebody signing up confirms their email first, and only
+then joins the queue. No account exists until the request is approved.
+
+Rows live in `signup_requests`. The name is deliberate: a follow request is a
+request to follow, a signup request is a request to sign up. "Application" is
+avoided because everywhere else in this product it means an OAuth client.
 
 | Endpoint | Does |
 | --- | --- |
-| `GET /applications` | Lists pending applications, oldest first |
-| `POST /applications/:id/approve` | Creates the account |
-| `POST /applications/:id/reject` | Rejects the application |
+| `GET /signup-requests` | Lists pending requests, oldest first |
+| `POST /signup-requests/:id/approve` | Creates the account |
+| `POST /signup-requests/:id/reject` | Rejects the request |
 
 All three are for administrators. Approval checks again that the username is
-still free, since somebody else may have taken it while the application waited.
+still free, since somebody else may have taken it while the request waited.
+
+`approve` and `reject` are named in the path rather than being a bare `POST`
+and `DELETE` the way follow requests are answered. Ignoring a follow request is
+a silent dismissal; rejecting a signup request records a decision note, stamps
+the deciding administrator and sends mail.
 
 **Invitations and the queue.** An invitation from an administrator is already a
 decision, so it skips the queue. An invitation from a member
 (`INVITES_FROM=members`) is a recommendation, so in `approval` mode it joins the
-queue like any other application.
+queue like any other request.
 
 The administration screen for the queue is planned as part of the settings work
 in the web app.

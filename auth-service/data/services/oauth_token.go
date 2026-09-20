@@ -270,7 +270,7 @@ func (s *OAuthService) RefreshTokenPair(
 			persistedRefreshNew.ID,
 		); err != nil {
 			// Non-fatal: token is issued, auth log just stale.
-			fmt.Println("authlog: update refresh token pointer failed:", err)
+			fmt.Println("auth log: update refresh token pointer failed:", err)
 		}
 	}
 

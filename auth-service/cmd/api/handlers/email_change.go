@@ -307,8 +307,8 @@ func (h *emailChangeHandler) Confirm(c echo.Context) error {
 		log.Printf("email change: revoked %d passkey(s) (person=%d)", revokedKeys, user.ID)
 	}
 
-	authlogHandler := newAuthLogHandler(h.Env)
-	if revokedSessions, err := authlogHandler.DeleteAllSessions(user); err != nil {
+	authLogHandler := newAuthLogHandler(h.Env)
+	if revokedSessions, err := authLogHandler.DeleteAllSessions(user); err != nil {
 		log.Println("email change: session revocation failed:", err)
 	} else if revokedSessions > 0 {
 		log.Printf("email change: revoked %d session(s) (person=%d)", revokedSessions, user.ID)

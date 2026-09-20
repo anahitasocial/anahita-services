@@ -1,29 +1,34 @@
 -- The approval queue: people who have asked to join and are waiting on a
 -- decision.
 --
--- NOT accounts. An application has no node and no auth_accounts row until it
+-- NOT accounts. A signup request has no node and no auth_accounts row until it
 -- is approved, and that is the design rather than an implementation detail:
 --
---   * a disabled actor per application fills the graph with people who were
+--   * a disabled actor per request fills the graph with people who were
 --     never admitted, and publishes them once this instance federates;
---   * it consumes usernames, so a rejected applicant holds a name forever;
+--   * it consumes usernames, so a rejected person holds a name forever;
 --   * and "is this a member" stops being answerable by looking at `nodes`.
+--
+-- Named for what it is: a request to sign up, the same way a follow request is
+-- a request to follow. "Application" is not used, because everywhere else in
+-- this product that word means an OAuth client — the consent screen says "the
+-- application requesting access" and `/clients` serves them.
 --
 -- The password hash is stored here so approval does not have to ask for one
 -- again. It is bcrypt, the same as auth_accounts, and it moves across
 -- untouched when the account is created.
 --
--- `username` is deliberately NOT unique. Two people may apply for the same
--- name; the first to be approved gets it, and the second is told at that
--- point. Enforcing it here would refuse the second application on behalf of
--- one that may itself be rejected.
+-- `username` is deliberately NOT unique. Two people may ask for the same name;
+-- the first to be approved gets it, and the second is told at that point.
+-- Enforcing it here would refuse the second request on behalf of one that may
+-- itself be rejected.
 --
--- `email` IS unique — one application per address, so a queue cannot be filled
+-- `email` IS unique — one request per address, so a queue cannot be filled
 -- by resubmitting.
 
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS registration_applications (
+CREATE TABLE IF NOT EXISTS signup_requests (
     `id`       bigint unsigned NOT NULL AUTO_INCREMENT,
     `username` varchar(32)  NOT NULL,
     `email`    varchar(255) NOT NULL,
@@ -37,14 +42,14 @@ CREATE TABLE IF NOT EXISTS registration_applications (
 
     -- unverified -> pending -> approved | rejected
     --
-    -- An application reaches the queue only once its address is confirmed, so
+    -- A request reaches the queue only once its address is confirmed, so
     -- administrators are not moderating junk that nobody can even receive mail
     -- at. `unverified` is where it waits until then.
     `status` varchar(20) NOT NULL DEFAULT 'unverified',
     `email_verified_at` datetime DEFAULT NULL,
 
     -- Who vouched, when a member's invitation put them here rather than a
-    -- cold application. An administrator's invitation never reaches this
+    -- cold request. An administrator's invitation never reaches this
     -- table — it is already a decision.
     `invited_by` bigint unsigned DEFAULT NULL,
 
@@ -52,7 +57,7 @@ CREATE TABLE IF NOT EXISTS registration_applications (
     `decided_at`    datetime        DEFAULT NULL,
     `decision_note` varchar(255)    DEFAULT NULL,
 
-    -- Where the application came from. The same evidential trio the consent
+    -- Where the request came from. The same evidential trio the consent
     -- columns carry, and for the same reason: a queue entry that cannot say
     -- where it came from is harder to moderate, and a spam wave is usually
     -- recognisable by its source long before its content.
@@ -72,5 +77,5 @@ CREATE TABLE IF NOT EXISTS registration_applications (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS registration_applications;
+DROP TABLE IF EXISTS signup_requests;
 -- +goose StatementEnd
