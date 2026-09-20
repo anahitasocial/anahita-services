@@ -69,6 +69,38 @@ type Config struct {
 	// DomainName, so a deployment that never sets it still reads
 	// sensibly.
 	SiteName string
+
+	// InstanceName and InstanceDescription are what this installation
+	// says it is to OTHER SERVERS, published as metadata.nodeName and
+	// metadata.nodeDescription in the NodeInfo document.
+	//
+	// Separate from SiteName, which they used to be taken from, because
+	// the two answer different questions. SiteName is branding: the word
+	// in "Your Banu password was changed", read by people who already
+	// know where they are. These are federation identity, read by
+	// software on a server that has never heard of this one. Renaming
+	// the product should not silently rename the installation to the
+	// rest of the network.
+	//
+	// The old derivation also had a floor nobody would choose: GetSiteName
+	// falls back to DomainName, so an installation that never set
+	// SITE_NAME published a bare hostname as its name.
+	//
+	// ANAHITA_ prefixed, unlike everything else here, because these two
+	// are the values whose unprefixed names collide with generic
+	// infrastructure words. NODE_* reads as Node.js — NODE_ENV is a real
+	// variable in the web app — and as an Anahita node, the graph
+	// primitive this codebase mentions some 1,300 times. SERVER_NAME is
+	// an nginx directive meaning a hostname, and nginx.conf in this
+	// repository sets one.
+	//
+	// Both optional. GetInstanceName falls back through SiteName to
+	// DomainName so no deployment breaks by upgrading into this;
+	// GetInstanceDescription answers "" and the field is published empty
+	// rather than omitted, so a reader can tell unset from unsupported.
+	InstanceName        string
+	InstanceDescription string
+
 	// TotpIssuer is the label an authenticator app shows beside a
 	// person's 2FA code — the "Anahita" in "Anahita (you@example.com)".
 	//
@@ -187,6 +219,10 @@ func NewConfig() *Config {
 		DomainName:       os.Getenv("DOMAIN_NAME"),
 		SystemEmail:      os.Getenv("SYSTEM_EMAIL"),
 		SiteName:         os.Getenv("SITE_NAME"),
+
+		InstanceName:        os.Getenv("ANAHITA_INSTANCE_NAME"),
+		InstanceDescription: os.Getenv("ANAHITA_INSTANCE_DESCRIPTION"),
+
 		TotpIssuer:       os.Getenv("TOTP_ISSUER"),
 		SupportEmail:     os.Getenv("SUPPORT_EMAIL"),
 		CryptBackend:     getEnv("CRYPT_BACKEND", constants.CryptBackendLocal),
@@ -463,6 +499,39 @@ func (config *Config) GetSiteName() string {
 	}
 
 	return config.DomainName
+}
+
+// GetInstanceName returns what this installation calls itself to other
+// servers, for metadata.nodeName in the NodeInfo document.
+//
+// Falls back through SiteName to DomainName. Two hops rather than one
+// because both are deliberate: an installation upgrading into this
+// setting keeps the name it already published, and one that has never
+// set either still answers something rather than an empty string.
+//
+// The DomainName floor is the reason this setting exists, so it is
+// worth naming: reaching it means the installation is telling the rest
+// of the network that it is called "social.example.org". That is a
+// legible answer, not a good one.
+func (config *Config) GetInstanceName() string {
+	if name := strings.TrimSpace(config.InstanceName); name != "" {
+		return name
+	}
+
+	return config.GetSiteName()
+}
+
+// GetInstanceDescription returns a sentence about this installation for
+// metadata.nodeDescription, or "" when the operator has not written one.
+//
+// No fallback, and nothing generated. A description assembled from the
+// software name and version would say what every other Anahita server
+// says, which is worse than saying nothing — a directory listing servers
+// by description would show a page of identical rows, and an operator
+// seeing text they did not write has no reason to suspect they were
+// meant to write some.
+func (config *Config) GetInstanceDescription() string {
+	return strings.TrimSpace(config.InstanceDescription)
 }
 
 // GetMailFrom returns the From header for outbound notifications, with

@@ -36,6 +36,25 @@ const (
 	// softwareName is what this installation runs. Lowercase and without
 	// spaces by convention — crawlers group instances by this string.
 	softwareName = "anahita"
+
+	// softwareRepository is where the software this instance runs lives.
+	//
+	// Anahita Services, not the PHP Anahita it replaces: this said
+	// anahitasocial/anahita, which sent anybody following it to a
+	// different codebase — the same mistake the 2.0.0 version made, and
+	// with the same cause, a NodeInfo document describing the project
+	// rather than the software.
+	//
+	// Points at anahitasocial/ rather than the purplerat/ remote it is
+	// pushed to today, because this is where it will live once it is
+	// public and NodeInfo is read by strangers, for whom a private URL
+	// and a wrong URL fail identically. Worth knowing that until that
+	// move happens, this link 404s for everyone outside the org.
+	//
+	// A constant rather than config: every instance runs the same
+	// software from the same place, so it is a property of the build
+	// and not of the installation.
+	softwareRepository = "https://github.com/anahitasocial/anahita-services"
 )
 
 // softwareVersion is reported to anybody who asks.
@@ -43,7 +62,20 @@ const (
 // A constant for now, and deliberately not derived from a build stamp: there
 // is no release pipeline setting one, and a version that says "dev" on every
 // production instance is worse than a version that is merely coarse.
-var softwareVersion = "2.0.0"
+//
+// 1.0.0 because Anahita Services is a rebuild rather than a continuation.
+// It said 2.0.0, read as the next major after the PHP implementation — but
+// that numbering claims a lineage the code does not have: nothing here is
+// descended from that codebase, the storage is different, and an instance
+// running this shares no upgrade path with one running that. A crawler
+// comparing versions across instances of "anahita" would otherwise be
+// ordering two unrelated things on one scale.
+//
+// Note this is NOT the only version in the repository: every service
+// carries `version: 0.9.0` in its metadata.yml. That is a per-service
+// number and this is what the installation tells the fediverse, so they
+// are allowed to differ — but they should not differ by accident.
+var softwareVersion = "1.0.0"
 
 type nodeInfoHandler struct {
 	*Env
@@ -130,7 +162,7 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 		Software: nodeInfoSoftware{
 			Name:       softwareName,
 			Version:    softwareVersion,
-			Repository: "https://github.com/anahitasocial/anahita",
+			Repository: softwareRepository,
 		},
 		// ActivityPub is where this is going and the protocol the plan is
 		// designed against, but nothing federates yet. Claiming it before it
@@ -158,12 +190,37 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 		// `false` cannot tell a locked-down site from one that takes
 		// invitations, and the web app needs to know which.
 		Metadata: map[string]any{
-			"nodeName":            h.Config.GetSiteName(),
+			// nodeName and nodeDescription keep the ecosystem's spelling
+			// even though the settings behind them are ANAHITA_INSTANCE_*.
+			// These two keys are what other fediverse software reads, so
+			// the wire format follows the convention while the variable
+			// name follows whatever is clearest for an operator here.
+			// They do not have to agree, and making them agree would
+			// mean picking one audience to confuse.
+			"nodeName":            h.Config.GetInstanceName(),
+			"nodeDescription":     h.Config.GetInstanceDescription(),
 			"registrationMode":    h.Config.GetRegistrationMode(),
 			"approvalRequired":    h.Config.RequiresRegistrationApproval(),
 			"invitationsAccepted": h.Config.AllowsInvitations(),
-			"termsOfServiceUrl":   h.Config.GetTosURL(),
-			"privacyPolicyUrl":    h.Config.GetPrivacyURL(),
+
+			// The minimum role that may issue an invitation:
+			// registered, administrators or super-administrators.
+			//
+			// Published because the web app cannot work it out. Whether
+			// to offer somebody the invitations screen depends on a
+			// server setting, and without this the client's only
+			// options are to guess from the person's role — which is
+			// what it did, assuming administrator — or to show
+			// everybody a page most of them cannot use.
+			//
+			// Normalised, so the deprecated `members` spelling never
+			// reaches a client. Discloses nothing: it is a policy of
+			// the site, the same kind of fact as registrationMode
+			// sitting two lines above.
+			"invitesFrom": h.Config.GetInvitesFrom(),
+
+			"termsOfServiceUrl": h.Config.GetTosURL(),
+			"privacyPolicyUrl":  h.Config.GetPrivacyURL(),
 
 			// How to reach a person. Published here, rather than baked into
 			// the web app as REACT_APP_ variables, for two reasons:

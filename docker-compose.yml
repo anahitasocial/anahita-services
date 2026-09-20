@@ -81,6 +81,13 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       DOMAIN_NAME: ${DOMAIN_NAME}
       SITE_NAME: ${SITE_NAME:-}
+      # How this installation introduces itself to OTHER SERVERS, published
+      # as nodeName and nodeDescription in NodeInfo. Distinct from SITE_NAME,
+      # which is branding read by people who already know where they are.
+      # Both optional: the name falls back through SITE_NAME to DOMAIN_NAME,
+      # and an unwritten description is published empty rather than invented.
+      ANAHITA_INSTANCE_NAME: ${ANAHITA_INSTANCE_NAME:-}
+      ANAHITA_INSTANCE_DESCRIPTION: ${ANAHITA_INSTANCE_DESCRIPTION:-}
       SYSTEM_EMAIL: ${SYSTEM_EMAIL}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL}
       # The rest of the contact details on the public /support page. Both
