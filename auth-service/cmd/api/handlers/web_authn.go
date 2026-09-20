@@ -455,10 +455,33 @@ func (h *webAuthnHandler) DeleteAll(c echo.Context) error {
 		return permForbidden(c, permErr)
 	}
 
+	// Presence, after authority. Revoking somebody else's passkeys is
+	// destructive and irreversible for them, so an administrator session
+	// left open is not on its own enough — the same bar the OAuth writes
+	// hold, and by the same mechanism, which accepts a passkey as
+	// readily as a passcode.
+	//
+	// Self-service is exempt above and never reaches this: CanDeleteAll
+	// returns early when the target is the actor, so clearing your own
+	// passkeys stays the ordinary path it already was.
+	if target.ID != actor.ID {
+		if err := h.requireStepUp(actor.ID); err != nil {
+			log.Println("webauthn delete all:", err)
+			return stepUpRequired(c, err)
+		}
+	}
+
 	revoked, err := h.Repos.WebAuthnCredentials.DeleteByPersonID(target.ID)
 	if err != nil {
 		log.Println("webauthn delete all:", err)
 		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	// One proof, one revocation. Stripping a second person's passkeys
+	// means proving yourself again, which is the point — each one is a
+	// separate account somebody is being locked out of a shortcut to.
+	if target.ID != actor.ID {
+		h.clearStepUp(actor.ID)
 	}
 
 	// Audit line. Logged unconditionally, including the zero case,

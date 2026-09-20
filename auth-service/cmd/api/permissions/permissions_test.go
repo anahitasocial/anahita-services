@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 	"testing"
-	"time"
 
 	libs_constants "anahita-libs/constants"
 	libs_entities "anahita-libs/data/entities"
@@ -426,14 +425,26 @@ func TestWebAuthnRejectsUnauthenticatedViewers(t *testing.T) {
 // Bulk revocation against somebody else is super-admin only AND requires a
 // recent TOTP verification — a global admin session that has been sitting open
 // is not by itself authority to strip credentials.
+// Revoking another person's passkeys is PEOPLE administration, so it
+// admits administrators — authority here divides by domain rather than
+// seniority, with super admins owning system configuration and site
+// admins owning people and actors in full.
+//
+// Freshness is no longer asserted here because it is no longer decided
+// here. It moved to the handler as requireStepUp, which accepts a
+// passkey, a passcode or a password within five minutes. The check this
+// replaced demanded TOTP specifically, so an administrator carrying
+// only a passkey could not revoke anybody's — the same trap the OAuth
+// endpoints had.
 func TestWebAuthnCanDeleteAll(t *testing.T) {
 	p := NewWebAuthnPerm(&Env{})
 	v := newViewer(viewerID, libs_constants.PersonTypeSuperAdmin, libs_constants.OAuthScopeAccountWrite)
 
-	freshSuper := newUser(viewerID)
-	freshSuper.PersonType = libs_constants.PersonTypeSuperAdmin
-	freshSuper.TotpEnabled = true
-	freshSuper.TotpLastVerifiedAt = time.Now()
+	actorOfType := func(userType string) *entities.User {
+		u := newUser(viewerID)
+		u.PersonType = userType
+		return u
+	}
 
 	t.Run("own account needs no elevation", func(t *testing.T) {
 		self := newUser(viewerID)
@@ -442,54 +453,51 @@ func TestWebAuthnCanDeleteAll(t *testing.T) {
 		}
 	})
 
-	t.Run("super admin with fresh totp", func(t *testing.T) {
-		if ok, err := p.CanDeleteAll(v, freshSuper, newUser(otherID)); !ok {
-			t.Errorf("refused: %v", err)
+	t.Run("administrator", func(t *testing.T) {
+		admin := actorOfType(libs_constants.PersonTypeAdmin)
+		if ok, err := p.CanDeleteAll(v, admin, newUser(otherID)); !ok {
+			t.Errorf("an administrator was refused: %v", err)
 		}
 	})
 
-	t.Run("ordinary admin is not enough", func(t *testing.T) {
-		admin := newUser(viewerID)
-		admin.PersonType = libs_constants.PersonTypeAdmin
-		admin.TotpEnabled = true
-		admin.TotpLastVerifiedAt = time.Now()
+	t.Run("super administrator", func(t *testing.T) {
+		super := actorOfType(libs_constants.PersonTypeSuperAdmin)
+		if ok, err := p.CanDeleteAll(v, super, newUser(otherID)); !ok {
+			t.Errorf("a super administrator was refused: %v", err)
+		}
+	})
 
-		ok, err := p.CanDeleteAll(v, admin, newUser(otherID))
+	t.Run("no passkey, no TOTP, still allowed here", func(t *testing.T) {
+		// The permission answers authority alone. Presence is the
+		// handler's question, and asserting it here would pin the
+		// wrong function.
+		admin := actorOfType(libs_constants.PersonTypeAdmin)
+		admin.TotpEnabled = false
+
+		if ok, err := p.CanDeleteAll(v, admin, newUser(otherID)); !ok {
+			t.Errorf("authority was refused for want of a second factor: %v", err)
+		}
+	})
+
+	t.Run("an ordinary person is refused", func(t *testing.T) {
+		registered := actorOfType(libs_constants.PersonTypeRegistered)
+
+		ok, err := p.CanDeleteAll(v, registered, newUser(otherID))
 		if ok {
-			t.Error("an ordinary admin stripped another person's passkeys")
+			t.Error("an ordinary person stripped somebody else's passkeys")
 		}
-		if !strings.Contains(err.Error(), "super admin") {
-			t.Errorf("error %q does not explain the requirement", err)
-		}
-	})
-
-	t.Run("super admin without totp", func(t *testing.T) {
-		noTotp := newUser(viewerID)
-		noTotp.PersonType = libs_constants.PersonTypeSuperAdmin
-
-		if ok, _ := p.CanDeleteAll(v, noTotp, newUser(otherID)); ok {
-			t.Error("a super admin with no second factor stripped somebody's passkeys")
-		}
-	})
-
-	t.Run("super admin with a stale totp verification", func(t *testing.T) {
-		stale := newUser(viewerID)
-		stale.PersonType = libs_constants.PersonTypeSuperAdmin
-		stale.TotpEnabled = true
-		stale.TotpLastVerifiedAt = time.Now().Add(-365 * 24 * time.Hour)
-
-		// Freshness, not enrolment: "has TOTP configured" is a claim about the
-		// account, "verified recently" is a claim about who is at the keyboard.
-		if ok, _ := p.CanDeleteAll(v, stale, newUser(otherID)); ok {
-			t.Error("a long-idle super admin session stripped somebody's passkeys")
+		if err == nil || !strings.Contains(err.Error(), "administrator") {
+			t.Errorf("error %v does not explain the requirement", err)
 		}
 	})
 
 	t.Run("an unhydrated viewer is refused rather than defaulted", func(t *testing.T) {
+		super := actorOfType(libs_constants.PersonTypeSuperAdmin)
+
 		if ok, _ := p.CanDeleteAll(v, nil, newUser(otherID)); ok {
 			t.Error("accepted a nil actor")
 		}
-		if ok, _ := p.CanDeleteAll(v, freshSuper, nil); ok {
+		if ok, _ := p.CanDeleteAll(v, super, nil); ok {
 			t.Error("accepted a nil target")
 		}
 	})
@@ -497,23 +505,40 @@ func TestWebAuthnCanDeleteAll(t *testing.T) {
 
 // Reading a count is deliberately NOT gated on TOTP freshness: it populates a
 // card rather than destroying anything, and a count is not a list.
-func TestWebAuthnCanReadCountDoesNotRequireFreshTotp(t *testing.T) {
+// Reading a count is a read that populates a card, so it carries no
+// step-up — an administrator with a long-idle session should still be
+// able to render the person page.
+//
+// Administrator, matching CanDeleteAll. A card an administrator can see
+// but not act on, or act on but not see, would be worse than either.
+func TestWebAuthnCanReadCount(t *testing.T) {
 	p := NewWebAuthnPerm(&Env{})
 	v := newViewer(viewerID, libs_constants.PersonTypeSuperAdmin, libs_constants.OAuthScopeAccountWrite)
 
-	stale := newUser(viewerID)
-	stale.PersonType = libs_constants.PersonTypeSuperAdmin
-
-	if ok, err := p.CanReadCount(v, stale, newUser(otherID)); !ok {
-		t.Errorf("a super admin with a stale session could not read a count: %v", err)
+	actorOfType := func(userType string) *entities.User {
+		u := newUser(viewerID)
+		u.PersonType = userType
+		return u
 	}
 
-	// Still super-admin only, though.
-	admin := newUser(viewerID)
-	admin.PersonType = libs_constants.PersonTypeAdmin
-	if ok, _ := p.CanReadCount(v, admin, newUser(otherID)); ok {
-		t.Error("an ordinary admin read another person's passkey count")
+	for _, userType := range []string{
+		libs_constants.PersonTypeAdmin,
+		libs_constants.PersonTypeSuperAdmin,
+	} {
+		t.Run(userType, func(t *testing.T) {
+			// No TOTP and no recent verification: authority only.
+			if ok, err := p.CanReadCount(v, actorOfType(userType), newUser(otherID)); !ok {
+				t.Errorf("refused a count to %s: %v", userType, err)
+			}
+		})
 	}
+
+	t.Run("an ordinary person is refused", func(t *testing.T) {
+		registered := actorOfType(libs_constants.PersonTypeRegistered)
+		if ok, _ := p.CanReadCount(v, registered, newUser(otherID)); ok {
+			t.Error("an ordinary person read another person's passkey count")
+		}
+	})
 }
 
 // ---------------------------------------------------------------------

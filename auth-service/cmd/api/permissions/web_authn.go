@@ -15,8 +15,7 @@ const (
 	ErrWebAuthnInsufficientScope = "insufficient scope for passkey management"
 	ErrWebAuthnNotOwner          = "passkey belongs to another user"
 	ErrWebAuthnNoViewer          = "no authenticated viewer"
-	ErrWebAuthnNotSuperAdmin     = "revoking another user's passkeys requires a super admin"
-	ErrWebAuthnTotpRequired      = "totp verification required"
+	ErrWebAuthnNotAdmin          = "revoking another person's passkeys requires an administrator"
 	ErrWebAuthnNoTarget          = "target user not found"
 	ErrWebAuthnNoActor           = "viewer not hydrated"
 )
@@ -103,7 +102,7 @@ func (p *WebAuthnPerm) canMutate(
 
 // CanDeleteAll gates revoking every passkey belonging to someone else.
 //
-// GLOBAL ADMIN ONLY, and deliberately asymmetric with CanBrowse:
+// ADMINISTRATOR ONLY, and deliberately asymmetric with CanBrowse:
 // an admin may revoke another person's passkeys but may not list them.
 //
 // The asymmetry is the point. Listing reveals which devices a person
@@ -153,43 +152,42 @@ func (p *WebAuthnPerm) CanDeleteAll(
 		return true, nil
 	}
 
-	if !actor.IsSuperAdmin() {
-		return false, errors.New(ErrWebAuthnNotSuperAdmin)
+	// ADMINISTRATOR, not super administrator.
+	//
+	// Authority here divides by domain rather than by seniority: super
+	// administrators own system configuration — OAuth clients, signing
+	// keys — and site administrators own people and actors in full.
+	// Revoking somebody's passkeys is squarely the second. It used to
+	// require a super admin, which put an account-recovery action
+	// behind the one role that should not be a bottleneck for it, and
+	// left the neighbouring TOTP revoke — the same act on the other
+	// factor — admitting administrators.
+	if !actor.IsAdminOrSuperAdmin() {
+		return false, errors.New(ErrWebAuthnNotAdmin)
 	}
 
-	// Step-up on a destructive action against another account, in
-	// line with the OAuth client and signing-key endpoints. A global
-	// admin session that has been sitting open is not by itself
-	// authority to strip someone's credentials.
+	// Presence is asked for separately, by the handler, through
+	// requireStepUp. Authority and presence are different questions:
+	// this function answers whether the right person is asking, and a
+	// step-up answers whether they are at the keyboard.
 	//
-	// Freshness, not just enrolment. "Has TOTP configured" is a claim
-	// about the account; "verified TOTP recently" is a claim about
-	// who is at the keyboard right now, and only the second one is
-	// worth anything against an unattended session.
-	//
-	// The OAuth client and signing-key endpoints named above were
-	// indeed backed by a weaker check, and it has been reconciled
-	// downwards as this note asked — though not to this exact shape.
-	// They now call requireStepUp, which demands a proof within five
-	// minutes by passkey, passcode or password, rather than reading an
-	// enrolment flag. That is freshness by a different route, and it
-	// admits a passkey holder who has no TOTP at all.
-	//
-	// This check stays as it is: stripping somebody else's credentials
-	// is not the same act as registering a client, and the accounts it
-	// defends are not the actor's own.
-	if !actor.TotpEnabled || actor.IsMfaExpired() {
-		return false, errors.New(ErrWebAuthnTotpRequired)
-	}
-
+	// It used to be answered here, as `!actor.TotpEnabled ||
+	// actor.IsMfaExpired()`. That was freshness, correctly — a global
+	// admin session sitting open is not by itself authority to strip
+	// someone's credentials — but freshness of TOTP SPECIFICALLY, so
+	// an administrator carrying a passkey and no authenticator could
+	// not do it at all. The same reasoning that moved the OAuth
+	// endpoints onto step-up applies with more force here, because the
+	// people most likely to hold only a passkey are the ones who
+	// enrolled recently.
 	return true, nil
 }
 
 // CanReadCount gates reading how many passkeys someone else holds.
 //
-// Global admin, same as CanDeleteAll — but deliberately without the
-// TOTP freshness requirement, because this is a read that populates a
-// card rather than an action that destroys anything. Gating it the
+// Administrator, same as CanDeleteAll — but deliberately without the
+// step-up, because this is a read that populates a card rather than an
+// action that destroys anything. Gating it the
 // same way would mean the person page could not render for an admin
 // with a stale session, which is a lot of friction to protect a
 // single integer.
@@ -224,8 +222,12 @@ func (p *WebAuthnPerm) CanReadCount(
 		return true, nil
 	}
 
-	if !actor.IsSuperAdmin() {
-		return false, errors.New(ErrWebAuthnNotSuperAdmin)
+	// Administrator, for the same reason as CanDeleteAll: how many
+	// passkeys somebody holds is people administration, and a card that
+	// an administrator can see but not act on would be worse than
+	// either alone.
+	if !actor.IsAdminOrSuperAdmin() {
+		return false, errors.New(ErrWebAuthnNotAdmin)
 	}
 
 	return true, nil
