@@ -652,7 +652,7 @@ func TestSignupFollowsTheRegistrationMode(t *testing.T) {
 		{auth_constants.RegistrationModeOpen, true, "open takes anybody"},
 		{
 			auth_constants.RegistrationModeApproval, true,
-			"an applicant starts an application, not an account — refusing " +
+			"they start a signup request, not an account — refusing " +
 				"them here makes the approval queue unreachable",
 		},
 		{auth_constants.RegistrationModeInvite, false, "invitations only"},

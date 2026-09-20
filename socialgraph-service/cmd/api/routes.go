@@ -37,10 +37,10 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	socialgraph.GET("/:actor_id/mutuals/", r.handler.Mutual.Browse, r.authorize)
 
-	socialgraph.GET("/:actor_id/followrequests/", r.handler.FollowRequest.Browse, r.authorize)
-	socialgraph.PATCH("/:target_id/followrequests/:source_id", r.handler.FollowRequest.Edit, r.authorize)
-	socialgraph.POST("/:target_id/followrequests/:source_id", r.handler.FollowRequest.Add, r.authorize)
-	socialgraph.DELETE("/:target_id/followrequests/:source_id", r.handler.FollowRequest.Delete, r.authorize)
+	socialgraph.GET("/:actor_id/follow-requests/", r.handler.FollowRequest.Browse, r.authorize)
+	socialgraph.PATCH("/:target_id/follow-requests/:source_id", r.handler.FollowRequest.Edit, r.authorize)
+	socialgraph.POST("/:target_id/follow-requests/:source_id", r.handler.FollowRequest.Add, r.authorize)
+	socialgraph.DELETE("/:target_id/follow-requests/:source_id", r.handler.FollowRequest.Delete, r.authorize)
 
 	socialgraph.GET("/:actor_id/blocks/", r.handler.Block.Browse, r.authorize)
 	socialgraph.POST("/:target_id/blocks/:source_id", r.handler.Block.Add, r.authorize)

@@ -23,11 +23,11 @@ func TestBindCommentStatus(t *testing.T) {
 
 	for _, tc := range cases {
 		e := echo.New()
-		req := httptest.NewRequest(http.MethodPatch, "/photos/42/commentstatus", strings.NewReader(tc.body))
+		req := httptest.NewRequest(http.MethodPatch, "/photos/42/comment-status", strings.NewReader(tc.body))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
-		c.SetPath("/photos/:id/commentstatus")
+		c.SetPath("/photos/:id/comment-status")
 		c.SetParamNames("id")
 		c.SetParamValues("42")
 

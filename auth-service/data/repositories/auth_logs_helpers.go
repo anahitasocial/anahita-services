@@ -8,7 +8,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-// getBaseSelectQuery returns the base select query for authlogs
+// getBaseSelectQuery returns the base select query for authLogs
 func (repo *authLogs) getBaseSelectQuery() sq.SelectBuilder {
 	var fields = []string{
 		"id",
@@ -27,7 +27,7 @@ func (repo *authLogs) getBaseSelectQuery() sq.SelectBuilder {
 	return repo.sql.Select(fields...).From("auth_logs")
 }
 
-// getOne scans a single authlog from the database
+// getOne scans a single authLog from the database
 func (repo *authLogs) getOne(query sq.SelectBuilder) (*entities.AuthLog, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

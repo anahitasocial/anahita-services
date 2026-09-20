@@ -38,7 +38,7 @@ func newAuthLogHandler(env *Env) *authLogHandler {
 func (h *authLogHandler) Browse(c echo.Context) error {
 	var (
 		viewer = getViewer(c)
-		req    = requests.NewAuthlogRequest().Browse
+		req    = requests.NewAuthLogRequest().Browse
 		err    error
 	)
 
@@ -89,8 +89,8 @@ func (h *authLogHandler) Browse(c echo.Context) error {
 		}
 	}
 
-	respAuthlogs := &responses.AuthlogResponse{}
-	resp := respAuthlogs.MapAuthlogItems(authLogs)
+	respAuthLogs := &responses.AuthLogResponse{}
+	resp := respAuthLogs.MapAuthLogItems(authLogs)
 
 	return c.JSON(http.StatusOK, resp)
 }
@@ -177,7 +177,7 @@ func (h *authLogHandler) AddOrReuseSystem(c echo.Context, refreshTokenID int64, 
 	)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			log.Println("authlog: agent lookup failed, inserting new row:", err)
+			log.Println("auth log: agent lookup failed, inserting new row:", err)
 		}
 		persisted, addErr := h.buildAndPersistFrom(authLog, user)
 		return persisted, false, addErr
@@ -196,7 +196,7 @@ func (h *authLogHandler) AddOrReuseSystem(c echo.Context, refreshTokenID int64, 
 			// Non-fatal: the pointer move below is what keeps the
 			// sessions list honest. A token we failed to revoke still
 			// expires on its own.
-			log.Println("authlog: revoking superseded refresh token failed:", err)
+			log.Println("auth log: revoking superseded refresh token failed:", err)
 		}
 	}
 
@@ -308,7 +308,7 @@ func (h *authLogHandler) Delete(c echo.Context) error {
 	var (
 		err    error
 		viewer = getViewer(c)
-		req    = requests.NewAuthlogRequest().Delete
+		req    = requests.NewAuthLogRequest().Delete
 	)
 
 	if err = c.Bind(req); err != nil {
@@ -340,19 +340,19 @@ func (h *authLogHandler) Delete(c echo.Context) error {
 
 	// CanDelete authorized the viewer against the user in the path, not
 	// against this row. Without this check a person passes their own uid
-	// (clearing the permission check) plus any authlog id and force-logs
+	// (clearing the permission check) plus any authLog id and force-logs
 	// out a session belonging to someone else.
 	//
-	// 404 rather than 403: whether a given authlog id exists is not
+	// 404 rather than 403: whether a given authLog id exists is not
 	// something a non-owner should be able to probe.
 	if authLog.CreatedBy != user.ID {
-		log.Println("authlog delete: row", authLog.ID, "does not belong to user", user.ID)
+		log.Println("auth log delete: row", authLog.ID, "does not belong to user", user.ID)
 		return c.NoContent(http.StatusNotFound)
 	}
 
 	if authLog.OAuthRefreshTokenID != 0 {
 		if err := h.Repos.OAuthRefreshTokens.Revoke(authLog.OAuthRefreshTokenID); err != nil {
-			log.Println("authlog delete: revoke failed, continuing:", err)
+			log.Println("auth log delete: revoke failed, continuing:", err)
 		}
 	}
 
@@ -374,7 +374,7 @@ func (h *authLogHandler) Delete(c echo.Context) error {
 		location := describeLocation(authLog)
 		go func() {
 			if err := h.Notif.Auth.EmailSessionRevoked(&notifyUser, device, location); err != nil {
-				log.Println("authlog: session revocation notification failed:", err)
+				log.Println("auth log: session revocation notification failed:", err)
 			}
 		}()
 	}
@@ -488,7 +488,7 @@ func (h *authLogHandler) DeleteAllSessionsExcept(
 		}
 
 		if err := h.Repos.OAuthRefreshTokens.Revoke(rt.ID); err != nil {
-			log.Println("authlog: revoke during session purge failed:", err)
+			log.Println("auth log: revoke during session purge failed:", err)
 			continue
 		}
 		revoked++

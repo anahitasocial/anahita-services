@@ -1,22 +1,22 @@
 package requests
 
-type AuthlogRequest struct {
-	Browse *AuthlogBrowseRequest
-	Delete *AuthlogDeleteRequest
+type AuthLogRequest struct {
+	Browse *AuthLogBrowseRequest
+	Delete *AuthLogDeleteRequest
 }
 
-func NewAuthlogRequest() *AuthlogRequest {
-	return &AuthlogRequest{
-		Browse: &AuthlogBrowseRequest{},
-		Delete: &AuthlogDeleteRequest{},
+func NewAuthLogRequest() *AuthLogRequest {
+	return &AuthLogRequest{
+		Browse: &AuthLogBrowseRequest{},
+		Delete: &AuthLogDeleteRequest{},
 	}
 }
 
-type AuthlogBrowseRequest struct {
+type AuthLogBrowseRequest struct {
 	ID int64 `param:"id" validate:"required"`
 }
 
-type AuthlogDeleteRequest struct {
+type AuthLogDeleteRequest struct {
 	UserID int64 `param:"uid" validate:"required"`
 	ID     int64 `param:"id" validate:"required"`
 }

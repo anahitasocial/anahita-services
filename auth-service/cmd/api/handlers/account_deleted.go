@@ -240,8 +240,8 @@ func (h *accountDeletedHandler) revokeCredentials(userID int64) {
 	}
 
 	// Refresh tokens, via the auth log's session index.
-	authlogHandler := newAuthLogHandler(h.Env)
-	if revoked, err := authlogHandler.DeleteAllSessions(user); err != nil {
+	authLogHandler := newAuthLogHandler(h.Env)
+	if revoked, err := authLogHandler.DeleteAllSessions(user); err != nil {
 		log.Println("account deleted: session revocation failed:", err)
 	} else if revoked > 0 {
 		log.Printf("account deleted: revoked %d session(s) (person=%d)", revoked, user.ID)

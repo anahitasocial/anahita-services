@@ -228,7 +228,7 @@ ALTER TABLE nodes DROP COLUMN `permissions`;
 
 -- Migrate notifications to `notifications` table
 
-CREATE TABLE IF NOT EXISTS registration_applications (
+CREATE TABLE IF NOT EXISTS signup_requests (
     `id`       bigint unsigned NOT NULL AUTO_INCREMENT,
     `username` varchar(32)  NOT NULL,
     `email`    varchar(255) NOT NULL,
@@ -242,14 +242,14 @@ CREATE TABLE IF NOT EXISTS registration_applications (
 
     -- unverified -> pending -> approved | rejected
     --
-    -- An application reaches the queue only once its address is confirmed, so
+    -- A request reaches the queue only once its address is confirmed, so
     -- administrators are not moderating junk that nobody can even receive mail
     -- at. `unverified` is where it waits until then.
     `status` varchar(20) NOT NULL DEFAULT 'unverified',
     `email_verified_at` datetime DEFAULT NULL,
 
     -- Who vouched, when a member's invitation put them here rather than a
-    -- cold application. An administrator's invitation never reaches this
+    -- cold request. An administrator's invitation never reaches this
     -- table — it is already a decision.
     `invited_by` bigint unsigned DEFAULT NULL,
 
@@ -257,7 +257,7 @@ CREATE TABLE IF NOT EXISTS registration_applications (
     `decided_at`    datetime        DEFAULT NULL,
     `decision_note` varchar(255)    DEFAULT NULL,
 
-    -- Where the application came from. The same evidential trio the consent
+    -- Where the request came from. The same evidential trio the consent
     -- columns carry, and for the same reason: a queue entry that cannot say
     -- where it came from is harder to moderate, and a spam wave is usually
     -- recognisable by its source long before its content.

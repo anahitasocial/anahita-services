@@ -69,7 +69,7 @@ nginx maps public paths to services. The full map lives in
 
 | Path prefix | Service |
 | --- | --- |
-| `/oauth/`, `/auth`, `/signup`, `/applications`, `/agreements`, `/password`, `/email`, `/username`, `/reauth`, `/totp`, `/webauthn`, `/invites`, `/clients`, `/authlogs/`, `/oauth-signing-keys`, `/.well-known/`, `/nodeinfo/`, `/static/` | `auth-service` |
+| `/oauth/`, `/auth`, `/signup`, `/signup-requests`, `/agreements`, `/password`, `/email`, `/username`, `/reauth`, `/totp`, `/webauthn`, `/invites`, `/clients`, `/auth-logs/`, `/oauth-signing-keys`, `/.well-known/`, `/nodeinfo/`, `/static/` | `auth-service` |
 | `/articles/`, `/notes/`, `/topics/` | `text-service` |
 | `/people/` | `person-service` |
 | `/groups/` | `group-service` |

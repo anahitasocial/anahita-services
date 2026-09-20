@@ -73,15 +73,15 @@ func (h *signupNotifier) EmailConfirm(user *entities.User, token *entities.Token
 	)
 }
 
-// EmailApplicationReceived tells the administrators somebody is waiting.
+// EmailSignupRequestReceived tells the administrators somebody is waiting.
 //
-// Sent once the address is CONFIRMED, not when the application is submitted —
+// Sent once the address is CONFIRMED, not when the request is submitted —
 // otherwise this is the thing a spam wave turns into a mail flood aimed at the
 // people who would otherwise be dealing with it.
 //
 // Errors are accumulated rather than short-circuiting, so one administrator
 // with a dead address does not stop the others being told.
-func (h *signupNotifier) EmailApplicationReceived(app *entities.RegistrationApplication) error {
+func (h *signupNotifier) EmailSignupRequestReceived(sr *entities.SignupRequest) error {
 	personReq := requests.NewUserRequest().Browse
 	personReq.PersonTypes = []string{
 		an_constants.PersonTypeAdmin,
@@ -95,70 +95,70 @@ func (h *signupNotifier) EmailApplicationReceived(app *entities.RegistrationAppl
 
 	// Straight to the queue rather than the front page. An administrator
 	// clicking through from this mail is coming to do one thing.
-	actionURL := fmt.Sprintf("%s/settings/applications", h.Config.GetFrontendURL())
+	actionURL := fmt.Sprintf("%s/settings/signup-requests", h.Config.GetFrontendURL())
 
 	var sendErrors []error
 	for _, admin := range admins {
 		body := fmt.Sprintf(
-			messages.ApplicationReceivedBody,
+			messages.SignupRequestReceivedBody,
 			admin.Name,
-			app.Name,
-			app.Username,
-			app.Body,
+			sr.Name,
+			sr.Username,
+			sr.Body,
 		)
 
 		if err := h.send(
 			admin.Email,
-			messages.ApplicationReceivedSubject,
-			messages.ApplicationReceivedTitle,
+			messages.SignupRequestReceivedSubject,
+			messages.SignupRequestReceivedTitle,
 			body,
-			messages.ApplicationReceivedActionLabel,
+			messages.SignupRequestReceivedActionLabel,
 			actionURL,
 		); err != nil {
 			sendErrors = append(sendErrors,
-				fmt.Errorf("application notice to admin %d failed: %w", admin.ID, err))
+				fmt.Errorf("signup request notice to admin %d failed: %w", admin.ID, err))
 		}
 	}
 
 	return errors.Join(sendErrors...)
 }
 
-// EmailApplicationApproved tells somebody they are in.
-func (h *signupNotifier) EmailApplicationApproved(app *entities.RegistrationApplication) error {
-	greeting := app.Name
+// EmailSignupRequestApproved tells somebody they are in.
+func (h *signupNotifier) EmailSignupRequestApproved(sr *entities.SignupRequest) error {
+	greeting := sr.Name
 	if greeting == "" {
-		greeting = app.Username
+		greeting = sr.Username
 	}
 
 	return h.send(
-		app.Email,
-		messages.ApplicationApprovedSubject,
-		messages.ApplicationApprovedTitle,
-		fmt.Sprintf(messages.ApplicationApprovedBody, greeting),
-		messages.ApplicationApprovedActionLabel,
+		sr.Email,
+		messages.SignupRequestApprovedSubject,
+		messages.SignupRequestApprovedTitle,
+		fmt.Sprintf(messages.SignupRequestApprovedBody, greeting),
+		messages.SignupRequestApprovedActionLabel,
 		fmt.Sprintf("%s/oauth/login", h.Config.GetAuthURL()),
 	)
 }
 
-// EmailApplicationRejected tells somebody they are not.
+// EmailSignupRequestRejected tells somebody they are not.
 //
 // Sent, rather than silence. Somebody who is never coming should be told so
 // instead of waiting — silence reads as a broken site, and the person keeps
 // checking. No reason is given: a rejection note written for a moderator's
 // records is not written to be read by its subject, and passing it on turns
 // every decision into an argument.
-func (h *signupNotifier) EmailApplicationRejected(app *entities.RegistrationApplication) error {
-	greeting := app.Name
+func (h *signupNotifier) EmailSignupRequestRejected(sr *entities.SignupRequest) error {
+	greeting := sr.Name
 	if greeting == "" {
-		greeting = app.Username
+		greeting = sr.Username
 	}
 
 	return h.send(
-		app.Email,
-		messages.ApplicationRejectedSubject,
-		messages.ApplicationRejectedTitle,
-		fmt.Sprintf(messages.ApplicationRejectedBody, greeting),
-		messages.ApplicationRejectedActionLabel,
+		sr.Email,
+		messages.SignupRequestRejectedSubject,
+		messages.SignupRequestRejectedTitle,
+		fmt.Sprintf(messages.SignupRequestRejectedBody, greeting),
+		messages.SignupRequestRejectedActionLabel,
 		h.Config.GetFrontendURL(),
 	)
 }

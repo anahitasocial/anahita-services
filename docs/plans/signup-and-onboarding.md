@@ -280,7 +280,8 @@ never needs proof-of-work either.
 **The admin UI is deliberately not here.** It belongs with the other settings
 work, in its own plan.
 
-- `registration_applications`: handle, email, password hash, display name, bio,
+- `signup_requests` (called `registration_applications` when this plan was
+  written): handle, email, password hash, display name, bio,
   website URL, status, decided_by, decided_at, the request's IP and user agent,
   and the email-verification state.
 - **Not a node and not an `auth_accounts` row until approved.** Creating a

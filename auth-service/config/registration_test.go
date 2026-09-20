@@ -11,8 +11,8 @@ import (
 // predicates rather than callers comparing strings is that the answers do not
 // move together:
 //
-//	AllowsSelfServeRegistration   `approval` is TRUE — an applicant starts an
-//	                              application, and refusing them at the gate
+//	AllowsSelfServeRegistration   `approval` is TRUE — they start a signup
+//	                              request, and refusing them at the gate
 //	                              would make the queue unreachable
 //	RequiresRegistrationApproval  only `approval`
 //	AllowsInvitations             everything except `closed`
@@ -102,7 +102,7 @@ func TestRegistrationModeIsNormalised(t *testing.T) {
 // `approval` boots now that the queue exists.
 //
 // It used to be refused, and the refusal was right at the time: with nowhere
-// for an application to go, asking for approval would have given open
+// for a signup request to go, asking for approval would have given open
 // registration on a site the operator believed was gated.
 func TestApprovalBootsNowThatTheQueueExists(t *testing.T) {
 	problems := (&Config{

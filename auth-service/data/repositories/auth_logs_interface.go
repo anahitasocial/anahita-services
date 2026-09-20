@@ -5,7 +5,7 @@ import (
 )
 
 type AuthLogsInterface interface {
-	// Browse returns all authlogs for a given user
+	// Browse returns all authLogs for a given user
 	Browse(user *entities.User) ([]*entities.AuthLog, error)
 
 	// DeleteByPersonID removes every auth log belonging to a person and
@@ -16,10 +16,10 @@ type AuthLogsInterface interface {
 	// account deletion entirely until the sweeper started calling this.
 	DeleteByPersonID(personID int64) (int64, error)
 
-	// ReadByID returns a single authlog by its ID
+	// ReadByID returns a single authLog by its ID
 	ReadByID(ID int64) (*entities.AuthLog, error)
 
-	// ReadByOAuthRefreshTokenID returns a single authlog by its current
+	// ReadByOAuthRefreshTokenID returns a single authLog by its current
 	// refresh-token pointer. Used by the refresh flow to find the row
 	// to update on rotation.
 	ReadByOAuthRefreshTokenID(refreshTokenID int64) (*entities.AuthLog, error)
@@ -36,16 +36,16 @@ type AuthLogsInterface interface {
 	// emails on silent re-auth via the IdP's person_session cookie.
 	ReadLatestByCreatedByAndClient(createdBy int64, clientID string) (*entities.AuthLog, error)
 
-	// Add inserts a new authlog into the database
-	Add(authlog *entities.AuthLog) (*entities.AuthLog, error)
+	// Add inserts a new authLog into the database
+	Add(authLog *entities.AuthLog) (*entities.AuthLog, error)
 
 	// UpdateOAuthRefreshTokenID updates the refresh-token pointer on
 	// an auth log row. Called when a refresh token rotates.
 	UpdateOAuthRefreshTokenID(authLogID, newRefreshTokenID int64) error
 
-	// Trim deletes all but the last 10 authlogs for a given user
+	// Trim deletes all but the last 10 authLogs for a given user
 	Trim(user *entities.User) error
 
-	// Delete removes an authlog from the database
+	// Delete removes an authLog from the database
 	Delete(ID int64) error
 }

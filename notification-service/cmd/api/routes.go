@@ -28,7 +28,7 @@ func (r *Routes) Init(e *echo.Echo) {
 	notifications := e.Group("notifications")
 	notifications.Use(r.authorize)
 	notifications.GET("/", r.handler.Notification.Browse)
-	notifications.GET("/unreadcount", r.handler.Notification.UnreadCount)
+	notifications.GET("/unread-count", r.handler.Notification.UnreadCount)
 	notifications.PATCH("/:id", r.handler.Notification.Edit)
 	notifications.DELETE("/:id", r.handler.Notification.Delete)
 

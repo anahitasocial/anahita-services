@@ -466,7 +466,7 @@ func (h *webAuthnHandler) DeleteAll(c echo.Context) error {
 	// worth being able to reconstruct later.
 	//
 	// TODO: this belongs in auth_logs, not just stdout. The existing
-	// authlogHandler.AddSystem requires an OAuthRefreshTokenID, which
+	// authLogHandler.AddSystem requires an OAuthRefreshTokenID, which
 	// an admin action against someone else's account does not have —
 	// recording it properly needs an auth_logs variant that takes an
 	// actor and a subject instead.

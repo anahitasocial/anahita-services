@@ -90,8 +90,8 @@ func (config *Config) GetRegistrationMode() string {
 }
 
 // AllowsSelfServeRegistration reports whether a stranger can start an account
-// without an invitation. Under `approval` they can — they start an
-// application, which is a different thing from an account and is item 5's
+// without an invitation. Under `approval` they can — they start a signup
+// request, which is a different thing from an account and is item 5's
 // problem, not this one's.
 func (config *Config) AllowsSelfServeRegistration() bool {
 	switch config.GetRegistrationMode() {
