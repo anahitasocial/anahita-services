@@ -19,6 +19,7 @@ type Permissions struct {
 	OAuth           *OAuthPerm
 	OAuthSigningKey *OAuthSigningKeyPerm
 	Signup          *SignupPermissions
+	SignupRequest   *SignupRequestPerm
 	Totp            *TotpPerm
 	Users           *UsersPermissions
 	WebAuthn        *WebAuthnPerm
@@ -31,6 +32,7 @@ func NewPermissions(env *Env) *Permissions {
 		OAuth:           NewOAuthPerm(env),
 		OAuthSigningKey: NewOAuthSigningKeyPerm(env),
 		Signup:          NewSignupPermissions(env),
+		SignupRequest:   NewSignupRequestPerm(env),
 		Totp:            NewTotpPerm(env),
 		Users:           NewUsersPermissions(env),
 		WebAuthn:        NewWebAuthnPerm(env),

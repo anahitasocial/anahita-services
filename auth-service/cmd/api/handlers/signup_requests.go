@@ -10,7 +10,9 @@ import (
 
 	"anahita-libs/constants"
 	lib_entities "anahita-libs/data/entities"
+	libs_responses "anahita-libs/responses"
 
+	auth_constants "auth/constants"
 	"auth/data/entities"
 
 	"github.com/labstack/echo/v4"
@@ -83,10 +85,18 @@ func (h *signupRequestsHandler) mapSignupRequest(
 // Browse lists the queue, oldest first.
 //
 //	GET /signup-requests
+//
+// Answers { "data": [...], "pagination": { offset, limit, total } },
+// the same envelope as /invites and every other browse in Anahita.
+// This used to return { "signup_requests": [...], "total": n }, which
+// no client's browse path knows how to read — actions/create.js in the
+// React client unwraps data.data and takes limit/offset/total off
+// pagination, so the queue would have arrived empty with a total of
+// zero and no way to page through it.
 func (h *signupRequestsHandler) Browse(c echo.Context) error {
 	viewer := getViewer(c)
 
-	if err := h.Perms.Invite.CanBrowse(viewer); err != nil {
+	if err := h.Perms.SignupRequest.CanBrowse(viewer); err != nil {
 		log.Println("signup requests browse:", err)
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -110,9 +120,18 @@ func (h *signupRequestsHandler) Browse(c echo.Context) error {
 		items = append(items, h.mapSignupRequest(sr))
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"signup_requests": items,
-		"total":           total,
+	type Response struct {
+		Data       []signupRequestResponse   `json:"data"`
+		Pagination libs_responses.Pagination `json:"pagination"`
+	}
+
+	return c.JSON(http.StatusOK, &Response{
+		Data: items,
+		Pagination: libs_responses.Pagination{
+			Limit:  limit,
+			Offset: offset,
+			Total:  uint64(total),
+		},
 	})
 }
 
@@ -126,7 +145,7 @@ type decisionBody struct {
 func (h *signupRequestsHandler) Approve(c echo.Context) error {
 	viewer := getViewer(c)
 
-	if err := h.Perms.Invite.CanAdd(viewer); err != nil {
+	if err := h.Perms.SignupRequest.CanApprove(viewer); err != nil {
 		log.Println("signup requests approve:", err)
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -219,6 +238,25 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 			"request was not marked approved: %v", created.ID, err)
 	}
 
+	// Settle any invitations still outstanding to this address.
+	//
+	// The same sweep the invite-accept path runs, and needed here for
+	// the case it cannot cover: under `approval` an invited person
+	// lands in this queue rather than in an account, so their
+	// invitation is consumed while several others may still be
+	// pending — and they are only really spent once somebody says yes,
+	// which is here. Doing it at queue time would spend them on a
+	// request that might be rejected.
+	//
+	// Also covers a cold applicant who happened to be invited by
+	// somebody else while they were waiting.
+	if _, err := h.Repos.Tokens.InvalidateOutstanding(
+		auth_constants.TokenTypeInvite, sr.Email,
+	); err != nil {
+		log.Printf("signup requests approve: could not settle invitations for %s: %v",
+			sr.Email, err)
+	}
+
 	notifyRequest := *sr
 	go func() {
 		if err := h.Notif.Signup.EmailSignupRequestApproved(&notifyRequest); err != nil {
@@ -238,7 +276,7 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 func (h *signupRequestsHandler) Reject(c echo.Context) error {
 	viewer := getViewer(c)
 
-	if err := h.Perms.Invite.CanDelete(viewer); err != nil {
+	if err := h.Perms.SignupRequest.CanReject(viewer); err != nil {
 		log.Println("signup requests reject:", err)
 		return c.NoContent(http.StatusForbidden)
 	}
