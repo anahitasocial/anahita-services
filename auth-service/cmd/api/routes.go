@@ -90,6 +90,12 @@ func (r *Routes) Init(e *echo.Echo) {
 	agreements.Use(r.authorize)
 	agreements.PATCH("/tos", h.Agreements.EditTos)
 	agreements.PATCH("/privacy", h.Agreements.EditPrivacy)
+	// Reading takes a person id where the two writes take none, and the
+	// asymmetry is deliberate: accepting on somebody's behalf is
+	// meaningless and stays unexpressible, while reading an acceptance
+	// is meaningful both to its subject and to an administrator working
+	// out who is behind on the current terms.
+	agreements.GET("/:person_id", h.Agreements.Read)
 
 	// OIDC discovery and JWKS — fully public.
 	e.GET("/.well-known/openid-configuration", h.OAuth.Discovery)
@@ -284,6 +290,11 @@ func (r *Routes) Init(e *echo.Echo) {
 	totps.DELETE("/:person_id", h.Totp.Delete)
 	totps.POST("/recovery-codes", h.Totp.AddRecoveryCodes)
 	totps.GET("/is/expired", h.Totp.IsExpired)
+	// The admin counterpart to GET /totp, which answers for the viewer.
+	// Registered after /is/expired so the static path wins: Echo matches
+	// literal segments before parameters, but the ordering says the
+	// intent out loud rather than relying on it.
+	totps.GET("/:person_id", h.Totp.ReadForPerson)
 
 	// Passkey (WebAuthn) credential management. Every route here is a
 	// person acting on their own credentials — there is no admin view,

@@ -6,6 +6,7 @@ import (
 	"image/png"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"auth/requests"
@@ -445,6 +446,49 @@ func (h *totpHandler) Delete(c echo.Context) error {
 // has nothing to have expired, and reporting the raw IsMfaExpired for
 // one would be true — a value the client would reasonably read as
 // "re-verify your second factor" for a factor that does not exist.
+// ReadForPerson reports whether one person has TOTP enabled.
+//
+//	GET /totp/:person_id
+//
+// The admin counterpart to Read above, which answers for the viewer and
+// takes no id. An administration screen offering to remove somebody's
+// second factor needs to know whether they have one — without this it
+// can only show a button and hope.
+//
+// Same body as Read: enabled and expired, and nothing else. The secret
+// and the recovery codes are not somebody else's to see, and are not
+// this endpoint's to send even to their owner.
+func (h *totpHandler) ReadForPerson(c echo.Context) error {
+	viewer := getViewer(c)
+
+	if viewer == nil || viewer.ID == 0 {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+
+	personID, err := strconv.ParseInt(c.Param("person_id"), 10, 64)
+	if err != nil || personID <= 0 {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	user, err := h.Repos.Users.ReadByID(personID)
+	if err != nil || user == nil {
+		log.Println("totp read for person:", err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	if err := h.Perms.Totp.CanRead(viewer, user); err != nil {
+		log.Println("totp read for person:", err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"data": map[string]any{
+			"enabled": user.TotpEnabled,
+			"expired": user.TotpEnabled && user.IsMfaExpired(),
+		},
+	})
+}
+
 func (h *totpHandler) Read(c echo.Context) error {
 	var (
 		viewer = getViewer(c)

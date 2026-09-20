@@ -56,6 +56,32 @@ func (prm *TotpPerm) CanAddRecoveryCodes(viewer *libs_entities.Viewer, user *ent
 }
 
 // Can viewer disable Person's TOTP 2FA
+// CanRead gates reading whether somebody has TOTP enabled.
+//
+// Your own, always — GET /totp answers that and takes no id. Somebody
+// else's needs an administrator, matching CanDelete: an administration
+// screen that offers to remove a second factor has to be able to say
+// whether there is one, or it offers a button whose effect nobody can
+// predict.
+//
+// Enabled and expired only. Never the secret, never the recovery codes:
+// this says whether a factor exists, not what it is.
+func (prm *TotpPerm) CanRead(viewer *libs_entities.Viewer, user *entities.User) error {
+	if viewer.ID == user.ID {
+		return nil
+	}
+
+	if !viewer.HasScope(libs_constants.OAuthScopeAccountRead) {
+		return errors.New(ErrTotpInsufficientScope)
+	}
+
+	if viewer.IsAdminOrSuperAdmin() {
+		return nil
+	}
+
+	return errors.New(ErrTotpNoUserPermissions)
+}
+
 func (prm *TotpPerm) CanDelete(viewer *libs_entities.Viewer, user *entities.User) error {
 	// Self-service disable.
 	if viewer.ID == user.ID {

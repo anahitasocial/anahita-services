@@ -4,6 +4,8 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"auth/data/entities"
 	"auth/requests"
@@ -30,6 +32,75 @@ type agreementsHandler struct {
 
 func newAgreementsHandler(env *Env) *agreementsHandler {
 	return &agreementsHandler{env}
+}
+
+// consentItem is one recorded acceptance, as a client sees it.
+//
+// Version, when, and whether — and NOT the audit trio the row also
+// holds. IP, user agent and OS are there for "who accepted this, and
+// from where", a question the entity comment says is asked by somebody
+// looking at a row rather than by code. An administration screen is not
+// that; putting a person's IP address on one would be a privacy
+// expansion nobody asked for, arriving by accident because the column
+// happened to be adjacent.
+type consentItem struct {
+	Accepted   bool    `json:"accepted"`
+	Version    string  `json:"version"`
+	AcceptedAt *string `json:"accepted_at"`
+}
+
+func mapConsent(c *entities.Consent) consentItem {
+	item := consentItem{
+		Accepted: c.Accepted,
+		Version:  c.Version,
+	}
+
+	if c.AcceptedAt != nil {
+		at := c.AcceptedAt.Format(time.RFC3339)
+		item.AcceptedAt = &at
+	}
+
+	return item
+}
+
+// Read returns what one person has accepted.
+//
+//	GET /agreements/:person_id
+//
+// Takes an id, unlike the two PATCH endpoints below, and the asymmetry
+// is deliberate. Recording an acceptance on somebody else's behalf is
+// meaningless, so those take no id and cannot express it. READING one is
+// meaningful for two different people: its subject, and an administrator
+// working out whether somebody is behind on the current terms.
+//
+// 200: { "data": { "tos": {...}, "privacy": {...} } }
+// 403: not yourself and not an administrator
+// 404: no such person
+func (h *agreementsHandler) Read(c echo.Context) error {
+	viewer := getViewer(c)
+
+	personID, err := strconv.ParseInt(c.Param("person_id"), 10, 64)
+	if err != nil || personID <= 0 {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	user, err := h.Repos.Users.ReadByID(personID)
+	if err != nil || user == nil {
+		log.Println("agreements read: person lookup:", err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	if err := h.Perms.Agreement.CanRead(viewer, user); err != nil {
+		log.Println("agreements read:", err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"data": map[string]any{
+			"tos":     mapConsent(&user.TermsOfService),
+			"privacy": mapConsent(&user.PrivacyPolicy),
+		},
+	})
 }
 
 // EditTos records acceptance of the Terms of Service.
