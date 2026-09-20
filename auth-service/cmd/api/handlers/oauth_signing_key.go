@@ -67,7 +67,13 @@ func (h *oauthHandler) BrowseSigningKeys(c echo.Context) error {
 // PrivateKey is zeroed before the response is written, defensively
 // guarding against a missing `json:"-"` tag on the entity field.
 //
-// 200: { "data": <signing key> }
+// The key is returned BARE, not wrapped in "data". That is the house
+// rule across Anahita — person-service's Read returns MapNode(person)
+// directly, and actions/create.js in the React client reads
+// result.data for read, edit and add while browse alone unwraps
+// data.data. Browse below keeps the wrapper for the same reason.
+//
+// 200: <signing key>
 // 400: missing kid
 // 403: viewer lacks oauth:read scope or super-admin role
 // 404: no key with that kid
@@ -100,9 +106,7 @@ func (h *oauthHandler) ReadSigningKey(c echo.Context) error {
 	}
 
 	key.PrivateKey = ""
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": key,
-	})
+	return c.JSON(http.StatusOK, key)
 }
 
 // Edit handles PATCH /oauth-signing-keys/:kid
@@ -116,7 +120,9 @@ func (h *oauthHandler) ReadSigningKey(c echo.Context) error {
 //	{ "active": true }   // enable
 //	{ "active": false }  // disable (with last-active guard)
 //
-// 200: { "data": <updated signing key> }
+// Returns the key bare, matching Read above.
+//
+// 200: <updated signing key>
 // 400: missing kid or malformed body
 // 403: viewer lacks oauth:write scope or super-admin role
 // 404: no key with that kid
@@ -149,6 +155,14 @@ func (h *oauthHandler) EditSigningKey(c echo.Context) error {
 		return permForbidden(c, permErr)
 	}
 
+	// Role first, then presence. Asking a viewer who is not a super
+	// admin to produce a passkey would be asking them for something
+	// that cannot help.
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("oauth_signing_keys edit:", err)
+		return stepUpRequired(c, err)
+	}
+
 	if err := h.Repos.OAuthSigningKeys.SetActive(existing.ID, *req.Active); err != nil {
 		if errors.Is(err, repositories.ErrCannotDeactivateLastKey) {
 			return c.JSON(http.StatusConflict, map[string]string{
@@ -166,10 +180,13 @@ func (h *oauthHandler) EditSigningKey(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// One proof, one change. Toggling a second key means proving
+	// yourself again — which is the point, since each toggle can take
+	// token signing down on its own.
+	h.clearStepUp(viewer.ID)
+
 	updated.PrivateKey = ""
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": updated,
-	})
+	return c.JSON(http.StatusOK, updated)
 }
 
 // viewerFrom pulls the authenticated viewer that setViewer middleware
@@ -193,16 +210,38 @@ func permForbidden(c echo.Context, err error) error {
 			Error:       "insufficient_scope",
 			Description: err.Error(),
 		})
-	case permissions.ErrOAuthSigningKeyTotpRequired,
-		permissions.ErrOAuthClientTotpRequired:
-		return c.JSON(http.StatusForbidden, &responses.OAuthErrorResponse{
-			Error:       "totp_required",
-			Description: err.Error(),
-		})
 	}
 	return c.JSON(http.StatusForbidden, &responses.OAuthErrorResponse{
 		Error:       "forbidden",
 		Description: err.Error(),
+	})
+}
+
+// stepUpRequired answers a missing step-up proof.
+//
+// BODIED, unlike the bare 403 that the password, email and username
+// flows answer with. Those endpoints have exactly one reason to refuse
+// with 403 — no live proof — so the status alone is unambiguous and
+// their callers open the dialog on it.
+//
+// These endpoints do not have that luxury. A viewer who is not a super
+// admin, or whose token lacks oauth:write, is refused with the same
+// status by permForbidden above. A client that treated every 403 here
+// as "prove yourself" would open a passkey prompt at an administrator
+// who can never satisfy it, and retry forever on success.
+//
+// A store failure is NOT reported as 403. reauthStatus maps it to 500,
+// because a client told 403 would prompt, write nothing, retry, and
+// blame the person for an outage that is ours.
+func stepUpRequired(c echo.Context, err error) error {
+	status := reauthStatus(err)
+	if status != http.StatusForbidden {
+		return c.NoContent(status)
+	}
+
+	return c.JSON(status, &responses.OAuthErrorResponse{
+		Error:       "step_up_required",
+		Description: "re-authenticate to continue",
 	})
 }
 

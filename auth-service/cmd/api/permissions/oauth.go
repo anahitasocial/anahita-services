@@ -20,13 +20,6 @@ const (
 	ErrOAuthClientEditNotAllowed   = "you are not allowed to edit this OAuth client"
 	ErrOAuthClientAddNotAllowed    = "you are not allowed to add an OAuth client"
 	ErrOAuthClientDeleteNotAllowed = "you are not allowed to delete this OAuth client"
-
-	// TOTP gate — write operations on the OAuth client registry
-	// require two-factor authentication to be enabled on the viewer's
-	// account. Reads and browse intentionally don't require this,
-	// since read responses do not expose client secrets (verify this
-	// remains true if you add fields to the response).
-	ErrOAuthClientTotpRequired = "two-factor authentication must be enabled to manage OAuth clients"
 )
 
 type OAuthPerm struct {
@@ -48,11 +41,24 @@ func NewOAuthPerm(env *Env) *OAuthPerm {
 //   - Role gate (IsSuperAdmin): redundant with the scope gate but
 //     kept explicit so the intent is visible in the handler.
 //
-//   - TOTP gate (write only): destructive operations on the OAuth
-//     client registry additionally require TOTP to be enabled on the
-//     viewer's account. Read and browse are exempt because the read
-//     response does not expose client secrets — if that changes, the
-//     gate must be extended to reads as well.
+// THESE ANSWER ONLY "is this the right person". Whether that person is
+// actually at the keyboard is a separate question, asked by the
+// handlers through requireStepUp.
+//
+// There used to be a third gate here, `if !viewer.TotpEnabled`, on each
+// of the three writes. It denied everyone. The viewer is built from JWT
+// claims and there is no TOTP claim, so the field read false on every
+// authenticated request no matter what the account had enrolled —
+// exactly the trap hydrateViewer's comment describes. All three write
+// endpoints were unreachable.
+//
+// It is not repaired by hydrating, because enrolment was the wrong
+// question anyway: "has TOTP configured" is a claim about the account,
+// while a session left open on an unattended laptop satisfies it just
+// as well as the owner does. The handlers now require a step-up
+// instead — a proof, within five minutes, by passkey, passcode or
+// password. That also answers the reconciliation note in
+// permissions/web_authn.go, and it is what lets a passkey stand in.
 //
 // Read operations require oauth:read; write operations require
 // oauth:write. The client argument on per-client methods is
@@ -87,9 +93,6 @@ func (prm *OAuthPerm) CanEditClient(viewer *libs_entities.Viewer, client *entiti
 	if !viewer.IsSuperAdmin() {
 		return false, errors.New(ErrOAuthClientEditNotAllowed)
 	}
-	if !viewer.TotpEnabled {
-		return false, errors.New(ErrOAuthClientTotpRequired)
-	}
 	return true, nil
 }
 
@@ -100,9 +103,6 @@ func (prm *OAuthPerm) CanAddClient(viewer *libs_entities.Viewer) (bool, error) {
 	if !viewer.IsSuperAdmin() {
 		return false, errors.New(ErrOAuthClientAddNotAllowed)
 	}
-	if !viewer.TotpEnabled {
-		return false, errors.New(ErrOAuthClientTotpRequired)
-	}
 	return true, nil
 }
 
@@ -112,9 +112,6 @@ func (prm *OAuthPerm) CanDeleteClient(viewer *libs_entities.Viewer, client *enti
 	}
 	if !viewer.IsSuperAdmin() {
 		return false, errors.New(ErrOAuthClientDeleteNotAllowed)
-	}
-	if !viewer.TotpEnabled {
-		return false, errors.New(ErrOAuthClientTotpRequired)
 	}
 	return true, nil
 }

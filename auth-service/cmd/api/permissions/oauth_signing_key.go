@@ -19,14 +19,6 @@ const (
 	ErrOAuthSigningKeyBrowseNotAllowed = "you are not allowed to browse OAuth signing keys"
 	ErrOAuthSigningKeyReadNotAllowed   = "you are not allowed to read this OAuth signing key"
 	ErrOAuthSigningKeyEditNotAllowed   = "you are not allowed to edit this OAuth signing key"
-
-	// TOTP gate — write operations on the signing-key registry
-	// require two-factor authentication to be enabled on the viewer's
-	// account. Reads and browse are exempt because the read response
-	// exposes only metadata (kid, active flag, public key for JWKS);
-	// the private signing material lives in AWS KMS and is never
-	// returned. If that changes, the gate must be extended to reads.
-	ErrOAuthSigningKeyTotpRequired = "two-factor authentication must be enabled to manage OAuth signing keys"
 )
 
 type OAuthSigningKeyPerm struct {
@@ -48,12 +40,22 @@ func NewOAuthSigningKeyPerm(env *Env) *OAuthSigningKeyPerm {
 //   - Role gate (IsSuperAdmin): redundant with the scope gate
 //     but kept explicit so the intent is visible in the handler.
 //
-//   - TOTP gate (Edit only): toggling a signing key's active flag is
-//     a platform-critical operation — deactivating the live key
-//     breaks token signing, and reactivating a rotated-out key could
-//     re-enable forgery if that key was previously leaked. Requires
-//     TOTP on the viewer's account. Read and browse are exempt
-//     because the read response exposes only metadata.
+// Toggling a key's active flag is platform-critical — deactivating the
+// live key breaks token signing, and reactivating a rotated-out key
+// could re-enable forgery if that key ever leaked — so Edit is
+// additionally guarded. That guard is a STEP-UP, applied by the
+// handler, not a gate here: these functions answer whether this is the
+// right person, and requireStepUp answers whether they are present.
+//
+// It used to be `if !viewer.TotpEnabled` in this file, which denied
+// everyone — the viewer comes from JWT claims and carries no TOTP
+// claim, so it read false on every request. See the longer note in
+// permissions/oauth.go; the same bug was in both, and both now take
+// a proof by passkey, passcode or password instead of an enrolment
+// flag that was never populated.
+//
+// Read and browse stay unguarded beyond the role: the response exposes
+// only metadata (kid, active flag, algorithm), never key material.
 //
 // Read operations require oauth:read; Edit (the only
 // mutation, toggling active) requires oauth:write. Add
@@ -91,9 +93,6 @@ func (prm *OAuthSigningKeyPerm) CanEditSigningKey(viewer *libs_entities.Viewer, 
 	}
 	if !viewer.IsSuperAdmin() {
 		return false, errors.New(ErrOAuthSigningKeyEditNotAllowed)
-	}
-	if !viewer.TotpEnabled {
-		return false, errors.New(ErrOAuthSigningKeyTotpRequired)
 	}
 	return true, nil
 }

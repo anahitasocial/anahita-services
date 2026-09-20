@@ -89,6 +89,14 @@ func (h *oauthHandler) AddClient(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
+	// Role first, then presence. A viewer who is not a super admin is
+	// refused above rather than asked for a passkey that cannot help
+	// them.
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("oauth client add:", err)
+		return stepUpRequired(c, err)
+	}
+
 	if err := c.Bind(req); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
@@ -138,6 +146,9 @@ func (h *oauthHandler) AddClient(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// One proof, one registration.
+	h.clearStepUp(viewer.ID)
+
 	oauthResp := &responses.OAuthClientResponse{}
 	if clientSecret != "" {
 		// Confidential client — return the plaintext secret once.
@@ -173,6 +184,11 @@ func (h *oauthHandler) EditClient(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("oauth client edit:", err)
+		return stepUpRequired(c, err)
+	}
+
 	if err := h.OAuth.ValidateScopes(strings.Join(req.Scopes, " ")); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error":       "invalid_scope",
@@ -195,6 +211,8 @@ func (h *oauthHandler) EditClient(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	h.clearStepUp(viewer.ID)
 
 	oauthResp := &responses.OAuthClientResponse{}
 	return c.JSON(http.StatusOK, oauthResp.MapClient(persisted))
@@ -230,10 +248,17 @@ func (h *oauthHandler) DeleteClient(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("oauth client delete:", err)
+		return stepUpRequired(c, err)
+	}
+
 	if err := h.Repos.OAuthClients.Delete(client.ID); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	h.clearStepUp(viewer.ID)
 
 	oauthResp := &responses.OAuthClientResponse{}
 	return c.JSON(http.StatusOK, oauthResp.MapClient(client))
@@ -269,6 +294,11 @@ func (h *oauthHandler) RotateClientSecret(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
+	if err := h.requireStepUp(viewer.ID); err != nil {
+		log.Println("oauth client rotate secret:", err)
+		return stepUpRequired(c, err)
+	}
+
 	if !client.Confidential {
 		return c.JSON(http.StatusBadRequest, &responses.OAuthErrorResponse{
 			Error:       "invalid_request",
@@ -296,6 +326,8 @@ func (h *oauthHandler) RotateClientSecret(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	h.clearStepUp(viewer.ID)
 
 	oauthResp := &responses.OAuthClientResponse{}
 	return c.JSON(http.StatusOK, oauthResp.MapClientWithSecret(persisted, newSecret))

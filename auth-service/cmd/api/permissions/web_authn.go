@@ -167,9 +167,17 @@ func (p *WebAuthnPerm) CanDeleteAll(
 	// who is at the keyboard right now, and only the second one is
 	// worth anything against an unattended session.
 	//
-	// VERIFY: if ErrOAuthClientTotpRequired is backed by a weaker
-	// check than this, the two should be reconciled — but downwards,
-	// toward this one.
+	// The OAuth client and signing-key endpoints named above were
+	// indeed backed by a weaker check, and it has been reconciled
+	// downwards as this note asked — though not to this exact shape.
+	// They now call requireStepUp, which demands a proof within five
+	// minutes by passkey, passcode or password, rather than reading an
+	// enrolment flag. That is freshness by a different route, and it
+	// admits a passkey holder who has no TOTP at all.
+	//
+	// This check stays as it is: stripping somebody else's credentials
+	// is not the same act as registering a client, and the accounts it
+	// defends are not the actor's own.
 	if !actor.TotpEnabled || actor.IsMfaExpired() {
 		return false, errors.New(ErrWebAuthnTotpRequired)
 	}
