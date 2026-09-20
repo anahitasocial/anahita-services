@@ -33,8 +33,16 @@ type ActorNodeItem struct {
 	//
 	// No omitempty on Access — it is never legitimately empty, and dropping it
 	// would put the card back in the state this fixes.
+	//
+	// AND NONE ON AllowFollowRequest, for the same reason and with more
+	// force, because omitempty on a BOOL omits false — the ordinary
+	// value, not an edge case. The access card read undefined, stored
+	// it, and sent the string "undefined" in the form body; Echo cannot
+	// bind that to a bool, so the whole request was rejected with a 400
+	// before validation ran and no access change could be saved at all
+	// by anybody whose follow-request setting was off.
 	Access             string `json:"access"`
-	AllowFollowRequest bool   `json:"allow_follow_request,omitempty"`
+	AllowFollowRequest bool   `json:"allow_follow_request"`
 	// Permanent, and set only once archived, so the settings page can show the
 	// state rather than offering an action that no longer applies.
 	ArchivedAt        *time.Time       `json:"archived_at,omitempty"`
