@@ -72,9 +72,14 @@ const (
 // ordering two unrelated things on one scale.
 //
 // Note this is NOT the only version in the repository: every service
-// carries `version: 0.9.0` in its metadata.yml. That is a per-service
-// number and this is what the installation tells the fediverse, so they
-// are allowed to differ — but they should not differ by accident.
+// carries its own in metadata.yml. Those are per-service numbers and this
+// is what the installation tells the fediverse, so they are allowed to
+// differ — but they should not differ by accident, which is why they were
+// brought to 1.0.0 alongside this rather than left at 0.9.0.
+//
+// The k8s manifests pin image TAGS, which are a third thing again: they
+// name what has actually been pushed to a registry, so they follow a
+// release rather than an edit here.
 var softwareVersion = "1.0.0"
 
 type nodeInfoHandler struct {
