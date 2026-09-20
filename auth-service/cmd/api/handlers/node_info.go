@@ -219,6 +219,13 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// sitting two lines above.
 			"invitesFrom": h.Config.GetInvitesFrom(),
 
+			// The minimum role that may create a group, for the same reason
+			// invitesFrom is here: the web app decides whether to offer a +
+			// on the groups page, and cannot work that out from the person
+			// alone. GROUP-SERVICE enforces it; this document only reports
+			// it, so a client reading it is reading a policy, not a gate.
+			"groupsFrom": h.Config.GetGroupsFrom(),
+
 			"termsOfServiceUrl": h.Config.GetTosURL(),
 			"privacyPolicyUrl":  h.Config.GetPrivacyURL(),
 

@@ -196,6 +196,13 @@ type Config struct {
 	InvitePendingMax      int
 	InvitePendingMaxAdmin int
 
+	// GroupsFrom is who may create a group. Enforced by GROUP-SERVICE, which
+	// reads the same variable; auth-service holds it only to republish it in
+	// NodeInfo, because auth-service is what publishes that document. The two
+	// must be given the same value — docker-compose passes one root .env
+	// entry to both.
+	GroupsFrom string
+
 	// RegistrationMode is how this installation lets people in — see
 	// constants.RegistrationMode*. Empty means unset, which reads as closed.
 	RegistrationMode string

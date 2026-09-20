@@ -105,12 +105,19 @@ func (p *ActorsPermissions) CanEdit(ctx *ActorAccessContext) (bool, error) {
 	return false, errors.New(ErrActorEditNotAllowed)
 }
 
+// CanAdd reports whether the viewer may create an actor.
+//
+// By RANK against the configured level, with NO administrator shortcut above
+// it. This used to open with an unconditional `if ctx.Viewer.IsAdmin()`, which
+// was correct while administrators were the only answer and becomes a bypass
+// the moment the answer is configurable: `super-administrators` would be a
+// level that did nothing, and `registered` would still refuse the registered.
 func (p *ActorsPermissions) CanAdd(ctx *ActorAccessContext) (bool, error) {
 	if !ctx.Viewer.HasScope(constants.OAuthScopeActorsWrite) {
 		return false, errors.New(ErrActorInsufficientScope)
 	}
 
-	if ctx.Viewer.IsAdmin() {
+	if constants.MeetsRoleLevel(ctx.Viewer.PersonType, ctx.CreateLevel) {
 		return true, nil
 	}
 

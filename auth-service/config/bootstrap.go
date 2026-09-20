@@ -138,6 +138,20 @@ func (config *Config) GetInvitesFrom() string {
 	return value
 }
 
+// GetGroupsFrom returns the minimum role that may create a group.
+//
+// Defaults to administrators, matching group-service's own default — the two
+// resolve the same variable independently, so they have to agree on what
+// unset means or the published document would contradict the enforcement.
+func (config *Config) GetGroupsFrom() string {
+	value := libs_constants.NormalizeRoleLevel(config.GroupsFrom)
+	if value == "" {
+		return libs_constants.RoleLevelAdministrators
+	}
+
+	return value
+}
+
 // MayInvite reports whether somebody of this person type meets the
 // configured minimum.
 //
@@ -149,54 +163,9 @@ func (config *Config) GetInvitesFrom() string {
 // the operator had configured, so `super-administrators` would have
 // been a level that did nothing.
 func (config *Config) MayInvite(personType string) bool {
-	return personInviteRank(personType) >= inviteLevelRank(config.GetInvitesFrom())
+	return libs_constants.MeetsRoleLevel(personType, config.GetInvitesFrom())
 }
 
-// Two scales, not one, and they fail in OPPOSITE directions.
-//
-// An unrecognised person type must rank BELOW everything, so nobody is
-// let in by a role this build does not know. An unrecognised level must
-// rank ABOVE everything, so a mistyped setting refuses rather than
-// opens. A single ranking function cannot do both: written with one,
-// `default` sent guests to the top of the scale and every guest passed
-// under `registered` — which the test suite caught immediately, being
-// the one case somebody had already thought to write down.
-
-// personInviteRank ranks a viewer's role. Guests and anything unknown
-// are 0, below every configured level.
-func personInviteRank(personType string) int {
-	switch personType {
-	case libs_constants.PersonTypeRegistered:
-		return 1
-	case libs_constants.PersonTypeAdmin:
-		return 2
-	case libs_constants.PersonTypeSuperAdmin:
-		return 3
-	default:
-		return 0
-	}
-}
-
-// inviteLevelRank ranks the configured minimum. Anything unknown is
-// above every role, so it admits nobody.
-//
-// The first case names only InvitesFromRegistered, and personInviteRank
-// names only PersonTypeRegistered, because the two are the same string:
-// "registered". That is not a coincidence to work around but the
-// property this whole comparison rests on — each level is the plural of
-// a person type, which is what makes a role rankable against a setting.
-func inviteLevelRank(level string) int {
-	switch level {
-	case constants.InvitesFromRegistered:
-		return 1
-	case constants.InvitesFromAdministrators:
-		return 2
-	case constants.InvitesFromSuperAdministrators:
-		return 3
-	default:
-		return unknownInviteLevel
-	}
-}
 
 // Above every role, so an unknown level is refused rather than waved
 // through.
@@ -284,6 +253,7 @@ func (config *Config) bootstrapFromEnv() {
 	config.SupportPhone = os.Getenv("SUPPORT_PHONE")
 	config.SupportWebsite = os.Getenv("SUPPORT_WEBSITE")
 	config.InvitesFrom = os.Getenv("INVITES_FROM")
+	config.GroupsFrom = os.Getenv("GROUPS_FROM")
 	config.InvitePendingMax = getIntEnv("INVITE_PENDING_MAX", 0)
 	config.InvitePendingMaxAdmin = getIntEnv("INVITE_PENDING_MAX_ADMIN", 0)
 	config.TosURL = os.Getenv("TOS_URL")
@@ -313,6 +283,17 @@ func (config *Config) validateBootstrap(missingFields []string) []string {
 		missingFields = append(missingFields, fmt.Sprintf(
 			"INVITES_FROM must be one of %s (got %q)",
 			strings.Join(constants.InvitesFromValues, ", "), config.InvitesFrom))
+	}
+
+	// Validated here as well as in group-service, which is what enforces it.
+	// A typo would otherwise be caught only by the service that refuses every
+	// group creation, while the document this service publishes advertised the
+	// mistyped value to every client.
+	if config.GroupsFrom != "" &&
+		!libs_constants.IsRoleLevel(config.GetGroupsFrom()) {
+		missingFields = append(missingFields, fmt.Sprintf(
+			"GROUPS_FROM must be one of %s (got %q)",
+			strings.Join(libs_constants.RoleLevelValues, ", "), config.GroupsFrom))
 	}
 
 	// Negative is refused rather than read as unlimited. An operator who

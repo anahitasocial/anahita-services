@@ -18,6 +18,7 @@ const (
 	ErrMissingGraphAddr         = "Graph gRPC service address is missing"
 	ErrMissingOAuthIssuer       = "OAuth issuer is missing"
 	ErrMissingOAuthJWKSURL      = "OAuth JWKS URL is missing"
+	ErrInvalidGroupsFrom        = "GROUPS_FROM must be one of: "
 )
 
 const DefaultSettingsPath = "assets/settings.json"
@@ -35,6 +36,7 @@ type Config struct {
 	SettingsPath     string
 	OAuthIssuer      string
 	OAuthJWKSURL     string
+	GroupsFrom       string
 }
 
 func NewConfig() *Config {
@@ -51,6 +53,7 @@ func NewConfig() *Config {
 		SettingsPath:     getEnv("SETTINGS_PATH", DefaultSettingsPath),
 		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
+		GroupsFrom:       os.Getenv("GROUPS_FROM"),
 	}
 
 	// If JWKS URL is unset, derive it from the issuer — auth-service is
@@ -99,6 +102,15 @@ func (config *Config) Validate() error {
 
 	if len(missingFields) > 0 {
 		return errors.New("missing fields: " + strings.Join(missingFields, ", "))
+	}
+
+	// Checked against the raw value, not the resolved one: unset is legal and
+	// means the default, but a value nobody recognises is a typo, and quietly
+	// falling back to administrators would hide it. Unknown levels rank above
+	// everything, so booting on one would refuse every group creation with no
+	// hint as to why.
+	if config.GroupsFrom != "" && !constants.IsRoleLevel(constants.NormalizeRoleLevel(config.GroupsFrom)) {
+		return errors.New(ErrInvalidGroupsFrom + strings.Join(constants.RoleLevelValues, ", "))
 	}
 
 	return nil
@@ -170,4 +182,24 @@ func (config *Config) GetOAuthIssuer() string {
 // JWT signatures locally.
 func (config *Config) GetOAuthJWKSURL() string {
 	return config.OAuthJWKSURL
+}
+
+// GetGroupsFrom returns the minimum role that may create a group.
+//
+// Defaults to administrators, which is what happened before this setting
+// existed — so no installation changes behaviour by upgrading into it.
+func (config *Config) GetGroupsFrom() string {
+	value := constants.NormalizeRoleLevel(config.GroupsFrom)
+	if value == "" {
+		return constants.RoleLevelAdministrators
+	}
+
+	return value
+}
+
+// MayCreateGroup reports whether somebody of this person type meets the
+// configured minimum. Compared by rank, never by equality — see
+// constants.MeetsRoleLevel.
+func (config *Config) MayCreateGroup(personType string) bool {
+	return constants.MeetsRoleLevel(personType, config.GetGroupsFrom())
 }

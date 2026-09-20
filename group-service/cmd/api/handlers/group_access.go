@@ -78,6 +78,12 @@ func (h *groupHandler) getActorAccessContext(actor *entities.AnahitaNode, viewer
 	ctx = &permissions.ActorAccessContext{
 		Viewer: viewer,
 		Actor:  actor,
+
+		// Set here rather than at the one call site that needs it, so no
+		// future caller of CanAdd can forget: left empty the level ranks
+		// above every person type and nobody may create anything. Resolved
+		// through the config getter, so the default is already applied.
+		CreateLevel: h.Config.GetGroupsFrom(),
 	}
 
 	ctx.ActorViewerRel, err = h.Srv.SocialgraphGRPC.Read(actor.ID, viewer.ID)

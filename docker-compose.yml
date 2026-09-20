@@ -127,6 +127,15 @@ services:
       # decision — the member is not the person who would otherwise be
       # deciding. Browsing and revoking stay with administrators either way.
       INVITES_FROM: ${INVITES_FROM:-}
+      # Who may CREATE A GROUP: registered, administrators or
+      # super-administrators. Defaults to administrators, which is what
+      # happened before this setting existed.
+      #
+      # group-service is what enforces it. auth-service is given the same
+      # value only so /nodeinfo/2.1 can publish it, which is how the web app
+      # knows whether to offer a + on the groups page. Both read this one
+      # entry, so they cannot be given different answers.
+      GROUPS_FROM: ${GROUPS_FROM:-}
       # How many invitations one person may have OUTSTANDING at once. A slot
       # frees when one is accepted, expires, or is revoked. Defaults to 5 for
       # members and 100 for administrators.
@@ -182,6 +191,9 @@ services:
       #     SETTINGS_PATH: "/app/assets/settings.json"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      # Who may create a group. Enforced here; auth-service is given the same
+      # value so it can publish it in NodeInfo. See the note there.
+      GROUPS_FROM: ${GROUPS_FROM:-}
     # volumes:
     #   - ./assets/custom-group-settings.json:/app/assets/settings.json
     networks:
