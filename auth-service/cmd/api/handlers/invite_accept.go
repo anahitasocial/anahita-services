@@ -382,6 +382,31 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 			user.ID, token.ID, err)
 	}
 
+	// Settle every OTHER pending invitation to this address.
+	//
+	// Several people may invite the same person — nothing forbids it,
+	// and the per-recipient rate limit meters it rather than blocking
+	// it. Only the link that was clicked is consumed above, so without
+	// this the rest sit as "waiting" in their senders' lists forever:
+	// for somebody who has already joined, behind links that now fail
+	// because the address has an account. Each sender sees them settle
+	// as accepted, which is what happened.
+	//
+	// After the accepted token, not before. If this runs first and the
+	// account creation then fails, the invitations are spent and
+	// nobody can retry.
+	//
+	// Logged rather than fatal: the person has an account and is about
+	// to be signed in, and failing the request here would report that
+	// as an error. The cost of a missed sweep is a stale row, which
+	// expires on its own.
+	if _, err := h.Repos.Tokens.InvalidateOutstanding(
+		constants.TokenTypeInvite, token.RecipientEmail,
+	); err != nil {
+		log.Printf("invite accept: could not settle sibling invitations for %s: %v",
+			token.RecipientEmail, err)
+	}
+
 	// Auto-login: build the viewer and persist it to the IdP session.
 	// Brand-new user, no TOTP, so it's safe to mint the session
 	// directly without going through the TOTP step.

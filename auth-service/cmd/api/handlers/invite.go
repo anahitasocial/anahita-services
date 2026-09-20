@@ -66,13 +66,27 @@ func (h *inviteHandler) Browse(c echo.Context) error {
 		},
 	}
 
-	resp.Pagination.Total, err = h.Repos.Tokens.Count(constants.TokenTypeInvite)
+	// The viewer's OWN invitations, not the site's.
+	//
+	// An invite row carries the address it was sent to, so an unscoped
+	// list handed every administrator the address of everybody every
+	// other administrator had invited — people who have no account
+	// here and never agreed to appear on anybody's screen. Being
+	// allowed to invite is not being allowed to read someone else's
+	// correspondence.
+	//
+	// Scoped for administrators too, not only for ordinary accounts.
+	// There is no operational need to read another person's
+	// invitations: revoking one is CanDeleteOwn, which is already
+	// limited the same way, and an abuse investigation belongs in the
+	// audit trail rather than in a management screen.
+	resp.Pagination.Total, err = h.Repos.Tokens.CountFrom(constants.TokenTypeInvite, viewer.ID)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	invites, err := h.Repos.Tokens.Browse(constants.TokenTypeInvite, req)
+	invites, err := h.Repos.Tokens.BrowseFrom(constants.TokenTypeInvite, viewer.ID, req)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -177,7 +191,7 @@ func (h *inviteHandler) Add(c echo.Context) error {
 	// outbound relay. The per-recipient one bounds how often ONE address can
 	// be mailed by this site — a thing no single inviter's budget can see,
 	// since a person who does not want to be invited is not made happier by
-	// the invitations coming from different members.
+	// the invitations arriving from different senders.
 	//
 	// Both count, so they belong on the path where the attempt happens. See
 	// the note on rateLimitExceeded.
@@ -190,7 +204,7 @@ func (h *inviteHandler) Add(c echo.Context) error {
 		// Deliberately the same status as the counter above, and nothing in
 		// the body. Saying "that address has been invited too often" would
 		// tell an inviter something about somebody else's mail — including
-		// that another member invited them.
+		// that somebody else had invited them.
 		log.Println("invite add: recipient rate limited")
 		return c.NoContent(http.StatusTooManyRequests)
 	}
@@ -270,8 +284,8 @@ func (h *inviteHandler) Delete(c echo.Context) error {
 	}
 
 	// The token is read BEFORE the permission check, because who may revoke it
-	// depends on who issued it — an administrator may revoke any, a member
-	// only their own.
+	// depends on who issued it — an administrator may revoke any, anybody
+	// else only their own.
 	//
 	// Reading first discloses nothing: the answer to a caller who may not
 	// revoke is 403 either way, and the id was already theirs to guess.

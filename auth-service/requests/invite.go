@@ -47,6 +47,16 @@ type InviteAccept struct {
 	Password string `form:"password"   validate:"required,min=15,max=150"`
 }
 
+// InviteDelete backs DELETE /invites/:id.
+//
+// The `param` tag is what makes the id in the path the id that is read.
+// Without it the route's /:id was decorative — TokenID could only be
+// bound from a JSON body, so DELETE /invites/5 with no body failed
+// validation as a missing required field, and the only way to revoke an
+// invitation was to send its id in the body of a DELETE. The json tag
+// stays so a caller already doing that keeps working; Echo binds the
+// path first and the body last, and for the one request that sends
+// both they are the same number.
 type InviteDelete struct {
-	TokenID int64 `json:"token_id" validate:"required"`
+	TokenID int64 `param:"id" json:"token_id" validate:"required"`
 }

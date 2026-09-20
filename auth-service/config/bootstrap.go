@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"auth/constants"
+
+	libs_constants "anahita-libs/constants"
 )
 
 // Settings for the two things an installation needs before anybody can use it:
@@ -117,10 +119,16 @@ func (config *Config) AllowsInvitations() bool {
 	return config.GetRegistrationMode() != constants.RegistrationModeClosed
 }
 
-// GetInvitesFrom returns who may issue an invitation.
+// GetInvitesFrom returns the minimum role that may issue an invitation.
 //
 // Defaults to administrators, which is what happened before this setting
 // existed — so no installation changes behaviour by upgrading into it.
+//
+// No normalisation beyond case and whitespace. There was an alias here,
+// `members`, mapping to `registered`; it is gone, because a level that
+// is not the plural of a person type is a person type Anahita does not
+// have. An unrecognised value now falls through to validateBootstrap,
+// which refuses to start and names the three that exist.
 func (config *Config) GetInvitesFrom() string {
 	value := strings.ToLower(strings.TrimSpace(config.InvitesFrom))
 	if value == "" {
@@ -130,10 +138,69 @@ func (config *Config) GetInvitesFrom() string {
 	return value
 }
 
-// MembersMayInvite reports whether an ordinary registered person may invite.
-func (config *Config) MembersMayInvite() bool {
-	return config.GetInvitesFrom() == constants.InvitesFromMembers
+// MayInvite reports whether somebody of this person type meets the
+// configured minimum.
+//
+// The comparison is by RANK, not by equality, and that is the whole
+// reason this function exists. The permission it replaced asked its
+// questions as a ladder of early returns, the first of which was an
+// unconditional `if viewer.IsAdminOrSuperAdmin() { return nil }`. That
+// bypassed the setting: an administrator could invite no matter what
+// the operator had configured, so `super-administrators` would have
+// been a level that did nothing.
+func (config *Config) MayInvite(personType string) bool {
+	return personInviteRank(personType) >= inviteLevelRank(config.GetInvitesFrom())
 }
+
+// Two scales, not one, and they fail in OPPOSITE directions.
+//
+// An unrecognised person type must rank BELOW everything, so nobody is
+// let in by a role this build does not know. An unrecognised level must
+// rank ABOVE everything, so a mistyped setting refuses rather than
+// opens. A single ranking function cannot do both: written with one,
+// `default` sent guests to the top of the scale and every guest passed
+// under `registered` — which the test suite caught immediately, being
+// the one case somebody had already thought to write down.
+
+// personInviteRank ranks a viewer's role. Guests and anything unknown
+// are 0, below every configured level.
+func personInviteRank(personType string) int {
+	switch personType {
+	case libs_constants.PersonTypeRegistered:
+		return 1
+	case libs_constants.PersonTypeAdmin:
+		return 2
+	case libs_constants.PersonTypeSuperAdmin:
+		return 3
+	default:
+		return 0
+	}
+}
+
+// inviteLevelRank ranks the configured minimum. Anything unknown is
+// above every role, so it admits nobody.
+//
+// The first case names only InvitesFromRegistered, and personInviteRank
+// names only PersonTypeRegistered, because the two are the same string:
+// "registered". That is not a coincidence to work around but the
+// property this whole comparison rests on — each level is the plural of
+// a person type, which is what makes a role rankable against a setting.
+func inviteLevelRank(level string) int {
+	switch level {
+	case constants.InvitesFromRegistered:
+		return 1
+	case constants.InvitesFromAdministrators:
+		return 2
+	case constants.InvitesFromSuperAdministrators:
+		return 3
+	default:
+		return unknownInviteLevel
+	}
+}
+
+// Above every role, so an unknown level is refused rather than waved
+// through.
+const unknownInviteLevel = 99
 
 // GetInvitePendingMax returns how many outstanding invitations one person may
 // hold, which depends on whether they administer the site.

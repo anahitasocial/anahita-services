@@ -27,21 +27,25 @@ type tokens struct {
 }
 
 // Count returns the number of tokens
-// Count totals the tokens of a type.
+// CountFrom totals the tokens of a type issued by one person.
 //
-// The `req` it used to take was never read — it counted every token of the
-// type regardless of what was passed. That is correct for the one caller, the
-// pagination total beside a Browse that filters on nothing else, but a
-// function that accepts a filter and ignores it is a trap: the next caller to
-// pass one gets a number answering a different question, silently. The
-// parameter is gone rather than documented.
-func (repo *tokens) Count(tokenType string) (uint64, error) {
+// The pagination total beside BrowseFrom, and scoped the same way for
+// the same reason — a count that answers a wider question than the
+// list beneath it reports rows the caller will never be shown.
+//
+// This was Count(tokenType), which counted every token of the type
+// whoever asked. Before that it took a `req` it never read, and the
+// note explaining its removal said that a function accepting a filter
+// and ignoring it is a trap. It was the right lesson from the wrong
+// half of the problem: the parameter that needed adding was this one.
+func (repo *tokens) CountFrom(tokenType string, personID int64) (uint64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	query := repo.sb.
 		Select("COUNT(*)").
-		From("tokens t")
+		From("tokens t").
+		Where(sq.Eq{"t.created_by": personID})
 
 	if tokenType != "" {
 		query = query.Where(sq.Eq{"t.type": tokenType})
@@ -92,12 +96,18 @@ func (repo *tokens) CountPendingFrom(tokenType string, personID int64) (int, err
 	return count, nil
 }
 
-// Browse returns a list of tokens
-func (repo *tokens) Browse(tokenType string, req *requests.Browse) ([]*entities.Token, error) {
+// BrowseFrom returns the tokens of a type issued by one person.
+//
+// Scoped by created_by, which is the whole point of the method: a
+// tokens row holds a recipient's email address, so an unscoped browse
+// hands the caller everybody else's. Pair it with CountFrom, never
+// with an unscoped count.
+func (repo *tokens) BrowseFrom(tokenType string, personID int64, req *requests.Browse) ([]*entities.Token, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := repo.getBaseSelectQuery()
+	query := repo.getBaseSelectQuery().
+		Where(sq.Eq{"t.created_by": personID})
 
 	if tokenType != "" {
 		query = query.Where(sq.Eq{"t.type": tokenType})

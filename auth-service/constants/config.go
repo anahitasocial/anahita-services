@@ -33,26 +33,61 @@ const (
 )
 
 // Who may issue an invitation.
+//
+// A MINIMUM ROLE, not a set. Each value admits that role and every role
+// above it, so `registered` includes administrators and `administrators`
+// includes super administrators. Anything else would be a setting where
+// tightening the level could hand the power to somebody who did not
+// have it before.
 const (
-	// InvitesFromAdministrators — administrators and super administrators
-	// only. The default, and what happened before the setting existed.
+	// InvitesFromRegistered — any registered person, and everyone above.
+	//
+	// This changes what an invitation MEANS. An administrator's is a
+	// decision; an ordinary person's is a recommendation, because they
+	// are not who would otherwise be deciding. Under `approval` that
+	// difference is what sends their invitee into the queue and an
+	// administrator's invitee straight past it.
+	InvitesFromRegistered = "registered"
+
+	// InvitesFromAdministrators — administrators and super administrators.
+	// The default, and what happened before the setting existed.
 	InvitesFromAdministrators = "administrators"
 
-	// InvitesFromMembers — any registered person.
+	// InvitesFromSuperAdministrators — super administrators only.
 	//
-	// This changes what an invitation MEANS. An administrator's is a decision;
-	// an ordinary member's is a recommendation, because the member is not the
-	// person who would otherwise be deciding. Under `approval` that difference
-	// is what sends a member's invitee into the queue and an administrator's
-	// straight past it.
-	InvitesFromMembers = "members"
+	// For a site where an invitation is effectively an account grant and
+	// only the owner should be making them.
+	InvitesFromSuperAdministrators = "super-administrators"
 )
 
-// InvitesFromValues is every valid value, for validation and for saying what
-// was expected when an operator mistypes one.
+// There was a fourth value here, `members`, from an earlier pass at this
+// setting. It is gone.
+//
+// Anahita has four person types — guest, registered, administrator,
+// super-administrator — and "member" is not one of them. Each value
+// above is the plural of a real one, which is what lets a level be
+// ranked against a viewer's role at all. A value outside that set is a
+// fifth person type in all but name, and it had begun behaving like
+// one: it reached the operator-facing validation message as though it
+// were a supported option.
+//
+// Calling people members in prose is fine, and calling them people is
+// better. Encoding one as a role in the configuration is neither.
+//
+// Nothing sets it — not docker-compose, not k8s, not any env file in
+// this repository. An installation that did will now fail to start,
+// naming the three valid values, which is a louder and more fixable
+// failure than quietly meaning something the code no longer has a word
+// for.
+
+// InvitesFromValues is every value an operator may set, for validation
+// and for saying what was expected when one is mistyped.
+//
+// Ordered from most permissive to least, matching how they rank.
 var InvitesFromValues = []string{
+	InvitesFromRegistered,
 	InvitesFromAdministrators,
-	InvitesFromMembers,
+	InvitesFromSuperAdministrators,
 }
 
 // Default caps on outstanding invitations.

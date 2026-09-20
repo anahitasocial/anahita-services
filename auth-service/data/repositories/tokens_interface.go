@@ -8,9 +8,23 @@ import (
 
 // TokensInterface is the interface for the tokens repository
 type TokensInterface interface {
-	Count(tokenType string) (uint64, error)
+	// CountFrom and BrowseFrom are both scoped to one issuer, and the
+	// personID is required rather than optional.
+	//
+	// They replace an unscoped Count and Browse that filtered on type
+	// alone. Their one caller is the invitation list, where every row
+	// carries a recipient's email address — so unscoped meant any
+	// administrator opening the page read the address of everybody
+	// every OTHER administrator had invited.
+	//
+	// No "0 means everyone" escape hatch, deliberately. This file
+	// already carries a note about a filter parameter that was
+	// accepted and ignored; a sentinel that silently widens the query
+	// is the same trap wearing a different hat, and here it would
+	// widen it back onto other people's correspondence.
+	CountFrom(tokenType string, personID int64) (uint64, error)
 	CountPendingFrom(tokenType string, personID int64) (int, error)
-	Browse(tokenType string, reg *requests.Browse) ([]*entities.Token, error)
+	BrowseFrom(tokenType string, personID int64, req *requests.Browse) ([]*entities.Token, error)
 	ReadByID(id int64) (*entities.Token, error)
 	ReadByBody(body string) (*entities.Token, error)
 	Add(*entities.Token) (*entities.Token, error)

@@ -520,6 +520,15 @@ func TestWebAuthnCanReadCountDoesNotRequireFreshTotp(t *testing.T) {
 // Invites and signup
 // ---------------------------------------------------------------------
 
+// Issuing and revoking somebody else's stay with administrators under
+// the default setting.
+//
+// CanBrowse is NOT in this list any more, and its absence is the point.
+// It used to be, because browsing returned every invitation on the
+// site — so reading the list was reading who else was being brought in,
+// and by whom. The handler now scopes the query to created_by, which
+// makes browsing a read of your own outbox rather than of the site's.
+// See TestInviteBrowseIsSelfService.
 func TestInvitePermissionsAreAdminOnly(t *testing.T) {
 	p := NewInvitePerm(&Env{
 		Config: &config.Config{
@@ -533,7 +542,6 @@ func TestInvitePermissionsAreAdminOnly(t *testing.T) {
 		libs_constants.OAuthScopeActorsRead, libs_constants.OAuthScopeActorsWrite)
 
 	for name, check := range map[string]func(*libs_entities.Viewer) error{
-		"CanBrowse": p.CanBrowse,
 		"CanAdd":    p.CanAdd,
 		"CanDelete": p.CanDelete,
 	} {
@@ -548,49 +556,201 @@ func TestInvitePermissionsAreAdminOnly(t *testing.T) {
 	}
 }
 
-// INVITES_FROM opens issuing to ordinary members, and only issuing.
+// Browsing is self-service, whatever the invite level is.
 //
-// Browsing and revoking stay with administrators whatever it is set to: the
-// list of outstanding invitations is a list of who is being brought in and by
-// whom, and revoking somebody else's is a moderation action. A member gets to
-// invite, not to administer invitations.
+// The list is the viewer's own — scoped on created_by by the handler —
+// so reading it is the same kind of act as reading your own passkeys.
+// Gating it on administrator would mean that on a site where ordinary
+// people may invite, they could send an invitation and revoke it by id
+// but never see it listed.
 //
-// The role check is the ONLY gate on any of this. A comment claimed the scope
-// catalog gated these as AdminOnly at token-mint time and the role check was
-// defence in depth; actors:write is an ordinary scope every registered person
-// holds, so that second layer never existed.
-func TestInvitesFromMembersOpensIssuingOnly(t *testing.T) {
+// The safety of this rests ENTIRELY on the scoping. If an unscoped
+// browse ever comes back, this test should fail and this permission
+// should go back to administrators in the same commit.
+func TestInviteBrowseIsSelfService(t *testing.T) {
+	registered := newViewer(viewerID, libs_constants.PersonTypeRegistered,
+		libs_constants.OAuthScopeActorsRead)
+	guest := newViewer(viewerID, libs_constants.PersonTypeGuest,
+		libs_constants.OAuthScopeActorsRead)
+
+	for _, level := range []string{
+		auth_constants.InvitesFromRegistered,
+		auth_constants.InvitesFromAdministrators,
+		auth_constants.InvitesFromSuperAdministrators,
+	} {
+		t.Run(level, func(t *testing.T) {
+			p := NewInvitePerm(&Env{
+				Config: &config.Config{InvitesFrom: level},
+			})
+
+			if err := p.CanBrowse(registered); err != nil {
+				t.Errorf("a registered person could not read their own invitations: %v", err)
+			}
+			if err := p.CanBrowse(guest); err == nil {
+				t.Error("a guest was allowed to browse invitations")
+			}
+		})
+	}
+}
+
+// The level is a MINIMUM ROLE, so each one admits everybody above it.
+//
+// The bug this pins down: CanAdd used to open with an unconditional
+// `if viewer.IsAdminOrSuperAdmin() { return nil }` before it consulted
+// the setting. Under super-administrators that let every ordinary
+// administrator through, so the tightest level was the one that did
+// nothing.
+func TestInviteLevelIsAMinimumRole(t *testing.T) {
+	scopes := []string{
+		libs_constants.OAuthScopeActorsRead,
+		libs_constants.OAuthScopeActorsWrite,
+	}
+
+	guest := newViewer(viewerID, libs_constants.PersonTypeGuest, scopes...)
+	registered := newViewer(viewerID, libs_constants.PersonTypeRegistered, scopes...)
+	admin := newViewer(viewerID, libs_constants.PersonTypeAdmin, scopes...)
+	superAdmin := newViewer(viewerID, libs_constants.PersonTypeSuperAdmin, scopes...)
+
+	cases := []struct {
+		level   string
+		allowed []*libs_entities.Viewer
+		refused []*libs_entities.Viewer
+	}{
+		{
+			level:   auth_constants.InvitesFromRegistered,
+			allowed: []*libs_entities.Viewer{registered, admin, superAdmin},
+			refused: []*libs_entities.Viewer{guest},
+		},
+		{
+			level:   auth_constants.InvitesFromAdministrators,
+			allowed: []*libs_entities.Viewer{admin, superAdmin},
+			refused: []*libs_entities.Viewer{guest, registered},
+		},
+		{
+			level:   auth_constants.InvitesFromSuperAdministrators,
+			allowed: []*libs_entities.Viewer{superAdmin},
+			refused: []*libs_entities.Viewer{guest, registered, admin},
+		},
+		{
+			// A mistyped setting admits nobody rather than everybody.
+			//
+			// The singular of a real level, because that is the typo an
+			// operator actually makes — the levels are plural and the
+			// person types are singular, so "administrator" is one
+			// keystroke from correct and reads correct. A nonsense word
+			// would prove the same branch while suggesting Anahita has
+			// a role it does not.
+			level:   libs_constants.PersonTypeAdmin,
+			allowed: nil,
+			refused: []*libs_entities.Viewer{guest, registered, admin, superAdmin},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.level, func(t *testing.T) {
+			p := NewInvitePerm(&Env{
+				Config: &config.Config{InvitesFrom: tc.level},
+			})
+
+			for _, viewer := range tc.allowed {
+				if err := p.CanAdd(viewer); err != nil {
+					t.Errorf("%s was refused: %v", viewer.PersonType, err)
+				}
+			}
+			for _, viewer := range tc.refused {
+				if err := p.CanAdd(viewer); err == nil {
+					t.Errorf("%s was allowed to invite", viewer.PersonType)
+				}
+			}
+		})
+	}
+}
+
+// `members` is not a value any more, and must not quietly become one.
+//
+// It was accepted as an alias for `registered` until this: an earlier
+// pass at the setting had introduced it, and Anahita has no person type
+// by that name. An unrecognised level ranks above every role, so the
+// level admits nobody rather than silently meaning "everybody" — which
+// is what an alias quietly reinstated by a future edit would do.
+func TestInvitesFromMembersIsNotAValue(t *testing.T) {
 	p := NewInvitePerm(&Env{
-		Config: &config.Config{InvitesFrom: auth_constants.InvitesFromMembers},
+		Config: &config.Config{InvitesFrom: "members"},
+	})
+
+	for _, viewer := range []*libs_entities.Viewer{
+		newViewer(viewerID, libs_constants.PersonTypeRegistered,
+			libs_constants.OAuthScopeActorsWrite),
+		newViewer(viewerID, libs_constants.PersonTypeSuperAdmin,
+			libs_constants.OAuthScopeActorsWrite),
+	} {
+		if err := p.CanAdd(viewer); err == nil {
+			t.Errorf("`members` was honoured as a level for %s", viewer.PersonType)
+		}
+	}
+}
+
+// Opening issuing to ordinary people opens issuing, and not moderation.
+//
+// Revoking SOMEBODY ELSE'S invitation stays with administrators whatever
+// the level is: withdrawing your own is your own business, taking back
+// another person's is moderation. CanDeleteOwn is the one that admits
+// the issuer, and only for the row they created.
+//
+// The role check is the ONLY gate on any of this. A comment claimed the
+// scope catalog gated these as AdminOnly at token-mint time and the role
+// check was defence in depth; actors:write is an ordinary scope every
+// registered person holds, so that second layer never existed.
+func TestOpenIssuingDoesNotOpenModeration(t *testing.T) {
+	p := NewInvitePerm(&Env{
+		Config: &config.Config{InvitesFrom: auth_constants.InvitesFromRegistered},
 	})
 
 	registered := newViewer(viewerID, libs_constants.PersonTypeRegistered,
 		libs_constants.OAuthScopeActorsRead, libs_constants.OAuthScopeActorsWrite)
 
 	if err := p.CanAdd(registered); err != nil {
-		t.Errorf("a member was refused an invitation under `members`: %v", err)
+		t.Errorf("a registered person was refused under `registered`: %v", err)
 	}
 
-	if err := p.CanBrowse(registered); err == nil {
-		t.Error("a member could list every outstanding invitation on the site, " +
-			"which is a list of who is being brought in and by whom")
-	}
 	if err := p.CanDelete(registered); err == nil {
-		t.Error("a member could revoke somebody else's invitation")
+		t.Error("a registered person could revoke somebody else's invitation")
+	}
+
+	if err := p.CanDeleteOwn(registered, otherID); err == nil {
+		t.Error("a registered person revoked an invitation issued by somebody else")
+	}
+	if err := p.CanDeleteOwn(registered, viewerID); err != nil {
+		t.Errorf("a registered person could not revoke their own invitation: %v", err)
 	}
 }
 
-// A guest is never a member, whatever the setting says.
-func TestInvitesFromMembersStillExcludesGuests(t *testing.T) {
-	p := NewInvitePerm(&Env{
-		Config: &config.Config{InvitesFrom: auth_constants.InvitesFromMembers},
-	})
-
+// A guest is never admitted, whatever the setting says.
+//
+// This is the case that caught a bad first cut of the level ranking.
+// Person types and configured levels were ranked on one scale whose
+// `default` branch sat above every role — right for an unrecognised
+// SETTING, which must admit nobody, and exactly backwards for an
+// unrecognised ROLE. Guests ranked at the top and every one of them
+// could invite.
+func TestInviteLevelStillExcludesGuests(t *testing.T) {
 	guest := newViewer(viewerID, libs_constants.PersonTypeGuest,
 		libs_constants.OAuthScopeActorsWrite)
 
-	if err := p.CanAdd(guest); err == nil {
-		t.Error("a guest issued an invitation")
+	for _, level := range []string{
+		auth_constants.InvitesFromRegistered,
+		auth_constants.InvitesFromAdministrators,
+		auth_constants.InvitesFromSuperAdministrators,
+	} {
+		t.Run(level, func(t *testing.T) {
+			p := NewInvitePerm(&Env{
+				Config: &config.Config{InvitesFrom: level},
+			})
+
+			if err := p.CanAdd(guest); err == nil {
+				t.Error("a guest issued an invitation")
+			}
+		})
 	}
 }
 
