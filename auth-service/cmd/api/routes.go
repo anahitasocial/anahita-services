@@ -97,6 +97,14 @@ func (r *Routes) Init(e *echo.Echo) {
 	// out who is behind on the current terms.
 	agreements.GET("/:person_id", h.Agreements.Read)
 
+	// Onboarding — whether the signed-in viewer has been through the
+	// walk-through the web app offers after the agreements. Same shape as
+	// /agreements: authenticated, and no person id, because finishing
+	// somebody else's onboarding means nothing.
+	onboarding := e.Group("/onboarding")
+	onboarding.Use(r.authorize)
+	onboarding.PATCH("", h.Onboarding.Edit)
+
 	// OIDC discovery and JWKS — fully public.
 	e.GET("/.well-known/openid-configuration", h.OAuth.Discovery)
 	e.GET("/.well-known/jwks.json", h.OAuth.JWKS)

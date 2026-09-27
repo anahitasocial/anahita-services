@@ -209,6 +209,12 @@ CREATE TABLE auth_accounts (
     -- unverified account cannot sign in.
     `email_verified_at`     datetime DEFAULT NULL,
 
+    -- When the person went through onboarding — completed or skipped, either
+    -- counts. NULL means they have not, and the web app sends a person with
+    -- an incomplete profile there after the agreements. Set once: a profile
+    -- that later becomes incomplete does not re-open it.
+    `onboarded_at`          datetime DEFAULT NULL,
+
     -- Terms of Service acceptance. The version sits alongside the timestamp so
     -- a revision can re-prompt only those on an older one, and the
     -- ip/user_agent/os trio is what makes the record evidential rather than

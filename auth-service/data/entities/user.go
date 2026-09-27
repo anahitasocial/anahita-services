@@ -38,6 +38,18 @@ type User struct {
 	// fabricated date and, to MySQL under a strict sql_mode, '0000-00-00'.
 	EmailVerifiedAt *time.Time `json:"-"`
 
+	// OnboardedAt is when the person went through onboarding, and nil when
+	// they have not. Completing the steps and skipping them both count — it
+	// records that the walk-through was offered, not what came of it.
+	OnboardedAt *time.Time `json:"-"`
+
+	// HasBio reports whether the node's body holds anything but whitespace.
+	//
+	// A flag rather than the text. The onboarding gate asks "is the profile
+	// incomplete?", and answering it does not need the bio itself carried
+	// through every sign-in and credential check that reads a User.
+	HasBio bool `json:"-"`
+
 	// TOTP fields
 	TotpSecret         string
 	TotpRecoveryCodes  string

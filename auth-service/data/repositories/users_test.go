@@ -128,7 +128,7 @@ func userRow() *sqlmock.Rows {
 		"last_visit_date", "created_on", "modified_on", "totp_enabled",
 		"totp_recovery_codes", "totp_last_verified_at", "totp_secret", "deleted_at",
 		"archived_at",
-		"email_verified_at",
+		"email_verified_at", "onboarded_at", "has_bio",
 		"tos_accepted", "tos_accepted_version",
 		"pp_accepted", "pp_accepted_version",
 	}).AddRow(
@@ -137,7 +137,7 @@ func userRow() *sqlmock.Rows {
 		time.Now(), time.Now(), time.Now(), false,
 		"", time.Now(), "", nil,
 		nil,
-		time.Now(),
+		time.Now(), nil, true,
 		true, "1.0", true, "1.0",
 	)
 }
@@ -294,3 +294,31 @@ func TestEditEmailNarrowsOnTheOwner(t *testing.T) {
 // publishes the event, neither of which an UPDATE from this side did. What is
 // worth asserting about it belongs to graph-grpc-service, which has its own
 // lifecycle tests.
+
+// ---------------------------------------------------------------------
+// MarkOnboarded is set once
+// ---------------------------------------------------------------------
+
+// The date is the only record of when somebody went through onboarding, and
+// the flow can finish twice — two tabs, a retried request. A second call must
+// not move it, so the statement narrows on the column still being NULL.
+func TestUsersMarkOnboardedDoesNotRestamp(t *testing.T) {
+	db, mock, seen := newCapturingDB(t)
+	repo := &Users{db: db}
+
+	mock.ExpectExec("update").WithArgs(int64(42)).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+
+	if err := repo.MarkOnboarded(42); err != nil {
+		t.Fatalf("mark onboarded: %v", err)
+	}
+
+	update := statementTouching(t, seen, "UPDATE")
+	if !strings.Contains(update, "onboarded_at IS NULL") {
+		t.Errorf("MarkOnboarded does not narrow on onboarded_at IS NULL, so "+
+			"a second call re-stamps the date:\n%s", update)
+	}
+	if !strings.Contains(update, "node_id = ?") {
+		t.Errorf("MarkOnboarded does not narrow on the person:\n%s", update)
+	}
+}

@@ -97,6 +97,22 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 		// client decides, and it has no business in a token-bearing response.
 		info["tos_agreement"] = agreementClaim(user.TermsOfService)
 		info["privacy_agreement"] = agreementClaim(user.PrivacyPolicy)
+
+		// Onboarding. The web app sends a person with an incomplete profile
+		// through it after the agreements, unless they have been through it
+		// before — completed or skipped.
+		//
+		// onboarded_at is the timestamp, or null when they have not been. A
+		// nil *time.Time boxed in an `any` marshals as null, which is what
+		// "not yet" should say.
+		//
+		// has_bio rather than the bio. The gate needs to know whether the
+		// profile is incomplete without a second request, and avatar_urls
+		// above already answers half of that by being absent; this is the
+		// other half. The text itself is the profile's, and is read from the
+		// profile.
+		info["onboarded_at"] = user.OnboardedAt
+		info["has_bio"] = user.HasBio
 	}
 
 	if scopeSet["email"] {

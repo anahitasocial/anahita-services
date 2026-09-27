@@ -3,7 +3,8 @@
 [Documentation](README.md) › Registration and agreements
 
 How people join an installation, how invitations and the approval queue work,
-and how the Terms of Service and Privacy Policy are accepted.
+how the Terms of Service and Privacy Policy are accepted, and how a new member
+is walked through filling in their profile.
 
 ## Contents
 
@@ -15,6 +16,7 @@ and how the Terms of Service and Privacy Policy are accepted.
 - [The approval queue](#the-approval-queue)
 - [Protection against bots](#protection-against-bots)
 - [Terms of Service and Privacy Policy](#terms-of-service-and-privacy-policy)
+- [Onboarding](#onboarding)
 - [NodeInfo](#nodeinfo)
 - [The first super administrator](#the-first-super-administrator)
 
@@ -157,6 +159,27 @@ existing ones alike.
   on the web app.
 
 This is enforced by the web app's interface, not the API.
+
+## Onboarding
+
+Signup asks only for a username, an email address and a password. After the
+agreements, the web app walks a signed-in person with an incomplete profile
+through adding an avatar, a display name, a bio and pronouns. Existing members
+with an empty profile get the same walk-through on their next sign-in.
+
+- **Whether they have been through it** is `auth_accounts.onboarded_at`. It is
+  set when the person reaches the dashboard through the flow, whether they
+  completed the steps or skipped them, and only once: a profile that later
+  becomes incomplete does not send them back.
+- **Whether the profile is incomplete** is read from `/oauth/userinfo`, under
+  the `profile` scope: `avatar_urls` is absent when there is no avatar, and
+  `has_bio` is false when the bio is empty or only whitespace.
+- **`onboarded_at`** is also on userinfo — the timestamp, or `null`.
+- Finishing calls `PATCH /onboarding` for the signed-in person, with no body.
+  It answers `200` with `{ "onboarded_at": "<timestamp>" }`, and a second call
+  keeps the first date.
+
+Like the agreements, this is enforced by the web app's interface, not the API.
 
 ## NodeInfo
 

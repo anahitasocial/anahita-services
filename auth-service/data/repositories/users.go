@@ -26,6 +26,7 @@ type UsersInterface interface {
 	EditTosConsent(id int64, consent *entities.Consent) error
 	EditPrivacyConsent(id int64, consent *entities.Consent) error
 	MarkEmailVerified(id int64) error
+	MarkOnboarded(id int64) error
 	Delete(id int64) error
 	IsEmail(email string) (bool, error)
 	IsUsername(username string) (bool, error)
@@ -545,6 +546,30 @@ func (repo *Users) MarkEmailVerified(id int64) error {
 		UPDATE auth_accounts
 		SET email_verified_at = NOW()
 		WHERE node_id = ? AND email_verified_at IS NULL`
+
+	_, err := repo.db.ExecContext(ctx, query, id)
+
+	return err
+}
+
+// MarkOnboarded records that a person has been through onboarding.
+//
+// Single-purpose for the same reason as MarkEmailVerified above it: Edit
+// writes the whole row from the struct it is handed, and this is not a column
+// anything else should be able to move as a side effect.
+//
+// Set once. A second call — the flow finished in two tabs, or a retried
+// request — does not move the date, and a profile that later becomes
+// incomplete does not re-open onboarding by clearing it; the web app's
+// dashboard nudge covers that.
+func (repo *Users) MarkOnboarded(id int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		UPDATE auth_accounts
+		SET onboarded_at = NOW()
+		WHERE node_id = ? AND onboarded_at IS NULL`
 
 	_, err := repo.db.ExecContext(ctx, query, id)
 
