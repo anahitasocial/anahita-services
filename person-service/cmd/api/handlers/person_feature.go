@@ -49,6 +49,10 @@ func (h *personHandler) EditFeatures(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 	person.FeaturesRaw = featuresJSON
+	// The graph service refuses an actor edit without a modifier. Taken from
+	// the row it was nearly always zero — 692 of 822 people had never been
+	// edited through this API — so the save answered 500 for most of them.
+	person.ModifiedBy = viewer.ID
 
 	_, err = h.Srv.ActorsGRPC.Edit(&person.AnahitaNode, viewer)
 	if err != nil {

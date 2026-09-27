@@ -50,6 +50,9 @@ func (h *groupHandler) EditFeatures(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 	actor.FeaturesRaw = featuresJSON
+	// The graph service refuses an actor edit without a modifier, and taken
+	// from the row it is zero for any group never edited through this API.
+	actor.ModifiedBy = viewer.ID
 
 	if actor, err = h.Srv.ActorsGRPC.Edit(actor, viewer); err != nil {
 		log.Println(err)
