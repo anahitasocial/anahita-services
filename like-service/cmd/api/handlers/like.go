@@ -46,7 +46,7 @@ func (h *likeHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	node, err := h.Srv.GraphNodeGRPC.Read(req.NodeID)
+	node, err := h.readLikeTarget(req.NodeID, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -117,7 +117,7 @@ func (h *likeHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	node, err := h.Srv.GraphNodeGRPC.Read(req.NodeID)
+	node, err := h.readLikeTarget(req.NodeID, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -143,7 +143,7 @@ func (h *likeHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	node, err = h.Srv.GraphNodeGRPC.Read(req.NodeID)
+	node, err = h.readLikeTarget(req.NodeID, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -219,7 +219,7 @@ func (h *likeHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	node, err := h.Srv.GraphNodeGRPC.Read(req.NodeID)
+	node, err := h.readLikeTarget(req.NodeID, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -241,7 +241,7 @@ func (h *likeHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	node, err = h.Srv.GraphNodeGRPC.Read(req.NodeID)
+	node, err = h.readLikeTarget(req.NodeID, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

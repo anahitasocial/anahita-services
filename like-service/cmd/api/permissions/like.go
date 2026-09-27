@@ -110,26 +110,24 @@ func (p *LikePermissions) CanAdd(viewer *entities.Viewer, node *entities.Anahita
 			return false
 		}
 
-		switch {
-		case owner.HasAddPermission(service, "like", "admins") && ownerVsViewerRel.HasAdmin:
+		// The owner can always like on their own profile.
+		if owner.GetID() == viewer.ID {
 			return true
-		case owner.HasAddPermission(service, "like", "followers") &&
-			(ownerVsViewerRel.IsLeading || ownerVsViewerRel.HasAdmin):
-			return true
-		case owner.HasAddPermission(service, "like", "registered") && viewer.IsRegistered():
-			return true
-		default:
-			return false
 		}
+
+		return permissions.AddAccessAllows(owner.AddPermissionAccess(service, "like"), ownerVsViewerRel, viewer)
 	}
 
 	if node.IsComment() {
 		parent := node.GetParent()
 		owner := parent.GetOwner()
 
+		// The post the comment sits under is what has to be readable — the
+		// error below already says "cannot read parent". The comment itself
+		// carries neither the post's owner nor its access level.
 		mediumAccessCtx := &permissions.MediumAccessContext{
 			Viewer: viewer,
-			Medium: node,
+			Medium: parent,
 		}
 
 		relationships, err := p.Srv.SocialgraphGRPC.Browse([]int64{owner.GetID(), parent.GetAuthorID()}, viewer.ID)
