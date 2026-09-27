@@ -52,7 +52,7 @@ are not kept up to date once the work lands — the pages above are.
 | Plan | Status |
 | --- | --- |
 | [Signup, registration modes, and agreements](plans/signup-and-onboarding.md) | done |
-| [Onboarding](plans/onboarding.md) | not started |
+| [Onboarding](plans/onboarding.md) | phases 1–2 done |
 | [Dissolve `people_people`](plans/dissolve-people-people.md) | done |
 | [Actor lifecycle states](plans/actor-lifecycle-states.md) | — |
 | [Actor profile management](plans/actor-profile-management.md) | — |
