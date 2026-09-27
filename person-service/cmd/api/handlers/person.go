@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
@@ -687,6 +688,10 @@ func (h *personHandler) onAfterFetched(c echo.Context, node *entities.Person) er
 	node.IsFollowingViewer = actorAccessCtx.ActorViewerRel.IsFollowing
 	node.IsLeadingViewer = actorAccessCtx.ActorViewerRel.IsLeading
 	node.IsBlockedByViewer = actorAccessCtx.ActorViewerRel.IsBlocking
+
+	// The composers the viewer may use on this profile, from the check the
+	// media services enforce, so the web app offers only ones that will work.
+	node.Authorized.Composers = permissions.Composers(viewer, &node.AnahitaNode, actorAccessCtx.ActorViewerRel)
 
 	return nil
 }
