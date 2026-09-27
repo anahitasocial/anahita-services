@@ -25,6 +25,17 @@ type AnahitaNodeAuthorized struct {
 	Edit           bool
 	Delete         bool
 	Administration bool
+
+	// What the viewer may add, answered by the checks in
+	// cmd/api/permissions/capabilities.go so the web app shows only controls
+	// that will work. Pointers: nil means not worked out for this response,
+	// which the web app treats differently from a no.
+	Comment     *bool
+	Like        *bool
+	AddFollower *bool
+	// Actors only: the composers the viewer may use on this profile. nil when
+	// not worked out; empty when none.
+	Composers []string
 }
 
 type AnahitaNodeImageSize struct {

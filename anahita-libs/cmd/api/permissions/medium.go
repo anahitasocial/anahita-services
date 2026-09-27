@@ -4,7 +4,6 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"errors"
-	"fmt"
 )
 
 const (
@@ -153,42 +152,9 @@ func (m *MediumPermissions) CanAdd(ctx *MediumAccessContext) (bool, error) {
 		return false, errors.New(ErrMediumInsufficientScope)
 	}
 
-	// Step 1: Global admin override
-	if ctx.Viewer.IsAdmin() {
-		return true, nil
-	}
-
-	owner := ctx.Medium.GetOwner()
-	entityName := ctx.Medium.GetEntityName()
-	// Step 2: Owner can always add to self
-	if ctx.Viewer.ID > 0 && ctx.Viewer.ID == owner.GetID() {
-		return true, nil
-	}
-
-	// Step 3: Can viewer read this actor (privacy check)
-	actorPerm := NewActorPermissions()
-	actorPermCtx := &ActorAccessContext{
-		Viewer:         ctx.Viewer,
-		Actor:          ctx.Medium.GetOwner(),
-		ActorViewerRel: ctx.OwnerViewerRel,
-	}
-	ok, err := actorPerm.CanRead(actorPermCtx)
-	if err != nil {
-		return false, err
-	}
-	if !ok {
-		return false, fmt.Errorf("viewer %d is not allowed to read actor %d", ctx.Viewer.ID, ctx.Medium.GetOwnerID())
-	}
-
-	// Step 4: Check add_permissions policies. An entity the owner has no
-	// permission for answers "" and admits only the owner's administrators.
-	access := owner.AddPermissionAccess(ctx.Medium.GetService(), entityName)
-	if AddAccessAllows(access, ctx.OwnerViewerRel, ctx.Viewer) {
-		return true, nil
-	}
-
-	// Step 5: Denied
-	return false, fmt.Errorf("viewer %d does not have permission to add %s to actor %d", ctx.Viewer.ID, entityName, ctx.Medium.GetOwnerID())
+	// The rest is CanPostTo, which also answers the composers list the web
+	// app is sent, so the two cannot disagree.
+	return CanPostTo(ctx.Viewer, ctx.Medium.GetOwner(), ctx.OwnerViewerRel, ctx.Medium.GetService(), ctx.Medium.GetEntityName())
 }
 
 // CanDelete returns true if the viewer is allowed to delete the medium node

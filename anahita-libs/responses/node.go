@@ -30,6 +30,10 @@ type NodeItem struct {
 	IsFollowingViewer    bool `json:"is_following_viewer,omitempty"`
 	IsBlockedByViewer    bool `json:"is_blocked_by_viewer,omitempty"`
 
+	// What the viewer may do with the item. feed-service fills in comment and
+	// like, which the feed's buttons read; nothing else here computes it.
+	Authorized *NodeAuthorized `json:"authorized,omitempty"`
+
 	// Related Entities
 	Author *Author `json:"author,omitempty"`
 	Editor *Editor `json:"editor,omitempty"`
@@ -70,6 +74,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		IsAdminedByViewer:    node.IsAdminedByViewer,
 		IsFollowingViewer:    node.IsFollowingViewer,
 		IsBlockedByViewer:    node.IsBlockedByViewer,
+		Authorized:           NewNodeAuthorized(node),
 		Author: func() *Author {
 			if node.Author != nil {
 				return NewAuthor(node.Author)

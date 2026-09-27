@@ -35,6 +35,10 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 		dto.Author = NewAuthor(node.Author)
 	}
 
+	// A repost's comment and like buttons act on the post it reposts, so
+	// the answers ride on the parent.
+	dto.Authorized = NewNodeAuthorized(node)
+
 	return dto
 }
 
@@ -50,4 +54,5 @@ type Parent struct {
 	Author             *Author          `json:"author,omitempty"`
 	IsLikedByViewer    bool             `json:"is_liked_by_viewer,omitempty"`
 	IsRepostedByViewer bool             `json:"is_reposted_by_viewer,omitempty"`
+	Authorized         *NodeAuthorized  `json:"authorized,omitempty"`
 }

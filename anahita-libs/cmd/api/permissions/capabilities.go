@@ -1,0 +1,178 @@
+package permissions
+
+import (
+	"fmt"
+
+	"anahita-libs/constants"
+	"anahita-libs/data/entities"
+)
+
+// What a viewer may add to a profile or a post, as the answers the server
+// sends with a response so the web app can show only the controls that will
+// work.
+//
+// Every answer here is the check the server enforces, not a second copy of it.
+// The web app used to derive them itself and drifted: it read any
+// add_permission in a service as if it were the one for the composer, knew
+// only followers and admins, and showed the comment box and like button to
+// everybody signed in.
+
+// CanPostTo reports whether the viewer may create an entity of the given kind
+// under service on owner's profile. MediumPermissions.CanAdd is this plus the
+// media:write scope.
+//
+// owner has to come from the actor read, which merges the actor_features
+// defaults in; rel is owner's relationship to the viewer.
+func CanPostTo(viewer *entities.Viewer, owner *entities.AnahitaNode, rel *entities.ActorRelation, service, entity string) (bool, error) {
+	if viewer.IsAdmin() {
+		return true, nil
+	}
+
+	if owner == nil || owner.GetID() == 0 {
+		return false, fmt.Errorf("no owner to add %s to", entity)
+	}
+
+	// The owner can always add to their own profile.
+	if viewer.ID > 0 && viewer.ID == owner.GetID() {
+		return true, nil
+	}
+
+	rel = relationOrEmpty(rel)
+
+	ok, err := NewActorPermissions().CanRead(&ActorAccessContext{
+		Viewer:         viewer,
+		Actor:          owner,
+		ActorViewerRel: rel,
+	})
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		return false, fmt.Errorf("viewer %d is not allowed to read actor %d", viewer.ID, owner.GetID())
+	}
+
+	// An entity the owner has no permission for answers "" and admits only
+	// the owner's administrators.
+	if AddAccessAllows(owner.AddPermissionAccess(service, entity), rel, viewer) {
+		return true, nil
+	}
+
+	return false, fmt.Errorf("viewer %d does not have permission to add %s to actor %d", viewer.ID, entity, owner.GetID())
+}
+
+// Composers lists the composers on owner's profile the viewer may use: every
+// enabled feature's composers that CanPostTo allows. A composer is named for
+// the entity it creates.
+func Composers(viewer *entities.Viewer, owner *entities.AnahitaNode, rel *entities.ActorRelation) []string {
+	composers := []string{}
+
+	if viewer == nil || !viewer.HasScope(constants.OAuthScopeMediaWrite) || owner == nil {
+		return composers
+	}
+
+	features, err := owner.GetFeatures()
+	if err != nil {
+		return composers
+	}
+
+	for _, feature := range features {
+		if !feature.Enabled {
+			continue
+		}
+		for _, composer := range feature.Composers {
+			if ok, _ := CanPostTo(viewer, owner, rel, feature.Service, composer); ok {
+				composers = append(composers, composer)
+			}
+		}
+	}
+
+	return composers
+}
+
+// CanComment reports whether the viewer may comment on post: exactly
+// CommentPermissions.CanAdd, asked of a comment that does not exist yet.
+//
+// post.Owner has to be loaded, as for CanAdd.
+func CanComment(viewer *entities.Viewer, post *entities.AnahitaNode, rel *entities.ActorRelation) bool {
+	// CanAdd lets an unauthenticated viewer past its scope check — the route
+	// refuses them before it runs. The answer here has to say no itself.
+	if viewer == nil || !viewer.Authenticated || post == nil {
+		return false
+	}
+
+	comment := &entities.AnahitaNode{ParentID: post.ID, Parent: post}
+	ok, _ := NewCommentPermissions().CanAdd(&CommentAccessContext{
+		Viewer:               viewer,
+		Comment:              comment,
+		ParentOwnerViewerRel: rel,
+	})
+	return ok
+}
+
+// CanLike reports whether the viewer may like post, or a comment under it:
+// be able to read the post, then meet the owner's like permission for the
+// post's service. The owner and site administrators always may.
+//
+// like-service enforces exactly this. post.Owner has to be loaded.
+func CanLike(viewer *entities.Viewer, post *entities.AnahitaNode, rel *entities.ActorRelation) bool {
+	if viewer == nil || !viewer.Authenticated || !viewer.HasScope(constants.OAuthScopeLikesWrite) {
+		return false
+	}
+
+	if viewer.IsAdmin() {
+		return true
+	}
+
+	if post == nil || post.GetID() == 0 {
+		return false
+	}
+	owner := post.GetOwner()
+	if owner == nil || owner.GetID() == 0 {
+		return false
+	}
+
+	rel = relationOrEmpty(rel)
+
+	if ok, _ := NewMediumPermissions().CanRead(&MediumAccessContext{
+		Viewer:         viewer,
+		Medium:         post,
+		OwnerViewerRel: rel,
+	}); !ok {
+		return false
+	}
+
+	if owner.GetID() == viewer.ID {
+		return true
+	}
+
+	return AddAccessAllows(owner.AddPermissionAccess(post.GetService(), "like"), rel, viewer)
+}
+
+// CanAddOthersAsFollowers reports whether the viewer may add somebody else to
+// a group as a follower: the group's "follower" permission, measured against
+// the viewer. Site administrators always may.
+//
+// Joining a group yourself is not this question — that depends only on
+// whether you can see the group, as it does for a person. Only groups have
+// the setting; nobody adds followers to a person.
+func CanAddOthersAsFollowers(viewer *entities.Viewer, group *entities.AnahitaNode, rel *entities.ActorRelation) bool {
+	if viewer == nil || !viewer.Authenticated || viewer.ID <= 0 || group == nil || group.IsPerson() {
+		return false
+	}
+
+	if viewer.IsAdmin() {
+		return true
+	}
+
+	rel = relationOrEmpty(rel)
+
+	if ok, _ := NewActorPermissions().CanRead(&ActorAccessContext{
+		Viewer:         viewer,
+		Actor:          group,
+		ActorViewerRel: rel,
+	}); !ok {
+		return false
+	}
+
+	return AddAccessAllows(group.AddPermissionAccess("socialgraph-service", "follower"), rel, viewer)
+}
