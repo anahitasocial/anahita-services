@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/requests"
@@ -725,12 +726,24 @@ func (h *groupHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 		log.Println("Error fetching features for actor:", err)
 	}
 
-	item.IsLeadingViewer = actorAccessCtx.ActorViewerRel.IsLeading
+	rel := actorAccessCtx.ActorViewerRel
+	item.IsLeadingViewer = rel.IsLeading
+	item.IsFollowingViewer = rel.IsFollowing
+	// Whether the viewer administers the group. This was set to true for
+	// everybody, so the web app treated every viewer as an administrator of
+	// every group it showed.
+	item.IsAdminedByViewer = rel.HasAdmin
 	item.Authorized.Edit, _ = h.Perms.Groups.CanEdit(actorAccessCtx)
 	item.Authorized.Delete, _ = h.Perms.Groups.CanDelete(actorAccessCtx)
 	item.Authorized.Administration, _ = h.Perms.Groups.CanAdministrate(actorAccessCtx)
 	item.Administrators, _ = h.Srv.ActorAdminsGRPC.Browse(item.ID)
-	item.IsAdminedByViewer = true
+
+	// What the viewer may add, from the checks the services enforce, so the
+	// web app offers only the composers and the add-follower control that
+	// will work.
+	item.Authorized.Composers = permissions.Composers(viewer, item, rel)
+	addFollower := permissions.CanAddOthersAsFollowers(viewer, item, rel)
+	item.Authorized.AddFollower = &addFollower
 
 	return nil
 }
