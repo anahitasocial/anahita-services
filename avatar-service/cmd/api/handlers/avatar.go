@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -149,7 +150,14 @@ func (h *avatarHandler) Add(c echo.Context) error {
 		}
 	}
 
-	// Update the node with the new avatar
+	// Update the node with the new avatar.
+	//
+	// Stamped as the viewer's edit, as every other actor edit is. The graph
+	// refuses an edit with no modifier, and a person who has never edited
+	// their profile — every new member, on the first thing onboarding asks
+	// of them — has none on the node as read.
+	node.ModifiedBy = viewer.ID
+	node.UpdateTime = time.Now()
 	if _, err = h.Srv.ActorsGRPC.Edit(node, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -215,6 +223,8 @@ func (h *avatarHandler) Delete(c echo.Context) error {
 	}
 
 	node.Filename = ""
+	node.ModifiedBy = viewer.ID
+	node.UpdateTime = time.Now()
 	if _, err = h.Srv.ActorsGRPC.Edit(node, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

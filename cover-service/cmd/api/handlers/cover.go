@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -146,7 +147,11 @@ func (h *coverHandler) Add(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 
+		// Stamped as the viewer's edit. The graph refuses an edit with no
+		// modifier, and an actor nobody has edited yet has none as read.
 		actor.CoverFilename = node.CoverFilename
+		actor.ModifiedBy = viewer.ID
+		actor.UpdateTime = time.Now()
 		if _, err = h.Srv.ActorsGRPC.Edit(actor, viewer); err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -224,6 +229,8 @@ func (h *coverHandler) Delete(c echo.Context) error {
 		}
 
 		actor.CoverFilename = ""
+		actor.ModifiedBy = viewer.ID
+		actor.UpdateTime = time.Now()
 		if _, err = h.Srv.ActorsGRPC.Edit(actor, viewer); err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
