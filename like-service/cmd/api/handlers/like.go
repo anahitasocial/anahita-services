@@ -319,6 +319,10 @@ func (h *likeHandler) onAfterFetchedComment(c echo.Context, node *entities.Anahi
 	node.Authorized.Delete, _ = h.Perms.Comments.CanDelete(commentAccessCtx)
 	node.Authorized.Administration, _ = h.Perms.Comments.CanAdministrate(commentAccessCtx)
 
+	// The web app replaces the comment with this response, so it carries the
+	// same answer comment-service gives: may the viewer like it.
+	commentFlags(node, viewer, commentAccessCtx.ParentOwnerViewerRel)
+
 	return err
 }
 
@@ -337,6 +341,10 @@ func (h *likeHandler) onAfterFetchedMedium(c echo.Context, node *entities.Anahit
 	node.Authorized.Edit, _ = h.Perms.Medium.CanEdit(mediumAccessCtx)
 	node.Authorized.Delete, _ = h.Perms.Medium.CanDelete(mediumAccessCtx)
 	node.Authorized.Administration, _ = h.Perms.Medium.CanAdministrate(mediumAccessCtx)
+
+	// The web app replaces the post with this response, so it carries the
+	// same answers the media services give.
+	postFlags(node, viewer, mediumAccessCtx.OwnerViewerRel)
 
 	return err
 }

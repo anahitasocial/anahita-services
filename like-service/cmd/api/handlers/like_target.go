@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 )
 
@@ -46,4 +47,21 @@ func (h *likeHandler) readLikeTarget(id int64, viewer *entities.Viewer) (*entiti
 	}
 
 	return node, nil
+}
+
+// postFlags sets who may comment on and like post, as the media services do
+// for the same post. post.Owner has to be loaded — readLikeTarget does.
+func postFlags(post *entities.AnahitaNode, viewer *entities.Viewer, rel *entities.ActorRelation) {
+	comment := permissions.CanComment(viewer, post, rel)
+	like := permissions.CanLike(viewer, post, rel)
+	post.Authorized.Comment = &comment
+	post.Authorized.Like = &like
+}
+
+// commentFlags sets whether the viewer may like comment, under the rules of
+// the post it sits under, as comment-service does. comment.Parent and its
+// Owner have to be loaded — readLikeTarget does.
+func commentFlags(comment *entities.AnahitaNode, viewer *entities.Viewer, parentOwnerRel *entities.ActorRelation) {
+	like := permissions.CanLike(viewer, comment.GetParent(), parentOwnerRel)
+	comment.Authorized.Like = &like
 }
