@@ -171,8 +171,25 @@ func (h *actorHandler) BatchRead(ctx context.Context, req *graphpb.ActorBatchRea
 		actor.IsSubscribedByViewer = subscriptionStatuses[actor.ID].IsSubscribed
 	}
 
+	actors := nodesToGrpc(result)
+
+	// The actor_features defaults, merged in exactly as Read does. Without
+	// them an actor read in a batch carried only its raw features column —
+	// NULL for most — and every permission read from it said nobody may add
+	// anything. feed-service reads post owners this way to answer who may
+	// comment and like.
+	loader := features.NewFeatureLoader(h.env.Config.GetActorFeaturesPath())
+	for _, actor := range actors {
+		defaults, err := loader.Load(actor.Type)
+		if err != nil {
+			log.Printf("Failed to load default features for %s: %v", actor.Type, err)
+			continue
+		}
+		_ = features.ApplyFeatures(actor, loader, defaults)
+	}
+
 	return &graphpb.ActorBatchReadResponse{
-		Actors: nodesToGrpc(result),
+		Actors: actors,
 	}, nil
 }
 
