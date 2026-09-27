@@ -92,14 +92,22 @@ func (p *followersPermissions) CanAdd(source *entities.AnahitaNode, target *enti
 		return true, nil
 	}
 
-	if target.HasAddPermission("socialgraph-service", "follower", "admins") {
-		if targetVsSourceRel.HasAdmin {
-			return true, nil
-		}
-	} else if target.HasAddPermission("socialgraph-service", "follower", "followers") {
-		if targetVsViewer.IsLeading || targetVsViewer.HasAdmin {
-			return true, nil
-		}
+	// Joining a group yourself: seeing it is enough, as for a person. The
+	// read check above has already asked that.
+	if source.ID == viewer.ID {
+		return true, nil
+	}
+
+	// Adding somebody else: the group's "follower" permission, measured
+	// against the VIEWER doing the adding.
+	//
+	// It used to test targetVsSourceRel.HasAdmin — whether the person being
+	// ADDED administers the group — and every join goes through here with
+	// the joiner as the source. So with the default, admins, nobody but the
+	// group's own administrators could follow a public group, and those
+	// administrators could not add anybody else.
+	if permissions.CanAddOthersAsFollowers(viewer, target, targetVsViewer) {
+		return true, nil
 	}
 
 	return false, fmt.Errorf("%s: viewer %d, source %d, target %d", ErrFollowersAddNotAllowed, viewer.ID, source.ID, target.ID)

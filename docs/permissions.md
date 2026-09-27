@@ -125,8 +125,11 @@ Default: `followers`.
 ## Adding followers to a group
 
 Who can add somebody else to a group as a follower: `followers` or `admins`.
-This setting has no effect on people, because anybody allowed to see a person
-can follow them.
+Site administrators always can.
+
+Following a group yourself is not governed by this setting. Anybody who can
+see the group can follow it, as with a person. This setting has no effect on
+people, because nobody adds followers to a person.
 
 Default: `admins`.
 
