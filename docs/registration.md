@@ -179,6 +179,12 @@ with an empty profile get the same walk-through on their next sign-in.
   It answers `200` with `{ "onboarded_at": "<timestamp>" }`, and a second call
   keeps the first date.
 
+**Who invited them** is `auth_accounts.invited_by`. It is written when an
+invitation is accepted, from the invitation, and when a signup request a member
+vouched for is approved. A self-serve signup has none. Onboarding shows the
+inviter first among the accounts it offers to follow, and never follows anybody
+on the person's behalf.
+
 Like the agreements, this is enforced by the web app's interface, not the API.
 
 ## NodeInfo

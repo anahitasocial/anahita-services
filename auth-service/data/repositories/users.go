@@ -320,6 +320,7 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 			email,
 			password,
 			email_verified_at,
+			invited_by,
 			tos_accepted,
 			tos_accepted_at,
 			tos_accepted_version,
@@ -333,7 +334,7 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 			pp_accepted_user_agent,
 			pp_accepted_os
 		) VALUES (
-			?, ?, ?, ?,
+			?, ?, ?, ?, ?,
 			?, ?, ?, ?, ?, ?,
 			?, ?, ?, ?, ?, ?
 		)`
@@ -349,6 +350,10 @@ func (repo *Users) Add(user *entities.User) (*entities.User, error) {
 		// invite-accept marks it verified; a self-serve signup has proved
 		// nothing yet and leaves it nil.
 		user.EmailVerifiedAt,
+		// Also set by the caller: invite-accept from the token, approval from
+		// the request. Zero is written as NULL, so a self-serve account does
+		// not point at an actor 0 that does not exist.
+		nullableID(user.InvitedBy),
 		user.TermsOfService.Accepted,
 		user.TermsOfService.AcceptedAt,
 		user.TermsOfService.Version,

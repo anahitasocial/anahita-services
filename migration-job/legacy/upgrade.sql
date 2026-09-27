@@ -832,6 +832,10 @@ CREATE TABLE auth_accounts (
     -- NULL for everybody: nobody has been through onboarding yet, and a
     -- member with an empty profile should be walked through it.
     `onboarded_at`          datetime DEFAULT NULL,
+
+    -- NULL for everybody: the invitation tokens that could say otherwise
+    -- are not carried over.
+    `invited_by`            bigint unsigned DEFAULT NULL,
     `tos_accepted`            tinyint(1) NOT NULL DEFAULT 0,
     `tos_accepted_at`         datetime     DEFAULT NULL,
     `tos_accepted_version`    varchar(20)  DEFAULT NULL,

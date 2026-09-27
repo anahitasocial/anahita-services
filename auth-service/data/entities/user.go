@@ -50,6 +50,10 @@ type User struct {
 	// through every sign-in and credential check that reads a User.
 	HasBio bool `json:"-"`
 
+	// InvitedBy is the actor whose invitation brought this person in, and 0
+	// when nobody's did. Written when the account is created and never after.
+	InvitedBy int64 `json:"-"`
+
 	// TOTP fields
 	TotpSecret         string
 	TotpRecoveryCodes  string

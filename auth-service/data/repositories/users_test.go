@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"strings"
 	"testing"
 	"time"
@@ -128,7 +129,7 @@ func userRow() *sqlmock.Rows {
 		"last_visit_date", "created_on", "modified_on", "totp_enabled",
 		"totp_recovery_codes", "totp_last_verified_at", "totp_secret", "deleted_at",
 		"archived_at",
-		"email_verified_at", "onboarded_at", "has_bio",
+		"email_verified_at", "onboarded_at", "has_bio", "invited_by",
 		"tos_accepted", "tos_accepted_version",
 		"pp_accepted", "pp_accepted_version",
 	}).AddRow(
@@ -137,7 +138,7 @@ func userRow() *sqlmock.Rows {
 		time.Now(), time.Now(), time.Now(), false,
 		"", time.Now(), "", nil,
 		nil,
-		time.Now(), nil, true,
+		time.Now(), nil, true, 0,
 		true, "1.0", true, "1.0",
 	)
 }
@@ -320,5 +321,58 @@ func TestUsersMarkOnboardedDoesNotRestamp(t *testing.T) {
 	}
 	if !strings.Contains(update, "node_id = ?") {
 		t.Errorf("MarkOnboarded does not narrow on the person:\n%s", update)
+	}
+}
+
+// ---------------------------------------------------------------------
+// Users.Add records the inviter, and nobody as NULL
+// ---------------------------------------------------------------------
+
+// invited_by is written by the statement that creates the account — the
+// invitation token that also knows is consumed and swept, so this is the only
+// lasting record. A self-serve account has no inviter and must store NULL, not
+// a 0 that reads as an actor id.
+func TestUsersAddRecordsTheInviter(t *testing.T) {
+	for name, tc := range map[string]struct {
+		invitedBy int64
+		want      any
+	}{
+		"invited":    {invitedBy: 7, want: int64(7)},
+		"self-serve": {invitedBy: 0, want: nil},
+	} {
+		t.Run(name, func(t *testing.T) {
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				t.Fatalf("open sqlmock: %v", err)
+			}
+			defer db.Close()
+			repo := &Users{db: db}
+
+			user := entities.NewUser()
+			user.ID = 42
+			user.Email = "ada@example.com"
+			user.InvitedBy = tc.invitedBy
+
+			// node_id, email, password, email_verified_at, invited_by, and
+			// the twelve consent columns.
+			args := []driver.Value{
+				int64(42), "ada@example.com", "", nil, tc.want,
+			}
+			for range 12 {
+				args = append(args, sqlmock.AnyArg())
+			}
+
+			mock.ExpectExec("INSERT INTO auth_accounts").
+				WithArgs(args...).
+				WillReturnResult(sqlmock.NewResult(0, 1))
+			mock.ExpectQuery("SELECT").WillReturnRows(userRow())
+
+			if _, err := repo.Add(user); err != nil {
+				t.Fatalf("add: %v", err)
+			}
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Errorf("invited_by was not written as %v: %v", tc.want, err)
+			}
+		})
 	}
 }

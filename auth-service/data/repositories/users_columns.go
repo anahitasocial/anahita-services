@@ -73,6 +73,9 @@ func userColumns() []string {
 		// because TRIM strips spaces only and a body of newlines is as
 		// empty as a body of nothing.
 		"(COALESCE(nodes.body, '') REGEXP '[^[:space:]]') AS has_bio",
+		// 0 for nobody, as signup_requests reads the same column: a self-serve
+		// account has no inviter, and that is a value, not a failed read.
+		"COALESCE(auth_accounts.invited_by, 0) AS invited_by",
 		"auth_accounts.tos_accepted",
 		"COALESCE(auth_accounts.tos_accepted_version, '') AS tos_accepted_version",
 		"auth_accounts.pp_accepted",
@@ -118,6 +121,7 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		&emailVerified,
 		&onboarded,
 		&item.HasBio,
+		&item.InvitedBy,
 		&item.TermsOfService.Accepted,
 		&item.TermsOfService.Version,
 		&item.PrivacyPolicy.Accepted,

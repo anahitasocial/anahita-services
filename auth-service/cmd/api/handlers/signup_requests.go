@@ -216,6 +216,11 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 	// Verified already: confirming the address is what put this request in
 	// front of an administrator in the first place.
 	user.EmailVerifiedAt = sr.EmailVerifiedAt
+	// The member who vouched, when a member's invitation is how this request
+	// arrived; 0, written as NULL, for a cold application. Onboarding shows
+	// the inviter first, and the request row is not somewhere it should have
+	// to look once the account exists.
+	user.InvitedBy = sr.InvitedBy
 
 	if _, err := h.Repos.Users.Add(user); err != nil {
 		log.Println("signup requests approve: could not create the account:", err)

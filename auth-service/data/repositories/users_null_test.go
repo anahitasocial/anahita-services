@@ -36,6 +36,7 @@ var columnsThatMayBeNull = []string{
 	"auth_accounts.password",
 	"auth_accounts.totp_recovery_codes",
 	"auth_accounts.totp_secret",
+	"auth_accounts.invited_by",
 }
 
 func TestUserColumnsCoalesceEveryNullableColumn(t *testing.T) {
@@ -50,6 +51,7 @@ func TestUserColumnsCoalesceEveryNullableColumn(t *testing.T) {
 			"auth_accounts.password":            true,
 			"auth_accounts.totp_recovery_codes": true,
 			"auth_accounts.totp_secret":         true,
+			"auth_accounts.invited_by":          true,
 		}},
 	} {
 		t.Run(list.name, func(t *testing.T) {
@@ -105,7 +107,7 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 			"last_visit_date", "created_on", "modified_on", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",
-			"email_verified_at", "onboarded_at", "has_bio",
+			"email_verified_at", "onboarded_at", "has_bio", "invited_by",
 			"tos_accepted", "tos_accepted_version",
 			"pp_accepted", "pp_accepted_version",
 		}).AddRow(
@@ -114,7 +116,7 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 			nil, nil, nil, false,
 			"", time.Now(), "",
 			nil, nil,
-			nil, nil, false,
+			nil, nil, false, 0,
 			false, "", false, "",
 		))
 
@@ -178,14 +180,14 @@ func TestEmptyPasswordHashIsUnusable(t *testing.T) {
 			"last_visit_date", "created_on", "modified_on", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",
-			"email_verified_at", "onboarded_at", "has_bio",
+			"email_verified_at", "onboarded_at", "has_bio", "invited_by",
 			"tos_accepted", "tos_accepted_version",
 			"pp_accepted", "pp_accepted_version",
 		}).AddRow(
 			7, "node.actor.person-service.person.v1", true, "", "invited",
 			"invited@example.com", "", "registered", "person-service", "",
 			nil, nil, nil, false, "", time.Now(), "", nil, nil,
-			nil, nil, false,
+			nil, nil, false, 0,
 			false, "", false, "",
 		))
 

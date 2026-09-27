@@ -215,6 +215,12 @@ CREATE TABLE auth_accounts (
     -- that later becomes incomplete does not re-open it.
     `onboarded_at`          datetime DEFAULT NULL,
 
+    -- Who invited this person, when an invitation is how they arrived —
+    -- directly, or through an application a member vouched for. NULL for a
+    -- self-serve signup. Kept here because the invitation token that also
+    -- says so is consumed and swept, and onboarding shows the inviter first.
+    `invited_by`            bigint unsigned DEFAULT NULL,
+
     -- Terms of Service acceptance. The version sits alongside the timestamp so
     -- a revision can re-prompt only those on an older one, and the
     -- ip/user_agent/os trio is what makes the record evidential rather than

@@ -291,6 +291,10 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	// confirmation email asks them to do — asking again would be asking them
 	// to prove the same thing twice.
 	user.MarkEmailVerified()
+	// Who invited them, for onboarding to show first. From the token and NOT
+	// from inviter above: when that lookup fails it falls back to a stub with
+	// id 0, which would record "nobody" for somebody who plainly was invited.
+	user.InvitedBy = token.CreatedBy
 
 	// Checked before anything is created, so the message can name the field.
 	// The graph enforces it too — the check below catches the race — but a
@@ -478,7 +482,10 @@ func (h *inviteHandler) acceptIntoQueue(
 	sr.Username = strings.ToLower(strings.TrimSpace(req.Username))
 	sr.Email = token.RecipientEmail
 	sr.Name = strings.TrimSpace(req.Name)
-	sr.InvitedBy = inviter.ID
+	// From the token, for the reason Accept gives: the inviter passed in may
+	// be the id-0 stub a failed lookup falls back to, and approval copies this
+	// onto the account.
+	sr.InvitedBy = token.CreatedBy
 
 	// Verified on arrival, and straight into the queue.
 	//
