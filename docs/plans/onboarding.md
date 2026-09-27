@@ -47,7 +47,7 @@ The web app's half is `anahita-web/docs/plans/onboarding.md`.
 | 2. `invited_by` on the account | 2 | ✅ | — | `845ad76` |
 | 3. `featured_at` on actor nodes | 2 | ✅ | — | `20f473a` |
 | 4. Featuring an actor | 2 | ✅ | 3 | `721dda1` |
-| 5. Browsing featured actors | 2 | ⬜ | 3 | |
+| 5. Browsing featured actors | 2 | ✅ | 3 | `5fb3f56` |
 | 6. `GET /onboarding` | 2 | ⬜ | 1, 2 | |
 
 ---

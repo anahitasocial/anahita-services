@@ -103,6 +103,7 @@ func (r *Routes) Init(e *echo.Echo) {
 	// somebody else's onboarding means nothing.
 	onboarding := e.Group("/onboarding")
 	onboarding.Use(r.authorize)
+	onboarding.GET("", h.Onboarding.Read)
 	onboarding.PATCH("", h.Onboarding.Edit)
 
 	// OIDC discovery and JWKS — fully public.

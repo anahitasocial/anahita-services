@@ -27,6 +27,67 @@ func newOnboardingHandler(env *Env) *onboardingHandler {
 	return &onboardingHandler{env}
 }
 
+// Read returns what the flow needs about the viewer that userinfo does not
+// carry.
+//
+//	GET /onboarding
+//
+// Today that is only who invited them, so the featured step can show the
+// inviter first. By alias, because that is what the web app resolves a
+// profile by: it reads the inviter through /people/:alias, which is where
+// blocks and profile access are decided — not here, where the answer would be
+// a second, drifting copy of that check.
+//
+// invited_by is null when nobody invited them, and when the inviter no longer
+// resolves: deleted, disabled, or gone. The step then simply has no inviter
+// to show, which is the same thing as never having had one.
+//
+// 200: { "invited_by": "<alias>" | null }
+// 401: no signed-in person
+func (h *onboardingHandler) Read(c echo.Context) error {
+	viewer := getViewer(c)
+	if viewer == nil || viewer.ID == 0 || viewer.IsGuest() {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+
+	user, err := h.Repos.Users.ReadByID(viewer.ID)
+	if err != nil || user == nil {
+		log.Printf("onboarding read: could not read the viewer (person=%d): %v",
+			viewer.ID, err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"invited_by": h.inviterAlias(user.InvitedBy),
+	})
+}
+
+// inviterAlias resolves an inviter to the handle the web app reads them by, or
+// nil when there is nobody to show.
+//
+// A failed lookup is nil, not an error. The inviter is a nicety at the top of
+// one step; a person whose inviter has since deleted their account must still
+// get through onboarding, and a 500 here would take the whole step with it.
+func (h *onboardingHandler) inviterAlias(id int64) any {
+	if id == 0 {
+		return nil
+	}
+
+	inviter, err := h.Repos.Users.ReadByID(id)
+	if err != nil || inviter == nil {
+		log.Printf("onboarding read: inviter %d does not resolve: %v", id, err)
+		return nil
+	}
+
+	// Disabled, or scheduled for deletion — which also disables. Offering to
+	// follow either is offering something that will not work.
+	if !inviter.Enabled || inviter.DeletedAt != nil || inviter.Alias == "" {
+		return nil
+	}
+
+	return inviter.Alias
+}
+
 // Edit records that the viewer has been through onboarding.
 //
 //	PATCH /onboarding

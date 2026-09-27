@@ -185,6 +185,10 @@ vouched for is approved. A self-serve signup has none. Onboarding shows the
 inviter first among the accounts it offers to follow, and never follows anybody
 on the person's behalf.
 
+`GET /onboarding` returns it for the signed-in person, by alias:
+`{ "invited_by": "<alias>" }`. It is `null` when nobody invited them, and when
+the inviter's account is gone, disabled or being deleted.
+
 **Featured accounts** are the ones onboarding offers to follow. A super
 administrator features a person or a group from its profile:
 

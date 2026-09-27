@@ -3,8 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
+
+	"auth/data/entities"
 
 	libconstants "anahita-libs/constants"
 	libentities "anahita-libs/data/entities"
@@ -104,5 +107,93 @@ func TestOnboardingEditReportsAStoreFailure(t *testing.T) {
 
 	if rec.Code != http.StatusInternalServerError {
 		t.Errorf("status = %d, want 500", rec.Code)
+	}
+}
+
+// GET /onboarding — who invited the viewer, by alias.
+
+func readOnboarding(t *testing.T, te *testEnv, viewer *libentities.Viewer) *httptest.ResponseRecorder {
+	t.Helper()
+	c, rec := get(newTestEcho(), "/onboarding")
+	if viewer != nil {
+		c.Set(libconstants.ViewerContextKey, viewer)
+	}
+	if err := newOnboardingHandler(te.Env).Read(c); err != nil {
+		t.Fatalf("read: %v", err)
+	}
+	return rec
+}
+
+func TestOnboardingReadNamesTheInviter(t *testing.T) {
+	inviter := testUser(t, 7, "grace@example.com", "the inviter's password value")
+	inviter.Alias = "grace"
+	inviter.Enabled = true
+
+	invited := testUser(t, 42, "ada@example.com", "the current password value")
+	invited.InvitedBy = 7
+
+	rec := readOnboarding(t, newTestEnv(inviter, invited), onboardingViewer(42))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body %s", rec.Code, rec.Body.String())
+	}
+	if got := decodeOnboarding(t, rec.Body.Bytes())["invited_by"]; got != "grace" {
+		t.Errorf("invited_by = %v, want \"grace\"", got)
+	}
+}
+
+// null, present, for every way of having no inviter to show. Absent would read
+// as an older server; null says there is nobody.
+func TestOnboardingReadHasNoInviterToShow(t *testing.T) {
+	deleted := time.Now()
+
+	for name, inviter := range map[string]func(*entities.User){
+		"nobody invited them":     nil,
+		"the inviter is gone":     func(u *entities.User) { u.ID = 999 },
+		"the inviter is disabled": func(u *entities.User) { u.Enabled = false },
+		"the inviter is deleting": func(u *entities.User) { u.DeletedAt = &deleted },
+	} {
+		t.Run(name, func(t *testing.T) {
+			grace := testUser(t, 7, "grace@example.com", "the inviter's password value")
+			grace.Alias = "grace"
+			grace.Enabled = true
+
+			invited := testUser(t, 42, "ada@example.com", "the current password value")
+			if inviter != nil {
+				invited.InvitedBy = 7
+				inviter(grace)
+			}
+
+			rec := readOnboarding(t, newTestEnv(grace, invited), onboardingViewer(42))
+
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200 — a missing inviter must not "+
+					"take the step with it", rec.Code)
+			}
+			decoded := decodeOnboarding(t, rec.Body.Bytes())
+			value, present := decoded["invited_by"]
+			if !present {
+				t.Fatal("invited_by is absent; it must be null")
+			}
+			if value != nil {
+				t.Errorf("invited_by = %v, want null", value)
+			}
+		})
+	}
+}
+
+func TestOnboardingReadRefusesGuests(t *testing.T) {
+	for name, viewer := range map[string]*libentities.Viewer{
+		"no viewer":  nil,
+		"id zero":    onboardingViewer(0),
+		"guest type": testViewer(42, 7),
+	} {
+		t.Run(name, func(t *testing.T) {
+			te := newTestEnv(testUser(t, 42, "ada@example.com", "the current password value"))
+
+			if rec := readOnboarding(t, te, viewer); rec.Code != http.StatusUnauthorized {
+				t.Errorf("status = %d, want 401", rec.Code)
+			}
+		})
 	}
 }
