@@ -58,3 +58,4 @@ are not kept up to date once the work lands — the pages above are.
 | [Actor profile management](plans/actor-profile-management.md) | — |
 | [auth-service hardening](plans/auth-service-hardening.md) | — |
 | [Feed generators](plans/feed-generators.md) | — |
+| [Notes as replies](plans/notes-as-replies.md) | not started |
