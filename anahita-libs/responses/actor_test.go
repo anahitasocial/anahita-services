@@ -45,6 +45,8 @@ func fullyPopulatedNode() *entities.AnahitaNode {
 	n.AllowFollowRequest = true
 	archived := time.Now()
 	n.ArchivedAt = &archived
+	featured := time.Now()
+	n.FeaturedAt = &featured
 	n.CreationTime = time.Now()
 	n.FollowerCount = 3
 	n.LeaderCount = 4

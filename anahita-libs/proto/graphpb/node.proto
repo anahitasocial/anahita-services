@@ -119,6 +119,14 @@ message Node {
     string person_pronouns = 79;
 
     google.protobuf.Timestamp last_visit_date = 80;
+
+    // Set when the installation features this actor, absent otherwise.
+    //
+    // The accounts onboarding offers a new member to follow. A timestamp
+    // rather than a flag because it is also the order: most recently featured
+    // first. Absent rather than the epoch when unset, for the reason
+    // deleted_at gives.
+    google.protobuf.Timestamp featured_at = 81;
 }
 
 message Nodes {

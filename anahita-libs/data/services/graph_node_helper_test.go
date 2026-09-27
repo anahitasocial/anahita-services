@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
@@ -107,5 +108,27 @@ func TestSetFeaturesNilLeavesNodeMarshallable(t *testing.T) {
 
 	if _, err := json.Marshal(node); err != nil {
 		t.Fatalf("a node whose features were cleared could not be marshalled: %v", err)
+	}
+}
+
+// featured_at crosses both mappers, and "not featured" has to stay nil on the
+// way back rather than becoming the epoch — which a client would read as
+// featured long ago, and which would put every actor in the featured list.
+func TestFeaturedAtRoundTrips(t *testing.T) {
+	featured := time.Date(2026, 9, 27, 9, 0, 0, 0, time.UTC)
+
+	original := entities.NewAnahitaNode()
+	original.ID = 42
+	original.FeaturedAt = &featured
+
+	got := grpcToGraphNode(graphNodeToGrpc(original))
+	if got.FeaturedAt == nil || !got.FeaturedAt.Equal(featured) {
+		t.Errorf("featured_at did not survive the round trip: got %v, want %v",
+			got.FeaturedAt, featured)
+	}
+
+	original.FeaturedAt = nil
+	if got := grpcToGraphNode(graphNodeToGrpc(original)); got.FeaturedAt != nil {
+		t.Errorf("an actor that is not featured came back featured at %v", *got.FeaturedAt)
 	}
 }

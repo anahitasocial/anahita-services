@@ -44,7 +44,7 @@ The web app's half is `anahita-web/docs/plans/onboarding.md`.
 | item | phase | state | depends on | commit |
 | --- | --- | --- | --- | --- |
 | 1. Onboarding state on the account | 1 | ✅ | — | `064dc08` |
-| 2. `invited_by` on the account | 2 | ⬜ | — | |
+| 2. `invited_by` on the account | 2 | ✅ | — | `845ad76` |
 | 3. `featured_at` on actor nodes | 2 | ⬜ | — | |
 | 4. Featuring an actor | 2 | ⬜ | 3 | |
 | 5. Browsing featured actors | 2 | ⬜ | 3 | |

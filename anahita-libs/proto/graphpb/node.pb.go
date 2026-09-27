@@ -125,8 +125,15 @@ type Node struct {
 	// renders nothing.
 	PersonPronouns string                 `protobuf:"bytes,79,opt,name=person_pronouns,json=personPronouns,proto3" json:"person_pronouns,omitempty"`
 	LastVisitDate  *timestamppb.Timestamp `protobuf:"bytes,80,opt,name=last_visit_date,json=lastVisitDate,proto3" json:"last_visit_date,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Set when the installation features this actor, absent otherwise.
+	//
+	// The accounts onboarding offers a new member to follow. A timestamp
+	// rather than a flag because it is also the order: most recently featured
+	// first. Absent rather than the epoch when unset, for the reason
+	// deleted_at gives.
+	FeaturedAt    *timestamppb.Timestamp `protobuf:"bytes,81,opt,name=featured_at,json=featuredAt,proto3" json:"featured_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Node) Reset() {
@@ -701,6 +708,13 @@ func (x *Node) GetPersonPronouns() string {
 func (x *Node) GetLastVisitDate() *timestamppb.Timestamp {
 	if x != nil {
 		return x.LastVisitDate
+	}
+	return nil
+}
+
+func (x *Node) GetFeaturedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.FeaturedAt
 	}
 	return nil
 }
@@ -2465,7 +2479,7 @@ var File_proto_graphpb_node_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x9b\x17\n" +
+	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd8\x17\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -2563,7 +2577,9 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\vperson_type\x18N \x01(\tR\n" +
 	"personType\x12'\n" +
 	"\x0fperson_pronouns\x18O \x01(\tR\x0epersonPronouns\x12B\n" +
-	"\x0flast_visit_date\x18P \x01(\v2\x1a.google.protobuf.TimestampR\rlastVisitDateJ\x04\b\x1e\x10\x1f\"*\n" +
+	"\x0flast_visit_date\x18P \x01(\v2\x1a.google.protobuf.TimestampR\rlastVisitDate\x12;\n" +
+	"\vfeatured_at\x18Q \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"featuredAtJ\x04\b\x1e\x10\x1f\"*\n" +
 	"\x05Nodes\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xad\x03\n" +
 	"\x11NodeBrowseRequest\x12\x14\n" +
@@ -2763,63 +2779,64 @@ var file_proto_graphpb_node_proto_depIdxs = []int32{
 	32, // 12: graph.Node.status_update_time:type_name -> google.protobuf.Timestamp
 	32, // 13: graph.Node.deleted_at:type_name -> google.protobuf.Timestamp
 	32, // 14: graph.Node.last_visit_date:type_name -> google.protobuf.Timestamp
-	0,  // 15: graph.Nodes.nodes:type_name -> graph.Node
-	34, // 16: graph.NodeBrowseRequest.viewer:type_name -> graph.Viewer
-	0,  // 17: graph.NodeBrowseResponse.nodes:type_name -> graph.Node
-	0,  // 18: graph.NodeReadResponse.node:type_name -> graph.Node
-	0,  // 19: graph.NodeReadByAliasResponse.node:type_name -> graph.Node
-	0,  // 20: graph.NodeEditRequest.node:type_name -> graph.Node
-	0,  // 21: graph.NodeEditResponse.node:type_name -> graph.Node
-	0,  // 22: graph.NodeAddRequest.node:type_name -> graph.Node
-	0,  // 23: graph.NodeAddResponse.node:type_name -> graph.Node
-	34, // 24: graph.NodeCountRequest.viewer:type_name -> graph.Viewer
-	0,  // 25: graph.NodeBatchReadResponse.nodes:type_name -> graph.Node
-	0,  // 26: graph.NodeBatchReadByAliasesResponse.nodes:type_name -> graph.Node
-	0,  // 27: graph.NodeBatchEditRequest.nodes:type_name -> graph.Node
-	34, // 28: graph.NodeBatchEditRequest.viewer:type_name -> graph.Viewer
-	0,  // 29: graph.NodeBatchEditResponse.nodes:type_name -> graph.Node
-	0,  // 30: graph.NodeBatchAddRequest.nodes:type_name -> graph.Node
-	34, // 31: graph.NodeBatchAddRequest.viewer:type_name -> graph.Viewer
-	0,  // 32: graph.NodeBatchAddResponse.nodes:type_name -> graph.Node
-	34, // 33: graph.BrowseMutualConnectionsRequest.viewer:type_name -> graph.Viewer
-	0,  // 34: graph.BrowseMutualConnectionsResponse.nodes:type_name -> graph.Node
-	34, // 35: graph.CountConnectionsRequest.viewer:type_name -> graph.Viewer
-	34, // 36: graph.ReadConnectionStatsRequest.viewer:type_name -> graph.Viewer
-	2,  // 37: graph.NodeService.Browse:input_type -> graph.NodeBrowseRequest
-	4,  // 38: graph.NodeService.Read:input_type -> graph.NodeReadRequest
-	6,  // 39: graph.NodeService.ReadByAlias:input_type -> graph.NodeReadByAliasRequest
-	8,  // 40: graph.NodeService.Edit:input_type -> graph.NodeEditRequest
-	10, // 41: graph.NodeService.Add:input_type -> graph.NodeAddRequest
-	12, // 42: graph.NodeService.Delete:input_type -> graph.NodeDeleteRequest
-	14, // 43: graph.NodeService.Count:input_type -> graph.NodeCountRequest
-	16, // 44: graph.NodeService.BatchRead:input_type -> graph.NodeBatchReadRequest
-	18, // 45: graph.NodeService.BatchReadByAliases:input_type -> graph.NodeBatchReadByAliasesRequest
-	20, // 46: graph.NodeService.BatchEdit:input_type -> graph.NodeBatchEditRequest
-	22, // 47: graph.NodeService.BatchAdd:input_type -> graph.NodeBatchAddRequest
-	24, // 48: graph.NodeService.BatchDelete:input_type -> graph.NodeBatchDeleteRequest
-	26, // 49: graph.NodeService.BrowseMutualConnections:input_type -> graph.BrowseMutualConnectionsRequest
-	28, // 50: graph.NodeService.CountConnections:input_type -> graph.CountConnectionsRequest
-	30, // 51: graph.NodeService.ReadConnectionStats:input_type -> graph.ReadConnectionStatsRequest
-	3,  // 52: graph.NodeService.Browse:output_type -> graph.NodeBrowseResponse
-	5,  // 53: graph.NodeService.Read:output_type -> graph.NodeReadResponse
-	7,  // 54: graph.NodeService.ReadByAlias:output_type -> graph.NodeReadByAliasResponse
-	9,  // 55: graph.NodeService.Edit:output_type -> graph.NodeEditResponse
-	11, // 56: graph.NodeService.Add:output_type -> graph.NodeAddResponse
-	13, // 57: graph.NodeService.Delete:output_type -> graph.NodeDeleteResponse
-	15, // 58: graph.NodeService.Count:output_type -> graph.NodeCountResponse
-	17, // 59: graph.NodeService.BatchRead:output_type -> graph.NodeBatchReadResponse
-	19, // 60: graph.NodeService.BatchReadByAliases:output_type -> graph.NodeBatchReadByAliasesResponse
-	21, // 61: graph.NodeService.BatchEdit:output_type -> graph.NodeBatchEditResponse
-	23, // 62: graph.NodeService.BatchAdd:output_type -> graph.NodeBatchAddResponse
-	25, // 63: graph.NodeService.BatchDelete:output_type -> graph.NodeBatchDeleteResponse
-	27, // 64: graph.NodeService.BrowseMutualConnections:output_type -> graph.BrowseMutualConnectionsResponse
-	29, // 65: graph.NodeService.CountConnections:output_type -> graph.CountConnectionsResponse
-	31, // 66: graph.NodeService.ReadConnectionStats:output_type -> graph.ReadConnectionStatsResponse
-	52, // [52:67] is the sub-list for method output_type
-	37, // [37:52] is the sub-list for method input_type
-	37, // [37:37] is the sub-list for extension type_name
-	37, // [37:37] is the sub-list for extension extendee
-	0,  // [0:37] is the sub-list for field type_name
+	32, // 15: graph.Node.featured_at:type_name -> google.protobuf.Timestamp
+	0,  // 16: graph.Nodes.nodes:type_name -> graph.Node
+	34, // 17: graph.NodeBrowseRequest.viewer:type_name -> graph.Viewer
+	0,  // 18: graph.NodeBrowseResponse.nodes:type_name -> graph.Node
+	0,  // 19: graph.NodeReadResponse.node:type_name -> graph.Node
+	0,  // 20: graph.NodeReadByAliasResponse.node:type_name -> graph.Node
+	0,  // 21: graph.NodeEditRequest.node:type_name -> graph.Node
+	0,  // 22: graph.NodeEditResponse.node:type_name -> graph.Node
+	0,  // 23: graph.NodeAddRequest.node:type_name -> graph.Node
+	0,  // 24: graph.NodeAddResponse.node:type_name -> graph.Node
+	34, // 25: graph.NodeCountRequest.viewer:type_name -> graph.Viewer
+	0,  // 26: graph.NodeBatchReadResponse.nodes:type_name -> graph.Node
+	0,  // 27: graph.NodeBatchReadByAliasesResponse.nodes:type_name -> graph.Node
+	0,  // 28: graph.NodeBatchEditRequest.nodes:type_name -> graph.Node
+	34, // 29: graph.NodeBatchEditRequest.viewer:type_name -> graph.Viewer
+	0,  // 30: graph.NodeBatchEditResponse.nodes:type_name -> graph.Node
+	0,  // 31: graph.NodeBatchAddRequest.nodes:type_name -> graph.Node
+	34, // 32: graph.NodeBatchAddRequest.viewer:type_name -> graph.Viewer
+	0,  // 33: graph.NodeBatchAddResponse.nodes:type_name -> graph.Node
+	34, // 34: graph.BrowseMutualConnectionsRequest.viewer:type_name -> graph.Viewer
+	0,  // 35: graph.BrowseMutualConnectionsResponse.nodes:type_name -> graph.Node
+	34, // 36: graph.CountConnectionsRequest.viewer:type_name -> graph.Viewer
+	34, // 37: graph.ReadConnectionStatsRequest.viewer:type_name -> graph.Viewer
+	2,  // 38: graph.NodeService.Browse:input_type -> graph.NodeBrowseRequest
+	4,  // 39: graph.NodeService.Read:input_type -> graph.NodeReadRequest
+	6,  // 40: graph.NodeService.ReadByAlias:input_type -> graph.NodeReadByAliasRequest
+	8,  // 41: graph.NodeService.Edit:input_type -> graph.NodeEditRequest
+	10, // 42: graph.NodeService.Add:input_type -> graph.NodeAddRequest
+	12, // 43: graph.NodeService.Delete:input_type -> graph.NodeDeleteRequest
+	14, // 44: graph.NodeService.Count:input_type -> graph.NodeCountRequest
+	16, // 45: graph.NodeService.BatchRead:input_type -> graph.NodeBatchReadRequest
+	18, // 46: graph.NodeService.BatchReadByAliases:input_type -> graph.NodeBatchReadByAliasesRequest
+	20, // 47: graph.NodeService.BatchEdit:input_type -> graph.NodeBatchEditRequest
+	22, // 48: graph.NodeService.BatchAdd:input_type -> graph.NodeBatchAddRequest
+	24, // 49: graph.NodeService.BatchDelete:input_type -> graph.NodeBatchDeleteRequest
+	26, // 50: graph.NodeService.BrowseMutualConnections:input_type -> graph.BrowseMutualConnectionsRequest
+	28, // 51: graph.NodeService.CountConnections:input_type -> graph.CountConnectionsRequest
+	30, // 52: graph.NodeService.ReadConnectionStats:input_type -> graph.ReadConnectionStatsRequest
+	3,  // 53: graph.NodeService.Browse:output_type -> graph.NodeBrowseResponse
+	5,  // 54: graph.NodeService.Read:output_type -> graph.NodeReadResponse
+	7,  // 55: graph.NodeService.ReadByAlias:output_type -> graph.NodeReadByAliasResponse
+	9,  // 56: graph.NodeService.Edit:output_type -> graph.NodeEditResponse
+	11, // 57: graph.NodeService.Add:output_type -> graph.NodeAddResponse
+	13, // 58: graph.NodeService.Delete:output_type -> graph.NodeDeleteResponse
+	15, // 59: graph.NodeService.Count:output_type -> graph.NodeCountResponse
+	17, // 60: graph.NodeService.BatchRead:output_type -> graph.NodeBatchReadResponse
+	19, // 61: graph.NodeService.BatchReadByAliases:output_type -> graph.NodeBatchReadByAliasesResponse
+	21, // 62: graph.NodeService.BatchEdit:output_type -> graph.NodeBatchEditResponse
+	23, // 63: graph.NodeService.BatchAdd:output_type -> graph.NodeBatchAddResponse
+	25, // 64: graph.NodeService.BatchDelete:output_type -> graph.NodeBatchDeleteResponse
+	27, // 65: graph.NodeService.BrowseMutualConnections:output_type -> graph.BrowseMutualConnectionsResponse
+	29, // 66: graph.NodeService.CountConnections:output_type -> graph.CountConnectionsResponse
+	31, // 67: graph.NodeService.ReadConnectionStats:output_type -> graph.ReadConnectionStatsResponse
+	53, // [53:68] is the sub-list for method output_type
+	38, // [38:53] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_proto_graphpb_node_proto_init() }

@@ -456,6 +456,12 @@ ALTER TABLE nodes ADD INDEX `deleted_at` (`deleted_at`);
 ALTER TABLE nodes ADD COLUMN `archived_at` datetime DEFAULT NULL;
 ALTER TABLE nodes ADD INDEX `archived_at` (`archived_at`);
 
+-- nodes.featured_at, the actors the installation features — what onboarding
+-- offers a new member to follow. Nothing was featured before, so it starts
+-- empty everywhere.
+ALTER TABLE nodes ADD COLUMN `featured_at` datetime DEFAULT NULL;
+ALTER TABLE nodes ADD INDEX `featured_at` (`featured_at`);
+
 -- One link on an actor profile. A migrated install has the legacy website,
 -- contact and phone values inside `meta`; they are deliberately NOT carried
 -- across — nothing in the Go stack ever read that map, so they have been

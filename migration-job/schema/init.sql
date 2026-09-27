@@ -95,6 +95,10 @@ CREATE TABLE nodes (
   -- `deleted_at` because each of the three maps to a different answer, and a
   -- single flag cannot give three.
   `archived_at` datetime DEFAULT NULL,
+  -- Set when the installation features this actor, NULL otherwise. The
+  -- accounts onboarding offers to follow. A timestamp rather than a flag so it
+  -- is the order as well: most recently featured first.
+  `featured_at` datetime DEFAULT NULL,
   -- Person identity. guest / registered / administrator / super-administrator.
   -- Named for the node rather than for auth: the graph owns the person, and
   -- unlike owner_type and parent_type this holds an authority level, not a node
@@ -134,6 +138,7 @@ CREATE TABLE nodes (
   -- a column that is NULL for practically every row.
   KEY `deleted_at` (`deleted_at`),
   KEY `archived_at` (`archived_at`),
+  KEY `featured_at` (`featured_at`),
   KEY `last_comment_by` (`last_comment_by`),
   KEY `created_by` (`created_by`),
   KEY `modified_by` (`modified_by`),
