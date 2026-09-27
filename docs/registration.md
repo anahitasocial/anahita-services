@@ -198,6 +198,12 @@ something changed and `204` when it was already so. A disabled, archived or
 deleted account cannot be featured (`409`). Featured actors carry
 `featured_at` in their JSON.
 
+`GET /people/?featured=1` and `GET /groups/?featured=1` list them, most
+recently featured first unless `ordering` is given, through the ordinary browse:
+the viewer's relationship to each is filled in and blocked accounts are left
+out. A featured account that is later disabled, archived or deleted drops out
+of the list without being unfeatured.
+
 Like the agreements, this is enforced by the web app's interface, not the API.
 
 ## NodeInfo

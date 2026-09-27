@@ -60,6 +60,8 @@ type NodeBrowseRequest struct {
 	AccessCheck     bool
 	Viewer          *entities.Viewer
 	Enabled         bool
+	// Only featured actors. See setFeaturedQuery.
+	Featured bool
 }
 
 type NodeBrowseMutualConnectionsRequest struct {
@@ -99,6 +101,8 @@ type NodeCountRequest struct {
 	AccessCheck     bool
 	Viewer          *entities.Viewer
 	Enabled         bool
+	// Only featured actors. See setFeaturedQuery.
+	Featured bool
 }
 
 type NodeCountConnectionsRequest struct{}

@@ -32,8 +32,11 @@ type ActorGRPCBrowseRequest struct {
 	Ordering  string   `validate:"max=15,omitempty,oneof=created_on modified_on enabled"`
 	Direction string   `validate:"max=4,omitempty,oneof=asc desc"`
 	Disabled  bool     `validate:"omitempty"`
-	Offset    uint64
-	Limit     uint64
+	// Only featured actors. An empty Ordering then means most recently
+	// featured first.
+	Featured bool `validate:"omitempty"`
+	Offset   uint64
+	Limit    uint64
 }
 
 type ActorGRPCBatchReadRequest struct {

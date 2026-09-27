@@ -68,6 +68,8 @@ func (h *personHandler) Browse(c echo.Context) error {
 	gReq.Direction = req.Direction
 	gReq.Search = req.Search
 	gReq.Disabled = req.Disabled
+	gReq.Featured = req.Featured
+	gReq.Ordering = req.GraphOrdering(c.QueryParam("ordering") != "")
 	if err := c.Validate(gReq); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)

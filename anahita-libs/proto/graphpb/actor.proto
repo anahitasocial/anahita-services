@@ -16,6 +16,9 @@ message ActorCountRequest {
     string search = 2;
     Viewer viewer = 3;
     bool access_check = 4;
+    // Only featured actors. Count and Browse must agree on this, or the
+    // pagination total describes a different list from the page.
+    bool featured = 5;
 }
 
 message ActorCountResponse {
@@ -31,6 +34,9 @@ message ActorBrowseRequest {
     string search = 6;
     Viewer viewer = 7;
     bool access_check = 8;
+    // Only featured actors — the accounts onboarding offers to follow. With no
+    // ordering, most recently featured first.
+    bool featured = 9;
 }
 
 message ActorBrowseResponse {

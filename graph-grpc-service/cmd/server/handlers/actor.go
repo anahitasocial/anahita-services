@@ -44,6 +44,7 @@ func (h *actorHandler) Count(ctx context.Context, req *graphpb.ActorCountRequest
 	rReq.Types = req.Types
 	rReq.Search = req.Search
 	rReq.AccessCheck = req.AccessCheck
+	rReq.Featured = req.Featured
 
 	total, err := h.env.Repos.Nodes.Count(rReq)
 	if err != nil {
@@ -75,6 +76,7 @@ func (h *actorHandler) Browse(ctx context.Context, req *graphpb.ActorBrowseReque
 	rReq.Ordering = req.Ordering
 	rReq.OrderingDir = req.Direction
 	rReq.AccessCheck = req.AccessCheck
+	rReq.Featured = req.Featured
 
 	actors, err := h.env.Repos.Nodes.Browse(rReq)
 	if err != nil {

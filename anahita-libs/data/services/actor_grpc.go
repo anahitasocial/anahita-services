@@ -128,8 +128,9 @@ func (srv *ActorsGRPC) Count(req *ActorGRPCBrowseRequest, viewer *entities.Viewe
 	}
 
 	resp, err := client.Count(context.Background(), &graphpb.ActorCountRequest{
-		Types:  req.Types,
-		Search: req.Search,
+		Types:    req.Types,
+		Search:   req.Search,
+		Featured: req.Featured,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
@@ -161,6 +162,7 @@ func (srv *ActorsGRPC) Browse(req *ActorGRPCBrowseRequest, viewer *entities.View
 		Ordering:  req.Ordering,
 		Direction: req.Direction,
 		Search:    req.Search,
+		Featured:  req.Featured,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
