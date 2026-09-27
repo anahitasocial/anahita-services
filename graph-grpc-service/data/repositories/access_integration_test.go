@@ -171,3 +171,87 @@ func TestBlockingIsSymmetric(t *testing.T) {
 		t.Error("the viewer's own content was hidden")
 	}
 }
+
+func visibleComments(t *testing.T, db *sql.DB, viewer *entities.Viewer) map[int64]bool {
+	t.Helper()
+
+	base := sq.Select("node.id").From("nodes AS node").
+		LeftJoin("nodes AS owner ON node.owner_id = owner.id").
+		Where(sq.Eq{"node.type": "node.base.comment-service.comment.v1"})
+
+	query, args, err := SetMediumAccessQuery(base, viewer).ToSql()
+	if err != nil {
+		t.Fatalf("build: %v", err)
+	}
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		t.Fatalf("query: %v", err)
+	}
+	defer rows.Close()
+
+	visible := map[int64]bool{}
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			t.Fatalf("scan: %v", err)
+		}
+		visible[id] = true
+	}
+	return visible
+}
+
+// Comments are stored as comment-service writes them — access '' and no owner
+// — and are visible to whoever can see the post they sit under.
+//
+// Gated like posts, every one failed the node gate on its empty access, and
+// nobody but site administrators saw any comment at all.
+func TestCommentsFollowTheirPost(t *testing.T) {
+	db := accessTestDB(t)
+	seedAccessFixture(t, db)
+
+	for _, stmt := range []string{
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_on,modified_on) VALUES
+		 (4,'node.actor.person-service.person.v1','person-service','Carol','carol','public',1,NOW(),NOW())`,
+		`INSERT INTO nodes (id,type,service,body,access,enabled,parent_id,created_by,created_on,modified_on) VALUES
+		 (30,'node.base.comment-service.comment.v1','comment-service','on a public post','',1,12,1,NOW(),NOW()),
+		 (31,'node.base.comment-service.comment.v1','comment-service','on a private post','',1,20,1,NOW(),NOW()),
+		 (32,'node.base.comment-service.comment.v1','comment-service','by a blocked person','',1,12,2,NOW(),NOW())`,
+	} {
+		if _, err := db.Exec(stmt); err != nil {
+			t.Fatalf("seed: %v\n%s", err, stmt)
+		}
+	}
+
+	viewer := func(id int64) *entities.Viewer {
+		v := entities.NewViewer()
+		v.ID = id
+		if id > 0 {
+			v.PersonType = "registered"
+		}
+		return v
+	}
+
+	cases := []struct {
+		viewer int64
+		id     int64
+		want   bool
+		what   string
+	}{
+		{4, 30, true, "anybody signed in, on a public post"},
+		{4, 31, false, "not on a post only its owner can see"},
+		{4, 32, true, "a comment by somebody the viewer has not blocked"},
+		{1, 31, true, "the post's owner, on their own private post"},
+		{1, 32, false, "a comment by somebody the viewer has blocked"},
+		{0, 30, true, "a guest, on a public post"},
+		{0, 31, false, "a guest, not on a private post"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.what, func(t *testing.T) {
+			if got := visibleComments(t, db, viewer(c.viewer))[c.id]; got != c.want {
+				t.Errorf("comment %d as viewer %d: visible=%v, want %v", c.id, c.viewer, got, c.want)
+			}
+		})
+	}
+}

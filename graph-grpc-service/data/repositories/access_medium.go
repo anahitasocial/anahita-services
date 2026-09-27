@@ -7,12 +7,59 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-// SetMediumAccessQuery returns the access query for media repository
+// SetMediumAccessQuery returns the access query for media repository.
+//
+// Comments are judged by the post they sit under, not by themselves. A comment
+// carries no audience of its own — every one is stored with access ”, and
+// none has an owner — so gated like a post, every comment failed the node gate
+// and nobody but site administrators could see any. A comment is visible to
+// whoever can see its post, as permissions.CommentPermissions.CanRead says.
 func SetMediumAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.SelectBuilder {
 	if viewer.IsAdmin() {
 		return sb
 	}
 
+	return sb.Where(sq.Or{
+		sq.And{
+			sq.NotEq{"node.type": constants.NodeBaseCommentEntityType},
+			mediumAccessCondition(viewer),
+		},
+		sq.And{
+			sq.Eq{"node.type": constants.NodeBaseCommentEntityType},
+			commentAccessCondition(viewer),
+		},
+	})
+}
+
+// commentAccessCondition admits a comment when its post passes the medium
+// gate, and nobody on either side has blocked the other.
+//
+// The post is gated in a subquery that aliases it `node` and its owner
+// `owner`, the names every medium gate helper is written against, so the gate
+// is the medium one exactly rather than a copy of it rewritten for other
+// aliases — which is how the gates in this package have drifted before. The
+// inner aliases shadow the outer ones inside the subquery only.
+func commentAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
+	postGate, args, err := sq.Select("node.id").
+		From("nodes AS node").
+		LeftJoin("nodes AS owner ON node.owner_id = owner.id").
+		Where("node.deleted_at IS NULL").
+		Where(mediumAccessCondition(viewer)).
+		ToSql()
+	if err != nil {
+		// Fail closed: a gate that cannot be built admits nothing.
+		return sq.Expr("1 = 0")
+	}
+
+	return sq.And{
+		relNotBlockedEitherWay(viewer.ID, contentActorRefs("node")...),
+		sq.Expr("node.parent_id IN ("+postGate+")", args...),
+	}
+}
+
+// mediumAccessCondition is the gate for a post: nobody blocked either way,
+// the owner's access admits the viewer, and so does the post's own.
+func mediumAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
 	vID := viewer.ID
 	follows := relViewerFollowsOwner(vID)
 	leaders := relOwnerFollowsViewer(vID)
@@ -20,9 +67,6 @@ func SetMediumAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.Selec
 	isAdmin := relViewerAdminsOwner(vID)
 	notBlocked := relNotBlockedEitherWay(vID, contentActorRefs("node")...)
 	relSelfOrAdminForOwner := relSelfOrAdminForOwner(vID)
-
-	// Hard deny if blocked either way
-	sb = sb.Where(notBlocked)
 
 	// --- OWNER gate ---
 	ownerGate := sq.Or{
@@ -109,7 +153,8 @@ func SetMediumAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.Selec
 		)
 	}
 
-	return sb.Where(ownerGate).Where(nodeGate)
+	// Hard deny if blocked either way.
+	return sq.And{notBlocked, ownerGate, nodeGate}
 }
 
 // relViewerAdminsOwner checks if the viewer is an admin of the owner.
