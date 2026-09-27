@@ -185,6 +185,19 @@ vouched for is approved. A self-serve signup has none. Onboarding shows the
 inviter first among the accounts it offers to follow, and never follows anybody
 on the person's behalf.
 
+**Featured accounts** are the ones onboarding offers to follow. A super
+administrator features a person or a group from its profile:
+
+| Endpoint | Does |
+| --- | --- |
+| `PATCH /people/:id/featured` | `{ "featured": true }` or `false` |
+| `PATCH /groups/:id/featured` | The same, for a group |
+
+Super administrators only; anybody else gets `403`. The answer is `200` when
+something changed and `204` when it was already so. A disabled, archived or
+deleted account cannot be featured (`409`). Featured actors carry
+`featured_at` in their JSON.
+
 Like the agreements, this is enforced by the web app's interface, not the API.
 
 ## NodeInfo

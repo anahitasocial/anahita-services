@@ -505,6 +505,63 @@ func (h *personHandler) SetEnabled(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// SetFeatured features or unfeatures a profile: the accounts onboarding
+// offers a new member to follow.
+//
+//	PATCH /people/:id/featured   { "featured": true | false }
+//
+// SUPER ADMINISTRATORS ONLY. Featuring is a statement by the installation —
+// "these are worth following here" — not a moderation action, so an ordinary
+// administrator may not make it, and nobody may feature themselves.
+//
+// 200: changed
+// 204: already in that state
+// 409: featuring a profile that is disabled, archived or deleted
+func (h *personHandler) SetFeatured(c echo.Context) error {
+	// One bind, for the reason SetEnabled gives.
+	var req struct {
+		ID       int64 `param:"id"       validate:"required,numeric"`
+		Featured *bool `json:"featured"  validate:"required"`
+	}
+
+	viewer := getViewer(c)
+
+	if err := c.Bind(&req); err != nil {
+		log.Println("person set-featured bind:", err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if req.ID == 0 || req.Featured == nil {
+		log.Println("person set-featured: missing id or featured field")
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if viewer == nil || !viewer.IsSuperAdmin() {
+		log.Println("person set-featured: refused, viewer is not a super administrator")
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	person, err := h.fetchPerson(c, req.ID)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	changed, err := h.Srv.ActorsGRPC.SetFeatured(person.ID, *req.Featured, viewer)
+	if err != nil {
+		if services.IsNotFeaturable(err) {
+			return refuseNotFeaturable(c)
+		}
+		log.Println("person set-featured:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if !changed {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
 // Purge destroys a profile immediately, skipping the grace period.
 //
 //	DELETE /people/:id/purge

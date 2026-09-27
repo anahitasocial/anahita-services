@@ -60,6 +60,10 @@ type NodesRepoInterface interface {
 	// writes that column on its own.
 	SetEnabled(id int64, enabled bool) (bool, error)
 
+	// SetFeatured features or unfeatures an actor. Refuses to feature one that
+	// is disabled, archived or deleted with ErrNotFeaturable.
+	SetFeatured(id int64, featured bool) (bool, error)
+
 	// TouchLastVisit records that an actor just signed in. See
 	// nodes_last_visit.go for why it is not a field on Edit.
 	TouchLastVisit(id int64) (bool, error)

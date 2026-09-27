@@ -5,6 +5,7 @@ import (
 	"anahita-libs/proto/graphpb"
 	"context"
 	"log"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc"
@@ -40,6 +41,13 @@ type ActorsGRPCInterface interface {
 
 	// SetEnabled turns an actor on or off. Reversible.
 	SetEnabled(id int64, enabled bool, viewer *entities.Viewer) (bool, error)
+
+	// SetFeatured features or unfeatures an actor.
+	//
+	// SUPER ADMINISTRATORS ONLY, and the caller enforces that. Featuring a
+	// disabled, archived or deleted actor is refused with an error carrying
+	// "not_featurable"; see IsNotFeaturable.
+	SetFeatured(id int64, featured bool, viewer *entities.Viewer) (bool, error)
 
 	// TouchLastVisit records that an actor just signed in.
 	TouchLastVisit(id int64) (bool, error)
@@ -458,6 +466,38 @@ func (srv *ActorsGRPC) SetEnabled(id int64, enabled bool, viewer *entities.Viewe
 	}
 
 	return resp.Changed, nil
+}
+
+// SetFeatured features or unfeatures an actor.
+func (srv *ActorsGRPC) SetFeatured(id int64, featured bool, viewer *entities.Viewer) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.SetFeatured(context.Background(), &graphpb.ActorSetFeaturedRequest{
+		Id:       id,
+		Featured: featured,
+		Viewer:   viewerToGrpc(viewer),
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return resp.Changed, nil
+}
+
+// IsNotFeaturable reports whether the graph refused to feature an actor because
+// it is disabled, archived or deleted.
+//
+// Here rather than in each service, because people and groups both answer it
+// with the same 409. Matched on the message, which is all gRPC carries across —
+// the same way isLastSuperAdmin reads its sentinel.
+func IsNotFeaturable(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "not_featurable")
 }
 
 // TouchLastVisit records that an actor just signed in.

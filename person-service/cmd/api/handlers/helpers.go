@@ -74,3 +74,18 @@ func refuseLastSuperAdmin(c echo.Context, action string) error {
 			"else, or change this account to administrator, and then " + action + " it.",
 	})
 }
+
+// refuseNotFeaturable is the 409 for featuring a profile that is disabled,
+// archived or deleted.
+//
+// 409 for the reason refuseLastSuperAdmin gives: the caller is permitted and
+// the request is well formed; it conflicts with the profile's state. The list
+// would drop the profile anyway, and saying so beats a 200 for a feature that
+// never appears.
+func refuseNotFeaturable(c echo.Context) error {
+	return c.JSON(http.StatusConflict, map[string]string{
+		"error": "not_featurable",
+		"message": "A disabled, archived or deleted profile cannot be " +
+			"featured. Enable it first.",
+	})
+}
