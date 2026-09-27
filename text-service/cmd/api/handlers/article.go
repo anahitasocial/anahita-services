@@ -189,6 +189,11 @@ func (h *articleHandler) Add(c echo.Context) error {
 	medium.Excerpt = req.Excerpt
 	medium.OwnerID = owner.ID
 	medium.OwnerType = owner.Type
+	// The owner as read above, merged defaults and all. It was read and
+	// never attached, so CanAdd judged the empty placeholder owner — no
+	// access, no add_permissions — and only the owner themselves, let
+	// through before the permissions are read, could post here.
+	medium.Owner = owner
 	medium.Alias = slug.Make(req.Name)
 	medium.CreatedBy = viewer.ID
 	medium.ModifiedBy = viewer.ID
