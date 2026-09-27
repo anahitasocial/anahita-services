@@ -16,6 +16,9 @@ message ActorCountRequest {
     string search = 2;
     Viewer viewer = 3;
     bool access_check = 4;
+    // Only featured actors. Count and Browse must agree on this, or the
+    // pagination total describes a different list from the page.
+    bool featured = 5;
 }
 
 message ActorCountResponse {
@@ -31,6 +34,9 @@ message ActorBrowseRequest {
     string search = 6;
     Viewer viewer = 7;
     bool access_check = 8;
+    // Only featured actors — the accounts onboarding offers to follow. With no
+    // ordering, most recently featured first.
+    bool featured = 9;
 }
 
 message ActorBrowseResponse {
@@ -205,6 +211,28 @@ message ActorSetEnabledResponse {
     bool changed = 1;
 }
 
+// Feature or unfeature an actor: the accounts onboarding offers a new member
+// to follow.
+//
+// Its own RPC rather than a field on Edit, for the reason SetEnabled gives:
+// Edit writes the whole actor from the payload it is handed, and featuring is a
+// statement by the installation, not a change the actor makes to themselves.
+// SUPER ADMINISTRATORS ONLY, and the caller enforces that — graph-grpc has no
+// notion of a usertype.
+//
+// A disabled, archived or deleted actor cannot be featured, and the refusal is
+// an error carrying "not_featurable" so the caller can answer 409.
+message ActorSetFeaturedRequest {
+    int64 id = 1;
+    bool featured = 2;
+    Viewer viewer = 3;
+}
+
+message ActorSetFeaturedResponse {
+    // False when nothing changed — already featured, or already not.
+    bool changed = 1;
+}
+
 // TouchLastVisit stamps nodes.last_visit_date with the current time.
 //
 // Its own RPC rather than an Edit, because Edit writes the whole actor from
@@ -253,6 +281,9 @@ service ActorService {
     rpc Archive(ActorArchiveRequest) returns (ActorArchiveResponse) {}
     // Turns an actor on or off. Reversible.
     rpc SetEnabled(ActorSetEnabledRequest) returns (ActorSetEnabledResponse) {}
+    // Features or unfeatures an actor. Super administrators only; the caller
+    // enforces that.
+    rpc SetFeatured(ActorSetFeaturedRequest) returns (ActorSetFeaturedResponse) {}
     // Records that this actor just signed in.
     rpc TouchLastVisit(ActorTouchLastVisitRequest) returns (ActorTouchLastVisitResponse) {}
     rpc Ping(ActorPingRequest) returns (ActorPingResponse) {}

@@ -202,4 +202,11 @@ type AnahitaNode struct {
 	// archived" are different states, and collapsing them makes every actor
 	// look archived at the beginning of the epoch.
 	ArchivedAt *time.Time
+
+	// FeaturedAt is set when the installation features this actor, nil
+	// otherwise — the accounts onboarding offers to follow. It is also their
+	// order: most recently featured first.
+	//
+	// A pointer for the same reason as the two above.
+	FeaturedAt *time.Time
 }

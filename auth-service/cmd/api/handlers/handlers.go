@@ -8,6 +8,7 @@ type Handlers struct {
 	EmailChange    *emailChangeHandler
 	Invite         *inviteHandler
 	NodeInfo       *nodeInfoHandler
+	Onboarding     *onboardingHandler
 	Is             *isHandler
 	OAuth          *oauthHandler
 	Password       *passwordHandler
@@ -29,6 +30,7 @@ func NewHandlers(env *Env) *Handlers {
 		EmailChange:    newEmailChangeHandler(env),
 		Invite:         newInviteHandler(env),
 		NodeInfo:       newNodeInfoHandler(env),
+		Onboarding:     newOnboardingHandler(env),
 		Is:             newIsHandlers(env),
 		OAuth:          newOAuthHandler(env),
 		Password:       newPasswordHandler(env),

@@ -31,6 +31,7 @@ const (
 	ActorService_Purge_FullMethodName          = "/graph.ActorService/Purge"
 	ActorService_Archive_FullMethodName        = "/graph.ActorService/Archive"
 	ActorService_SetEnabled_FullMethodName     = "/graph.ActorService/SetEnabled"
+	ActorService_SetFeatured_FullMethodName    = "/graph.ActorService/SetFeatured"
 	ActorService_TouchLastVisit_FullMethodName = "/graph.ActorService/TouchLastVisit"
 	ActorService_Ping_FullMethodName           = "/graph.ActorService/Ping"
 )
@@ -59,6 +60,9 @@ type ActorServiceClient interface {
 	Archive(ctx context.Context, in *ActorArchiveRequest, opts ...grpc.CallOption) (*ActorArchiveResponse, error)
 	// Turns an actor on or off. Reversible.
 	SetEnabled(ctx context.Context, in *ActorSetEnabledRequest, opts ...grpc.CallOption) (*ActorSetEnabledResponse, error)
+	// Features or unfeatures an actor. Super administrators only; the caller
+	// enforces that.
+	SetFeatured(ctx context.Context, in *ActorSetFeaturedRequest, opts ...grpc.CallOption) (*ActorSetFeaturedResponse, error)
 	// Records that this actor just signed in.
 	TouchLastVisit(ctx context.Context, in *ActorTouchLastVisitRequest, opts ...grpc.CallOption) (*ActorTouchLastVisitResponse, error)
 	Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error)
@@ -192,6 +196,16 @@ func (c *actorServiceClient) SetEnabled(ctx context.Context, in *ActorSetEnabled
 	return out, nil
 }
 
+func (c *actorServiceClient) SetFeatured(ctx context.Context, in *ActorSetFeaturedRequest, opts ...grpc.CallOption) (*ActorSetFeaturedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ActorSetFeaturedResponse)
+	err := c.cc.Invoke(ctx, ActorService_SetFeatured_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *actorServiceClient) TouchLastVisit(ctx context.Context, in *ActorTouchLastVisitRequest, opts ...grpc.CallOption) (*ActorTouchLastVisitResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ActorTouchLastVisitResponse)
@@ -236,6 +250,9 @@ type ActorServiceServer interface {
 	Archive(context.Context, *ActorArchiveRequest) (*ActorArchiveResponse, error)
 	// Turns an actor on or off. Reversible.
 	SetEnabled(context.Context, *ActorSetEnabledRequest) (*ActorSetEnabledResponse, error)
+	// Features or unfeatures an actor. Super administrators only; the caller
+	// enforces that.
+	SetFeatured(context.Context, *ActorSetFeaturedRequest) (*ActorSetFeaturedResponse, error)
 	// Records that this actor just signed in.
 	TouchLastVisit(context.Context, *ActorTouchLastVisitRequest) (*ActorTouchLastVisitResponse, error)
 	Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error)
@@ -284,6 +301,9 @@ func (UnimplementedActorServiceServer) Archive(context.Context, *ActorArchiveReq
 }
 func (UnimplementedActorServiceServer) SetEnabled(context.Context, *ActorSetEnabledRequest) (*ActorSetEnabledResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetEnabled not implemented")
+}
+func (UnimplementedActorServiceServer) SetFeatured(context.Context, *ActorSetFeaturedRequest) (*ActorSetFeaturedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetFeatured not implemented")
 }
 func (UnimplementedActorServiceServer) TouchLastVisit(context.Context, *ActorTouchLastVisitRequest) (*ActorTouchLastVisitResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TouchLastVisit not implemented")
@@ -528,6 +548,24 @@ func _ActorService_SetEnabled_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ActorService_SetFeatured_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActorSetFeaturedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).SetFeatured(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_SetFeatured_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).SetFeatured(ctx, req.(*ActorSetFeaturedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ActorService_TouchLastVisit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ActorTouchLastVisitRequest)
 	if err := dec(in); err != nil {
@@ -618,6 +656,10 @@ var ActorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetEnabled",
 			Handler:    _ActorService_SetEnabled_Handler,
+		},
+		{
+			MethodName: "SetFeatured",
+			Handler:    _ActorService_SetFeatured_Handler,
 		},
 		{
 			MethodName: "TouchLastVisit",

@@ -36,6 +36,7 @@ var columnsThatMayBeNull = []string{
 	"auth_accounts.password",
 	"auth_accounts.totp_recovery_codes",
 	"auth_accounts.totp_secret",
+	"auth_accounts.invited_by",
 }
 
 func TestUserColumnsCoalesceEveryNullableColumn(t *testing.T) {
@@ -50,6 +51,7 @@ func TestUserColumnsCoalesceEveryNullableColumn(t *testing.T) {
 			"auth_accounts.password":            true,
 			"auth_accounts.totp_recovery_codes": true,
 			"auth_accounts.totp_secret":         true,
+			"auth_accounts.invited_by":          true,
 		}},
 	} {
 		t.Run(list.name, func(t *testing.T) {
@@ -75,7 +77,7 @@ func TestUserColumnsCoalesceEveryNullableColumn(t *testing.T) {
 func TestTimestampsAreNotGivenAFakeDefault(t *testing.T) {
 	joined := strings.Join(userColumns(), " ")
 
-	for _, column := range []string{"last_visit_date", "created_on", "modified_on"} {
+	for _, column := range []string{"last_visit_date", "created_on", "modified_on", "onboarded_at"} {
 		if strings.Contains(joined, "COALESCE("+column+",") {
 			t.Errorf("%s is COALESCEd to a real date; \"never\" would then "+
 				"read as an actual visit. It is scanned as sql.NullTime "+
@@ -105,7 +107,7 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 			"last_visit_date", "created_on", "modified_on", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",
-			"email_verified_at",
+			"email_verified_at", "onboarded_at", "has_bio", "invited_by",
 			"tos_accepted", "tos_accepted_version",
 			"pp_accepted", "pp_accepted_version",
 		}).AddRow(
@@ -114,7 +116,7 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 			nil, nil, nil, false,
 			"", time.Now(), "",
 			nil, nil,
-			nil,
+			nil, nil, false, 0,
 			false, "", false, "",
 		))
 
@@ -129,6 +131,11 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 	if user.LastVisitDate != nil {
 		t.Errorf("a NULL last_visit_date became %v; it should stay nil, which "+
 			"is what \"never signed in\" means", *user.LastVisitDate)
+	}
+	if user.OnboardedAt != nil {
+		t.Errorf("a NULL onboarded_at became %v; it should stay nil, which "+
+			"is what sends a person with an empty profile to onboarding",
+			*user.OnboardedAt)
 	}
 }
 
@@ -173,14 +180,14 @@ func TestEmptyPasswordHashIsUnusable(t *testing.T) {
 			"last_visit_date", "created_on", "modified_on", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",
-			"email_verified_at",
+			"email_verified_at", "onboarded_at", "has_bio", "invited_by",
 			"tos_accepted", "tos_accepted_version",
 			"pp_accepted", "pp_accepted_version",
 		}).AddRow(
 			7, "node.actor.person-service.person.v1", true, "", "invited",
 			"invited@example.com", "", "registered", "person-service", "",
 			nil, nil, nil, false, "", time.Now(), "", nil, nil,
-			nil,
+			nil, nil, false, 0,
 			false, "", false, "",
 		))
 
@@ -200,3 +207,22 @@ func TestEmptyPasswordHashIsUnusable(t *testing.T) {
 }
 
 var _ = sql.ErrNoRows
+
+// has_bio is a comparison, and a comparison against NULL is NULL — which a
+// bool cannot scan. The body is COALESCEd inside it for the same reason every
+// string column above is: most people have no bio at all, and 716 of 822 in
+// the live data would otherwise fail to sign in.
+func TestHasBioCoalescesTheBody(t *testing.T) {
+	joined := strings.Join(userColumns(), " ")
+
+	if !strings.Contains(joined, "COALESCE(nodes.body, '')") {
+		t.Errorf("has_bio compares nodes.body without COALESCE; a NULL body "+
+			"yields NULL, which does not scan into a bool:\n  %s", joined)
+	}
+	for _, column := range userColumns() {
+		if column == "nodes.body" || strings.HasSuffix(column, "AS body") {
+			t.Errorf("the bio text itself is selected (%s); only whether "+
+				"there is one is needed", column)
+		}
+	}
+}

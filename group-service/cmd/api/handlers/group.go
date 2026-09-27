@@ -68,6 +68,8 @@ func (h *groupHandler) Browse(c echo.Context) error {
 	gReq.Ordering = req.Ordering
 	gReq.Direction = req.Direction
 	gReq.Disabled = req.Disabled
+	gReq.Featured = req.Featured
+	gReq.Ordering = req.GraphOrdering(c.QueryParam("ordering") != "")
 	if err := c.Validate(gReq); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
@@ -561,6 +563,62 @@ func (h *groupHandler) SetEnabled(c echo.Context) error {
 	changed, err := h.Srv.ActorsGRPC.SetEnabled(actor.ID, *req.Enabled, viewer)
 	if err != nil {
 		log.Println("group set-enabled:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if !changed {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+// SetFeatured features or unfeatures a group: the accounts onboarding offers
+// a new member to follow.
+//
+//	PATCH /groups/:id/featured   { "featured": true | false }
+//
+// SUPER ADMINISTRATORS ONLY. Featuring is a statement by the installation, not
+// by one group's administrators — who would otherwise all feature their own.
+//
+// 200: changed
+// 204: already in that state
+// 409: featuring a group that is disabled, archived or deleted
+func (h *groupHandler) SetFeatured(c echo.Context) error {
+	// One bind, for the reason SetEnabled gives.
+	var req struct {
+		ID       int64 `param:"id"       validate:"required,numeric"`
+		Featured *bool `json:"featured"  validate:"required"`
+	}
+
+	viewer := getViewer(c)
+
+	if err := c.Bind(&req); err != nil {
+		log.Println("group set-featured bind:", err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if req.ID == 0 || req.Featured == nil {
+		log.Println("group set-featured: missing id or featured field")
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if viewer == nil || !viewer.IsSuperAdmin() {
+		log.Println("group set-featured: refused, viewer is not a super administrator")
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	changed, err := h.Srv.ActorsGRPC.SetFeatured(actor.ID, *req.Featured, viewer)
+	if err != nil {
+		if services.IsNotFeaturable(err) {
+			return refuseNotFeaturable(c)
+		}
+		log.Println("group set-featured:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 

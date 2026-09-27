@@ -68,6 +68,12 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 		n.DeletedAt = &deletedAt
 	}
 
+	// Likewise for featuring: absent means not featured, never the epoch.
+	if m.FeaturedAt != nil {
+		featuredAt := m.FeaturedAt.AsTime()
+		n.FeaturedAt = &featuredAt
+	}
+
 	// Time fields
 	if m.CreatedOn != nil {
 		n.CreationTime = m.CreatedOn.AsTime()
@@ -320,6 +326,10 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Language:             node.Language,
 		EdgeCount:            node.EdgeCount,
 		FeaturesRaw:          string(node.FeaturesRaw),
+	}
+
+	if node.FeaturedAt != nil {
+		grpcNode.FeaturedAt = timestamppb.New(*node.FeaturedAt)
 	}
 
 	// Only create Owner if it has data

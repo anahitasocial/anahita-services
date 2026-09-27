@@ -6,6 +6,7 @@ import (
 	"anahita-libs/event"
 	"anahita-libs/proto/graphpb"
 	"context"
+	"errors"
 	"fmt"
 	"graph/requests"
 	"log"
@@ -43,6 +44,7 @@ func (h *actorHandler) Count(ctx context.Context, req *graphpb.ActorCountRequest
 	rReq.Types = req.Types
 	rReq.Search = req.Search
 	rReq.AccessCheck = req.AccessCheck
+	rReq.Featured = req.Featured
 
 	total, err := h.env.Repos.Nodes.Count(rReq)
 	if err != nil {
@@ -74,6 +76,7 @@ func (h *actorHandler) Browse(ctx context.Context, req *graphpb.ActorBrowseReque
 	rReq.Ordering = req.Ordering
 	rReq.OrderingDir = req.Direction
 	rReq.AccessCheck = req.AccessCheck
+	rReq.Featured = req.Featured
 
 	actors, err := h.env.Repos.Nodes.Browse(rReq)
 	if err != nil {
@@ -735,6 +738,41 @@ func (h *actorHandler) SetEnabled(ctx context.Context, req *graphpb.ActorSetEnab
 	h.publishActorLifecycle(format, actor, changedBy, viewerPersonType(req.Viewer))
 
 	return &graphpb.ActorSetEnabledResponse{Changed: true}, nil
+}
+
+// SetFeatured features or unfeatures an actor — the accounts onboarding offers
+// a new member to follow.
+//
+// SUPER ADMINISTRATORS ONLY, and the caller enforces that: this service has no
+// notion of a usertype, as with Purge.
+//
+// No audit entry and no event. Featuring is not a lifecycle change — nothing
+// about the actor's own state moves, and nothing downstream indexes it — and
+// the node_deletion_logs actions are all lifecycle.
+func (h *actorHandler) SetFeatured(ctx context.Context, req *graphpb.ActorSetFeaturedRequest) (*graphpb.ActorSetFeaturedResponse, error) {
+	log.Printf("Received SetFeatured request: %v -> %v", req.Id, req.Featured)
+
+	actor, err := h.env.Repos.Nodes.Read(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.HasPrefix(actor.Type, constants.NodeActorPrefixEntityType) {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"featuring is for actors, not %s", actor.Type)
+	}
+
+	changed, err := h.env.Repos.Nodes.SetFeatured(req.Id, req.Featured)
+	if errors.Is(err, repositories.ErrNotFeaturable) {
+		// FailedPrecondition, and the sentinel's text in the message, which is
+		// what the HTTP services match on to answer 409.
+		return nil, status.Error(codes.FailedPrecondition, err.Error())
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphpb.ActorSetFeaturedResponse{Changed: changed}, nil
 }
 
 // viewerPersonType reads the type off a possibly-absent viewer.

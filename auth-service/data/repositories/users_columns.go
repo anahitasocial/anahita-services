@@ -66,6 +66,16 @@ func userColumns() []string {
 		// Nullable, and scanned as one: NULL means the address was never
 		// confirmed, which is a state the sign-in path acts on.
 		"auth_accounts.email_verified_at",
+		// Nullable for the same reason: NULL means the person has not been
+		// through onboarding, which the web app's gate acts on.
+		"auth_accounts.onboarded_at",
+		// Whether there is a bio, not the bio. REGEXP rather than TRIM,
+		// because TRIM strips spaces only and a body of newlines is as
+		// empty as a body of nothing.
+		"(COALESCE(nodes.body, '') REGEXP '[^[:space:]]') AS has_bio",
+		// 0 for nobody, as signup_requests reads the same column: a self-serve
+		// account has no inviter, and that is a value, not a failed read.
+		"COALESCE(auth_accounts.invited_by, 0) AS invited_by",
 		"auth_accounts.tos_accepted",
 		"COALESCE(auth_accounts.tos_accepted_version, '') AS tos_accepted_version",
 		"auth_accounts.pp_accepted",
@@ -86,7 +96,7 @@ func scanUser(row rowScanner) (*entities.User, error) {
 	// Nullable timestamps. The entity holds plain time.Time values, so a NULL
 	// becomes the zero time — which is what "never signed in" looks like
 	// everywhere else in the codebase.
-	var lastVisit, createdOn, modifiedOn, emailVerified sql.NullTime
+	var lastVisit, createdOn, modifiedOn, emailVerified, onboarded sql.NullTime
 
 	if err := row.Scan(
 		&item.ID,
@@ -109,6 +119,9 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		&item.DeletedAt,
 		&item.ArchivedAt,
 		&emailVerified,
+		&onboarded,
+		&item.HasBio,
+		&item.InvitedBy,
 		&item.TermsOfService.Accepted,
 		&item.TermsOfService.Version,
 		&item.PrivacyPolicy.Accepted,
@@ -129,6 +142,11 @@ func scanUser(row rowScanner) (*entities.User, error) {
 	if emailVerified.Valid {
 		t := emailVerified.Time
 		item.EmailVerifiedAt = &t
+	}
+
+	if onboarded.Valid {
+		t := onboarded.Time
+		item.OnboardedAt = &t
 	}
 
 	return item, nil

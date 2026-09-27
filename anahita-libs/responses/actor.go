@@ -45,7 +45,10 @@ type ActorNodeItem struct {
 	AllowFollowRequest bool   `json:"allow_follow_request"`
 	// Permanent, and set only once archived, so the settings page can show the
 	// state rather than offering an action that no longer applies.
-	ArchivedAt        *time.Time       `json:"archived_at,omitempty"`
+	ArchivedAt *time.Time `json:"archived_at,omitempty"`
+	// Set only while the installation features this actor, so a super
+	// administrator's profile menu can show the toggle's state.
+	FeaturedAt        *time.Time       `json:"featured_at,omitempty"`
 	CreationTime      time.Time        `json:"creation_time"`
 	FollowerCount     int64            `json:"follower_count,omitempty"`
 	LeaderCount       int64            `json:"leader_count,omitempty"`
@@ -137,6 +140,7 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		Access:             node.Access,
 		AllowFollowRequest: node.AllowFollowRequest,
 		ArchivedAt:         node.ArchivedAt,
+		FeaturedAt:         node.FeaturedAt,
 		CreationTime:       node.CreationTime,
 		// nil for everything not scheduled for deletion, and omitempty keeps it
 		// off the wire in that case — which is every actor but a handful.

@@ -84,6 +84,10 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 	// rather than a flag.
 	query = setAccessQueryForTypes(query, req.Viewer, req.Types)
 
+	if req.Featured {
+		query = setFeaturedQuery(query)
+	}
+
 	if req.Limit == 0 {
 		req.Limit = constants.DefaultPageSize
 	} else if req.Limit > constants.MaxPageSize {
@@ -105,6 +109,11 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 				query = query.OrderBy(column + " DESC")
 			}
 		}
+	} else if req.Featured && req.NearbyLatitude == 0 && req.NearbyLongitude == 0 {
+		// The featured list's own order: most recently featured first. The
+		// timestamp is the flag and the order at once, which is why it is
+		// not a boolean. The id breaks ties, so a page boundary is stable.
+		query = query.OrderBy("node.featured_at DESC", "node.id DESC")
 	}
 
 	query = query.Limit(req.Limit).Offset(req.Offset)
@@ -173,6 +182,12 @@ func (r *nodesRepo) Count(req *requests.NodeCountRequest) (uint64, error) {
 	// rather than a flag.
 	query = setAccessQueryForTypes(query, req.Viewer, req.Types)
 
+	// The same narrowing as Browse, or the total describes a different list
+	// from the page it is paginating.
+	if req.Featured {
+		query = setFeaturedQuery(query)
+	}
+
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return 0, err
@@ -185,6 +200,21 @@ func (r *nodesRepo) Count(req *requests.NodeCountRequest) (uint64, error) {
 	}
 
 	return count, nil
+}
+
+// setFeaturedQuery narrows a browse or a count to the actors the installation
+// features — what onboarding offers a new member to follow.
+//
+// Enabled is already on every browse, and deleting clears it, so disabled and
+// deleted actors are gone before this runs. Archived ones are not: archiving
+// leaves `enabled` alone. SetArchiveQuery takes them out, and is given no
+// viewer so that it applies to an administrator too — this is the list a new
+// member sees, and an administrator checking it should see the same one, not
+// a list with the archived accounts back in it.
+func setFeaturedQuery(query sq.SelectBuilder) sq.SelectBuilder {
+	query = query.Where("node.featured_at IS NOT NULL")
+
+	return SetArchiveQuery(query, nil)
 }
 
 // BrowseMutualConnections retrieves mutual connections between two nodes based on the provided request and viewer context.

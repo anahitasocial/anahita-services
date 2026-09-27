@@ -163,3 +163,55 @@ func TestUserInfoReportsARealVisit(t *testing.T) {
 		t.Errorf("last_visit_date = %v, want the RFC 3339 timestamp", got)
 	}
 }
+
+// Onboarding state. The web app's gate reads both by name, and like
+// last_visit_date, "not yet" is null rather than absent: an absent key reads as
+// an older server that does not know, not as a person who has not been through
+// it.
+func TestUserInfoCarriesOnboardingState(t *testing.T) {
+	decode := func(user *entities.User) map[string]any {
+		t.Helper()
+		encoded, err := json.Marshal(userinfoFor(user, "openid profile"))
+		if err != nil {
+			t.Fatalf("marshal: %v", err)
+		}
+		var decoded map[string]any
+		if err := json.Unmarshal(encoded, &decoded); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
+		return decoded
+	}
+
+	fresh := decode(testViewer())
+	value, present := fresh["onboarded_at"]
+	if !present {
+		t.Fatal("onboarded_at is absent; it must be null for somebody who has not been through onboarding")
+	}
+	if value != nil {
+		t.Errorf("onboarded_at = %v, want null", value)
+	}
+	if fresh["has_bio"] != false {
+		t.Errorf("has_bio = %v, want false", fresh["has_bio"])
+	}
+
+	user := testViewer()
+	at := time.Date(2026, 9, 27, 9, 0, 0, 0, time.UTC)
+	user.OnboardedAt = &at
+	user.HasBio = true
+
+	done := decode(user)
+	if got := done["onboarded_at"]; got != "2026-09-27T09:00:00Z" {
+		t.Errorf("onboarded_at = %v, want the RFC 3339 timestamp", got)
+	}
+	if done["has_bio"] != true {
+		t.Errorf("has_bio = %v, want true", done["has_bio"])
+	}
+
+	// Profile-scoped, like the rest of the actor half.
+	openid := userinfoFor(testViewer(), "openid")
+	for _, gated := range []string{"onboarded_at", "has_bio"} {
+		if _, present := openid[gated]; present {
+			t.Errorf("claim %q was returned to a client granted only `openid`", gated)
+		}
+	}
+}

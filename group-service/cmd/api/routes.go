@@ -43,6 +43,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	groups.POST("/:id/archive", r.handler.Group.Archive, r.authorize)
 	// Enable/disable: reversible, site administrators only.
 	groups.PATCH("/:id/enabled", r.handler.Group.SetEnabled, r.authorize)
+	// Featuring: what onboarding offers to follow. Super administrators only.
+	groups.PATCH("/:id/featured", r.handler.Group.SetFeatured, r.authorize)
 	// Undo, within the grace period. Groups cannot sign in, so this is their
 	// equivalent of the person restore-at-login path.
 	groups.POST("/:id/restore", r.handler.Group.Restore, r.authorize)

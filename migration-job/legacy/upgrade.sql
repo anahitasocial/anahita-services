@@ -456,6 +456,12 @@ ALTER TABLE nodes ADD INDEX `deleted_at` (`deleted_at`);
 ALTER TABLE nodes ADD COLUMN `archived_at` datetime DEFAULT NULL;
 ALTER TABLE nodes ADD INDEX `archived_at` (`archived_at`);
 
+-- nodes.featured_at, the actors the installation features — what onboarding
+-- offers a new member to follow. Nothing was featured before, so it starts
+-- empty everywhere.
+ALTER TABLE nodes ADD COLUMN `featured_at` datetime DEFAULT NULL;
+ALTER TABLE nodes ADD INDEX `featured_at` (`featured_at`);
+
 -- One link on an actor profile. A migrated install has the legacy website,
 -- contact and phone values inside `meta`; they are deliberately NOT carried
 -- across — nothing in the Go stack ever read that map, so they have been
@@ -828,6 +834,14 @@ CREATE TABLE auth_accounts (
     -- When the address was confirmed. NULL means it has not been, and an
     -- unverified account cannot sign in.
     `email_verified_at`     datetime DEFAULT NULL,
+
+    -- NULL for everybody: nobody has been through onboarding yet, and a
+    -- member with an empty profile should be walked through it.
+    `onboarded_at`          datetime DEFAULT NULL,
+
+    -- NULL for everybody: the invitation tokens that could say otherwise
+    -- are not carried over.
+    `invited_by`            bigint unsigned DEFAULT NULL,
     `tos_accepted`            tinyint(1) NOT NULL DEFAULT 0,
     `tos_accepted_at`         datetime     DEFAULT NULL,
     `tos_accepted_version`    varchar(20)  DEFAULT NULL,

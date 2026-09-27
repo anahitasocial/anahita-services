@@ -107,6 +107,12 @@ func nodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		grpcNode.DeletedAt = timestamppb.New(*node.DeletedAt)
 	}
 
+	// Likewise only when featured: the epoch would read as "featured long ago"
+	// and put every actor in the list.
+	if node.FeaturedAt != nil {
+		grpcNode.FeaturedAt = timestamppb.New(*node.FeaturedAt)
+	}
+
 	// Only create Owner if it has data
 	if node.Owner != nil && node.Owner.ID != 0 {
 		grpcNode.Owner = nodeToGrpc(node.Owner)

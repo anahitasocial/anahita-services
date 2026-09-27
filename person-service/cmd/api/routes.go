@@ -50,6 +50,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	people.POST("/:id/archive", r.handler.Person.Archive, r.authorize)
 	// Enable/disable: reversible, administrators only.
 	people.PATCH("/:id/enabled", r.handler.Person.SetEnabled, r.authorize)
+	// Featuring: what onboarding offers to follow. Super administrators only.
+	people.PATCH("/:id/featured", r.handler.Person.SetFeatured, r.authorize)
 
 	// Edit access
 	people.PATCH("/:id/access", r.handler.Person.EditAccess, r.authorize)

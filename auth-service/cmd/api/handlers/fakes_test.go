@@ -54,6 +54,9 @@ type fakeUsers struct {
 	editCalls      int
 
 	editErr error
+
+	onboardCalls int
+	onboardErr   error
 }
 
 func newFakeUsers(users ...*entities.User) *fakeUsers {
@@ -89,6 +92,20 @@ func (f *fakeUsers) EditPassword(password string, id int64) error {
 	}
 	f.editedPassword = password
 	f.editedID = id
+	return nil
+}
+
+// MarkOnboarded behaves as the real statement does: it stamps a user that has
+// not been through onboarding and leaves one that has alone.
+func (f *fakeUsers) MarkOnboarded(id int64) error {
+	f.onboardCalls++
+	if f.onboardErr != nil {
+		return f.onboardErr
+	}
+	if u, ok := f.byID[id]; ok && u.OnboardedAt == nil {
+		now := time.Now()
+		u.OnboardedAt = &now
+	}
 	return nil
 }
 

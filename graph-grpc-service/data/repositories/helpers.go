@@ -101,6 +101,8 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"node.deleted_at",
 		// Likewise: NULL means never seen, not seen at the epoch.
 		"node.last_visit_date",
+		// Likewise: NULL means not featured.
+		"node.featured_at",
 	}
 
 	// Owner fields
@@ -274,6 +276,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.PersonPronouns,
 		&item.DeletedAt,
 		&item.LastVisitDate,
+		&item.FeaturedAt,
 		// Owner fields
 		&item.Owner.ID,
 		&item.Owner.Type,
@@ -424,6 +427,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.PersonPronouns,
 			&item.DeletedAt,
 			&item.LastVisitDate,
+			&item.FeaturedAt,
 			// Owner fields
 			&item.Owner.ID,
 			&item.Owner.Type,

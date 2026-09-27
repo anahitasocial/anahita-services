@@ -93,11 +93,18 @@ func (h *commentHandler) Browse(c echo.Context) error {
 		return c.JSON(http.StatusOK, resp)
 	}
 
-	targetIds := extractNodeIDs(nodes)
-	isLikedStatuses, err := h.Srv.LikesGRPC.IsLikedMany(viewer.ID, targetIds)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
+	// A guest has liked nothing, and the likes service refuses a lookup
+	// without a source, so asking answered 500 to every signed-out visitor.
+	// It never showed while the access gate hid every comment and the list
+	// returned early above.
+	isLikedStatuses := map[int64]bool{}
+	if viewer.ID > 0 {
+		targetIds := extractNodeIDs(nodes)
+		isLikedStatuses, err = h.Srv.LikesGRPC.IsLikedMany(viewer.ID, targetIds)
+		if err != nil {
+			log.Println(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
 	}
 
 	for _, comment := range nodes {

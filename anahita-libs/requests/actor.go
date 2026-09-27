@@ -54,7 +54,27 @@ type ActorBrowseRequest struct {
 	Ordering  string `query:"ordering" validate:"max=15,omitempty,oneof=created_on modified_on enabled"`
 	Direction string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	Disabled  bool   `query:"disabled" validate:"omitempty"`
-	IDs       []int64
+	// Only the actors the installation features — what onboarding offers a
+	// new member to follow. Ordered most recently featured first unless the
+	// caller asks for an ordering; see the browse handlers.
+	Featured bool `query:"featured" validate:"omitempty"`
+	IDs      []int64
+}
+
+// GraphOrdering is the ordering to ask the graph for.
+//
+// Ordering defaults to modified_on before the query string is bound, so by the
+// time a handler sees it there is no telling a default from a choice — and for
+// the featured list the default is wrong: the order is the featured date, most
+// recent first, which is why that column is a timestamp. orderingGiven is
+// whether the caller actually sent one; when they did not, the featured list
+// asks for no ordering and the graph applies its own.
+func (r *ActorBrowseRequest) GraphOrdering(orderingGiven bool) string {
+	if r.Featured && !orderingGiven {
+		return ""
+	}
+
+	return r.Ordering
 }
 
 type ActorReadRequest struct {
