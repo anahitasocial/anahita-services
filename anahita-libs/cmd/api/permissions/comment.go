@@ -73,42 +73,41 @@ func (c *CommentPermissions) CanRead(ctx *CommentAccessContext) (bool, error) {
 	return false, err
 }
 
-// CanEdit checks if the viewer can edit the comment
+// CanEdit checks if the viewer can edit the comment.
+//
+// The author only. Not site administrators, not the profile's owner or
+// administrators: an edited comment still carries its author's name, so
+// anybody else editing it puts words under that name, with no history to show
+// who wrote them. Moderators remove comments; they do not rewrite them — see
+// CanDelete.
+//
+// The author also has to be able to read the post still. Somebody the owner
+// has since blocked, or a profile that has since narrowed its access, should
+// not be able to keep rewriting what sits under it.
 func (c *CommentPermissions) CanEdit(ctx *CommentAccessContext) (bool, error) {
 	if !ctx.Viewer.RequireScope(constants.OAuthScopeCommentsWrite) {
 		return false, errors.New(ErrCommentInsufficientScope)
 	}
 
-	if ctx.Viewer.IsAdmin() {
-		return true, nil
+	if ctx.Viewer.ID <= 0 || ctx.Viewer.ID != ctx.Comment.GetAuthorID() {
+		return false, errors.New(ErrCommentEditNotAllowed)
 	}
 
-	if ctx.Viewer.ID == ctx.Comment.GetParent().GetOwnerID() {
-		return true, nil
+	parent := ctx.Comment.GetParent()
+	if parent == nil || parent.GetID() == 0 {
+		return false, errors.New(ErrCommentEditNotAllowed)
 	}
 
-	if ctx.ParentOwnerViewerRel.HasAdmin {
-		return true, nil
-	}
-
-	mediumPerm := NewMediumPermissions()
 	mediumPermCtx := &MediumAccessContext{
 		Viewer:         ctx.Viewer,
-		Medium:         ctx.Comment.GetParent(),
-		OwnerViewerRel: ctx.ParentOwnerViewerRel,
+		Medium:         parent,
+		OwnerViewerRel: relationOrEmpty(ctx.ParentOwnerViewerRel),
 	}
-	ok, err := mediumPerm.CanRead(mediumPermCtx)
-	if ok {
-		if ctx.Viewer.ID == ctx.Comment.GetAuthorID() {
-			return true, nil
-		}
+	if ok, _ := NewMediumPermissions().CanRead(mediumPermCtx); !ok {
+		return false, errors.New(ErrCommentEditNotAllowed)
 	}
 
-	if err != nil {
-		return false, err
-	}
-
-	return false, errors.New(ErrCommentEditNotAllowed)
+	return true, nil
 }
 
 // CanAdd checks if the viewer can add a comment
@@ -121,91 +120,122 @@ func (c *CommentPermissions) CanAdd(ctx *CommentAccessContext) (bool, error) {
 		return true, nil
 	}
 
+	// The caller has to have loaded the post and its owner. Without them
+	// every check below runs against an empty placeholder — which is how,
+	// before the comment handler loaded them, a post nobody could read took
+	// comments from anybody.
 	parent := ctx.Comment.GetParent()
+	if parent == nil || parent.GetID() == 0 {
+		return false, errors.New(ErrCommentAddNotAllowed)
+	}
 	parentOwner := parent.GetOwner()
+	if parentOwner == nil || parentOwner.GetID() == 0 {
+		return false, errors.New(ErrCommentAddNotAllowed)
+	}
 
-	if ctx.Viewer.ID == parentOwner.GetID() {
+	// The profile's owner, its administrators and the post's own author can
+	// always comment — on a post they can see, which the owner and
+	// administrators always can and the author, having written it, can.
+	if ctx.Viewer.ID == parentOwner.GetID() || ctx.Viewer.ID == parent.GetAuthorID() {
 		return true, nil
 	}
 
-	if ctx.ParentOwnerViewerRel.HasAdmin {
+	// ActorPermissions.CanRead dereferences the relationship, and a viewer
+	// with none to the owner is an ordinary case, not an error.
+	rel := relationOrEmpty(ctx.ParentOwnerViewerRel)
+
+	if rel.HasAdmin {
 		return true, nil
 	}
 
-	service := parent.Service
-
-	switch {
-	case parentOwner.HasAddPermission(service, "comment", "admins") && ctx.ParentOwnerViewerRel.HasAdmin:
-		return true, nil
-
-	case parentOwner.HasAddPermission(service, "comment", "followers") &&
-		(ctx.ParentOwnerViewerRel.IsLeading || ctx.ParentOwnerViewerRel.HasAdmin):
-		return true, nil
-
-	case parentOwner.HasAddPermission(service, "comment", "registered") && ctx.Viewer.IsRegistered():
-		return true, nil
-	}
-
+	// Everybody else has to be able to read the post before anything else.
+	// This used to be the last check and a sufficient one, which made the
+	// comment setting unenforceable: any reader could comment whatever it
+	// said.
 	mediumPermCtx := &MediumAccessContext{
 		Viewer:         ctx.Viewer,
-		Medium:         ctx.Comment.GetParent(),
-		OwnerViewerRel: ctx.ParentOwnerViewerRel,
+		Medium:         parent,
+		OwnerViewerRel: rel,
 	}
-	if ok, _ := NewMediumPermissions().CanRead(mediumPermCtx); ok {
+	if ok, _ := NewMediumPermissions().CanRead(mediumPermCtx); !ok {
+		return false, errors.New(ErrCommentAddNotAllowed)
+	}
+
+	access := CommentAccess(parentOwner, parent.GetService())
+	if access == "" || AddAccessAllows(access, rel, ctx.Viewer) {
 		return true, nil
 	}
 
 	return false, errors.New(ErrCommentAddNotAllowed)
 }
 
-// CanDelete checks if the viewer can delete the comment
+// CanDelete checks if the viewer can delete the comment: its author, the
+// profile the post is on — the person, or for a group its administrators —
+// and site administrators.
+//
+// No read check for the author. Taking your own words down should work even
+// after you have lost sight of the post they sit under.
 func (c *CommentPermissions) CanDelete(ctx *CommentAccessContext) (bool, error) {
 	if !ctx.Viewer.RequireScope(constants.OAuthScopeCommentsWrite) {
 		return false, errors.New(ErrCommentInsufficientScope)
 	}
 
-	ok, _ := c.CanEdit(ctx)
-	if ok {
+	if canModerate(ctx) {
 		return true, nil
 	}
 
 	return false, errors.New(ErrCommentDeleteNotAllowed)
 }
 
-// CanAdministrate checks if the viewer can administrate the comment
+// CanAdministrate checks if the viewer can administrate the comment. The same
+// people as CanDelete: moderating a comment is removing it.
 func (c *CommentPermissions) CanAdministrate(ctx *CommentAccessContext) (bool, error) {
 	if !ctx.Viewer.RequireScope(constants.OAuthScopeCommentsWrite) {
 		return false, errors.New(ErrCommentInsufficientScope)
 	}
 
-	if ctx.Viewer.IsAdmin() {
+	if canModerate(ctx) {
 		return true, nil
-	}
-
-	if ctx.Viewer.ID == ctx.Comment.GetParent().GetOwnerID() {
-		return true, nil
-	}
-
-	if ctx.ParentOwnerViewerRel.HasAdmin {
-		return true, nil
-	}
-
-	mediumPerm := NewMediumPermissions()
-	mediumPermCtx := &MediumAccessContext{
-		Viewer:         ctx.Viewer,
-		Medium:         ctx.Comment.GetParent(),
-		OwnerViewerRel: ctx.ParentOwnerViewerRel,
-	}
-	ok, err := mediumPerm.CanRead(mediumPermCtx)
-	if ok {
-		if ctx.Viewer.ID == ctx.Comment.GetAuthorID() {
-			return true, nil
-		}
-	}
-
-	if err != nil {
-		return false, err
 	}
 
 	return false, errors.New(ErrCommentAdminNotAllowed)
+}
+
+// canModerate is who may take a comment down.
+//
+// The profile's owner and administrators are only recognised when the caller
+// loaded the post: against the empty placeholder parent the owner id is 0,
+// and the relationship is the viewer's to nobody.
+func canModerate(ctx *CommentAccessContext) bool {
+	if ctx.Viewer.IsAdmin() {
+		return true
+	}
+
+	if ctx.Viewer.ID <= 0 {
+		return false
+	}
+
+	if ctx.Viewer.ID == ctx.Comment.GetAuthorID() {
+		return true
+	}
+
+	parent := ctx.Comment.GetParent()
+	if parent == nil || parent.GetOwnerID() == 0 {
+		return false
+	}
+
+	if ctx.Viewer.ID == parent.GetOwnerID() {
+		return true
+	}
+
+	return relationOrEmpty(ctx.ParentOwnerViewerRel).HasAdmin
+}
+
+// relationOrEmpty stands in for a missing relationship. A viewer with none to
+// the owner is ordinary, and ActorPermissions.CanRead dereferences it.
+func relationOrEmpty(rel *entities.ActorRelation) *entities.ActorRelation {
+	if rel == nil {
+		return &entities.ActorRelation{}
+	}
+	return rel
 }

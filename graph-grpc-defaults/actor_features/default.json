@@ -42,7 +42,7 @@
     ],
     "common_permissions": {
         "content_creator": [
-            { "entity": "comment", "access": "followers" },
+            { "entity": "comment", "access": "registered" },
             { "entity": "like", "access": "followers" }
         ]
     }

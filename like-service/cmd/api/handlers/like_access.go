@@ -17,12 +17,22 @@ func (h *likeHandler) getCommentAccessContext(node *entities.AnahitaNode, viewer
 		Comment: node,
 	}
 
-	actorIds := []int64{node.GetOwnerID(), node.GetAuthorID()}
+	// The viewer's relationship to the owner of the post the comment sits
+	// under — the profile whose owner and administrators may delete it. It
+	// was never set, so the delete flag in a like response always said no
+	// to them. readLikeTarget loads the parent; without it the id is 0.
+	var parentOwnerID int64
+	if parent := node.GetParent(); parent != nil {
+		parentOwnerID = parent.GetOwnerID()
+	}
+
+	actorIds := []int64{parentOwnerID, node.GetAuthorID()}
 	relationships, err := h.Srv.SocialgraphGRPC.Browse(actorIds, viewer.ID)
 	if err != nil {
 		return nil, err
 	}
 
+	ctx.ParentOwnerViewerRel = relationships[parentOwnerID]
 	ctx.AuthorViewerRel = relationships[node.GetAuthorID()]
 
 	return ctx, nil

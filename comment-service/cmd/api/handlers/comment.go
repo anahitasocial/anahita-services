@@ -46,7 +46,7 @@ func (h *commentHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	parent, err := h.Srv.MediaGRPC.Read(req.ParentID, viewer)
+	parent, err := h.readParentWithOwner(req.ParentID, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -101,6 +101,9 @@ func (h *commentHandler) Browse(c echo.Context) error {
 
 	for _, comment := range nodes {
 		comment.IsLikedByViewer = isLikedStatuses[comment.ID]
+		// One post, read once, for every comment under it — the edit and
+		// delete flags need its owner.
+		comment.Parent = parent
 		if err := h.onAfterFetched(c, comment); err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -143,6 +146,13 @@ func (h *commentHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	parent, err := h.readParentWithOwner(comment.ParentID, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	comment.Parent = parent
+
 	commentAccessCtx, err := h.getCommentAccessContext(comment, viewer)
 	if err != nil {
 		log.Println(err)
@@ -167,6 +177,7 @@ func (h *commentHandler) Edit(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	comment.Parent = parent
 
 	comment.IsLikedByViewer, err = h.Srv.LikesGRPC.IsLiked(viewer.ID, comment.ID)
 	if err != nil {
@@ -224,12 +235,17 @@ func (h *commentHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	parent, err := h.Srv.MediaGRPC.Read(req.ParentID, viewer)
+	// The post and its owner — see readParentWithOwner. Neither used to reach
+	// CanAdd: comment.Parent was the empty placeholder NewAnahitaNode makes,
+	// so a stranger could comment on a post they were refused permission to
+	// read.
+	parent, err := h.readParentWithOwner(req.ParentID, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	comment.Parent = parent
 	comment.Type = constants.NodeBaseCommentEntityType
 	comment.Service = constants.CommentService
 	comment.ParentID = parent.ID
@@ -260,6 +276,7 @@ func (h *commentHandler) Add(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	comment.Parent = parent
 	comment.IsLikedByViewer = false
 
 	go func() {
@@ -322,11 +339,12 @@ func (h *commentHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	parent, err := h.Srv.GraphNodeGRPC.Read(comment.ParentID)
+	parent, err := h.readParentWithOwner(comment.ParentID, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	comment.Parent = parent
 
 	commentAccessCtx, err := h.getCommentAccessContext(comment, viewer)
 	if err != nil {
