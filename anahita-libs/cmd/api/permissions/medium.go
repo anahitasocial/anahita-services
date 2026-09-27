@@ -180,16 +180,11 @@ func (m *MediumPermissions) CanAdd(ctx *MediumAccessContext) (bool, error) {
 		return false, fmt.Errorf("viewer %d is not allowed to read actor %d", ctx.Viewer.ID, ctx.Medium.GetOwnerID())
 	}
 
-	// Step 4: Check add_permissions policies
-	// Access can be either "followers" or "admins"
-	if ctx.Medium.GetOwner().HasAddPermission(ctx.Medium.GetService(), ctx.Medium.GetEntityName(), "admins") {
-		if ctx.OwnerViewerRel.HasAdmin {
-			return true, nil
-		}
-	} else if ctx.Medium.GetOwner().HasAddPermission(ctx.Medium.GetService(), ctx.Medium.GetEntityName(), "followers") {
-		if ctx.OwnerViewerRel.IsLeading || ctx.OwnerViewerRel.HasAdmin {
-			return true, nil
-		}
+	// Step 4: Check add_permissions policies. An entity the owner has no
+	// permission for answers "" and admits only the owner's administrators.
+	access := owner.AddPermissionAccess(ctx.Medium.GetService(), entityName)
+	if AddAccessAllows(access, ctx.OwnerViewerRel, ctx.Viewer) {
+		return true, nil
 	}
 
 	// Step 5: Denied

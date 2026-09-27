@@ -83,13 +83,21 @@ func validateActorAddPermissionAccess(fl validator.FieldLevel) bool {
 		return false
 	}
 
+	// Only values permissions.AddAccessAllows enforces. A value that passes
+	// here and matches nothing there refuses everybody without saying so.
 	switch addPerm.Entity {
-	case "like", "comment":
-		// These support "registered", "followers", "admins"
+	case "comment":
+		// Registered or followers, and only on a public or registered
+		// group — on a narrower one the group's access decides. See
+		// permissions.CommentAccess.
+		return access == "registered" || access == "followers"
+
+	case "like":
 		return access == "registered" || access == "followers" || access == "admins"
 
 	default:
-		// For person actors, allow additional values
+		// Posts, and who can add followers. A group follows nobody, so
+		// leaders and mutuals have nothing to match.
 		return access == "followers" || access == "admins"
 	}
 }
@@ -105,17 +113,25 @@ func validatePersonAddPermissionAccess(fl validator.FieldLevel) bool {
 		return false
 	}
 
+	// Only values permissions.AddAccessAllows enforces. A value that passes
+	// here and matches nothing there refuses everybody without saying so.
 	switch addPerm.Entity {
-	case "like", "comment":
-		// These support "registered", "followers", "admins"
-		return access == "registered" || access == "followers" || access == "admins"
+	case "comment":
+		// Registered or followers, and only on a public or registered
+		// profile — on a narrower one the profile's access decides. See
+		// permissions.CommentAccess.
+		return access == "registered" || access == "followers"
+
+	case "like":
+		return access == "registered" || access == "followers" || access == "leaders" || access == "mutuals" || access == "admins"
 
 	case "follower":
-		// Follower permission only supports followers and admins
+		// Not enforced for people — anybody may follow a person — so the
+		// one value is the one the defaults carry.
 		return access == "admins"
 
 	default:
-		// For person actors, allow additional values
+		// Posts. admins on a person is the person themselves.
 		return access == "followers" || access == "leaders" || access == "mutuals" || access == "admins"
 	}
 }
