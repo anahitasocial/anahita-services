@@ -93,6 +93,7 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 	}
 
 	batchPresignPaths(h.Env, nodes)
+	setFeedFlags(h.Env, nodes, viewer)
 
 	nodeResp := &responses.NodeResponse{}
 	resp.Data = nodeResp.MapNodeItems(nodes)

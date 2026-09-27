@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/data/entities"
 	"anahita-libs/requests"
 	"anahita-libs/responses"
@@ -123,6 +124,10 @@ func (h *mediumHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNod
 	item.Authorized.Edit, _ = h.Perms.Medium.CanEdit(mediumAccessCtx)
 	item.Authorized.Delete, _ = h.Perms.Medium.CanDelete(mediumAccessCtx)
 	item.Authorized.Administration, _ = h.Perms.Medium.CanAdministrate(mediumAccessCtx)
+
+	// Who may comment on and like it, so the web app shows only the
+	// buttons that will work.
+	an_handlers.SetPostFlags(c, h.Srv.ActorsGRPC, item, viewer, mediumAccessCtx.OwnerViewerRel)
 
 	return err
 }

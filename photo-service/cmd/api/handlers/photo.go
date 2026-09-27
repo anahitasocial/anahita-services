@@ -446,5 +446,9 @@ func (h *photoHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 	item.Authorized.Delete, _ = h.Perms.Media.CanDelete(mediumAccessCtx)
 	item.Authorized.Administration, _ = h.Perms.Media.CanAdministrate(mediumAccessCtx)
 
+	// Who may comment on and like it, so the web app shows only the
+	// buttons that will work.
+	handlers.SetPostFlags(c, h.Srv.ActorsGRPC, item, viewer, mediumAccessCtx.OwnerViewerRel)
+
 	return nil
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
@@ -401,6 +402,11 @@ func (h *commentHandler) onAfterFetched(c echo.Context, comment *entities.Anahit
 	comment.Authorized.Edit, _ = h.Perms.Comments.CanEdit(commentAccessCtx)
 	comment.Authorized.Delete, _ = h.Perms.Comments.CanDelete(commentAccessCtx)
 	comment.Authorized.Administration, _ = h.Perms.Comments.CanAdministrate(commentAccessCtx)
+
+	// Whether the viewer may like the comment, answered by the check
+	// like-service enforces, so the like button shows only when it works.
+	like := permissions.CanLike(viewer, comment.GetParent(), commentAccessCtx.ParentOwnerViewerRel)
+	comment.Authorized.Like = &like
 
 	return nil
 }
