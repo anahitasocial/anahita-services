@@ -268,7 +268,73 @@ Nothing is migrated. New replies are notes, and old comments keep working.
 
 | Item | State |
 | --- | --- |
-| Decisions 1–5 | open |
+| Decisions 1–5 | decided 2026-09-28 (see [Decisions and schedule](#decisions-and-schedule-2026-09-28-roadmap-item-7)) |
 | Phase 1 | not started |
 | Phase 2 | not started |
 | Phase 3 | not started |
+
+
+---
+
+## Decisions and schedule (2026-09-28, roadmap item 7)
+
+### Verdict: yes, it's a good idea
+- **One kind of content means one set of rules.** Most of the September 2026 permission bugs existed twice, once for posts and once for comments. Replies get likes, reposts, hashtags, mentions, editing and search with no code of their own, and threads come for free. Comments today are flat: 0 comments reply to another comment.
+- **It removes a whole service** (comment-service) and every comment branch in like-service, search, the leaders feed, notification-service, anahita-libs permissions and the web app.
+- **The Instagram, Facebook and TikTok model** (comments as second-class content under media) doesn't fit a federated network. The flat look under photos can stay, as a presentation choice.
+
+### Fediverse fit: very good
+- **ActivityPub / Mastodon:**
+  - A reply *is* a `Note` with `inReplyTo`, owned by its author. That's exactly the existing plan's decision 2 (owner = author).
+  - Replies to an `Article` or a photo post are also Notes with `inReplyTo`.
+  - Lemmy and other group-based servers (FEP-1b12) call them "comments" on screen, but on the wire they're the same Note plus `inReplyTo`.
+- **Bluesky / AT Protocol:** a reply is an `app.bsky.feed.post` with `reply: { root, parent }`. That's one-to-one with the plan's `root_id` + `parent_id`.
+- **Things to design with federation in mind** (add to the existing plan's Risks):
+  1. **Moderation of remote replies is "hide", not "delete".** A profile or post owner can't delete someone else's reply that lives on another server. Bluesky has "hide reply" and threadgates, and Mastodon lets you filter. So thread moderation should be modelled as hide-from-thread for remote replies, and delete for local ones. Anahita doesn't need this until it federates, but the permission naming shouldn't assume delete is always possible.
+  2. **Replies inherit the thread's audience** (existing decision 3). ActivityPub allows narrower audiences per reply, which causes half-visible threads. Inbound replies wider than their root should be clamped to the root's audience.
+  3. **Reply controls** (existing decision 4, "later") map to Bluesky threadgates and Mastodon's quote/reply policies when federation arrives.
+
+### Name
+- **"Replies"** in the UI: "Reply", "12 replies", a "Posts & replies" profile tab, and "Who can reply?" on the Permissions tab. The entity stays `note`, with `parent_id` / `root_id` in the data.
+- Per the existing plan, the permission key stays `comment` in `actor_features`, so saved settings keep working. Only the label changes.
+
+### Decisions to record in `notes-as-replies.md`
+1. **Federation is a goal**, which settles decisions 2 and 3 in the ActivityPub shape.
+2. **The reply's author owns it** (`owner_id = created_by`).
+3. **No per-reply audience;** replies inherit the root's (`access = NULL`).
+4. **Reply controls come later.** Keep the profile comment setting plus the post's open/closed switch.
+5. **Re-enable the ~1,625 disabled pre-2016 comments** under published posts during the migration. It can run separately before Phase 2. The disabled comments under unpublished posts stay as they are.
+6. **UI name: "Replies".**
+7. **Replies can be reposted,** shown with their parent post above them, as Bluesky does.
+
+### Interplay with other items (to note in the roadmap)
+- **Item 0 (feed gate fix) first.** Replies depend on the root-access rule being applied in every listing, and the feed gate is exactly where that is broken today.
+- **Item 1 (delete private notes) first.** It deletes 604 comments; better to delete them before they become notes.
+- **Item 5 (complete purge):** with owner = author, a purge walking `owner_id` already catches replies. Keep the `created_by` walk anyway, for posts on other people's profiles. Doing item 7 first simplifies item 5, but either order works.
+- **Item 4b (abuse reports):** the reasons JSON's `applies_to` should use `node.medium.` rather than naming comment types. If 4b ships first, include both, and remove the comment type after Phase 3.
+- **Item 3 (recommender):** the "you engaged" signal counts replies (notes with `parent_id`) instead of comments.
+- **Item 2 (remove global browse):** already done by then. Note lists default to top-level only (`parent_id IS NULL`).
+
+### Estimate (the existing plan has none)
+
+| Phase | Scope (from `notes-as-replies.md`) | Estimate |
+| --- | --- | --- |
+| 1: replies alongside comments | `root_id` column + index; root-based access in the graph filter and every listing; `root_id` and `parent_id` browse filters; feeds exclude replies; `permissions.CanReply` and root-based edit, delete and like; text-service `POST /notes/:id/replies` and `GET /notes/:root/thread`; web thread view; real-MySQL access tests | 12–15 h (3–4 sessions) |
+| 2: switch comments over | Migration of 11,066 comments plus retyping 2,743 + 327 + 223 edges, with the pre-2016 re-enable; reply events in notification-service; the web comment UI on photos, articles and topics rewired to replies (99 files, flat look kept); reposting replies with context | 12–16 h (3–4 sessions) |
+| 3: remove comments | Delete comment-service (nginx, compose, k8s) and the comment branches (like, search, leaders feed, `CommentPermissions`, constant, web containers, actions, reducers, API); update `docs/permissions.md`; redirect old comment URLs to their notes | 4–6 h (1–1½ sessions) |
+| **Total** | | **about 28–37 h, 7–9 sessions** |
+
+### Verification (in addition to the existing plan)
+- The real-MySQL access tests cover:
+  - a reply to a private root, seen through the author's public profile, stays hidden in every listing (feeds, profile lists, search, hashtags, mentions, locations);
+  - a reposted reply is hidden when its root is.
+- **Migration:** counts before and after (11,066 comments → notes with `parent_id`; the edge counts match), and a second run changes nothing. Old `/comments/...` links redirect to the note.
+- **Manual:** reply to a photo (flat look), reply to a note reply (nested thread), like and repost a reply, and delete a reply that has replies (a placeholder stays).
+
+### Documentation
+
+A phase is finished only when these pages match the code. anahita-services pages are under its `docs/`, anahita-web pages under its `docs/`. When a page is added, add it to that repo's `docs/README.md` contents too.
+
+- **Phase 1:** **services `permissions.md`**: a *Replies* section (visibility by root, who can reply, edit and delete).
+- **Phase 2:** **services `permissions.md`**: *Comments* becomes *Replies* ("Who can reply?"); **web `architecture.md`**: the thread view and the flat look on photos.
+- **Phase 3:** **services `architecture.md`**: comment-service removed from *Services* and *Routing*; **services `docs/README.md`**: the *Permissions* entry mentions replies, not comments.

@@ -24,7 +24,7 @@ is walked through filling it in and through following the accounts the
 installation features, then lands on the dashboard. Existing members with empty
 profiles get the same walk-through on their next sign-in.
 
-The web app's half is `anahita-web/docs/plans/onboarding.md`.
+The web app's half is `anahita-web/docs/plans/done/onboarding.md`.
 
 ---
 
@@ -210,6 +210,9 @@ blocks and disabled accounts are handled there, not here.
   using them in the feed; see `feed-generators.md`.
 
 ## Towards a recommendation engine
+
+> **Superseded 2026-09-28** by [recommendation-service.md](../recommendation-service.md),
+> which plans the engine as its own service. This section is kept for its reasoning.
 
 `feed-generators.md` already chooses the shape: rankers are unbundled from
 storage and access control. A generator returns a **skeleton** — an ordered list

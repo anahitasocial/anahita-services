@@ -25,7 +25,7 @@ Profile deletion was rebuilt from a hard delete into a reversible one:
 What follows is what was deliberately left, plus what an end-of-session audit
 turned up.
 
-**Disable and archive have moved** to `actor-lifecycle-states.md`. Both land
+**Disable and archive have moved** to `done/actor-lifecycle-states.md`. Both land
 in the same Danger zone and both hinge on the same question — what `enabled`
 is allowed to mean — so they are designed together there rather than as one
 more section here.
@@ -436,6 +436,11 @@ and it belongs with this work rather than before it.
 
 ## 2. Hard delete for super administrators
 
+> **Update 2026-09-28:** the purge RPC and the `DELETE /people/:id/purge` and
+> `DELETE /groups/:id/purge` routes now exist, so the status below is out of date.
+> The remaining gaps (authored content, notifications, counters, bulk cleanup, web UI)
+> are planned in [actor-hard-delete.md](actor-hard-delete.md).
+
 **Not built.** Confirmed 2026-09-07: there is no `Purge` RPC on the actor
 service, no route on person-service or group-service, and `purgeAccount` is
 still unexported in `graph/sweeper`. The only way an account is purged today is
@@ -454,7 +459,7 @@ test accounts and someone destroying one live account are doing different jobs,
 and only the second wants a per-profile control.
 
 The erasure-request use is the same mechanism from a different door, and can
-stay a per-account action. See also `actor-lifecycle-states.md`, which now
+stay a per-account action. See also `done/actor-lifecycle-states.md`, which now
 records the states this sits alongside.
 
 Everything needed already exists in the sweeper: `PurgeActorContent`,
@@ -542,7 +547,7 @@ mutable and non-identifying. Three things fall out of it:
 Nothing to build now. The decision is only that the eventual URI is
 `.../<id>` rather than `.../<alias>`, and it should be made before anything
 starts emitting URIs. See also the federation section in
-`actor-lifecycle-states.md`, which reaches the same conclusion from the other
+`done/actor-lifecycle-states.md`, which reaches the same conclusion from the other
 end — that a node's id is a local handle and not an identity.
 - **Audit is non-negotiable here.** A super administrator destroying an account
   with no waiting period is precisely the event the log exists for. Record which
@@ -707,7 +712,7 @@ through reads untouched.
 **`enabled` is doing three jobs.** Administrator suspension, deletion and
 "unpublished" all collapse into one flag, which is why deleted and disabled
 actors are indistinguishable in browse. Separating them properly is part of
-`actor-lifecycle-states.md`, because archive would otherwise become a fourth
+`done/actor-lifecycle-states.md`, because archive would otherwise become a fourth
 meaning for the same boolean.
 
 **No moderation surface.** There is no way for an administrator to see suspended

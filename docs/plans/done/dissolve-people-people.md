@@ -584,7 +584,7 @@ Remaining details for this path:
   with a real IP and user agent. This keeps item 10 self-contained.
 - The **post-login onboarding flow** (avatar, bio, favourite topics, and
   re-acceptance when a terms version changes) is a separate plan —
-  `docs/plans/onboarding.md`, to be written. Only the account-creation half is
+  `docs/plans/done/onboarding.md`, to be written. Only the account-creation half is
   in scope here.
 
 **1. Signup collects no name.** `auth-service/requests/signup.go:13-17` takes
@@ -820,7 +820,7 @@ Recorded so they are not lost. None block this work.
   dead — nothing populates or reads it.
 - **Onboarding workflow** — post-login steps (avatar, bio, favourite topics) and
   re-acceptance when a terms version changes. To be written as
-  `docs/plans/onboarding.md`. Note that four comments
+  `docs/plans/done/onboarding.md`. Note that four comments
   (`requests/invite.go:14-17`, `invite_accept.go:28-29,69,147-148`) already
   describe an `AgreementsPage` interstitial gated by `AuthenticatedRoute`; it
   was never built, and those comments should be corrected or removed once the

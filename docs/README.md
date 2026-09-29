@@ -49,13 +49,34 @@ Design documents for work in progress and work already done, in
 [`plans/`](plans/). They record why things were built the way they were, and
 are not kept up to date once the work lands — the pages above are.
 
-| Plan | Status |
-| --- | --- |
-| [Signup, registration modes, and agreements](plans/signup-and-onboarding.md) | done |
-| [Onboarding](plans/onboarding.md) | phases 1–2 done |
-| [Dissolve `people_people`](plans/dissolve-people-people.md) | done |
-| [Actor lifecycle states](plans/actor-lifecycle-states.md) | — |
-| [Actor profile management](plans/actor-profile-management.md) | — |
-| [auth-service hardening](plans/auth-service-hardening.md) | — |
-| [Feed generators](plans/feed-generators.md) | — |
-| [Notes as replies](plans/notes-as-replies.md) | not started |
+The order they are meant to be done in, with estimates and dependencies, is
+the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md)
+in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
+
+| Plan | Roadmap item | Status |
+| --- | --- | --- |
+| [Feed access leak](plans/feed-access-leak.md) | 0 | not started |
+| [Remove private notes](plans/remove-private-notes.md) | 1 | not started |
+| [Recommendation service](plans/recommendation-service.md) | 3 | not started |
+| [Abuse reports](plans/abuse-report-service.md) | 4b | not started |
+| [Complete hard delete and bulk cleanup](plans/actor-hard-delete.md) | 5 | not started |
+| [Sign in with a code; codes instead of links](plans/login-code.md) | 6, 6b | not started |
+| [Notes as replies](plans/notes-as-replies.md) | 7 | not started |
+| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
+| [Cloud-neutral storage and deployment](plans/cloud-neutral.md) | 9 | not started |
+| [Link previews](plans/link-previews.md) | 10 | not started |
+| [Invitations](plans/actor-invitations.md) | 11 | not started |
+| [Events](plans/events.md) | 12 | not started |
+| [Instance privacy and the composer audience picker](plans/instance-privacy.md) | 13 | not started |
+| [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
+| [Video service](plans/video-service.md) | 16 | not started |
+| [Several images per photo post; photo sets removed](plans/photo-albums.md) | 17, 18 | not started |
+| [Creative Commons licences](plans/content-licences.md) | 19 | not started |
+| [Language on posts](plans/content-language.md) | 20 | not started |
+| [Download your data](plans/data-export.md) | 21 | not started |
+| [auth-service hardening](plans/auth-service-hardening.md) | 0b | not started |
+| [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in items 5 and 8 |
+| [Signup, registration modes, and agreements](plans/done/signup-and-onboarding.md) | — | done |
+| [Onboarding](plans/done/onboarding.md) | — | done (phase 3 moved to the recommendation service) |
+| [Dissolve `people_people`](plans/done/dissolve-people-people.md) | — | done |
+| [Actor lifecycle states](plans/done/actor-lifecycle-states.md) | — | done (archiving media deferred) |
