@@ -1,5 +1,10 @@
 # Actor lifecycle states — disable and archive
 
+> **Status, 2026-09-28: done.** `archived_at`, archive, enable and disable routes, audit rows and
+> events exist for all four transitions, and the web Danger zone offers them. Archiving media
+> (see *Scope*) remains deferred. Operator documentation is planned in
+> [actor-hard-delete.md](../actor-hard-delete.md) as `docs/account-lifecycle.md`.
+
 Written 2026-09-04, split out of `actor-profile-management.md` so the two
 states can be designed together rather than one at a time.
 

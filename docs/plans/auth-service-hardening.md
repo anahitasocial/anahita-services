@@ -3,6 +3,12 @@
 Written 2026-09-08, for a future anahita session. **No code in this repository
 has been changed.**
 
+> **Roadmap, 2026-09-28.** Findings 1, 2, 4 and 5 and the gRPC shared-secret interceptor are
+> roadmap item **0b**. gRPC mTLS (cert-manager or Linkerd) is item **0c**, done after item 9,
+> which sets up cert-manager. Finding 3 (login throttle) is part of item 6
+> ([login-code.md](login-code.md)). Finding 5 must land before item 21
+> ([data-export.md](data-export.md)) relies on step-up.
+
 A security review of a sibling service produced seventeen findings. That
 service and this one share ancestry, so each finding was re-checked against
 this codebase rather than assumed. Some things are already right here. The rest
@@ -279,3 +285,35 @@ Record, as you go:
 The sibling has nine gRPC servers and twelve client sites, and its
 `docs/plans/network-policy-grpc.md` holds the parked plan for the network-level
 control there. Both belong in the same conversation once this is understood.
+
+---
+
+## Estimate (added 2026-09-28)
+
+| Part | Roadmap item | Time |
+| --- | --- | --- |
+| Finding 1, `getIPLocation` rewrite | 0b | 2 h |
+| Finding 2, `X-Forwarded-For` walked right to left with trusted proxies | 0b | 1 h |
+| Finding 4, the refresh grant re-checks `Enabled` | 0b | 1 h |
+| Finding 5, `PATCH /totp` stops stamping freshness without a passcode | 0b | 1 h |
+| gRPC shared-secret interceptors (unary and streaming, server and client) | 0b | 2–3 h |
+| gRPC mTLS: cert-manager issuers and certificates, reloading certificates, dev CA; or Linkerd, compared | 0c | 6–10 h |
+| **Total** | | **about 13–18 h, 3–5 sessions** |
+
+## Documentation
+
+A phase is finished only when these pages match the code. When a page is added, add it to
+`docs/README.md` too.
+
+- **0b:** services `configuration.md` (the gRPC shared secret, trusted proxies for client IPs);
+  services `architecture.md` (internal gRPC calls are authenticated).
+- **0c:** services `architecture.md` (mTLS between services); services `deploying.md`
+  (cert-manager issuers and rotation, or Linkerd).
+
+## Status
+
+| Item | State |
+| --- | --- |
+| Plan | written 2026-09-08, scheduled 2026-09-28 |
+| 0b | not started |
+| 0c | not started |
