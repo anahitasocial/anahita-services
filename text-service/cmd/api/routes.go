@@ -30,7 +30,6 @@ func NewRoutes(
 func (r *Routes) Init(e *echo.Echo) {
 	// articles
 	articles := e.Group("articles")
-	articles.GET("/", r.handler.Article.Browse, r.setViewer)
 	articles.GET("/:owner_id/", r.handler.Article.Browse, r.setViewer)
 	articles.GET("/:id", r.handler.Article.Read, r.setViewer)
 	articles.PATCH("/:id", r.handler.Article.Edit, r.authorize)
@@ -45,7 +44,6 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	// notes
 	notes := e.Group("notes")
-	notes.GET("/", r.handler.Note.Browse, r.setViewer)
 	notes.GET("/:owner_id/", r.handler.Note.Browse, r.setViewer)
 	notes.GET("/:id", r.handler.Note.Read, r.setViewer)
 	notes.PATCH("/:id", r.handler.Note.Edit, r.authorize)
@@ -60,7 +58,6 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	// topics
 	topics := e.Group("topics")
-	topics.GET("/", r.handler.Topic.Browse, r.setViewer)
 	topics.GET("/:owner_id/", r.handler.Topic.Browse, r.setViewer)
 	topics.GET("/:id", r.handler.Topic.Read, r.setViewer)
 	topics.PATCH("/:id", r.handler.Topic.Edit, r.authorize)
