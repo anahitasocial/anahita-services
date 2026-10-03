@@ -78,6 +78,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Post insights](plans/post-insights.md) | 22 | not started |
 | [Profile tabs for replies and reposts](plans/profile-tabs-and-reposts.md) | 24 | not started |
 | [Quote posts](plans/quote-posts.md) | 25 | not started |
+| [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [auth-service hardening](plans/auth-service-hardening.md) | 0b | not started |
 | [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in items 5 and 8 |
 | [Signup, registration modes, and agreements](plans/done/signup-and-onboarding.md) | — | done |
