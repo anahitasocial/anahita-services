@@ -97,6 +97,16 @@ func (f *fakeUsers) EditPassword(password string, id int64) error {
 
 // MarkOnboarded behaves as the real statement does: it stamps a user that has
 // not been through onboarding and leaves one that has alone.
+// Edit stores the account as given, the way the repository writes every
+// column back.
+func (f *fakeUsers) Edit(user *entities.User) (*entities.User, error) {
+	if f.editErr != nil {
+		return nil, f.editErr
+	}
+	f.byID[user.ID] = user
+	return user, nil
+}
+
 func (f *fakeUsers) MarkOnboarded(id int64) error {
 	f.onboardCalls++
 	if f.onboardErr != nil {

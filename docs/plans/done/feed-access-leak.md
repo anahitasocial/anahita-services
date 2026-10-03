@@ -36,8 +36,7 @@ The fix went further than the plan, because the feed gate had a second fault and
 
 ### Follow-ups, not done here
 - `access_search.go`, `access.go` (`SetAccessQuery`) and `access_polymorphic.go` are further hand-written copies of the gate. They check a post's own access, so they don't leak, but they lack the owner and author rules. Moving them onto `accessGate` would remove the remaining copies.
-- ~~`nodes.status` is nullable but scanned as a plain string.~~ Resolved on 2026-10-02 by dropping the column (`done/remove-unused-node-columns.md`). It was a live fault: a purged actor's tombstone had a NULL status and could not be loaded.
-- The manual check on a running stack (logged out, a profile with a followers-only post) is still to do after the next deploy of graph-grpc-service.
+- ~~`nodes.status` is nullable but scanned as a plain string.~~ Resolved on 2026-10-02 by dropping the column (`remove-unused-node-columns.md`). It was a live fault: a purged actor's tombstone had a NULL status and could not be loaded.
 
 ## Status
 
@@ -46,4 +45,4 @@ The fix went further than the plan, because the feed gate had a second fault and
 | Plan | written 2026-09-28 |
 | Implementation | done 2026-10-02, on branch `feed-access-leak` |
 | Documentation | `docs/permissions.md`, *Seeing posts* |
-| Manual check on a running stack | to do |
+| Manual check on a running stack | done 2026-10-03: logged out, a profile feed showed its 2,838 public posts and none of its 92 non-public ones |

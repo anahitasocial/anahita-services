@@ -12,6 +12,13 @@ const (
 	AuthLoginUnknownCity    = "an unknown city"
 	AuthLoginUnknownCountry = "unknown country"
 
+	// What a sign-in from a private address is recorded as. In production a
+	// private address here means c.RealIP() returned a proxy hop instead of
+	// the client, so "development" in a deployed sign-in log says the trusted
+	// proxy setup is wrong, not that the environment is.
+	AuthLoginLocalCity    = "localhost"
+	AuthLoginLocalCountry = "development"
+
 	// An administrator ended one of somebody's signed-in sessions.
 	//
 	// Sent because Perms.AuthLog.CanDelete permits acting on another person's

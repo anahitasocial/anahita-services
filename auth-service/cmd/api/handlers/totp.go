@@ -89,8 +89,21 @@ func (h *totpHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
+	// Enabling needs an enrolment that was finished: a secret, and the
+	// recovery codes that are only handed out once a passcode generated from
+	// that secret has been checked (AddRecoveryCodes). Without this a direct
+	// call switched 2FA on for an account with nothing able to produce a
+	// passcode, which is a lock-out the person does to themselves.
+	if user.TotpSecret == "" || user.CountRecoveryCodes() == 0 {
+		log.Printf("totp enable: enrolment not finished (person=%d)", user.ID)
+		return c.NoContent(http.StatusConflict)
+	}
+
+	// TotpLastVerifiedAt is NOT stamped here. No passcode is checked on this
+	// request, so stamping it would record a verification that never
+	// happened, and anything gated on that freshness would be gated on
+	// nothing. AddRecoveryCodes stamps it, where the passcode is checked.
 	user.TotpEnabled = true
-	user.TotpLastVerifiedAt = time.Now()
 	user, err = h.Repos.Users.Edit(user)
 	if err != nil {
 		log.Println(err)
@@ -147,6 +160,15 @@ func (h *totpHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusNotAcceptable)
 	}
 
+	// Not while 2FA is on. This handler replaces the secret and clears
+	// TotpEnabled, so with only a password it switched a working second
+	// factor off, which is the thing the second factor exists to prevent.
+	// Turning it off is DELETE /totp/:person_id, which asks for a step-up.
+	if user.TotpEnabled {
+		log.Printf("totp add: already enabled (person=%d)", user.ID)
+		return c.NoContent(http.StatusConflict)
+	}
+
 	// AccountName comes from the person record, NOT from the viewer.
 	//
 	// The viewer is built from the access token, and the token
@@ -184,6 +206,10 @@ func (h *totpHandler) Add(c echo.Context) error {
 	}
 
 	user.TotpEnabled = false
+	// Codes from an earlier, abandoned enrolment belong to the old secret.
+	// Left in place they would let Edit enable 2FA without a passcode from
+	// the new one ever being checked.
+	user.TotpRecoveryCodes = ""
 	if err := user.SetTotpSecret(h.SecretCrypt, key.Secret()); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -264,6 +290,9 @@ func (h *totpHandler) AddRecoveryCodes(c echo.Context) error {
 		log.Println("totp recovery codes:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	// A passcode was checked a few lines up, so this is a real verification.
+	user.TotpLastVerifiedAt = time.Now()
 
 	user, err = h.Repos.Users.Edit(user)
 	if err != nil {

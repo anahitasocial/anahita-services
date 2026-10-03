@@ -9,6 +9,7 @@ committed, and neither are the signing-key and TLS `.pem` files it points at.
 ## Contents
 
 - [Shared](#shared)
+- [Client addresses](#client-addresses)
 - [Site identity](#site-identity)
 - [Registration](#registration)
 - [First super administrator](#first-super-administrator)
@@ -27,6 +28,23 @@ committed, and neither are the signing-key and TLS `.pem` files it points at.
 | `AMQP_ADDR` | publishers and consumers | RabbitMQ, e.g. `amqp://rabbitmq:5672` |
 | `OAUTH_ISSUER` | all HTTP services | Issuer URL that tokens are signed with and checked against |
 | `OAUTH_JWKS_URL` | all HTTP services | Where public signing keys are fetched. Defaults to auth-service inside the network |
+
+### Client addresses
+
+auth-service takes a request's address from `X-Forwarded-For`, reading from the
+right and skipping proxies, so an entry a client typed is never used. It treats
+loopback, link-local and private addresses as proxies. That fits nginx in
+docker-compose and an ingress in a cluster. A proxy on a public address in
+front of auth-service would be recorded as the client.
+
+Each proxy has to append to the header, which nginx does with
+`$proxy_add_x_forwarded_for`. The address keys the per-address rate limits and
+is recorded in the sign-in log.
+
+A sign-in's city and country are looked up at ipapi.co, with a 3 second limit.
+Private addresses are never sent, and are recorded as `localhost`,
+`development`. Seeing that in a deployed sign-in log means the address reaching
+auth-service is a proxy's, not the client's.
 
 ## Site identity
 
