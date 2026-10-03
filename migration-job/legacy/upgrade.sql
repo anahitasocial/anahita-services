@@ -421,6 +421,38 @@ DELETE n FROM nodes n JOIN anahita_private_nodes p ON p.id = n.id;
 
 DROP TEMPORARY TABLE anahita_private_notes;
 DROP TEMPORARY TABLE anahita_private_nodes;
+
+-- Legacy photo sets (albums). Nothing in the Go services reads them and the
+-- web app has no page for them. See
+-- migrations/20261003000002_delete_photo_sets.sql for the reasoning. The
+-- photos stay: a photo belongs to its owner, never to a set.
+CREATE TEMPORARY TABLE anahita_photo_sets (id BIGINT UNSIGNED NOT NULL PRIMARY KEY);
+CREATE TEMPORARY TABLE anahita_photo_set_nodes (id BIGINT UNSIGNED NOT NULL PRIMARY KEY);
+
+INSERT INTO anahita_photo_sets (id)
+SELECT id FROM nodes
+ WHERE type = 'node.medium.photo-service.photo-set.v1';
+
+INSERT INTO anahita_photo_set_nodes (id)
+SELECT id FROM anahita_photo_sets;
+
+INSERT IGNORE INTO anahita_photo_set_nodes (id)
+SELECT n.id FROM nodes n
+  JOIN anahita_photo_sets s ON s.id = n.parent_id
+ WHERE n.type = 'node.base.comment-service.comment.v1';
+
+DELETE n FROM notifications n JOIN anahita_photo_set_nodes p ON p.id = n.object_id;
+DELETE n FROM notifications n JOIN anahita_photo_set_nodes p ON p.id = n.comment_id;
+DELETE n FROM notifications n JOIN anahita_photo_set_nodes p ON p.id = n.target_id;
+
+DELETE e FROM edges e JOIN anahita_photo_set_nodes p ON p.id = e.node_a_id;
+DELETE e FROM edges e JOIN anahita_photo_set_nodes p ON p.id = e.node_b_id;
+DELETE FROM edges WHERE type = 'edge.photo.photo-set.v1';
+
+DELETE n FROM nodes n JOIN anahita_photo_set_nodes p ON p.id = n.id;
+
+DROP TEMPORARY TABLE anahita_photo_sets;
+DROP TEMPORARY TABLE anahita_photo_set_nodes;
 ALTER TABLE nodes DROP COLUMN notification_ids;
 ALTER TABLE nodes DROP COLUMN new_notification_ids;
 

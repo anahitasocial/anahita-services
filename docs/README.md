@@ -70,7 +70,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Instance privacy and the composer audience picker](plans/instance-privacy.md) | 13 | not started |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
 | [Video service](plans/video-service.md) | 16 | not started |
-| [Several images per photo post; photo sets removed](plans/photo-albums.md) | 17, 18 | not started |
+| [Several images per photo post; photo sets removed](plans/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 not started |
 | [Creative Commons licences](plans/content-licences.md) | 19 | not started |
 | [Language on posts](plans/content-language.md) | 20 | not started |
 | [Download your data](plans/data-export.md) | 21 | not started |
