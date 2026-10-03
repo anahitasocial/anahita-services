@@ -51,12 +51,12 @@ type NoteEditRequest struct {
 
 type NoteEditAccessRequest struct {
 	ID     int64  `param:"id" validate:"required,numeric"`
-	Access string `form:"access" validate:"required,oneof=public registered followers leaders mutuals admins owner"`
+	Access string `form:"access" validate:"required,oneof=public registered followers leaders mutuals admins myself"`
 }
 
 type NoteAddRequest struct {
 	OwnerID  int64  `param:"owner_id" validate:"required,numeric"`
 	Body     string `form:"body" validate:"required,max=8000"`
-	Access   string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins owner"`
+	Access   string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
 	Composed bool   `form:"composed" validate:"omitempty"`
 }

@@ -80,6 +80,10 @@ Two people see a post without its own access being consulted:
 Nobody sees a post by, or on the profile of, somebody they have blocked or
 been blocked by.
 
+A post's access is always one of the levels above. There is no way to share a
+post with named people only, and no private messaging: the private notes of
+the PHP version were removed, not carried over.
+
 The same rule applies on a profile, in the home feed, and under a hashtag or a
 location. Search applies both access checks but not the two exceptions above,
 so searching may not find your own restricted posts.

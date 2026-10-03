@@ -221,6 +221,12 @@ func (s *OAuthService) RefreshTokenPair(
 		return nil, fmt.Errorf("resolve person: %w", err)
 	}
 
+	// Before the claim, so a refused account keeps its token. See
+	// refreshAdmitsAccount for why it is refused rather than revoked.
+	if err := refreshAdmitsAccount(user); err != nil {
+		return nil, err
+	}
+
 	// Claim the old token. This is the serialization point for the whole
 	// rotation: everything above is read-only, so two requests presenting
 	// the same plaintext both reach here, but the conditional update lets
@@ -283,6 +289,40 @@ func (s *OAuthService) RefreshTokenPair(
 		RefreshToken: refreshPlaintextNew,
 		Scope:        grantedScopes,
 	}, nil
+}
+
+// ErrRefreshAccountUnavailable is the refusal from refreshAdmitsAccount.
+//
+// One error for every reason, and refreshErrorCode does not map it, so a
+// client receives the empty code it treats as terminal. The answer is "sign in
+// again", and the sign-in page refuses for the same reason and says so
+// properly. Telling whoever holds the token WHICH state the account is in
+// describes an account they may no longer have any business knowing about.
+var ErrRefreshAccountUnavailable = errors.New("account unavailable")
+
+// refreshAdmitsAccount reports whether an account may still exchange a refresh
+// token. It applies the checks the sign-in page makes: the account must be
+// enabled, not scheduled for deletion and not archived.
+//
+// A refresh token lives for its whole lifetime, and each rotation stamps a new
+// expiry, so whatever this path declines to re-check is frozen as it was at
+// sign-in. Without this, a disabled account went on minting access tokens
+// until somebody revoked its refresh tokens by hand.
+//
+// The refusal comes with no revocation. The token stays in the table and
+// keeps failing, so an account that is disabled and then enabled again carries
+// on working instead of signing everybody out. Access tokens already issued
+// live for AccessTokenLifetime at most.
+func refreshAdmitsAccount(user *entities.User) error {
+	if user == nil {
+		return ErrRefreshAccountUnavailable
+	}
+
+	if !user.Enabled || user.DeletedAt != nil || user.ArchivedAt != nil {
+		return ErrRefreshAccountUnavailable
+	}
+
+	return nil
 }
 
 // ValidateRefreshToken checks a refresh token is valid and belongs to

@@ -85,9 +85,19 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **services `permissions.md`**, *Access levels* / *Accepted values*: access is always one keyword; there are no per-person access lists and no private messages.
 - **services `permissions.md`**, *Accepted values*: the `owner` value is either documented (if handled) or removed from the list.
 
+## What was built (2026-10-03)
+
+- **Migration** `migration-job/migrations/20261003000001_delete_private_notes.sql`, and the same deletion in `legacy/upgrade.sql` after the notifications table is filled. On the reference database both remove 348 notes, 604 comments, 707 edges and 88 notifications (the 140 counted in the plan overlapped), and leave no edge or note notification pointing at a missing node. A second run removes nothing.
+- **Validator:** `text-service/requests/note.go` accepted `owner` where every other post type accepts `myself`, so choosing "Only me" for a note was refused. Both note requests now accept `myself`. `TestNoteAccessIsAKeyword` pins that an id list is refused.
+- **Web:** the "Private" switch and its dead state are gone from the note composer.
+- **Docs:** `docs/permissions.md`, *Seeing posts*, says there is no per-person sharing and no private messaging.
+
+The feed access leak this plan mentions was fixed first, as item 0.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Implementation | done 2026-10-03, on branch `m1-safety-cleanup` |
+| Applied to the dev database | done 2026-10-03 |

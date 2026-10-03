@@ -3,9 +3,10 @@
 Written 2026-09-08, for a future anahita session. **No code in this repository
 has been changed.**
 
-> **Roadmap, 2026-09-28.** Findings 1, 2, 4 and 5 and the gRPC shared-secret interceptor are
-> roadmap item **0b**. gRPC mTLS (cert-manager or Linkerd) is item **0c**, done after item 9,
-> which sets up cert-manager. Finding 3 (login throttle) is part of item 6
+> **Roadmap, 2026-09-28.** Findings 1, 2, 4 and 5 are roadmap item **0b**. Authenticating and
+> encrypting gRPC calls is item **0c**, done after item 9, which sets up cert-manager.
+> On 2026-10-03 the shared-secret interceptor was moved from 0b into 0c: with no live site yet,
+> an interim secret wasn't worth a second configuration step, and mutual TLS covers both. Finding 3 (login throttle) is part of item 6
 > ([login-code.md](login-code.md)). Finding 5 must land before item 21
 > ([data-export.md](data-export.md)) relies on step-up.
 
@@ -296,7 +297,7 @@ control there. Both belong in the same conversation once this is understood.
 | Finding 2, `X-Forwarded-For` walked right to left with trusted proxies | 0b | 1 h |
 | Finding 4, the refresh grant re-checks `Enabled` | 0b | 1 h |
 | Finding 5, `PATCH /totp` stops stamping freshness without a passcode | 0b | 1 h |
-| gRPC shared-secret interceptors (unary and streaming, server and client) | 0b | 2–3 h |
+| gRPC shared-secret interceptors (unary and streaming, server and client), only if still wanted beside mTLS | 0c | 2–3 h |
 | gRPC mTLS: cert-manager issuers and certificates, reloading certificates, dev CA; or Linkerd, compared | 0c | 6–10 h |
 | **Total** | | **about 13–18 h, 3–5 sessions** |
 
@@ -305,15 +306,30 @@ control there. Both belong in the same conversation once this is understood.
 A phase is finished only when these pages match the code. When a page is added, add it to
 `docs/README.md` too.
 
-- **0b:** services `configuration.md` (the gRPC shared secret, trusted proxies for client IPs);
-  services `architecture.md` (internal gRPC calls are authenticated).
-- **0c:** services `architecture.md` (mTLS between services); services `deploying.md`
+- **0b:** services `configuration.md` (how client addresses are resolved, and the location lookup).
+- **0c:** services `architecture.md` (internal gRPC calls are authenticated and encrypted); services `configuration.md`; services `deploying.md`
   (cert-manager issuers and rotation, or Linkerd).
+
+## What was built for 0b (2026-10-03)
+
+- **Finding 1, `getIPLocation`:** rewritten after the sibling's fix (`auth-service/cmd/api/handlers/helpers.go`). `net.IP` predicates instead of string prefixes, carrier-grade NAT added, a 3 second timeout, a typed decode, and a return on every failure. A malformed address is no longer called local. The call is synchronous on token issuance (`buildAuthLog`), so the timeout matters.
+- **Finding 2, client address:** `main.go` installs `echo.ExtractIPFromXFFHeader()` as the `IPExtractor`, and `getClientIP` is now `c.RealIP()`. The sign-in log (`auth_log.go`) already used `c.RealIP()`, which was forgeable for the same reason until the extractor was set.
+- **Finding 4, refresh grant:** `refreshAdmitsAccount` in `data/services/oauth_token.go` refuses a disabled, deleted or archived account before the token is claimed, without revoking it. One error for every reason, so the response doesn't describe the account's state.
+- **Finding 5, TOTP freshness, plus two faults found beside it:**
+  - `PATCH /totp` no longer stamps `TotpLastVerifiedAt`; `POST /totp/recovery-codes` does, because that is where a passcode is checked.
+  - `PATCH /totp` now answers 409 unless a secret and recovery codes exist. Before, a direct call enabled 2FA on an account with nothing able to produce a passcode.
+  - `POST /totp` now answers 409 while 2FA is on. It replaces the secret and clears `TotpEnabled`, so a password alone switched a working second factor off. It also clears recovery codes left by an abandoned enrolment.
+- **Tests:** the extractor through both proxy chains, the lookup's failure modes against a local server, the refresh check, and the TOTP enrolment rules through the handlers.
+
+### Still open
+- **Finding 3** (login throttle) is roadmap item 6.
+- **0c** is not started. Until it lands, graph-grpc, file-grpc and mail-grpc accept any call from anything that can reach their ports. A shared-secret interceptor was written and tested on 2026-10-03, then left out by decision: no site is live yet, and mutual TLS will authenticate callers as well as encrypt. If 0c slips past the first live deployment, bring the interceptor back first (about 100 lines; see *A server interceptor with a shared secret* above).
+- **The "Not checked" list above** (JWT claim validation, PKCE `plain`, and the rest) is still not checked.
 
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-08, scheduled 2026-09-28 |
-| 0b | not started |
+| 0b | done 2026-10-03, on branch `auth-hardening` |
 | 0c | not started |

@@ -92,6 +92,11 @@ tokens server-side behind a session cookie; for the locations that need it,
 nginx asks auth-service to translate that cookie into a `Bearer` token before
 proxying, so the services only ever see bearer tokens.
 
+A list of posts is always one profile's: `GET /notes/<owner id>/`, and the same
+for `/articles/`, `/topics/` and `/photos/`. There is no list of every post of
+a type across the site, and a request without an owner is refused. Posts are
+discovered through feeds, search, hashtags and profiles.
+
 ## anahita-libs
 
 The shared module every service imports:

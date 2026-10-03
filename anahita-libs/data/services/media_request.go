@@ -27,5 +27,6 @@ type MediaGRPCBrowseRequest struct {
 	Ordering  string   `validate:"max=15,omitempty,oneof=modified_on created_on enabled"`
 	Direction string   `validate:"max=4,omitempty,oneof=asc desc"`
 	Disabled  bool     `validate:"omitempty"`
-	OwnerID   int64    `validate:"omitempty,numeric"`
+	// Required, for the reason given on requests.MediumBrowseRequest.
+	OwnerID int64 `validate:"required,min=1"`
 }

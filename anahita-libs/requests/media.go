@@ -52,7 +52,11 @@ type MediumBrowseRequest struct {
 	Ordering  string `query:"ordering" validate:"max=15,omitempty,oneof=modified_on created_on enabled"`
 	Direction string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	Disabled  bool   `query:"disabled" validate:"omitempty"`
-	OwnerID   int64  `param:"owner_id" query:"oid" validate:"omitempty,numeric"`
+	// OwnerID is the profile whose posts are listed, and is required. There is
+	// no list of every post on the site: with the owner optional, and readable
+	// from ?oid= as well as the path, leaving it out returned exactly that.
+	// Discovery is the job of feeds, search, hashtags and profiles.
+	OwnerID int64 `param:"owner_id" validate:"required,min=1"`
 }
 
 type MediumReadRequest struct {

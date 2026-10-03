@@ -29,7 +29,6 @@ func (r *Routes) Init(e *echo.Echo) {
 	// when a token is present, so the viewer drives access filtering.
 	// Everything else requires a valid OAuth access token.
 	photos := e.Group("photos")
-	photos.GET("/", r.handler.Photo.Browse, r.setViewer)
 	photos.GET("/:owner_id/", r.handler.Photo.Browse, r.setViewer)
 	photos.GET("/:id", r.handler.Photo.Read, r.setViewer)
 	photos.PATCH("/:id", r.handler.Photo.Edit, r.authorize)

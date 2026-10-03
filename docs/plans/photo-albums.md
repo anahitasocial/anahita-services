@@ -16,7 +16,7 @@
 ## Design: one photo node with ordered attachments (not an album of photo nodes)
 - **Why:** a post with slides is *one* thing: one caption, one set of likes and replies, one audience. That's also how ActivityPub (one `Note` with several `attachment`s) and Bluesky (`app.bsky.embed.images`) model it.
 - **Why not photo-set nodes:** an album of separate photo nodes means separate likes and replies per image, plus extra joins everywhere.
-- **Clean up:** remove the unused `photo-set` type from `feed-defaults/defaults.json`.
+- **Clean up:** the unused `photo-set` type was removed from `feed-defaults/defaults.json` with item 18.
 
 **Data**
 - A side table `photo_files`:
@@ -144,9 +144,20 @@ A phase is finished only when these pages match the code. anahita-services pages
 ### Dependencies
 - None. It can run alongside items 1 and 17. Do it before item 5 (the complete purge), so the purge never has to deal with sets.
 
+### What was built (2026-10-03)
+
+- **Migration** `migration-job/migrations/20261003000002_delete_photo_sets.sql`, and the same deletion in `legacy/upgrade.sql`. On the reference database both remove 151 sets, the 52 comments under them, 1,259 edges (1,018 of them set memberships) and 1 notification. The photo count is unchanged, nothing is left pointing at a missing node, and a second run removes nothing.
+- **No storage cleanup was needed.** A set's `filename` is its cover photo's name (133 of the 135 that have one match a photo in that set; the other 2 name photos that no longer exist), not a file of its own.
+- **`upgrade.sql` still converts the legacy set type and edge type** before deleting them, rather than skipping the conversion as step 3 suggested. That keeps one identifying condition for both paths.
+- **`feed-defaults/defaults.json`** no longer lists the `photo-set` type, so feeds stop asking for it.
+- **Web:** `photo-sets` is gone from `TAB_COMPONENTS` and from the medium type list.
+- **Applied to the dev database** on 2026-10-03.
+
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Item 17 (several images per post) | not started |
+| Item 18 (photo sets removed) | done 2026-10-03, on branch `m1-safety-cleanup` |
