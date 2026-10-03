@@ -38,6 +38,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The first super administrator](registration.md#the-first-super-administrator)
 6. [Permissions](permissions.md) — who can post, comment, like and add followers
    - [Access levels](permissions.md#access-levels)
+   - [Seeing posts](permissions.md#seeing-posts)
    - [Comments](permissions.md#comments)
    - [The defaults](permissions.md#the-defaults)
    - [What profile owners can change](permissions.md#what-profile-owners-can-change)

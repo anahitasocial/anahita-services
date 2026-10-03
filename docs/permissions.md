@@ -11,6 +11,7 @@ change them, and what profile owners can change for themselves.
 - [Two separate settings](#two-separate-settings)
 - [Access levels](#access-levels)
 - [Who is always allowed](#who-is-always-allowed)
+- [Seeing posts](#seeing-posts)
 - [Posting](#posting)
 - [Comments](#comments)
 - [Likes](#likes)
@@ -58,6 +59,40 @@ These people are allowed whatever a profile has set:
 
 The one exception is editing somebody else's comment, which nobody but its
 author can do (see [Comments](#comments)).
+
+## Seeing posts
+
+A post has an access level of its own, as well as the one on the profile it is
+on. Somebody sees a post when both admit them:
+
+1. the **profile's** access admits them, and
+2. the **post's** access admits them.
+
+Both are measured against the profile the post is on. A followers-only post in
+a group is for the group's followers, whoever wrote it.
+
+Two people see a post without its own access being consulted:
+
+- **The person whose profile it is on** sees everything on it.
+- **The author** sees their own post for as long as they can see the profile
+  it is on.
+
+Nobody sees a post by, or on the profile of, somebody they have blocked or
+been blocked by.
+
+The same rule applies on a profile, in the home feed, and under a hashtag or a
+location. Search applies both access checks but not the two exceptions above,
+so searching may not find your own restricted posts.
+
+What depends on another post is judged by that post:
+
+| Item | Seen by |
+| --- | --- |
+| A comment | Whoever can see the post it is under |
+| A repost | Whoever can see the original post, and the reposter's profile |
+
+So following somebody who reposts a followers-only post does not show it to
+you. You see it only if you could see the original.
 
 ## Posting
 
@@ -137,6 +172,9 @@ Default: `admins`.
 
 Reposts have no setting under Permissions and cannot be restricted per
 profile.
+
+A repost is shown only to people who can see the original post. See
+[Seeing posts](#seeing-posts).
 
 ## The defaults
 

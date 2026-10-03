@@ -39,8 +39,7 @@ func (repo *FeedActorRepo) Count(req *graphpb.FeedActorCountRequest, viewer *ent
 
 	sb := sq.Select("COUNT(*)").
 		From("nodes AS node").
-		LeftJoin("nodes AS owner ON owner.id = node.owner_id").
-		LeftJoin("nodes AS object ON object.id = node.parent_id")
+		LeftJoin("nodes AS owner ON owner.id = node.owner_id")
 
 	nodeTypes := req.MediumEntityTypes
 	if req.IncludeReposts {
@@ -74,8 +73,7 @@ func (repo *FeedActorRepo) Count(req *graphpb.FeedActorCountRequest, viewer *ent
 
 // Browse returns feed nodes for an actor profile
 func (repo *FeedActorRepo) Browse(req *graphpb.FeedActorBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
-	query := GetBaseSelectQuery().
-		LeftJoin("nodes AS object ON object.id = node.parent_id")
+	query := GetBaseSelectQuery()
 
 	nodeTypes := req.MediumEntityTypes
 	if req.IncludeReposts {

@@ -7,119 +7,60 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-// SetFeedAccessQuery returns the access query for media repository
+// SetFeedAccessQuery gates a feed. A feed mixes three kinds of row, and each
+// is judged by the rule the rest of the package already uses for it:
+//
+//   - a post, by the medium gate: its owner's access and its own;
+//   - a comment, by the post it sits under;
+//   - a repost, by the post it repeats, and by the reposter's profile.
+//
+// This used to be a second, hand-written copy of the medium gate that read the
+// node's access from `object`, the row joined through parent_id. Two things
+// followed from that:
+//
+//   - A post has no parent, so `object.access IS NULL` was true and its own
+//     access was never read. Every followers-only, mutuals-only and only-me
+//     post showed in profile and home feeds, to guests included.
+//   - A repost was judged by the original's access, but "is the viewer a
+//     follower" was asked of the REPOSTER, the row's owner. Anybody following
+//     the reposter saw a followers-only post of somebody they did not follow.
+//
+// The query must alias the row `node` and its owner `owner`.
 func SetFeedAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.SelectBuilder {
 	if viewer.IsAdmin() {
 		return sb
 	}
 
-	vID := viewer.ID
-	follows := relViewerFollowsOwner(vID)
-	leaders := relOwnerFollowsViewer(vID)
-	mutual := sq.And{follows, leaders}
-	isAdmin := relViewerAdminsOwner(vID)
-	notBlocked := relNotBlockedEitherWay(vID, contentActorRefs("node")...)
-	relSelfOrAdminForOwner := relSelfOrAdminForOwner(vID)
+	derived := []string{an_const.NodeBaseCommentEntityType, an_const.NodeBaseRepostType}
 
-	// Hard deny if blocked either way
-	sb = sb.Where(notBlocked)
+	return sb.Where(sq.Or{
+		sq.And{
+			sq.NotEq{"node.type": derived},
+			mediumAccessCondition(viewer),
+		},
+		sq.And{
+			sq.Eq{"node.type": an_const.NodeBaseCommentEntityType},
+			commentAccessCondition(viewer),
+		},
+		sq.And{
+			sq.Eq{"node.type": an_const.NodeBaseRepostType},
+			repostAccessCondition(viewer),
+		},
+	})
+}
 
-	// --- OWNER gate ---
-	ownerGate := sq.Or{
-		sq.Expr("owner.access IS NULL"),
-		sq.Expr("FIND_IN_SET(?, owner.access)", an_const.AnahitaAccessPublic),
+// repostAccessCondition admits a repost when the post it repeats passes the
+// medium gate for this viewer, the reposter's profile admits them, and nobody
+// on either side has blocked the other.
+//
+// The repost's own access column is not read. It is a copy of the original's,
+// taken when the repost was made, and the original is the one that can change.
+func repostAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
+	return sq.And{
+		relNotBlockedEitherWay(viewer.ID, contentActorRefs("node")...),
+		accessGate("owner.access", viewer),
+		parentPassesMediumGate(viewer),
 	}
-
-	if vID != 0 {
-		ownerGate = append(ownerGate,
-			// registered
-			sq.Expr("FIND_IN_SET(?, owner.access)", an_const.AnahitaAccessRegistered),
-
-			// myself (person ⇒ self, non-person ⇒ admin)
-			sq.And{
-				sq.Expr("FIND_IN_SET(?, owner.access)", an_const.AnahitaAccessMyself),
-				relSelfOrAdminForOwner,
-			},
-
-			// followers (inclusive: follow/leader/mutual/admin)
-			sq.And{
-				sq.Expr("FIND_IN_SET(?, owner.access)", an_const.AnahitaAccessFollowers),
-				sq.Or{follows, leaders, mutual, isAdmin},
-			},
-
-			// leaders (inclusive: leader/mutual/admin)
-			sq.And{
-				sq.Expr("FIND_IN_SET(?, owner.access)", an_const.AnahitaAccessLeaders),
-				sq.Or{leaders, mutual, isAdmin},
-			},
-
-			// mutuals (inclusive: mutual/admin)
-			sq.And{
-				sq.Expr("FIND_IN_SET(?, owner.access)", an_const.AnahitaAccessMutuals),
-				sq.Or{mutual, isAdmin},
-			},
-
-			// admins
-			sq.And{
-				sq.Expr("FIND_IN_SET(?, owner.access)", an_const.AnahitaAccessAdmins),
-				isAdmin,
-			},
-		)
-	}
-
-	nodeGate := sq.Or{
-		sq.Expr("object.access IS NULL"),
-		sq.Expr("FIND_IN_SET(?, object.access)", an_const.AnahitaAccessPublic),
-	}
-
-	if vID != 0 {
-		nodeGate = append(nodeGate,
-			// registered
-			sq.Expr("FIND_IN_SET(?, object.access)", an_const.AnahitaAccessRegistered),
-
-			// myself (same rule as owner gate)
-			sq.And{
-				sq.Expr("FIND_IN_SET(?, object.access)", an_const.AnahitaAccessMyself),
-				relSelfOrAdminForOwner,
-			},
-
-			// followers (inclusive)
-			sq.And{
-				sq.Expr("FIND_IN_SET(?, object.access)", an_const.AnahitaAccessFollowers),
-				sq.Or{follows, leaders, mutual, isAdmin},
-			},
-
-			// leaders (inclusive)
-			sq.And{
-				sq.Expr("FIND_IN_SET(?, object.access)", an_const.AnahitaAccessLeaders),
-				sq.Or{leaders, mutual, isAdmin},
-			},
-
-			// mutuals (inclusive)
-			sq.And{
-				sq.Expr("FIND_IN_SET(?, object.access)", an_const.AnahitaAccessMutuals),
-				sq.Or{mutual, isAdmin},
-			},
-
-			// admins
-			//
-			// object.access, not node.access. Every other branch of this gate
-			// asks about the OBJECT — the thing the story is about — and this
-			// one asked about the story row instead, so the "admins" access
-			// level did not work in feeds at all.
-			//
-			// It failed closed rather than open, which is why nobody noticed:
-			// a story row's own access is usually empty, FIND_IN_SET against
-			// it is NULL, and the branch never matched — so an admins-only
-			// object was hidden from the very administrators entitled to it.
-			sq.And{
-				sq.Expr("FIND_IN_SET(?, object.access)", an_const.AnahitaAccessAdmins),
-				isAdmin,
-			},
-		)
-	}
-
-	return sb.Where(ownerGate).Where(nodeGate)
 }
 
 // queryGetLeaderIds retrieves the IDs of the leaders that the viewer follows.
