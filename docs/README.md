@@ -56,7 +56,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
-| [Feed access leak](plans/feed-access-leak.md) | 0 | not started |
+| [Feed access leak](plans/feed-access-leak.md) | 0 | done 2026-10-02; manual check on a running stack to do |
 | [Remove private notes](plans/remove-private-notes.md) | 1 | not started |
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
 | [Abuse reports](plans/abuse-report-service.md) | 4b | not started |
@@ -84,3 +84,4 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Onboarding](plans/done/onboarding.md) | — | done (phase 3 moved to the recommendation service) |
 | [Dissolve `people_people`](plans/done/dissolve-people-people.md) | — | done |
 | [Actor lifecycle states](plans/done/actor-lifecycle-states.md) | — | done (archiving media deferred) |
+| [Remove unused legacy node columns](plans/done/remove-unused-node-columns.md) | 0d | done 2026-10-02 |

@@ -86,7 +86,7 @@ func TestApplyEditableActorFieldsIgnoresEverythingElse(t *testing.T) {
 	req := fullRequest()
 	req.FollowerCount = 9999
 	req.LeaderCount = 8888
-	req.HitsCount = 7777
+	req.ViewCount = 7777
 	req.CreatedBy = 1234
 
 	applyEditableActorFields(node, req)
@@ -94,7 +94,7 @@ func TestApplyEditableActorFieldsIgnoresEverythingElse(t *testing.T) {
 	for name, got := range map[string]any{
 		"FollowerCount": node.FollowerCount,
 		"LeaderCount":   node.LeaderCount,
-		"HitsCount":     node.HitsCount,
+		"ViewCount":     node.ViewCount,
 		"CreatedBy":     node.CreatedBy,
 	} {
 		if !reflect.ValueOf(got).IsZero() {

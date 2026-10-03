@@ -4,14 +4,14 @@
 
 ## Context
 Events are "groups with an expiry date plus organiser features" (`docs/plans/done/dissolve-people-people.md:828-831`). The groundwork is already in place:
-- `nodes` has `start_date` / `end_date` (indexed), the `geo_*` columns and a `timezone` column (a legacy integer offset);
+- `nodes` has `start_date` / `end_date` (indexed), and the `geo_*` columns;
 - actor types automatically share the alias namespace, profiles, covers, avatars, media tabs, follows and access levels;
 - item 11 adds invitations as an edge that any actor type can use.
 
 The goal is the smallest event feature that's genuinely useful, not a ticketing system.
 
 ## What a minimalist event needs (the recommendation)
-1. **When:** start and end, stored in UTC in `start_date` / `end_date`, plus a new **`timezone_name`** column (IANA, e.g. `America/Toronto`), so times display correctly across daylight-saving changes. The integer `timezone` column can't do that. No all-day or recurring events in v1.
+1. **When:** start and end, stored in UTC in `start_date` / `end_date`, plus a new **`timezone_name`** column (IANA, e.g. `America/Toronto`), so times display correctly across daylight-saving changes. The legacy integer `timezone` column couldn't do that, and was dropped on 2026-10-02. No all-day or recurring events in v1.
 2. **Where:** either
    - a **place**, reusing location-service (a location tag edge plus the `geo_*` columns, and the map from `Map.jsx`); or
    - **online**, a meeting URL that **only people who are going** (and hosts) can see; or both.

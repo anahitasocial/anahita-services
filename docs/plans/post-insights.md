@@ -8,11 +8,11 @@ Every medium node (note, article, topic, photo, video) should have an insight vi
 Profile-level analytics (how many visited the profile, how many went on to follow) are **not** part of this item. See *Decisions*.
 
 ## What exists
-- **Counts** are already stored on each node: `vote_up_count`, `comment_count`, `repost_count` (`migration-job/schema/init.sql:61-67`). Item 25 adds `quote_count`.
+- **Counts** are already stored on each node: `vote_up_count`, `comment_count`, `repost_count`, and `quote_count` (in `migration-job/schema/init.sql`; item 25 starts writing `quote_count`).
 - **Lists** exist, for signed-in viewers only:
   - likers: `GET /likes/:node_id/` (`like-service/cmd/api/routes.go:28`);
   - reposters: `GET /reposts/:parent_id/` (`feed-service/cmd/api/routes.go:37`).
-- **Views are not counted.** `nodes.hits` exists and is returned (`graph-grpc-service/data/repositories/helpers.go:63`), but no service ever increments it.
+- **Views are not counted.** `nodes.view_count` exists and is returned as `view_count` on media, but no service ever increments it. It was the legacy `hits` column, renamed on 2026-10-02 (`done/remove-unused-node-columns.md`).
 - **Web:** `src/containers/likes/` has a likes list. There is no insights view and no reposters list.
 
 ## Decisions
@@ -25,7 +25,7 @@ Profile-level analytics (how many visited the profile, how many went on to follo
 - A view is counted when a signed-in person opens the post's own page (`GET /{ns}/:id`), not when it scrolls past in a feed. Feed impressions would need the client to report what was on screen, which is more tracking for a less meaningful number.
 - **One view per person per post per day.** A Redis key `view:<node_id>:<hash(viewer_id + daily salt)>` with a 24 h TTL decides whether to count. The salt rotates daily and the key expires, so no lasting record of who viewed what exists anywhere.
 - The author's own views are not counted. Logged-out views are counted once per IP hash per day, with the same expiring key.
-- Increments go to a Redis counter and are flushed to `nodes.hits` in batches by the sweeper (every few minutes), so a popular post doesn't cause a database write per view.
+- Increments go to a Redis counter and are flushed to `nodes.view_count` in batches by the sweeper (every few minutes), so a popular post doesn't cause a database write per view.
 - Without Redis (cookie sessions), views are not counted and the insight view says so. No silent wrong numbers.
 - **Federation (item 8):** views on other servers can't be counted. The insight view labels the number "Views on this site".
 

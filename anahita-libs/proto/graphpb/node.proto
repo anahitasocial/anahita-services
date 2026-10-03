@@ -19,18 +19,15 @@ message Node {
     string excerpt = 9;
     string filename = 10;
     string cover_filename = 11;
-    int64 filesize = 12;
     string meta = 13;
     google.protobuf.Timestamp created_on = 14;
     google.protobuf.Timestamp modified_on = 15;
     int64 follower_count = 16;
     int64 leader_count = 17;
-    int64 mutual_count = 18;
     int64 subscriber_count = 19;
     bool comment_status = 20;
     int64 comment_count = 21;
     int64 likes_count = 22;
-    int64 dislikes_count = 23;
     bool is_liked_by_viewer = 24;
     int64 repost_count = 26;
     int64 quote_count = 27;
@@ -41,6 +38,12 @@ message Node {
     // than reused: a new field with this number would be decoded by older
     // peers as the old map.
     reserved 30;
+    // Columns dropped from `nodes` on 2026-10-02 because nothing used them:
+    // filesize (12), mutual_count (18), dislikes_count (23), last_comment_id,
+    // last_comment_by, last_comment_on (47-49), ordering (50), is_default (53),
+    // cover_filesize (68), cover_mimetype (69), status, status_update_time
+    // (70-71) and timezone (73). Reserved for the same reason as 30.
+    reserved 12, 18, 23, 47 to 50, 53, 68 to 71, 73;
     Node owner = 31;
     Node parent = 32;
     Node author = 33;
@@ -57,14 +60,9 @@ message Node {
     google.protobuf.Timestamp end_date = 44;
     string owner_type = 45;
     int64 owner_id = 46;
-    int64 last_comment_id = 47;
-    int64 last_comment_by = 48;
-    google.protobuf.Timestamp last_comment_on = 49;
-    int32 ordering = 50;
     bool verified = 51;
     bool pinned = 52;
-    bool is_default = 53;
-    int64 hits_count = 54;
+    int64 view_count = 54;
     int64 parent_id = 55;
     string parent_type = 56;
     double geo_latitude = 57;
@@ -78,12 +76,7 @@ message Node {
     int64 created_by = 65;
     google.protobuf.Timestamp update_time = 66;
     int64 modified_by = 67;
-    int64 cover_filesize = 68;
-    string cover_mimetype = 69;
-    string status = 70;
-    google.protobuf.Timestamp status_update_time = 71;
     string mimetype = 72;
-    int32 timezone = 73;
     string language = 74;
     int64 edge_count = 75;
 
@@ -293,11 +286,11 @@ message ReadConnectionStatsRequest {
 message ReadConnectionStatsResponse {
     uint64 follower_count = 1;
     uint64 leader_count = 2;
-    uint64 mutual_count = 3;
     uint64 subscriber_count = 4;
     uint64 comment_count = 5;
     uint64 vote_up_count = 6;
-    uint64 vote_down_count = 7;
+    // 3 was mutual_count and 7 was vote_down_count; both columns are gone.
+    reserved 3, 7;
     uint64 repost_count = 8;
     uint64 quote_count = 9;
 }

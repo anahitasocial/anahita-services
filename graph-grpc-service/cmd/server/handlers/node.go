@@ -323,11 +323,9 @@ func (h *nodeHandler) ReadConnectionStats(ctx context.Context, req *graphpb.Read
 	return &graphpb.ReadConnectionStatsResponse{
 		FollowerCount:   resp.FollowerCount,
 		LeaderCount:     resp.LeaderCount,
-		MutualCount:     resp.MutualCount,
 		SubscriberCount: resp.SubscriberCount,
 		CommentCount:    resp.CommentCount,
 		VoteUpCount:     resp.VoteUpCount,
-		VoteDownCount:   resp.VoteDownCount,
 		RepostCount:     resp.RepostCount,
 		QuoteCount:      resp.QuoteCount,
 	}, nil

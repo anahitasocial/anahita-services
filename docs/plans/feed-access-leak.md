@@ -36,7 +36,7 @@ The fix went further than the plan, because the feed gate had a second fault and
 
 ### Follow-ups, not done here
 - `access_search.go`, `access.go` (`SetAccessQuery`) and `access_polymorphic.go` are further hand-written copies of the gate. They check a post's own access, so they don't leak, but they lack the owner and author rules. Moving them onto `accessGate` would remove the remaining copies.
-- `nodes.status` is nullable in the schema but scanned as a plain string in `helpers.go`. Rows the app creates always set it; a legacy row with a NULL status would fail to load.
+- ~~`nodes.status` is nullable but scanned as a plain string.~~ Resolved on 2026-10-02 by dropping the column (`done/remove-unused-node-columns.md`). It was a live fault: a purged actor's tombstone had a NULL status and could not be loaded.
 - The manual check on a running stack (logged out, a profile with a followers-only post) is still to do after the next deploy of graph-grpc-service.
 
 ## Status

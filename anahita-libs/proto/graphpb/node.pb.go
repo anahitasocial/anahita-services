@@ -35,18 +35,15 @@ type Node struct {
 	Excerpt              string                 `protobuf:"bytes,9,opt,name=excerpt,proto3" json:"excerpt,omitempty"`
 	Filename             string                 `protobuf:"bytes,10,opt,name=filename,proto3" json:"filename,omitempty"`
 	CoverFilename        string                 `protobuf:"bytes,11,opt,name=cover_filename,json=coverFilename,proto3" json:"cover_filename,omitempty"`
-	Filesize             int64                  `protobuf:"varint,12,opt,name=filesize,proto3" json:"filesize,omitempty"`
 	Meta                 string                 `protobuf:"bytes,13,opt,name=meta,proto3" json:"meta,omitempty"`
 	CreatedOn            *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=created_on,json=createdOn,proto3" json:"created_on,omitempty"`
 	ModifiedOn           *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=modified_on,json=modifiedOn,proto3" json:"modified_on,omitempty"`
 	FollowerCount        int64                  `protobuf:"varint,16,opt,name=follower_count,json=followerCount,proto3" json:"follower_count,omitempty"`
 	LeaderCount          int64                  `protobuf:"varint,17,opt,name=leader_count,json=leaderCount,proto3" json:"leader_count,omitempty"`
-	MutualCount          int64                  `protobuf:"varint,18,opt,name=mutual_count,json=mutualCount,proto3" json:"mutual_count,omitempty"`
 	SubscriberCount      int64                  `protobuf:"varint,19,opt,name=subscriber_count,json=subscriberCount,proto3" json:"subscriber_count,omitempty"`
 	CommentStatus        bool                   `protobuf:"varint,20,opt,name=comment_status,json=commentStatus,proto3" json:"comment_status,omitempty"`
 	CommentCount         int64                  `protobuf:"varint,21,opt,name=comment_count,json=commentCount,proto3" json:"comment_count,omitempty"`
 	LikesCount           int64                  `protobuf:"varint,22,opt,name=likes_count,json=likesCount,proto3" json:"likes_count,omitempty"`
-	DislikesCount        int64                  `protobuf:"varint,23,opt,name=dislikes_count,json=dislikesCount,proto3" json:"dislikes_count,omitempty"`
 	IsLikedByViewer      bool                   `protobuf:"varint,24,opt,name=is_liked_by_viewer,json=isLikedByViewer,proto3" json:"is_liked_by_viewer,omitempty"`
 	RepostCount          int64                  `protobuf:"varint,26,opt,name=repost_count,json=repostCount,proto3" json:"repost_count,omitempty"`
 	QuoteCount           int64                  `protobuf:"varint,27,opt,name=quote_count,json=quoteCount,proto3" json:"quote_count,omitempty"`
@@ -68,14 +65,9 @@ type Node struct {
 	EndDate              *timestamppb.Timestamp `protobuf:"bytes,44,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
 	OwnerType            string                 `protobuf:"bytes,45,opt,name=owner_type,json=ownerType,proto3" json:"owner_type,omitempty"`
 	OwnerId              int64                  `protobuf:"varint,46,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
-	LastCommentId        int64                  `protobuf:"varint,47,opt,name=last_comment_id,json=lastCommentId,proto3" json:"last_comment_id,omitempty"`
-	LastCommentBy        int64                  `protobuf:"varint,48,opt,name=last_comment_by,json=lastCommentBy,proto3" json:"last_comment_by,omitempty"`
-	LastCommentOn        *timestamppb.Timestamp `protobuf:"bytes,49,opt,name=last_comment_on,json=lastCommentOn,proto3" json:"last_comment_on,omitempty"`
-	Ordering             int32                  `protobuf:"varint,50,opt,name=ordering,proto3" json:"ordering,omitempty"`
 	Verified             bool                   `protobuf:"varint,51,opt,name=verified,proto3" json:"verified,omitempty"`
 	Pinned               bool                   `protobuf:"varint,52,opt,name=pinned,proto3" json:"pinned,omitempty"`
-	IsDefault            bool                   `protobuf:"varint,53,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
-	HitsCount            int64                  `protobuf:"varint,54,opt,name=hits_count,json=hitsCount,proto3" json:"hits_count,omitempty"`
+	ViewCount            int64                  `protobuf:"varint,54,opt,name=view_count,json=viewCount,proto3" json:"view_count,omitempty"`
 	ParentId             int64                  `protobuf:"varint,55,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
 	ParentType           string                 `protobuf:"bytes,56,opt,name=parent_type,json=parentType,proto3" json:"parent_type,omitempty"`
 	GeoLatitude          float64                `protobuf:"fixed64,57,opt,name=geo_latitude,json=geoLatitude,proto3" json:"geo_latitude,omitempty"`
@@ -89,12 +81,7 @@ type Node struct {
 	CreatedBy            int64                  `protobuf:"varint,65,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
 	UpdateTime           *timestamppb.Timestamp `protobuf:"bytes,66,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
 	ModifiedBy           int64                  `protobuf:"varint,67,opt,name=modified_by,json=modifiedBy,proto3" json:"modified_by,omitempty"`
-	CoverFilesize        int64                  `protobuf:"varint,68,opt,name=cover_filesize,json=coverFilesize,proto3" json:"cover_filesize,omitempty"`
-	CoverMimetype        string                 `protobuf:"bytes,69,opt,name=cover_mimetype,json=coverMimetype,proto3" json:"cover_mimetype,omitempty"`
-	Status               string                 `protobuf:"bytes,70,opt,name=status,proto3" json:"status,omitempty"`
-	StatusUpdateTime     *timestamppb.Timestamp `protobuf:"bytes,71,opt,name=status_update_time,json=statusUpdateTime,proto3" json:"status_update_time,omitempty"`
 	Mimetype             string                 `protobuf:"bytes,72,opt,name=mimetype,proto3" json:"mimetype,omitempty"`
-	Timezone             int32                  `protobuf:"varint,73,opt,name=timezone,proto3" json:"timezone,omitempty"`
 	Language             string                 `protobuf:"bytes,74,opt,name=language,proto3" json:"language,omitempty"`
 	EdgeCount            int64                  `protobuf:"varint,75,opt,name=edge_count,json=edgeCount,proto3" json:"edge_count,omitempty"`
 	// Set when the actor is scheduled for deletion, absent otherwise.
@@ -243,13 +230,6 @@ func (x *Node) GetCoverFilename() string {
 	return ""
 }
 
-func (x *Node) GetFilesize() int64 {
-	if x != nil {
-		return x.Filesize
-	}
-	return 0
-}
-
 func (x *Node) GetMeta() string {
 	if x != nil {
 		return x.Meta
@@ -285,13 +265,6 @@ func (x *Node) GetLeaderCount() int64 {
 	return 0
 }
 
-func (x *Node) GetMutualCount() int64 {
-	if x != nil {
-		return x.MutualCount
-	}
-	return 0
-}
-
 func (x *Node) GetSubscriberCount() int64 {
 	if x != nil {
 		return x.SubscriberCount
@@ -316,13 +289,6 @@ func (x *Node) GetCommentCount() int64 {
 func (x *Node) GetLikesCount() int64 {
 	if x != nil {
 		return x.LikesCount
-	}
-	return 0
-}
-
-func (x *Node) GetDislikesCount() int64 {
-	if x != nil {
-		return x.DislikesCount
 	}
 	return 0
 }
@@ -474,34 +440,6 @@ func (x *Node) GetOwnerId() int64 {
 	return 0
 }
 
-func (x *Node) GetLastCommentId() int64 {
-	if x != nil {
-		return x.LastCommentId
-	}
-	return 0
-}
-
-func (x *Node) GetLastCommentBy() int64 {
-	if x != nil {
-		return x.LastCommentBy
-	}
-	return 0
-}
-
-func (x *Node) GetLastCommentOn() *timestamppb.Timestamp {
-	if x != nil {
-		return x.LastCommentOn
-	}
-	return nil
-}
-
-func (x *Node) GetOrdering() int32 {
-	if x != nil {
-		return x.Ordering
-	}
-	return 0
-}
-
 func (x *Node) GetVerified() bool {
 	if x != nil {
 		return x.Verified
@@ -516,16 +454,9 @@ func (x *Node) GetPinned() bool {
 	return false
 }
 
-func (x *Node) GetIsDefault() bool {
+func (x *Node) GetViewCount() int64 {
 	if x != nil {
-		return x.IsDefault
-	}
-	return false
-}
-
-func (x *Node) GetHitsCount() int64 {
-	if x != nil {
-		return x.HitsCount
+		return x.ViewCount
 	}
 	return 0
 }
@@ -621,46 +552,11 @@ func (x *Node) GetModifiedBy() int64 {
 	return 0
 }
 
-func (x *Node) GetCoverFilesize() int64 {
-	if x != nil {
-		return x.CoverFilesize
-	}
-	return 0
-}
-
-func (x *Node) GetCoverMimetype() string {
-	if x != nil {
-		return x.CoverMimetype
-	}
-	return ""
-}
-
-func (x *Node) GetStatus() string {
-	if x != nil {
-		return x.Status
-	}
-	return ""
-}
-
-func (x *Node) GetStatusUpdateTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.StatusUpdateTime
-	}
-	return nil
-}
-
 func (x *Node) GetMimetype() string {
 	if x != nil {
 		return x.Mimetype
 	}
 	return ""
-}
-
-func (x *Node) GetTimezone() int32 {
-	if x != nil {
-		return x.Timezone
-	}
-	return 0
 }
 
 func (x *Node) GetLanguage() string {
@@ -2371,11 +2267,9 @@ type ReadConnectionStatsResponse struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	FollowerCount   uint64                 `protobuf:"varint,1,opt,name=follower_count,json=followerCount,proto3" json:"follower_count,omitempty"`
 	LeaderCount     uint64                 `protobuf:"varint,2,opt,name=leader_count,json=leaderCount,proto3" json:"leader_count,omitempty"`
-	MutualCount     uint64                 `protobuf:"varint,3,opt,name=mutual_count,json=mutualCount,proto3" json:"mutual_count,omitempty"`
 	SubscriberCount uint64                 `protobuf:"varint,4,opt,name=subscriber_count,json=subscriberCount,proto3" json:"subscriber_count,omitempty"`
 	CommentCount    uint64                 `protobuf:"varint,5,opt,name=comment_count,json=commentCount,proto3" json:"comment_count,omitempty"`
 	VoteUpCount     uint64                 `protobuf:"varint,6,opt,name=vote_up_count,json=voteUpCount,proto3" json:"vote_up_count,omitempty"`
-	VoteDownCount   uint64                 `protobuf:"varint,7,opt,name=vote_down_count,json=voteDownCount,proto3" json:"vote_down_count,omitempty"`
 	RepostCount     uint64                 `protobuf:"varint,8,opt,name=repost_count,json=repostCount,proto3" json:"repost_count,omitempty"`
 	QuoteCount      uint64                 `protobuf:"varint,9,opt,name=quote_count,json=quoteCount,proto3" json:"quote_count,omitempty"`
 	unknownFields   protoimpl.UnknownFields
@@ -2426,13 +2320,6 @@ func (x *ReadConnectionStatsResponse) GetLeaderCount() uint64 {
 	return 0
 }
 
-func (x *ReadConnectionStatsResponse) GetMutualCount() uint64 {
-	if x != nil {
-		return x.MutualCount
-	}
-	return 0
-}
-
 func (x *ReadConnectionStatsResponse) GetSubscriberCount() uint64 {
 	if x != nil {
 		return x.SubscriberCount
@@ -2450,13 +2337,6 @@ func (x *ReadConnectionStatsResponse) GetCommentCount() uint64 {
 func (x *ReadConnectionStatsResponse) GetVoteUpCount() uint64 {
 	if x != nil {
 		return x.VoteUpCount
-	}
-	return 0
-}
-
-func (x *ReadConnectionStatsResponse) GetVoteDownCount() uint64 {
-	if x != nil {
-		return x.VoteDownCount
 	}
 	return 0
 }
@@ -2479,7 +2359,7 @@ var File_proto_graphpb_node_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd8\x17\n" +
+	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x81\x14\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -2492,22 +2372,19 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\aexcerpt\x18\t \x01(\tR\aexcerpt\x12\x1a\n" +
 	"\bfilename\x18\n" +
 	" \x01(\tR\bfilename\x12%\n" +
-	"\x0ecover_filename\x18\v \x01(\tR\rcoverFilename\x12\x1a\n" +
-	"\bfilesize\x18\f \x01(\x03R\bfilesize\x12\x12\n" +
+	"\x0ecover_filename\x18\v \x01(\tR\rcoverFilename\x12\x12\n" +
 	"\x04meta\x18\r \x01(\tR\x04meta\x129\n" +
 	"\n" +
 	"created_on\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedOn\x12;\n" +
 	"\vmodified_on\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"modifiedOn\x12%\n" +
 	"\x0efollower_count\x18\x10 \x01(\x03R\rfollowerCount\x12!\n" +
-	"\fleader_count\x18\x11 \x01(\x03R\vleaderCount\x12!\n" +
-	"\fmutual_count\x18\x12 \x01(\x03R\vmutualCount\x12)\n" +
+	"\fleader_count\x18\x11 \x01(\x03R\vleaderCount\x12)\n" +
 	"\x10subscriber_count\x18\x13 \x01(\x03R\x0fsubscriberCount\x12%\n" +
 	"\x0ecomment_status\x18\x14 \x01(\bR\rcommentStatus\x12#\n" +
 	"\rcomment_count\x18\x15 \x01(\x03R\fcommentCount\x12\x1f\n" +
 	"\vlikes_count\x18\x16 \x01(\x03R\n" +
-	"likesCount\x12%\n" +
-	"\x0edislikes_count\x18\x17 \x01(\x03R\rdislikesCount\x12+\n" +
+	"likesCount\x12+\n" +
 	"\x12is_liked_by_viewer\x18\x18 \x01(\bR\x0fisLikedByViewer\x12!\n" +
 	"\frepost_count\x18\x1a \x01(\x03R\vrepostCount\x12\x1f\n" +
 	"\vquote_count\x18\x1b \x01(\x03R\n" +
@@ -2531,17 +2408,11 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\bend_date\x18, \x01(\v2\x1a.google.protobuf.TimestampR\aendDate\x12\x1d\n" +
 	"\n" +
 	"owner_type\x18- \x01(\tR\townerType\x12\x19\n" +
-	"\bowner_id\x18. \x01(\x03R\aownerId\x12&\n" +
-	"\x0flast_comment_id\x18/ \x01(\x03R\rlastCommentId\x12&\n" +
-	"\x0flast_comment_by\x180 \x01(\x03R\rlastCommentBy\x12B\n" +
-	"\x0flast_comment_on\x181 \x01(\v2\x1a.google.protobuf.TimestampR\rlastCommentOn\x12\x1a\n" +
-	"\bordering\x182 \x01(\x05R\bordering\x12\x1a\n" +
+	"\bowner_id\x18. \x01(\x03R\aownerId\x12\x1a\n" +
 	"\bverified\x183 \x01(\bR\bverified\x12\x16\n" +
 	"\x06pinned\x184 \x01(\bR\x06pinned\x12\x1d\n" +
 	"\n" +
-	"is_default\x185 \x01(\bR\tisDefault\x12\x1d\n" +
-	"\n" +
-	"hits_count\x186 \x01(\x03R\thitsCount\x12\x1b\n" +
+	"view_count\x186 \x01(\x03R\tviewCount\x12\x1b\n" +
 	"\tparent_id\x187 \x01(\x03R\bparentId\x12\x1f\n" +
 	"\vparent_type\x188 \x01(\tR\n" +
 	"parentType\x12!\n" +
@@ -2560,13 +2431,8 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\vupdate_time\x18B \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"updateTime\x12\x1f\n" +
 	"\vmodified_by\x18C \x01(\x03R\n" +
-	"modifiedBy\x12%\n" +
-	"\x0ecover_filesize\x18D \x01(\x03R\rcoverFilesize\x12%\n" +
-	"\x0ecover_mimetype\x18E \x01(\tR\rcoverMimetype\x12\x16\n" +
-	"\x06status\x18F \x01(\tR\x06status\x12H\n" +
-	"\x12status_update_time\x18G \x01(\v2\x1a.google.protobuf.TimestampR\x10statusUpdateTime\x12\x1a\n" +
+	"modifiedBy\x12\x1a\n" +
 	"\bmimetype\x18H \x01(\tR\bmimetype\x12\x1a\n" +
-	"\btimezone\x18I \x01(\x05R\btimezone\x12\x1a\n" +
 	"\blanguage\x18J \x01(\tR\blanguage\x12\x1d\n" +
 	"\n" +
 	"edge_count\x18K \x01(\x03R\tedgeCount\x129\n" +
@@ -2579,7 +2445,7 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x0fperson_pronouns\x18O \x01(\tR\x0epersonPronouns\x12B\n" +
 	"\x0flast_visit_date\x18P \x01(\v2\x1a.google.protobuf.TimestampR\rlastVisitDate\x12;\n" +
 	"\vfeatured_at\x18Q \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"featuredAtJ\x04\b\x1e\x10\x1f\"*\n" +
+	"featuredAtJ\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\bD\x10HJ\x04\bI\x10J\"*\n" +
 	"\x05Nodes\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xad\x03\n" +
 	"\x11NodeBrowseRequest\x12\x14\n" +
@@ -2683,18 +2549,16 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x1aReadConnectionStatsRequest\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\x03R\x06nodeId\x12%\n" +
 	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
-	"\faccess_check\x18\x03 \x01(\bR\vaccessCheck\"\xea\x02\n" +
+	"\faccess_check\x18\x03 \x01(\bR\vaccessCheck\"\xab\x02\n" +
 	"\x1bReadConnectionStatsResponse\x12%\n" +
 	"\x0efollower_count\x18\x01 \x01(\x04R\rfollowerCount\x12!\n" +
-	"\fleader_count\x18\x02 \x01(\x04R\vleaderCount\x12!\n" +
-	"\fmutual_count\x18\x03 \x01(\x04R\vmutualCount\x12)\n" +
+	"\fleader_count\x18\x02 \x01(\x04R\vleaderCount\x12)\n" +
 	"\x10subscriber_count\x18\x04 \x01(\x04R\x0fsubscriberCount\x12#\n" +
 	"\rcomment_count\x18\x05 \x01(\x04R\fcommentCount\x12\"\n" +
-	"\rvote_up_count\x18\x06 \x01(\x04R\vvoteUpCount\x12&\n" +
-	"\x0fvote_down_count\x18\a \x01(\x04R\rvoteDownCount\x12!\n" +
+	"\rvote_up_count\x18\x06 \x01(\x04R\vvoteUpCount\x12!\n" +
 	"\frepost_count\x18\b \x01(\x04R\vrepostCount\x12\x1f\n" +
 	"\vquote_count\x18\t \x01(\x04R\n" +
-	"quoteCount2\xe0\b\n" +
+	"quoteCountJ\x04\b\x03\x10\x04J\x04\b\a\x10\b2\xe0\b\n" +
 	"\vNodeService\x12=\n" +
 	"\x06Browse\x12\x18.graph.NodeBrowseRequest\x1a\x19.graph.NodeBrowseResponse\x127\n" +
 	"\x04Read\x12\x16.graph.NodeReadRequest\x1a\x17.graph.NodeReadResponse\x12L\n" +
@@ -2773,70 +2637,68 @@ var file_proto_graphpb_node_proto_depIdxs = []int32{
 	0,  // 6: graph.Node.editor:type_name -> graph.Node
 	32, // 7: graph.Node.start_date:type_name -> google.protobuf.Timestamp
 	32, // 8: graph.Node.end_date:type_name -> google.protobuf.Timestamp
-	32, // 9: graph.Node.last_comment_on:type_name -> google.protobuf.Timestamp
-	32, // 10: graph.Node.creation_time:type_name -> google.protobuf.Timestamp
-	32, // 11: graph.Node.update_time:type_name -> google.protobuf.Timestamp
-	32, // 12: graph.Node.status_update_time:type_name -> google.protobuf.Timestamp
-	32, // 13: graph.Node.deleted_at:type_name -> google.protobuf.Timestamp
-	32, // 14: graph.Node.last_visit_date:type_name -> google.protobuf.Timestamp
-	32, // 15: graph.Node.featured_at:type_name -> google.protobuf.Timestamp
-	0,  // 16: graph.Nodes.nodes:type_name -> graph.Node
-	34, // 17: graph.NodeBrowseRequest.viewer:type_name -> graph.Viewer
-	0,  // 18: graph.NodeBrowseResponse.nodes:type_name -> graph.Node
-	0,  // 19: graph.NodeReadResponse.node:type_name -> graph.Node
-	0,  // 20: graph.NodeReadByAliasResponse.node:type_name -> graph.Node
-	0,  // 21: graph.NodeEditRequest.node:type_name -> graph.Node
-	0,  // 22: graph.NodeEditResponse.node:type_name -> graph.Node
-	0,  // 23: graph.NodeAddRequest.node:type_name -> graph.Node
-	0,  // 24: graph.NodeAddResponse.node:type_name -> graph.Node
-	34, // 25: graph.NodeCountRequest.viewer:type_name -> graph.Viewer
-	0,  // 26: graph.NodeBatchReadResponse.nodes:type_name -> graph.Node
-	0,  // 27: graph.NodeBatchReadByAliasesResponse.nodes:type_name -> graph.Node
-	0,  // 28: graph.NodeBatchEditRequest.nodes:type_name -> graph.Node
-	34, // 29: graph.NodeBatchEditRequest.viewer:type_name -> graph.Viewer
-	0,  // 30: graph.NodeBatchEditResponse.nodes:type_name -> graph.Node
-	0,  // 31: graph.NodeBatchAddRequest.nodes:type_name -> graph.Node
-	34, // 32: graph.NodeBatchAddRequest.viewer:type_name -> graph.Viewer
-	0,  // 33: graph.NodeBatchAddResponse.nodes:type_name -> graph.Node
-	34, // 34: graph.BrowseMutualConnectionsRequest.viewer:type_name -> graph.Viewer
-	0,  // 35: graph.BrowseMutualConnectionsResponse.nodes:type_name -> graph.Node
-	34, // 36: graph.CountConnectionsRequest.viewer:type_name -> graph.Viewer
-	34, // 37: graph.ReadConnectionStatsRequest.viewer:type_name -> graph.Viewer
-	2,  // 38: graph.NodeService.Browse:input_type -> graph.NodeBrowseRequest
-	4,  // 39: graph.NodeService.Read:input_type -> graph.NodeReadRequest
-	6,  // 40: graph.NodeService.ReadByAlias:input_type -> graph.NodeReadByAliasRequest
-	8,  // 41: graph.NodeService.Edit:input_type -> graph.NodeEditRequest
-	10, // 42: graph.NodeService.Add:input_type -> graph.NodeAddRequest
-	12, // 43: graph.NodeService.Delete:input_type -> graph.NodeDeleteRequest
-	14, // 44: graph.NodeService.Count:input_type -> graph.NodeCountRequest
-	16, // 45: graph.NodeService.BatchRead:input_type -> graph.NodeBatchReadRequest
-	18, // 46: graph.NodeService.BatchReadByAliases:input_type -> graph.NodeBatchReadByAliasesRequest
-	20, // 47: graph.NodeService.BatchEdit:input_type -> graph.NodeBatchEditRequest
-	22, // 48: graph.NodeService.BatchAdd:input_type -> graph.NodeBatchAddRequest
-	24, // 49: graph.NodeService.BatchDelete:input_type -> graph.NodeBatchDeleteRequest
-	26, // 50: graph.NodeService.BrowseMutualConnections:input_type -> graph.BrowseMutualConnectionsRequest
-	28, // 51: graph.NodeService.CountConnections:input_type -> graph.CountConnectionsRequest
-	30, // 52: graph.NodeService.ReadConnectionStats:input_type -> graph.ReadConnectionStatsRequest
-	3,  // 53: graph.NodeService.Browse:output_type -> graph.NodeBrowseResponse
-	5,  // 54: graph.NodeService.Read:output_type -> graph.NodeReadResponse
-	7,  // 55: graph.NodeService.ReadByAlias:output_type -> graph.NodeReadByAliasResponse
-	9,  // 56: graph.NodeService.Edit:output_type -> graph.NodeEditResponse
-	11, // 57: graph.NodeService.Add:output_type -> graph.NodeAddResponse
-	13, // 58: graph.NodeService.Delete:output_type -> graph.NodeDeleteResponse
-	15, // 59: graph.NodeService.Count:output_type -> graph.NodeCountResponse
-	17, // 60: graph.NodeService.BatchRead:output_type -> graph.NodeBatchReadResponse
-	19, // 61: graph.NodeService.BatchReadByAliases:output_type -> graph.NodeBatchReadByAliasesResponse
-	21, // 62: graph.NodeService.BatchEdit:output_type -> graph.NodeBatchEditResponse
-	23, // 63: graph.NodeService.BatchAdd:output_type -> graph.NodeBatchAddResponse
-	25, // 64: graph.NodeService.BatchDelete:output_type -> graph.NodeBatchDeleteResponse
-	27, // 65: graph.NodeService.BrowseMutualConnections:output_type -> graph.BrowseMutualConnectionsResponse
-	29, // 66: graph.NodeService.CountConnections:output_type -> graph.CountConnectionsResponse
-	31, // 67: graph.NodeService.ReadConnectionStats:output_type -> graph.ReadConnectionStatsResponse
-	53, // [53:68] is the sub-list for method output_type
-	38, // [38:53] is the sub-list for method input_type
-	38, // [38:38] is the sub-list for extension type_name
-	38, // [38:38] is the sub-list for extension extendee
-	0,  // [0:38] is the sub-list for field type_name
+	32, // 9: graph.Node.creation_time:type_name -> google.protobuf.Timestamp
+	32, // 10: graph.Node.update_time:type_name -> google.protobuf.Timestamp
+	32, // 11: graph.Node.deleted_at:type_name -> google.protobuf.Timestamp
+	32, // 12: graph.Node.last_visit_date:type_name -> google.protobuf.Timestamp
+	32, // 13: graph.Node.featured_at:type_name -> google.protobuf.Timestamp
+	0,  // 14: graph.Nodes.nodes:type_name -> graph.Node
+	34, // 15: graph.NodeBrowseRequest.viewer:type_name -> graph.Viewer
+	0,  // 16: graph.NodeBrowseResponse.nodes:type_name -> graph.Node
+	0,  // 17: graph.NodeReadResponse.node:type_name -> graph.Node
+	0,  // 18: graph.NodeReadByAliasResponse.node:type_name -> graph.Node
+	0,  // 19: graph.NodeEditRequest.node:type_name -> graph.Node
+	0,  // 20: graph.NodeEditResponse.node:type_name -> graph.Node
+	0,  // 21: graph.NodeAddRequest.node:type_name -> graph.Node
+	0,  // 22: graph.NodeAddResponse.node:type_name -> graph.Node
+	34, // 23: graph.NodeCountRequest.viewer:type_name -> graph.Viewer
+	0,  // 24: graph.NodeBatchReadResponse.nodes:type_name -> graph.Node
+	0,  // 25: graph.NodeBatchReadByAliasesResponse.nodes:type_name -> graph.Node
+	0,  // 26: graph.NodeBatchEditRequest.nodes:type_name -> graph.Node
+	34, // 27: graph.NodeBatchEditRequest.viewer:type_name -> graph.Viewer
+	0,  // 28: graph.NodeBatchEditResponse.nodes:type_name -> graph.Node
+	0,  // 29: graph.NodeBatchAddRequest.nodes:type_name -> graph.Node
+	34, // 30: graph.NodeBatchAddRequest.viewer:type_name -> graph.Viewer
+	0,  // 31: graph.NodeBatchAddResponse.nodes:type_name -> graph.Node
+	34, // 32: graph.BrowseMutualConnectionsRequest.viewer:type_name -> graph.Viewer
+	0,  // 33: graph.BrowseMutualConnectionsResponse.nodes:type_name -> graph.Node
+	34, // 34: graph.CountConnectionsRequest.viewer:type_name -> graph.Viewer
+	34, // 35: graph.ReadConnectionStatsRequest.viewer:type_name -> graph.Viewer
+	2,  // 36: graph.NodeService.Browse:input_type -> graph.NodeBrowseRequest
+	4,  // 37: graph.NodeService.Read:input_type -> graph.NodeReadRequest
+	6,  // 38: graph.NodeService.ReadByAlias:input_type -> graph.NodeReadByAliasRequest
+	8,  // 39: graph.NodeService.Edit:input_type -> graph.NodeEditRequest
+	10, // 40: graph.NodeService.Add:input_type -> graph.NodeAddRequest
+	12, // 41: graph.NodeService.Delete:input_type -> graph.NodeDeleteRequest
+	14, // 42: graph.NodeService.Count:input_type -> graph.NodeCountRequest
+	16, // 43: graph.NodeService.BatchRead:input_type -> graph.NodeBatchReadRequest
+	18, // 44: graph.NodeService.BatchReadByAliases:input_type -> graph.NodeBatchReadByAliasesRequest
+	20, // 45: graph.NodeService.BatchEdit:input_type -> graph.NodeBatchEditRequest
+	22, // 46: graph.NodeService.BatchAdd:input_type -> graph.NodeBatchAddRequest
+	24, // 47: graph.NodeService.BatchDelete:input_type -> graph.NodeBatchDeleteRequest
+	26, // 48: graph.NodeService.BrowseMutualConnections:input_type -> graph.BrowseMutualConnectionsRequest
+	28, // 49: graph.NodeService.CountConnections:input_type -> graph.CountConnectionsRequest
+	30, // 50: graph.NodeService.ReadConnectionStats:input_type -> graph.ReadConnectionStatsRequest
+	3,  // 51: graph.NodeService.Browse:output_type -> graph.NodeBrowseResponse
+	5,  // 52: graph.NodeService.Read:output_type -> graph.NodeReadResponse
+	7,  // 53: graph.NodeService.ReadByAlias:output_type -> graph.NodeReadByAliasResponse
+	9,  // 54: graph.NodeService.Edit:output_type -> graph.NodeEditResponse
+	11, // 55: graph.NodeService.Add:output_type -> graph.NodeAddResponse
+	13, // 56: graph.NodeService.Delete:output_type -> graph.NodeDeleteResponse
+	15, // 57: graph.NodeService.Count:output_type -> graph.NodeCountResponse
+	17, // 58: graph.NodeService.BatchRead:output_type -> graph.NodeBatchReadResponse
+	19, // 59: graph.NodeService.BatchReadByAliases:output_type -> graph.NodeBatchReadByAliasesResponse
+	21, // 60: graph.NodeService.BatchEdit:output_type -> graph.NodeBatchEditResponse
+	23, // 61: graph.NodeService.BatchAdd:output_type -> graph.NodeBatchAddResponse
+	25, // 62: graph.NodeService.BatchDelete:output_type -> graph.NodeBatchDeleteResponse
+	27, // 63: graph.NodeService.BrowseMutualConnections:output_type -> graph.BrowseMutualConnectionsResponse
+	29, // 64: graph.NodeService.CountConnections:output_type -> graph.CountConnectionsResponse
+	31, // 65: graph.NodeService.ReadConnectionStats:output_type -> graph.ReadConnectionStatsResponse
+	51, // [51:66] is the sub-list for method output_type
+	36, // [36:51] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_proto_graphpb_node_proto_init() }

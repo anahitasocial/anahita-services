@@ -26,8 +26,8 @@ import (
 //     410 Gone so remote servers drop their cache. Mastodon keeps a tombstone
 //     for exactly this.
 //   - Every other table in this schema references people by bare id with no
-//     foreign key. Deleting the row leaves `created_by`, `modified_by` and
-//     `last_comment_by` across the database pointing at nothing.
+//     foreign key. Deleting the row leaves `created_by` and `modified_by`
+//     across the database pointing at nothing.
 //
 // AT Protocol is relaxed about handle reuse — identity there is a permanent DID
 // and the handle only points at it — so reserving costs nothing under it and is
@@ -139,7 +139,7 @@ JOIN content c ON n.id = c.id;
 // ported from.
 //
 // What survives: the id, the alias, the type, and deleted_at. What goes: the
-// name, body, excerpt, status, avatar and cover filenames, geo fields, meta,
+// name, body, excerpt, avatar and cover filenames, geo fields, meta,
 // website_url,
 // and the counters. Everything that made it somebody's profile.
 //
@@ -167,15 +167,10 @@ SET
   name = '',
   body = NULL,
   excerpt = NULL,
-  status = NULL,
-  status_update_time = NULL,
   meta = NULL,
   website_url = NULL,
   filename = NULL,
-  filesize = NULL,
   cover_filename = NULL,
-  cover_filesize = NULL,
-  cover_mimetype = NULL,
   geo_latitude = NULL,
   geo_longitude = NULL,
   geo_address = NULL,
@@ -188,14 +183,9 @@ SET
   quote_count = 0,
   follower_count = 0,
   leader_count = 0,
-  mutual_count = 0,
   subscriber_count = 0,
   vote_up_count = 0,
-  vote_down_count = 0,
-  hits = 0,
-  last_comment_id = NULL,
-  last_comment_by = NULL,
-  last_comment_on = NULL,
+  view_count = 0,
   enabled = 0
 WHERE id = ? AND deleted_at IS NOT NULL;
 `

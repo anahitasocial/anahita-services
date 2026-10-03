@@ -82,7 +82,6 @@ type AnahitaNode struct {
 	ParentID   int64
 	ParentType string
 	QuoteCount int64
-	Ordering   int32
 	Enabled    bool
 	Verified   bool
 	// WebsiteURL is one link on an actor profile. Validated to http(s) before
@@ -111,9 +110,8 @@ type AnahitaNode struct {
 	// their legacy '0000-00-00' was normalised to NULL.
 	LastVisitDate      *time.Time
 	Pinned             bool
-	IsDefault          bool
 	Meta               json.RawMessage
-	HitsCount          int64
+	ViewCount          int64
 	GeoLatitude        float64
 	GeoLongitude       float64
 	GeoAddress         string
@@ -126,19 +124,11 @@ type AnahitaNode struct {
 	UpdateTime         time.Time
 	ModifiedBy         int64
 	Filename           string
-	Filesize           int64
 	CoverFilename      string
-	CoverFilesize      int64
-	CoverMimetype      string
-	Status             string
-	StatusUpdateTime   time.Time
 	FollowerCount      int64
 	LeaderCount        int64
-	MutualCount        int64
 	AllowFollowRequest bool
-	DislikesCount      int64
 	Mimetype           string
-	Timezone           int32
 	Language           string
 	Access             string
 	PermissionsRaw     string
@@ -170,9 +160,6 @@ type AnahitaNode struct {
 	IsRepostedByViewer bool
 	CommentCount       int64
 	CommentStatus      bool
-	LastCommentBy      int64
-	LastCommentID      int64
-	LastCommentOn      time.Time
 
 	IsLeadingViewer   bool
 	Administrators    []*AnahitaNode

@@ -312,9 +312,6 @@ func seedFeedFixture(t *testing.T, db *sql.DB) {
 		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_on) VALUES
 		 ('edge.actor.follow.v1',4,` + "'node.actor.person-service.person.v1'" + `,2,` + "'node.actor.person-service.person.v1'" + `,NOW()),
 		 ('edge.actor.follow.v1',5,` + "'node.actor.person-service.person.v1'" + `,4,` + "'node.actor.person-service.person.v1'" + `,NOW())`,
-		// The app writes an empty status on every row, and the node scanner
-		// reads the column as a plain string.
-		`UPDATE nodes SET status = ''`,
 	} {
 		if _, err := db.Exec(stmt); err != nil {
 			t.Fatalf("seed: %v\n%s", err, stmt)

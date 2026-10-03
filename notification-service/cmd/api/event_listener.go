@@ -24,7 +24,6 @@ func startEventListerner(h *handlers.Handlers, config *config.Config) error {
 		"node.comment.*.*.*.v1",
 		"node.repost.*.*.*.v1",
 		"edge.voteup.*.*.v1",
-		"edge.votedown.*.*.v1",
 		"edge.follow.*.*.v1",
 		"edge.admin.*.*.v1",
 	}
