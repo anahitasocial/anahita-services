@@ -48,8 +48,7 @@ func (repo *FeedLeadersRepo) Count(req *graphpb.FeedLeadersCountRequest, viewer 
 
 	sb := sq.Select("COUNT(*)").
 		From("nodes AS node").
-		LeftJoin("nodes AS owner ON owner.id = node.owner_id").
-		LeftJoin("nodes AS object ON object.id = node.parent_id")
+		LeftJoin("nodes AS owner ON owner.id = node.owner_id")
 
 	nodeTypes := req.MediumEntityTypes
 	if req.IncludeReposts {
@@ -128,8 +127,7 @@ func (repo *FeedLeadersRepo) Count(req *graphpb.FeedLeadersCountRequest, viewer 
 
 // Browse returns a list of Feeds
 func (repo *FeedLeadersRepo) Browse(req *graphpb.FeedLeadersBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
-	query := GetBaseSelectQuery().
-		LeftJoin("nodes AS object ON object.id = node.parent_id")
+	query := GetBaseSelectQuery()
 
 	nodeTypes := req.MediumEntityTypes
 	if req.IncludeReposts {

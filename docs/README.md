@@ -38,6 +38,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The first super administrator](registration.md#the-first-super-administrator)
 6. [Permissions](permissions.md) — who can post, comment, like and add followers
    - [Access levels](permissions.md#access-levels)
+   - [Seeing posts](permissions.md#seeing-posts)
    - [Comments](permissions.md#comments)
    - [The defaults](permissions.md#the-defaults)
    - [What profile owners can change](permissions.md#what-profile-owners-can-change)
@@ -55,7 +56,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
-| [Feed access leak](plans/feed-access-leak.md) | 0 | not started |
+| [Feed access leak](plans/feed-access-leak.md) | 0 | done 2026-10-02; manual check on a running stack to do |
 | [Remove private notes](plans/remove-private-notes.md) | 1 | not started |
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
 | [Abuse reports](plans/abuse-report-service.md) | 4b | not started |
@@ -77,9 +78,11 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Post insights](plans/post-insights.md) | 22 | not started |
 | [Profile tabs for replies and reposts](plans/profile-tabs-and-reposts.md) | 24 | not started |
 | [Quote posts](plans/quote-posts.md) | 25 | not started |
+| [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [auth-service hardening](plans/auth-service-hardening.md) | 0b | not started |
 | [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in items 5 and 8 |
 | [Signup, registration modes, and agreements](plans/done/signup-and-onboarding.md) | — | done |
 | [Onboarding](plans/done/onboarding.md) | — | done (phase 3 moved to the recommendation service) |
 | [Dissolve `people_people`](plans/done/dissolve-people-people.md) | — | done |
 | [Actor lifecycle states](plans/done/actor-lifecycle-states.md) | — | done (archiving media deferred) |
+| [Remove unused legacy node columns](plans/done/remove-unused-node-columns.md) | 0d | done 2026-10-02 |

@@ -42,7 +42,7 @@ type MediumNode struct {
 	UpdateTime    time.Time `json:"update_time,omitempty"`
 	Mimetype      string    `json:"mimetype,omitempty"`
 	Access        string    `json:"access,omitempty"`
-	HitsCount     int64     `json:"hits"`
+	ViewCount     int64     `json:"view_count"`
 	LikesCount    int64     `json:"likes_count"`
 	QuoteCount    int64     `json:"quote_count"`
 	RepostCount   int64     `json:"repost_count"`
@@ -139,7 +139,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		CommentCount:       node.CommentCount,
 		CommentStatus:      node.CommentStatus,
 		Pinned:             node.Pinned,
-		HitsCount:          node.HitsCount,
+		ViewCount:          node.ViewCount,
 		Authorized: func() *NodeAuthorized {
 			if node.Authorized != nil {
 				return NewNodeAuthorized(node)

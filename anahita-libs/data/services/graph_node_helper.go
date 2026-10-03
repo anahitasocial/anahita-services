@@ -56,7 +56,6 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.Excerpt = m.Excerpt
 	n.CoverFilename = m.CoverFilename
 	n.Filename = m.Filename
-	n.Filesize = m.Filesize
 	n.Meta = rawJSON(m.Meta)
 	n.EdgeCount = m.EdgeCount
 
@@ -87,25 +86,16 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	if m.EndDate != nil {
 		n.EndDate = m.EndDate.AsTime()
 	}
-	if m.StatusUpdateTime != nil {
-		n.StatusUpdateTime = m.StatusUpdateTime.AsTime()
-	}
-
-	if m.LastCommentOn != nil {
-		n.LastCommentOn = m.LastCommentOn.AsTime()
-	}
 
 	// Counts and social fields
 	n.FollowerCount = m.FollowerCount
 	n.LeaderCount = m.LeaderCount
-	n.MutualCount = m.MutualCount
 	n.SubscriberCount = m.SubscriberCount
 	n.RepostCount = m.RepostCount
 	n.QuoteCount = m.QuoteCount
 	n.CommentStatus = m.CommentStatus
 	n.CommentCount = m.CommentCount
 	n.LikesCount = m.LikesCount
-	n.DislikesCount = m.DislikesCount
 
 	// Viewer interaction flags
 	n.IsLikedByViewer = m.IsLikedByViewer
@@ -119,26 +109,18 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	// Additional fields
 	n.OwnerType = m.OwnerType
 	n.OwnerID = m.OwnerId
-	n.LastCommentID = m.LastCommentId
-	n.LastCommentBy = m.LastCommentBy
-	n.Ordering = m.Ordering
 	n.Verified = m.Verified
 	n.WebsiteURL = m.WebsiteUrl
 	n.PersonType = m.PersonType
 	n.PersonPronouns = m.PersonPronouns
 	n.Pinned = m.Pinned
-	n.IsDefault = m.IsDefault
-	n.HitsCount = m.HitsCount
+	n.ViewCount = m.ViewCount
 	n.ParentID = m.ParentId
 	n.ParentType = m.ParentType
 	n.AllowFollowRequest = m.AllowFollowRequest
 	n.CreatedBy = m.CreatedBy
 	n.ModifiedBy = m.ModifiedBy
-	n.CoverFilesize = m.CoverFilesize
-	n.CoverMimetype = m.CoverMimetype
-	n.Status = m.Status
 	n.Mimetype = m.Mimetype
-	n.Timezone = m.Timezone
 	n.Language = m.Language
 
 	// Geo fields
@@ -267,18 +249,15 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Excerpt:              node.Excerpt,
 		Filename:             node.Filename,
 		CoverFilename:        node.CoverFilename,
-		Filesize:             node.Filesize,
 		Meta:                 string(node.Meta),
 		CreatedOn:            timestamppb.New(node.CreationTime),
 		ModifiedOn:           timestamppb.New(node.UpdateTime),
 		FollowerCount:        node.FollowerCount,
 		LeaderCount:          node.LeaderCount,
-		MutualCount:          node.MutualCount,
 		SubscriberCount:      node.SubscriberCount,
 		CommentStatus:        node.CommentStatus,
 		CommentCount:         node.CommentCount,
 		LikesCount:           node.LikesCount,
-		DislikesCount:        node.DislikesCount,
 		IsLikedByViewer:      node.IsLikedByViewer,
 		RepostCount:          node.RepostCount,
 		QuoteCount:           node.QuoteCount,
@@ -293,17 +272,12 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		EndDate:              timestamppb.New(node.EndDate),
 		OwnerType:            node.OwnerType,
 		OwnerId:              node.OwnerID,
-		LastCommentId:        node.LastCommentID,
-		LastCommentBy:        node.LastCommentBy,
-		LastCommentOn:        timestamppb.New(node.LastCommentOn),
-		Ordering:             node.Ordering,
 		Verified:             node.Verified,
 		WebsiteUrl:           node.WebsiteURL,
 		PersonType:           node.PersonType,
 		PersonPronouns:       node.PersonPronouns,
 		Pinned:               node.Pinned,
-		IsDefault:            node.IsDefault,
-		HitsCount:            node.HitsCount,
+		ViewCount:            node.ViewCount,
 		ParentId:             node.ParentID,
 		ParentType:           node.ParentType,
 		GeoLatitude:          node.GeoLatitude,
@@ -317,12 +291,7 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		CreatedBy:            node.CreatedBy,
 		UpdateTime:           timestamppb.New(node.UpdateTime),
 		ModifiedBy:           node.ModifiedBy,
-		CoverFilesize:        node.CoverFilesize,
-		CoverMimetype:        node.CoverMimetype,
-		Status:               node.Status,
-		StatusUpdateTime:     timestamppb.New(node.StatusUpdateTime),
 		Mimetype:             node.Mimetype,
-		Timezone:             node.Timezone,
 		Language:             node.Language,
 		EdgeCount:            node.EdgeCount,
 		FeaturesRaw:          string(node.FeaturesRaw),

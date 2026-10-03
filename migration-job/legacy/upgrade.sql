@@ -218,7 +218,6 @@ UPDATE nodes
 SET filename = REPLACE(filename, 'com_socialengine/', '')
 WHERE filename LIKE 'com_socialengine/%';
 
-UPDATE nodes SET status = '';
 
 -- Add a few additional fields to nodes table
 ALTER TABLE nodes ADD COLUMN `features` TEXT AFTER `access`;
@@ -436,6 +435,31 @@ ALTER TABLE nodes DROP COLUMN story_object_id;
 ALTER TABLE nodes DROP COLUMN story_object_type;
 ALTER TABLE nodes DROP COLUMN story_target_id;
 ALTER TABLE nodes DROP COLUMN story_comment_id;
+
+-- Columns the Go services never used, carried over from the PHP schema. See
+-- migrations/20261002000001_nodes_drop_unused_columns.sql for what each was.
+-- The indexes go first: dropping a column takes it out of a composite index but
+-- leaves the index behind on what remains.
+ALTER TABLE nodes DROP INDEX `type_status_update_time`;
+ALTER TABLE nodes DROP INDEX `type_default`;
+ALTER TABLE nodes DROP INDEX `last_comment_by`;
+ALTER TABLE nodes DROP COLUMN `status`;
+ALTER TABLE nodes DROP COLUMN `status_update_time`;
+ALTER TABLE nodes DROP COLUMN `is_default`;
+ALTER TABLE nodes DROP COLUMN `ordering`;
+ALTER TABLE nodes DROP COLUMN `timezone`;
+ALTER TABLE nodes DROP COLUMN `last_comment_id`;
+ALTER TABLE nodes DROP COLUMN `last_comment_by`;
+ALTER TABLE nodes DROP COLUMN `last_comment_on`;
+ALTER TABLE nodes DROP COLUMN `filesize`;
+ALTER TABLE nodes DROP COLUMN `cover_filesize`;
+ALTER TABLE nodes DROP COLUMN `cover_mimetype`;
+ALTER TABLE nodes DROP COLUMN `mutual_count`;
+ALTER TABLE nodes DROP COLUMN `vote_down_count`;
+
+-- `hits` becomes `view_count`, named like the other counters and NOT NULL.
+UPDATE nodes SET hits = 0 WHERE hits IS NULL;
+ALTER TABLE nodes CHANGE `hits` `view_count` int(11) unsigned NOT NULL DEFAULT 0;
 
 -- Add new counters
 ALTER TABLE nodes ADD COLUMN `repost_count` INT(11) UNSIGNED NOT NULL DEFAULT 0 AFTER `comment_count`;
@@ -733,8 +757,6 @@ UPDATE nodes SET created_on         = NULL WHERE CAST(created_on         AS CHAR
 UPDATE nodes SET modified_on        = NULL WHERE CAST(modified_on        AS CHAR) LIKE '0000%';
 UPDATE nodes SET start_date         = NULL WHERE CAST(start_date         AS CHAR) LIKE '0000%';
 UPDATE nodes SET end_date           = NULL WHERE CAST(end_date           AS CHAR) LIKE '0000%';
-UPDATE nodes SET last_comment_on    = NULL WHERE CAST(last_comment_on    AS CHAR) LIKE '0000%';
-UPDATE nodes SET status_update_time = NULL WHERE CAST(status_update_time AS CHAR) LIKE '0000%';
 UPDATE nodes SET deleted_at         = NULL WHERE CAST(deleted_at         AS CHAR) LIKE '0000%';
 UPDATE nodes SET archived_at        = NULL WHERE CAST(archived_at        AS CHAR) LIKE '0000%';
 

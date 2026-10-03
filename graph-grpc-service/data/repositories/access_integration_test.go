@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"anahita-libs/data/entities"
+	"anahita-libs/proto/graphpb"
 
 	sq "github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
@@ -201,7 +202,7 @@ func visibleComments(t *testing.T, db *sql.DB, viewer *entities.Viewer) map[int6
 	return visible
 }
 
-// Comments are stored as comment-service writes them — access '' and no owner
+// Comments are stored as comment-service writes them — access ” and no owner
 // — and are visible to whoever can see the post they sit under.
 //
 // Gated like posts, every one failed the node gate on its empty access, and
@@ -253,5 +254,247 @@ func TestCommentsFollowTheirPost(t *testing.T) {
 				t.Errorf("comment %d as viewer %d: visible=%v, want %v", c.id, c.viewer, got, c.want)
 			}
 		})
+	}
+}
+
+const (
+	carolID = 4
+	daveID  = 5
+
+	notePublic    = 40
+	noteFollowers = 41
+	noteMyself    = 42
+	noteMutuals   = 43
+	noteInGroup   = 44
+
+	repostOfFollowers = 50
+	repostOfPublic    = 51
+
+	commentOnFollowers = 60
+	commentOnPublic    = 61
+)
+
+// seedFeedFixture: Bob posts at four access levels on his own profile. Carol
+// follows Bob, and reposts and comments on his posts. Dave follows Carol but
+// not Bob, so anything of Bob's that reaches Dave reaches him through Carol.
+// Alice follows nobody and wrote a private post into a group.
+func seedFeedFixture(t *testing.T, db *sql.DB) {
+	t.Helper()
+
+	const (
+		person = "'node.actor.person-service.person.v1','person-service'"
+		note   = "'node.medium.text-service.note.v1','text-service'"
+	)
+
+	for _, stmt := range []string{
+		`DELETE FROM edges`,
+		`DELETE FROM nodes`,
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_on,modified_on) VALUES
+		 (1,` + person + `,'Alice','alice','public',1,NOW(),NOW()),
+		 (2,` + person + `,'Bob','bob','public',1,NOW(),NOW()),
+		 (3,'node.actor.group-service.group.v1','group-service','Cyclists','cyclists','public',1,NOW(),NOW()),
+		 (4,` + person + `,'Carol','carol','public',1,NOW(),NOW()),
+		 (5,` + person + `,'Dave','dave','public',1,NOW(),NOW())`,
+		`INSERT INTO nodes (id,type,service,body,alias,access,enabled,owner_id,created_by,created_on,modified_on) VALUES
+		 (40,` + note + `,'public','n40','public',1,2,2,NOW(),NOW()),
+		 (41,` + note + `,'followers','n41','followers',1,2,2,NOW(),NOW()),
+		 (42,` + note + `,'only me','n42','myself',1,2,2,NOW(),NOW()),
+		 (43,` + note + `,'mutuals','n43','mutuals',1,2,2,NOW(),NOW()),
+		 (44,` + note + `,'alice, admins only, in a group','n44','admins',1,3,1,NOW(),NOW())`,
+		// Reposts are owned by the reposter and carry a copy of the original's
+		// access; comments have no owner and an empty access.
+		`INSERT INTO nodes (id,type,service,alias,access,enabled,owner_id,parent_id,created_by,created_on,modified_on) VALUES
+		 (50,'node.base.repost-service.repost.v1','feed-service','n41','followers',1,4,41,4,NOW(),NOW()),
+		 (51,'node.base.repost-service.repost.v1','feed-service','n40','public',1,4,40,4,NOW(),NOW())`,
+		`INSERT INTO nodes (id,type,service,body,access,enabled,parent_id,created_by,created_on,modified_on) VALUES
+		 (60,'node.base.comment-service.comment.v1','comment-service','on the followers post','',1,41,4,NOW(),NOW()),
+		 (61,'node.base.comment-service.comment.v1','comment-service','on the public post','',1,40,4,NOW(),NOW())`,
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_on) VALUES
+		 ('edge.actor.follow.v1',4,` + "'node.actor.person-service.person.v1'" + `,2,` + "'node.actor.person-service.person.v1'" + `,NOW()),
+		 ('edge.actor.follow.v1',5,` + "'node.actor.person-service.person.v1'" + `,4,` + "'node.actor.person-service.person.v1'" + `,NOW())`,
+	} {
+		if _, err := db.Exec(stmt); err != nil {
+			t.Fatalf("seed: %v\n%s", err, stmt)
+		}
+	}
+}
+
+func feedViewer(id int64) *entities.Viewer {
+	v := entities.NewViewer()
+	v.ID = id
+	if id > 0 {
+		v.PersonType = "registered"
+	}
+	return v
+}
+
+func nodeIDs(t *testing.T, nodes []*entities.AnahitaNode, err error) map[int64]bool {
+	t.Helper()
+	if err != nil {
+		t.Fatalf("browse: %v", err)
+	}
+	ids := map[int64]bool{}
+	for _, n := range nodes {
+		ids[n.ID] = true
+	}
+	return ids
+}
+
+var feedNoteTypes = []string{"node.medium.text-service.note.v1"}
+
+// A profile feed shows a post only to the people its own access admits.
+//
+// The feed gate read the access of the row's PARENT. A post has none, so its
+// own access was never checked, and every restricted post on a public profile
+// was shown to everybody, signed in or not.
+func TestActorFeedHonoursAPostsOwnAccess(t *testing.T) {
+	db := accessTestDB(t)
+	seedFeedFixture(t, db)
+	repo := NewFeedActorRepo(db)
+
+	bobsFeed := func(viewer int64) map[int64]bool {
+		req := &graphpb.FeedActorBrowseRequest{ActorId: bobID, MediumEntityTypes: feedNoteTypes, Limit: 50}
+		nodes, err := repo.Browse(req, feedViewer(viewer))
+		return nodeIDs(t, nodes, err)
+	}
+
+	cases := []struct {
+		viewer int64
+		id     int64
+		want   bool
+		what   string
+	}{
+		{0, notePublic, true, "a guest sees the public post"},
+		{0, noteFollowers, false, "a guest does not see the followers-only post"},
+		{0, noteMyself, false, "a guest does not see the only-me post"},
+		{0, noteMutuals, false, "a guest does not see the mutuals-only post"},
+
+		{daveID, notePublic, true, "a stranger sees the public post"},
+		{daveID, noteFollowers, false, "a stranger does not see the followers-only post"},
+		{daveID, noteMyself, false, "a stranger does not see the only-me post"},
+		{daveID, noteMutuals, false, "a stranger does not see the mutuals-only post"},
+
+		{carolID, noteFollowers, true, "a follower sees the followers-only post"},
+		{carolID, noteMyself, false, "a follower does not see the only-me post"},
+		{carolID, noteMutuals, false, "a follower who is not followed back does not see the mutuals-only post"},
+
+		// A person does not follow themselves, so without the owner rule
+		// these two would be hidden from the one person who wrote them.
+		{bobID, noteFollowers, true, "the owner sees their own followers-only post"},
+		{bobID, noteMutuals, true, "the owner sees their own mutuals-only post"},
+		{bobID, noteMyself, true, "the owner sees their own only-me post"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.what, func(t *testing.T) {
+			if got := bobsFeed(c.viewer)[c.id]; got != c.want {
+				t.Errorf("node %d as viewer %d: visible=%v, want %v", c.id, c.viewer, got, c.want)
+			}
+		})
+	}
+
+	t.Run("the count agrees with the list", func(t *testing.T) {
+		req := &graphpb.FeedActorCountRequest{ActorId: bobID, MediumEntityTypes: feedNoteTypes}
+		got, err := repo.Count(req, feedViewer(daveID))
+		if err != nil {
+			t.Fatalf("count: %v", err)
+		}
+		if got != 1 {
+			t.Errorf("a stranger's count of Bob's feed = %d, want 1 (the public post)", got)
+		}
+	})
+}
+
+// The home feed carries the leaders' posts, their reposts and their comments.
+// Each is shown only when the viewer may see the post underneath it.
+//
+// A repost used to be judged by the original's access, but with "is the viewer
+// a follower" asked of the reposter. Following the reposter was enough to see
+// a followers-only post by somebody the viewer did not follow.
+func TestLeadersFeedJudgesRepostsAndCommentsByTheirPost(t *testing.T) {
+	db := accessTestDB(t)
+	seedFeedFixture(t, db)
+	repo := NewFeedLeadersRepo(db)
+
+	homeFeed := func(viewer int64) map[int64]bool {
+		req := &graphpb.FeedLeadersBrowseRequest{
+			MediumEntityTypes: feedNoteTypes,
+			IncludeReposts:    true,
+			IncludeComments:   true,
+			Limit:             50,
+		}
+		nodes, err := repo.Browse(req, feedViewer(viewer))
+		return nodeIDs(t, nodes, err)
+	}
+
+	cases := []struct {
+		viewer int64
+		id     int64
+		want   bool
+		what   string
+	}{
+		// Dave follows Carol, not Bob.
+		{daveID, repostOfPublic, true, "a repost of a public post reaches the reposter's follower"},
+		{daveID, repostOfFollowers, false, "a repost of a followers-only post does not reach somebody who does not follow its author"},
+		{daveID, commentOnPublic, true, "a leader's comment on a public post"},
+		{daveID, commentOnFollowers, false, "a leader's comment on a post the viewer cannot see"},
+
+		// Carol follows Bob.
+		{carolID, notePublic, true, "a leader's public post"},
+		{carolID, noteFollowers, true, "a leader's followers-only post, to a follower"},
+		{carolID, noteMyself, false, "a leader's only-me post"},
+		{carolID, noteMutuals, false, "a leader's mutuals-only post, to a follower who is not followed back"},
+		{carolID, repostOfFollowers, true, "the reposter sees their own repost"},
+
+		// The viewer's own posts are part of their home feed.
+		{bobID, noteFollowers, true, "the viewer's own followers-only post"},
+		{bobID, noteMyself, true, "the viewer's own only-me post"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.what, func(t *testing.T) {
+			if got := homeFeed(c.viewer)[c.id]; got != c.want {
+				t.Errorf("node %d as viewer %d: visible=%v, want %v", c.id, c.viewer, got, c.want)
+			}
+		})
+	}
+}
+
+// The author of a post in somebody else's space sees it in listings as long
+// as they can see that space, whatever the post's own access says. This is
+// the rule permissions.MediumPermissions.CanRead applies to a single post.
+func TestAuthorSeesTheirOwnPostInAGroup(t *testing.T) {
+	db := accessTestDB(t)
+	seedFeedFixture(t, db)
+
+	visible := func(viewer int64) map[int64]bool {
+		base := sq.Select("node.id").From("nodes AS node").
+			LeftJoin("nodes AS owner ON node.owner_id = owner.id").
+			Where(sq.Eq{"node.type": feedNoteTypes})
+		query, args, err := SetMediumAccessQuery(base, feedViewer(viewer)).ToSql()
+		if err != nil {
+			t.Fatalf("build: %v", err)
+		}
+		rows, err := db.Query(query, args...)
+		if err != nil {
+			t.Fatalf("query: %v", err)
+		}
+		defer rows.Close()
+		ids := map[int64]bool{}
+		for rows.Next() {
+			var id int64
+			if err := rows.Scan(&id); err != nil {
+				t.Fatalf("scan: %v", err)
+			}
+			ids[id] = true
+		}
+		return ids
+	}
+
+	if !visible(aliceID)[noteInGroup] {
+		t.Error("the author cannot see their own admins-only post in a public group")
+	}
+	if visible(daveID)[noteInGroup] {
+		t.Error("a stranger sees an admins-only post in a group")
 	}
 }

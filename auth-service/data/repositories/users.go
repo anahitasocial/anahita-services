@@ -759,8 +759,8 @@ func (repo *Users) EditEmail(email string, id int64) error {
 // ActivityPub instance that cached them. graph-grpc's TombstoneActor strips
 // that row of everything except its identity; what is left is the reservation.
 //
-// It also keeps `created_by`, `modified_by` and `last_comment_by` across the
-// database pointing at something, which matters in a schema with no foreign
+// It also keeps `created_by` and `modified_by` across the database pointing
+// at something, which matters in a schema with no foreign
 // keys to tidy up behind a missing row.
 func (repo *Users) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)

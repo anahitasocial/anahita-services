@@ -25,7 +25,7 @@ Both networks now have it, and both let the quoted person keep control, which is
 
 ## Design
 **Data**
-- `nodes.quote_id bigint NULL` (indexed) on the quoting note, and `nodes.quote_count` on the quoted node, updated with the modifier set (the comment-count update fails today for want of one; see `notes-as-replies.md`).
+- `nodes.quote_id bigint NULL` (indexed) on the quoting note, and `nodes.quote_count` on the quoted node (the column already exists and is returned, but nothing writes it), updated with the modifier set (the comment-count update fails today for want of one; see `notes-as-replies.md`).
 - `nodes.quote_policy varchar(16) NULL` on media (`anyone` | `followers` | `nobody`; NULL means the owner's default), and `default_quote_policy` in the person's settings.
 - `quote_detached_at datetime NULL` on the quoting note, set when the quoted author removes their post from it.
 - One migration, mirrored in `schema/init.sql` and `legacy/upgrade.sql`.

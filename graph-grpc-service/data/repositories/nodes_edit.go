@@ -49,7 +49,6 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 
 	query = query.Set("comment_status", node.CommentStatus)
 	query = query.Set("comment_count", node.CommentCount)
-	query = query.Set("ordering", node.Ordering)
 	query = query.Set("enabled", node.Enabled)
 	query = query.Set("verified", node.Verified)
 	query = query.Set("website_url", node.WebsiteURL)
@@ -57,14 +56,13 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	// profile field. See applyEditableActorFields.
 	query = query.Set("person_pronouns", node.PersonPronouns)
 	query = query.Set("pinned", node.Pinned)
-	query = query.Set("is_default", node.IsDefault)
 
 	if node.Meta != nil {
 		query = query.Set("meta", node.Meta)
 	}
 
-	if node.HitsCount > 0 {
-		query = query.Set("hits", node.HitsCount)
+	if node.ViewCount > 0 {
+		query = query.Set("view_count", node.ViewCount)
 	}
 
 	if node.ParentID > 0 && node.ParentType != "" {
@@ -100,21 +98,8 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	if node.Filename != "" {
 		query = query.Set("filename", node.Filename)
 	}
-	if node.Filesize > 0 {
-		query = query.Set("filesize", node.Filesize)
-	}
 	if node.CoverFilename != "" {
 		query = query.Set("cover_filename", node.CoverFilename)
-	}
-	if node.CoverFilesize > 0 {
-		query = query.Set("cover_filesize", node.CoverFilesize)
-	}
-	if node.CoverMimetype != "" {
-		query = query.Set("cover_mimetype", node.CoverMimetype)
-	}
-	if node.Status != "" {
-		query = query.Set("status", node.Status)
-		query = query.Set("status_update_time", time.Now())
 	}
 	if node.AllowFollowRequest {
 		query = query.Set("allow_follow_request", node.AllowFollowRequest)
@@ -124,9 +109,6 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	}
 	if node.Mimetype != "" {
 		query = query.Set("mimetype", node.Mimetype)
-	}
-	if node.Timezone != 0 {
-		query = query.Set("timezone", node.Timezone)
 	}
 	if node.Language != "" {
 		query = query.Set("language", node.Language)

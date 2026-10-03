@@ -52,10 +52,8 @@ const (
 	EventFormatNodeRepostDeleted = "node.repost.repost.%s.deleted.v1"
 
 	// Edge events
-	EventFormatEdgeVoteupAdded     = "edge.voteup.%s.added.v1"
-	EventFormatEdgeVoteupDeleted   = "edge.voteup.%s.deleted.v1"
-	EventFormatEdgeVotedownAdded   = "edge.votedown.%s.added.v1"
-	EventFormatEdgeVotedownDeleted = "edge.votedown.%s.deleted.v1"
+	EventFormatEdgeVoteupAdded   = "edge.voteup.%s.added.v1"
+	EventFormatEdgeVoteupDeleted = "edge.voteup.%s.deleted.v1"
 
 	EventFormatEdgeFollowAdded   = "edge.follow.%s.added.v1"
 	EventFormatEdgeFollowDeleted = "edge.follow.%s.deleted.v1"

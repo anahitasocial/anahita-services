@@ -21,14 +21,9 @@ CREATE TABLE nodes (
   `comment_count` int(11) unsigned DEFAULT NULL,
   `repost_count` int(11) unsigned NOT NULL DEFAULT 0,
   `quote_count` int(11) unsigned NOT NULL DEFAULT 0,
-  `last_comment_id` bigint(11) unsigned DEFAULT NULL,
-  `last_comment_by` bigint(11) unsigned DEFAULT NULL,
-  `last_comment_on` datetime DEFAULT NULL,
-  `ordering` int(11) DEFAULT 0,
   `enabled` tinyint(1) NOT NULL DEFAULT 0,
   `verified` tinyint(1) NOT NULL DEFAULT 0,
   `pinned` tinyint(1) NOT NULL DEFAULT 0,
-  `is_default` tinyint(1) NOT NULL DEFAULT 0,
   -- mediumtext, not text: CONVERT TO CHARACTER SET utf8mb4 promotes a text
   -- column to preserve its character capacity, so a database migrated by
   -- legacy/upgrade.sql ends up with mediumtext. Declared here so the two
@@ -37,7 +32,7 @@ CREATE TABLE nodes (
   -- One link on an actor profile. Replaces the website/contact/phone trio that
   -- used to be read out of `meta`, none of which any Go request ever accepted.
   `website_url` varchar(255) DEFAULT NULL,
-  `hits` int(11) unsigned DEFAULT NULL,
+  `view_count` int(11) unsigned NOT NULL DEFAULT 0,
   `parent_id` bigint(11) unsigned DEFAULT NULL,
   `parent_type` varchar(255) DEFAULT NULL,
   `geo_latitude` float(10,6) DEFAULT NULL,
@@ -52,26 +47,14 @@ CREATE TABLE nodes (
   `modified_on` datetime DEFAULT NULL,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
   `filename` varchar(255) DEFAULT NULL,
-  `filesize` int(11) DEFAULT NULL,
   `cover_filename` varchar(255) DEFAULT NULL,
-  `cover_filesize` int(11) DEFAULT NULL,
-  `cover_mimetype` varchar(100) DEFAULT NULL,
-  `status` mediumtext,
-  `status_update_time` datetime DEFAULT NULL,
   `follower_count` int(11) unsigned DEFAULT NULL,
   `leader_count` int(11) unsigned DEFAULT NULL,
-  `mutual_count` int(11) unsigned DEFAULT NULL,
   `allow_follow_request` tinyint(1) unsigned DEFAULT NULL,
   `subscriber_count` int(11) unsigned DEFAULT NULL,
   `vote_up_count` int(11) unsigned DEFAULT NULL,
-  `vote_down_count` int(11) unsigned DEFAULT NULL,
   `excerpt` text,
   `mimetype` varchar(100) DEFAULT NULL,
-  -- `timezone`, not `time_zone`: the Go read path selects `node.timezone`
-  -- (graph-grpc-service/data/repositories/helpers.go), and this file spelled it
-  -- with an underscore while the column the code needs was never created here
-  -- at all. A fresh install therefore failed every node read.
-  `timezone` int(11) DEFAULT NULL,
   `language` varchar(50) DEFAULT NULL,
   `access` varchar(255) NOT NULL,
   -- The per-node-type optional feature set, as JSON. Named `features` because
@@ -139,7 +122,6 @@ CREATE TABLE nodes (
   KEY `deleted_at` (`deleted_at`),
   KEY `archived_at` (`archived_at`),
   KEY `featured_at` (`featured_at`),
-  KEY `last_comment_by` (`last_comment_by`),
   KEY `created_by` (`created_by`),
   KEY `modified_by` (`modified_by`),
   KEY `type` (`type`),
@@ -150,9 +132,7 @@ CREATE TABLE nodes (
   KEY `end_date` (`end_date`),
   KEY `type_enabled` (`type`,`enabled`),
   KEY `type_modifed_on` (`type`,`modified_on`),
-  KEY `type_created_on` (`type`,`created_on`),
-  KEY `type_status_update_time` (`type`,`status_update_time`),
-  KEY `type_default` (`type`,`is_default`)
+  KEY `type_created_on` (`type`,`created_on`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
@@ -177,7 +157,6 @@ CREATE TABLE edges (
   `created_by` bigint(11) unsigned DEFAULT NULL,
   `modified_on` datetime DEFAULT NULL,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
-  `ordering` int(11) unsigned DEFAULT NULL,
   `start_date` datetime DEFAULT NULL,
   `end_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
