@@ -385,6 +385,42 @@ END$$
 DELIMITER ;
 CALL migrate_notifications();
 DELETE FROM nodes WHERE type = 'node.base.notification-service.notification.v1';
+
+-- Legacy private notes: notes left on somebody else's profile for the two of
+-- them only, stored with a list of person ids in `access`. The Go services
+-- have no private messaging and nothing can reach these rows. See
+-- migrations/20261003000001_delete_private_notes.sql for the reasoning.
+--
+-- Here, after the notifications table has been filled, so the notifications
+-- about them can be removed with them. Nothing cascades, so notifications and
+-- edges go before the nodes. Two temporary tables, because MySQL cannot read
+-- one twice in a statement.
+CREATE TEMPORARY TABLE anahita_private_notes (id BIGINT UNSIGNED NOT NULL PRIMARY KEY);
+CREATE TEMPORARY TABLE anahita_private_nodes (id BIGINT UNSIGNED NOT NULL PRIMARY KEY);
+
+INSERT INTO anahita_private_notes (id)
+SELECT id FROM nodes
+ WHERE type = 'node.medium.text-service.note.v1'
+   AND access REGEXP '^[0-9]+(,[0-9]+)*$';
+
+INSERT INTO anahita_private_nodes (id)
+SELECT id FROM anahita_private_notes;
+
+INSERT IGNORE INTO anahita_private_nodes (id)
+SELECT n.id FROM nodes n
+  JOIN anahita_private_notes p ON p.id = n.parent_id;
+
+DELETE n FROM notifications n JOIN anahita_private_nodes p ON p.id = n.object_id;
+DELETE n FROM notifications n JOIN anahita_private_nodes p ON p.id = n.comment_id;
+DELETE n FROM notifications n JOIN anahita_private_nodes p ON p.id = n.target_id;
+
+DELETE e FROM edges e JOIN anahita_private_nodes p ON p.id = e.node_a_id;
+DELETE e FROM edges e JOIN anahita_private_nodes p ON p.id = e.node_b_id;
+
+DELETE n FROM nodes n JOIN anahita_private_nodes p ON p.id = n.id;
+
+DROP TEMPORARY TABLE anahita_private_notes;
+DROP TEMPORARY TABLE anahita_private_nodes;
 ALTER TABLE nodes DROP COLUMN notification_ids;
 ALTER TABLE nodes DROP COLUMN new_notification_ids;
 
