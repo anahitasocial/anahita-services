@@ -13,5 +13,10 @@
       "Read(**/k8s/*secret*.yaml)",
       "Read(**/k8s/*credential*.yaml)"
     ]
+  },
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
   }
 }
