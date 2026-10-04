@@ -40,36 +40,17 @@ func (h *signupNotifier) NotifySignup(person *an_entities.Person) error {
 	return nil
 }
 
-// EmailConfirm asks a new account to prove control of its address.
+// EmailConfirmCode sends the code that proves control of an address, to a new
+// account or to somebody applying to join.
 //
-// Sent INSTEAD of the welcome mail, not alongside it. Two emails arriving
-// together, one saying "you're all set" and one saying "confirm to continue",
-// is how a confirmation step gets ignored — and this one is not optional,
-// since an unverified account cannot sign in. The welcome follows once the
-// address is confirmed.
-//
-// The link goes to auth-service, where the other token-gated pages live.
-func (h *signupNotifier) EmailConfirm(user *entities.User, token *entities.Token) error {
-	// The username, because an account that has just been created has no
-	// display name — signup does not ask for one.
-	body := fmt.Sprintf(
-		messages.SignupConfirmBody,
-		user.Alias,
-	)
-
-	actionURL := fmt.Sprintf(
-		"%s/signup/confirm?token=%s",
-		h.Config.GetAuthURL(),
-		token.Body,
-	)
-
-	return h.send(
+// No link: the page that wants the code is the one signup led to.
+func (h *signupNotifier) EmailConfirmCode(user *entities.User, code string) error {
+	return h.sendCode(
 		user.Email,
-		messages.SignupConfirmSubject,
-		messages.SignupConfirmTitle,
-		body,
-		messages.SignupConfirmActionLabel,
-		actionURL,
+		fmt.Sprintf(messages.SignupConfirmCodeSubject, code),
+		messages.SignupConfirmCodeTitle,
+		fmt.Sprintf(messages.SignupConfirmCodeBody, user.Alias),
+		code,
 	)
 }
 

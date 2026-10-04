@@ -44,6 +44,15 @@ func TestServerRenderedTemplatesParseAndExecute(t *testing.T) {
 			"PurgeDate": "",
 		}},
 		{"account_restore_success.html", map[string]any{}},
+		{"signup_confirm_code.html", map[string]any{"CSRFToken": "t", "Email": "ada@example.com"}},
+		{"signup_confirm_code.html", map[string]any{
+			"CSRFToken": "t",
+			"Email":     "ada@example.com",
+			"Error":     "That code is not correct.",
+		}},
+		{"signup_confirm_resend.html", map[string]any{"CSRFToken": "t"}},
+		{"signup_confirm_success.html", map[string]any{"Email": "ada@example.com"}},
+		{"signup_request_sent.html", map[string]any{"Email": "ada@example.com"}},
 		{"login_code.html", map[string]any{"CSRFToken": "t", "FrontendURL": "https://example.com"}},
 		{"login_code.html", map[string]any{
 			"CSRFToken": "t",

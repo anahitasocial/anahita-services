@@ -1,4 +1,4 @@
-{{define "title"}}Resend confirmation{{end}}
+{{define "title"}}Confirm your email{{end}}
 
 {{define "content"}}
 <div class="card">
@@ -6,15 +6,16 @@
 
     <hr class="divider">
 
-    <h2>Resend confirmation</h2>
+    <h2>Confirm your email</h2>
 
-    <p>Enter the address you signed up with and we'll send a new link.</p>
+    <p>Enter the address you signed up with and we'll email it a 6-digit code.</p>
 
     {{if .Error}}
     <div class="error-message">{{.Error}}</div>
     {{end}}
 
     <form method="POST" action="/signup/confirm/resend" novalidate>
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
         <div class="text-field">
             <input
                 type="email"
@@ -31,7 +32,7 @@
             <label for="email">Email</label>
         </div>
 
-        <button type="submit" class="btn btn-primary">Send the link</button>
+        <button type="submit" class="btn btn-primary">Send me a code</button>
     </form>
 
     <p class="text-center">

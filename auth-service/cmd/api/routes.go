@@ -80,6 +80,7 @@ func (r *Routes) Init(e *echo.Echo) {
 	// pages beside it — the person arrives from a link in their mailbox, on a
 	// device that may hold no session at all.
 	e.GET("/signup/confirm", h.Signup.Confirm)
+	e.POST("/signup/confirm", h.Signup.ConfirmCode)
 	e.GET("/signup/confirm/resend", h.Signup.ResendForm)
 	e.POST("/signup/confirm/resend", h.Signup.Resend)
 

@@ -29,8 +29,8 @@ Passwords never pass through the web app.
 | Page | Path |
 | --- | --- |
 | Sign up | `/signup` |
-| Confirm an email address | `/signup/confirm` |
-| Resend the confirmation | `/signup/confirm/resend` |
+| Confirm an email address, with the emailed code | `/signup/confirm` |
+| Ask for a new confirmation code | `/signup/confirm/resend` |
 | Accept an invitation | `/invites/accept` |
 
 ## Registration modes
@@ -73,9 +73,19 @@ suspends invitations already sent.
 
 ## Email verification
 
-A self-serve account cannot sign in until its email address is confirmed. The
-confirmation link is valid for 24 hours and can be resent from
-`/signup/confirm/resend`.
+A self-serve account cannot sign in until its email address is confirmed.
+Signing up leads straight to a page waiting for a 6-digit code, which is
+emailed to the address. The code is valid for 15 minutes and allows five
+tries. A new one can be sent from that page, or later from
+`/signup/confirm/resend`, at most three times an hour for one address.
+
+It is a code and not a link so that it can be read on any device and typed
+where the signup started, and because a link is confirmed by any mail scanner
+that follows it. Signing in with an emailed code
+([Signing in](signing-in.md#signing-in-with-a-code)) confirms the address too.
+
+A request to join, in approval mode, is confirmed the same way, and only then
+goes to the administrators.
 
 Accepting an invitation confirms the address, because the invitation was
 delivered to it.

@@ -18,9 +18,14 @@ const (
 	// application — was created with. Also in anahita-libs.
 	TokenTypeSignupConfirm = "signupconfirm"
 
-	// One-time codes. Two types so a code issued to verify a handset
-	// can never be replayed to sign in.
-	TokenTypeLoginOTP = "loginotp"
+	// One-time codes. A type per purpose, so a code issued for one can never
+	// be used for another: a code sent to confirm an address cannot reset a
+	// password, and one sent to sign in cannot change an email.
+	TokenTypeLoginOTP          = "loginotp"
+	TokenTypeSignupConfirmCode = "signupconfirmotp"
+	TokenTypePasswordResetCode = "passwordresetotp"
+	TokenTypeEmailChangeCode   = "emailchangeotp"
+	TokenTypeReauthCode        = "reauthotp"
 
 	// TokenExpiryTimeEmailChange is deliberately short, matching the
 	// 15 minutes password reset uses. This token authorises changing a
@@ -39,6 +44,14 @@ const (
 	// hop or a phone in another room, short enough that a code sitting
 	// in a notification is not worth much later.
 	TokenExpiryTimeOTP = 10 * 60
+
+	// TokenExpiryTimeCode is fifteen minutes, for the codes that are not a
+	// sign-in: confirming an address, resetting a password, changing an
+	// email, confirming it is you. Five more than a sign-in code, because
+	// these start on one page and are often finished after reading a longer
+	// message, and the same as the links they replace gave password reset
+	// and email change.
+	TokenExpiryTimeCode = 15 * 60
 
 	// OTPMaxAttempts matches the login TOTP step and the credential
 	// rate limiter, so a person meets the same number of chances

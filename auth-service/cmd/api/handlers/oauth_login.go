@@ -194,7 +194,7 @@ func (h *oauthHandler) AddCredentials(c echo.Context) error {
 		log.Printf("login: rejected unverified address (user=%d)", user.ID)
 		return h.renderLoginError(c,
 			"Please confirm your email address before signing in. "+
-				"Check your inbox, or request a new link at /signup/confirm/resend")
+				"Get a new code at /signup/confirm/resend, or sign in with a code instead.")
 	}
 
 	// Branch on TOTP enrollment.

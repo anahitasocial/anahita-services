@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -36,14 +35,6 @@ import (
 
 const (
 	sessionKeyPendingCode = "oauth_pending_code"
-
-	// sessionKeyLoginCSRF holds one token for every form in the sign-in flow.
-	//
-	// One per browser session, not one per page shown. A token replaced on
-	// every render breaks the second tab somebody opened, and the back
-	// button, for no gain: what it protects against is another site
-	// submitting the form, and that site cannot read either token.
-	sessionKeyLoginCSRF = "oauth_login_csrf"
 
 	// pendingCodeTTL is the code's own lifetime. State that outlived the
 	// code would leave somebody typing into a page that can only refuse.
@@ -258,14 +249,13 @@ func (h *oauthHandler) sendLoginCode(identifier, channel string) int64 {
 		return 0
 	}
 
-	// A new code retires the ones before it. Without this, asking again
-	// would leave two live codes, each with its own five attempts.
-	if _, err := h.Repos.Tokens.InvalidateOutstanding(constants.TokenTypeLoginOTP, user.Email); err != nil {
-		log.Println("login code: could not retire earlier codes:", err)
-		return 0
-	}
-
-	token, err := h.issueCode(user, constants.TokenTypeLoginOTP, channel)
+	token, err := h.issueCode(codeRequest{
+		Email:    user.Email,
+		PersonID: user.ID,
+		Type:     constants.TokenTypeLoginOTP,
+		Channel:  channel,
+		Lifetime: constants.TokenExpiryTimeOTP,
+	})
 	if err != nil {
 		log.Println("login code:", err)
 		return 0
@@ -515,42 +505,4 @@ func (h *oauthHandler) readPendingCode(c echo.Context) (*pendingCodeState, error
 	}
 
 	return &state, nil
-}
-
-// ---------------------------------------------------------------------
-// The sign-in forms' CSRF token
-// ---------------------------------------------------------------------
-
-// loginCSRFToken returns this browser session's token for the sign-in forms,
-// making one if there is none. Empty only if the session store is failing, in
-// which case the form that carries it will be refused, which is the safe way
-// for that to go.
-func (h *oauthHandler) loginCSRFToken(c echo.Context) string {
-	if existing, err := h.Session.Read(c, sessionKeyLoginCSRF); err == nil && existing != "" {
-		return existing
-	}
-
-	token, err := generateCSRFToken()
-	if err != nil {
-		log.Println("login: could not generate a CSRF token:", err)
-		return ""
-	}
-
-	if _, err := h.Session.Add(c, sessionKeyLoginCSRF, token); err != nil {
-		log.Println("login: could not store the CSRF token:", err)
-		return ""
-	}
-
-	return token
-}
-
-// loginCSRFValid reports whether a submitted form carries this session's
-// token. A session with no token has no valid form.
-func (h *oauthHandler) loginCSRFValid(c echo.Context, submitted string) bool {
-	stored, err := h.Session.Read(c, sessionKeyLoginCSRF)
-	if err != nil || stored == "" || submitted == "" {
-		return false
-	}
-
-	return subtle.ConstantTimeCompare([]byte(stored), []byte(submitted)) == 1
 }

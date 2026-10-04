@@ -188,7 +188,8 @@ func (token *Token) Validate() error {
 	// checks outright would let a password reset or an invitation be stored
 	// with no issuer, and those are the two where "who did this" is the
 	// question asked afterwards.
-	if token.Type != constants.TokenTypeSignupConfirm {
+	if token.Type != constants.TokenTypeSignupConfirm &&
+		token.Type != constants.TokenTypeSignupConfirmCode {
 		if token.CreatedBy == 0 {
 			return fmt.Errorf("creator is required")
 		}

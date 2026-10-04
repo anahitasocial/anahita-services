@@ -14,6 +14,7 @@ import (
 	"auth/data/entities"
 	"auth/data/repositories"
 	"auth/data/services"
+	"auth/requests"
 
 	lib_entities "anahita-libs/data/entities"
 	libservices "anahita-libs/data/services"
@@ -92,6 +93,12 @@ func (f *fakeUsers) ReadByEmailOrUsername(identifier string) (*entities.User, er
 		}
 	}
 	return nil, fmt.Errorf("no user for %q", identifier)
+}
+
+// Browse answers "who are the administrators" with nobody, which is all the
+// notifiers that ask need in order not to send.
+func (f *fakeUsers) Browse(*requests.UserBrowseRequest) ([]*entities.User, error) {
+	return nil, nil
 }
 
 func (f *fakeUsers) MarkEmailVerified(id int64) error {
