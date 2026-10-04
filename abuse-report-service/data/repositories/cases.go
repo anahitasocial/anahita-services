@@ -45,6 +45,16 @@ type CasesInterface interface {
 	// MarkTargetGone records that a target no longer exists, and closes its
 	// open case as actioned. It returns how many cases were closed.
 	MarkTargetGone(targetID int64) (int64, error)
+
+	// RemoveReportsBy deletes every report one person filed, because that
+	// person has been purged. Each case's count drops by one, and an open
+	// case nobody else reported is removed with it: there is no complaint
+	// left to decide. It returns how many reports went.
+	RemoveReportsBy(reporterID int64) (int64, error)
+
+	// ForgetAddresses blanks the network address on reports filed before
+	// the cutoff, and returns how many it blanked.
+	ForgetAddresses(before time.Time) (int64, error)
 }
 
 type cases struct {
@@ -217,6 +227,33 @@ const (
 		       decided_at      = NOW()
 		 WHERE target_id = ?
 		   AND status = ?`
+
+	// A person has one report in a case at most, so one fewer is exact.
+	// Run before the reports are deleted: it finds the cases through them.
+	uncountReportsOfReporter = `
+		UPDATE abuse_cases
+		  JOIN abuse_reports
+		    ON abuse_reports.case_id = abuse_cases.id
+		   SET abuse_cases.report_count = abuse_cases.report_count - 1
+		 WHERE abuse_reports.reporter_id = ?
+		   AND abuse_cases.report_count > 0`
+
+	deleteReportsOfReporter = `
+		DELETE FROM abuse_reports
+		 WHERE reporter_id = ?`
+
+	// Only open cases. A decided one is the record of a decision, and
+	// stays even when the reports behind it are gone.
+	deleteOpenCasesWithoutReports = `
+		DELETE FROM abuse_cases
+		 WHERE status = ?
+		   AND report_count = 0`
+
+	blankOldAddresses = `
+		UPDATE abuse_reports
+		   SET created_ip = ''
+		 WHERE created_ip <> ''
+		   AND created_at < ?`
 )
 
 type scanner interface {
@@ -500,6 +537,63 @@ func (r *cases) MarkTargetGone(targetID int64) (int64, error) {
 
 	result, err := r.db.ExecContext(ctx, closeOpenCaseOfGoneTarget,
 		constants.CaseStatusActioned, constants.ActionDeleted, targetID, constants.CaseStatusOpen)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
+}
+
+func (r *cases) RemoveReportsBy(reporterID int64) (removed int64, err error) {
+	if reporterID <= 0 {
+		return 0, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	// One transaction: a count lowered without its report deleted would be
+	// lowered again by the next attempt.
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	if _, err = tx.ExecContext(ctx, uncountReportsOfReporter, reporterID); err != nil {
+		return 0, err
+	}
+
+	result, err := tx.ExecContext(ctx, deleteReportsOfReporter, reporterID)
+	if err != nil {
+		return 0, err
+	}
+	if removed, err = result.RowsAffected(); err != nil {
+		return 0, err
+	}
+
+	if removed > 0 {
+		if _, err = tx.ExecContext(ctx, deleteOpenCasesWithoutReports, constants.CaseStatusOpen); err != nil {
+			return 0, err
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return 0, err
+	}
+
+	return removed, nil
+}
+
+func (r *cases) ForgetAddresses(before time.Time) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	result, err := r.db.ExecContext(ctx, blankOldAddresses, before.UTC())
 	if err != nil {
 		return 0, err
 	}

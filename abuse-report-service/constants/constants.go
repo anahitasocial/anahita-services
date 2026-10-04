@@ -33,6 +33,11 @@ const (
 
 	RateLimitScopeReport = "abuse_report_reporter"
 
+	// AddressRetentionDays is how long a report keeps the network address it
+	// came from. Long enough to look into a burst of false reports, and no
+	// longer: an address is personal data with no use after that.
+	AddressRetentionDays = 90
+
 	DefaultLanguage = "en-GB"
 
 	DefaultBrowseLimit = 20

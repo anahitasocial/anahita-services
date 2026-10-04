@@ -39,6 +39,9 @@ type fakeCases struct {
 	nextID  int64
 	cases   map[int64]*entities.Case
 	reports map[int64][]*entities.Report
+
+	// removedReporters are the people whose reports were asked to be removed.
+	removedReporters []int64
 }
 
 func newFakeCases() *fakeCases {
@@ -179,6 +182,18 @@ func (f *fakeCases) Reopen(id int64) (bool, error) {
 	}
 	c.Status, c.DecisionAction, c.DecisionNote, c.DecidedBy, c.DecidedAt = constants.CaseStatusOpen, "", "", 0, nil
 	return true, nil
+}
+
+func (f *fakeCases) RemoveReportsBy(reporterID int64) (int64, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	f.removedReporters = append(f.removedReporters, reporterID)
+	return 0, nil
+}
+
+func (f *fakeCases) ForgetAddresses(before time.Time) (int64, error) {
+	return 0, nil
 }
 
 func (f *fakeCases) MarkTargetGone(targetID int64) (int64, error) {
@@ -668,6 +683,9 @@ func TestADeletedPostClosesItsCaseAndADeletedPersonDoesNot(t *testing.T) {
 	if c, _ := f.cases.Read(2); c.Status != constants.CaseStatusOpen {
 		t.Error("a soft-deleted person's case was closed")
 	}
+	if len(f.cases.removedReporters) != 0 {
+		t.Error("a soft-deleted person's own reports were removed; they can still come back")
+	}
 
 	_ = f.h.Events.Handle(&event.EventPayload{Name: "node.medium.text-service.note.deleted.v1", ObjectID: noteID})
 	if c, _ := f.cases.Read(1); c.Status != constants.CaseStatusActioned || c.DecisionAction != constants.ActionDeleted || c.TargetGoneAt == nil {
@@ -677,6 +695,12 @@ func TestADeletedPostClosesItsCaseAndADeletedPersonDoesNot(t *testing.T) {
 	_ = f.h.Events.Handle(&event.EventPayload{Name: "node.actor.person-service.person.purged.v1", ObjectID: adaID})
 	if c, _ := f.cases.Read(2); c.Status != constants.CaseStatusActioned {
 		t.Error("a purged person's case stayed open")
+	}
+
+	// Only the purge removes what the person reported, and a deleted post is
+	// not somebody who could have filed a report.
+	if got := f.cases.removedReporters; len(got) != 1 || got[0] != adaID {
+		t.Errorf("reports were removed for %v, want only the purged person", got)
 	}
 
 	// Anything else is ignored.

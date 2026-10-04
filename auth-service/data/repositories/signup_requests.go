@@ -18,6 +18,12 @@ type SignupRequestsInterface interface {
 	MarkEmailVerified(id int64) error
 	Decide(id int64, status string, decidedBy int64, note string) error
 	Delete(id int64) error
+
+	// DeleteFor removes every request made with this address or this
+	// username, returning how many rows went. For account purge: a request
+	// row holds the address and a password hash, and is kept after it is
+	// decided.
+	DeleteFor(email, username string) (int64, error)
 }
 
 func NewSignupRequests(db *sql.DB) SignupRequestsInterface {
@@ -254,6 +260,24 @@ func (repo *signupRequests) Delete(id int64) error {
 		`DELETE FROM signup_requests WHERE id = ?`, id)
 
 	return err
+}
+
+func (repo *signupRequests) DeleteFor(email, username string) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	// An empty value must match nothing, not every row that has none.
+	const query = `
+DELETE FROM signup_requests
+WHERE (? <> '' AND email = ?)
+   OR (? <> '' AND username = ?)`
+
+	result, err := repo.db.ExecContext(ctx, query, email, email, username, username)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
 }
 
 // nullableID writes a zero id as NULL, so "nobody" is absent rather than

@@ -156,6 +156,15 @@ decided it.
 The service hears of this through an event. Events can be lost, so opening a
 case also checks whether the thing still exists.
 
+When a **person who filed reports** is purged, their reports are removed with
+everything else they wrote. A case that other people also reported keeps going
+with one report fewer. An open case that only they had reported is removed,
+because no complaint is left to decide. A case already decided stays, as the
+record of the decision.
+
+This too arrives as an event, and nothing checks again if it is lost: the
+reports then stay, naming an account that is only a reserved handle.
+
 ## Who sees what
 
 | | Sees |
@@ -165,7 +174,8 @@ case also checks whether the thing still exists.
 | Administrators and super administrators | Every case, every report, and who made it |
 
 The network address a report came from is stored with it and is not shown in
-the app.
+the app. It is blanked 90 days after the report was filed; the report itself
+stays.
 
 Filing a report needs the `account:write` scope. Reading cases needs
 `actors:read` and deciding them `actors:write`, on top of being an

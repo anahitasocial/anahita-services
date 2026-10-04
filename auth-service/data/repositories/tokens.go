@@ -372,6 +372,25 @@ func (repo *tokens) DeleteByRecipientEmail(email string) (int64, error) {
 	return result.RowsAffected()
 }
 
+// DeleteUnusedFrom removes the unused tokens of one type that a person sent.
+func (repo *tokens) DeleteUnusedFrom(tokenType string, personID int64) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	const query = `
+DELETE FROM tokens
+WHERE type = ?
+  AND created_by = ?
+  AND is_used = 0`
+
+	result, err := repo.db.ExecContext(ctx, query, tokenType, personID)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
+}
+
 func (repo *tokens) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

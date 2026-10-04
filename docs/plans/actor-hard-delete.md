@@ -123,9 +123,97 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **services `permissions.md`**: hard delete is super-admin only; appointing admins to groups left without one.
 - **web `architecture.md`**: the admin Accounts tab and the Danger-zone "Delete permanently".
 
+## Added after the plan was written
+
+Agreed on 2026-10-03, while building abuse reports (item 4b):
+
+- When a person who filed abuse reports is purged, their reports are removed
+  and the counts on their cases lowered. Reports are not nodes, so the graph's
+  purge does not reach them; abuse-report-service does it when it hears of the
+  purge.
+- The network address stored with a report is blanked after 90 days.
+- There is no button for deleting a report or a case.
+
+## What was built
+
+### Part A: a complete purge (2026-10-03)
+
+**The set that is removed.** Everything the actor owns, everything the actor
+wrote, and everything underneath either by `parent_id`. "Wrote" stops at
+content: a person is the `created_by` of the groups, hashtags and places they
+started, and those stay. The set is one piece of SQL, `purgeContent` in
+`graph-grpc-service/data/repositories/nodes_purge_steps.go`, used by both the
+purge and `ReadDeletionCounts`, so the confirmation dialog counts what is
+removed.
+
+**Batches that can be picked up again.** A new table, `purge_work`, lists what
+is left to do for a purge in progress. `purge.Account` now runs:
+
+1. `PreparePurge`: lists the nodes to delete, and the nodes that stay but
+   whose counters must be counted again (people on the other end of a follow,
+   posts the actor liked or subscribed to, posts that lose one of the actor's
+   comments or reposts).
+2. `NextPurgeBatch` and `DeletePurgeBatch`, 500 nodes at a time, each batch in
+   its own transaction: the batch's files, then its edges, the notifications
+   about it, the nodes, and its rows in the list.
+3. `FinishPurge`: the edges and notifications that point at the actor itself,
+   then the recounts, then the list is cleared.
+4. `TombstoneActor`, which now also sets `nodes.purged_at`.
+
+Every step can run twice. A purge that is interrupted leaves the rest of the
+list, and the next call for that actor carries on from it.
+
+**`nodes.purged_at`.** The sweeper's queue is now "deleted and not yet purged".
+Before, a tombstone stayed in the queue for good, and after a hundred of them
+the sweeper would never have reached a new deletion.
+
+**Other services.**
+- auth-service, on the purged event, also removes the signup request the
+  account began as and the invitations it sent that nobody used.
+- abuse-report-service removes the reports the person filed, and blanks
+  network addresses older than 90 days (hourly, in each replica).
+
+**Also fixed.** `UpdateSubscriberCount` wrote into `vote_up_count` and passed
+two values for three placeholders, so it failed on every call.
+
+**Where it differs from the plan.**
+- **Notifications are deleted by the graph's purge, not by
+  notification-service.** The plan had notification-service listening for the
+  purge and a nightly sweep for what it missed. A purge publishes nothing per
+  post, and the bus can drop what is published, so that needed two mechanisms
+  and still left a gap. The purge already has the exact list of nodes, so it
+  deletes the notifications about them in the same transaction as the nodes.
+  This is the one place the graph writes to that table.
+- **Files are deleted before their rows, not after.** The plan's order guarded
+  against losing files for rows that still exist. With batches that resume,
+  the opposite order is the safe one: rows whose files are gone are still
+  listed and go on the next run, while files whose rows are gone can never be
+  found again.
+- **No `purge_started_at` column.** The rows in `purge_work` are the marker.
+- **No 409 was needed on the group purge.** The last-super-administrator check
+  only ever applies to a person.
+- **Appointing an administrator to a group left without one already works**:
+  `CanAddAdmin` allows any site administrator.
+
+**Tests.** `purge_integration_test.go` runs whole purges against MySQL: a
+person with posts on their own profile, in a group and on somebody else's
+profile, comments both ways, votes, subscriptions, follows both ways,
+notifications, and a group, hashtag and place they created. It also purges an
+account of 5,200 posts after stopping it at the first batch, and checks that
+the last super administrator is refused. auth-service and abuse-report-service
+each have real-MySQL tests for their part. The migration was run on the fresh,
+upgrade and legacy paths.
+
+**Not checked.** A purge through the running stack with files in object
+storage: the tests use a stand-in for the file service. And a lost purge event
+is not retried, so auth-service or abuse-report-service can miss a purge.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| A. Complete purge | done 2026-10-03 |
+| B. Batch purge and the queue | not started |
+| C. Admin list with inactivity filters | not started |
+| D. Web | not started |

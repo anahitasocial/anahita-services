@@ -10,6 +10,7 @@ import (
 	"abusereport/cmd/api/handlers"
 	"abusereport/cmd/api/permissions"
 	"abusereport/config"
+	an_abuse "abusereport/constants"
 	"abusereport/data/reasons"
 	"abusereport/data/repositories"
 	"abusereport/data/services"
@@ -78,6 +79,8 @@ func main() {
 		}
 	}()
 
+	go forgetOldAddresses(hEnv.Repos)
+
 	e.GET("/ping", func(c echo.Context) error {
 		return c.String(http.StatusOK, "pong")
 	})
@@ -111,4 +114,25 @@ func connectToDB(dsn string) (*sql.DB, error) {
 	}
 
 	return nil, lastErr
+}
+
+// forgetOldAddresses blanks the network address on reports older than
+// AddressRetentionDays, at start-up and then hourly.
+//
+// It runs in every replica. They all issue the same statement, which changes
+// nothing the second time, so there is nothing to coordinate.
+func forgetOldAddresses(repos *repositories.Repositories) {
+	for {
+		cutoff := time.Now().AddDate(0, 0, -an_abuse.AddressRetentionDays)
+
+		blanked, err := repos.Cases.ForgetAddresses(cutoff)
+		if err != nil {
+			log.Println("abuse report: could not blank old network addresses:", err)
+		} else if blanked > 0 {
+			log.Printf("abuse report: blanked the network address on %d report(s) older than %d days",
+				blanked, an_abuse.AddressRetentionDays)
+		}
+
+		time.Sleep(time.Hour)
+	}
 }

@@ -73,6 +73,10 @@ CREATE TABLE nodes (
   -- Only actor nodes carry it. Content owned by a deleted actor stays as it is
   -- until the sweeper runs, so a restore brings the profile back whole.
   `deleted_at` datetime DEFAULT NULL,
+  -- Set when the sweeper, or a super administrator, has reduced the actor to
+  -- a tombstone. The purge queue is "deleted and not yet purged"; without this
+  -- every tombstone would be read again on every run.
+  `purged_at` datetime DEFAULT NULL,
   -- Permanent. The content stays readable at its URLs; what stops is being
   -- pushed at people who did not ask for it. Separate from `enabled` and
   -- `deleted_at` because each of the three maps to a different answer, and a
@@ -120,6 +124,7 @@ CREATE TABLE nodes (
   -- The sweeper's only query is "actors deleted before X", and it runs against
   -- a column that is NULL for practically every row.
   KEY `deleted_at` (`deleted_at`),
+  KEY `purged_at` (`purged_at`),
   KEY `archived_at` (`archived_at`),
   KEY `featured_at` (`featured_at`),
   KEY `created_by` (`created_by`),
@@ -375,6 +380,26 @@ CREATE TABLE node_deletion_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 CREATE INDEX idx_node_deletion_logs_node_id ON node_deletion_logs (node_id);
 CREATE INDEX idx_node_deletion_logs_created_on ON node_deletion_logs (created_on);
+
+-- What is left to do for a purge in progress.
+--
+-- A purge removes an account's content in batches, each in its own short
+-- transaction, so a large account cannot run out of time and an interrupted
+-- purge carries on from what remains. Rows are removed as the work is done: an
+-- actor with none left is finished.
+--
+-- Owned by graph-grpc-service.
+CREATE TABLE IF NOT EXISTS purge_work (
+    -- The actor being purged.
+    `actor_id` bigint unsigned NOT NULL,
+    -- 'delete' for a node to remove, or the counter to count again on a node
+    -- that stays: 'count_follows', 'count_votes', 'count_subscribers',
+    -- 'count_comments', 'count_reposts'.
+    `task` varchar(24) NOT NULL,
+    -- The node the task applies to.
+    `node_id` bigint unsigned NOT NULL,
+    PRIMARY KEY (`actor_id`, `task`, `node_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Add indices
 

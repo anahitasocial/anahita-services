@@ -100,7 +100,12 @@ WHERE id = ? AND deleted_at IS NOT NULL;
 	return affected > 0, nil
 }
 
-// BrowseDeletedBefore returns the ids of actors deleted before the cutoff.
+// BrowseDeletedBefore returns the ids of actors deleted before the cutoff and
+// not yet purged.
+//
+// A tombstone keeps its deleted_at, so without the second condition every
+// purged account stayed in the queue for good, and once a run's worth of them
+// had built up the sweeper never reached a new deletion.
 //
 // The sweeper's queue. Ordered oldest first so a backlog drains in the order it
 // accumulated, and limited so one run cannot take the database down with it.
@@ -111,7 +116,9 @@ func (r *nodesRepo) BrowseDeletedBefore(cutoff time.Time, limit uint64) ([]int64
 	const query = `
 SELECT id
 FROM nodes
-WHERE deleted_at IS NOT NULL AND deleted_at < ?
+WHERE deleted_at IS NOT NULL
+  AND deleted_at < ?
+  AND purged_at IS NULL
 ORDER BY deleted_at ASC
 LIMIT ?;
 `

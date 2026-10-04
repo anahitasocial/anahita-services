@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"abusereport/constants"
 	"abusereport/data/entities"
@@ -300,5 +301,95 @@ func TestRealCasesCanBeFilteredByReason(t *testing.T) {
 	}
 	if got := ids("trademark"); len(got) != 0 {
 		t.Errorf("a reason nobody gave: %v", got)
+	}
+}
+
+// A purged person's reports go. A case others also reported loses one from
+// its count; an open case only they reported goes with it; a decided case
+// stays as the record of the decision.
+func TestRealAPurgedReportersReportsAreRemoved(t *testing.T) {
+	repo := realCases(t)
+
+	shared, _, _ := repo.AddReport(target(), by(ada, "spam"))
+	if _, _, err := repo.AddReport(target(), by(grace, "spam")); err != nil {
+		t.Fatal(err)
+	}
+
+	other := entities.Case{TargetID: post + 1, TargetType: "node.medium.text-service.note.v1", TargetOwnerID: author}
+	alone, _, _ := repo.AddReport(other, by(ada, "spam"))
+
+	third := entities.Case{TargetID: post + 2, TargetType: "node.medium.text-service.note.v1", TargetOwnerID: author}
+	decided, _, _ := repo.AddReport(third, by(ada, "spam"))
+	if _, err := repo.Resolve(decided, constants.CaseStatusDismissed, constants.ActionNone, "", moderator); err != nil {
+		t.Fatal(err)
+	}
+
+	removed, err := repo.RemoveReportsBy(ada)
+	if err != nil || removed != 3 {
+		t.Fatalf("removed %d reports, %v; want Ada's 3", removed, err)
+	}
+
+	if c, err := repo.Read(shared); err != nil || c.ReportCount != 1 {
+		t.Errorf("the case Grace also reported: %+v, %v", c, err)
+	}
+	if reports, _ := repo.BrowseReports(shared); len(reports) != 1 || reports[0].ReporterID != grace {
+		t.Errorf("reports left in the shared case: %+v", reports)
+	}
+
+	if c, err := repo.Read(alone); err == nil && c != nil {
+		t.Errorf("an open case with no reports is still there: %+v", c)
+	}
+
+	if c, err := repo.Read(decided); err != nil || c == nil || c.Status != constants.CaseStatusDismissed || c.ReportCount != 0 {
+		t.Errorf("the decided case: %+v, %v", c, err)
+	}
+
+	// Hearing it twice changes nothing.
+	if removed, err := repo.RemoveReportsBy(ada); err != nil || removed != 0 {
+		t.Errorf("second time: removed %d, %v", removed, err)
+	}
+	if c, _ := repo.Read(shared); c.ReportCount != 1 {
+		t.Errorf("the count was lowered twice: %d", c.ReportCount)
+	}
+}
+
+// The address a report came from is kept for a while and then blanked. The
+// report itself stays.
+func TestRealOldAddressesAreForgotten(t *testing.T) {
+	repo := realCases(t)
+
+	id, _, _ := repo.AddReport(target(), by(ada, "spam"))
+	if _, _, err := repo.AddReport(target(), by(grace, "spam")); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := repo.db.Exec(
+		`UPDATE abuse_reports SET created_at = NOW() - INTERVAL 100 DAY WHERE reporter_id = ?`, ada); err != nil {
+		t.Fatal(err)
+	}
+
+	cutoff := time.Now().AddDate(0, 0, -constants.AddressRetentionDays)
+
+	blanked, err := repo.ForgetAddresses(cutoff)
+	if err != nil || blanked != 1 {
+		t.Fatalf("blanked %d addresses, %v; want the one old report", blanked, err)
+	}
+
+	reports, _ := repo.BrowseReports(id)
+	if len(reports) != 2 {
+		t.Fatalf("%d reports left, want both", len(reports))
+	}
+	for _, report := range reports {
+		old := report.ReporterID == ada
+		if old && report.CreatedIP != "" {
+			t.Errorf("the old report still has its address: %q", report.CreatedIP)
+		}
+		if !old && report.CreatedIP == "" {
+			t.Error("the recent report lost its address")
+		}
+	}
+
+	if blanked, err := repo.ForgetAddresses(cutoff); err != nil || blanked != 0 {
+		t.Errorf("second time: blanked %d, %v", blanked, err)
 	}
 }

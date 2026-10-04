@@ -95,21 +95,25 @@ func (repo *SubscriptionsRelRepo) IsSubscribedToMany(personID int64, targetIDs [
 	return statuses, nil
 }
 
+// UpdateSubscriberCount sets a node's subscriber_count to the number of
+// subscription edges pointing at it.
+//
+// It used to write the total into vote_up_count, and passed two values for
+// three placeholders, so every call failed before it could do that.
 func (repo *SubscriptionsRelRepo) UpdateSubscriberCount(targetID int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
 
-	sqlStr := `
-		UPDATE nodes AS target
-		JOIN (
-			SELECT COUNT(*) AS count
-			FROM edges
-			WHERE type = ? AND node_b_id = ?
-		) AS sub
-		SET target.vote_up_count = sub.count
-		WHERE target.id = ?;
-	`
+	const query = `
+UPDATE nodes
+SET subscriber_count = (
+  SELECT COUNT(*)
+  FROM edges
+  WHERE type = ?
+    AND node_b_id = ?
+)
+WHERE id = ?`
 
-	_, err := repo.db.ExecContext(ctx, sqlStr, repo.edgeType, targetID)
+	_, err := repo.db.ExecContext(ctx, query, repo.edgeType, targetID, targetID)
 	return err
 }

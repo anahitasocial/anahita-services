@@ -26,23 +26,17 @@ type DeletionCounts struct {
 // the whole point, so they are gathered before the deletion rather than
 // reported after it.
 //
-// IT COUNTS WHAT THE PURGE DESTROYS, and getting that right took a correction.
-// The first version counted `created_by` — what the actor had written — which
-// is a different set from what deleting them removes, in both directions:
+// IT COUNTS WHAT THE PURGE DESTROYS, and the set is the purge's own:
+// purgeContent, the same text PreparePurge runs. Everything the actor owns,
+// everything the actor wrote, and everything underneath either.
 //
-//   - a post they wrote INTO A GROUP is owned by the group and survives, so
-//     counting it overstated the loss;
-//   - a comment SOMEBODY ELSE left on their post is destroyed with it, and
-//     counting only their own comments missed it.
-//
-// Measured against the development data for one account, that was 4,826 posts
-// claimed against 2,931 actually destroyed, and 3,868 comments claimed against
-// 1,835. A dialog whose entire job is to be believed cannot be out by that
-// much.
-//
-// So the recursion below is PurgeActorContent's own: everything owned by the
-// actor, then everything descending from that by parent_id. Same shape, same
-// definition of "gone".
+// The two have disagreed before, in both directions. Counting only what the
+// actor wrote missed the comments other people left on their posts, which go
+// with the posts. Counting only what the actor owned was right while the purge
+// did the same, and stopped being right when the purge learned to follow the
+// actor's own posts and comments into groups and onto other people's posts.
+// Sharing the text is what keeps a dialog whose entire job is to be believed
+// from drifting again.
 //
 // One statement, and the tree is walked once. Six round trips would sit in
 // front of a dialog somebody is waiting on, and six snapshots can disagree.
@@ -54,18 +48,14 @@ func (r *nodesRepo) ReadDeletionCounts(actorID int64) (*DeletionCounts, error) {
 		return &DeletionCounts{}, nil
 	}
 
-	const query = `
-WITH RECURSIVE content (id) AS (
-  SELECT id FROM nodes WHERE owner_id = ?
-  UNION ALL
-  SELECT c.id FROM nodes c JOIN content p ON c.parent_id = p.id
-),
+	const query = purgeContent + `,
 destroyed AS (
   SELECT
     COALESCE(SUM(n.type LIKE ?), 0) AS posts,
     COALESCE(SUM(n.type = ?), 0)    AS comments
   FROM content c
   JOIN nodes n ON n.id = c.id
+  WHERE n.id <> ?
 )
 SELECT
   d.posts,
@@ -91,9 +81,10 @@ FROM destroyed d;
 	var memberSince sql.NullTime
 
 	err := r.db.QueryRowContext(ctx, query,
-		actorID,
+		actorID, actorID,
 		constants.NodeMediumPrefixEntityType+"%",
 		constants.NodeBaseCommentEntityType,
+		actorID,
 		actorID, constants.EdgeFollowEntityType,
 		actorID, constants.EdgeFollowEntityType,
 		actorID, constants.EdgeActorAdminEntityType,

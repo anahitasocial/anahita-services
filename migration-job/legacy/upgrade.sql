@@ -542,6 +542,11 @@ ALTER TABLE nodes ADD COLUMN `quote_count` INT(11) UNSIGNED NOT NULL DEFAULT 0 A
 ALTER TABLE nodes ADD COLUMN `deleted_at` datetime DEFAULT NULL;
 ALTER TABLE nodes ADD INDEX `deleted_at` (`deleted_at`);
 
+-- nodes.purged_at, set when an actor has been reduced to a tombstone, so the
+-- sweeper's queue is "deleted and not yet purged".
+ALTER TABLE nodes ADD COLUMN `purged_at` datetime DEFAULT NULL;
+ALTER TABLE nodes ADD INDEX `purged_at` (`purged_at`);
+
 -- nodes.archived_at, the third lifecycle state. Permanent, and unlike deletion
 -- it destroys nothing — the content keeps its URLs and stops being pushed at
 -- people. Its own column rather than a fourth meaning for `enabled`.
@@ -571,6 +576,26 @@ CREATE TABLE node_deletion_logs (
     PRIMARY KEY (`id`),
     KEY `idx_node_deletion_logs_node_id` (`node_id`),
     KEY `idx_node_deletion_logs_created_on` (`created_on`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- What is left to do for a purge in progress.
+--
+-- A purge removes an account's content in batches, each in its own short
+-- transaction, so a large account cannot run out of time and an interrupted
+-- purge carries on from what remains. Rows are removed as the work is done: an
+-- actor with none left is finished.
+--
+-- Owned by graph-grpc-service.
+CREATE TABLE IF NOT EXISTS purge_work (
+    -- The actor being purged.
+    `actor_id` bigint unsigned NOT NULL,
+    -- 'delete' for a node to remove, or the counter to count again on a node
+    -- that stays: 'count_follows', 'count_votes', 'count_subscribers',
+    -- 'count_comments', 'count_reposts'.
+    `task` varchar(24) NOT NULL,
+    -- The node the task applies to.
+    `node_id` bigint unsigned NOT NULL,
+    PRIMARY KEY (`actor_id`, `task`, `node_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 ALTER TABLE people_people ADD COLUMN `totp_secret` VARCHAR(255) DEFAULT '';

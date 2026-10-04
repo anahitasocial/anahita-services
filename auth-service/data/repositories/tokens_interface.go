@@ -39,6 +39,14 @@ type TokensInterface interface {
 	// outlived the account until the sweeper started calling this.
 	DeleteByRecipientEmail(email string) (int64, error)
 
+	// DeleteUnusedFrom removes the tokens of one type that a person sent and
+	// nobody has used, returning how many rows went.
+	//
+	// For account purge only: an invitation from somebody who is gone holds
+	// the invited person's address for no purpose. A used one is left, as the
+	// record of how that account arrived.
+	DeleteUnusedFrom(tokenType string, personID int64) (int64, error)
+
 	// InvalidateOutstanding marks every unused token of one type for one
 	// address as used, returning how many were retired.
 	//
