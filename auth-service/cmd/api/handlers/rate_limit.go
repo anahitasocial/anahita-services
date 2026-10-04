@@ -1,12 +1,11 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"time"
 
-	"anahita-libs/sessions"
+	"anahita-libs/ratelimit"
 )
 
 // ---------------------------------------------------------------------
@@ -202,7 +201,7 @@ func signupSubnet(ip string) string {
 }
 
 func rateLimitKey(scope rateLimitScope, subject string) string {
-	return fmt.Sprintf("ratelimit:%s:%s", scope, sessions.HashString(subject))
+	return ratelimit.Key(string(scope), subject)
 }
 
 // rateLimitExceeded counts one attempt against a scope and reports
@@ -249,30 +248,16 @@ func (env *Env) rateLimitExceeded(scope rateLimitScope, subject string) bool {
 // lock everyone out of signing in — and it follows that a limit which did not
 // trip cannot have just tripped.
 func (env *Env) rateLimitCheck(scope rateLimitScope, subject string) (exceeded, first bool) {
-	if subject == "" {
-		return false, false
-	}
-
 	limit, ok := rateLimits[scope]
 	if !ok {
 		log.Printf("rate limit: unknown scope %q, not limiting", scope)
 		return false, false
 	}
 
-	count, err := env.Session.Incr(rateLimitKey(scope, subject), limit.window)
-	if err != nil {
-		log.Printf("rate limit: counter failed for scope %s, allowing: %v",
-			scope, err)
-		return false, false
-	}
-
-	if count > limit.max {
-		log.Printf("rate limit: scope %s exceeded (%d/%d)",
-			scope, count, limit.max)
-		return true, count == limit.max+1
-	}
-
-	return false, false
+	// The counting itself is shared with the other services: see
+	// anahita-libs/ratelimit.
+	return ratelimit.Check(env.Session, string(scope), subject,
+		ratelimit.Limit{Max: limit.max, Window: limit.window})
 }
 
 // rateLimitReset drops a counter.
@@ -282,11 +267,5 @@ func (env *Env) rateLimitCheck(scope rateLimitScope, subject string) (exceeded, 
 // longer evidence of anything. Best-effort — a counter that survives
 // costs the person a wait, not access.
 func (env *Env) rateLimitReset(scope rateLimitScope, subject string) {
-	if subject == "" {
-		return
-	}
-
-	if err := env.Session.Del(rateLimitKey(scope, subject)); err != nil {
-		log.Printf("rate limit: reset failed for scope %s: %v", scope, err)
-	}
+	ratelimit.Reset(env.Session, string(scope), subject)
 }
