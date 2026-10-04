@@ -185,7 +185,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 
 **Done differently from the plan:**
 
-- **The case page does not delete or disable anything itself.** It has "Open it", which goes to the reported thing, where Delete, Block and the settings' Danger zone already are, each with its own confirmation and permission. Deleting a post or comment there closes its case by itself; for anything else the administrator records what was done. Building a second set of those controls on the case page was the larger half of the plan's web estimate, and would have duplicated their confirmations.
+- **The case page does not delete or disable anything itself.** It has "View", which goes to the reported thing, where Delete, Block and the settings' Danger zone already are, each with its own confirmation and permission. Deleting a post or comment there closes its case by itself; for anything else the administrator records what was done. Building a second set of those controls on the case page was the larger half of the plan's web estimate, and would have duplicated their confirmations.
 - **No `abuse-report-defaults/` directory.** The default list is embedded in the binary, so there is one copy. An installation's own file is mounted wherever it likes.
 - **No new OAuth scope.** Reporting needs `account:write`; reading and deciding cases need `actors:read` and `actors:write`. A new scope would not have reached clients that were already seeded.
 - **Reasons are found by `status = 'open'` uniqueness in the database,** where the plan said "enforced in code".
