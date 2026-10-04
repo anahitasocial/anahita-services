@@ -42,7 +42,7 @@ k8s/
   base/                 every Anahita service, and nothing a site decides
     services/           one file per HTTP service
     grpc/               file, graph and mail
-    jobs/               the migration job and the hourly account sweeper
+    jobs/               the migration job and the account sweeper
     gateway.yml         nginx: routing, CORS, cookie-to-token
     ingress.yml         the way in; sends everything to the gateway
     grpc-tls.yml        certificates for the calls between the services

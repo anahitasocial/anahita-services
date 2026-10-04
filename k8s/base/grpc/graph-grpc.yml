@@ -42,6 +42,14 @@ spec:
                 secretKeyRef:
                   name: anahita-secrets
                   key: AMQP_ADDR
+            # So a purge a super administrator asks for also removes the
+            # uploaded avatars, covers and photos. Without it the rows go
+            # and the objects stay.
+            - name: FILE_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FILE_SERVICE_ADDR
           readinessProbe:
             tcpSocket:
               port: grpc

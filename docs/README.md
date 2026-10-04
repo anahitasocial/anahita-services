@@ -91,7 +91,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
-| [Complete hard delete and bulk cleanup](plans/actor-hard-delete.md) | 5 | part A (the complete purge) done 2026-10-03; B, C and D not started |
+| [Complete hard delete and bulk cleanup](plans/actor-hard-delete.md) | 5 | parts A and B (the complete purge, the purge queue) done 2026-10-04; C and D not started |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/notes-as-replies.md) | 7 | not started |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |

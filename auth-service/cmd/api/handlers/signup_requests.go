@@ -224,7 +224,7 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 
 	if _, err := h.Repos.Users.Add(user); err != nil {
 		log.Println("signup requests approve: could not create the account:", err)
-		if _, purgeErr := h.Srv.ActorsGRPC.Purge(created.ID, signupViewer()); purgeErr != nil {
+		if purgeErr := h.purgeOrphanedActor(created.ID); purgeErr != nil {
 			log.Printf("signup requests approve: orphaned actor %d: %v (purge also failed: %v)",
 				created.ID, err, purgeErr)
 		}

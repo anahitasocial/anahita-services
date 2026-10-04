@@ -901,6 +901,9 @@ services:
       GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
+      # So a purge a super administrator asks for also removes the uploaded
+      # avatars, covers and photos. Without it the rows go and the objects stay.
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
       ACTOR_FEATURES_PATH: /defaults/actor_features
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro

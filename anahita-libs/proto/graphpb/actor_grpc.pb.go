@@ -28,7 +28,8 @@ const (
 	ActorService_Delete_FullMethodName         = "/graph.ActorService/Delete"
 	ActorService_Restore_FullMethodName        = "/graph.ActorService/Restore"
 	ActorService_DeletionCounts_FullMethodName = "/graph.ActorService/DeletionCounts"
-	ActorService_Purge_FullMethodName          = "/graph.ActorService/Purge"
+	ActorService_RequestPurge_FullMethodName   = "/graph.ActorService/RequestPurge"
+	ActorService_ReadPurgeBatch_FullMethodName = "/graph.ActorService/ReadPurgeBatch"
 	ActorService_Archive_FullMethodName        = "/graph.ActorService/Archive"
 	ActorService_SetEnabled_FullMethodName     = "/graph.ActorService/SetEnabled"
 	ActorService_SetFeatured_FullMethodName    = "/graph.ActorService/SetFeatured"
@@ -53,9 +54,11 @@ type ActorServiceClient interface {
 	Restore(ctx context.Context, in *ActorRestoreRequest, opts ...grpc.CallOption) (*ActorRestoreResponse, error)
 	// What deleting this actor would cost, for the confirmation dialog.
 	DeletionCounts(ctx context.Context, in *ActorDeletionCountsRequest, opts ...grpc.CallOption) (*ActorDeletionCountsResponse, error)
-	// Destroys an actor immediately, skipping the grace period. Super
+	// Queues actors to be destroyed now, skipping the grace period. Super
 	// administrators only; the caller enforces that.
-	Purge(ctx context.Context, in *ActorPurgeRequest, opts ...grpc.CallOption) (*ActorPurgeResponse, error)
+	RequestPurge(ctx context.Context, in *ActorPurgeBatchRequest, opts ...grpc.CallOption) (*ActorPurgeBatchResponse, error)
+	// How far a RequestPurge has got.
+	ReadPurgeBatch(ctx context.Context, in *ActorPurgeBatchReadRequest, opts ...grpc.CallOption) (*ActorPurgeBatchReadResponse, error)
 	// Archives an actor. Permanent; destroys nothing. No unarchive by design.
 	Archive(ctx context.Context, in *ActorArchiveRequest, opts ...grpc.CallOption) (*ActorArchiveResponse, error)
 	// Turns an actor on or off. Reversible.
@@ -166,10 +169,20 @@ func (c *actorServiceClient) DeletionCounts(ctx context.Context, in *ActorDeleti
 	return out, nil
 }
 
-func (c *actorServiceClient) Purge(ctx context.Context, in *ActorPurgeRequest, opts ...grpc.CallOption) (*ActorPurgeResponse, error) {
+func (c *actorServiceClient) RequestPurge(ctx context.Context, in *ActorPurgeBatchRequest, opts ...grpc.CallOption) (*ActorPurgeBatchResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ActorPurgeResponse)
-	err := c.cc.Invoke(ctx, ActorService_Purge_FullMethodName, in, out, cOpts...)
+	out := new(ActorPurgeBatchResponse)
+	err := c.cc.Invoke(ctx, ActorService_RequestPurge_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *actorServiceClient) ReadPurgeBatch(ctx context.Context, in *ActorPurgeBatchReadRequest, opts ...grpc.CallOption) (*ActorPurgeBatchReadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ActorPurgeBatchReadResponse)
+	err := c.cc.Invoke(ctx, ActorService_ReadPurgeBatch_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -243,9 +256,11 @@ type ActorServiceServer interface {
 	Restore(context.Context, *ActorRestoreRequest) (*ActorRestoreResponse, error)
 	// What deleting this actor would cost, for the confirmation dialog.
 	DeletionCounts(context.Context, *ActorDeletionCountsRequest) (*ActorDeletionCountsResponse, error)
-	// Destroys an actor immediately, skipping the grace period. Super
+	// Queues actors to be destroyed now, skipping the grace period. Super
 	// administrators only; the caller enforces that.
-	Purge(context.Context, *ActorPurgeRequest) (*ActorPurgeResponse, error)
+	RequestPurge(context.Context, *ActorPurgeBatchRequest) (*ActorPurgeBatchResponse, error)
+	// How far a RequestPurge has got.
+	ReadPurgeBatch(context.Context, *ActorPurgeBatchReadRequest) (*ActorPurgeBatchReadResponse, error)
 	// Archives an actor. Permanent; destroys nothing. No unarchive by design.
 	Archive(context.Context, *ActorArchiveRequest) (*ActorArchiveResponse, error)
 	// Turns an actor on or off. Reversible.
@@ -293,8 +308,11 @@ func (UnimplementedActorServiceServer) Restore(context.Context, *ActorRestoreReq
 func (UnimplementedActorServiceServer) DeletionCounts(context.Context, *ActorDeletionCountsRequest) (*ActorDeletionCountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletionCounts not implemented")
 }
-func (UnimplementedActorServiceServer) Purge(context.Context, *ActorPurgeRequest) (*ActorPurgeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Purge not implemented")
+func (UnimplementedActorServiceServer) RequestPurge(context.Context, *ActorPurgeBatchRequest) (*ActorPurgeBatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RequestPurge not implemented")
+}
+func (UnimplementedActorServiceServer) ReadPurgeBatch(context.Context, *ActorPurgeBatchReadRequest) (*ActorPurgeBatchReadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadPurgeBatch not implemented")
 }
 func (UnimplementedActorServiceServer) Archive(context.Context, *ActorArchiveRequest) (*ActorArchiveResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Archive not implemented")
@@ -494,20 +512,38 @@ func _ActorService_DeletionCounts_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ActorService_Purge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ActorPurgeRequest)
+func _ActorService_RequestPurge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActorPurgeBatchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ActorServiceServer).Purge(ctx, in)
+		return srv.(ActorServiceServer).RequestPurge(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ActorService_Purge_FullMethodName,
+		FullMethod: ActorService_RequestPurge_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ActorServiceServer).Purge(ctx, req.(*ActorPurgeRequest))
+		return srv.(ActorServiceServer).RequestPurge(ctx, req.(*ActorPurgeBatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ActorService_ReadPurgeBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActorPurgeBatchReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).ReadPurgeBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_ReadPurgeBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).ReadPurgeBatch(ctx, req.(*ActorPurgeBatchReadRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -646,8 +682,12 @@ var ActorService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ActorService_DeletionCounts_Handler,
 		},
 		{
-			MethodName: "Purge",
-			Handler:    _ActorService_Purge_Handler,
+			MethodName: "RequestPurge",
+			Handler:    _ActorService_RequestPurge_Handler,
+		},
+		{
+			MethodName: "ReadPurgeBatch",
+			Handler:    _ActorService_ReadPurgeBatch_Handler,
 		},
 		{
 			MethodName: "Archive",

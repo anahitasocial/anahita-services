@@ -15,8 +15,14 @@ import (
 
 	"anahita-libs/data/services"
 
+	"anahita-libs/constants"
+	"anahita-libs/data/entities"
+	"anahita-libs/proto/graphpb"
+
+	"graph/cmd/server/handlers"
 	"graph/data/repositories"
 	"graph/purge"
+	"graph/sweeper"
 )
 
 // A whole purge against real MySQL.
@@ -415,5 +421,227 @@ func TestPurgeRefusesTheLastSuperAdministrator(t *testing.T) {
 	}
 	if n := count(t, db, `SELECT COUNT(*) FROM nodes WHERE id = ? AND deleted_at IS NOT NULL`, purgeRoot); n != 0 {
 		t.Error("the refused account was marked deleted")
+	}
+}
+
+// ---------------------------------------------------------------------
+// The request queue
+// ---------------------------------------------------------------------
+
+func purgeHandlers(db *sql.DB) (*handlers.Handlers, *repositories.Repositories) {
+	repos := repositories.NewRepositories(db)
+	return handlers.NewHandlers(&handlers.Env{DB: db, Repos: repos}), repos
+}
+
+func superAdmin() *graphpb.Viewer {
+	return &graphpb.Viewer{Id: purgeRoot, PersonType: constants.PersonTypeSuperAdmin}
+}
+
+// waitForBatch asks how a request is doing until nothing is queued.
+func waitForBatch(t *testing.T, h *handlers.Handlers, batchID string) *graphpb.ActorPurgeBatchReadResponse {
+	t.Helper()
+
+	deadline := time.Now().Add(20 * time.Second)
+	for {
+		batch, err := h.Actor.ReadPurgeBatch(t.Context(), &graphpb.ActorPurgeBatchReadRequest{BatchId: batchID})
+		if err != nil {
+			t.Fatalf("reading the batch: %v", err)
+		}
+		if batch.Total > 0 && batch.Queued == 0 {
+			return batch
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("the batch never finished: %+v", batch)
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+// A request answers at once with a batch, hides the accounts straight away,
+// and the purge follows without anybody running the sweeper.
+func TestPurgeRequestHidesAtOnceAndPurgesInTheBackground(t *testing.T) {
+	db := purgeTestDB(t)
+	seedPurgeFixture(t, db)
+	if _, err := db.Exec(`DELETE FROM purge_requests`); err != nil {
+		t.Fatal(err)
+	}
+	h, _ := purgeHandlers(db)
+
+	result, err := h.Actor.RequestPurge(t.Context(), &graphpb.ActorPurgeBatchRequest{
+		Ids:    []int64{purgeAda, purgeGrace, purgeAda},
+		Type:   constants.NodeActorPersonEntityType,
+		Viewer: superAdmin(),
+	})
+	if err != nil {
+		t.Fatalf("request: %v", err)
+	}
+	if result.BatchId == "" || result.Queued != 2 || len(result.Refused) != 0 {
+		t.Fatalf("the request: %+v", result)
+	}
+
+	// Hidden before the answer came back, whatever the queue is doing.
+	if n := count(t, db, `SELECT COUNT(*) FROM nodes WHERE id IN (?, ?) AND deleted_at IS NOT NULL AND enabled = 0`,
+		purgeAda, purgeGrace); n != 2 {
+		t.Errorf("%d of the 2 accounts were hidden when the request returned", n)
+	}
+
+	batch := waitForBatch(t, h, result.BatchId)
+	if batch.Total != 2 || batch.Done != 2 || batch.Failed != 0 {
+		t.Fatalf("the batch: %+v", batch)
+	}
+
+	if n := count(t, db, `SELECT COUNT(*) FROM nodes WHERE id IN (?, ?) AND purged_at IS NOT NULL`,
+		purgeAda, purgeGrace); n != 2 {
+		t.Errorf("%d of the 2 accounts are tombstones", n)
+	}
+	if n := count(t, db, `SELECT COUNT(*) FROM nodes WHERE type LIKE 'node.medium.%'`); n != 0 {
+		t.Errorf("%d posts are left; both authors were purged", n)
+	}
+
+	// The audit names the super administrator who asked, once per account.
+	if n := count(t, db, `
+		SELECT COUNT(*) FROM node_deletion_logs
+		WHERE action = 'hard-deleted' AND deleted_by = ? AND node_id IN (?, ?)`,
+		purgeRoot, purgeAda, purgeGrace); n != 2 {
+		t.Errorf("%d hard-deleted audit rows naming the requester, want 2", n)
+	}
+
+	// The progress still names the accounts, though the purge took their names.
+	for _, item := range batch.Items {
+		if item.Alias != "ada" && item.Alias != "grace" {
+			t.Errorf("an item of the batch lost its alias: %+v", item)
+		}
+	}
+
+	// Asking again finds nothing to do.
+	again, err := h.Actor.RequestPurge(t.Context(), &graphpb.ActorPurgeBatchRequest{
+		Ids:    []int64{purgeAda},
+		Type:   constants.NodeActorPersonEntityType,
+		Viewer: superAdmin(),
+	})
+	if err != nil || again.Queued != 0 || again.Skipped != 1 || again.BatchId != "" {
+		t.Errorf("asking again: %+v, %v", again, err)
+	}
+}
+
+// One actor that cannot be purged refuses the whole request, with a reason
+// for each, and nothing is touched.
+func TestPurgeRequestIsRefusedWhole(t *testing.T) {
+	db := purgeTestDB(t)
+	seedPurgeFixture(t, db)
+	if _, err := db.Exec(`DELETE FROM purge_requests`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`UPDATE nodes SET person_type = 'administrator' WHERE id = ?`, purgeGrace); err != nil {
+		t.Fatal(err)
+	}
+	h, _ := purgeHandlers(db)
+
+	result, err := h.Actor.RequestPurge(t.Context(), &graphpb.ActorPurgeBatchRequest{
+		Ids:    []int64{purgeAda, purgeGrace, purgeRoot, purgeGroup, purgeAdaPost, 999},
+		Type:   constants.NodeActorPersonEntityType,
+		Viewer: superAdmin(),
+	})
+	if err != nil {
+		t.Fatalf("request: %v", err)
+	}
+
+	want := map[int64]string{
+		purgeGrace:   "administrator",
+		purgeRoot:    "yourself",
+		purgeGroup:   "wrong_type",
+		purgeAdaPost: "wrong_type",
+		999:          "not_found",
+	}
+	got := map[int64]string{}
+	for _, refusal := range result.Refused {
+		got[refusal.Id] = refusal.Reason
+	}
+	if fmt.Sprint(got) != fmt.Sprint(want) {
+		t.Errorf("refused: %v\nwant:    %v", got, want)
+	}
+	if result.BatchId != "" || result.Queued != 0 {
+		t.Errorf("a refused request still queued something: %+v", result)
+	}
+
+	// Ada could have been purged, and was not: the request is all or nothing.
+	if n := count(t, db, `SELECT COUNT(*) FROM nodes WHERE deleted_at IS NOT NULL`); n != 0 {
+		t.Errorf("%d account(s) were hidden by a refused request", n)
+	}
+	if n := count(t, db, `SELECT COUNT(*) FROM purge_requests`); n != 0 {
+		t.Errorf("%d request(s) were queued by a refused request", n)
+	}
+
+	// Named on purpose, an administrator can go.
+	single, err := h.Actor.RequestPurge(t.Context(), &graphpb.ActorPurgeBatchRequest{
+		Ids:                 []int64{purgeGrace},
+		Type:                constants.NodeActorPersonEntityType,
+		AllowAdministrators: true,
+		Viewer:              superAdmin(),
+	})
+	if err != nil || single.Queued != 1 {
+		t.Fatalf("removing one administrator by name: %+v, %v", single, err)
+	}
+	waitForBatch(t, h, single.BatchId)
+}
+
+// A request that cannot be carried out is tried a few times and then marked
+// failed with the reason, so the queue does not turn on it forever and the
+// accounts behind it are still reached.
+func TestPurgeRequestThatCannotWorkIsMarkedFailed(t *testing.T) {
+	db := purgeTestDB(t)
+	seedPurgeFixture(t, db)
+	if _, err := db.Exec(`DELETE FROM purge_requests`); err != nil {
+		t.Fatal(err)
+	}
+	repos := repositories.NewRepositories(db)
+
+	// Queued, and then the node vanished from under the request.
+	ghost := entities.NewAnahitaNode()
+	ghost.ID, ghost.Alias, ghost.Type = 4242, "ghost", constants.NodeActorPersonEntityType
+	if queued, err := repos.PurgeRequests.Add("batch-a", ghost, purgeRoot); err != nil || !queued {
+		t.Fatalf("queueing: %v, %v", queued, err)
+	}
+
+	ada, err := repos.Nodes.Read(purgeAda)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if queued, err := repos.PurgeRequests.Add("batch-a", ada, purgeRoot); err != nil || !queued {
+		t.Fatalf("queueing: %v, %v", queued, err)
+	}
+	if queued, _ := repos.PurgeRequests.Add("batch-b", ada, purgeRoot); queued {
+		t.Error("the same account was queued twice")
+	}
+
+	purged, err := sweeper.RunRequests(db, repos, nil, nil)
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if purged != 1 {
+		t.Errorf("purged %d, want Ada only", purged)
+	}
+
+	requests, err := repos.PurgeRequests.BrowseBatch("batch-a")
+	if err != nil || len(requests) != 2 {
+		t.Fatalf("the batch: %v, %v", requests, err)
+	}
+	for _, request := range requests {
+		switch request.ActorID {
+		case 4242:
+			if request.Status != repositories.PurgeRequestFailed ||
+				request.Attempts != repositories.PurgeRequestMaxAttempts || request.Error == "" {
+				t.Errorf("the request that cannot work: %+v", request)
+			}
+		case purgeAda:
+			if request.Status != repositories.PurgeRequestDone {
+				t.Errorf("the request behind it: %+v", request)
+			}
+		}
+	}
+
+	// Asking again replaces a failed request, which is how it is retried.
+	if queued, err := repos.PurgeRequests.Add("batch-c", ghost, purgeRoot); err != nil || !queued {
+		t.Errorf("asking again for a failed request: %v, %v", queued, err)
 	}
 }

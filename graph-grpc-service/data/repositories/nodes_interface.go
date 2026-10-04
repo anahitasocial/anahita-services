@@ -101,6 +101,10 @@ type NodesRepoInterface interface {
 	// tombstoned.
 	FinishPurge(actorID int64) error
 
+	// GuardLastSuperAdmin returns ErrLastSuperAdmin if removing this actor
+	// would leave nobody able to administer the installation.
+	GuardLastSuperAdmin(id int64) error
+
 	// IsPurged reports whether an actor is already a tombstone.
 	IsPurged(id int64) (bool, error)
 

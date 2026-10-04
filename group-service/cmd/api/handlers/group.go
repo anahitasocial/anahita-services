@@ -629,66 +629,6 @@ func (h *groupHandler) SetFeatured(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// Purge destroys a group immediately, skipping the grace period.
-//
-//	DELETE /groups/:id/purge
-//
-// Super administrators only. Not a group administrator, and not an ordinary
-// site administrator: a group holds other people's posts and discussions, and
-// destroying them outright is a site-cleanup power rather than a moderation
-// one. CanDelete is deliberately not consulted — it answers a broader question
-// and a group's own administrators satisfy it.
-//
-// Notifies nobody, including the group's administrators. The lifecycle mail
-// they get is for a scheduled deletion, which they can still reverse; this
-// they cannot.
-func (h *groupHandler) Purge(c echo.Context) error {
-	var (
-		req    = requests.NewActorRequest().Delete
-		viewer = getViewer(c)
-	)
-
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if viewer == nil || viewer.PersonType != an_constants.PersonTypeSuperAdmin {
-		log.Println("group purge: refused, viewer is not a super administrator")
-		return c.NoContent(http.StatusForbidden)
-	}
-
-	if err := h.requireStepUp(viewer.ID); err != nil {
-		log.Println("group purge:", err)
-		return stepUpRefusal(c, err)
-	}
-
-	// Read through ReadOfType, so a medium id cannot be purged as a group.
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusNotFound)
-	}
-
-	purged, err := h.Srv.ActorsGRPC.Purge(actor.ID, viewer)
-	if err != nil {
-		log.Println("group purge:", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	h.clearStepUp(viewer.ID)
-
-	if !purged {
-		return c.NoContent(http.StatusNoContent)
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
 // DeletionCounts reports what deleting this group would cost.
 //
 //	GET /groups/:id/deletion-counts

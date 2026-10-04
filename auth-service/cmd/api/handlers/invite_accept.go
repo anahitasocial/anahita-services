@@ -366,7 +366,7 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 		// Compensating delete, as in signup: two writes across two services
 		// with no transaction between them, so the node has to be unwound or
 		// it holds a handle nobody can sign into.
-		if _, purgeErr := h.Srv.ActorsGRPC.Purge(createdActor.ID, signupViewer()); purgeErr != nil {
+		if purgeErr := h.purgeOrphanedActor(createdActor.ID); purgeErr != nil {
 			log.Printf("invite accept: orphaned actor %d: %v (purge also failed: %v)", createdActor.ID, err, purgeErr)
 		}
 		return h.renderTemplate(c, "invite_accept.html",

@@ -208,12 +208,79 @@ upgrade and legacy paths.
 storage: the tests use a stand-in for the file service. And a lost purge event
 is not retried, so auth-service or abuse-report-service can miss a purge.
 
+### Part B: the purge queue and batch purge (2026-10-04)
+
+**Asking and purging are separate.** A new table, `purge_requests`, holds one
+row per account a super administrator has asked to be removed. A request
+checks every account, marks each one deleted so it is gone from the site at
+once, queues it, and answers with a batch id. The purge itself runs in the
+background.
+
+**Endpoints**, the same on `/people` and `/groups`:
+
+| Endpoint | Answer |
+| --- | --- |
+| `POST /people/purge-batch` with `{ "ids": [...], "confirm": "PURGE 37" }` | 202 with `batch_id`, `queued`, `skipped`; 409 with the reason for each account that stopped it; 400 if the confirmation does not name the count |
+| `GET /people/purge-batch/:batch_id` | `total`, `queued`, `done`, `failed` and each account's state; 404 for an unknown batch |
+| `DELETE /people/:id/purge` | the same, as a request for one |
+
+Super administrators only, with one proof of identity per request. A request
+names at most 500 accounts.
+
+**All or nothing.** One account that cannot be purged refuses the whole
+request and nothing is touched. The reasons: `not_found`, `wrong_type`,
+`administrator`, `yourself`, `last_super_administrator`. A refused request
+does not spend the proof of identity. Accounts already purged or already
+queued are skipped and counted.
+
+**Administrators.** A batch refuses if it names an administrator or super
+administrator. The single route allows it, since that is a deliberate removal
+of one named account, but never the last super administrator and never
+yourself.
+
+**Who does the work.** `sweeper.RunRequests`, started by the request inside
+graph-grpc-service, under the sweeper's own database lock. With several
+replicas the one that gets the lock drains the queue. The scheduled sweeper
+drains the queue too, before the expired accounts, so a request whose replica
+stopped part-way is finished by the next run. The Kubernetes job now runs
+every ten minutes instead of hourly for that reason.
+
+**Failures.** A purge that fails is tried again; after three failures its row
+is marked `failed` with the last error, and the accounts behind it are still
+reached. Asking again for a failed account replaces the row.
+
+**Audit.** Each account gets its `purged` row and a `hard-deleted` row naming
+the super administrator who asked.
+
+**graph-grpc-service now has `FILE_SERVICE_ADDR`** in compose and Kubernetes.
+Without it a purge asked for through the API cleared the database and left
+the uploaded files in storage.
+
+**Where it differs from the plan.**
+- No `purge_requested_at` column on `nodes`; the queue is its own table, which
+  also carries the progress and the requester.
+- A batch with a problem is refused whole. The plan listed failures after the
+  fact.
+- The old `Purge` RPC is gone. auth-service used it to remove an account whose
+  credentials could not be written during signup; those four places now ask
+  through the queue.
+
+**Tests.** Real-MySQL tests of the queue in
+`graph-grpc-service/data/repositories/purge_integration_test.go`: a request
+that hides at once and purges in the background, a request refused whole, and
+a request that cannot work being marked failed while the one behind it is
+done. Handler tests for the gates in group-service.
+
+**Not checked.** The endpoints with a real super administrator's session and
+proof of identity: only that they refuse a caller with no token. Two replicas
+contending for the lock.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
 | A. Complete purge | done 2026-10-03 |
-| B. Batch purge and the queue | not started |
+| B. Batch purge and the queue | done 2026-10-04 |
 | C. Admin list with inactivity filters | not started |
 | D. Web | not started |

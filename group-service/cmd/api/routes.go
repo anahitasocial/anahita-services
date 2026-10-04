@@ -39,6 +39,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	groups.GET("/:id/deletion-counts", r.handler.Group.DeletionCounts, r.authorize)
 	// Hard delete. Super administrators only — enforced in the handler.
 	groups.DELETE("/:id/purge", r.handler.Group.Purge, r.authorize)
+	groups.POST("/purge-batch", r.handler.Group.PurgeBatch, r.authorize)
+	groups.GET("/purge-batch/:batch_id", r.handler.Group.PurgeProgress, r.authorize)
 	// Archive: permanent, destroys nothing. A group administrator may.
 	groups.POST("/:id/archive", r.handler.Group.Archive, r.authorize)
 	// Enable/disable: reversible, site administrators only.
