@@ -27,9 +27,14 @@ func main() {
 		log.Fatalf("config validation failed: %v", err)
 	}
 
+	srv, err := services.NewServices(config)
+	if err != nil {
+		log.Fatalf("storage setup failed: %v", err)
+	}
+
 	hEnv := &handlers.Env{
 		Config:   config,
-		Services: services.NewServices(config),
+		Services: srv,
 	}
 	h := handlers.NewHandlers(hEnv)
 

@@ -522,15 +522,44 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
-      AWS_REGION: ${AWS_DEFAULT_REGION}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_FILES_S3_BUCKET: ${AWS_FILES_S3_BUCKET}
-      AWS_FILES_S3_ASSETS_DIR: ${AWS_FILES_S3_ASSETS_DIR}
-      AWS_KMS_KEY_ID: ${AWS_KMS_KEY_ID}
+      # Any S3-compatible store. See docs/configuration.md, Storage.
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-}
+      STORAGE_PUBLIC_ENDPOINT: ${STORAGE_PUBLIC_ENDPOINT:-}
+      STORAGE_REGION: ${STORAGE_REGION:-}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-}
+      STORAGE_PATH_STYLE: ${STORAGE_PATH_STYLE:-}
+      STORAGE_SSE: ${STORAGE_SSE:-}
+      STORAGE_SEND_ACL: ${STORAGE_SEND_ACL:-}
+      STORAGE_ALLOWED_TYPES: ${STORAGE_ALLOWED_TYPES:-}
+      # The names used before STORAGE_* existed, still read as fallbacks so
+      # an installation on AWS S3 needs no change.
+      AWS_REGION: ${AWS_DEFAULT_REGION:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_FILES_S3_BUCKET: ${AWS_FILES_S3_BUCKET:-}
     networks:
       anahita-network:
         ipv4_address: 172.20.1.28
+
+# garage - S3-compatible object storage for local development.
+# Development only: its configuration holds published secrets. An installation
+# on AWS S3 or another provider ignores it; it is small enough to leave running.
+  garage:
+    image: dxflrs/garage:v2.1.0
+    restart: always
+    ports:
+      # The S3 API. Browsers load uploaded images from here, through presigned
+      # URLs, so it has to be reachable from the host.
+      - "3900:3900"
+    volumes:
+      - ./garage/garage.toml:/etc/garage.toml:ro
+      - ./db-data/garage/meta:/var/lib/garage/meta
+      - ./db-data/garage/data:/var/lib/garage/data
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.35
 
 # avatar-service - handles avatar
   avatar-service:

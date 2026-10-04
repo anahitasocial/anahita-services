@@ -51,7 +51,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `cover-service` | 8097 | — | Actor cover images |
 | `feed-service` | 8098 | 50059 | Feeds and reposts |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
-| `file-grpc-service` | — | 50055 | File upload and metadata (S3) |
+| `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is |
 | `mail-grpc-service` | — | 50051 | Email delivery over SMTP |
 | `migration-job` | — | — | One-shot database migrations |
 | `account-sweeper` | — | — | Purges accounts past their 30-day deletion grace period. Not started by `up`; run with `docker compose run --rm account-sweeper` |

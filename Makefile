@@ -94,7 +94,12 @@ check_docker:
 up:
 	@echo "Starting docker images..."
 	docker-compose up -d
+	@./scripts/storage-init.sh
 	@echo "Docker images started!"
+
+## storage_init: prepares the local Garage store (role, bucket, access key); safe to repeat
+storage_init:
+	@./scripts/storage-init.sh
 
 ## down: stop docker compose
 down:
@@ -290,6 +295,7 @@ up_build: build_auth build_comment build_graph build_group build_like build_pers
 	docker-compose down
 	@echo "Building (when required) and starting docker images..."
 	docker-compose up --build -d
+	@./scripts/storage-init.sh
 	@echo "Docker images built and started!"
 
 ## auth: stops auth-service, removes docker image, builds service, and starts it

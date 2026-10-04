@@ -98,20 +98,66 @@ Read by auth-service.
 | `OAUTH_KEY_LIFETIME_DAYS` | Optional, not in `docker-compose.yml`. Signing key rotation, default `90` |
 | `CRYPT_BACKEND` | Encryption of secrets at rest: `local` (default) or `kms` |
 | `CRYPT_LOCAL_KEY` | Key for `local` |
-| `AWS_KMS_KEY_ID` | Key for `kms`; also used by file-grpc-service |
+| `AWS_KMS_KEY_ID` | Key for `kms` |
 | `MAX_DB_CONNECTIONS` | Optional database pool size |
 
 ## Storage
 
-Read by file-grpc-service (and auth-service for AWS credentials).
+Read by file-grpc-service. Uploaded files (avatars, covers, photos) go to an
+object store that speaks the S3 API: AWS S3, another provider's, or one you
+run yourself such as [Garage](https://garagehq.deuxfleurs.fr/). There is no
+option to store files on the local disk.
 
 | Variable | Value |
 | --- | --- |
-| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | AWS credentials |
-| `AWS_DEFAULT_REGION` | Region, passed to file-grpc-service as `AWS_REGION` |
-| `AWS_PROFILE` | Optional named profile |
-| `AWS_FILES_S3_BUCKET` | Bucket for uploaded files |
-| `AWS_FILES_S3_ASSETS_DIR` | Directory inside the bucket |
+| `STORAGE_ENDPOINT` | Where file-grpc-service reaches the store, e.g. `https://s3.gra.io.cloud.ovh.net` or `http://garage:3900`. **Leave empty for AWS S3**, whose address follows from the region |
+| `STORAGE_PUBLIC_ENDPOINT` | The address written into the links browsers load files from. Set it when it differs from `STORAGE_ENDPOINT`, which it does whenever the store is reached by an internal name. Defaults to `STORAGE_ENDPOINT` |
+| `STORAGE_REGION` | The region requests are signed for. A store without regions still expects one: use whatever it is configured with (Garage: `garage`) |
+| `STORAGE_BUCKET` | The bucket. It must exist and be private |
+| `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY` | Credentials. Leave both empty on AWS to use a role or profile |
+| `STORAGE_PATH_STYLE` | `true` to address files as `endpoint/bucket/key` rather than `bucket.endpoint/key`. Self-hosted stores usually need it. Default `false` |
+| `STORAGE_SSE` | `AES256` to ask the store to encrypt each file at rest, or `none`. Default `AES256` on AWS, `none` when `STORAGE_ENDPOINT` is set |
+| `STORAGE_SEND_ACL` | `true` to mark each upload private with an ACL header. Default `true` on AWS, `false` when `STORAGE_ENDPOINT` is set |
+| `STORAGE_ALLOWED_TYPES` | Comma-separated content types that may be stored. Default `image/jpeg,image/png` |
+
+The two headers default to off for other stores because a store that does not
+implement one refuses the upload. Turn them on if yours supports them.
+
+**What may be stored.** file-grpc-service looks at the bytes of every upload,
+ignores the type the caller declared, and stores only what is on the allowed
+list, under its real type. An HTML page or an SVG named `photo.png` is refused.
+A store serves a file back with the type it was given, and a browser acts on
+that type, so this is what keeps an upload from running script.
+
+**Links expire.** Files are private. Each link handed to a browser is signed
+and valid for 15 minutes.
+
+### Earlier AWS names
+
+Before the `STORAGE_*` names existed, the same settings were read from
+`AWS_DEFAULT_REGION`, `AWS_FILES_S3_BUCKET`, `AWS_ACCESS_KEY_ID` and
+`AWS_SECRET_ACCESS_KEY`. They still work when the `STORAGE_*` one is unset, so
+an installation on AWS S3 needs no change. `AWS_FILES_S3_ASSETS_DIR` was
+required but never used, and is no longer read.
+
+`AWS_PROFILE`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and
+`AWS_DEFAULT_REGION` are also read by auth-service when `CRYPT_BACKEND` or
+`OAUTH_SIGNER_BACKEND` is `kms`.
+
+### Tested stores
+
+| Store | Settings beyond bucket and keys | Result |
+| --- | --- | --- |
+| AWS S3 | none (`STORAGE_ENDPOINT` empty) | In use by the reference installation |
+| Garage 2.1 | `STORAGE_ENDPOINT`, `STORAGE_REGION=garage`, `STORAGE_PATH_STYLE=true` | Passes the storage test. Also accepts uploads sent with `STORAGE_SSE=AES256` and `STORAGE_SEND_ACL=true` |
+
+To check another store, point the `STORAGE_TEST_*` variables at a bucket on it
+and run the test in `file-grpc-service/data/services`
+(see `storage_integration_test.go` for the variables):
+
+~~~sh
+cd file-grpc-service && STORAGE_TEST_ENDPOINT=https://… go test ./data/services/ -run Real -v
+~~~
 
 ## Mail
 
