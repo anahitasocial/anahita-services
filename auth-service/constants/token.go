@@ -48,6 +48,12 @@ const (
 	// even before the per-address send throttle.
 	OTPMaxAttempts = 5
 
+	// How a code reaches the person. Recorded on the token for the audit
+	// trail. Email is the only one built; the flow is shaped so that SMS is
+	// a second value here and a sender, not a redesign.
+	CodeChannelEmail = "email"
+	CodeChannelSMS   = "sms"
+
 	TokenStatusPending = "pending"
 	TokenStatusUsed    = "used"
 	TokenStatusExpired = "expired"

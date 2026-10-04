@@ -144,6 +144,15 @@ func (r *Routes) Init(e *echo.Echo) {
 	oauth := e.Group("/oauth")
 	oauth.GET("/login", h.OAuth.ReadLogin)
 	oauth.POST("/login", h.OAuth.AddCredentials)
+	// Signing in with an emailed code in place of the password. Public for
+	// the same reason the password form is. See oauth_login_code.go.
+	oauth.GET("/login/code", h.OAuth.ReadLoginCode)
+	oauth.POST("/login/code", h.OAuth.AddLoginCode)
+	oauth.GET("/login/code/method", h.OAuth.ReadLoginCodeMethod)
+	oauth.POST("/login/code/method", h.OAuth.AddLoginCodeMethod)
+	oauth.GET("/login/code/verify", h.OAuth.ReadLoginCodeVerify)
+	oauth.POST("/login/code/verify", h.OAuth.AddLoginCodeVerify)
+	oauth.POST("/login/code/resend", h.OAuth.AddLoginCodeResend)
 	oauth.GET("/login/totp", h.OAuth.ReadTotp)
 	oauth.POST("/login/totp", h.OAuth.AddTotp)
 	oauth.POST("/login/passkey/begin", h.OAuth.AddPasskeyLoginBegin)

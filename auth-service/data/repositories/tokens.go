@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"auth/constants"
 	"auth/data/entities"
 
 	"anahita-libs/requests"
@@ -197,6 +198,10 @@ func (repo *tokens) Add(token *entities.Token) (*entities.Token, error) {
 		// nothing reads on those types. Omitting it here is what silently
 		// dropped the destination address of every email change.
 		"new_email",
+		// NULL unless this is a one-time-code token. The code itself is
+		// never a column: only its keyed hash is.
+		"code_hash",
+		"channel",
 		"expired_after",
 		"is_used",
 		"created_at",
@@ -208,6 +213,8 @@ func (repo *tokens) Add(token *entities.Token) (*entities.Token, error) {
 		token.Body,
 		token.RecipientEmail,
 		token.NewEmail,
+		nullIfEmpty(token.CodeHash),
+		nullIfEmpty(token.Channel),
 		token.ExpiredAfter,
 		token.IsUsed,
 		token.CreatedAt,
@@ -228,7 +235,67 @@ func (repo *tokens) Add(token *entities.Token) (*entities.Token, error) {
 
 	token.ID = id
 
-	return repo.ReadByID(token.ID)
+	stored, err := repo.ReadByID(token.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// The code is never stored, so the row read back cannot carry it. The
+	// caller still has to send it: hand it over on the returned token.
+	stored.Code = token.Code
+
+	return stored, nil
+}
+
+// nullIfEmpty stores NULL for a value that does not apply to this token type.
+func nullIfEmpty(value string) any {
+	if value == "" {
+		return nil
+	}
+	return value
+}
+
+// SpendCodeAttempt counts one submission against a one-time-code token, and
+// reports whether there was one left to spend.
+//
+// One statement, so the check and the increment cannot be separated. Read the
+// count, compare, then write it back, and five guesses arriving together each
+// read "four so far" and all go through.
+func (repo *tokens) SpendCodeAttempt(id int64) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	result, err := repo.db.ExecContext(ctx,
+		`UPDATE tokens SET code_attempts = code_attempts + 1
+		  WHERE id = ? AND is_used = 0 AND code_attempts < ?`,
+		id, constants.OTPMaxAttempts)
+	if err != nil {
+		return false, err
+	}
+
+	affected, err := result.RowsAffected()
+	return affected == 1, err
+}
+
+// ConsumeCode marks a one-time-code token used, and reports whether THIS call
+// is the one that did it.
+//
+// False means it was already used: of two correct submissions arriving
+// together, exactly one signs in.
+func (repo *tokens) ConsumeCode(id, personID int64) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	result, err := repo.db.ExecContext(ctx,
+		`UPDATE tokens SET is_used = 1, updated_at = NOW(), updated_by = ?
+		  WHERE id = ? AND is_used = 0`,
+		personID, id)
+	if err != nil {
+		return false, err
+	}
+
+	affected, err := result.RowsAffected()
+	return affected == 1, err
 }
 
 // Edit updates a token

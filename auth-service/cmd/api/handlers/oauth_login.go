@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"auth/data/entities"
@@ -87,8 +88,30 @@ func (h *oauthHandler) AddCredentials(c echo.Context) error {
 	// shared LoginRequest struct also carries TotpPasscode (used in
 	// step 2), and we don't want validator tags on that field to
 	// affect step 1.
+	// Another site cannot read this session's token, so it cannot submit
+	// this form on somebody's behalf.
+	if !h.loginCSRFValid(c, req.CSRFToken) {
+		return h.renderLoginError(c, "Your sign-in page expired. Please try again.")
+	}
+
 	if req.Identifier == "" || req.Password == "" {
 		return h.renderLoginError(c, "Please enter your email and password.")
+	}
+
+	// Counted before the account is looked up, so being limited says
+	// nothing about whether it exists. Both are charged on every try.
+	//
+	// The per-identifier limit can be used to lock somebody out of
+	// password sign-in for a quarter of an hour by guessing at their
+	// account. A code or a passkey still gets them in.
+	throttleKey := strings.ToLower(strings.TrimSpace(req.Identifier))
+	limitedByIdentifier := h.rateLimitExceeded(rateLimitScopeLoginIdentifier, throttleKey)
+	limitedByIP := h.rateLimitExceeded(rateLimitScopeLoginIP, c.RealIP())
+	if limitedByIdentifier || limitedByIP {
+		log.Println("login: rate limited")
+		return h.renderLoginError(c,
+			"Too many sign-in attempts. Please wait a few minutes and try again, "+
+				"or sign in with a code.")
 	}
 
 	user, err := h.Repos.Users.ReadByEmailOrUsername(req.Identifier)
@@ -104,6 +127,9 @@ func (h *oauthHandler) AddCredentials(c echo.Context) error {
 		log.Printf("login: bad password (user=%d)", user.ID)
 		return h.renderLoginError(c, "Invalid email or password.")
 	}
+
+	// The password was right, so what was counted was not guessing.
+	h.rateLimitReset(rateLimitScopeLoginIdentifier, throttleKey)
 
 	// Scheduled for deletion, and the password was right. Offer it back.
 	//
@@ -205,7 +231,7 @@ func (h *oauthHandler) ReadTotp(c echo.Context) error {
 		return c.Redirect(http.StatusFound, "/oauth/login?error=session_expired")
 	}
 
-	return h.renderTemplate(c, "login_totp.html", h.totpContext(state, ""))
+	return h.renderTemplate(c, "login_totp.html", h.totpContext(c, state, ""))
 }
 
 // AddTotp handles POST /oauth/login/totp (step 2).
@@ -227,6 +253,10 @@ func (h *oauthHandler) AddTotp(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		log.Println("totp: form bind failed:", err)
 		return h.renderTotpError(c, state, "Invalid form submission.")
+	}
+
+	if !h.loginCSRFValid(c, req.CSRFToken) {
+		return h.renderTotpError(c, state, "This page expired. Please enter the code again.")
 	}
 
 	// Shape errors don't count toward the attempt budget — they
@@ -385,6 +415,10 @@ func (h *oauthHandler) finalizeLogin(c echo.Context, user *entities.User) error 
 		log.Println("login:", err)
 		return h.renderLoginError(c, "Could not create session. Please try again.")
 	}
+
+	// Signed in: the sign-in forms' token has done its job.
+	_ = h.Session.Delete(c, sessionKeyLoginCSRF)
+
 	return h.redirectToReturnTo(c, fmt.Sprintf("finalizeLogin/user=%d", user.ID))
 }
 
@@ -431,6 +465,7 @@ func (h *oauthHandler) loginContext(c echo.Context, errMsg string) map[string]an
 		}
 	}
 	return map[string]any{
+		"CSRFToken":   h.loginCSRFToken(c),
 		"Error":       errMsg,
 		"FrontendURL": h.Config.GetFrontendURL(),
 		"ReturnParam": h.returnToParam(c),
@@ -442,8 +477,9 @@ func (h *oauthHandler) loginContext(c echo.Context, errMsg string) map[string]an
 }
 
 // totpContext builds the template context for step 2.
-func (h *oauthHandler) totpContext(state *pendingTOTPState, errMsg string) map[string]any {
+func (h *oauthHandler) totpContext(c echo.Context, state *pendingTOTPState, errMsg string) map[string]any {
 	return map[string]any{
+		"CSRFToken":   h.loginCSRFToken(c),
 		"Error":       errMsg,
 		"Email":       state.Email,
 		"FrontendURL": h.Config.GetFrontendURL(),
@@ -461,7 +497,7 @@ func (h *oauthHandler) renderTotpError(c echo.Context, state *pendingTOTPState, 
 	if state == nil {
 		return h.renderLoginError(c, message)
 	}
-	return h.renderTemplate(c, "login_totp.html", h.totpContext(state, message))
+	return h.renderTemplate(c, "login_totp.html", h.totpContext(c, state, message))
 }
 
 // hasIdPSession reports whether the request carries a valid IdP

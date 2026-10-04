@@ -1,0 +1,45 @@
+{{define "title"}}Sign In With a Code{{end}}
+
+{{/*
+    Where to send the code. Not reachable while email is the only way: the
+    step before sends it and goes straight to the page for typing it in. It
+    is here so that adding a second way is a matter of listing it.
+*/}}
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>How should we send your code?</h2>
+
+    {{if .Error}}
+    <div class="error-message" role="alert">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/oauth/login/code/method" novalidate>
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        {{range $index, $channel := .Channels}}
+        <p>
+            <label>
+                <input type="radio" name="channel" value="{{$channel}}" {{if eq $index 0}}checked{{end}}>
+                {{if eq $channel "email"}}By email{{else if eq $channel "sms"}}By text message{{else}}{{$channel}}{{end}}
+            </label>
+        </p>
+        {{end}}
+
+        <button type="submit" class="btn btn-primary">Send me a code</button>
+    </form>
+
+    <hr class="divider">
+
+    <p class="text-center">
+        <a href="/oauth/login" class="text-link">Use your password instead</a>
+    </p>
+
+    <p class="footer-text">
+        <a href="{{.FrontendURL}}" class="text-link">Cancel and return to {{.SiteName}}</a>
+    </p>
+</div>
+{{end}}

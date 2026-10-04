@@ -1,7 +1,9 @@
 package entities
 
 import (
+	"crypto/hmac"
 	cryptorand "crypto/rand"
+	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
 	"fmt"
@@ -27,14 +29,29 @@ type Token struct {
 	// tokens, empty on every other type.
 	NewEmail string `json:"-"`
 
-	// Code is the six digits the person is sent, on loginotp and
-	// phoneverify tokens. Empty on every other type.
+	// Code is the six digits the person is sent, on one-time-code tokens.
+	// Empty on every other type.
+	//
+	// It exists only in memory, between GenerateCode and the message being
+	// sent. It is never stored and never read back: the row holds CodeHash.
 	//
 	// json:"-" is load-bearing: this is the credential. Body is the row
 	// identifier and is never transmitted for these types; Code is the
 	// only value that leaves the building, and only through the mail or
 	// SMS body.
-	Code string `json:"-"`
+	Code string `json:"-" db:"-"`
+
+	// CodeHash is what is stored: an HMAC of the code, keyed with a secret
+	// the database does not hold and salted with this token's Body.
+	//
+	// Not a plain hash. Six digits is a million possibilities, and anybody
+	// who can read the table could try them all against a SHA-256 in a
+	// second. With the key held elsewhere, the stored value says nothing.
+	CodeHash string `json:"-"`
+
+	// Channel is how the code was sent: constants.CodeChannelEmail, and
+	// later CodeChannelSMS. Empty on every other token type.
+	Channel string `json:"-"`
 
 	// CodeAttempts counts failed submissions against this token. Capped
 	// at constants.OTPMaxAttempts — six digits is a small keyspace, and
@@ -65,8 +82,9 @@ func NewToken() *Token {
 	}
 }
 
-// GenerateCode fills Code with a cryptographically random 6-digit
-// value.
+// GenerateCode fills Code with a cryptographically random 6-digit value, and
+// CodeHash with what is stored in its place. Body must be set first: it salts
+// the hash.
 //
 // crypto/rand over a range of 10^OTPCodeLength, NOT rand.Int63() % 1e6.
 // The modulo form biases the low end whenever the source range is not a
@@ -76,7 +94,14 @@ func NewToken() *Token {
 //
 // Zero-padded, so "000042" stays six characters and compares against
 // what the person typed.
-func (token *Token) GenerateCode() error {
+func (token *Token) GenerateCode(key []byte) error {
+	if len(key) == 0 {
+		return fmt.Errorf("generate code: no key")
+	}
+	if token.Body == "" {
+		return fmt.Errorf("generate code: the token has no body yet")
+	}
+
 	max := big.NewInt(1)
 	for range constants.OTPCodeLength {
 		max.Mul(max, big.NewInt(10))
@@ -88,8 +113,19 @@ func (token *Token) GenerateCode() error {
 	}
 
 	token.Code = fmt.Sprintf("%0*d", constants.OTPCodeLength, n)
+	token.CodeHash = token.hashCode(key, token.Code)
 
 	return nil
+}
+
+// hashCode is HMAC-SHA256 over the token's body and the code. The body makes
+// two tokens holding the same six digits store different values.
+func (token *Token) hashCode(key []byte, code string) string {
+	mac := hmac.New(sha256.New, key)
+	mac.Write([]byte(token.Body))
+	mac.Write([]byte{0})
+	mac.Write([]byte(code))
+	return hex.EncodeToString(mac.Sum(nil))
 }
 
 // IsCodeValid reports whether the submitted code matches, in constant
@@ -97,18 +133,19 @@ func (token *Token) GenerateCode() error {
 //
 // subtle.ConstantTimeCompare rather than ==. A naive string comparison
 // returns as soon as it finds a differing byte, so the time it takes
-// leaks how many leading digits were right — enough, over many
-// attempts, to walk the code one digit at a time. The attempt cap makes
-// that hard already; this makes it pointless.
+// leaks how much of the value was right.
 //
-// Returns false for an empty stored code so a token type that carries
-// none can never be satisfied by submitting "".
-func (token *Token) IsCodeValid(submitted string) bool {
-	if token.Code == "" {
+// Returns false for a token with no stored hash, so a token type that
+// carries no code can never be satisfied by submitting "".
+func (token *Token) IsCodeValid(key []byte, submitted string) bool {
+	if token.CodeHash == "" || len(key) == 0 {
 		return false
 	}
 
-	return subtle.ConstantTimeCompare([]byte(token.Code), []byte(submitted)) == 1
+	return subtle.ConstantTimeCompare(
+		[]byte(token.CodeHash),
+		[]byte(token.hashCode(key, submitted)),
+	) == 1
 }
 
 // HasAttemptsLeft reports whether this token may be tried again.

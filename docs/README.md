@@ -46,7 +46,14 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The defaults](permissions.md#the-defaults)
    - [What profile owners can change](permissions.md#what-profile-owners-can-change)
    - [Accepted values](permissions.md#accepted-values)
-7. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
+7. [Signing in](signing-in.md) — passwords, passkeys, emailed codes and their limits
+   - [The ways in](signing-in.md#the-ways-in)
+   - [Signing in with a code](signing-in.md#signing-in-with-a-code)
+   - [What a code can and cannot do](signing-in.md#what-a-code-can-and-cannot-do)
+   - [Limits](signing-in.md#limits)
+   - [How codes are kept](signing-in.md#how-codes-are-kept)
+   - [Adding text messages later](signing-in.md#adding-text-messages-later)
+8. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
    - [What you need](deploying.md#what-you-need)
    - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
    - [Hostnames](deploying.md#hostnames)
@@ -74,7 +81,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
 | [Abuse reports](plans/abuse-report-service.md) | 4b | not started |
 | [Complete hard delete and bulk cleanup](plans/actor-hard-delete.md) | 5 | not started |
-| [Sign in with a code; codes instead of links](plans/login-code.md) | 6, 6b | not started |
+| [Sign in with a code; codes instead of links](plans/login-code.md) | 6, 6b | 6 done 2026-10-03; 6b not started |
 | [Notes as replies](plans/notes-as-replies.md) | 7 | not started |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
 | [Link previews](plans/link-previews.md) | 10 | not started |

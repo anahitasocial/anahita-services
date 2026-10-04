@@ -50,4 +50,11 @@ type TokensInterface interface {
 	// Retired rather than deleted, so a link that is now dead reports itself
 	// as used — which is the true answer — instead of as never having existed.
 	InvalidateOutstanding(tokenType, email string) (int64, error)
+
+	// SpendCodeAttempt counts one submission against a one-time code and
+	// reports whether there was an attempt left. ConsumeCode marks the code
+	// used and reports whether this call did it. Both are single statements,
+	// so submissions arriving together cannot share an attempt or a sign-in.
+	SpendCodeAttempt(id int64) (bool, error)
+	ConsumeCode(id, personID int64) (bool, error)
 }

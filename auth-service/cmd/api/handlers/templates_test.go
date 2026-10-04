@@ -44,6 +44,25 @@ func TestServerRenderedTemplatesParseAndExecute(t *testing.T) {
 			"PurgeDate": "",
 		}},
 		{"account_restore_success.html", map[string]any{}},
+		{"login_code.html", map[string]any{"CSRFToken": "t", "FrontendURL": "https://example.com"}},
+		{"login_code.html", map[string]any{
+			"CSRFToken": "t",
+			"Error":     "That code is no longer valid. Please request a new one.",
+			"Hint":      "Enter the email address or username for your account.",
+		}},
+		{"login_code_method.html", map[string]any{
+			"CSRFToken": "t",
+			"Channels":  []string{"email", "sms"},
+		}},
+		{"login_code_verify.html", map[string]any{
+			"CSRFToken":  "t",
+			"Identifier": "ada@example.com",
+		}},
+		{"login_code_verify.html", map[string]any{
+			"CSRFToken":  "t",
+			"Identifier": "ada",
+			"Error":      "That code is not correct. 2 tries left.",
+		}},
 		// The forgot/reset pages. These are the account-recovery path: nobody
 		// walks it on a good day, and a page that fails to execute returns a
 		// 500 carrying a Go template error to somebody who is already locked

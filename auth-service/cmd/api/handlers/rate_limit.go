@@ -32,6 +32,20 @@ const (
 	// rateLimitScopePasswordEmail caps reset emails per address.
 	// Without it, POST /password/forgot is an unauthenticated way to
 	// send mail to any address on demand.
+	// Password sign-in. There was no limit at all on POST /oauth/login, so a
+	// password could be guessed at whatever rate the server answered.
+	// Counted per identifier typed and per address, both before the account
+	// is looked up, so the limit says nothing about whether one exists. The
+	// identifier's count is cleared by a successful sign-in.
+	rateLimitScopeLoginIdentifier rateLimitScope = "login_identifier"
+	rateLimitScopeLoginIP         rateLimitScope = "login_ip"
+
+	// Asking for a sign-in code. Each one is an email, so this is what stops
+	// the form being used to flood somebody's inbox, and it caps how many
+	// five-guess codes can be requested for one account in an hour.
+	rateLimitScopeLoginCodeEmail rateLimitScope = "login_code_email"
+	rateLimitScopeLoginCodeIP    rateLimitScope = "login_code_ip"
+
 	rateLimitScopePasswordEmail rateLimitScope = "pw_forgot_email"
 
 	// rateLimitScopePasswordIP caps reset requests per source address.
@@ -125,11 +139,15 @@ type rateLimit struct {
 // lifetime, and there is no point letting a probe budget outlive the
 // link it is spent on.
 var rateLimits = map[rateLimitScope]rateLimit{
-	rateLimitScopePasswordEmail: {max: 3, window: time.Hour},
-	rateLimitScopePasswordIP:    {max: 10, window: time.Hour},
-	rateLimitScopePasswordReset: {max: 5, window: 15 * time.Minute},
-	rateLimitScopePasswordEdit:  {max: 5, window: 15 * time.Minute},
-	rateLimitScopeReauth:        {max: 5, window: 15 * time.Minute},
+	rateLimitScopeLoginIdentifier: {max: 10, window: 15 * time.Minute},
+	rateLimitScopeLoginIP:         {max: 50, window: 15 * time.Minute},
+	rateLimitScopeLoginCodeEmail:  {max: 5, window: time.Hour},
+	rateLimitScopeLoginCodeIP:     {max: 20, window: time.Hour},
+	rateLimitScopePasswordEmail:   {max: 3, window: time.Hour},
+	rateLimitScopePasswordIP:      {max: 10, window: time.Hour},
+	rateLimitScopePasswordReset:   {max: 5, window: 15 * time.Minute},
+	rateLimitScopePasswordEdit:    {max: 5, window: 15 * time.Minute},
+	rateLimitScopeReauth:          {max: 5, window: 15 * time.Minute},
 
 	// Generous per person, because inviting in bursts is the legitimate
 	// pattern — an administrator onboarding a department does thirty in an

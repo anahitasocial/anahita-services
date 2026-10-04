@@ -733,6 +733,15 @@ CREATE TABLE tokens (
     -- 64 random bytes, hex-encoded. Indexed because ReadByBody is the
     -- lookup every reset/invite link performs.
     `body` varchar(255) NOT NULL,
+    -- One-time codes only (constants.TokenTypeLoginOTP and its siblings); unused
+    -- by every other type. code_hash is an HMAC of the six digits, never the
+    -- digits: a plain hash of a six-digit value can be reversed by trying all
+    -- million. code_attempts counts wrong submissions, in the database so that
+    -- guesses arriving together cannot share one. channel is how the code was
+    -- sent: 'email', and later 'sms'.
+    `code_hash` varchar(64) DEFAULT NULL,
+    `code_attempts` int(11) NOT NULL DEFAULT 0,
+    `channel` varchar(16) DEFAULT NULL,
     -- Defaulted: Token.NewToken sets StartTime in Go but tokens.Add
     -- does not include it in the insert column list.
     `start_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

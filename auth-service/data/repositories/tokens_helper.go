@@ -19,6 +19,11 @@ func (repo *tokens) getBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(t.new_email, '') AS new_email",
 		"t.type",
 		"t.body",
+		// One-time-code tokens only. COALESCE for the same reason as
+		// new_email: NULL on every other type, scanned into plain strings.
+		"COALESCE(t.code_hash, '') AS code_hash",
+		"t.code_attempts",
+		"COALESCE(t.channel, '') AS channel",
 		"t.start_time",
 		"t.expired_after",
 		"t.is_used",
@@ -76,6 +81,9 @@ func (repo *tokens) getOne(query sq.SelectBuilder) (*entities.Token, error) {
 		&token.NewEmail,
 		&token.Type,
 		&token.Body,
+		&token.CodeHash,
+		&token.CodeAttempts,
+		&token.Channel,
 		&token.StartTime,
 		&token.ExpiredAfter,
 		&token.IsUsed,

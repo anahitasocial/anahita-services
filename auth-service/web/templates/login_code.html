@@ -1,0 +1,67 @@
+{{define "title"}}Sign In With a Code{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Sign in with a code</h2>
+
+    <p>
+        Enter the email address or username for your account. We will email
+        you a 6-digit code to sign in with, in place of your password.
+    </p>
+
+    {{if .Error}}
+    <div class="error-message" role="alert">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/oauth/login/code" id="code-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        <div class="text-field">
+            <input
+                type="text"
+                id="identifier"
+                name="identifier"
+                placeholder=" "
+                required
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                autofocus
+            >
+            <label for="identifier">Email or username</label>
+        </div>
+        {{if .Hint}}
+        <span class="helper-text">{{.Hint}}</span>
+        {{end}}
+
+        <button type="submit" class="btn btn-primary" id="code-submit">Send me a code</button>
+    </form>
+
+    <hr class="divider">
+
+    <p class="text-center">
+        <a href="/oauth/login" class="text-link">Use your password instead</a>
+    </p>
+
+    <p class="footer-text">
+        <a href="{{.FrontendURL}}" class="text-link">Cancel and return to {{.SiteName}}</a>
+    </p>
+</div>
+
+<script>
+    // Prevent double-submit on slow networks. Works without JS too.
+    (function () {
+        var form = document.getElementById('code-form');
+        var btn  = document.getElementById('code-submit');
+        if (!form || !btn) return;
+        form.addEventListener('submit', function () {
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+        });
+    })();
+</script>
+{{end}}

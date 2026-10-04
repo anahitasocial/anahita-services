@@ -322,7 +322,7 @@ A phase is finished only when these pages match the code. When a page is added, 
 - **Tests:** the extractor through both proxy chains, the lookup's failure modes against a local server, the refresh check, and the TOTP enrolment rules through the handlers.
 
 ### Still open
-- **Finding 3** (login throttle) is roadmap item 6.
+- **Finding 3** (login throttle) was done with roadmap item 6 on 2026-10-03: 10 tries per identifier and 50 per address in 15 minutes, counted before the account is looked up. See `docs/signing-in.md`.
 - **0c** is done: see below.
 - **The "Not checked" list above** (JWT claim validation, PKCE `plain`, and the rest) is still not checked.
 

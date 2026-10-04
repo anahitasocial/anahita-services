@@ -170,9 +170,36 @@ Invites stay as links: the recipient has no account yet, and later app links can
 - **services `registration.md`**, *Email verification* and *Invitations*: signup confirmation and password reset use codes; invitations still use links.
 - **web `architecture.md`**, *Signing in*: email change by code, and step-up by code where offered.
 
+## What was built for phase 1 (2026-10-03)
+
+- **Migration** `20261004000001_tokens_code.sql`: `tokens.code_hash`, `code_attempts` and `channel`, mirrored in `schema/init.sql` and `legacy/upgrade.sql`.
+- **Codes** (`auth-service/cmd/api/handlers/otp.go`): `issueCode`, `verifyCode`, `consumeCode`. The code is never stored. The row holds an HMAC keyed from `SECURE_COOKIE_KEY` and salted with the token's body.
+- **Atomic counting** (`tokens.SpendCodeAttempt`, `tokens.ConsumeCode`): each is one `UPDATE`. Every submission spends an attempt before it is compared, the correct one included, which is what makes it safe against guesses arriving together.
+- **The flow** (`oauth_login_code.go`): `/oauth/login/code`, `/method`, `/verify` and `/resend`. An email address or a username. The same pages, wording and five tries whether or not the account exists. Account state is checked when the code is typed, in the same order as after a password, and an account with two-factor goes on to it.
+- **A correct code confirms an unconfirmed address.**
+- **Pages:** `login_code.html`, `login_code_method.html`, `login_code_verify.html`, and a link on the login page.
+- **Email:** the code is in the subject and the body, with no link.
+- **Rate limits:** `login_code_email` (5 an hour) and `login_code_ip` (20 an hour), charged before the lookup.
+- **Password sign-in, in the same pass:** `login_identifier` (10 in 15 minutes) and `login_ip` (50 in 15 minutes), and a session-bound CSRF token checked on the password, two-factor and code forms. The templates already rendered the token field, but nothing set or checked it.
+- **Docs:** new `docs/signing-in.md`.
+
+**Tests:** the entity (hashing), the handlers (the whole flow, every account state, the limits, the forged-form cases, and guesses arriving together, under the race detector), and the repository against a real MySQL (`AUTH_TEST_DSN`, a throwaway database). The migration was run fresh, as an upgrade, rolled back, replayed, and through the legacy upgrade.
+
+**Done differently from the plan:**
+
+- **No `OTP_HMAC_KEY` setting.** The key is derived from `SECURE_COOKIE_KEY`, which is always present and already validated. One less secret to configure, at the cost that rotating the cookie key kills the codes of the last ten minutes.
+- **The method step sends from the first POST** while email is the only channel, so nobody sees a page with one choice. The page and its routes exist for SMS. A GET never sends.
+- **Every submission spends an attempt,** not only wrong ones. Five submissions in all.
+- **A resend button** on the verify page, which the plan did not list.
+- **One CSRF token per browser session** for the sign-in forms, not one per page, so a second tab and the back button keep working.
+
+**Not checked:** a complete sign-in on the running dev stack, because the code only exists in the email. The pages, the forged-token refusal, the unknown-address path and its five tries, and the password form were walked on the dev stack with curl. The response to a known address takes a few milliseconds longer than to an unknown one (a row is written), which the plan accepted.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Phase 1 (item 6) | done 2026-10-03, on branch `m2-foundations` |
+| Applied to the dev database | done 2026-10-03 |
+| Phase 2 (item 6b) | not started |

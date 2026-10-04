@@ -52,6 +52,19 @@ func (h *authNotifier) EmailLogin(user *entities.User, authLog *entities.AuthLog
 // Only for administrative revocations. Somebody ending their own session is
 // looking at the screen where they did it, and mailing them about it is the
 // noise that teaches people to filter these messages.
+// EmailLoginCode sends a sign-in code. No action link: see the note on
+// messages.AuthLoginCodeBody.
+func (h *authNotifier) EmailLoginCode(user *entities.User, code string) error {
+	return h.send(
+		user.Email,
+		fmt.Sprintf(messages.AuthLoginCodeSubject, code),
+		messages.AuthLoginCodeTitle,
+		fmt.Sprintf(messages.AuthLoginCodeBody, user.Name, code),
+		"",
+		"",
+	)
+}
+
 func (h *authNotifier) EmailSessionRevoked(user *entities.User, device, location string) error {
 	body := fmt.Sprintf(
 		messages.AuthSessionRevokedBody,
