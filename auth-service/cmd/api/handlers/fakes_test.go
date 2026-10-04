@@ -101,6 +101,23 @@ func (f *fakeUsers) Browse(*requests.UserBrowseRequest) ([]*entities.User, error
 	return nil, nil
 }
 
+func (f *fakeUsers) IsEmail(email string) (bool, error) {
+	_, taken := f.byEmail[strings.ToLower(email)]
+	return taken, nil
+}
+
+// EditEmail moves an account to a new address, as the real one does.
+func (f *fakeUsers) EditEmail(email string, id int64) error {
+	u, ok := f.byID[id]
+	if !ok {
+		return fmt.Errorf("no user for id %d", id)
+	}
+	delete(f.byEmail, u.Email)
+	u.Email = email
+	f.byEmail[email] = u
+	return nil
+}
+
 func (f *fakeUsers) MarkEmailVerified(id int64) error {
 	if f.verifyErr != nil {
 		return f.verifyErr
@@ -194,6 +211,26 @@ func (f *fakeTokens) ReadByID(id int64) (*entities.Token, error) {
 		return nil, fmt.Errorf("no token for id %d", id)
 	}
 	stored := *t
+	stored.Code = ""
+	return &stored, nil
+}
+
+// ReadLiveCode returns the newest unused token of one type for one address.
+func (f *fakeTokens) ReadLiveCode(tokenType, email string) (*entities.Token, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	var newest *entities.Token
+	for _, t := range f.byID {
+		if t.Type == tokenType && t.RecipientEmail == email && !t.IsUsed &&
+			(newest == nil || t.ID > newest.ID) {
+			newest = t
+		}
+	}
+	if newest == nil {
+		return nil, fmt.Errorf("no live %s code for %q", tokenType, email)
+	}
+	stored := *newest
 	stored.Code = ""
 	return &stored, nil
 }

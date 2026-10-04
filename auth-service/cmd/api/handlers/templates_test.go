@@ -17,24 +17,6 @@ func TestServerRenderedTemplatesParseAndExecute(t *testing.T) {
 		name string
 		data map[string]any
 	}{
-		{"email_change_confirm.html", map[string]any{
-			"Token":    "abc",
-			"NewEmail": "new@example.com",
-			"Error":    "",
-		}},
-		{"email_change_confirm.html", map[string]any{
-			"Token":    "abc",
-			"NewEmail": "new@example.com",
-			"Error":    "That does not match.",
-		}},
-		{"email_change_success.html", map[string]any{
-			"NewEmail":    "new@example.com",
-			"FrontendURL": "https://example.com",
-		}},
-		// The restore pages are reached only by somebody who deleted their
-		// account and changed their mind — a path nobody walks by accident, so
-		// a broken template there would sit undiscovered until it mattered
-		// most.
 		{"account_restore.html", map[string]any{
 			"PurgeDate": "3 October 2026",
 		}},

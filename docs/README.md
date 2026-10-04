@@ -53,6 +53,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Limits](signing-in.md#limits)
    - [How codes are kept](signing-in.md#how-codes-are-kept)
    - [Resetting a forgotten password](signing-in.md#resetting-a-forgotten-password)
+   - [Changing an email address](signing-in.md#changing-an-email-address)
    - [Adding text messages later](signing-in.md#adding-text-messages-later)
 8. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
    - [What you need](deploying.md#what-you-need)

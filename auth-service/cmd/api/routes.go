@@ -39,21 +39,6 @@ func (r *Routes) Init(e *echo.Echo) {
 	auth.GET("/is/username", h.Is.Username)
 	auth.GET("/is/totp", h.Is.Totp)
 
-	// Password — forgot and reset are server-rendered, unauthenticated
-	// flows. Change (PATCH) is JSON-only and authenticated; registered
-	// further down with the other JWT-protected routes so it picks up
-	// the authorize middleware.
-	// Email-change confirmation. Public and token-gated, like the
-	// password reset pages beside it: the person arrives from a link in
-	// their mailbox, on a device that may hold no session at all — which
-	// is the point, since the whole control is "the current inbox has to
-	// approve this".
-	//
-	// The token in the link is the only credential, so these must NOT
-	// carry authorize.
-	emailChange := e.Group("/email/change")
-	emailChange.GET("/confirm", h.EmailChange.ConfirmForm)
-	emailChange.POST("/confirm", h.EmailChange.Confirm)
 
 	password := e.Group("/password")
 	password.GET("/forgot", h.Password.ForgotForm)
@@ -242,6 +227,10 @@ func (r *Routes) Init(e *echo.Echo) {
 	emailChangeAuth := e.Group("/email")
 	emailChangeAuth.Use(r.authorize)
 	emailChangeAuth.PATCH("/change", h.EmailChange.Edit)
+	// Step two: the code that was mailed to the current address, typed back
+	// into the app. Signed in, like step one. The code proves the inbox, the
+	// session proves whose change it is.
+	emailChangeAuth.POST("/change/confirm", h.EmailChange.Confirm)
 
 	// Username change. Authenticated and step-up gated, and unlike the
 	// email change it is one step: a handle move does not relocate any

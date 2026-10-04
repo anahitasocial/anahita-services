@@ -1,13 +1,12 @@
 package handlers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
 	"auth/constants"
-	"auth/data/entities"
 	"auth/requests"
 
 	"github.com/labstack/echo/v4"
@@ -110,197 +109,122 @@ func (h *emailChangeHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusConflict)
 	}
 
-	token := entities.NewToken()
-	token.Status = constants.TokenStatusPending
-	token.ExpiredAfter = constants.TokenExpiryTimeEmailChange
-	token.Type = constants.TokenTypeEmailChange
-	// Recipient is where the mail goes: the CURRENT address. NewEmail is
-	// the destination. Swapping these two is the one mistake that turns
-	// this flow from a control into a liability.
-	token.RecipientEmail = user.Email
-	token.NewEmail = newEmail
-	token.IsUsed = false
-	token.CreatedAt = time.Now()
-	token.CreatedBy = user.ID
-	token.UpdatedAt = time.Now()
-	token.UpdatedBy = user.ID
-
-	if err := token.GenerateToken(); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	stored, err := h.Repos.Tokens.Add(token)
+	// A code, sent to the CURRENT address. The current inbox is what has to
+	// approve the move, so a stolen session alone cannot repoint the
+	// account. The token remembers where the account is moving to; the
+	// person types the code back into the settings page they are on.
+	//
+	// Issuing a new one retires any earlier request, so only the latest
+	// address asked for can be confirmed.
+	token, err := h.issueCode(codeRequest{
+		Email:    user.Email,
+		PersonID: user.ID,
+		Type:     constants.TokenTypeEmailChangeCode,
+		Channel:  constants.CodeChannelEmail,
+		Lifetime: constants.TokenExpiryTimeCode,
+		NewEmail: newEmail,
+	})
 	if err != nil {
-		log.Println(err)
+		log.Println("email change:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	// One step-up authorises one credential change. Without this, a
-	// single passcode would license changing the email, then the phone,
-	// then the password for the rest of the window.
+	// One step-up buys one request. Asking again, for another address or
+	// another code, means proving it is you again, which is the limit on
+	// how often this can mail the account.
 	h.clearStepUp(user.ID)
 
+	recipient, code := *user, token.Code
 	go func() {
-		if err := h.Notif.EmailChange.EmailConfirm(user, stored); err != nil {
-			log.Println(err)
+		if err := h.Notif.EmailChange.EmailCode(&recipient, newEmail, code); err != nil {
+			log.Println("email change: email failed:", err)
 		}
 	}()
 
 	return c.NoContent(http.StatusNoContent)
 }
 
-// ConfirmForm validates the token and renders the confirmation page.
+// Confirm applies a pending email change, given the code that was sent to
+// the current address.
 //
-//	GET /email/change/confirm?token=...
+//	POST /email/change/confirm   { "code": "123456" }
 //
-// The page shows the new address and asks the person to re-type it.
-// That is the typo guard: confirming from the old inbox is what makes
-// the change safe, but it also means a mistyped destination would move
-// the account somewhere the person cannot read. Re-typing while looking
-// at the address costs one field and removes the lockout.
-func (h *emailChangeHandler) ConfirmForm(c echo.Context) error {
-	tokenBody := c.QueryParam("token")
-	if tokenBody == "" {
-		return h.renderError(c, "Invalid Link",
-			"This email change link is not valid. Please start the change again from your account settings.")
-	}
-
-	token, err := h.Repos.Tokens.ReadByBody(tokenBody)
-	if err != nil {
-		log.Println(err)
-		return h.renderError(c, "Invalid Link",
-			"This email change link is not valid. Please start the change again from your account settings.")
-	}
-
-	if token.Type != constants.TokenTypeEmailChange {
-		return h.renderError(c, "Invalid Link",
-			"This link is not valid for changing your email address.")
-	}
-
-	switch token.Status {
-	case constants.TokenStatusUsed:
-		return h.renderError(c, "Link Already Used",
-			"This email change has already been confirmed. If you still need to change your address, start again from your account settings.")
-	case constants.TokenStatusExpired:
-		return h.renderError(c, "Link Expired",
-			"This email change link has expired. Please start the change again from your account settings.")
-	}
-
-	return h.renderTemplate(c, "email_change_confirm.html", map[string]any{
-		"Token":    token.Body,
-		"NewEmail": token.NewEmail,
-	})
-}
-
-// Confirm applies the email change.
+// Signed in, and called by the web and mobile apps from the screen where the
+// change was started. Answers:
 //
-//	POST /email/change/confirm
-//
-// On success the address is updated, the token is consumed, and the
-// person's passkeys and every active session are revoked — the same
-// revocations the password reset flow performs, for the same reason.
-// Changing the address changes who can recover the account, so anything
-// that outlives the change is a way back in for whoever held it. Both
-// the old and new addresses are notified.
+//	204  changed. Every session, this one included, is signed out
+//	400  not six digits. Nothing was counted
+//	409  the new address has been taken in the meantime
+//	410  no change is pending, or its code expired, was replaced, or ran
+//	     out of tries. Start again
+//	422  wrong code. The body says how many tries are left
 func (h *emailChangeHandler) Confirm(c echo.Context) error {
+	viewer := getViewer(c)
+	if viewer == nil || viewer.ID == 0 {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+
 	req := &requests.EmailChangeConfirm{}
 	if err := c.Bind(req); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
 	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
-		return h.renderError(c, "Invalid Link",
-			"This email change link is not valid. Please start the change again from your account settings.")
+
+	code := strings.TrimSpace(req.Code)
+	if len(code) != constants.OTPCodeLength || !isAllDigits(code) {
+		return c.NoContent(http.StatusBadRequest)
 	}
 
-	token, err := h.Repos.Tokens.ReadByBody(req.Token)
-	if err != nil {
-		log.Println(err)
-		return h.renderError(c, "Invalid Link",
-			"This email change link is not valid. Please start the change again from your account settings.")
-	}
-
-	if token.Type != constants.TokenTypeEmailChange {
-		return h.renderError(c, "Invalid Link",
-			"This link is not valid for changing your email address.")
-	}
-
-	if token.Status != constants.TokenStatusPending {
-		return h.renderError(c, "Link No Longer Valid",
-			"This email change link has been used or has expired. Please start the change again from your account settings.")
-	}
-
-	// The typed address must match the one the token was issued for.
-	//
-	// This is a typo check, not an authorisation check — the token
-	// already carries the destination, and the person cannot redirect
-	// the change by typing something else. Re-rendering the form rather
-	// than erroring out lets them correct a slip without starting over.
-	if !strings.EqualFold(strings.TrimSpace(req.Email), token.NewEmail) {
-		return h.renderTemplate(c, "email_change_confirm.html", map[string]any{
-			"Token":    token.Body,
-			"NewEmail": token.NewEmail,
-			"Error":    "That does not match the new address. Please type it exactly as shown above.",
-		})
-	}
-
-	user, err := h.Repos.Users.ReadByEmail(token.RecipientEmail)
+	user, err := h.Repos.Users.ReadByID(viewer.ID)
 	if err != nil || user == nil {
 		log.Println(err)
-		return h.renderError(c, "Account Not Found",
-			"We could not find an account associated with this link.")
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	// Re-check between issuing and confirming. The address may have been
-	// claimed by somebody else in the window, and the DB constraint
-	// would otherwise surface as an opaque 500 on a page the person
-	// cannot act on.
+	// Found by whose it is, never by the code: this person's one live
+	// email-change code.
+	pending, err := h.Repos.Tokens.ReadLiveCode(constants.TokenTypeEmailChangeCode, user.Email)
+	if err != nil || pending == nil {
+		return c.NoContent(http.StatusGone)
+	}
+
+	token, remaining, err := h.verifyCode(pending.ID, constants.TokenTypeEmailChangeCode, code)
+	if err != nil {
+		if errors.Is(err, errCodeMismatch) {
+			return c.JSON(http.StatusUnprocessableEntity, map[string]int{"remaining": remaining})
+		}
+		return c.NoContent(http.StatusGone)
+	}
+
+	// Somebody else may have taken the address in the last fifteen minutes.
+	// The code is left usable: nothing was changed, and the answer is the
+	// same however often it is asked.
 	isTaken, err := h.Repos.Users.IsEmail(token.NewEmail)
 	if err != nil {
 		log.Println(err)
-		return h.renderError(c, "Something Went Wrong",
-			"We could not change your email address. Please try again.")
+		return c.NoContent(http.StatusInternalServerError)
 	}
 	if isTaken {
-		return h.renderError(c, "Address Unavailable",
-			"That email address is now in use by another account. Please start the change again with a different address.")
+		return c.NoContent(http.StatusConflict)
+	}
+
+	// Used up before the address moves, so two submissions cannot both
+	// run the change.
+	if !h.consumeCode(token, user.ID) {
+		return c.NoContent(http.StatusGone)
 	}
 
 	oldEmail := user.Email
 
 	if err := h.Repos.Users.EditEmail(token.NewEmail, user.ID); err != nil {
 		log.Println(err)
-		return h.renderError(c, "Something Went Wrong",
-			"We could not change your email address. Please try again.")
+		return c.NoContent(http.StatusInternalServerError)
 	}
-
-	// Reflect the change locally so the notifiers below describe what
-	// actually happened rather than the pre-change state.
 	user.Email = token.NewEmail
 
-	// Consume the token. If this fails the address is already changed,
-	// so log and continue — the status gate catches a replay on the
-	// next read.
-	token.IsUsed = true
-	token.UpdatedAt = time.Now()
-	token.UpdatedBy = user.ID
-	if _, err := h.Repos.Tokens.Edit(token); err != nil {
-		log.Println(err)
-	}
-
-	// --- Revoke what an address change does not touch ---------------
-	//
-	// Same three revocations as a password reset, and for the same
-	// reason: none of them are derived from the email address, so all
-	// three survive the change untouched. If the change was made by
-	// somebody who should not have, leaving them in place means the
-	// account reads as recovered while still being open.
-	//
-	// All best-effort. The address change has already succeeded, and
-	// failing here would leave the person unable to recover at all.
-
+	// The address is what recovery delivers to, so changing it is treated
+	// like taking the account back: every passkey and every session goes,
+	// and the person signs in again with the new address.
 	if revokedKeys, err := h.Repos.WebAuthnCredentials.DeleteByPersonID(user.ID); err != nil {
 		log.Println("email change: passkey revocation failed:", err)
 	} else if revokedKeys > 0 {
@@ -321,19 +245,17 @@ func (h *emailChangeHandler) Confirm(c echo.Context) error {
 		log.Printf("email change: revoked %d IdP session(s) (person=%d)", revokedIdP, user.ID)
 	}
 
-	// Both addresses, old first. The old address is the one that needs
-	// to know, because it is losing the ability to recover the account.
+	// Both addresses are told. The old one is how an owner who did not do
+	// this finds out.
+	notifyUser := *user
 	go func() {
-		if err := h.Notif.EmailChange.EmailChangedOld(user, oldEmail); err != nil {
+		if err := h.Notif.EmailChange.EmailChangedOld(&notifyUser, oldEmail); err != nil {
 			log.Println(err)
 		}
-		if err := h.Notif.EmailChange.EmailChangedNew(user); err != nil {
+		if err := h.Notif.EmailChange.EmailChangedNew(&notifyUser); err != nil {
 			log.Println(err)
 		}
 	}()
 
-	return h.renderTemplate(c, "email_change_success.html", map[string]any{
-		"NewEmail":    user.Email,
-		"FrontendURL": h.Config.GetFrontendURL(),
-	})
+	return c.NoContent(http.StatusNoContent)
 }

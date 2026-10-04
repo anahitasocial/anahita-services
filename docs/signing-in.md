@@ -13,6 +13,7 @@ here is in auth-service, whose pages the web app sends people to.
 - [Limits](#limits)
 - [How codes are kept](#how-codes-are-kept)
 - [Resetting a forgotten password](#resetting-a-forgotten-password)
+- [Changing an email address](#changing-an-email-address)
 - [Adding text messages later](#adding-text-messages-later)
 
 ## The ways in
@@ -113,6 +114,29 @@ whether the address has an account.
 One link remains: the set-password link for the
 [first super administrator](registration.md#the-first-super-administrator),
 which is read from a log with no page open to type a code into.
+
+## Changing an email address
+
+Done from the app's settings, signed in. The address is what password reset
+delivers to, so moving it takes two proofs:
+
+1. **It is you.** `PATCH /email/change` with the new address needs a recent
+   step-up (a passkey, or the password and two-factor). One step-up buys one
+   request.
+2. **You hold the current inbox.** A 6-digit code is mailed to the *current*
+   address, naming the new one. The person types it into the same settings
+   screen, which calls `POST /email/change/confirm` with `{ "code": "…" }`.
+
+| Answer | Meaning |
+| --- | --- |
+| 204 | Changed. Every passkey is removed and every session is signed out, this one included. Both addresses are told |
+| 400 | Not six digits. Nothing was counted |
+| 409 | The new address was taken in the meantime |
+| 410 | Nothing is pending, or the code expired (15 minutes), was replaced by a newer request, or ran out of its five tries |
+| 422 | Wrong code. The body is `{ "remaining": n }` |
+
+The code is found by whose it is, never by its digits, so one person cannot
+use or wear out another's.
 
 ## Adding text messages later
 

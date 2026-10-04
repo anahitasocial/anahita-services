@@ -160,7 +160,9 @@ func everyNotification(n *Notifiers) []struct {
 		{"Password.EmailUpdateSuccess/0", func() error { return n.Password.EmailUpdateSuccess(user, 0) }},
 		{"Password.EmailUpdateSuccess/1", func() error { return n.Password.EmailUpdateSuccess(user, 1) }},
 		{"Password.EmailUpdateSuccess/3", func() error { return n.Password.EmailUpdateSuccess(user, 3) }},
-		{"EmailChange.EmailConfirm", func() error { return n.EmailChange.EmailConfirm(user, testToken()) }},
+		{"EmailChange.EmailCode", func() error {
+			return n.EmailChange.EmailCode(user, "new@example.com", "042195")
+		}},
 		{"EmailChange.EmailChangedOld", func() error {
 			return n.EmailChange.EmailChangedOld(user, "old@example.com")
 		}},
