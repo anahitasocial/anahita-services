@@ -25,7 +25,6 @@ const (
 	TokenTypeSignupConfirmCode = "signupconfirmotp"
 	TokenTypePasswordResetCode = "passwordresetotp"
 	TokenTypeEmailChangeCode   = "emailchangeotp"
-	TokenTypeReauthCode        = "reauthotp"
 
 	// TokenExpiryTimeEmailChange is deliberately short, matching the
 	// 15 minutes password reset uses. This token authorises changing a

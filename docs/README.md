@@ -83,7 +83,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
 | [Abuse reports](plans/abuse-report-service.md) | 4b | not started |
 | [Complete hard delete and bulk cleanup](plans/actor-hard-delete.md) | 5 | not started |
-| [Sign in with a code; codes instead of links](plans/login-code.md) | 6, 6b | 6 done 2026-10-03; 6b not started |
+| [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/notes-as-replies.md) | 7 | not started |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
 | [Link previews](plans/link-previews.md) | 10 | not started |

@@ -195,6 +195,26 @@ Invites stay as links: the recipient has no account yet, and later app links can
 
 **Not checked:** a complete sign-in on the running dev stack, because the code only exists in the email. The pages, the forged-token refusal, the unknown-address path and its five tries, and the password form were walked on the dev stack with curl. The response to a known address takes a few milliseconds longer than to an unknown one (a row is written), which the plan accepted.
 
+## What was built for phase 2 (2026-10-03)
+
+Each flow has its own token type, so a code issued for one is refused by the others. All of them use the shared pieces from phase 1 (`issueCode`, `verifyCode`, `consumeCode`), a shared "browser waiting for a code" step (`codeStep`, `submitCode` in `otp.go`), and the boxed-code mail layout. Codes for these flows last 15 minutes.
+
+- **Signup confirmation** (`signup_confirm.go`, type `signupconfirmotp`). Signing up leads to a page waiting for the code. `POST /signup/confirm` checks it. `/signup/confirm/resend` sends a new one, from the code page's button or by address, and now also works for a request to join in approval mode. Nothing says whether an address needs confirming.
+- **Password reset** (`password_reset_code.go`, type `passwordresetotp`). `/password/forgot`, then `/password/reset/verify`, then `/password/reset`. A correct code marks the browser's session as allowed to choose a password, and the code is used up when the password is set, so a rejected password can be corrected. Passkeys and sessions are still revoked and the account is still told.
+- **Email change** (`email_change.go`, type `emailchangeotp`). `PATCH /email/change` mails a code to the current address. `POST /email/change/confirm` with `{ code }` is now a signed-in JSON call. The pending code is found by whose it is (`tokens.ReadLiveCode`). The web app's Email card has a code step, and reads the session again afterwards because the change signs every session out.
+- **Web cleanup:** the legacy `/passwordreset` and `/token/:token` screens are gone, with the action, reducer, API module, form component and strings only they used. They called endpoints from the PHP application.
+- **The sign-in page's message** for an unconfirmed address points at a code, not a link.
+
+**Done differently from the plan:**
+
+- **Step-up by code was left out** (decided 2026-10-03). The plan offered it only to accounts with neither a password nor a passkey, and every account has a password, so it could never have been reached. Six of the seven things step-up guards are credentials or administrator keys, where a code in an inbox is weaker than what it would unlock. Somebody who has forgotten their password resets it, by code.
+- **No 24-hour transition for links already sent.** No site is live. The link-based signup and email-change handlers and their pages were removed outright. An old signup link lands on the page that asks for the address.
+- **One link was kept:** `/password/reset?token=…`, for the first super administrator's set-password link, which is read from a log with no page open to type a code into.
+- **`pw_reset_token` stays,** counting "is this my current password" guesses on the new-password form, keyed by the code's token on the code path.
+- **The email-change confirm step no longer asks for the new address to be re-typed.** The mail names it, and the person is on the screen where they typed it.
+
+**Tests:** each flow has handler tests for the whole path, wrong and malformed codes, the five-try limit, a code of another kind, resending, the form token, and the account states that apply. The repository's new lookup is tested against a real MySQL. The web app's suite (106 tests) and production build pass. On the dev stack the pages were walked with curl for an unknown address. A complete run of each flow with a real code has not been done here, because the code only exists in the email.
+
 ## Status
 
 | Item | State |
@@ -202,4 +222,4 @@ Invites stay as links: the recipient has no account yet, and later app links can
 | Plan | written 2026-09-28 |
 | Phase 1 (item 6) | done 2026-10-03, on branch `m2-foundations` |
 | Applied to the dev database | done 2026-10-03 |
-| Phase 2 (item 6b) | not started |
+| Phase 2 (item 6b) | done 2026-10-03, on branch `m2-foundations`. Step-up by code left out by decision |

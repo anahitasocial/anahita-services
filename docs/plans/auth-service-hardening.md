@@ -7,7 +7,7 @@ has been changed.**
 > encrypting gRPC calls is item **0c**, done after item 9, which sets up cert-manager.
 > On 2026-10-03 the shared-secret interceptor was moved from 0b into 0c: with no live site yet,
 > an interim secret wasn't worth a second configuration step, and mutual TLS covers both. Finding 3 (login throttle) is part of item 6
-> ([login-code.md](login-code.md)). Finding 5 must land before item 21
+> ([login-code.md](done/login-code.md)). Finding 5 must land before item 21
 > ([data-export.md](data-export.md)) relies on step-up.
 
 A security review of a sibling service produced seventeen findings. That

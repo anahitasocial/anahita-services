@@ -234,3 +234,43 @@ func TestRealCodeIsConsumedOnce(t *testing.T) {
 		t.Error("InvalidateOutstanding left a live code")
 	}
 }
+
+// The email-change flow has no browser session to remember its code, so it
+// finds the pending one by whose it is.
+func TestRealLiveCodeIsTheNewestUnusedOfItsType(t *testing.T) {
+	repo := realTokens(t)
+
+	if _, err := repo.InvalidateOutstanding(constants.TokenTypeLoginOTP, "ada@example.com"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repo.ReadLiveCode(constants.TokenTypeLoginOTP, "ada@example.com"); err == nil {
+		t.Fatal("a live code was found where there is none")
+	}
+
+	older := addRealCode(t, repo)
+	newer := addRealCode(t, repo)
+
+	live, err := repo.ReadLiveCode(constants.TokenTypeLoginOTP, "ada@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if live.ID != newer.ID {
+		t.Errorf("got token %d, want the newer one, %d (older is %d)", live.ID, newer.ID, older.ID)
+	}
+
+	// Not another type's, and not another address's.
+	if _, err := repo.ReadLiveCode(constants.TokenTypeEmailChangeCode, "ada@example.com"); err == nil {
+		t.Error("a sign-in code was returned as an email-change code")
+	}
+	if _, err := repo.ReadLiveCode(constants.TokenTypeLoginOTP, "grace@example.com"); err == nil {
+		t.Error("another address's code was returned")
+	}
+
+	if _, err := repo.ConsumeCode(newer.ID, 7); err != nil {
+		t.Fatal(err)
+	}
+	live, err = repo.ReadLiveCode(constants.TokenTypeLoginOTP, "ada@example.com")
+	if err != nil || live.ID != older.ID {
+		t.Errorf("after the newer one was used: %v, %v", live, err)
+	}
+}
