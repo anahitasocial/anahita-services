@@ -1,7 +1,9 @@
 {{define "body"}}{{.siteName}}
 
 {{.title}}
-
+{{if .code}}
+    {{.code}}
+{{end}}
 {{.body}}
 {{if .actionURL}}
 {{.actionLabel}}: {{.actionURL}}

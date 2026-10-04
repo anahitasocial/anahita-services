@@ -61,6 +61,30 @@
                 font-weight: 600;
                 color: #18181b;
             }
+            /*
+                A one-time code: the thing the message exists to deliver, so
+                it gets a box of its own and the largest type on the page.
+                Monospace with wide spacing, so six digits read as six digits
+                and are hard to mistype. A table, because a bordered block is
+                only dependable in mail clients as a table cell.
+            */
+            .code-box {
+                margin: 0 0 24px 0;
+                width: 100%;
+            }
+            .code {
+                padding: 20px 16px;
+                border: 2px solid #d4d4d8;
+                border-radius: 8px;
+                background-color: #fafafa;
+                text-align: center;
+                font-family: Menlo, Consolas, monospace;
+                font-size: 40px;
+                line-height: 48px;
+                font-weight: 700;
+                letter-spacing: 10px;
+                color: #18181b;
+            }
             .body {
                 margin: 0 0 24px 0;
                 font-size: 15px;
@@ -112,6 +136,13 @@
                                     {{end}}
                                 </div>
                                 <h1 class="title">{{.title}}</h1>
+                                {{if .code}}
+                                <table class="code-box" role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                    <tr>
+                                        <td class="code">{{.code}}</td>
+                                    </tr>
+                                </table>
+                                {{end}}
                                 <p class="body">{{.body}}</p>
                                 {{if .actionURL}}
                                 <p style="margin: 0;">

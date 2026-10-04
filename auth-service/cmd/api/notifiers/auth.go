@@ -55,13 +55,12 @@ func (h *authNotifier) EmailLogin(user *entities.User, authLog *entities.AuthLog
 // EmailLoginCode sends a sign-in code. No action link: see the note on
 // messages.AuthLoginCodeBody.
 func (h *authNotifier) EmailLoginCode(user *entities.User, code string) error {
-	return h.send(
+	return h.sendCode(
 		user.Email,
 		fmt.Sprintf(messages.AuthLoginCodeSubject, code),
 		messages.AuthLoginCodeTitle,
-		fmt.Sprintf(messages.AuthLoginCodeBody, user.Name, code),
-		"",
-		"",
+		fmt.Sprintf(messages.AuthLoginCodeBody, user.Name),
+		code,
 	)
 }
 

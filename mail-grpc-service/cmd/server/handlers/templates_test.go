@@ -210,3 +210,55 @@ func TestSiteNameIsEscapedInTheHeader(t *testing.T) {
 		t.Error("the site name broke out of the alt attribute")
 	}
 }
+
+// A one-time code gets a block of its own: under the title, above the
+// description, boxed and in large type. The styles have to arrive inlined,
+// because mail clients drop the <style> block.
+func TestCodeIsSetApartBetweenTitleAndBody(t *testing.T) {
+	data := map[string]any{
+		"siteName": "Anahita",
+		"title":    "Your sign-in code",
+		"body":     "Enter this code to sign in.",
+		"code":     "042195",
+	}
+
+	text, html, err := renderTemplate("message_action", data)
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+
+	title := strings.Index(html, "Your sign-in code</h1>")
+	code := strings.Index(html, ">042195</td>")
+	body := strings.Index(html, "Enter this code to sign in.")
+	if title < 0 || code < 0 || body < 0 || !(title < code && code < body) {
+		t.Fatalf("order in the HTML part: title %d, code %d, body %d", title, code, body)
+	}
+
+	cell := html[strings.LastIndex(html[:code], "<td"):code]
+	for _, want := range []string{"border:", "font-size:40px", "text-align:center"} {
+		if !strings.Contains(cell, want) {
+			t.Errorf("the code's cell is missing %q inline: %s", want, cell)
+		}
+	}
+
+	// No link and no button in a message that only carries a code.
+	if strings.Contains(html, "<a ") {
+		t.Error("a code message rendered a link")
+	}
+
+	titleText, codeText, bodyText := strings.Index(text, "Your sign-in code"),
+		strings.Index(text, "042195"), strings.Index(text, "Enter this code")
+	if !(titleText < codeText && codeText < bodyText) || codeText < 0 {
+		t.Errorf("order in the text part: %q", text)
+	}
+}
+
+func TestNoCodeBoxWithoutACode(t *testing.T) {
+	_, html, err := renderTemplate("message_action", actionData())
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	if strings.Contains(html, "<td class=\"code\"") || strings.Contains(html, "letter-spacing:10px") {
+		t.Error("a message with no code rendered the code box")
+	}
+}

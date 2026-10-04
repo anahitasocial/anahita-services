@@ -33,10 +33,14 @@ const (
 	// to type it, and the page that wants it is already open in front of the
 	// person. Mail scanners follow links; they do not type.
 	//
-	// Verbs: the code (subject); name, the code (body).
+	// The code is not in the body text. The mail template shows it by itself,
+	// in a box between the title and this text, in the largest type on the
+	// page.
+	//
+	// Verbs: the code (subject); name (body).
 	AuthLoginCodeSubject = "%s is your {{site}} sign-in code"
 	AuthLoginCodeTitle   = "Your sign-in code"
-	AuthLoginCodeBody    = "Hello %s, your {{site}} sign-in code is %s. It expires in 10 minutes and only works in the browser where you asked for it. We will never ask you for this code: do not share it with anyone. If you did not try to sign in, you can ignore this message. Nobody can sign in without the code."
+	AuthLoginCodeBody    = "Hello %s, enter this code to sign in to {{site}}. It expires in 10 minutes and only works in the browser where you asked for it. We will never ask you for this code: do not share it with anyone. If you did not try to sign in, you can ignore this message. Nobody can sign in without the code."
 
 	// An administrator ended one of somebody's signed-in sessions.
 	//

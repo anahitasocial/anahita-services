@@ -176,7 +176,12 @@ func TestLoginCodeSignsInWithTheEmailedCode(t *testing.T) {
 		t.Errorf("subject %q does not carry the code", mail.Subject)
 	}
 	data, _ := mail.Data.(map[string]string)
-	if !strings.Contains(data["body"], token.Code) || !strings.Contains(data["body"], "never ask") {
+	// The code travels in its own field, which the template boxes, and
+	// not buried in the sentence under it.
+	if data["code"] != token.Code {
+		t.Errorf("code field %q, want %q", data["code"], token.Code)
+	}
+	if strings.Contains(data["body"], token.Code) || !strings.Contains(data["body"], "never ask") {
 		t.Errorf("body %q", data["body"])
 	}
 	if data["actionURL"] != "" {
