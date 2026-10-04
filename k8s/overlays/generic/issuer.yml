@@ -1,0 +1,17 @@
+# Gets the site's certificate from Let's Encrypt, and renews it. Needs
+# cert-manager in the cluster. Put a real address in `email`: expiry warnings
+# go there.
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@example.org
+    privateKeySecretRef:
+      name: letsencrypt-account
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: nginx

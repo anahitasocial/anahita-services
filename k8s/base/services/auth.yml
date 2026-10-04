@@ -1,0 +1,306 @@
+# auth-service: Accounts, sign-in, OAuth and NodeInfo.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: anahita/auth-service
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ENV
+            - name: DSN
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: DSN
+            - name: MAX_DB_CONNECTIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: MAX_DB_CONNECTIONS
+                  optional: true
+            - name: SECURE_COOKIE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: SECURE_COOKIE_KEY
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: REDIS_ADDR
+            - name: REDIS_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: REDIS_TLS
+                  optional: true
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: REDIS_PASSWORD
+                  optional: true
+            - name: AMQP_ADDR
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: AMQP_ADDR
+            - name: MAIL_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: MAIL_SERVICE_ADDR
+            - name: FILE_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FILE_SERVICE_ADDR
+            - name: GRAPH_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRAPH_SERVICE_ADDR
+            # Site identity and public addresses.
+            - name: DOMAIN_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: DOMAIN_NAME
+            - name: AUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: AUTH_URL
+                  optional: true
+            - name: FRONTEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FRONTEND_URL
+                  optional: true
+            - name: SITE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_NAME
+                  optional: true
+            - name: ANAHITA_INSTANCE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ANAHITA_INSTANCE_NAME
+                  optional: true
+            - name: ANAHITA_INSTANCE_DESCRIPTION
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ANAHITA_INSTANCE_DESCRIPTION
+                  optional: true
+            - name: SYSTEM_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SYSTEM_EMAIL
+            - name: SUPPORT_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SUPPORT_EMAIL
+            - name: SUPPORT_PHONE
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SUPPORT_PHONE
+                  optional: true
+            - name: SUPPORT_WEBSITE
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SUPPORT_WEBSITE
+                  optional: true
+            - name: TOTP_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: TOTP_ISSUER
+                  optional: true
+            - name: IP_LOCATION_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: IP_LOCATION_URL
+                  optional: true
+            # Token signing and secrets at rest. With the local backends the
+            # signing key is created at first start and kept in the database,
+            # sealed with CRYPT_LOCAL_KEY.
+            - name: OAUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: OAUTH_ISSUER
+            - name: OAUTH_JWKS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: OAUTH_JWKS_URL
+            - name: OAUTH_SIGNER_BACKEND
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: OAUTH_SIGNER_BACKEND
+                  optional: true
+            - name: OAUTH_KMS_KEY_ALIAS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: OAUTH_KMS_KEY_ALIAS
+                  optional: true
+            - name: OAUTH_KEY_LIFETIME_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: OAUTH_KEY_LIFETIME_DAYS
+                  optional: true
+            - name: CRYPT_BACKEND
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: CRYPT_BACKEND
+                  optional: true
+            - name: CRYPT_LOCAL_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: CRYPT_LOCAL_KEY
+                  optional: true
+            - name: AWS_KMS_KEY_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: AWS_KMS_KEY_ID
+                  optional: true
+            - name: CRYPT_KMS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: CRYPT_KMS_REGION
+                  optional: true
+            - name: OAUTH_SEED_CLIENT_PATH
+              value: /app/seed/oauth_seed_clients.json
+            # Who gets in, and who may invite or create groups.
+            - name: REGISTRATION_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: REGISTRATION_MODE
+                  optional: true
+            - name: INVITES_FROM
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: INVITES_FROM
+                  optional: true
+            - name: GROUPS_FROM
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GROUPS_FROM
+                  optional: true
+            - name: INVITE_PENDING_MAX
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: INVITE_PENDING_MAX
+                  optional: true
+            - name: INVITE_PENDING_MAX_ADMIN
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: INVITE_PENDING_MAX_ADMIN
+                  optional: true
+            - name: TOS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: TOS_URL
+                  optional: true
+            - name: PRIVACY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PRIVACY_URL
+                  optional: true
+            # The first super administrator. Does nothing once one exists.
+            - name: SUPER_ADMIN_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SUPER_ADMIN_EMAIL
+                  optional: true
+            - name: SUPER_ADMIN_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SUPER_ADMIN_USERNAME
+                  optional: true
+            - name: SUPER_ADMIN_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SUPER_ADMIN_NAME
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+          volumeMounts:
+            - name: oauth-clients
+              mountPath: /app/seed
+              readOnly: true
+      volumes:
+        # The first-party OAuth clients, seeded at first start. Each overlay
+        # supplies its own, because the redirect addresses are the site's.
+        - name: oauth-clients
+          configMap:
+            name: anahita-oauth-clients
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

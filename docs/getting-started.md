@@ -119,7 +119,7 @@ make test
 
 Run `make help` for the full list, which also covers Docker Hub publishing
 (`build_dockerfiles`, `push_dockerfiles`), Swarm (`swarm_up`,
-`swarm_down`), and Kubernetes/Minikube (`k8s-build`, `k8s-deploy`,
-`k8s-build-deploy`, `k8s-cleanup`, `minikube-cleanup`). Manifests are in
-`k8s/`, ordered by filename prefix: config and secrets, then backing
-services, then gRPC services, then HTTP services, then the ingress.
+`swarm_down`), and a local Kubernetes cluster (`k8s-start`, `k8s-build`,
+`k8s-deploy`, `k8s-cleanup`). The manifests are in `k8s/`, and
+[Deploying](deploying.md) covers them, for live sites and for trying them
+locally.

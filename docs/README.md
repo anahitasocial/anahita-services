@@ -45,6 +45,17 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The defaults](permissions.md#the-defaults)
    - [What profile owners can change](permissions.md#what-profile-owners-can-change)
    - [Accepted values](permissions.md#accepted-values)
+7. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
+   - [What you need](deploying.md#what-you-need)
+   - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
+   - [Hostnames](deploying.md#hostnames)
+   - [First deployment](deploying.md#first-deployment)
+   - [Object storage](deploying.md#object-storage)
+   - [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)
+   - [On AWS](deploying.md#on-aws)
+   - [Upgrading](deploying.md#upgrading)
+   - [Running more than one copy of a service](deploying.md#running-more-than-one-copy-of-a-service)
+   - [Trying it on your own machine](deploying.md#trying-it-on-your-own-machine)
 
 ## Plans
 
@@ -64,7 +75,6 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Sign in with a code; codes instead of links](plans/login-code.md) | 6, 6b | not started |
 | [Notes as replies](plans/notes-as-replies.md) | 7 | not started |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
-| [Cloud-neutral storage and deployment](plans/cloud-neutral.md) | 9 | not started |
 | [Link previews](plans/link-previews.md) | 10 | not started |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
@@ -89,3 +99,4 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Feed access leak](plans/done/feed-access-leak.md) | 0 | done 2026-10-03 |
 | [Remove unused legacy node columns](plans/done/remove-unused-node-columns.md) | 0d | done 2026-10-02 |
 | [Remove private notes](plans/done/remove-private-notes.md) | 1 | done 2026-10-03 |
+| [Cloud-neutral storage and deployment](plans/done/cloud-neutral.md) | 9 | done 2026-10-03 (non-AWS providers other than Garage untested) |

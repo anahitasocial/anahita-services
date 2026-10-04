@@ -1,0 +1,63 @@
+# A cluster on your own machine (minikube), for trying the manifests. Not for
+# day-to-day development: docker-compose is quicker for that.
+#
+#   make k8s-start k8s-build k8s-deploy
+#
+# Runs ENV=dev over plain HTTP, with the images built on this machine and
+# uploads going to the Garage that docker-compose runs.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: anahita
+
+resources:
+  - namespace.yml
+  - ../../base
+
+components:
+  - ../../components/mysql
+  - ../../components/redis
+  - ../../components/rabbitmq
+
+configMapGenerator:
+  - name: anahita-config
+    behavior: merge
+    envs:
+      - config.env
+  - name: anahita-oauth-clients
+    files:
+      - oauth_seed_clients.json
+
+secretGenerator:
+  - name: anahita-secrets
+    envs:
+      - secrets.env
+
+patches:
+  # Answer on any hostname, so `minikube tunnel` serves it at localhost.
+  - target:
+      kind: Ingress
+      name: anahita
+    patch: |-
+      - op: remove
+        path: /spec/rules/0/host
+  # The images are built into the cluster and exist in no registry.
+  - target:
+      kind: Deployment
+      labelSelector: app.kubernetes.io/part-of=anahita
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Never
+  - target:
+      kind: Job
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Never
+  - target:
+      kind: CronJob
+    patch: |-
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/imagePullPolicy
+        value: Never

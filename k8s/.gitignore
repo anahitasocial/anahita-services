@@ -1,1 +1,3 @@
+# Real secrets. Each overlay ships a secrets.env.example to copy.
 *secret*.yml
+secrets.env

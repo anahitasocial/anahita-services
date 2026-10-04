@@ -1,0 +1,7 @@
+# The nginx image fills in ${WEB_ORIGIN} at start-up and writes the result to
+# /etc/nginx/conf.d/cors.conf, which nginx.conf includes. Only variables that
+# exist in the environment are replaced, so $http_origin is left for nginx.
+map $http_origin $cors_origin {
+    "${WEB_ORIGIN}" "${WEB_ORIGIN}";
+    default "";
+}

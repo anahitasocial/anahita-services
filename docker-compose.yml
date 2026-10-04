@@ -11,8 +11,13 @@ services:
     hostname: nginx
     ports:
       - "80:80"
+    environment:
+      # The web app's origin, the one origin allowed to call the API with
+      # the session cookie.
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
     volumes:
         - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+        - ./nginx/templates:/etc/nginx/templates:ro
         - ./nginx/index.html:/etc/nginx/html/index.html
     networks:
       anahita-network:

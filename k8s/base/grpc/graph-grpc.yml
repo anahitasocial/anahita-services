@@ -1,0 +1,62 @@
+# graph-grpc-service: the only service that reads and writes nodes and edges.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: graph-grpc-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: graph-grpc-service
+  template:
+    metadata:
+      labels:
+        app: graph-grpc-service
+    spec:
+      containers:
+        - name: graph-grpc-service
+          image: anahita/graph-grpc-service
+          ports:
+            - name: grpc
+              containerPort: 50051
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ENV
+            - name: DSN
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: DSN
+            - name: AMQP_ADDR
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: AMQP_ADDR
+          readinessProbe:
+            tcpSocket:
+              port: grpc
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: grpc
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: graph-grpc-service
+spec:
+  selector:
+    app: graph-grpc-service
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: grpc

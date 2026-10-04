@@ -65,7 +65,9 @@ Backing services in `docker-compose.yml`:
 ## Routing
 
 nginx maps public paths to services. The full map lives in
-`nginx/nginx.conf`:
+`nginx/nginx.conf`, and the same gateway runs in docker-compose and on
+Kubernetes, where the Ingress sends everything to it
+(see [Deploying](deploying.md)):
 
 | Path prefix | Service |
 | --- | --- |

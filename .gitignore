@@ -25,3 +25,6 @@
 #binaries
 app-binary
 scripts/s3-migration/s3-migration
+
+# built by make build_sweeper
+sweeper-binary

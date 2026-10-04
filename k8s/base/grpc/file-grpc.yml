@@ -1,0 +1,114 @@
+# file-grpc-service: stores uploads in an S3-compatible object store.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-grpc-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: file-grpc-service
+  template:
+    metadata:
+      labels:
+        app: file-grpc-service
+    spec:
+      containers:
+        - name: file-grpc-service
+          image: anahita/file-grpc-service
+          ports:
+            - name: grpc
+              containerPort: 50051
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ENV
+            # Any S3-compatible store. See docs/configuration.md, Storage.
+            # Leave the endpoints unset for AWS S3.
+            - name: STORAGE_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: STORAGE_ENDPOINT
+                  optional: true
+            - name: STORAGE_PUBLIC_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: STORAGE_PUBLIC_ENDPOINT
+                  optional: true
+            - name: STORAGE_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: STORAGE_REGION
+            - name: STORAGE_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: STORAGE_BUCKET
+            # Both unset means the SDK's default chain, which is how a role
+            # given to the pod is picked up on AWS.
+            - name: STORAGE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: STORAGE_ACCESS_KEY
+                  optional: true
+            - name: STORAGE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: STORAGE_SECRET_KEY
+                  optional: true
+            - name: STORAGE_PATH_STYLE
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: STORAGE_PATH_STYLE
+                  optional: true
+            - name: STORAGE_SSE
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: STORAGE_SSE
+                  optional: true
+            - name: STORAGE_SEND_ACL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: STORAGE_SEND_ACL
+                  optional: true
+            - name: STORAGE_ALLOWED_TYPES
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: STORAGE_ALLOWED_TYPES
+                  optional: true
+          readinessProbe:
+            tcpSocket:
+              port: grpc
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: grpc
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: file-grpc-service
+spec:
+  selector:
+    app: file-grpc-service
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: grpc

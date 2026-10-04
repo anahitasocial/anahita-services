@@ -1,0 +1,41 @@
+# Everything Anahita itself needs, and nothing a site has to decide: no
+# hostnames, no secrets, no database. It is not applied on its own. An overlay
+# in ../overlays adds those; see docs/deploying.md.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: anahita
+
+resources:
+  - gateway.yml
+  - ingress.yml
+  - grpc/file-grpc.yml
+  - grpc/graph-grpc.yml
+  - grpc/mail-grpc.yml
+  - jobs/migration-job.yml
+  - jobs/sweeper-cronjob.yml
+  - services/auth.yml
+  - services/avatar.yml
+  - services/comment.yml
+  - services/cover.yml
+  - services/feed.yml
+  - services/group.yml
+  - services/hashtag.yml
+  - services/like.yml
+  - services/location.yml
+  - services/notification.yml
+  - services/person.yml
+  - services/photo.yml
+  - services/search.yml
+  - services/socialgraph.yml
+  - services/story.yml
+  - services/text.yml
+
+# Non-secret settings, one entry per variable in docs/configuration.md. Each
+# manifest picks the ones its service reads, as docker-compose.yml does.
+configMapGenerator:
+  - name: anahita-config
+    envs:
+      - config.env

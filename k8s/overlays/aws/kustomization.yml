@@ -1,0 +1,84 @@
+# Amazon EKS, with S3 for uploads, RDS for MySQL and ElastiCache for Redis.
+#
+# file-grpc-service signs in to S3 with an IAM role given to its pod (IRSA),
+# so there are no storage keys to keep. RabbitMQ still runs in the cluster.
+# docs/deploying.md has the details.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: anahita
+
+resources:
+  - namespace.yml
+  - issuer.yml
+  - service-accounts.yml
+  - ../../base
+
+components:
+  - ../../components/rabbitmq
+
+patches:
+  - path: ingress.yml
+  - path: file-grpc-role.yml
+
+configMapGenerator:
+  - name: anahita-config
+    behavior: merge
+    envs:
+      - config.env
+  - name: anahita-oauth-clients
+    files:
+      - oauth_seed_clients.json
+
+secretGenerator:
+  - name: anahita-secrets
+    envs:
+      - secrets.env
+
+# Which build to run. Pin newTag to a release, and add newName to pull from
+# ECR or another registry of your own.
+images:
+  - name: anahita/auth-service
+    newTag: latest
+  - name: anahita/avatar-service
+    newTag: latest
+  - name: anahita/comment-service
+    newTag: latest
+  - name: anahita/cover-service
+    newTag: latest
+  - name: anahita/feed-service
+    newTag: latest
+  - name: anahita/file-grpc-service
+    newTag: latest
+  - name: anahita/graph-grpc-service
+    newTag: latest
+  - name: anahita/group-service
+    newTag: latest
+  - name: anahita/hashtag-service
+    newTag: latest
+  - name: anahita/like-service
+    newTag: latest
+  - name: anahita/location-service
+    newTag: latest
+  - name: anahita/mail-grpc-service
+    newTag: latest
+  - name: anahita/migration-job
+    newTag: latest
+  - name: anahita/nginx
+    newTag: latest
+  - name: anahita/notification-service
+    newTag: latest
+  - name: anahita/person-service
+    newTag: latest
+  - name: anahita/photo-service
+    newTag: latest
+  - name: anahita/search-service
+    newTag: latest
+  - name: anahita/socialgraph-service
+    newTag: latest
+  - name: anahita/story-service
+    newTag: latest
+  - name: anahita/sweeper-job
+    newTag: latest
+  - name: anahita/text-service
+    newTag: latest

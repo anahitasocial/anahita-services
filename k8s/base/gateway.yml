@@ -1,0 +1,64 @@
+# gateway: the same nginx that fronts the services in docker-compose. It maps
+# public paths to services, answers CORS for the web app, and asks
+# auth-service to turn the session cookie into a bearer token.
+#
+# The Ingress sends everything here, so the routing lives in one place:
+# nginx/nginx.conf, built into this image.
+#
+# nginx looks each service up once, when it starts. Service addresses do not
+# change while a Service exists, but if one is deleted and recreated, restart
+# this Deployment:
+#   kubectl -n anahita rollout restart deployment/gateway
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: anahita/nginx
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            # The web app's origin, the one origin allowed to call the API
+            # with the session cookie.
+            - name: WEB_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: WEB_ORIGIN
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

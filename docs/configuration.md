@@ -6,6 +6,9 @@ Create a `.env` file at the project root before the first run. It is not
 committed, and neither are the signing-key and TLS `.pem` files it points at.
 `docker-compose.yml` is the reference for which service reads which variable.
 
+On Kubernetes the same variables go in an overlay's `config.env` and
+`secrets.env` instead: see [Deploying](deploying.md).
+
 ## Contents
 
 - [Shared](#shared)
@@ -30,6 +33,7 @@ committed, and neither are the signing-key and TLS `.pem` files it points at.
 | `AMQP_ADDR` | publishers and consumers | RabbitMQ, e.g. `amqp://rabbitmq:5672` |
 | `OAUTH_ISSUER` | all HTTP services | Issuer URL that tokens are signed with and checked against |
 | `OAUTH_JWKS_URL` | all HTTP services | Where public signing keys are fetched. Defaults to auth-service inside the network |
+| `WEB_ORIGIN` | nginx | The web app's origin, e.g. `https://example.org`. The one origin allowed to call the API with the session cookie. Default `http://localhost:3000` |
 
 ### Client addresses
 
@@ -217,4 +221,7 @@ SES's relay, Postmark, an internal MTA, or a local sink such as
 Service addresses (`MAIL_SERVICE_ADDR`, `FILE_SERVICE_ADDR`,
 `GRAPH_SERVICE_ADDR`) and the defaults directories (`DEFAULTS_PATH`,
 `ACTOR_FEATURES_PATH`) are set in `docker-compose.yml` itself and need no
-entry in `.env`.
+entry in `.env`. The two directories default to `/app/defaults` and
+`/app/defaults/actor_features`, where the images keep their copies;
+docker-compose points them at the working tree so an edit shows without a
+rebuild.

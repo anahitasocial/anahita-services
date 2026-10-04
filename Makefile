@@ -12,6 +12,7 @@ COMMENT_SRV=comment-service
 GRAPH_BINARY=app-binary
 GRAPH_VERSION=latest
 GRAPH_SRV=graph-grpc-service
+SWEEPER_JOB=sweeper-job
 
 GROUP_BINARY=app-binary
 GROUP_VERSION=latest
@@ -41,7 +42,7 @@ HASHTAG_VERSION=latest
 HASHTAG_SRV=hashtag-service
 
 LOCATION_BINARY=app-binary
-LOCATION_VERSION=0.9.0
+LOCATION_VERSION=latest
 LOCATION_SRV=location-service
 
 SEARCH_BINARY=app-binary
@@ -113,6 +114,7 @@ build_dockerfiles: check_docker build_auth build_comment build_graph build_sweep
 	docker build -f ${DOCKERFILES}/${AUTH_SRV}.dockerfile -t ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION} .
 	docker build -f ${DOCKERFILES}/${COMMENT_SRV}.dockerfile -t ${REPOSITORY}/${COMMENT_SRV}:${COMMENT_VERSION} .
 	docker build -f ${DOCKERFILES}/${GRAPH_SRV}.dockerfile -t ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION} .
+	docker build -f ${DOCKERFILES}/${SWEEPER_JOB}.dockerfile -t ${REPOSITORY}/${SWEEPER_JOB}:${GRAPH_VERSION} .
 	docker build -f ${DOCKERFILES}/${GROUP_SRV}.dockerfile -t ${REPOSITORY}/${GROUP_SRV}:${GROUP_VERSION} .
 	docker build -f ${DOCKERFILES}/${LIKE_SRV}.dockerfile -t ${REPOSITORY}/${LIKE_SRV}:${LIKE_VERSION} .
 	docker build -f ${DOCKERFILES}/${PERSON_SRV}.dockerfile -t ${REPOSITORY}/${PERSON_SRV}:${PERSON_VERSION} .
@@ -138,6 +140,7 @@ push_dockerfiles: check_docker build_dockerfiles
 	docker push ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION}
 	docker push ${REPOSITORY}/${COMMENT_SRV}:${COMMENT_VERSION}
 	docker push ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION}
+	docker push ${REPOSITORY}/${SWEEPER_JOB}:${GRAPH_VERSION}
 	docker push ${REPOSITORY}/${GROUP_SRV}:${GROUP_VERSION}
 	docker push ${REPOSITORY}/${LIKE_SRV}:${LIKE_VERSION}
 	docker push ${REPOSITORY}/${PERSON_SRV}:${PERSON_VERSION}
@@ -389,6 +392,9 @@ location: build_location
 	@echo "${LOCATION_SRV} built and started!"
 
 ## nginx: stops nginx service, removes docker image, builds service, and starts it
+# Phony because a directory has the same name, which make would otherwise
+# take for an up-to-date target and do nothing.
+.PHONY: nginx
 nginx:
 	@echo "Building ${NGINX_SRV} docker image..."
 	- docker-compose stop ${NGINX_SRV}
@@ -536,88 +542,64 @@ help: Makefile
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 
 #
-#	To access the site, add the following to your /etc/hosts file:
-#	echo "$(minikube ip) anahita.local" | sudo tee -a /etc/hosts
+#	A local Kubernetes cluster, for trying the manifests in k8s/. Live sites
+#	use k8s/overlays/generic or k8s/overlays/aws: see docs/deploying.md.
+#	Day-to-day development is quicker with docker-compose (make up_build).
 #
 
-## minikube-cleanup: stops and deletes existing Minikube instances to avoid mount conflicts
-minikube-cleanup:
-	@echo "Stopping and deleting existing Minikube instances to avoid mount conflicts..."
-	minikube stop
-	minikube delete
-	@echo "Existing Minikube instances stopped and deleted!"
+K8S_LOCAL=k8s/overlays/local
+# Always the Minikube cluster, whatever kubectl currently points at, so these
+# targets can never touch a real one.
+KUBECTL=kubectl --context minikube
+K8S_IMAGES=${AUTH_SRV} ${AVATAR_SRV} ${COMMENT_SRV} ${COVER_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${GROUP_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PERSON_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${STORY_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
 
-## k8s-cleanup: stops and removes existing containers and Minikube instances to avoid mount conflicts
-k8s-cleanup: minikube-cleanup
-	@echo "Stopping and removing existing containers to avoid mount conflicts..."
-	docker-compose down
-	@echo "Existing containers stopped and removed!"
-
-## deploy_k8s: deploys to kubernetes
+## k8s-start: starts a local Minikube cluster with the ingress controller
 k8s-start:
 	@echo "Starting kubernetes..."
-	minikube start --mount --mount-string ${HOME}/projects/go/src/github.com/purplerat/anahita-services/db-data/mysql:/var/lib/mysql
-	eval $(minikube -p minikube docker-env)
-	@echo "Done!"
-
-## k8s-build: builds all docker images inside Minikube
-k8s-build: check_docker
-	@echo "Building docker images inside Minikube..."
-	eval $(minikube -p minikube docker-env) && make build_dockerfiles
-	make reset-docker-env
-	@echo "Docker images built inside Minikube!"
-
-## k8s-deploy: deploys to Kubernetes
-k8s-deploy: k8s-build
-	@echo "Deploying to Kubernetes..."
-	eval $(minikube -p minikube docker-env)
-	kubectl apply -f k8s
-	@echo "Deployment to Kubernetes completed!"
-
-## k8s-build-deploy: sets up Docker environment, builds images, and deploys to Kubernetes
-k8s-build-deploy: check_docker
-	@echo "Setting up Docker environment to use Minikube's Docker daemon..."
-	eval $(minikube -p minikube docker-env)
-	@echo "Building Docker images within Minikube..."
-	make build_dockerfiles
-	@echo "Verifying Docker images in Minikube..."
-	docker images
-	@echo "Deploying to Kubernetes..."
-	kubectl apply -f k8s
-	@echo "Resetting Docker environment..."
-	eval $(minikube -p minikube docker-env)
-	@echo "Done!"
-
-k8s-enable-ingress:
-	@echo "Enabling Ingress..."
+	minikube start --cpus 4 --memory 5g
 	minikube addons enable ingress
 	@echo "Done!"
 
+## k8s-build: builds every image and loads it into Minikube
+k8s-build: build_dockerfiles
+	@echo "Loading images into Minikube..."
+	@for image in ${K8S_IMAGES}; do \
+		echo "  ${REPOSITORY}/$$image:latest"; \
+		minikube image load ${REPOSITORY}/$$image:latest || exit 1; \
+	done
+	@echo "Images loaded!"
+
+## k8s-deploy: applies the local overlay to the Minikube cluster
+k8s-deploy:
+	@echo "Deploying to kubernetes..."
+	@test -f ${K8S_LOCAL}/secrets.env || cp ${K8S_LOCAL}/secrets.env.example ${K8S_LOCAL}/secrets.env
+	- ${KUBECTL} -n anahita delete job migration-job --ignore-not-found
+	${KUBECTL} apply -k ${K8S_LOCAL}
+	@echo "Done! Watch it come up with: ${KUBECTL} -n anahita get pods"
+
+## k8s-tunnel: serves the cluster's ingress at http://localhost (stop docker-compose first, it uses the same port)
 k8s-tunnel:
 	@echo "Tunneling to kubernetes..."
 	sudo minikube tunnel
-	@echo "Done!"
 
-k8s-deploy:
-	@echo "Deploying to kubernetes..."
-	eval $(minikube -p minikube docker-env)
-	kubectl apply -f k8s
-	@echo "Done!"
-
+## k8s-delete: removes the local overlay from the cluster, data included
 k8s-delete:
 	@echo "Deleting from kubernetes..."
-	kubectl delete -f k8s
+	${KUBECTL} delete -k ${K8S_LOCAL}
 	@echo "Done!"
 
+## k8s-dashboard: opens the Minikube dashboard
 k8s-dashboard:
-	@echo "Starting kubernetes dashboard..."
 	minikube dashboard
-	@echo "Done!"
 
+## k8s-stop: stops the Minikube cluster, keeping its data
 k8s-stop:
-	@echo "Stopping kubernetes..."
 	minikube stop
-	@echo "Done!"
+
+## k8s-cleanup: stops and deletes the Minikube cluster
+k8s-cleanup:
+	minikube stop
+	minikube delete
 
 ## test: runs the unit tests across the whole workspace. anahita-libs
 ## carries the scope drift guard, which fails on any HasScope("literal")

@@ -20,7 +20,9 @@ const (
 	ErrMissingOAuthJWKSURL      = "OAuth JWKS URL is missing"
 )
 
-const DefaultsPath = "/defaults"
+// DefaultsPath is where the image keeps them: the dockerfile copies
+// feed-defaults to /app/defaults.
+const DefaultsPath = "/app/defaults"
 
 type Config struct {
 	Env              string

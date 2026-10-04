@@ -1,0 +1,96 @@
+# photo-service: Photos.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photo-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: photo-service
+  template:
+    metadata:
+      labels:
+        app: photo-service
+    spec:
+      containers:
+        - name: photo-service
+          image: anahita/photo-service
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ENV
+            - name: SECURE_COOKIE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: SECURE_COOKIE_KEY
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: REDIS_ADDR
+            - name: REDIS_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: REDIS_TLS
+                  optional: true
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: REDIS_PASSWORD
+                  optional: true
+            - name: FILE_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FILE_SERVICE_ADDR
+            - name: GRAPH_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRAPH_SERVICE_ADDR
+            - name: OAUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: OAUTH_ISSUER
+            - name: OAUTH_JWKS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: OAUTH_JWKS_URL
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: photo-service
+spec:
+  selector:
+    app: photo-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

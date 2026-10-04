@@ -1,0 +1,67 @@
+# Redis inside the cluster, for sessions and rate limits. Sessions are kept
+# on a volume so a restart does not sign everybody out.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  serviceName: redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:alpine
+          # Asks for a password only when REDIS_PASSWORD is set, so it always
+          # matches what the services are given.
+          command:
+            - sh
+            - -c
+            - exec redis-server --maxmemory-policy noeviction --appendonly yes ${REDIS_PASSWORD:+--requirepass "$REDIS_PASSWORD"}
+          ports:
+            - name: redis
+              containerPort: 6379
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: REDIS_PASSWORD
+                  optional: true
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            tcpSocket:
+              port: redis
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis

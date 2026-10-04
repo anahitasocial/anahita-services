@@ -1,0 +1,22 @@
+# The one way in from outside. Everything goes to the gateway, which does the
+# routing. Each overlay replaces the host, and adds TLS.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: anahita
+  annotations:
+    # The gateway's own limit, so an upload is not refused one hop earlier.
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: anahita.invalid
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  name: http
