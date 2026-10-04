@@ -78,6 +78,7 @@ services:
       AWS_KMS_KEY_ID: ${AWS_KMS_KEY_ID}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       DOMAIN_NAME: ${DOMAIN_NAME}
       SITE_NAME: ${SITE_NAME:-}
@@ -185,6 +186,7 @@ services:
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -217,6 +219,7 @@ services:
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -244,6 +247,7 @@ services:
       ENV: ${ENV}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -271,6 +275,7 @@ services:
       ENV: ${ENV}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -299,6 +304,7 @@ services:
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -326,6 +332,7 @@ services:
       ENV: ${ENV}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -355,6 +362,7 @@ services:
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -385,6 +393,7 @@ services:
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -413,6 +422,7 @@ services:
       DSN: ${DSN}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -441,6 +451,7 @@ services:
       DSN: ${DSN}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -470,6 +481,7 @@ services:
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -500,6 +512,7 @@ services:
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -580,6 +593,7 @@ services:
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -608,6 +622,7 @@ services:
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
@@ -706,6 +721,7 @@ services:
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"

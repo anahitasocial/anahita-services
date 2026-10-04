@@ -107,7 +107,6 @@ The shared module every service imports:
 | `proto` | Generated gRPC stubs: `graphpb`, `filepb`, `mailpb`, `typespb` |
 | `event` | RabbitMQ connect/publish/consume, event name constants |
 | `sessions` | Redis-backed sessions and cookies |
-| `storage` | S3 storage backend |
 | `crypt` | Encryption with pluggable local / AWS KMS backends |
 | `data`, `requests`, `responses`, `validators` | Request/response shapes and validation |
 | `middleware`, `cors` | HTTP middleware |

@@ -112,6 +112,19 @@ func main() {
 		log.Fatalf("failed to construct crypt: %v", err)
 	}
 
+	// The private half of a locally stored signing key is kept encrypted
+	// with the same crypt. Wrapping the repository here, before the signer
+	// and the seeder are built from it, means every reader and writer goes
+	// through the wrapper. Keys written in the clear by an earlier version
+	// are sealed now, once.
+	sealedKeys := repositories.NewSealedOAuthSigningKeys(repos.OAuthSigningKeys, secretCrypt)
+	repos.OAuthSigningKeys = sealedKeys
+	if sealed, err := sealedKeys.SealStored(); err != nil {
+		log.Fatalf("failed to seal stored OAuth signing keys: %v", err)
+	} else if sealed > 0 {
+		log.Printf("oauth: sealed %d signing key(s) that were stored in the clear", sealed)
+	}
+
 	// 5. Event publishing infrastructure.
 	amqpConn, err := event.ConnectToAMQP(cfg)
 	if err != nil {

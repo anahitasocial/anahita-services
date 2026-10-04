@@ -29,11 +29,11 @@ type keyValueStore struct {
 // fatal — for person-service it means losing a guard, which is worth starting
 // without and logging loudly, not worth refusing to serve profiles over.
 func NewKeyValueStore(config StoreConfigInterface) (KeyValueInterface, error) {
-	client := redis.NewClient(&redis.Options{
-		Addr:     config.GetRedisAddr(),
-		Password: config.GetRedisPassword(),
-		DB:       config.GetRedisDB(),
-	})
+	options, err := redisOptions(config)
+	if err != nil {
+		return nil, err
+	}
+	client := redis.NewClient(options)
 
 	if _, err := client.Ping().Result(); err != nil {
 		return nil, err

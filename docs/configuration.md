@@ -24,6 +24,7 @@ committed, and neither are the signing-key and TLS `.pem` files it points at.
 | `ENV` | all | `dev`, `staging` or `prod`. Decides the default public URLs below, and in `dev` all mail goes to `DEVELOPER_EMAIL` |
 | `DSN` | services with a database | MySQL DSN, e.g. `root:root@(mysql:3306)/anahita?parseTime=true` |
 | `REDIS_ADDR`, `REDIS_PASSWORD` | HTTP services | Redis for sessions, e.g. `redis:6379` |
+| `REDIS_TLS` | HTTP services | `true` to connect to Redis over TLS, which most managed Redis and Valkey services require. The certificate is checked against the host in `REDIS_ADDR`. Default `false` |
 | `SECURE_COOKIE_KEY` | HTTP services | Key that signs session cookies |
 | `AMQP_ADDR` | publishers and consumers | RabbitMQ, e.g. `amqp://rabbitmq:5672` |
 | `OAUTH_ISSUER` | all HTTP services | Issuer URL that tokens are signed with and checked against |
@@ -97,9 +98,24 @@ Read by auth-service.
 | `OAUTH_SEED_CLIENT_PATH` | First-party clients seeded at first boot. See [Seeding clients](oauth.md#seeding-clients) |
 | `OAUTH_KEY_LIFETIME_DAYS` | Optional, not in `docker-compose.yml`. Signing key rotation, default `90` |
 | `CRYPT_BACKEND` | Encryption of secrets at rest: `local` (default) or `kms` |
-| `CRYPT_LOCAL_KEY` | Key for `local` |
+| `CRYPT_LOCAL_KEY` | Key for `local`: exactly 32 characters. Keep it out of the database and its backups |
 | `AWS_KMS_KEY_ID` | Key for `kms` |
+| `CRYPT_KMS_REGION` | Region of that KMS key. Optional: defaults to the AWS region in the environment (`AWS_DEFAULT_REGION`) |
 | `MAX_DB_CONNECTIONS` | Optional database pool size |
+
+**What is encrypted at rest.** Two-factor (TOTP) secrets, and the private half
+of a locally stored token signing key. Both use `CRYPT_BACKEND`. With the
+signing key sealed, reading the database is not enough to mint tokens: the
+reader also needs `CRYPT_LOCAL_KEY` (or access to the KMS key).
+
+A signing key written by a version that stored it in the clear is sealed the
+first time auth-service starts, and the log says how many were.
+
+**If `CRYPT_LOCAL_KEY` changes or is lost,** auth-service cannot open the
+signing key and refuses to start, and existing TOTP secrets become unreadable.
+To recover sign-in, delete the rows in `oauth_signing_keys` and restart: a new
+key is created, and everybody signs in again. People with two-factor turned on
+need it reset by an administrator.
 
 ## Storage
 

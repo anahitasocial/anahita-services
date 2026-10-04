@@ -20,7 +20,7 @@ func NewCrypt(config ConfigInterface) (Crypt, error) {
 	case constants.CryptBackendLocal:
 		return NewLocalCrypt(config.GetCryptLocalKey())
 	case constants.CryptBackendKMS:
-		return NewKmsCrypt(config), nil
+		return NewKmsCrypt(config)
 	default:
 		return nil, fmt.Errorf("crypt: unknown backend %q", config.GetCryptBackend())
 	}
