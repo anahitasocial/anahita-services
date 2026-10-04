@@ -76,7 +76,10 @@ func (h *signupNotifier) EmailSignupRequestReceived(sr *entities.SignupRequest) 
 
 	// Straight to the queue rather than the front page. An administrator
 	// clicking through from this mail is coming to do one thing.
-	actionURL := fmt.Sprintf("%s/settings/signup-requests", h.Config.GetFrontendURL())
+	//
+	// The queue is a tab of the web app's administration area. This used to
+	// say /settings/signup-requests, a page that never existed.
+	actionURL := fmt.Sprintf("%s/admin/signup-requests", h.Config.GetFrontendURL())
 
 	var sendErrors []error
 	for _, admin := range admins {
