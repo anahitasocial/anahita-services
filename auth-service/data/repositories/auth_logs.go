@@ -49,7 +49,7 @@ func (repo *authLogs) Browse(user *entities.User) ([]*entities.AuthLog, error) {
 		sq.Eq{
 			"created_by": user.ID,
 		},
-	).OrderBy("created_on DESC")
+	).OrderBy("created_at DESC")
 
 	q, args, err := query.ToSql()
 	if err != nil {
@@ -68,7 +68,7 @@ func (repo *authLogs) Browse(user *entities.User) ([]*entities.AuthLog, error) {
 		var refreshTokenID sql.NullInt64
 		err := rows.Scan(
 			&authLog.ID,
-			&authLog.CreatedOn,
+			&authLog.CreatedAt,
 			&authLog.CreatedBy,
 			&authLog.Device,
 			&authLog.OS,
@@ -108,7 +108,7 @@ func (repo *authLogs) Add(authLog *entities.AuthLog) (*entities.AuthLog, error) 
 	}
 
 	query := repo.sql.Insert("auth_logs").Columns(
-		"created_on",
+		"created_at",
 		"created_by",
 		"agent_device",
 		"agent_os",
@@ -184,7 +184,7 @@ func (repo *authLogs) Trim(user *entities.User) error {
 		WHERE created_by = ?
 		AND id NOT IN (
 			SELECT id FROM (
-				SELECT id FROM auth_logs WHERE created_by = ? ORDER BY created_on DESC LIMIT ?
+				SELECT id FROM auth_logs WHERE created_by = ? ORDER BY created_at DESC LIMIT ?
 			) AS t
 		)
 	`

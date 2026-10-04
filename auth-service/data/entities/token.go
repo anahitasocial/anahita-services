@@ -61,7 +61,7 @@ type Token struct {
 	Type         string           `json:"-"`
 	Status       string           `json:"status" db:"-"`
 	Body         string           `json:"-"`
-	StartTime    time.Time        `json:"startTime"`
+	StartedAt    time.Time        `json:"startedAt"`
 	ExpiredAfter int              `json:"expiredAfter"`
 	IsUsed       bool             `json:"isUsed"`
 	CreatedAt    time.Time        `json:"createdAt"`
@@ -75,7 +75,7 @@ type Token struct {
 func NewToken() *Token {
 	return &Token{
 		ID:           0,
-		StartTime:    time.Now(),
+		StartedAt:    time.Now(),
 		ExpiredAfter: constants.TokenExpiryTime,
 		Creator:      entities.NewPerson(),
 		Editor:       entities.NewPerson(),
@@ -220,11 +220,11 @@ func (token *Token) GenerateToken() error {
 }
 
 func (token *Token) Renew() {
-	token.StartTime = time.Now()
+	token.StartedAt = time.Now()
 }
 
 func (token *Token) IsExpired() bool {
-	duration := time.Since(token.StartTime)
+	duration := time.Since(token.StartedAt)
 	return duration.Seconds() > float64(token.ExpiredAfter)
 }
 

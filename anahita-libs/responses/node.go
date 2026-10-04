@@ -13,7 +13,7 @@ type NodeItem struct {
 	Body               string    `json:"body,omitempty"`
 	QuoteCount         int64     `json:"quote_count,omitempty"`
 	Verified           bool      `json:"verified,omitempty"`
-	CreationTime       time.Time `json:"creation_time,omitempty"`
+	CreatedAt          time.Time `json:"created_at,omitempty"`
 	FollowerCount      int64     `json:"follower_count,omitempty"`
 	Mimetype           string    `json:"mimetype,omitempty"`
 	Access             string    `json:"access,omitempty"`
@@ -61,7 +61,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		Body:                 node.Body,
 		QuoteCount:           node.QuoteCount,
 		Verified:             node.Verified,
-		CreationTime:         node.CreationTime,
+		CreatedAt:            node.CreatedAt,
 		FollowerCount:        node.FollowerCount,
 		Mimetype:             node.Mimetype,
 		Access:               node.Access,

@@ -21,18 +21,18 @@ const (
 )
 
 type Notification struct {
-	ID           int64
-	Type         string
-	Service      string
-	RecipientID  int64
-	Subject      *entities.AnahitaNode
-	Object       *entities.AnahitaNode
-	Target       *entities.AnahitaNode
-	CommentID    int64
-	CreationTime time.Time
-	UpdateTime   time.Time
-	Meta         string
-	IsRead       bool
+	ID          int64
+	Type        string
+	Service     string
+	RecipientID int64
+	Subject     *entities.AnahitaNode
+	Object      *entities.AnahitaNode
+	Target      *entities.AnahitaNode
+	CommentID   int64
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Meta        string
+	IsRead      bool
 }
 
 func NewNotification() *Notification {

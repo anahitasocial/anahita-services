@@ -287,7 +287,7 @@ func TestAuthLogValidate(t *testing.T) {
 		a.Country = "Canada"
 		a.OAuthRefreshTokenID = 7
 		a.ClientID = "anahita-web"
-		a.CreatedOn = time.Now()
+		a.CreatedAt = time.Now()
 		return a
 	}
 

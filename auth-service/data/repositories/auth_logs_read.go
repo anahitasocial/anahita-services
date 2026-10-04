@@ -58,7 +58,7 @@ func (repo *authLogs) ReadLatestByAgent(
 		Where(sq.Eq{"agent_os": os}).
 		Where(sq.Eq{"agent_name": name}).
 		Where(sq.Eq{"ip": ip}).
-		OrderBy("created_on DESC").
+		OrderBy("created_at DESC").
 		Limit(1)
 	return repo.getOne(query)
 }
@@ -76,13 +76,13 @@ func (repo *authLogs) ReadLatestByAgent(
 // row already exists in a recent window — that's what this lookup
 // provides.
 //
-// Requires a composite index on (created_by, client_id, created_on
+// Requires a composite index on (created_by, client_id, created_at
 // DESC) for this to be cheap on the hot path.
 func (repo *authLogs) ReadLatestByCreatedByAndClient(createdBy int64, clientID string) (*entities.AuthLog, error) {
 	query := repo.getBaseSelectQuery().
 		Where(sq.Eq{"created_by": createdBy}).
 		Where(sq.Eq{"client_id": clientID}).
-		OrderBy("created_on DESC").
+		OrderBy("created_at DESC").
 		Limit(1)
 	return repo.getOne(query)
 }

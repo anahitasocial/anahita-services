@@ -188,8 +188,8 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 	actor.Access = constants.AnahitaAccessPublic
 	actor.PersonType = constants.PersonTypeRegistered
 	actor.Enabled = true
-	actor.CreationTime = time.Now()
-	actor.UpdateTime = time.Now()
+	actor.CreatedAt = time.Now()
+	actor.UpdatedAt = time.Now()
 
 	created, err := h.Srv.ActorsGRPC.Add(actor, signupViewer())
 	if err != nil {
@@ -211,8 +211,8 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 	user.Password = sr.Password
 	user.PersonType = constants.PersonTypeRegistered
 	user.Enabled = true
-	user.CreationTime = time.Now()
-	user.UpdateTime = time.Now()
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
 	// Verified already: confirming the address is what put this request in
 	// front of an administrator in the first place.
 	user.EmailVerifiedAt = sr.EmailVerifiedAt

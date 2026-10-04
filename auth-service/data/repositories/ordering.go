@@ -11,7 +11,7 @@ import (
 // rather than escaped.
 //
 // The API layer does check: UserBrowseRequest carries
-// `validate:"oneof=id created_on person_type enabled"` and the live endpoint
+// `validate:"oneof=id created_at person_type enabled"` and the live endpoint
 // rejects anything else. This is the second line, for callers that never
 // passed through it — see the fuller note in the graph service's copy.
 //

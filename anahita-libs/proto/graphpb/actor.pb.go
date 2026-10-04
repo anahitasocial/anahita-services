@@ -1860,7 +1860,7 @@ func (x *ActorSetFeaturedResponse) GetChanged() bool {
 	return false
 }
 
-// TouchLastVisit stamps nodes.last_visit_date with the current time.
+// TouchLastVisit stamps nodes.last_visited_at with the current time.
 //
 // Its own RPC rather than an Edit, because Edit writes the whole actor from
 // the payload it is handed and publishes an "actor edited" event. Routing a

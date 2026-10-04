@@ -231,7 +231,7 @@ func (srv *GraphGRPC) ReadNeighbourhood(req *GraphReadNeighbourhoodRequest) (*dt
 		Center:     grpcToGraphNode(r.Center),
 		Neighbours: []*entities.AnahitaNode{},
 		Edges:      []*entities.AnahitaEdge{},
-		CreatedOn:  time.Now(),
+		CreatedAt:  time.Now(),
 	}
 	resp.Neighbours = grpcToGraphNodes(r.Neighbours)
 	resp.Edges = grpcToGraphEdges(r.Edges)
@@ -267,7 +267,7 @@ func (srv *GraphGRPC) Traverse(req *GraphTraverseRequest) (*dtos.TraverseRespons
 	resp := &dtos.TraverseResponse{
 		Nodes:        []*entities.AnahitaNode{},
 		Edges:        []*entities.AnahitaEdge{},
-		CreatedOn:    time.Now(),
+		CreatedAt:    time.Now(),
 		DepthReached: r.DepthReached,
 	}
 	resp.Nodes = grpcToGraphNodes(r.Nodes)
@@ -303,7 +303,7 @@ func (srv *GraphGRPC) ReadShortestPath(req *GraphReadShortestPathRequest) (*dtos
 	resp := &dtos.ReadShortestPathResponse{
 		Nodes:     []*entities.AnahitaNode{},
 		Edges:     []*entities.AnahitaEdge{},
-		CreatedOn: time.Now(),
+		CreatedAt: time.Now(),
 		Hops:      r.Hops,
 		Found:     r.Found,
 		Strategy:  r.Strategy,

@@ -54,7 +54,7 @@ func seedVisibleFixture(t *testing.T, db *sql.DB) {
 	for _, stmt := range []string{
 		`DELETE FROM edges`,
 		`DELETE FROM nodes`,
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_at,updated_at) VALUES
 		 (1,` + person + `,'Ada','ada','public',1,NOW(),NOW()),
 		 (2,` + person + `,'Grace','grace','followers',1,NOW(),NOW()),
 		 (3,` + person + `,'Stranger','stranger','public',1,NOW(),NOW()),
@@ -66,17 +66,17 @@ func seedVisibleFixture(t *testing.T, db *sql.DB) {
 		 (30,'node.tag.hashtag-service.hashtag.v1','hashtag-service','gardens','gardens','',1,NOW(),NOW()),
 		 (31,'node.tag.location-service.location.v1','location-service','Vancouver','vancouver','',1,NOW(),NOW())`,
 		`UPDATE nodes SET deleted_at = NOW() WHERE id = 7`,
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,created_at,updated_at) VALUES
 		 (10,` + note + `,'public','n10','public',1,1,1,NOW(),NOW()),
 		 (11,` + note + `,'followers','n11','followers',1,1,1,NOW(),NOW()),
 		 (12,` + note + `,'private','n12','myself',1,1,1,NOW(),NOW()),
 		 (13,` + note + `,'on grace','n13','public',1,2,2,NOW(),NOW()),
 		 (14,` + note + `,'in group','n14','public',1,8,4,NOW(),NOW()),
 		 (15,` + note + `,'by disabled','n15','public',1,6,6,NOW(),NOW())`,
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,parent_id,created_by,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,parent_id,created_by,created_at,updated_at) VALUES
 		 (20,` + comment + `,'c20','c20','',1,10,3,NOW(),NOW()),
 		 (21,` + comment + `,'c21','c21','',1,12,1,NOW(),NOW())`,
-		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_on) VALUES
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
 		 ('edge.actor.follow.v1',4,'node.actor.person-service.person.v1',1,'node.actor.person-service.person.v1',NOW()),
 		 ('edge.actor.follow.v1',4,'node.actor.person-service.person.v1',2,'node.actor.person-service.person.v1',NOW()),
 		 ('edge.actor.follow.v1',4,'node.actor.person-service.person.v1',8,'node.actor.group-service.group.v1',NOW()),

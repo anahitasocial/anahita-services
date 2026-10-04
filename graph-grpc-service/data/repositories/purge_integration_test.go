@@ -99,19 +99,19 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 		`DELETE FROM purge_work`,
 		`DELETE FROM node_deletion_logs`,
 
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,person_type,filename,follower_count,leader_count,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,person_type,filename,follower_count,leader_count,created_at,updated_at) VALUES
 		 (1,` + person + `,'Ada','ada','public',1,'registered','avatar.jpg',1,2,NOW(),NOW()),
 		 (2,` + person + `,'Grace','grace','public',1,'registered',NULL,1,2,NOW(),NOW()),
 		 (3,` + person + `,'Root','root','public',1,'super-administrator',NULL,0,0,NOW(),NOW())`,
 
 		// What Ada founded. All three name her as created_by, and none of
 		// them is hers to take.
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_by,follower_count,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_by,follower_count,created_at,updated_at) VALUES
 		 (8,'node.actor.group-service.group.v1','group-service','Circle','circle','public',1,1,2,NOW(),NOW()),
 		 (30,'node.tag.hashtag-service.hashtag.v1','hashtag-service','gardens','gardens','',1,1,0,NOW(),NOW()),
 		 (31,'node.tag.location-service.location.v1','location-service','Vancouver','vancouver','',1,1,0,NOW(),NOW())`,
 
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,filename,comment_count,vote_up_count,subscriber_count,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,filename,comment_count,vote_up_count,subscriber_count,created_at,updated_at) VALUES
 		 (10,'node.medium.photo-service.photo.v1','photo-service','a photo','n10','public',1,1,1,'photo.jpg',1,0,0,NOW(),NOW()),
 		 (11,'node.medium.text-service.article.v1','text-service','an article','n11','public',1,1,1,NULL,0,0,0,NOW(),NOW()),
 		 (12,` + note + `,'in the group','n12','public',1,8,1,NULL,1,0,0,NOW(),NOW()),
@@ -119,14 +119,14 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 		 (14,` + note + `,'on grace','n14','public',1,2,1,NULL,0,0,0,NOW(),NOW()),
 		 (15,` + note + `,'grace in the group','n15','public',1,8,2,NULL,0,0,0,NOW(),NOW())`,
 
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,parent_id,created_by,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,parent_id,created_by,created_at,updated_at) VALUES
 		 (20,` + comment + `,'c20','c20','',1,10,2,NOW(),NOW()),
 		 (21,` + comment + `,'c21','c21','',1,12,2,NOW(),NOW()),
 		 (22,` + comment + `,'c22','c22','',1,13,1,NOW(),NOW()),
 		 (23,` + comment + `,'c23','c23','',1,13,2,NOW(),NOW()),
 		 (25,'node.base.text-service.article-revision.v1','text-service','r25','r25','',1,11,1,NOW(),NOW())`,
 
-		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_on) VALUES
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
 		 (` + follow + `,1,` + personType + `,2,` + personType + `,NOW()),
 		 (` + follow + `,2,` + personType + `,1,` + personType + `,NOW()),
 		 (` + follow + `,1,` + personType + `,8,` + groupType + `,NOW()),
@@ -142,7 +142,7 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 
 		// Six that must go, and the last one, between Grace and herself, that
 		// must stay.
-		`INSERT INTO notifications (type,service,recipient_id,subject_id,object_id,target_id,comment_id,created_on) VALUES
+		`INSERT INTO notifications (type,service,recipient_id,subject_id,object_id,target_id,comment_id,created_at) VALUES
 		 ('follow','socialgraph-service',1,2,NULL,NULL,NULL,NOW()),
 		 ('follow','socialgraph-service',2,1,NULL,NULL,NULL,NOW()),
 		 ('comment','comment-service',2,3,10,NULL,NULL,NOW()),
@@ -347,7 +347,7 @@ func TestPurgeResumesAfterAnInterruption(t *testing.T) {
 				id, id))
 		}
 		if _, err := db.Exec(
-			`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,created_on,modified_on) VALUES ` +
+			`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,created_at,updated_at) VALUES ` +
 				strings.Join(values, ",")); err != nil {
 			t.Fatalf("seeding %d notes: %v", total, err)
 		}

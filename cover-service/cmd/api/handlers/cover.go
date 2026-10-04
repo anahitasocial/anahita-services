@@ -151,7 +151,7 @@ func (h *coverHandler) Add(c echo.Context) error {
 		// modifier, and an actor nobody has edited yet has none as read.
 		actor.CoverFilename = node.CoverFilename
 		actor.ModifiedBy = viewer.ID
-		actor.UpdateTime = time.Now()
+		actor.UpdatedAt = time.Now()
 		if _, err = h.Srv.ActorsGRPC.Edit(actor, viewer); err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -230,7 +230,7 @@ func (h *coverHandler) Delete(c echo.Context) error {
 
 		actor.CoverFilename = ""
 		actor.ModifiedBy = viewer.ID
-		actor.UpdateTime = time.Now()
+		actor.UpdatedAt = time.Now()
 		if _, err = h.Srv.ActorsGRPC.Edit(actor, viewer); err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)

@@ -220,7 +220,7 @@ func (h *personHandler) Edit(c echo.Context) error {
 	person.Body = req.Body
 	person.WebsiteURL = req.WebsiteURL
 	person.ModifiedBy = viewer.ID
-	person.UpdateTime = time.Now()
+	person.UpdatedAt = time.Now()
 
 	_, err = h.Srv.ActorsGRPC.Edit(&person.AnahitaNode, viewer)
 	if err != nil {

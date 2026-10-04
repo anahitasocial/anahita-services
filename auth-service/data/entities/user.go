@@ -14,7 +14,7 @@ import (
 // User is a person node plus the account that signs in as it.
 //
 // Only the credential half is declared here. PersonType, Username, GivenName,
-// FamilyName, LastVisitDate and DeletedAt are all gone: each was a copy of
+// FamilyName, LastVisitedAt and DeletedAt are all gone: each was a copy of
 // something the embedded node already carries, and an outer field of the same
 // name SHADOWS the embedded one — so the node's value was loaded and then read
 // from the wrong place. Person had the identical problem and the identical fix.

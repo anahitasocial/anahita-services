@@ -48,7 +48,7 @@ func (repo *RepostsRepo) Browse(req *graphpb.RepostBrowseRequest) ([]int64, erro
 		Where(sq.Eq{"type": repo.entityType})
 
 	// Sort & paginate
-	query = query.OrderBy("created_on DESC, id DESC").
+	query = query.OrderBy("created_at DESC, id DESC").
 		Limit(req.Limit).Offset(req.Offset)
 
 	sqlStr, args, err := query.ToSql()
@@ -86,7 +86,7 @@ func (repo *RepostsRepo) BrowseAuthors(req *graphpb.RepostBrowseAuthorsRequest) 
 		Where(sq.Eq{"entity_type": repo.entityType})
 
 	// Sort & paginate
-	query = query.OrderBy("node.created_on DESC, node.id DESC").
+	query = query.OrderBy("node.created_at DESC, node.id DESC").
 		Limit(req.Limit).Offset(req.Offset)
 
 	sqlStr, args, err := query.ToSql()
@@ -161,7 +161,7 @@ func (repo *RepostsRepo) Add(item *entities.AnahitaNode) (int64, error) {
 			"type",
 			"service",
 			"access",
-			"created_on",
+			"created_at",
 			"created_by",
 		).Values(
 		item.OwnerID,

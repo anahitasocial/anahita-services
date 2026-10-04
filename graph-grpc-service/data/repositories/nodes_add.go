@@ -17,13 +17,13 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		return nil, err
 	}
 
-	// Ensure StartDate and EndDate have default values if zero value
-	if node.StartDate.IsZero() {
-		node.StartDate = time.Now()
+	// Ensure StartsAt and EndsAt have default values if zero value
+	if node.StartsAt.IsZero() {
+		node.StartsAt = time.Now()
 	}
-	if node.EndDate.IsZero() {
+	if node.EndsAt.IsZero() {
 		// Default end date: same as start date (adjust if different logic needed)
-		node.EndDate = node.StartDate
+		node.EndsAt = node.StartsAt
 	}
 
 	query := sq.Insert("nodes").Columns(
@@ -32,8 +32,8 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		"name",
 		"alias",
 		"body",
-		"start_date",
-		"end_date",
+		"starts_at",
+		"ends_at",
 		"owner_type",
 		"owner_id",
 		"comment_status",
@@ -55,9 +55,9 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		"geo_state_province",
 		"geo_country",
 		"geo_postalcode",
-		"created_on",
+		"created_at",
 		"created_by",
-		"modified_on",
+		"updated_at",
 		"modified_by",
 		"filename",
 		"cover_filename",
@@ -73,8 +73,8 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		node.Name,
 		node.Alias,
 		node.Body,
-		node.StartDate,
-		node.EndDate,
+		node.StartsAt,
+		node.EndsAt,
 		node.OwnerType,
 		node.OwnerID,
 		node.CommentStatus,

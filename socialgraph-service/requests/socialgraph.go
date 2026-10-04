@@ -15,7 +15,7 @@ func NewSocialgraphRequest() *SocialgraphRequest {
 			Offset:    0,
 			Limit:     constants.RequestLimitDefault,
 			Direction: "desc",
-			Ordering:  "modified_on",
+			Ordering:  "updated_at",
 			Search:    "",
 		},
 		Edit:   &SocialgraphEditRequest{},
@@ -27,7 +27,7 @@ func NewSocialgraphRequest() *SocialgraphRequest {
 type SocialgraphBrowseRequest struct {
 	Offset    uint64 `query:"start"`
 	Limit     uint64 `query:"limit"`
-	Ordering  string `query:"ordering" validate:"max=15,omitempty,oneof=created_on modified_on"`
+	Ordering  string `query:"ordering" validate:"max=15,omitempty,oneof=created_at updated_at"`
 	Direction string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	Search    string `query:"q" validate:"max=100,omitempty,name_search_query"`
 	ActorID   int64  `param:"actor_id" validate:"required,numeric"`

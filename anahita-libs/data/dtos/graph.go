@@ -19,14 +19,14 @@ type ReadNeighbourhoodResp struct {
 	Center     *entities.AnahitaNode
 	Neighbours []*entities.AnahitaNode
 	Edges      []*entities.AnahitaEdge
-	CreatedOn  time.Time
+	CreatedAt  time.Time
 }
 
 type TraverseResponse struct {
 	Nodes        []*entities.AnahitaNode
 	Edges        []*entities.AnahitaEdge
 	DepthReached uint32
-	CreatedOn    time.Time
+	CreatedAt    time.Time
 }
 
 type ReadShortestPathResponse struct {
@@ -34,6 +34,6 @@ type ReadShortestPathResponse struct {
 	Edges     []*entities.AnahitaEdge
 	Hops      uint32
 	Found     bool
-	CreatedOn time.Time
+	CreatedAt time.Time
 	Strategy  string
 }

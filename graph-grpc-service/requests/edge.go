@@ -20,10 +20,10 @@ func NewEdgeRequest() *EdgeRequest {
 		ReadByFilters: &EdgeReadByFiltersRequest{},
 		BatchRead: &EdgeBatchReadRequest{
 			IDs:      []int64{},
-			Ordering: "created_on",
+			Ordering: "created_at",
 		},
 		BatchReadByFilters: &EdgeBatchReadByFiltersRequest{
-			Ordering: "created_on",
+			Ordering: "created_at",
 		},
 		BatchDeleteByFilters: &EdgeBatchDeleteByFiltersRequest{},
 		Count:                &EdgeCountRequest{},
@@ -38,7 +38,7 @@ type EdgeBrowseRequest struct {
 	NodeBType   string   `validate:"omitempty,max=50"`
 	Limit       uint64   `validate:"omitempty,numeric,max=100"`
 	Offset      uint64   `validate:"omitempty,numeric"`
-	Ordering    string   `validate:"max=10,omitempty,oneof=created_on updated_on ordering"`
+	Ordering    string   `validate:"max=10,omitempty,oneof=created_at updated_at ordering"`
 	OrderingDir string   `validate:"max=4,omitempty,oneof=asc desc"`
 }
 
@@ -52,7 +52,7 @@ type EdgeReadByFiltersRequest struct {
 
 type EdgeBatchReadRequest struct {
 	IDs      []int64 `validate:"required,min=1,dive,required,numeric"`
-	Ordering string  `validate:"max=10,omitempty,oneof=created_on updated_on ordering"`
+	Ordering string  `validate:"max=10,omitempty,oneof=created_at updated_at ordering"`
 }
 
 type EdgeBatchReadByFiltersRequest struct {
@@ -61,7 +61,7 @@ type EdgeBatchReadByFiltersRequest struct {
 	Types       []string `validate:"max=50"`
 	NodeBID     int64    `validate:"omitempty,numeric"`
 	NodeBType   string   `validate:"omitempty,max=50"`
-	Ordering    string   `validate:"max=10,omitempty,oneof=created_on updated_on ordering"`
+	Ordering    string   `validate:"max=10,omitempty,oneof=created_at updated_at ordering"`
 	OrderingDir string   `validate:"max=4,omitempty,oneof=asc desc"`
 }
 

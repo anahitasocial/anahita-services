@@ -13,8 +13,8 @@ CREATE TABLE nodes (
   `name` varchar(255),
   `alias` varchar(255),
   `body` mediumtext,
-  `start_date` datetime DEFAULT NULL,
-  `end_date` datetime DEFAULT NULL,
+  `starts_at` datetime DEFAULT NULL,
+  `ends_at` datetime DEFAULT NULL,
   `owner_type` varchar(255) DEFAULT NULL,
   `owner_id` bigint(11) unsigned DEFAULT NULL,
   `comment_status` tinyint(1) DEFAULT NULL,
@@ -42,9 +42,9 @@ CREATE TABLE nodes (
   `geo_state_province` VARCHAR(50) DEFAULT NULL,
   `geo_country` VARCHAR(30) DEFAULT NULL,
   `geo_postalcode` VARCHAR(15) DEFAULT NULL,
-  `created_on` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
   `created_by` bigint(11) unsigned DEFAULT NULL,
-  `modified_on` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
   `filename` varchar(255) DEFAULT NULL,
   `cover_filename` varchar(255) DEFAULT NULL,
@@ -95,7 +95,7 @@ CREATE TABLE nodes (
   -- English grammar and is meaningless in a language with no gendered
   -- third-person pronoun. Never used for logic; empty renders nothing.
   `person_pronouns` varchar(50) DEFAULT NULL,
-  `last_visit_date` datetime DEFAULT NULL,
+  `last_visited_at` datetime DEFAULT NULL,
   -- The actor handle namespace.
   --
   -- alias alone cannot carry a unique index: article revisions share their
@@ -133,11 +133,11 @@ CREATE TABLE nodes (
   KEY `service` (`service`),
   KEY `owner_id` (`owner_id`),
   KEY `parent_id` (`parent_id`),
-  KEY `start_date` (`start_date`),
-  KEY `end_date` (`end_date`),
+  KEY `starts_at` (`starts_at`),
+  KEY `ends_at` (`ends_at`),
   KEY `type_enabled` (`type`,`enabled`),
-  KEY `type_modifed_on` (`type`,`modified_on`),
-  KEY `type_created_on` (`type`,`created_on`)
+  KEY `type_updated_at` (`type`,`updated_at`),
+  KEY `type_created_at` (`type`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
@@ -158,18 +158,18 @@ CREATE TABLE edges (
   `node_b_id` bigint(11) unsigned NOT NULL,
   `node_b_type` varchar(128) NOT NULL,
   `meta` mediumtext,
-  `created_on` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
   `created_by` bigint(11) unsigned DEFAULT NULL,
-  `modified_on` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
-  `start_date` datetime DEFAULT NULL,
-  `end_date` datetime DEFAULT NULL,
+  `starts_at` datetime DEFAULT NULL,
+  `ends_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `type` (`type`),
   KEY `node_a_id` (`node_a_id`),
   KEY `node_b_id` (`node_b_id`),
-  KEY `start_date` (`start_date`),
-  KEY `end_date` (`end_date`),
+  KEY `starts_at` (`starts_at`),
+  KEY `ends_at` (`ends_at`),
   CONSTRAINT uc_edge UNIQUE(`type`,`node_a_id`,`node_a_type`,`node_b_id`,`node_b_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
@@ -300,8 +300,8 @@ CREATE TABLE notifications (
     `target_id` bigint(11) unsigned DEFAULT NULL,
     `target_type` varchar(255) DEFAULT NULL,
     `comment_id` int(11) unsigned DEFAULT NULL,
-    `created_on` datetime DEFAULT NULL,
-    `modified_on` datetime DEFAULT NULL,
+    `created_at` datetime DEFAULT NULL,
+    `updated_at` datetime DEFAULT NULL,
     -- mediumtext, not text. An existing database reaches utf8mb4 through
     -- CONVERT TO CHARACTER SET, which promotes text to preserve its character
     -- capacity; a fresh one is created as utf8mb4 outright and would keep
@@ -317,14 +317,14 @@ CREATE TABLE notifications (
     KEY `target_id` (`target_id`),
     KEY `target_type` (`target_type`),
     KEY `comment_id` (`comment_id`),
-    KEY `created_on` (`created_on`),
-    KEY `modified_on` (`modified_on`)
+    KEY `created_at` (`created_at`),
+    KEY `updated_at` (`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
 CREATE TABLE auth_logs (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-    `created_on` datetime DEFAULT NULL,
+    `created_at` datetime DEFAULT NULL,
     `created_by` BIGINT UNSIGNED NOT NULL,
     `agent_device` varchar(50) DEFAULT 'bot',
     `agent_os` varchar(255) DEFAULT NULL,
@@ -337,8 +337,8 @@ CREATE TABLE auth_logs (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 CREATE INDEX idx_auth_logs_created_by ON auth_logs (created_by);
-CREATE INDEX idx_auth_logs_created_on ON auth_logs (created_on);
-CREATE INDEX idx_auth_logs_created_by_client_id_created_on ON auth_logs (created_by, client_id, created_on DESC);
+CREATE INDEX idx_auth_logs_created_at ON auth_logs (created_at);
+CREATE INDEX idx_auth_logs_created_by_client_id_created_at ON auth_logs (created_by, client_id, created_at DESC);
 CREATE INDEX idx_auth_logs_oauth_refresh_token_id ON auth_logs (oauth_refresh_token_id);
 
 -- Deletion audit, for any node.
@@ -375,11 +375,11 @@ CREATE TABLE node_deletion_logs (
     -- node is the normal, complete story. Kept a varchar rather than an ENUM so
     -- adding an action is a code change, not an ALTER on an audit table.
     `action` varchar(20) NOT NULL,
-    `created_on` datetime NOT NULL,
+    `created_at` datetime NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 CREATE INDEX idx_node_deletion_logs_node_id ON node_deletion_logs (node_id);
-CREATE INDEX idx_node_deletion_logs_created_on ON node_deletion_logs (created_on);
+CREATE INDEX idx_node_deletion_logs_created_at ON node_deletion_logs (created_at);
 
 -- What is left to do for a purge in progress.
 --
@@ -451,12 +451,12 @@ CREATE INDEX idx_nodes_id        ON nodes (id);
 CREATE INDEX idx_nodes_owner_id  ON nodes (owner_id);
 CREATE INDEX idx_nodes_type      ON nodes (type);
 CREATE INDEX idx_nodes_access    ON nodes (access);
-CREATE INDEX idx_nodes_created_on ON nodes (created_on);
+CREATE INDEX idx_nodes_created_at ON nodes (created_at);
 
 CREATE INDEX idx_nodes_parent_id ON nodes (parent_id);
 
 CREATE INDEX idx_edges_lookup ON edges (node_a_id, node_b_id, type);
-CREATE INDEX idx_nodes_feed   ON nodes (owner_id, type, created_on);
+CREATE INDEX idx_nodes_feed   ON nodes (owner_id, type, created_at);
 
 -- Fast lookups by type + direction
 CREATE INDEX idx_edges_type_nodea_nodeb  ON edges (type, node_a_id, node_b_id);
@@ -612,8 +612,8 @@ CREATE TABLE tokens (
     `channel` varchar(16) DEFAULT NULL,
     -- Defaulted: Token.NewToken sets StartTime in Go but tokens.Add
     -- does not include it in the insert column list.
-    `start_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    -- Lifetime in seconds from start_time. Expiry is computed in Go
+    `started_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Lifetime in seconds from started_at. Expiry is computed in Go
     -- (Token.SetStatus) rather than stored, so changing the default
     -- does not require rewriting existing rows.
     `expired_after` int(11) NOT NULL DEFAULT 0,

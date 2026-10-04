@@ -128,8 +128,8 @@ func SeedSuperAdmin(env *SuperAdminSeedEnv) (bool, error) {
 	actor.Access = libs_constants.AnahitaAccessPublic
 	actor.PersonType = libs_constants.PersonTypeSuperAdmin
 	actor.Enabled = true
-	actor.CreationTime = time.Now()
-	actor.UpdateTime = time.Now()
+	actor.CreatedAt = time.Now()
+	actor.UpdatedAt = time.Now()
 
 	created, err := env.Actors.Add(actor, libs_entities.NewViewer())
 	if err != nil {
@@ -143,8 +143,8 @@ func SeedSuperAdmin(env *SuperAdminSeedEnv) (bool, error) {
 	user.Email = email
 	user.PersonType = libs_constants.PersonTypeSuperAdmin
 	user.Enabled = true
-	user.CreationTime = time.Now()
-	user.UpdateTime = time.Now()
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
 	// Verified. The operator set SUPER_ADMIN_EMAIL themselves and claims the
 	// account through a link sent to it; requiring a separate confirmation
 	// would put one more thing between a fresh installation and having an

@@ -33,17 +33,17 @@ type Target struct {
 }
 
 type NotificationItem struct {
-	ID           int64     `json:"id"`
-	Type         string    `json:"type"`
-	Service      string    `json:"service"`
-	RecipientID  int64     `json:"-"`
-	Subject      *Subject  `json:"subject"`
-	Object       *Object   `json:"object"`
-	Target       *Target   `json:"target"`
-	CreationTime time.Time `json:"creationTime"`
-	UpdateTime   time.Time `json:"updateTime"`
-	Meta         string    `json:"meta"`
-	IsRead       bool      `json:"isRead"`
+	ID          int64     `json:"id"`
+	Type        string    `json:"type"`
+	Service     string    `json:"service"`
+	RecipientID int64     `json:"-"`
+	Subject     *Subject  `json:"subject"`
+	Object      *Object   `json:"object"`
+	Target      *Target   `json:"target"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	Meta        string    `json:"meta"`
+	IsRead      bool      `json:"isRead"`
 }
 
 type NotificationResponse struct{}
@@ -54,17 +54,17 @@ func (r *NotificationResponse) MapNotificationItem(item *entities.Notification) 
 	}
 
 	return &NotificationItem{
-		ID:           item.ID,
-		Type:         item.Type,
-		Service:      item.Service,
-		RecipientID:  item.RecipientID,
-		Subject:      r.MapSubject(item.Subject),
-		Object:       r.MapObject(item.Object),
-		Target:       r.MapTarget(item.Target),
-		CreationTime: item.CreationTime,
-		UpdateTime:   item.UpdateTime,
-		Meta:         item.Meta,
-		IsRead:       item.IsRead,
+		ID:          item.ID,
+		Type:        item.Type,
+		Service:     item.Service,
+		RecipientID: item.RecipientID,
+		Subject:     r.MapSubject(item.Subject),
+		Object:      r.MapObject(item.Object),
+		Target:      r.MapTarget(item.Target),
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
+		Meta:        item.Meta,
+		IsRead:      item.IsRead,
 	}
 }
 

@@ -60,7 +60,7 @@ type GrapBrowseNeighboursRequest struct {
 	Direction   string   `validate:"required,oneof=IN OUT BOTH"`
 	Offset      uint64   `validate:"omitempty,numeric"`
 	Limit       uint64   `validate:"omitempty,numeric,max=100"`
-	Ordering    string   `validate:"max=10,omitempty,oneof=created_on updated_on recent popular"`
+	Ordering    string   `validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
 	OrderingDir string   `validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer      *entities.Viewer
 	AccessCheck bool
@@ -74,7 +74,7 @@ type GraphBrowseConnectionNodesRequest struct {
 	Distinct    bool
 	Limit       uint64 `validate:"omitempty,numeric,max=100"`
 	Offset      uint64 `validate:"omitempty,numeric"`
-	Ordering    string `validate:"max=10,omitempty,oneof=created_on updated_on recent popular"`
+	Ordering    string `validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
 	OrderingDir string `validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer      *entities.Viewer
 	AccessCheck bool

@@ -8,7 +8,7 @@ type Token struct {
 	// ID             uuid.UUID               `json:"id"`
 	RecipientEmail string `json:"recipient_email"`
 	// Status         string                  `json:"status"`
-	// StartTime      time.Time               `json:"startTime"`
+	// StartedAt      time.Time               `json:"startedAt"`
 	// ExpiredAfter   int                     `json:"expiredAfter"`
 	// IsUsed         bool                    `json:"isUsed"`
 	// CreatedAt      time.Time               `json:"createdAt"`

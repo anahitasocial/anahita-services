@@ -17,13 +17,13 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 		return nil, err
 	}
 
-	// Ensure StartDate and EndDate have default values if zero value
-	if node.StartDate.IsZero() {
-		node.StartDate = time.Now()
+	// Ensure StartsAt and EndsAt have default values if zero value
+	if node.StartsAt.IsZero() {
+		node.StartsAt = time.Now()
 	}
-	if node.EndDate.IsZero() {
+	if node.EndsAt.IsZero() {
 		// Default end date: same as start date (adjust if different logic needed)
-		node.EndDate = node.StartDate
+		node.EndsAt = node.StartsAt
 	}
 
 	query := sq.Update("nodes").Where(sq.Eq{"id": node.ID})
@@ -36,11 +36,11 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	if node.Body != "" {
 		query = query.Set("body", node.Body)
 	}
-	if !node.StartDate.IsZero() {
-		query = query.Set("start_date", node.StartDate)
+	if !node.StartsAt.IsZero() {
+		query = query.Set("starts_at", node.StartsAt)
 	}
-	if !node.EndDate.IsZero() {
-		query = query.Set("end_date", node.EndDate)
+	if !node.EndsAt.IsZero() {
+		query = query.Set("ends_at", node.EndsAt)
 	}
 
 	if node.OwnerID > 0 && node.OwnerType != "" {
@@ -93,7 +93,7 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	}
 
 	query = query.Set("modified_by", node.ModifiedBy)
-	query = query.Set("modified_on", time.Now())
+	query = query.Set("updated_at", time.Now())
 
 	if node.Filename != "" {
 		query = query.Set("filename", node.Filename)

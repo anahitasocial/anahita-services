@@ -12,7 +12,7 @@ type MediumNodeItem struct {
 	Alias              string    `json:"alias,omitempty"`
 	Body               string    `json:"body,omitempty"`
 	Excerpt            string    `json:"excerpt,omitempty"`
-	CreationTime       time.Time `json:"creation_time,omitempty"`
+	CreatedAt          time.Time `json:"created_at,omitempty"`
 	Mimetype           string    `json:"mimetype,omitempty"`
 	Access             string    `json:"access,omitempty"`
 	LikesCount         int64     `json:"likes_count"`
@@ -38,8 +38,8 @@ type MediumNode struct {
 	Alias         string    `json:"alias,omitempty"`
 	Body          string    `json:"body,omitempty"`
 	Excerpt       string    `json:"excerpt,omitempty"`
-	CreationTime  time.Time `json:"creation_time,omitempty"`
-	UpdateTime    time.Time `json:"update_time,omitempty"`
+	CreatedAt     time.Time `json:"created_at,omitempty"`
+	UpdatedAt     time.Time `json:"updated_at,omitempty"`
 	Mimetype      string    `json:"mimetype,omitempty"`
 	Access        string    `json:"access,omitempty"`
 	ViewCount     int64     `json:"view_count"`
@@ -81,7 +81,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		Alias:              node.Alias,
 		Body:               node.Body,
 		QuoteCount:         node.QuoteCount,
-		CreationTime:       node.CreationTime,
+		CreatedAt:          node.CreatedAt,
 		Mimetype:           node.Mimetype,
 		Access:             node.Access,
 		LikesCount:         node.LikesCount,
@@ -128,8 +128,8 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		Alias:              node.Alias,
 		Body:               node.Body,
 		QuoteCount:         node.QuoteCount,
-		CreationTime:       node.CreationTime,
-		UpdateTime:         node.UpdateTime,
+		CreatedAt:          node.CreatedAt,
+		UpdatedAt:          node.UpdatedAt,
 		Mimetype:           node.Mimetype,
 		Access:             node.Access,
 		LikesCount:         node.LikesCount,

@@ -49,7 +49,7 @@ func TestSafeOrderColumnRejectsAnythingButAColumn(t *testing.T) {
 }
 
 func TestSafeOrderColumnAllowsPlainColumns(t *testing.T) {
-	for _, column := range []string{"created_on", "node.created_on", "id", "_x", "n1.col2"} {
+	for _, column := range []string{"created_at", "node.created_at", "id", "_x", "n1.col2"} {
 		if got := safeOrderColumn(column); got != column {
 			t.Errorf("safeOrderColumn(%q) = %q; a plain column must pass or "+
 				"ordinary browses lose their sort", column, got)
@@ -89,12 +89,12 @@ func TestBrowseKeepsASafeOrdering(t *testing.T) {
 	mock.ExpectQuery("select").WillReturnRows(sqlmock.NewRows([]string{"id"}))
 
 	_, _ = repo.Browse(&requests.NodeBrowseRequest{
-		Ordering:    "created_on",
+		Ordering:    "created_at",
 		OrderingDir: constants.DirAsc,
 	})
 
 	query := strings.ToLower((*seen)[0])
-	if !strings.Contains(query, "order by created_on asc") {
+	if !strings.Contains(query, "order by created_at asc") {
 		t.Errorf("an allow-listed ordering was dropped; the guard is too "+
 			"tight and every browse is now unsorted:\n%s", query)
 	}

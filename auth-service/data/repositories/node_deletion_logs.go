@@ -45,7 +45,7 @@ func (repo *nodeDeletionLogs) Add(nodeID int64, alias, nodeType string, deletedB
 
 	const query = `
 INSERT INTO node_deletion_logs
-  (node_id, node_alias, node_type, deleted_by, action, created_on)
+  (node_id, node_alias, node_type, deleted_by, action, created_at)
 VALUES (?, ?, ?, ?, ?, ?);
 `
 

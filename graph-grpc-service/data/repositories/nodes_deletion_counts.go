@@ -70,7 +70,7 @@ SELECT
   -- the number that matters for a group, the second for a person.
   (SELECT COUNT(*) FROM edges e WHERE e.node_b_id = ? AND e.type = ?) AS admins,
   (SELECT COUNT(*) FROM edges e WHERE e.node_a_id = ? AND e.type = ?) AS groups_administered,
-  (SELECT created_on FROM nodes WHERE id = ?) AS member_since
+  (SELECT created_at FROM nodes WHERE id = ?) AS member_since
 FROM destroyed d;
 `
 

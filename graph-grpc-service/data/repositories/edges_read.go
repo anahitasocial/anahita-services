@@ -25,7 +25,7 @@ func (r *edgesRepo) Read(id int64) (*entities.AnahitaEdge, error) {
 	row := r.client.QueryRowContext(ctx, sqlQuery, args...)
 
 	item := entities.NewAnahitaEdge()
-	var startDate, endDate sql.NullTime
+	var startsAt, endsAt sql.NullTime
 	err = row.Scan(
 		&item.ID,
 		&item.Type,
@@ -34,13 +34,13 @@ func (r *edgesRepo) Read(id int64) (*entities.AnahitaEdge, error) {
 		&item.NodeBID,
 		&item.NodeBType,
 		&item.Meta,
-		&item.CreatedOn,
+		&item.CreatedAt,
 		&item.CreatedBy,
-		&item.ModifiedOn,
+		&item.UpdatedAt,
 		&item.ModifiedBy,
 		&item.Ordering,
-		&startDate,
-		&endDate,
+		&startsAt,
+		&endsAt,
 	)
 
 	if err != nil {
@@ -50,11 +50,11 @@ func (r *edgesRepo) Read(id int64) (*entities.AnahitaEdge, error) {
 		return nil, err
 	}
 
-	if startDate.Valid {
-		item.StartDate = startDate.Time
+	if startsAt.Valid {
+		item.StartsAt = startsAt.Time
 	}
-	if endDate.Valid {
-		item.EndDate = endDate.Time
+	if endsAt.Valid {
+		item.EndsAt = endsAt.Time
 	}
 
 	return item, nil
@@ -107,7 +107,7 @@ func (r *edgesRepo) BatchRead(ids []int64) ([]*entities.AnahitaEdge, error) {
 	var items []*entities.AnahitaEdge
 	for rows.Next() {
 		item := entities.NewAnahitaEdge()
-		var startDate, endDate sql.NullTime
+		var startsAt, endsAt sql.NullTime
 		err := rows.Scan(
 			&item.ID,
 			&item.Type,
@@ -116,23 +116,23 @@ func (r *edgesRepo) BatchRead(ids []int64) ([]*entities.AnahitaEdge, error) {
 			&item.NodeBID,
 			&item.NodeBType,
 			&item.Meta,
-			&item.CreatedOn,
+			&item.CreatedAt,
 			&item.CreatedBy,
-			&item.ModifiedOn,
+			&item.UpdatedAt,
 			&item.ModifiedBy,
 			&item.Ordering,
-			&startDate,
-			&endDate,
+			&startsAt,
+			&endsAt,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		if startDate.Valid {
-			item.StartDate = startDate.Time
+		if startsAt.Valid {
+			item.StartsAt = startsAt.Time
 		}
-		if endDate.Valid {
-			item.EndDate = endDate.Time
+		if endsAt.Valid {
+			item.EndsAt = endsAt.Time
 		}
 
 		items = append(items, item)
@@ -186,7 +186,7 @@ func (r *edgesRepo) BatchReadByFilters(req *requests.EdgeBatchReadByFiltersReque
 	var items []*entities.AnahitaEdge
 	for rows.Next() {
 		item := entities.NewAnahitaEdge()
-		var startDate, endDate sql.NullTime
+		var startsAt, endsAt sql.NullTime
 		err := rows.Scan(
 			&item.ID,
 			&item.Type,
@@ -195,23 +195,23 @@ func (r *edgesRepo) BatchReadByFilters(req *requests.EdgeBatchReadByFiltersReque
 			&item.NodeBID,
 			&item.NodeBType,
 			&item.Meta,
-			&item.CreatedOn,
+			&item.CreatedAt,
 			&item.CreatedBy,
-			&item.ModifiedOn,
+			&item.UpdatedAt,
 			&item.ModifiedBy,
 			&item.Ordering,
-			&startDate,
-			&endDate,
+			&startsAt,
+			&endsAt,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		if startDate.Valid {
-			item.StartDate = startDate.Time
+		if startsAt.Valid {
+			item.StartsAt = startsAt.Time
 		}
-		if endDate.Valid {
-			item.EndDate = endDate.Time
+		if endsAt.Valid {
+			item.EndsAt = endsAt.Time
 		}
 
 		items = append(items, item)

@@ -285,7 +285,7 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	// permissions at all.
 	user.PersonType = constants.PersonTypeRegistered
 	user.Enabled = true
-	user.CreationTime = time.Now()
+	user.CreatedAt = time.Now()
 	// Verified on arrival. This person reached the form by following a link
 	// sent to that address and nowhere else, which is exactly what a
 	// confirmation email asks them to do — asking again would be asking them
@@ -335,8 +335,8 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	actor.Enabled = true
 	// See signup.go: NewAnahitaNode leaves these at Go's zero time, which a
 	// MySQL DATETIME cannot store.
-	actor.CreationTime = time.Now()
-	actor.UpdateTime = time.Now()
+	actor.CreatedAt = time.Now()
+	actor.UpdatedAt = time.Now()
 
 	createdActor, err := h.Srv.ActorsGRPC.Add(actor, signupViewer())
 	if err != nil {
@@ -358,7 +358,7 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	user.Alias = createdActor.Alias
 	// See signup.go: Go's zero time is '0000-00-00' to MySQL, which strict mode
 	// rejects.
-	user.UpdateTime = time.Now()
+	user.UpdatedAt = time.Now()
 
 	user, err = h.Repos.Users.Add(user)
 	if err != nil {

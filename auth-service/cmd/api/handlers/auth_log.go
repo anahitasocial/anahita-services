@@ -155,7 +155,7 @@ func (h *authLogHandler) buildAndPersist(c echo.Context, refreshTokenID int64, c
 // turns one browser into a new "session" every 15 minutes, and Trim
 // then evicts the user's genuinely distinct sessions within hours.
 //
-// A reused row keeps its original created_on: "signed in at 06:14" is
+// A reused row keeps its original created_at: "signed in at 06:14" is
 // the useful fact, not the timestamp of the latest token rotation.
 //
 // The superseded refresh token is revoked rather than left to expire.
@@ -185,7 +185,7 @@ func (h *authLogHandler) AddOrReuseSystem(c echo.Context, refreshTokenID int64, 
 
 	// An existing row whose token is already revoked or expired means
 	// that session ended. This is a real new sign-in, not a rotation,
-	// and deserves its own row and its own created_on.
+	// and deserves its own row and its own created_at.
 	if !h.isSessionLive(existing) {
 		persisted, addErr := h.buildAndPersistFrom(authLog, user)
 		return persisted, false, addErr
@@ -247,7 +247,7 @@ func (h *authLogHandler) buildAuthLog(c echo.Context, refreshTokenID int64, clie
 	ua := useragent.Parse(userAgentString)
 
 	authLog := entities.NewAuthLog()
-	authLog.CreatedOn = time.Now()
+	authLog.CreatedAt = time.Now()
 	authLog.CreatedBy = user.ID
 	authLog.IP = c.RealIP()
 	authLog.City = messages.AuthLoginUnknownCity

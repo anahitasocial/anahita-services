@@ -17,11 +17,11 @@ func NewGraphEdgeRequest() *GraphEdgeRequest {
 			Offset:      0,
 			Limit:       20,
 			OrderingDir: "desc",
-			Ordering:    "created_on",
+			Ordering:    "created_at",
 		},
 		BatchReadByFilters: &GraphEdgeBatchReadByFiltersRequest{
 			OrderingDir: "desc",
-			Ordering:    "created_on",
+			Ordering:    "created_at",
 		},
 		BatchDeleteByFilters: &GraphEdgeBatchDeleteByFiltersRequest{},
 		Count:                &GraphEdgeCountRequest{},
@@ -36,7 +36,7 @@ type GraphEdgeBrowseRequest struct {
 	NodeBType   string           `validate:"omitempty,max=50"`
 	Limit       uint64           `validate:"omitempty,numeric,max=100"`
 	Offset      uint64           `validate:"omitempty,numeric"`
-	Ordering    string           `validate:"max=10,omitempty,oneof=created_on updated_on ordering"`
+	Ordering    string           `validate:"max=10,omitempty,oneof=created_at updated_at ordering"`
 	OrderingDir string           `validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer      *entities.Viewer `validate:"-"`
 }
@@ -55,7 +55,7 @@ type GraphEdgeBatchReadByFiltersRequest struct {
 	Types       []string `validate:"max=50"`
 	NodeBID     int64    `validate:"omitempty,numeric"`
 	NodeBType   string   `validate:"omitempty,max=50"`
-	Ordering    string   `validate:"max=10,omitempty,oneof=created_on updated_on ordering"`
+	Ordering    string   `validate:"max=10,omitempty,oneof=created_at updated_at ordering"`
 	OrderingDir string   `validate:"max=4,omitempty,oneof=asc desc"`
 }
 

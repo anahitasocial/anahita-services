@@ -1118,6 +1118,42 @@ CREATE TABLE IF NOT EXISTS abuse_reports (
 
 -- --------------------------------------------------------
 
+-- One name for timestamps: a date with a time ends in `_at`.
+--
+-- Last, on purpose. Everything above was written against the names the PHP
+-- application used and still reads them, so the renaming is done once the
+-- rest of the upgrade has finished. Not guarded: this file runs once, top to
+-- bottom, against a database it has just built.
+ALTER TABLE nodes RENAME COLUMN `created_on` TO `created_at`;
+ALTER TABLE nodes RENAME COLUMN `modified_on` TO `updated_at`;
+ALTER TABLE nodes RENAME COLUMN `last_visit_date` TO `last_visited_at`;
+ALTER TABLE nodes RENAME COLUMN `start_date` TO `starts_at`;
+ALTER TABLE nodes RENAME COLUMN `end_date` TO `ends_at`;
+ALTER TABLE edges RENAME COLUMN `created_on` TO `created_at`;
+ALTER TABLE edges RENAME COLUMN `modified_on` TO `updated_at`;
+ALTER TABLE edges RENAME COLUMN `start_date` TO `starts_at`;
+ALTER TABLE edges RENAME COLUMN `end_date` TO `ends_at`;
+ALTER TABLE notifications RENAME COLUMN `created_on` TO `created_at`;
+ALTER TABLE notifications RENAME COLUMN `modified_on` TO `updated_at`;
+ALTER TABLE auth_logs RENAME COLUMN `created_on` TO `created_at`;
+ALTER TABLE node_deletion_logs RENAME COLUMN `created_on` TO `created_at`;
+ALTER TABLE tokens RENAME COLUMN `start_time` TO `started_at`;
+
+ALTER TABLE nodes RENAME INDEX `start_date` TO `starts_at`;
+ALTER TABLE nodes RENAME INDEX `end_date` TO `ends_at`;
+ALTER TABLE nodes RENAME INDEX `type_modifed_on` TO `type_updated_at`;
+ALTER TABLE nodes RENAME INDEX `type_created_on` TO `type_created_at`;
+ALTER TABLE nodes RENAME INDEX `idx_nodes_created_on` TO `idx_nodes_created_at`;
+ALTER TABLE edges RENAME INDEX `start_date` TO `starts_at`;
+ALTER TABLE edges RENAME INDEX `end_date` TO `ends_at`;
+ALTER TABLE notifications RENAME INDEX `created_on` TO `created_at`;
+ALTER TABLE notifications RENAME INDEX `modified_on` TO `updated_at`;
+ALTER TABLE auth_logs RENAME INDEX `idx_auth_logs_created_on` TO `idx_auth_logs_created_at`;
+ALTER TABLE auth_logs RENAME INDEX `idx_auth_logs_created_by_client_id_created_on` TO `idx_auth_logs_created_by_client_id_created_at`;
+ALTER TABLE node_deletion_logs RENAME INDEX `idx_node_deletion_logs_created_on` TO `idx_node_deletion_logs_created_at`;
+
+-- --------------------------------------------------------
+
 -- Some data updates for now, remove it in the final commit
 UPDATE nodes SET filename = '8944e519-1d9f-46c4-a16f-3da487ade61f.jpg' WHERE alias = 'rastin';
 UPDATE nodes SET filename = '423f925ce9bb8dce0c8f1876778a96a8.jpg' WHERE alias = 'rmundel';

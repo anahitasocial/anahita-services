@@ -362,8 +362,8 @@ func (h *signupHandler) Add(c echo.Context) error {
 	// Set explicitly. NewAnahitaNode leaves these as Go's zero time — year 1 —
 	// which a MySQL DATETIME cannot represent at all, so the insert fails under
 	// the strict sql_mode rather than storing something odd.
-	actor.CreationTime = time.Now()
-	actor.UpdateTime = time.Now()
+	actor.CreatedAt = time.Now()
+	actor.UpdatedAt = time.Now()
 
 	created, err := h.Srv.ActorsGRPC.Add(actor, signupViewer())
 	if err != nil {

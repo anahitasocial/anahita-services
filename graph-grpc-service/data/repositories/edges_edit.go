@@ -9,7 +9,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-// Edit updates an existing edge; only meta, modified_on, modified_by, ordering, start_date, end_date are editable
+// Edit updates an existing edge; only meta, updated_at, modified_by, ordering, starts_at, ends_at are editable
 func (r *edgesRepo) Edit(edge *entities.AnahitaEdge) (*entities.AnahitaEdge, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	defer cancel()
@@ -19,7 +19,7 @@ func (r *edgesRepo) Edit(edge *entities.AnahitaEdge) (*entities.AnahitaEdge, err
 	}
 
 	query := sq.Update("edges").
-		Set("modified_on", time.Now()).
+		Set("updated_at", time.Now()).
 		Set("modified_by", edge.ModifiedBy).
 		Where(sq.Eq{"id": edge.ID})
 
@@ -31,12 +31,12 @@ func (r *edgesRepo) Edit(edge *entities.AnahitaEdge) (*entities.AnahitaEdge, err
 		query = query.Set("ordering", edge.Ordering)
 	}
 
-	if !edge.StartDate.IsZero() {
-		query = query.Set("start_date", edge.StartDate)
+	if !edge.StartsAt.IsZero() {
+		query = query.Set("starts_at", edge.StartsAt)
 	}
 
-	if !edge.EndDate.IsZero() {
-		query = query.Set("end_date", edge.EndDate)
+	if !edge.EndsAt.IsZero() {
+		query = query.Set("ends_at", edge.EndsAt)
 	}
 
 	sqlQuery, args, err := query.ToSql()

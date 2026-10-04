@@ -121,7 +121,7 @@ func TestUserInfoWithholdsClaimsOutsideTheGrantedScopes(t *testing.T) {
 // one that serialises right, which is what it did.
 func TestUserInfoReportsNeverVisitedAsNull(t *testing.T) {
 	user := testViewer()
-	user.LastVisitDate = nil
+	user.LastVisitedAt = nil
 
 	encoded, err := json.Marshal(userinfoFor(user, "openid profile"))
 	if err != nil {
@@ -133,13 +133,13 @@ func TestUserInfoReportsNeverVisitedAsNull(t *testing.T) {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
-	value, present := decoded["last_visit_date"]
+	value, present := decoded["last_visited_at"]
 	if !present {
-		t.Fatal("last_visit_date is absent; the client distinguishes never-visited " +
+		t.Fatal("last_visited_at is absent; the client distinguishes never-visited " +
 			"from not-told, and an absent key says the second")
 	}
 	if value != nil {
-		t.Errorf("last_visit_date = %v, want null for somebody who has never signed in", value)
+		t.Errorf("last_visited_at = %v, want null for somebody who has never signed in", value)
 	}
 }
 
@@ -147,7 +147,7 @@ func TestUserInfoReportsNeverVisitedAsNull(t *testing.T) {
 func TestUserInfoReportsARealVisit(t *testing.T) {
 	user := testViewer()
 	visited := time.Date(2026, 9, 13, 20, 15, 0, 0, time.UTC)
-	user.LastVisitDate = &visited
+	user.LastVisitedAt = &visited
 
 	encoded, err := json.Marshal(userinfoFor(user, "openid profile"))
 	if err != nil {
@@ -159,13 +159,13 @@ func TestUserInfoReportsARealVisit(t *testing.T) {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
-	if got := decoded["last_visit_date"]; got != "2026-09-13T20:15:00Z" {
-		t.Errorf("last_visit_date = %v, want the RFC 3339 timestamp", got)
+	if got := decoded["last_visited_at"]; got != "2026-09-13T20:15:00Z" {
+		t.Errorf("last_visited_at = %v, want the RFC 3339 timestamp", got)
 	}
 }
 
 // Onboarding state. The web app's gate reads both by name, and like
-// last_visit_date, "not yet" is null rather than absent: an absent key reads as
+// last_visited_at, "not yet" is null rather than absent: an absent key reads as
 // an older server that does not know, not as a person who has not been through
 // it.
 func TestUserInfoCarriesOnboardingState(t *testing.T) {

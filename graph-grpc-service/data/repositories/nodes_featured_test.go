@@ -172,8 +172,8 @@ func TestFeaturedBrowseOrdering(t *testing.T) {
 		t.Errorf("with no ordering, the featured list is not most recent first:\n%s", statement)
 	}
 
-	statement := featuredBrowseSQL(t, "created_on", nil)
-	if !strings.Contains(statement, "ORDER BY created_on DESC") {
+	statement := featuredBrowseSQL(t, "created_at", nil)
+	if !strings.Contains(statement, "ORDER BY created_at DESC") {
 		t.Errorf("an ordering the caller asked for was not applied:\n%s", statement)
 	}
 	if strings.Contains(statement, "featured_at DESC") {

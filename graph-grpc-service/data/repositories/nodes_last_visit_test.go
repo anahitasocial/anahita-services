@@ -46,7 +46,7 @@ func TestTouchLastVisitWritesOnlyTheVisitColumn(t *testing.T) {
 		}
 	}
 
-	if !strings.Contains(setClause, "last_visit_date") {
+	if !strings.Contains(setClause, "last_visited_at") {
 		t.Errorf("the visit column is not written:\n%s", setClause)
 	}
 

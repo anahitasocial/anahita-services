@@ -49,7 +49,7 @@ type ActorNodeItem struct {
 	// Set only while the installation features this actor, so a super
 	// administrator's profile menu can show the toggle's state.
 	FeaturedAt        *time.Time       `json:"featured_at,omitempty"`
-	CreationTime      time.Time        `json:"creation_time"`
+	CreatedAt         time.Time        `json:"created_at"`
 	FollowerCount     int64            `json:"follower_count,omitempty"`
 	LeaderCount       int64            `json:"leader_count,omitempty"`
 	IsLeadingViewer   bool             `json:"is_leading_viewer,omitempty"`
@@ -66,7 +66,7 @@ type ActorNodeItem struct {
 type ActorNode struct {
 	ActorNodeItem
 
-	UpdateTime     time.Time         `json:"update_time,omitempty"`
+	UpdatedAt      time.Time         `json:"updated_at,omitempty"`
 	Features       []*NodeFeature    `json:"features,omitempty"`
 	Authorized     *NodeAuthorized   `json:"authorized,omitempty"`
 	Permissions    map[string]string `json:"permissions,omitempty"`
@@ -85,7 +85,7 @@ func (r *ActorResponse) MapNode(node *entities.AnahitaNode) *ActorNode {
 
 	return &ActorNode{
 		ActorNodeItem: *r.MapNodeItem(node),
-		UpdateTime:    node.UpdateTime,
+		UpdatedAt:     node.UpdatedAt,
 		Editor: func() *Editor {
 			if node.Editor != nil && node.Editor.ID != 0 {
 				return NewEditor(node.Editor)
@@ -141,7 +141,7 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		AllowFollowRequest: node.AllowFollowRequest,
 		ArchivedAt:         node.ArchivedAt,
 		FeaturedAt:         node.FeaturedAt,
-		CreationTime:       node.CreationTime,
+		CreatedAt:          node.CreatedAt,
 		// nil for everything not scheduled for deletion, and omitempty keeps it
 		// off the wire in that case — which is every actor but a handful.
 		DeletedAt: node.DeletedAt,

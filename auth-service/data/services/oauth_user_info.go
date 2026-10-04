@@ -83,7 +83,7 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 		// super administrators included.
 		info["person_type"] = user.PersonType
 		info["totp_enabled"] = user.TotpEnabled
-		info["last_visit_date"] = user.LastVisitDate
+		info["last_visited_at"] = user.LastVisitedAt
 
 		// What this person has accepted, one entry per document.
 		//

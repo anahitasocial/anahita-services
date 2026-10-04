@@ -93,7 +93,7 @@ func (repo *FeedActorRepo) Browse(req *graphpb.FeedActorBrowseRequest, viewer *e
 	query = SetFeedAccessQuery(query, viewer)
 
 	// Sort & paginate
-	query = query.OrderBy("node.created_on DESC").
+	query = query.OrderBy("node.created_at DESC").
 		Limit(req.Limit).
 		Offset(req.Offset)
 

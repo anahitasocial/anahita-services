@@ -119,7 +119,7 @@ const accountContentWritten = `
   SELECT
     created_by       AS actor_id,
     COUNT(*)         AS total,
-    MAX(created_on)  AS last_at
+    MAX(created_at)  AS last_at
   FROM nodes
   WHERE created_by IS NOT NULL
     AND (type LIKE 'node.medium.%' OR type LIKE 'node.base.%')
@@ -130,7 +130,7 @@ const accountContentOwned = `
   SELECT
     owner_id         AS actor_id,
     COUNT(*)         AS total,
-    MAX(created_on)  AS last_at
+    MAX(created_at)  AS last_at
   FROM nodes
   WHERE owner_id IS NOT NULL
     AND type LIKE 'node.medium.%'
@@ -161,12 +161,12 @@ SELECT
     WHEN actor.archived_at IS NOT NULL THEN 'archived'
     ELSE 'active'
   END                                      AS state,
-  actor.created_on                         AS created_at,
+  actor.created_at                         AS created_at,
   GREATEST(
-    actor.created_on,
-    COALESCE(actor.last_visit_date, actor.created_on),
-    COALESCE(signin.last_at, actor.created_on),
-    COALESCE(content.last_at, actor.created_on)
+    actor.created_at,
+    COALESCE(actor.last_visited_at, actor.created_at),
+    COALESCE(signin.last_at, actor.created_at),
+    COALESCE(content.last_at, actor.created_at)
   )                                        AS last_active_at,
   account.email_verified_at IS NOT NULL    AS email_verified,
   account.onboarded_at IS NOT NULL         AS onboarded,
@@ -180,7 +180,7 @@ LEFT JOIN auth_accounts account
 LEFT JOIN (
   SELECT
     created_by       AS actor_id,
-    MAX(created_on)  AS last_at
+    MAX(created_at)  AS last_at
   FROM auth_logs
   GROUP BY created_by
 ) signin
@@ -199,7 +199,7 @@ LEFT JOIN (
   ON admins.actor_id = actor.id
 WHERE actor.type = ?
   AND actor.purged_at IS NULL
-  AND actor.created_on IS NOT NULL`
+  AND actor.created_at IS NOT NULL`
 
 // accountTiers adds the tier to each row. The %s is accountRows.
 //

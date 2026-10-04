@@ -31,13 +31,13 @@ type Edge struct {
 	NodeBId       int64                  `protobuf:"varint,5,opt,name=node_b_id,json=nodeBId,proto3" json:"node_b_id,omitempty"`
 	NodeBType     string                 `protobuf:"bytes,6,opt,name=node_b_type,json=nodeBType,proto3" json:"node_b_type,omitempty"`
 	Meta          string                 `protobuf:"bytes,7,opt,name=meta,proto3" json:"meta,omitempty"`
-	CreatedOn     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_on,json=createdOn,proto3" json:"created_on,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	CreatedBy     int64                  `protobuf:"varint,9,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	ModifiedOn    *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=modified_on,json=modifiedOn,proto3" json:"modified_on,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	ModifiedBy    int64                  `protobuf:"varint,11,opt,name=modified_by,json=modifiedBy,proto3" json:"modified_by,omitempty"`
 	Ordering      int32                  `protobuf:"varint,12,opt,name=ordering,proto3" json:"ordering,omitempty"`
-	StartDate     *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
-	EndDate       *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	StartsAt      *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=starts_at,json=startsAt,proto3" json:"starts_at,omitempty"`
+	EndsAt        *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=ends_at,json=endsAt,proto3" json:"ends_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -121,9 +121,9 @@ func (x *Edge) GetMeta() string {
 	return ""
 }
 
-func (x *Edge) GetCreatedOn() *timestamppb.Timestamp {
+func (x *Edge) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CreatedOn
+		return x.CreatedAt
 	}
 	return nil
 }
@@ -135,9 +135,9 @@ func (x *Edge) GetCreatedBy() int64 {
 	return 0
 }
 
-func (x *Edge) GetModifiedOn() *timestamppb.Timestamp {
+func (x *Edge) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.ModifiedOn
+		return x.UpdatedAt
 	}
 	return nil
 }
@@ -156,16 +156,16 @@ func (x *Edge) GetOrdering() int32 {
 	return 0
 }
 
-func (x *Edge) GetStartDate() *timestamppb.Timestamp {
+func (x *Edge) GetStartsAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.StartDate
+		return x.StartsAt
 	}
 	return nil
 }
 
-func (x *Edge) GetEndDate() *timestamppb.Timestamp {
+func (x *Edge) GetEndsAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.EndDate
+		return x.EndsAt
 	}
 	return nil
 }
@@ -1578,7 +1578,7 @@ var File_proto_graphpb_edge_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_edge_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/edge.proto\x12\x05graph\x1a\x1fgoogle/protobuf/timestamp.proto\"\xfc\x03\n" +
+	"\x18proto/graphpb/edge.proto\x12\x05graph\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf6\x03\n" +
 	"\x04Edge\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x1a\n" +
@@ -1588,18 +1588,17 @@ const file_proto_graphpb_edge_proto_rawDesc = "" +
 	"\vnode_b_type\x18\x06 \x01(\tR\tnodeBType\x12\x12\n" +
 	"\x04meta\x18\a \x01(\tR\x04meta\x129\n" +
 	"\n" +
-	"created_on\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedOn\x12\x1d\n" +
+	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"created_by\x18\t \x01(\x03R\tcreatedBy\x12;\n" +
-	"\vmodified_on\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"modifiedOn\x12\x1f\n" +
+	"created_by\x18\t \x01(\x03R\tcreatedBy\x129\n" +
+	"\n" +
+	"updated_at\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1f\n" +
 	"\vmodified_by\x18\v \x01(\x03R\n" +
 	"modifiedBy\x12\x1a\n" +
-	"\bordering\x18\f \x01(\x05R\bordering\x129\n" +
-	"\n" +
-	"start_date\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\tstartDate\x125\n" +
-	"\bend_date\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\aendDate\"*\n" +
+	"\bordering\x18\f \x01(\x05R\bordering\x127\n" +
+	"\tstarts_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\bstartsAt\x123\n" +
+	"\aends_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\x06endsAt\"*\n" +
 	"\x05Edges\x12!\n" +
 	"\x05edges\x18\x01 \x03(\v2\v.graph.EdgeR\x05edges\"\x87\x02\n" +
 	"\x11EdgeBrowseRequest\x12\x1a\n" +
@@ -1742,10 +1741,10 @@ var file_proto_graphpb_edge_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil),            // 28: google.protobuf.Timestamp
 }
 var file_proto_graphpb_edge_proto_depIdxs = []int32{
-	28, // 0: graph.Edge.created_on:type_name -> google.protobuf.Timestamp
-	28, // 1: graph.Edge.modified_on:type_name -> google.protobuf.Timestamp
-	28, // 2: graph.Edge.start_date:type_name -> google.protobuf.Timestamp
-	28, // 3: graph.Edge.end_date:type_name -> google.protobuf.Timestamp
+	28, // 0: graph.Edge.created_at:type_name -> google.protobuf.Timestamp
+	28, // 1: graph.Edge.updated_at:type_name -> google.protobuf.Timestamp
+	28, // 2: graph.Edge.starts_at:type_name -> google.protobuf.Timestamp
+	28, // 3: graph.Edge.ends_at:type_name -> google.protobuf.Timestamp
 	0,  // 4: graph.Edges.edges:type_name -> graph.Edge
 	0,  // 5: graph.EdgeBrowseResponse.edges:type_name -> graph.Edge
 	0,  // 6: graph.EdgeReadResponse.edge:type_name -> graph.Edge

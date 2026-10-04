@@ -14,8 +14,8 @@ type CommentNodeItem struct {
 	Body            string    `json:"body,omitempty"`
 	QuoteCount      int64     `json:"quote_count,omitempty"`
 	Verified        bool      `json:"verified,omitempty"`
-	CreationTime    time.Time `json:"creation_time,omitempty"`
-	UpdateTime      time.Time `json:"update_time,omitempty"`
+	CreatedAt       time.Time `json:"created_at,omitempty"`
+	UpdatedAt       time.Time `json:"updated_at,omitempty"`
 	Access          string    `json:"access,omitempty"`
 	LikesCount      int64     `json:"likes_count,omitempty"`
 	IsLikedByViewer bool      `json:"is_liked_by_viewer,omitempty"`
@@ -43,8 +43,8 @@ func (r *CommentNodeResponse) MapCommentNodeItem(node *entities.AnahitaNode) *Co
 		Body:            node.Body,
 		QuoteCount:      node.QuoteCount,
 		Verified:        node.Verified,
-		CreationTime:    node.CreationTime,
-		UpdateTime:      node.UpdateTime,
+		CreatedAt:       node.CreatedAt,
+		UpdatedAt:       node.UpdatedAt,
 		Access:          node.Access,
 		LikesCount:      node.LikesCount,
 		IsLikedByViewer: node.IsLikedByViewer,

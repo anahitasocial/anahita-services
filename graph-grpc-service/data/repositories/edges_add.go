@@ -18,12 +18,12 @@ func (r *edgesRepo) Add(edge *entities.AnahitaEdge) (*entities.AnahitaEdge, erro
 		return nil, err
 	}
 
-	var startDate, endDate any
-	if !edge.StartDate.IsZero() {
-		startDate = edge.StartDate
+	var startsAt, endsAt any
+	if !edge.StartsAt.IsZero() {
+		startsAt = edge.StartsAt
 	}
-	if !edge.EndDate.IsZero() {
-		endDate = edge.EndDate
+	if !edge.EndsAt.IsZero() {
+		endsAt = edge.EndsAt
 	}
 
 	query := sq.Insert("edges").Columns(
@@ -33,13 +33,13 @@ func (r *edgesRepo) Add(edge *entities.AnahitaEdge) (*entities.AnahitaEdge, erro
 		"node_b_id",
 		"node_b_type",
 		"meta",
-		"created_on",
+		"created_at",
 		"created_by",
-		"modified_on",
+		"updated_at",
 		"modified_by",
 		"ordering",
-		"start_date",
-		"end_date",
+		"starts_at",
+		"ends_at",
 	).Values(
 		edge.Type,
 		edge.NodeAID,
@@ -52,8 +52,8 @@ func (r *edgesRepo) Add(edge *entities.AnahitaEdge) (*entities.AnahitaEdge, erro
 		time.Now(),
 		edge.ModifiedBy,
 		edge.Ordering,
-		startDate,
-		endDate,
+		startsAt,
+		endsAt,
 	)
 
 	sqlQuery, args, err := query.ToSql()

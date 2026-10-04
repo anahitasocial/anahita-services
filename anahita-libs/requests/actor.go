@@ -22,13 +22,13 @@ func NewActorRequest() *ActorRequest {
 			Offset:    0,
 			Limit:     constants.RequestLimitDefault,
 			Direction: "desc",
-			Ordering:  "modified_on",
+			Ordering:  "updated_at",
 			Search:    "",
 		},
 		Read: &ActorReadRequest{},
 		BatchRead: &ActorBatchReadRequest{
 			IDs:       []int64{},
-			Ordering:  "modified_on",
+			Ordering:  "updated_at",
 			Direction: "desc",
 		},
 		Edit: &ActorEditRequest{},
@@ -51,7 +51,7 @@ type ActorBrowseRequest struct {
 	Offset    uint64 `query:"start"`
 	Limit     uint64 `query:"limit"`
 	Search    string `query:"q" validate:"max=100,omitempty,search_query"`
-	Ordering  string `query:"ordering" validate:"max=15,omitempty,oneof=created_on modified_on enabled"`
+	Ordering  string `query:"ordering" validate:"max=15,omitempty,oneof=created_at updated_at enabled"`
 	Direction string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	Disabled  bool   `query:"disabled" validate:"omitempty"`
 	// Only the actors the installation features — what onboarding offers a
@@ -63,7 +63,7 @@ type ActorBrowseRequest struct {
 
 // GraphOrdering is the ordering to ask the graph for.
 //
-// Ordering defaults to modified_on before the query string is bound, so by the
+// Ordering defaults to updated_at before the query string is bound, so by the
 // time a handler sees it there is no telling a default from a choice — and for
 // the featured list the default is wrong: the order is the featured date, most
 // recent first, which is why that column is a timestamp. orderingGiven is
@@ -83,7 +83,7 @@ type ActorReadRequest struct {
 
 type ActorBatchReadRequest struct {
 	IDs       []int64 `json:"ids" validate:"required,dive,required,numeric"`
-	Ordering  string  `query:"ordering" validate:"max=15,omitempty,oneof=created_on modified_on enabled"`
+	Ordering  string  `query:"ordering" validate:"max=15,omitempty,oneof=created_at updated_at enabled"`
 	Direction string  `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer    *entities.Viewer
 }

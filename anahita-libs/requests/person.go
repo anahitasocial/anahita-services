@@ -18,7 +18,7 @@ func NewPersonRequest() *PersonRequest {
 			Offset:    0,
 			Limit:     constants.RequestLimitDefault,
 			Direction: "desc",
-			Ordering:  "modified_on",
+			Ordering:  "updated_at",
 			Search:    "",
 		},
 		Read: &PersonReadRequest{},

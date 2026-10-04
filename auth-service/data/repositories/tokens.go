@@ -75,7 +75,7 @@ func (repo *tokens) CountFrom(tokenType string, personID int64) (uint64, error) 
 // a link lapses, and when it is revoked.
 //
 // Expiry is computed rather than stored. `status` is derived in the entity,
-// not a column, so the window has to be reconstructed here — start_time plus
+// not a column, so the window has to be reconstructed here — started_at plus
 // expired_after seconds, against now.
 func (repo *tokens) CountPendingFrom(tokenType string, personID int64) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
@@ -87,7 +87,7 @@ func (repo *tokens) CountPendingFrom(tokenType string, personID int64) (int, err
 		WHERE type = ?
 		  AND created_by = ?
 		  AND is_used = 0
-		  AND DATE_ADD(start_time, INTERVAL expired_after SECOND) > NOW()`
+		  AND DATE_ADD(started_at, INTERVAL expired_after SECOND) > NOW()`
 
 	var count int
 	if err := repo.db.QueryRowContext(ctx, query, tokenType, personID).Scan(&count); err != nil {
@@ -151,7 +151,7 @@ func (repo *tokens) BrowseFrom(tokenType string, personID int64, req *requests.B
 			&token.NewEmail,
 			&token.Type,
 			&token.Body,
-			&token.StartTime,
+			&token.StartedAt,
 			&token.ExpiredAfter,
 			&token.IsUsed,
 			&token.CreatedAt,

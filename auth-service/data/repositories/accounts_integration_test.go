@@ -47,7 +47,7 @@ func seedAccounts(t *testing.T) *accounts {
 	const note = "'node.medium.text-service.note.v1','text-service'"
 
 	for _, stmt := range []string{
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,person_type,follower_count,leader_count,created_on,modified_on,last_visit_date) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,person_type,follower_count,leader_count,created_at,updated_at,last_visited_at) VALUES
 		 (9201,` + person + `,'Empty One','acc-empty','public',1,'registered',NULL,NULL,NOW() - INTERVAL 3 YEAR,NOW(),NOW() - INTERVAL 3 YEAR),
 		 (9202,` + person + `,'Dormant One','acc-dormant','public',1,'registered',0,0,NOW() - INTERVAL 5 YEAR,NOW(),NULL),
 		 (9203,` + person + `,'Active One','acc-active','public',1,'registered',3,2,NOW() - INTERVAL 5 YEAR,NOW(),NULL),
@@ -61,13 +61,13 @@ func seedAccounts(t *testing.T) *accounts {
 		`UPDATE nodes SET deleted_at = NOW() WHERE id IN (9205, 9206)`,
 		`UPDATE nodes SET purged_at = NOW() WHERE id = 9206`,
 
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,created_at,updated_at) VALUES
 		 (9220,` + note + `,'old','acc-n1','public',1,9202,9202,NOW() - INTERVAL 4 YEAR,NOW()),
 		 (9221,` + note + `,'recent','acc-n2','public',1,9203,9203,NOW() - INTERVAL 7 DAY,NOW()),
 		 (9222,` + note + `,'older','acc-n3','public',1,9203,9203,NOW() - INTERVAL 2 YEAR,NOW()),
 		 (9223,` + note + `,'in the group','acc-n4','public',1,9210,9203,NOW() - INTERVAL 30 DAY,NOW())`,
 
-		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_on) VALUES
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
 		 ('edge.actor.admin.v1',9203,'node.actor.person-service.person.v1',9210,'node.actor.group-service.group.v1',NOW())`,
 
 		`INSERT INTO auth_accounts (node_id,email,email_verified_at,onboarded_at) VALUES
@@ -77,7 +77,7 @@ func seedAccounts(t *testing.T) *accounts {
 		 (9204,'acc-signedin@example.com',NOW(),NULL),
 		 (9205,'acc-deleted@example.com',NOW(),NOW())`,
 
-		`INSERT INTO auth_logs (created_on,created_by,oauth_refresh_token_id,client_id) VALUES
+		`INSERT INTO auth_logs (created_at,created_by,oauth_refresh_token_id,client_id) VALUES
 		 (NOW() - INTERVAL 1 DAY,9204,0,'test'),
 		 (NOW() - INTERVAL 2 YEAR,9204,0,'test')`,
 	} {

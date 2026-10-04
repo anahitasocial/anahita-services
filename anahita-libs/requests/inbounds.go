@@ -26,7 +26,7 @@ type InboundBrowseRequest struct {
 	OwnerID     int64  `param:"owner_id" validate:"numeric,omitempty"`
 	Offset      uint64 `query:"start"`
 	Limit       uint64 `query:"limit"`
-	Ordering    string `query:"sort" validate:"max=10,omitempty,oneof=created_on modified_on recent popular"`
+	Ordering    string `query:"sort" validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
 	OrderingDir string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	IDs         []int64
 	AccessCheck bool

@@ -81,7 +81,7 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 		if req.Ordering == constants.OrderingPopular {
 			query = query.OrderBy("(COALESCE(node.repost_count,0) + COALESCE(node.comment_count,0) + COALESCE(node.vote_up_count,0) + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0)) DESC")
 		} else if req.Ordering == constants.OrderingRecent {
-			query = query.OrderBy("node.created_on DESC")
+			query = query.OrderBy("node.created_at DESC")
 		} else if column := safeOrderColumn(req.Ordering); column != "" {
 			// Checked here as well as at the API boundary: ORDER BY is
 			// concatenated, and gRPC callers never passed through that
@@ -317,7 +317,7 @@ func (r *graphRepo) Trending(req *graphpb.TrendingRequest, viewer *entities.View
 	query := GetBaseSelectQuery()
 
 	query = query.Join("edges AS edge ON " + r.buildDegreeJoinCondition(req.Direction)).
-		Where(sq.Gt{"edge.created_on": cutoff}).
+		Where(sq.Gt{"edge.created_at": cutoff}).
 		GroupBy("node.id").
 		OrderBy("count(edge.id) DESC")
 

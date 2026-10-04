@@ -23,7 +23,7 @@ type AuthLogResponse struct{}
 func (r *AuthLogResponse) MapAuthLogItem(authLog *entities.AuthLog) *AuthLogItem {
 	return &AuthLogItem{
 		ID:        authLog.ID,
-		CreatedAt: authLog.CreatedOn,
+		CreatedAt: authLog.CreatedAt,
 		Device:    authLog.Device,
 		OS:        authLog.OS,
 		Name:      authLog.Name,
