@@ -76,9 +76,68 @@ A phase is finished only when these pages match the code.
 - **services `architecture.md`**: the naming rule, in one paragraph.
 - Any page that shows a column or response field by its old name.
 
+## What was built (2026-10-04)
+
+**The database.** Migration `20261006000001_timestamps_end_in_at.sql` renames
+the fourteen columns, and the twelve indexes that were named after an old
+column (`type_modifed_on` loses its spelling mistake on the way). Each rename
+happens only where the old name is there and the new one is not. `init.sql`
+has the new names; `legacy/upgrade.sql` does the renames as its last step,
+since everything above it reads the names the PHP application used.
+
+**Go.** One scripted pass over 108 files: column names in SQL, entity and
+response fields (`CreationTime` and `CreatedOn` are both `CreatedAt` now,
+`UpdateTime` and `ModifiedOn` are `UpdatedAt`, `StartDate`, `EndDate`,
+`LastVisitDate` and the token's `StartTime` follow), JSON tags, and the
+ordering values the API accepts.
+
+**The API.** Responses carry `created_at` and `updated_at` where they carried
+`creation_time` and `update_time`. Lists sort with `ordering=created_at` or
+`updated_at`; the old values are refused with 400. Nothing is kept under an
+old name.
+
+**Protobuf.** Fields renamed, numbers kept. The node message carried the two
+timestamps twice: fields 64 and 66 (`creation_time`, `update_time`) were
+written and never read, and are now reserved.
+
+**Web.** `creationTime` is `createdAt`, `updateTime` is `updatedAt`,
+`lastVisitDate` is `lastVisitedAt`, in 41 files, and comments are sorted with
+`created_at`.
+
+**The guard.** `TestTimestampColumnsEndInAt` in
+`graph-grpc-service/data/repositories/schema_names_test.go` reads `init.sql`
+and fails on a `datetime` or `timestamp` column that does not end in `_at`, or
+a `date` column that does not end in `_on`. A second test feeds it the old
+names to show it objects.
+
+**Plans for work not yet done** (events, invitations, feeds, recommendations,
+video) now propose the new names.
+
+**Found on the way, and fixed separately.** Comparing the three ways a
+database is built showed `edges.ordering` missing from `init.sql`. It had been
+removed by mistake on 2026-10-02 with the unused `nodes` columns. Every edge
+is written with it, so on a site installed fresh since then nobody could
+follow, like or subscribe. Migration `20261006000002_edges_ordering.sql` puts
+it back where it is missing, and `TestEdgeRoundTripAgainstTheSchema` adds an
+edge the way the service does, which no test did before.
+
+**Checked.**
+- The migration on a fresh database, an upgraded one (up, up again, down, up)
+  and the legacy reference data. All three end with the same columns and the
+  same indexes, and no date-and-time column that does not end in `_at`.
+- Every module vets and its tests pass, the real-MySQL ones against the
+  renamed schema.
+- On the rebuilt development stack, the public lists (people, groups, feeds,
+  notes, photos, articles, topics, hashtags, places, comments, followers,
+  search) answer 200 with the new names, and the logs show no query naming a
+  missing column.
+
+**Not checked.** Anything behind a sign-in on the running stack: the home
+feed, notifications, posting, following. The web app's pages in a browser.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-03 |
-| Implementation | not started |
+| Implementation | done 2026-10-04 |

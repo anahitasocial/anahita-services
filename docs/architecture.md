@@ -10,6 +10,7 @@ How the services, the gateway and the shared library fit together.
 - [Services](#services)
 - [Routing](#routing)
 - [anahita-libs](#anahita-libs)
+- [Naming dates and times](#naming-dates-and-times)
 
 ## Components
 
@@ -118,3 +119,20 @@ The shared module every service imports:
 | `data`, `requests`, `responses`, `validators` | Request/response shapes and validation |
 | `middleware`, `cors` | HTTP middleware |
 | `geocoding`, `utils`, `cmd` | Supporting helpers |
+
+## Naming dates and times
+
+One rule, in the database, in the API and in the web app:
+
+- A date **with a time** ends in `_at`: `created_at`, `updated_at`,
+  `starts_at`, `ends_at`, `last_visited_at`, `deleted_at`.
+- A calendar date **with no time** ends in `_on`. Nothing uses one yet.
+
+The same name is used all the way through: the column `created_at` is the
+field `created_at` in a response and `createdAt` in the web app, and a list is
+sorted with `ordering=created_at`. The last change to a row is `updated_at`,
+never `modified_at`.
+
+A test, `TestTimestampColumnsEndInAt` in graph-grpc-service, reads
+`migration-job/schema/init.sql` and fails on a date or time column that does
+not follow.

@@ -21,7 +21,7 @@ At a few hundred actors the whole graph is tiny: thousands of edges, not million
   | Hashtags and locations tagged on content | `edge.tag.hashtag.v1`, `edge.tag.location.v1` |
   | Comments and reposts | nodes with `created_by` and `parent_id` |
   | Inviter | `auth_accounts.invited_by` |
-  | Activity | `last_visit_date`, `follower_count` |
+  | Activity | `last_visited_at`, `follower_count` |
   | Location | `geo_*`, with a Haversine helper at `graph-grpc-service/data/repositories/nodes.go:233` |
 
 - **Reusable graph code:** `BrowseOrderedByDegree` and `Trending` (`graph-grpc-service/data/repositories/graph.go:209,291`), plus the batch relation lookup (`socialgraph_rel.go:47-224`, exposed as `SocialgraphGRPC.Browse(ids, viewerID)`) for dropping people the viewer already follows or has blocked.
@@ -78,8 +78,8 @@ That keeps the privacy rules in one place, so a replacement recommender gets the
 **5. Storage**
 - **Interests:** new graph edge `edge.actor.interest.v1` (person → hashtag or location), written by new graph-grpc and person-service endpoints `PUT /people/:id/interests` and `GET /people/:id/interests`. Add the constant to `anahita-libs/constants/entity_types.go`. Feeds and a future "follow a hashtag" feed can reuse these edges.
 - **The recommender's own tables** (goose migration plus a matching addition to `legacy/upgrade.sql`, per the migration catch noted in item 1):
-  - `recommendation_preferences (person_id PK, suggest_people, suggest_groups, use_activity, use_location, discoverable, updated_on)`. Default when there's no row: all true, i.e. discoverable by default with opt-out.
-  - `recommendation_dismissals (person_id, actor_id, created_on, PK(person_id, actor_id))`.
+  - `recommendation_preferences (person_id PK, suggest_people, suggest_groups, use_activity, use_location, discoverable, updated_at)`. Default when there's no row: all true, i.e. discoverable by default with opt-out.
+  - `recommendation_dismissals (person_id, actor_id, created_at, PK(person_id, actor_id))`.
 - **Cache:** results per viewer and kind in Redis for 10 min. Clear it on `edge.follow.*`, `edge.block.*` and actor archive/disable/delete events from RabbitMQ. Events are a hint only; lost ones just wait for the TTL.
 
 **6. Web (anahita-web)**

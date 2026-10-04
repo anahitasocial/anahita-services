@@ -27,7 +27,7 @@ A person can invite their followers to follow or join a group. The invitee gets 
 
 ## Design
 **Storage: an edge, so it's generic for every actor type.**
-- `edge.actor.invite.v1`: `node_a` = invitee (person), `node_b` = actor (group), `created_by` = inviter, `end_date` = expiry (30 days).
+- `edge.actor.invite.v1`: `node_a` = invitee (person), `node_b` = actor (group), `created_by` = inviter, `ends_at` = expiry (30 days).
 - `meta` holds `{ status: pending | declined }`.
 - `uc_edge` gives one invitation per person per actor.
 - **Declined** invitations keep the edge for a 90-day cooldown, so the same group can't re-invite the same person repeatedly. After that the sweeper deletes it. Accepting creates the follow edge and deletes the invite edge. Revoking or expiry deletes it.
@@ -72,7 +72,7 @@ A person can invite their followers to follow or join a group. The invitee gets 
   - `actor_follow_request`: to the actor's admins (bug 7).
 - **Action state is computed live:** the notification response adds `actions: ["accept", "decline"]` only while the invitation is still pending. It's checked by `invite_id` when the list is read, so stale notifications never show buttons.
 - On accept, decline, revoke or expiry, update the notification's `meta.status` so it reads "You joined G" or "Invitation expired".
-- **Expiry:** the hourly sweeper (`graph-grpc-service/sweeper`) deletes invitations past `end_date` and declined ones past the cooldown, and publishes `deleted`.
+- **Expiry:** the hourly sweeper (`graph-grpc-service/sweeper`) deletes invitations past `ends_at` and declined ones past the cooldown, and publishes `deleted`.
 
 **Web (anahita-web)**
 - **Group page:** an **Invite** button (shown when `authorized.invite`) opens a dialog.

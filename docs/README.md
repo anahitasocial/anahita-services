@@ -29,6 +29,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Services](architecture.md#services)
    - [Routing](architecture.md#routing)
    - [anahita-libs](architecture.md#anahita-libs)
+   - [Naming dates and times](architecture.md#naming-dates-and-times)
 4. [OAuth scopes and clients](oauth.md)
    - [Scopes](oauth.md#scopes)
    - [Seeding clients](oauth.md#seeding-clients)
@@ -120,7 +121,6 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Quote posts](plans/quote-posts.md) | 25 | not started |
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
-| [One name for timestamps: `_at`](plans/timestamp-names.md) | 28 | not started |
 | [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b and 0c done 2026-10-03; the plan's "Not checked" list is still open |
 | [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in item 8 |
 | [Signup, registration modes, and agreements](plans/done/signup-and-onboarding.md) | — | done |
@@ -132,4 +132,5 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Remove private notes](plans/done/remove-private-notes.md) | 1 | done 2026-10-03 |
 | [Abuse reports](plans/done/abuse-report-service.md) | 4b | done 2026-10-03 |
 | [Complete hard delete and bulk cleanup](plans/done/actor-hard-delete.md) | 5 | done 2026-10-04 (the web part not yet tried in a browser) |
+| [One name for timestamps: `_at`](plans/done/timestamp-names.md) | 28 | done 2026-10-04 |
 | [Cloud-neutral storage and deployment](plans/done/cloud-neutral.md) | 9 | done 2026-10-03 (non-AWS providers other than Garage untested) |

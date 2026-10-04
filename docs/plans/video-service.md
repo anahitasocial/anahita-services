@@ -18,7 +18,7 @@
 ## Design
 **Type and data**
 - `node.medium.video-service.video.v1`: title, description, owner, access and comments, like other media.
-- A side table `videos(node_id PK, status, duration_s, width, height, source_key, rendition_keys JSON, poster_key, error, created_on)`, with `status` = `uploading` | `processing` | `ready` | `failed`.
+- A side table `videos(node_id PK, status, duration_s, width, height, source_key, rendition_keys JSON, poster_key, error, created_at)`, with `status` = `uploading` | `processing` | `ready` | `failed`.
 
 **Upload flow**
 1. `POST /videos/uploads` `{ filename, size, content_type }`:

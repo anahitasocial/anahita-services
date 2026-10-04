@@ -4,14 +4,14 @@
 
 ## Context
 Events are "groups with an expiry date plus organiser features" (`docs/plans/done/dissolve-people-people.md:828-831`). The groundwork is already in place:
-- `nodes` has `start_date` / `end_date` (indexed), and the `geo_*` columns;
+- `nodes` has `starts_at` / `ends_at` (indexed), and the `geo_*` columns;
 - actor types automatically share the alias namespace, profiles, covers, avatars, media tabs, follows and access levels;
 - item 11 adds invitations as an edge that any actor type can use.
 
 The goal is the smallest event feature that's genuinely useful, not a ticketing system.
 
 ## What a minimalist event needs (the recommendation)
-1. **When:** start and end, stored in UTC in `start_date` / `end_date`, plus a new **`timezone_name`** column (IANA, e.g. `America/Toronto`), so times display correctly across daylight-saving changes. The legacy integer `timezone` column couldn't do that, and was dropped on 2026-10-02. No all-day or recurring events in v1.
+1. **When:** start and end, stored in UTC in `starts_at` / `ends_at`, plus a new **`timezone_name`** column (IANA, e.g. `America/Toronto`), so times display correctly across daylight-saving changes. The legacy integer `timezone` column couldn't do that, and was dropped on 2026-10-02. No all-day or recurring events in v1.
 2. **Where:** either
    - a **place**, reusing location-service (a location tag edge plus the `geo_*` columns, and the map from `Map.jsx`); or
    - **online**, a meeting URL that **only people who are going** (and hosts) can see; or both.
@@ -32,7 +32,7 @@ The goal is the smallest event feature that's genuinely useful, not a ticketing 
    - A group-hosted event can also be limited to the group's members. That's a new access keyword `host_followers`, checked through the host edge.
 8. **Discussion:** the same media tabs as groups (notes and photos), chosen by `TAB_COMPONENTS`. Hosts can post announcements, which are ordinary notes pinned first using item 15's `pinned_at` (newest first if item 15 isn't done yet).
 9. **Before, during and after:**
-   - **Upcoming** until `start_date`, **happening** until `end_date`, then **past**.
+   - **Upcoming** until `starts_at`, **happening** until `ends_at`, then **past**.
    - Past events can't take RSVPs or invitations, but stay readable.
    - The sweeper **archives** an event 30 days after it ends, using the existing permanent, read-only archive state (`done/actor-lifecycle-states.md`).
 10. **Notifications** (in-app; notification email doesn't exist yet):
@@ -70,7 +70,7 @@ The goal is the smallest event feature that's genuinely useful, not a ticketing 
 | `POST /events/:id/cancel` | Admins only |
 | `GET /events/:id/attendees?rsvp=going\|maybe` | The existing followers browse, filtered by `meta.rsvp` |
 | `GET /events/:id/ics` | Calendar file |
-| `GET /events/?filter=upcoming\|invited\|hosting\|past` | The viewer's own lists, ordered by `start_date` |
+| `GET /events/?filter=upcoming\|invited\|hosting\|past` | The viewer's own lists, ordered by `starts_at` |
 | `GET /groups/:id/events` | A group's events |
 
 ## Web (anahita-web)
