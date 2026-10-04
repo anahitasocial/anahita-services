@@ -200,7 +200,8 @@ func TestValidateRequiresADestinationOnEmailChangeTokens(t *testing.T) {
 func TestGenerateCodeIsSixDigitsAndZeroPadded(t *testing.T) {
 	for range 200 {
 		token := NewToken()
-		if err := token.GenerateCode(); err != nil {
+		token.Body = "body"
+		if err := token.GenerateCode(testCodeKey); err != nil {
 			t.Fatalf("generate code: %v", err)
 		}
 
@@ -225,7 +226,8 @@ func TestGenerateCodeVariesAcrossTheRange(t *testing.T) {
 
 	for range 500 {
 		token := NewToken()
-		if err := token.GenerateCode(); err != nil {
+		token.Body = "body"
+		if err := token.GenerateCode(testCodeKey); err != nil {
 			t.Fatalf("generate code: %v", err)
 		}
 		seen[token.Code] = true
@@ -242,26 +244,81 @@ func TestGenerateCodeVariesAcrossTheRange(t *testing.T) {
 	}
 }
 
-func TestIsCodeValid(t *testing.T) {
-	token := NewToken()
-	token.Code = "042195"
+var testCodeKey = []byte("a key the database never sees")
 
-	if !token.IsCodeValid("042195") {
+func codedToken(t *testing.T, body string) *Token {
+	t.Helper()
+	token := NewToken()
+	token.Body = body
+	if err := token.GenerateCode(testCodeKey); err != nil {
+		t.Fatalf("generate code: %v", err)
+	}
+	return token
+}
+
+func TestIsCodeValid(t *testing.T) {
+	token := codedToken(t, "body-one")
+	code := token.Code
+
+	// What the repository hands back: the hash, and no code.
+	token.Code = ""
+
+	if !token.IsCodeValid(testCodeKey, code) {
 		t.Error("the correct code was refused")
 	}
-	if token.IsCodeValid("042196") {
+
+	wrong := "000000"
+	if code == wrong {
+		wrong = "000001"
+	}
+	if token.IsCodeValid(testCodeKey, wrong) {
 		t.Error("a wrong code was accepted")
 	}
 	// Not a prefix match: a comparison that stops early would accept this.
-	if token.IsCodeValid("0421") {
+	if token.IsCodeValid(testCodeKey, code[:4]) {
 		t.Error("a truncated code was accepted")
+	}
+	if token.IsCodeValid([]byte("another key"), code) {
+		t.Error("the code was accepted under a different key")
 	}
 
 	// A token type that carries no code must never be satisfied by
 	// submitting the empty string.
 	empty := NewToken()
-	if empty.IsCodeValid("") {
+	if empty.IsCodeValid(testCodeKey, "") {
 		t.Error("an empty submission satisfied a token with no code")
+	}
+}
+
+// The stored value must not be the code, nor anything that can be worked back
+// to it without the key, nor the same for two tokens that drew the same digits.
+func TestCodeIsStoredAsAKeyedSaltedHash(t *testing.T) {
+	one, two := codedToken(t, "body-one"), codedToken(t, "body-two")
+
+	if one.CodeHash == one.Code || len(one.CodeHash) != 64 {
+		t.Fatalf("stored value %q is not a SHA-256 HMAC", one.CodeHash)
+	}
+
+	two.Code = one.Code
+	two.CodeHash = two.hashCode(testCodeKey, two.Code)
+	if one.CodeHash == two.CodeHash {
+		t.Error("two tokens with the same code store the same value")
+	}
+
+	if one.hashCode([]byte("another key"), one.Code) == one.CodeHash {
+		t.Error("the stored value does not depend on the key")
+	}
+}
+
+func TestGenerateCodeNeedsAKeyAndABody(t *testing.T) {
+	token := NewToken()
+	if err := token.GenerateCode(testCodeKey); err == nil {
+		t.Error("a code was generated for a token with no body")
+	}
+
+	token.Body = "body"
+	if err := token.GenerateCode(nil); err == nil {
+		t.Error("a code was generated without a key")
 	}
 }
 

@@ -14,11 +14,13 @@ Documentation for anahita-services, the Go microservices behind Anahita.
 2. [Configuration](configuration.md) — every environment variable
    - [Shared](configuration.md#shared)
    - [Client addresses](configuration.md#client-addresses)
+   - [Internal calls](configuration.md#internal-calls)
    - [Site identity](configuration.md#site-identity)
    - [Registration](configuration.md#registration)
    - [First super administrator](configuration.md#first-super-administrator)
    - [OAuth signing and encryption](configuration.md#oauth-signing-and-encryption)
    - [Storage](configuration.md#storage)
+   - [Places](configuration.md#places)
    - [Mail](configuration.md#mail)
 3. [Architecture](architecture.md) — services, routing and the shared library
    - [Components](architecture.md#components)
@@ -44,6 +46,27 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The defaults](permissions.md#the-defaults)
    - [What profile owners can change](permissions.md#what-profile-owners-can-change)
    - [Accepted values](permissions.md#accepted-values)
+7. [Signing in](signing-in.md) — passwords, passkeys, emailed codes and their limits
+   - [The ways in](signing-in.md#the-ways-in)
+   - [Signing in with a code](signing-in.md#signing-in-with-a-code)
+   - [What a code can and cannot do](signing-in.md#what-a-code-can-and-cannot-do)
+   - [Limits](signing-in.md#limits)
+   - [How codes are kept](signing-in.md#how-codes-are-kept)
+   - [Resetting a forgotten password](signing-in.md#resetting-a-forgotten-password)
+   - [Changing an email address](signing-in.md#changing-an-email-address)
+   - [Adding text messages later](signing-in.md#adding-text-messages-later)
+8. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
+   - [What you need](deploying.md#what-you-need)
+   - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
+   - [Hostnames](deploying.md#hostnames)
+   - [First deployment](deploying.md#first-deployment)
+   - [Certificates between the services](deploying.md#certificates-between-the-services)
+   - [Object storage](deploying.md#object-storage)
+   - [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)
+   - [On AWS](deploying.md#on-aws)
+   - [Upgrading](deploying.md#upgrading)
+   - [Running more than one copy of a service](deploying.md#running-more-than-one-copy-of-a-service)
+   - [Trying it on your own machine](deploying.md#trying-it-on-your-own-machine)
 
 ## Plans
 
@@ -60,10 +83,9 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
 | [Abuse reports](plans/abuse-report-service.md) | 4b | not started |
 | [Complete hard delete and bulk cleanup](plans/actor-hard-delete.md) | 5 | not started |
-| [Sign in with a code; codes instead of links](plans/login-code.md) | 6, 6b | not started |
+| [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/notes-as-replies.md) | 7 | not started |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
-| [Cloud-neutral storage and deployment](plans/cloud-neutral.md) | 9 | not started |
 | [Link previews](plans/link-previews.md) | 10 | not started |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
@@ -79,7 +101,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Quote posts](plans/quote-posts.md) | 25 | not started |
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
-| [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b done 2026-10-03; 0c (gRPC mTLS) not started |
+| [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b and 0c done 2026-10-03; the plan's "Not checked" list is still open |
 | [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in items 5 and 8 |
 | [Signup, registration modes, and agreements](plans/done/signup-and-onboarding.md) | — | done |
 | [Onboarding](plans/done/onboarding.md) | — | done (phase 3 moved to the recommendation service) |
@@ -88,3 +110,4 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Feed access leak](plans/done/feed-access-leak.md) | 0 | done 2026-10-03 |
 | [Remove unused legacy node columns](plans/done/remove-unused-node-columns.md) | 0d | done 2026-10-02 |
 | [Remove private notes](plans/done/remove-private-notes.md) | 1 | done 2026-10-03 |
+| [Cloud-neutral storage and deployment](plans/done/cloud-neutral.md) | 9 | done 2026-10-03 (non-AWS providers other than Garage untested) |

@@ -15,39 +15,17 @@ func newEmailChangeNotifier(env *Env) *emailChangeNotifier {
 	return &emailChangeNotifier{env}
 }
 
-// EmailConfirm sends the confirmation link for a pending email change.
-//
-// SENT TO THE PERSON'S CURRENT ADDRESS, NOT THE NEW ONE. That is the
-// whole security property of this flow and the easiest thing to get
-// backwards when copying the password-reset notifier: the current inbox
-// is what an attacker with a stolen session does not have, so it is the
-// thing that must approve the move. Sending to the new address instead
-// would let anyone inside a live session repoint the account to
-// themselves and confirm it.
-//
-// token.RecipientEmail is that current address, and token.NewEmail is
-// the destination — named in the body so the person can see what they
-// are approving before they click.
-func (h *emailChangeNotifier) EmailConfirm(person *entities.User, token *entities.Token) error {
-	body := fmt.Sprintf(
-		messages.EmailChangeBody,
-		person.Name,
-		token.NewEmail,
-	)
-
-	actionURL := fmt.Sprintf(
-		"%s/email/change/confirm?token=%s",
-		h.Config.GetAuthURL(),
-		token.Body,
-	)
-
-	return h.send(
-		token.RecipientEmail,
-		messages.EmailChangeSubject,
-		messages.EmailChangeTitle,
-		body,
-		messages.EmailChangeActionLabel,
-		actionURL,
+// EmailCode sends the code that approves a pending email change. It goes to
+// the CURRENT address, and names the new one so the owner can see where the
+// account is being moved to. No link: the settings page that wants the code
+// is already open.
+func (h *emailChangeNotifier) EmailCode(person *entities.User, newEmail, code string) error {
+	return h.sendCode(
+		person.Email,
+		fmt.Sprintf(messages.EmailChangeCodeSubject, code),
+		messages.EmailChangeCodeTitle,
+		fmt.Sprintf(messages.EmailChangeCodeBody, person.Name, newEmail),
+		code,
 	)
 }
 

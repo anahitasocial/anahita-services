@@ -6,7 +6,6 @@
 
     <hr class="divider">
 
-    {{if .Verified}}
     <h2>Request received</h2>
 
     <p>
@@ -19,23 +18,5 @@
         <p>There's nothing else to do for now. You won't be able to sign in
            until your request is accepted.</p>
     </div>
-    {{else}}
-    <h2>Check your email</h2>
-
-    <p>
-        {{if .Email}}We've sent a confirmation link to <strong>{{.Email}}</strong>.{{else}}We've sent you a confirmation link.{{end}}
-        Follow it and your request goes to the administrators.
-    </p>
-
-    <div class="notice">
-        <p>Your request isn't in the queue until your address is
-           confirmed, so nobody will see it before then.</p>
-    </div>
-
-    <p class="helper-text">
-        The link expires in 24 hours. If it doesn't arrive, check your spam
-        folder, then <a href="/signup/confirm/resend" class="text-link">request another one</a>.
-    </p>
-    {{end}}
 </div>
 {{end}}

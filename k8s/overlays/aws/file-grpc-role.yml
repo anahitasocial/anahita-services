@@ -1,0 +1,8 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-grpc-service
+spec:
+  template:
+    spec:
+      serviceAccountName: file-grpc-service

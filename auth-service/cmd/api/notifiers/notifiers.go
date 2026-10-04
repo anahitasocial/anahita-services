@@ -67,6 +67,27 @@ func (env *Env) send(recipient, subject, title, body, actionLabel, actionURL str
 	)
 }
 
+// sendCode sends a message whose point is a one-time code. The template sets
+// the code apart, boxed and large, between the title and the body. There is
+// no action link: the page that wants the code is already open.
+func (env *Env) sendCode(recipient, subject, title, body, code string) error {
+	data := map[string]string{
+		"title": env.site(title),
+		"body":  env.site(body),
+		"code":  code,
+	}
+
+	return env.Srv.MailGRPC.SendFromTemplate(
+		env.Config.GetMailFrom(),
+		[]string{recipient},
+		[]string{},
+		[]string{},
+		env.site(subject),
+		"message_action",
+		data,
+	)
+}
+
 type Notifiers struct {
 	Auth           *authNotifier
 	Invite         *inviteNotifier

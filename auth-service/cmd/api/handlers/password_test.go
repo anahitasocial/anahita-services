@@ -88,171 +88,7 @@ func resetToken(userID int64, email string) *entities.Token {
 	return token
 }
 
-// ---------------------------------------------------------------------
-// Forgot
-// ---------------------------------------------------------------------
-
-// The confirmation page must not depend on whether the address exists.
-// This is the enumeration control the handler is built around, and it is
-// asserted on the bytes rather than on the status code — a difference in
-// wording is just as much of an oracle as a difference in status.
-func TestForgotDoesNotRevealWhetherAnAccountExists(t *testing.T) {
-	serviceRoot(t)
-	e := newTestEcho()
-
-	known := newTestEnv(testUser(t, 42, "ada@example.com", "correct horse battery staple"))
-	c, knownRec := postForm(e, "/password/forgot", url.Values{"email": {"ada@example.com"}})
-	if err := newPasswordHandler(known.Env).Forgot(c); err != nil {
-		t.Fatalf("known address: %v", err)
-	}
-
-	unknown := newTestEnv()
-	c, unknownRec := postForm(e, "/password/forgot", url.Values{"email": {"nobody@example.com"}})
-	if err := newPasswordHandler(unknown.Env).Forgot(c); err != nil {
-		t.Fatalf("unknown address: %v", err)
-	}
-
-	if knownRec.Code != unknownRec.Code {
-		t.Errorf("status differs: known %d, unknown %d", knownRec.Code, unknownRec.Code)
-	}
-
-	// The address itself is echoed back into the page, so compare with it
-	// removed — what must not differ is everything else.
-	knownBody := strings.ReplaceAll(knownRec.Body.String(), "ada@example.com", "")
-	unknownBody := strings.ReplaceAll(unknownRec.Body.String(), "nobody@example.com", "")
-	if knownBody != unknownBody {
-		t.Error("response body differs between a registered and an unregistered address")
-	}
-
-	if len(known.Tokens.added) != 1 {
-		t.Errorf("registered address: got %d tokens, want 1", len(known.Tokens.added))
-	}
-	if len(unknown.Tokens.added) != 0 {
-		t.Errorf("unregistered address: got %d tokens, want 0", len(unknown.Tokens.added))
-	}
-}
-
-func TestForgotIssuesAShortLivedPendingToken(t *testing.T) {
-	serviceRoot(t)
-
-	te := newTestEnv(testUser(t, 42, "ada@example.com", "correct horse battery staple"))
-	c, _ := postForm(newTestEcho(), "/password/forgot", url.Values{"email": {"ada@example.com"}})
-	if err := newPasswordHandler(te.Env).Forgot(c); err != nil {
-		t.Fatalf("forgot: %v", err)
-	}
-
-	if len(te.Tokens.added) != 1 {
-		t.Fatalf("got %d tokens, want 1", len(te.Tokens.added))
-	}
-	token := te.Tokens.added[0]
-
-	if token.Type != constants.TokenTypePasswordReset {
-		t.Errorf("type = %q, want %q", token.Type, constants.TokenTypePasswordReset)
-	}
-	if token.RecipientEmail != "ada@example.com" {
-		t.Errorf("recipient = %q, want the account's address", token.RecipientEmail)
-	}
-	if token.IsUsed {
-		t.Error("a freshly issued token is already marked used")
-	}
-	// Fifteen minutes. A reset link is a credential sitting in a mailbox;
-	// the window it is worth stealing in should stay small, and a silent
-	// change to a day would not otherwise show up anywhere.
-	if token.ExpiredAfter != 15*60 {
-		t.Errorf("ExpiredAfter = %d seconds, want 900", token.ExpiredAfter)
-	}
-	// 64 random bytes, hex-encoded — and the length the reset request
-	// validates against, so the two have to agree.
-	if len(token.Body) != 128 {
-		t.Errorf("token body is %d chars, want 128", len(token.Body))
-	}
-	if token.CreatedBy != 42 || token.UpdatedBy != 42 {
-		t.Errorf("token attributed to %d/%d, want 42", token.CreatedBy, token.UpdatedBy)
-	}
-}
-
-// The mail is what carries the token to the person; if it does not go, or
-// goes without a usable link, the flow is dead in a way nothing else
-// surfaces — the send is fire-and-forget and only logs.
-func TestForgotMailsALinkCarryingTheToken(t *testing.T) {
-	serviceRoot(t)
-
-	te := newTestEnv(testUser(t, 42, "ada@example.com", "correct horse battery staple"))
-	c, _ := postForm(newTestEcho(), "/password/forgot", url.Values{"email": {"ada@example.com"}})
-	if err := newPasswordHandler(te.Env).Forgot(c); err != nil {
-		t.Fatalf("forgot: %v", err)
-	}
-
-	var sent []sentMail
-	for range 100 {
-		if sent = te.Mail.messages(); len(sent) > 0 {
-			break
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	if len(sent) != 1 {
-		t.Fatalf("got %d messages, want 1", len(sent))
-	}
-
-	if len(sent[0].To) != 1 || sent[0].To[0] != "ada@example.com" {
-		t.Errorf("addressed to %v, want [ada@example.com]", sent[0].To)
-	}
-
-	data, ok := sent[0].Data.(map[string]string)
-	if !ok {
-		t.Fatalf("template data is %T, want map[string]string", sent[0].Data)
-	}
-	wantURL := "/password/reset?token=" + te.Tokens.added[0].Body
-	if !strings.HasSuffix(data["actionURL"], wantURL) {
-		t.Errorf("actionURL = %q, want it to end in %q", data["actionURL"], wantURL)
-	}
-}
-
-// Over budget, nothing is sent — and the page still looks the same, or the
-// limiter becomes the enumeration oracle the handler avoids everywhere else.
-func TestForgotThrottlesWithoutChangingTheResponse(t *testing.T) {
-	serviceRoot(t)
-
-	te := newTestEnv(testUser(t, 42, "ada@example.com", "correct horse battery staple"))
-	h := newPasswordHandler(te.Env)
-	e := newTestEcho()
-
-	var first string
-	// The per-address budget is 3/hour, so the fourth is over.
-	for i := range 4 {
-		c, rec := postForm(e, "/password/forgot", url.Values{"email": {"ada@example.com"}})
-		if err := h.Forgot(c); err != nil {
-			t.Fatalf("attempt %d: %v", i+1, err)
-		}
-		if i == 0 {
-			first = rec.Body.String()
-		} else if i == 3 && rec.Body.String() != first {
-			t.Error("the throttled response differs from the unthrottled one")
-		}
-	}
-
-	if len(te.Tokens.added) != 3 {
-		t.Errorf("got %d tokens, want 3 — the fourth request was over budget",
-			len(te.Tokens.added))
-	}
-}
-
-func TestForgotRejectsAMalformedAddressWithoutIssuingAnything(t *testing.T) {
-	serviceRoot(t)
-
-	te := newTestEnv()
-	c, rec := postForm(newTestEcho(), "/password/forgot", url.Values{"email": {"not-an-address"}})
-	if err := newPasswordHandler(te.Env).Forgot(c); err != nil {
-		t.Fatalf("forgot: %v", err)
-	}
-
-	if !strings.Contains(rec.Body.String(), "valid email address") {
-		t.Error("the form did not come back with a validation error")
-	}
-	if len(te.Tokens.added) != 0 {
-		t.Errorf("got %d tokens, want 0", len(te.Tokens.added))
-	}
-}
+// Forgot, and the emailed code, are tested in password_reset_code_test.go.
 
 // ---------------------------------------------------------------------
 // ResetForm — the GET the link lands on
@@ -280,7 +116,9 @@ func TestResetFormRejectsUnusableTokens(t *testing.T) {
 		token *entities.Token
 		want  string
 	}{
-		{"no token at all", "", nil, "not valid"},
+		// No token at all is no longer an error page: it means the code
+		// path, which with no code entered goes back to the start. See
+		// TestResetWithoutACodeOrALinkGoesBackToTheStart.
 		{"unknown token", "?token=" + strings.Repeat("z", 128), nil, "not valid"},
 		// A token of the wrong type must not open the password form —
 		// otherwise an invite link resets a password.
@@ -575,41 +413,6 @@ func TestResetDoesNotSignThePersonIn(t *testing.T) {
 	}
 }
 
-// A second forgot-password request must retire the first link. Both land in
-// the same inbox, but a link that was forwarded, or that somebody else reached
-// first, otherwise keeps working for its full window after the owner has asked
-// for a fresh one.
-func TestForgotRetiresTheEarlierLink(t *testing.T) {
-	serviceRoot(t)
-	e := newTestEcho()
-
-	env := newTestEnv(testUser(t, 42, "ada@example.com", "correct horse battery staple"))
-
-	existing := entities.NewToken()
-	existing.Body = "the-old-link"
-	existing.Type = constants.TokenTypePasswordReset
-	existing.RecipientEmail = "ada@example.com"
-	existing.IsUsed = false
-	env.Tokens.byBody[existing.Body] = existing
-
-	c, _ := postForm(e, "/password/forgot", url.Values{"email": {"ada@example.com"}})
-	if err := newPasswordHandler(env.Env).Forgot(c); err != nil {
-		t.Fatalf("Forgot: %v", err)
-	}
-
-	if !existing.IsUsed {
-		t.Error("the earlier link is still live; two reset links now open the " +
-			"same account")
-	}
-
-	if len(env.Tokens.added) != 1 {
-		t.Fatalf("added %d tokens, want 1", len(env.Tokens.added))
-	}
-	if env.Tokens.added[0].IsUsed {
-		t.Error("the new link was retired along with the old one")
-	}
-}
-
 // The reset form validates two fields and renders one message, so a truncated
 // or mangled link reported "Password must be at least 15 characters long" —
 // sending somebody back to correct the only part of the submission that was
@@ -645,13 +448,8 @@ func TestResetTellsALinkProblemFromAPasswordProblem(t *testing.T) {
 			wantContain: "not valid",
 			wantAbsent:  "Password must be at least",
 		},
-		{
-			name:        "empty token",
-			token:       "",
-			password:    "a perfectly acceptable password",
-			wantContain: "not valid",
-			wantAbsent:  "Password must be at least",
-		},
+		// An empty token is the code path, and is covered in
+		// password_reset_code_test.go.
 	}
 
 	for _, tc := range cases {

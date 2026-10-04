@@ -14,7 +14,9 @@ const (
 	ErrMissingActorFeaturesPath = "Actor features path is missing"
 )
 
-const DefaultActorFeaturesPath = "/defaults/actor_features"
+// DefaultActorFeaturesPath is where the image keeps them: the dockerfile
+// copies graph-grpc-defaults to /app/defaults.
+const DefaultActorFeaturesPath = "/app/defaults/actor_features"
 
 type Config struct {
 	Env               string
@@ -37,7 +39,7 @@ func NewConfig() *Config {
 		Env:               getEnv("ENV", constants.ConfigEnvDev),
 		DSN:               os.Getenv("DSN"),
 		AmqpAddr:          os.Getenv("AMQP_ADDR"),
-		ActorFeaturesPath: getEnv("ACTOR_FEATURES_PATH", "/defaults/actor_features"),
+		ActorFeaturesPath: getEnv("ACTOR_FEATURES_PATH", DefaultActorFeaturesPath),
 		FileServiceAddr:   os.Getenv("FILE_SERVICE_ADDR"),
 	}
 

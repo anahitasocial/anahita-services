@@ -87,6 +87,14 @@
         </span>
     </div>
 
+    {{/*
+        The code path. A plain link, below both other ways in: it is the one
+        that takes longest, and the one that always works.
+    */}}
+    <p class="text-center code-link">
+        <a href="/oauth/login/code" class="text-link">Sign in with a code instead</a>
+    </p>
+
     <hr class="divider">
 
     <!-- Shown only when this installation takes self-serve registrations.
@@ -128,6 +136,10 @@
     }
     .or-divider span {
         padding: 0 12px;
+    }
+
+    .code-link {
+        margin-top: 24px;
     }
 
     .passkey-section .btn-outline:disabled {

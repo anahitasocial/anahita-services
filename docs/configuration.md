@@ -6,15 +6,20 @@ Create a `.env` file at the project root before the first run. It is not
 committed, and neither are the signing-key and TLS `.pem` files it points at.
 `docker-compose.yml` is the reference for which service reads which variable.
 
+On Kubernetes the same variables go in an overlay's `config.env` and
+`secrets.env` instead: see [Deploying](deploying.md).
+
 ## Contents
 
 - [Shared](#shared)
 - [Client addresses](#client-addresses)
+- [Internal calls](#internal-calls)
 - [Site identity](#site-identity)
 - [Registration](#registration)
 - [First super administrator](#first-super-administrator)
 - [OAuth signing and encryption](#oauth-signing-and-encryption)
 - [Storage](#storage)
+- [Places](#places)
 - [Mail](#mail)
 
 ## Shared
@@ -24,10 +29,12 @@ committed, and neither are the signing-key and TLS `.pem` files it points at.
 | `ENV` | all | `dev`, `staging` or `prod`. Decides the default public URLs below, and in `dev` all mail goes to `DEVELOPER_EMAIL` |
 | `DSN` | services with a database | MySQL DSN, e.g. `root:root@(mysql:3306)/anahita?parseTime=true` |
 | `REDIS_ADDR`, `REDIS_PASSWORD` | HTTP services | Redis for sessions, e.g. `redis:6379` |
-| `SECURE_COOKIE_KEY` | HTTP services | Key that signs session cookies |
+| `REDIS_TLS` | HTTP services | `true` to connect to Redis over TLS, which most managed Redis and Valkey services require. The certificate is checked against the host in `REDIS_ADDR`. Default `false` |
+| `SECURE_COOKIE_KEY` | HTTP services | Key that signs session cookies. auth-service also derives from it the key that sign-in codes are hashed with, so changing it invalidates the codes outstanding at that moment |
 | `AMQP_ADDR` | publishers and consumers | RabbitMQ, e.g. `amqp://rabbitmq:5672` |
 | `OAUTH_ISSUER` | all HTTP services | Issuer URL that tokens are signed with and checked against |
 | `OAUTH_JWKS_URL` | all HTTP services | Where public signing keys are fetched. Defaults to auth-service inside the network |
+| `WEB_ORIGIN` | nginx | The web app's origin, e.g. `https://example.org`. The one origin allowed to call the API with the session cookie. Default `http://localhost:3000` |
 
 ### Client addresses
 
@@ -41,10 +48,48 @@ Each proxy has to append to the header, which nginx does with
 `$proxy_add_x_forwarded_for`. The address keys the per-address rate limits and
 is recorded in the sign-in log.
 
-A sign-in's city and country are looked up at ipapi.co, with a 3 second limit.
+A sign-in's city and country are looked up at ipapi.co, with a 3 second limit,
+which means that third party is sent the address of everybody who signs in.
+Set `IP_LOCATION_URL=off` to stop the lookup; the sign-in log then shows no
+city or country. Set it to another address to use a service of your own that
+answers the same way (`GET <url>/<ip>/json/` returning `city` and
+`country_name`).
+
 Private addresses are never sent, and are recorded as `localhost`,
 `development`. Seeing that in a deployed sign-in log means the address reaching
 auth-service is a proxy's, not the client's.
+
+### Internal calls
+
+The HTTP services call graph-grpc-service, file-grpc-service and
+mail-grpc-service over gRPC. Those calls use mutual TLS: they are encrypted,
+and each side presents a certificate signed by the installation's own
+certificate authority. A caller without one is refused.
+
+| Variable | Used by | Value |
+| --- | --- | --- |
+| `GRPC_TLS` | all | `on` or `off`. Unset means `on`, except with `ENV=dev`. `docker-compose.yml` sets `on` |
+| `GRPC_TLS_DIR` | all | The directory holding `tls.crt`, `tls.key` and `ca.crt`. Default `/run/secrets/grpc` |
+
+- **In docker-compose** `scripts/grpc-certs-init.sh` makes a development
+  authority and one certificate in `./grpc-certs`, which every service
+  mounts. `make up` and `make up_build` run it.
+- **On Kubernetes** cert-manager issues a certificate per gRPC service and
+  one for the callers: see [Deploying](deploying.md#certificates-between-the-services).
+- **Renewal needs no restart.** A service looks at the files at most once a
+  minute and uses a replaced certificate or authority from then on.
+- **With `on` and no certificates,** a gRPC service refuses to start and a
+  caller refuses to call. Nothing falls back to plain text.
+- **`off`** is for an installation where a service mesh such as Linkerd
+  encrypts and authenticates these calls instead.
+
+The server's certificate must name the host that was dialled, so the names in
+`FILE_SERVICE_ADDR`, `GRAPH_SERVICE_ADDR` and `MAIL_SERVICE_ADDR` have to be
+on the certificates.
+
+A service written in another language joins in by loading the same three
+files in its gRPC library: present `tls.crt` and `tls.key`, trust `ca.crt`,
+and, for a server, require a client certificate.
 
 ## Site identity
 
@@ -97,21 +142,98 @@ Read by auth-service.
 | `OAUTH_SEED_CLIENT_PATH` | First-party clients seeded at first boot. See [Seeding clients](oauth.md#seeding-clients) |
 | `OAUTH_KEY_LIFETIME_DAYS` | Optional, not in `docker-compose.yml`. Signing key rotation, default `90` |
 | `CRYPT_BACKEND` | Encryption of secrets at rest: `local` (default) or `kms` |
-| `CRYPT_LOCAL_KEY` | Key for `local` |
-| `AWS_KMS_KEY_ID` | Key for `kms`; also used by file-grpc-service |
+| `CRYPT_LOCAL_KEY` | Key for `local`: exactly 32 characters. Keep it out of the database and its backups |
+| `AWS_KMS_KEY_ID` | Key for `kms` |
+| `CRYPT_KMS_REGION` | Region of that KMS key. Optional: defaults to the AWS region in the environment (`AWS_DEFAULT_REGION`) |
 | `MAX_DB_CONNECTIONS` | Optional database pool size |
+
+**What is encrypted at rest.** Two-factor (TOTP) secrets, and the private half
+of a locally stored token signing key. Both use `CRYPT_BACKEND`. With the
+signing key sealed, reading the database is not enough to mint tokens: the
+reader also needs `CRYPT_LOCAL_KEY` (or access to the KMS key).
+
+A signing key written by a version that stored it in the clear is sealed the
+first time auth-service starts, and the log says how many were.
+
+**If `CRYPT_LOCAL_KEY` changes or is lost,** auth-service cannot open the
+signing key and refuses to start, and existing TOTP secrets become unreadable.
+To recover sign-in, delete the rows in `oauth_signing_keys` and restart: a new
+key is created, and everybody signs in again. People with two-factor turned on
+need it reset by an administrator.
 
 ## Storage
 
-Read by file-grpc-service (and auth-service for AWS credentials).
+Read by file-grpc-service. Uploaded files (avatars, covers, photos) go to an
+object store that speaks the S3 API: AWS S3, another provider's, or one you
+run yourself such as [Garage](https://garagehq.deuxfleurs.fr/). There is no
+option to store files on the local disk.
 
 | Variable | Value |
 | --- | --- |
-| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | AWS credentials |
-| `AWS_DEFAULT_REGION` | Region, passed to file-grpc-service as `AWS_REGION` |
-| `AWS_PROFILE` | Optional named profile |
-| `AWS_FILES_S3_BUCKET` | Bucket for uploaded files |
-| `AWS_FILES_S3_ASSETS_DIR` | Directory inside the bucket |
+| `STORAGE_ENDPOINT` | Where file-grpc-service reaches the store, e.g. `https://s3.gra.io.cloud.ovh.net` or `http://garage:3900`. **Leave empty for AWS S3**, whose address follows from the region |
+| `STORAGE_PUBLIC_ENDPOINT` | The address written into the links browsers load files from. Set it when it differs from `STORAGE_ENDPOINT`, which it does whenever the store is reached by an internal name. Defaults to `STORAGE_ENDPOINT` |
+| `STORAGE_REGION` | The region requests are signed for. A store without regions still expects one: use whatever it is configured with (Garage: `garage`) |
+| `STORAGE_BUCKET` | The bucket. It must exist and be private |
+| `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY` | Credentials. Leave both empty on AWS to use a role or profile |
+| `STORAGE_PATH_STYLE` | `true` to address files as `endpoint/bucket/key` rather than `bucket.endpoint/key`. Self-hosted stores usually need it. Default `false` |
+| `STORAGE_SSE` | `AES256` to ask the store to encrypt each file at rest, or `none`. Default `AES256` on AWS, `none` when `STORAGE_ENDPOINT` is set |
+| `STORAGE_SEND_ACL` | `true` to mark each upload private with an ACL header. Default `true` on AWS, `false` when `STORAGE_ENDPOINT` is set |
+| `STORAGE_ALLOWED_TYPES` | Comma-separated content types that may be stored. Default `image/jpeg,image/png` |
+
+The two headers default to off for other stores because a store that does not
+implement one refuses the upload. Turn them on if yours supports them.
+
+**What may be stored.** file-grpc-service looks at the bytes of every upload,
+ignores the type the caller declared, and stores only what is on the allowed
+list, under its real type. An HTML page or an SVG named `photo.png` is refused.
+A store serves a file back with the type it was given, and a browser acts on
+that type, so this is what keeps an upload from running script.
+
+**Links expire.** Files are private. Each link handed to a browser is signed
+and valid for 15 minutes.
+
+### Earlier AWS names
+
+Before the `STORAGE_*` names existed, the same settings were read from
+`AWS_DEFAULT_REGION`, `AWS_FILES_S3_BUCKET`, `AWS_ACCESS_KEY_ID` and
+`AWS_SECRET_ACCESS_KEY`. They still work when the `STORAGE_*` one is unset, so
+an installation on AWS S3 needs no change. `AWS_FILES_S3_ASSETS_DIR` was
+required but never used, and is no longer read.
+
+`AWS_PROFILE`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and
+`AWS_DEFAULT_REGION` are also read by auth-service when `CRYPT_BACKEND` or
+`OAUTH_SIGNER_BACKEND` is `kms`.
+
+### Tested stores
+
+| Store | Settings beyond bucket and keys | Result |
+| --- | --- | --- |
+| AWS S3 | none (`STORAGE_ENDPOINT` empty) | In use by the reference installation |
+| Garage 2.1 | `STORAGE_ENDPOINT`, `STORAGE_REGION=garage`, `STORAGE_PATH_STYLE=true` | Passes the storage test. Also accepts uploads sent with `STORAGE_SSE=AES256` and `STORAGE_SEND_ACL=true` |
+
+To check another store, point the `STORAGE_TEST_*` variables at a bucket on it
+and run the test in `file-grpc-service/data/services`
+(see `storage_integration_test.go` for the variables):
+
+~~~sh
+cd file-grpc-service && STORAGE_TEST_ENDPOINT=https://… go test ./data/services/ -run Real -v
+~~~
+
+## Places
+
+Read by location-service. An address is turned into coordinates by Photon
+first, then Nominatim, both open-source geocoders built on OpenStreetMap.
+
+| Variable | Value |
+| --- | --- |
+| `GEOCODER_PHOTON_URL` | Where Photon is reached. Default: the public `https://photon.komoot.io`. `off` leaves it out |
+| `GEOCODER_NOMINATIM_URL` | Where Nominatim is reached. Default: the public `https://nominatim.openstreetmap.org`. `off` leaves it out |
+| `GEOCODER_CONTACT` | An email address or URL for whoever runs this installation, sent to the geocoders in the `User-Agent`. The public Nominatim's usage policy asks for one |
+
+The public instances are shared services with strict limits, and they see every
+address a member types. Both can be self-hosted; point the variables at your
+own. At least one has to stay on, because a place cannot be saved without
+coordinates.
 
 ## Mail
 
@@ -132,4 +254,7 @@ SES's relay, Postmark, an internal MTA, or a local sink such as
 Service addresses (`MAIL_SERVICE_ADDR`, `FILE_SERVICE_ADDR`,
 `GRAPH_SERVICE_ADDR`) and the defaults directories (`DEFAULTS_PATH`,
 `ACTOR_FEATURES_PATH`) are set in `docker-compose.yml` itself and need no
-entry in `.env`.
+entry in `.env`. The two directories default to `/app/defaults` and
+`/app/defaults/actor_features`, where the images keep their copies;
+docker-compose points them at the working tree so an edit shows without a
+rebuild.

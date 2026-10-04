@@ -259,9 +259,9 @@ func (h *signupHandler) Add(c echo.Context) error {
 		log.Printf("signup: refused as automated (%s)", signal)
 
 		if signal == "honeypot" {
-			return h.renderTemplate(c, "signup_confirm_sent.html", map[string]any{
-				"Email": req.Email,
-			})
+			// The same redirect a real signup gets, to a page waiting for
+			// a code that was never sent.
+			return h.awaitConfirmation(c, req.Email, 0)
 		}
 
 		return h.renderSignupError(c,
@@ -376,54 +376,17 @@ func (h *signupHandler) Add(c echo.Context) error {
 	// the confirmation step decorative — the thing it must never be, since it
 	// is the cheapest bot filter there is and the address is what password
 	// reset delivers to.
-	if err := h.sendConfirmation(user); err != nil {
+	tokenID, err := h.sendConfirmationCode(user.Email, user.ID, user.Alias)
+	if err != nil {
 		log.Println("signup: could not send the confirmation:", err)
 		// The account exists. Saying otherwise would send somebody back to a
 		// form that will now refuse them for a duplicate.
 		return h.renderError(c, "Check Your Email",
 			"Your account was created, but we could not send the confirmation "+
-				"email. Please use the resend link on the sign-in page.")
+				"email. Please ask for a new code from the sign-in page.")
 	}
 
-	return h.renderTemplate(c, "signup_confirm_sent.html", map[string]any{
-		"Email": user.Email,
-	})
-}
-
-// sendConfirmation issues a confirmation token and mails the link.
-//
-// Shared by signup and by the resend endpoint, so the two cannot diverge on
-// the token type, its lifetime, or what happens to an earlier one.
-func (h *signupHandler) sendConfirmation(user *entities.User) error {
-	// Retire any earlier link first. Re-sending would otherwise leave one live
-	// token per attempt, each good for a day — and a confirmation link is a
-	// way into an account that has no password check in front of it.
-	if _, err := h.Repos.Tokens.InvalidateOutstanding(
-		constants.TokenTypeSignupConfirm, user.Email,
-	); err != nil {
-		log.Println("signup: retiring earlier confirmations failed:", err)
-	}
-
-	token := entities.NewToken()
-	token.Type = constants.TokenTypeSignupConfirm
-	token.Status = constants.TokenStatusPending
-	token.RecipientEmail = user.Email
-	token.ExpiredAfter = constants.TokenExpiryTime
-	token.IsUsed = false
-	token.CreatedAt = time.Now()
-	token.CreatedBy = user.ID
-	token.UpdatedAt = time.Now()
-	token.UpdatedBy = user.ID
-
-	if err := token.GenerateToken(); err != nil {
-		return fmt.Errorf("generate the confirmation token: %w", err)
-	}
-
-	if _, err := h.Repos.Tokens.Add(token); err != nil {
-		return fmt.Errorf("store the confirmation token: %w", err)
-	}
-
-	return h.Notif.Signup.EmailConfirm(user, token)
+	return h.awaitConfirmation(c, user.Email, tokenID)
 }
 
 // writeSignupSession mints the IdP session for a freshly created account.
@@ -529,159 +492,7 @@ func (h *signupHandler) renderSignupError(c echo.Context, message string) error 
 	})
 }
 
-// ---------------------------------------------------------------------
-// Email confirmation
-// ---------------------------------------------------------------------
-
-// Confirm spends a confirmation token and marks the address verified.
-//
-//	GET /signup/confirm?token=...
-//
-// A GET that changes state, which is a deliberate exception: the person
-// arrives by clicking a link in their mail client, and there is no form to
-// post from. The token is single-use and carries its own entropy, so the
-// usual objection — that a GET can be triggered by anything that can make the
-// browser fetch a URL — costs an attacker a token they would have to have
-// stolen from the mailbox first, at which point they have the account anyway.
-func (h *signupHandler) Confirm(c echo.Context) error {
-	tokenBody := c.QueryParam("token")
-	if tokenBody == "" {
-		return h.renderError(c, "Invalid Link",
-			"This confirmation link is not valid. Please request a new one "+
-				"from the sign-in page.")
-	}
-
-	token, err := h.Repos.Tokens.ReadByBody(tokenBody)
-	if err != nil {
-		log.Println("signup confirm:", err)
-		return h.renderError(c, "Invalid Link",
-			"This confirmation link is not valid. Please request a new one "+
-				"from the sign-in page.")
-	}
-
-	if token.Type != constants.TokenTypeSignupConfirm {
-		return h.renderError(c, "Invalid Link",
-			"This link is not valid for confirming an email address.")
-	}
-
-	// A signup request, or an account? The same token type serves both, because
-	// it proves the same thing — what differs is what confirming leads to.
-	//
-	// Requests are checked first: in `approval` mode there is no account to
-	// find, and looking for one would answer "account not found" to somebody
-	// whose request is sitting right there.
-	if sr, err := h.Repos.SignupRequests.ReadByEmail(token.RecipientEmail); err == nil && sr != nil {
-		return h.confirmSignupRequest(c, sr, token)
-	} else if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		log.Println("signup confirm: signup request lookup failed:", err)
-	}
-
-	user, err := h.Repos.Users.ReadByEmail(token.RecipientEmail)
-	if err != nil || user == nil {
-		log.Println("signup confirm: account lookup failed:", err)
-		return h.renderError(c, "Account Not Found",
-			"We could not find an account for this confirmation link.")
-	}
-
-	// Already done is a SUCCESS, not an error, and it is the common case:
-	// mail clients prefetch links, people click twice, and a second visit
-	// should land somewhere that says "you're confirmed" rather than
-	// "this link has been used" — which reads as a failure for something
-	// that worked.
-	if user.IsEmailVerified() {
-		return h.renderTemplate(c, "signup_confirm_success.html", map[string]any{
-			"Email": user.Email,
-		})
-	}
-
-	switch token.Status {
-	case constants.TokenStatusUsed:
-		return h.renderError(c, "Link Already Used",
-			"This confirmation link has already been used. Please request a "+
-				"new one from the sign-in page.")
-	case constants.TokenStatusExpired:
-		return h.renderError(c, "Link Expired",
-			"This confirmation link has expired. Please request a new one "+
-				"from the sign-in page.")
-	}
-
-	if err := h.Repos.Users.MarkEmailVerified(user.ID); err != nil {
-		log.Println("signup confirm: could not mark verified:", err)
-		return h.renderError(c, "Something Went Wrong",
-			"We could not confirm your address. Please try the link again.")
-	}
-
-	// Consume the token. Logged rather than fatal if it fails: the address is
-	// already verified, and refusing here would tell somebody their
-	// confirmation had not worked when it had.
-	token.IsUsed = true
-	token.UpdatedAt = time.Now()
-	token.UpdatedBy = user.ID
-	if _, err := h.Repos.Tokens.Edit(token); err != nil {
-		log.Printf("signup confirm: could not consume token %d: %v", token.ID, err)
-	}
-
-	// The welcome, now that there is something to welcome them to.
-	welcomeUser := *user
-	go func() {
-		if err := h.Notif.Signup.EmailSignup(&welcomeUser); err != nil {
-			log.Println("signup confirm: welcome email failed:", err)
-		}
-	}()
-
-	return h.renderTemplate(c, "signup_confirm_success.html", map[string]any{
-		"Email": user.Email,
-	})
-}
-
-// ResendForm renders the "send me another confirmation" form.
-//
-//	GET /signup/confirm/resend
-func (h *signupHandler) ResendForm(c echo.Context) error {
-	return h.renderTemplate(c, "signup_confirm_resend.html", map[string]any{})
-}
-
-// Resend issues a fresh confirmation link.
-//
-//	POST /signup/confirm/resend
-//
-// Answers identically whether or not the address has an account, for the same
-// reason forgot-password does: this is an unauthenticated endpoint that sends
-// mail, so a visibly different response would make it a way to ask whether
-// somebody is a member.
-func (h *signupHandler) Resend(c echo.Context) error {
-	req := &requests.PasswordForgot{}
-	if err := c.Bind(req); err != nil || c.Validate(req) != nil {
-		return h.renderTemplate(c, "signup_confirm_resend.html", map[string]any{
-			"Error": "Please enter a valid email address.",
-			"Email": req.Email,
-		})
-	}
-
-	// Throttled before the lookup, so probing costs the same either way.
-	throttled := h.rateLimitExceeded(rateLimitScopeSignupConfirm, req.Email) ||
-		h.rateLimitExceeded(rateLimitScopePasswordIP, getClientIP(c))
-
-	if !throttled {
-		user, err := h.Repos.Users.ReadByEmail(req.Email)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			log.Println("signup resend: lookup failed:", err)
-		}
-
-		// Nothing to do for an address that is already confirmed. Sending a
-		// confirmation to somebody who does not need one is a way to have
-		// this endpoint mail any member on demand.
-		if user != nil && !user.IsEmailVerified() {
-			if err := h.sendConfirmation(user); err != nil {
-				log.Println("signup resend:", err)
-			}
-		}
-	}
-
-	return h.renderTemplate(c, "signup_confirm_sent.html", map[string]any{
-		"Email": req.Email,
-	})
-}
+// Email confirmation is in signup_confirm.go.
 
 // ---------------------------------------------------------------------
 // The approval queue
@@ -760,119 +571,14 @@ func (h *signupHandler) addSignupRequest(
 	// Otherwise administrators moderate entries nobody can even receive mail
 	// at — which is the work the queue exists to avoid, and the cheapest thing
 	// a spam wave can generate.
-	if err := h.sendSignupRequestConfirmation(stored); err != nil {
+	tokenID, err := h.sendConfirmationCode(stored.Email, 0, stored.Username)
+	if err != nil {
 		log.Println("signup: could not send the signup request confirmation:", err)
 		return h.renderError(c, "Check Your Email",
 			"Your request was received, but we could not send the "+
-				"confirmation email. Please use the resend link on the "+
+				"confirmation email. Please ask for a new code from the "+
 				"sign-in page.")
 	}
 
-	return h.renderTemplate(c, "signup_request_sent.html", map[string]any{
-		"Email": stored.Email,
-	})
-}
-
-// sendSignupRequestConfirmation issues the token that moves a request into the
-// queue.
-//
-// The same token type signup uses, because it does the same job — proving the
-// address is real. What differs is what confirming leads to: an account there,
-// a place in the queue here.
-func (h *signupHandler) sendSignupRequestConfirmation(
-	sr *entities.SignupRequest,
-) error {
-	if _, err := h.Repos.Tokens.InvalidateOutstanding(
-		constants.TokenTypeSignupConfirm, sr.Email,
-	); err != nil {
-		log.Println("signup: retiring earlier confirmations failed:", err)
-	}
-
-	token := entities.NewToken()
-	token.Type = constants.TokenTypeSignupConfirm
-	token.Status = constants.TokenStatusPending
-	token.RecipientEmail = sr.Email
-	token.ExpiredAfter = constants.TokenExpiryTime
-	token.IsUsed = false
-	token.CreatedAt = time.Now()
-	token.UpdatedAt = time.Now()
-
-	if err := token.GenerateToken(); err != nil {
-		return fmt.Errorf("generate the confirmation token: %w", err)
-	}
-
-	if _, err := h.Repos.Tokens.Add(token); err != nil {
-		return fmt.Errorf("store the confirmation token: %w", err)
-	}
-
-	// A stand-in user, because the mail only needs a name and an address and a
-	// signup request has both. Building one here rather than giving the
-	// notifier a second signature keeps one template and one code path.
-	recipient := entities.NewUser()
-	recipient.Alias = sr.Username
-	recipient.Name = sr.Name
-	recipient.Email = sr.Email
-
-	return h.Notif.Signup.EmailConfirm(recipient, token)
-}
-
-// confirmSignupRequest moves a verified request into the queue.
-//
-// Split out because the ending differs from an account's: there is nobody to
-// sign in and nothing to welcome them to yet — the honest thing to say is that
-// they are now waiting on a person.
-func (h *signupHandler) confirmSignupRequest(
-	c echo.Context,
-	sr *entities.SignupRequest,
-	token *entities.Token,
-) error {
-	// Already decided. Says so rather than pretending the link worked:
-	// somebody who was rejected a week ago and clicks an old link should not
-	// be told they are in a queue they are not in.
-	if sr.IsDecided() {
-		return h.renderError(c, "Already Reviewed",
-			"This request has already been reviewed. If you believe that "+
-				"is a mistake, please contact the site administrators.")
-	}
-
-	if sr.IsEmailVerified() {
-		return h.renderTemplate(c, "signup_request_sent.html", map[string]any{
-			"Email":    sr.Email,
-			"Verified": true,
-		})
-	}
-
-	if token.Status != constants.TokenStatusPending {
-		return h.renderError(c, "Link No Longer Valid",
-			"This confirmation link has been used or has expired. Please "+
-				"request a new one from the sign-in page.")
-	}
-
-	if err := h.Repos.SignupRequests.MarkEmailVerified(sr.ID); err != nil {
-		log.Println("signup confirm: could not verify the signup request:", err)
-		return h.renderError(c, "Something Went Wrong",
-			"We could not confirm your address. Please try the link again.")
-	}
-
-	token.IsUsed = true
-	token.UpdatedAt = time.Now()
-	if _, err := h.Repos.Tokens.Edit(token); err != nil {
-		log.Printf("signup confirm: could not consume token %d: %v", token.ID, err)
-	}
-
-	// Tell the administrators there is something to do. Fire-and-forget: a
-	// request that reached the queue has reached it whether or not the
-	// notification lands, and failing the confirmation would make the person
-	// pay for the mail service being down.
-	notifyRequest := *sr
-	go func() {
-		if err := h.Notif.Signup.EmailSignupRequestReceived(&notifyRequest); err != nil {
-			log.Println("signup confirm: notifying administrators failed:", err)
-		}
-	}()
-
-	return h.renderTemplate(c, "signup_request_sent.html", map[string]any{
-		"Email":    sr.Email,
-		"Verified": true,
-	})
+	return h.awaitConfirmation(c, stored.Email, tokenID)
 }

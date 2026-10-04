@@ -1,0 +1,27 @@
+# Garage, the object store docker-compose runs for local development.
+#
+# DEVELOPMENT ONLY. The two secrets below are published in this repository.
+# They guard a store that listens on localhost and holds test uploads. For a
+# real installation write your own file: see docs/configuration.md, Storage.
+#
+# One node, one copy of everything, SQLite for metadata: the smallest thing
+# that speaks the S3 API. https://garagehq.deuxfleurs.fr/documentation/
+
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "sqlite"
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+rpc_secret = "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90"
+
+[s3_api]
+# Garage has no regions, but every S3 request is signed for one, so a name
+# has to be agreed. STORAGE_REGION must match it.
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+
+[admin]
+api_bind_addr = "[::]:3903"
+admin_token = "anahita-dev-only-admin-token"

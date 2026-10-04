@@ -25,6 +25,35 @@ The web app is a separate repository, `anahita-react`, with its own README.
 
 Create a `.env` file at the project root. Every variable is described in [Configuration](configuration.md).
 
+### Storage for uploads
+
+docker-compose runs [Garage](https://garagehq.deuxfleurs.fr/), a small
+S3-compatible object store, so no cloud account is needed. Add these lines to
+`.env` to use it:
+
+~~~sh
+STORAGE_ENDPOINT=http://garage:3900
+STORAGE_PUBLIC_ENDPOINT=http://localhost:3900
+STORAGE_REGION=garage
+STORAGE_BUCKET=anahita
+STORAGE_ACCESS_KEY=GKa0b1c2d3e4f5a6b7c8d9e0f1
+STORAGE_SECRET_KEY=a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1
+STORAGE_PATH_STYLE=true
+~~~
+
+`make up` and `make up_build` prepare the store on first start (the bucket and
+that access key) by running `scripts/storage-init.sh`, which is safe to repeat.
+Its files are kept in `db-data/garage/`.
+
+The key is published here and in the script, and Garage's own configuration
+(`garage/garage.toml`) holds published secrets too. All of it is for local
+development only.
+
+To use AWS S3 or another provider instead, see
+[Configuration › Storage](configuration.md#storage). Moving files from one
+store to another is a job for [rclone](https://rclone.org/): `rclone sync`
+between two S3 remotes copies a bucket as it is.
+
 ## Starting
 
 From the root of the project:
@@ -43,6 +72,12 @@ make down
 The API is then at `http://localhost:80`. The front end lives in a separate
 repository (`anahita-react`) and runs at `http://localhost:3000`, which is
 the origin nginx allows for CORS.
+
+Start with `make`, not with `docker-compose up` directly. The services talk
+to each other over mutual TLS, and `make up` and `make up_build` first create
+the development certificates in `./grpc-certs` (`scripts/grpc-certs-init.sh`).
+Without them the services stop at start-up and say so. See
+[Internal calls](configuration.md#internal-calls).
 
 ## First run
 
@@ -90,7 +125,7 @@ make test
 
 Run `make help` for the full list, which also covers Docker Hub publishing
 (`build_dockerfiles`, `push_dockerfiles`), Swarm (`swarm_up`,
-`swarm_down`), and Kubernetes/Minikube (`k8s-build`, `k8s-deploy`,
-`k8s-build-deploy`, `k8s-cleanup`, `minikube-cleanup`). Manifests are in
-`k8s/`, ordered by filename prefix: config and secrets, then backing
-services, then gRPC services, then HTTP services, then the ingress.
+`swarm_down`), and a local Kubernetes cluster (`k8s-start`, `k8s-build`,
+`k8s-deploy`, `k8s-cleanup`). The manifests are in `k8s/`, and
+[Deploying](deploying.md) covers them, for live sites and for trying them
+locally.

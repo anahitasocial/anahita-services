@@ -1,0 +1,127 @@
+{{define "title"}}Enter Your Code{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Enter your code</h2>
+
+    {{/*
+        "If an account matches", always. This page is shown whether or not
+        anything was sent, and must read the same both ways. It repeats what
+        was typed, never the address the code went to.
+    */}}
+    <p>
+        If an account matches <strong>{{.Identifier}}</strong>, we have
+        emailed it a 6-digit code. It expires in 10 minutes.
+    </p>
+
+    {{if .Error}}
+    <div class="error-message" role="alert">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/oauth/login/code/verify" id="verify-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        <div class="text-field">
+            <input
+                type="text"
+                id="code"
+                name="code"
+                class="code-input"
+                placeholder=" "
+                required
+                autocomplete="one-time-code"
+                inputmode="numeric"
+                pattern="[0-9]{6}"
+                maxlength="6"
+                autofocus
+            >
+            <label for="code">6-digit code</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="verify-submit">Sign in</button>
+    </form>
+
+    <form method="POST" action="/oauth/login/code/resend" class="resend-form">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <p class="text-center">
+            Nothing arrived? Check your spam folder, or
+            <button type="submit" class="link-button">send a new code</button>.
+        </p>
+    </form>
+
+    <hr class="divider">
+
+    <p class="text-center">
+        <a href="/oauth/login" class="text-link">Use your password instead</a>
+    </p>
+
+    <p class="footer-text">
+        <a href="{{.FrontendURL}}" class="text-link">Cancel and return to {{.SiteName}}</a>
+    </p>
+</div>
+
+<style>
+    .resend-form {
+        margin-top: 24px;
+    }
+
+    /* A button, because sending a message must be a POST, drawn as the link
+     * it sits among. */
+    .link-button {
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
+        color: var(--mui-primary-main);
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .link-button:hover,
+    .link-button:focus-visible {
+        text-decoration: underline;
+    }
+</style>
+
+<script>
+    // Strip non-digits, submit when the sixth arrives, and lock the form
+    // while a submission is in flight. The same behaviour as the two-factor
+    // page, for the same reasons. Everything works without it.
+    (function () {
+        var input = document.getElementById('code');
+        var form  = document.getElementById('verify-form');
+        var btn   = document.getElementById('verify-submit');
+        if (!input || !form || !btn) return;
+
+        var submitted = false;
+
+        function lockUI() {
+            input.readOnly = true;
+            btn.disabled = true;
+            btn.textContent = 'Signing in…';
+        }
+
+        input.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '');
+            if (this.value.length === 6 && !submitted) {
+                submitted = true;
+                lockUI();
+                form.submit();
+            }
+        });
+
+        form.addEventListener('submit', function (e) {
+            if (submitted) {
+                e.preventDefault();
+                return;
+            }
+            submitted = true;
+            lockUI();
+        });
+    })();
+</script>
+{{end}}

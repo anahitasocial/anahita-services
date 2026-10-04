@@ -2,13 +2,13 @@ package services
 
 import (
 	"anahita-libs/data/entities"
+	"anahita-libs/grpctls"
 	"anahita-libs/proto/filepb"
 	"context"
 	"log"
 	"time"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 var filesGRPCConnectCounts int
@@ -56,7 +56,11 @@ type FilesGRPC struct {
 // getClient returns the grpc client
 func (srv *FilesGRPC) getClient() (filepb.FileServiceClient, error) {
 	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	transport, err := grpctls.DialOption()
+	if err != nil {
+		return nil, err
+	}
+	opts = append(opts, transport)
 	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
 
 	for {

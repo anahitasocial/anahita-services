@@ -24,6 +24,5 @@ type EmailChangeEdit struct {
 // cannot reach. Asking them to type it while looking at it costs one
 // field and removes the lockout.
 type EmailChangeConfirm struct {
-	Token string `form:"token" validate:"required,len=128"`
-	Email string `form:"email" validate:"required,email,min=10,max=100"`
+	Code string `json:"code"`
 }

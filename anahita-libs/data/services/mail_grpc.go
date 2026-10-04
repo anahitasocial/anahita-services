@@ -1,6 +1,7 @@
 package services
 
 import (
+	"anahita-libs/grpctls"
 	"context"
 	"encoding/json"
 	"log"
@@ -9,7 +10,6 @@ import (
 	"anahita-libs/proto/mailpb"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 // mailsGRPCMaxConnectAttempts bounds the dial retries for ONE call. It replaces
@@ -44,7 +44,11 @@ type MailGRPC struct {
 // getClient returns the grpc client
 func (srv *MailGRPC) getClient() (mailpb.MailServiceClient, error) {
 	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	transport, err := grpctls.DialOption()
+	if err != nil {
+		return nil, err
+	}
+	opts = append(opts, transport)
 	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
 
 	// Attempts are counted PER CALL, not for the lifetime of the process.

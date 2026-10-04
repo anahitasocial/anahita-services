@@ -17,24 +17,6 @@ func TestServerRenderedTemplatesParseAndExecute(t *testing.T) {
 		name string
 		data map[string]any
 	}{
-		{"email_change_confirm.html", map[string]any{
-			"Token":    "abc",
-			"NewEmail": "new@example.com",
-			"Error":    "",
-		}},
-		{"email_change_confirm.html", map[string]any{
-			"Token":    "abc",
-			"NewEmail": "new@example.com",
-			"Error":    "That does not match.",
-		}},
-		{"email_change_success.html", map[string]any{
-			"NewEmail":    "new@example.com",
-			"FrontendURL": "https://example.com",
-		}},
-		// The restore pages are reached only by somebody who deleted their
-		// account and changed their mind — a path nobody walks by accident, so
-		// a broken template there would sit undiscovered until it mattered
-		// most.
 		{"account_restore.html", map[string]any{
 			"PurgeDate": "3 October 2026",
 		}},
@@ -44,6 +26,34 @@ func TestServerRenderedTemplatesParseAndExecute(t *testing.T) {
 			"PurgeDate": "",
 		}},
 		{"account_restore_success.html", map[string]any{}},
+		{"signup_confirm_code.html", map[string]any{"CSRFToken": "t", "Email": "ada@example.com"}},
+		{"signup_confirm_code.html", map[string]any{
+			"CSRFToken": "t",
+			"Email":     "ada@example.com",
+			"Error":     "That code is not correct.",
+		}},
+		{"signup_confirm_resend.html", map[string]any{"CSRFToken": "t"}},
+		{"signup_confirm_success.html", map[string]any{"Email": "ada@example.com"}},
+		{"signup_request_sent.html", map[string]any{"Email": "ada@example.com"}},
+		{"login_code.html", map[string]any{"CSRFToken": "t", "FrontendURL": "https://example.com"}},
+		{"login_code.html", map[string]any{
+			"CSRFToken": "t",
+			"Error":     "That code is no longer valid. Please request a new one.",
+			"Hint":      "Enter the email address or username for your account.",
+		}},
+		{"login_code_method.html", map[string]any{
+			"CSRFToken": "t",
+			"Channels":  []string{"email", "sms"},
+		}},
+		{"login_code_verify.html", map[string]any{
+			"CSRFToken":  "t",
+			"Identifier": "ada@example.com",
+		}},
+		{"login_code_verify.html", map[string]any{
+			"CSRFToken":  "t",
+			"Identifier": "ada",
+			"Error":      "That code is not correct. 2 tries left.",
+		}},
 		// The forgot/reset pages. These are the account-recovery path: nobody
 		// walks it on a good day, and a page that fails to execute returns a
 		// 500 carrying a Go template error to somebody who is already locked
@@ -53,7 +63,12 @@ func TestServerRenderedTemplatesParseAndExecute(t *testing.T) {
 			"Error": "Please enter a valid email address.",
 			"Email": "ada@example.com",
 		}},
-		{"password_forgot_sent.html", map[string]any{"Email": "ada@example.com"}},
+		{"password_reset_code.html", map[string]any{"CSRFToken": "t", "Email": "ada@example.com"}},
+		{"password_reset_code.html", map[string]any{
+			"CSRFToken": "t",
+			"Email":     "ada@example.com",
+			"Error":     "That code is not correct. 1 try left.",
+		}},
 		{"password_reset.html", map[string]any{"Token": "abc"}},
 		{"password_reset.html", map[string]any{
 			"Token": "abc",

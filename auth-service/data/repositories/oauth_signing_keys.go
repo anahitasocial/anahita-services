@@ -227,6 +227,24 @@ func (repo *oauthSigningKeys) Delete(id int64) error {
 	return err
 }
 
+// EditPrivateKey replaces the stored private key of one row, and nothing
+// else. It exists for one job: sealing a key that was stored in the clear.
+func (repo *oauthSigningKeys) EditPrivateKey(id int64, privateKey string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	q, args, err := repo.sb.Update("oauth_signing_keys").
+		Set("private_key", privateKey).
+		Where(sq.Eq{"id": id}).
+		ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = repo.db.ExecContext(ctx, q, args...)
+	return err
+}
+
 // DeleteExpired removes keys that are both inactive and past their
 // expires_at. Intended for periodic cleanup. Returns rows deleted.
 func (repo *oauthSigningKeys) DeleteExpired() (int64, error) {

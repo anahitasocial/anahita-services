@@ -1,0 +1,123 @@
+{{define "title"}}Confirm your email{{end}}
+
+{{define "content"}}
+<div class="card">
+    {{template "logo" .}}
+
+    <hr class="divider">
+
+    <h2>Confirm your email</h2>
+
+    {{/*
+        "If", always. This page is shown whether or not a code went out: an
+        address that needs no confirming, or that nobody signed up with, gets
+        the same page as one that does.
+    */}}
+    <p>
+        If <strong>{{.Email}}</strong> is waiting to be confirmed, we have
+        emailed it a 6-digit code. It expires in 15 minutes.
+    </p>
+
+    {{if .Error}}
+    <div class="error-message" role="alert">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/signup/confirm" id="verify-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        <div class="text-field">
+            <input
+                type="text"
+                id="code"
+                name="code"
+                class="code-input"
+                placeholder=" "
+                required
+                autocomplete="one-time-code"
+                inputmode="numeric"
+                pattern="[0-9]{6}"
+                maxlength="6"
+                autofocus
+            >
+            <label for="code">6-digit code</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="verify-submit">Confirm</button>
+    </form>
+
+    <!-- Said plainly rather than left to be discovered at the sign-in form.
+         Somebody who closes this page believing the account is ready comes
+         back later, is refused, and has no idea why. -->
+    <div class="notice">
+        <p>You won't be able to sign in until your address is confirmed.</p>
+    </div>
+
+    <form method="POST" action="/signup/confirm/resend" class="resend-form">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <p class="text-center">
+            Nothing arrived? Check your spam folder, or
+            <button type="submit" class="link-button">send a new code</button>.
+        </p>
+    </form>
+</div>
+
+<style>
+    .resend-form {
+        margin-top: 24px;
+    }
+
+    /* A button, because sending a message must be a POST, drawn as the link
+     * it sits among. */
+    .link-button {
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
+        color: var(--mui-primary-main);
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .link-button:hover,
+    .link-button:focus-visible {
+        text-decoration: underline;
+    }
+</style>
+
+<script>
+    // Strip non-digits, submit when the sixth arrives, and lock the form
+    // while a submission is in flight. Everything works without it.
+    (function () {
+        var input = document.getElementById('code');
+        var form  = document.getElementById('verify-form');
+        var btn   = document.getElementById('verify-submit');
+        if (!input || !form || !btn) return;
+
+        var submitted = false;
+
+        function lockUI() {
+            input.readOnly = true;
+            btn.disabled = true;
+            btn.textContent = 'Confirming…';
+        }
+
+        input.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '');
+            if (this.value.length === 6 && !submitted) {
+                submitted = true;
+                lockUI();
+                form.submit();
+            }
+        });
+
+        form.addEventListener('submit', function (e) {
+            if (submitted) {
+                e.preventDefault();
+                return;
+            }
+            submitted = true;
+            lockUI();
+        });
+    })();
+</script>
+{{end}}

@@ -4,7 +4,8 @@ package requests
 // form. Only an email is required; the response is identical whether or
 // not the email matches a real account (enumeration protection).
 type PasswordForgot struct {
-	Email string `form:"email" validate:"required,email"`
+	Email     string `form:"email" validate:"required,email"`
+	CSRFToken string `form:"csrf_token"`
 }
 
 // PasswordReset is submitted from the new-password form rendered after

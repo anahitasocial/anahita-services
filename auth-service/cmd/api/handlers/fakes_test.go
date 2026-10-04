@@ -10,9 +10,11 @@ import (
 
 	"auth/cmd/api/notifiers"
 	"auth/config"
+	"auth/constants"
 	"auth/data/entities"
 	"auth/data/repositories"
 	"auth/data/services"
+	"auth/requests"
 
 	lib_entities "anahita-libs/data/entities"
 	libservices "anahita-libs/data/services"
@@ -57,6 +59,8 @@ type fakeUsers struct {
 
 	onboardCalls int
 	onboardErr   error
+
+	verifyErr error
 }
 
 func newFakeUsers(users ...*entities.User) *fakeUsers {
@@ -76,6 +80,52 @@ func (f *fakeUsers) ReadByEmail(email string) (*entities.User, error) {
 		return u, nil
 	}
 	return nil, fmt.Errorf("no user for %q", email)
+}
+
+// ReadByEmailOrUsername matches the address or the alias, as the real one does.
+func (f *fakeUsers) ReadByEmailOrUsername(identifier string) (*entities.User, error) {
+	if u, ok := f.byEmail[identifier]; ok {
+		return u, nil
+	}
+	for _, u := range f.byID {
+		if u.Alias != "" && u.Alias == identifier {
+			return u, nil
+		}
+	}
+	return nil, fmt.Errorf("no user for %q", identifier)
+}
+
+// Browse answers "who are the administrators" with nobody, which is all the
+// notifiers that ask need in order not to send.
+func (f *fakeUsers) Browse(*requests.UserBrowseRequest) ([]*entities.User, error) {
+	return nil, nil
+}
+
+func (f *fakeUsers) IsEmail(email string) (bool, error) {
+	_, taken := f.byEmail[strings.ToLower(email)]
+	return taken, nil
+}
+
+// EditEmail moves an account to a new address, as the real one does.
+func (f *fakeUsers) EditEmail(email string, id int64) error {
+	u, ok := f.byID[id]
+	if !ok {
+		return fmt.Errorf("no user for id %d", id)
+	}
+	delete(f.byEmail, u.Email)
+	u.Email = email
+	f.byEmail[email] = u
+	return nil
+}
+
+func (f *fakeUsers) MarkEmailVerified(id int64) error {
+	if f.verifyErr != nil {
+		return f.verifyErr
+	}
+	if u, ok := f.byID[id]; ok {
+		u.MarkEmailVerified()
+	}
+	return nil
 }
 
 func (f *fakeUsers) ReadByID(id int64) (*entities.User, error) {
@@ -127,6 +177,9 @@ type fakeTokens struct {
 	repositories.TokensInterface
 
 	byBody map[string]*entities.Token
+	byID   map[int64]*entities.Token
+
+	mu sync.Mutex
 
 	added       []*entities.Token
 	edited      []*entities.Token
@@ -136,11 +189,77 @@ type fakeTokens struct {
 }
 
 func newFakeTokens(tokens ...*entities.Token) *fakeTokens {
-	f := &fakeTokens{byBody: map[string]*entities.Token{}}
+	f := &fakeTokens{
+		byBody: map[string]*entities.Token{},
+		byID:   map[int64]*entities.Token{},
+	}
 	for _, t := range tokens {
 		f.byBody[t.Body] = t
+		f.byID[t.ID] = t
 	}
 	return f
+}
+
+// ReadByID returns a copy with no code, which is what the real repository
+// returns: the code is never stored, only its hash.
+func (f *fakeTokens) ReadByID(id int64) (*entities.Token, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	t, ok := f.byID[id]
+	if !ok {
+		return nil, fmt.Errorf("no token for id %d", id)
+	}
+	stored := *t
+	stored.Code = ""
+	return &stored, nil
+}
+
+// ReadLiveCode returns the newest unused token of one type for one address.
+func (f *fakeTokens) ReadLiveCode(tokenType, email string) (*entities.Token, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	var newest *entities.Token
+	for _, t := range f.byID {
+		if t.Type == tokenType && t.RecipientEmail == email && !t.IsUsed &&
+			(newest == nil || t.ID > newest.ID) {
+			newest = t
+		}
+	}
+	if newest == nil {
+		return nil, fmt.Errorf("no live %s code for %q", tokenType, email)
+	}
+	stored := *newest
+	stored.Code = ""
+	return &stored, nil
+}
+
+// SpendCodeAttempt and ConsumeCode hold the lock across the check and the
+// write, standing in for the single UPDATE the real repository runs.
+func (f *fakeTokens) SpendCodeAttempt(id int64) (bool, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	t, ok := f.byID[id]
+	if !ok || t.IsUsed || t.CodeAttempts >= constants.OTPMaxAttempts {
+		return false, nil
+	}
+	t.CodeAttempts++
+	return true, nil
+}
+
+func (f *fakeTokens) ConsumeCode(id, personID int64) (bool, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	t, ok := f.byID[id]
+	if !ok || t.IsUsed {
+		return false, nil
+	}
+	t.IsUsed = true
+	t.UpdatedBy = personID
+	return true, nil
 }
 
 func (f *fakeTokens) ReadByBody(body string) (*entities.Token, error) {
@@ -156,6 +275,9 @@ func (f *fakeTokens) InvalidateOutstanding(tokenType, email string) (int64, erro
 	f.invalidated = append(f.invalidated, tokenType+"/"+email)
 
 	var retired int64
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
 	for _, t := range f.byBody {
 		if t.Type == tokenType && t.RecipientEmail == email && !t.IsUsed {
 			t.IsUsed = true
@@ -175,9 +297,13 @@ func (f *fakeTokens) Add(token *entities.Token) (*entities.Token, error) {
 	if err := token.Validate(); err != nil {
 		return nil, err
 	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
 	token.ID = int64(len(f.added) + 1)
 	f.added = append(f.added, token)
 	f.byBody[token.Body] = token
+	f.byID[token.ID] = token
 	return token, nil
 }
 
@@ -256,6 +382,10 @@ func (f *fakeWebAuthnCredentials) DeleteByPersonID(personID int64) (int64, error
 type fakeSession struct {
 	mu sync.Mutex
 
+	// values is what Add, Read, Edit and Delete work on: one browser's
+	// session, keyed by name. Enough for a multi-step flow to be walked.
+	values map[string]string
+
 	counters map[string]int64
 	markers  map[string]string
 	sets     map[string][]string
@@ -267,6 +397,7 @@ type fakeSession struct {
 
 func newFakeSession() *fakeSession {
 	return &fakeSession{
+		values:   map[string]string{},
 		counters: map[string]int64{},
 		markers:  map[string]string{},
 		sets:     map[string][]string{},
@@ -333,13 +464,32 @@ func (f *fakeSession) SetNX(key, value string, ttl time.Duration) (bool, error) 
 // closes — so it is shared rather than re-declared per test.
 var errStoreDown = errors.New("session store unavailable")
 
-func (f *fakeSession) Add(echo.Context, string, string) (string, error) { return "", nil }
-func (f *fakeSession) AddWithTTL(echo.Context, string, string, time.Duration) (string, error) {
-	return "", nil
+func (f *fakeSession) Add(_ echo.Context, key, value string) (string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.values[key] = value
+	return "session-" + key, nil
 }
-func (f *fakeSession) Read(echo.Context, string) (string, error) { return "", nil }
-func (f *fakeSession) Edit(echo.Context, string, string) error   { return nil }
-func (f *fakeSession) Delete(echo.Context, string) error         { return nil }
+func (f *fakeSession) AddWithTTL(c echo.Context, key, value string, _ time.Duration) (string, error) {
+	return f.Add(c, key, value)
+}
+func (f *fakeSession) Read(_ echo.Context, key string) (string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.values[key], nil
+}
+func (f *fakeSession) Edit(_ echo.Context, key, value string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.values[key] = value
+	return nil
+}
+func (f *fakeSession) Delete(_ echo.Context, key string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	delete(f.values, key)
+	return nil
+}
 func (f *fakeSession) HasSessionByID(echo.Context, string, string) (bool, error) {
 	return false, nil
 }
@@ -445,7 +595,7 @@ func newTestEnv(users ...*entities.User) *testEnv {
 		WebAuthnCredentials: te.Passkeys,
 	}
 
-	srv := &services.Services{MailGRPC: te.Mail}
+	srv := &services.Services{MailGRPC: te.Mail, ActorsGRPC: &fakeActors{}}
 
 	te.Env = &Env{
 		Config:  cfg,
@@ -496,6 +646,8 @@ func (f *fakeActors) Read(id int64, viewer *lib_entities.Viewer) (*lib_entities.
 	}
 	return nil, fmt.Errorf("no actor %d", id)
 }
+
+func (f *fakeActors) TouchLastVisit(int64) (bool, error) { return true, nil }
 
 // newActorNode builds the minimum a lifecycle notification needs.
 func newActorNode(id int64, name, alias string) *lib_entities.AnahitaNode {

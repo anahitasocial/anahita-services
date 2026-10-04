@@ -15,6 +15,18 @@ func newPasswordNotifier(env *Env) *passwordNotifier {
 	return &passwordNotifier{env}
 }
 
+// EmailResetCode sends the code that lets somebody who forgot their password
+// choose a new one. No link: the page that wants the code is already open.
+func (h *passwordNotifier) EmailResetCode(user *entities.User, code string) error {
+	return h.sendCode(
+		user.Email,
+		fmt.Sprintf(messages.PasswordCodeSubject, code),
+		messages.PasswordCodeTitle,
+		fmt.Sprintf(messages.PasswordCodeBody, user.Name),
+		code,
+	)
+}
+
 // EmailToken sends the password reset email with a link to the
 // server-rendered reset form on the auth-service host.
 func (h *passwordNotifier) EmailToken(user *entities.User, token *entities.Token) error {

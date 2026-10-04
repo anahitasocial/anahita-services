@@ -4,29 +4,61 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-const (
-	bucketName    = "staging.anahita.io"
-	newPathPrefix = "assets/v2/"
-)
+const newPathPrefix = "assets/v2/"
+
+// bucketName is read from the environment in main. It used to be one
+// installation's bucket, written here.
+var bucketName string
+
+// firstEnv returns the first of the named variables that is set.
+func firstEnv(keys ...string) string {
+	for _, key := range keys {
+		if value := os.Getenv(key); value != "" {
+			return value
+		}
+	}
+	return ""
+}
 
 func main() {
 	ctx := context.TODO()
 
-	// Load AWS configuration
-	cfg, err := config.LoadDefaultConfig(ctx)
+	// The same settings file-grpc-service reads, so the script follows the
+	// installation to whichever S3-compatible store it uses.
+	bucketName = firstEnv("STORAGE_BUCKET", "AWS_FILES_S3_BUCKET")
+	if bucketName == "" {
+		log.Fatal("set STORAGE_BUCKET to the bucket whose files should be migrated")
+	}
+
+	var options []func(*config.LoadOptions) error
+	if region := firstEnv("STORAGE_REGION", "AWS_REGION", "AWS_DEFAULT_REGION"); region != "" {
+		options = append(options, config.WithRegion(region))
+	}
+	if key, secret := os.Getenv("STORAGE_ACCESS_KEY"), os.Getenv("STORAGE_SECRET_KEY"); key != "" && secret != "" {
+		options = append(options, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(key, secret, "")))
+	}
+
+	cfg, err := config.LoadDefaultConfig(ctx, options...)
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
-	s3Client := s3.NewFromConfig(cfg)
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		if endpoint := os.Getenv("STORAGE_ENDPOINT"); endpoint != "" {
+			o.BaseEndpoint = aws.String(endpoint)
+		}
+		o.UsePathStyle = os.Getenv("STORAGE_PATH_STYLE") == "true"
+	})
 
 	// Start the copying process
 	if err := copyFiles(ctx, s3Client); err != nil {

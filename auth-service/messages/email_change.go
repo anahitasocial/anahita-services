@@ -12,10 +12,14 @@ const (
 	// The new address is named in full in the body so the person can see
 	// what they are approving. "Confirm a change" without saying to what
 	// is not consent to anything.
-	EmailChangeSubject     = "Confirm your new email address"
-	EmailChangeTitle       = "Confirm your email change"
-	EmailChangeBody        = "Hello %s, we received a request to change the email address on your {{site}} account to %s. Click the button below to confirm — you will be asked to re-type the new address. This link expires in 15 minutes. If you did not request this, do not click the button: your address has not been changed, and you should change your password immediately, then contact support."
-	EmailChangeActionLabel = "Confirm email change"
+	// The code is not in the body: the template shows it by itself, boxed,
+	// between the title and this text. The new address IS in the body: it is
+	// what the owner is approving.
+	//
+	// Verbs: the code (subject); name, the new address (body).
+	EmailChangeCodeSubject = "%s is your {{site}} email change code"
+	EmailChangeCodeTitle   = "Confirm your email change"
+	EmailChangeCodeBody    = "Hello %s, we received a request to change the email address on your {{site}} account to %s. To approve it, enter this code on the settings page where you asked for the change. It expires in 15 minutes. We will never ask you for this code: do not share it with anyone. If you did not request this, do not enter the code, and change your password: somebody is signed in to your account."
 
 	// Sent to the OLD address after the change completes. Recovery here
 	// is deliberately not a link — by this point the person no longer

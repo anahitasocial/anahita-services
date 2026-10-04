@@ -3,6 +3,8 @@ package config
 import (
 	"anahita-libs/constants"
 	"anahita-libs/crypt"
+	"crypto/hmac"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"log"
@@ -424,6 +426,22 @@ func (config *Config) GetDSN() string {
 
 func (config *Config) GetSecureCookieKey() string {
 	return config.SecureCookieKey
+}
+
+// GetCodeKey is the key one-time codes are hashed with before they are stored.
+//
+// Derived from SecureCookieKey rather than given a setting of its own. It has
+// to be a secret the database does not hold, and that one already is, is
+// always present, and is validated at start-up. Deriving, rather than using
+// the cookie key directly, keeps the two uses apart: nothing learned about
+// one says anything about the other.
+//
+// Changing SECURE_COOKIE_KEY invalidates the codes outstanding at that
+// moment, which live ten minutes. It already signs everybody out.
+func (config *Config) GetCodeKey() []byte {
+	mac := hmac.New(sha256.New, []byte(config.SecureCookieKey))
+	mac.Write([]byte("anahita one-time code v1"))
+	return mac.Sum(nil)
 }
 
 func (config *Config) GetRedisAddr() string {

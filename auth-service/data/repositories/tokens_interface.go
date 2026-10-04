@@ -50,4 +50,16 @@ type TokensInterface interface {
 	// Retired rather than deleted, so a link that is now dead reports itself
 	// as used — which is the true answer — instead of as never having existed.
 	InvalidateOutstanding(tokenType, email string) (int64, error)
+
+	// SpendCodeAttempt counts one submission against a one-time code and
+	// reports whether there was an attempt left. ConsumeCode marks the code
+	// used and reports whether this call did it. Both are single statements,
+	// so submissions arriving together cannot share an attempt or a sign-in.
+	// ReadLiveCode returns the newest unused code of one type for one
+	// address, for the flows where there is no browser session to remember
+	// which code is pending. Found by whose it is, never by the code.
+	ReadLiveCode(tokenType, email string) (*entities.Token, error)
+
+	SpendCodeAttempt(id int64) (bool, error)
+	ConsumeCode(id, personID int64) (bool, error)
 }

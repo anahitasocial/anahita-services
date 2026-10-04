@@ -1,0 +1,44 @@
+# migration-job: creates the schema on an empty database, upgrades a legacy
+# one, and otherwise applies the migrations that have not run yet.
+#
+# A Job cannot be changed once created, so delete the previous one before
+# applying a new release:
+#   kubectl -n anahita delete job migration-job --ignore-not-found
+# It also removes itself an hour after finishing.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migration-job
+spec:
+  backoffLimit: 4
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: migration-job
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migration-job
+          image: anahita/migration-job
+          env:
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: MYSQL_HOST
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: MYSQL_DATABASE
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: MYSQL_PASSWORD

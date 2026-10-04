@@ -18,9 +18,13 @@ const (
 	// application — was created with. Also in anahita-libs.
 	TokenTypeSignupConfirm = "signupconfirm"
 
-	// One-time codes. Two types so a code issued to verify a handset
-	// can never be replayed to sign in.
-	TokenTypeLoginOTP = "loginotp"
+	// One-time codes. A type per purpose, so a code issued for one can never
+	// be used for another: a code sent to confirm an address cannot reset a
+	// password, and one sent to sign in cannot change an email.
+	TokenTypeLoginOTP          = "loginotp"
+	TokenTypeSignupConfirmCode = "signupconfirmotp"
+	TokenTypePasswordResetCode = "passwordresetotp"
+	TokenTypeEmailChangeCode   = "emailchangeotp"
 
 	// TokenExpiryTimeEmailChange is deliberately short, matching the
 	// 15 minutes password reset uses. This token authorises changing a
@@ -40,6 +44,14 @@ const (
 	// in a notification is not worth much later.
 	TokenExpiryTimeOTP = 10 * 60
 
+	// TokenExpiryTimeCode is fifteen minutes, for the codes that are not a
+	// sign-in: confirming an address, resetting a password, changing an
+	// email, confirming it is you. Five more than a sign-in code, because
+	// these start on one page and are often finished after reading a longer
+	// message, and the same as the links they replace gave password reset
+	// and email change.
+	TokenExpiryTimeCode = 15 * 60
+
 	// OTPMaxAttempts matches the login TOTP step and the credential
 	// rate limiter, so a person meets the same number of chances
 	// everywhere they can get something wrong.
@@ -47,6 +59,12 @@ const (
 	// 10^6 combinations against 5 attempts is comfortably out of reach
 	// even before the per-address send throttle.
 	OTPMaxAttempts = 5
+
+	// How a code reaches the person. Recorded on the token for the audit
+	// trail. Email is the only one built; the flow is shaped so that SMS is
+	// a second value here and a sender, not a redesign.
+	CodeChannelEmail = "email"
+	CodeChannelSMS   = "sms"
 
 	TokenStatusPending = "pending"
 	TokenStatusUsed    = "used"

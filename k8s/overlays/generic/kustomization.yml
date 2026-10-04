@@ -1,0 +1,87 @@
+# Any Kubernetes cluster, any S3-compatible object store.
+#
+# Copy this directory, fill in config.env, secrets.env (from the example),
+# ingress.yml, issuer.yml and oauth_seed_clients.json, then:
+#   kubectl apply -k k8s/overlays/generic
+# docs/deploying.md walks through it.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: anahita
+
+resources:
+  - namespace.yml
+  - issuer.yml
+  - ../../base
+
+# The backing services, run inside the cluster. Remove a line to use a
+# managed one instead, and point config.env and secrets.env at it.
+components:
+  - ../../components/mysql
+  - ../../components/redis
+  - ../../components/rabbitmq
+
+patches:
+  - path: ingress.yml
+
+configMapGenerator:
+  - name: anahita-config
+    behavior: merge
+    envs:
+      - config.env
+  - name: anahita-oauth-clients
+    files:
+      - oauth_seed_clients.json
+
+secretGenerator:
+  - name: anahita-secrets
+    envs:
+      - secrets.env
+
+# Which build to run. Pin newTag to a release, and add newName to pull from
+# a registry of your own.
+images:
+  - name: anahita/auth-service
+    newTag: latest
+  - name: anahita/avatar-service
+    newTag: latest
+  - name: anahita/comment-service
+    newTag: latest
+  - name: anahita/cover-service
+    newTag: latest
+  - name: anahita/feed-service
+    newTag: latest
+  - name: anahita/file-grpc-service
+    newTag: latest
+  - name: anahita/graph-grpc-service
+    newTag: latest
+  - name: anahita/group-service
+    newTag: latest
+  - name: anahita/hashtag-service
+    newTag: latest
+  - name: anahita/like-service
+    newTag: latest
+  - name: anahita/location-service
+    newTag: latest
+  - name: anahita/mail-grpc-service
+    newTag: latest
+  - name: anahita/migration-job
+    newTag: latest
+  - name: anahita/nginx
+    newTag: latest
+  - name: anahita/notification-service
+    newTag: latest
+  - name: anahita/person-service
+    newTag: latest
+  - name: anahita/photo-service
+    newTag: latest
+  - name: anahita/search-service
+    newTag: latest
+  - name: anahita/socialgraph-service
+    newTag: latest
+  - name: anahita/story-service
+    newTag: latest
+  - name: anahita/sweeper-job
+    newTag: latest
+  - name: anahita/text-service
+    newTag: latest

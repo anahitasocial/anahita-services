@@ -2,13 +2,13 @@ package services
 
 import (
 	"anahita-libs/data/entities"
+	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
 	"log"
 	"time"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 var repostGRPCConnectCounts int
@@ -41,7 +41,11 @@ func NewRepostGRPC(config RepostGRPCConfigInterface) RepostGRPCInterface {
 // getClient
 func (srv *RepostGRPC) getClient() (graphpb.RepostServiceClient, error) {
 	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	transport, err := grpctls.DialOption()
+	if err != nil {
+		return nil, err
+	}
+	opts = append(opts, transport)
 	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
 
 	for {

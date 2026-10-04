@@ -36,6 +36,9 @@ type OAuthSigningKeysInterface interface {
 	// existing rotation callers.
 	Deactivate(id int64) error
 
+	// EditPrivateKey replaces the stored private key of one row.
+	EditPrivateKey(id int64, privateKey string) error
+
 	// Delete permanently removes a signing key.
 	Delete(id int64) error
 

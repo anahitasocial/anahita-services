@@ -21,7 +21,10 @@ not talk to each other over HTTP.
 **gRPC services** are shared infrastructure the HTTP services call
 directly: `graph-grpc-service` owns the node/edge graph and every read
 against it, `file-grpc-service` owns file storage, `mail-grpc-service`
-owns outbound email.
+owns outbound email. These calls use mutual TLS: each side presents a
+certificate from the installation's own authority, so a gRPC service answers
+only the other services (`anahita-libs/grpctls`; see
+[Internal calls](configuration.md#internal-calls)).
 
 **RabbitMQ** carries asynchronous fan-out. Services publish domain events
 to the `anahita_events` exchange; consumers (notifications, feed, search)
@@ -51,7 +54,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `cover-service` | 8097 | — | Actor cover images |
 | `feed-service` | 8098 | 50059 | Feeds and reposts |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
-| `file-grpc-service` | — | 50055 | File upload and metadata (S3) |
+| `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is |
 | `mail-grpc-service` | — | 50051 | Email delivery over SMTP |
 | `migration-job` | — | — | One-shot database migrations |
 | `account-sweeper` | — | — | Purges accounts past their 30-day deletion grace period. Not started by `up`; run with `docker compose run --rm account-sweeper` |
@@ -65,7 +68,9 @@ Backing services in `docker-compose.yml`:
 ## Routing
 
 nginx maps public paths to services. The full map lives in
-`nginx/nginx.conf`:
+`nginx/nginx.conf`, and the same gateway runs in docker-compose and on
+Kubernetes, where the Ingress sends everything to it
+(see [Deploying](deploying.md)):
 
 | Path prefix | Service |
 | --- | --- |
@@ -107,7 +112,6 @@ The shared module every service imports:
 | `proto` | Generated gRPC stubs: `graphpb`, `filepb`, `mailpb`, `typespb` |
 | `event` | RabbitMQ connect/publish/consume, event name constants |
 | `sessions` | Redis-backed sessions and cookies |
-| `storage` | S3 storage backend |
 | `crypt` | Encryption with pluggable local / AWS KMS backends |
 | `data`, `requests`, `responses`, `validators` | Request/response shapes and validation |
 | `middleware`, `cors` | HTTP middleware |

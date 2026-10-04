@@ -9,10 +9,13 @@ const (
 	SignupBody        = "Hi %s, thanks for signing up to {{site}}. Your account is ready to use."
 	SignupActionLabel = "Get started"
 
-	SignupConfirmSubject     = "Confirm your email address"
-	SignupConfirmTitle       = "Confirm your email address"
-	SignupConfirmBody        = "Hi %s, please confirm this is your email address so you can sign in to {{site}}. This link expires in 24 hours."
-	SignupConfirmActionLabel = "Confirm my email"
+	// The confirmation code. The code is not in the body: the template shows
+	// it by itself, boxed, between the title and this text.
+	//
+	// Verbs: the code (subject); handle (body).
+	SignupConfirmCodeSubject = "%s is your {{site}} confirmation code"
+	SignupConfirmCodeTitle   = "Confirm your email address"
+	SignupConfirmCodeBody    = "Hi %s, enter this code on the page you signed up on to confirm this is your email address. It expires in 15 minutes. We will never ask you for this code: do not share it with anyone. If you did not sign up to {{site}}, you can ignore this message."
 
 	SignupRequestReceivedSubject     = "Someone has asked to join {{site}}"
 	SignupRequestReceivedTitle       = "A new signup request"

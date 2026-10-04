@@ -2,12 +2,15 @@ package services
 
 import "file/config"
 
-func NewServices(config *config.Config) *Services {
-	return &Services{
-		AwsS3: NewAwsS3Service(config),
+func NewServices(config *config.Config) (*Services, error) {
+	storage, err := NewStorage(config)
+	if err != nil {
+		return nil, err
 	}
+
+	return &Services{Storage: storage}, nil
 }
 
 type Services struct {
-	AwsS3 AwsS3ServiceInterface
+	Storage StorageInterface
 }

@@ -39,25 +39,11 @@ func (r *Routes) Init(e *echo.Echo) {
 	auth.GET("/is/username", h.Is.Username)
 	auth.GET("/is/totp", h.Is.Totp)
 
-	// Password — forgot and reset are server-rendered, unauthenticated
-	// flows. Change (PATCH) is JSON-only and authenticated; registered
-	// further down with the other JWT-protected routes so it picks up
-	// the authorize middleware.
-	// Email-change confirmation. Public and token-gated, like the
-	// password reset pages beside it: the person arrives from a link in
-	// their mailbox, on a device that may hold no session at all — which
-	// is the point, since the whole control is "the current inbox has to
-	// approve this".
-	//
-	// The token in the link is the only credential, so these must NOT
-	// carry authorize.
-	emailChange := e.Group("/email/change")
-	emailChange.GET("/confirm", h.EmailChange.ConfirmForm)
-	emailChange.POST("/confirm", h.EmailChange.Confirm)
-
 	password := e.Group("/password")
 	password.GET("/forgot", h.Password.ForgotForm)
 	password.POST("/forgot", h.Password.Forgot)
+	password.GET("/reset/verify", h.Password.VerifyForm)
+	password.POST("/reset/verify", h.Password.Verify)
 	password.GET("/reset", h.Password.ResetForm)
 	password.POST("/reset", h.Password.Reset)
 
@@ -80,6 +66,7 @@ func (r *Routes) Init(e *echo.Echo) {
 	// pages beside it — the person arrives from a link in their mailbox, on a
 	// device that may hold no session at all.
 	e.GET("/signup/confirm", h.Signup.Confirm)
+	e.POST("/signup/confirm", h.Signup.ConfirmCode)
 	e.GET("/signup/confirm/resend", h.Signup.ResendForm)
 	e.POST("/signup/confirm/resend", h.Signup.Resend)
 
@@ -144,6 +131,15 @@ func (r *Routes) Init(e *echo.Echo) {
 	oauth := e.Group("/oauth")
 	oauth.GET("/login", h.OAuth.ReadLogin)
 	oauth.POST("/login", h.OAuth.AddCredentials)
+	// Signing in with an emailed code in place of the password. Public for
+	// the same reason the password form is. See oauth_login_code.go.
+	oauth.GET("/login/code", h.OAuth.ReadLoginCode)
+	oauth.POST("/login/code", h.OAuth.AddLoginCode)
+	oauth.GET("/login/code/method", h.OAuth.ReadLoginCodeMethod)
+	oauth.POST("/login/code/method", h.OAuth.AddLoginCodeMethod)
+	oauth.GET("/login/code/verify", h.OAuth.ReadLoginCodeVerify)
+	oauth.POST("/login/code/verify", h.OAuth.AddLoginCodeVerify)
+	oauth.POST("/login/code/resend", h.OAuth.AddLoginCodeResend)
 	oauth.GET("/login/totp", h.OAuth.ReadTotp)
 	oauth.POST("/login/totp", h.OAuth.AddTotp)
 	oauth.POST("/login/passkey/begin", h.OAuth.AddPasskeyLoginBegin)
@@ -230,6 +226,10 @@ func (r *Routes) Init(e *echo.Echo) {
 	emailChangeAuth := e.Group("/email")
 	emailChangeAuth.Use(r.authorize)
 	emailChangeAuth.PATCH("/change", h.EmailChange.Edit)
+	// Step two: the code that was mailed to the current address, typed back
+	// into the app. Signed in, like step one. The code proves the inbox, the
+	// session proves whose change it is.
+	emailChangeAuth.POST("/change/confirm", h.EmailChange.Confirm)
 
 	// Username change. Authenticated and step-up gated, and unlike the
 	// email change it is one step: a handle move does not relocate any

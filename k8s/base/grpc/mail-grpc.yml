@@ -1,0 +1,118 @@
+# mail-grpc-service: sends mail over SMTP.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mail-grpc-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mail-grpc-service
+  template:
+    metadata:
+      labels:
+        app: mail-grpc-service
+    spec:
+      containers:
+        - name: mail-grpc-service
+          image: anahita/mail-grpc-service
+          ports:
+            - name: grpc
+              containerPort: 50051
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ENV
+            # Mutual TLS on the gRPC port. Unset means on, except with ENV=dev.
+            - name: GRPC_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRPC_TLS
+                  optional: true
+            - name: SITE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_NAME
+                  optional: true
+            - name: SITE_LOGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_LOGO_URL
+                  optional: true
+            - name: SMTP_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SMTP_PORT
+            # Optional: a relay that accepts unauthenticated mail from inside
+            # the cluster needs neither.
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: SMTP_USER
+                  optional: true
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: SMTP_PASSWORD
+                  optional: true
+            - name: SMTP_SECURE
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SMTP_SECURE
+                  optional: true
+            # Only read when ENV=dev, where the service refuses to start
+            # without it.
+            - name: DEVELOPER_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: DEVELOPER_EMAIL
+                  optional: true
+          readinessProbe:
+            tcpSocket:
+              port: grpc
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: grpc
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          volumeMounts:
+            - name: grpc-tls
+              mountPath: /run/secrets/grpc
+              readOnly: true
+      volumes:
+        # This service's own certificate, from k8s/base/grpc-tls.yml.
+        - name: grpc-tls
+          secret:
+            secretName: anahita-grpc-mail
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mail-grpc-service
+spec:
+  selector:
+    app: mail-grpc-service
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: grpc

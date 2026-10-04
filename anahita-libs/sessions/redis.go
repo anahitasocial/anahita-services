@@ -18,11 +18,11 @@ type redisSession struct {
 }
 
 func NewRedisSession(config ConfigInterface) SessionInterface {
-	client := redis.NewClient(&redis.Options{
-		Addr:     config.GetRedisAddr(),
-		Password: config.GetRedisPassword(),
-		DB:       config.GetRedisDB(),
-	})
+	options, err := redisOptions(config)
+	if err != nil {
+		panic(err)
+	}
+	client := redis.NewClient(options)
 
 	pong, err := client.Ping().Result()
 	if err != nil {

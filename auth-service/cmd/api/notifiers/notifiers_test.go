@@ -140,6 +140,8 @@ func everyNotification(n *Notifiers) []struct {
 		call func() error
 	}{
 		{"Auth.EmailLogin", func() error { return n.Auth.EmailLogin(user, authLog) }},
+		{"Auth.EmailLoginCode", func() error { return n.Auth.EmailLoginCode(user, "042195") }},
+		{"Signup.EmailConfirmCode", func() error { return n.Signup.EmailConfirmCode(user, "042195") }},
 		{"Auth.EmailSessionRevoked", func() error {
 			return n.Auth.EmailSessionRevoked(user, "Firefox on Linux", "Vancouver, Canada")
 		}},
@@ -150,6 +152,7 @@ func everyNotification(n *Notifiers) []struct {
 		{"Invite.EmailRevoked", func() error {
 			return n.Invite.EmailRevoked(inviter, "invitee@example.com")
 		}},
+		{"Password.EmailResetCode", func() error { return n.Password.EmailResetCode(user, "042195") }},
 		{"Password.EmailToken", func() error { return n.Password.EmailToken(user, testToken()) }},
 		{"Password.EmailResetSuccess", func() error { return n.Password.EmailResetSuccess(user) }},
 		// Zero, one and many: the session count picks between two constants,
@@ -157,7 +160,9 @@ func everyNotification(n *Notifiers) []struct {
 		{"Password.EmailUpdateSuccess/0", func() error { return n.Password.EmailUpdateSuccess(user, 0) }},
 		{"Password.EmailUpdateSuccess/1", func() error { return n.Password.EmailUpdateSuccess(user, 1) }},
 		{"Password.EmailUpdateSuccess/3", func() error { return n.Password.EmailUpdateSuccess(user, 3) }},
-		{"EmailChange.EmailConfirm", func() error { return n.EmailChange.EmailConfirm(user, testToken()) }},
+		{"EmailChange.EmailCode", func() error {
+			return n.EmailChange.EmailCode(user, "new@example.com", "042195")
+		}},
 		{"EmailChange.EmailChangedOld", func() error {
 			return n.EmailChange.EmailChangedOld(user, "old@example.com")
 		}},
@@ -314,6 +319,11 @@ func TestEveryNotificationSetsTheFromDisplayName(t *testing.T) {
 
 // Every message must be addressed to somebody, carry a subject, and offer an
 // action. An empty actionURL renders a button that goes nowhere.
+//
+// A message that delivers a one-time code is the exception, and the opposite:
+// it must carry the code, in the field the template boxes, and NO link. The
+// page that wants the code is already open, and a link is what a mail scanner
+// follows.
 func TestEveryNotificationIsComplete(t *testing.T) {
 	n, mail := newTestNotifiers(t)
 
@@ -331,6 +341,22 @@ func TestEveryNotificationIsComplete(t *testing.T) {
 				if strings.TrimSpace(msg.Subject) == "" {
 					t.Error("empty subject")
 				}
+				if code := msg.Data["code"]; code != "" {
+					if strings.TrimSpace(msg.Data["title"]) == "" || strings.TrimSpace(msg.Data["body"]) == "" {
+						t.Error("a code message with no title or body")
+					}
+					if msg.Data["actionURL"] != "" || msg.Data["actionLabel"] != "" {
+						t.Errorf("a code message carries a link: %q", msg.Data["actionURL"])
+					}
+					if !strings.Contains(msg.Subject, code) {
+						t.Errorf("subject %q does not carry the code", msg.Subject)
+					}
+					if strings.Contains(msg.Data["body"], code) {
+						t.Error("the code is repeated in the body text, under its own box")
+					}
+					continue
+				}
+
 				for _, key := range []string{"title", "body", "actionLabel", "actionURL"} {
 					if strings.TrimSpace(msg.Data[key]) == "" {
 						t.Errorf("empty %s", key)
