@@ -12,6 +12,16 @@ func SetActorAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.Select
 		return sb
 	}
 
+	return sb.Where(actorAccessCondition(viewer))
+}
+
+// actorAccessCondition is the gate for a profile: nobody blocked either way,
+// and the actor's own access admits the viewer. The row it judges is aliased
+// `node`.
+//
+// A condition rather than a builder step, so FilterVisible can apply it to
+// the actors in a list that also holds posts and tags.
+func actorAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
 	vID := viewer.ID
 	follows := relViewerFollowsNode(vID)
 	leaders := relNodeFollowsViewer(vID)
@@ -19,9 +29,6 @@ func SetActorAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.Select
 	isAdmin := relViewerAdminsNode(vID)
 	notBlocked := relNotBlockedEitherWay(vID, "node.id")
 	selfOrAdmin := relSelfOrAdminForNode(vID)
-
-	// Hard deny if blocked either way
-	sb = sb.Where(notBlocked)
 
 	// Build the access gate for the ACTOR node (profile visibility)
 	nodeGate := sq.Or{
@@ -105,7 +112,8 @@ func SetActorAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.Select
 
 	// return sb.Where(cases)
 
-	return sb.Where(nodeGate)
+	// Hard deny if blocked either way.
+	return sq.And{notBlocked, nodeGate}
 }
 
 // relViewerFollowsNode checks if the viewer follows the node.

@@ -162,6 +162,25 @@ func (h *nodeHandler) Count(ctx context.Context, req *graphpb.NodeCountRequest) 
 	}, nil
 }
 
+// FilterVisible answers which of the given nodes the viewer may see.
+func (h *nodeHandler) FilterVisible(ctx context.Context, req *graphpb.NodeFilterVisibleRequest) (*graphpb.NodeFilterVisibleResponse, error) {
+	// No viewer is the anonymous viewer, who sees what is public.
+	viewer := entities.NewViewer()
+	if req.Viewer != nil {
+		viewer.ID = req.Viewer.Id
+		viewer.PersonType = req.Viewer.PersonType
+		viewer.Username = req.Viewer.Username
+		viewer.Email = req.Viewer.Email
+	}
+
+	ids, err := h.env.Repos.Nodes.FilterVisible(req.Ids, viewer)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphpb.NodeFilterVisibleResponse{Ids: ids}, nil
+}
+
 // BatchRead
 func (h *nodeHandler) BatchRead(ctx context.Context, req *graphpb.NodeBatchReadRequest) (*graphpb.NodeBatchReadResponse, error) {
 	log.Printf("Received Read request: %v", req)

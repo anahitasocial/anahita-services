@@ -203,6 +203,16 @@ message NodeCountResponse {
     uint64 total = 1;
 }
 
+message NodeFilterVisibleRequest {
+    repeated int64 ids = 1;
+    Viewer viewer = 2;
+}
+
+message NodeFilterVisibleResponse {
+    // The ids the viewer may see, in no particular order.
+    repeated int64 ids = 1;
+}
+
 message NodeBatchReadRequest {
     repeated int64 ids = 1;
     string ordering = 2;
@@ -305,6 +315,9 @@ service NodeService {
     rpc Count(NodeCountRequest) returns (NodeCountResponse);
 
     // Batch operations
+    // Which of these nodes may this viewer see? Any kind of node. See
+    // nodesRepo.FilterVisible.
+    rpc FilterVisible(NodeFilterVisibleRequest) returns (NodeFilterVisibleResponse);
     rpc BatchRead(NodeBatchReadRequest) returns (NodeBatchReadResponse);
     rpc BatchReadByAliases(NodeBatchReadByAliasesRequest) returns (NodeBatchReadByAliasesResponse);
     rpc BatchEdit(NodeBatchEditRequest) returns (NodeBatchEditResponse);

@@ -31,6 +31,9 @@ type NodesRepoInterface interface {
 	// Delete removes a node based on the provided delete request and viewer context.
 	Delete(id int64) (bool, error)
 
+	// FilterVisible returns which of the given nodes the viewer may see.
+	FilterVisible(ids []int64, viewer *entities.Viewer) ([]int64, error)
+
 	// BatchRead retrieves multiple nodes based on the provided read request and viewer context.
 	BatchRead(req *requests.NodeBatchReadRequest) ([]*entities.AnahitaNode, error)
 
