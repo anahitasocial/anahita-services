@@ -162,6 +162,9 @@ CREATE TABLE edges (
   `created_by` bigint(11) unsigned DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
+  -- Where an edge sits among its siblings, for the ones kept in an order
+  -- somebody chose. Written with every edge, so it has to be here.
+  `ordering` int(11) unsigned DEFAULT NULL,
   `starts_at` datetime DEFAULT NULL,
   `ends_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
