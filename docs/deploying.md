@@ -264,7 +264,8 @@ These listen for events, and each copy receives every event, so two copies
 would do the work twice (two notifications, two emails). Keep them at one
 until the event bus has durable queues:
 
-auth, hashtag, notification, person, file-grpc, graph-grpc, mail-grpc.
+abuse-report, auth, hashtag, notification, person, file-grpc, graph-grpc,
+mail-grpc.
 
 ## Trying it on your own machine
 

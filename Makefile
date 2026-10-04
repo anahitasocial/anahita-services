@@ -1,6 +1,10 @@
 REPOSITORY=anahita
 DOCKERFILES=dockerfiles
 
+ABUSE_REPORT_BINARY=app-binary
+ABUSE_REPORT_VERSION=latest
+ABUSE_REPORT_SRV=abuse-report-service
+
 AUTH_BINARY=app-binary
 AUTH_VERSION=latest
 AUTH_SRV=auth-service
@@ -110,8 +114,9 @@ down:
 	@echo "Docker stopped!"
 
 ## build_dockerfiles: builds all dockerfile images
-build_dockerfiles: check_docker build_auth build_comment build_graph build_sweeper build_group build_like build_person build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
+build_dockerfiles: check_docker build_abuse_report build_auth build_comment build_graph build_sweeper build_group build_like build_person build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
 	@echo "Building dockerfiles..."
+	docker build -f ${DOCKERFILES}/${ABUSE_REPORT_SRV}.dockerfile -t ${REPOSITORY}/${ABUSE_REPORT_SRV}:${ABUSE_REPORT_VERSION} .
 	docker build -f ${DOCKERFILES}/${AUTH_SRV}.dockerfile -t ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION} .
 	docker build -f ${DOCKERFILES}/${COMMENT_SRV}.dockerfile -t ${REPOSITORY}/${COMMENT_SRV}:${COMMENT_VERSION} .
 	docker build -f ${DOCKERFILES}/${GRAPH_SRV}.dockerfile -t ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION} .
@@ -138,6 +143,7 @@ build_dockerfiles: check_docker build_auth build_comment build_graph build_sweep
 
 ## push_dockerfiles: pushes tagged versions to docker hub
 push_dockerfiles: check_docker build_dockerfiles
+	docker push ${REPOSITORY}/${ABUSE_REPORT_SRV}:${ABUSE_REPORT_VERSION}
 	docker push ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION}
 	docker push ${REPOSITORY}/${COMMENT_SRV}:${COMMENT_VERSION}
 	docker push ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION}
@@ -226,6 +232,12 @@ build_photo:
 	cd ${PHOTO_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${PHOTO_BINARY} ./cmd/api
 	@echo "Photos binary built!"
 
+## build_abuse_report: builds the abuse report binary as a linux executable
+build_abuse_report:
+	@echo "Building abuse report binary.."
+	cd ${ABUSE_REPORT_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${ABUSE_REPORT_BINARY} ./cmd/api
+	@echo "Abuse report binary built!"
+
 ## build_hashtag: builds the hashtag binary as a linux executable
 build_hashtag:
 	@echo "Building hashtag binary.."
@@ -294,7 +306,7 @@ build_feed:
 
 ## up_build: stops docker-compose (if running), builds all projects and starts docker compose
 # up_build: build_auth build_person build_broker build_listener build_logger build_mail
-up_build: build_auth build_comment build_graph build_group build_like build_person build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
+up_build: build_abuse_report build_auth build_comment build_graph build_group build_like build_person build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
 	@echo "Stopping docker images (if running...)"
 	docker-compose down
 	@echo "Building (when required) and starting docker images..."
@@ -374,6 +386,15 @@ photo: build_photo
 	docker-compose up --build -d ${PHOTO_SRV}
 	docker-compose start ${PHOTO_SRV}
 	@echo "${PHOTO_SRV} built and started!"
+
+## abuse_report: stops abuse-report-service, removes docker image, builds service, and starts it
+abuse_report: build_abuse_report
+	@echo "Building ${ABUSE_REPORT_SRV} docker image..."
+	- docker-compose stop ${ABUSE_REPORT_SRV}
+	- docker-compose rm -f ${ABUSE_REPORT_SRV}
+	docker-compose up --build -d ${ABUSE_REPORT_SRV}
+	docker-compose start ${ABUSE_REPORT_SRV}
+	@echo "${ABUSE_REPORT_SRV} built and started!"
 
 ## hashtag: stops hashtag-service, removes docker image, builds service, and starts it
 hashtag: build_hashtag
@@ -514,6 +535,8 @@ clean:
 	@cd ${TEXT_SRV} && go clean
 	@cd ${PHOTO_SRV} && rm -f ${PHOTO_BINARY}
 	@cd ${PHOTO_SRV} && go clean
+	@cd ${ABUSE_REPORT_SRV} && rm -f ${ABUSE_REPORT_BINARY}
+	@cd ${ABUSE_REPORT_SRV} && go clean
 	@cd ${HASHTAG_SRV} && rm -f ${HASHTAG_BINARY}
 	@cd ${HASHTAG_SRV} && go clean
 	@cd ${LOCATION_SRV} && rm -f ${LOCATION_BINARY}
@@ -553,7 +576,7 @@ K8S_LOCAL=k8s/overlays/local
 # Always the Minikube cluster, whatever kubectl currently points at, so these
 # targets can never touch a real one.
 KUBECTL=kubectl --context minikube
-K8S_IMAGES=${AUTH_SRV} ${AVATAR_SRV} ${COMMENT_SRV} ${COVER_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${GROUP_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PERSON_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${STORY_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
+K8S_IMAGES=${ABUSE_REPORT_SRV} ${AUTH_SRV} ${AVATAR_SRV} ${COMMENT_SRV} ${COVER_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${GROUP_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PERSON_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${STORY_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
 
 ## k8s-start: starts a local Minikube cluster with the ingress controller and cert-manager
 k8s-start:

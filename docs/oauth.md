@@ -35,6 +35,11 @@ hashtag/location tags. Reads of public content need no scope at all — a
 read scope gates the authenticated-visibility uplift, not the public
 surface — which is why `taxonomy` has no read half.
 
+A service with no family of its own borrows the one its actions belong to.
+Filing an abuse report needs `account:write`: it is something a person does
+on their own account's behalf. Reading and deciding reported cases needs
+`actors:read` and `actors:write`, as the signup queue does.
+
 The current catalog: `openid`, `profile`, `email`, `offline_access`,
 `actors:read`, `actors:write`, `media:read`, `media:write`,
 `comments:write`, `likes:write`, `socialgraph:read`, `socialgraph:write`,

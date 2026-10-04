@@ -53,6 +53,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `avatar-service` | 8096 | — | Actor avatars |
 | `cover-service` | 8097 | — | Actor cover images |
 | `feed-service` | 8098 | 50059 | Feeds and reposts |
+| `abuse-report-service` | 8099 | — | Reports of people and posts, and the cases administrators decide. See [Abuse reports](abuse-reports.md) |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
 | `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is |
 | `mail-grpc-service` | — | 50051 | Email delivery over SMTP |
@@ -88,6 +89,7 @@ Kubernetes, where the Ingress sends everything to it
 | `/stories/` | `story-service` |
 | `/feeds/`, `/reposts/` | `feed-service` |
 | `/notifications/` | `notification-service` |
+| `/abuse-reports` | `abuse-report-service` |
 | `/socialgraph/` | `socialgraph-service` |
 | `/search/` | `search-service` |
 

@@ -17,6 +17,7 @@ change them, and what profile owners can change for themselves.
 - [Likes](#likes)
 - [Adding followers to a group](#adding-followers-to-a-group)
 - [Reposts](#reposts)
+- [Reporting](#reporting)
 - [The defaults](#the-defaults)
 - [What profile owners can change](#what-profile-owners-can-change)
 - [Accepted values](#accepted-values)
@@ -179,6 +180,16 @@ profile.
 
 A repost is shown only to people who can see the original post. See
 [Seeing posts](#seeing-posts).
+
+## Reporting
+
+Anybody signed in may report anything they can see, except themselves and
+what they wrote. Something they cannot see cannot be reported, and answers as
+if it did not exist.
+
+Only administrators and super administrators may read what has been reported,
+see who reported it, and decide a case. The person reported is not told. See
+[Abuse reports](abuse-reports.md).
 
 ## The defaults
 

@@ -22,6 +22,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Storage](configuration.md#storage)
    - [Places](configuration.md#places)
    - [Mail](configuration.md#mail)
+   - [Abuse reports](configuration.md#abuse-reports)
 3. [Architecture](architecture.md) — services, routing and the shared library
    - [Components](architecture.md#components)
    - [Services](architecture.md#services)
@@ -43,6 +44,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Access levels](permissions.md#access-levels)
    - [Seeing posts](permissions.md#seeing-posts)
    - [Comments](permissions.md#comments)
+   - [Reporting](permissions.md#reporting)
    - [The defaults](permissions.md#the-defaults)
    - [What profile owners can change](permissions.md#what-profile-owners-can-change)
    - [Accepted values](permissions.md#accepted-values)
@@ -55,7 +57,15 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Resetting a forgotten password](signing-in.md#resetting-a-forgotten-password)
    - [Changing an email address](signing-in.md#changing-an-email-address)
    - [Adding text messages later](signing-in.md#adding-text-messages-later)
-8. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
+8. [Abuse reports](abuse-reports.md) — reporting, the reasons list, and what administrators do
+   - [Reports and cases](abuse-reports.md#reports-and-cases)
+   - [Reporting something](abuse-reports.md#reporting-something)
+   - [The reasons list](abuse-reports.md#the-reasons-list)
+   - [Using your own reasons](abuse-reports.md#using-your-own-reasons)
+   - [What administrators do](abuse-reports.md#what-administrators-do)
+   - [When the reported thing is deleted](abuse-reports.md#when-the-reported-thing-is-deleted)
+   - [Who sees what](abuse-reports.md#who-sees-what)
+9. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
    - [What you need](deploying.md#what-you-need)
    - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
    - [Hostnames](deploying.md#hostnames)

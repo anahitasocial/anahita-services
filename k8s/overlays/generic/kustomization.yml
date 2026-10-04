@@ -41,6 +41,8 @@ secretGenerator:
 # Which build to run. Pin newTag to a release, and add newName to pull from
 # a registry of your own.
 images:
+  - name: anahita/abuse-report-service
+    newTag: latest
   - name: anahita/auth-service
     newTag: latest
   - name: anahita/avatar-service

@@ -21,6 +21,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 - [Storage](#storage)
 - [Places](#places)
 - [Mail](#mail)
+- [Abuse reports](#abuse-reports)
 
 ## Shared
 
@@ -250,6 +251,18 @@ Mail goes out over SMTP and nothing else, so any provider works — Mailgun's or
 SES's relay, Postmark, an internal MTA, or a local sink such as
 [mailpit](https://mailpit.axllent.org/). Message templates live in
 `mail-grpc-service/templates/`.
+
+## Abuse reports
+
+Read by abuse-report-service.
+
+| Variable | Value |
+| --- | --- |
+| `REASONS_PATH` | An installation's own list of reasons people can give when they report something. Optional: unset, the list built into the service is used. See [Using your own reasons](abuse-reports.md#using-your-own-reasons) |
+
+Somebody may file at most 20 reports an hour. That limit, like the ones on
+signing in, is counted in Redis by the shared limiter in
+`anahita-libs/ratelimit`, and is not enforced while Redis cannot be reached.
 
 Service addresses (`MAIL_SERVICE_ADDR`, `FILE_SERVICE_ADDR`,
 `GRAPH_SERVICE_ADDR`) and the defaults directories (`DEFAULTS_PATH`,
