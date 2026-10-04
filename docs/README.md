@@ -22,11 +22,14 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Storage](configuration.md#storage)
    - [Places](configuration.md#places)
    - [Mail](configuration.md#mail)
+   - [Abuse reports](configuration.md#abuse-reports)
+   - [Account cleanup](configuration.md#account-cleanup)
 3. [Architecture](architecture.md) — services, routing and the shared library
    - [Components](architecture.md#components)
    - [Services](architecture.md#services)
    - [Routing](architecture.md#routing)
    - [anahita-libs](architecture.md#anahita-libs)
+   - [Naming dates and times](architecture.md#naming-dates-and-times)
 4. [OAuth scopes and clients](oauth.md)
    - [Scopes](oauth.md#scopes)
    - [Seeding clients](oauth.md#seeding-clients)
@@ -43,6 +46,8 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Access levels](permissions.md#access-levels)
    - [Seeing posts](permissions.md#seeing-posts)
    - [Comments](permissions.md#comments)
+   - [Reporting](permissions.md#reporting)
+   - [Removing accounts](permissions.md#removing-accounts)
    - [The defaults](permissions.md#the-defaults)
    - [What profile owners can change](permissions.md#what-profile-owners-can-change)
    - [Accepted values](permissions.md#accepted-values)
@@ -55,7 +60,24 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Resetting a forgotten password](signing-in.md#resetting-a-forgotten-password)
    - [Changing an email address](signing-in.md#changing-an-email-address)
    - [Adding text messages later](signing-in.md#adding-text-messages-later)
-8. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
+8. [Abuse reports](abuse-reports.md) — reporting, the reasons list, and what administrators do
+   - [Reports and cases](abuse-reports.md#reports-and-cases)
+   - [Reporting something](abuse-reports.md#reporting-something)
+   - [The reasons list](abuse-reports.md#the-reasons-list)
+   - [Using your own reasons](abuse-reports.md#using-your-own-reasons)
+   - [What administrators do](abuse-reports.md#what-administrators-do)
+   - [When the reported thing is deleted](abuse-reports.md#when-the-reported-thing-is-deleted)
+   - [Who sees what](abuse-reports.md#who-sees-what)
+9. [Account lifecycle](account-lifecycle.md) — disabling, archiving, deleting, purging, and clearing out unused accounts
+   - [The four states](account-lifecycle.md#the-four-states)
+   - [Deleting and the 30 days](account-lifecycle.md#deleting-and-the-30-days)
+   - [What a purge removes](account-lifecycle.md#what-a-purge-removes)
+   - [What a purge leaves](account-lifecycle.md#what-a-purge-leaves)
+   - [Purging now](account-lifecycle.md#purging-now)
+   - [The accounts list](account-lifecycle.md#the-accounts-list)
+   - [The sweeper](account-lifecycle.md#the-sweeper)
+   - [Groups left without an administrator](account-lifecycle.md#groups-left-without-an-administrator)
+10. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
    - [What you need](deploying.md#what-you-need)
    - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
    - [Hostnames](deploying.md#hostnames)
@@ -81,8 +103,6 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
-| [Abuse reports](plans/abuse-report-service.md) | 4b | not started |
-| [Complete hard delete and bulk cleanup](plans/actor-hard-delete.md) | 5 | not started |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/notes-as-replies.md) | 7 | not started |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
@@ -102,7 +122,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
 | [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b and 0c done 2026-10-03; the plan's "Not checked" list is still open |
-| [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in items 5 and 8 |
+| [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in item 8 |
 | [Signup, registration modes, and agreements](plans/done/signup-and-onboarding.md) | — | done |
 | [Onboarding](plans/done/onboarding.md) | — | done (phase 3 moved to the recommendation service) |
 | [Dissolve `people_people`](plans/done/dissolve-people-people.md) | — | done |
@@ -110,4 +130,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Feed access leak](plans/done/feed-access-leak.md) | 0 | done 2026-10-03 |
 | [Remove unused legacy node columns](plans/done/remove-unused-node-columns.md) | 0d | done 2026-10-02 |
 | [Remove private notes](plans/done/remove-private-notes.md) | 1 | done 2026-10-03 |
+| [Abuse reports](plans/done/abuse-report-service.md) | 4b | done 2026-10-03 |
+| [Complete hard delete and bulk cleanup](plans/done/actor-hard-delete.md) | 5 | done 2026-10-04 (the web part not yet tried in a browser) |
+| [One name for timestamps: `_at`](plans/done/timestamp-names.md) | 28 | done 2026-10-04 |
 | [Cloud-neutral storage and deployment](plans/done/cloud-neutral.md) | 9 | done 2026-10-03 (non-AWS providers other than Garage untested) |

@@ -17,12 +17,15 @@ kind: CronJob
 metadata:
   name: account-sweeper
 spec:
-  # Hourly, on the hour. The deadline is a date rather than a moment — somebody
-  # who deleted at 09:15 does not care whether the purge lands at 09:15 or 09:59
-  # thirty days later — so anything more frequent is load without a benefit.
-  schedule: "0 * * * *"
+  # Every ten minutes. For an expired grace period an hour would do: that
+  # deadline is a date rather than a moment. The shorter interval is for the
+  # purges a super administrator asks for. Those start at once, in the graph
+  # service, and this is what finishes one whose pod stopped part-way, while
+  # somebody is watching its progress. A run with nothing to do costs two
+  # queries.
+  schedule: "*/10 * * * *"
 
-  # Never two at once. A sweep that outruns the hour would otherwise overlap the
+  # Never two at once. A sweep that outruns its interval would otherwise overlap the
   # next one; the advisory lock in the job catches this too, but not starting a
   # second pod is cheaper than starting one that immediately exits.
   concurrencyPolicy: Forbid

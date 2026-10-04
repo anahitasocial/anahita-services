@@ -103,7 +103,7 @@ func TestResetFormRejectsUnusableTokens(t *testing.T) {
 
 	expired := resetToken(42, "ada@example.com")
 	expired.Body = strings.Repeat("b", 128)
-	expired.StartTime = time.Now().Add(-time.Hour)
+	expired.StartedAt = time.Now().Add(-time.Hour)
 	expired.SetStatus()
 
 	invite := resetToken(42, "ada@example.com")

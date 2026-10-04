@@ -315,7 +315,7 @@ func TestLoginCodeExpiredCodeIsRefused(t *testing.T) {
 	f.ask("ada@example.com")
 	code := f.lastCode()
 
-	f.lastToken().StartTime = time.Now().Add(-11 * time.Minute)
+	f.lastToken().StartedAt = time.Now().Add(-11 * time.Minute)
 
 	wantRedirect(t, f.submit(code), "/oauth/login/code?error=code_expired")
 	if f.signedIn() {

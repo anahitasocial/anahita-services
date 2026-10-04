@@ -37,7 +37,7 @@ func TestSafeOrderColumnRejectsAnythingButAColumn(t *testing.T) {
 }
 
 func TestSafeOrderColumnAllowsPlainColumns(t *testing.T) {
-	for _, column := range []string{"id", "created_on", "usertype", "enabled", "u.created_on"} {
+	for _, column := range []string{"id", "created_at", "usertype", "enabled", "u.created_at"} {
 		if got := safeOrderColumn(column); got != column {
 			t.Errorf("safeOrderColumn(%q) = %q; the allow-listed orderings "+
 				"must pass or every browse loses its sort", column, got)
@@ -65,7 +65,7 @@ func TestBrowseDropsAnUnsafeOrdering(t *testing.T) {
 
 // Two identical `if req.Ordering != ""` blocks stood here, one bare and one
 // with a direction, so an ordered browse emitted
-// "ORDER BY created_on, created_on DESC". Valid SQL, and the second term is
+// "ORDER BY created_at, created_at DESC". Valid SQL, and the second term is
 // dead — but it says the code was edited twice without either edit noticing
 // the other.
 func TestBrowseOrdersOnce(t *testing.T) {
@@ -75,7 +75,7 @@ func TestBrowseOrdersOnce(t *testing.T) {
 	mock.ExpectQuery("select").WillReturnRows(sqlmock.NewRows([]string{"id"}))
 
 	_, _ = repo.Browse(&requests.UserBrowseRequest{
-		Ordering:  "created_on",
+		Ordering:  "created_at",
 		Direction: "desc",
 		Limit:     10,
 	})
@@ -83,11 +83,11 @@ func TestBrowseOrdersOnce(t *testing.T) {
 	query := statementTouching(t, seen, "SELECT")
 	orderBy := query[strings.Index(strings.ToUpper(query), "ORDER BY"):]
 
-	if !strings.Contains(strings.ToLower(orderBy), "created_on desc") {
+	if !strings.Contains(strings.ToLower(orderBy), "created_at desc") {
 		t.Errorf("the ordering was dropped:\n%s", orderBy)
 	}
-	if strings.Count(strings.ToLower(orderBy), "created_on") != 1 {
-		t.Errorf("created_on appears more than once — the duplicated "+
+	if strings.Count(strings.ToLower(orderBy), "created_at") != 1 {
+		t.Errorf("created_at appears more than once — the duplicated "+
 			"ORDER BY block is back:\n%s", orderBy)
 	}
 }

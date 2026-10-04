@@ -12,7 +12,7 @@ import (
 func (repo *authLogs) getBaseSelectQuery() sq.SelectBuilder {
 	var fields = []string{
 		"id",
-		"created_on",
+		"created_at",
 		"created_by",
 		"agent_device",
 		"agent_os",
@@ -42,7 +42,7 @@ func (repo *authLogs) getOne(query sq.SelectBuilder) (*entities.AuthLog, error) 
 	var refreshTokenID sql.NullInt64
 	err = row.Scan(
 		&authLog.ID,
-		&authLog.CreatedOn,
+		&authLog.CreatedAt,
 		&authLog.CreatedBy,
 		&authLog.Device,
 		&authLog.OS,

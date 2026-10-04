@@ -108,7 +108,7 @@ make auth
 which stops that service, removes its image, rebuilds the binary, and
 starts it again. Available service targets:
 
-`auth`, `avatar`, `comment`, `cover`, `feed`, `file`, `graph`, `group`,
+`abuse_report`, `auth`, `avatar`, `comment`, `cover`, `feed`, `file`, `graph`, `group`,
 `hashtag`, `like`, `location`, `mail`, `nginx`, `notification`, `person`,
 `photo`, `search`, `socialgraph`, `story`, `text`
 

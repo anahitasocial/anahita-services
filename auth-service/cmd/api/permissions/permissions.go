@@ -14,6 +14,7 @@ type Env struct {
 }
 
 type Permissions struct {
+	Account         *AccountPerm
 	Agreement       *AgreementPerm
 	AuthLog         *AuthLogPerm
 	Invite          *InvitePerm
@@ -28,6 +29,7 @@ type Permissions struct {
 
 func NewPermissions(env *Env) *Permissions {
 	return &Permissions{
+		Account:         NewAccountPerm(env),
 		Agreement:       NewAgreementPerm(env),
 		AuthLog:         NewAuthLogPerm(env),
 		Invite:          NewInvitePerm(env),

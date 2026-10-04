@@ -20,7 +20,7 @@ func NewNoteRequest() *NoteRequest {
 			Offset:    0,
 			Limit:     constants.RequestLimitDefault,
 			Direction: "desc",
-			Ordering:  "created_on",
+			Ordering:  "created_at",
 			OwnerID:   0,
 		},
 		Read: &requests.MediumReadRequest{

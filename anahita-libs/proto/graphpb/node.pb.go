@@ -36,8 +36,8 @@ type Node struct {
 	Filename             string                 `protobuf:"bytes,10,opt,name=filename,proto3" json:"filename,omitempty"`
 	CoverFilename        string                 `protobuf:"bytes,11,opt,name=cover_filename,json=coverFilename,proto3" json:"cover_filename,omitempty"`
 	Meta                 string                 `protobuf:"bytes,13,opt,name=meta,proto3" json:"meta,omitempty"`
-	CreatedOn            *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=created_on,json=createdOn,proto3" json:"created_on,omitempty"`
-	ModifiedOn           *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=modified_on,json=modifiedOn,proto3" json:"modified_on,omitempty"`
+	CreatedAt            *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt            *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	FollowerCount        int64                  `protobuf:"varint,16,opt,name=follower_count,json=followerCount,proto3" json:"follower_count,omitempty"`
 	LeaderCount          int64                  `protobuf:"varint,17,opt,name=leader_count,json=leaderCount,proto3" json:"leader_count,omitempty"`
 	SubscriberCount      int64                  `protobuf:"varint,19,opt,name=subscriber_count,json=subscriberCount,proto3" json:"subscriber_count,omitempty"`
@@ -61,8 +61,8 @@ type Node struct {
 	IsBlockedByViewer    bool                   `protobuf:"varint,40,opt,name=is_blocked_by_viewer,json=isBlockedByViewer,proto3" json:"is_blocked_by_viewer,omitempty"`
 	IsAdminedByViewer    bool                   `protobuf:"varint,41,opt,name=is_admined_by_viewer,json=isAdminedByViewer,proto3" json:"is_admined_by_viewer,omitempty"`
 	AllowFollowRequest   bool                   `protobuf:"varint,42,opt,name=allow_follow_request,json=allowFollowRequest,proto3" json:"allow_follow_request,omitempty"`
-	StartDate            *timestamppb.Timestamp `protobuf:"bytes,43,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
-	EndDate              *timestamppb.Timestamp `protobuf:"bytes,44,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	StartsAt             *timestamppb.Timestamp `protobuf:"bytes,43,opt,name=starts_at,json=startsAt,proto3" json:"starts_at,omitempty"`
+	EndsAt               *timestamppb.Timestamp `protobuf:"bytes,44,opt,name=ends_at,json=endsAt,proto3" json:"ends_at,omitempty"`
 	OwnerType            string                 `protobuf:"bytes,45,opt,name=owner_type,json=ownerType,proto3" json:"owner_type,omitempty"`
 	OwnerId              int64                  `protobuf:"varint,46,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
 	Verified             bool                   `protobuf:"varint,51,opt,name=verified,proto3" json:"verified,omitempty"`
@@ -77,9 +77,7 @@ type Node struct {
 	GeoStateProvince     string                 `protobuf:"bytes,61,opt,name=geo_state_province,json=geoStateProvince,proto3" json:"geo_state_province,omitempty"`
 	GeoCountry           string                 `protobuf:"bytes,62,opt,name=geo_country,json=geoCountry,proto3" json:"geo_country,omitempty"`
 	GeoPostalcode        string                 `protobuf:"bytes,63,opt,name=geo_postalcode,json=geoPostalcode,proto3" json:"geo_postalcode,omitempty"`
-	CreationTime         *timestamppb.Timestamp `protobuf:"bytes,64,opt,name=creation_time,json=creationTime,proto3" json:"creation_time,omitempty"`
 	CreatedBy            int64                  `protobuf:"varint,65,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	UpdateTime           *timestamppb.Timestamp `protobuf:"bytes,66,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
 	ModifiedBy           int64                  `protobuf:"varint,67,opt,name=modified_by,json=modifiedBy,proto3" json:"modified_by,omitempty"`
 	Mimetype             string                 `protobuf:"bytes,72,opt,name=mimetype,proto3" json:"mimetype,omitempty"`
 	Language             string                 `protobuf:"bytes,74,opt,name=language,proto3" json:"language,omitempty"`
@@ -111,7 +109,7 @@ type Node struct {
 	// third-person pronoun. Display only — never read for logic, and empty
 	// renders nothing.
 	PersonPronouns string                 `protobuf:"bytes,79,opt,name=person_pronouns,json=personPronouns,proto3" json:"person_pronouns,omitempty"`
-	LastVisitDate  *timestamppb.Timestamp `protobuf:"bytes,80,opt,name=last_visit_date,json=lastVisitDate,proto3" json:"last_visit_date,omitempty"`
+	LastVisitedAt  *timestamppb.Timestamp `protobuf:"bytes,80,opt,name=last_visited_at,json=lastVisitedAt,proto3" json:"last_visited_at,omitempty"`
 	// Set when the installation features this actor, absent otherwise.
 	//
 	// The accounts onboarding offers a new member to follow. A timestamp
@@ -237,16 +235,16 @@ func (x *Node) GetMeta() string {
 	return ""
 }
 
-func (x *Node) GetCreatedOn() *timestamppb.Timestamp {
+func (x *Node) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CreatedOn
+		return x.CreatedAt
 	}
 	return nil
 }
 
-func (x *Node) GetModifiedOn() *timestamppb.Timestamp {
+func (x *Node) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.ModifiedOn
+		return x.UpdatedAt
 	}
 	return nil
 }
@@ -412,16 +410,16 @@ func (x *Node) GetAllowFollowRequest() bool {
 	return false
 }
 
-func (x *Node) GetStartDate() *timestamppb.Timestamp {
+func (x *Node) GetStartsAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.StartDate
+		return x.StartsAt
 	}
 	return nil
 }
 
-func (x *Node) GetEndDate() *timestamppb.Timestamp {
+func (x *Node) GetEndsAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.EndDate
+		return x.EndsAt
 	}
 	return nil
 }
@@ -524,25 +522,11 @@ func (x *Node) GetGeoPostalcode() string {
 	return ""
 }
 
-func (x *Node) GetCreationTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreationTime
-	}
-	return nil
-}
-
 func (x *Node) GetCreatedBy() int64 {
 	if x != nil {
 		return x.CreatedBy
 	}
 	return 0
-}
-
-func (x *Node) GetUpdateTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.UpdateTime
-	}
-	return nil
 }
 
 func (x *Node) GetModifiedBy() int64 {
@@ -601,9 +585,9 @@ func (x *Node) GetPersonPronouns() string {
 	return ""
 }
 
-func (x *Node) GetLastVisitDate() *timestamppb.Timestamp {
+func (x *Node) GetLastVisitedAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.LastVisitDate
+		return x.LastVisitedAt
 	}
 	return nil
 }
@@ -1443,6 +1427,103 @@ func (x *NodeCountResponse) GetTotal() uint64 {
 	return 0
 }
 
+type NodeFilterVisibleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ids           []int64                `protobuf:"varint,1,rep,packed,name=ids,proto3" json:"ids,omitempty"`
+	Viewer        *Viewer                `protobuf:"bytes,2,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeFilterVisibleRequest) Reset() {
+	*x = NodeFilterVisibleRequest{}
+	mi := &file_proto_graphpb_node_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeFilterVisibleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeFilterVisibleRequest) ProtoMessage() {}
+
+func (x *NodeFilterVisibleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_node_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeFilterVisibleRequest.ProtoReflect.Descriptor instead.
+func (*NodeFilterVisibleRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *NodeFilterVisibleRequest) GetIds() []int64 {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *NodeFilterVisibleRequest) GetViewer() *Viewer {
+	if x != nil {
+		return x.Viewer
+	}
+	return nil
+}
+
+type NodeFilterVisibleResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The ids the viewer may see, in no particular order.
+	Ids           []int64 `protobuf:"varint,1,rep,packed,name=ids,proto3" json:"ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeFilterVisibleResponse) Reset() {
+	*x = NodeFilterVisibleResponse{}
+	mi := &file_proto_graphpb_node_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeFilterVisibleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeFilterVisibleResponse) ProtoMessage() {}
+
+func (x *NodeFilterVisibleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_node_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeFilterVisibleResponse.ProtoReflect.Descriptor instead.
+func (*NodeFilterVisibleResponse) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *NodeFilterVisibleResponse) GetIds() []int64 {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
 type NodeBatchReadRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ids           []int64                `protobuf:"varint,1,rep,packed,name=ids,proto3" json:"ids,omitempty"`
@@ -1454,7 +1535,7 @@ type NodeBatchReadRequest struct {
 
 func (x *NodeBatchReadRequest) Reset() {
 	*x = NodeBatchReadRequest{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[16]
+	mi := &file_proto_graphpb_node_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1466,7 +1547,7 @@ func (x *NodeBatchReadRequest) String() string {
 func (*NodeBatchReadRequest) ProtoMessage() {}
 
 func (x *NodeBatchReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[16]
+	mi := &file_proto_graphpb_node_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1479,7 +1560,7 @@ func (x *NodeBatchReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeBatchReadRequest.ProtoReflect.Descriptor instead.
 func (*NodeBatchReadRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{16}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *NodeBatchReadRequest) GetIds() []int64 {
@@ -1512,7 +1593,7 @@ type NodeBatchReadResponse struct {
 
 func (x *NodeBatchReadResponse) Reset() {
 	*x = NodeBatchReadResponse{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[17]
+	mi := &file_proto_graphpb_node_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1524,7 +1605,7 @@ func (x *NodeBatchReadResponse) String() string {
 func (*NodeBatchReadResponse) ProtoMessage() {}
 
 func (x *NodeBatchReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[17]
+	mi := &file_proto_graphpb_node_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1537,7 +1618,7 @@ func (x *NodeBatchReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeBatchReadResponse.ProtoReflect.Descriptor instead.
 func (*NodeBatchReadResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{17}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *NodeBatchReadResponse) GetNodes() []*Node {
@@ -1559,7 +1640,7 @@ type NodeBatchReadByAliasesRequest struct {
 
 func (x *NodeBatchReadByAliasesRequest) Reset() {
 	*x = NodeBatchReadByAliasesRequest{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[18]
+	mi := &file_proto_graphpb_node_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1571,7 +1652,7 @@ func (x *NodeBatchReadByAliasesRequest) String() string {
 func (*NodeBatchReadByAliasesRequest) ProtoMessage() {}
 
 func (x *NodeBatchReadByAliasesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[18]
+	mi := &file_proto_graphpb_node_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1584,7 +1665,7 @@ func (x *NodeBatchReadByAliasesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeBatchReadByAliasesRequest.ProtoReflect.Descriptor instead.
 func (*NodeBatchReadByAliasesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{18}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *NodeBatchReadByAliasesRequest) GetAliases() []string {
@@ -1624,7 +1705,7 @@ type NodeBatchReadByAliasesResponse struct {
 
 func (x *NodeBatchReadByAliasesResponse) Reset() {
 	*x = NodeBatchReadByAliasesResponse{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[19]
+	mi := &file_proto_graphpb_node_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1636,7 +1717,7 @@ func (x *NodeBatchReadByAliasesResponse) String() string {
 func (*NodeBatchReadByAliasesResponse) ProtoMessage() {}
 
 func (x *NodeBatchReadByAliasesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[19]
+	mi := &file_proto_graphpb_node_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1649,7 +1730,7 @@ func (x *NodeBatchReadByAliasesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeBatchReadByAliasesResponse.ProtoReflect.Descriptor instead.
 func (*NodeBatchReadByAliasesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{19}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *NodeBatchReadByAliasesResponse) GetNodes() []*Node {
@@ -1669,7 +1750,7 @@ type NodeBatchEditRequest struct {
 
 func (x *NodeBatchEditRequest) Reset() {
 	*x = NodeBatchEditRequest{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[20]
+	mi := &file_proto_graphpb_node_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1681,7 +1762,7 @@ func (x *NodeBatchEditRequest) String() string {
 func (*NodeBatchEditRequest) ProtoMessage() {}
 
 func (x *NodeBatchEditRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[20]
+	mi := &file_proto_graphpb_node_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1694,7 +1775,7 @@ func (x *NodeBatchEditRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeBatchEditRequest.ProtoReflect.Descriptor instead.
 func (*NodeBatchEditRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{20}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *NodeBatchEditRequest) GetNodes() []*Node {
@@ -1720,7 +1801,7 @@ type NodeBatchEditResponse struct {
 
 func (x *NodeBatchEditResponse) Reset() {
 	*x = NodeBatchEditResponse{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[21]
+	mi := &file_proto_graphpb_node_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1732,7 +1813,7 @@ func (x *NodeBatchEditResponse) String() string {
 func (*NodeBatchEditResponse) ProtoMessage() {}
 
 func (x *NodeBatchEditResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[21]
+	mi := &file_proto_graphpb_node_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1745,7 +1826,7 @@ func (x *NodeBatchEditResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeBatchEditResponse.ProtoReflect.Descriptor instead.
 func (*NodeBatchEditResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{21}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *NodeBatchEditResponse) GetNodes() []*Node {
@@ -1765,7 +1846,7 @@ type NodeBatchAddRequest struct {
 
 func (x *NodeBatchAddRequest) Reset() {
 	*x = NodeBatchAddRequest{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[22]
+	mi := &file_proto_graphpb_node_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1777,7 +1858,7 @@ func (x *NodeBatchAddRequest) String() string {
 func (*NodeBatchAddRequest) ProtoMessage() {}
 
 func (x *NodeBatchAddRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[22]
+	mi := &file_proto_graphpb_node_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1790,7 +1871,7 @@ func (x *NodeBatchAddRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeBatchAddRequest.ProtoReflect.Descriptor instead.
 func (*NodeBatchAddRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{22}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *NodeBatchAddRequest) GetNodes() []*Node {
@@ -1816,7 +1897,7 @@ type NodeBatchAddResponse struct {
 
 func (x *NodeBatchAddResponse) Reset() {
 	*x = NodeBatchAddResponse{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[23]
+	mi := &file_proto_graphpb_node_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1828,7 +1909,7 @@ func (x *NodeBatchAddResponse) String() string {
 func (*NodeBatchAddResponse) ProtoMessage() {}
 
 func (x *NodeBatchAddResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[23]
+	mi := &file_proto_graphpb_node_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1841,7 +1922,7 @@ func (x *NodeBatchAddResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeBatchAddResponse.ProtoReflect.Descriptor instead.
 func (*NodeBatchAddResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{23}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *NodeBatchAddResponse) GetNodes() []*Node {
@@ -1860,7 +1941,7 @@ type NodeBatchDeleteRequest struct {
 
 func (x *NodeBatchDeleteRequest) Reset() {
 	*x = NodeBatchDeleteRequest{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[24]
+	mi := &file_proto_graphpb_node_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1872,7 +1953,7 @@ func (x *NodeBatchDeleteRequest) String() string {
 func (*NodeBatchDeleteRequest) ProtoMessage() {}
 
 func (x *NodeBatchDeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[24]
+	mi := &file_proto_graphpb_node_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1885,7 +1966,7 @@ func (x *NodeBatchDeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeBatchDeleteRequest.ProtoReflect.Descriptor instead.
 func (*NodeBatchDeleteRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{24}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *NodeBatchDeleteRequest) GetIds() []int64 {
@@ -1904,7 +1985,7 @@ type NodeBatchDeleteResponse struct {
 
 func (x *NodeBatchDeleteResponse) Reset() {
 	*x = NodeBatchDeleteResponse{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[25]
+	mi := &file_proto_graphpb_node_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1916,7 +1997,7 @@ func (x *NodeBatchDeleteResponse) String() string {
 func (*NodeBatchDeleteResponse) ProtoMessage() {}
 
 func (x *NodeBatchDeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[25]
+	mi := &file_proto_graphpb_node_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1929,7 +2010,7 @@ func (x *NodeBatchDeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeBatchDeleteResponse.ProtoReflect.Descriptor instead.
 func (*NodeBatchDeleteResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{25}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *NodeBatchDeleteResponse) GetSuccess() bool {
@@ -1956,7 +2037,7 @@ type BrowseMutualConnectionsRequest struct {
 
 func (x *BrowseMutualConnectionsRequest) Reset() {
 	*x = BrowseMutualConnectionsRequest{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[26]
+	mi := &file_proto_graphpb_node_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1968,7 +2049,7 @@ func (x *BrowseMutualConnectionsRequest) String() string {
 func (*BrowseMutualConnectionsRequest) ProtoMessage() {}
 
 func (x *BrowseMutualConnectionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[26]
+	mi := &file_proto_graphpb_node_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1981,7 +2062,7 @@ func (x *BrowseMutualConnectionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowseMutualConnectionsRequest.ProtoReflect.Descriptor instead.
 func (*BrowseMutualConnectionsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{26}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *BrowseMutualConnectionsRequest) GetNodeAId() int64 {
@@ -2056,7 +2137,7 @@ type BrowseMutualConnectionsResponse struct {
 
 func (x *BrowseMutualConnectionsResponse) Reset() {
 	*x = BrowseMutualConnectionsResponse{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[27]
+	mi := &file_proto_graphpb_node_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2068,7 +2149,7 @@ func (x *BrowseMutualConnectionsResponse) String() string {
 func (*BrowseMutualConnectionsResponse) ProtoMessage() {}
 
 func (x *BrowseMutualConnectionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[27]
+	mi := &file_proto_graphpb_node_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2081,7 +2162,7 @@ func (x *BrowseMutualConnectionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowseMutualConnectionsResponse.ProtoReflect.Descriptor instead.
 func (*BrowseMutualConnectionsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{27}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *BrowseMutualConnectionsResponse) GetNodes() []*Node {
@@ -2103,7 +2184,7 @@ type CountConnectionsRequest struct {
 
 func (x *CountConnectionsRequest) Reset() {
 	*x = CountConnectionsRequest{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[28]
+	mi := &file_proto_graphpb_node_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2115,7 +2196,7 @@ func (x *CountConnectionsRequest) String() string {
 func (*CountConnectionsRequest) ProtoMessage() {}
 
 func (x *CountConnectionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[28]
+	mi := &file_proto_graphpb_node_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2128,7 +2209,7 @@ func (x *CountConnectionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CountConnectionsRequest.ProtoReflect.Descriptor instead.
 func (*CountConnectionsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{28}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *CountConnectionsRequest) GetNodeId() int64 {
@@ -2168,7 +2249,7 @@ type CountConnectionsResponse struct {
 
 func (x *CountConnectionsResponse) Reset() {
 	*x = CountConnectionsResponse{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[29]
+	mi := &file_proto_graphpb_node_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2180,7 +2261,7 @@ func (x *CountConnectionsResponse) String() string {
 func (*CountConnectionsResponse) ProtoMessage() {}
 
 func (x *CountConnectionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[29]
+	mi := &file_proto_graphpb_node_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2193,7 +2274,7 @@ func (x *CountConnectionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CountConnectionsResponse.ProtoReflect.Descriptor instead.
 func (*CountConnectionsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{29}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *CountConnectionsResponse) GetTotal() uint64 {
@@ -2214,7 +2295,7 @@ type ReadConnectionStatsRequest struct {
 
 func (x *ReadConnectionStatsRequest) Reset() {
 	*x = ReadConnectionStatsRequest{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[30]
+	mi := &file_proto_graphpb_node_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2226,7 +2307,7 @@ func (x *ReadConnectionStatsRequest) String() string {
 func (*ReadConnectionStatsRequest) ProtoMessage() {}
 
 func (x *ReadConnectionStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[30]
+	mi := &file_proto_graphpb_node_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2239,7 +2320,7 @@ func (x *ReadConnectionStatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadConnectionStatsRequest.ProtoReflect.Descriptor instead.
 func (*ReadConnectionStatsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{30}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ReadConnectionStatsRequest) GetNodeId() int64 {
@@ -2278,7 +2359,7 @@ type ReadConnectionStatsResponse struct {
 
 func (x *ReadConnectionStatsResponse) Reset() {
 	*x = ReadConnectionStatsResponse{}
-	mi := &file_proto_graphpb_node_proto_msgTypes[31]
+	mi := &file_proto_graphpb_node_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2290,7 +2371,7 @@ func (x *ReadConnectionStatsResponse) String() string {
 func (*ReadConnectionStatsResponse) ProtoMessage() {}
 
 func (x *ReadConnectionStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_node_proto_msgTypes[31]
+	mi := &file_proto_graphpb_node_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2303,7 +2384,7 @@ func (x *ReadConnectionStatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadConnectionStatsResponse.ProtoReflect.Descriptor instead.
 func (*ReadConnectionStatsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{31}
+	return file_proto_graphpb_node_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ReadConnectionStatsResponse) GetFollowerCount() uint64 {
@@ -2359,7 +2440,7 @@ var File_proto_graphpb_node_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x81\x14\n" +
+	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x89\x13\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -2375,9 +2456,9 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x0ecover_filename\x18\v \x01(\tR\rcoverFilename\x12\x12\n" +
 	"\x04meta\x18\r \x01(\tR\x04meta\x129\n" +
 	"\n" +
-	"created_on\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedOn\x12;\n" +
-	"\vmodified_on\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"modifiedOn\x12%\n" +
+	"created_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12%\n" +
 	"\x0efollower_count\x18\x10 \x01(\x03R\rfollowerCount\x12!\n" +
 	"\fleader_count\x18\x11 \x01(\x03R\vleaderCount\x12)\n" +
 	"\x10subscriber_count\x18\x13 \x01(\x03R\x0fsubscriberCount\x12%\n" +
@@ -2402,10 +2483,9 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x11is_leading_viewer\x18' \x01(\bR\x0fisLeadingViewer\x12/\n" +
 	"\x14is_blocked_by_viewer\x18( \x01(\bR\x11isBlockedByViewer\x12/\n" +
 	"\x14is_admined_by_viewer\x18) \x01(\bR\x11isAdminedByViewer\x120\n" +
-	"\x14allow_follow_request\x18* \x01(\bR\x12allowFollowRequest\x129\n" +
-	"\n" +
-	"start_date\x18+ \x01(\v2\x1a.google.protobuf.TimestampR\tstartDate\x125\n" +
-	"\bend_date\x18, \x01(\v2\x1a.google.protobuf.TimestampR\aendDate\x12\x1d\n" +
+	"\x14allow_follow_request\x18* \x01(\bR\x12allowFollowRequest\x127\n" +
+	"\tstarts_at\x18+ \x01(\v2\x1a.google.protobuf.TimestampR\bstartsAt\x123\n" +
+	"\aends_at\x18, \x01(\v2\x1a.google.protobuf.TimestampR\x06endsAt\x12\x1d\n" +
 	"\n" +
 	"owner_type\x18- \x01(\tR\townerType\x12\x19\n" +
 	"\bowner_id\x18. \x01(\x03R\aownerId\x12\x1a\n" +
@@ -2424,12 +2504,9 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x12geo_state_province\x18= \x01(\tR\x10geoStateProvince\x12\x1f\n" +
 	"\vgeo_country\x18> \x01(\tR\n" +
 	"geoCountry\x12%\n" +
-	"\x0egeo_postalcode\x18? \x01(\tR\rgeoPostalcode\x12?\n" +
-	"\rcreation_time\x18@ \x01(\v2\x1a.google.protobuf.TimestampR\fcreationTime\x12\x1d\n" +
+	"\x0egeo_postalcode\x18? \x01(\tR\rgeoPostalcode\x12\x1d\n" +
 	"\n" +
-	"created_by\x18A \x01(\x03R\tcreatedBy\x12;\n" +
-	"\vupdate_time\x18B \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"updateTime\x12\x1f\n" +
+	"created_by\x18A \x01(\x03R\tcreatedBy\x12\x1f\n" +
 	"\vmodified_by\x18C \x01(\x03R\n" +
 	"modifiedBy\x12\x1a\n" +
 	"\bmimetype\x18H \x01(\tR\bmimetype\x12\x1a\n" +
@@ -2443,9 +2520,9 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\vperson_type\x18N \x01(\tR\n" +
 	"personType\x12'\n" +
 	"\x0fperson_pronouns\x18O \x01(\tR\x0epersonPronouns\x12B\n" +
-	"\x0flast_visit_date\x18P \x01(\v2\x1a.google.protobuf.TimestampR\rlastVisitDate\x12;\n" +
+	"\x0flast_visited_at\x18P \x01(\v2\x1a.google.protobuf.TimestampR\rlastVisitedAt\x12;\n" +
 	"\vfeatured_at\x18Q \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"featuredAtJ\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\bD\x10HJ\x04\bI\x10J\"*\n" +
+	"featuredAtJ\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10J\"*\n" +
 	"\x05Nodes\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xad\x03\n" +
 	"\x11NodeBrowseRequest\x12\x14\n" +
@@ -2499,7 +2576,12 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x06viewer\x18\b \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
 	"\faccess_check\x18\t \x01(\bR\vaccessCheck\")\n" +
 	"\x11NodeCountResponse\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\x04R\x05total\"g\n" +
+	"\x05total\x18\x01 \x01(\x04R\x05total\"S\n" +
+	"\x18NodeFilterVisibleRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\x03R\x03ids\x12%\n" +
+	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\"-\n" +
+	"\x19NodeFilterVisibleResponse\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\x03R\x03ids\"g\n" +
 	"\x14NodeBatchReadRequest\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\x03R\x03ids\x12\x1a\n" +
 	"\bordering\x18\x02 \x01(\tR\bordering\x12!\n" +
@@ -2558,7 +2640,7 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\rvote_up_count\x18\x06 \x01(\x04R\vvoteUpCount\x12!\n" +
 	"\frepost_count\x18\b \x01(\x04R\vrepostCount\x12\x1f\n" +
 	"\vquote_count\x18\t \x01(\x04R\n" +
-	"quoteCountJ\x04\b\x03\x10\x04J\x04\b\a\x10\b2\xe0\b\n" +
+	"quoteCountJ\x04\b\x03\x10\x04J\x04\b\a\x10\b2\xb4\t\n" +
 	"\vNodeService\x12=\n" +
 	"\x06Browse\x12\x18.graph.NodeBrowseRequest\x1a\x19.graph.NodeBrowseResponse\x127\n" +
 	"\x04Read\x12\x16.graph.NodeReadRequest\x1a\x17.graph.NodeReadResponse\x12L\n" +
@@ -2566,7 +2648,8 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x04Edit\x12\x16.graph.NodeEditRequest\x1a\x17.graph.NodeEditResponse\x124\n" +
 	"\x03Add\x12\x15.graph.NodeAddRequest\x1a\x16.graph.NodeAddResponse\x12=\n" +
 	"\x06Delete\x12\x18.graph.NodeDeleteRequest\x1a\x19.graph.NodeDeleteResponse\x12:\n" +
-	"\x05Count\x12\x17.graph.NodeCountRequest\x1a\x18.graph.NodeCountResponse\x12F\n" +
+	"\x05Count\x12\x17.graph.NodeCountRequest\x1a\x18.graph.NodeCountResponse\x12R\n" +
+	"\rFilterVisible\x12\x1f.graph.NodeFilterVisibleRequest\x1a .graph.NodeFilterVisibleResponse\x12F\n" +
 	"\tBatchRead\x12\x1b.graph.NodeBatchReadRequest\x1a\x1c.graph.NodeBatchReadResponse\x12a\n" +
 	"\x12BatchReadByAliases\x12$.graph.NodeBatchReadByAliasesRequest\x1a%.graph.NodeBatchReadByAliasesResponse\x12F\n" +
 	"\tBatchEdit\x12\x1b.graph.NodeBatchEditRequest\x1a\x1c.graph.NodeBatchEditResponse\x12C\n" +
@@ -2589,7 +2672,7 @@ func file_proto_graphpb_node_proto_rawDescGZIP() []byte {
 	return file_proto_graphpb_node_proto_rawDescData
 }
 
-var file_proto_graphpb_node_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
+var file_proto_graphpb_node_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_proto_graphpb_node_proto_goTypes = []any{
 	(*Node)(nil),                            // 0: graph.Node
 	(*Nodes)(nil),                           // 1: graph.Nodes
@@ -2607,78 +2690,80 @@ var file_proto_graphpb_node_proto_goTypes = []any{
 	(*NodeDeleteResponse)(nil),              // 13: graph.NodeDeleteResponse
 	(*NodeCountRequest)(nil),                // 14: graph.NodeCountRequest
 	(*NodeCountResponse)(nil),               // 15: graph.NodeCountResponse
-	(*NodeBatchReadRequest)(nil),            // 16: graph.NodeBatchReadRequest
-	(*NodeBatchReadResponse)(nil),           // 17: graph.NodeBatchReadResponse
-	(*NodeBatchReadByAliasesRequest)(nil),   // 18: graph.NodeBatchReadByAliasesRequest
-	(*NodeBatchReadByAliasesResponse)(nil),  // 19: graph.NodeBatchReadByAliasesResponse
-	(*NodeBatchEditRequest)(nil),            // 20: graph.NodeBatchEditRequest
-	(*NodeBatchEditResponse)(nil),           // 21: graph.NodeBatchEditResponse
-	(*NodeBatchAddRequest)(nil),             // 22: graph.NodeBatchAddRequest
-	(*NodeBatchAddResponse)(nil),            // 23: graph.NodeBatchAddResponse
-	(*NodeBatchDeleteRequest)(nil),          // 24: graph.NodeBatchDeleteRequest
-	(*NodeBatchDeleteResponse)(nil),         // 25: graph.NodeBatchDeleteResponse
-	(*BrowseMutualConnectionsRequest)(nil),  // 26: graph.BrowseMutualConnectionsRequest
-	(*BrowseMutualConnectionsResponse)(nil), // 27: graph.BrowseMutualConnectionsResponse
-	(*CountConnectionsRequest)(nil),         // 28: graph.CountConnectionsRequest
-	(*CountConnectionsResponse)(nil),        // 29: graph.CountConnectionsResponse
-	(*ReadConnectionStatsRequest)(nil),      // 30: graph.ReadConnectionStatsRequest
-	(*ReadConnectionStatsResponse)(nil),     // 31: graph.ReadConnectionStatsResponse
-	(*timestamppb.Timestamp)(nil),           // 32: google.protobuf.Timestamp
-	(*NodeFeature)(nil),                     // 33: graph.NodeFeature
-	(*Viewer)(nil),                          // 34: graph.Viewer
+	(*NodeFilterVisibleRequest)(nil),        // 16: graph.NodeFilterVisibleRequest
+	(*NodeFilterVisibleResponse)(nil),       // 17: graph.NodeFilterVisibleResponse
+	(*NodeBatchReadRequest)(nil),            // 18: graph.NodeBatchReadRequest
+	(*NodeBatchReadResponse)(nil),           // 19: graph.NodeBatchReadResponse
+	(*NodeBatchReadByAliasesRequest)(nil),   // 20: graph.NodeBatchReadByAliasesRequest
+	(*NodeBatchReadByAliasesResponse)(nil),  // 21: graph.NodeBatchReadByAliasesResponse
+	(*NodeBatchEditRequest)(nil),            // 22: graph.NodeBatchEditRequest
+	(*NodeBatchEditResponse)(nil),           // 23: graph.NodeBatchEditResponse
+	(*NodeBatchAddRequest)(nil),             // 24: graph.NodeBatchAddRequest
+	(*NodeBatchAddResponse)(nil),            // 25: graph.NodeBatchAddResponse
+	(*NodeBatchDeleteRequest)(nil),          // 26: graph.NodeBatchDeleteRequest
+	(*NodeBatchDeleteResponse)(nil),         // 27: graph.NodeBatchDeleteResponse
+	(*BrowseMutualConnectionsRequest)(nil),  // 28: graph.BrowseMutualConnectionsRequest
+	(*BrowseMutualConnectionsResponse)(nil), // 29: graph.BrowseMutualConnectionsResponse
+	(*CountConnectionsRequest)(nil),         // 30: graph.CountConnectionsRequest
+	(*CountConnectionsResponse)(nil),        // 31: graph.CountConnectionsResponse
+	(*ReadConnectionStatsRequest)(nil),      // 32: graph.ReadConnectionStatsRequest
+	(*ReadConnectionStatsResponse)(nil),     // 33: graph.ReadConnectionStatsResponse
+	(*timestamppb.Timestamp)(nil),           // 34: google.protobuf.Timestamp
+	(*NodeFeature)(nil),                     // 35: graph.NodeFeature
+	(*Viewer)(nil),                          // 36: graph.Viewer
 }
 var file_proto_graphpb_node_proto_depIdxs = []int32{
-	32, // 0: graph.Node.created_on:type_name -> google.protobuf.Timestamp
-	32, // 1: graph.Node.modified_on:type_name -> google.protobuf.Timestamp
-	33, // 2: graph.Node.features:type_name -> graph.NodeFeature
+	34, // 0: graph.Node.created_at:type_name -> google.protobuf.Timestamp
+	34, // 1: graph.Node.updated_at:type_name -> google.protobuf.Timestamp
+	35, // 2: graph.Node.features:type_name -> graph.NodeFeature
 	0,  // 3: graph.Node.owner:type_name -> graph.Node
 	0,  // 4: graph.Node.parent:type_name -> graph.Node
 	0,  // 5: graph.Node.author:type_name -> graph.Node
 	0,  // 6: graph.Node.editor:type_name -> graph.Node
-	32, // 7: graph.Node.start_date:type_name -> google.protobuf.Timestamp
-	32, // 8: graph.Node.end_date:type_name -> google.protobuf.Timestamp
-	32, // 9: graph.Node.creation_time:type_name -> google.protobuf.Timestamp
-	32, // 10: graph.Node.update_time:type_name -> google.protobuf.Timestamp
-	32, // 11: graph.Node.deleted_at:type_name -> google.protobuf.Timestamp
-	32, // 12: graph.Node.last_visit_date:type_name -> google.protobuf.Timestamp
-	32, // 13: graph.Node.featured_at:type_name -> google.protobuf.Timestamp
-	0,  // 14: graph.Nodes.nodes:type_name -> graph.Node
-	34, // 15: graph.NodeBrowseRequest.viewer:type_name -> graph.Viewer
-	0,  // 16: graph.NodeBrowseResponse.nodes:type_name -> graph.Node
-	0,  // 17: graph.NodeReadResponse.node:type_name -> graph.Node
-	0,  // 18: graph.NodeReadByAliasResponse.node:type_name -> graph.Node
-	0,  // 19: graph.NodeEditRequest.node:type_name -> graph.Node
-	0,  // 20: graph.NodeEditResponse.node:type_name -> graph.Node
-	0,  // 21: graph.NodeAddRequest.node:type_name -> graph.Node
-	0,  // 22: graph.NodeAddResponse.node:type_name -> graph.Node
-	34, // 23: graph.NodeCountRequest.viewer:type_name -> graph.Viewer
-	0,  // 24: graph.NodeBatchReadResponse.nodes:type_name -> graph.Node
-	0,  // 25: graph.NodeBatchReadByAliasesResponse.nodes:type_name -> graph.Node
-	0,  // 26: graph.NodeBatchEditRequest.nodes:type_name -> graph.Node
-	34, // 27: graph.NodeBatchEditRequest.viewer:type_name -> graph.Viewer
-	0,  // 28: graph.NodeBatchEditResponse.nodes:type_name -> graph.Node
-	0,  // 29: graph.NodeBatchAddRequest.nodes:type_name -> graph.Node
-	34, // 30: graph.NodeBatchAddRequest.viewer:type_name -> graph.Viewer
-	0,  // 31: graph.NodeBatchAddResponse.nodes:type_name -> graph.Node
-	34, // 32: graph.BrowseMutualConnectionsRequest.viewer:type_name -> graph.Viewer
-	0,  // 33: graph.BrowseMutualConnectionsResponse.nodes:type_name -> graph.Node
-	34, // 34: graph.CountConnectionsRequest.viewer:type_name -> graph.Viewer
-	34, // 35: graph.ReadConnectionStatsRequest.viewer:type_name -> graph.Viewer
-	2,  // 36: graph.NodeService.Browse:input_type -> graph.NodeBrowseRequest
-	4,  // 37: graph.NodeService.Read:input_type -> graph.NodeReadRequest
-	6,  // 38: graph.NodeService.ReadByAlias:input_type -> graph.NodeReadByAliasRequest
-	8,  // 39: graph.NodeService.Edit:input_type -> graph.NodeEditRequest
-	10, // 40: graph.NodeService.Add:input_type -> graph.NodeAddRequest
-	12, // 41: graph.NodeService.Delete:input_type -> graph.NodeDeleteRequest
-	14, // 42: graph.NodeService.Count:input_type -> graph.NodeCountRequest
-	16, // 43: graph.NodeService.BatchRead:input_type -> graph.NodeBatchReadRequest
-	18, // 44: graph.NodeService.BatchReadByAliases:input_type -> graph.NodeBatchReadByAliasesRequest
-	20, // 45: graph.NodeService.BatchEdit:input_type -> graph.NodeBatchEditRequest
-	22, // 46: graph.NodeService.BatchAdd:input_type -> graph.NodeBatchAddRequest
-	24, // 47: graph.NodeService.BatchDelete:input_type -> graph.NodeBatchDeleteRequest
-	26, // 48: graph.NodeService.BrowseMutualConnections:input_type -> graph.BrowseMutualConnectionsRequest
-	28, // 49: graph.NodeService.CountConnections:input_type -> graph.CountConnectionsRequest
-	30, // 50: graph.NodeService.ReadConnectionStats:input_type -> graph.ReadConnectionStatsRequest
+	34, // 7: graph.Node.starts_at:type_name -> google.protobuf.Timestamp
+	34, // 8: graph.Node.ends_at:type_name -> google.protobuf.Timestamp
+	34, // 9: graph.Node.deleted_at:type_name -> google.protobuf.Timestamp
+	34, // 10: graph.Node.last_visited_at:type_name -> google.protobuf.Timestamp
+	34, // 11: graph.Node.featured_at:type_name -> google.protobuf.Timestamp
+	0,  // 12: graph.Nodes.nodes:type_name -> graph.Node
+	36, // 13: graph.NodeBrowseRequest.viewer:type_name -> graph.Viewer
+	0,  // 14: graph.NodeBrowseResponse.nodes:type_name -> graph.Node
+	0,  // 15: graph.NodeReadResponse.node:type_name -> graph.Node
+	0,  // 16: graph.NodeReadByAliasResponse.node:type_name -> graph.Node
+	0,  // 17: graph.NodeEditRequest.node:type_name -> graph.Node
+	0,  // 18: graph.NodeEditResponse.node:type_name -> graph.Node
+	0,  // 19: graph.NodeAddRequest.node:type_name -> graph.Node
+	0,  // 20: graph.NodeAddResponse.node:type_name -> graph.Node
+	36, // 21: graph.NodeCountRequest.viewer:type_name -> graph.Viewer
+	36, // 22: graph.NodeFilterVisibleRequest.viewer:type_name -> graph.Viewer
+	0,  // 23: graph.NodeBatchReadResponse.nodes:type_name -> graph.Node
+	0,  // 24: graph.NodeBatchReadByAliasesResponse.nodes:type_name -> graph.Node
+	0,  // 25: graph.NodeBatchEditRequest.nodes:type_name -> graph.Node
+	36, // 26: graph.NodeBatchEditRequest.viewer:type_name -> graph.Viewer
+	0,  // 27: graph.NodeBatchEditResponse.nodes:type_name -> graph.Node
+	0,  // 28: graph.NodeBatchAddRequest.nodes:type_name -> graph.Node
+	36, // 29: graph.NodeBatchAddRequest.viewer:type_name -> graph.Viewer
+	0,  // 30: graph.NodeBatchAddResponse.nodes:type_name -> graph.Node
+	36, // 31: graph.BrowseMutualConnectionsRequest.viewer:type_name -> graph.Viewer
+	0,  // 32: graph.BrowseMutualConnectionsResponse.nodes:type_name -> graph.Node
+	36, // 33: graph.CountConnectionsRequest.viewer:type_name -> graph.Viewer
+	36, // 34: graph.ReadConnectionStatsRequest.viewer:type_name -> graph.Viewer
+	2,  // 35: graph.NodeService.Browse:input_type -> graph.NodeBrowseRequest
+	4,  // 36: graph.NodeService.Read:input_type -> graph.NodeReadRequest
+	6,  // 37: graph.NodeService.ReadByAlias:input_type -> graph.NodeReadByAliasRequest
+	8,  // 38: graph.NodeService.Edit:input_type -> graph.NodeEditRequest
+	10, // 39: graph.NodeService.Add:input_type -> graph.NodeAddRequest
+	12, // 40: graph.NodeService.Delete:input_type -> graph.NodeDeleteRequest
+	14, // 41: graph.NodeService.Count:input_type -> graph.NodeCountRequest
+	16, // 42: graph.NodeService.FilterVisible:input_type -> graph.NodeFilterVisibleRequest
+	18, // 43: graph.NodeService.BatchRead:input_type -> graph.NodeBatchReadRequest
+	20, // 44: graph.NodeService.BatchReadByAliases:input_type -> graph.NodeBatchReadByAliasesRequest
+	22, // 45: graph.NodeService.BatchEdit:input_type -> graph.NodeBatchEditRequest
+	24, // 46: graph.NodeService.BatchAdd:input_type -> graph.NodeBatchAddRequest
+	26, // 47: graph.NodeService.BatchDelete:input_type -> graph.NodeBatchDeleteRequest
+	28, // 48: graph.NodeService.BrowseMutualConnections:input_type -> graph.BrowseMutualConnectionsRequest
+	30, // 49: graph.NodeService.CountConnections:input_type -> graph.CountConnectionsRequest
+	32, // 50: graph.NodeService.ReadConnectionStats:input_type -> graph.ReadConnectionStatsRequest
 	3,  // 51: graph.NodeService.Browse:output_type -> graph.NodeBrowseResponse
 	5,  // 52: graph.NodeService.Read:output_type -> graph.NodeReadResponse
 	7,  // 53: graph.NodeService.ReadByAlias:output_type -> graph.NodeReadByAliasResponse
@@ -2686,19 +2771,20 @@ var file_proto_graphpb_node_proto_depIdxs = []int32{
 	11, // 55: graph.NodeService.Add:output_type -> graph.NodeAddResponse
 	13, // 56: graph.NodeService.Delete:output_type -> graph.NodeDeleteResponse
 	15, // 57: graph.NodeService.Count:output_type -> graph.NodeCountResponse
-	17, // 58: graph.NodeService.BatchRead:output_type -> graph.NodeBatchReadResponse
-	19, // 59: graph.NodeService.BatchReadByAliases:output_type -> graph.NodeBatchReadByAliasesResponse
-	21, // 60: graph.NodeService.BatchEdit:output_type -> graph.NodeBatchEditResponse
-	23, // 61: graph.NodeService.BatchAdd:output_type -> graph.NodeBatchAddResponse
-	25, // 62: graph.NodeService.BatchDelete:output_type -> graph.NodeBatchDeleteResponse
-	27, // 63: graph.NodeService.BrowseMutualConnections:output_type -> graph.BrowseMutualConnectionsResponse
-	29, // 64: graph.NodeService.CountConnections:output_type -> graph.CountConnectionsResponse
-	31, // 65: graph.NodeService.ReadConnectionStats:output_type -> graph.ReadConnectionStatsResponse
-	51, // [51:66] is the sub-list for method output_type
-	36, // [36:51] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	17, // 58: graph.NodeService.FilterVisible:output_type -> graph.NodeFilterVisibleResponse
+	19, // 59: graph.NodeService.BatchRead:output_type -> graph.NodeBatchReadResponse
+	21, // 60: graph.NodeService.BatchReadByAliases:output_type -> graph.NodeBatchReadByAliasesResponse
+	23, // 61: graph.NodeService.BatchEdit:output_type -> graph.NodeBatchEditResponse
+	25, // 62: graph.NodeService.BatchAdd:output_type -> graph.NodeBatchAddResponse
+	27, // 63: graph.NodeService.BatchDelete:output_type -> graph.NodeBatchDeleteResponse
+	29, // 64: graph.NodeService.BrowseMutualConnections:output_type -> graph.BrowseMutualConnectionsResponse
+	31, // 65: graph.NodeService.CountConnections:output_type -> graph.CountConnectionsResponse
+	33, // 66: graph.NodeService.ReadConnectionStats:output_type -> graph.ReadConnectionStatsResponse
+	51, // [51:67] is the sub-list for method output_type
+	35, // [35:51] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_proto_graphpb_node_proto_init() }
@@ -2713,7 +2799,7 @@ func file_proto_graphpb_node_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_graphpb_node_proto_rawDesc), len(file_proto_graphpb_node_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   32,
+			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

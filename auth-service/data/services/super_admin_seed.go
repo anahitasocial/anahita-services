@@ -128,8 +128,8 @@ func SeedSuperAdmin(env *SuperAdminSeedEnv) (bool, error) {
 	actor.Access = libs_constants.AnahitaAccessPublic
 	actor.PersonType = libs_constants.PersonTypeSuperAdmin
 	actor.Enabled = true
-	actor.CreationTime = time.Now()
-	actor.UpdateTime = time.Now()
+	actor.CreatedAt = time.Now()
+	actor.UpdatedAt = time.Now()
 
 	created, err := env.Actors.Add(actor, libs_entities.NewViewer())
 	if err != nil {
@@ -143,8 +143,8 @@ func SeedSuperAdmin(env *SuperAdminSeedEnv) (bool, error) {
 	user.Email = email
 	user.PersonType = libs_constants.PersonTypeSuperAdmin
 	user.Enabled = true
-	user.CreationTime = time.Now()
-	user.UpdateTime = time.Now()
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
 	// Verified. The operator set SUPER_ADMIN_EMAIL themselves and claims the
 	// account through a link sent to it; requiring a separate confirmation
 	// would put one more thing between a fresh installation and having an
@@ -162,8 +162,18 @@ func SeedSuperAdmin(env *SuperAdminSeedEnv) (bool, error) {
 	if _, err := env.Repos.Users.Add(user); err != nil {
 		// Compensating purge, as in signup: two writes across two services
 		// with no transaction between them.
-		if _, purgeErr := env.Actors.Purge(created.ID, libs_entities.NewViewer()); purgeErr != nil {
-			log.Printf("super admin seed: orphaned actor %d: %v (purge also failed: %v)",
+		//
+		// It is asked for, not waited for: the graph queues it. And it is
+		// refused when this actor is the only super administrator there is,
+		// which on a first start it is. Either way the orphan is named in the
+		// log, which is all that can be done from here.
+		result, purgeErr := env.Actors.RequestPurge(&libs_services.ActorPurgeRequest{
+			IDs:                 []int64{created.ID},
+			Type:                libs_constants.NodeActorPersonEntityType,
+			AllowAdministrators: true,
+		}, libs_entities.NewViewer())
+		if purgeErr != nil || len(result.Refused) > 0 {
+			log.Printf("super admin seed: orphaned actor %d: %v (purge failed or was refused: %v)",
 				created.ID, err, purgeErr)
 		}
 		return false, fmt.Errorf("create the super administrator account: %w", err)

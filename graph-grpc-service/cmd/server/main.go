@@ -64,15 +64,20 @@ func main() {
 
 	hEnv := &handlers.Env{
 		Config:    config,
+		DB:        conn,
 		Repos:     repos,
 		Publisher: publisher,
 		Files:     files,
 	}
 	h := handlers.NewHandlers(hEnv)
 
-	// NO SWEEPER HERE. Purging expired accounts is a job — see cmd/sweeper and
-	// the CronJob in k8s. This service runs three replicas, so a goroutine here
-	// would put three concurrent sweeps on the same queue.
+	// NO SWEEPER LOOP HERE. Purging expired accounts is a job — see cmd/sweeper
+	// and the CronJob in k8s. This service runs three replicas, so a loop here
+	// would put three sweeps on the same queue.
+	//
+	// What does run here is one pass over the purge requests, started by the
+	// request that added to them, under the sweeper's own lock. See
+	// actorHandler.RequestPurge.
 
 	// start the gRPC server
 	if err := startGrpcServer(h); err != nil {

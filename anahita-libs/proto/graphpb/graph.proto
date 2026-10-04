@@ -74,7 +74,7 @@ message ReadNeighbourhoodResponse {
     Node center = 1;
     repeated Node neighbours = 2;
     repeated Edge edges = 3;
-    google.protobuf.Timestamp created_on = 4;
+    google.protobuf.Timestamp created_at = 4;
 }
 
 message TraverseRequest {
@@ -90,7 +90,7 @@ message TraverseResponse {
     repeated Node nodes = 1;
     repeated Edge edges = 2;
     uint32 depth_reached = 3;
-    google.protobuf.Timestamp created_on = 4;
+    google.protobuf.Timestamp created_at = 4;
 }
 
 message ReadShortestPathRequest {
@@ -106,7 +106,7 @@ message ReadShortestPathResponse {
     repeated Edge edges = 2;
     uint32 hops = 3;
     bool found = 4;
-    google.protobuf.Timestamp created_on = 5;
+    google.protobuf.Timestamp created_at = 5;
     string strategy = 6; // "BFS", "DFS"
 }
 

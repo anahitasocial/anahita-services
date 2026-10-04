@@ -321,3 +321,20 @@ func (config *Config) validateBootstrap(missingFields []string) []string {
 
 	return missingFields
 }
+
+// defaultAccountDormantDays is two years.
+const defaultAccountDormantDays = 730
+
+// GetAccountDormantDays returns how many days without activity make an
+// account dormant in the administration list, from ACCOUNT_DORMANT_DAYS.
+//
+// It only sorts accounts into tiers for a super administrator to look at;
+// nothing is removed because of it. Unset, unreadable or not positive falls
+// back to two years.
+func (config *Config) GetAccountDormantDays() int {
+	days := getIntEnv("ACCOUNT_DORMANT_DAYS", defaultAccountDormantDays)
+	if days <= 0 {
+		return defaultAccountDormantDays
+	}
+	return days
+}

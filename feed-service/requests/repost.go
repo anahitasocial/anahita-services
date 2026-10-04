@@ -14,7 +14,7 @@ func NewRepostRequest() *RepostRequest {
 			Offset:      0,
 			Limit:       constants.RequestLimitDefault,
 			OrderingDir: constants.DirDesc,
-			Ordering:    constants.OrderingCreatedOn,
+			Ordering:    constants.OrderingCreatedAt,
 			ParentID:    0,
 		},
 		Add: &RepostAddRequest{
@@ -29,7 +29,7 @@ func NewRepostRequest() *RepostRequest {
 type RepostBrowseRequest struct {
 	Offset      uint64 `query:"start"`
 	Limit       uint64 `query:"limit"`
-	Ordering    string `query:"ordering" validate:"max=15,omitempty,oneof=modified_on created_on enabled"`
+	Ordering    string `query:"ordering" validate:"max=15,omitempty,oneof=updated_at created_at enabled"`
 	OrderingDir string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	ParentID    int64  `param:"parent_id" validate:"required,numeric"`
 }

@@ -14,7 +14,7 @@ func NewMediaGRPCRequest() *MediaGRPCRequest {
 			Offset:    0,
 			Limit:     constants.RequestLimitDefault,
 			Direction: "desc",
-			Ordering:  "created_on",
+			Ordering:  "created_at",
 			OwnerID:   0,
 		},
 	}
@@ -24,7 +24,7 @@ type MediaGRPCBrowseRequest struct {
 	Types     []string `validate:"required,min=1,dive,required"`
 	Offset    uint64   `validate:"omitempty"`
 	Limit     uint64   `validate:"max=100,omitempty"`
-	Ordering  string   `validate:"max=15,omitempty,oneof=modified_on created_on enabled"`
+	Ordering  string   `validate:"max=15,omitempty,oneof=updated_at created_at enabled"`
 	Direction string   `validate:"max=4,omitempty,oneof=asc desc"`
 	Disabled  bool     `validate:"omitempty"`
 	// Required, for the reason given on requests.MediumBrowseRequest.

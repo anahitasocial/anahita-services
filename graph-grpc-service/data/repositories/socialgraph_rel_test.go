@@ -54,7 +54,7 @@ func TestHasAdminIsTrueWhenTheViewerAdministersTheActor(t *testing.T) {
 
 	// The edge runs administrator -> administered.
 	if _, err := db.Exec(`
-		INSERT INTO edges (type, node_a_id, node_a_type, node_b_id, node_b_type, created_on)
+		INSERT INTO edges (type, node_a_id, node_a_type, node_b_id, node_b_type, created_at)
 		VALUES (?, ?, 'node.actor.person-service.person.v1', ?, 'node.actor.group-service.group.v1', NOW())`,
 		constants.EdgeActorAdminEntityType, adminPerson, theGroup); err != nil {
 		t.Fatalf("seed: %v", err)

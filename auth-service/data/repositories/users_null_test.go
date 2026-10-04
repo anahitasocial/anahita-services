@@ -77,7 +77,7 @@ func TestUserColumnsCoalesceEveryNullableColumn(t *testing.T) {
 func TestTimestampsAreNotGivenAFakeDefault(t *testing.T) {
 	joined := strings.Join(userColumns(), " ")
 
-	for _, column := range []string{"last_visit_date", "created_on", "modified_on", "onboarded_at"} {
+	for _, column := range []string{"last_visited_at", "created_at", "updated_at", "onboarded_at"} {
 		if strings.Contains(joined, "COALESCE("+column+",") {
 			t.Errorf("%s is COALESCEd to a real date; \"never\" would then "+
 				"read as an actual visit. It is scanned as sql.NullTime "+
@@ -104,7 +104,7 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 		sqlmock.NewRows([]string{
 			"id", "type", "enabled", "name", "alias",
 			"email", "password", "person_type", "service", "filename",
-			"last_visit_date", "created_on", "modified_on", "totp_enabled",
+			"last_visited_at", "created_at", "updated_at", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",
 			"email_verified_at", "onboarded_at", "has_bio", "invited_by",
@@ -128,9 +128,9 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 	if user.ID != 7 {
 		t.Errorf("ID = %d, want 7", user.ID)
 	}
-	if user.LastVisitDate != nil {
-		t.Errorf("a NULL last_visit_date became %v; it should stay nil, which "+
-			"is what \"never signed in\" means", *user.LastVisitDate)
+	if user.LastVisitedAt != nil {
+		t.Errorf("a NULL last_visited_at became %v; it should stay nil, which "+
+			"is what \"never signed in\" means", *user.LastVisitedAt)
 	}
 	if user.OnboardedAt != nil {
 		t.Errorf("a NULL onboarded_at became %v; it should stay nil, which "+
@@ -147,7 +147,7 @@ func TestBrowseSurvivesNullTimestamps(t *testing.T) {
 	columns := []string{
 		"id", "type", "enabled", "name", "alias",
 		"email", "person_type", "service", "filename",
-		"last_visit_date", "created_on", "modified_on",
+		"last_visited_at", "created_at", "updated_at",
 	}
 	mock.ExpectQuery("select").WillReturnRows(
 		sqlmock.NewRows(columns).
@@ -177,7 +177,7 @@ func TestEmptyPasswordHashIsUnusable(t *testing.T) {
 		sqlmock.NewRows([]string{
 			"id", "type", "enabled", "name", "alias",
 			"email", "password", "person_type", "service", "filename",
-			"last_visit_date", "created_on", "modified_on", "totp_enabled",
+			"last_visited_at", "created_at", "updated_at", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",
 			"email_verified_at", "onboarded_at", "has_bio", "invited_by",

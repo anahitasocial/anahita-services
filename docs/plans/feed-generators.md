@@ -197,7 +197,7 @@ than after it, since (A) is a special case of (C) and would be thrown away.
 - **A new graph-grpc RPC, `BrowseFeed(definition, viewer, cursor, limit)`,** builds the SQL from the definition only through a builder. There are no raw fragments, so injection is impossible.
   - Hashtags and locations join `edge.tag.*`, `following` joins follow edges from the owner, and keywords use `LIKE`.
 - **Access:** every candidate goes through the same gate as the leaders feed (after item 0: `COALESCE(object.access, node.access)`, owner access, blocks in either direction, lifecycle, archive). It's evaluated **for the viewer**, not for the feed's owner, so a public feed never shows a follower more than they could see anyway.
-- **Pagination:** a keyset cursor on `(created_on, id)` instead of `OFFSET`. It stays fast and stable as new posts arrive.
+- **Pagination:** a keyset cursor on `(created_at, id)` instead of `OFFSET`. It stays fast and stable as new posts arrive.
 - **Cost limits:**
   - 40 items per page;
   - a query timeout (e.g. 2 s) that returns a friendly "this feed is too broad" message;

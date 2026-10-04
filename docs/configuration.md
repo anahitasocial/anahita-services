@@ -21,6 +21,8 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 - [Storage](#storage)
 - [Places](#places)
 - [Mail](#mail)
+- [Abuse reports](#abuse-reports)
+- [Account cleanup](#account-cleanup)
 
 ## Shared
 
@@ -250,6 +252,37 @@ Mail goes out over SMTP and nothing else, so any provider works — Mailgun's or
 SES's relay, Postmark, an internal MTA, or a local sink such as
 [mailpit](https://mailpit.axllent.org/). Message templates live in
 `mail-grpc-service/templates/`.
+
+## Abuse reports
+
+Read by abuse-report-service.
+
+| Variable | Value |
+| --- | --- |
+| `REASONS_PATH` | An installation's own list of reasons people can give when they report something. Optional: unset, the list built into the service is used. See [Using your own reasons](abuse-reports.md#using-your-own-reasons) |
+
+Somebody may file at most 20 reports an hour. That limit, like the ones on
+signing in, is counted in Redis by the shared limiter in
+`anahita-libs/ratelimit`, and is not enforced while Redis cannot be reached.
+
+## Account cleanup
+
+Read by auth-service, for the [accounts list](account-lifecycle.md#the-accounts-list)
+a super administrator uses to find accounts nobody uses.
+
+| Variable | Value |
+| --- | --- |
+| `ACCOUNT_DORMANT_DAYS` | How many days without activity make an account `dormant` in that list. Optional: unset, 730 (two years). It only sorts accounts into tiers; nothing is removed because of it |
+
+Three things about purging are fixed in the code and are not settings: an
+account deleted by its owner is purged after 30 days, one purge request names
+at most 500 accounts, and a purge works through an account 500 posts at a
+time. How often the sweeper runs is its CronJob's schedule, in
+`k8s/base/jobs/sweeper-cronjob.yml`.
+
+graph-grpc-service and the sweeper need `FILE_SERVICE_ADDR` to remove a purged
+account's uploaded files. Both have it in `docker-compose.yml` and in the
+Kubernetes manifests.
 
 Service addresses (`MAIL_SERVICE_ADDR`, `FILE_SERVICE_ADDR`,
 `GRAPH_SERVICE_ADDR`) and the defaults directories (`DEFAULTS_PATH`,

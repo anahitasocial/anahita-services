@@ -86,14 +86,14 @@ func (repo *Users) Browse(req *requests.UserBrowseRequest) ([]*entities.User, er
 
 	// One clause, not two. This block appeared twice — once bare and once with
 	// a direction — so a browse with an ordering emitted
-	// "ORDER BY created_on, created_on DESC".
+	// "ORDER BY created_at, created_at DESC".
 	//
 	// Checked with safeOrderColumn as well as by the request's oneof tag,
 	// because ORDER BY is concatenated rather than bound. See ordering.go.
 	//
 	// Qualified with the table, because every one of the four sortable
 	// columns lives on `nodes` now and this select joins two tables. A bare
-	// `person_type` or `created_on` is an unknown column here, and the read
+	// `person_type` or `created_at` is an unknown column here, and the read
 	// fails outright rather than sorting oddly.
 	if column := safeOrderColumn(req.Ordering); column != "" {
 		if req.Direction == "asc" {
@@ -407,7 +407,7 @@ func (repo *Users) Edit(user *entities.User) (*entities.User, error) {
 	// values back over the new ones.
 	// `nodes` is no longer in this statement, and neither is `enabled`.
 	//
-	// The join existed to write nodes.enabled and nodes.modified_on alongside
+	// The join existed to write nodes.enabled and nodes.updated_at alongside
 	// the credential columns. Nothing routed a change to either: every caller
 	// of Edit — TOTP enrolment, passcode verification, recovery-code burn,
 	// sign-in — sets only TOTP fields, so `enabled` was written back with
@@ -642,7 +642,7 @@ type InstanceUsage struct {
 // One statement rather than four round trips, because this is answered for any
 // fediverse server that asks and there is no reason to make it four queries.
 //
-// The "active" figures come from nodes.last_visit_date, which is only
+// The "active" figures come from nodes.last_visited_at, which is only
 // meaningful because that column is now written on sign-in. Before that it
 // held the date the account was created, so any active-user figure derived
 // from it would have been a count of recent SIGNUPS reported to the wider
@@ -659,8 +659,8 @@ func (repo *Users) CountInstanceUsage() (*InstanceUsage, error) {
 	query := `
 		SELECT
 			COUNT(*),
-			SUM(last_visit_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)),
-			SUM(last_visit_date >= DATE_SUB(NOW(), INTERVAL 180 DAY))
+			SUM(last_visited_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)),
+			SUM(last_visited_at >= DATE_SUB(NOW(), INTERVAL 180 DAY))
 		FROM nodes
 		WHERE type = ?
 		  AND deleted_at IS NULL
@@ -668,7 +668,7 @@ func (repo *Users) CountInstanceUsage() (*InstanceUsage, error) {
 
 	usage := &InstanceUsage{}
 
-	// SUM over no rows is NULL, and SUM over rows whose last_visit_date is all
+	// SUM over no rows is NULL, and SUM over rows whose last_visited_at is all
 	// NULL is NULL too — a brand-new installation, and one where nobody has
 	// signed in since the column started being written.
 	var activeMonth, activeHalfYear sql.NullInt64

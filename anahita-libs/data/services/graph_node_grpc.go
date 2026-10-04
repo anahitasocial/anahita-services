@@ -5,6 +5,7 @@ import (
 	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -39,6 +40,11 @@ type GraphNodeGRPCInterface interface {
 
 	// Count returns the total number of graph nodes
 	Count(req *GraphNodeBrowseRequest) (uint64, error)
+
+	// FilterVisible returns which of the given nodes, of any kind, the
+	// viewer may see. A nil viewer is the anonymous one. For a caller that
+	// must not confirm a hidden node exists, a missing id means "not found".
+	FilterVisible(ids []int64, viewer *entities.Viewer) ([]int64, error)
 
 	// BatchRead reads multiple graph nodes
 	BatchRead(req *GraphNodeBatchReadRequest) ([]*entities.AnahitaNode, error)
@@ -294,6 +300,41 @@ func (srv *GraphNodeGRPC) Count(req *GraphNodeBrowseRequest) (uint64, error) {
 	}
 
 	return r.Total, nil
+}
+
+// FilterVisible returns which of the given nodes the viewer may see.
+func (srv *GraphNodeGRPC) FilterVisible(ids []int64, viewer *entities.Viewer) ([]int64, error) {
+	if len(ids) == 0 {
+		return []int64{}, nil
+	}
+
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, errors.New("graph node client unavailable")
+	}
+
+	req := &graphpb.NodeFilterVisibleRequest{Ids: ids}
+	if viewer != nil {
+		req.Viewer = &graphpb.Viewer{
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Username:   viewer.Username,
+			Email:      viewer.Email,
+		}
+	}
+
+	resp, err := client.FilterVisible(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return []int64{}, nil
+	}
+
+	return resp.Ids, nil
 }
 
 // BatchRead reads multiple graph nodes

@@ -335,5 +335,5 @@ func (h *oauthHandler) hasRecentLoginForClient(userID int64, clientID string) bo
 		}
 		return false
 	}
-	return time.Since(latest.CreatedOn) < loginEmailSuppressionWindow
+	return time.Since(latest.CreatedAt) < loginEmailSuppressionWindow
 }

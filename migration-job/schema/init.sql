@@ -13,8 +13,8 @@ CREATE TABLE nodes (
   `name` varchar(255),
   `alias` varchar(255),
   `body` mediumtext,
-  `start_date` datetime DEFAULT NULL,
-  `end_date` datetime DEFAULT NULL,
+  `starts_at` datetime DEFAULT NULL,
+  `ends_at` datetime DEFAULT NULL,
   `owner_type` varchar(255) DEFAULT NULL,
   `owner_id` bigint(11) unsigned DEFAULT NULL,
   `comment_status` tinyint(1) DEFAULT NULL,
@@ -42,9 +42,9 @@ CREATE TABLE nodes (
   `geo_state_province` VARCHAR(50) DEFAULT NULL,
   `geo_country` VARCHAR(30) DEFAULT NULL,
   `geo_postalcode` VARCHAR(15) DEFAULT NULL,
-  `created_on` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
   `created_by` bigint(11) unsigned DEFAULT NULL,
-  `modified_on` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
   `filename` varchar(255) DEFAULT NULL,
   `cover_filename` varchar(255) DEFAULT NULL,
@@ -73,6 +73,10 @@ CREATE TABLE nodes (
   -- Only actor nodes carry it. Content owned by a deleted actor stays as it is
   -- until the sweeper runs, so a restore brings the profile back whole.
   `deleted_at` datetime DEFAULT NULL,
+  -- Set when the sweeper, or a super administrator, has reduced the actor to
+  -- a tombstone. The purge queue is "deleted and not yet purged"; without this
+  -- every tombstone would be read again on every run.
+  `purged_at` datetime DEFAULT NULL,
   -- Permanent. The content stays readable at its URLs; what stops is being
   -- pushed at people who did not ask for it. Separate from `enabled` and
   -- `deleted_at` because each of the three maps to a different answer, and a
@@ -91,7 +95,7 @@ CREATE TABLE nodes (
   -- English grammar and is meaningless in a language with no gendered
   -- third-person pronoun. Never used for logic; empty renders nothing.
   `person_pronouns` varchar(50) DEFAULT NULL,
-  `last_visit_date` datetime DEFAULT NULL,
+  `last_visited_at` datetime DEFAULT NULL,
   -- The actor handle namespace.
   --
   -- alias alone cannot carry a unique index: article revisions share their
@@ -120,6 +124,7 @@ CREATE TABLE nodes (
   -- The sweeper's only query is "actors deleted before X", and it runs against
   -- a column that is NULL for practically every row.
   KEY `deleted_at` (`deleted_at`),
+  KEY `purged_at` (`purged_at`),
   KEY `archived_at` (`archived_at`),
   KEY `featured_at` (`featured_at`),
   KEY `created_by` (`created_by`),
@@ -128,11 +133,11 @@ CREATE TABLE nodes (
   KEY `service` (`service`),
   KEY `owner_id` (`owner_id`),
   KEY `parent_id` (`parent_id`),
-  KEY `start_date` (`start_date`),
-  KEY `end_date` (`end_date`),
+  KEY `starts_at` (`starts_at`),
+  KEY `ends_at` (`ends_at`),
   KEY `type_enabled` (`type`,`enabled`),
-  KEY `type_modifed_on` (`type`,`modified_on`),
-  KEY `type_created_on` (`type`,`created_on`)
+  KEY `type_updated_at` (`type`,`updated_at`),
+  KEY `type_created_at` (`type`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
@@ -153,18 +158,21 @@ CREATE TABLE edges (
   `node_b_id` bigint(11) unsigned NOT NULL,
   `node_b_type` varchar(128) NOT NULL,
   `meta` mediumtext,
-  `created_on` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
   `created_by` bigint(11) unsigned DEFAULT NULL,
-  `modified_on` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
-  `start_date` datetime DEFAULT NULL,
-  `end_date` datetime DEFAULT NULL,
+  -- Where an edge sits among its siblings, for the ones kept in an order
+  -- somebody chose. Written with every edge, so it has to be here.
+  `ordering` int(11) unsigned DEFAULT NULL,
+  `starts_at` datetime DEFAULT NULL,
+  `ends_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `type` (`type`),
   KEY `node_a_id` (`node_a_id`),
   KEY `node_b_id` (`node_b_id`),
-  KEY `start_date` (`start_date`),
-  KEY `end_date` (`end_date`),
+  KEY `starts_at` (`starts_at`),
+  KEY `ends_at` (`ends_at`),
   CONSTRAINT uc_edge UNIQUE(`type`,`node_a_id`,`node_a_type`,`node_b_id`,`node_b_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
@@ -295,8 +303,8 @@ CREATE TABLE notifications (
     `target_id` bigint(11) unsigned DEFAULT NULL,
     `target_type` varchar(255) DEFAULT NULL,
     `comment_id` int(11) unsigned DEFAULT NULL,
-    `created_on` datetime DEFAULT NULL,
-    `modified_on` datetime DEFAULT NULL,
+    `created_at` datetime DEFAULT NULL,
+    `updated_at` datetime DEFAULT NULL,
     -- mediumtext, not text. An existing database reaches utf8mb4 through
     -- CONVERT TO CHARACTER SET, which promotes text to preserve its character
     -- capacity; a fresh one is created as utf8mb4 outright and would keep
@@ -312,14 +320,14 @@ CREATE TABLE notifications (
     KEY `target_id` (`target_id`),
     KEY `target_type` (`target_type`),
     KEY `comment_id` (`comment_id`),
-    KEY `created_on` (`created_on`),
-    KEY `modified_on` (`modified_on`)
+    KEY `created_at` (`created_at`),
+    KEY `updated_at` (`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
 CREATE TABLE auth_logs (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-    `created_on` datetime DEFAULT NULL,
+    `created_at` datetime DEFAULT NULL,
     `created_by` BIGINT UNSIGNED NOT NULL,
     `agent_device` varchar(50) DEFAULT 'bot',
     `agent_os` varchar(255) DEFAULT NULL,
@@ -332,8 +340,8 @@ CREATE TABLE auth_logs (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 CREATE INDEX idx_auth_logs_created_by ON auth_logs (created_by);
-CREATE INDEX idx_auth_logs_created_on ON auth_logs (created_on);
-CREATE INDEX idx_auth_logs_created_by_client_id_created_on ON auth_logs (created_by, client_id, created_on DESC);
+CREATE INDEX idx_auth_logs_created_at ON auth_logs (created_at);
+CREATE INDEX idx_auth_logs_created_by_client_id_created_at ON auth_logs (created_by, client_id, created_at DESC);
 CREATE INDEX idx_auth_logs_oauth_refresh_token_id ON auth_logs (oauth_refresh_token_id);
 
 -- Deletion audit, for any node.
@@ -370,11 +378,67 @@ CREATE TABLE node_deletion_logs (
     -- node is the normal, complete story. Kept a varchar rather than an ENUM so
     -- adding an action is a code change, not an ALTER on an audit table.
     `action` varchar(20) NOT NULL,
-    `created_on` datetime NOT NULL,
+    `created_at` datetime NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 CREATE INDEX idx_node_deletion_logs_node_id ON node_deletion_logs (node_id);
-CREATE INDEX idx_node_deletion_logs_created_on ON node_deletion_logs (created_on);
+CREATE INDEX idx_node_deletion_logs_created_at ON node_deletion_logs (created_at);
+
+-- What is left to do for a purge in progress.
+--
+-- A purge removes an account's content in batches, each in its own short
+-- transaction, so a large account cannot run out of time and an interrupted
+-- purge carries on from what remains. Rows are removed as the work is done: an
+-- actor with none left is finished.
+--
+-- Owned by graph-grpc-service.
+CREATE TABLE IF NOT EXISTS purge_work (
+    -- The actor being purged.
+    `actor_id` bigint unsigned NOT NULL,
+    -- 'delete' for a node to remove, or the counter to count again on a node
+    -- that stays: 'count_follows', 'count_votes', 'count_subscribers',
+    -- 'count_comments', 'count_reposts'.
+    `task` varchar(24) NOT NULL,
+    -- The node the task applies to.
+    `node_id` bigint unsigned NOT NULL,
+    PRIMARY KEY (`actor_id`, `task`, `node_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- The queue of accounts a super administrator has asked to be removed now.
+--
+-- Asking does not purge. It hides the account at once and adds a row here; the
+-- purge itself is done by whoever holds the sweeper's lock, one account at a
+-- time, so a request for five hundred accounts returns immediately and cannot
+-- time out. The rows are also the progress of the request, and afterwards the
+-- record of who asked for what.
+--
+-- Owned by graph-grpc-service.
+CREATE TABLE IF NOT EXISTS purge_requests (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- The request that asked for it. One request names many actors, and its
+    -- progress is the state of these rows.
+    `batch_id` char(36) NOT NULL,
+    `actor_id` bigint unsigned NOT NULL,
+    -- Kept here so the progress view can still name an account after the
+    -- purge has taken its name.
+    `actor_alias` varchar(255) NOT NULL DEFAULT '',
+    `actor_type` varchar(255) NOT NULL DEFAULT '',
+    -- 'queued', 'done' or 'failed'.
+    `status` varchar(16) NOT NULL DEFAULT 'queued',
+    -- How many times the purge has been tried. It is given up as 'failed'
+    -- after a few, with the last error kept.
+    `attempts` int unsigned NOT NULL DEFAULT 0,
+    `error` varchar(255) NOT NULL DEFAULT '',
+    -- The super administrator who asked.
+    `requested_by` bigint unsigned NOT NULL,
+    `requested_at` datetime NOT NULL,
+    `finished_at` datetime DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    -- An actor is purged once. A failed request is replaced by asking again.
+    UNIQUE KEY `idx_purge_requests_actor` (`actor_id`),
+    KEY `idx_purge_requests_batch` (`batch_id`),
+    KEY `idx_purge_requests_status` (`status`, `requested_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Add indices
 
@@ -390,12 +454,12 @@ CREATE INDEX idx_nodes_id        ON nodes (id);
 CREATE INDEX idx_nodes_owner_id  ON nodes (owner_id);
 CREATE INDEX idx_nodes_type      ON nodes (type);
 CREATE INDEX idx_nodes_access    ON nodes (access);
-CREATE INDEX idx_nodes_created_on ON nodes (created_on);
+CREATE INDEX idx_nodes_created_at ON nodes (created_at);
 
 CREATE INDEX idx_nodes_parent_id ON nodes (parent_id);
 
 CREATE INDEX idx_edges_lookup ON edges (node_a_id, node_b_id, type);
-CREATE INDEX idx_nodes_feed   ON nodes (owner_id, type, created_on);
+CREATE INDEX idx_nodes_feed   ON nodes (owner_id, type, created_at);
 
 -- Fast lookups by type + direction
 CREATE INDEX idx_edges_type_nodea_nodeb  ON edges (type, node_a_id, node_b_id);
@@ -551,8 +615,8 @@ CREATE TABLE tokens (
     `channel` varchar(16) DEFAULT NULL,
     -- Defaulted: Token.NewToken sets StartTime in Go but tokens.Add
     -- does not include it in the insert column list.
-    `start_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    -- Lifetime in seconds from start_time. Expiry is computed in Go
+    `started_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Lifetime in seconds from started_at. Expiry is computed in Go
     -- (Token.SetStatus) rather than stored, so changing the default
     -- does not require rewriting existing rows.
     `expired_after` int(11) NOT NULL DEFAULT 0,
@@ -618,4 +682,76 @@ CREATE TABLE webauthn_credentials (
     -- is the login lookup.
     UNIQUE KEY `idx_webauthn_credentials_credential_id` (`credential_id`),
     KEY `idx_webauthn_credentials_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+-- Abuse reports: what people have reported, and what was decided about it.
+--
+-- Two tables. A CASE is one reported node and its decision; a REPORT is one
+-- person's complaint inside a case. A post that twenty people report is one
+-- case for an administrator to handle, not twenty.
+--
+-- Owned by abuse-report-service. No foreign keys, like the rest of this
+-- schema: a case must outlive the node it is about, which is the point of
+-- keeping the target's type and owner on the row.
+
+CREATE TABLE IF NOT EXISTS abuse_cases (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- What was reported: any node. A person, a group, a post, a comment, a
+    -- hashtag or a place.
+    `target_id` bigint unsigned NOT NULL,
+    -- Its type when it was first reported, kept so the case still says what
+    -- it was about after the node is gone.
+    `target_type` varchar(255) NOT NULL,
+    -- Who was responsible for it then: the author of a post or comment, the
+    -- actor itself for a person or group. NULL for a hashtag or a place.
+    `target_owner_id` bigint unsigned DEFAULT NULL,
+    -- 'open', 'actioned' or 'dismissed'.
+    `status` varchar(16) NOT NULL DEFAULT 'open',
+    -- The target, while the case is open, and NULL once it is closed. Unique,
+    -- which is what makes "one open case per node" a rule of the database
+    -- rather than of whichever request got there first: two people reporting
+    -- the same post at the same moment cannot open two cases. A closed case
+    -- stores NULL, and any number of NULLs may share a unique index, so a
+    -- node can be reported again later and its history is kept.
+    `open_target_id` bigint unsigned GENERATED ALWAYS AS (IF(`status` = 'open', `target_id`, NULL)) STORED,
+    -- How many people have reported it in this case.
+    `report_count` int unsigned NOT NULL DEFAULT 0,
+    `first_reported_at` datetime NOT NULL,
+    `last_reported_at` datetime NOT NULL,
+    -- The decision, once somebody has made one.
+    `decided_by` bigint unsigned DEFAULT NULL,
+    `decided_at` datetime DEFAULT NULL,
+    -- What was done about it: 'none', 'deleted', 'disabled', 'archived',
+    -- 'blocked' or 'other'.
+    `decision_action` varchar(16) DEFAULT NULL,
+    `decision_note` text,
+    -- When the target was deleted or purged, if it was.
+    `target_gone_at` datetime DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_abuse_cases_open_target` (`open_target_id`),
+    KEY `idx_abuse_cases_target` (`target_id`),
+    KEY `idx_abuse_cases_status_reported` (`status`, `last_reported_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS abuse_reports (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `case_id` bigint unsigned NOT NULL,
+    -- Who reported it. Shown to administrators only, never to whoever was
+    -- reported.
+    `reporter_id` bigint unsigned NOT NULL,
+    -- A key from the installation's reasons file. Not checked against it
+    -- here: a reason removed from the file must not orphan the reports that
+    -- used it.
+    `reason_key` varchar(64) NOT NULL,
+    `details` varchar(1000) NOT NULL DEFAULT '',
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+    `created_ip` varchar(45) NOT NULL DEFAULT '',
+    PRIMARY KEY (`id`),
+    -- One report per person per case. Reporting again changes the reason and
+    -- the details of the one they have.
+    UNIQUE KEY `idx_abuse_reports_case_reporter` (`case_id`, `reporter_id`),
+    KEY `idx_abuse_reports_reporter` (`reporter_id`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

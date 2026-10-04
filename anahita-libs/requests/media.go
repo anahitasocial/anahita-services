@@ -18,7 +18,7 @@ func NewMediumRequest() *MediumRequest {
 			Offset:    0,
 			Limit:     constants.RequestLimitDefault,
 			Direction: "desc",
-			Ordering:  "created_on",
+			Ordering:  "created_at",
 			OwnerID:   0,
 		},
 		Read: &MediumReadRequest{
@@ -49,7 +49,7 @@ func NewMediumRequest() *MediumRequest {
 type MediumBrowseRequest struct {
 	Offset    uint64 `query:"start"`
 	Limit     uint64 `query:"limit"`
-	Ordering  string `query:"ordering" validate:"max=15,omitempty,oneof=modified_on created_on enabled"`
+	Ordering  string `query:"ordering" validate:"max=15,omitempty,oneof=updated_at created_at enabled"`
 	Direction string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	Disabled  bool   `query:"disabled" validate:"omitempty"`
 	// OwnerID is the profile whose posts are listed, and is required. There is

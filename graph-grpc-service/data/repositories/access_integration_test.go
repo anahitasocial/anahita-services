@@ -62,16 +62,16 @@ func seedAccessFixture(t *testing.T, db *sql.DB) {
 	for _, stmt := range []string{
 		`DELETE FROM edges`,
 		`DELETE FROM nodes`,
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_at,updated_at) VALUES
 		 (1,'node.actor.person-service.person.v1','person-service','Alice','alice','public',1,NOW(),NOW()),
 		 (2,'node.actor.person-service.person.v1','person-service','Bob','bob','public',1,NOW(),NOW()),
 		 (3,'node.actor.group-service.group.v1','group-service','Cyclists','cyclists','public',1,NOW(),NOW())`,
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,created_at,updated_at) VALUES
 		 (10,'node.medium.photo-service.photo.v1','photo-service','Bob photo','p1','public',1,2,2,NOW(),NOW()),
 		 (11,'node.medium.photo-service.photo.v1','photo-service','Bob in group','p2','public',1,3,2,NOW(),NOW()),
 		 (12,'node.medium.photo-service.photo.v1','photo-service','Alice in group','p3','public',1,3,1,NOW(),NOW()),
 		 (20,'node.medium.photo-service.photo.v1','photo-service','Alice private','p4','myself',1,1,1,NOW(),NOW())`,
-		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_on) VALUES
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
 		 ('edge.actor.block.v1',1,'node.actor.person-service.person.v1',2,'node.actor.person-service.person.v1',NOW())`,
 	} {
 		if _, err := db.Exec(stmt); err != nil {
@@ -212,9 +212,9 @@ func TestCommentsFollowTheirPost(t *testing.T) {
 	seedAccessFixture(t, db)
 
 	for _, stmt := range []string{
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_at,updated_at) VALUES
 		 (4,'node.actor.person-service.person.v1','person-service','Carol','carol','public',1,NOW(),NOW())`,
-		`INSERT INTO nodes (id,type,service,body,access,enabled,parent_id,created_by,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,body,access,enabled,parent_id,created_by,created_at,updated_at) VALUES
 		 (30,'node.base.comment-service.comment.v1','comment-service','on a public post','',1,12,1,NOW(),NOW()),
 		 (31,'node.base.comment-service.comment.v1','comment-service','on a private post','',1,20,1,NOW(),NOW()),
 		 (32,'node.base.comment-service.comment.v1','comment-service','by a blocked person','',1,12,2,NOW(),NOW())`,
@@ -289,13 +289,13 @@ func seedFeedFixture(t *testing.T, db *sql.DB) {
 	for _, stmt := range []string{
 		`DELETE FROM edges`,
 		`DELETE FROM nodes`,
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_at,updated_at) VALUES
 		 (1,` + person + `,'Alice','alice','public',1,NOW(),NOW()),
 		 (2,` + person + `,'Bob','bob','public',1,NOW(),NOW()),
 		 (3,'node.actor.group-service.group.v1','group-service','Cyclists','cyclists','public',1,NOW(),NOW()),
 		 (4,` + person + `,'Carol','carol','public',1,NOW(),NOW()),
 		 (5,` + person + `,'Dave','dave','public',1,NOW(),NOW())`,
-		`INSERT INTO nodes (id,type,service,body,alias,access,enabled,owner_id,created_by,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,body,alias,access,enabled,owner_id,created_by,created_at,updated_at) VALUES
 		 (40,` + note + `,'public','n40','public',1,2,2,NOW(),NOW()),
 		 (41,` + note + `,'followers','n41','followers',1,2,2,NOW(),NOW()),
 		 (42,` + note + `,'only me','n42','myself',1,2,2,NOW(),NOW()),
@@ -303,13 +303,13 @@ func seedFeedFixture(t *testing.T, db *sql.DB) {
 		 (44,` + note + `,'alice, admins only, in a group','n44','admins',1,3,1,NOW(),NOW())`,
 		// Reposts are owned by the reposter and carry a copy of the original's
 		// access; comments have no owner and an empty access.
-		`INSERT INTO nodes (id,type,service,alias,access,enabled,owner_id,parent_id,created_by,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,alias,access,enabled,owner_id,parent_id,created_by,created_at,updated_at) VALUES
 		 (50,'node.base.repost-service.repost.v1','feed-service','n41','followers',1,4,41,4,NOW(),NOW()),
 		 (51,'node.base.repost-service.repost.v1','feed-service','n40','public',1,4,40,4,NOW(),NOW())`,
-		`INSERT INTO nodes (id,type,service,body,access,enabled,parent_id,created_by,created_on,modified_on) VALUES
+		`INSERT INTO nodes (id,type,service,body,access,enabled,parent_id,created_by,created_at,updated_at) VALUES
 		 (60,'node.base.comment-service.comment.v1','comment-service','on the followers post','',1,41,4,NOW(),NOW()),
 		 (61,'node.base.comment-service.comment.v1','comment-service','on the public post','',1,40,4,NOW(),NOW())`,
-		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_on) VALUES
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
 		 ('edge.actor.follow.v1',4,` + "'node.actor.person-service.person.v1'" + `,2,` + "'node.actor.person-service.person.v1'" + `,NOW()),
 		 ('edge.actor.follow.v1',5,` + "'node.actor.person-service.person.v1'" + `,4,` + "'node.actor.person-service.person.v1'" + `,NOW())`,
 	} {

@@ -26,6 +26,7 @@ const (
 	NodeService_Add_FullMethodName                     = "/graph.NodeService/Add"
 	NodeService_Delete_FullMethodName                  = "/graph.NodeService/Delete"
 	NodeService_Count_FullMethodName                   = "/graph.NodeService/Count"
+	NodeService_FilterVisible_FullMethodName           = "/graph.NodeService/FilterVisible"
 	NodeService_BatchRead_FullMethodName               = "/graph.NodeService/BatchRead"
 	NodeService_BatchReadByAliases_FullMethodName      = "/graph.NodeService/BatchReadByAliases"
 	NodeService_BatchEdit_FullMethodName               = "/graph.NodeService/BatchEdit"
@@ -48,6 +49,9 @@ type NodeServiceClient interface {
 	Delete(ctx context.Context, in *NodeDeleteRequest, opts ...grpc.CallOption) (*NodeDeleteResponse, error)
 	Count(ctx context.Context, in *NodeCountRequest, opts ...grpc.CallOption) (*NodeCountResponse, error)
 	// Batch operations
+	// Which of these nodes may this viewer see? Any kind of node. See
+	// nodesRepo.FilterVisible.
+	FilterVisible(ctx context.Context, in *NodeFilterVisibleRequest, opts ...grpc.CallOption) (*NodeFilterVisibleResponse, error)
 	BatchRead(ctx context.Context, in *NodeBatchReadRequest, opts ...grpc.CallOption) (*NodeBatchReadResponse, error)
 	BatchReadByAliases(ctx context.Context, in *NodeBatchReadByAliasesRequest, opts ...grpc.CallOption) (*NodeBatchReadByAliasesResponse, error)
 	BatchEdit(ctx context.Context, in *NodeBatchEditRequest, opts ...grpc.CallOption) (*NodeBatchEditResponse, error)
@@ -131,6 +135,16 @@ func (c *nodeServiceClient) Count(ctx context.Context, in *NodeCountRequest, opt
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(NodeCountResponse)
 	err := c.cc.Invoke(ctx, NodeService_Count_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) FilterVisible(ctx context.Context, in *NodeFilterVisibleRequest, opts ...grpc.CallOption) (*NodeFilterVisibleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NodeFilterVisibleResponse)
+	err := c.cc.Invoke(ctx, NodeService_FilterVisible_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -229,6 +243,9 @@ type NodeServiceServer interface {
 	Delete(context.Context, *NodeDeleteRequest) (*NodeDeleteResponse, error)
 	Count(context.Context, *NodeCountRequest) (*NodeCountResponse, error)
 	// Batch operations
+	// Which of these nodes may this viewer see? Any kind of node. See
+	// nodesRepo.FilterVisible.
+	FilterVisible(context.Context, *NodeFilterVisibleRequest) (*NodeFilterVisibleResponse, error)
 	BatchRead(context.Context, *NodeBatchReadRequest) (*NodeBatchReadResponse, error)
 	BatchReadByAliases(context.Context, *NodeBatchReadByAliasesRequest) (*NodeBatchReadByAliasesResponse, error)
 	BatchEdit(context.Context, *NodeBatchEditRequest) (*NodeBatchEditResponse, error)
@@ -268,6 +285,9 @@ func (UnimplementedNodeServiceServer) Delete(context.Context, *NodeDeleteRequest
 }
 func (UnimplementedNodeServiceServer) Count(context.Context, *NodeCountRequest) (*NodeCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Count not implemented")
+}
+func (UnimplementedNodeServiceServer) FilterVisible(context.Context, *NodeFilterVisibleRequest) (*NodeFilterVisibleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FilterVisible not implemented")
 }
 func (UnimplementedNodeServiceServer) BatchRead(context.Context, *NodeBatchReadRequest) (*NodeBatchReadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BatchRead not implemented")
@@ -436,6 +456,24 @@ func _NodeService_Count_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NodeServiceServer).Count(ctx, req.(*NodeCountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_FilterVisible_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NodeFilterVisibleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).FilterVisible(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_FilterVisible_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).FilterVisible(ctx, req.(*NodeFilterVisibleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -618,6 +656,10 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Count",
 			Handler:    _NodeService_Count_Handler,
+		},
+		{
+			MethodName: "FilterVisible",
+			Handler:    _NodeService_FilterVisible_Handler,
 		},
 		{
 			MethodName: "BatchRead",

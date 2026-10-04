@@ -74,17 +74,17 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	}
 
 	// Time fields
-	if m.CreatedOn != nil {
-		n.CreationTime = m.CreatedOn.AsTime()
+	if m.CreatedAt != nil {
+		n.CreatedAt = m.CreatedAt.AsTime()
 	}
-	if m.ModifiedOn != nil {
-		n.UpdateTime = m.ModifiedOn.AsTime()
+	if m.UpdatedAt != nil {
+		n.UpdatedAt = m.UpdatedAt.AsTime()
 	}
-	if m.StartDate != nil {
-		n.StartDate = m.StartDate.AsTime()
+	if m.StartsAt != nil {
+		n.StartsAt = m.StartsAt.AsTime()
 	}
-	if m.EndDate != nil {
-		n.EndDate = m.EndDate.AsTime()
+	if m.EndsAt != nil {
+		n.EndsAt = m.EndsAt.AsTime()
 	}
 
 	// Counts and social fields
@@ -250,8 +250,8 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Filename:             node.Filename,
 		CoverFilename:        node.CoverFilename,
 		Meta:                 string(node.Meta),
-		CreatedOn:            timestamppb.New(node.CreationTime),
-		ModifiedOn:           timestamppb.New(node.UpdateTime),
+		CreatedAt:            timestamppb.New(node.CreatedAt),
+		UpdatedAt:            timestamppb.New(node.UpdatedAt),
 		FollowerCount:        node.FollowerCount,
 		LeaderCount:          node.LeaderCount,
 		SubscriberCount:      node.SubscriberCount,
@@ -268,8 +268,8 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		IsAdminedByViewer:    node.IsAdminedByViewer,
 		IsBlockedByViewer:    node.IsBlockedByViewer,
 		AllowFollowRequest:   node.AllowFollowRequest,
-		StartDate:            timestamppb.New(node.StartDate),
-		EndDate:              timestamppb.New(node.EndDate),
+		StartsAt:             timestamppb.New(node.StartsAt),
+		EndsAt:               timestamppb.New(node.EndsAt),
 		OwnerType:            node.OwnerType,
 		OwnerId:              node.OwnerID,
 		Verified:             node.Verified,
@@ -287,9 +287,7 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		GeoStateProvince:     node.GeoStateProvince,
 		GeoCountry:           node.GeoCountry,
 		GeoPostalcode:        node.GeoPostalcode,
-		CreationTime:         timestamppb.New(node.CreationTime),
 		CreatedBy:            node.CreatedBy,
-		UpdateTime:           timestamppb.New(node.UpdateTime),
 		ModifiedBy:           node.ModifiedBy,
 		Mimetype:             node.Mimetype,
 		Language:             node.Language,

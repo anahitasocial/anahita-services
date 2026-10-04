@@ -16,12 +16,12 @@ import (
 //
 // That has now failed three separate ways in this refactor:
 //
-//	last_visit_date  landed on nodes while auth_accounts had it too, and every
-//	                 joined read became "Column 'last_visit_date' in where
+//	last_visited_at  landed on nodes while auth_accounts had it too, and every
+//	                 joined read became "Column 'last_visited_at' in where
 //	                 clause is ambiguous"
 //	username         moved to nodes.alias, and sign-in became "Unknown column
 //	                 'username' in 'where clause'" — for everyone
-//	created_on       was about to go the same way through ORDER BY
+//	created_at       was about to go the same way through ORDER BY
 //
 // None of it is visible to the other tests in this package: sqlmock returns
 // whatever rows it was handed and never parses the statement, so a query that
@@ -109,7 +109,7 @@ func TestReadPredicatesAreTableQualified(t *testing.T) {
 				Keywords:    "ada",
 				PersonType:  "registered",
 				PersonTypes: []string{"administrator", "super-administrator"},
-				Ordering:    "created_on",
+				Ordering:    "created_at",
 				Direction:   "desc",
 			})
 			return err

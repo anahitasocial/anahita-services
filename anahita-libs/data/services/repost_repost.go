@@ -20,13 +20,13 @@ func NewRepostRequest() *RepostRequest {
 			Offset:      0,
 			Limit:       constants.RequestLimitDefault,
 			OrderingDir: constants.DirDesc,
-			Ordering:    constants.OrderingCreatedOn,
+			Ordering:    constants.OrderingCreatedAt,
 		},
 		BrowseAuthors: &RepostBrowseAuthorsRequest{
 			Offset:      0,
 			Limit:       constants.RequestLimitDefault,
 			OrderingDir: constants.DirDesc,
-			Ordering:    constants.OrderingCreatedOn,
+			Ordering:    constants.OrderingCreatedAt,
 		},
 		Read:   &RepostReadRequest{},
 		Add:    &RepostAddRequest{},
@@ -39,7 +39,7 @@ type RepostBrowseRequest struct {
 	OwnerID     int64  `query:"owner_id" validate:"omitempty,numeric"`
 	Offset      uint64 `query:"start"`
 	Limit       uint64 `query:"limit"`
-	Ordering    string `query:"ordering" validate:"max=15,omitempty,oneof=modified_on created_on enabled"`
+	Ordering    string `query:"ordering" validate:"max=15,omitempty,oneof=updated_at created_at enabled"`
 	OrderingDir string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer      *entities.Viewer
 }
@@ -48,7 +48,7 @@ type RepostBrowseAuthorsRequest struct {
 	ParentID    int64  `param:"parent_id" validate:"required,numeric"`
 	Offset      uint64 `query:"start"`
 	Limit       uint64 `query:"limit"`
-	Ordering    string `query:"ordering" validate:"max=15,omitempty,oneof=modified_on created_on enabled"`
+	Ordering    string `query:"ordering" validate:"max=15,omitempty,oneof=updated_at created_at enabled"`
 	OrderingDir string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer      *entities.Viewer
 }

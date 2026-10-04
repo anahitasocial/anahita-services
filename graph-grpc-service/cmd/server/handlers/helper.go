@@ -55,8 +55,8 @@ func ProtoNodeToAnahitaNode(n *graphpb.Node) *entities.AnahitaNode {
 	node.Alias = n.Alias
 	node.Body = n.Body
 	node.Excerpt = n.Excerpt
-	node.StartDate = n.StartDate.AsTime()
-	node.EndDate = n.EndDate.AsTime()
+	node.StartsAt = n.StartsAt.AsTime()
+	node.EndsAt = n.EndsAt.AsTime()
 	node.OwnerID = n.OwnerId
 	node.OwnerType = n.OwnerType
 	node.ParentID = n.ParentId
@@ -79,8 +79,8 @@ func ProtoNodeToAnahitaNode(n *graphpb.Node) *entities.AnahitaNode {
 	node.GeoPostalcode = n.GeoPostalcode
 	node.Meta = []byte(n.Meta)
 	node.FeaturesRaw = []byte(n.FeaturesRaw)
-	node.CreationTime = n.CreationTime.AsTime()
-	node.UpdateTime = n.UpdateTime.AsTime()
+	node.CreatedAt = n.CreatedAt.AsTime()
+	node.UpdatedAt = n.UpdatedAt.AsTime()
 	node.CreatedBy = n.CreatedBy
 	node.ModifiedBy = n.ModifiedBy
 	node.AllowFollowRequest = n.AllowFollowRequest

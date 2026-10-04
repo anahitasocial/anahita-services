@@ -17,7 +17,9 @@ import (
 	features "graph/data/actor_features"
 	"graph/data/repositories"
 	"graph/data/validators"
-	"graph/purge"
+	"graph/sweeper"
+
+	"github.com/google/uuid"
 )
 
 type actorHandler struct {
@@ -539,7 +541,18 @@ func (h *actorHandler) DeletionCounts(ctx context.Context, req *graphpb.ActorDel
 	return resp, nil
 }
 
-// Purge destroys an actor and everything it owned, immediately.
+// The reasons RequestPurge gives for refusing. They cross to the client as
+// they are, so they are part of the API.
+const (
+	purgeRefusedNotFound       = "not_found"
+	purgeRefusedWrongType      = "wrong_type"
+	purgeRefusedAdministrator  = "administrator"
+	purgeRefusedYourself       = "yourself"
+	purgeRefusedLastSuperAdmin = "last_super_administrator"
+)
+
+// RequestPurge queues actors to be destroyed, with everything they owned or
+// wrote, and starts the work.
 //
 // The hard delete. No grace period, no restore, nothing to undo — which is why
 // it is a separate RPC rather than a flag on Delete. A boolean on the ordinary
@@ -547,63 +560,189 @@ func (h *actorHandler) DeletionCounts(ctx context.Context, req *graphpb.ActorDel
 // "gone" was one field somebody could set by mistake, or a client could set by
 // default.
 //
-// AUTHORITY IS THE CALLER'S TO CHECK. graph-grpc has no notion of a usertype —
-// that lives in people_people, which this service has never read — so
-// person-service and group-service enforce super-administrator only, the same
-// way they enforce every other permission before calling here.
+// AUTHORITY IS THE CALLER'S TO CHECK. graph-grpc has no notion of who may do
+// this, so person-service and group-service enforce super-administrator only,
+// the same way they enforce every other permission before calling here.
+//
+// ALL OR NOTHING. Every actor is checked before any is touched, and one that
+// cannot be purged refuses the whole request, with the reason for each. A
+// cleanup of five hundred accounts that quietly left three behind would have
+// to be found by reading the result; one that stops says so.
+//
+// IT ANSWERS BEFORE THE WORK IS DONE. Each actor is marked deleted, so it is
+// gone from the site at once, and queued. The purge then runs in the
+// background under the sweeper's lock, and ReadPurgeBatch says how far it has
+// got. A purge used to run inside this call, so a large account could outlast
+// the caller's patience and the gateway's.
 //
 // It notifies nobody. The purged event exists so auth-service removes the
 // credentials, auth logs and pending tokens it still holds; it is plumbing,
-// not a message to a person. A super administrator clearing out an account is
-// not a conversation.
+// not a message to a person. The deleted event is NOT published either: it
+// tells the person their account can be restored for thirty days, which here
+// would be untrue.
 //
 // What survives: the tombstone, which reserves the handle so a later account
 // cannot inherit this one's identity on a remote server, and the deletion log
-// row recording who did it. Both are deliberate — see docs/plans.
-func (h *actorHandler) Purge(ctx context.Context, req *graphpb.ActorPurgeRequest) (*graphpb.ActorPurgeResponse, error) {
-	log.Printf("Received Purge request: %v", req.Id)
+// rows recording who did it. Both are deliberate — see docs/plans.
+func (h *actorHandler) RequestPurge(ctx context.Context, req *graphpb.ActorPurgeBatchRequest) (*graphpb.ActorPurgeBatchResponse, error) {
+	log.Printf("Received RequestPurge request for %d actor(s)", len(req.Ids))
 
-	// Read first, so the audit row and the event can say what was destroyed.
-	// After purge.Account runs there is nothing left to ask.
-	actor, err := h.env.Repos.Nodes.Read(req.Id)
+	var requestedBy int64
+	if req.Viewer != nil {
+		requestedBy = req.Viewer.Id
+	}
+
+	response := &graphpb.ActorPurgeBatchResponse{}
+
+	// Pass one: look, and touch nothing.
+	var actors []*entities.AnahitaNode
+	seen := map[int64]bool{}
+
+	for _, id := range req.Ids {
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+
+		actor, reason := h.purgeable(id, req, requestedBy)
+		if reason != "" {
+			response.Refused = append(response.Refused,
+				&graphpb.ActorPurgeRefusal{Id: id, Reason: reason})
+			continue
+		}
+
+		// Already a tombstone. The caller wanted it gone and it is.
+		purged, err := h.env.Repos.Nodes.IsPurged(id)
+		if err != nil {
+			return nil, err
+		}
+		if purged {
+			response.Skipped++
+			continue
+		}
+
+		actors = append(actors, actor)
+	}
+
+	if len(response.Refused) > 0 {
+		log.Printf("actor purge: refused, %d of %d cannot be purged",
+			len(response.Refused), len(req.Ids))
+		response.Skipped = 0
+		return response, nil
+	}
+
+	// Pass two: hide and queue.
+	batchID := uuid.NewString()
+
+	for _, actor := range actors {
+		// Marked deleted now, so the account is gone from the site before
+		// this call returns, whatever the queue is doing.
+		if _, err := h.env.Repos.Nodes.SoftDeleteActor(actor.ID); err != nil {
+			if errors.Is(err, repositories.ErrLastSuperAdmin) {
+				// Pass one let it through because another super administrator
+				// was there then. Only possible when the request itself named
+				// the others.
+				return nil, status.Error(codes.FailedPrecondition, err.Error())
+			}
+			return nil, err
+		}
+
+		queued, err := h.env.Repos.PurgeRequests.Add(batchID, actor, requestedBy)
+		if err != nil {
+			return nil, err
+		}
+		if queued {
+			response.Queued++
+		} else {
+			response.Skipped++
+		}
+	}
+
+	if response.Queued > 0 {
+		response.BatchId = batchID
+
+		// One pass over the queue, in the background, under the sweeper's
+		// lock. If this replica stops before it finishes, the rows are still
+		// queued and the scheduled sweeper takes them.
+		go func() {
+			purged, err := sweeper.RunRequests(h.env.DB, h.env.Repos, h.env.Publisher, h.env.Files)
+			if err != nil {
+				log.Println("actor purge:", err)
+				return
+			}
+			log.Printf("actor purge: %d account(s) purged on request", purged)
+		}()
+	}
+
+	return response, nil
+}
+
+// purgeable reads one actor and says why it may not be purged, or returns it.
+func (h *actorHandler) purgeable(id int64, req *graphpb.ActorPurgeBatchRequest, requestedBy int64) (*entities.AnahitaNode, string) {
+	actor, err := h.env.Repos.Nodes.Read(id)
+	if err != nil || actor == nil {
+		return nil, purgeRefusedNotFound
+	}
+
+	// Actors only, and only the kind the route is for. A purge follows
+	// owner_id and created_by from this node, so pointing it at a post would
+	// destroy that post's comments and leave the actor untouched.
+	if !strings.HasPrefix(actor.Type, constants.NodeActorPrefixEntityType) ||
+		(req.Type != "" && actor.Type != req.Type) {
+		return nil, purgeRefusedWrongType
+	}
+
+	if id == requestedBy {
+		return nil, purgeRefusedYourself
+	}
+
+	administrator := actor.PersonType == constants.PersonTypeAdmin ||
+		actor.PersonType == constants.PersonTypeSuperAdmin
+	if administrator && !req.AllowAdministrators {
+		return nil, purgeRefusedAdministrator
+	}
+
+	if err := h.env.Repos.Nodes.GuardLastSuperAdmin(id); err != nil {
+		return nil, purgeRefusedLastSuperAdmin
+	}
+
+	return actor, ""
+}
+
+// ReadPurgeBatch reports how far a RequestPurge has got.
+//
+// A batch id nobody was given comes back empty rather than as an error: the
+// caller is polling, and "nothing here" is an answer it can show.
+func (h *actorHandler) ReadPurgeBatch(ctx context.Context, req *graphpb.ActorPurgeBatchReadRequest) (*graphpb.ActorPurgeBatchReadResponse, error) {
+	requests, err := h.env.Repos.PurgeRequests.BrowseBatch(req.BatchId)
 	if err != nil {
-		// Nothing there. Not an error: a repeated purge of something already
-		// gone is the same outcome the caller wanted.
-		log.Printf("actor purge: %d not found, nothing to purge", req.Id)
-		return &graphpb.ActorPurgeResponse{Purged: false}, nil
-	}
-
-	// Actors only. purge.Account walks owner_id and parent_id from this node,
-	// so pointing it at a medium would destroy that medium's comments and
-	// leave the actor untouched — a destructive operation doing something
-	// entirely different from its name.
-	if !strings.HasPrefix(actor.Type, constants.NodeActorPrefixEntityType) {
-		log.Printf("actor purge: %d is %q, not an actor", req.Id, actor.Type)
-		return nil, status.Errorf(codes.InvalidArgument,
-			"purge is for actors, not %s", actor.Type)
-	}
-
-	if err := purge.Account(h.env.Repos, h.env.Publisher, h.env.Files, req.Id); err != nil {
-		log.Println("actor purge:", err)
 		return nil, err
 	}
 
-	// Who did it, over the top of the row purge.Account already wrote. That
-	// one records the purge; this one records that a person chose it rather
-	// than a deadline forcing it, which is the whole distinction worth
-	// auditing about a hard delete.
-	var purgedBy int64
-	if req.Viewer != nil {
-		purgedBy = req.Viewer.Id
-	}
-	if err := h.env.Repos.NodeDeletionLogs.Add(
-		actor.ID, actor.Alias, actor.Type, purgedBy,
-		repositories.DeletionActionHardDeleted,
-	); err != nil {
-		log.Println("actor purge: audit write failed:", err)
+	response := &graphpb.ActorPurgeBatchReadResponse{
+		BatchId: req.BatchId,
+		Total:   int64(len(requests)),
 	}
 
-	return &graphpb.ActorPurgeResponse{Purged: true}, nil
+	for _, request := range requests {
+		switch request.Status {
+		case repositories.PurgeRequestDone:
+			response.Done++
+		case repositories.PurgeRequestFailed:
+			response.Failed++
+		default:
+			response.Queued++
+		}
+
+		response.Items = append(response.Items, &graphpb.ActorPurgeItem{
+			Id:     request.ActorID,
+			Alias:  request.ActorAlias,
+			Status: request.Status,
+			Error:  request.Error,
+		})
+	}
+
+	return response, nil
 }
 
 // Archive marks an actor archived. Permanent, and destroys nothing.

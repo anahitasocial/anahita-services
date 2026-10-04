@@ -201,7 +201,7 @@ func TestEmailChangeCodeExpiresAndIsReplacedByANewRequest(t *testing.T) {
 		t.Errorf("the first code against the second request: status = %d, want 422", rec.Code)
 	}
 
-	second.StartTime = time.Now().Add(-16 * time.Minute)
+	second.StartedAt = time.Now().Add(-16 * time.Minute)
 	if rec := f.confirm(42, second.Code); rec.Code != http.StatusGone {
 		t.Errorf("an expired code: status = %d, want 410", rec.Code)
 	}

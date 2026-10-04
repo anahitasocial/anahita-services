@@ -8,7 +8,7 @@ import (
 // AuthLog is the struct representation of the auth_log table that stores authentication logs data
 type AuthLog struct {
 	ID                  int64     `json:"id"`
-	CreatedOn           time.Time `json:"createdOn"`
+	CreatedAt           time.Time `json:"createdAt"`
 	CreatedBy           int64     `json:"-"`
 	Device              string    `json:"device"`
 	OS                  string    `json:"os"`

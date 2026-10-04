@@ -25,12 +25,12 @@ func grpcToGraphEdge(e *graphpb.Edge) *entities.AnahitaEdge {
 		NodeBType:  e.NodeBType,
 		Meta:       e.Meta,
 		CreatedBy:  e.CreatedBy,
-		CreatedOn:  e.CreatedOn.AsTime(),
+		CreatedAt:  e.CreatedAt.AsTime(),
 		ModifiedBy: e.ModifiedBy,
-		ModifiedOn: e.ModifiedOn.AsTime(),
+		UpdatedAt:  e.UpdatedAt.AsTime(),
 		Ordering:   e.Ordering,
-		StartDate:  e.StartDate.AsTime(),
-		EndDate:    e.EndDate.AsTime(),
+		StartsAt:   e.StartsAt.AsTime(),
+		EndsAt:     e.EndsAt.AsTime(),
 	}
 
 	return edge
@@ -48,8 +48,8 @@ func graphEdgeToGrpc(edge *entities.AnahitaEdge) *graphpb.Edge {
 		CreatedBy:  edge.CreatedBy,
 		ModifiedBy: edge.ModifiedBy,
 		Ordering:   edge.Ordering,
-		StartDate:  timestamppb.New(edge.StartDate),
-		EndDate:    timestamppb.New(edge.EndDate),
+		StartsAt:   timestamppb.New(edge.StartsAt),
+		EndsAt:     timestamppb.New(edge.EndsAt),
 	}
 	return grpcEdge
 }

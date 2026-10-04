@@ -159,8 +159,11 @@ func TestDestructiveMethodsRefuseANonPositiveID(t *testing.T) {
 		if ok, _ := repo.SoftDeleteActor(id); ok {
 			t.Errorf("SoftDeleteActor(%d) reported success", id)
 		}
-		if ok, _ := repo.PurgeActorContent(id); ok {
-			t.Errorf("PurgeActorContent(%d) reported success", id)
+		if err := repo.PreparePurge(id); err != nil {
+			t.Errorf("PreparePurge(%d): %v", id, err)
+		}
+		if err := repo.FinishPurge(id); err != nil {
+			t.Errorf("FinishPurge(%d): %v", id, err)
 		}
 		if len(*seen) != 0 {
 			t.Errorf("id %d still reached the database: %v", id, *seen)
@@ -176,109 +179,106 @@ func TestDestructiveMethodsRefuseANonPositiveID(t *testing.T) {
 // the tombstone: it reserves the handle so nobody else can register it, which
 // is what stops a recycled handle inheriting the previous person's followers
 // on every remote instance that cached them.
-func TestPurgeDeletesContentButNotTheActor(t *testing.T) {
+//
+// And it must not take what the actor merely created. A person is the
+// created_by of the groups, hashtags and places they started, and those belong
+// to everybody in them.
+func TestPurgeListsContentButNotTheActorOrWhatItFounded(t *testing.T) {
 	db, mock, seen := newNodesTestDB(t)
 	repo := newRepo(db)
 
 	expectSuperAdminGuard(mock)
-	mock.ExpectBegin()
-	mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 5)) // edges
-	mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 3)) // content nodes
-	mock.ExpectCommit()
-
-	if _, err := repo.PurgeActorContent(42); err != nil {
-		t.Fatalf("purge: %v", err)
+	for range 7 {
+		mock.ExpectExec("insert").WillReturnResult(sqlmock.NewResult(0, 1))
 	}
 
-	joined := strings.ToLower(strings.Join(*seen, "\n---\n"))
-
-	// Content is found by ownership and descent, never by "everything".
-	if !strings.Contains(joined, "where owner_id = ?") {
-		t.Errorf("content is not scoped by owner:\n%s", joined)
+	if err := repo.PreparePurge(42); err != nil {
+		t.Fatalf("prepare: %v", err)
 	}
-	if !strings.Contains(joined, "recursive") {
+
+	// The first statement after the guard lists the content.
+	listing := strings.ToLower((*seen)[1])
+
+	if !strings.Contains(listing, "where owner_id = ?") {
+		t.Errorf("content is not scoped by owner:\n%s", listing)
+	}
+	if !strings.Contains(listing, "where created_by = ?") {
+		t.Errorf("what the actor wrote elsewhere is not listed, so it would "+
+			"survive credited to a tombstone:\n%s", listing)
+	}
+	for _, kept := range []string{"node.actor.%", "node.tag.%"} {
+		if !strings.Contains(listing, "type not like '"+kept+"'") {
+			t.Errorf("authorship is not limited to content, so %s the actor "+
+				"created would be deleted:\n%s", kept, listing)
+		}
+	}
+	if !strings.Contains(listing, "recursive") {
 		t.Errorf("descendants are not walked, so comments on a purged post would "+
-			"be orphaned rather than removed:\n%s", joined)
+			"be orphaned rather than removed:\n%s", listing)
 	}
-
-	// The actor's own row must not appear in the node deletion.
-	nodeDelete := ""
-	for _, q := range *seen {
-		if strings.Contains(strings.ToLower(q), "delete n") {
-			nodeDelete = strings.ToLower(q)
-		}
-	}
-	if nodeDelete == "" {
-		t.Fatal("no node deletion statement was issued")
-	}
-
-	// The EDGE delete deliberately adds the actor to its target set — its
-	// follows, admin edges and votes go with it. The NODE delete must not:
-	// that extra CTE is precisely the difference between purging somebody's
-	// content and erasing their tombstone.
-	if strings.Contains(nodeDelete, "targets") {
-		t.Errorf("the node deletion includes the actor's own row, which frees "+
-			"the handle for somebody else to register:\n%s", nodeDelete)
-	}
-	if !strings.Contains(nodeDelete, "join content") {
-		t.Errorf("the node deletion is not scoped to the owned-content set:\n%s", nodeDelete)
+	if !strings.Contains(listing, "where id <> ?") {
+		t.Errorf("the actor's own row is listed for deletion, which frees the "+
+			"handle for somebody else to register:\n%s", listing)
 	}
 }
 
-// Edges go before nodes. Once a node is gone there is nothing left to find its
-// edges by, and this schema has no foreign keys to clean up after us.
-func TestPurgeDeletesEdgesBeforeNodes(t *testing.T) {
+// Edges go before nodes, and both before the list of work. Every statement of
+// a batch finds its rows through the list, so removing that first would leave
+// the rest matching nothing.
+func TestPurgeBatchDeletesInOrder(t *testing.T) {
 	db, mock, seen := newNodesTestDB(t)
 	repo := newRepo(db)
 
-	expectSuperAdminGuard(mock)
 	mock.ExpectBegin()
-	mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 5))
-	mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 3))
+	for range 7 {
+		mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 1))
+	}
 	mock.ExpectCommit()
 
-	if _, err := repo.PurgeActorContent(42); err != nil {
-		t.Fatalf("purge: %v", err)
+	if err := repo.DeletePurgeBatch(42, &PurgeBatch{First: 100, Last: 200}); err != nil {
+		t.Fatalf("delete batch: %v", err)
 	}
 
-	// The ordering assertion is between the two DELETEs, not over the whole
-	// capture list: the super-administrator guard runs a SELECT before either
-	// of them.
-	var edgesAt, nodesAt = -1, -1
-	for i, stmt := range *seen {
-		lower := strings.ToLower(stmt)
-		if edgesAt == -1 && strings.Contains(lower, "from edges") {
-			edgesAt = i
+	position := func(fragment string) int {
+		for i, stmt := range *seen {
+			if strings.Contains(strings.ToLower(stmt), fragment) {
+				return i
+			}
 		}
-		if nodesAt == -1 && strings.Contains(lower, "from nodes") && strings.Contains(lower, "delete") {
-			nodesAt = i
+		t.Fatalf("no statement contains %q", fragment)
+		return -1
+	}
+
+	edges := position("from edges")
+	nodes := position("from nodes")
+	work := position("delete from purge_work")
+
+	if !(edges < nodes && nodes < work) {
+		t.Errorf("order is edges %d, nodes %d, work %d; want edges, nodes, work",
+			edges, nodes, work)
+	}
+
+	// Every statement is bounded by the batch.
+	for _, stmt := range *seen {
+		if !strings.Contains(strings.ToLower(stmt), "between ? and ?") {
+			t.Errorf("a statement is not limited to the batch:\n%s", stmt)
 		}
-	}
-	if edgesAt == -1 {
-		t.Fatalf("no delete from edges:\n%s", strings.Join(*seen, "\n"))
-	}
-	if nodesAt != -1 && edgesAt > nodesAt {
-		t.Errorf("edges were not deleted first; their nodes would be gone:\n%s",
-			strings.Join(*seen, "\n"))
 	}
 }
 
-// The whole purge is one transaction: a half-purged account has content
-// without edges, which no read path expects.
-func TestPurgeRollsBackOnFailure(t *testing.T) {
+// A failure part-way through must leave the batch whole and still listed.
+func TestPurgeBatchRollsBackOnFailure(t *testing.T) {
 	db, mock, _ := newNodesTestDB(t)
 	repo := newRepo(db)
 
-	expectSuperAdminGuard(mock)
 	mock.ExpectBegin()
 	mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 5))
-	mock.ExpectExec("delete").WillReturnError(sql.ErrConnDone)
+	mock.ExpectExec("delete").WillReturnError(errors.New("deadlock"))
 	mock.ExpectRollback()
 
-	if _, err := repo.PurgeActorContent(42); err == nil {
-		t.Error("a failed purge reported success")
+	if err := repo.DeletePurgeBatch(42, &PurgeBatch{First: 100, Last: 200}); err == nil {
+		t.Fatal("a failed batch reported success")
 	}
-
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("the transaction was not rolled back: %v", err)
 	}

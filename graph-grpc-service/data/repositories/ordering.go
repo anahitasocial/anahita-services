@@ -11,7 +11,7 @@ import (
 // checked against a list of things we already know rather than escaped.
 //
 // The HTTP services do check: their request structs carry
-// `validate:"oneof=created_on modified_on enabled"` and the live API rejects
+// `validate:"oneof=created_at updated_at enabled"` and the live API rejects
 // anything else with a 400. This is the second line, and it exists because
 // two paths go around the first:
 //

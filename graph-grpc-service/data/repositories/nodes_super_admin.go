@@ -95,3 +95,12 @@ func (r *nodesRepo) guardLastSuperAdmin(ctx context.Context, id int64) error {
 
 	return nil
 }
+
+// GuardLastSuperAdmin is guardLastSuperAdmin for a caller that wants to know
+// before it starts, rather than be stopped part-way.
+func (r *nodesRepo) GuardLastSuperAdmin(id int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
+	defer cancel()
+
+	return r.guardLastSuperAdmin(ctx, id)
+}

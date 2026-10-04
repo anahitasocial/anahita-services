@@ -1,4 +1,4 @@
-// Package purge destroys an actor and everything it owned.
+// Package purge destroys an actor and everything it owned or wrote.
 //
 // Its own package because two callers need exactly one implementation of it:
 // the sweeper, when a grace period runs out, and the super-administrator hard
@@ -22,6 +22,12 @@ import (
 	"graph/data/repositories"
 )
 
+// BatchSize is how many nodes one transaction removes. Small enough that a
+// batch, with the edges and notifications that point at it, finishes in well
+// under a second; large enough that a few thousand posts is a handful of round
+// trips.
+const BatchSize = 500
+
 // Account destroys one account's content and tombstones it.
 //
 // The caller decides WHETHER to do this — the sweeper because a deadline
@@ -34,6 +40,11 @@ import (
 // the queue — it gets picked up next run and finishes. The reverse order would
 // produce a tombstone with a live content graph hanging off it and nothing left
 // to find that content by.
+//
+// The content goes in batches, each its own short transaction, and what is
+// left to do is kept in a table. So an account of any size finishes, and one
+// that is interrupted carries on from where it stopped the next time this is
+// called for it.
 func Account(repos *repositories.Repositories, publisher *event.Publisher, files services.FilesGRPCInterface, id int64) error {
 	// Read before destroying: the event needs the type, and once the content is
 	// gone this is the only chance to learn anything about what was purged.
@@ -62,13 +73,46 @@ func Account(repos *repositories.Repositories, publisher *event.Publisher, files
 		return fmt.Errorf("marking deleted: %w", err)
 	}
 
-	// Blobs BEFORE the rows. Once the nodes are gone nothing records which
-	// objects belonged to them — the schema has no foreign keys — so the
-	// uploads would stay in storage forever, paid for and unreachable.
-	purgeFiles(repos, files, id)
+	// Already a tombstone: a repeated request, or two runs that met. There is
+	// nothing left to do, and doing it again would write a second audit row
+	// and tell auth-service twice.
+	if purged, err := repos.Nodes.IsPurged(id); err != nil {
+		return fmt.Errorf("reading purge state: %w", err)
+	} else if purged {
+		log.Printf("sweeper: %d is already purged", id)
+		return nil
+	}
 
-	if _, err := repos.Nodes.PurgeActorContent(id); err != nil {
-		return fmt.Errorf("purging content: %w", err)
+	if err := repos.Nodes.PreparePurge(id); err != nil {
+		return fmt.Errorf("preparing: %w", err)
+	}
+
+	for {
+		batch, err := repos.Nodes.NextPurgeBatch(id, BatchSize)
+		if err != nil {
+			return fmt.Errorf("reading the next batch: %w", err)
+		}
+		if batch == nil {
+			break
+		}
+
+		// Blobs BEFORE the rows. Once the nodes are gone nothing records which
+		// objects belonged to them — the schema has no foreign keys — so the
+		// uploads would stay in storage forever, paid for and unreachable. If
+		// the rows then fail to go, they are still listed and go next time.
+		deleteFiles(files, batch.Files)
+
+		if err := repos.Nodes.DeletePurgeBatch(id, batch); err != nil {
+			return fmt.Errorf("deleting a batch: %w", err)
+		}
+	}
+
+	// The actor's own avatar and cover. The node stays, as a tombstone, but
+	// TombstoneActor clears the file names that say where these are.
+	deleteFiles(files, []*entities.AnahitaNode{node})
+
+	if err := repos.Nodes.FinishPurge(id); err != nil {
+		return fmt.Errorf("finishing: %w", err)
 	}
 
 	tombstoned, err := repos.Nodes.TombstoneActor(id)
@@ -129,8 +173,7 @@ func Account(repos *repositories.Repositories, publisher *event.Publisher, files
 	return nil
 }
 
-// purgeFiles deletes the uploaded objects belonging to an actor and everything
-// it owns.
+// deleteFiles deletes the uploaded objects belonging to these nodes.
 //
 // Best-effort and never fatal. A leaked object costs storage; a sweep that
 // aborts here would leave the account's content in the database past its
@@ -140,18 +183,11 @@ func Account(repos *repositories.Repositories, publisher *event.Publisher, files
 // No-op when the file service is not configured, which is how the gRPC server
 // runs. The sweeper job sets FILE_SERVICE_ADDR; a deployment that has not is
 // no worse off than before this existed.
-func purgeFiles(repos *repositories.Repositories, files services.FilesGRPCInterface, ownerID int64) {
+func deleteFiles(files services.FilesGRPCInterface, nodes []*entities.AnahitaNode) {
 	if files == nil {
 		return
 	}
 
-	nodes, err := repos.Nodes.BrowseActorFiles(ownerID)
-	if err != nil {
-		log.Printf("sweeper: listing files for %d failed: %v", ownerID, err)
-		return
-	}
-
-	deleted := 0
 	for _, node := range nodes {
 		for _, path := range filePaths(node) {
 			req := &services.FileDeleteRequest{Path: path}
@@ -160,14 +196,8 @@ func purgeFiles(repos *repositories.Repositories, files services.FilesGRPCInterf
 				// statement destroys the row, so there is no second chance —
 				// logged loudly rather than retried.
 				log.Printf("sweeper: deleting %s failed: %v", path, err)
-				continue
 			}
-			deleted++
 		}
-	}
-
-	if deleted > 0 {
-		log.Printf("sweeper: deleted %d file(s) for account %d", deleted, ownerID)
 	}
 }
 

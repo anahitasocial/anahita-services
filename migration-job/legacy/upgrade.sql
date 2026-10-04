@@ -542,6 +542,11 @@ ALTER TABLE nodes ADD COLUMN `quote_count` INT(11) UNSIGNED NOT NULL DEFAULT 0 A
 ALTER TABLE nodes ADD COLUMN `deleted_at` datetime DEFAULT NULL;
 ALTER TABLE nodes ADD INDEX `deleted_at` (`deleted_at`);
 
+-- nodes.purged_at, set when an actor has been reduced to a tombstone, so the
+-- sweeper's queue is "deleted and not yet purged".
+ALTER TABLE nodes ADD COLUMN `purged_at` datetime DEFAULT NULL;
+ALTER TABLE nodes ADD INDEX `purged_at` (`purged_at`);
+
 -- nodes.archived_at, the third lifecycle state. Permanent, and unlike deletion
 -- it destroys nothing — the content keeps its URLs and stops being pushed at
 -- people. Its own column rather than a fourth meaning for `enabled`.
@@ -571,6 +576,62 @@ CREATE TABLE node_deletion_logs (
     PRIMARY KEY (`id`),
     KEY `idx_node_deletion_logs_node_id` (`node_id`),
     KEY `idx_node_deletion_logs_created_on` (`created_on`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- What is left to do for a purge in progress.
+--
+-- A purge removes an account's content in batches, each in its own short
+-- transaction, so a large account cannot run out of time and an interrupted
+-- purge carries on from what remains. Rows are removed as the work is done: an
+-- actor with none left is finished.
+--
+-- Owned by graph-grpc-service.
+CREATE TABLE IF NOT EXISTS purge_work (
+    -- The actor being purged.
+    `actor_id` bigint unsigned NOT NULL,
+    -- 'delete' for a node to remove, or the counter to count again on a node
+    -- that stays: 'count_follows', 'count_votes', 'count_subscribers',
+    -- 'count_comments', 'count_reposts'.
+    `task` varchar(24) NOT NULL,
+    -- The node the task applies to.
+    `node_id` bigint unsigned NOT NULL,
+    PRIMARY KEY (`actor_id`, `task`, `node_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- The queue of accounts a super administrator has asked to be removed now.
+--
+-- Asking does not purge. It hides the account at once and adds a row here; the
+-- purge itself is done by whoever holds the sweeper's lock, one account at a
+-- time, so a request for five hundred accounts returns immediately and cannot
+-- time out. The rows are also the progress of the request, and afterwards the
+-- record of who asked for what.
+--
+-- Owned by graph-grpc-service.
+CREATE TABLE IF NOT EXISTS purge_requests (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- The request that asked for it. One request names many actors, and its
+    -- progress is the state of these rows.
+    `batch_id` char(36) NOT NULL,
+    `actor_id` bigint unsigned NOT NULL,
+    -- Kept here so the progress view can still name an account after the
+    -- purge has taken its name.
+    `actor_alias` varchar(255) NOT NULL DEFAULT '',
+    `actor_type` varchar(255) NOT NULL DEFAULT '',
+    -- 'queued', 'done' or 'failed'.
+    `status` varchar(16) NOT NULL DEFAULT 'queued',
+    -- How many times the purge has been tried. It is given up as 'failed'
+    -- after a few, with the last error kept.
+    `attempts` int unsigned NOT NULL DEFAULT 0,
+    `error` varchar(255) NOT NULL DEFAULT '',
+    -- The super administrator who asked.
+    `requested_by` bigint unsigned NOT NULL,
+    `requested_at` datetime NOT NULL,
+    `finished_at` datetime DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    -- An actor is purged once. A failed request is replaced by asking again.
+    UNIQUE KEY `idx_purge_requests_actor` (`actor_id`),
+    KEY `idx_purge_requests_batch` (`batch_id`),
+    KEY `idx_purge_requests_status` (`status`, `requested_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 ALTER TABLE people_people ADD COLUMN `totp_secret` VARCHAR(255) DEFAULT '';
@@ -982,6 +1043,114 @@ FROM people_people;
 -- original is still wherever it was dumped from, so there is nothing here to
 -- lose that is not already held somewhere else.
 DROP TABLE people_people;
+
+-- --------------------------------------------------------
+
+-- Abuse reports: what people have reported, and what was decided about it.
+--
+-- Two tables. A CASE is one reported node and its decision; a REPORT is one
+-- person's complaint inside a case. A post that twenty people report is one
+-- case for an administrator to handle, not twenty.
+--
+-- Owned by abuse-report-service. No foreign keys, like the rest of this
+-- schema: a case must outlive the node it is about, which is the point of
+-- keeping the target's type and owner on the row.
+
+CREATE TABLE IF NOT EXISTS abuse_cases (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- What was reported: any node. A person, a group, a post, a comment, a
+    -- hashtag or a place.
+    `target_id` bigint unsigned NOT NULL,
+    -- Its type when it was first reported, kept so the case still says what
+    -- it was about after the node is gone.
+    `target_type` varchar(255) NOT NULL,
+    -- Who was responsible for it then: the author of a post or comment, the
+    -- actor itself for a person or group. NULL for a hashtag or a place.
+    `target_owner_id` bigint unsigned DEFAULT NULL,
+    -- 'open', 'actioned' or 'dismissed'.
+    `status` varchar(16) NOT NULL DEFAULT 'open',
+    -- The target, while the case is open, and NULL once it is closed. Unique,
+    -- which is what makes "one open case per node" a rule of the database
+    -- rather than of whichever request got there first: two people reporting
+    -- the same post at the same moment cannot open two cases. A closed case
+    -- stores NULL, and any number of NULLs may share a unique index, so a
+    -- node can be reported again later and its history is kept.
+    `open_target_id` bigint unsigned GENERATED ALWAYS AS (IF(`status` = 'open', `target_id`, NULL)) STORED,
+    -- How many people have reported it in this case.
+    `report_count` int unsigned NOT NULL DEFAULT 0,
+    `first_reported_at` datetime NOT NULL,
+    `last_reported_at` datetime NOT NULL,
+    -- The decision, once somebody has made one.
+    `decided_by` bigint unsigned DEFAULT NULL,
+    `decided_at` datetime DEFAULT NULL,
+    -- What was done about it: 'none', 'deleted', 'disabled', 'archived',
+    -- 'blocked' or 'other'.
+    `decision_action` varchar(16) DEFAULT NULL,
+    `decision_note` text,
+    -- When the target was deleted or purged, if it was.
+    `target_gone_at` datetime DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_abuse_cases_open_target` (`open_target_id`),
+    KEY `idx_abuse_cases_target` (`target_id`),
+    KEY `idx_abuse_cases_status_reported` (`status`, `last_reported_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS abuse_reports (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `case_id` bigint unsigned NOT NULL,
+    -- Who reported it. Shown to administrators only, never to whoever was
+    -- reported.
+    `reporter_id` bigint unsigned NOT NULL,
+    -- A key from the installation's reasons file. Not checked against it
+    -- here: a reason removed from the file must not orphan the reports that
+    -- used it.
+    `reason_key` varchar(64) NOT NULL,
+    `details` varchar(1000) NOT NULL DEFAULT '',
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+    `created_ip` varchar(45) NOT NULL DEFAULT '',
+    PRIMARY KEY (`id`),
+    -- One report per person per case. Reporting again changes the reason and
+    -- the details of the one they have.
+    UNIQUE KEY `idx_abuse_reports_case_reporter` (`case_id`, `reporter_id`),
+    KEY `idx_abuse_reports_reporter` (`reporter_id`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+-- One name for timestamps: a date with a time ends in `_at`.
+--
+-- Last, on purpose. Everything above was written against the names the PHP
+-- application used and still reads them, so the renaming is done once the
+-- rest of the upgrade has finished. Not guarded: this file runs once, top to
+-- bottom, against a database it has just built.
+ALTER TABLE nodes RENAME COLUMN `created_on` TO `created_at`;
+ALTER TABLE nodes RENAME COLUMN `modified_on` TO `updated_at`;
+ALTER TABLE nodes RENAME COLUMN `last_visit_date` TO `last_visited_at`;
+ALTER TABLE nodes RENAME COLUMN `start_date` TO `starts_at`;
+ALTER TABLE nodes RENAME COLUMN `end_date` TO `ends_at`;
+ALTER TABLE edges RENAME COLUMN `created_on` TO `created_at`;
+ALTER TABLE edges RENAME COLUMN `modified_on` TO `updated_at`;
+ALTER TABLE edges RENAME COLUMN `start_date` TO `starts_at`;
+ALTER TABLE edges RENAME COLUMN `end_date` TO `ends_at`;
+ALTER TABLE notifications RENAME COLUMN `created_on` TO `created_at`;
+ALTER TABLE notifications RENAME COLUMN `modified_on` TO `updated_at`;
+ALTER TABLE auth_logs RENAME COLUMN `created_on` TO `created_at`;
+ALTER TABLE node_deletion_logs RENAME COLUMN `created_on` TO `created_at`;
+ALTER TABLE tokens RENAME COLUMN `start_time` TO `started_at`;
+
+ALTER TABLE nodes RENAME INDEX `start_date` TO `starts_at`;
+ALTER TABLE nodes RENAME INDEX `end_date` TO `ends_at`;
+ALTER TABLE nodes RENAME INDEX `type_modifed_on` TO `type_updated_at`;
+ALTER TABLE nodes RENAME INDEX `type_created_on` TO `type_created_at`;
+ALTER TABLE nodes RENAME INDEX `idx_nodes_created_on` TO `idx_nodes_created_at`;
+ALTER TABLE edges RENAME INDEX `start_date` TO `starts_at`;
+ALTER TABLE edges RENAME INDEX `end_date` TO `ends_at`;
+ALTER TABLE notifications RENAME INDEX `created_on` TO `created_at`;
+ALTER TABLE notifications RENAME INDEX `modified_on` TO `updated_at`;
+ALTER TABLE auth_logs RENAME INDEX `idx_auth_logs_created_on` TO `idx_auth_logs_created_at`;
+ALTER TABLE auth_logs RENAME INDEX `idx_auth_logs_created_by_client_id_created_on` TO `idx_auth_logs_created_by_client_id_created_at`;
+ALTER TABLE node_deletion_logs RENAME INDEX `idx_node_deletion_logs_created_on` TO `idx_node_deletion_logs_created_at`;
 
 -- --------------------------------------------------------
 

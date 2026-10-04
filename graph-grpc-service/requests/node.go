@@ -55,7 +55,7 @@ type NodeBrowseRequest struct {
 	NearbyRadius    uint64   `validate:"omitempty,numeric"`
 	Offset          uint64   `validate:"omitempty,numeric"`
 	Limit           uint64   `validate:"omitempty,numeric,max=100"`
-	Ordering        string   `validate:"max=10,omitempty,oneof=created_on updated_on recent popular"`
+	Ordering        string   `validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
 	OrderingDir     string   `validate:"max=4,omitempty,oneof=asc desc"`
 	AccessCheck     bool
 	Viewer          *entities.Viewer
@@ -76,14 +76,14 @@ type NodeReadByAliasRequest struct {
 
 type NodeBatchReadRequest struct {
 	IDs         []int64 `validate:"numeric,omitempty"`
-	Ordering    string  `validate:"max=10,omitempty,oneof=created_on updated_on recent popular"`
+	Ordering    string  `validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
 	OrderingDir string  `validate:"max=4,omitempty,oneof=asc desc"`
 }
 
 type NodeBatchReadByAliasesRequest struct {
 	Aliases     []string `validate:"max=100,dive,max=255"`
 	NodeType    string   `validate:"max=50"`
-	Ordering    string   `validate:"max=10,omitempty,oneof=created_on updated_on recent popular"`
+	Ordering    string   `validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
 	OrderingDir string   `validate:"max=4,omitempty,oneof=asc desc"`
 }
 

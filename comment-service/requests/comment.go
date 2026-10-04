@@ -35,7 +35,7 @@ type CommentBrowseRequest struct {
 	ParentID  int64  `param:"parent_id" validate:"required,number"`
 	Offset    uint64 `query:"start"`
 	Limit     uint64 `query:"limit"`
-	Ordering  string `query:"sort" validate:"max=10,omitempty,oneof=created_on"`
+	Ordering  string `query:"sort" validate:"max=10,omitempty,oneof=created_at"`
 	Direction string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 }
 

@@ -1,0 +1,39 @@
+package permissions
+
+import (
+	"errors"
+
+	libs_constants "anahita-libs/constants"
+	"anahita-libs/data/entities"
+)
+
+const (
+	ErrAccountInsufficientScope = "insufficient scope"
+	ErrAccountBrowse            = "only super admins can browse the accounts list"
+)
+
+type AccountPerm struct {
+	*Env
+}
+
+func NewAccountPerm(env *Env) *AccountPerm {
+	return &AccountPerm{
+		env,
+	}
+}
+
+// CanBrowse gates the administration list of accounts.
+//
+// Super administrators only, where the approval queue next to it admits any
+// administrator. The list says who has verified an address, who has not been
+// seen for years and how much each has written, and its purpose is choosing
+// accounts to remove for good, which only a super administrator may do.
+func (prm *AccountPerm) CanBrowse(viewer *entities.Viewer) error {
+	if !viewer.HasScope(libs_constants.OAuthScopeActorsRead) {
+		return errors.New(ErrAccountInsufficientScope)
+	}
+	if !viewer.IsSuperAdmin() {
+		return errors.New(ErrAccountBrowse)
+	}
+	return nil
+}

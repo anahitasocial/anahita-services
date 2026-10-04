@@ -22,7 +22,7 @@ type PersonNodeItem struct {
 type PersonNode struct {
 	PersonNodeItem
 
-	UpdateTime  time.Time                 `json:"update_time,omitempty"`
+	UpdatedAt   time.Time                 `json:"updated_at,omitempty"`
 	Editor      *responses.Editor         `json:"editor,omitempty"`
 	Features    []*responses.NodeFeature  `json:"features,omitempty"`
 	Authorized  *responses.NodeAuthorized `json:"authorized,omitempty"`
@@ -41,7 +41,7 @@ func (r *PersonResponse) MapNode(node *entities.Person) *PersonNode {
 
 	return &PersonNode{
 		PersonNodeItem: *r.MapNodeItem(node),
-		UpdateTime:     node.UpdateTime,
+		UpdatedAt:      node.UpdatedAt,
 		Editor: func() *responses.Editor {
 			if node.Editor != nil {
 				return responses.NewEditor(node.Editor)

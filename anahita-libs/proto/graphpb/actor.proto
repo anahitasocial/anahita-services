@@ -161,22 +161,65 @@ message ActorDeletionCountsResponse {
     int64 member_since_unix = 6;
 }
 
-// Destroy an actor and everything it owned, now, with no grace period.
+// Ask for actors, and everything they owned or wrote, to be destroyed now,
+// with no grace period.
 //
 // Super administrators only, and the authority check lives in the calling
 // service — graph-grpc has no notion of a usertype. What it does enforce is
 // that this is not reachable by accident: a distinct RPC rather than a flag on
 // Delete, so nothing that means "schedule for deletion" can be made to mean
 // "destroy immediately" by setting a boolean.
-message ActorPurgeRequest {
-    int64 id = 1;
-    Viewer viewer = 2;
+//
+// The answer comes before the work is done. Each actor is hidden at once and
+// queued; ReadPurgeBatch reports how far the queue has got.
+message ActorPurgeBatchRequest {
+    repeated int64 ids = 1;
+    // The full node type every id must have, so a route for people cannot be
+    // used on a group.
+    string type = 2;
+    // False refuses the whole request if any of the actors is an
+    // administrator or super administrator. A bulk cleanup sets it false; the
+    // deliberate removal of one named account sets it true.
+    bool allow_administrators = 3;
+    Viewer viewer = 4;
 }
 
-message ActorPurgeResponse {
-    // False when there was nothing to purge — already gone, or never there.
-    // The caller needs to tell that from success.
-    bool purged = 1;
+// Why one actor stopped a request.
+message ActorPurgeRefusal {
+    int64 id = 1;
+    // not_found, wrong_type, administrator, yourself or
+    // last_super_administrator.
+    string reason = 2;
+}
+
+message ActorPurgeBatchResponse {
+    // Empty when the request was refused: nothing was queued.
+    string batch_id = 1;
+    int64 queued = 2;
+    // Already purged, or already queued by an earlier request.
+    int64 skipped = 3;
+    repeated ActorPurgeRefusal refused = 4;
+}
+
+message ActorPurgeBatchReadRequest {
+    string batch_id = 1;
+}
+
+message ActorPurgeItem {
+    int64 id = 1;
+    string alias = 2;
+    // queued, done or failed.
+    string status = 3;
+    string error = 4;
+}
+
+message ActorPurgeBatchReadResponse {
+    string batch_id = 1;
+    int64 total = 2;
+    int64 queued = 3;
+    int64 done = 4;
+    int64 failed = 5;
+    repeated ActorPurgeItem items = 6;
 }
 
 // Archive an actor. Permanent, and destroys nothing.
@@ -233,7 +276,7 @@ message ActorSetFeaturedResponse {
     bool changed = 1;
 }
 
-// TouchLastVisit stamps nodes.last_visit_date with the current time.
+// TouchLastVisit stamps nodes.last_visited_at with the current time.
 //
 // Its own RPC rather than an Edit, because Edit writes the whole actor from
 // the payload it is handed and publishes an "actor edited" event. Routing a
@@ -274,9 +317,11 @@ service ActorService {
     rpc Restore(ActorRestoreRequest) returns (ActorRestoreResponse) {}
     // What deleting this actor would cost, for the confirmation dialog.
     rpc DeletionCounts(ActorDeletionCountsRequest) returns (ActorDeletionCountsResponse) {}
-    // Destroys an actor immediately, skipping the grace period. Super
+    // Queues actors to be destroyed now, skipping the grace period. Super
     // administrators only; the caller enforces that.
-    rpc Purge(ActorPurgeRequest) returns (ActorPurgeResponse) {}
+    rpc RequestPurge(ActorPurgeBatchRequest) returns (ActorPurgeBatchResponse) {}
+    // How far a RequestPurge has got.
+    rpc ReadPurgeBatch(ActorPurgeBatchReadRequest) returns (ActorPurgeBatchReadResponse) {}
     // Archives an actor. Permanent; destroys nothing. No unarchive by design.
     rpc Archive(ActorArchiveRequest) returns (ActorArchiveResponse) {}
     // Turns an actor on or off. Reversible.

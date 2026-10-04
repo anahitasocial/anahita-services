@@ -69,11 +69,11 @@ func (h *edgeHandler) Edit(ctx context.Context, req *graphpb.EdgeEditRequest) (*
 	edge.Meta = req.Edge.Meta
 	edge.ModifiedBy = req.Edge.ModifiedBy
 	edge.Ordering = req.Edge.Ordering
-	if req.Edge.StartDate != nil {
-		edge.StartDate = req.Edge.StartDate.AsTime()
+	if req.Edge.StartsAt != nil {
+		edge.StartsAt = req.Edge.StartsAt.AsTime()
 	}
-	if req.Edge.EndDate != nil {
-		edge.EndDate = req.Edge.EndDate.AsTime()
+	if req.Edge.EndsAt != nil {
+		edge.EndsAt = req.Edge.EndsAt.AsTime()
 	}
 	result, err := h.env.Repos.Edges.Edit(edge)
 	if err != nil {
@@ -101,11 +101,11 @@ func (h *edgeHandler) Add(ctx context.Context, req *graphpb.EdgeAddRequest) (*gr
 	// last touched it. See BatchAdd for the mirror of this.
 	edge.ModifiedBy = req.Edge.ModifiedBy
 	edge.Ordering = req.Edge.Ordering
-	if req.Edge.StartDate != nil {
-		edge.StartDate = req.Edge.StartDate.AsTime()
+	if req.Edge.StartsAt != nil {
+		edge.StartsAt = req.Edge.StartsAt.AsTime()
 	}
-	if req.Edge.EndDate != nil {
-		edge.EndDate = req.Edge.EndDate.AsTime()
+	if req.Edge.EndsAt != nil {
+		edge.EndsAt = req.Edge.EndsAt.AsTime()
 	}
 	result, err := h.env.Repos.Edges.Add(edge)
 	if err != nil {
@@ -227,11 +227,11 @@ func (h *edgeHandler) BatchEdit(ctx context.Context, req *graphpb.EdgeBatchEditR
 		edge.CreatedBy = edgeReq.CreatedBy
 		edge.ModifiedBy = edgeReq.ModifiedBy
 		edge.Ordering = edgeReq.Ordering
-		if edgeReq.StartDate != nil {
-			edge.StartDate = edgeReq.StartDate.AsTime()
+		if edgeReq.StartsAt != nil {
+			edge.StartsAt = edgeReq.StartsAt.AsTime()
 		}
-		if edgeReq.EndDate != nil {
-			edge.EndDate = edgeReq.EndDate.AsTime()
+		if edgeReq.EndsAt != nil {
+			edge.EndsAt = edgeReq.EndsAt.AsTime()
 		}
 		edges = append(edges, edge)
 	}
@@ -265,11 +265,11 @@ func (h *edgeHandler) BatchAdd(ctx context.Context, req *graphpb.EdgeBatchAddReq
 		edge.CreatedBy = edgeReq.CreatedBy
 		edge.ModifiedBy = edgeReq.ModifiedBy
 		edge.Ordering = edgeReq.Ordering
-		if edgeReq.StartDate != nil {
-			edge.StartDate = edgeReq.StartDate.AsTime()
+		if edgeReq.StartsAt != nil {
+			edge.StartsAt = edgeReq.StartsAt.AsTime()
 		}
-		if edgeReq.EndDate != nil {
-			edge.EndDate = edgeReq.EndDate.AsTime()
+		if edgeReq.EndsAt != nil {
+			edge.EndsAt = edgeReq.EndsAt.AsTime()
 		}
 		edges = append(edges, edge)
 	}

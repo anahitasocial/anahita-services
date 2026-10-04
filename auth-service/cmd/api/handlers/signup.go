@@ -14,6 +14,7 @@ import (
 
 	"anahita-libs/constants"
 	lib_entities "anahita-libs/data/entities"
+	lib_services "anahita-libs/data/services"
 
 	"auth/data/entities"
 	"auth/requests"
@@ -43,6 +44,26 @@ func isDuplicateHandle(err error) bool {
 // authority for a request that has none.
 func signupViewer() *lib_entities.Viewer {
 	return lib_entities.NewViewer()
+}
+
+// purgeOrphanedActor asks the graph to remove an actor whose credentials
+// could not be written, so it does not hold a handle nobody can sign in to.
+//
+// The graph queues the purge and answers at once; a refusal is an error here,
+// since the caller has nothing else to try.
+func (h *Env) purgeOrphanedActor(id int64) error {
+	result, err := h.Srv.ActorsGRPC.RequestPurge(&lib_services.ActorPurgeRequest{
+		IDs:  []int64{id},
+		Type: constants.NodeActorPersonEntityType,
+	}, signupViewer())
+	if err != nil {
+		return err
+	}
+	if len(result.Refused) > 0 {
+		return fmt.Errorf("refused: %s", result.Refused[0].Reason)
+	}
+
+	return nil
 }
 
 type signupHandler struct {
@@ -341,8 +362,8 @@ func (h *signupHandler) Add(c echo.Context) error {
 	// Set explicitly. NewAnahitaNode leaves these as Go's zero time — year 1 —
 	// which a MySQL DATETIME cannot represent at all, so the insert fails under
 	// the strict sql_mode rather than storing something odd.
-	actor.CreationTime = time.Now()
-	actor.UpdateTime = time.Now()
+	actor.CreatedAt = time.Now()
+	actor.UpdatedAt = time.Now()
 
 	created, err := h.Srv.ActorsGRPC.Add(actor, signupViewer())
 	if err != nil {
@@ -362,7 +383,7 @@ func (h *signupHandler) Add(c echo.Context) error {
 		// to two services and cannot share a transaction, so a failure on the
 		// second leg has to unwind the first — otherwise the handle is taken
 		// by an account nobody can sign into and nobody can remove.
-		if _, purgeErr := h.Srv.ActorsGRPC.Purge(created.ID, signupViewer()); purgeErr != nil {
+		if purgeErr := h.purgeOrphanedActor(created.ID); purgeErr != nil {
 			log.Printf("signup: orphaned actor %d after credential write failed: %v (purge also failed: %v)", created.ID, err, purgeErr)
 		}
 		return h.renderSignupError(c, "Could not create your account. Please try again.")

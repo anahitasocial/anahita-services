@@ -20,8 +20,8 @@ message Node {
     string filename = 10;
     string cover_filename = 11;
     string meta = 13;
-    google.protobuf.Timestamp created_on = 14;
-    google.protobuf.Timestamp modified_on = 15;
+    google.protobuf.Timestamp created_at = 14;
+    google.protobuf.Timestamp updated_at = 15;
     int64 follower_count = 16;
     int64 leader_count = 17;
     int64 subscriber_count = 19;
@@ -43,7 +43,9 @@ message Node {
     // last_comment_by, last_comment_on (47-49), ordering (50), is_default (53),
     // cover_filesize (68), cover_mimetype (69), status, status_update_time
     // (70-71) and timezone (73). Reserved for the same reason as 30.
-    reserved 12, 18, 23, 47 to 50, 53, 68 to 71, 73;
+    // 64 and 66 were created_at and updated_at, a second copy of the two
+    // timestamps in fields 14 and 15 that was written and never read.
+    reserved 12, 18, 23, 47 to 50, 53, 64, 66, 68 to 71, 73;
     Node owner = 31;
     Node parent = 32;
     Node author = 33;
@@ -56,8 +58,8 @@ message Node {
     bool is_blocked_by_viewer = 40;
     bool is_admined_by_viewer = 41;
     bool allow_follow_request = 42;
-    google.protobuf.Timestamp start_date = 43;
-    google.protobuf.Timestamp end_date = 44;
+    google.protobuf.Timestamp starts_at = 43;
+    google.protobuf.Timestamp ends_at = 44;
     string owner_type = 45;
     int64 owner_id = 46;
     bool verified = 51;
@@ -72,9 +74,7 @@ message Node {
     string geo_state_province = 61;
     string geo_country = 62;
     string geo_postalcode = 63;
-    google.protobuf.Timestamp creation_time = 64;
     int64 created_by = 65;
-    google.protobuf.Timestamp update_time = 66;
     int64 modified_by = 67;
     string mimetype = 72;
     string language = 74;
@@ -111,7 +111,7 @@ message Node {
     // renders nothing.
     string person_pronouns = 79;
 
-    google.protobuf.Timestamp last_visit_date = 80;
+    google.protobuf.Timestamp last_visited_at = 80;
 
     // Set when the installation features this actor, absent otherwise.
     //
@@ -201,6 +201,16 @@ message NodeCountRequest {
 
 message NodeCountResponse {
     uint64 total = 1;
+}
+
+message NodeFilterVisibleRequest {
+    repeated int64 ids = 1;
+    Viewer viewer = 2;
+}
+
+message NodeFilterVisibleResponse {
+    // The ids the viewer may see, in no particular order.
+    repeated int64 ids = 1;
 }
 
 message NodeBatchReadRequest {
@@ -305,6 +315,9 @@ service NodeService {
     rpc Count(NodeCountRequest) returns (NodeCountResponse);
 
     // Batch operations
+    // Which of these nodes may this viewer see? Any kind of node. See
+    // nodesRepo.FilterVisible.
+    rpc FilterVisible(NodeFilterVisibleRequest) returns (NodeFilterVisibleResponse);
     rpc BatchRead(NodeBatchReadRequest) returns (NodeBatchReadResponse);
     rpc BatchReadByAliases(NodeBatchReadByAliasesRequest) returns (NodeBatchReadByAliasesResponse);
     rpc BatchEdit(NodeBatchEditRequest) returns (NodeBatchEditResponse);

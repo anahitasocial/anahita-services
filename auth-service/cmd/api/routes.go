@@ -287,6 +287,13 @@ func (r *Routes) Init(e *echo.Echo) {
 	signupRequests.POST("/:id/approve", h.SignupRequests.Approve)
 	signupRequests.POST("/:id/reject", h.SignupRequests.Reject)
 
+	// The administration list of people and groups, for site cleanup. Super
+	// administrators only — enforced in the handler. Removing what it lists
+	// is person-service's and group-service's purge.
+	accounts := e.Group("/accounts")
+	accounts.Use(r.authorize)
+	accounts.GET("", h.Accounts.Browse)
+
 	totps := e.Group("/totp")
 	totps.Use(r.authorize)
 	// Status read. Registered on "" so the path is /totp, matching the

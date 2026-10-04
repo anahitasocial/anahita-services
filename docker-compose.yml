@@ -705,6 +705,45 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.30
 
+# abuse-report-service - reports of people and posts, and the cases
+# administrators decide
+  abuse-report-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/abuse-report-service.dockerfile
+    restart: always
+    ports:
+      - "8099:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
+      DSN: ${DSN}
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      # An installation's own list of reasons for reporting. Unset, the list
+      # built into the service is used. To use your own, mount the file and
+      # name it here. See docs/abuse-reports.md.
+      REASONS_PATH: ${REASONS_PATH:-}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.36
+
 # RabbitMQ - message broker
   rabbitmq:
     image: 'rabbitmq:3.12-alpine'
@@ -862,6 +901,9 @@ services:
       GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
+      # So a purge a super administrator asks for also removes the uploaded
+      # avatars, covers and photos. Without it the rows go and the objects stay.
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
       ACTOR_FEATURES_PATH: /defaults/actor_features
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro

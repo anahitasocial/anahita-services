@@ -156,7 +156,7 @@ func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entitie
 		relevantSortQuery := repo.GetRelevantSortQuery()
 		query = query.OrderBy(relevantSortQuery)
 	} else {
-		query = query.OrderBy("node.created_on DESC")
+		query = query.OrderBy("node.created_at DESC")
 	}
 
 	if req.CoordLat != 0.0 && req.CoordLng != 0.0 {

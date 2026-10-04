@@ -599,7 +599,7 @@ type ReadNeighbourhoodResponse struct {
 	Center        *Node                  `protobuf:"bytes,1,opt,name=center,proto3" json:"center,omitempty"`
 	Neighbours    []*Node                `protobuf:"bytes,2,rep,name=neighbours,proto3" json:"neighbours,omitempty"`
 	Edges         []*Edge                `protobuf:"bytes,3,rep,name=edges,proto3" json:"edges,omitempty"`
-	CreatedOn     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_on,json=createdOn,proto3" json:"created_on,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -655,9 +655,9 @@ func (x *ReadNeighbourhoodResponse) GetEdges() []*Edge {
 	return nil
 }
 
-func (x *ReadNeighbourhoodResponse) GetCreatedOn() *timestamppb.Timestamp {
+func (x *ReadNeighbourhoodResponse) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CreatedOn
+		return x.CreatedAt
 	}
 	return nil
 }
@@ -751,7 +751,7 @@ type TraverseResponse struct {
 	Nodes         []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
 	Edges         []*Edge                `protobuf:"bytes,2,rep,name=edges,proto3" json:"edges,omitempty"`
 	DepthReached  uint32                 `protobuf:"varint,3,opt,name=depth_reached,json=depthReached,proto3" json:"depth_reached,omitempty"`
-	CreatedOn     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_on,json=createdOn,proto3" json:"created_on,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -807,9 +807,9 @@ func (x *TraverseResponse) GetDepthReached() uint32 {
 	return 0
 }
 
-func (x *TraverseResponse) GetCreatedOn() *timestamppb.Timestamp {
+func (x *TraverseResponse) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CreatedOn
+		return x.CreatedAt
 	}
 	return nil
 }
@@ -896,7 +896,7 @@ type ReadShortestPathResponse struct {
 	Edges         []*Edge                `protobuf:"bytes,2,rep,name=edges,proto3" json:"edges,omitempty"`
 	Hops          uint32                 `protobuf:"varint,3,opt,name=hops,proto3" json:"hops,omitempty"`
 	Found         bool                   `protobuf:"varint,4,opt,name=found,proto3" json:"found,omitempty"`
-	CreatedOn     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_on,json=createdOn,proto3" json:"created_on,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	Strategy      string                 `protobuf:"bytes,6,opt,name=strategy,proto3" json:"strategy,omitempty"` // "BFS", "DFS"
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -960,9 +960,9 @@ func (x *ReadShortestPathResponse) GetFound() bool {
 	return false
 }
 
-func (x *ReadShortestPathResponse) GetCreatedOn() *timestamppb.Timestamp {
+func (x *ReadShortestPathResponse) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CreatedOn
+		return x.CreatedAt
 	}
 	return nil
 }
@@ -1173,7 +1173,7 @@ const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"neighbours\x12!\n" +
 	"\x05edges\x18\x03 \x03(\v2\v.graph.EdgeR\x05edges\x129\n" +
 	"\n" +
-	"created_on\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedOn\"\xc1\x01\n" +
+	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xc1\x01\n" +
 	"\x0fTraverseRequest\x12\"\n" +
 	"\rstart_node_id\x18\x01 \x01(\x03R\vstartNodeId\x12\x1d\n" +
 	"\n" +
@@ -1187,7 +1187,7 @@ const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"\x05edges\x18\x02 \x03(\v2\v.graph.EdgeR\x05edges\x12#\n" +
 	"\rdepth_reached\x18\x03 \x01(\rR\fdepthReached\x129\n" +
 	"\n" +
-	"created_on\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedOn\"\xb7\x01\n" +
+	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xb7\x01\n" +
 	"\x17ReadShortestPathRequest\x12\"\n" +
 	"\rstart_node_id\x18\x01 \x01(\x03R\vstartNodeId\x12\x1e\n" +
 	"\vend_node_id\x18\x02 \x01(\x03R\tendNodeId\x12\x1d\n" +
@@ -1201,7 +1201,7 @@ const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"\x04hops\x18\x03 \x01(\rR\x04hops\x12\x14\n" +
 	"\x05found\x18\x04 \x01(\bR\x05found\x129\n" +
 	"\n" +
-	"created_on\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedOn\x12\x1a\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x1a\n" +
 	"\bstrategy\x18\x06 \x01(\tR\bstrategy\"\xec\x01\n" +
 	"\x0fTrendingRequest\x12\x1b\n" +
 	"\tnode_type\x18\x01 \x01(\tR\bnodeType\x12\x1d\n" +
@@ -1269,13 +1269,13 @@ var file_proto_graphpb_graph_proto_depIdxs = []int32{
 	15, // 7: graph.ReadNeighbourhoodResponse.center:type_name -> graph.Node
 	15, // 8: graph.ReadNeighbourhoodResponse.neighbours:type_name -> graph.Node
 	16, // 9: graph.ReadNeighbourhoodResponse.edges:type_name -> graph.Edge
-	17, // 10: graph.ReadNeighbourhoodResponse.created_on:type_name -> google.protobuf.Timestamp
+	17, // 10: graph.ReadNeighbourhoodResponse.created_at:type_name -> google.protobuf.Timestamp
 	15, // 11: graph.TraverseResponse.nodes:type_name -> graph.Node
 	16, // 12: graph.TraverseResponse.edges:type_name -> graph.Edge
-	17, // 13: graph.TraverseResponse.created_on:type_name -> google.protobuf.Timestamp
+	17, // 13: graph.TraverseResponse.created_at:type_name -> google.protobuf.Timestamp
 	15, // 14: graph.ReadShortestPathResponse.nodes:type_name -> graph.Node
 	16, // 15: graph.ReadShortestPathResponse.edges:type_name -> graph.Edge
-	17, // 16: graph.ReadShortestPathResponse.created_on:type_name -> google.protobuf.Timestamp
+	17, // 16: graph.ReadShortestPathResponse.created_at:type_name -> google.protobuf.Timestamp
 	14, // 17: graph.TrendingRequest.viewer:type_name -> graph.Viewer
 	15, // 18: graph.TrendingResponse.nodes:type_name -> graph.Node
 	0,  // 19: graph.GraphService.BrowseNeighbours:input_type -> graph.BrowseNeighboursRequest

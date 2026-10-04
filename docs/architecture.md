@@ -10,6 +10,7 @@ How the services, the gateway and the shared library fit together.
 - [Services](#services)
 - [Routing](#routing)
 - [anahita-libs](#anahita-libs)
+- [Naming dates and times](#naming-dates-and-times)
 
 ## Components
 
@@ -37,7 +38,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | Service | HTTP port | gRPC port | Responsibility |
 | --- | --- | --- | --- |
 | `nginx` | 80 | — | Gateway, routing, CORS, token validation subrequest |
-| `auth-service` | 8081 | — | OAuth 2.0 / OIDC provider, server-rendered sign-in and sign-up, email verification, registration applications, agreements, password, TOTP, WebAuthn, invites, clients, NodeInfo |
+| `auth-service` | 8081 | — | OAuth 2.0 / OIDC provider, server-rendered sign-in and sign-up, email verification, registration applications, the administration list of accounts, agreements, password, TOTP, WebAuthn, invites, clients, NodeInfo |
 | `group-service` | 8082 | — | Groups |
 | `person-service` | 8083 | — | People |
 | `text-service` | 8084 | — | Text media: articles, notes, topics |
@@ -53,11 +54,12 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `avatar-service` | 8096 | — | Actor avatars |
 | `cover-service` | 8097 | — | Actor cover images |
 | `feed-service` | 8098 | 50059 | Feeds and reposts |
+| `abuse-report-service` | 8099 | — | Reports of people and posts, and the cases administrators decide. See [Abuse reports](abuse-reports.md) |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
 | `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is |
 | `mail-grpc-service` | — | 50051 | Email delivery over SMTP |
 | `migration-job` | — | — | One-shot database migrations |
-| `account-sweeper` | — | — | Purges accounts past their 30-day deletion grace period. Not started by `up`; run with `docker compose run --rm account-sweeper` |
+| `account-sweeper` | — | — | Purges accounts past their 30-day deletion grace period, and finishes purges a super administrator asked for. Not started by `up`; run with `docker compose run --rm account-sweeper`. See [Account lifecycle](account-lifecycle.md) |
 
 Backing services in `docker-compose.yml`:
 
@@ -74,7 +76,7 @@ Kubernetes, where the Ingress sends everything to it
 
 | Path prefix | Service |
 | --- | --- |
-| `/oauth/`, `/auth`, `/signup`, `/signup-requests`, `/agreements`, `/onboarding`, `/password`, `/email`, `/username`, `/reauth`, `/totp`, `/webauthn`, `/invites`, `/clients`, `/auth-logs/`, `/oauth-signing-keys`, `/.well-known/`, `/nodeinfo/`, `/static/` | `auth-service` |
+| `/oauth/`, `/auth`, `/signup`, `/signup-requests`, `/accounts`, `/agreements`, `/onboarding`, `/password`, `/email`, `/username`, `/reauth`, `/totp`, `/webauthn`, `/invites`, `/clients`, `/auth-logs/`, `/oauth-signing-keys`, `/.well-known/`, `/nodeinfo/`, `/static/` | `auth-service` |
 | `/articles/`, `/notes/`, `/topics/` | `text-service` |
 | `/people/` | `person-service` |
 | `/groups/` | `group-service` |
@@ -88,6 +90,7 @@ Kubernetes, where the Ingress sends everything to it
 | `/stories/` | `story-service` |
 | `/feeds/`, `/reposts/` | `feed-service` |
 | `/notifications/` | `notification-service` |
+| `/abuse-reports` | `abuse-report-service` |
 | `/socialgraph/` | `socialgraph-service` |
 | `/search/` | `search-service` |
 
@@ -116,3 +119,20 @@ The shared module every service imports:
 | `data`, `requests`, `responses`, `validators` | Request/response shapes and validation |
 | `middleware`, `cors` | HTTP middleware |
 | `geocoding`, `utils`, `cmd` | Supporting helpers |
+
+## Naming dates and times
+
+One rule, in the database, in the API and in the web app:
+
+- A date **with a time** ends in `_at`: `created_at`, `updated_at`,
+  `starts_at`, `ends_at`, `last_visited_at`, `deleted_at`.
+- A calendar date **with no time** ends in `_on`. Nothing uses one yet.
+
+The same name is used all the way through: the column `created_at` is the
+field `created_at` in a response and `createdAt` in the web app, and a list is
+sorted with `ordering=created_at`. The last change to a row is `updated_at`,
+never `modified_at`.
+
+A test, `TestTimestampColumnsEndInAt` in graph-grpc-service, reads
+`migration-job/schema/init.sql` and fails on a date or time column that does
+not follow.

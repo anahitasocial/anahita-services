@@ -60,7 +60,7 @@ func TestSetStatusPrecedence(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			token := NewToken()
-			token.StartTime = time.Now().Add(-tc.age)
+			token.StartedAt = time.Now().Add(-tc.age)
 			token.ExpiredAfter = tc.ttl
 			token.IsUsed = tc.isUsed
 
@@ -74,7 +74,7 @@ func TestSetStatusPrecedence(t *testing.T) {
 	}
 }
 
-// The boundary itself. Expiry is computed from StartTime, which the tokens
+// The boundary itself. Expiry is computed from StartedAt, which the tokens
 // table fills with its own CURRENT_TIMESTAMP default rather than from Go —
 // so a token whose window is read one second wrong is the failure mode to
 // stay honest about.
@@ -82,12 +82,12 @@ func TestIsExpiredAtTheBoundary(t *testing.T) {
 	token := NewToken()
 	token.ExpiredAfter = 900
 
-	token.StartTime = time.Now().Add(-899 * time.Second)
+	token.StartedAt = time.Now().Add(-899 * time.Second)
 	if token.IsExpired() {
 		t.Error("a token one second inside its window reads as expired")
 	}
 
-	token.StartTime = time.Now().Add(-901 * time.Second)
+	token.StartedAt = time.Now().Add(-901 * time.Second)
 	if !token.IsExpired() {
 		t.Error("a token one second past its window reads as live")
 	}
@@ -96,7 +96,7 @@ func TestIsExpiredAtTheBoundary(t *testing.T) {
 func TestRenewRestartsTheWindow(t *testing.T) {
 	token := NewToken()
 	token.ExpiredAfter = 900
-	token.StartTime = time.Now().Add(-time.Hour)
+	token.StartedAt = time.Now().Add(-time.Hour)
 
 	if !token.IsExpired() {
 		t.Fatal("setup: token should start expired")

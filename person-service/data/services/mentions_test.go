@@ -68,7 +68,7 @@ func (m mentionable) GetAuthorID() int64 { return m.authorID }
 // removes what no longer is, and leaves everything else alone.
 //
 // Deleting all of them and re-adding would be simpler to write and wrong — the
-// edges carry created_on, so rewriting them would redate every mention on every
+// edges carry created_at, so rewriting them would redate every mention on every
 // edit of the body.
 func TestMentionsUpdateReconciles(t *testing.T) {
 	nodes := &fakeNodes{byAlias: map[string]int64{"ada": 1, "grace": 2}}

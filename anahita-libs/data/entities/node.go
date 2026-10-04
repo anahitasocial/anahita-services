@@ -75,8 +75,8 @@ type AnahitaNode struct {
 	Alias      string
 	Body       string
 	Excerpt    string
-	StartDate  time.Time
-	EndDate    time.Time
+	StartsAt   time.Time
+	EndsAt     time.Time
 	OwnerID    int64
 	OwnerType  string
 	ParentID   int64
@@ -101,14 +101,14 @@ type AnahitaNode struct {
 	// Turkish or Finnish, which have no gendered third-person pronoun. Display
 	// only, never read for logic.
 	PersonPronouns string
-	// LastVisitDate is nil for a person who has never signed in.
+	// LastVisitedAt is nil for a person who has never signed in.
 	//
 	// A pointer for the same reason DeletedAt is one: the column is nullable,
 	// and a zero time is a value rather than an absence. Scanning NULL into a
 	// time.Time fails outright — "unsupported Scan, storing driver.Value type
 	// <nil>" — which is how twenty-one people became unreadable the moment
 	// their legacy '0000-00-00' was normalised to NULL.
-	LastVisitDate      *time.Time
+	LastVisitedAt      *time.Time
 	Pinned             bool
 	Meta               json.RawMessage
 	ViewCount          int64
@@ -119,9 +119,9 @@ type AnahitaNode struct {
 	GeoStateProvince   string
 	GeoCountry         string
 	GeoPostalcode      string
-	CreationTime       time.Time
+	CreatedAt          time.Time
 	CreatedBy          int64
-	UpdateTime         time.Time
+	UpdatedAt          time.Time
 	ModifiedBy         int64
 	Filename           string
 	CoverFilename      string

@@ -44,8 +44,8 @@ func (repo *ActorAdmin) getBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(node.name, '') AS name",
 		"node.alias",
 		"COALESCE(node.filename, '') AS filename",
-		"node.created_on",
-		"node.modified_on",
+		"node.created_at",
+		"node.updated_at",
 	}
 
 	return sq.Select(nodeFields...).From(
@@ -82,8 +82,8 @@ func (repo *ActorAdmin) Browse(actorId int64) ([]*graphpb.Node, error) {
 	var results []*graphpb.Node
 	for rows.Next() {
 		var (
-			createdOn  time.Time
-			modifiedOn time.Time
+			createdAt time.Time
+			updatedAt time.Time
 		)
 
 		item := &graphpb.Node{
@@ -98,8 +98,8 @@ func (repo *ActorAdmin) Browse(actorId int64) ([]*graphpb.Node, error) {
 			&item.Name,
 			&item.Alias,
 			&item.Filename,
-			&createdOn,
-			&modifiedOn,
+			&createdAt,
+			&updatedAt,
 		)
 
 		if err != nil {
@@ -107,8 +107,8 @@ func (repo *ActorAdmin) Browse(actorId int64) ([]*graphpb.Node, error) {
 		}
 
 		// Convert time.Time to *timestamppb.Timestamp
-		item.CreatedOn = timestamppb.New(createdOn)
-		item.ModifiedOn = timestamppb.New(modifiedOn)
+		item.CreatedAt = timestamppb.New(createdAt)
+		item.UpdatedAt = timestamppb.New(updatedAt)
 
 		results = append(results, item)
 	}

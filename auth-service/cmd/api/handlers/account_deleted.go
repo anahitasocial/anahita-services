@@ -7,6 +7,8 @@ import (
 	an_constants "anahita-libs/constants"
 	lib_entities "anahita-libs/data/entities"
 	"anahita-libs/event"
+
+	"auth/constants"
 )
 
 // ---------------------------------------------------------------------
@@ -296,6 +298,22 @@ func (h *accountDeletedHandler) handlePurged(personID int64) error {
 		log.Println("account purged: token removal failed:", err)
 	} else if removed > 0 {
 		log.Printf("account purged: removed %d pending token(s) (person=%d)", removed, user.ID)
+	}
+
+	// Invitations this person sent that nobody took up. Each holds the invited
+	// person's address, on behalf of somebody who is no longer here.
+	if removed, err := h.Repos.Tokens.DeleteUnusedFrom(constants.TokenTypeInvite, user.ID); err != nil {
+		log.Println("account purged: invitation removal failed:", err)
+	} else if removed > 0 {
+		log.Printf("account purged: removed %d unused invitation(s) (person=%d)", removed, user.ID)
+	}
+
+	// The request this account began as, where signing up needed approval. It
+	// is kept after the decision and holds the address and a password hash.
+	if removed, err := h.Repos.SignupRequests.DeleteFor(user.Email, user.Alias); err != nil {
+		log.Println("account purged: signup request removal failed:", err)
+	} else if removed > 0 {
+		log.Printf("account purged: removed %d signup request(s) (person=%d)", removed, user.ID)
 	}
 
 	// IP addresses, cities and device fingerprints — a record of where somebody

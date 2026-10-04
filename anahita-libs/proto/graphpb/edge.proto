@@ -14,13 +14,13 @@ message Edge {
     int64 node_b_id = 5;
     string node_b_type = 6;
     string meta = 7;
-    google.protobuf.Timestamp created_on = 8;
+    google.protobuf.Timestamp created_at = 8;
     int64 created_by = 9;
-    google.protobuf.Timestamp modified_on = 10;
+    google.protobuf.Timestamp updated_at = 10;
     int64 modified_by = 11;
     int32 ordering = 12;
-    google.protobuf.Timestamp start_date = 13;
-    google.protobuf.Timestamp end_date = 14;
+    google.protobuf.Timestamp starts_at = 13;
+    google.protobuf.Timestamp ends_at = 14;
 }
 
 message Edges {

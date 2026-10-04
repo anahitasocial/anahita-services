@@ -62,8 +62,8 @@ func (r *Notification) getBaseSelectQuery() sq.SelectBuilder {
 		"notification.type",
 		"notification.service",
 		"notification.recipient_id",
-		"notification.created_on",
-		"COALESCE(notification.modified_on, NOW()) AS modified_on",
+		"notification.created_at",
+		"COALESCE(notification.updated_at, NOW()) AS updated_at",
 		"COALESCE(notification.is_read, 0) AS is_read",
 		"notification.subject_id",
 		"COALESCE(notification.object_id, 0) AS object_id",
@@ -122,7 +122,7 @@ func (repo *Notification) Browse(req *requests.NotificationBrowseRequest, viewer
 	query = query.Where(fmt.Sprintf("notification.recipient_id = %d", viewer.ID))
 
 	// query = repo.SetPrivacyQuery(query, viewer)
-	query = query.OrderBy("notification.created_on DESC")
+	query = query.OrderBy("notification.created_at DESC")
 	query = query.Limit(req.Limit).Offset(req.Offset)
 
 	sql, args, err := query.ToSql()
@@ -144,8 +144,8 @@ func (repo *Notification) Browse(req *requests.NotificationBrowseRequest, viewer
 			&item.Type,
 			&item.Service,
 			&item.RecipientID,
-			&item.CreationTime,
-			&item.UpdateTime,
+			&item.CreatedAt,
+			&item.UpdatedAt,
 			&item.IsRead,
 			&item.Subject.ID,
 			&item.Object.ID,
@@ -173,8 +173,8 @@ func (repo *Notification) Edit(item *entities.Notification) error {
 	defer cancel()
 
 	query := sq.Update("notifications").SetMap(sq.Eq{
-		"is_read":     item.IsRead,
-		"modified_on": time.Now(),
+		"is_read":    item.IsRead,
+		"updated_at": time.Now(),
 	}).Where(sq.Eq{"id": item.ID})
 
 	sql, args, err := query.ToSql()
@@ -202,8 +202,8 @@ func (repo *Notification) Add(item *entities.Notification) (int64, error) {
 		"target_id",
 		"target_type",
 		"comment_id",
-		"created_on",
-		"modified_on",
+		"created_at",
+		"updated_at",
 	).Values(
 		item.Type,
 		item.Service,
@@ -318,8 +318,8 @@ func (repo *Notification) getItem(q *sq.SelectBuilder) (*entities.Notification, 
 		&item.Type,
 		&item.Service,
 		&item.RecipientID,
-		&item.CreationTime,
-		&item.UpdateTime,
+		&item.CreatedAt,
+		&item.UpdatedAt,
 		&item.IsRead,
 		&item.Subject.ID,
 		&item.Object.ID,

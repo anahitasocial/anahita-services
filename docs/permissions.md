@@ -17,6 +17,8 @@ change them, and what profile owners can change for themselves.
 - [Likes](#likes)
 - [Adding followers to a group](#adding-followers-to-a-group)
 - [Reposts](#reposts)
+- [Reporting](#reporting)
+- [Removing accounts](#removing-accounts)
 - [The defaults](#the-defaults)
 - [What profile owners can change](#what-profile-owners-can-change)
 - [Accepted values](#accepted-values)
@@ -179,6 +181,32 @@ profile.
 
 A repost is shown only to people who can see the original post. See
 [Seeing posts](#seeing-posts).
+
+## Reporting
+
+Anybody signed in may report anything they can see, except themselves and
+what they wrote. Something they cannot see cannot be reported, and answers as
+if it did not exist.
+
+Only administrators and super administrators may read what has been reported,
+see who reported it, and decide a case. The person reported is not told. See
+[Abuse reports](abuse-reports.md).
+
+## Removing accounts
+
+Disabling, archiving, deleting and purging a person or a group each have their
+own rule, set in code and not changeable per profile:
+
+| Action | Who may |
+| --- | --- |
+| Disable or enable | Site administrators and super administrators |
+| Archive | The person themselves, a group's administrators, or a super administrator |
+| Delete, with 30 days to restore | The person themselves, a group's administrators, or a site administrator |
+| Purge, with no way back | Super administrators only |
+| See the list of accounts and their activity | Super administrators only |
+| Appoint an administrator to any group | Site administrators and super administrators |
+
+What each one does is in [Account lifecycle](account-lifecycle.md).
 
 ## The defaults
 

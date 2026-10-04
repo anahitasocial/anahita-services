@@ -47,9 +47,9 @@ func userColumns() []string {
 		"COALESCE(nodes.person_type, '') AS person_type",
 		"COALESCE(nodes.service, '') AS service",
 		"COALESCE(nodes.filename, '') AS filename",
-		"nodes.last_visit_date",
-		"nodes.created_on",
-		"nodes.modified_on",
+		"nodes.last_visited_at",
+		"nodes.created_at",
+		"nodes.updated_at",
 		"auth_accounts.totp_enabled",
 		"COALESCE(auth_accounts.totp_recovery_codes, '') AS totp_recovery_codes",
 		"COALESCE(auth_accounts.totp_last_verified_at, NOW()) AS totp_last_verified_at",
@@ -96,7 +96,7 @@ func scanUser(row rowScanner) (*entities.User, error) {
 	// Nullable timestamps. The entity holds plain time.Time values, so a NULL
 	// becomes the zero time — which is what "never signed in" looks like
 	// everywhere else in the codebase.
-	var lastVisit, createdOn, modifiedOn, emailVerified, onboarded sql.NullTime
+	var lastVisit, createdAt, updatedAt, emailVerified, onboarded sql.NullTime
 
 	if err := row.Scan(
 		&item.ID,
@@ -110,8 +110,8 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		&item.Service,
 		&item.Filename,
 		&lastVisit,
-		&createdOn,
-		&modifiedOn,
+		&createdAt,
+		&updatedAt,
 		&item.TotpEnabled,
 		&item.TotpRecoveryCodes,
 		&item.TotpLastVerifiedAt,
@@ -130,14 +130,14 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		return nil, err
 	}
 
-	// LastVisitDate is a *time.Time on the node: nil means never signed in,
+	// LastVisitedAt is a *time.Time on the node: nil means never signed in,
 	// which a zero time cannot express.
 	if lastVisit.Valid {
 		t := lastVisit.Time
-		item.LastVisitDate = &t
+		item.LastVisitedAt = &t
 	}
-	item.CreationTime = nullTime(createdOn)
-	item.UpdateTime = nullTime(modifiedOn)
+	item.CreatedAt = nullTime(createdAt)
+	item.UpdatedAt = nullTime(updatedAt)
 
 	if emailVerified.Valid {
 		t := emailVerified.Time
@@ -177,9 +177,9 @@ func userBrowseColumns() []string {
 		"COALESCE(nodes.person_type, '') AS person_type",
 		"COALESCE(nodes.service, '') AS service",
 		"COALESCE(nodes.filename, '') AS filename",
-		"nodes.last_visit_date",
-		"nodes.created_on",
-		"nodes.modified_on",
+		"nodes.last_visited_at",
+		"nodes.created_at",
+		"nodes.updated_at",
 	}
 }
 
@@ -188,7 +188,7 @@ func userBrowseColumns() []string {
 func scanBrowsedUser(row rowScanner) (*entities.User, error) {
 	item := entities.NewUser()
 
-	var lastVisit, createdOn, modifiedOn sql.NullTime
+	var lastVisit, createdAt, updatedAt sql.NullTime
 
 	if err := row.Scan(
 		&item.ID,
@@ -201,18 +201,18 @@ func scanBrowsedUser(row rowScanner) (*entities.User, error) {
 		&item.Service,
 		&item.Filename,
 		&lastVisit,
-		&createdOn,
-		&modifiedOn,
+		&createdAt,
+		&updatedAt,
 	); err != nil {
 		return nil, err
 	}
 
 	if lastVisit.Valid {
 		t := lastVisit.Time
-		item.LastVisitDate = &t
+		item.LastVisitedAt = &t
 	}
-	item.CreationTime = nullTime(createdOn)
-	item.UpdateTime = nullTime(modifiedOn)
+	item.CreatedAt = nullTime(createdAt)
+	item.UpdatedAt = nullTime(updatedAt)
 
 	return item, nil
 }

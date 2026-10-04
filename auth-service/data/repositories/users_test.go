@@ -82,7 +82,7 @@ func TestUsersEditDoesNotWriteIdentityColumns(t *testing.T) {
 	user.Alias = "impostor"
 	user.PersonType = "super-administrator"
 	user.Password = "$2a$10$hash"
-	user.UpdateTime = time.Now()
+	user.UpdatedAt = time.Now()
 
 	mock.ExpectExec("update").WillReturnResult(sqlmock.NewResult(0, 1))
 	// Edit re-reads the row it wrote.
@@ -126,7 +126,7 @@ func userRow() *sqlmock.Rows {
 	return sqlmock.NewRows([]string{
 		"id", "type", "enabled", "name", "alias",
 		"email", "password", "person_type", "service", "filename",
-		"last_visit_date", "created_on", "modified_on", "totp_enabled",
+		"last_visited_at", "created_at", "updated_at", "totp_enabled",
 		"totp_recovery_codes", "totp_last_verified_at", "totp_secret", "deleted_at",
 		"archived_at",
 		"email_verified_at", "onboarded_at", "has_bio", "invited_by",

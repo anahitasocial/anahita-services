@@ -76,7 +76,7 @@ func (r *edgesRepo) Browse(req *requests.EdgeBrowseRequest) ([]*entities.Anahita
 	var items []*entities.AnahitaEdge
 	for rows.Next() {
 		item := entities.NewAnahitaEdge()
-		var startDate, endDate sql.NullTime
+		var startsAt, endsAt sql.NullTime
 		err := rows.Scan(
 			&item.ID,
 			&item.Type,
@@ -85,23 +85,23 @@ func (r *edgesRepo) Browse(req *requests.EdgeBrowseRequest) ([]*entities.Anahita
 			&item.NodeBID,
 			&item.NodeBType,
 			&item.Meta,
-			&item.CreatedOn,
+			&item.CreatedAt,
 			&item.CreatedBy,
-			&item.ModifiedOn,
+			&item.UpdatedAt,
 			&item.ModifiedBy,
 			&item.Ordering,
-			&startDate,
-			&endDate,
+			&startsAt,
+			&endsAt,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		if startDate.Valid {
-			item.StartDate = startDate.Time
+		if startsAt.Valid {
+			item.StartsAt = startsAt.Time
 		}
-		if endDate.Valid {
-			item.EndDate = endDate.Time
+		if endsAt.Valid {
+			item.EndsAt = endsAt.Time
 		}
 
 		items = append(items, item)
@@ -222,12 +222,12 @@ func edgeColumns() []string {
 		"edge.node_b_id",
 		"edge.node_b_type",
 		"COALESCE(edge.meta, '') AS meta",
-		"edge.created_on",
+		"edge.created_at",
 		"COALESCE(edge.created_by, 0) AS created_by",
-		"edge.modified_on",
+		"edge.updated_at",
 		"COALESCE(edge.modified_by, 0) AS modified_by",
 		"COALESCE(edge.ordering, 0) AS ordering",
-		"edge.start_date",
-		"edge.end_date",
+		"edge.starts_at",
+		"edge.ends_at",
 	}
 }

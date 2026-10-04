@@ -1,0 +1,152 @@
+{
+  "reasons": [
+    {
+      "key": "spam",
+      "label": { "en-GB": "Spam", "fr-FR": "Spam" },
+      "description": {
+        "en-GB": "Unwanted advertising, repeated posts, or links meant to mislead.",
+        "fr-FR": "Publicité non sollicitée, publications répétées ou liens trompeurs."
+      }
+    },
+    {
+      "key": "harassment",
+      "label": { "en-GB": "Harassment or bullying", "fr-FR": "Harcèlement ou intimidation" },
+      "description": {
+        "en-GB": "Targeting somebody with insults, threats or unwanted attention.",
+        "fr-FR": "Viser quelqu’un par des insultes, des menaces ou une attention non désirée."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonRude"
+    },
+    {
+      "key": "hate_racism",
+      "label": { "en-GB": "Racism", "fr-FR": "Racisme" },
+      "description": {
+        "en-GB": "Attacks or slurs based on race or ethnicity.",
+        "fr-FR": "Attaques ou injures fondées sur la race ou l’origine ethnique."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonRude"
+    },
+    {
+      "key": "hate_sexism",
+      "label": { "en-GB": "Sexism", "fr-FR": "Sexisme" },
+      "description": {
+        "en-GB": "Attacks or slurs based on sex or gender.",
+        "fr-FR": "Attaques ou injures fondées sur le sexe ou le genre."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonRude"
+    },
+    {
+      "key": "hate_other",
+      "label": { "en-GB": "Other hate", "fr-FR": "Autre forme de haine" },
+      "description": {
+        "en-GB": "Attacks based on religion, sexual orientation, gender identity or disability.",
+        "fr-FR": "Attaques fondées sur la religion, l’orientation sexuelle, l’identité de genre ou le handicap."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonRude"
+    },
+    {
+      "key": "violence",
+      "label": { "en-GB": "Violence or threats", "fr-FR": "Violence ou menaces" },
+      "description": {
+        "en-GB": "Threatening, encouraging or glorifying violence.",
+        "fr-FR": "Menacer de violence, l’encourager ou en faire l’apologie."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonViolation"
+    },
+    {
+      "key": "self_harm",
+      "label": { "en-GB": "Self-harm or suicide", "fr-FR": "Automutilation ou suicide" },
+      "description": {
+        "en-GB": "Somebody may be at risk of harming themselves, or the content encourages it.",
+        "fr-FR": "Une personne risque de se faire du mal, ou le contenu y incite."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonOther"
+    },
+    {
+      "key": "non_consensual_sexual",
+      "label": {
+        "en-GB": "Sexual content shared without consent",
+        "fr-FR": "Contenu sexuel partagé sans consentement"
+      },
+      "description": {
+        "en-GB": "Intimate images or sexual content shared without the agreement of the person in it.",
+        "fr-FR": "Images intimes ou contenu sexuel partagés sans l’accord de la personne concernée."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonSexual"
+    },
+    {
+      "key": "child_safety",
+      "label": { "en-GB": "Child safety", "fr-FR": "Protection des enfants" },
+      "description": {
+        "en-GB": "Content that sexualises, endangers or exploits a child.",
+        "fr-FR": "Contenu qui sexualise, met en danger ou exploite un enfant."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonViolation"
+    },
+    {
+      "key": "impersonation",
+      "label": { "en-GB": "Impersonation", "fr-FR": "Usurpation d’identité" },
+      "description": {
+        "en-GB": "Pretending to be another person or organisation.",
+        "fr-FR": "Se faire passer pour une autre personne ou une autre organisation."
+      },
+      "applies_to": ["node.actor."],
+      "atproto_reason": "com.atproto.moderation.defs#reasonMisleading"
+    },
+    {
+      "key": "private_information",
+      "label": { "en-GB": "Private information", "fr-FR": "Informations privées" },
+      "description": {
+        "en-GB": "Sharing somebody’s address, phone number, documents or other private details.",
+        "fr-FR": "Divulguer l’adresse, le numéro de téléphone, des documents ou d’autres données privées de quelqu’un."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonViolation"
+    },
+    {
+      "key": "misinformation",
+      "label": { "en-GB": "Misleading or false information", "fr-FR": "Information trompeuse ou fausse" },
+      "description": {
+        "en-GB": "False claims presented as fact that could cause harm.",
+        "fr-FR": "De fausses affirmations présentées comme des faits et susceptibles de nuire."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonMisleading"
+    },
+    {
+      "key": "copyright",
+      "label": { "en-GB": "Intellectual property or copyright", "fr-FR": "Propriété intellectuelle ou droit d’auteur" },
+      "description": {
+        "en-GB": "Somebody’s work used without permission.",
+        "fr-FR": "L’œuvre de quelqu’un utilisée sans autorisation."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonViolation"
+    },
+    {
+      "key": "trademark",
+      "label": { "en-GB": "Trademark", "fr-FR": "Marque déposée" },
+      "description": {
+        "en-GB": "A name or logo used in a way that misleads about who is behind it.",
+        "fr-FR": "Un nom ou un logo utilisé d’une manière qui trompe sur son origine."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonViolation"
+    },
+    {
+      "key": "illegal",
+      "label": { "en-GB": "Illegal content or activity", "fr-FR": "Contenu ou activité illégale" },
+      "description": {
+        "en-GB": "Something that breaks the law, such as selling prohibited goods or fraud.",
+        "fr-FR": "Ce qui enfreint la loi, comme la vente de biens interdits ou la fraude."
+      },
+      "atproto_reason": "com.atproto.moderation.defs#reasonViolation"
+    },
+    {
+      "key": "other",
+      "label": { "en-GB": "Something else", "fr-FR": "Autre chose" },
+      "description": {
+        "en-GB": "None of the above. Please describe the problem.",
+        "fr-FR": "Rien de ce qui précède. Veuillez décrire le problème."
+      },
+      "requires_details": true,
+      "atproto_reason": "com.atproto.moderation.defs#reasonOther"
+    }
+  ]
+}

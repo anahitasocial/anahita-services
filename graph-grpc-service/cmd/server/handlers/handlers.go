@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+
 	"anahita-libs/data/services"
 	"anahita-libs/event"
 	"graph/config"
@@ -8,7 +10,12 @@ import (
 )
 
 type Env struct {
-	Config    *config.Config
+	Config *config.Config
+
+	// DB is for the sweeper's lock, which has to be taken and released on one
+	// connection. Everything else goes through Repos.
+	DB *sql.DB
+
 	Publisher *event.Publisher
 	Repos     *repositories.Repositories
 

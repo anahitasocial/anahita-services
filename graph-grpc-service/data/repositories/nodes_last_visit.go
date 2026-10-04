@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-// TouchLastVisit stamps nodes.last_visit_date with the current time.
+// TouchLastVisit stamps nodes.last_visited_at with the current time.
 //
 // This column existed on the old profile table and was written ONLY by the
 // INSERT that created the row — never on a sign-in — so for all 822 people it
@@ -40,7 +40,7 @@ func (r *nodesRepo) TouchLastVisit(id int64) (bool, error) {
 	// machine whose clock nobody controls.
 	const query = `
 UPDATE nodes
-SET last_visit_date = NOW()
+SET last_visited_at = NOW()
 WHERE id = ? AND deleted_at IS NULL;
 `
 

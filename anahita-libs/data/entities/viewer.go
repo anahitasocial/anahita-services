@@ -28,7 +28,7 @@ type Viewer struct {
 	PersonType    string    `json:"usertype"`
 	Email         string    `json:"email"`
 	Username      string    `json:"username"`
-	LastVisitDate time.Time `json:"last_visit_date,omitempty"`
+	LastVisitedAt time.Time `json:"last_visited_at,omitempty"`
 
 	// TOTP fields
 	TotpSecret         string
@@ -47,7 +47,7 @@ func NewViewer() *Viewer {
 	v.Service = constants.PersonService
 	v.Enabled = false
 	v.PersonType = constants.PersonTypeGuest
-	v.LastVisitDate = time.Now()
+	v.LastVisitedAt = time.Now()
 
 	return v
 }

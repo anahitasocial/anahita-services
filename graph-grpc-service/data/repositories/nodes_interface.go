@@ -31,6 +31,9 @@ type NodesRepoInterface interface {
 	// Delete removes a node based on the provided delete request and viewer context.
 	Delete(id int64) (bool, error)
 
+	// FilterVisible returns which of the given nodes the viewer may see.
+	FilterVisible(ids []int64, viewer *entities.Viewer) ([]int64, error)
+
 	// BatchRead retrieves multiple nodes based on the provided read request and viewer context.
 	BatchRead(req *requests.NodeBatchReadRequest) ([]*entities.AnahitaNode, error)
 
@@ -76,21 +79,38 @@ type NodesRepoInterface interface {
 	RestoreActor(id int64) (bool, error)
 
 	// BrowseDeletedBefore returns the ids of actors soft-deleted before the
-	// cutoff — the sweeper's queue. Ids only: the sweeper reads each node it is
+	// cutoff and not yet purged — the sweeper's queue. Ids only: the sweeper reads each node it is
 	// about to purge anyway, and the queue is small.
 	BrowseDeletedBefore(cutoff time.Time, limit uint64) ([]int64, error)
 
-	// PurgeActorContent removes everything an actor owns and every edge
-	// touching it, but LEAVES THE ACTOR NODE so it can be tombstoned.
-	PurgeActorContent(ownerID int64) (bool, error)
+	// PreparePurge writes down what a purge of this actor has to do: the nodes
+	// to remove, and the nodes whose counters must be counted again afterwards.
+	// Refuses the last super administrator with ErrLastSuperAdmin.
+	PreparePurge(actorID int64) error
+
+	// NextPurgeBatch returns the next nodes to remove, or nil when none are
+	// left.
+	NextPurgeBatch(actorID int64, limit int) (*PurgeBatch, error)
+
+	// DeletePurgeBatch removes one batch, with every edge and notification
+	// that points at it.
+	DeletePurgeBatch(actorID int64, batch *PurgeBatch) error
+
+	// FinishPurge removes what points at the actor itself and counts again
+	// what other people's nodes lost. LEAVES THE ACTOR NODE so it can be
+	// tombstoned.
+	FinishPurge(actorID int64) error
+
+	// GuardLastSuperAdmin returns ErrLastSuperAdmin if removing this actor
+	// would leave nobody able to administer the installation.
+	GuardLastSuperAdmin(id int64) error
+
+	// IsPurged reports whether an actor is already a tombstone.
+	IsPurged(id int64) (bool, error)
 
 	// TombstoneActor strips an actor node to an identity marker: the id, the
 	// handle, and the fact that it is gone.
 	TombstoneActor(id int64) (bool, error)
-
-	// BrowseActorFiles returns the actor and everything it owns that carries an
-	// uploaded file, so the blobs can be deleted before the rows are.
-	BrowseActorFiles(ownerID int64) ([]*entities.AnahitaNode, error)
 
 	// Count returns the total number of nodes matching the provided browse request and viewer context.
 	Count(req *requests.NodeCountRequest) (uint64, error)

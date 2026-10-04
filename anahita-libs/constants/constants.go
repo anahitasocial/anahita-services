@@ -21,8 +21,8 @@ const (
 	OrderingRecent    = "recent"
 	OrderingOldest    = "oldest"
 	OrderingNewest    = "newest"
-	OrderingCreatedOn = "created_on"
-	OrderingUpdatedOn = "updated_on"
+	OrderingCreatedAt = "created_at"
+	OrderingUpdatedAt = "updated_at"
 	DirAsc            = "asc"
 	DirDesc           = "desc"
 

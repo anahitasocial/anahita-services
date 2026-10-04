@@ -51,7 +51,7 @@ type GraphNodeBrowseRequest struct {
 	Search          string           `validate:"max=100,omitempty"`
 	Offset          uint64           `validate:"omitempty,numeric"`
 	Limit           uint64           `validate:"omitempty,numeric,max=100"`
-	Ordering        string           `validate:"max=10,omitempty,oneof=created_on updated_on recent popular"`
+	Ordering        string           `validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
 	OrderingDir     string           `validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer          *entities.Viewer `validate:"required"`
 	AccessCheck     bool
@@ -68,7 +68,7 @@ type GraphNodeReadByAlias struct {
 
 type GraphNodeBatchReadRequest struct {
 	IDs         []int64          `validate:"required,dive,numeric"`
-	Ordering    string           `validate:"max=10,omitempty,oneof=created_on updated_on recent popular"`
+	Ordering    string           `validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
 	OrderingDir string           `validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer      *entities.Viewer `validate:"required"`
 	AccessCheck bool
@@ -77,7 +77,7 @@ type GraphNodeBatchReadRequest struct {
 type GraphNodeBatchReadByAliasesRequest struct {
 	Aliases     []string         `validate:"required,dive,max=100"`
 	NodeType    string           `validate:"max=50,omitempty"`
-	Ordering    string           `validate:"max=10,omitempty,oneof=created_on updated_on recent popular"`
+	Ordering    string           `validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
 	OrderingDir string           `validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer      *entities.Viewer `validate:"required"`
 	AccessCheck bool

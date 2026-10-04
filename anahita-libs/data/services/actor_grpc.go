@@ -5,6 +5,7 @@ import (
 	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
+	"errors"
 	"log"
 	"strings"
 	"time"
@@ -52,11 +53,16 @@ type ActorsGRPCInterface interface {
 	// TouchLastVisit records that an actor just signed in.
 	TouchLastVisit(id int64) (bool, error)
 
-	// Purge destroys an actor immediately, skipping the grace period.
+	// RequestPurge queues actors to be destroyed now, skipping the grace
+	// period, and returns before the work is done.
 	//
 	// SUPER ADMINISTRATORS ONLY, and the caller enforces that — graph-grpc has
 	// no notion of a usertype. Nothing about this is reversible.
-	Purge(id int64, viewer *entities.Viewer) (bool, error)
+	RequestPurge(req *ActorPurgeRequest, viewer *entities.Viewer) (*graphpb.ActorPurgeBatchResponse, error)
+
+	// ReadPurgeBatch reports how far a RequestPurge has got. A batch id
+	// nobody was given comes back with a total of zero.
+	ReadPurgeBatch(batchID string) (*graphpb.ActorPurgeBatchReadResponse, error)
 
 	// BatchRead returns a list of media
 	BatchRead(req *ActorGRPCBatchReadRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
@@ -402,21 +408,33 @@ func (srv *ActorsGRPC) ReadDeletionCounts(id int64, viewer *entities.Viewer) (*g
 	})
 }
 
-// Purge destroys an actor immediately, skipping the grace period.
-//
-// Returns false when there was nothing to purge, so a caller can tell that
-// from success. The authority check belongs to the caller; see the interface.
-func (srv *ActorsGRPC) Purge(id int64, viewer *entities.Viewer) (bool, error) {
+// ActorPurgeRequest names the actors to purge.
+type ActorPurgeRequest struct {
+	IDs []int64
+
+	// Type is the full node type every one of them must have.
+	Type string
+
+	// AllowAdministrators is false for a bulk cleanup, which is refused whole
+	// if it names an administrator, and true for removing one named account.
+	AllowAdministrators bool
+}
+
+// RequestPurge queues actors to be destroyed now. The authority check belongs
+// to the caller; see the interface.
+func (srv *ActorsGRPC) RequestPurge(req *ActorPurgeRequest, viewer *entities.Viewer) (*graphpb.ActorPurgeBatchResponse, error) {
 	client, err := srv.getClient()
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	if client == nil {
-		return false, nil
+		return nil, errors.New("the graph service is not configured")
 	}
 
-	resp, err := client.Purge(context.Background(), &graphpb.ActorPurgeRequest{
-		Id: id,
+	return client.RequestPurge(context.Background(), &graphpb.ActorPurgeBatchRequest{
+		Ids:                 req.IDs,
+		Type:                req.Type,
+		AllowAdministrators: req.AllowAdministrators,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
@@ -424,11 +442,21 @@ func (srv *ActorsGRPC) Purge(id int64, viewer *entities.Viewer) (bool, error) {
 			Username:   viewer.Username,
 		},
 	})
+}
+
+// ReadPurgeBatch reports how far a RequestPurge has got.
+func (srv *ActorsGRPC) ReadPurgeBatch(batchID string) (*graphpb.ActorPurgeBatchReadResponse, error) {
+	client, err := srv.getClient()
 	if err != nil {
-		return false, err
+		return nil, err
+	}
+	if client == nil {
+		return nil, errors.New("the graph service is not configured")
 	}
 
-	return resp.Purged, nil
+	return client.ReadPurgeBatch(context.Background(), &graphpb.ActorPurgeBatchReadRequest{
+		BatchId: batchID,
+	})
 }
 
 // Archive marks an actor archived. Permanent; destroys nothing.

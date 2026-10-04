@@ -157,7 +157,7 @@ func (h *avatarHandler) Add(c echo.Context) error {
 	// their profile — every new member, on the first thing onboarding asks
 	// of them — has none on the node as read.
 	node.ModifiedBy = viewer.ID
-	node.UpdateTime = time.Now()
+	node.UpdatedAt = time.Now()
 	if _, err = h.Srv.ActorsGRPC.Edit(node, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -224,7 +224,7 @@ func (h *avatarHandler) Delete(c echo.Context) error {
 
 	node.Filename = ""
 	node.ModifiedBy = viewer.ID
-	node.UpdateTime = time.Now()
+	node.UpdatedAt = time.Now()
 	if _, err = h.Srv.ActorsGRPC.Edit(node, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
