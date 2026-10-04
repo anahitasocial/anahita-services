@@ -12,7 +12,6 @@ const (
 	// NominatimProvider is a geocoding provider that uses the Nominatim API
 	nominatimBaseURL = "https://nominatim.openstreetmap.org"
 	nominatimName    = "Nominatim"
-	userAgent        = "Anahita-Services/1.0 (contact@anahita.io)"
 )
 
 // NominatimProvider implements the Provider interface for Nominatim
@@ -22,11 +21,16 @@ type NominatimProvider struct {
 	userAgent  string
 }
 
-func NewNominatimProvider(httpClient *http.Client) *NominatimProvider {
+// NewNominatimProvider reaches Nominatim at baseURL, or at the public
+// instance when baseURL is empty.
+func NewNominatimProvider(httpClient *http.Client, baseURL string) *NominatimProvider {
+	if baseURL == "" {
+		baseURL = nominatimBaseURL
+	}
 	return &NominatimProvider{
-		baseURL:    nominatimBaseURL,
+		baseURL:    baseURL,
 		httpClient: httpClient,
-		userAgent:  userAgent,
+		userAgent:  geocoderUserAgent(),
 	}
 }
 

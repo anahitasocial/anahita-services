@@ -19,6 +19,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [First super administrator](configuration.md#first-super-administrator)
    - [OAuth signing and encryption](configuration.md#oauth-signing-and-encryption)
    - [Storage](configuration.md#storage)
+   - [Places](configuration.md#places)
    - [Mail](configuration.md#mail)
 3. [Architecture](architecture.md) — services, routing and the shared library
    - [Components](architecture.md#components)

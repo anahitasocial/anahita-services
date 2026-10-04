@@ -19,9 +19,14 @@ type PhotonProvider struct {
 	httpClient *http.Client
 }
 
-func NewPhotonProvider(httpClient *http.Client) *PhotonProvider {
+// NewPhotonProvider reaches Photon at baseURL, or at the public instance when
+// baseURL is empty.
+func NewPhotonProvider(httpClient *http.Client, baseURL string) *PhotonProvider {
+	if baseURL == "" {
+		baseURL = photonBaseURL
+	}
 	return &PhotonProvider{
-		baseURL:    photonBaseURL,
+		baseURL:    baseURL,
 		httpClient: httpClient,
 	}
 }

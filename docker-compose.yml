@@ -65,6 +65,7 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      IP_LOCATION_URL: ${IP_LOCATION_URL:-}
       DSN: ${DSN}
       MAX_DB_CONNECTIONS: ${MAX_DB_CONNECTIONS}
       AWS_PROFILE: ${AWS_PROFILE}
@@ -338,6 +339,10 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      # Where the geocoders are reached. Empty means the public instances.
+      GEOCODER_PHOTON_URL: ${GEOCODER_PHOTON_URL:-}
+      GEOCODER_NOMINATIM_URL: ${GEOCODER_NOMINATIM_URL:-}
+      GEOCODER_CONTACT: ${GEOCODER_CONTACT:-}
     networks:
       anahita-network:
         ipv4_address: 172.20.1.16

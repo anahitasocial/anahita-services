@@ -135,3 +135,33 @@ func TestIPLocationDoesNotCallAMalformedAddressLocal(t *testing.T) {
 		}
 	}
 }
+
+// With the lookup off, a public address is sent nowhere.
+func TestIPLocationCanBeSwitchedOff(t *testing.T) {
+	stubIPLocation(t, func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("the provider was asked about %s", r.URL.Path)
+	})
+	ipLocationBaseURL = "off"
+
+	if got := getIPLocation("203.0.113.9"); got != (IPLocation{}) {
+		t.Errorf("location = %+v, want nothing", got)
+	}
+
+	// A private address is still reported as local: that needs no lookup.
+	if got := getIPLocation("10.0.0.1"); got.City != messages.AuthLoginLocalCity {
+		t.Errorf("a private address = %+v, want it reported as local", got)
+	}
+}
+
+func TestIPLocationURLFromEnv(t *testing.T) {
+	for value, want := range map[string]string{
+		"":                           "https://ipapi.co",
+		"off":                        "off",
+		"https://geoip.example.org/": "https://geoip.example.org",
+	} {
+		t.Setenv(IPLocationURLEnv, value)
+		if got := ipLocationURLFromEnv(); got != want {
+			t.Errorf("%q -> %q, want %q", value, got, want)
+		}
+	}
+}

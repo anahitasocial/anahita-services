@@ -51,20 +51,43 @@ func NewLocationService(config *config.Config) *LocationService {
 		},
 	}
 
-	// Create base providers
-	photonProvider := NewPhotonProvider(httpClient)
-	nominatimProvider := NewNominatimProvider(httpClient)
-
 	return &LocationService{
-		providers: []Provider{
-			// Photon: allow 2 requests per second
-			NewRateLimitedProvider(photonProvider, 2.0),
-
-			// Nominatim: strict 1 request per second (required by their usage policy)
-			NewRateLimitedProvider(nominatimProvider, 1.0),
-		},
+		providers:  configuredProviders(httpClient),
 		httpClient: httpClient,
 	}
+}
+
+// configuredProviders builds the geocoders the environment asks for, in the
+// order they are tried. A misconfigured address is fatal at start-up: a typo
+// there would otherwise show only as places that quietly never get
+// coordinates.
+func configuredProviders(httpClient *http.Client) []Provider {
+	var providers []Provider
+
+	photonURL, usePhoton, err := geocoderURL(PhotonURLEnv, photonBaseURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if usePhoton {
+		// Photon: allow 2 requests per second
+		providers = append(providers, NewRateLimitedProvider(NewPhotonProvider(httpClient, photonURL), 2.0))
+	}
+
+	nominatimURL, useNominatim, err := geocoderURL(NominatimURLEnv, nominatimBaseURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if useNominatim {
+		// Nominatim: strict 1 request per second (required by the public
+		// instance's usage policy, and harmless against your own)
+		providers = append(providers, NewRateLimitedProvider(NewNominatimProvider(httpClient, nominatimURL), 1.0))
+	}
+
+	if len(providers) == 0 {
+		log.Fatalf("%s and %s are both off; a place cannot be saved without a geocoder", PhotonURLEnv, NominatimURLEnv)
+	}
+
+	return providers
 }
 
 // Geocode tries providers in order until one succeeds

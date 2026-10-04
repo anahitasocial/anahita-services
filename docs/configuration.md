@@ -15,6 +15,7 @@ committed, and neither are the signing-key and TLS `.pem` files it points at.
 - [First super administrator](#first-super-administrator)
 - [OAuth signing and encryption](#oauth-signing-and-encryption)
 - [Storage](#storage)
+- [Places](#places)
 - [Mail](#mail)
 
 ## Shared
@@ -42,7 +43,13 @@ Each proxy has to append to the header, which nginx does with
 `$proxy_add_x_forwarded_for`. The address keys the per-address rate limits and
 is recorded in the sign-in log.
 
-A sign-in's city and country are looked up at ipapi.co, with a 3 second limit.
+A sign-in's city and country are looked up at ipapi.co, with a 3 second limit,
+which means that third party is sent the address of everybody who signs in.
+Set `IP_LOCATION_URL=off` to stop the lookup; the sign-in log then shows no
+city or country. Set it to another address to use a service of your own that
+answers the same way (`GET <url>/<ip>/json/` returning `city` and
+`country_name`).
+
 Private addresses are never sent, and are recorded as `localhost`,
 `development`. Seeing that in a deployed sign-in log means the address reaching
 auth-service is a proxy's, not the client's.
@@ -174,6 +181,22 @@ and run the test in `file-grpc-service/data/services`
 ~~~sh
 cd file-grpc-service && STORAGE_TEST_ENDPOINT=https://… go test ./data/services/ -run Real -v
 ~~~
+
+## Places
+
+Read by location-service. An address is turned into coordinates by Photon
+first, then Nominatim, both open-source geocoders built on OpenStreetMap.
+
+| Variable | Value |
+| --- | --- |
+| `GEOCODER_PHOTON_URL` | Where Photon is reached. Default: the public `https://photon.komoot.io`. `off` leaves it out |
+| `GEOCODER_NOMINATIM_URL` | Where Nominatim is reached. Default: the public `https://nominatim.openstreetmap.org`. `off` leaves it out |
+| `GEOCODER_CONTACT` | An email address or URL for whoever runs this installation, sent to the geocoders in the `User-Agent`. The public Nominatim's usage policy asks for one |
+
+The public instances are shared services with strict limits, and they see every
+address a member types. Both can be self-hosted; point the variables at your
+own. At least one has to stay on, because a place cannot be saved without
+coordinates.
 
 ## Mail
 

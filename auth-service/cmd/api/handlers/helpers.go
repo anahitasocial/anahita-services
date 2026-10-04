@@ -10,6 +10,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -40,8 +42,25 @@ func getClientIP(c echo.Context) string {
 var (
 	ipLocationClient = &http.Client{Timeout: 3 * time.Second}
 
-	ipLocationBaseURL = "https://ipapi.co"
+	ipLocationBaseURL = ipLocationURLFromEnv()
 )
+
+// IPLocationURLEnv is where a sign-in's address is looked up. The default is
+// ipapi.co, a third party that is sent the address of everybody who signs in.
+// "off" stops the lookup, and the sign-in log then shows no city or country.
+// Another address is used as given, and must answer as ipapi.co does:
+// GET <url>/<ip>/json/ returning {"city": …, "country_name": …}.
+const IPLocationURLEnv = "IP_LOCATION_URL"
+
+const ipLocationOff = "off"
+
+func ipLocationURLFromEnv() string {
+	value := strings.TrimRight(strings.TrimSpace(os.Getenv(IPLocationURLEnv)), "/")
+	if value == "" {
+		return "https://ipapi.co"
+	}
+	return value
+}
 
 const ipLocationUserAgent = "ipapi.co/#go-v1.5"
 
@@ -87,6 +106,12 @@ func getIPLocation(ip string) IPLocation {
 			City:    messages.AuthLoginLocalCity,
 			Country: messages.AuthLoginLocalCountry,
 		}
+	}
+
+	// Switched off: the address goes nowhere, and the caller keeps its
+	// "unknown city" placeholders.
+	if strings.EqualFold(ipLocationBaseURL, ipLocationOff) {
+		return IPLocation{}
 	}
 
 	endpoint := fmt.Sprintf("%s/%s/json/", ipLocationBaseURL, url.PathEscape(parsed.String()))
