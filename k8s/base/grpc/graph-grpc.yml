@@ -25,6 +25,13 @@ spec:
                 configMapKeyRef:
                   name: anahita-config
                   key: ENV
+            # Mutual TLS on the gRPC port. Unset means on, except with ENV=dev.
+            - name: GRPC_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRPC_TLS
+                  optional: true
             - name: DSN
               valueFrom:
                 secretKeyRef:
@@ -48,6 +55,15 @@ spec:
             requests:
               cpu: 50m
               memory: 64Mi
+          volumeMounts:
+            - name: grpc-tls
+              mountPath: /run/secrets/grpc
+              readOnly: true
+      volumes:
+        # This service's own certificate, from k8s/base/grpc-tls.yml.
+        - name: grpc-tls
+          secret:
+            secretName: anahita-grpc-graph
 ---
 apiVersion: v1
 kind: Service

@@ -70,6 +70,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       IP_LOCATION_URL: ${IP_LOCATION_URL:-}
       DSN: ${DSN}
       MAX_DB_CONNECTIONS: ${MAX_DB_CONNECTIONS}
@@ -167,6 +169,7 @@ services:
       SUPER_ADMIN_USERNAME: ${SUPER_ADMIN_USERNAME:-}
       SUPER_ADMIN_NAME: ${SUPER_ADMIN_NAME:-}
     volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
       - ./oauth-signing.pem:/run/secrets/oauth-signing.pem:ro
       - ./auth-defaults/oauth_seed_clients.json:/app/defaults/oauth_seed_clients.json:ro
     networks:
@@ -188,6 +191,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -204,6 +209,8 @@ services:
       GROUPS_FROM: ${GROUPS_FROM:-}
     # volumes:
     #   - ./assets/custom-group-settings.json:/app/assets/settings.json
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.11
@@ -221,6 +228,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -231,6 +240,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.12
@@ -251,6 +262,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
       REDIS_TLS: ${REDIS_TLS:-}
@@ -259,6 +272,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.13
@@ -279,6 +294,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
       REDIS_TLS: ${REDIS_TLS:-}
@@ -287,6 +304,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.14
@@ -307,6 +326,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -316,6 +337,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.15
@@ -336,6 +359,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
       REDIS_TLS: ${REDIS_TLS:-}
@@ -348,6 +373,8 @@ services:
       GEOCODER_PHOTON_URL: ${GEOCODER_PHOTON_URL:-}
       GEOCODER_NOMINATIM_URL: ${GEOCODER_NOMINATIM_URL:-}
       GEOCODER_CONTACT: ${GEOCODER_CONTACT:-}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.16
@@ -368,6 +395,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -378,6 +407,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.19
@@ -399,6 +430,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -409,6 +442,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.20
@@ -429,6 +464,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -438,6 +475,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.21
@@ -458,6 +497,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -467,6 +508,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.22
@@ -487,6 +530,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -497,6 +542,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.23
@@ -518,6 +565,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -528,6 +577,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.24
@@ -545,6 +596,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       # Any S3-compatible store. See docs/configuration.md, Storage.
       STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-}
       STORAGE_PUBLIC_ENDPOINT: ${STORAGE_PUBLIC_ENDPOINT:-}
@@ -562,6 +615,8 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       AWS_FILES_S3_BUCKET: ${AWS_FILES_S3_BUCKET:-}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.28
@@ -600,6 +655,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -609,6 +666,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.29
@@ -629,6 +688,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -638,6 +699,8 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.30
@@ -670,6 +733,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       # Branding, applied by this service to every message so that any sender
       # gets the same header without having to pass it.
       SITE_NAME: ${SITE_NAME:-}
@@ -689,6 +754,8 @@ services:
       # service refuses to start without it rather than mailing real people
       # from a development machine.
       DEVELOPER_EMAIL: ${DEVELOPER_EMAIL:-}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.32
@@ -727,6 +794,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -739,6 +808,7 @@ services:
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
       DEFAULTS_PATH: /feed-defaults
     volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
       - ./feed-defaults:/feed-defaults:ro
     networks:
       anahita-network:
@@ -762,6 +832,8 @@ services:
     restart: "no"
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       # So uploaded avatars, covers and photos are deleted from storage as
@@ -769,6 +841,8 @@ services:
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
     depends_on:
       - mysql
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
 
@@ -784,10 +858,13 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       ACTOR_FEATURES_PATH: /defaults/actor_features
     volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
       - ./graph-grpc-defaults/actor_features:/defaults/actor_features:ro
     networks:
       anahita-network:

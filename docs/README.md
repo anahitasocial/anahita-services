@@ -14,6 +14,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
 2. [Configuration](configuration.md) — every environment variable
    - [Shared](configuration.md#shared)
    - [Client addresses](configuration.md#client-addresses)
+   - [Internal calls](configuration.md#internal-calls)
    - [Site identity](configuration.md#site-identity)
    - [Registration](configuration.md#registration)
    - [First super administrator](configuration.md#first-super-administrator)
@@ -50,6 +51,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
    - [Hostnames](deploying.md#hostnames)
    - [First deployment](deploying.md#first-deployment)
+   - [Certificates between the services](deploying.md#certificates-between-the-services)
    - [Object storage](deploying.md#object-storage)
    - [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)
    - [On AWS](deploying.md#on-aws)
@@ -90,7 +92,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Quote posts](plans/quote-posts.md) | 25 | not started |
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
-| [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b done 2026-10-03; 0c (gRPC mTLS) not started |
+| [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b and 0c done 2026-10-03; the plan's "Not checked" list is still open |
 | [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in items 5 and 8 |
 | [Signup, registration modes, and agreements](plans/done/signup-and-onboarding.md) | — | done |
 | [Onboarding](plans/done/onboarding.md) | — | done (phase 3 moved to the recommendation service) |

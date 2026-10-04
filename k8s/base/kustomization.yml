@@ -1,6 +1,8 @@
 # Everything Anahita itself needs, and nothing a site has to decide: no
 # hostnames, no secrets, no database. It is not applied on its own. An overlay
 # in ../overlays adds those; see docs/deploying.md.
+#
+# Needs cert-manager in the cluster, for the certificates in grpc-tls.yml.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -11,6 +13,7 @@ labels:
 resources:
   - gateway.yml
   - ingress.yml
+  - grpc-tls.yml
   - grpc/file-grpc.yml
   - grpc/graph-grpc.yml
   - grpc/mail-grpc.yml

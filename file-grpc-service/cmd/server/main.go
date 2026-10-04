@@ -1,6 +1,7 @@
 package main
 
 import (
+	"anahita-libs/grpctls"
 	"file/cmd/server/handlers"
 	"file/data/services"
 	"fmt"
@@ -50,7 +51,15 @@ func startGrpcServer(h *handlers.Handlers) error {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
+	// Mutual TLS: only callers holding a certificate from this installation's
+	// authority are served. Refuses to start without certificates unless
+	// GRPC_TLS says otherwise.
+	transport, err := grpctls.ServerOption()
+	if err != nil {
+		return err
+	}
+
+	s := grpc.NewServer(transport)
 
 	// register the service
 	filepb.RegisterFileServiceServer(s, h.File)

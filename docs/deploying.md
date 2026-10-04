@@ -12,6 +12,7 @@ your own machine, use docker-compose instead: see
 - [How the manifests are laid out](#how-the-manifests-are-laid-out)
 - [Hostnames](#hostnames)
 - [First deployment](#first-deployment)
+- [Certificates between the services](#certificates-between-the-services)
 - [Object storage](#object-storage)
 - [Database, Redis and RabbitMQ](#database-redis-and-rabbitmq)
 - [On AWS](#on-aws)
@@ -25,7 +26,7 @@ your own machine, use docker-compose instead: see
 | --- | --- |
 | A Kubernetes cluster | Any provider's, or your own. A default StorageClass, unless the database, Redis and RabbitMQ all run elsewhere |
 | [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) | The manifests ask for the `nginx` ingress class |
-| [cert-manager](https://cert-manager.io/) | Gets and renews the Let's Encrypt certificate |
+| [cert-manager](https://cert-manager.io/) | Gets and renews the Let's Encrypt certificate, and issues the certificates the services use between themselves |
 | Two DNS names | `api.` and `auth.` under your domain, both pointing at the ingress controller's address |
 | A bucket | On any S3-compatible object store. Private. See [Object storage](#object-storage) |
 | An SMTP account | Any provider |
@@ -44,6 +45,7 @@ k8s/
     jobs/               the migration job and the hourly account sweeper
     gateway.yml         nginx: routing, CORS, cookie-to-token
     ingress.yml         the way in; sends everything to the gateway
+    grpc-tls.yml        certificates for the calls between the services
     config.env          how the services find each other
   components/           optional: MySQL, Redis and RabbitMQ in the cluster
   overlays/
@@ -133,6 +135,32 @@ real address. Behind a cloud load balancer it often sees the balancer's
 instead: turn on PROXY protocol, or `use-forwarded-headers`, in ingress-nginx
 as your provider documents. The sign-in log showing `localhost`,
 `development` for everybody is the sign that it is not set up.
+
+## Certificates between the services
+
+The calls from the HTTP services to graph-grpc, file-grpc and mail-grpc use
+mutual TLS, described under
+[Internal calls](configuration.md#internal-calls). `k8s/base/grpc-tls.yml`
+sets it up, and there is nothing to configure:
+
+- cert-manager creates an authority for this installation alone, a
+  certificate for each gRPC service, and one that every caller presents.
+- Each is valid for 90 days and renewed 30 days before it ends. The services
+  pick up a renewed certificate within a minute or two, without a restart.
+- A pod waits to start until its certificate exists, which takes a few
+  seconds on the first deployment.
+
+To see them: `kubectl -n anahita get certificates`.
+
+The certificates name the services as `base/config.env` dials them, such as
+`graph-grpc-service`. If you change those addresses, change `dnsNames` in
+`grpc-tls.yml` to match.
+
+Any holder of a certificate from the authority may call any gRPC service.
+There is no rule yet about which service may call which.
+
+If a service mesh such as Linkerd already encrypts traffic between pods, set
+`GRPC_TLS=off` in `config.env` and leave this to the mesh.
 
 ## Object storage
 
@@ -245,7 +273,7 @@ The `local` overlay runs the whole stack on
 is for checking the manifests, not for daily work.
 
 ~~~sh
-make k8s-start     # a cluster with the ingress controller
+make k8s-start     # a cluster with the ingress controller and cert-manager
 make k8s-build     # builds every image and loads it into the cluster
 make k8s-deploy    # applies k8s/overlays/local
 kubectl --context minikube -n anahita get pods

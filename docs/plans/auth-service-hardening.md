@@ -323,8 +323,35 @@ A phase is finished only when these pages match the code. When a page is added, 
 
 ### Still open
 - **Finding 3** (login throttle) is roadmap item 6.
-- **0c** is not started. Until it lands, graph-grpc, file-grpc and mail-grpc accept any call from anything that can reach their ports. A shared-secret interceptor was written and tested on 2026-10-03, then left out by decision: no site is live yet, and mutual TLS will authenticate callers as well as encrypt. If 0c slips past the first live deployment, bring the interceptor back first (about 100 lines; see *A server interceptor with a shared secret* above).
+- **0c** is done: see below.
 - **The "Not checked" list above** (JWT claim validation, PKCE `plain`, and the rest) is still not checked.
+
+## What was built for 0c (2026-10-03)
+
+**The choice: certificates loaded by the services, issued by cert-manager.** Linkerd was the alternative. It needs no Go code and suits a site with services in many languages, but it is one more system for every site to run, and it exists only on Kubernetes, so docker-compose would have stayed plain text and the secured path would never have run during development. `GRPC_TLS=off` leaves the door open for a site that prefers a mesh.
+
+- **`anahita-libs/grpctls`:** `ServerOption()` and `DialOption()`, used by the three gRPC servers and all 17 clients. TLS 1.3, both sides present a certificate, and the client checks the server's certificate names the host it dialled.
+- **Settings:** `GRPC_TLS` (`on`/`off`; unset means on, except with `ENV=dev`) and `GRPC_TLS_DIR` (default `/run/secrets/grpc`, holding `tls.crt`, `tls.key`, `ca.crt`, the names cert-manager writes).
+- **Fails closed:** with TLS on and no certificates a server refuses to start and a client refuses to call. An unknown `GRPC_TLS` value is an error.
+- **Renewal without a restart:** the files are looked at once a minute at most. A replaced certificate, and a replaced authority, are used from then on. A renewal caught half-written keeps the working certificate.
+- **docker-compose:** `scripts/grpc-certs-init.sh` makes a development authority and one certificate in `./grpc-certs` (ignored by git), run by `make up` and `make up_build`. The authority's key is deleted after signing. Every service has `GRPC_TLS=on` and the mount.
+- **Kubernetes:** `k8s/base/grpc-tls.yml` has a self-signed issuer, the authority, a certificate for each gRPC service and one shared by the callers. 90 days, renewed 30 days early. `make k8s-start` installs cert-manager.
+- **No shared-secret interceptor.** The certificate does that job.
+
+**Answers to "what to carry outward":**
+
+- **Issuance path:** cert-manager with its own authority, as above.
+- **What rotation did:** on a minikube cluster both the graph-grpc certificate and the callers' certificate were renewed by hand. cert-manager wrote the new Secrets within seconds. person-service logged the change after about one minute and graph-grpc-service after about two (the kubelet's file sync plus the one-minute check). Neither restarted, and 40 requests made through the gateway during the change all succeeded.
+- **Local development cost:** one script, one mount per service, and starting with `make` instead of `docker-compose up`.
+- **Would the interceptor alone have been enough?** For "anything in the namespace can call", yes. It would not have encrypted the calls, and the secret would have been one value shared by everything and never rotated.
+
+**Tests:** `anahita-libs/grpctls` covers both sides connecting, a plain-text caller, a caller with no certificate, a caller and a server from another authority, a server under another name, renewal, a replaced authority, a broken renewal, and the settings. By hand: the dev stack serves requests with TLS on, and a plain-text call to graph-grpc's published port is refused.
+
+**Not done:**
+
+- **Which service may call which.** Any certificate from the authority is accepted everywhere. Per-service certificates and an allow-list would be the next step.
+- **A real 60-day renewal** has not been waited for; the forced one stands in for it.
+- **Load balancing across graph-grpc replicas** still depends on the cluster's Service, which pins a long-lived gRPC connection to one pod. It matters only once graph-grpc runs several replicas.
 
 ## Status
 
@@ -332,4 +359,5 @@ A phase is finished only when these pages match the code. When a page is added, 
 | --- | --- |
 | Plan | written 2026-09-08, scheduled 2026-09-28 |
 | 0b | done 2026-10-03, on branch `auth-hardening` |
-| 0c | not started |
+| 0c | done 2026-10-03, on branch `m2-foundations` |
+| The "Not checked" list | open |

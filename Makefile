@@ -94,6 +94,7 @@ check_docker:
 ## up: starts all containers in the background without forcing build
 up:
 	@echo "Starting docker images..."
+	@./scripts/grpc-certs-init.sh
 	docker-compose up -d
 	@./scripts/storage-init.sh
 	@echo "Docker images started!"
@@ -297,6 +298,7 @@ up_build: build_auth build_comment build_graph build_group build_like build_pers
 	@echo "Stopping docker images (if running...)"
 	docker-compose down
 	@echo "Building (when required) and starting docker images..."
+	@./scripts/grpc-certs-init.sh
 	docker-compose up --build -d
 	@./scripts/storage-init.sh
 	@echo "Docker images built and started!"
@@ -553,11 +555,13 @@ K8S_LOCAL=k8s/overlays/local
 KUBECTL=kubectl --context minikube
 K8S_IMAGES=${AUTH_SRV} ${AVATAR_SRV} ${COMMENT_SRV} ${COVER_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${GROUP_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PERSON_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${STORY_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
 
-## k8s-start: starts a local Minikube cluster with the ingress controller
+## k8s-start: starts a local Minikube cluster with the ingress controller and cert-manager
 k8s-start:
 	@echo "Starting kubernetes..."
 	minikube start --cpus 4 --memory 5g
 	minikube addons enable ingress
+	${KUBECTL} apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+	${KUBECTL} -n cert-manager wait --for=condition=Available deployment --all --timeout=180s
 	@echo "Done!"
 
 ## k8s-build: builds every image and loads it into Minikube

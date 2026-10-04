@@ -13,6 +13,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 
 - [Shared](#shared)
 - [Client addresses](#client-addresses)
+- [Internal calls](#internal-calls)
 - [Site identity](#site-identity)
 - [Registration](#registration)
 - [First super administrator](#first-super-administrator)
@@ -57,6 +58,38 @@ answers the same way (`GET <url>/<ip>/json/` returning `city` and
 Private addresses are never sent, and are recorded as `localhost`,
 `development`. Seeing that in a deployed sign-in log means the address reaching
 auth-service is a proxy's, not the client's.
+
+### Internal calls
+
+The HTTP services call graph-grpc-service, file-grpc-service and
+mail-grpc-service over gRPC. Those calls use mutual TLS: they are encrypted,
+and each side presents a certificate signed by the installation's own
+certificate authority. A caller without one is refused.
+
+| Variable | Used by | Value |
+| --- | --- | --- |
+| `GRPC_TLS` | all | `on` or `off`. Unset means `on`, except with `ENV=dev`. `docker-compose.yml` sets `on` |
+| `GRPC_TLS_DIR` | all | The directory holding `tls.crt`, `tls.key` and `ca.crt`. Default `/run/secrets/grpc` |
+
+- **In docker-compose** `scripts/grpc-certs-init.sh` makes a development
+  authority and one certificate in `./grpc-certs`, which every service
+  mounts. `make up` and `make up_build` run it.
+- **On Kubernetes** cert-manager issues a certificate per gRPC service and
+  one for the callers: see [Deploying](deploying.md#certificates-between-the-services).
+- **Renewal needs no restart.** A service looks at the files at most once a
+  minute and uses a replaced certificate or authority from then on.
+- **With `on` and no certificates,** a gRPC service refuses to start and a
+  caller refuses to call. Nothing falls back to plain text.
+- **`off`** is for an installation where a service mesh such as Linkerd
+  encrypts and authenticates these calls instead.
+
+The server's certificate must name the host that was dialled, so the names in
+`FILE_SERVICE_ADDR`, `GRAPH_SERVICE_ADDR` and `MAIL_SERVICE_ADDR` have to be
+on the certificates.
+
+A service written in another language joins in by loading the same three
+files in its gRPC library: present `tls.crt` and `tls.key`, trust `ca.crt`,
+and, for a server, require a client certificate.
 
 ## Site identity
 

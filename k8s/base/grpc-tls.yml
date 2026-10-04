@@ -1,0 +1,139 @@
+# Certificates for the calls between the services (mutual TLS), issued and
+# renewed by cert-manager. Nothing outside the cluster ever checks them, so
+# the authority is the installation's own.
+#
+# Each gRPC service has a certificate naming it. The services that call them
+# share one. A caller is accepted for holding any certificate from this
+# authority: there is no rule yet about which service may call which.
+#
+# The services notice a renewed certificate within a minute and need no
+# restart (anahita-libs/grpctls).
+#
+# The names below are the ones the services dial (FILE_SERVICE_ADDR and its
+# siblings in base/config.env). A site that dials other names, or uses a
+# namespace other than `anahita` with full names, changes them to match.
+
+# Signs the authority's own certificate, and nothing else.
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: anahita-selfsigned
+spec:
+  selfSigned: {}
+---
+# The authority. Ten years, renewed a year before it ends. The services read
+# ca.crt from their own Secrets, which cert-manager keeps in step with it.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: anahita-grpc-ca
+spec:
+  isCA: true
+  commonName: anahita-grpc-ca
+  secretName: anahita-grpc-ca
+  duration: 87600h
+  renewBefore: 8760h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: anahita-selfsigned
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: anahita-grpc
+spec:
+  ca:
+    secretName: anahita-grpc-ca
+---
+# graph-grpc-service also calls file-grpc-service, so its certificate serves
+# both ways.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: anahita-grpc-graph
+spec:
+  secretName: anahita-grpc-graph
+  commonName: graph-grpc-service
+  dnsNames:
+    - graph-grpc-service
+    - graph-grpc-service.anahita.svc
+    - graph-grpc-service.anahita.svc.cluster.local
+  usages:
+    - server auth
+    - client auth
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: anahita-grpc
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: anahita-grpc-file
+spec:
+  secretName: anahita-grpc-file
+  commonName: file-grpc-service
+  dnsNames:
+    - file-grpc-service
+    - file-grpc-service.anahita.svc
+    - file-grpc-service.anahita.svc.cluster.local
+  usages:
+    - server auth
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: anahita-grpc
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: anahita-grpc-mail
+spec:
+  secretName: anahita-grpc-mail
+  commonName: mail-grpc-service
+  dnsNames:
+    - mail-grpc-service
+    - mail-grpc-service.anahita.svc
+    - mail-grpc-service.anahita.svc.cluster.local
+  usages:
+    - server auth
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: anahita-grpc
+    kind: Issuer
+---
+# What every caller presents.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: anahita-grpc-client
+spec:
+  secretName: anahita-grpc-client
+  commonName: anahita-grpc-client
+  dnsNames:
+    - anahita-grpc-client
+  usages:
+    - client auth
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: anahita-grpc
+    kind: Issuer

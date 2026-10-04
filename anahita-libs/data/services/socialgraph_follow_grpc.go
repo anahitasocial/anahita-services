@@ -1,13 +1,13 @@
 package services
 
 import (
+	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
 	"log"
 	"time"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 var socialgraphFollowGRPCConnectCounts int
@@ -36,7 +36,11 @@ func NewSocialgraphFollowGRPC(config GraphGRPCConfigInterface) SocialgraphFollow
 // getClient returns the grpc client
 func (srv *SocialgraphFollowGRPC) getClient() (graphpb.SocialgraphFollowServiceClient, error) {
 	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	transport, err := grpctls.DialOption()
+	if err != nil {
+		return nil, err
+	}
+	opts = append(opts, transport)
 	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
 
 	for {

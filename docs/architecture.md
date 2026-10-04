@@ -21,7 +21,10 @@ not talk to each other over HTTP.
 **gRPC services** are shared infrastructure the HTTP services call
 directly: `graph-grpc-service` owns the node/edge graph and every read
 against it, `file-grpc-service` owns file storage, `mail-grpc-service`
-owns outbound email.
+owns outbound email. These calls use mutual TLS: each side presents a
+certificate from the installation's own authority, so a gRPC service answers
+only the other services (`anahita-libs/grpctls`; see
+[Internal calls](configuration.md#internal-calls)).
 
 **RabbitMQ** carries asynchronous fan-out. Services publish domain events
 to the `anahita_events` exchange; consumers (notifications, feed, search)

@@ -73,6 +73,12 @@ The API is then at `http://localhost:80`. The front end lives in a separate
 repository (`anahita-react`) and runs at `http://localhost:3000`, which is
 the origin nginx allows for CORS.
 
+Start with `make`, not with `docker-compose up` directly. The services talk
+to each other over mutual TLS, and `make up` and `make up_build` first create
+the development certificates in `./grpc-certs` (`scripts/grpc-certs-init.sh`).
+Without them the services stop at start-up and say so. See
+[Internal calls](configuration.md#internal-calls).
+
 ## First run
 
 On a fresh database:

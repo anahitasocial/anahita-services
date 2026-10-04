@@ -4,6 +4,7 @@ import (
 	"anahita-libs/data"
 	"anahita-libs/data/services"
 	"anahita-libs/event"
+	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"anahita-libs/proto/typespb"
 	"fmt"
@@ -85,7 +86,15 @@ func startGrpcServer(h *handlers.Handlers) error {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
+	// Mutual TLS: only callers holding a certificate from this installation's
+	// authority are served. Refuses to start without certificates unless
+	// GRPC_TLS says otherwise.
+	transport, err := grpctls.ServerOption()
+	if err != nil {
+		return err
+	}
+
+	s := grpc.NewServer(transport)
 
 	graphpb.RegisterActorServiceServer(s, h.Actor)
 	graphpb.RegisterActorAdminServiceServer(s, h.ActorAdmin)

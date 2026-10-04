@@ -28,3 +28,6 @@ scripts/s3-migration/s3-migration
 
 # built by make build_sweeper
 sweeper-binary
+
+# development gRPC certificates, made by scripts/grpc-certs-init.sh
+grpc-certs/

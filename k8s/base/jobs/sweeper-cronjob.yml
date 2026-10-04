@@ -53,6 +53,13 @@ spec:
                     configMapKeyRef:
                       name: anahita-config
                       key: ENV
+                # Mutual TLS on the call to file-grpc-service.
+                - name: GRPC_TLS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: GRPC_TLS
+                      optional: true
                 - name: DSN
                   valueFrom:
                     secretKeyRef:
@@ -71,3 +78,11 @@ spec:
                     configMapKeyRef:
                       name: anahita-config
                       key: FILE_SERVICE_ADDR
+              volumeMounts:
+                - name: grpc-tls
+                  mountPath: /run/secrets/grpc
+                  readOnly: true
+          volumes:
+            - name: grpc-tls
+              secret:
+                secretName: anahita-grpc-client

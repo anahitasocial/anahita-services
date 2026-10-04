@@ -25,6 +25,14 @@ spec:
                 configMapKeyRef:
                   name: anahita-config
                   key: ENV
+            # Mutual TLS on the calls to the gRPC services. Unset means on,
+            # except with ENV=dev.
+            - name: GRPC_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRPC_TLS
+                  optional: true
             - name: DSN
               valueFrom:
                 secretKeyRef:
@@ -283,10 +291,18 @@ spec:
               cpu: 25m
               memory: 32Mi
           volumeMounts:
+            - name: grpc-tls
+              mountPath: /run/secrets/grpc
+              readOnly: true
             - name: oauth-clients
               mountPath: /app/seed
               readOnly: true
       volumes:
+        # The certificate this service presents when it calls a gRPC
+        # service, from k8s/base/grpc-tls.yml.
+        - name: grpc-tls
+          secret:
+            secretName: anahita-grpc-client
         # The first-party OAuth clients, seeded at first start. Each overlay
         # supplies its own, because the redirect addresses are the site's.
         - name: oauth-clients
