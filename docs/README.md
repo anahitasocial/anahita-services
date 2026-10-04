@@ -23,6 +23,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Places](configuration.md#places)
    - [Mail](configuration.md#mail)
    - [Abuse reports](configuration.md#abuse-reports)
+   - [Account cleanup](configuration.md#account-cleanup)
 3. [Architecture](architecture.md) — services, routing and the shared library
    - [Components](architecture.md#components)
    - [Services](architecture.md#services)
@@ -45,6 +46,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Seeing posts](permissions.md#seeing-posts)
    - [Comments](permissions.md#comments)
    - [Reporting](permissions.md#reporting)
+   - [Removing accounts](permissions.md#removing-accounts)
    - [The defaults](permissions.md#the-defaults)
    - [What profile owners can change](permissions.md#what-profile-owners-can-change)
    - [Accepted values](permissions.md#accepted-values)
@@ -65,7 +67,16 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [What administrators do](abuse-reports.md#what-administrators-do)
    - [When the reported thing is deleted](abuse-reports.md#when-the-reported-thing-is-deleted)
    - [Who sees what](abuse-reports.md#who-sees-what)
-9. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
+9. [Account lifecycle](account-lifecycle.md) — disabling, archiving, deleting, purging, and clearing out unused accounts
+   - [The four states](account-lifecycle.md#the-four-states)
+   - [Deleting and the 30 days](account-lifecycle.md#deleting-and-the-30-days)
+   - [What a purge removes](account-lifecycle.md#what-a-purge-removes)
+   - [What a purge leaves](account-lifecycle.md#what-a-purge-leaves)
+   - [Purging now](account-lifecycle.md#purging-now)
+   - [The accounts list](account-lifecycle.md#the-accounts-list)
+   - [The sweeper](account-lifecycle.md#the-sweeper)
+   - [Groups left without an administrator](account-lifecycle.md#groups-left-without-an-administrator)
+10. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
    - [What you need](deploying.md#what-you-need)
    - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
    - [Hostnames](deploying.md#hostnames)
@@ -91,7 +102,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
-| [Complete hard delete and bulk cleanup](plans/actor-hard-delete.md) | 5 | parts A and B (the complete purge, the purge queue) done 2026-10-04; C and D not started |
+| [Complete hard delete and bulk cleanup](plans/actor-hard-delete.md) | 5 | services side (parts A, B and C) done 2026-10-04; the web part, D, not started |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/notes-as-replies.md) | 7 | not started |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |

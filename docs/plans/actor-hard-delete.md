@@ -275,6 +275,42 @@ done. Handler tests for the gates in group-service.
 proof of identity: only that they refuse a caller with no token. Two replicas
 contending for the lock.
 
+### Part C: the accounts list (2026-10-04)
+
+`GET /accounts` in auth-service lists people or groups for cleanup. Super
+administrators only (`actors:read` scope). The filters, the tiers and what
+"last active" means are in `docs/account-lifecycle.md`.
+
+It is one query, `auth-service/data/repositories/accounts.go`, built from
+named pieces: the rows, the tiers on top of them, and the filters on top of
+those. Each filter is one line that is switched off by its first placeholder.
+
+**Where it differs from the plan.**
+- **It is in auth-service, not person-service and group-service.** Whether an
+  address was verified, whether onboarding was finished and the last sign-in
+  are auth-service's own tables, and it already reads `nodes`. One query there
+  can filter and page; split across services it could not.
+- **It is its own endpoint**, not more parameters on the public browse, so
+  nothing about the public lists changes.
+- **Content count** is what a person wrote, anywhere, and for a group what was
+  posted in it. The plan's "authored plus owned" would have counted a person's
+  posts on their own profile twice.
+- **Super administrators only**, where the plan said administrators. The list
+  exists to choose accounts to purge, which only they can do.
+- An `empty` group may have one member, since whoever starts a group follows
+  it.
+
+**Found on the development data.** Counters on accounts carried over from the
+old site are NULL, not zero; the query treats them as zero. On that data: 823
+people, of which 219 are empty, 602 dormant and 2 active; 23 groups, all
+dormant, none without an administrator. Each query takes about a tenth of a
+second.
+
+**Tests.** The query against real MySQL (tiers, every filter, ordering,
+groups), and handler tests for who may ask and how the query string is read.
+
+**Not checked.** The endpoint with a real super administrator's session.
+
 ## Status
 
 | Item | State |
@@ -282,5 +318,5 @@ contending for the lock.
 | Plan | written 2026-09-28 |
 | A. Complete purge | done 2026-10-03 |
 | B. Batch purge and the queue | done 2026-10-04 |
-| C. Admin list with inactivity filters | not started |
+| C. Admin list with inactivity filters | done 2026-10-04 |
 | D. Web | not started |

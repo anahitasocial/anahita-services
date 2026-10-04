@@ -37,7 +37,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | Service | HTTP port | gRPC port | Responsibility |
 | --- | --- | --- | --- |
 | `nginx` | 80 | — | Gateway, routing, CORS, token validation subrequest |
-| `auth-service` | 8081 | — | OAuth 2.0 / OIDC provider, server-rendered sign-in and sign-up, email verification, registration applications, agreements, password, TOTP, WebAuthn, invites, clients, NodeInfo |
+| `auth-service` | 8081 | — | OAuth 2.0 / OIDC provider, server-rendered sign-in and sign-up, email verification, registration applications, the administration list of accounts, agreements, password, TOTP, WebAuthn, invites, clients, NodeInfo |
 | `group-service` | 8082 | — | Groups |
 | `person-service` | 8083 | — | People |
 | `text-service` | 8084 | — | Text media: articles, notes, topics |
@@ -58,7 +58,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is |
 | `mail-grpc-service` | — | 50051 | Email delivery over SMTP |
 | `migration-job` | — | — | One-shot database migrations |
-| `account-sweeper` | — | — | Purges accounts past their 30-day deletion grace period. Not started by `up`; run with `docker compose run --rm account-sweeper` |
+| `account-sweeper` | — | — | Purges accounts past their 30-day deletion grace period, and finishes purges a super administrator asked for. Not started by `up`; run with `docker compose run --rm account-sweeper`. See [Account lifecycle](account-lifecycle.md) |
 
 Backing services in `docker-compose.yml`:
 
@@ -75,7 +75,7 @@ Kubernetes, where the Ingress sends everything to it
 
 | Path prefix | Service |
 | --- | --- |
-| `/oauth/`, `/auth`, `/signup`, `/signup-requests`, `/agreements`, `/onboarding`, `/password`, `/email`, `/username`, `/reauth`, `/totp`, `/webauthn`, `/invites`, `/clients`, `/auth-logs/`, `/oauth-signing-keys`, `/.well-known/`, `/nodeinfo/`, `/static/` | `auth-service` |
+| `/oauth/`, `/auth`, `/signup`, `/signup-requests`, `/accounts`, `/agreements`, `/onboarding`, `/password`, `/email`, `/username`, `/reauth`, `/totp`, `/webauthn`, `/invites`, `/clients`, `/auth-logs/`, `/oauth-signing-keys`, `/.well-known/`, `/nodeinfo/`, `/static/` | `auth-service` |
 | `/articles/`, `/notes/`, `/topics/` | `text-service` |
 | `/people/` | `person-service` |
 | `/groups/` | `group-service` |

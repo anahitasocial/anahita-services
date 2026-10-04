@@ -59,6 +59,7 @@ type Repositories struct {
 	AuthLogs            AuthLogsInterface
 	Tokens              TokensInterface
 	SignupRequests      SignupRequestsInterface
+	Accounts            AccountsInterface
 	OAuthClients        OAuthClientsInterface
 	OAuthAuthorizations OAuthAuthorizationsInterface
 	OAuthRefreshTokens  OAuthRefreshTokensInterface
@@ -76,6 +77,7 @@ func NewRepositories(dbPool *sql.DB) *Repositories {
 		AuthLogs:            NewAuthLogs(db),
 		Tokens:              NewTokens(db),
 		SignupRequests:      NewSignupRequests(db),
+		Accounts:            NewAccounts(db),
 		OAuthClients:        NewOAuthClients(db),
 		OAuthAuthorizations: NewOAuthAuthorizations(db),
 		OAuthRefreshTokens:  NewOAuthRefreshTokens(db),

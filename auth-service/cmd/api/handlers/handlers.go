@@ -4,6 +4,7 @@ type Handlers struct {
 	AccountDeleted *accountDeletedHandler
 	Agreements     *agreementsHandler
 	SignupRequests *signupRequestsHandler
+	Accounts       *accountsHandler
 	AuthLog        *authLogHandler
 	EmailChange    *emailChangeHandler
 	Invite         *inviteHandler
@@ -26,6 +27,7 @@ func NewHandlers(env *Env) *Handlers {
 		AccountDeleted: newAccountDeletedHandler(env),
 		Agreements:     newAgreementsHandler(env),
 		SignupRequests: newSignupRequestsHandler(env),
+		Accounts:       newAccountsHandler(env),
 		AuthLog:        newAuthLogHandler(env),
 		EmailChange:    newEmailChangeHandler(env),
 		Invite:         newInviteHandler(env),
