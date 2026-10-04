@@ -39,7 +39,6 @@ func (r *Routes) Init(e *echo.Echo) {
 	auth.GET("/is/username", h.Is.Username)
 	auth.GET("/is/totp", h.Is.Totp)
 
-
 	password := e.Group("/password")
 	password.GET("/forgot", h.Password.ForgotForm)
 	password.POST("/forgot", h.Password.Forgot)
