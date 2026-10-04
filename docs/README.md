@@ -91,7 +91,6 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
-| [Abuse reports](plans/abuse-report-service.md) | 4b | not started |
 | [Complete hard delete and bulk cleanup](plans/actor-hard-delete.md) | 5 | not started |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/notes-as-replies.md) | 7 | not started |
@@ -111,6 +110,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Quote posts](plans/quote-posts.md) | 25 | not started |
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
+| [One name for timestamps: `_at`](plans/timestamp-names.md) | 28 | not started |
 | [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b and 0c done 2026-10-03; the plan's "Not checked" list is still open |
 | [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in items 5 and 8 |
 | [Signup, registration modes, and agreements](plans/done/signup-and-onboarding.md) | — | done |
@@ -120,4 +120,5 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Feed access leak](plans/done/feed-access-leak.md) | 0 | done 2026-10-03 |
 | [Remove unused legacy node columns](plans/done/remove-unused-node-columns.md) | 0d | done 2026-10-02 |
 | [Remove private notes](plans/done/remove-private-notes.md) | 1 | done 2026-10-03 |
+| [Abuse reports](plans/done/abuse-report-service.md) | 4b | done 2026-10-03 |
 | [Cloud-neutral storage and deployment](plans/done/cloud-neutral.md) | 9 | done 2026-10-03 (non-AWS providers other than Garage untested) |

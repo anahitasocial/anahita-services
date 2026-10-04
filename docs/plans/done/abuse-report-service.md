@@ -166,9 +166,40 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **services `oauth.md`**, *Scopes*: any new scope the endpoints need.
 - **web `architecture.md`**: the Report control in node menus, and the admin Reports tab routes.
 
+## What was built (2026-10-03)
+
+**Services**
+- **Tables** `abuse_cases` and `abuse_reports` (migration `20261004000002`, mirrored in `init.sql` and `legacy/upgrade.sql`). One open case per target is a rule of the database: a generated column holds the target while the case is open and is uniquely indexed.
+- **`abuse-report-service`**, with the endpoints in the table above, in docker-compose, the gateway (`/abuse-reports`), the Makefile and the Kubernetes base.
+- **Reasons** (`data/reasons`): the default list is built into the service; `REASONS_PATH` names an installation's own file, re-read when it changes and replaced by the built-in list while it is unusable.
+- **`FilterVisible`** in graph-grpc (`NodeService.FilterVisible`, `nodes_visible.go`): which of some nodes, of any kind, a viewer may see, judged by the same gates the listings use. Item 3 can use it as is.
+- **`anahita-libs/ratelimit`**: the fixed-window counter moved out of auth-service, which now calls it.
+- **Events:** the service closes a case when it hears its target was deleted (posts and comments) or purged (people and groups), and checks again whenever a case is opened.
+- **Docs:** `docs/abuse-reports.md`, and additions to configuration, architecture, permissions, oauth and deploying.
+
+**Web**
+- **Report** in the menus of profiles, posts, feed items, comments, hashtags and places (`containers/reports`), with a dialog of reasons for the kind of thing reported.
+- **Administration › Reports** (`containers/admin/Reports`): cases by status, a case page with the reports, who made them and earlier cases, and dialogs to dismiss, record an action, or reopen. Open cases are counted on the Administration menu and its tab.
+
+**Tests:** the reasons loader; the handlers (reporting, the refusals, the limit, administrators' reads and decisions, deletion); the storage against a real MySQL, including twenty simultaneous reports of one node; `FilterVisible` against a real MySQL for six kinds of viewer; the rate limiter; and, in the web app, who is offered Report, who sees which tab, and how a reported item is described.
+
+**Done differently from the plan:**
+
+- **The case page does not delete or disable anything itself.** It has "Open it", which goes to the reported thing, where Delete, Block and the settings' Danger zone already are, each with its own confirmation and permission. Deleting a post or comment there closes its case by itself; for anything else the administrator records what was done. Building a second set of those controls on the case page was the larger half of the plan's web estimate, and would have duplicated their confirmations.
+- **No `abuse-report-defaults/` directory.** The default list is embedded in the binary, so there is one copy. An installation's own file is mounted wherever it likes.
+- **No new OAuth scope.** Reporting needs `account:write`; reading and deciding cases need `actors:read` and `actors:write`. A new scope would not have reached clients that were already seeded.
+- **Reasons are found by `status = 'open'` uniqueness in the database,** where the plan said "enforced in code".
+- **A person's or group's case is not closed when it is deleted, only when it is purged:** deletion has a 30-day wait and can be undone.
+- **`entity.abuse-report-service.report.added.v1` is not published.** Nothing listens for it yet.
+- **The feeds and graph defaults-path fix** the plan mentions was done with item 9.
+- **There is no `stories` menu to add Report to:** it is dead code that item 15 removes.
+
+**Not checked:** no report has been filed through the running stack, because that needs a signed-in session. On the dev stack the service starts, the tables exist, and every route refuses a signed-out caller. The web pages have not been opened in a browser here; lint, 121 tests and the production build pass.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Implementation | done 2026-10-03, on branch `m3-admin-moderation` |
+| Applied to the dev database | done 2026-10-03 |
