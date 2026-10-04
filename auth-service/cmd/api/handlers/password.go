@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -32,121 +30,6 @@ func newPasswordHandler(env *Env) *passwordHandler {
 // Forgot-password flow (unauthenticated, server-rendered)
 // ---------------------------------------------------------------------
 
-// ForgotForm renders the "enter your email" form.
-//
-//	GET /password/forgot
-func (h *passwordHandler) ForgotForm(c echo.Context) error {
-	return h.renderTemplate(c, "password_forgot.html", map[string]any{})
-}
-
-// Forgot processes the forgot-password submission. Always renders the
-// same confirmation page regardless of whether the email exists, to
-// prevent user enumeration. Token creation and email sending happen
-// only if a matching user is found, and the email send is fire-and-
-// forget.
-//
-//	POST /password/forgot
-//
-// Throttled per target email and per source IP. Unauthenticated and it
-// sends mail, so without a limit it is a way to flood someone's inbox
-// and burn our sending reputation. Both counters are checked before the
-// lookup, and a throttled request renders the identical page — a
-// visibly different response would turn the limiter into the
-// enumeration oracle the rest of this handler avoids.
-func (h *passwordHandler) Forgot(c echo.Context) error {
-	req := &requests.PasswordForgot{}
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return h.renderTemplate(c, "password_forgot.html", map[string]any{
-			"Error": "Please enter a valid email address.",
-		})
-	}
-	if err := c.Validate(req); err != nil {
-		log.Println(err)
-		return h.renderTemplate(c, "password_forgot.html", map[string]any{
-			"Error": "Please enter a valid email address.",
-			"Email": req.Email,
-		})
-	}
-
-	// Throttle before the lookup. Both counters advance even when the
-	// address matches nothing, so the cost of probing is the same
-	// either way.
-	//
-	// The || short-circuits, so the IP counter stops advancing once the
-	// per-address limit trips. That is intended, not a bug to tidy: the
-	// two limits catch different abuse. Hammering ONE address is caught
-	// by the email counter, and the IP counter has nothing to add.
-	// Spraying MANY addresses passes each fresh email check, so the IP
-	// counter is reached and increments every time — which is the case
-	// it exists for.
-	throttled := h.rateLimitExceeded(rateLimitScopePasswordEmail, req.Email) ||
-		h.rateLimitExceeded(rateLimitScopePasswordIP, getClientIP(c))
-
-	// Best-effort lookup. The RESPONSE is the same either way, so the
-	// caller cannot distinguish registered emails from unregistered ones —
-	// but the error is logged rather than dropped.
-	//
-	// Dropping it hid a real outage: a NULL in any of several nullable
-	// columns failed the scan, this read returned an error, and the person
-	// got "check your email" for a message that was never going to arrive.
-	// Nothing anywhere recorded that it had happened. sql.ErrNoRows is the
-	// ordinary case and stays quiet; anything else is a fault worth seeing.
-	//
-	// The address is not logged. This is an unauthenticated endpoint and
-	// anyone can name any address at it, so a log of them is a log of
-	// guesses, not of members.
-	user, err := h.Repos.Users.ReadByEmail(req.Email)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		log.Println("password forgot: user lookup failed:", err)
-	}
-
-	if user != nil && !throttled {
-		// Retire any earlier link before minting a new one. Two live reset
-		// links for one account means the older one — possibly forwarded,
-		// possibly still sitting in an inbox somebody else can reach — keeps
-		// working for its full window after the owner asked for a fresh one.
-		//
-		// Best-effort: failing to retire the old link is not a reason to
-		// withhold the new one from somebody trying to get back into their
-		// account.
-		if retired, err := h.Repos.Tokens.InvalidateOutstanding(
-			constants.TokenTypePasswordReset, user.Email); err != nil {
-			log.Println("password forgot: retiring earlier links failed:", err)
-		} else if retired > 0 {
-			log.Printf("password forgot: retired %d earlier link(s) (person=%d)",
-				retired, user.ID)
-		}
-
-		token := entities.NewToken()
-		token.Status = constants.TokenStatusPending
-		token.ExpiredAfter = 15 * 60
-		token.Type = constants.TokenTypePasswordReset
-		token.RecipientEmail = user.Email
-		token.IsUsed = false
-		token.CreatedAt = time.Now()
-		token.CreatedBy = user.ID
-		token.UpdatedAt = time.Now()
-		token.UpdatedBy = user.ID
-
-		if err := token.GenerateToken(); err != nil {
-			log.Println(err)
-		} else if _, err := h.Repos.Tokens.Add(token); err != nil {
-			log.Println(err)
-		} else {
-			go func() {
-				if err := h.Notif.Password.EmailToken(user, token); err != nil {
-					log.Println(err)
-				}
-			}()
-		}
-	}
-
-	return h.renderTemplate(c, "password_forgot_sent.html", map[string]any{
-		"Email": req.Email,
-	})
-}
-
 // ---------------------------------------------------------------------
 // Reset-password flow (unauthenticated, token-gated, server-rendered)
 // ---------------------------------------------------------------------
@@ -168,6 +51,14 @@ func (h *passwordHandler) resetFormError(
 //	GET /password/reset?token=...
 func (h *passwordHandler) ResetForm(c echo.Context) error {
 	tokenBody := c.QueryParam("token")
+
+	// No token in the address: the person came through the emailed code,
+	// and what lets them in is in their session. The link form is kept for
+	// the first super administrator's set-password link, which is read from
+	// a log or a message with no page open to type a code into.
+	if tokenBody == "" {
+		return h.resetFormAfterCode(c)
+	}
 	if tokenBody == "" {
 		return h.renderError(c, "Invalid Link",
 			"This password reset link is not valid. Please request a new one.")
@@ -247,6 +138,11 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
 	}
+
+	// No token in the form: the person came through the emailed code.
+	if req.Token == "" {
+		return h.resetAfterCode(c, req)
+	}
 	// The token first, and separately.
 	//
 	// This form validates two fields and rendered one message, so a truncated
@@ -308,6 +204,28 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 			"We could not find an account associated with this reset link.")
 	}
 
+	return h.applyReset(c, user, req.Password, req.Token, req.Token, func() {
+		// Consume the token. If this fails, the password is already
+		// updated — log but don't block the user. Subsequent attempts
+		// will be caught by the status gate on the next read.
+		token.IsUsed = true
+		token.UpdatedAt = time.Now()
+		token.UpdatedBy = user.ID
+		if _, err := h.Repos.Tokens.Edit(token); err != nil {
+			log.Println(err)
+		}
+	})
+}
+
+// applyReset sets the new password and revokes what must not survive it. It
+// is the same whether the person proved themselves with a link or a code.
+//
+// formToken goes back into the form when it is shown again, and is empty on
+// the code path. probeKey is what the "is this my current password" guesses
+// are counted against. used marks the link or the code spent.
+func (h *passwordHandler) applyReset(
+	c echo.Context, user *entities.User, password, formToken, probeKey string, used func(),
+) error {
 	// The new password has to actually be new. This flow exists to take
 	// an account back, and it acts like it: below, every passkey and
 	// every session goes, and the user is mailed a confirmation that
@@ -339,37 +257,30 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 	//
 	// Only this branch increments. An ordinary form error is not a
 	// probe and should not spend from the same budget.
-	if user.CheckPassword(req.Password) {
-		if h.rateLimitExceeded(rateLimitScopePasswordReset, req.Token) {
+	if user.CheckPassword(password) {
+		if h.rateLimitExceeded(rateLimitScopePasswordReset, probeKey) {
 			return h.renderError(c, "Too Many Attempts",
 				"There have been too many attempts on this link. Please request a new password reset email.")
 		}
 
-		return h.resetFormError(c, req.Token, user,
+		return h.resetFormError(c, formToken, user,
 			"Your new password must be different from your current password.")
 	}
 
-	if err := user.SetPassword(req.Password); err != nil {
+	if err := user.SetPassword(password); err != nil {
 		log.Println(err)
-		return h.resetFormError(c, req.Token, user,
+		return h.resetFormError(c, formToken, user,
 			"Could not update your password. Please try again.")
 	}
 
 	if err := h.Repos.Users.EditPassword(user.Password, user.ID); err != nil {
 		log.Println(err)
-		return h.resetFormError(c, req.Token, user,
+		return h.resetFormError(c, formToken, user,
 			"Could not update your password. Please try again.")
 	}
 
-	// Consume the token. If this fails, the password is already
-	// updated — log but don't block the user. Subsequent attempts
-	// will be caught by the status gate on the next read.
-	token.IsUsed = true
-	token.UpdatedAt = time.Now()
-	token.UpdatedBy = user.ID
-	if _, err := h.Repos.Tokens.Edit(token); err != nil {
-		log.Println(err)
-	}
+	// The grant, whichever kind it was, is spent.
+	used()
 
 	// --- Revoke what a password change does not touch -------------
 	//

@@ -81,7 +81,12 @@ func TestServerRenderedTemplatesParseAndExecute(t *testing.T) {
 			"Error": "Please enter a valid email address.",
 			"Email": "ada@example.com",
 		}},
-		{"password_forgot_sent.html", map[string]any{"Email": "ada@example.com"}},
+		{"password_reset_code.html", map[string]any{"CSRFToken": "t", "Email": "ada@example.com"}},
+		{"password_reset_code.html", map[string]any{
+			"CSRFToken": "t",
+			"Email":     "ada@example.com",
+			"Error":     "That code is not correct. 1 try left.",
+		}},
 		{"password_reset.html", map[string]any{"Token": "abc"}},
 		{"password_reset.html", map[string]any{
 			"Token": "abc",

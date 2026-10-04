@@ -12,6 +12,7 @@ here is in auth-service, whose pages the web app sends people to.
 - [What a code can and cannot do](#what-a-code-can-and-cannot-do)
 - [Limits](#limits)
 - [How codes are kept](#how-codes-are-kept)
+- [Resetting a forgotten password](#resetting-a-forgotten-password)
 - [Adding text messages later](#adding-text-messages-later)
 
 ## The ways in
@@ -90,6 +91,28 @@ moment.
 Counting a try and using a code up are each a single statement in the
 database, so guesses arriving at the same moment cannot share a try, and only
 one of two correct submissions signs in.
+
+## Resetting a forgotten password
+
+1. At `/password/forgot` the person enters their email address.
+2. If it has an account, it is emailed a 6-digit code, valid for 15 minutes
+   and five tries.
+3. They type the code on the page that is waiting for it, and only then are
+   shown the form for a new password.
+
+The code is used up when the password is set, so a mistake on the password
+form can be corrected without a new code. Asking for a new code retires the
+earlier one, including in a browser that had already entered it.
+
+Setting the password this way removes every passkey and signs out every
+session, and the account is told by email. It does not sign the person in.
+
+At most three codes an hour are sent to one address, and the pages do not say
+whether the address has an account.
+
+One link remains: the set-password link for the
+[first super administrator](registration.md#the-first-super-administrator),
+which is read from a log with no page open to type a code into.
 
 ## Adding text messages later
 

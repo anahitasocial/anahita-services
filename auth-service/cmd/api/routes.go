@@ -58,6 +58,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	password := e.Group("/password")
 	password.GET("/forgot", h.Password.ForgotForm)
 	password.POST("/forgot", h.Password.Forgot)
+	password.GET("/reset/verify", h.Password.VerifyForm)
+	password.POST("/reset/verify", h.Password.Verify)
 	password.GET("/reset", h.Password.ResetForm)
 	password.POST("/reset", h.Password.Reset)
 

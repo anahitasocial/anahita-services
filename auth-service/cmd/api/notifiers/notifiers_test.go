@@ -152,6 +152,7 @@ func everyNotification(n *Notifiers) []struct {
 		{"Invite.EmailRevoked", func() error {
 			return n.Invite.EmailRevoked(inviter, "invitee@example.com")
 		}},
+		{"Password.EmailResetCode", func() error { return n.Password.EmailResetCode(user, "042195") }},
 		{"Password.EmailToken", func() error { return n.Password.EmailToken(user, testToken()) }},
 		{"Password.EmailResetSuccess", func() error { return n.Password.EmailResetSuccess(user) }},
 		// Zero, one and many: the session count picks between two constants,
