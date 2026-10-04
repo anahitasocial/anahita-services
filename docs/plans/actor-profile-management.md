@@ -439,7 +439,7 @@ and it belongs with this work rather than before it.
 > **Update 2026-09-28:** the purge RPC and the `DELETE /people/:id/purge` and
 > `DELETE /groups/:id/purge` routes now exist, so the status below is out of date.
 > The remaining gaps (authored content, notifications, counters, bulk cleanup, web UI)
-> are planned in [actor-hard-delete.md](actor-hard-delete.md).
+> were closed on 2026-10-04: see [actor-hard-delete.md](done/actor-hard-delete.md).
 
 **Not built.** Confirmed 2026-09-07: there is no `Purge` RPC on the actor
 service, no route on person-service or group-service, and `purgeAccount` is

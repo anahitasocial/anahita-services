@@ -311,6 +311,34 @@ groups), and handler tests for who may ask and how the query string is read.
 
 **Not checked.** The endpoint with a real super administrator's session.
 
+### Part D: the web (2026-10-04)
+
+In anahita-web:
+
+- **An Accounts tab in Administration** (`/admin/accounts`), for super
+  administrators only. People or groups, least recently active first, with the
+  filters from part C, tick boxes, "select all that match" (up to 500), and
+  "Delete permanently".
+- **The confirmation dialog** says what will go and how much the selected
+  accounts have written, asks for the count to be typed (`PURGE 37`), asks for
+  a proof of identity, and then shows the progress until nothing is queued. A
+  refused request lists each account that stopped it and why.
+- **"Delete permanently" in the Danger zone** of a person's or group's
+  settings, last, for super administrators on anybody's profile but their own.
+  It asks for the handle to be typed and a proof of identity.
+- **Groups without an administrator** carry a link to the group's settings,
+  where the existing Admins tab appoints one.
+
+**Where it differs from the plan.**
+- The dialog shows how much the selected accounts have written, from the list,
+  not the totals of `ReadDeletionCounts`: that is one request per account.
+- Appointing an administrator reuses the group's own Admins tab; no second
+  picker was built.
+
+**Not checked.** None of the web part has been seen in a browser. It builds,
+its files lint clean, and the unit tests pass, but nobody has yet filtered the
+list, ticked accounts and removed them through the running stack.
+
 ## Status
 
 | Item | State |
@@ -319,4 +347,4 @@ groups), and handler tests for who may ask and how the query string is read.
 | A. Complete purge | done 2026-10-03 |
 | B. Batch purge and the queue | done 2026-10-04 |
 | C. Admin list with inactivity filters | done 2026-10-04 |
-| D. Web | not started |
+| D. Web | done 2026-10-04, not yet tried in a browser |
