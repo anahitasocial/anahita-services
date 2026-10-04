@@ -134,12 +134,12 @@ func TestRealReportsArrivingTogetherOpenOneCase(t *testing.T) {
 	}
 	wg.Wait()
 
-	total, err := repo.Count(constants.CaseStatusOpen)
+	total, err := repo.Count(constants.CaseStatusOpen, "")
 	if err != nil || total != 1 {
 		t.Fatalf("%d open cases, %v", total, err)
 	}
 
-	list, _ := repo.Browse(constants.CaseStatusOpen, 10, 0)
+	list, _ := repo.Browse(constants.CaseStatusOpen, "", 10, 0)
 	if list[0].ReportCount != 20 {
 		t.Errorf("report count = %d, want 20", list[0].ReportCount)
 	}
@@ -257,5 +257,48 @@ func TestRealATargetWithNoOwner(t *testing.T) {
 	item, _ := repo.Read(caseID)
 	if item.TargetOwnerID != 0 {
 		t.Errorf("owner = %d, want 0", item.TargetOwnerID)
+	}
+}
+
+// The list can be narrowed to the cases in which somebody gave one reason.
+func TestRealCasesCanBeFilteredByReason(t *testing.T) {
+	repo := realCases(t)
+
+	spamOnly, _, _ := repo.AddReport(target(), by(ada, "spam"))
+
+	other := entities.Case{TargetID: 200, TargetType: "node.medium.text-service.note.v1", TargetOwnerID: author}
+	mixed, _, _ := repo.AddReport(other, by(ada, "spam"))
+	if _, _, err := repo.AddReport(other, by(grace, "violence")); err != nil {
+		t.Fatal(err)
+	}
+
+	ids := func(reason string) []int64 {
+		list, err := repo.Browse(constants.CaseStatusOpen, reason, 10, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		total, err := repo.Count(constants.CaseStatusOpen, reason)
+		if err != nil || int(total) != len(list) {
+			t.Fatalf("%q: count %d, list %d, %v", reason, total, len(list), err)
+		}
+		var out []int64
+		for _, item := range list {
+			out = append(out, item.ID)
+		}
+		return out
+	}
+
+	if got := ids(""); len(got) != 2 {
+		t.Errorf("no reason: %v, want both cases", got)
+	}
+	// A case with two spam reports would still be listed once.
+	if got := ids("spam"); len(got) != 2 {
+		t.Errorf("spam: %v, want both cases", got)
+	}
+	if got := ids("violence"); len(got) != 1 || got[0] != mixed {
+		t.Errorf("violence: %v, want only case %d (not %d)", got, mixed, spamOnly)
+	}
+	if got := ids("trademark"); len(got) != 0 {
+		t.Errorf("a reason nobody gave: %v", got)
 	}
 }

@@ -122,7 +122,7 @@ In the web app, under **Administration › Reports**. The endpoints:
 
 | Endpoint | Does |
 | --- | --- |
-| `GET /abuse-reports/cases?status=open` | Lists cases, the most recently reported first. `status` is `open`, `actioned` or `dismissed` |
+| `GET /abuse-reports/cases?status=open&reason=spam` | Lists cases, the most recently reported first, 20 at a time (`limit`, `offset`). `status` is `open`, `actioned` or `dismissed`. `reason` is optional: with it, only the cases in which somebody gave that reason |
 | `GET /abuse-reports/cases/summary` | `{ "open": n }`, for the number on the Administration menu |
 | `GET /abuse-reports/cases/:id` | The case: what was reported and by whom, each report's reason and details, and the earlier cases the same thing has had |
 | `POST /abuse-reports/cases/:id/resolve` | Closes it: `{ "status": "actioned" or "dismissed", "action": "…", "note": "…" }` |

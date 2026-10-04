@@ -27,8 +27,11 @@ type CasesInterface interface {
 	// same case replaces their first. `created` is false for that.
 	AddReport(target entities.Case, report entities.Report) (caseID int64, created bool, err error)
 
-	Browse(status string, limit, offset uint64) ([]*entities.Case, error)
-	Count(status string) (uint64, error)
+	// Browse and Count take a status and, optionally, a reason: with one,
+	// only cases in which somebody gave that reason. An empty reason means
+	// every case of the status.
+	Browse(status, reasonKey string, limit, offset uint64) ([]*entities.Case, error)
+	Count(status, reasonKey string) (uint64, error)
 	Read(id int64) (*entities.Case, error)
 	BrowseReports(caseID int64) ([]*entities.Report, error)
 	BrowseForTarget(targetID, exceptCaseID int64) ([]*entities.Case, error)
@@ -116,17 +119,32 @@ const (
 		       last_reported_at = NOW()
 		 WHERE id = ?`
 
+	// Cases of one status and, optionally, with at least one report that
+	// gave one reason. The reason is bound twice: an empty one switches the
+	// second condition off.
 	selectCasesByStatus = `
 		SELECT ` + caseColumns + `
 		  FROM abuse_cases
 		 WHERE status = ?
+		   AND (? = '' OR EXISTS (
+		           SELECT 1
+		             FROM abuse_reports
+		            WHERE abuse_reports.case_id = abuse_cases.id
+		              AND abuse_reports.reason_key = ?
+		       ))
 		 ORDER BY last_reported_at DESC, id DESC
 		 LIMIT ? OFFSET ?`
 
 	countCasesByStatus = `
 		SELECT COUNT(*)
 		  FROM abuse_cases
-		 WHERE status = ?`
+		 WHERE status = ?
+		   AND (? = '' OR EXISTS (
+		           SELECT 1
+		             FROM abuse_reports
+		            WHERE abuse_reports.case_id = abuse_cases.id
+		              AND abuse_reports.reason_key = ?
+		       ))`
 
 	selectCase = `
 		SELECT ` + caseColumns + `
@@ -321,11 +339,12 @@ func openCaseID(ctx context.Context, tx *sql.Tx, targetID int64) (int64, error) 
 }
 
 // Browse lists cases of one status, the most recently reported first.
-func (r *cases) Browse(status string, limit, offset uint64) ([]*entities.Case, error) {
+func (r *cases) Browse(status, reasonKey string, limit, offset uint64) ([]*entities.Case, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	rows, err := r.db.QueryContext(ctx, selectCasesByStatus, status, limit, offset)
+	rows, err := r.db.QueryContext(ctx, selectCasesByStatus,
+		status, reasonKey, reasonKey, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -346,12 +365,12 @@ func scanCases(rows *sql.Rows) ([]*entities.Case, error) {
 	return list, rows.Err()
 }
 
-func (r *cases) Count(status string) (uint64, error) {
+func (r *cases) Count(status, reasonKey string) (uint64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	var total uint64
-	err := r.db.QueryRowContext(ctx, countCasesByStatus, status).Scan(&total)
+	err := r.db.QueryRowContext(ctx, countCasesByStatus, status, reasonKey, reasonKey).Scan(&total)
 	return total, err
 }
 

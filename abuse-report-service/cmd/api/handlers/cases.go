@@ -44,7 +44,11 @@ func caseNodeIDs(list ...*entities.Case) []int64 {
 
 // Browse lists cases of one status, the most recently reported first.
 //
-//	GET /abuse-reports/cases?status=open&limit=20&offset=0
+//	GET /abuse-reports/cases?status=open&reason=spam&limit=20&offset=0
+//
+// `reason` is optional: with it, only cases in which somebody gave that
+// reason. A key that is not on the list is not an error. It may be one the
+// installation has since removed, and it simply matches what it matches.
 func (h *casesHandler) Browse(c echo.Context) error {
 	if err := h.Perms.CanBrowseCases(getViewer(c)); err != nil {
 		return c.NoContent(http.StatusForbidden)
@@ -58,6 +62,11 @@ func (h *casesHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	reasonKey := strings.TrimSpace(c.QueryParam("reason"))
+	if len(reasonKey) > 64 {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	limit, _ := strconv.ParseUint(c.QueryParam("limit"), 10, 64)
 	offset, _ := strconv.ParseUint(c.QueryParam("offset"), 10, 64)
 	if limit == 0 {
@@ -67,13 +76,13 @@ func (h *casesHandler) Browse(c echo.Context) error {
 		limit = constants.MaxBrowseLimit
 	}
 
-	list, err := h.Repos.Cases.Browse(status, limit, offset)
+	list, err := h.Repos.Cases.Browse(status, reasonKey, limit, offset)
 	if err != nil {
 		log.Println("abuse cases browse:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	total, err := h.Repos.Cases.Count(status)
+	total, err := h.Repos.Cases.Count(status, reasonKey)
 	if err != nil {
 		log.Println("abuse cases browse: count failed:", err)
 	}
@@ -112,7 +121,7 @@ func (h *casesHandler) Summary(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	open, err := h.Repos.Cases.Count(constants.CaseStatusOpen)
+	open, err := h.Repos.Cases.Count(constants.CaseStatusOpen, "")
 	if err != nil {
 		log.Println("abuse cases summary:", err)
 		return c.NoContent(http.StatusInternalServerError)

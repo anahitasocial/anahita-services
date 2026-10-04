@@ -81,21 +81,35 @@ func (f *fakeCases) AddReport(target entities.Case, report entities.Report) (int
 	return open.ID, true, nil
 }
 
-func (f *fakeCases) Browse(status string, limit, offset uint64) ([]*entities.Case, error) {
+func (f *fakeCases) Browse(status, reasonKey string, limit, offset uint64) ([]*entities.Case, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
 	var list []*entities.Case
 	for id := int64(1); id <= f.nextID; id++ {
-		if c := f.cases[id]; c != nil && c.Status == status {
-			list = append(list, c)
+		c := f.cases[id]
+		if c == nil || c.Status != status {
+			continue
 		}
+		if reasonKey != "" && !f.gave(c.ID, reasonKey) {
+			continue
+		}
+		list = append(list, c)
 	}
 	return list, nil
 }
 
-func (f *fakeCases) Count(status string) (uint64, error) {
-	list, _ := f.Browse(status, 0, 0)
+func (f *fakeCases) gave(caseID int64, reasonKey string) bool {
+	for _, report := range f.reports[caseID] {
+		if report.ReasonKey == reasonKey {
+			return true
+		}
+	}
+	return false
+}
+
+func (f *fakeCases) Count(status, reasonKey string) (uint64, error) {
+	list, _ := f.Browse(status, reasonKey, 0, 0)
 	return uint64(len(list)), nil
 }
 
@@ -353,7 +367,7 @@ func TestTwoPeopleReportingOneNodeMakeOneCase(t *testing.T) {
 	wantStatus(t, f.report(member(graceID), noteID, "hate_racism", ""), http.StatusCreated)
 	wantStatus(t, f.report(third, noteID, "violence", "It names somebody."), http.StatusCreated)
 
-	open, _ := f.cases.Browse(constants.CaseStatusOpen, 10, 0)
+	open, _ := f.cases.Browse(constants.CaseStatusOpen, "", 10, 0)
 	if len(open) != 1 || open[0].ReportCount != 2 {
 		t.Fatalf("%d open cases; the first has %d reports", len(open), open[0].ReportCount)
 	}
@@ -687,5 +701,46 @@ func TestOpeningACaseNoticesThatTheTargetIsGone(t *testing.T) {
 	}
 	if c, _ := f.cases.Read(1); c.TargetGoneAt == nil {
 		t.Error("it was not recorded")
+	}
+}
+
+func TestCasesCanBeFilteredByReason(t *testing.T) {
+	f := newFixture(t)
+	f.report(member(graceID), noteID, "spam", "")
+	f.report(member(graceID), adaID, "impersonation", "")
+
+	count := func(query string) int {
+		rec := f.call(http.MethodGet, "/abuse-reports/cases"+query, "", admin(), nil, f.h.Cases.Browse)
+		wantStatus(t, rec, http.StatusOK)
+		var body struct {
+			Data       []map[string]any `json:"data"`
+			Pagination struct {
+				Total int `json:"total"`
+			} `json:"pagination"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+			t.Fatal(err)
+		}
+		if body.Pagination.Total != len(body.Data) {
+			t.Fatalf("%s: total %d, rows %d", query, body.Pagination.Total, len(body.Data))
+		}
+		return len(body.Data)
+	}
+
+	if got := count("?status=open"); got != 2 {
+		t.Errorf("no reason: %d cases", got)
+	}
+	if got := count("?status=open&reason=spam"); got != 1 {
+		t.Errorf("spam: %d cases", got)
+	}
+	// A key that is on nobody's list is not an error.
+	if got := count("?status=open&reason=retired_reason"); got != 0 {
+		t.Errorf("an unknown reason: %d cases", got)
+	}
+
+	// The number on the menu counts every open case, whatever the filter.
+	summary := f.call(http.MethodGet, "/abuse-reports/cases/summary", "", admin(), nil, f.h.Cases.Summary)
+	if !strings.Contains(summary.Body.String(), `"open":2`) {
+		t.Errorf("summary: %s", summary.Body.String())
 	}
 }
