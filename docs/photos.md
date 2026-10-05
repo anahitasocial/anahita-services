@@ -22,10 +22,13 @@ A post with several images is one post: one caption, one audience, one set of
 likes and comments. It is not an album of separate posts. That is also how
 Mastodon and Bluesky send them, as one post with attachments.
 
-Four is the limit because both of those allow four, so a post goes to either
-whole. It is a constant (`constants.PhotoMaxFiles`), not a setting, and is
-published in NodeInfo as `metadata.photoMaxFiles` so that a client does not
-have to carry the number.
+Four is the limit because it is what a stock Mastodon server lets its users
+attach, so a post of four is shown whole there. Bluesky allows more. Whether
+to raise it is left until federation is built and what other servers do with a
+longer post can be seen; see [the federation plan](plans/federation.md).
+It is a constant (`constants.PhotoMaxFiles`), not a setting, and is published
+in NodeInfo as `metadata.photoMaxFiles` so that a client does not have to
+carry the number.
 
 Each image can have a description of what it shows, up to 1,500 characters,
 for people who cannot see it.

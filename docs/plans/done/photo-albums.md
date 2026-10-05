@@ -13,6 +13,7 @@
 - It's still published in NodeInfo `metadata` so the web app doesn't hard-code it.
 - **Federation (item 8):** posts map one-to-one on both protocols. There's no truncation and no "+N more" link.
 - **Confirmed on 2026-10-04:** Bluesky's image schema allows 4 images of at most 2 MB each, and Mastodon's documentation 4 of at most 16 MB. Four stays. The sizes differ, so what is sent to Bluesky has to fit 2 MB: keep a stored size that does, which the resizing here should guarantee.
+- **Corrected on 2026-10-05:** Bluesky's 4 is the limit of `app.bsky.embed.images` only. `app.bsky.embed.gallery` takes more (10 in practice). Four stays for now, for Mastodon; raising it is an open note in the federation plan.
 
 ## Design: one photo node with ordered attachments (not an album of photo nodes)
 - **Why:** a post with slides is *one* thing: one caption, one set of likes and replies, one audience. That's also how ActivityPub (one `Note` with several `attachment`s) and Bluesky (`app.bsky.embed.images`) model it.

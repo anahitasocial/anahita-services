@@ -174,7 +174,7 @@ Written by hand with small JSON structs and an HTTP-signature library (`github.c
    - Profile: `app.bsky.actor.profile` (display name, bio, avatar as an uploaded blob).
    - Notes: `app.bsky.feed.post`, with facets for links, mentions and hashtags.
      - Bluesky posts are limited to **300 graphemes**. Longer notes are cut off and end with a link to the note on Anahita.
-     - Bluesky takes at most **4 images of 2 MB each** (checked against its `app.bsky.embed.images` schema on 2026-10-04). Mastodon takes 4 of 16 MB. So a photo sent to Bluesky is the largest stored size that fits in 2 MB, re-encoded smaller if none does.
+     - Bluesky takes images of at most **2 MB each**: 4 in `app.bsky.embed.images`, and more in `app.bsky.embed.gallery`, which the check on 2026-10-04 missed; see [How many photos a post can hold](#open-how-many-photos-a-post-can-hold-noted-2026-10-05). Mastodon takes 4 of 16 MB. So a photo sent to Bluesky is the largest stored size that fits in 2 MB, re-encoded smaller if none does.
    - Follows: `app.bsky.graph.follow`. Unfollow and delete become `deleteRecord`.
    - Record URIs and rkeys go in `federation_edges`, or in node `uri` for posts.
 4. **Inbound:** a single Jetstream consumer (`wss://jetstream*.bsky.network/subscribe`).
@@ -275,6 +275,54 @@ from inside a private site. It need not.
 
 Not decided. It is a choice for when phase 1 is built: either leave private
 sites cut off, or add a "read only" setting with those two behaviours.
+
+## Open: how many photos a post can hold (noted 2026-10-05)
+
+A photo post holds 4 images today (`constants.PhotoMaxFiles`, item 17). To be
+looked at again once federation is built, when what other servers do with a
+longer post can be seen and not guessed. The user would like 10.
+
+**What is known.**
+- **Bluesky allows more than 4.** `app.bsky.embed.images` stops at 4, but
+  `app.bsky.embed.gallery`, added to their repository on 2026-06-03, takes up
+  to 20 items, with a note that clients should currently stop at 10. Each is
+  an image of at most 2 MB and **must carry its aspect ratio**. We record
+  width and height for photos uploaded since item 17; older photos have none.
+  Read on 2026-10-05 from
+  `https://raw.githubusercontent.com/bluesky-social/atproto/main/lexicons/app/bsky/embed/gallery.json`.
+  The earlier "4 on Bluesky, fixed for everyone" in this plan and in the
+  photo plan came from reading the images schema alone, and was wrong.
+- **ActivityPub has no limit of its own.** Each piece of software sets one,
+  for what its users post and for what it keeps from a post that arrives.
+  Stock Mastodon lets its users attach 4.
+
+**What is not known, and should be tested in the lab before deciding.**
+- What stock Mastodon does with a post that arrives with more than 4
+  attachments. Expected: it keeps the first 4.
+- How many Threads keeps. Its own posts hold more than 10; what it does with
+  one from another server has not been checked.
+- Pixelfed, Misskey and its forks, Pleroma and Akkoma: believed to allow more
+  than 4, set per instance. Not checked.
+
+**The approach, if the limit is raised.**
+1. The limit becomes a setting, `PHOTO_MAX_FILES`, with 10 as the most it can
+   be. Whether 10 or 4 is the default is the decision to take then.
+2. **To Bluesky:** a post of up to 4 photos as `app.bsky.embed.images`, which
+   every client understands; one of 5 or more as `app.bsky.embed.gallery`.
+   The gallery type is recent, so it is used only when it is needed.
+3. **To ActivityPub:** every photo as an attachment, in order. When there are
+   more than 4, one line is added to the end of the text sent, with **one
+   link to the post**: "6 more photos: https://…". A server that keeps 4 then
+   gives its readers one tap to the rest; one that keeps them all shows a
+   harmless link to the original.
+
+**Considered and not chosen: a link to each image beyond the fourth.** The
+text of a post is the same for every server, since each fetches it from the
+one address, so the links would also sit under a full carousel wherever all
+the photos are shown. A bare image file has no description, where the post's
+page shows each photo with its own. Mastodon would make its preview card from
+the first of them. And links to files go on working wherever they were copied
+after the post is deleted.
 
 ## Decisions (item 8)
 - **Native on both protocols:** ActivityPub in Go; AT Protocol through the official PDS plus Jetstream.
