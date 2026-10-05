@@ -15,6 +15,12 @@ change them, and what profile owners can change for themselves.
 - [Seeing posts](#seeing-posts)
   - [Choosing who can see a post](#choosing-who-can-see-a-post)
 - [Posting](#posting)
+- [Replies](#replies)
+  - [Seeing a reply](#seeing-a-reply)
+  - [Replying](#replying)
+  - [Who looks after a thread](#who-looks-after-a-thread)
+  - [Editing, deleting and hiding a reply](#editing-deleting-and-hiding-a-reply)
+  - [Liking a reply](#liking-a-reply)
 - [Comments](#comments)
 - [Likes](#likes)
 - [Adding followers to a group](#adding-followers-to-a-group)
@@ -167,6 +173,88 @@ Who can create a note, article, topic or photo on somebody's profile.
   posts from anybody who happens to be signed in.
 
 Default: `followers`.
+
+## Replies
+
+A reply is a note that answers a post or another reply. It can be liked,
+reposted, tagged and searched like any note, and replies can be answered in
+turn, to any depth.
+
+Notes are answered with replies today. Photos, articles and topics still have
+[comments](#comments) until those are turned into replies too.
+
+**Everything about a reply is decided by the post at the top of its thread,**
+called the root here. A reply is owned by whoever wrote it and has no audience
+of its own, so none of the rules for an ordinary post apply to it. Its owner
+and its access are not consulted for anything.
+
+### Seeing a reply
+
+A reply is seen by exactly the people who can see the root. That holds in
+every place a note can turn up: the thread, a profile's list, a feed, search,
+and the page of a hashtag or a place.
+
+So a reply to a post in a private group is seen only by the group's
+followers, though the person who wrote it has a public profile. And when a
+post is later made private, everything said under it goes with it.
+
+Replies are left out of feeds and out of a profile's list of notes. They are
+read in their thread.
+
+### Replying
+
+Somebody may reply when they can see the root and would be allowed to comment
+on it:
+
+- on a public or registered profile, the profile's comment setting:
+  `registered` or `followers`;
+- on a followers-only profile, followers;
+- on anything narrower, whoever can see it.
+
+The root's switch for comments has to be open. Closed, nobody can reply but
+the people who look after the thread (below): closing it is how they stop
+other people, not themselves.
+
+A reply cannot be given an audience, and its own switch for comments cannot be
+changed. Both follow the root.
+
+### Who looks after a thread
+
+Three kinds of people can deal with what is said under a post:
+
+- **the author of the root**, wherever it is posted;
+- **the profile the root is on**: the person, or a group's administrators;
+- **site administrators.**
+
+The first is there for somebody who posts in a group they do not administer.
+The replies are under their post, and they can act on them without being one
+of the group's administrators.
+
+### Editing, deleting and hiding a reply
+
+| | Who |
+| --- | --- |
+| **Edit** | Its author only, and only while they can still see the root. Nobody who looks after the thread: an edited reply still carries its author's name |
+| **Delete** | Its author, and whoever looks after the thread. The author can delete it even after losing sight of the root |
+| **Hide**, and show again | Whoever looks after the thread. Not its author, who can delete it |
+
+**Deleting** removes a reply for good. If it has been answered, an empty
+placeholder is left where it was, with no text and no name, so the replies
+under it still hang from something. Deleting a post removes its whole thread.
+
+**Hiding** takes a reply out of the thread for everybody, with everything
+said under it. It is not destroyed and its author is not told. Whoever looks
+after the thread still sees it, marked as hidden, and can show it again. A
+hidden reply is not counted in the number of replies a post shows.
+
+Hiding exists as well as deleting because, once this installation federates, a
+reply that came from another server can be hidden here and cannot be deleted
+there.
+
+### Liking a reply
+
+Under the rule for liking the root: see it, and meet the like permission of
+the profile the root is on.
 
 ## Comments
 

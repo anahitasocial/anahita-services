@@ -307,10 +307,52 @@ Nothing is migrated. New replies are notes, and old comments keep working.
 | Item | State |
 | --- | --- |
 | Decisions 1–5 | decided 2026-09-28 (see [Decisions and schedule](#decisions-and-schedule-2026-09-28-roadmap-item-7)) |
-| Phase 1 | not started |
+| Phase 1 | done 2026-10-05, on branch `m5-conversations`; see [What was built: phase 1](#what-was-built-phase-1-2026-10-05) |
 | Phase 2 | not started |
 | Phase 3 | not started |
 
+
+---
+
+## What was built: phase 1 (2026-10-05)
+
+Replies exist alongside comments. Nothing was migrated; comments work as before. Described for people using it in `docs/permissions.md`, Replies.
+
+**Graph.**
+- `nodes.root_id`, indexed (migration `20261010000001_nodes_root_id.sql`, `init.sql`, `legacy/upgrade.sql`).
+- **One gate for a post or a reply,** `postAccessCondition`: a post at the top level by the medium gate, a reply by its root. Every listing of posts goes through it: media lists, feeds, the check of one node's visibility. Search and the pages of hashtags and places write their gates out by hand; they apply their own gate to a post and the root rule to a reply (`postOrReply`).
+- Adding a post with a `parent_id` makes it a reply. The graph works out the root from the parent and never takes it from the caller, since the root decides who sees the reply.
+- `Thread` returns every reply under a post the viewer may see, oldest first. `HideReply` writes or removes the `edge.medium.hidden-reply.v1` edge.
+- **Counts are counted, not adjusted.** `comment_count` on a root is recounted from the rows whenever a reply is added, removed or hidden: replies that are neither removed nor hidden, plus the comments there still are. On a reply it is the replies made directly to it.
+- Replies are left out of feeds, and out of a list of notes unless `include_replies` is asked for.
+
+**Rules** (`anahita-libs/cmd/api/permissions/reply.go`): `CanSeeThread`, `CanReply`, `CanEditReply`, `CanDeleteReply`, `CanHideReply`, `CanLikeReply`, `LooksAfterThread`. Functions over a context holding the root, not methods of `MediumPermissions`: handing a reply to that judges it by its author's profile.
+
+**text-service.** `GET /notes/:id/thread`, `POST /notes/:id/replies`, `PATCH /notes/:id/hidden`. `GET`, `PATCH` and `DELETE /notes/:id` follow the thread's rules when the note is a reply. A reply's audience and comment switch cannot be changed (422 `reply_follows_its_thread`).
+
+**like-service.** A like on a reply is decided by its root.
+
+**notification-service.** A reply tells the author of the root, and the author of what was directly answered, with a `reply_add` notification pointing at the root. It no longer tells the replier's followers that a note was posted, which is what a note arriving would otherwise do.
+
+**Web.** A Replies tab on a note's page: the thread nested by what answers what, a box to reply to the post or to any reply, edit, delete, hide and show, like, report. Hidden replies are listed apart, for whoever may show them again.
+
+**Where it differs from the plan.**
+- **A removed reply that has been answered is kept as an empty row** marked with `deleted_at`, the column actors use for the same idea. It is shown only in its thread, as a placeholder with no text and no name.
+- **A reply's access is the empty string, not NULL.** The column does not allow NULL. Nothing reads it.
+- **The scope a reply needs is the one for posts** (`media:write`), not the one for comments.
+- **The switch for comments does not stop whoever looks after the thread.** The plan listed the open switch as a condition and then said those people can always reply; the second was taken as the rule.
+- **Likes on replies are drawn by the thread itself,** not by the like control posts use, because the thread is kept on the page and not in the store.
+- **"Posts & replies" on a profile is not built.** The list can include replies (`include_replies`); nothing asks for it yet. It belongs with item 24.
+
+**Tests.** Against real MySQL: who sees which notes through the medium gate, as a visitor, somebody outside a private group, a follower of it and the author; that a reply does not get through search or a tag page to somebody who cannot see its root, and does to somebody who can; one-by-one visibility; a list of notes with and without replies; a thread read whole and in order, with a blocked person's reply left out; counts, hiding and showing; a removed reply kept as a placeholder and gone from every other listing. Without a database: the reply rules; placing a reply in a thread; what a thread shows to most people and to whoever looks after it. In the web app: arranging a thread.
+
+**Not checked.** Anything that needs a signed-in session: posting a reply, editing, deleting, hiding, liking, and the notification. Reading was checked on the dev stack; nothing in a browser.
+
+**Known limits.**
+- A thread is read whole, up to 500 replies. Longer ones are cut, and say so.
+- A reply under a hidden reply is still counted in the post's number. Only the reply that was hidden is left out of the count.
+- Removing a reply does not remove the notification that it was made.
+- On photos, articles and topics the old comments are still what is shown. That is phase 2.
 
 ---
 
