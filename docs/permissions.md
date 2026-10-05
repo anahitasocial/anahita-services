@@ -10,6 +10,7 @@ change them, and what profile owners can change for themselves.
 
 - [Two separate settings](#two-separate-settings)
 - [Access levels](#access-levels)
+- [A members-only installation](#a-members-only-installation)
 - [Who is always allowed](#who-is-always-allowed)
 - [Seeing posts](#seeing-posts)
   - [Choosing who can see a post](#choosing-who-can-see-a-post)
@@ -52,6 +53,14 @@ the post is on, not against the person who wrote the post.
 
 A profile's administrators meet every level. A group follows nobody, so
 `leaders` and `mutuals` are only offered for people.
+
+## A members-only installation
+
+Everything on this page assumes somebody who is not signed in can read what is
+`public`. An installation can switch that off with `SITE_READ_ACCESS=registered`:
+then they can read nothing, whatever each profile and post says, and `public`
+means the same as `registered`. See
+[Privacy of the installation](configuration.md#privacy-of-the-installation).
 
 ## Who is always allowed
 

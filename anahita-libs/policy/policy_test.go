@@ -42,3 +42,27 @@ func TestOnlyPublicIsEverRuledOut(t *testing.T) {
 		t.Errorf("the setting was not put back: %q", MinContentAccess())
 	}
 }
+
+func TestSiteReadAccessIsReadStrictly(t *testing.T) {
+	for raw, want := range map[string]string{
+		"":            ReadPublic,
+		"public":      ReadPublic,
+		"registered":  ReadRegistered,
+		" Registered": ReadRegistered,
+		"members":     ReadRegistered, // not understood: the stricter one
+		"private":     ReadRegistered,
+	} {
+		if got := readSiteReadAccess(raw); got != want {
+			t.Errorf("%q read as %q, want %q", raw, got, want)
+		}
+	}
+
+	restore := SetReadAccessForTest("registered")
+	if !MembersOnly() {
+		t.Error("registered is not members-only")
+	}
+	restore()
+	if MembersOnly() {
+		t.Error("the setting was not put back")
+	}
+}

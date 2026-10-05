@@ -131,7 +131,31 @@ a restart.
 
 | Variable | Value |
 | --- | --- |
+| `SITE_READ_ACCESS` | `public` (the default) or `registered`. What somebody who is **not signed in** may read |
 | `MIN_CONTENT_ACCESS` | `public` (the default) or `registered`. The widest audience anything **new** may be given |
+
+The two are independent. Both set to `registered` is a fully private
+installation; the second alone keeps what is already public readable and adds
+no more.
+
+**`SITE_READ_ACCESS=registered`** is the members-only site:
+
+- Every route that serves content answers 401 `members_only` to somebody who
+  is not signed in: profiles, posts, feeds, comments, hashtags, places,
+  followers and search.
+- What stays open is what people need to get in: signing in and up, password
+  reset, accepting an invitation, the OAuth endpoints and NodeInfo.
+- **Nothing stored changes**, so it can be switched back. A post that says
+  `public` is public again the moment the setting is removed.
+- Signed-in people see everything exactly as before.
+- The web app shows people who are not signed in a notice and the home page
+  in place of whatever they asked for, and asks search engines not to index
+  the site.
+- Once federation exists, a members-only site does not federate.
+
+It is enforced in one place, the middleware that admits an anonymous reader
+(`SetViewer` in `anahita-libs/middleware`), and a test there fails if any
+service gains a route that goes around it.
 
 **`MIN_CONTENT_ACCESS=registered`** is for a school, a company or a private
 community that wants nothing new to be readable by people who are not signed
@@ -148,8 +172,9 @@ in:
 - Once federation exists, nothing new is sent to other servers, since only
   public posts are.
 
-A value that is not `public` or `registered` is treated as `registered`, and
-the log says so. A typo must not be what makes everything public again.
+For both settings, a value that is not `public` or `registered` is treated as
+`registered`, and the log says so. A typo must not be what makes everything
+public again.
 
 ## First super administrator
 

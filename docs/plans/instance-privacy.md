@@ -235,6 +235,50 @@ setting, and `registered` with a misspelt value, with the log line.
 **Not checked.** Creating a post or changing a profile with the setting on,
 through the running stack with a session.
 
+### Members-only: `SITE_READ_ACCESS=registered` (2026-10-05)
+
+**Enforced in one place.** Every route that serves anything to somebody who is
+not signed in goes through `an_mw.SetViewer`, which is the only place an
+anonymous viewer is made for a request. With the setting on it answers 401
+`members_only` instead. No service's routes changed.
+
+**A guard instead of an allowlist.** `TestEveryRouteNamesItsViewer` in
+`anahita-libs/middleware` reads every service's `routes.go` and fails if a
+route has neither `Authorize` nor `SetViewer` in front of it. Today only
+auth-service has such routes, 44 of them, all ways in (sign in, sign up,
+password reset, invitations, OAuth, NodeInfo); they are held to a list in the
+test.
+
+**NodeInfo** carries `readAccess`.
+
+**Web.** `routes/MembersOnlyGate.jsx` wraps the route table. On a members-only
+site, somebody who is not signed in sees a notice with a Sign in button and
+the home page, at whatever address they asked for, and every page carries
+`robots: noindex`. The pages that stay open are in `routes/membersOnly.js`.
+
+**Where it differs from the plan.**
+- **The SQL gates in graph-grpc were not changed.** The plan had them treat
+  viewer 0 as matching nothing, as a second line. But viewer 0 is also what
+  the services use for their own reads, with nobody signed in: notifications
+  being written from events, hashtags being extracted, accounts being
+  created. Making it match nothing would have broken those on exactly the
+  installations that turn this on. The guard test is the second line instead.
+- **No new middleware and no shared allowlist.** The plan had a
+  `RequireMembersOnly` wired into every router beside `SetViewer`, which every
+  new service would have to remember. Putting it inside `SetViewer` cannot be
+  forgotten.
+- The media proxy, the web shell and federation do not exist yet. Their rules
+  for this mode stay in this plan for when they do.
+
+**Checked.** On the development stack with the setting on: profiles, lists,
+feeds, hashtags, places, followers, photos and search all answer 401 to
+somebody not signed in; NodeInfo, the sign-in page and the sign-up page answer
+200; NodeInfo reports `readAccess: registered`. With it off again, everything
+answers as before.
+
+**Not checked.** A signed-in member on a members-only stack, and the web
+app's notice in a browser.
+
 ## Status
 
 | Item | State |
@@ -242,6 +286,6 @@ through the running stack with a session.
 | Plan | written 2026-09-28 |
 | Composer audience picker | done 2026-10-04, not yet tried in a browser |
 | `MIN_CONTENT_ACCESS` | done 2026-10-04 |
-| `SITE_READ_ACCESS=registered` | not started |
+| `SITE_READ_ACCESS=registered` | done 2026-10-05 |
 | `SITE_READ_ACCESS=preview` | not started |
 | Convert public to registered | not started |

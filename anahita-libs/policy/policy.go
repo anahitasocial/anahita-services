@@ -5,8 +5,16 @@
 // read by every service the same way, like GRPC_TLS in package grpctls. They
 // take effect on a restart.
 //
+//	SITE_READ_ACCESS    "public" or "registered". What somebody who is not
+//	                    signed in may read. Unset means public.
 //	MIN_CONTENT_ACCESS  "public" or "registered". The widest audience
 //	                    anything new may be given. Unset means public.
+//
+// The two are independent, and together make a fully private installation.
+//
+// SITE_READ_ACCESS=registered is the members-only site: nothing is served to
+// anybody who is not signed in, whatever each post or profile says. Nothing
+// stored changes, so it can be switched back.
 //
 // "registered" is for a school, a company or a private community that wants
 // nothing new to be readable by people who are not signed in. It governs what
@@ -28,17 +36,53 @@ import (
 	"anahita-libs/constants"
 )
 
-const EnvMinContentAccess = "MIN_CONTENT_ACCESS"
+const (
+	EnvSiteReadAccess   = "SITE_READ_ACCESS"
+	EnvMinContentAccess = "MIN_CONTENT_ACCESS"
+
+	// ReadPublic: anybody may read what is public. ReadRegistered: only
+	// people who are signed in may read anything.
+	ReadPublic     = "public"
+	ReadRegistered = "registered"
+)
 
 var (
 	once             sync.Once
+	siteReadAccess   string
 	minContentAccess string
 )
 
 func load() {
 	once.Do(func() {
+		siteReadAccess = readSiteReadAccess(os.Getenv(EnvSiteReadAccess))
 		minContentAccess = readMinContentAccess(os.Getenv(EnvMinContentAccess))
 	})
+}
+
+func readSiteReadAccess(raw string) string {
+	switch value := strings.ToLower(strings.TrimSpace(raw)); value {
+	case "", ReadPublic:
+		return ReadPublic
+	case ReadRegistered:
+		return ReadRegistered
+	default:
+		log.Printf("policy: %s is %q, which is neither %q nor %q; treating it as %q",
+			EnvSiteReadAccess, raw, ReadPublic, ReadRegistered, ReadRegistered)
+		return ReadRegistered
+	}
+}
+
+// SiteReadAccess is what somebody who is not signed in may read: ReadPublic
+// or ReadRegistered.
+func SiteReadAccess() string {
+	load()
+	return siteReadAccess
+}
+
+// MembersOnly reports whether the installation serves nothing to people who
+// are not signed in.
+func MembersOnly() bool {
+	return SiteReadAccess() == ReadRegistered
 }
 
 func readMinContentAccess(raw string) string {
@@ -94,4 +138,12 @@ func SetForTest(minContent string) (restore func()) {
 	previous := minContentAccess
 	minContentAccess = readMinContentAccess(minContent)
 	return func() { minContentAccess = previous }
+}
+
+// SetReadAccessForTest is SetForTest for SITE_READ_ACCESS.
+func SetReadAccessForTest(siteRead string) (restore func()) {
+	load()
+	previous := siteReadAccess
+	siteReadAccess = readSiteReadAccess(siteRead)
+	return func() { siteReadAccess = previous }
 }
