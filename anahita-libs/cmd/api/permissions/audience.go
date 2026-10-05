@@ -20,7 +20,7 @@ import (
 //   - "myself" on SOMEBODY ELSE'S profile would be a post only its author and
 //     that person can see. That is a private message, which this platform
 //     deliberately does not have: it was removed, with the data, in 2026-10.
-//   - "admins" from a member who is not one would be the same thing addressed
+//   - "admins" from a follower who is not one would be the same thing addressed
 //     to a group's administrators.
 //
 // The request structs accept all seven for every post, because a validation

@@ -63,7 +63,7 @@ func TestMediumAudiencesDependOnWhereThePostIs(t *testing.T) {
 			"[public registered followers leaders mutuals]",
 		},
 		{
-			"in a group, as a member",
+			"in a group, as one of its followers",
 			audienceCtx(group, audGroup, audGrace, audienceViewer(audGrace, member), false),
 			"[public registered followers]",
 		},
@@ -97,7 +97,7 @@ func TestAnAudienceNotSaidIsAllowed(t *testing.T) {
 		t.Error("mutuals was allowed in a group, which has none")
 	}
 	if IsMediumAudienceAllowed(ctx, constants.AnahitaAccessAdmins) {
-		t.Error("a member addressed a post to a group's administrators alone")
+		t.Error("a follower addressed a post to a group's administrators alone")
 	}
 
 	// No relation known is no relation.
