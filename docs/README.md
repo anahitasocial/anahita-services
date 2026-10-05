@@ -17,6 +17,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Internal calls](configuration.md#internal-calls)
    - [Site identity](configuration.md#site-identity)
    - [Registration](configuration.md#registration)
+   - [Privacy of the installation](configuration.md#privacy-of-the-installation)
    - [First super administrator](configuration.md#first-super-administrator)
    - [OAuth signing and encryption](configuration.md#oauth-signing-and-encryption)
    - [Storage](configuration.md#storage)
@@ -45,6 +46,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
 6. [Permissions](permissions.md) — who can post, comment, like and add followers
    - [Access levels](permissions.md#access-levels)
    - [Seeing posts](permissions.md#seeing-posts)
+   - [Choosing who can see a post](permissions.md#choosing-who-can-see-a-post)
    - [Comments](permissions.md#comments)
    - [Reporting](permissions.md#reporting)
    - [Removing accounts](permissions.md#removing-accounts)
@@ -68,7 +70,33 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [What administrators do](abuse-reports.md#what-administrators-do)
    - [When the reported thing is deleted](abuse-reports.md#when-the-reported-thing-is-deleted)
    - [Who sees what](abuse-reports.md#who-sees-what)
-9. [Account lifecycle](account-lifecycle.md) — disabling, archiving, deleting, purging, and clearing out unused accounts
+9. [Privacy](privacy.md) — who can see a post, a profile and the site, and the settings an installation makes
+   - [The audiences](privacy.md#the-audiences)
+   - [Who can see a post](privacy.md#who-can-see-a-post)
+   - [Who can see a profile or a group](privacy.md#who-can-see-a-profile-or-a-group)
+   - [What the installation allows](privacy.md#what-the-installation-allows)
+   - [Setting them](privacy.md#setting-them)
+   - [Checking them](privacy.md#checking-them)
+   - [What the web app does](privacy.md#what-the-web-app-does)
+   - [Where it is enforced, and how it is tested](privacy.md#where-it-is-enforced-and-how-it-is-tested)
+   - [Federation](privacy.md#federation)
+10. [The language of a post](post-language.md) — what is stored, how it is chosen, and what uses it
+   - [What it is for](post-language.md#what-it-is-for)
+   - [The tags](post-language.md#the-tags)
+   - [On a post](post-language.md#on-a-post)
+   - [On a person](post-language.md#on-a-person)
+   - [What the web app does](post-language.md#what-the-web-app-does)
+   - [What is not built](post-language.md#what-is-not-built)
+11. [Photo posts](photos.md) — several images in one post: uploading, storing, changing and removing them
+   - [One post, several images](photos.md#one-post-several-images)
+   - [Posting](photos.md#posting)
+   - [What is stored](photos.md#what-is-stored)
+   - [Reading](photos.md#reading)
+   - [Changing a post's images](photos.md#changing-a-posts-images)
+   - [Removal](photos.md#removal)
+   - [Limits](photos.md#limits)
+   - [What is not built](photos.md#what-is-not-built)
+12. [Account lifecycle](account-lifecycle.md) — disabling, archiving, deleting, purging, and clearing out unused accounts
    - [The four states](account-lifecycle.md#the-four-states)
    - [Deleting and the 30 days](account-lifecycle.md#deleting-and-the-30-days)
    - [What a purge removes](account-lifecycle.md#what-a-purge-removes)
@@ -77,7 +105,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The accounts list](account-lifecycle.md#the-accounts-list)
    - [The sweeper](account-lifecycle.md#the-sweeper)
    - [Groups left without an administrator](account-lifecycle.md#groups-left-without-an-administrator)
-10. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
+13. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
    - [What you need](deploying.md#what-you-need)
    - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
    - [Hostnames](deploying.md#hostnames)
@@ -109,12 +137,9 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Link previews](plans/link-previews.md) | 10 | not started |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
-| [Instance privacy and the composer audience picker](plans/instance-privacy.md) | 13 | not started |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
 | [Video service](plans/video-service.md) | 16 | not started |
-| [Several images per photo post; photo sets removed](plans/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 not started |
-| [Creative Commons licences](plans/content-licences.md) | 19 | not started |
-| [Language on posts](plans/content-language.md) | 20 | not started |
+| [Creative Commons licences](plans/content-licences.md) | 19 | kept for later (2026-10-04); look again after items 16 and 17 |
 | [Download your data](plans/data-export.md) | 21 | not started |
 | [Post insights](plans/post-insights.md) | 22 | not started |
 | [Profile tabs for replies and reposts](plans/profile-tabs-and-reposts.md) | 24 | not started |
@@ -133,4 +158,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Abuse reports](plans/done/abuse-report-service.md) | 4b | done 2026-10-03 |
 | [Complete hard delete and bulk cleanup](plans/done/actor-hard-delete.md) | 5 | done 2026-10-04 (the web part not yet tried in a browser) |
 | [One name for timestamps: `_at`](plans/done/timestamp-names.md) | 28 | done 2026-10-04 |
+| [Several images per photo post; photo sets removed](plans/done/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 done 2026-10-05 (posting and the web parts not yet tried in a browser) |
+| [Language on posts](plans/done/content-language.md) | 20 | done 2026-10-05 in a smaller form: the author chooses, nothing is detected |
+| [Instance privacy and the composer audience picker](plans/done/instance-privacy.md) | 13 | done 2026-10-05 (the web parts not yet tried in a browser) |
 | [Cloud-neutral storage and deployment](plans/done/cloud-neutral.md) | 9 | done 2026-10-03 (non-AWS providers other than Garage untested) |

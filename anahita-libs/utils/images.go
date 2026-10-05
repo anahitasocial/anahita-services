@@ -169,3 +169,84 @@ func CorrectOrientation(input []byte) ([]byte, error) {
 
 	return output.Bytes(), nil
 }
+
+// decodeImage reads a JPEG or PNG and says which it was.
+func decodeImage(input []byte) (image.Image, string, error) {
+	contentType := http.DetectContentType(input)
+
+	switch contentType {
+	case "image/jpeg":
+		img, err := jpeg.Decode(bytes.NewReader(input))
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to decode jpeg: %w", err)
+		}
+		return img, contentType, nil
+	case "image/png":
+		img, err := png.Decode(bytes.NewReader(input))
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to decode png: %w", err)
+		}
+		return img, contentType, nil
+	}
+
+	return nil, "", fmt.Errorf("unsupported image format: %s", contentType)
+}
+
+// encodeImage writes an image out in the format it came in.
+func encodeImage(img image.Image, contentType string) ([]byte, error) {
+	var buf bytes.Buffer
+
+	switch contentType {
+	case "image/jpeg":
+		if err := jpeg.Encode(&buf, img, nil); err != nil {
+			return nil, fmt.Errorf("failed to encode jpeg: %w", err)
+		}
+	case "image/png":
+		if err := png.Encode(&buf, img); err != nil {
+			return nil, fmt.Errorf("failed to encode png: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported image format: %s", contentType)
+	}
+
+	return buf.Bytes(), nil
+}
+
+// FitImage writes the image out again no wider than maxWidth, keeping its
+// shape.
+//
+// An image already narrower is written out at its own size, never enlarged:
+// enlarging adds bytes and no detail. Either way the result is a fresh
+// encoding of the picture alone, so nothing else a file carried survives.
+func FitImage(input []byte, maxWidth int) ([]byte, error) {
+	img, contentType, err := decodeImage(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if maxWidth > 0 && img.Bounds().Dx() > maxWidth {
+		// Height 0 keeps the shape.
+		img = imaging.Resize(img, maxWidth, 0, imaging.Lanczos)
+	}
+
+	return encodeImage(img, contentType)
+}
+
+// SquareImage writes out the middle of the image as a square of this side.
+//
+// Cut, not squeezed: resizing to a square without cutting stretches
+// everything that was not square to begin with.
+func SquareImage(input []byte, side int) ([]byte, error) {
+	img, contentType, err := decodeImage(input)
+	if err != nil {
+		return nil, err
+	}
+
+	// No larger than the image's own shorter side, for the reason FitImage
+	// does not enlarge.
+	if shorter := min(img.Bounds().Dx(), img.Bounds().Dy()); shorter < side {
+		side = shorter
+	}
+
+	return encodeImage(imaging.Fill(img, side, side, imaging.Center, imaging.Lanczos), contentType)
+}

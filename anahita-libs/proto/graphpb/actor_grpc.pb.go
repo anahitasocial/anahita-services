@@ -19,22 +19,24 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ActorService_Count_FullMethodName          = "/graph.ActorService/Count"
-	ActorService_Browse_FullMethodName         = "/graph.ActorService/Browse"
-	ActorService_Read_FullMethodName           = "/graph.ActorService/Read"
-	ActorService_BatchRead_FullMethodName      = "/graph.ActorService/BatchRead"
-	ActorService_Edit_FullMethodName           = "/graph.ActorService/Edit"
-	ActorService_Add_FullMethodName            = "/graph.ActorService/Add"
-	ActorService_Delete_FullMethodName         = "/graph.ActorService/Delete"
-	ActorService_Restore_FullMethodName        = "/graph.ActorService/Restore"
-	ActorService_DeletionCounts_FullMethodName = "/graph.ActorService/DeletionCounts"
-	ActorService_RequestPurge_FullMethodName   = "/graph.ActorService/RequestPurge"
-	ActorService_ReadPurgeBatch_FullMethodName = "/graph.ActorService/ReadPurgeBatch"
-	ActorService_Archive_FullMethodName        = "/graph.ActorService/Archive"
-	ActorService_SetEnabled_FullMethodName     = "/graph.ActorService/SetEnabled"
-	ActorService_SetFeatured_FullMethodName    = "/graph.ActorService/SetFeatured"
-	ActorService_TouchLastVisit_FullMethodName = "/graph.ActorService/TouchLastVisit"
-	ActorService_Ping_FullMethodName           = "/graph.ActorService/Ping"
+	ActorService_Count_FullMethodName                = "/graph.ActorService/Count"
+	ActorService_Browse_FullMethodName               = "/graph.ActorService/Browse"
+	ActorService_Read_FullMethodName                 = "/graph.ActorService/Read"
+	ActorService_BatchRead_FullMethodName            = "/graph.ActorService/BatchRead"
+	ActorService_Edit_FullMethodName                 = "/graph.ActorService/Edit"
+	ActorService_Add_FullMethodName                  = "/graph.ActorService/Add"
+	ActorService_Delete_FullMethodName               = "/graph.ActorService/Delete"
+	ActorService_Restore_FullMethodName              = "/graph.ActorService/Restore"
+	ActorService_DeletionCounts_FullMethodName       = "/graph.ActorService/DeletionCounts"
+	ActorService_RequestPurge_FullMethodName         = "/graph.ActorService/RequestPurge"
+	ActorService_ReadPurgeBatch_FullMethodName       = "/graph.ActorService/ReadPurgeBatch"
+	ActorService_PublicAccessCounts_FullMethodName   = "/graph.ActorService/PublicAccessCounts"
+	ActorService_MakePublicRegistered_FullMethodName = "/graph.ActorService/MakePublicRegistered"
+	ActorService_Archive_FullMethodName              = "/graph.ActorService/Archive"
+	ActorService_SetEnabled_FullMethodName           = "/graph.ActorService/SetEnabled"
+	ActorService_SetFeatured_FullMethodName          = "/graph.ActorService/SetFeatured"
+	ActorService_TouchLastVisit_FullMethodName       = "/graph.ActorService/TouchLastVisit"
+	ActorService_Ping_FullMethodName                 = "/graph.ActorService/Ping"
 )
 
 // ActorServiceClient is the client API for ActorService service.
@@ -59,6 +61,12 @@ type ActorServiceClient interface {
 	RequestPurge(ctx context.Context, in *ActorPurgeBatchRequest, opts ...grpc.CallOption) (*ActorPurgeBatchResponse, error)
 	// How far a RequestPurge has got.
 	ReadPurgeBatch(ctx context.Context, in *ActorPurgeBatchReadRequest, opts ...grpc.CallOption) (*ActorPurgeBatchReadResponse, error)
+	// How much on the installation is public: profiles, groups and posts.
+	PublicAccessCounts(ctx context.Context, in *PublicAccessCountsRequest, opts ...grpc.CallOption) (*PublicAccessCountsResponse, error)
+	// Makes everything that is public visible to signed-in people only, in
+	// one step, and records who did it. Super administrators only; the
+	// caller enforces that. It cannot be undone.
+	MakePublicRegistered(ctx context.Context, in *MakePublicRegisteredRequest, opts ...grpc.CallOption) (*PublicAccessCountsResponse, error)
 	// Archives an actor. Permanent; destroys nothing. No unarchive by design.
 	Archive(ctx context.Context, in *ActorArchiveRequest, opts ...grpc.CallOption) (*ActorArchiveResponse, error)
 	// Turns an actor on or off. Reversible.
@@ -189,6 +197,26 @@ func (c *actorServiceClient) ReadPurgeBatch(ctx context.Context, in *ActorPurgeB
 	return out, nil
 }
 
+func (c *actorServiceClient) PublicAccessCounts(ctx context.Context, in *PublicAccessCountsRequest, opts ...grpc.CallOption) (*PublicAccessCountsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PublicAccessCountsResponse)
+	err := c.cc.Invoke(ctx, ActorService_PublicAccessCounts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *actorServiceClient) MakePublicRegistered(ctx context.Context, in *MakePublicRegisteredRequest, opts ...grpc.CallOption) (*PublicAccessCountsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PublicAccessCountsResponse)
+	err := c.cc.Invoke(ctx, ActorService_MakePublicRegistered_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *actorServiceClient) Archive(ctx context.Context, in *ActorArchiveRequest, opts ...grpc.CallOption) (*ActorArchiveResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ActorArchiveResponse)
@@ -261,6 +289,12 @@ type ActorServiceServer interface {
 	RequestPurge(context.Context, *ActorPurgeBatchRequest) (*ActorPurgeBatchResponse, error)
 	// How far a RequestPurge has got.
 	ReadPurgeBatch(context.Context, *ActorPurgeBatchReadRequest) (*ActorPurgeBatchReadResponse, error)
+	// How much on the installation is public: profiles, groups and posts.
+	PublicAccessCounts(context.Context, *PublicAccessCountsRequest) (*PublicAccessCountsResponse, error)
+	// Makes everything that is public visible to signed-in people only, in
+	// one step, and records who did it. Super administrators only; the
+	// caller enforces that. It cannot be undone.
+	MakePublicRegistered(context.Context, *MakePublicRegisteredRequest) (*PublicAccessCountsResponse, error)
 	// Archives an actor. Permanent; destroys nothing. No unarchive by design.
 	Archive(context.Context, *ActorArchiveRequest) (*ActorArchiveResponse, error)
 	// Turns an actor on or off. Reversible.
@@ -313,6 +347,12 @@ func (UnimplementedActorServiceServer) RequestPurge(context.Context, *ActorPurge
 }
 func (UnimplementedActorServiceServer) ReadPurgeBatch(context.Context, *ActorPurgeBatchReadRequest) (*ActorPurgeBatchReadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadPurgeBatch not implemented")
+}
+func (UnimplementedActorServiceServer) PublicAccessCounts(context.Context, *PublicAccessCountsRequest) (*PublicAccessCountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PublicAccessCounts not implemented")
+}
+func (UnimplementedActorServiceServer) MakePublicRegistered(context.Context, *MakePublicRegisteredRequest) (*PublicAccessCountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MakePublicRegistered not implemented")
 }
 func (UnimplementedActorServiceServer) Archive(context.Context, *ActorArchiveRequest) (*ActorArchiveResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Archive not implemented")
@@ -548,6 +588,42 @@ func _ActorService_ReadPurgeBatch_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ActorService_PublicAccessCounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublicAccessCountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).PublicAccessCounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_PublicAccessCounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).PublicAccessCounts(ctx, req.(*PublicAccessCountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ActorService_MakePublicRegistered_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MakePublicRegisteredRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).MakePublicRegistered(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_MakePublicRegistered_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).MakePublicRegistered(ctx, req.(*MakePublicRegisteredRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ActorService_Archive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ActorArchiveRequest)
 	if err := dec(in); err != nil {
@@ -688,6 +764,14 @@ var ActorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReadPurgeBatch",
 			Handler:    _ActorService_ReadPurgeBatch_Handler,
+		},
+		{
+			MethodName: "PublicAccessCounts",
+			Handler:    _ActorService_PublicAccessCounts_Handler,
+		},
+		{
+			MethodName: "MakePublicRegistered",
+			Handler:    _ActorService_MakePublicRegistered_Handler,
 		},
 		{
 			MethodName: "Archive",

@@ -440,6 +440,78 @@ CREATE TABLE IF NOT EXISTS purge_requests (
     KEY `idx_purge_requests_status` (`status`, `requested_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- A record of the things a super administrator does to the whole
+-- installation at once, which no single profile's history would show.
+--
+-- The first is converting everything public to registered. It changes
+-- thousands of rows in one step and cannot be undone, so who did it and what
+-- it came to is written down here, once per action.
+--
+-- Owned by graph-grpc-service.
+CREATE TABLE IF NOT EXISTS site_actions (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- What was done, as a short fixed word: 'made-public-registered'.
+    `action` varchar(64) NOT NULL,
+    -- The super administrator who did it.
+    `performed_by` bigint unsigned NOT NULL,
+    -- What it came to, as JSON: how many rows of each kind it changed.
+    `detail` text,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_site_actions_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- The images of a photo post, in order. A post holds up to four.
+--
+-- One post with several images, not an album of posts: one caption, one set
+-- of likes and replies, one audience. It is also how the fediverse sends
+-- them, as one post with attachments.
+--
+-- nodes.filename and nodes.mimetype stay, as a copy of the first image, so
+-- everything that shows one image for a photo (feeds, search, notifications)
+-- goes on working without knowing about this table.
+--
+-- photo_uploads holds images that have been uploaded and are not in a post
+-- yet. Each image is uploaded in a request of its own, which keeps every
+-- request small, and the post is then made from them. An upload nobody uses
+-- within a day is removed, with its stored images, by the sweeper.
+--
+-- Both owned by graph-grpc-service. No foreign keys, like the rest of this
+-- schema.
+CREATE TABLE IF NOT EXISTS photo_files (
+    -- The photo post.
+    `node_id` bigint unsigned NOT NULL,
+    -- Where it comes in the post, from 0. The first is the cover.
+    `position` tinyint unsigned NOT NULL,
+    -- The stored name, as nodes.filename holds it for a single image. Each
+    -- size is stored under this name with the size added.
+    `filename` varchar(255) NOT NULL,
+    `mimetype` varchar(100) NOT NULL DEFAULT '',
+    -- Of the largest copy kept, turned the right way up. 0 for an image
+    -- stored before this table existed.
+    `width` int unsigned NOT NULL DEFAULT 0,
+    `height` int unsigned NOT NULL DEFAULT 0,
+    -- What the image shows, for people who cannot see it.
+    `alt_text` varchar(1500) NOT NULL DEFAULT '',
+    PRIMARY KEY (`node_id`, `position`),
+    UNIQUE KEY `uq_photo_files_filename` (`filename`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS photo_uploads (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- The profile it was uploaded for. Part of where the image is stored.
+    `owner_id` bigint unsigned NOT NULL,
+    -- Who uploaded it. Nobody else can put it in a post.
+    `created_by` bigint unsigned NOT NULL,
+    `filename` varchar(255) NOT NULL,
+    `mimetype` varchar(100) NOT NULL DEFAULT '',
+    `width` int unsigned NOT NULL DEFAULT 0,
+    `height` int unsigned NOT NULL DEFAULT 0,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_photo_uploads_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- Add indices
 
 CREATE INDEX idx_edges_node_a_id ON edges (node_a_id);

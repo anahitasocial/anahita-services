@@ -157,7 +157,7 @@ post in it.
 
 | Tier | Meaning |
 | --- | --- |
-| `empty` | Nothing written, follows nobody and has no followers. For a group: nothing posted in it and at most one member |
+| `empty` | Nothing written, follows nobody and has no followers. For a group: nothing posted in it and at most one follower |
 | `dormant` | Not empty, and last active more than two years ago |
 | `active` | Everything else |
 
@@ -193,5 +193,5 @@ Purging a person who was a group's only administrator leaves the group in
 place with nobody running it. Find these with
 `GET /accounts?kind=group&has_admin=false`.
 
-A site administrator can then appoint one of its members with
-`POST /groups/:id/admins/`, giving the member's id as `admin_id`.
+A site administrator can then appoint one of its followers with
+`POST /groups/:id/admins/`, giving that person's id as `admin_id`.

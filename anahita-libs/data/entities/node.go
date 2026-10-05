@@ -36,6 +36,10 @@ type AnahitaNodeAuthorized struct {
 	// Actors only: the composers the viewer may use on this profile. nil when
 	// not worked out; empty when none.
 	Composers []string
+	// On an actor: the audiences a new post by the viewer may be given on
+	// this profile. On a post: the audiences the viewer may change it to,
+	// set only when they may edit it. Widest first; nil when not worked out.
+	Audiences []string
 }
 
 type AnahitaNodeImageSize struct {
@@ -171,6 +175,9 @@ type AnahitaNode struct {
 	Avatar   map[string]AnahitaNodeImage
 	Cover    map[string]AnahitaNodeImage
 	Portrait map[string]AnahitaNodeImage
+	// The images of a photo post, in order. Filled in by the services that
+	// show them; nil elsewhere, and for everything that is not a photo.
+	Files []*PhotoFile
 
 	// @TODO remove EdgeCount field after migrating to mixins
 	EdgeCount int64

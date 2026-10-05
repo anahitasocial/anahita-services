@@ -174,6 +174,7 @@ Written by hand with small JSON structs and an HTTP-signature library (`github.c
    - Profile: `app.bsky.actor.profile` (display name, bio, avatar as an uploaded blob).
    - Notes: `app.bsky.feed.post`, with facets for links, mentions and hashtags.
      - Bluesky posts are limited to **300 graphemes**. Longer notes are cut off and end with a link to the note on Anahita.
+     - Bluesky takes at most **4 images of 2 MB each** (checked against its `app.bsky.embed.images` schema on 2026-10-04). Mastodon takes 4 of 16 MB. So a photo sent to Bluesky is the largest stored size that fits in 2 MB, re-encoded smaller if none does.
    - Follows: `app.bsky.graph.follow`. Unfollow and delete become `deleteRecord`.
    - Record URIs and rkeys go in `federation_edges`, or in node `uri` for posts.
 4. **Inbound:** a single Jetstream consumer (`wss://jetstream*.bsky.network/subscribe`).
@@ -250,12 +251,30 @@ Written by hand with small JSON structs and an HTTP-signature library (`github.c
   - sending reports as `Flag` activities and to Bluesky moderation (ties into item 4b's `atproto_reason`);
   - consuming Bluesky labelers;
   - user-level domain mutes;
+  - **block lists, for blocking many accounts at once** (asked for by the user on 2026-10-04, after Bluesky's moderation lists): a person makes or subscribes to a list of accounts and blocks or mutes everybody on it in one step, and the block follows the list as it changes. On Bluesky these are `app.bsky.graph.list` records with `listblock`, so subscribing to an existing Bluesky list can work directly. ActivityPub has no shared format; Mastodon imports and exports blocks as CSV, which is the least to support there. Locally a list is a node and a subscription an edge, checked by the same block rule the access gates already apply;
   - relays.
 - **Phase 6, portability:**
   - account `Move` in and out;
   - keeping an Anahita-held did:plc rotation key so people can take their Bluesky identity elsewhere;
   - eventually a Go PDS (indigo) instead of the TypeScript container;
   - exposing feed generators to Bluesky.
+
+## Open: reading the fediverse from a private site (noted 2026-10-04)
+
+A members-only or preview installation does not federate (see
+`instance-privacy.md`): nothing on it is public, so there is nothing to send.
+What that rules out along the way is *reading*: following accounts elsewhere
+from inside a private site. It need not.
+
+- **Bluesky:** possible with nothing exposed. Followed accounts are read from
+  the public stream, and the installation never has to be reachable.
+- **ActivityPub:** only with a minimal public identity for each member who
+  follows somebody. The other server has to look up the follower's handle and
+  signing key before it accepts the follow, though the member's posts can all
+  stay private.
+
+Not decided. It is a choice for when phase 1 is built: either leave private
+sites cut off, or add a "read only" setting with those two behaviours.
 
 ## Decisions (item 8)
 - **Native on both protocols:** ActivityPub in Go; AT Protocol through the official PDS plus Jetstream.

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	an_constants "anahita-libs/constants"
+	"anahita-libs/policy"
 	"log"
 	"net/http"
 	"strings"
@@ -230,6 +232,27 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// alone. GROUP-SERVICE enforces it; this document only reports
 			// it, so a client reading it is reading a policy, not a gate.
 			"groupsFrom": h.Config.GetGroupsFrom(),
+
+			// The widest audience anything new may be given: "public", or
+			// "registered" on an installation that allows no new public
+			// content (MIN_CONTENT_ACCESS). The services refuse a public
+			// post or profile there; this is so the web app does not
+			// offer one. Each profile and post also says which audiences
+			// it may have, which already leaves "public" out, so a
+			// client needs this only for menus that have no such list.
+			"minContentAccess": policy.MinContentAccess(),
+
+			// What somebody who is not signed in may read (SITE_READ_ACCESS):
+			// "public"; "preview", the start of what is public; or
+			// "registered", nothing, on a members-only installation. There
+			// every content route answers 401 to them, and this document
+			// is one of the few things that still answers, so the web app
+			// can show a way in instead of a page of errors.
+			"readAccess": policy.SiteReadAccess(),
+
+			// How many images one photo post can hold, so a client need
+			// not carry the number itself.
+			"photoMaxFiles": an_constants.PhotoMaxFiles,
 
 			"termsOfServiceUrl": h.Config.GetTosURL(),
 			"privacyPolicyUrl":  h.Config.GetPrivacyURL(),

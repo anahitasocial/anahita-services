@@ -147,9 +147,257 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **web `configuration.md`**, *Settings that live on the server*: the same two settings as seen by the app.
 - **web `architecture.md`**: the landing page for logged-out visitors, and the composer audience picker.
 
+## What was built
+
+### The composer audience picker (2026-10-04)
+
+**Server.** `permissions.MediumAudiences` in `anahita-libs` says which access
+levels a post may have where it is going, and the create and change-access
+handlers for notes, articles, topics and photos refuse anything else with 422
+`access_not_allowed` and the list that is allowed. Until now any of the seven
+levels was accepted on any post.
+
+Two of its rules were not in the plan, and are deliberate:
+- **No "only me" on somebody else's profile.** It would be a post only its
+  author and that person can see: the private notes removed in item 1.
+- **"Administrators only" in a group is for its administrators** and site
+  administrators. From an ordinary member it would be a private message to
+  the group's administrators.
+
+**The server tells the app.** Every person and group response carries
+`authorized.audiences`, from `permissions.PostAudiences`, so the composer
+offers what will be accepted and does not keep a second copy of the rule.
+
+**Web.** A button beside Post names the current audience and opens a menu
+(`containers/media/Composer/Audience.jsx`). `utils/audience.js` reads the
+server's list and adds what the server has no opinion on. The choice is sent
+with the post.
+- In a group, followers are called Members.
+- An audience wider than the profile itself is shown disabled, with the
+  reason.
+- It starts on the last choice for that kind of place (your own profile,
+  somebody else's, a group), kept per person in the browser, or else on the
+  widest the profile allows.
+- `leaders` is accepted by the server on a person's profile and not offered
+  when writing: it is not an audience anybody picks.
+
+**The control on an existing post is the same button** (asked for by the user
+on 2026-10-04). `controls/medium/Access.jsx` was a bare globe or padlock
+opening a list of level names; it now uses the composer's button
+(`components/AudienceButton.jsx`), and a post the viewer may edit carries
+`authorized.audiences`, the audiences it may be changed to. A post's response
+does not say how widely its profile is visible, so on an existing post the
+wider-than-the-profile choices are not greyed out as they are when writing.
+
+**Not built yet,** from this section of the plan: filtering by
+`MIN_CONTENT_ACCESS`, which comes with that setting, and the fediverse hint,
+which comes with federation.
+
+**Not checked.** The picker in a browser, and a post created through the
+running stack with each audience. The rule has unit tests on both sides.
+
+### No new public content: `MIN_CONTENT_ACCESS` (2026-10-04)
+
+**One place reads it:** package `anahita-libs/policy`. A value it does not
+understand is read as `registered`, the stricter one, and logged.
+
+**Where it is enforced.**
+- **Posts:** `permissions.MediumAudiences` leaves `public` out, so creating or
+  changing a post to public is refused with 422 `access_not_allowed`, and the
+  lists a profile and a post carry (`authorized.audiences`) leave it out too.
+  The composer and the control on a post follow without knowing the setting.
+- **Profiles and groups:** the change-access handlers in person-service and
+  group-service refuse `public` the same way.
+- **Defaults:** a post with no audience said, and a new account's profile
+  (signup, an approved request, an accepted invitation, the first super
+  administrator), get `registered`.
+- **What already is public may stay so:** a change-access request that keeps
+  the current value is let through, so editing something else about a public
+  profile does not fail.
+
+**NodeInfo** carries `minContentAccess`. The web app uses it in one place, the
+profile access settings, which has no list from the server to follow.
+
+**Configuration.** `MIN_CONTENT_ACCESS` and `SITE_READ_ACCESS` are now passed
+to every service in `docker-compose.yml` and the Kubernetes manifests, as
+optional keys of the shared configuration. The second is not read yet.
+
+**Where it differs from the plan.**
+- New groups were not changed: a group already starts as `admins`, a draft.
+- The "shared validator replacing three `oneof` lists" is the audience rule
+  for posts and a two-line check for profiles. The `oneof` tags stay, as the
+  first check that the value is a word the API knows.
+
+**Checked.** Unit tests for the policy and for audiences under it. On the
+development stack, NodeInfo reports `public` by default, `registered` with the
+setting, and `registered` with a misspelt value, with the log line.
+
+**Not checked.** Creating a post or changing a profile with the setting on,
+through the running stack with a session.
+
+### Members-only: `SITE_READ_ACCESS=registered` (2026-10-05)
+
+**Enforced in one place.** Every route that serves anything to somebody who is
+not signed in goes through `an_mw.SetViewer`, which is the only place an
+anonymous viewer is made for a request. With the setting on it answers 401
+`members_only` instead. No service's routes changed.
+
+**A guard instead of an allowlist.** `TestEveryRouteNamesItsViewer` in
+`anahita-libs/middleware` reads every service's `routes.go` and fails if a
+route has neither `Authorize` nor `SetViewer` in front of it. Today only
+auth-service has such routes, 44 of them, all ways in (sign in, sign up,
+password reset, invitations, OAuth, NodeInfo); they are held to a list in the
+test.
+
+**NodeInfo** carries `readAccess`.
+
+**Web.** `routes/MembersOnlyGate.jsx` wraps the route table. On a members-only
+site, somebody who is not signed in sees a notice with a Sign in button and
+the home page, at whatever address they asked for, and every page carries
+`robots: noindex`. The pages that stay open are in `routes/membersOnly.js`.
+
+**Where it differs from the plan.**
+- **The SQL gates in graph-grpc were not changed.** The plan had them treat
+  viewer 0 as matching nothing, as a second line. But viewer 0 is also what
+  the services use for their own reads, with nobody signed in: notifications
+  being written from events, hashtags being extracted, accounts being
+  created. Making it match nothing would have broken those on exactly the
+  installations that turn this on. The guard test is the second line instead.
+- **No new middleware and no shared allowlist.** The plan had a
+  `RequireMembersOnly` wired into every router beside `SetViewer`, which every
+  new service would have to remember. Putting it inside `SetViewer` cannot be
+  forgotten.
+- The media proxy, the web shell and federation do not exist yet. Their rules
+  for this mode stay in this plan for when they do.
+
+**Checked.** On the development stack with the setting on: profiles, lists,
+feeds, hashtags, places, followers, photos and search all answer 401 to
+somebody not signed in; NodeInfo, the sign-in page and the sign-up page answer
+200; NodeInfo reports `readAccess: registered`. With it off again, everything
+answers as before.
+
+**Not checked.** A signed-in member on a members-only stack, and the web
+app's notice in a browser.
+
+### Converting what is already public (2026-10-05)
+
+**Graph.** `PublicAccessRepo` counts what is public (people, groups, posts
+with their revisions) and changes it to `registered` in chunks of 5,000 rows,
+then writes one row to a new table, `site_actions`, with who did it and the
+counts. Hashtags and places are left. `updated_at` is not touched: nobody
+edited the posts. Running it again changes nothing.
+
+**API**, in auth-service beside the accounts list:
+- `GET /accounts/public-content` gives the counts and whether public content
+  is still allowed.
+- `POST /accounts/make-registered` with `{ "confirm": "CONVERT 8675" }` does
+  it. Super administrators only, with a proof of identity, and the number must
+  be what is public at that moment. 409 `public_content_allowed` unless
+  `MIN_CONTENT_ACCESS=registered`.
+
+**Web.** A Privacy tab in Site Settings shows the two settings as the server
+has them, and the conversion with its counts, the typed confirmation and the
+proof of identity.
+
+**Where it differs from the plan.** It is refused while public content is
+still allowed, which the plan did not say. Converting then would be undone by
+the next public post, and pressing it by mistake on an open site would hide
+the whole of it from visitors.
+
+**Checked.** The change against real MySQL (what changes, what does not, the
+record, a second run); the gates in front of it in handler tests; the
+migration on the fresh and upgrade paths. On the development stack the two
+routes refuse a caller with no token.
+
+**Not checked.** The conversion through the running stack, and the Privacy
+tab in a browser.
+
+### Preview: `SITE_READ_ACCESS=preview` (2026-10-05)
+
+**On the way out, in one place.** For somebody who is not signed in,
+`SetViewer` runs the route and rewrites the JSON it answers
+(`anahita-libs/middleware/preview.go`), by the names of the fields: `body` is
+cut to about 280 characters of plain words and the object marked
+`truncated`; `portrait_urls` keeps only the smallest size; a list with
+`pagination` is marked `more` and its total lowered to what was sent. It also
+limits what may be asked for: at most 10 items, and no page after the first.
+
+**Two kinds of route are left out altogether**, with a second middleware,
+`MembersInPreview`, on the routes themselves: comments, and the lists of who
+follows whom.
+
+**Web.** A notice above every page a visitor is shown, with a Sign in button,
+and "Sign in to read more" under a post that was cut, in lists and on the
+post's own page. Lists stop at the first page by themselves, because they page
+by the total.
+
+**Where it differs from the plan.**
+- **A rewriter in the middleware, not a filter in `anahita-libs/responses`**
+  called by each handler. Some thirty routes serve anonymous readers; a filter
+  each has to remember to call is one the next route will forget. The cost is
+  decoding and encoding the answer again, paid only for visitors on
+  installations that chose this.
+- **A text that fits is sent as it was written**, formatting and all. Only one
+  that is cut has its Markdown taken out.
+- The web shell and Open Graph tags from the preview text wait for item 10.
+
+**Checked.** Unit tests for the cutting (a word boundary, Markdown removed,
+characters not bytes, large ids kept), the rewriting, the limits and the two
+left-out routes. On the development stack set to preview: a long article came
+back cut and marked, photos with one size, lists of 10 with `more`, a second
+page refused, comments and follower lists refused, a profile whole, and
+NodeInfo saying `preview`. Set back to open afterwards.
+
+**Not checked.** The notice and the "Sign in to read more" link in a browser.
+Cards in feeds do not show the link; the notice above the page is all a
+visitor gets there.
+
+### Tests and documentation, gone over (2026-10-05)
+
+Asked for by the user before trying the settings by hand.
+
+**Tests added,** all of which run without a database:
+- A signed-in person is never refused on a members-only site and never sent a
+  preview, including a later page and comments (`signed_in_test.go`). This
+  needed a small seam in `SetViewer`, the `authenticate` variable, so a test
+  can stand in for somebody signed in.
+- What is already public may stay so: `policy.MayChangeAccess` and
+  `permissions.CanChangeMediumAudience`, which the four change-access handlers
+  now call in place of a comparison written out in each.
+- Three guards that read the code: every handler that sets an audience asks
+  the rule, the routes a preview leaves out are marked, and (already there)
+  every route names its viewer.
+- The 422 answers, the request defaults under the setting, NodeInfo's two
+  fields, who may see the public-content counts, and the convert action's
+  statements with sqlmock.
+
+**Documentation.** One page, `docs/privacy.md`: the three layers, the
+audiences, both settings and how they combine, how to set and check them, what
+the web app does, and where each rule is enforced and tested.
+`configuration.md` keeps the two variables and points there.
+
+### Found when the user tried it (2026-10-05)
+
+On a preview site, opening a post showed a raw error, `[object Object]`. The
+post's page asked for its comments, the server refused as designed, and
+nothing caught the refusal. The same happened searching as a visitor on a
+members-only site.
+
+Fixed in the web app:
+- A visitor on a preview site is no longer asked for comments or follower
+  lists; a sign-in prompt stands where they would be.
+- A visitor on a members-only site is not shown the search box or the People,
+  Groups, Hashtags and Places menu entries.
+- A "sign in first" answer that no page expected is caught at the top of the
+  app instead of surfacing as an error.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Composer audience picker | done 2026-10-04 |
+| `MIN_CONTENT_ACCESS` | done 2026-10-04 |
+| `SITE_READ_ACCESS=registered` | done 2026-10-05 |
+| `SITE_READ_ACCESS=preview` | done 2026-10-05 |
+| Convert public to registered | done 2026-10-05 |

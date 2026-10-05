@@ -15,6 +15,7 @@ func NewNodeAuthorized(node *entities.AnahitaNode) *NodeAuthorized {
 		Like:           node.Authorized.Like,
 		AddFollower:    node.Authorized.AddFollower,
 		Composers:      node.Authorized.Composers,
+		Audiences:      node.Authorized.Audiences,
 	}
 }
 
@@ -33,4 +34,8 @@ type NodeAuthorized struct {
 	Like        *bool    `json:"like,omitempty"`
 	AddFollower *bool    `json:"add_follower,omitempty"`
 	Composers   []string `json:"composers,omitempty"`
+	// On a person or group: who a new post there may be shown to. On a
+	// post: who it may be changed to be shown to, for somebody who may edit
+	// it. Widest first; left out otherwise.
+	Audiences []string `json:"audiences,omitempty"`
 }

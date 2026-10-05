@@ -10,8 +10,10 @@ change them, and what profile owners can change for themselves.
 
 - [Two separate settings](#two-separate-settings)
 - [Access levels](#access-levels)
+- [A members-only installation](#a-members-only-installation)
 - [Who is always allowed](#who-is-always-allowed)
 - [Seeing posts](#seeing-posts)
+  - [Choosing who can see a post](#choosing-who-can-see-a-post)
 - [Posting](#posting)
 - [Comments](#comments)
 - [Likes](#likes)
@@ -51,6 +53,16 @@ the post is on, not against the person who wrote the post.
 
 A profile's administrators meet every level. A group follows nobody, so
 `leaders` and `mutuals` are only offered for people.
+
+## A members-only installation
+
+Everything on this page assumes somebody who is not signed in can read what is
+`public`. An installation can switch that off with `SITE_READ_ACCESS=registered`:
+then they can read nothing, whatever each profile and post says, and `public`
+means the same as `registered`. With `SITE_READ_ACCESS=preview` they can read
+only the start of what is public. See
+[Privacy](privacy.md#what-the-installation-allows), which also gathers the
+audiences of posts and profiles in one place.
 
 ## Who is always allowed
 
@@ -99,6 +111,50 @@ What depends on another post is judged by that post:
 
 So following somebody who reposts a followers-only post does not show it to
 you. You see it only if you could see the original.
+
+### Choosing who can see a post
+
+The author chooses a post's audience when writing it, and whoever may edit the
+post can change it afterwards. It is sent as `access` when the post is created
+(`POST /notes/:owner_id/` and the same for articles, topics and photos) and
+changed with `PATCH /…/:id/access`. Left out, a new post is `public`.
+
+Which audiences a post may have depends on where it is:
+
+| Where the post is | Audiences |
+| --- | --- |
+| Your own profile | `public`, `registered`, `followers`, `leaders`, `mutuals`, `myself` |
+| Somebody else's profile | `public`, `registered`, `followers`, `leaders`, `mutuals` |
+| A group, as one of its followers | `public`, `registered`, `followers` |
+| A group, as one of its administrators, or as a site administrator | `public`, `registered`, `followers`, `admins` |
+
+Anything else is refused with 422 `access_not_allowed`, and the answer lists
+the audiences that are allowed. Two of the gaps are deliberate:
+
+- **No "only me" on somebody else's profile.** It would be a post only its
+  author and that person can see, which is a private message. This platform
+  does not have those.
+- **No "administrators only" from a follower who is not one.** That would be the
+  same thing, addressed to a group's administrators.
+
+As with every level, the audience is measured against the profile the post is
+on: `followers` are that profile's followers, not the author's. A post is
+never seen more widely than its profile, so on a followers-only group a
+`public` post is still only seen by its followers. The web app shows those wider
+choices disabled, and does not offer `leaders` when writing a post.
+
+An installation can take `public` out of all four rows, for everybody, with
+`MIN_CONTENT_ACCESS=registered`; see
+[Privacy](privacy.md#new-content-min_content_access).
+A post that is already public may keep that audience.
+
+Every person and group in a response carries `authorized.audiences`: the
+audiences a post the viewer writes there may have, from this same rule. The
+web app's composer offers those and nothing else.
+
+A post carries `authorized.audiences` too, for a viewer who may edit it: the
+audiences it may be changed to. They can differ from the profile's list,
+because "only me" depends on who wrote the post, not on who is changing it.
 
 ## Posting
 

@@ -14,6 +14,7 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/policy"
 )
 
 // getViewer returns the Viewer set on the echo context. Returns nil if
@@ -66,19 +67,58 @@ func Authorize(config ConfigInterface, jwks *JWKSClient) echo.MiddlewareFunc {
 // is present, but does not reject the request if absent or invalid.
 // Use for routes that are publicly accessible but still want to know
 // who the caller is when authenticated.
+//
+// THIS IS WHERE A MEMBERS-ONLY SITE IS ENFORCED. Every route that serves
+// anything to somebody who is not signed in goes through here: it is the only
+// place an anonymous viewer is made for a request. So with
+// SITE_READ_ACCESS=registered (package policy) it answers 401 instead, and
+// those routes behave as if they required signing in. Nothing else needs to
+// know the setting, and a route cannot forget it.
+//
+// With SITE_READ_ACCESS=preview it is also where what they are sent is cut
+// down to a preview, for the same reason: every such route passes through.
+//
+// What stays open on such a site is what never came through here: signing in
+// and up, the OAuth endpoints and NodeInfo, all in auth-service. A test in
+// this package, TestEveryRouteNamesItsViewer, fails if any other service
+// gains a route with neither this nor Authorize in front of it.
 func SetViewer(config ConfigInterface, jwks *JWKSClient) echo.MiddlewareFunc {
 	return func(h echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			viewer, err := authenticateOAuth(c, config, jwks)
+			viewer, err := authenticate(c, config, jwks)
 			if viewer != nil && err == nil {
 				c.Set(constants.ViewerContextKey, viewer)
-			} else {
-				c.Set(constants.ViewerContextKey, entities.NewViewer())
+				return h(c)
 			}
+
+			if policy.MembersOnly() {
+				return refuseMembersOnly(c)
+			}
+
+			c.Set(constants.ViewerContextKey, entities.NewViewer())
+
+			// The middle setting: they may read, but only the start of
+			// things. See preview.go.
+			if policy.PreviewOnly() {
+				if !previewRequest(c) {
+					return nil
+				}
+				return previewResponse(c, h)
+			}
+
 			return h(c)
 		}
 	}
 }
+
+// authenticate is how SetViewer finds out who is asking. A variable so a test
+// can stand in for a signed-in person without minting a token.
+var authenticate = authenticateOAuth
+
+// ErrMembersOnly is the error code of the 401 a members-only site gives
+// somebody who is not signed in. Distinct from "unauthorized", so a client
+// can tell "this needs signing in" from "nothing here is open to you".
+const ErrMembersOnly = "members_only"
 
 // RequireScope is a middleware that requires the authenticated viewer
 // to have a specific scope. Must be chained AFTER Authorize.

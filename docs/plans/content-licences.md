@@ -96,9 +96,31 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **services `architecture.md`**: the licence field, default resolution, and the download endpoint.
 - **web `architecture.md`**: the licence picker, badge, download and copy attribution.
 
+## Kept for later (2026-10-04)
+
+Taken out of milestone M4 by the user's decision. Not dropped.
+
+**Why.** A licence is a legal statement by the author and holds wherever the
+post ends up, so federation does not weaken it. But the *label* does not
+travel: Mastodon ignores the licence property and Bluesky has no field for it,
+so most people who see a federated post would never see its licence, and the
+Download and "Copy attribution" buttons would exist only here. That is a lot
+to build for something mostly visible to local readers, and nothing else in
+the roadmap depends on it.
+
+**When to look again.** After photos with several images (item 17) and video
+(item 16). Those are the posts that are works in themselves, which is where
+the platforms that do offer licences, reportedly Pixelfed and PeerTube, offer
+them. That claim is from memory and an AI summary the user was given; check
+their documentation before relying on it.
+
+**The smallest useful version,** if it comes back: a licence field and a badge
+on photo and video posts, about one session, without the download and
+attribution features.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Implementation | kept for later, 2026-10-04 |

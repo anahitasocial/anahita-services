@@ -1,6 +1,9 @@
 package requests
 
-import "anahita-libs/constants"
+import (
+	"anahita-libs/constants"
+	"anahita-libs/policy"
+)
 
 type MediumRequest struct {
 	Browse            *MediumBrowseRequest
@@ -32,14 +35,16 @@ func NewMediumRequest() *MediumRequest {
 		},
 		EditAccess: &MediumEditAccessRequest{
 			ID:     0,
-			Access: constants.AnahitaAccessPublic,
+			Access: policy.MinContentAccess(),
 		},
 		EditCommentStatus: &MediumEditCommentStatusRequest{
 			ID:     0,
 			Status: false,
 		},
 		Add: &MediumAddRequest{
-			Access:   constants.AnahitaAccessPublic,
+			// What a post gets when the client does not say: public, or
+			// registered where the installation allows nothing public.
+			Access:   policy.MinContentAccess(),
 			Composed: false,
 		},
 		Delete: &MediumDeleteRequest{},
@@ -68,6 +73,9 @@ type MediumEditRequest struct {
 	Name    string `form:"name" validate:"required,max=100"`
 	Body    string `form:"body" validate:"required,max=8000"`
 	Excerpt string `form:"excerpt" validate:"omitempty,max=500"`
+	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
+	// by the author; left out, the post has none. See package language.
+	Language string `form:"language" validate:"omitempty,max=12"`
 }
 
 type MediumEditAccessRequest struct {
@@ -90,6 +98,9 @@ type MediumAddRequest struct {
 	Excerpt  string `form:"excerpt" validate:"omitempty,max=500"`
 	Access   string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
 	Composed bool   `form:"composed" validate:"omitempty"`
+	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
+	// by the author; left out, the post has none. See package language.
+	Language string `form:"language" validate:"omitempty,max=12"`
 }
 
 type MediumDeleteRequest struct {

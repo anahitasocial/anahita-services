@@ -222,6 +222,22 @@ message ActorPurgeBatchReadResponse {
     repeated ActorPurgeItem items = 6;
 }
 
+// What is public on the installation, counted by kind. Asked before
+// MakePublicRegistered, to say what it would change, and answered by it, to
+// say what it did.
+message PublicAccessCountsRequest {}
+
+message PublicAccessCountsResponse {
+    int64 people = 1;
+    int64 groups = 2;
+    // Posts of every kind, and their revisions.
+    int64 posts = 3;
+}
+
+message MakePublicRegisteredRequest {
+    Viewer viewer = 1;
+}
+
 // Archive an actor. Permanent, and destroys nothing.
 //
 // There is no unarchive. Archiving is for an actor that is finished — a group
@@ -322,6 +338,12 @@ service ActorService {
     rpc RequestPurge(ActorPurgeBatchRequest) returns (ActorPurgeBatchResponse) {}
     // How far a RequestPurge has got.
     rpc ReadPurgeBatch(ActorPurgeBatchReadRequest) returns (ActorPurgeBatchReadResponse) {}
+    // How much on the installation is public: profiles, groups and posts.
+    rpc PublicAccessCounts(PublicAccessCountsRequest) returns (PublicAccessCountsResponse) {}
+    // Makes everything that is public visible to signed-in people only, in
+    // one step, and records who did it. Super administrators only; the
+    // caller enforces that. It cannot be undone.
+    rpc MakePublicRegistered(MakePublicRegisteredRequest) returns (PublicAccessCountsResponse) {}
     // Archives an actor. Permanent; destroys nothing. No unarchive by design.
     rpc Archive(ActorArchiveRequest) returns (ActorArchiveResponse) {}
     // Turns an actor on or off. Reversible.

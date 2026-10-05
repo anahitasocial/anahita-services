@@ -33,6 +33,20 @@ spec:
                   name: anahita-config
                   key: GRPC_TLS
                   optional: true
+            # What people who are not signed in may see, and whether anything
+            # new may be public. The same for every service.
+            - name: SITE_READ_ACCESS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_READ_ACCESS
+                  optional: true
+            - name: MIN_CONTENT_ACCESS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: MIN_CONTENT_ACCESS
+                  optional: true
             - name: SECURE_COOKIE_KEY
               valueFrom:
                 secretKeyRef:

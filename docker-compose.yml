@@ -72,6 +72,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       IP_LOCATION_URL: ${IP_LOCATION_URL:-}
       DSN: ${DSN}
       MAX_DB_CONNECTIONS: ${MAX_DB_CONNECTIONS}
@@ -193,6 +198,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -230,6 +240,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -264,6 +279,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
       REDIS_TLS: ${REDIS_TLS:-}
@@ -296,6 +316,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
       REDIS_TLS: ${REDIS_TLS:-}
@@ -328,6 +353,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -361,6 +391,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
       REDIS_TLS: ${REDIS_TLS:-}
@@ -397,6 +432,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -432,6 +472,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -466,6 +511,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -499,6 +549,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -532,6 +587,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -567,6 +627,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -598,6 +663,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       # Any S3-compatible store. See docs/configuration.md, Storage.
       STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-}
       STORAGE_PUBLIC_ENDPOINT: ${STORAGE_PUBLIC_ENDPOINT:-}
@@ -657,6 +727,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -690,6 +765,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -724,6 +804,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -774,6 +859,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       # Branding, applied by this service to every message so that any sender
       # gets the same header without having to pass it.
       SITE_NAME: ${SITE_NAME:-}
@@ -835,6 +925,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
@@ -873,6 +968,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       # So uploaded avatars, covers and photos are deleted from storage as
@@ -899,6 +999,11 @@ services:
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
+      # What the installation lets people who are not signed in see, and
+      # whether anything new may be public. The same for every service; see
+      # docs/configuration.md, Privacy of the installation.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
       DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       # So a purge a super administrator asks for also removes the uploaded

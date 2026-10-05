@@ -227,6 +227,19 @@ func filePaths(node *entities.AnahitaNode) []string {
 		}
 	}
 
+	// The other images of a photo post. The node names the first, which the
+	// lines above have already listed.
+	for _, file := range node.Files {
+		if file.Filename == node.Filename {
+			continue
+		}
+		if portraits, err := node.PortraitsFor(file.Filename); err == nil {
+			for _, image := range portraits {
+				paths = append(paths, image.Url)
+			}
+		}
+	}
+
 	return paths
 }
 

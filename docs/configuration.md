@@ -16,6 +16,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 - [Internal calls](#internal-calls)
 - [Site identity](#site-identity)
 - [Registration](#registration)
+- [Privacy of the installation](#privacy-of-the-installation)
 - [First super administrator](#first-super-administrator)
 - [OAuth signing and encryption](#oauth-signing-and-encryption)
 - [Storage](#storage)
@@ -121,6 +122,23 @@ Read by auth-service.
 | `INVITE_PENDING_MAX` | Outstanding invitations one person may have at once. Default `5` |
 | `INVITE_PENDING_MAX_ADMIN` | The same for administrators. Default `100` |
 | `TOS_URL`, `PRIVACY_URL` | Where the Terms and Privacy Policy are read: a path on the web app or a full URL. Default `/legal/tos` and `/legal/privacy`. Their versions are held by the web app, not here |
+
+## Privacy of the installation
+
+Read by every service, the same way, so they are set once: in `.env` for
+docker-compose, in the shared `config.env` for Kubernetes. They take effect on
+a restart.
+
+| Variable | Value |
+| --- | --- |
+| `SITE_READ_ACCESS` | What somebody who is **not signed in** may read: `public` (the default), everything that is public; `preview`, only the start of it; `registered`, nothing, a members-only site |
+| `MIN_CONTENT_ACCESS` | The widest audience anything **new** may be given: `public` (the default) or `registered` |
+
+A value that is not understood is treated as `registered`, the strictest, and
+the log says so. A typo must not be what makes everything public again.
+
+What each one does, how they combine, and how to check them is in
+[Privacy](privacy.md#what-the-installation-allows).
 
 ## First super administrator
 

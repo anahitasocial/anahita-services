@@ -215,6 +215,8 @@ func (r *nodesRepo) NextPurgeBatch(actorID int64, limit int) (*PurgeBatch, error
 SELECT
   work.node_id,
   COALESCE(node.type, ''),
+  COALESCE(node.service, ''),
+  COALESCE(node.owner_id, 0),
   COALESCE(node.filename, ''),
   COALESCE(node.cover_filename, '')
 FROM purge_work work
@@ -232,9 +234,20 @@ LIMIT ?`
 	defer rows.Close()
 
 	var batch *PurgeBatch
+	withFiles := map[int64]*entities.AnahitaNode{}
 	for rows.Next() {
 		node := entities.NewAnahitaNode()
-		if err := rows.Scan(&node.ID, &node.Type, &node.Filename, &node.CoverFilename); err != nil {
+		// The service and the owner as well as the names: a photo is stored
+		// under the profile it is on, so without them its path cannot be
+		// built and its images would be left in storage.
+		if err := rows.Scan(
+			&node.ID,
+			&node.Type,
+			&node.Service,
+			&node.OwnerID,
+			&node.Filename,
+			&node.CoverFilename,
+		); err != nil {
 			return nil, err
 		}
 
@@ -245,10 +258,51 @@ LIMIT ?`
 
 		if node.Filename != "" || node.CoverFilename != "" {
 			batch.Files = append(batch.Files, node)
+			withFiles[node.ID] = node
 		}
 	}
 
 	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if batch == nil {
+		return nil, nil
+	}
+
+	// A photo post can hold several images, and the node names only the
+	// first.
+	const photoFilesOfBatch = `
+SELECT
+  file.node_id,
+  file.filename
+FROM photo_files file
+JOIN purge_work work
+  ON work.node_id = file.node_id
+WHERE work.actor_id = ?
+  AND work.task = ?
+  AND work.node_id BETWEEN ? AND ?
+ORDER BY file.node_id, file.position`
+
+	fileRows, err := r.db.QueryContext(ctx, photoFilesOfBatch,
+		actorID, purgeTaskDelete, batch.First, batch.Last,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer fileRows.Close()
+
+	for fileRows.Next() {
+		file := &entities.PhotoFile{}
+		if err := fileRows.Scan(&file.NodeID, &file.Filename); err != nil {
+			return nil, err
+		}
+		if node, found := withFiles[file.NodeID]; found {
+			node.Files = append(node.Files, file)
+		}
+	}
+
+	if err := fileRows.Err(); err != nil {
 		return nil, err
 	}
 
@@ -331,6 +385,15 @@ WHERE work.actor_id = ?
   AND work.task = ?
   AND work.node_id BETWEEN ? AND ?`
 
+	const deletePhotoFiles = `
+DELETE file
+FROM photo_files file
+JOIN purge_work work
+  ON work.node_id = file.node_id
+WHERE work.actor_id = ?
+  AND work.task = ?
+  AND work.node_id BETWEEN ? AND ?`
+
 	const deleteNodes = `
 DELETE node
 FROM nodes node
@@ -353,6 +416,7 @@ WHERE actor_id = ?
 		deleteNotificationsAboutObject,
 		deleteNotificationsAboutTarget,
 		deleteNotificationsAboutComment,
+		deletePhotoFiles,
 		deleteNodes,
 		deleteWork,
 	} {

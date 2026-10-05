@@ -3,7 +3,9 @@ package handlers
 import (
 	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/cmd/api/permissions"
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/policy"
 	"anahita-libs/requests"
 	"log"
 	"net/http"
@@ -43,6 +45,16 @@ func (h *personHandler) EditAccess(c echo.Context) error {
 	if ok, err := h.Perms.People.CanEdit(actorAccessCtx); !ok {
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
+	}
+
+	// An installation that allows nothing new to be public does not let a
+	// profile be made public either. One that already is may stay so.
+	if !policy.MayChangeAccess(person.Access, req.Access) {
+		log.Printf("refused: this installation does not allow a profile to be made %q", req.Access)
+		return an_handlers.RefuseAccess(c, policy.Allowed([]string{
+			constants.AnahitaAccessPublic, constants.AnahitaAccessRegistered, constants.AnahitaAccessFollowers,
+			constants.AnahitaAccessLeaders, constants.AnahitaAccessMutuals, constants.AnahitaAccessMyself,
+		}))
 	}
 
 	person.AllowFollowRequest = req.AllowFollowRequest

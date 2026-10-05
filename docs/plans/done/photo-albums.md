@@ -12,6 +12,7 @@
 - **4 images per post,** the same as Mastodon, Bluesky and Pixelfed's default. A constant, `PhotoMaxFiles = 4`, in `anahita-libs/constants`, not an env var.
 - It's still published in NodeInfo `metadata` so the web app doesn't hard-code it.
 - **Federation (item 8):** posts map one-to-one on both protocols. There's no truncation and no "+N more" link.
+- **Confirmed on 2026-10-04:** Bluesky's image schema allows 4 images of at most 2 MB each, and Mastodon's documentation 4 of at most 16 MB. Four stays. The sizes differ, so what is sent to Bluesky has to fit 2 MB: keep a stored size that does, which the resizing here should guarantee.
 
 ## Design: one photo node with ordered attachments (not an album of photo nodes)
 - **Why:** a post with slides is *one* thing: one caption, one set of likes and replies, one audience. That's also how ActivityPub (one `Note` with several `attachment`s) and Bluesky (`app.bsky.embed.images`) model it.
@@ -98,6 +99,38 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **web `architecture.md`**: the multi-image composer and the carousel.
 - Item 18 needs no page changes: photo sets were never documented.
 
+## What was built for item 17 (2026-10-05)
+
+Described for people running or building on it in `docs/photos.md`.
+
+**Server.**
+- `photo_files` and `photo_uploads` (migration `20261008000001_photo_files.sql`, `init.sql`, `legacy/upgrade.sql`), with one row backfilled for each photo there already was. Owned by graph-grpc, reached through four new calls on its medium service.
+- `POST /photos/:owner_id/uploads`; `POST /photos/:owner_id/` takes `uploads`; `PATCH /photos/:id/files`. The one-file form post still works.
+- `files` on photo responses from photo-service and feed-service. `photoMaxFiles` in NodeInfo.
+- The sweeper removes uploads unused after a day. Deleting a post and purging an account remove every image.
+- Preview mode sends a visitor one small image and `files_held_back`.
+
+**Web.** A photo composer that takes several images, with order, removal and a description for each; slides on the post card, in the feed and on the photo's page; the lightbox goes through a post's images; "Edit photos" in a photo's menu.
+
+**Where it differs from the plan.**
+- **No staging prefix and no moving of files.** An image is stored under the profile, not the post, so an upload is stored where it will stay and "attaching" is a row changing tables.
+- **Editing sends the whole list,** not `order`, `alt_texts`, `remove` and `add`. One rule, and nothing depends on the order separate changes are applied in.
+- **No `filesize` column, and no `file_count` in lists.** Feeds carry the images themselves, read with one extra query for the page; other lists show the first image.
+- **Arrows, not drag, to reorder.**
+- **An image is named by its stored filename** in the API, not by its position, so an edit made from a stale copy cannot move the wrong image.
+
+**Found and fixed on the way.**
+- **A purge left photos in storage.** It built each photo's path without the service and the owner that are part of it, asked storage to delete objects that were never there, and got no error. Its test passed because it only looked for the word "photo" in the path. Both are fixed, and the test now names exact paths.
+- **`original` and `square` were squeezed.** For a photo posted through these services, `original` was a 320 pixel square and `square` the whole picture pressed into 640 by 640. `original` is what the photo's page and the zoom show. Now `original` is the picture at its own size and `square` is cut from the middle. Photos posted before the move to Go were never affected; photos posted since, and before this, still have the squeezed copies.
+- **A file that was not an image left a photo post with no photo,** because the post was made before the file was looked at. The images are now settled first.
+- **A photo over 4 MB was refused,** which is most photos straight off a phone. The limit was on the file as it arrived, though only reduced copies are stored. It is now 10 MB, with a limit on pixels checked before the picture is opened.
+
+**Tests.** The rules for which images a post may have, as one function; that a post binds both as JSON with uploads and as a form with a file; the tables against real MySQL, including two posts claiming one image, the sweeper, and the purge with exact paths; the preview; attaching and presigning; the image helpers. The migration was run fresh, as an upgrade (twice) and through the legacy path (1,661 photos, one row each), and the three schemas compared. In the web app, the list logic.
+
+**Not checked.** Uploading and posting through the running stack, which needs a signed-in session: reading was checked on the dev stack, posting was not. Nothing in the web app has been tried in a browser.
+
+**Left for later.** Putting right the squeezed `original` and `square` of photos posted between the move to Go and this. It needs each photo's largest good copy read back from storage and the two written again.
+
 ## Photo sets removed (roadmap item 18)
 
 ### Decision
@@ -159,5 +192,5 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Item 17 (several images per post) | not started |
+| Item 17 (several images per post) | done 2026-10-05, on branch `m4-posting-experience` |
 | Item 18 (photo sets removed) | done 2026-10-03, on branch `m1-safety-cleanup` |

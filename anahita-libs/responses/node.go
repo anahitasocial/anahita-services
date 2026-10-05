@@ -16,6 +16,7 @@ type NodeItem struct {
 	CreatedAt          time.Time `json:"created_at,omitempty"`
 	FollowerCount      int64     `json:"follower_count,omitempty"`
 	Mimetype           string    `json:"mimetype,omitempty"`
+	Language           string    `json:"language,omitempty"`
 	Access             string    `json:"access,omitempty"`
 	LikesCount         int64     `json:"likes_count,omitempty"`
 	IsLikedByViewer    bool      `json:"is_liked_by_viewer,omitempty"`
@@ -44,6 +45,9 @@ type NodeItem struct {
 	Avatar   map[string]Image `json:"avatar_urls,omitempty"`
 	Cover    map[string]Image `json:"cover_urls,omitempty"`
 	Portrait map[string]Image `json:"portrait_urls,omitempty"`
+	// The images of a photo post, in order. The first is the one
+	// portrait_urls shows.
+	Files []*PhotoFile `json:"files,omitempty"`
 }
 
 type NodeResponse struct{}
@@ -64,6 +68,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		CreatedAt:            node.CreatedAt,
 		FollowerCount:        node.FollowerCount,
 		Mimetype:             node.Mimetype,
+		Language:             node.Language,
 		Access:               node.Access,
 		LikesCount:           node.LikesCount,
 		IsLikedByViewer:      node.IsLikedByViewer,
@@ -121,6 +126,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 			}
 			return nil
 		}(),
+		Files: NewPhotoFiles(node.Files),
 	}
 }
 

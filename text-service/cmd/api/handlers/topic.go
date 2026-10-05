@@ -2,6 +2,7 @@ package handlers
 
 import (
 	an_handlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/requests"
@@ -131,6 +132,14 @@ func (h *topicHandler) Edit(c echo.Context) error {
 	medium.Name = req.Name
 	medium.Alias = slug.Make(medium.Name)
 	medium.Body = req.Body
+
+	// The language the author says it is written in. Not saying is not an
+	// error; a tag that is not one is.
+	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
+		return an_handlers.RefuseLanguage(c)
+	} else if language != "" {
+		medium.Language = language
+	}
 	medium.ModifiedBy = viewer.ID
 	medium, err = h.Srv.MediaGRPC.Edit(medium, viewer)
 	if err != nil {
@@ -181,6 +190,14 @@ func (h *topicHandler) Add(c echo.Context) error {
 	medium.Name = req.Name
 	medium.Alias = slug.Make(medium.Name)
 	medium.Body = req.Body
+
+	// The language the author says it is written in. Not saying is not an
+	// error; a tag that is not one is.
+	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
+		return an_handlers.RefuseLanguage(c)
+	} else if language != "" {
+		medium.Language = language
+	}
 	medium.OwnerID = owner.ID
 	medium.OwnerType = owner.Type
 	// The owner as read above, merged defaults and all. It was read and
@@ -202,6 +219,13 @@ func (h *topicHandler) Add(c echo.Context) error {
 	if ok, err := h.Perms.Medium.CanAdd(mediumAccessCtx); !ok {
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
+	}
+
+	// The audience has to be one this post can have where it is going: no
+	// "admins" on a person's profile, no "only me" on somebody else's.
+	if !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
+		log.Printf("refused: audience %q is not allowed on this profile", req.Access)
+		return an_handlers.RefuseAudience(c, mediumAccessCtx)
 	}
 
 	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)

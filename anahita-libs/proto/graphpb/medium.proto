@@ -95,6 +95,64 @@ message MediumPingResponse {
     string message = 1;
 }
 
+// One image of a photo post.
+message PhotoFile {
+    int64 node_id = 1;
+    int32 position = 2;
+    string filename = 3;
+    string mimetype = 4;
+    int32 width = 5;
+    int32 height = 6;
+    string alt_text = 7;
+}
+
+// An image uploaded and not in a post yet.
+message PhotoUpload {
+    int64 id = 1;
+    int64 owner_id = 2;
+    int64 created_by = 3;
+    string filename = 4;
+    string mimetype = 5;
+    int32 width = 6;
+    int32 height = 7;
+}
+
+message PhotoUploadAddRequest {
+    PhotoUpload upload = 1;
+}
+
+message PhotoUploadAddResponse {
+    int64 id = 1;
+}
+
+message PhotoUploadsReadRequest {
+    repeated int64 ids = 1;
+}
+
+message PhotoUploadsReadResponse {
+    repeated PhotoUpload uploads = 1;
+}
+
+message PhotoFilesBrowseRequest {
+    repeated int64 node_ids = 1;
+}
+
+message PhotoFilesBrowseResponse {
+    repeated PhotoFile files = 1;
+}
+
+// The images a post is to have from now on, in order, and the uploads that
+// were used to make them, which stop being uploads in the same step.
+message PhotoFilesSetRequest {
+    int64 node_id = 1;
+    repeated PhotoFile files = 2;
+    repeated int64 upload_ids = 3;
+}
+
+message PhotoFilesSetResponse {
+    repeated PhotoFile files = 1;
+}
+
 service MediumService {
     rpc Count(MediumCountRequest) returns (MediumCountResponse) {}
     rpc Browse(MediumBrowseRequest) returns (MediumBrowseResponse) {}
@@ -104,4 +162,11 @@ service MediumService {
     rpc Add(MediumAddRequest) returns (MediumAddResponse) {}
     rpc Delete(MediumDeleteRequest) returns (MediumDeleteResponse) {}
     rpc Ping(MediumPingRequest) returns (MediumPingResponse) {}
+
+    // The images of photo posts. A photo is a medium, and these are its
+    // images, so they are kept by the service that keeps the post.
+    rpc AddPhotoUpload(PhotoUploadAddRequest) returns (PhotoUploadAddResponse) {}
+    rpc ReadPhotoUploads(PhotoUploadsReadRequest) returns (PhotoUploadsReadResponse) {}
+    rpc BrowsePhotoFiles(PhotoFilesBrowseRequest) returns (PhotoFilesBrowseResponse) {}
+    rpc SetPhotoFiles(PhotoFilesSetRequest) returns (PhotoFilesSetResponse) {}
 }

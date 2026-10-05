@@ -2,6 +2,7 @@ package requests
 
 import (
 	"anahita-libs/constants"
+	"anahita-libs/policy"
 	"anahita-libs/requests"
 )
 
@@ -32,10 +33,10 @@ func NewNoteRequest() *NoteRequest {
 		},
 		EditAccess: &NoteEditAccessRequest{
 			ID:     0,
-			Access: constants.AnahitaAccessPublic,
+			Access: policy.MinContentAccess(),
 		},
 		Add: &NoteAddRequest{
-			Access:   constants.AnahitaAccessPublic,
+			Access:   policy.MinContentAccess(),
 			Composed: false,
 		},
 		Delete: &requests.MediumDeleteRequest{
@@ -47,6 +48,9 @@ func NewNoteRequest() *NoteRequest {
 type NoteEditRequest struct {
 	ID   int64  `param:"id" validate:"required,numeric"`
 	Body string `form:"body" validate:"required,max=8000"`
+	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
+	// by the author; left out, the post has none. See package language.
+	Language string `form:"language" validate:"omitempty,max=12"`
 }
 
 type NoteEditAccessRequest struct {
@@ -59,4 +63,7 @@ type NoteAddRequest struct {
 	Body     string `form:"body" validate:"required,max=8000"`
 	Access   string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
 	Composed bool   `form:"composed" validate:"omitempty"`
+	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
+	// by the author; left out, the post has none. See package language.
+	Language string `form:"language" validate:"omitempty,max=12"`
 }

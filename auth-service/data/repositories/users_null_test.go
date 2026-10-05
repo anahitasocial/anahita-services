@@ -110,6 +110,7 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 			"email_verified_at", "onboarded_at", "has_bio", "invited_by",
 			"tos_accepted", "tos_accepted_version",
 			"pp_accepted", "pp_accepted_version",
+			"language",
 		}).AddRow(
 			7, "node.actor.person-service.person.v1", true, "", "",
 			"", "", "", "", "",
@@ -118,6 +119,7 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 			nil, nil,
 			nil, nil, false, 0,
 			false, "", false, "",
+			"",
 		))
 
 	user, err := repo.ReadByEmail("someone@example.com")
@@ -183,12 +185,14 @@ func TestEmptyPasswordHashIsUnusable(t *testing.T) {
 			"email_verified_at", "onboarded_at", "has_bio", "invited_by",
 			"tos_accepted", "tos_accepted_version",
 			"pp_accepted", "pp_accepted_version",
+			"language",
 		}).AddRow(
 			7, "node.actor.person-service.person.v1", true, "", "invited",
 			"invited@example.com", "", "registered", "person-service", "",
 			nil, nil, nil, false, "", time.Now(), "", nil, nil,
 			nil, nil, false, 0,
 			false, "", false, "",
+			"",
 		))
 
 	user, err := repo.ReadByEmail("invited@example.com")

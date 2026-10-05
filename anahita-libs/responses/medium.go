@@ -6,21 +6,24 @@ import (
 )
 
 type MediumNodeItem struct {
-	ID                 int64     `json:"id"`
-	Type               string    `json:"type"`
-	Name               string    `json:"name,omitempty"`
-	Alias              string    `json:"alias,omitempty"`
-	Body               string    `json:"body,omitempty"`
-	Excerpt            string    `json:"excerpt,omitempty"`
-	CreatedAt          time.Time `json:"created_at,omitempty"`
-	Mimetype           string    `json:"mimetype,omitempty"`
-	Access             string    `json:"access,omitempty"`
-	LikesCount         int64     `json:"likes_count"`
-	QuoteCount         int64     `json:"quote_count"`
-	RepostCount        int64     `json:"repost_count"`
-	CommentCount       int64     `json:"comment_count"`
-	IsLikedByViewer    bool      `json:"is_liked_by_viewer"`
-	IsRepostedByViewer bool      `json:"is_reposted_by_viewer"`
+	ID        int64     `json:"id"`
+	Type      string    `json:"type"`
+	Name      string    `json:"name,omitempty"`
+	Alias     string    `json:"alias,omitempty"`
+	Body      string    `json:"body,omitempty"`
+	Excerpt   string    `json:"excerpt,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	Mimetype  string    `json:"mimetype,omitempty"`
+	// The language the author said it is written in. Left out when they did
+	// not say.
+	Language           string `json:"language,omitempty"`
+	Access             string `json:"access,omitempty"`
+	LikesCount         int64  `json:"likes_count"`
+	QuoteCount         int64  `json:"quote_count"`
+	RepostCount        int64  `json:"repost_count"`
+	CommentCount       int64  `json:"comment_count"`
+	IsLikedByViewer    bool   `json:"is_liked_by_viewer"`
+	IsRepostedByViewer bool   `json:"is_reposted_by_viewer"`
 
 	// Related Entities
 	Author *Author `json:"author,omitempty"`
@@ -29,6 +32,9 @@ type MediumNodeItem struct {
 	// Media URLs
 	Cover    map[string]Image `json:"cover_urls,omitempty"`
 	Portrait map[string]Image `json:"portrait_urls,omitempty"`
+	// The images of a photo post, in order. The first is the one
+	// portrait_urls shows.
+	Files []*PhotoFile `json:"files,omitempty"`
 }
 
 type MediumNode struct {
@@ -41,6 +47,7 @@ type MediumNode struct {
 	CreatedAt     time.Time `json:"created_at,omitempty"`
 	UpdatedAt     time.Time `json:"updated_at,omitempty"`
 	Mimetype      string    `json:"mimetype,omitempty"`
+	Language      string    `json:"language,omitempty"`
 	Access        string    `json:"access,omitempty"`
 	ViewCount     int64     `json:"view_count"`
 	LikesCount    int64     `json:"likes_count"`
@@ -65,6 +72,9 @@ type MediumNode struct {
 	// Media URLs
 	Cover    map[string]Image `json:"cover_urls,omitempty"`
 	Portrait map[string]Image `json:"portrait_urls,omitempty"`
+	// The images of a photo post, in order. The first is the one
+	// portrait_urls shows.
+	Files []*PhotoFile `json:"files,omitempty"`
 }
 
 type MediumNodeResponse struct{}
@@ -83,6 +93,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		QuoteCount:         node.QuoteCount,
 		CreatedAt:          node.CreatedAt,
 		Mimetype:           node.Mimetype,
+		Language:           node.Language,
 		Access:             node.Access,
 		LikesCount:         node.LikesCount,
 		IsLikedByViewer:    node.IsLikedByViewer,
@@ -113,6 +124,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 			}
 			return nil
 		}(),
+		Files: NewPhotoFiles(node.Files),
 	}
 }
 
@@ -131,6 +143,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		CreatedAt:          node.CreatedAt,
 		UpdatedAt:          node.UpdatedAt,
 		Mimetype:           node.Mimetype,
+		Language:           node.Language,
 		Access:             node.Access,
 		LikesCount:         node.LikesCount,
 		IsLikedByViewer:    node.IsLikedByViewer,
@@ -176,6 +189,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 			}
 			return nil
 		}(),
+		Files: NewPhotoFiles(node.Files),
 	}
 }
 

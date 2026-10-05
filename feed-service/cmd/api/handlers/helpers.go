@@ -56,6 +56,15 @@ func batchPresignPaths(env *Env, items []*entities.AnahitaNode) {
 		}
 	}
 
+	// Every image of each photo post, and of each photo that was reposted,
+	// read with one call for the whole page.
+	photos := make([]*entities.AnahitaNode, 0, len(items)*2)
+	for _, item := range items {
+		photos = append(photos, item, item.Parent)
+	}
+	services.AttachPhotoFiles(env.Srv.MediaGRPC, photos)
+	services.BatchPresignPhotoFiles(env.Srv.FilesGRPC, photos)
+
 	if len(authorAvatarNodes) > 0 {
 		services.BatchPresignAvatar(env.Srv.FilesGRPC, authorAvatarNodes)
 	}

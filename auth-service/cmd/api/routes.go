@@ -293,6 +293,10 @@ func (r *Routes) Init(e *echo.Echo) {
 	accounts := e.Group("/accounts")
 	accounts.Use(r.authorize)
 	accounts.GET("", h.Accounts.Browse)
+	// How much is public, and making all of it registered-only in one step.
+	// For an installation that has stopped allowing new public content.
+	accounts.GET("/public-content", h.Accounts.PublicContent)
+	accounts.POST("/make-registered", h.Accounts.MakeRegistered)
 
 	totps := e.Group("/totp")
 	totps.Use(r.authorize)

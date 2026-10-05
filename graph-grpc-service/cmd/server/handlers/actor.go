@@ -745,6 +745,50 @@ func (h *actorHandler) ReadPurgeBatch(ctx context.Context, req *graphpb.ActorPur
 	return response, nil
 }
 
+// PublicAccessCounts says how much on the installation is public.
+func (h *actorHandler) PublicAccessCounts(ctx context.Context, req *graphpb.PublicAccessCountsRequest) (*graphpb.PublicAccessCountsResponse, error) {
+	counts, err := h.env.Repos.PublicAccess.Count()
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphpb.PublicAccessCountsResponse{
+		People: counts.People,
+		Groups: counts.Groups,
+		Posts:  counts.Posts,
+	}, nil
+}
+
+// MakePublicRegistered makes everything public visible to signed-in people
+// only, and returns what it changed.
+//
+// AUTHORITY IS THE CALLER'S TO CHECK, as for a purge: super administrators
+// only, with a proof of identity, on an installation that no longer allows
+// anything new to be public. This service knows none of the three.
+func (h *actorHandler) MakePublicRegistered(ctx context.Context, req *graphpb.MakePublicRegisteredRequest) (*graphpb.PublicAccessCountsResponse, error) {
+	var performedBy int64
+	if req.Viewer != nil {
+		performedBy = req.Viewer.Id
+	}
+
+	log.Printf("Received MakePublicRegistered request from %d", performedBy)
+
+	counts, err := h.env.Repos.PublicAccess.MakeRegistered(performedBy)
+	if err != nil {
+		log.Println("make public registered:", err)
+		return nil, err
+	}
+
+	log.Printf("made %d people, %d groups and %d posts registered-only",
+		counts.People, counts.Groups, counts.Posts)
+
+	return &graphpb.PublicAccessCountsResponse{
+		People: counts.People,
+		Groups: counts.Groups,
+		Posts:  counts.Posts,
+	}, nil
+}
+
 // Archive marks an actor archived. Permanent, and destroys nothing.
 //
 // The content keeps its URLs and stays readable forever; what stops is being

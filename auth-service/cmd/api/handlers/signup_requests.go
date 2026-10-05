@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/policy"
 	"database/sql"
 	"errors"
 	"log"
@@ -185,7 +186,9 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 	actor.Name = sr.Name
 	actor.Body = sr.Body
 	actor.WebsiteURL = sr.WebsiteURL
-	actor.Access = constants.AnahitaAccessPublic
+	// Public, unless the installation allows nothing new to be: then a new
+	// profile is for signed-in people, like everything else created here.
+	actor.Access = policy.MinContentAccess()
 	actor.PersonType = constants.PersonTypeRegistered
 	actor.Enabled = true
 	actor.CreatedAt = time.Now()
