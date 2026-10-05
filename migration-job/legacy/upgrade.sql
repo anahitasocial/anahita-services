@@ -1259,5 +1259,5 @@ ALTER TABLE node_deletion_logs RENAME INDEX `idx_node_deletion_logs_created_on` 
 -- --------------------------------------------------------
 
 -- Some data updates for now, remove it in the final commit
-UPDATE nodes SET filename = '8944e519-1d9f-46c4-a16f-3da487ade61f.jpg' WHERE alias = 'rastin';
-UPDATE nodes SET filename = '423f925ce9bb8dce0c8f1876778a96a8.jpg' WHERE alias = 'rmundel';
+UPDATE nodes SET avatar_filename = '8944e519-1d9f-46c4-a16f-3da487ade61f.jpg' WHERE alias = 'rastin';
+UPDATE nodes SET avatar_filename = '423f925ce9bb8dce0c8f1876778a96a8.jpg' WHERE alias = 'rmundel';
