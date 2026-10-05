@@ -34,7 +34,8 @@ type NodeAuthorized struct {
 	Like        *bool    `json:"like,omitempty"`
 	AddFollower *bool    `json:"add_follower,omitempty"`
 	Composers   []string `json:"composers,omitempty"`
-	// Who a new post here may be shown to, widest first. Left out for
-	// somebody who is not signed in.
+	// On a person or group: who a new post there may be shown to. On a
+	// post: who it may be changed to be shown to, for somebody who may edit
+	// it. Widest first; left out otherwise.
 	Audiences []string `json:"audiences,omitempty"`
 }

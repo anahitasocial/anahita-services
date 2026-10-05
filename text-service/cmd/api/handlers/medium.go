@@ -2,6 +2,7 @@ package handlers
 
 import (
 	an_handlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 	"anahita-libs/requests"
 	"anahita-libs/responses"
@@ -122,6 +123,12 @@ func (h *mediumHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNod
 	}
 
 	item.Authorized.Edit, _ = h.Perms.Medium.CanEdit(mediumAccessCtx)
+	// Who it may be shown to, for whoever may change that: the rule the
+	// change-access route enforces, so the web app offers only audiences
+	// that will be accepted.
+	if item.Authorized.Edit {
+		item.Authorized.Audiences = permissions.MediumAudiences(mediumAccessCtx)
+	}
 	item.Authorized.Delete, _ = h.Perms.Medium.CanDelete(mediumAccessCtx)
 	item.Authorized.Administration, _ = h.Perms.Medium.CanAdministrate(mediumAccessCtx)
 

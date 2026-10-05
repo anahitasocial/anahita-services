@@ -136,6 +136,10 @@ Every person and group in a response carries `authorized.audiences`: the
 audiences a post the viewer writes there may have, from this same rule. The
 web app's composer offers those and nothing else.
 
+A post carries `authorized.audiences` too, for a viewer who may edit it: the
+audiences it may be changed to. They can differ from the profile's list,
+because "only me" depends on who wrote the post, not on who is changing it.
+
 ## Posting
 
 Who can create a note, article, topic or photo on somebody's profile.

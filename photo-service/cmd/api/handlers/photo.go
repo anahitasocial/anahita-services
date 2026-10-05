@@ -451,6 +451,12 @@ func (h *photoHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 	}
 
 	item.Authorized.Edit, _ = h.Perms.Media.CanEdit(mediumAccessCtx)
+	// Who it may be shown to, for whoever may change that: the rule the
+	// change-access route enforces, so the web app offers only audiences
+	// that will be accepted.
+	if item.Authorized.Edit {
+		item.Authorized.Audiences = permissions.MediumAudiences(mediumAccessCtx)
+	}
 	item.Authorized.Delete, _ = h.Perms.Media.CanDelete(mediumAccessCtx)
 	item.Authorized.Administration, _ = h.Perms.Media.CanAdministrate(mediumAccessCtx)
 

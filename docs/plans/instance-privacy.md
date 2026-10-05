@@ -181,6 +181,14 @@ with the post.
 - `leaders` is accepted by the server on a person's profile and not offered
   when writing: it is not an audience anybody picks.
 
+**The control on an existing post is the same button** (asked for by the user
+on 2026-10-04). `controls/medium/Access.jsx` was a bare globe or padlock
+opening a list of level names; it now uses the composer's button
+(`components/AudienceButton.jsx`), and a post the viewer may edit carries
+`authorized.audiences`, the audiences it may be changed to. A post's response
+does not say how widely its profile is visible, so on an existing post the
+wider-than-the-profile choices are not greyed out as they are when writing.
+
 **Not built yet,** from this section of the plan: filtering by
 `MIN_CONTENT_ACCESS`, which comes with that setting, and the fediverse hint,
 which comes with federation.
