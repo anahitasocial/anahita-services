@@ -132,6 +132,14 @@ func (h *topicHandler) Edit(c echo.Context) error {
 	medium.Name = req.Name
 	medium.Alias = slug.Make(medium.Name)
 	medium.Body = req.Body
+
+	// The language the author says it is written in. Not saying is not an
+	// error; a tag that is not one is.
+	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
+		return an_handlers.RefuseLanguage(c)
+	} else if language != "" {
+		medium.Language = language
+	}
 	medium.ModifiedBy = viewer.ID
 	medium, err = h.Srv.MediaGRPC.Edit(medium, viewer)
 	if err != nil {
@@ -182,6 +190,14 @@ func (h *topicHandler) Add(c echo.Context) error {
 	medium.Name = req.Name
 	medium.Alias = slug.Make(medium.Name)
 	medium.Body = req.Body
+
+	// The language the author says it is written in. Not saying is not an
+	// error; a tag that is not one is.
+	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
+		return an_handlers.RefuseLanguage(c)
+	} else if language != "" {
+		medium.Language = language
+	}
 	medium.OwnerID = owner.ID
 	medium.OwnerType = owner.Type
 	// The owner as read above, merged defaults and all. It was read and

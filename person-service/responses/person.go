@@ -17,6 +17,8 @@ type PersonNodeItem struct {
 
 	PersonType     string `json:"person_type,omitempty"`
 	PersonPronouns string `json:"person_pronouns,omitempty"`
+	// The language this person usually posts in. Left out when not set.
+	Language string `json:"language,omitempty"`
 }
 
 type PersonNode struct {
@@ -75,6 +77,7 @@ func (r *PersonResponse) MapNodeItem(node *entities.Person) *PersonNodeItem {
 		ActorNodeItem:  *r.ActorResponse.MapNodeItem(&node.AnahitaNode),
 		PersonType:     node.PersonType,
 		PersonPronouns: node.PersonPronouns,
+		Language:       node.Language,
 	}
 }
 

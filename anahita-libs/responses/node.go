@@ -16,6 +16,7 @@ type NodeItem struct {
 	CreatedAt          time.Time `json:"created_at,omitempty"`
 	FollowerCount      int64     `json:"follower_count,omitempty"`
 	Mimetype           string    `json:"mimetype,omitempty"`
+	Language           string    `json:"language,omitempty"`
 	Access             string    `json:"access,omitempty"`
 	LikesCount         int64     `json:"likes_count,omitempty"`
 	IsLikedByViewer    bool      `json:"is_liked_by_viewer,omitempty"`
@@ -64,6 +65,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		CreatedAt:            node.CreatedAt,
 		FollowerCount:        node.FollowerCount,
 		Mimetype:             node.Mimetype,
+		Language:             node.Language,
 		Access:               node.Access,
 		LikesCount:           node.LikesCount,
 		IsLikedByViewer:      node.IsLikedByViewer,

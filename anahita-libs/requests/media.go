@@ -73,6 +73,9 @@ type MediumEditRequest struct {
 	Name    string `form:"name" validate:"required,max=100"`
 	Body    string `form:"body" validate:"required,max=8000"`
 	Excerpt string `form:"excerpt" validate:"omitempty,max=500"`
+	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
+	// by the author; left out, the post has none. See package language.
+	Language string `form:"language" validate:"omitempty,max=12"`
 }
 
 type MediumEditAccessRequest struct {
@@ -95,6 +98,9 @@ type MediumAddRequest struct {
 	Excerpt  string `form:"excerpt" validate:"omitempty,max=500"`
 	Access   string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
 	Composed bool   `form:"composed" validate:"omitempty"`
+	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
+	// by the author; left out, the post has none. See package language.
+	Language string `form:"language" validate:"omitempty,max=12"`
 }
 
 type MediumDeleteRequest struct {

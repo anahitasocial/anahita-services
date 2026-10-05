@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
@@ -218,6 +219,14 @@ func (h *personHandler) Edit(c echo.Context) error {
 	person.Name = req.Name
 	person.PersonPronouns = req.PersonPronouns
 	person.Body = req.Body
+
+	// The language this person usually posts in. Left out, it stays as it
+	// was.
+	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
+		return an_handlers.RefuseLanguage(c)
+	} else if language != "" {
+		person.Language = language
+	}
 	person.WebsiteURL = req.WebsiteURL
 	person.ModifiedBy = viewer.ID
 	person.UpdatedAt = time.Now()

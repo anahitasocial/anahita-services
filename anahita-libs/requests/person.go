@@ -57,6 +57,9 @@ type PersonEditRequest struct {
 	// while those two were truncated at the first non-ASCII byte.
 	Name string `form:"name" validate:"required,max=100"`
 	Body string `form:"body" validate:"omitempty,max=8000"`
+	// The language this person usually posts in, as a BCP 47 tag. It is what
+	// the composer starts on; each post can say otherwise.
+	Language string `form:"language" validate:"omitempty,max=12"`
 	// Free text, e.g. "she/her" or "iel". The gender enum it replaces was
 	// broken in both directions: the validator allowed "other", which the
 	// handler discarded, and the handler stored "neutral", which the validator

@@ -80,6 +80,9 @@ func userColumns() []string {
 		"COALESCE(auth_accounts.tos_accepted_version, '') AS tos_accepted_version",
 		"auth_accounts.pp_accepted",
 		"COALESCE(auth_accounts.pp_accepted_version, '') AS pp_accepted_version",
+		// The language this person usually posts in, which the web app's
+		// composer starts on. Empty when they have not said.
+		"COALESCE(nodes.language, '') AS language",
 	}
 }
 
@@ -126,6 +129,7 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		&item.TermsOfService.Version,
 		&item.PrivacyPolicy.Accepted,
 		&item.PrivacyPolicy.Version,
+		&item.Language,
 	); err != nil {
 		return nil, err
 	}

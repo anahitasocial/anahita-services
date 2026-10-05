@@ -207,6 +207,17 @@ func TestUserInfoCarriesOnboardingState(t *testing.T) {
 		t.Errorf("has_bio = %v, want true", done["has_bio"])
 	}
 
+	// The language the person usually posts in: there when they have said,
+	// and absent, not empty, when they have not. The web app tells the two
+	// apart to know whether to go by the browser's language.
+	if _, present := fresh["language"]; present {
+		t.Errorf("language = %v for somebody who has not chosen one", fresh["language"])
+	}
+	user.Language = "fr-CA"
+	if got := decode(user)["language"]; got != "fr-CA" {
+		t.Errorf("language = %v, want fr-CA", got)
+	}
+
 	// Profile-scoped, like the rest of the actor half.
 	openid := userinfoFor(testViewer(), "openid")
 	for _, gated := range []string{"onboarded_at", "has_bio"} {

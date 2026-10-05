@@ -113,6 +113,13 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 		// profile.
 		info["onboarded_at"] = user.OnboardedAt
 		info["has_bio"] = user.HasBio
+
+		// The language this person usually posts in, as a tag such as "fr".
+		// The composer starts on it. Left out when they have not said, and
+		// the web app then goes by the browser's language.
+		if user.Language != "" {
+			info["language"] = user.Language
+		}
 	}
 
 	if scopeSet["email"] {

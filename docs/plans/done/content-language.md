@@ -97,9 +97,54 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **web `customising.md`**, *Languages*: the difference between the interface language and a person's posting language.
 - **web `architecture.md`**, *Translations*: the `lang` attribute on post bodies and the composer language chip.
 
+## What was built (2026-10-05)
+
+A smaller form of this plan, chosen with the user after asking whether the
+feature was needed at all. They looked at Bluesky's composer and decided it
+was; the recommendation was to build what an author's choice needs and leave
+out what guesses.
+
+**Built.**
+- `anahita-libs/language`: tags are checked and spelled the usual way.
+  Two-letter codes are held to ISO 639-1; a region is allowed; `und` is
+  accepted.
+- `language` on creating and editing a note, article, topic and photo, and in
+  every post's response. The column and its plumbing through the graph were
+  already there; nothing had written to it.
+- `language` on a person, as the language they usually post in, and in
+  `/oauth/userinfo` so the composer can start on it.
+- Web: a language button in the composer beside the audience button, the
+  `lang` attribute on post text, and "Language you post in" in the profile
+  form and the onboarding profile step.
+
+**Left out, on purpose,** and listed in `docs/post-language.md`: detection
+(lingua-go was never added; its language data would have added on the order
+of a hundred megabytes to each service that used it, which was not measured),
+the "looks like French" suggestion, the backfill of old posts, the
+`/language/detect` endpoint, the index, and changing a post's language from
+the web app's edit form.
+
+**Where it differs from the plan.**
+- **One field on a person, not two.** The plan had `posting_language` and a
+  separate UI language on the node. The interface language is the web app's
+  own business; the node's `language` is the posting language.
+- **The composer starts on the language last posted in**, ahead of the
+  profile's. Somebody who switched to French for a post is probably still
+  writing French.
+- **Names of languages come from the browser** (`Intl.DisplayNames`), in the
+  language the app is read in, so there is no list of names to translate.
+
+**Tests.** The tag rules; reading and refusing a language in requests; a guard
+that all four post handlers read it through the one function, for creating
+and for editing; the viewer's claim. In the web app, where the composer
+starts.
+
+**Not checked.** Posting with a language through the running stack, and the
+button, the setting and the `lang` attribute in a browser.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Implementation | done 2026-10-05, in the smaller form above |
