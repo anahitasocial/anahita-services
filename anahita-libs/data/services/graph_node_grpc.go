@@ -38,6 +38,10 @@ type GraphNodeGRPCInterface interface {
 	// Delete deletes a graph node
 	Delete(id int64) (bool, error)
 
+	// ClearFile takes an avatar ("avatar") or a cover ("cover") off a node.
+	// Edit cannot: it leaves an image alone unless it is given a new name.
+	ClearFile(id int64, kind string, modifiedBy int64) (bool, error)
+
 	// Count returns the total number of graph nodes
 	Count(req *GraphNodeBrowseRequest) (uint64, error)
 
@@ -255,6 +259,31 @@ func (srv *GraphNodeGRPC) Delete(id int64) (bool, error) {
 
 	resp, err := client.Delete(context.Background(), &graphpb.NodeDeleteRequest{
 		Id: id,
+	})
+	if err != nil {
+		return false, err
+	}
+	if resp == nil {
+		return false, nil
+	}
+
+	return resp.Success, nil
+}
+
+// ClearFile takes an avatar or a cover off a node.
+func (srv *GraphNodeGRPC) ClearFile(id int64, kind string, modifiedBy int64) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.ClearFile(context.Background(), &graphpb.NodeClearFileRequest{
+		Id:         id,
+		Kind:       kind,
+		ModifiedBy: modifiedBy,
 	})
 	if err != nil {
 		return false, err

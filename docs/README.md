@@ -159,6 +159,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Abuse reports](plans/done/abuse-report-service.md) | 4b | done 2026-10-03 |
 | [Complete hard delete and bulk cleanup](plans/done/actor-hard-delete.md) | 5 | done 2026-10-04 (the web part not yet tried in a browser) |
 | [One name for timestamps: `_at`](plans/done/timestamp-names.md) | 28 | done 2026-10-04 |
+| [One identity image service: avatars and covers merged](plans/done/identity-image-service.md) | 31 | done 2026-10-05 (nothing needing a signed-in session was tried) |
 | [One actor service: people and groups merged](plans/done/actor-service.md) | 29 | done 2026-10-05 (nothing needing a signed-in session was tried) |
 | [Several images per photo post; photo sets removed](plans/done/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 done 2026-10-05 (posting and the web parts not yet tried in a browser) |
 | [Language on posts](plans/done/content-language.md) | 20 | done 2026-10-05 in a smaller form: the author chooses, nothing is detected |

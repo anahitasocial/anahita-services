@@ -47,11 +47,7 @@ images:
     newTag: latest
   - name: anahita/auth-service
     newTag: latest
-  - name: anahita/avatar-service
-    newTag: latest
   - name: anahita/comment-service
-    newTag: latest
-  - name: anahita/cover-service
     newTag: latest
   - name: anahita/feed-service
     newTag: latest
@@ -60,6 +56,8 @@ images:
   - name: anahita/graph-grpc-service
     newTag: latest
   - name: anahita/hashtag-service
+    newTag: latest
+  - name: anahita/identity-image-service
     newTag: latest
   - name: anahita/like-service
     newTag: latest

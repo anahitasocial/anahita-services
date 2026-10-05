@@ -50,8 +50,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `search-service` | 8093 | — | Search |
 | `comment-service` | 8094 | — | Comments |
 | `like-service` | 8095 | 50058 | Votes / likes |
-| `avatar-service` | 8096 | — | Actor avatars |
-| `cover-service` | 8097 | — | Actor cover images |
+| `identity-image-service` | 8096 | — | The avatars and covers of profiles and posts; see [Naming images](#naming-images) |
 | `feed-service` | 8098 | 50059 | Feeds and reposts |
 | `abuse-report-service` | 8099 | — | Reports of people and posts, and the cases administrators decide. See [Abuse reports](abuse-reports.md) |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
@@ -79,8 +78,7 @@ Kubernetes, where the Ingress sends everything to it
 | `/articles/`, `/notes/`, `/topics/` | `text-service` |
 | `/people/`, `/groups/` | `actor-service` |
 | `/photos/` | `photo-service` |
-| `/avatars/` | `avatar-service` |
-| `/covers/` | `cover-service` |
+| `/avatars/`, `/covers/` | `identity-image-service` |
 | `/comments/` | `comment-service` |
 | `/likes/` | `like-service` |
 | `/hashtags/` | `hashtag-service` |
@@ -136,6 +134,44 @@ now one, `actor-service`.
 - **A new kind of actor** is a handler and its routes in this service, not a
   service of its own. Events are planned that way, and so is the Website
   actor ([plans/website-actor.md](plans/website-actor.md)).
+
+## Naming images
+
+There are three kinds of image, and the names for them have not always
+lined up. This is what each is, and what it is called where.
+
+| What it is | Who has one | Column | In the API | Served by |
+| --- | --- | --- | --- | --- |
+| **Avatar**: the picture that stands for an actor | People, groups | `nodes.filename` | `avatar_urls` | `identity-image-service`, at `/avatars/` |
+| **Cover**: the wide picture across the top | People, groups, and posts such as articles | `nodes.cover_filename` | `cover_urls` | `identity-image-service`, at `/covers/` |
+| **A photo post's images**: the photo itself | Photo posts | `photo_files`, with the first copied to `nodes.filename` | `files`, and `portrait_urls` for the first | `photo-service`; see [Photo posts](photos.md) |
+
+- **Avatars and covers are identity images:** what a profile or a post is
+  recognised by. A photo post's images are content. That is the line between
+  the two services.
+- **`nodes.filename` means two things,** and which depends on the kind of
+  node: an actor's avatar, or the file a post *is* (a photo today, a document
+  if file sharing is built). The second is the meaning to keep. The first is
+  to move to a column of its own, `avatar_filename`, when the schema is put
+  in order ([plans/migration-baseline.md](plans/migration-baseline.md)).
+  Until then anything that clears or reads an avatar has to check that the
+  node is an actor, as `ClearFile` in graph-grpc does.
+- **"Portrait"** in the code and in `portrait_urls` means a photo post's
+  image, not a picture of a person. It is not to be used for anything new,
+  and goes when `avatar_filename` arrives.
+- **"Avatar"** stays, in the code and the API. It is the word Mastodon and
+  Bluesky use for the same field.
+- **The stored addresses still say `avatar-service` and `cover-service`**
+  (`assets/v2/avatar-service/person/<id>/…`). Those are where every avatar
+  and cover already is. Like the type names of people and groups, they are
+  names now and not the names of anything running.
+
+Every uploaded image, of any of the three kinds, goes through one check
+(`images.Accept` in `anahita-libs/utils`): it is judged from its bytes and
+not its name, limited in bytes and in pixels before it is opened, and turned
+the right way up. Nothing is stored as it arrived; each stored size is
+written out again, never enlarged, and a square is cut from the middle and
+not squeezed.
 
 ## anahita-libs
 
