@@ -56,6 +56,9 @@ func (repo *FeedActorRepo) Count(req *graphpb.FeedActorCountRequest, viewer *ent
 	sb = sb.Where(sq.Or{branchMedia})
 
 	// Apply your access gate
+	// Replies are read in their thread, not in a feed.
+	sb = sb.Where("node.root_id IS NULL")
+
 	sb = SetFeedAccessQuery(sb, viewer)
 
 	sqlStr, args, err := sb.ToSql()
@@ -90,6 +93,9 @@ func (repo *FeedActorRepo) Browse(req *graphpb.FeedActorBrowseRequest, viewer *e
 	query = query.Where(sq.Or{branchMedia})
 
 	// Apply access checks
+	// Replies are read in their thread, not in a feed.
+	query = query.Where("node.root_id IS NULL")
+
 	query = SetFeedAccessQuery(query, viewer)
 
 	// Sort & paginate

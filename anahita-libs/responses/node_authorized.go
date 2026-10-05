@@ -14,6 +14,7 @@ func NewNodeAuthorized(node *entities.AnahitaNode) *NodeAuthorized {
 		Comment:        node.Authorized.Comment,
 		Like:           node.Authorized.Like,
 		AddFollower:    node.Authorized.AddFollower,
+		Hide:           node.Authorized.Hide,
 		Composers:      node.Authorized.Composers,
 		Audiences:      node.Authorized.Audiences,
 	}
@@ -30,10 +31,12 @@ type NodeAuthorized struct {
 	//
 	// Composers is left out when empty too: every person and group response
 	// works it out, so there a missing list means none.
-	Comment     *bool    `json:"comment,omitempty"`
-	Like        *bool    `json:"like,omitempty"`
-	AddFollower *bool    `json:"add_follower,omitempty"`
-	Composers   []string `json:"composers,omitempty"`
+	Comment     *bool `json:"comment,omitempty"`
+	Like        *bool `json:"like,omitempty"`
+	AddFollower *bool `json:"add_follower,omitempty"`
+	// On a reply: whether the viewer may hide it from its thread.
+	Hide      *bool    `json:"hide,omitempty"`
+	Composers []string `json:"composers,omitempty"`
 	// On a person or group: who a new post there may be shown to. On a
 	// post: who it may be changed to be shown to, for somebody who may edit
 	// it. Widest first; left out otherwise.

@@ -52,6 +52,14 @@ type MediaGRPCInterface interface {
 	// and forgets the uploads they were made from.
 	SetPhotoFiles(nodeID int64, files []*entities.PhotoFile, uploadIDs []int64) ([]*entities.PhotoFile, error)
 
+	// Thread returns every reply under a post that the viewer may see,
+	// oldest first, each marked Hidden if it has been hidden from the
+	// thread. Whether the viewer may see the post is the caller's to ask.
+	Thread(rootID int64, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
+
+	// HideReply hides a reply from its thread, or shows it again.
+	HideReply(replyID int64, hidden bool, viewer *entities.Viewer) error
+
 	// getClient returns the grpc client
 	getClient() (graphpb.MediumServiceClient, error)
 }
@@ -111,8 +119,9 @@ func (srv *MediaGRPC) Count(req *MediaGRPCBrowseRequest, viewer *entities.Viewer
 	}
 
 	resp, err := client.Count(context.Background(), &graphpb.MediumCountRequest{
-		Types:   req.Types,
-		OwnerId: req.OwnerID,
+		Types:          req.Types,
+		OwnerId:        req.OwnerID,
+		IncludeReplies: req.IncludeReplies,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
@@ -141,12 +150,13 @@ func (srv *MediaGRPC) Browse(req *MediaGRPCBrowseRequest, viewer *entities.Viewe
 	}
 
 	resp, err := client.Browse(context.Background(), &graphpb.MediumBrowseRequest{
-		Types:     req.Types,
-		OwnerId:   req.OwnerID,
-		Limit:     req.Limit,
-		Offset:    req.Offset,
-		Ordering:  req.Ordering,
-		Direction: req.Direction,
+		Types:          req.Types,
+		OwnerId:        req.OwnerID,
+		Limit:          req.Limit,
+		Offset:         req.Offset,
+		Ordering:       req.Ordering,
+		Direction:      req.Direction,
+		IncludeReplies: req.IncludeReplies,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,

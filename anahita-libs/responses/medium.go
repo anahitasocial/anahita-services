@@ -16,7 +16,17 @@ type MediumNodeItem struct {
 	Mimetype  string    `json:"mimetype,omitempty"`
 	// The language the author said it is written in. Left out when they did
 	// not say.
-	Language           string `json:"language,omitempty"`
+	Language string `json:"language,omitempty"`
+	// On a reply: the post or reply it answers, and the post at the top of
+	// its thread. Left out on anything that is not a reply.
+	ParentID int64 `json:"parent_id,omitempty"`
+	RootID   int64 `json:"root_id,omitempty"`
+	// On a reply: removed, and kept as an empty placeholder because other
+	// replies hang from it. It carries no text and no author.
+	Deleted bool `json:"deleted,omitempty"`
+	// On a reply: hidden from its thread. Sent only to somebody who may
+	// show it again.
+	Hidden             bool   `json:"hidden,omitempty"`
 	Access             string `json:"access,omitempty"`
 	LikesCount         int64  `json:"likes_count"`
 	QuoteCount         int64  `json:"quote_count"`
@@ -38,25 +48,30 @@ type MediumNodeItem struct {
 }
 
 type MediumNode struct {
-	ID            int64     `json:"id"`
-	Type          string    `json:"type"`
-	Name          string    `json:"name,omitempty"`
-	Alias         string    `json:"alias,omitempty"`
-	Body          string    `json:"body,omitempty"`
-	Excerpt       string    `json:"excerpt,omitempty"`
-	CreatedAt     time.Time `json:"created_at,omitempty"`
-	UpdatedAt     time.Time `json:"updated_at,omitempty"`
-	Mimetype      string    `json:"mimetype,omitempty"`
-	Language      string    `json:"language,omitempty"`
-	Access        string    `json:"access,omitempty"`
-	ViewCount     int64     `json:"view_count"`
-	LikesCount    int64     `json:"likes_count"`
-	QuoteCount    int64     `json:"quote_count"`
-	RepostCount   int64     `json:"repost_count"`
-	CommentCount  int64     `json:"comment_count"`
-	CommentStatus bool      `json:"comment_status"`
-	Pinned        bool      `json:"pinned"`
-	Enabled       bool      `json:"enabled"`
+	ID        int64     `json:"id"`
+	Type      string    `json:"type"`
+	Name      string    `json:"name,omitempty"`
+	Alias     string    `json:"alias,omitempty"`
+	Body      string    `json:"body,omitempty"`
+	Excerpt   string    `json:"excerpt,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	Mimetype  string    `json:"mimetype,omitempty"`
+	Language  string    `json:"language,omitempty"`
+	// As on MediumNodeItem.
+	ParentID      int64  `json:"parent_id,omitempty"`
+	RootID        int64  `json:"root_id,omitempty"`
+	Deleted       bool   `json:"deleted,omitempty"`
+	Hidden        bool   `json:"hidden,omitempty"`
+	Access        string `json:"access,omitempty"`
+	ViewCount     int64  `json:"view_count"`
+	LikesCount    int64  `json:"likes_count"`
+	QuoteCount    int64  `json:"quote_count"`
+	RepostCount   int64  `json:"repost_count"`
+	CommentCount  int64  `json:"comment_count"`
+	CommentStatus bool   `json:"comment_status"`
+	Pinned        bool   `json:"pinned"`
+	Enabled       bool   `json:"enabled"`
 
 	IsLikedByViewer    bool `json:"is_liked_by_viewer"`
 	IsRepostedByViewer bool `json:"is_reposted_by_viewer"`
@@ -94,6 +109,10 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		CreatedAt:          node.CreatedAt,
 		Mimetype:           node.Mimetype,
 		Language:           node.Language,
+		ParentID:           replyParent(node),
+		RootID:             node.RootID,
+		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
+		Hidden:             node.Hidden,
 		Access:             node.Access,
 		LikesCount:         node.LikesCount,
 		IsLikedByViewer:    node.IsLikedByViewer,
@@ -144,6 +163,10 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		UpdatedAt:          node.UpdatedAt,
 		Mimetype:           node.Mimetype,
 		Language:           node.Language,
+		ParentID:           replyParent(node),
+		RootID:             node.RootID,
+		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
+		Hidden:             node.Hidden,
 		Access:             node.Access,
 		LikesCount:         node.LikesCount,
 		IsLikedByViewer:    node.IsLikedByViewer,
@@ -203,4 +226,13 @@ func (r *MediumNodeResponse) MapMediumNodeItems(nodes []*entities.AnahitaNode) [
 		results = append(results, r.MapMediumNodeItem(node))
 	}
 	return results
+}
+
+// replyParent is what a reply answers. A post that is not a reply reports
+// none, even where an older kind of row used parent_id for something else.
+func replyParent(node *entities.AnahitaNode) int64 {
+	if node.RootID <= 0 {
+		return 0
+	}
+	return node.ParentID
 }

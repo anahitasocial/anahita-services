@@ -27,6 +27,8 @@ const (
 	MediumService_Add_FullMethodName              = "/graph.MediumService/Add"
 	MediumService_Delete_FullMethodName           = "/graph.MediumService/Delete"
 	MediumService_Ping_FullMethodName             = "/graph.MediumService/Ping"
+	MediumService_Thread_FullMethodName           = "/graph.MediumService/Thread"
+	MediumService_HideReply_FullMethodName        = "/graph.MediumService/HideReply"
 	MediumService_AddPhotoUpload_FullMethodName   = "/graph.MediumService/AddPhotoUpload"
 	MediumService_ReadPhotoUploads_FullMethodName = "/graph.MediumService/ReadPhotoUploads"
 	MediumService_BrowsePhotoFiles_FullMethodName = "/graph.MediumService/BrowsePhotoFiles"
@@ -45,6 +47,10 @@ type MediumServiceClient interface {
 	Add(ctx context.Context, in *MediumAddRequest, opts ...grpc.CallOption) (*MediumAddResponse, error)
 	Delete(ctx context.Context, in *MediumDeleteRequest, opts ...grpc.CallOption) (*MediumDeleteResponse, error)
 	Ping(ctx context.Context, in *MediumPingRequest, opts ...grpc.CallOption) (*MediumPingResponse, error)
+	// Threads. A reply is a note with a parent, added and edited through
+	// the calls above like any post.
+	Thread(ctx context.Context, in *MediumThreadRequest, opts ...grpc.CallOption) (*MediumThreadResponse, error)
+	HideReply(ctx context.Context, in *ReplyHideRequest, opts ...grpc.CallOption) (*ReplyHideResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error)
@@ -141,6 +147,26 @@ func (c *mediumServiceClient) Ping(ctx context.Context, in *MediumPingRequest, o
 	return out, nil
 }
 
+func (c *mediumServiceClient) Thread(ctx context.Context, in *MediumThreadRequest, opts ...grpc.CallOption) (*MediumThreadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MediumThreadResponse)
+	err := c.cc.Invoke(ctx, MediumService_Thread_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediumServiceClient) HideReply(ctx context.Context, in *ReplyHideRequest, opts ...grpc.CallOption) (*ReplyHideResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReplyHideResponse)
+	err := c.cc.Invoke(ctx, MediumService_HideReply_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *mediumServiceClient) AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PhotoUploadAddResponse)
@@ -193,6 +219,10 @@ type MediumServiceServer interface {
 	Add(context.Context, *MediumAddRequest) (*MediumAddResponse, error)
 	Delete(context.Context, *MediumDeleteRequest) (*MediumDeleteResponse, error)
 	Ping(context.Context, *MediumPingRequest) (*MediumPingResponse, error)
+	// Threads. A reply is a note with a parent, added and edited through
+	// the calls above like any post.
+	Thread(context.Context, *MediumThreadRequest) (*MediumThreadResponse, error)
+	HideReply(context.Context, *ReplyHideRequest) (*ReplyHideResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error)
@@ -232,6 +262,12 @@ func (UnimplementedMediumServiceServer) Delete(context.Context, *MediumDeleteReq
 }
 func (UnimplementedMediumServiceServer) Ping(context.Context, *MediumPingRequest) (*MediumPingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedMediumServiceServer) Thread(context.Context, *MediumThreadRequest) (*MediumThreadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Thread not implemented")
+}
+func (UnimplementedMediumServiceServer) HideReply(context.Context, *ReplyHideRequest) (*ReplyHideResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HideReply not implemented")
 }
 func (UnimplementedMediumServiceServer) AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddPhotoUpload not implemented")
@@ -410,6 +446,42 @@ func _MediumService_Ping_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediumService_Thread_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MediumThreadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).Thread(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_Thread_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).Thread(ctx, req.(*MediumThreadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediumService_HideReply_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReplyHideRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).HideReply(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_HideReply_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).HideReply(ctx, req.(*ReplyHideRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MediumService_AddPhotoUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PhotoUploadAddRequest)
 	if err := dec(in); err != nil {
@@ -520,6 +592,14 @@ var MediumService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Ping",
 			Handler:    _MediumService_Ping_Handler,
+		},
+		{
+			MethodName: "Thread",
+			Handler:    _MediumService_Thread_Handler,
+		},
+		{
+			MethodName: "HideReply",
+			Handler:    _MediumService_HideReply_Handler,
 		},
 		{
 			MethodName: "AddPhotoUpload",

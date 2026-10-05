@@ -1,6 +1,7 @@
 package main
 
 import (
+	an_mw "anahita-libs/middleware"
 	"text/cmd/api/handlers"
 
 	"github.com/labstack/echo/v4"
@@ -49,6 +50,15 @@ func (r *Routes) Init(e *echo.Echo) {
 	notes.PATCH("/:id", r.handler.Note.Edit, r.authorize)
 	notes.POST("/:owner_id/", r.handler.Note.Add, r.authorize)
 	notes.DELETE("/:id", r.handler.Note.Delete, r.authorize)
+
+	// Replies. A reply is a note that answers a post or another reply, so
+	// it is read, edited and removed at /notes/:id like any note. These are
+	// what only a thread has. The post answered can be of any kind.
+	// Read by members only where visitors are given a preview: a preview
+	// shows a post and how much was said under it, not what was said.
+	notes.GET("/:id/thread", r.handler.Note.Thread, r.setViewer, an_mw.MembersInPreview())
+	notes.POST("/:id/replies", r.handler.Note.AddReply, r.authorize)
+	notes.PATCH("/:id/hidden", r.handler.Note.HideReply, r.authorize)
 
 	// note access
 	notes.PATCH("/:id/access", r.handler.Note.EditAccess, r.authorize)

@@ -21,7 +21,7 @@ import (
 // from them:
 //
 //	actors            actorAccessCondition
-//	posts             mediumAccessCondition
+//	posts             postAccessCondition (a reply by its thread's root)
 //	comments          commentAccessCondition (the post they sit under)
 //	hashtags, places  public
 //
@@ -81,7 +81,7 @@ func visibleQuery(ids []int64, viewer *entities.Viewer) sq.SelectBuilder {
 
 	return query.Where(sq.Or{
 		sq.And{isActor, actorAccessCondition(viewer)},
-		sq.And{isMedium, mediumAccessCondition(viewer)},
+		sq.And{isMedium, postAccessCondition(viewer)},
 		sq.And{isComment, commentAccessCondition(viewer)},
 		// Everything else is a tag, a hashtag or a place, and those have no
 		// audience: anybody may see one.

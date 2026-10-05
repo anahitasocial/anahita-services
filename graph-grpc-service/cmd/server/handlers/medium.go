@@ -42,6 +42,7 @@ func (h *mediumHandler) Count(ctx context.Context, req *graphpb.MediumCountReque
 	}
 	rReq.Search = req.Search
 	rReq.AccessCheck = req.AccessCheck
+	rReq.TopLevelOnly = !req.IncludeReplies
 
 	total, err := h.env.Repos.Nodes.Count(rReq)
 	if err != nil {
@@ -77,6 +78,7 @@ func (h *mediumHandler) Browse(ctx context.Context, req *graphpb.MediumBrowseReq
 	rReq.Ordering = req.Ordering
 	rReq.OrderingDir = req.Direction
 	rReq.AccessCheck = req.AccessCheck
+	rReq.TopLevelOnly = !req.IncludeReplies
 	rReq.Viewer = viewer
 
 	nodes, err := h.env.Repos.Nodes.Browse(rReq)
@@ -276,6 +278,19 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 
 	node := newMediumFromRequest(req.Medium)
 
+	// A reply. Where it sits in its thread is worked out here from what it
+	// answers, and never taken from the request: the root is what decides
+	// who may see the reply, so it is not for a caller to name.
+	if req.Medium.ParentId > 0 {
+		parent, err := h.env.Repos.Nodes.Read(req.Medium.ParentId)
+		if err != nil {
+			return nil, err
+		}
+		if err := placeInThread(node, parent); err != nil {
+			return nil, err
+		}
+	}
+
 	v := validators.NewMediumValidator()
 	if err := v.ValidateAdd(node); err != nil {
 		return nil, err
@@ -284,6 +299,12 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 	node, err := h.env.Repos.Nodes.Add(node)
 	if err != nil {
 		return nil, err
+	}
+
+	if node.RootID > 0 {
+		if err := h.env.Repos.Replies.Recount(node.RootID, node.ParentID); err != nil {
+			log.Printf("counting the replies of %d failed: %v", node.RootID, err)
+		}
 	}
 
 	// publish event
@@ -326,9 +347,29 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 		return nil, err
 	}
 
-	_, err = h.env.Repos.Nodes.DeleteSubtree(node.ID)
+	// A reply that has been answered is emptied and kept, so what was said
+	// under it still hangs from something. Anything else goes, with
+	// everything under it: a post takes its whole thread.
+	answered := false
+	if node.RootID > 0 {
+		if answered, err = h.env.Repos.Replies.HasReplies(node.ID); err != nil {
+			return nil, err
+		}
+	}
+
+	if answered {
+		err = h.env.Repos.Replies.Tombstone(node.ID, viewer.ID)
+	} else {
+		_, err = h.env.Repos.Nodes.DeleteSubtree(node.ID)
+	}
 	if err != nil {
 		return nil, err
+	}
+
+	if node.RootID > 0 {
+		if err := h.env.Repos.Replies.Recount(node.RootID, node.ParentID); err != nil {
+			log.Printf("counting the replies of %d failed: %v", node.RootID, err)
+		}
 	}
 
 	// The list of a photo post's images goes with the post. The stored images

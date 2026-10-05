@@ -124,6 +124,10 @@ message Node {
     // The stored name of an actor's avatar. `filename` used to hold it, and
     // now holds only the file a post is.
     string avatar_filename = 82;
+
+    // The post at the top of the thread a reply belongs to. 0 on anything
+    // that is not a reply.
+    int64 root_id = 83;
 }
 
 message Nodes {

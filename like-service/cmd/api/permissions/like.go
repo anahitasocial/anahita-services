@@ -33,7 +33,7 @@ func (p *LikePermissions) CanBrowse(viewer *entities.Viewer, node *entities.Anah
 	}
 
 	// Case A: The node is a comment
-	if node.IsComment() {
+	if judgedByParent(node) {
 		parent := node.GetParent()
 
 		commentParentCtx := &permissions.MediumAccessContext{
@@ -99,7 +99,7 @@ func (p *LikePermissions) CanAdd(viewer *entities.Viewer, node *entities.Anahita
 
 	// A comment is liked under the rules of the post it sits under.
 	post := node
-	if node.IsComment() {
+	if judgedByParent(node) {
 		post = node.GetParent()
 	} else if !node.IsMedium() {
 		return false, errors.New("you are not allowed to like this content")
@@ -133,4 +133,18 @@ func (p *LikePermissions) CanDelete(viewer *entities.Viewer, node *entities.Anah
 	}
 
 	return false, fmt.Errorf("viewer %d has not liked the node %d", viewer.ID, node.GetID())
+}
+
+// judgedByParent reports whether a like on this node is decided by another
+// post, the one the handler has loaded as its Parent, and not by the node
+// itself:
+//
+//   - a comment, by the post it sits under;
+//   - a reply, by the post at the top of its thread.
+//
+// A reply is a note owned by its author. Judged by itself it would be liked
+// under the rules of its author's profile, by anybody who can see that
+// profile, wherever the thread is.
+func judgedByParent(node *entities.AnahitaNode) bool {
+	return node.IsComment() || node.RootID > 0
 }

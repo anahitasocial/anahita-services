@@ -1,23 +1,24 @@
 # Anahita Microservices
 
-- __Website:__ www.anahita.io
-- __Founder & Architect:__ Rastin Mehr
+- **Website:** www.anahita.io
+- **Founder & Architect:** Rastin Mehr
 
-# Architecture
+## Architecture
 
-Anahita is a social networking platform and framework
+Anahita is a social networking platform and framework.
 
-- Anahita uses a graph architecture where actors (people, groups, events, etc.), media (photos, text, videos), and tags (hashtags, locations) are all nodes and relationships amongst them are edges.
-- Other data entities are stored outside the graph in separate database tables, for example: notifications, authentication data (logs, credentials, oauth, tokens, webauthn). 
-- All design decisions should consider compatibilaty and scalibility with ATProtocol and ActivityPub and ability to easily join the fediverse. 
+- **Graph Architecture:** Anahita uses a graph architecture where actors (people, groups, events, etc.), media (photos, text, videos), and tags (hashtags, locations) are nodes. Relationships between these entities are represented as edges.
+- **Separate Databases:** Other data entities, such as notifications, authentication data (logs, credentials, OAuth tokens, WebAuthn), are stored in separate database tables outside the graph.
+- **Compatibility and Scalability:** All design decisions should prioritize compatibility and scalability with ATProtocol and ActivityPub, and facilitate easy integration into the fediverse.
 
 ## Coding Guidelines
 
-Please make sure that:
+Please adhere to these guidelines:
 
-- The code is readable and easy to maintain by humans
-- Commit messages aren't verbose, short, and human friendly
-- Instead of `Alpha` and `Beta` releases, we use the terms `Embryo` and `Birth` releases. The main branch is always the Embryo; tagged releases are Birth releases.
-- Use Star Trek names of characters and places when testing 
-- Always ask first before committing and display the commit messages
-- Never commit directly to the main branch, if you are on the main branch, always create a branch under issues/
+- **Readability and Maintainability:** Ensure that your code is readable and easy to maintain for human developers.
+- **Commit Messages:** Keep commit messages concise, human-friendly, and informative.
+- **Release Terminology:** Instead of using “Alpha” and “Beta” releases, we use “Embryo” and “Birth” releases. The main branch is always the Embryo, while tagged releases are Birth releases.
+- **Testing Names:** Use Star Trek names of characters and places when testing.
+- **Commit Before Committing:** Always ask for permission before committing and display the commit message.
+- **Main Branch Practice:** If you are on the main branch, create a branch under “issues” before committing.
+- **Documentation Updates:** After building new features or modifying the underlying architecture, update the documentation using human-friendly language to help developers quickly understand and learn it.

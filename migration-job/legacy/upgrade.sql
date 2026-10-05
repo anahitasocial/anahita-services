@@ -551,6 +551,11 @@ ALTER TABLE nodes ADD COLUMN `purged_at` datetime DEFAULT NULL;
 -- is. See migrations/20261009000001_avatar_filename.sql.
 ALTER TABLE nodes ADD COLUMN `avatar_filename` varchar(255) DEFAULT NULL AFTER `filename`;
 
+-- nodes.root_id, the post at the top of the thread a reply belongs to. See
+-- migrations/20261010000001_nodes_root_id.sql.
+ALTER TABLE nodes ADD COLUMN `root_id` bigint(11) unsigned DEFAULT NULL AFTER `parent_type`;
+ALTER TABLE nodes ADD INDEX `root_id` (`root_id`);
+
 -- An actor's avatar moves to the column that is now its own. `filename` is
 -- cleared on actors, so it means one thing on every row that has it.
 --

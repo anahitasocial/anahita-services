@@ -109,6 +109,9 @@ func (repo *FeedLeadersRepo) Count(req *graphpb.FeedLeadersCountRequest, viewer 
 	}
 
 	sb = sb.Where(sq.Or(branches))
+	// Replies are read in their thread, not in a feed.
+	sb = sb.Where("node.root_id IS NULL")
+
 	sb = SetFeedAccessQuery(sb, viewer)
 
 	sqlStr, args, err := sb.ToSql()
@@ -188,6 +191,9 @@ func (repo *FeedLeadersRepo) Browse(req *graphpb.FeedLeadersBrowseRequest, viewe
 	}
 
 	query = query.Where(sq.Or(branches))
+	// Replies are read in their thread, not in a feed.
+	query = query.Where("node.root_id IS NULL")
+
 	query = SetFeedAccessQuery(query, viewer)
 
 	// Sort & paginate

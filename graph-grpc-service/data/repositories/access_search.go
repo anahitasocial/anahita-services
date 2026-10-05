@@ -129,7 +129,10 @@ func SetSearchAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, includeC
 		)
 	}
 
-	sb = sb.Where(ownerGate).Where(nodeGate)
+	// A post is judged by its owner and its own audience. A reply has no
+	// audience of its own and is owned by its author, so it is judged by the
+	// post at the top of its thread and by nothing else.
+	sb = sb.Where(postOrReply(sq.And{ownerGate, nodeGate}, viewer))
 
 	// ---- Optional: comment parent gate ----
 	if includeCommentParentNode {

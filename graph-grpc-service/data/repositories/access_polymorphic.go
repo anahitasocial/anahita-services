@@ -109,7 +109,9 @@ func SetPolymorphicAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.
 		)
 	}
 
-	return sb.Where(ownerGate).Where(nodeGate)
+	// A reply is judged by the post at the top of its thread, not by its own
+	// owner and audience. See postOrReply.
+	return sb.Where(postOrReply(sq.And{ownerGate, nodeGate}, viewer))
 }
 
 // relViewerAdminsOwner checks if the viewer is an admin of the owner.

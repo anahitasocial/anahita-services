@@ -25,6 +25,11 @@ func (h *eventHandler) eventFormatNodeMediumEdited(payload *event.EventPayload) 
 		return err
 	}
 
+	// A reply that was edited is nobody's news.
+	if object.RootID > 0 {
+		return nil
+	}
+
 	target, err := h.Srv.ActorsGRPC.Read(payload.TargetID, viewer)
 	if err != nil {
 		return err
@@ -82,6 +87,13 @@ func (h *eventHandler) eventFormatNodeMediumAdded(payload *event.EventPayload) e
 	object, err := h.Srv.GraphNodeGRPC.Read(payload.ObjectID)
 	if err != nil {
 		return err
+	}
+
+	// A reply is a note, and arrives as one. It is not a new post for the
+	// author's followers to be told about: it is news to the people it
+	// answers, and to nobody else.
+	if object.RootID > 0 {
+		return h.replyAdded(payload, subject, object)
 	}
 
 	target, err := h.Srv.ActorsGRPC.Read(payload.TargetID, viewer)

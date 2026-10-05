@@ -35,6 +35,9 @@ CREATE TABLE nodes (
   `view_count` int(11) unsigned NOT NULL DEFAULT 0,
   `parent_id` bigint(11) unsigned DEFAULT NULL,
   `parent_type` varchar(255) DEFAULT NULL,
+  -- The post at the top of the thread a reply belongs to. NULL on anything
+  -- that is not a reply. Who may see a reply is decided by this post.
+  `root_id` bigint(11) unsigned DEFAULT NULL,
   `geo_latitude` float(10,6) DEFAULT NULL,
   `geo_longitude` float(10,6) DEFAULT NULL,
   `geo_address` VARCHAR(255) DEFAULT NULL,
@@ -136,6 +139,7 @@ CREATE TABLE nodes (
   KEY `service` (`service`),
   KEY `owner_id` (`owner_id`),
   KEY `parent_id` (`parent_id`),
+  KEY `root_id` (`root_id`),
   KEY `starts_at` (`starts_at`),
   KEY `ends_at` (`ends_at`),
   KEY `type_enabled` (`type`,`enabled`),

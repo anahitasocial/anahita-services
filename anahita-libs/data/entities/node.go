@@ -33,6 +33,9 @@ type AnahitaNodeAuthorized struct {
 	Comment     *bool
 	Like        *bool
 	AddFollower *bool
+	// On a reply: whether the viewer may hide it from its thread, or show
+	// it again. nil on anything that is not a reply.
+	Hide *bool
 	// Actors only: the composers the viewer may use on this profile. nil when
 	// not worked out; empty when none.
 	Composers []string
@@ -85,6 +88,15 @@ type AnahitaNode struct {
 	OwnerType  string
 	ParentID   int64
 	ParentType string
+	// The post at the top of the thread this reply belongs to. 0 on
+	// anything that is not a reply. Who may see a reply, answer it, like it
+	// or remove it is decided by this post, never by the reply's own owner,
+	// who is its author.
+	RootID int64
+	// On a reply: hidden from its thread by whoever looks after the thread.
+	// Not a column. It is a fact about the thread, worked out when a thread
+	// is read.
+	Hidden     bool
 	QuoteCount int64
 	Enabled    bool
 	Verified   bool

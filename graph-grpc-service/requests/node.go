@@ -62,6 +62,10 @@ type NodeBrowseRequest struct {
 	Enabled         bool
 	// Only featured actors. See setFeaturedQuery.
 	Featured bool
+	// Leave replies out: only rows that are not part of a thread. What a
+	// list of somebody's posts wants, so that it is not filled with their
+	// answers to other people.
+	TopLevelOnly bool
 }
 
 type NodeBrowseMutualConnectionsRequest struct {
@@ -103,6 +107,10 @@ type NodeCountRequest struct {
 	Enabled         bool
 	// Only featured actors. See setFeaturedQuery.
 	Featured bool
+	// Leave replies out: only rows that are not part of a thread. What a
+	// list of somebody's posts wants, so that it is not filled with their
+	// answers to other people.
+	TopLevelOnly bool
 }
 
 type NodeCountConnectionsRequest struct{}

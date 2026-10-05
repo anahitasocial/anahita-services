@@ -121,14 +121,26 @@ func (h *noteHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	if ok, err := h.Perms.Medium.CanEdit(mediumAccessCtx); !ok {
-		log.Println(err)
-		return c.NoContent(http.StatusForbidden)
+	// A reply is changed by its author only, and only while they can still
+	// see the thread. Not by whoever looks after the thread: see
+	// permissions.CanEditReply.
+	if medium.RootID > 0 {
+		if medium.DeletedAt != nil {
+			return c.NoContent(http.StatusGone)
+		}
+		if _, refused := h.replyRuling(c, medium, viewer, permissions.CanEditReply); refused != 0 {
+			return c.NoContent(refused)
+		}
+	} else {
+		mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
+		if err != nil {
+			log.Println(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if ok, err := h.Perms.Medium.CanEdit(mediumAccessCtx); !ok {
+			log.Println(err)
+			return c.NoContent(http.StatusForbidden)
+		}
 	}
 
 	medium.Body = req.Body

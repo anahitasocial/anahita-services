@@ -18,7 +18,11 @@ const (
 	NodeBaseLocationEntityType = "node.tag.location-service.location.v1"
 
 	// Edge Types
-	EdgeActorAdminEntityType       = "edge.actor.admin.v1"
+	EdgeActorAdminEntityType = "edge.actor.admin.v1"
+	// From a post to a reply in its thread that has been hidden from the
+	// thread. An edge and not a flag on the reply: the reply is its
+	// author's, and "hidden" is a fact about the thread.
+	EdgeMediumHiddenReplyType      = "edge.medium.hidden-reply.v1"
 	EdgeFollowEntityType           = "edge.actor.follow.v1"
 	EdgeFollowRequestEntityType    = "edge.actor.follow-request.v1"
 	EdgeBlockEntityType            = "edge.actor.block.v1"

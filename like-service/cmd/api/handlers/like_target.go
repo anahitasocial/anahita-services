@@ -33,6 +33,18 @@ func (h *likeHandler) readLikeTarget(id int64, viewer *entities.Viewer) (*entiti
 		}
 		node.Parent = parent
 		owned = parent
+	} else if node.RootID > 0 {
+		// A reply. What decides a like on it is the post at the top of its
+		// thread, which may be several replies up, so that is what is
+		// loaded in the place the permissions look: as its Parent. Here
+		// "Parent" means the post whose rules apply, as it does for a
+		// comment, and not what the reply directly answers.
+		root, err := h.Srv.GraphNodeGRPC.Read(node.RootID)
+		if err != nil {
+			return nil, err
+		}
+		node.Parent = root
+		owned = root
 	}
 
 	// Nothing to load for a node without an owner. The permissions refuse it

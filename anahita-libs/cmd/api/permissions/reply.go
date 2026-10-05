@@ -1,0 +1,183 @@
+package permissions
+
+import (
+	"anahita-libs/constants"
+	"anahita-libs/data/entities"
+)
+
+// The rules for replies.
+//
+// A reply is a note with a parent. It is owned by its author and has no
+// audience of its own, so NOTHING about it is decided the way it is for an
+// ordinary post, by its owner and its access. Everything is decided by the
+// post at the top of its thread, the root:
+//
+//   - who can see it: whoever can see the root;
+//   - who can reply: whoever could comment on the root;
+//   - who can remove it: its author, and whoever looks after the thread;
+//   - who can hide it from the thread: whoever looks after the thread.
+//
+// "Whoever looks after the thread" is the author of the root, the profile the
+// root is on (the person, or a group's administrators), and site
+// administrators. The root's author is in that list wherever the post is, so
+// somebody who posts in a group can deal with what is said under their post
+// without being one of the group's administrators.
+//
+// These are functions over a context, like the capabilities, and not methods
+// of MediumPermissions: handing a reply to MediumPermissions judges it by its
+// author's profile, which is exactly the mistake these exist to prevent.
+
+// ReplyAccessContext is a reply and the thread it is in.
+type ReplyAccessContext struct {
+	Viewer *entities.Viewer
+	// The reply. Nil when asking about a reply that does not exist yet.
+	Reply *entities.AnahitaNode
+	// The post at the top of the thread, with its Owner loaded as the actor
+	// read returns it: its access, and its permissions with the defaults
+	// merged in.
+	Root *entities.AnahitaNode
+	// The root's owner's relationship to the viewer.
+	RootOwnerViewerRel *entities.ActorRelation
+}
+
+func (ctx *ReplyAccessContext) rootLoaded() bool {
+	return ctx != nil && ctx.Viewer != nil && ctx.Root != nil && ctx.Root.GetID() > 0 &&
+		ctx.Root.GetOwner() != nil && ctx.Root.GetOwner().GetID() > 0
+}
+
+// CanSeeThread reports whether the viewer may read the root, and so every
+// reply under it.
+func CanSeeThread(ctx *ReplyAccessContext) bool {
+	if !ctx.rootLoaded() {
+		return false
+	}
+
+	ok, _ := NewMediumPermissions().CanRead(&MediumAccessContext{
+		Viewer:         ctx.Viewer,
+		Medium:         ctx.Root,
+		OwnerViewerRel: relationOrEmpty(ctx.RootOwnerViewerRel),
+	})
+	return ok
+}
+
+// LooksAfterThread reports whether the viewer is one of the people who may
+// remove or hide what is said in this thread.
+func LooksAfterThread(ctx *ReplyAccessContext) bool {
+	if !ctx.rootLoaded() || ctx.Viewer.ID <= 0 {
+		return false
+	}
+
+	if ctx.Viewer.IsAdmin() {
+		return true
+	}
+
+	if ctx.Viewer.ID == ctx.Root.GetAuthorID() || ctx.Viewer.ID == ctx.Root.GetOwnerID() {
+		return true
+	}
+
+	return relationOrEmpty(ctx.RootOwnerViewerRel).HasAdmin
+}
+
+// CanReply reports whether the viewer may add a reply to this thread: the
+// rule for commenting on the root, and the root's switch for comments being
+// open.
+//
+// Whoever looks after the thread can reply to it with the switch closed.
+// Closing it is how they stop other people, not themselves.
+func CanReply(ctx *ReplyAccessContext) bool {
+	if !ctx.rootLoaded() || !ctx.Viewer.Authenticated {
+		return false
+	}
+
+	// A reply is a post. A token that may not write posts may not write
+	// this one.
+	if !ctx.Viewer.HasScope(constants.OAuthScopeMediaWrite) {
+		return false
+	}
+
+	if !CanSeeThread(ctx) {
+		return false
+	}
+
+	if LooksAfterThread(ctx) {
+		return true
+	}
+
+	if !ctx.Root.CommentStatus {
+		return false
+	}
+
+	rel := relationOrEmpty(ctx.RootOwnerViewerRel)
+	access := CommentAccess(ctx.Root.GetOwner(), ctx.Root.GetService())
+
+	return access == "" || AddAccessAllows(access, rel, ctx.Viewer)
+}
+
+// CanEditReply reports whether the viewer may change a reply: its author
+// only, and only while they can still see the thread.
+//
+// Not a moderator of any kind. An edited reply still carries its author's
+// name, so anybody else editing it puts words under that name. Whoever looks
+// after a thread removes or hides replies; they do not rewrite them.
+func CanEditReply(ctx *ReplyAccessContext) bool {
+	if !ctx.rootLoaded() || ctx.Reply == nil {
+		return false
+	}
+
+	if !ctx.Viewer.HasScope(constants.OAuthScopeMediaWrite) {
+		return false
+	}
+
+	if ctx.Viewer.ID <= 0 || ctx.Viewer.ID != ctx.Reply.GetAuthorID() {
+		return false
+	}
+
+	return CanSeeThread(ctx)
+}
+
+// CanDeleteReply reports whether the viewer may remove a reply for good: its
+// author, and whoever looks after the thread.
+//
+// No check that the author can still see the thread. Taking your own words
+// down works even after you have lost sight of what they were said under.
+func CanDeleteReply(ctx *ReplyAccessContext) bool {
+	if ctx == nil || ctx.Viewer == nil || ctx.Reply == nil || ctx.Viewer.ID <= 0 {
+		return false
+	}
+
+	if !ctx.Viewer.HasScope(constants.OAuthScopeMediaWrite) {
+		return false
+	}
+
+	if ctx.Viewer.ID == ctx.Reply.GetAuthorID() {
+		return true
+	}
+
+	return LooksAfterThread(ctx)
+}
+
+// CanHideReply reports whether the viewer may hide a reply from its thread,
+// and show it again: whoever looks after the thread.
+//
+// Not the reply's own author, who has no use for it: they can remove it.
+func CanHideReply(ctx *ReplyAccessContext) bool {
+	if ctx == nil || ctx.Viewer == nil || ctx.Reply == nil {
+		return false
+	}
+
+	if !ctx.Viewer.HasScope(constants.OAuthScopeMediaWrite) {
+		return false
+	}
+
+	return LooksAfterThread(ctx)
+}
+
+// CanLikeReply reports whether the viewer may like a reply: the rule for
+// liking the root.
+func CanLikeReply(ctx *ReplyAccessContext) bool {
+	if !ctx.rootLoaded() {
+		return false
+	}
+
+	return CanLike(ctx.Viewer, ctx.Root, ctx.RootOwnerViewerRel)
+}
