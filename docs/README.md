@@ -45,6 +45,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
 6. [Permissions](permissions.md) — who can post, comment, like and add followers
    - [Access levels](permissions.md#access-levels)
    - [Seeing posts](permissions.md#seeing-posts)
+   - [Choosing who can see a post](permissions.md#choosing-who-can-see-a-post)
    - [Comments](permissions.md#comments)
    - [Reporting](permissions.md#reporting)
    - [Removing accounts](permissions.md#removing-accounts)
@@ -109,7 +110,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Link previews](plans/link-previews.md) | 10 | not started |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
-| [Instance privacy and the composer audience picker](plans/instance-privacy.md) | 13 | not started |
+| [Instance privacy and the composer audience picker](plans/instance-privacy.md) | 13 | the audience picker done 2026-10-04; the instance settings not started |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
 | [Video service](plans/video-service.md) | 16 | not started |
 | [Several images per photo post; photo sets removed](plans/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 not started |

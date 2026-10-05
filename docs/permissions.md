@@ -12,6 +12,7 @@ change them, and what profile owners can change for themselves.
 - [Access levels](#access-levels)
 - [Who is always allowed](#who-is-always-allowed)
 - [Seeing posts](#seeing-posts)
+  - [Choosing who can see a post](#choosing-who-can-see-a-post)
 - [Posting](#posting)
 - [Comments](#comments)
 - [Likes](#likes)
@@ -99,6 +100,37 @@ What depends on another post is judged by that post:
 
 So following somebody who reposts a followers-only post does not show it to
 you. You see it only if you could see the original.
+
+### Choosing who can see a post
+
+The author chooses a post's audience when writing it, and whoever may edit the
+post can change it afterwards. It is sent as `access` when the post is created
+(`POST /notes/:owner_id/` and the same for articles, topics and photos) and
+changed with `PATCH /…/:id/access`. Left out, a new post is `public`.
+
+Which audiences a post may have depends on where it is:
+
+| Where the post is | Audiences |
+| --- | --- |
+| Your own profile | `public`, `registered`, `followers`, `leaders`, `mutuals`, `myself` |
+| Somebody else's profile | `public`, `registered`, `followers`, `leaders`, `mutuals` |
+| A group, as a member | `public`, `registered`, `followers` |
+| A group, as one of its administrators, or as a site administrator | `public`, `registered`, `followers`, `admins` |
+
+Anything else is refused with 422 `access_not_allowed`, and the answer lists
+the audiences that are allowed. Two of the gaps are deliberate:
+
+- **No "only me" on somebody else's profile.** It would be a post only its
+  author and that person can see, which is a private message. This platform
+  does not have those.
+- **No "administrators only" from a member who is not one.** That would be the
+  same thing, addressed to a group's administrators.
+
+As with every level, the audience is measured against the profile the post is
+on: `followers` are that profile's followers, not the author's. A post is
+never seen more widely than its profile, so on a followers-only group a
+`public` post is still only seen by its members. The web app shows those wider
+choices disabled, and does not offer `leaders` when writing a post.
 
 ## Posting
 

@@ -147,9 +147,49 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **web `configuration.md`**, *Settings that live on the server*: the same two settings as seen by the app.
 - **web `architecture.md`**: the landing page for logged-out visitors, and the composer audience picker.
 
+## What was built
+
+### The composer audience picker (2026-10-04)
+
+**Server.** `permissions.MediumAudiences` in `anahita-libs` says which access
+levels a post may have where it is going, and the create and change-access
+handlers for notes, articles, topics and photos refuse anything else with 422
+`access_not_allowed` and the list that is allowed. Until now any of the seven
+levels was accepted on any post.
+
+Two of its rules were not in the plan, and are deliberate:
+- **No "only me" on somebody else's profile.** It would be a post only its
+  author and that person can see: the private notes removed in item 1.
+- **"Administrators only" in a group is for its administrators** and site
+  administrators. From an ordinary member it would be a private message to
+  the group's administrators.
+
+**Web.** A button beside Post names the current audience and opens a menu
+(`containers/media/Composer/Audience.jsx`); the rules for what it offers are
+in `utils/audience.js`. The choice is sent with the post.
+- In a group, followers are called Members.
+- An audience wider than the profile itself is shown disabled, with the
+  reason.
+- It starts on the last choice for that kind of place (your own profile,
+  somebody else's, a group), kept per person in the browser, or else on the
+  widest the profile allows.
+- `leaders` is accepted by the server on a person's profile and not offered
+  when writing: it is not an audience anybody picks.
+
+**Not built yet,** from this section of the plan: filtering by
+`MIN_CONTENT_ACCESS`, which comes with that setting, and the fediverse hint,
+which comes with federation.
+
+**Not checked.** The picker in a browser, and a post created through the
+running stack with each audience. The rule has unit tests on both sides.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Composer audience picker | done 2026-10-04, not yet tried in a browser |
+| `MIN_CONTENT_ACCESS` | not started |
+| `SITE_READ_ACCESS=registered` | not started |
+| `SITE_READ_ACCESS=preview` | not started |
+| Convert public to registered | not started |

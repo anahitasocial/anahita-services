@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/requests"
@@ -255,6 +256,13 @@ func (h *photoHandler) Add(c echo.Context) error {
 	if ok, err := h.Perms.Media.CanAdd(mediumAccessCtx); !ok {
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
+	}
+
+	// The audience has to be one this post can have where it is going: no
+	// "admins" on a person's profile, no "only me" on somebody else's.
+	if !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
+		log.Printf("refused: audience %q is not allowed on this profile", req.Access)
+		return handlers.RefuseAudience(c, mediumAccessCtx)
 	}
 
 	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)
