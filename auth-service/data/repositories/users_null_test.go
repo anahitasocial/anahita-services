@@ -31,7 +31,7 @@ var columnsThatMayBeNull = []string{
 	"nodes.alias",
 	"nodes.person_type",
 	"nodes.service",
-	"nodes.filename",
+	"nodes.avatar_filename",
 	"auth_accounts.email",
 	"auth_accounts.password",
 	"auth_accounts.totp_recovery_codes",
@@ -103,7 +103,7 @@ func TestReadByEmailSurvivesNullTimestamps(t *testing.T) {
 	mock.ExpectQuery("select").WillReturnRows(
 		sqlmock.NewRows([]string{
 			"id", "type", "enabled", "name", "alias",
-			"email", "password", "person_type", "service", "filename",
+			"email", "password", "person_type", "service", "avatar_filename",
 			"last_visited_at", "created_at", "updated_at", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",
@@ -148,7 +148,7 @@ func TestBrowseSurvivesNullTimestamps(t *testing.T) {
 
 	columns := []string{
 		"id", "type", "enabled", "name", "alias",
-		"email", "person_type", "service", "filename",
+		"email", "person_type", "service", "avatar_filename",
 		"last_visited_at", "created_at", "updated_at",
 	}
 	mock.ExpectQuery("select").WillReturnRows(
@@ -178,7 +178,7 @@ func TestEmptyPasswordHashIsUnusable(t *testing.T) {
 	mock.ExpectQuery("select").WillReturnRows(
 		sqlmock.NewRows([]string{
 			"id", "type", "enabled", "name", "alias",
-			"email", "password", "person_type", "service", "filename",
+			"email", "password", "person_type", "service", "avatar_filename",
 			"last_visited_at", "created_at", "updated_at", "totp_enabled",
 			"totp_recovery_codes", "totp_last_verified_at", "totp_secret",
 			"deleted_at", "archived_at",

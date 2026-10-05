@@ -545,6 +545,25 @@ ALTER TABLE nodes ADD INDEX `deleted_at` (`deleted_at`);
 -- nodes.purged_at, set when an actor has been reduced to a tombstone, so the
 -- sweeper's queue is "deleted and not yet purged".
 ALTER TABLE nodes ADD COLUMN `purged_at` datetime DEFAULT NULL;
+
+-- nodes.avatar_filename, the picture that stands for an actor. The PHP
+-- application kept it in `filename`, which on a post names the file the post
+-- is. See migrations/20261009000001_avatar_filename.sql.
+ALTER TABLE nodes ADD COLUMN `avatar_filename` varchar(255) DEFAULT NULL AFTER `filename`;
+
+-- An actor's avatar moves to the column that is now its own. `filename` is
+-- cleared on actors, so it means one thing on every row that has it.
+--
+-- Running it again changes nothing: afterwards no actor has a filename to
+-- move.
+UPDATE nodes
+SET avatar_filename = filename,
+    filename = NULL
+WHERE type LIKE 'node.actor.%'
+  AND filename IS NOT NULL
+  AND filename <> ''
+  AND (avatar_filename IS NULL OR avatar_filename = '');
+
 ALTER TABLE nodes ADD INDEX `purged_at` (`purged_at`);
 
 -- nodes.archived_at, the third lifecycle state. Permanent, and unlike deletion

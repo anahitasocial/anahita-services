@@ -46,7 +46,10 @@ CREATE TABLE nodes (
   `created_by` bigint(11) unsigned DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
+  -- The file this node is: a photo post's photo. Never an actor's picture.
   `filename` varchar(255) DEFAULT NULL,
+  -- The picture that stands for an actor. Only actors have one.
+  `avatar_filename` varchar(255) DEFAULT NULL,
   `cover_filename` varchar(255) DEFAULT NULL,
   `follower_count` int(11) unsigned DEFAULT NULL,
   `leader_count` int(11) unsigned DEFAULT NULL,

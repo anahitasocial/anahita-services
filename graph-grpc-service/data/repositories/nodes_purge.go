@@ -78,6 +78,7 @@ SET
   meta = NULL,
   website_url = NULL,
   filename = NULL,
+  avatar_filename = NULL,
   cover_filename = NULL,
   geo_latitude = NULL,
   geo_longitude = NULL,

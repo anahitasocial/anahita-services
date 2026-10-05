@@ -60,7 +60,7 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 		// so the URLs have to be presigned or the browser gets a 403.
 		// Skipped entirely when the person has no avatar — otherwise
 		// every size would carry an empty, pointlessly signed URL.
-		if user.GetFilename() != "" {
+		if user.GetAvatarFilename() != "" {
 			libs_services.PresignAvatar(s.Srv.FilesGRPC, user)
 			info["avatar_urls"] = libs_responses.NewAvatar(user.Avatar)
 		}

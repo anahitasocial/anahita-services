@@ -27,11 +27,11 @@ type AnahitaNodeAvatarInterface interface {
 
 // Get Avatar File Path
 func (a *AnahitaNode) GetAvatarFile(size string) string {
-	if a.GetFilename() == "" {
+	if a.GetAvatarFilename() == "" {
 		return ""
 	}
 
-	name := strings.Split(a.GetFilename(), ".")
+	name := strings.Split(a.GetAvatarFilename(), ".")
 	return fmt.Sprintf("%s_%s.%s", name[0], size, name[1])
 }
 

@@ -112,22 +112,27 @@ type AnahitaNode struct {
 	// time.Time fails outright — "unsupported Scan, storing driver.Value type
 	// <nil>" — which is how twenty-one people became unreadable the moment
 	// their legacy '0000-00-00' was normalised to NULL.
-	LastVisitedAt      *time.Time
-	Pinned             bool
-	Meta               json.RawMessage
-	ViewCount          int64
-	GeoLatitude        float64
-	GeoLongitude       float64
-	GeoAddress         string
-	GeoCity            string
-	GeoStateProvince   string
-	GeoCountry         string
-	GeoPostalcode      string
-	CreatedAt          time.Time
-	CreatedBy          int64
-	UpdatedAt          time.Time
-	ModifiedBy         int64
-	Filename           string
+	LastVisitedAt    *time.Time
+	Pinned           bool
+	Meta             json.RawMessage
+	ViewCount        int64
+	GeoLatitude      float64
+	GeoLongitude     float64
+	GeoAddress       string
+	GeoCity          string
+	GeoStateProvince string
+	GeoCountry       string
+	GeoPostalcode    string
+	CreatedAt        time.Time
+	CreatedBy        int64
+	UpdatedAt        time.Time
+	ModifiedBy       int64
+	// The file this node is: a photo post's photo, and a document's file if
+	// file sharing is built. Never an actor's picture; that is
+	// AvatarFilename.
+	Filename string
+	// The picture that stands for an actor. Only actors have one.
+	AvatarFilename     string
 	CoverFilename      string
 	FollowerCount      int64
 	LeaderCount        int64

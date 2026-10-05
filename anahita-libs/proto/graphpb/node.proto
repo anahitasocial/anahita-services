@@ -120,6 +120,10 @@ message Node {
     // first. Absent rather than the epoch when unset, for the reason
     // deleted_at gives.
     google.protobuf.Timestamp featured_at = 81;
+
+    // The stored name of an actor's avatar. `filename` used to hold it, and
+    // now holds only the file a post is.
+    string avatar_filename = 82;
 }
 
 message Nodes {

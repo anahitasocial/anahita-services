@@ -68,7 +68,7 @@ func (f *fakeNodes) ClearFile(id int64, kind string, modifiedBy int64) (bool, er
 	}
 	f.w.log = append(f.w.log, "clear "+kind)
 	if kind == "avatar" {
-		f.w.node.Filename = ""
+		f.w.node.AvatarFilename = ""
 	} else {
 		f.w.node.CoverFilename = ""
 	}
@@ -271,8 +271,13 @@ func TestAnAvatarIsStoredAtEverySizeAndTheSquareIsNotSqueezed(t *testing.T) {
 	if len(w.stored) != len(w.node.GetAvatarSizes()) {
 		t.Errorf("stored %d sizes, want %d: %v", len(w.stored), len(w.node.GetAvatarSizes()), keys(w.stored))
 	}
-	if w.node.Filename == "" {
+	if w.node.AvatarFilename == "" {
 		t.Fatal("the profile does not name its new avatar")
+	}
+	// In the column that is an avatar's own. `Filename` is the file a node
+	// is, and a person is not a file.
+	if w.node.Filename != "" {
+		t.Errorf("the avatar was also written as the node's own file: %q", w.node.Filename)
 	}
 
 	// Twice as wide as it is tall, so a square made by pressing the whole
@@ -316,7 +321,7 @@ func TestASmallPictureIsNotEnlarged(t *testing.T) {
 // names the new one.
 func TestReplacingRemovesTheOldImageAfterTheNewOneIsSaved(t *testing.T) {
 	w := newWorld(personType)
-	w.node.Filename = "old.jpg"
+	w.node.AvatarFilename = "old.jpg"
 	h := handlerFor(w)
 
 	c, rec := request(t, http.MethodPost, ada, ada, "avatar", picture(t, 400, 400))
@@ -354,7 +359,7 @@ func TestReplacingRemovesTheOldImageAfterTheNewOneIsSaved(t *testing.T) {
 // again and the old one is left alone.
 func TestAFailedSaveLeavesNothingBehindAndKeepsTheOldImage(t *testing.T) {
 	w := newWorld(personType)
-	w.node.Filename = "old.jpg"
+	w.node.AvatarFilename = "old.jpg"
 	w.failEdit = true
 
 	c, rec := request(t, http.MethodPost, ada, ada, "avatar", picture(t, 400, 400))
@@ -373,8 +378,8 @@ func TestAFailedSaveLeavesNothingBehindAndKeepsTheOldImage(t *testing.T) {
 			t.Errorf("the old avatar was deleted though the new one was never saved: %s", path)
 		}
 	}
-	if w.node.Filename != "old.jpg" {
-		t.Errorf("the profile names %q", w.node.Filename)
+	if w.node.AvatarFilename != "old.jpg" {
+		t.Errorf("the profile names %q", w.node.AvatarFilename)
 	}
 }
 
@@ -396,7 +401,7 @@ func TestWhatIsNotAnImageIsRefusedAndNothingIsStored(t *testing.T) {
 
 func TestSomebodyElseCannotChangeAPersonsAvatar(t *testing.T) {
 	w := newWorld(personType)
-	w.node.Filename = "old.jpg"
+	w.node.AvatarFilename = "old.jpg"
 	h := handlerFor(w)
 
 	c, rec := request(t, http.MethodPost, ada, grace, "avatar", picture(t, 400, 400))
@@ -415,8 +420,8 @@ func TestSomebodyElseCannotChangeAPersonsAvatar(t *testing.T) {
 		t.Errorf("removing: status = %d", rec.Code)
 	}
 
-	if len(w.log) != 0 || w.node.Filename != "old.jpg" {
-		t.Errorf("something changed: %v, names %q", w.log, w.node.Filename)
+	if len(w.log) != 0 || w.node.AvatarFilename != "old.jpg" {
+		t.Errorf("something changed: %v, names %q", w.log, w.node.AvatarFilename)
 	}
 }
 
@@ -441,8 +446,10 @@ func TestAPostCannotHaveAnAvatarButCanHaveACover(t *testing.T) {
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("a cover on a post: status = %d, body %s", rec.Code, rec.Body)
 	}
-	if w.node.CoverFilename == "" || w.node.Filename != "" {
-		t.Errorf("cover %q, filename %q", w.node.CoverFilename, w.node.Filename)
+	// The cover, and nothing else: not the post's own file, and not an
+	// avatar a post cannot have.
+	if w.node.CoverFilename == "" || w.node.Filename != "" || w.node.AvatarFilename != "" {
+		t.Errorf("cover %q, filename %q, avatar %q", w.node.CoverFilename, w.node.Filename, w.node.AvatarFilename)
 	}
 	if width, _ := sizeOf(t, find(t, w.stored, "_large.")); width != 1600 {
 		t.Errorf("the large cover is %d wide, want 1600", width)
@@ -453,7 +460,7 @@ func TestAPostCannotHaveAnAvatarButCanHaveACover(t *testing.T) {
 // that, and deletes the stored picture after.
 func TestRemovingClearsTheNameAndThenDeletesTheImage(t *testing.T) {
 	w := newWorld(personType)
-	w.node.Filename = "old.jpg"
+	w.node.AvatarFilename = "old.jpg"
 
 	c, rec := request(t, http.MethodDelete, ada, ada, "", nil)
 	if err := handlerFor(w).RemoveAvatar(c); err != nil {
@@ -463,8 +470,8 @@ func TestRemovingClearsTheNameAndThenDeletesTheImage(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d", rec.Code)
 	}
-	if w.node.Filename != "" {
-		t.Errorf("the profile still names %q", w.node.Filename)
+	if w.node.AvatarFilename != "" {
+		t.Errorf("the profile still names %q", w.node.AvatarFilename)
 	}
 	if len(w.log) == 0 || w.log[0] != "clear avatar" {
 		t.Errorf("order was %v; the name must be cleared before anything is deleted", w.log)
@@ -478,7 +485,7 @@ func TestRemovingClearsTheNameAndThenDeletesTheImage(t *testing.T) {
 // picture that is gone is what this must never leave.
 func TestIfTheNameCannotBeClearedTheImageIsKept(t *testing.T) {
 	w := newWorld(personType)
-	w.node.Filename = "old.jpg"
+	w.node.AvatarFilename = "old.jpg"
 	w.failClear = true
 
 	c, rec := request(t, http.MethodDelete, ada, ada, "", nil)

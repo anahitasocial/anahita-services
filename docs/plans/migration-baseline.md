@@ -36,11 +36,11 @@ A rename costs the same three files and a pass through the graph service
 whenever it is done, so these wait for this item, when the schema is being
 rewritten anyway. The reasoning is in `docs/architecture.md`, Naming images.
 
-- **`nodes.avatar_filename`**, new, for an actor's avatar. Today the avatar
-  is in `nodes.filename`, which on a post names the file the post *is*. Move
-  the value for every `node.actor.%` row, leave `filename` for posts, and
-  drop the "is it an actor" checks that exist only because of the sharing
-  (`ClearFile` in graph-grpc, the avatar kind in identity-image-service).
+- ~~`nodes.avatar_filename`~~ **Done on 2026-10-05**, ahead of this item at
+  the user's request: migration `20261009000001_avatar_filename.sql`. An
+  actor's avatar has its own column, and `filename` is the file a node is.
+  When the migrations are folded, the column simply belongs in the clean
+  `init.sql`, and the move of old values in `legacy/upgrade.sql`.
 - **Retire "portrait".** In the code and in the API's `portrait_urls` it
   means a photo post's image. Photo posts carry their images in `files`;
   `portrait_urls` goes once the web app reads the first image from there.

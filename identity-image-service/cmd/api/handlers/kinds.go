@@ -29,9 +29,6 @@ type kind struct {
 
 // An avatar is the picture that stands for an actor: a person, a group.
 // Only an actor has one.
-//
-// It is kept in the node's `filename`, which on a photo post names the photo.
-// That is why a post is refused here and not merely unusual.
 var avatar = kind{
 	name:  "avatar",
 	field: "avatar",
@@ -39,10 +36,10 @@ var avatar = kind{
 		return node.IsActor()
 	},
 	filename: func(node *entities.AnahitaNode) string {
-		return node.Filename
+		return node.AvatarFilename
 	},
 	setFilename: func(node *entities.AnahitaNode, filename string) {
-		node.Filename = filename
+		node.AvatarFilename = filename
 	},
 	sizes: func(node *entities.AnahitaNode) (map[string]entities.AnahitaNodeImage, error) {
 		return node.GetAvatars()

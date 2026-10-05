@@ -23,7 +23,7 @@ import (
 // here; one that must NOT be settable deliberately does not.
 var editableFields = []string{
 	"Enabled", "Access", "Name", "Body", "Alias", "WebsiteURL",
-	"Verified", "Filename", "CoverFilename", "AllowFollowRequest",
+	"Verified", "AvatarFilename", "CoverFilename", "AllowFollowRequest",
 	"FeaturesRaw", "ModifiedBy", "Language",
 }
 
@@ -43,7 +43,7 @@ func fullRequest() *graphpb.Node {
 		Body:               "A group.",
 		WebsiteUrl:         "https://example.com",
 		Verified:           true,
-		Filename:           "avatar.png",
+		AvatarFilename:     "avatar.png",
 		CoverFilename:      "cover.png",
 		AllowFollowRequest: true,
 		FeaturesRaw:        `{"a":1}`,

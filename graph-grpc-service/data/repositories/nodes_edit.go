@@ -98,6 +98,9 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	if node.Filename != "" {
 		query = query.Set("filename", node.Filename)
 	}
+	if node.AvatarFilename != "" {
+		query = query.Set("avatar_filename", node.AvatarFilename)
+	}
 	if node.CoverFilename != "" {
 		query = query.Set("cover_filename", node.CoverFilename)
 	}

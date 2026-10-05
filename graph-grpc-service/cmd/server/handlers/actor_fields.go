@@ -38,7 +38,7 @@ func applyEditableActorFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.Alias = req.Alias
 	node.WebsiteURL = req.WebsiteUrl
 	node.Verified = req.Verified
-	node.Filename = req.Filename
+	node.AvatarFilename = req.AvatarFilename
 	node.CoverFilename = req.CoverFilename
 	node.AllowFollowRequest = req.AllowFollowRequest
 	node.FeaturesRaw = json.RawMessage(req.FeaturesRaw)

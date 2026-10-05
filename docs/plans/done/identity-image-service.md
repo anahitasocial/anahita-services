@@ -43,7 +43,20 @@ Measured: each had two routes, set and remove by node id; about 650 and 730 line
 **Left for later.**
 - Avatars and covers set through the Go services before this have squeezed squares. They are put right when the person sets a new one.
 - Pictures orphaned by earlier replacements are still in storage. Nothing names them; finding them means listing storage against the names in use.
-- `avatar_filename` and retiring "portrait", with item 27.
+- Retiring "portrait", with item 27.
+
+## Added the same day: `avatar_filename`
+
+The user asked for the rename now and not with item 27, since the services had just been merged.
+
+- **Migration `20261009000001_avatar_filename.sql`**, with `init.sql` and `legacy/upgrade.sql`: `nodes.avatar_filename`, placed after `filename`; every actor's `filename` moved into it and cleared. Nothing moves in storage.
+- **`AvatarFilename`** on the node entity and in the protobuf, read and written by graph-grpc for the node itself and for the owner, author and editor read alongside a post. `Filename` on an actor is now always empty.
+- **Every reader followed:** the avatar helpers in `anahita-libs`, identity-image-service, auth-service's account queries and its userinfo, and the list services that decide whether there is an avatar to presign (search, hashtags, likes, locations, abuse reports).
+- **Tombstoning** an account clears the new column as well.
+
+**Tests.** The migration was run on a throwaway MySQL: up, up again (nothing changes), and down (values back, column gone); the upgraded schema was compared with a fresh one, and the legacy path was run. graph-grpc and auth-service against real MySQL, including a new test that an avatar is stored in its own column, leaves `filename` empty, and is what a post's owner is read with.
+
+**Deploying.** The migration and every service have to go out together: a service from before this reads avatars from `filename`, which the migration empties, and one from after reads a column that an unmigrated database does not have.
 
 ## Status
 

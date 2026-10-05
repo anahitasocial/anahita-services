@@ -142,23 +142,22 @@ lined up. This is what each is, and what it is called where.
 
 | What it is | Who has one | Column | In the API | Served by |
 | --- | --- | --- | --- | --- |
-| **Avatar**: the picture that stands for an actor | People, groups | `nodes.filename` | `avatar_urls` | `identity-image-service`, at `/avatars/` |
+| **Avatar**: the picture that stands for an actor | People, groups | `nodes.avatar_filename` | `avatar_urls` | `identity-image-service`, at `/avatars/` |
 | **Cover**: the wide picture across the top | People, groups, and posts such as articles | `nodes.cover_filename` | `cover_urls` | `identity-image-service`, at `/covers/` |
 | **A photo post's images**: the photo itself | Photo posts | `photo_files`, with the first copied to `nodes.filename` | `files`, and `portrait_urls` for the first | `photo-service`; see [Photo posts](photos.md) |
 
 - **Avatars and covers are identity images:** what a profile or a post is
   recognised by. A photo post's images are content. That is the line between
   the two services.
-- **`nodes.filename` means two things,** and which depends on the kind of
-  node: an actor's avatar, or the file a post *is* (a photo today, a document
-  if file sharing is built). The second is the meaning to keep. The first is
-  to move to a column of its own, `avatar_filename`, when the schema is put
-  in order ([plans/migration-baseline.md](plans/migration-baseline.md)).
-  Until then anything that clears or reads an avatar has to check that the
-  node is an actor, as `ClearFile` in graph-grpc does.
+- **`nodes.filename` is the file a node *is*:** a photo post's photo today,
+  a document's file if file sharing is built. An actor has none. Until
+  2026-10-05 the same column also held an actor's avatar, so its meaning
+  depended on the kind of node; the avatar now has `avatar_filename`, beside
+  `cover_filename`, and each of the three names one thing.
 - **"Portrait"** in the code and in `portrait_urls` means a photo post's
   image, not a picture of a person. It is not to be used for anything new,
-  and goes when `avatar_filename` arrives.
+  and is to be retired when the schema is put in order
+  ([plans/migration-baseline.md](plans/migration-baseline.md)).
 - **"Avatar"** stays, in the code and the API. It is the word Mastodon and
   Bluesky use for the same field.
 - **The stored addresses still say `avatar-service` and `cover-service`**

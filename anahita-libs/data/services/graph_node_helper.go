@@ -4,7 +4,6 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
 	"encoding/json"
-	"strings"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -56,6 +55,7 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.Excerpt = m.Excerpt
 	n.CoverFilename = m.CoverFilename
 	n.Filename = m.Filename
+	n.AvatarFilename = m.AvatarFilename
 	n.Meta = rawJSON(m.Meta)
 	n.EdgeCount = m.EdgeCount
 
@@ -193,12 +193,11 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	}
 
 	// --- Derived assets ---
+	if n.AvatarFilename != "" {
+		n.GetAvatars()
+	}
 	if n.Filename != "" {
-		if strings.Contains(n.Type, "actor") {
-			n.GetAvatars()
-		} else {
-			n.GetPortraits()
-		}
+		n.GetPortraits()
 	}
 	if n.CoverFilename != "" {
 		n.GetCovers()
@@ -248,6 +247,7 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Body:                 node.Body,
 		Excerpt:              node.Excerpt,
 		Filename:             node.Filename,
+		AvatarFilename:       node.AvatarFilename,
 		CoverFilename:        node.CoverFilename,
 		Meta:                 string(node.Meta),
 		CreatedAt:            timestamppb.New(node.CreatedAt),
