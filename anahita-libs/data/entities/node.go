@@ -181,6 +181,9 @@ type AnahitaNode struct {
 	IsRepostedByViewer bool
 	CommentCount       int64
 	CommentStatus      bool
+	// Who may reply, as the post's author sets it. Empty when they have
+	// not said. See constants.NormalizeReplyAccess.
+	ReplyAccess string
 
 	IsLeadingViewer   bool
 	Administrators    []*AnahitaNode

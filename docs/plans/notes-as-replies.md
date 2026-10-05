@@ -309,6 +309,7 @@ Nothing is migrated. New replies are notes, and old comments keep working.
 | Decisions 1–5 | decided 2026-09-28 (see [Decisions and schedule](#decisions-and-schedule-2026-09-28-roadmap-item-7)) |
 | Phase 1 | done 2026-10-05, on branch `m5-conversations`; see [What was built: phase 1](#what-was-built-phase-1-2026-10-05) |
 | Phase 2 | done 2026-10-05; see [What was built: phase 2](#what-was-built-phase-2-2026-10-05) |
+| Who can reply, per post | done 2026-10-05; see [What was built: who can reply](#what-was-built-who-can-reply-2026-10-05). Asked for by the user after phase 2; this is the "reply controls" that decision 4 left for later |
 | Phase 3 | not started |
 
 
@@ -391,6 +392,53 @@ Every comment is a reply. `comment-service` is still deployed, with nothing to s
 - The comment code is all still there: comment-service, the comment branches in like, search, feeds and notifications, and the web app's comment components. That is phase 3.
 
 **Checked on the dev stack.** Threads of a photo and a topic that had comments return them as replies, with authors and avatars; the photo's count matches; feeds and a list of notes contain no replies. Nothing in a browser by me.
+
+## What was built: who can reply (2026-10-05)
+
+A post's author chooses who may reply to it, the way Bluesky's "post
+interaction settings" do: anyone, nobody, or any of the people who follow
+them, the people they follow, and the people the post mentions. The rule is
+in `docs/permissions.md`, Who the author lets reply.
+
+- **One column**, `nodes.reply_access` (migration
+  `20261012000001_nodes_reply_access`, and the same in `schema/init.sql` and
+  `legacy/upgrade.sql`). Empty means the author has not said. No rows are
+  changed: a post closed with the older switch reads as `nobody` without the
+  column being filled in.
+- **The rule** is `permissions.CanReply`, which now also reads the author's
+  relationship to the viewer (`RootAuthorViewerRel`) and the post's mentions.
+  It narrows the profile's rule and never widens it, and whoever looks after
+  the thread replies whatever is set.
+- **Set with the post or afterwards**: `reply_access` on creating an article,
+  note, topic or photo post, and `PATCH /…/:id/reply-access`. The older
+  `PATCH /…/:id/comment-status` still works and keeps the two in step.
+- **Web**: a dialog (`components/ReplyAccessDialog.jsx`) opened from a button
+  in the composer beside the audience and the language, and from "Who can
+  reply" in a post's menu, which replaces "Close comments". The thread says
+  who can reply when it is limited.
+
+**Decisions made while building, to revisit if they turn out wrong.**
+- **Measured against the author, not the profile.** In a group, "followers"
+  are the author's. Bluesky has no groups to compare with; the group's own
+  rule (followers only, or anybody registered) is already the profile's.
+- **A mention is matched by name in the post's text as it is now.** Editing a
+  post to take a name out takes away that person's right to reply; what they
+  already said stays.
+- **Not remembered between posts.** The composer starts on "anyone" every
+  time.
+- **`authorized.comment` on a post in a list is still the profile's rule and
+  the switch**, without the groups: a list does not read the author's
+  relationship for every post. The thread's `can_reply` is the full answer,
+  and the server refuses a reply either way.
+
+**Left out, for want of what they depend on.** Bluesky's "select from your
+lists" (there are no lists) and "allow quote posts" (item 25).
+
+**Checked.** Unit tests for the rule and the values; the column read, written
+and left alone by an unrelated edit, on a real database; the migration run
+twice and against a table without the column. On the dev stack a post and its
+thread return `reply_access`, and the new routes refuse a visitor. Nothing
+signed in, and nothing in a browser, by me.
 
 ---
 

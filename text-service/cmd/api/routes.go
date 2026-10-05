@@ -42,6 +42,7 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	// article comment status
 	articles.PATCH("/:id/comment-status", r.handler.Article.EditCommentStatus, r.authorize)
+	articles.PATCH("/:id/reply-access", r.handler.Article.EditReplyAccess, r.authorize)
 
 	// notes
 	notes := e.Group("notes")
@@ -65,6 +66,7 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	// note comment status
 	notes.PATCH("/:id/comment-status", r.handler.Note.EditCommentStatus, r.authorize)
+	notes.PATCH("/:id/reply-access", r.handler.Note.EditReplyAccess, r.authorize)
 
 	// topics
 	topics := e.Group("topics")
@@ -79,4 +81,5 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	// topic comment status
 	topics.PATCH("/:id/comment-status", r.handler.Topic.EditCommentStatus, r.authorize)
+	topics.PATCH("/:id/reply-access", r.handler.Topic.EditReplyAccess, r.authorize)
 }

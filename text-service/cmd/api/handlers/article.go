@@ -216,6 +216,14 @@ func (h *articleHandler) Add(c echo.Context) error {
 	medium.ModifiedBy = viewer.ID
 	medium.Enabled = true
 	medium.CommentStatus = true
+
+	// Who may reply, when the author says. Not saying leaves it to the
+	// profile; a value that is not one is an error.
+	if replyAccess, valid := an_handlers.RequestReplyAccess(req.ReplyAccess); !valid {
+		return an_handlers.RefuseReplyAccess(c)
+	} else if replyAccess != "" {
+		an_handlers.SetReplyAccess(medium, replyAccess)
+	}
 	medium.Access = an_handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
 
 	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)

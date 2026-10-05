@@ -46,4 +46,5 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	// photo comment status
 	photos.PATCH("/:id/comment-status", r.handler.Photo.EditCommentStatus, r.authorize)
+	photos.PATCH("/:id/reply-access", r.handler.Photo.EditReplyAccess, r.authorize)
 }

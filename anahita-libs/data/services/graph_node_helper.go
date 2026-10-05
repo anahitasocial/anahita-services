@@ -57,6 +57,7 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.Filename = m.Filename
 	n.AvatarFilename = m.AvatarFilename
 	n.RootID = m.RootId
+	n.ReplyAccess = m.ReplyAccess
 	n.Meta = rawJSON(m.Meta)
 	n.EdgeCount = m.EdgeCount
 
@@ -250,6 +251,7 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Filename:             node.Filename,
 		AvatarFilename:       node.AvatarFilename,
 		RootId:               node.RootID,
+		ReplyAccess:          node.ReplyAccess,
 		CoverFilename:        node.CoverFilename,
 		Meta:                 string(node.Meta),
 		CreatedAt:            timestamppb.New(node.CreatedAt),

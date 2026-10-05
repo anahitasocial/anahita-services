@@ -58,15 +58,24 @@ func (h *mediumHandler) thread(c echo.Context, rootID int64, viewer *entities.Vi
 	}
 	root.Owner = owner
 
-	rels, err := h.Srv.SocialgraphGRPC.Browse([]int64{root.OwnerID}, viewer.ID)
+	// The author's relationship as well as the profile's. They are the
+	// same actor for a post on its author's own profile and not for one in
+	// a group, and who the author lets reply is measured against the author.
+	actorIDs := []int64{root.OwnerID}
+	if authorID := root.GetAuthorID(); authorID > 0 && authorID != root.OwnerID {
+		actorIDs = append(actorIDs, authorID)
+	}
+
+	rels, err := h.Srv.SocialgraphGRPC.Browse(actorIDs, viewer.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx := &permissions.ReplyAccessContext{
-		Viewer:             viewer,
-		Root:               root,
-		RootOwnerViewerRel: rels[root.OwnerID],
+		Viewer:              viewer,
+		Root:                root,
+		RootOwnerViewerRel:  rels[root.OwnerID],
+		RootAuthorViewerRel: rels[root.GetAuthorID()],
 	}
 	threads[rootID] = ctx
 
@@ -188,6 +197,8 @@ func (h *mediumHandler) Thread(c echo.Context) error {
 		// Whether the viewer may reply here at all, for a thread with
 		// nothing in it yet.
 		"can_reply": canReply,
+		// Who the post's author lets reply, for saying why not.
+		"reply_access": permissions.RepliesLimitedTo(thread.Root),
 		// True when the thread is longer than is sent at once.
 		"truncated": total >= replyThreadLimit,
 	})

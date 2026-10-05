@@ -49,6 +49,7 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		"parent_id",
 		"parent_type",
 		"root_id",
+		"reply_access",
 		"geo_latitude",
 		"geo_longitude",
 		"geo_address",
@@ -94,6 +95,7 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		// NULL, not 0, on anything that is not a reply: "top level" is
 		// asked for as root_id IS NULL.
 		nullableID(node.RootID),
+		nullableString(node.ReplyAccess),
 		node.GeoLatitude,
 		node.GeoLongitude,
 		node.GeoAddress,
@@ -160,4 +162,12 @@ func nullableID(id int64) any {
 		return nil
 	}
 	return id
+}
+
+// nullableString is the value, or NULL for none.
+func nullableString(value string) any {
+	if value == "" {
+		return nil
+	}
+	return value
 }

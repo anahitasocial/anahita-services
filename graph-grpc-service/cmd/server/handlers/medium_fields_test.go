@@ -13,7 +13,7 @@ import (
 var editableMediumFields = []string{
 	"Enabled", "Pinned", "Access", "Name", "Alias", "Body", "Excerpt",
 	"Filename", "CoverFilename", "Meta", "ModifiedBy", "CommentStatus",
-	"CommentCount", "Language",
+	"CommentCount", "Language", "ReplyAccess",
 }
 
 // Set when a post is made and never by an edit.
@@ -44,6 +44,7 @@ func fullMediumRequest() *graphpb.Node {
 		CommentStatus: true,
 		CommentCount:  3,
 		Language:      "fa",
+		ReplyAccess:   "followers,mentioned",
 	}
 }
 

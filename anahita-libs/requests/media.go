@@ -101,6 +101,16 @@ type MediumAddRequest struct {
 	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
 	// by the author; left out, the post has none. See package language.
 	Language string `form:"language" validate:"omitempty,max=12"`
+	// Who may reply: "anyone", "nobody", or any of "followers", "following"
+	// and "mentioned" joined by commas. Left out, anyone the profile lets.
+	// See constants.NormalizeReplyAccess.
+	ReplyAccess string `json:"reply_access" form:"reply_access" validate:"omitempty,max=64"`
+}
+
+// MediumEditReplyAccessRequest changes who may reply to a post.
+type MediumEditReplyAccessRequest struct {
+	ID          int64  `param:"id" validate:"required,numeric"`
+	ReplyAccess string `json:"reply_access" form:"reply_access" validate:"required,max=64"`
 }
 
 type MediumDeleteRequest struct {

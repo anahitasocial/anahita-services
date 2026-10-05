@@ -18,6 +18,9 @@ CREATE TABLE nodes (
   `owner_type` varchar(255) DEFAULT NULL,
   `owner_id` bigint(11) unsigned DEFAULT NULL,
   `comment_status` tinyint(1) DEFAULT NULL,
+  -- Who may reply, as the post's author sets it. NULL when they have not
+  -- said. See anahita-libs/constants/reply_access.go.
+  `reply_access` varchar(64) DEFAULT NULL,
   `comment_count` int(11) unsigned DEFAULT NULL,
   `repost_count` int(11) unsigned NOT NULL DEFAULT 0,
   `quote_count` int(11) unsigned NOT NULL DEFAULT 0,

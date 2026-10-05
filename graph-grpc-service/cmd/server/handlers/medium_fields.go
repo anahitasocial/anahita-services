@@ -36,6 +36,7 @@ func applyEditableMediumFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.Meta = json.RawMessage(req.Meta)
 	node.ModifiedBy = req.ModifiedBy
 	node.CommentStatus = req.CommentStatus
+	node.ReplyAccess = req.ReplyAccess
 	node.CommentCount = req.CommentCount
 	// Kept as it is when the request carries none: the repository writes
 	// it only when it is set.

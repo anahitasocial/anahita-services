@@ -48,6 +48,11 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	}
 
 	query = query.Set("comment_status", node.CommentStatus)
+	// Left as it is unless a value is given. "Whoever the profile lets
+	// reply" is given as the word "anyone", so it can be set back.
+	if node.ReplyAccess != "" {
+		query = query.Set("reply_access", node.ReplyAccess)
+	}
 	query = query.Set("comment_count", node.CommentCount)
 	query = query.Set("enabled", node.Enabled)
 	query = query.Set("verified", node.Verified)

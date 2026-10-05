@@ -128,6 +128,10 @@ message Node {
     // The post at the top of the thread a reply belongs to. 0 on anything
     // that is not a reply.
     int64 root_id = 83;
+
+    // Who may reply to a post, as its author sets it. Empty when they have
+    // not said.
+    string reply_access = 84;
 }
 
 message Nodes {

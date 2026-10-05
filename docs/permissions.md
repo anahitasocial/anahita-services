@@ -212,12 +212,50 @@ on it:
 - on a followers-only profile, followers;
 - on anything narrower, whoever can see it.
 
-The root's switch for comments has to be open. Closed, nobody can reply but
-the people who look after the thread (below): closing it is how they stop
-other people, not themselves.
+Then the post's own setting, which its author chooses (below).
 
-A reply cannot be given an audience, and its own switch for comments cannot be
-changed. Both follow the root.
+A reply cannot be given an audience, and neither its switch for comments nor
+who may reply to it can be changed. All three follow the root.
+
+### Who the author lets reply
+
+A post carries who may reply to it, in `nodes.reply_access`, returned as
+`reply_access`:
+
+| Value | Who may reply |
+| --- | --- |
+| `anyone` | Whoever the rule above lets. What a post has when its author has not said. |
+| `nobody` | Nobody. |
+| `followers` | People who follow the post's author. |
+| `following` | People the post's author follows. |
+| `mentioned` | People the post mentions by `@name`. |
+
+The last three can be combined, joined by commas (`followers,mentioned`), and
+somebody in any one of them may reply.
+
+- **It narrows and never widens.** The profile's rule is applied first. In a
+  group that lets only its followers comment, being mentioned in a post does
+  not let somebody outside the group reply.
+- **Measured against the author, not the profile.** They are the same for a
+  post on its author's own profile. For a post in a group, `followers` are
+  the people who follow whoever wrote it, not the group's followers.
+- **The people who look after the thread (below) reply whatever is set.**
+  Closing a post is how they stop other people, not themselves.
+- **Set when the post is made** (`reply_access` beside `access`) **or
+  afterwards** with `PATCH /{articles,notes,topics,photos}/:id/reply-access`,
+  by whoever may edit the post. A value that is not one is refused with 400
+  `reply_access_invalid`; a reply answers 422 `reply_follows_its_thread`.
+- **The older switch**, `comment_status`, is kept in step: off is `nobody`,
+  and turning it on makes `nobody` `anyone`. A post closed before this
+  setting existed has no value stored and still reads as `nobody`.
+
+The rule is `permissions.CanReply`; the values are in
+`anahita-libs/constants/reply_access.go`. The thread says the answer for the
+viewer (`can_reply`) and the setting (`reply_access`), so the app can say why
+not.
+
+Not built: letting in a list of people (there are no lists), and a switch for
+quote posts (there are no quote posts; roadmap item 25).
 
 ### Who looks after a thread
 

@@ -45,10 +45,15 @@ func TestNodeRoundTripAgainstTheSchema(t *testing.T) {
 	note.OwnerID = person.ID
 	note.OwnerType = person.Type
 	note.CreatedBy = person.ID
+	note.CommentStatus = true
+	note.ReplyAccess = "followers,mentioned"
 
 	note, err = repo.Add(note)
 	if err != nil {
 		t.Fatalf("add the note: %v", err)
+	}
+	if note.ReplyAccess != "followers,mentioned" {
+		t.Errorf("added with reply_access %q, want followers,mentioned", note.ReplyAccess)
 	}
 
 	note.Body = "hello again"
@@ -66,6 +71,29 @@ func TestNodeRoundTripAgainstTheSchema(t *testing.T) {
 	if got.Body != "hello again" || got.ViewCount != 3 || !got.Pinned {
 		t.Errorf("read back body=%q view_count=%d pinned=%v, want %q, 3, true",
 			got.Body, got.ViewCount, got.Pinned, "hello again")
+	}
+
+	// Who may reply was not part of that edit, and is as it was. An edit
+	// that does not say leaves it alone; one that says changes it, and
+	// "anyone" is how it is set back.
+	if got.ReplyAccess != "followers,mentioned" {
+		t.Errorf("reply_access %q after an edit that did not change it, want followers,mentioned", got.ReplyAccess)
+	}
+	got.ReplyAccess = ""
+	got.ModifiedBy = person.ID
+	if _, err := repo.Edit(got); err != nil {
+		t.Fatalf("edit without reply_access: %v", err)
+	}
+	if got, err = repo.Read(note.ID); err != nil || got.ReplyAccess != "followers,mentioned" {
+		t.Errorf("reply_access %q (err %v) after an edit that carried none, want followers,mentioned", got.ReplyAccess, err)
+	}
+	got.ReplyAccess = "anyone"
+	got.ModifiedBy = person.ID
+	if _, err := repo.Edit(got); err != nil {
+		t.Fatalf("edit reply_access: %v", err)
+	}
+	if got, err = repo.Read(note.ID); err != nil || got.ReplyAccess != "anyone" {
+		t.Errorf("reply_access %q (err %v), want anyone", got.ReplyAccess, err)
 	}
 
 	batch, err := repo.BatchRead(&requests.NodeBatchReadRequest{IDs: []int64{person.ID, note.ID}})

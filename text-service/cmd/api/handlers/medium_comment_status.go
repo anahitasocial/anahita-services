@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/data/entities"
 	"anahita-libs/requests"
 	"anahita-libs/responses"
@@ -53,7 +54,7 @@ func (h *mediumHandler) EditCommentStatus(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	medium.CommentStatus = req.Status
+	an_handlers.SetRepliesOpen(medium, req.Status)
 
 	// Changing comment status is a modification, and the edit validator
 	// requires a modifier. See person_access.go for what its absence did.

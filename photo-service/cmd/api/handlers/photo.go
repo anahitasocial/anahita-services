@@ -262,6 +262,14 @@ func (h *photoHandler) Add(c echo.Context) error {
 	}
 	medium.Enabled = true
 	medium.CommentStatus = true
+
+	// Who may reply, when the author says. Not saying leaves it to the
+	// profile; a value that is not one is an error.
+	if replyAccess, valid := handlers.RequestReplyAccess(req.ReplyAccess); !valid {
+		return handlers.RefuseReplyAccess(c)
+	} else if replyAccess != "" {
+		handlers.SetReplyAccess(medium, replyAccess)
+	}
 	medium.Access = handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
 
 	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)

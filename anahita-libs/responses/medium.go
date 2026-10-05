@@ -1,6 +1,7 @@
 package responses
 
 import (
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"time"
 )
@@ -70,8 +71,12 @@ type MediumNode struct {
 	RepostCount   int64  `json:"repost_count"`
 	CommentCount  int64  `json:"comment_count"`
 	CommentStatus bool   `json:"comment_status"`
-	Pinned        bool   `json:"pinned"`
-	Enabled       bool   `json:"enabled"`
+	// Who may reply, as the author set it: "anyone", "nobody", or any of
+	// "followers", "following" and "mentioned" joined by commas. Not on a
+	// reply, which follows the post at the top of its thread.
+	ReplyAccess string `json:"reply_access,omitempty"`
+	Pinned      bool   `json:"pinned"`
+	Enabled     bool   `json:"enabled"`
 
 	IsLikedByViewer    bool `json:"is_liked_by_viewer"`
 	IsRepostedByViewer bool `json:"is_reposted_by_viewer"`
@@ -174,6 +179,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		IsRepostedByViewer: node.IsRepostedByViewer,
 		CommentCount:       node.CommentCount,
 		CommentStatus:      node.CommentStatus,
+		ReplyAccess:        replyAccess(node),
 		Pinned:             node.Pinned,
 		ViewCount:          node.ViewCount,
 		Authorized: func() *NodeAuthorized {
@@ -235,4 +241,14 @@ func replyParent(node *entities.AnahitaNode) int64 {
 		return 0
 	}
 	return node.ParentID
+}
+
+// replyAccess is who may reply to a post, as it is read. Nothing for a
+// reply.
+func replyAccess(node *entities.AnahitaNode) string {
+	if node.RootID > 0 {
+		return ""
+	}
+
+	return constants.EffectiveReplyAccess(node.ReplyAccess, node.CommentStatus)
 }

@@ -1,6 +1,8 @@
 package permissions
 
 import (
+	"strings"
+
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 )
@@ -13,7 +15,8 @@ import (
 // post at the top of its thread, the root:
 //
 //   - who can see it: whoever can see the root;
-//   - who can reply: whoever could comment on the root;
+//   - who can reply: whoever could comment on the root, narrowed to the
+//     people the root's author chose, when they chose;
 //   - who can remove it: its author, and whoever looks after the thread;
 //   - who can hide it from the thread: whoever looks after the thread.
 //
@@ -38,6 +41,11 @@ type ReplyAccessContext struct {
 	Root *entities.AnahitaNode
 	// The root's owner's relationship to the viewer.
 	RootOwnerViewerRel *entities.ActorRelation
+	// The root's author's relationship to the viewer. The same as the
+	// owner's for a post on its author's own profile, and not for one in a
+	// group. Only who may reply reads it, and only when the author limited
+	// replies to people they follow or who follow them.
+	RootAuthorViewerRel *entities.ActorRelation
 }
 
 func (ctx *ReplyAccessContext) rootLoaded() bool {
@@ -78,11 +86,52 @@ func LooksAfterThread(ctx *ReplyAccessContext) bool {
 	return relationOrEmpty(ctx.RootOwnerViewerRel).HasAdmin
 }
 
+// RepliesLimitedTo is who the root's author lets reply, as the stored value
+// is read: "anyone", "nobody", or the groups. A post whose switch for
+// replies is off reads as "nobody" whatever else it says, which is every
+// post closed before authors could choose.
+func RepliesLimitedTo(root *entities.AnahitaNode) string {
+	if root == nil {
+		return constants.ReplyAccessNobody
+	}
+
+	return constants.EffectiveReplyAccess(root.ReplyAccess, root.CommentStatus)
+}
+
+// chosenToReply reports whether the viewer is in one of the groups the
+// root's author limited replies to. Any one group is enough.
+func chosenToReply(ctx *ReplyAccessContext, limitedTo string) bool {
+	rel := relationOrEmpty(ctx.RootAuthorViewerRel)
+
+	// The relation is the author's to the viewer: "leading" is the viewer
+	// following the author, "following" is the author following the viewer.
+	if constants.ReplyAccessHas(limitedTo, constants.ReplyAccessFollowers) && rel.IsLeading {
+		return true
+	}
+
+	if constants.ReplyAccessHas(limitedTo, constants.ReplyAccessFollowing) && rel.IsFollowing {
+		return true
+	}
+
+	if constants.ReplyAccessHas(limitedTo, constants.ReplyAccessMentioned) && ctx.Viewer.Username != "" {
+		for _, mention := range ctx.Root.GetMentions() {
+			if strings.EqualFold(mention, ctx.Viewer.Username) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 // CanReply reports whether the viewer may add a reply to this thread: the
-// rule for commenting on the root, and the root's switch for comments being
-// open.
+// rule for commenting on the root, and then whoever the root's author
+// limited replies to.
 //
-// Whoever looks after the thread can reply to it with the switch closed.
+// The author's choice narrows and never widens. Somebody the profile does
+// not let comment cannot reply because the post mentions them.
+//
+// Whoever looks after the thread can reply to it whatever was chosen.
 // Closing it is how they stop other people, not themselves.
 func CanReply(ctx *ReplyAccessContext) bool {
 	if !ctx.rootLoaded() || !ctx.Viewer.Authenticated {
@@ -103,14 +152,18 @@ func CanReply(ctx *ReplyAccessContext) bool {
 		return true
 	}
 
-	if !ctx.Root.CommentStatus {
+	limitedTo := RepliesLimitedTo(ctx.Root)
+	if limitedTo == constants.ReplyAccessNobody {
 		return false
 	}
 
 	rel := relationOrEmpty(ctx.RootOwnerViewerRel)
 	access := CommentAccess(ctx.Root.GetOwner(), ctx.Root.GetService())
+	if access != "" && !AddAccessAllows(access, rel, ctx.Viewer) {
+		return false
+	}
 
-	return access == "" || AddAccessAllows(access, rel, ctx.Viewer)
+	return limitedTo == constants.ReplyAccessAnyone || chosenToReply(ctx, limitedTo)
 }
 
 // CanEditReply reports whether the viewer may change a reply: its author
