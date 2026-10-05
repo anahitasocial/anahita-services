@@ -41,6 +41,10 @@ func (f *fakePublicContent) MakePublicRegistered(viewer *lib_entities.Viewer) (*
 
 const convertingViewer = 42
 
+func publicCounts(people, groups, posts int64) *graphpb.PublicAccessCountsResponse {
+	return &graphpb.PublicAccessCountsResponse{People: people, Groups: groups, Posts: posts}
+}
+
 func makeRegistered(t *testing.T, personType string, proved bool, body string) (*httptest.ResponseRecorder, *fakePublicContent, *testEnv) {
 	t.Helper()
 

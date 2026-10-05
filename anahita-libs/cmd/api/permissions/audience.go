@@ -101,6 +101,17 @@ func audiences(viewer *entities.Viewer, owner *entities.AnahitaNode, authorID in
 	return policy.Allowed(audiences)
 }
 
+// CanChangeMediumAudience reports whether the viewer may change this post's
+// access from `current` to `requested`.
+//
+// Keeping what it has is always allowed, as in policy.MayChangeAccess: a rule
+// that came later does not reach back, so a post that was public before the
+// installation stopped allowing it can be saved without being forced to
+// change.
+func CanChangeMediumAudience(ctx *MediumAccessContext, current, requested string) bool {
+	return requested == current || IsMediumAudienceAllowed(ctx, requested)
+}
+
 // IsMediumAudienceAllowed reports whether the viewer may give this post this
 // access level.
 //

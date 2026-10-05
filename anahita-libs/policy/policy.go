@@ -133,6 +133,16 @@ func AllowsAccess(access string) bool {
 	return access != constants.AnahitaAccessPublic || AllowsPublic()
 }
 
+// MayChangeAccess reports whether something whose access is `current` may be
+// given `requested`.
+//
+// Keeping what it already has is always allowed. The setting governs what is
+// written from now on and does not reach back: a profile that was public
+// before may stay public, and saving some other change to it must not fail.
+func MayChangeAccess(current, requested string) bool {
+	return requested == current || AllowsAccess(requested)
+}
+
 // Allowed returns the levels out of these that may be given now, in the order
 // they came.
 func Allowed(levels []string) []string {

@@ -85,7 +85,7 @@ func Authorize(config ConfigInterface, jwks *JWKSClient) echo.MiddlewareFunc {
 func SetViewer(config ConfigInterface, jwks *JWKSClient) echo.MiddlewareFunc {
 	return func(h echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			viewer, err := authenticateOAuth(c, config, jwks)
+			viewer, err := authenticate(c, config, jwks)
 			if viewer != nil && err == nil {
 				c.Set(constants.ViewerContextKey, viewer)
 				return h(c)
@@ -110,6 +110,10 @@ func SetViewer(config ConfigInterface, jwks *JWKSClient) echo.MiddlewareFunc {
 		}
 	}
 }
+
+// authenticate is how SetViewer finds out who is asking. A variable so a test
+// can stand in for a signed-in person without minting a token.
+var authenticate = authenticateOAuth
 
 // ErrMembersOnly is the error code of the 401 a members-only site gives
 // somebody who is not signed in. Distinct from "unauthorized", so a client

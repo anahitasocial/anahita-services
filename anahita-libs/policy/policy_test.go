@@ -43,6 +43,49 @@ func TestOnlyPublicIsEverRuledOut(t *testing.T) {
 	}
 }
 
+// What is already public may stay public; nothing may become public.
+func TestAccessThatIsAlreadyThereMayStay(t *testing.T) {
+	restore := SetForTest("registered")
+	defer restore()
+
+	for _, tc := range []struct {
+		current, requested string
+		want               bool
+	}{
+		{"public", "public", true},      // unchanged
+		{"public", "followers", true},   // narrowed
+		{"followers", "public", false},  // widened to public
+		{"registered", "public", false}, // likewise
+		{"", "public", false},           // never said, now public
+		{"followers", "registered", true},
+	} {
+		if got := MayChangeAccess(tc.current, tc.requested); got != tc.want {
+			t.Errorf("from %q to %q: %v, want %v", tc.current, tc.requested, got, tc.want)
+		}
+	}
+
+	restore()
+	if !MayChangeAccess("followers", "public") {
+		t.Error("an open installation refused a change to public")
+	}
+}
+
+// The three values of SITE_READ_ACCESS are told apart, and only one of the
+// two restrictions is ever on.
+func TestTheThreeKindsOfSite(t *testing.T) {
+	for value, want := range map[string][2]bool{
+		"public":     {false, false},
+		"preview":    {false, true},
+		"registered": {true, false},
+	} {
+		restore := SetReadAccessForTest(value)
+		if MembersOnly() != want[0] || PreviewOnly() != want[1] {
+			t.Errorf("%s: members-only=%v preview=%v", value, MembersOnly(), PreviewOnly())
+		}
+		restore()
+	}
+}
+
 func TestSiteReadAccessIsReadStrictly(t *testing.T) {
 	for raw, want := range map[string]string{
 		"":            ReadPublic,

@@ -131,75 +131,14 @@ a restart.
 
 | Variable | Value |
 | --- | --- |
-| `SITE_READ_ACCESS` | `public` (the default), `preview` or `registered`. What somebody who is **not signed in** may read |
-| `MIN_CONTENT_ACCESS` | `public` (the default) or `registered`. The widest audience anything **new** may be given |
+| `SITE_READ_ACCESS` | What somebody who is **not signed in** may read: `public` (the default), everything that is public; `preview`, only the start of it; `registered`, nothing, a members-only site |
+| `MIN_CONTENT_ACCESS` | The widest audience anything **new** may be given: `public` (the default) or `registered` |
 
-The two are independent. Both set to `registered` is a fully private
-installation; the second alone keeps what is already public readable and adds
-no more.
+A value that is not understood is treated as `registered`, the strictest, and
+the log says so. A typo must not be what makes everything public again.
 
-**`SITE_READ_ACCESS=registered`** is the members-only site:
-
-- Every route that serves content answers 401 `members_only` to somebody who
-  is not signed in: profiles, posts, feeds, comments, hashtags, places,
-  followers and search.
-- What stays open is what people need to get in: signing in and up, password
-  reset, accepting an invitation, the OAuth endpoints and NodeInfo.
-- **Nothing stored changes**, so it can be switched back. A post that says
-  `public` is public again the moment the setting is removed.
-- Signed-in people see everything exactly as before.
-- The web app shows people who are not signed in a notice and the home page
-  in place of whatever they asked for, and asks search engines not to index
-  the site.
-- Once federation exists, a members-only site does not federate.
-
-**`SITE_READ_ACCESS=preview`** is between the two. Somebody who is not signed
-in still reaches what is public, and is sent only the start of it:
-
-| | What they are sent |
-| --- | --- |
-| A post's text, and a profile's | The first 280 characters or so, as plain words, cut at a word. The post is marked `truncated: true`. A text that fits is sent as it is |
-| A photo | The smallest size only |
-| A list | The first 10 items. `pagination.more` is true when there are more, and `pagination.total` is what was sent. Asking for a later page answers 401 `members_only` |
-| Comments, and the lists of who follows whom | Nothing: 401 `members_only`. The counts on the post or profile are still there |
-| Avatars and covers | As usual |
-
-It is enough for a link shared elsewhere to say what it leads to, while the
-rest stays behind signing in. Signed-in people see everything as before, and
-nothing stored changes. Once federation exists, an installation set to preview
-does not federate: that would send out the whole of what the preview holds
-back.
-
-Both are enforced in one place, the middleware that admits an anonymous reader
-(`SetViewer` in `anahita-libs/middleware`). On a members-only site it refuses;
-on a preview site it rewrites whatever JSON the route answers, by the names of
-its fields, so a new route is covered without knowing the setting. A test
-there fails if any service gains a route that goes around it.
-
-**`MIN_CONTENT_ACCESS=registered`** is for a school, a company or a private
-community that wants nothing new to be readable by people who are not signed
-in:
-
-- A post can no longer be created public or changed to public, and neither can
-  a person's profile or a group. The answer is 422 `access_not_allowed`, with
-  the audiences that are allowed.
-- A post written without saying who can see it is for signed-in people, and so
-  is a new account's profile.
-- **What is already public stays public**, and can stay so when it is edited.
-  The setting governs what is written from now on.
-- A super administrator can change all of that in one step: Site Settings,
-  Privacy, "Make everything public members-only"
-  (`POST /accounts/make-registered`). It changes every public person, group
-  and post to `registered`, records who did it in `site_actions`, and cannot
-  be undone. It is refused, with 409, on an installation that still allows
-  public content.
-- The web app stops offering "Public".
-- Once federation exists, nothing new is sent to other servers, since only
-  public posts are.
-
-For both settings, a value that is not understood is treated as `registered`,
-and the log says so. A typo must not be what makes everything
-public again.
+What each one does, how they combine, and how to check them is in
+[Privacy](privacy.md#what-the-installation-allows).
 
 ## First super administrator
 

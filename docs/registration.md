@@ -238,7 +238,7 @@ servers read, and the web app reads it too.
   `readAccess`, `public`, `preview` or `registered`: what somebody who is not
   signed in may read, and `minContentAccess`, the widest audience anything new may be
   given (see
-  [Privacy of the installation](configuration.md#privacy-of-the-installation)).
+  [Privacy](privacy.md#what-the-installation-allows)).
 
 ## The first super administrator
 

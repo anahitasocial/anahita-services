@@ -49,7 +49,7 @@ func (h *personHandler) EditAccess(c echo.Context) error {
 
 	// An installation that allows nothing new to be public does not let a
 	// profile be made public either. One that already is may stay so.
-	if req.Access != person.Access && !policy.AllowsAccess(req.Access) {
+	if !policy.MayChangeAccess(person.Access, req.Access) {
 		log.Printf("refused: this installation does not allow a profile to be made %q", req.Access)
 		return an_handlers.RefuseAccess(c, policy.Allowed([]string{
 			constants.AnahitaAccessPublic, constants.AnahitaAccessRegistered, constants.AnahitaAccessFollowers,

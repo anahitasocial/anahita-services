@@ -61,7 +61,8 @@ Everything on this page assumes somebody who is not signed in can read what is
 then they can read nothing, whatever each profile and post says, and `public`
 means the same as `registered`. With `SITE_READ_ACCESS=preview` they can read
 only the start of what is public. See
-[Privacy of the installation](configuration.md#privacy-of-the-installation).
+[Privacy](privacy.md#what-the-installation-allows), which also gathers the
+audiences of posts and profiles in one place.
 
 ## Who is always allowed
 
@@ -144,7 +145,7 @@ choices disabled, and does not offer `leaders` when writing a post.
 
 An installation can take `public` out of all four rows, for everybody, with
 `MIN_CONTENT_ACCESS=registered`; see
-[Privacy of the installation](configuration.md#privacy-of-the-installation).
+[Privacy](privacy.md#new-content-min_content_access).
 A post that is already public may keep that audience.
 
 Every person and group in a response carries `authorized.audiences`: the

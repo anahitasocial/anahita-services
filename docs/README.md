@@ -70,7 +70,17 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [What administrators do](abuse-reports.md#what-administrators-do)
    - [When the reported thing is deleted](abuse-reports.md#when-the-reported-thing-is-deleted)
    - [Who sees what](abuse-reports.md#who-sees-what)
-9. [Account lifecycle](account-lifecycle.md) — disabling, archiving, deleting, purging, and clearing out unused accounts
+9. [Privacy](privacy.md) — who can see a post, a profile and the site, and the settings an installation makes
+   - [The audiences](privacy.md#the-audiences)
+   - [Who can see a post](privacy.md#who-can-see-a-post)
+   - [Who can see a profile or a group](privacy.md#who-can-see-a-profile-or-a-group)
+   - [What the installation allows](privacy.md#what-the-installation-allows)
+   - [Setting them](privacy.md#setting-them)
+   - [Checking them](privacy.md#checking-them)
+   - [What the web app does](privacy.md#what-the-web-app-does)
+   - [Where it is enforced, and how it is tested](privacy.md#where-it-is-enforced-and-how-it-is-tested)
+   - [Federation](privacy.md#federation)
+10. [Account lifecycle](account-lifecycle.md) — disabling, archiving, deleting, purging, and clearing out unused accounts
    - [The four states](account-lifecycle.md#the-four-states)
    - [Deleting and the 30 days](account-lifecycle.md#deleting-and-the-30-days)
    - [What a purge removes](account-lifecycle.md#what-a-purge-removes)
@@ -79,7 +89,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The accounts list](account-lifecycle.md#the-accounts-list)
    - [The sweeper](account-lifecycle.md#the-sweeper)
    - [Groups left without an administrator](account-lifecycle.md#groups-left-without-an-administrator)
-10. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
+11. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
    - [What you need](deploying.md#what-you-need)
    - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
    - [Hostnames](deploying.md#hostnames)

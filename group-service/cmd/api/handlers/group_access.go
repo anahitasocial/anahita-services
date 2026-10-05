@@ -50,7 +50,7 @@ func (h *groupHandler) EditAccess(c echo.Context) error {
 
 	// An installation that allows nothing new to be public does not let a
 	// profile be made public either. One that already is may stay so.
-	if req.Access != actor.Access && !policy.AllowsAccess(req.Access) {
+	if !policy.MayChangeAccess(actor.Access, req.Access) {
 		log.Printf("refused: this installation does not allow a profile to be made %q", req.Access)
 		return an_handlers.RefuseAccess(c, policy.Allowed([]string{
 			an_constants.AnahitaAccessPublic, an_constants.AnahitaAccessRegistered,

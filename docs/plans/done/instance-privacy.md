@@ -352,6 +352,30 @@ NodeInfo saying `preview`. Set back to open afterwards.
 Cards in feeds do not show the link; the notice above the page is all a
 visitor gets there.
 
+### Tests and documentation, gone over (2026-10-05)
+
+Asked for by the user before trying the settings by hand.
+
+**Tests added,** all of which run without a database:
+- A signed-in person is never refused on a members-only site and never sent a
+  preview, including a later page and comments (`signed_in_test.go`). This
+  needed a small seam in `SetViewer`, the `authenticate` variable, so a test
+  can stand in for somebody signed in.
+- What is already public may stay so: `policy.MayChangeAccess` and
+  `permissions.CanChangeMediumAudience`, which the four change-access handlers
+  now call in place of a comparison written out in each.
+- Three guards that read the code: every handler that sets an audience asks
+  the rule, the routes a preview leaves out are marked, and (already there)
+  every route names its viewer.
+- The 422 answers, the request defaults under the setting, NodeInfo's two
+  fields, who may see the public-content counts, and the convert action's
+  statements with sqlmock.
+
+**Documentation.** One page, `docs/privacy.md`: the three layers, the
+audiences, both settings and how they combine, how to set and check them, what
+the web app does, and where each rule is enforced and tested.
+`configuration.md` keeps the two variables and points there.
+
 ## Status
 
 | Item | State |
