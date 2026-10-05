@@ -113,7 +113,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
 | [Video service](plans/video-service.md) | 16 | not started |
 | [Several images per photo post; photo sets removed](plans/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 not started |
-| [Creative Commons licences](plans/content-licences.md) | 19 | not started |
+| [Creative Commons licences](plans/content-licences.md) | 19 | kept for later (2026-10-04); look again after items 16 and 17 |
 | [Language on posts](plans/content-language.md) | 20 | not started |
 | [Download your data](plans/data-export.md) | 21 | not started |
 | [Post insights](plans/post-insights.md) | 22 | not started |

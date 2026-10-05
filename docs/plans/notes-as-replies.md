@@ -143,6 +143,44 @@ Deleting a reply that has replies of its own leaves them in place, under a
 "deleted" placeholder, as Bluesky and Mastodon do. Deleting the root hides the
 whole thread.
 
+### The post's author moderates their thread (added 2026-10-04)
+
+Asked for by the user on 2026-10-04: whoever wrote the post a thread hangs
+from can remove a reply from it, for everybody.
+
+The list above lets the owner of the *profile* delete a reply. That covers a
+post on your own profile, and it leaves a gap: somebody who posts in a group
+is not its administrator, so they could not act on replies under their own
+post. So the **author of the root post** is added to both actions below,
+wherever the post is.
+
+- **Hide.** The reply no longer appears in the thread, for anybody, and its
+  own replies go with it. It is not destroyed: it stays on its author's
+  profile under "Posts & replies", and its author is not told. The post's
+  author can show it again. This is Bluesky's "hide reply".
+- **Delete.** The reply is removed for good. Allowed for a reply that lives on
+  this installation.
+
+A reply that arrived from another server can only be hidden: the copy there
+is not ours to delete. That is why both exist, and why hide is the one the
+interface leads with. Until federation, every reply is local and both work.
+
+Storage: a hidden reply is one edge from the root post to the reply,
+`edge.medium.hidden-reply.v1`, created by whoever hid it. An edge and not a
+flag on the reply, because the reply belongs to its author and "hidden" is a
+fact about the thread. Every thread listing leaves out replies with that edge
+on their root; the count on the post leaves them out too. On Bluesky it is
+sent as the post's threadgate `hiddenReplies`; ActivityPub has no equivalent,
+so there it only affects what this installation shows.
+
+Who may hide or delete a reply in a thread: the root post's author, the owner
+or administrators of the profile it is on, and site administrators. The reply's
+own author can delete it, as before, and has no use for hiding it.
+
+Phase 1 builds it, with the thread view: "Hide reply" and "Delete reply" in the
+reply's menu, and a "Hidden replies" line at the foot of the thread, which only
+the people who may hide can open.
+
 ### Likes, reposts, hashtags, mentions
 
 All come for free, because a reply is a note. like-service loses its comment
@@ -306,6 +344,7 @@ Nothing is migrated. New replies are notes, and old comments keep working.
 5. **Re-enable the ~1,625 disabled pre-2016 comments** under published posts during the migration. It can run separately before Phase 2. The disabled comments under unpublished posts stay as they are.
 6. **UI name: "Replies".**
 7. **Replies can be reposted,** shown with their parent post above them, as Bluesky does.
+8. **The author of a post can hide or delete any reply in its thread** (2026-10-04), wherever the post is. See *The post's author moderates their thread*. About 3–4 hours on top of Phase 1.
 
 ### Interplay with other items (to note in the roadmap)
 - **Item 0 (feed gate fix) first.** Replies depend on the root-access rule being applied in every listing, and the feed gate is exactly where that is broken today.
