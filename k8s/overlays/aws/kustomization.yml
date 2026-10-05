@@ -40,6 +40,8 @@ secretGenerator:
 images:
   - name: anahita/abuse-report-service
     newTag: latest
+  - name: anahita/actor-service
+    newTag: latest
   - name: anahita/auth-service
     newTag: latest
   - name: anahita/avatar-service
@@ -54,8 +56,6 @@ images:
     newTag: latest
   - name: anahita/graph-grpc-service
     newTag: latest
-  - name: anahita/group-service
-    newTag: latest
   - name: anahita/hashtag-service
     newTag: latest
   - name: anahita/like-service
@@ -69,8 +69,6 @@ images:
   - name: anahita/nginx
     newTag: latest
   - name: anahita/notification-service
-    newTag: latest
-  - name: anahita/person-service
     newTag: latest
   - name: anahita/photo-service
     newTag: latest

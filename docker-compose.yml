@@ -145,7 +145,7 @@ services:
       # super-administrators. Defaults to administrators, which is what
       # happened before this setting existed.
       #
-      # group-service is what enforces it. auth-service is given the same
+      # actor-service is what enforces it. auth-service is given the same
       # value only so /nodeinfo/2.1 can publish it, which is how the web app
       # knows whether to offer a + on the groups page. Both read this one
       # entry, so they cannot be given different answers.
@@ -181,11 +181,15 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.10
 
-# group-service - handles groups
-  group-service:
+# actor-service - the profiles of people and of groups
+#
+# One service for every kind of actor. Each kind keeps its own address,
+# /people/ and /groups/, and the gateway sends both here. It reads and writes
+# through graph-grpc-service and is given no database address.
+  actor-service:
     build:
       context: .
-      dockerfile: ./dockerfiles/group-service.dockerfile
+      dockerfile: ./dockerfiles/actor-service.dockerfile
     restart: always
     ports:
       - "8082:80"
@@ -203,7 +207,6 @@ services:
       # docs/configuration.md, Privacy of the installation.
       SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
-      DSN: ${DSN}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -211,55 +214,16 @@ services:
       REDIS_PASSWORD: ""
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
-      #     SETTINGS_PATH: "/app/assets/settings.json"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
       # Who may create a group. Enforced here; auth-service is given the same
       # value so it can publish it in NodeInfo. See the note there.
       GROUPS_FROM: ${GROUPS_FROM:-}
-    # volumes:
-    #   - ./assets/custom-group-settings.json:/app/assets/settings.json
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.11
-
-# person-service - handles people
-  person-service:
-    build:
-      context: .
-      dockerfile: ./dockerfiles/person-service.dockerfile
-    restart: always
-    ports:
-      - "8083:80"
-    deploy:
-      mode: replicated
-      replicas: 1
-    environment:
-      ENV: ${ENV}
-      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
-      GRPC_TLS: ${GRPC_TLS:-on}
-      # What the installation lets people who are not signed in see, and
-      # whether anything new may be public. The same for every service; see
-      # docs/configuration.md, Privacy of the installation.
-      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
-      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
-      DSN: ${DSN}
-      AMQP_ADDR: ${AMQP_ADDR}
-      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
-      FILE_SERVICE_ADDR: "file-grpc-service:50051"
-      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
-      OAUTH_ISSUER: ${OAUTH_ISSUER}
-      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
-    volumes:
-      - ./grpc-certs:/run/secrets/grpc:ro
-    networks:
-      anahita-network:
-        ipv4_address: 172.20.1.12
 
 # text-service - handles texts
   text-service:

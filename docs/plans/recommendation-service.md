@@ -76,7 +76,7 @@ Who does what:
 That keeps the privacy rules in one place, so a replacement recommender gets them for free. The web app's hydration through the actor endpoints is a second line of defence.
 
 **5. Storage**
-- **Interests:** new graph edge `edge.actor.interest.v1` (person → hashtag or location), written by new graph-grpc and person-service endpoints `PUT /people/:id/interests` and `GET /people/:id/interests`. Add the constant to `anahita-libs/constants/entity_types.go`. Feeds and a future "follow a hashtag" feed can reuse these edges.
+- **Interests:** new graph edge `edge.actor.interest.v1` (person → hashtag or location), written by new graph-grpc and actor-service endpoints `PUT /people/:id/interests` and `GET /people/:id/interests`. Add the constant to `anahita-libs/constants/entity_types.go`. Feeds and a future "follow a hashtag" feed can reuse these edges.
 - **The recommender's own tables** (goose migration plus a matching addition to `legacy/upgrade.sql`, per the migration catch noted in item 1):
   - `recommendation_preferences (person_id PK, suggest_people, suggest_groups, use_activity, use_location, discoverable, updated_at)`. Default when there's no row: all true, i.e. discoverable by default with opt-out.
   - `recommendation_dismissals (person_id, actor_id, created_at, PK(person_id, actor_id))`.
@@ -98,7 +98,7 @@ That keeps the privacy rules in one place, so a replacement recommender gets the
 
 | Step | Part | Estimate |
 | --- | --- | --- |
-| 1 | Interest edges + endpoints (graph-grpc, person-service, anahita-libs) | 2–3 h |
+| 1 | Interest edges + endpoints (graph-grpc, actor-service, anahita-libs) | 2–3 h |
 | 2 | `FilterActorsForViewer` RPC + tests for every exclusion | 2–3 h |
 | 3 | Service skeleton + deploy wiring (compose, nginx, k8s, Makefile) | 2 h |
 | 4 | Signal SQL, scoring, reasons, preferences and dismissals tables + endpoints, cache | 6–8 h |
