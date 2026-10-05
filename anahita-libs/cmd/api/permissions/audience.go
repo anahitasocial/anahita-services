@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	"anahita-libs/constants"
+	"anahita-libs/data/entities"
 )
 
 // Which audiences a post may be given, and by whom.
@@ -37,7 +38,24 @@ const ErrAudienceNotAllowed = "access_not_allowed"
 // ctx.Medium needs its owner attached and its author set; ctx.OwnerViewerRel
 // may be nil, which reads as "no relation".
 func MediumAudiences(ctx *MediumAccessContext) []string {
-	owner := ctx.Medium.GetOwner()
+	return audiences(ctx.Viewer, ctx.Medium.GetOwner(), ctx.Medium.GetAuthorID(), ctx.OwnerViewerRel)
+}
+
+// PostAudiences returns the access levels a NEW post by the viewer may be
+// given on owner's profile, widest first. It is MediumAudiences asked before
+// the post exists, and is what a profile's response carries so the composer
+// offers only audiences that will be accepted.
+//
+// Empty for somebody who is not signed in: they cannot post at all.
+func PostAudiences(viewer *entities.Viewer, owner *entities.AnahitaNode, rel *entities.ActorRelation) []string {
+	if viewer == nil || viewer.ID == 0 {
+		return []string{}
+	}
+
+	return audiences(viewer, owner, viewer.ID, rel)
+}
+
+func audiences(viewer *entities.Viewer, owner *entities.AnahitaNode, authorID int64, rel *entities.ActorRelation) []string {
 	if owner == nil {
 		return nil
 	}
@@ -54,7 +72,7 @@ func MediumAudiences(ctx *MediumAccessContext) []string {
 		// Only me: only on a post the profile's owner wrote on their own
 		// profile. Keyed on the author, not on who is asking, so an
 		// administrator tidying somebody's post cannot make it one either.
-		if ctx.Medium.GetAuthorID() > 0 && ctx.Medium.GetAuthorID() == ctx.Medium.GetOwnerID() {
+		if authorID > 0 && authorID == owner.GetID() {
 			audiences = append(audiences, constants.AnahitaAccessMyself)
 		}
 
@@ -69,8 +87,8 @@ func MediumAudiences(ctx *MediumAccessContext) []string {
 
 	// Administrators only: for somebody who is one, of the group or of the
 	// site.
-	administers := ctx.OwnerViewerRel != nil && ctx.OwnerViewerRel.HasAdmin
-	if administers || ctx.Viewer.IsAdmin() {
+	administers := rel != nil && rel.HasAdmin
+	if administers || viewer.IsAdmin() {
 		audiences = append(audiences, constants.AnahitaAccessAdmins)
 	}
 

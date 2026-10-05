@@ -105,3 +105,36 @@ func TestAnAudienceNotSaidIsAllowed(t *testing.T) {
 		t.Error("admins was allowed with no relation to the group")
 	}
 }
+
+// What a profile's response carries for the composer: the same rule, asked
+// before the post exists.
+func TestPostAudiencesAreMediumAudiencesForANewPost(t *testing.T) {
+	const person, group = constants.NodeActorPersonEntityType, "node.actor.group-service.group.v1"
+
+	node := func(id int64, nodeType string) *entities.AnahitaNode {
+		n := entities.NewAnahitaNode()
+		n.ID, n.Type = id, nodeType
+		return n
+	}
+	member := audienceViewer(audGrace, constants.PersonTypeRegistered)
+
+	for _, tc := range []struct {
+		name string
+		got  []string
+		want string
+	}{
+		{"your own profile", PostAudiences(member, node(audGrace, person), nil),
+			"[public registered followers leaders mutuals myself]"},
+		{"somebody else's", PostAudiences(member, node(audAda, person), nil),
+			"[public registered followers leaders mutuals]"},
+		{"a group you are in", PostAudiences(member, node(audGroup, group), &entities.ActorRelation{}),
+			"[public registered followers]"},
+		{"a group you administer", PostAudiences(member, node(audGroup, group), &entities.ActorRelation{HasAdmin: true}),
+			"[public registered followers admins]"},
+		{"not signed in", PostAudiences(entities.NewViewer(), node(audAda, person), nil), "[]"},
+	} {
+		if got := fmt.Sprint(tc.got); got != tc.want {
+			t.Errorf("%s: %s, want %s", tc.name, got, tc.want)
+		}
+	}
+}

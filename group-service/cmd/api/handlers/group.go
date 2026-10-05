@@ -740,6 +740,7 @@ func (h *groupHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 	// web app offers only the composers and the add-follower control that
 	// will work.
 	item.Authorized.Composers = permissions.Composers(viewer, item, rel)
+	item.Authorized.Audiences = permissions.PostAudiences(viewer, item, rel)
 	addFollower := permissions.CanAddOthersAsFollowers(viewer, item, rel)
 	item.Authorized.AddFollower = &addFollower
 

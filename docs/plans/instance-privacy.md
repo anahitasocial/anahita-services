@@ -164,9 +164,14 @@ Two of its rules were not in the plan, and are deliberate:
   administrators. From an ordinary member it would be a private message to
   the group's administrators.
 
+**The server tells the app.** Every person and group response carries
+`authorized.audiences`, from `permissions.PostAudiences`, so the composer
+offers what will be accepted and does not keep a second copy of the rule.
+
 **Web.** A button beside Post names the current audience and opens a menu
-(`containers/media/Composer/Audience.jsx`); the rules for what it offers are
-in `utils/audience.js`. The choice is sent with the post.
+(`containers/media/Composer/Audience.jsx`). `utils/audience.js` reads the
+server's list and adds what the server has no opinion on. The choice is sent
+with the post.
 - In a group, followers are called Members.
 - An audience wider than the profile itself is shown disabled, with the
   reason.

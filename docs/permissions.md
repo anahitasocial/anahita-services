@@ -132,6 +132,10 @@ never seen more widely than its profile, so on a followers-only group a
 `public` post is still only seen by its members. The web app shows those wider
 choices disabled, and does not offer `leaders` when writing a post.
 
+Every person and group in a response carries `authorized.audiences`: the
+audiences a post the viewer writes there may have, from this same rule. The
+web app's composer offers those and nothing else.
+
 ## Posting
 
 Who can create a note, article, topic or photo on somebody's profile.

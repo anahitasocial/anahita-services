@@ -676,6 +676,9 @@ func (h *personHandler) onAfterFetched(c echo.Context, node *entities.Person) er
 	// The composers the viewer may use on this profile, from the check the
 	// media services enforce, so the web app offers only ones that will work.
 	node.Authorized.Composers = permissions.Composers(viewer, &node.AnahitaNode, actorAccessCtx.ActorViewerRel)
+	// And who a post written here may be shown to, from the rule the media
+	// services enforce.
+	node.Authorized.Audiences = permissions.PostAudiences(viewer, &node.AnahitaNode, actorAccessCtx.ActorViewerRel)
 
 	return nil
 }
