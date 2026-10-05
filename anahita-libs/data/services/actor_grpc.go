@@ -64,6 +64,14 @@ type ActorsGRPCInterface interface {
 	// nobody was given comes back with a total of zero.
 	ReadPurgeBatch(batchID string) (*graphpb.ActorPurgeBatchReadResponse, error)
 
+	// PublicAccessCounts says how much on the installation is public.
+	PublicAccessCounts() (*graphpb.PublicAccessCountsResponse, error)
+
+	// MakePublicRegistered makes everything public visible to signed-in
+	// people only, and returns what it changed. SUPER ADMINISTRATORS ONLY,
+	// and the caller enforces that. It cannot be undone.
+	MakePublicRegistered(viewer *entities.Viewer) (*graphpb.PublicAccessCountsResponse, error)
+
 	// BatchRead returns a list of media
 	BatchRead(req *ActorGRPCBatchReadRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
 
@@ -456,6 +464,40 @@ func (srv *ActorsGRPC) ReadPurgeBatch(batchID string) (*graphpb.ActorPurgeBatchR
 
 	return client.ReadPurgeBatch(context.Background(), &graphpb.ActorPurgeBatchReadRequest{
 		BatchId: batchID,
+	})
+}
+
+// PublicAccessCounts says how much on the installation is public.
+func (srv *ActorsGRPC) PublicAccessCounts() (*graphpb.PublicAccessCountsResponse, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, errors.New("the graph service is not configured")
+	}
+
+	return client.PublicAccessCounts(context.Background(), &graphpb.PublicAccessCountsRequest{})
+}
+
+// MakePublicRegistered makes everything public visible to signed-in people
+// only. The authority check belongs to the caller; see the interface.
+func (srv *ActorsGRPC) MakePublicRegistered(viewer *entities.Viewer) (*graphpb.PublicAccessCountsResponse, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, errors.New("the graph service is not configured")
+	}
+
+	return client.MakePublicRegistered(context.Background(), &graphpb.MakePublicRegisteredRequest{
+		Viewer: &graphpb.Viewer{
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
+		},
 	})
 }
 

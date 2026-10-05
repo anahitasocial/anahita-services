@@ -168,6 +168,12 @@ in:
   is a new account's profile.
 - **What is already public stays public**, and can stay so when it is edited.
   The setting governs what is written from now on.
+- A super administrator can change all of that in one step: Site Settings,
+  Privacy, "Make everything public members-only"
+  (`POST /accounts/make-registered`). It changes every public person, group
+  and post to `registered`, records who did it in `site_actions`, and cannot
+  be undone. It is refused, with 409, on an installation that still allows
+  public content.
 - The web app stops offering "Public".
 - Once federation exists, nothing new is sent to other servers, since only
   public posts are.

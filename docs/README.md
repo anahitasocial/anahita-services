@@ -111,7 +111,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Link previews](plans/link-previews.md) | 10 | not started |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
-| [Instance privacy and the composer audience picker](plans/instance-privacy.md) | 13 | the audience picker, `MIN_CONTENT_ACCESS` and members-only done 2026-10-05; preview mode and the convert action not started |
+| [Instance privacy and the composer audience picker](plans/instance-privacy.md) | 13 | everything but preview mode done 2026-10-05 |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
 | [Video service](plans/video-service.md) | 16 | not started |
 | [Several images per photo post; photo sets removed](plans/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 not started |

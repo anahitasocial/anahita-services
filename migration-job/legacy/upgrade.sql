@@ -634,6 +634,27 @@ CREATE TABLE IF NOT EXISTS purge_requests (
     KEY `idx_purge_requests_status` (`status`, `requested_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- A record of the things a super administrator does to the whole
+-- installation at once, which no single profile's history would show.
+--
+-- The first is converting everything public to registered. It changes
+-- thousands of rows in one step and cannot be undone, so who did it and what
+-- it came to is written down here, once per action.
+--
+-- Owned by graph-grpc-service.
+CREATE TABLE IF NOT EXISTS site_actions (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- What was done, as a short fixed word: 'made-public-registered'.
+    `action` varchar(64) NOT NULL,
+    -- The super administrator who did it.
+    `performed_by` bigint unsigned NOT NULL,
+    -- What it came to, as JSON: how many rows of each kind it changed.
+    `detail` text,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_site_actions_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 ALTER TABLE people_people ADD COLUMN `totp_secret` VARCHAR(255) DEFAULT '';
 ALTER TABLE people_people ADD COLUMN `totp_enabled` TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE people_people ADD COLUMN `totp_recovery_codes` TEXT DEFAULT NULL;

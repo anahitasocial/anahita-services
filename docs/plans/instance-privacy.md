@@ -279,6 +279,39 @@ answers as before.
 **Not checked.** A signed-in member on a members-only stack, and the web
 app's notice in a browser.
 
+### Converting what is already public (2026-10-05)
+
+**Graph.** `PublicAccessRepo` counts what is public (people, groups, posts
+with their revisions) and changes it to `registered` in chunks of 5,000 rows,
+then writes one row to a new table, `site_actions`, with who did it and the
+counts. Hashtags and places are left. `updated_at` is not touched: nobody
+edited the posts. Running it again changes nothing.
+
+**API**, in auth-service beside the accounts list:
+- `GET /accounts/public-content` gives the counts and whether public content
+  is still allowed.
+- `POST /accounts/make-registered` with `{ "confirm": "CONVERT 8675" }` does
+  it. Super administrators only, with a proof of identity, and the number must
+  be what is public at that moment. 409 `public_content_allowed` unless
+  `MIN_CONTENT_ACCESS=registered`.
+
+**Web.** A Privacy tab in Site Settings shows the two settings as the server
+has them, and the conversion with its counts, the typed confirmation and the
+proof of identity.
+
+**Where it differs from the plan.** It is refused while public content is
+still allowed, which the plan did not say. Converting then would be undone by
+the next public post, and pressing it by mistake on an open site would hide
+the whole of it from visitors.
+
+**Checked.** The change against real MySQL (what changes, what does not, the
+record, a second run); the gates in front of it in handler tests; the
+migration on the fresh and upgrade paths. On the development stack the two
+routes refuse a caller with no token.
+
+**Not checked.** The conversion through the running stack, and the Privacy
+tab in a browser.
+
 ## Status
 
 | Item | State |
@@ -288,4 +321,4 @@ app's notice in a browser.
 | `MIN_CONTENT_ACCESS` | done 2026-10-04 |
 | `SITE_READ_ACCESS=registered` | done 2026-10-05 |
 | `SITE_READ_ACCESS=preview` | not started |
-| Convert public to registered | not started |
+| Convert public to registered | done 2026-10-05 |
