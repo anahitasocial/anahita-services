@@ -101,7 +101,7 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 		`DELETE FROM photo_files`,
 		`DELETE FROM photo_uploads`,
 
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,person_type,filename,follower_count,leader_count,created_at,updated_at) VALUES
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,person_type,avatar_filename,follower_count,leader_count,created_at,updated_at) VALUES
 		 (1,` + person + `,'Ada','ada','public',1,'registered','avatar.jpg',1,2,NOW(),NOW()),
 		 (2,` + person + `,'Grace','grace','public',1,'registered',NULL,1,2,NOW(),NOW()),
 		 (3,` + person + `,'Root','root','public',1,'super-administrator',NULL,0,0,NOW(),NOW())`,

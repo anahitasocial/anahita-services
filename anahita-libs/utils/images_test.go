@@ -2,6 +2,7 @@ package images
 
 import (
 	"bytes"
+	"errors"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -138,5 +139,50 @@ func TestSomethingThatIsNotAnImageIsRefused(t *testing.T) {
 	}
 	if _, err := SquareImage(page, 640); err == nil {
 		t.Error("a page of HTML was squared")
+	}
+}
+
+func TestAcceptTakesAnImageAndSaysWhatItIs(t *testing.T) {
+	upright, mimeType, err := Accept(picture(t, 400, 300, false), 1<<20, 1_000_000)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if mimeType != "image/jpeg" {
+		t.Errorf("kind = %q", mimeType)
+	}
+	if w, h, _ := Dimensions(upright); w != 400 || h != 300 {
+		t.Errorf("size = %dx%d", w, h)
+	}
+}
+
+// Judged from the bytes, whatever the file was called.
+func TestAcceptRefusesWhatIsNotAnImage(t *testing.T) {
+	if _, _, err := Accept([]byte("<html><script>alert(1)</script></html>"), 1<<20, 1_000_000); !errors.Is(err, ErrUnsupported) {
+		t.Errorf("a page of HTML: %v", err)
+	}
+}
+
+func TestAcceptRefusesTooManyBytesOrPixels(t *testing.T) {
+	image := picture(t, 400, 300, true)
+
+	if _, _, err := Accept(image, len(image)-1, 1_000_000); !errors.Is(err, ErrTooLarge) {
+		t.Errorf("one byte over: %v", err)
+	}
+	// 400 x 300 is 120,000 pixels.
+	if _, _, err := Accept(image, 1<<20, 119_999); !errors.Is(err, ErrTooLarge) {
+		t.Errorf("one pixel over: %v", err)
+	}
+	if _, _, err := Accept(image, 1<<20, 120_000); err != nil {
+		t.Errorf("exactly at the limit was refused: %v", err)
+	}
+}
+
+// The start of a real PNG and then nothing: it says it is an image and
+// cannot be read as one.
+func TestAcceptRefusesABrokenImage(t *testing.T) {
+	broken := picture(t, 400, 300, true)[:20]
+
+	if _, _, err := Accept(broken, 1<<20, 1_000_000); !errors.Is(err, ErrUnreadable) {
+		t.Errorf("a cut-off PNG: %v", err)
 	}
 }

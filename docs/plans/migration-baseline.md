@@ -30,6 +30,21 @@ Until then every item keeps writing a goose migration, because that is how datab
 5. **Add a schema test:** load `init.sql` into one database and the legacy dump through `upgrade.sql` into another, and compare `information_schema` for every table (columns, types, nullability, defaults, indexes). Today they differ in at least one place (`nodes.service` is nullable after an upgrade), and nothing checks.
 6. **Document the rule** in `docs/getting-started.md`: from the first release on, schema changes are goose migrations, mirrored in `init.sql`, and migrations are never squashed again without a documented upgrade path.
 
+## Names to put right at the same time (added 2026-10-05)
+
+A rename costs the same three files and a pass through the graph service
+whenever it is done, so these wait for this item, when the schema is being
+rewritten anyway. The reasoning is in `docs/architecture.md`, Naming images.
+
+- ~~`nodes.avatar_filename`~~ **Done on 2026-10-05**, ahead of this item at
+  the user's request: migration `20261009000001_avatar_filename.sql`. An
+  actor's avatar has its own column, and `filename` is the file a node is.
+  When the migrations are folded, the column simply belongs in the clean
+  `init.sql`, and the move of old values in `legacy/upgrade.sql`.
+- **Retire "portrait".** In the code and in the API's `portrait_urls` it
+  means a photo post's image. Photo posts carry their images in `files`;
+  `portrait_urls` goes once the web app reads the first image from there.
+
 ## Estimate
 About 4–6 h, 1–1½ sessions. Most of it is the schema comparison test and reading `upgrade.sql` end to end.
 

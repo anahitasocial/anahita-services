@@ -30,6 +30,11 @@ func (a *AnahitaNode) GetFilename() string {
 	return a.Filename
 }
 
+// GetAvatarFilename is the stored name of an actor's avatar.
+func (a *AnahitaNode) GetAvatarFilename() string {
+	return a.AvatarFilename
+}
+
 func (a *AnahitaNode) GetCoverFilename() string {
 	return a.CoverFilename
 }

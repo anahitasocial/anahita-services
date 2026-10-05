@@ -6,18 +6,12 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/responses"
 	images "anahita-libs/utils"
-	"bytes"
-	"image"
 	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
 	photo "photo/constants"
 	"strconv"
-
-	// The formats an upload can be in, for reading its size.
-	_ "image/jpeg"
-	_ "image/png"
 
 	"github.com/labstack/echo/v4"
 )
@@ -65,35 +59,11 @@ func (h *photoHandler) storeImage(c echo.Context, owner *entities.AnahitaNode, v
 		return nil, errFileUnreadable, err
 	}
 
-	// What the bytes are, not what the file says it is: a page of HTML
-	// named photo.jpg is refused here.
-	if !images.IsValidMimeType(http.DetectContentType(content)) {
-		return nil, errFileUnsupported, nil
-	}
-
-	if len(content) > photo.MaxFileSize {
-		return nil, errFileTooLarge, nil
-	}
-
-	// How large the picture is, read from its header before any of it is
-	// opened. A small file can describe an enormous picture, and opening
-	// one takes memory by the pixel, not by the byte.
-	declared, _, err := image.DecodeConfig(bytes.NewReader(content))
+	// Checked by the rules every uploaded image is held to; see
+	// images.Accept.
+	content, mimeType, err := images.Accept(content, photo.MaxFileSize, photo.MaxPixels)
 	if err != nil {
-		return nil, errFileUnreadable, err
-	}
-	if declared.Width*declared.Height > photo.MaxPixels {
-		return nil, errFileTooLarge, nil
-	}
-
-	content, err = images.CorrectOrientation(content)
-	if err != nil {
-		return nil, errFileUnreadable, err
-	}
-
-	mimeType := http.DetectContentType(content)
-	if !images.IsValidMimeType(mimeType) {
-		return nil, errFileUnsupported, nil
+		return nil, refusalFor(err), err
 	}
 
 	filename, err := images.GenerateUniqueFilename(mimeType)
@@ -117,7 +87,7 @@ func (h *photoHandler) storeImage(c echo.Context, owner *entities.AnahitaNode, v
 
 	// The size recorded is that of the largest copy kept, which is what a
 	// client can actually be given.
-	dimensions, _, err := image.DecodeConfig(bytes.NewReader(largest))
+	width, height, err := images.Dimensions(largest)
 	if err != nil {
 		return nil, errFileUnreadable, err
 	}
@@ -163,8 +133,8 @@ func (h *photoHandler) storeImage(c echo.Context, owner *entities.AnahitaNode, v
 		CreatedBy: viewer.ID,
 		Filename:  filename,
 		Mimetype:  mimeType,
-		Width:     dimensions.Width,
-		Height:    dimensions.Height,
+		Width:     width,
+		Height:    height,
 	}, "", nil
 }
 

@@ -39,6 +39,7 @@ func nodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Body:                 node.Body,
 		Excerpt:              node.Excerpt,
 		Filename:             node.Filename,
+		AvatarFilename:       node.AvatarFilename,
 		CoverFilename:        node.CoverFilename,
 		Meta:                 string(node.Meta),
 		CreatedAt:            timestamppb.New(node.CreatedAt),

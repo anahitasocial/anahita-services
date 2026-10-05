@@ -43,7 +43,7 @@ func (repo *ActorAdmin) getBaseSelectQuery() sq.SelectBuilder {
 		"node.service",
 		"COALESCE(node.name, '') AS name",
 		"node.alias",
-		"COALESCE(node.filename, '') AS filename",
+		"COALESCE(node.avatar_filename, '') AS avatar_filename",
 		"node.created_at",
 		"node.updated_at",
 	}
@@ -97,7 +97,7 @@ func (repo *ActorAdmin) Browse(actorId int64) ([]*graphpb.Node, error) {
 			&item.Service,
 			&item.Name,
 			&item.Alias,
-			&item.Filename,
+			&item.AvatarFilename,
 			&createdAt,
 			&updatedAt,
 		)

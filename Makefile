@@ -65,13 +65,9 @@ FILE_BINARY=app-binary
 FILE_VERSION=latest
 FILE_SRV=file-grpc-service
 
-AVATAR_BINARY=app-binary
-AVATAR_VERSION=latest
-AVATAR_SRV=avatar-service
-
-COVER_BINARY=app-binary
-COVER_VERSION=latest
-COVER_SRV=cover-service
+IDENTITY_IMAGE_BINARY=app-binary
+IDENTITY_IMAGE_VERSION=latest
+IDENTITY_IMAGE_SRV=identity-image-service
 
 MAIL_BINARY=app-binary
 MAIL_VERSION=latest
@@ -110,7 +106,7 @@ down:
 	@echo "Docker stopped!"
 
 ## build_dockerfiles: builds all dockerfile images
-build_dockerfiles: check_docker build_abuse_report build_auth build_comment build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
+build_dockerfiles: check_docker build_abuse_report build_auth build_comment build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_identity_image build_mail build_feed
 	@echo "Building dockerfiles..."
 	docker build -f ${DOCKERFILES}/${ABUSE_REPORT_SRV}.dockerfile -t ${REPOSITORY}/${ABUSE_REPORT_SRV}:${ABUSE_REPORT_VERSION} .
 	docker build -f ${DOCKERFILES}/${AUTH_SRV}.dockerfile -t ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION} .
@@ -129,8 +125,7 @@ build_dockerfiles: check_docker build_abuse_report build_auth build_comment buil
 	docker build -f ${DOCKERFILES}/${STORY_SRV}.dockerfile -t ${REPOSITORY}/${STORY_SRV}:${STORY_VERSION} .
 	docker build -f ${DOCKERFILES}/${NOTIFICATION_SRV}.dockerfile -t ${REPOSITORY}/${NOTIFICATION_SRV}:${NOTIFICATION_VERSION} .
 	docker build -f ${DOCKERFILES}/${FILE_SRV}.dockerfile -t ${REPOSITORY}/${FILE_SRV}:${FILE_VERSION} .
-	docker build -f ${DOCKERFILES}/${AVATAR_SRV}.dockerfile -t ${REPOSITORY}/${AVATAR_SRV}:${AVATAR_VERSION} .
-	docker build -f ${DOCKERFILES}/${COVER_SRV}.dockerfile -t ${REPOSITORY}/${COVER_SRV}:${COVER_VERSION} .
+	docker build -f ${DOCKERFILES}/${IDENTITY_IMAGE_SRV}.dockerfile -t ${REPOSITORY}/${IDENTITY_IMAGE_SRV}:${IDENTITY_IMAGE_VERSION} .
 	docker build -f ${DOCKERFILES}/${MAIL_SRV}.dockerfile -t ${REPOSITORY}/${MAIL_SRV}:${MAIL_VERSION} .
 	docker build -f ${DOCKERFILES}/${MIGRATION_JOB}.dockerfile -t ${REPOSITORY}/${MIGRATION_JOB}:${MIGRATION_VERSION} .
 	docker build -f ${DOCKERFILES}/${FEED_SRV}.dockerfile -t ${REPOSITORY}/${FEED_SRV}:${FEED_VERSION} .
@@ -155,8 +150,7 @@ push_dockerfiles: check_docker build_dockerfiles
 	docker push ${REPOSITORY}/${STORY_SRV}:${STORY_VERSION}
 	docker push ${REPOSITORY}/${NOTIFICATION_SRV}:${NOTIFICATION_VERSION}
 	docker push ${REPOSITORY}/${FILE_SRV}:${FILE_VERSION}
-	docker push ${REPOSITORY}/${AVATAR_SRV}:${AVATAR_VERSION}
-	docker push ${REPOSITORY}/${COVER_SRV}:${COVER_VERSION}
+	docker push ${REPOSITORY}/${IDENTITY_IMAGE_SRV}:${IDENTITY_IMAGE_VERSION}
 	docker push ${REPOSITORY}/${MAIL_SRV}:${MAIL_VERSION}
 	docker push ${REPOSITORY}/${MIGRATION_JOB}:${MIGRATION_VERSION}
 	docker push ${REPOSITORY}/${FEED_SRV}:${FEED_VERSION}
@@ -268,17 +262,11 @@ build_file:
 	cd ${FILE_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${FILE_BINARY} ./cmd/server
 	@echo "File binary built!"
 
-## build_avatar: builds the avatar binary as a linux executable
-build_avatar:
-	@echo "Building avatar binary.."
-	cd ${AVATAR_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${AVATAR_BINARY} ./cmd/api
-	@echo "Avatar binary built!"
-
-## build_cover: builds the cover binary as a linux executable
-build_cover:
-	@echo "Building cover binary.."
-	cd ${COVER_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${COVER_BINARY} ./cmd/api
-	@echo "Cover binary built!"
+## build_identity_image: builds the identity image binary (avatars and covers) as a linux executable
+build_identity_image:
+	@echo "Building identity image binary.."
+	cd ${IDENTITY_IMAGE_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${IDENTITY_IMAGE_BINARY} ./cmd/api
+	@echo "Identity image binary built!"
 
 ## build_mail: builds the mail binary as a linux executable
 build_mail:
@@ -294,7 +282,7 @@ build_feed:
 
 ## up_build: stops docker-compose (if running), builds all projects and starts docker compose
 # up_build: build_auth build_broker build_listener build_logger build_mail
-up_build: build_abuse_report build_auth build_comment build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
+up_build: build_abuse_report build_auth build_comment build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_identity_image build_mail build_feed
 	@echo "Stopping docker images (if running...)"
 	docker-compose down
 	@echo "Building (when required) and starting docker images..."
@@ -450,23 +438,14 @@ file: build_file
 	docker-compose start ${FILE_SRV}
 	@echo "${FILE_SRV} built and started!"
 
-## avatar: stops avatar-service, removes docker image, builds service, and starts it
-avatar: build_avatar
-	@echo "Building ${AVATAR_SRV} docker image..."
-	- docker-compose stop ${AVATAR_SRV}
-	- docker-compose rm -f ${AVATAR_SRV}
-	docker-compose up --build -d ${AVATAR_SRV}
-	docker-compose start ${AVATAR_SRV}
-	@echo "${AVATAR_SRV} built and started!"
-
-## cover: stops cover-service, removes docker image, builds service, and starts it
-cover: build_cover
-	@echo "Building ${COVER_SRV} docker image..."
-	- docker-compose stop ${COVER_SRV}
-	- docker-compose rm -f ${COVER_SRV}
-	docker-compose up --build -d ${COVER_SRV}
-	docker-compose start ${COVER_SRV}
-	@echo "${COVER_SRV} built and started!"
+## identity_image: stops identity-image-service (avatars and covers), removes docker image, builds service, and starts it
+identity_image: build_identity_image
+	@echo "Building ${IDENTITY_IMAGE_SRV} docker image..."
+	- docker-compose stop ${IDENTITY_IMAGE_SRV}
+	- docker-compose rm -f ${IDENTITY_IMAGE_SRV}
+	docker-compose up --build -d ${IDENTITY_IMAGE_SRV}
+	docker-compose start ${IDENTITY_IMAGE_SRV}
+	@echo "${IDENTITY_IMAGE_SRV} built and started!"
 
 ## mail: stops mail-service, removes docker image, builds service, and starts it
 mail: build_mail
@@ -528,10 +507,8 @@ clean:
 	@cd ${NOTIFICATION_SRV} && go clean
 	@cd ${FILE_SRV} && rm -f ${FILE_BINARY}
 	@cd ${FILE_SRV} && go clean
-	@cd ${AVATAR_SRV} && rm -f ${AVATAR_BINARY}
-	@cd ${AVATAR_SRV} && go clean
-	@cd ${COVER_SRV} && rm -f ${COVER_BINARY}
-	@cd ${COVER_SRV} && go clean
+	@cd ${IDENTITY_IMAGE_SRV} && rm -f ${IDENTITY_IMAGE_BINARY}
+	@cd ${IDENTITY_IMAGE_SRV} && go clean
 	@cd ${MAIL_SRV} && rm -f ${MAIL_BINARY}
 	@cd ${MAIL_SRV} && go clean
 	@cd ${FEED_SRV} && rm -f ${FEED_BINARY}
@@ -553,7 +530,7 @@ K8S_LOCAL=k8s/overlays/local
 # Always the Minikube cluster, whatever kubectl currently points at, so these
 # targets can never touch a real one.
 KUBECTL=kubectl --context minikube
-K8S_IMAGES=${ABUSE_REPORT_SRV} ${AUTH_SRV} ${AVATAR_SRV} ${COMMENT_SRV} ${COVER_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${STORY_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
+K8S_IMAGES=${ABUSE_REPORT_SRV} ${AUTH_SRV} ${COMMENT_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${STORY_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
 
 ## k8s-start: starts a local Minikube cluster with the ingress controller and cert-manager
 k8s-start:
@@ -622,9 +599,8 @@ test:
 	@echo "Testing anahita-libs..."
 	@cd anahita-libs && go test ./...
 	@cd ${AUTH_SRV} && go test ./...
-	@cd ${AVATAR_SRV} && go test ./...
 	@cd ${COMMENT_SRV} && go test ./...
-	@cd ${COVER_SRV} && go test ./...
+	@cd ${IDENTITY_IMAGE_SRV} && go test ./...
 	@cd ${FEED_SRV} && go test ./...
 	@cd ${FILE_SRV} && go test ./...
 	@cd ${GRAPH_SRV} && go test ./...

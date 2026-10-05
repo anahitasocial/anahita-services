@@ -25,6 +25,7 @@ const (
 	NodeService_Edit_FullMethodName                    = "/graph.NodeService/Edit"
 	NodeService_Add_FullMethodName                     = "/graph.NodeService/Add"
 	NodeService_Delete_FullMethodName                  = "/graph.NodeService/Delete"
+	NodeService_ClearFile_FullMethodName               = "/graph.NodeService/ClearFile"
 	NodeService_Count_FullMethodName                   = "/graph.NodeService/Count"
 	NodeService_FilterVisible_FullMethodName           = "/graph.NodeService/FilterVisible"
 	NodeService_BatchRead_FullMethodName               = "/graph.NodeService/BatchRead"
@@ -47,6 +48,7 @@ type NodeServiceClient interface {
 	Edit(ctx context.Context, in *NodeEditRequest, opts ...grpc.CallOption) (*NodeEditResponse, error)
 	Add(ctx context.Context, in *NodeAddRequest, opts ...grpc.CallOption) (*NodeAddResponse, error)
 	Delete(ctx context.Context, in *NodeDeleteRequest, opts ...grpc.CallOption) (*NodeDeleteResponse, error)
+	ClearFile(ctx context.Context, in *NodeClearFileRequest, opts ...grpc.CallOption) (*NodeClearFileResponse, error)
 	Count(ctx context.Context, in *NodeCountRequest, opts ...grpc.CallOption) (*NodeCountResponse, error)
 	// Batch operations
 	// Which of these nodes may this viewer see? Any kind of node. See
@@ -125,6 +127,16 @@ func (c *nodeServiceClient) Delete(ctx context.Context, in *NodeDeleteRequest, o
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(NodeDeleteResponse)
 	err := c.cc.Invoke(ctx, NodeService_Delete_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) ClearFile(ctx context.Context, in *NodeClearFileRequest, opts ...grpc.CallOption) (*NodeClearFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NodeClearFileResponse)
+	err := c.cc.Invoke(ctx, NodeService_ClearFile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -241,6 +253,7 @@ type NodeServiceServer interface {
 	Edit(context.Context, *NodeEditRequest) (*NodeEditResponse, error)
 	Add(context.Context, *NodeAddRequest) (*NodeAddResponse, error)
 	Delete(context.Context, *NodeDeleteRequest) (*NodeDeleteResponse, error)
+	ClearFile(context.Context, *NodeClearFileRequest) (*NodeClearFileResponse, error)
 	Count(context.Context, *NodeCountRequest) (*NodeCountResponse, error)
 	// Batch operations
 	// Which of these nodes may this viewer see? Any kind of node. See
@@ -282,6 +295,9 @@ func (UnimplementedNodeServiceServer) Add(context.Context, *NodeAddRequest) (*No
 }
 func (UnimplementedNodeServiceServer) Delete(context.Context, *NodeDeleteRequest) (*NodeDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedNodeServiceServer) ClearFile(context.Context, *NodeClearFileRequest) (*NodeClearFileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClearFile not implemented")
 }
 func (UnimplementedNodeServiceServer) Count(context.Context, *NodeCountRequest) (*NodeCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Count not implemented")
@@ -438,6 +454,24 @@ func _NodeService_Delete_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NodeServiceServer).Delete(ctx, req.(*NodeDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_ClearFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NodeClearFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).ClearFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_ClearFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).ClearFile(ctx, req.(*NodeClearFileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -652,6 +686,10 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _NodeService_Delete_Handler,
+		},
+		{
+			MethodName: "ClearFile",
+			Handler:    _NodeService_ClearFile_Handler,
 		},
 		{
 			MethodName: "Count",

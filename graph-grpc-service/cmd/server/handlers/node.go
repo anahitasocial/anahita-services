@@ -130,6 +130,23 @@ func (h *nodeHandler) Delete(ctx context.Context, req *graphpb.NodeDeleteRequest
 	}, nil
 }
 
+// ClearFile takes an avatar or a cover off a node.
+//
+// Who may is decided by the caller, as for every write here: this service
+// has no notion of a viewer's permissions.
+func (h *nodeHandler) ClearFile(ctx context.Context, req *graphpb.NodeClearFileRequest) (*graphpb.NodeClearFileResponse, error) {
+	log.Printf("Received ClearFile request: %v", req)
+
+	success, err := h.env.Repos.Nodes.ClearFile(req.Id, req.Kind, req.ModifiedBy)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphpb.NodeClearFileResponse{
+		Success: success,
+	}, nil
+}
+
 // Count
 func (h *nodeHandler) Count(ctx context.Context, req *graphpb.NodeCountRequest) (*graphpb.NodeCountResponse, error) {
 	log.Printf("Received Count request: %v", req)

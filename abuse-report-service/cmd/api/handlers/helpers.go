@@ -77,7 +77,7 @@ func (env *Env) readNodes(ids []int64) map[int64]*entities.AnahitaNode {
 			continue
 		}
 		nodes[node.ID] = node
-		if node.Filename != "" && node.IsActor() {
+		if node.AvatarFilename != "" && node.IsActor() {
 			avatars = append(avatars, node)
 		}
 	}

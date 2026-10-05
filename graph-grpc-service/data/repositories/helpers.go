@@ -70,6 +70,7 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(node.updated_at, NOW()) AS updated_at",
 		"COALESCE(node.modified_by, 0) AS modified_by",
 		"COALESCE(node.filename, '') AS filename",
+		"COALESCE(node.avatar_filename, '') AS avatar_filename",
 		"COALESCE(node.cover_filename, '') AS cover_filename",
 		"COALESCE(node.follower_count, 0) AS follower_count",
 		"COALESCE(node.leader_count, 0) AS leader_count",
@@ -100,7 +101,7 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(owner.access, '') AS owner_access",
 		"COALESCE(owner.name, '') AS owner_name",
 		"COALESCE(owner.alias, '') AS owner_alias",
-		"COALESCE(owner.filename, '') AS owner_filename",
+		"COALESCE(owner.avatar_filename, '') AS owner_avatar_filename",
 		"COALESCE(owner.meta, '') AS owner_meta",
 		"COALESCE(owner.subscriber_count, 0) AS owner_subscriber_count",
 	}...)
@@ -130,7 +131,7 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(parent_owner.service, '') AS parent_owner_service",
 		"COALESCE(parent_owner.name, '') AS parent_owner_name",
 		"COALESCE(parent_owner.alias, '') AS parent_owner_alias",
-		"COALESCE(parent_owner.filename, '') AS parent_owner_filename",
+		"COALESCE(parent_owner.avatar_filename, '') AS parent_owner_avatar_filename",
 		"COALESCE(parent_owner.subscriber_count, 0) AS parent_owner_subscriber_count",
 	}...)
 
@@ -141,7 +142,7 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(parent_author.service, '') AS parent_author_service",
 		"COALESCE(parent_author.name, '') AS parent_author_name",
 		"COALESCE(parent_author.alias, '') AS parent_author_alias",
-		"COALESCE(parent_author.filename, '') AS parent_author_filename",
+		"COALESCE(parent_author.avatar_filename, '') AS parent_author_avatar_filename",
 		"COALESCE(parent_author.meta, '') AS parent_author_meta",
 	}...)
 
@@ -152,7 +153,7 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(author.service, '') AS author_service",
 		"COALESCE(author.name, '') AS author_name",
 		"COALESCE(author.alias, '') AS author_alias",
-		"COALESCE(author.filename, '') AS author_filename",
+		"COALESCE(author.avatar_filename, '') AS author_avatar_filename",
 		"COALESCE(author.meta, '') AS author_meta",
 	}...)
 
@@ -163,7 +164,7 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(editor.service, '') AS editor_service",
 		"COALESCE(editor.name, '') AS editor_name",
 		"COALESCE(editor.alias, '') AS editor_alias",
-		"COALESCE(editor.filename, '') AS editor_filename",
+		"COALESCE(editor.avatar_filename, '') AS editor_avatar_filename",
 		"COALESCE(editor.meta, '') AS editor_meta",
 	}...)
 
@@ -234,6 +235,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.UpdatedAt,
 		&item.ModifiedBy,
 		&item.Filename,
+		&item.AvatarFilename,
 		&item.CoverFilename,
 		&item.FollowerCount,
 		&item.LeaderCount,
@@ -257,7 +259,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.Owner.Access,
 		&item.Owner.Name,
 		&item.Owner.Alias,
-		&item.Owner.Filename,
+		&item.Owner.AvatarFilename,
 		&item.Owner.Meta,
 		&item.Owner.SubscriberCount,
 		// Parent fields
@@ -281,7 +283,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.Parent.Owner.Service,
 		&item.Parent.Owner.Name,
 		&item.Parent.Owner.Alias,
-		&item.Parent.Owner.Filename,
+		&item.Parent.Owner.AvatarFilename,
 		&item.Parent.Owner.SubscriberCount,
 		// Parent Author fields
 		&item.Parent.Author.ID,
@@ -289,7 +291,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.Parent.Author.Service,
 		&item.Parent.Author.Name,
 		&item.Parent.Author.Alias,
-		&item.Parent.Author.Filename,
+		&item.Parent.Author.AvatarFilename,
 		&item.Parent.Author.Meta,
 		// Author fields
 		&item.Author.ID,
@@ -297,7 +299,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.Author.Service,
 		&item.Author.Name,
 		&item.Author.Alias,
-		&item.Author.Filename,
+		&item.Author.AvatarFilename,
 		&item.Author.Meta,
 		// Editor fields
 		&item.Editor.ID,
@@ -305,7 +307,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.Editor.Service,
 		&item.Editor.Name,
 		&item.Editor.Alias,
-		&item.Editor.Filename,
+		&item.Editor.AvatarFilename,
 		&item.Editor.Meta,
 	)
 	if err != nil {
@@ -371,6 +373,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.UpdatedAt,
 			&item.ModifiedBy,
 			&item.Filename,
+			&item.AvatarFilename,
 			&item.CoverFilename,
 			&item.FollowerCount,
 			&item.LeaderCount,
@@ -394,7 +397,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.Owner.Access,
 			&item.Owner.Name,
 			&item.Owner.Alias,
-			&item.Owner.Filename,
+			&item.Owner.AvatarFilename,
 			&item.Owner.Meta,
 			&item.Owner.SubscriberCount,
 			// Parent fields
@@ -418,7 +421,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.Parent.Owner.Service,
 			&item.Parent.Owner.Name,
 			&item.Parent.Owner.Alias,
-			&item.Parent.Owner.Filename,
+			&item.Parent.Owner.AvatarFilename,
 			&item.Parent.Owner.SubscriberCount,
 			// Parent Author fields
 			&item.Parent.Author.ID,
@@ -426,7 +429,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.Parent.Author.Service,
 			&item.Parent.Author.Name,
 			&item.Parent.Author.Alias,
-			&item.Parent.Author.Filename,
+			&item.Parent.Author.AvatarFilename,
 			&item.Parent.Author.Meta,
 			// Author fields
 			&item.Author.ID,
@@ -434,7 +437,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.Author.Service,
 			&item.Author.Name,
 			&item.Author.Alias,
-			&item.Author.Filename,
+			&item.Author.AvatarFilename,
 			&item.Author.Meta,
 			// Editor fields
 			&item.Editor.ID,
@@ -442,7 +445,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.Editor.Service,
 			&item.Editor.Name,
 			&item.Editor.Alias,
-			&item.Editor.Filename,
+			&item.Editor.AvatarFilename,
 			&item.Editor.Meta,
 		)
 		if err != nil {

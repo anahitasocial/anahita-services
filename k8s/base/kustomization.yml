@@ -22,11 +22,10 @@ resources:
   - services/actor.yml
   - services/abuse-report.yml
   - services/auth.yml
-  - services/avatar.yml
   - services/comment.yml
-  - services/cover.yml
   - services/feed.yml
   - services/hashtag.yml
+  - services/identity-image.yml
   - services/like.yml
   - services/location.yml
   - services/notification.yml

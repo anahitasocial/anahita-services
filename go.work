@@ -5,13 +5,12 @@ use (
 	./actor-service
 	./anahita-libs
 	./auth-service
-	./avatar-service
 	./comment-service
-	./cover-service
 	./feed-service
 	./file-grpc-service
 	./graph-grpc-service
 	./hashtag-service
+	./identity-image-service
 	./like-service
 	./location-service
 	./mail-grpc-service

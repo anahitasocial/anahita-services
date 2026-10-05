@@ -25,7 +25,7 @@ func batchPresignPaths(env *Env, items []*entities.AnahitaNode) error {
 		if item == nil {
 			continue
 		}
-		if item.Filename != "" && item.IsActor() {
+		if item.AvatarFilename != "" && item.IsActor() {
 			avatarNodes = append(avatarNodes, item)
 		}
 		if item.Filename != "" && item.IsMedium() {

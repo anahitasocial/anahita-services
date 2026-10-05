@@ -67,6 +67,10 @@ type NodesRepoInterface interface {
 	// is disabled, archived or deleted with ErrNotFeaturable.
 	SetFeatured(id int64, featured bool) (bool, error)
 
+	// ClearFile takes an avatar or a cover off a node, which Edit cannot
+	// do. See nodes_clear_file.go.
+	ClearFile(id int64, kind string, modifiedBy int64) (bool, error)
+
 	// TouchLastVisit records that an actor just signed in. See
 	// nodes_last_visit.go for why it is not a field on Edit.
 	TouchLastVisit(id int64) (bool, error)

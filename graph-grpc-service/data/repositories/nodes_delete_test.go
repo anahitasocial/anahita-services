@@ -314,7 +314,7 @@ func TestTombstoneScrubsProfileDataButKeepsTheHandle(t *testing.T) {
 	}
 
 	// Personal data that must not survive a purge.
-	for _, column := range []string{"name", "body", "meta", "website_url", "geo_city", "filename"} {
+	for _, column := range []string{"name", "body", "meta", "website_url", "geo_city", "filename", "avatar_filename"} {
 		if !regexp.MustCompile(`\b` + column + `\s*=`).MatchString(setClause) {
 			t.Errorf("%s is not scrubbed; it survives the purge on a tombstone row:\n%s",
 				column, setClause)

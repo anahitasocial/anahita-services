@@ -120,6 +120,10 @@ message Node {
     // first. Absent rather than the epoch when unset, for the reason
     // deleted_at gives.
     google.protobuf.Timestamp featured_at = 81;
+
+    // The stored name of an actor's avatar. `filename` used to hold it, and
+    // now holds only the file a post is.
+    string avatar_filename = 82;
 }
 
 message Nodes {
@@ -184,6 +188,19 @@ message NodeDeleteRequest {
 }
 
 message NodeDeleteResponse {
+    bool success = 1;
+}
+
+// Takes an avatar or a cover off a node. Edit sets an image's name only when
+// it is given one, so it cannot remove one.
+message NodeClearFileRequest {
+    int64 id = 1;
+    // "avatar" or "cover".
+    string kind = 2;
+    int64 modified_by = 3;
+}
+
+message NodeClearFileResponse {
     bool success = 1;
 }
 
@@ -312,6 +329,7 @@ service NodeService {
     rpc Edit(NodeEditRequest) returns (NodeEditResponse);
     rpc Add(NodeAddRequest) returns (NodeAddResponse);
     rpc Delete(NodeDeleteRequest) returns (NodeDeleteResponse);
+    rpc ClearFile(NodeClearFileRequest) returns (NodeClearFileResponse);
     rpc Count(NodeCountRequest) returns (NodeCountResponse);
 
     // Batch operations

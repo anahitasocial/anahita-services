@@ -3,6 +3,8 @@ package handlers
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	images "anahita-libs/utils"
+	"errors"
 	"unicode/utf8"
 )
 
@@ -132,6 +134,19 @@ func planFiles(
 	}
 
 	return plan, ""
+}
+
+// refusalFor is the code for why an uploaded file was not accepted as an
+// image.
+func refusalFor(err error) string {
+	switch {
+	case errors.Is(err, images.ErrUnsupported):
+		return errFileUnsupported
+	case errors.Is(err, images.ErrTooLarge):
+		return errFileTooLarge
+	default:
+		return errFileUnreadable
+	}
 }
 
 // refusalStatus is the HTTP status a refusal is sent with.

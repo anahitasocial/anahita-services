@@ -125,7 +125,7 @@ func TestUsersEditDoesNotWriteIdentityColumns(t *testing.T) {
 func userRow() *sqlmock.Rows {
 	return sqlmock.NewRows([]string{
 		"id", "type", "enabled", "name", "alias",
-		"email", "password", "person_type", "service", "filename",
+		"email", "password", "person_type", "service", "avatar_filename",
 		"last_visited_at", "created_at", "updated_at", "totp_enabled",
 		"totp_recovery_codes", "totp_last_verified_at", "totp_secret", "deleted_at",
 		"archived_at",

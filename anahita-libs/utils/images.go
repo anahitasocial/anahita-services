@@ -2,6 +2,7 @@ package images
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -249,4 +250,71 @@ func SquareImage(input []byte, side int) ([]byte, error) {
 	}
 
 	return encodeImage(imaging.Fill(img, side, side, imaging.Center, imaging.Lanczos), contentType)
+}
+
+// Why an uploaded file was not accepted as an image.
+var (
+	// Not a JPEG or a PNG, judged from its bytes.
+	ErrUnsupported = errors.New("not a supported image")
+	// More bytes, or more pixels, than is accepted.
+	ErrTooLarge = errors.New("image is too large")
+	// It claims to be an image and cannot be read as one.
+	ErrUnreadable = errors.New("image cannot be read")
+)
+
+// Accept checks an uploaded file and returns it turned the right way up,
+// with what kind of image it is.
+//
+// The one way in for anything a person uploads as an image, whatever it is
+// for: a photo, an avatar, a cover. So the rules are the same for all of
+// them, and are these:
+//
+//   - What a file is, is decided from its bytes. A page of HTML named
+//     photo.jpg is refused.
+//   - Its size is checked twice, in bytes and in pixels, and the pixels are
+//     read from the header before any of the picture is opened. A small file
+//     can describe an enormous picture, and opening one takes memory by the
+//     pixel.
+//   - It comes back upright, so every size made from it is too.
+//
+// What is returned is still what was uploaded, and is never to be stored as
+// it is: every stored size is written out again by FitImage or SquareImage,
+// so nothing a file carries besides its picture reaches storage.
+func Accept(content []byte, maxBytes, maxPixels int) ([]byte, string, error) {
+	if !IsValidMimeType(http.DetectContentType(content)) {
+		return nil, "", ErrUnsupported
+	}
+
+	if len(content) > maxBytes {
+		return nil, "", ErrTooLarge
+	}
+
+	declared, _, err := image.DecodeConfig(bytes.NewReader(content))
+	if err != nil {
+		return nil, "", fmt.Errorf("%w: %v", ErrUnreadable, err)
+	}
+	if declared.Width*declared.Height > maxPixels {
+		return nil, "", ErrTooLarge
+	}
+
+	upright, err := CorrectOrientation(content)
+	if err != nil {
+		return nil, "", fmt.Errorf("%w: %v", ErrUnreadable, err)
+	}
+
+	mimeType := http.DetectContentType(upright)
+	if !IsValidMimeType(mimeType) {
+		return nil, "", ErrUnsupported
+	}
+
+	return upright, mimeType, nil
+}
+
+// Dimensions is the width and height of an image, read from its header.
+func Dimensions(content []byte) (int, int, error) {
+	config, _, err := image.DecodeConfig(bytes.NewReader(content))
+	if err != nil {
+		return 0, 0, fmt.Errorf("%w: %v", ErrUnreadable, err)
+	}
+	return config.Width, config.Height, nil
 }
