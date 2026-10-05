@@ -129,7 +129,7 @@ start of it:
 | | What a visitor is sent |
 | --- | --- |
 | A post's text, and a profile's | The first 280 characters or so, as plain words, cut at a word and ending in "…". The post is marked `truncated: true`. A text that fits is sent as it was written |
-| A photo | The smallest size only |
+| A photo | The first image only, at its smallest size. `files_held_back` says how many more the post has |
 | A list | The first 10 items. `pagination.more` is true when there are more, and `pagination.total` is the number sent. Asking for a later page answers 401 `members_only` |
 | Comments | Nothing: 401 `members_only`. The count on the post is still there |
 | Who follows a profile, and whom it follows | Nothing: 401 `members_only`. The counts on the profile are still there |

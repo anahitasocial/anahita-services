@@ -105,6 +105,10 @@ for `/articles/`, `/topics/` and `/photos/`. There is no list of every post of
 a type across the site, and a request without an owner is refused. Posts are
 discovered through feeds, search, hashtags and profiles.
 
+A photo post holds up to four images, each uploaded in a request of its own
+and kept in `photo_files`, a table beside the post. How that works, and what
+is stored for each image, is in [Photo posts](photos.md).
+
 ## anahita-libs
 
 The shared module every service imports:

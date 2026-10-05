@@ -71,6 +71,21 @@ func (h *photoHandler) storeImage(c echo.Context, owner *entities.AnahitaNode, v
 		return nil, errFileUnsupported, nil
 	}
 
+	if len(content) > photo.MaxFileSize {
+		return nil, errFileTooLarge, nil
+	}
+
+	// How large the picture is, read from its header before any of it is
+	// opened. A small file can describe an enormous picture, and opening
+	// one takes memory by the pixel, not by the byte.
+	declared, _, err := image.DecodeConfig(bytes.NewReader(content))
+	if err != nil {
+		return nil, errFileUnreadable, err
+	}
+	if declared.Width*declared.Height > photo.MaxPixels {
+		return nil, errFileTooLarge, nil
+	}
+
 	content, err = images.CorrectOrientation(content)
 	if err != nil {
 		return nil, errFileUnreadable, err
@@ -79,15 +94,6 @@ func (h *photoHandler) storeImage(c echo.Context, owner *entities.AnahitaNode, v
 	mimeType := http.DetectContentType(content)
 	if !images.IsValidMimeType(mimeType) {
 		return nil, errFileUnsupported, nil
-	}
-
-	if len(content) > photo.MaxFileSize {
-		return nil, errFileTooLarge, nil
-	}
-
-	dimensions, _, err := image.DecodeConfig(bytes.NewReader(content))
-	if err != nil {
-		return nil, errFileUnreadable, err
 	}
 
 	filename, err := images.GenerateUniqueFilename(mimeType)
@@ -100,10 +106,42 @@ func (h *photoHandler) storeImage(c echo.Context, owner *entities.AnahitaNode, v
 		return nil, "", err
 	}
 
-	for _, portrait := range portraits {
-		resized, err := images.ResizeImage(content, portrait.Size.Width, portrait.Size.Height)
+	// The picture at the size it was taken, up to a width that keeps it
+	// within what one message to storage carries. Every other size is made
+	// from this and not from what arrived, so a photo of tens of megapixels
+	// is opened once, not once for each size.
+	largest, err := images.FitImage(content, photo.OriginalMaxWidth)
+	if err != nil {
+		return nil, errFileUnreadable, err
+	}
+
+	// The size recorded is that of the largest copy kept, which is what a
+	// client can actually be given.
+	dimensions, _, err := image.DecodeConfig(bytes.NewReader(largest))
+	if err != nil {
+		return nil, errFileUnreadable, err
+	}
+
+	for size, portrait := range portraits {
+		var resized []byte
+
+		switch size {
+		case entities.PortraitSizeSquare:
+			// The middle of the picture. This used to squeeze the whole of
+			// it into a square.
+			resized, err = images.SquareImage(largest, portrait.Size.Width)
+		case entities.PortraitSizeOriginal:
+			// This used to be a 320 pixel square, and it is what the
+			// photo's own page and the zoom show.
+			resized = largest
+		default:
+			resized, err = images.FitImage(largest, portrait.Size.Width)
+		}
 		if err != nil {
 			return nil, errFileUnreadable, err
+		}
+		if len(resized) > photo.MaxStoredSize {
+			return nil, errFileTooLarge, nil
 		}
 
 		fileReq := services.NewFileRequest().Add

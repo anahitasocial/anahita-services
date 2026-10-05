@@ -12,7 +12,7 @@ type PhotoFile struct {
 	Position int
 	Filename string
 	Mimetype string
-	// Of the image as uploaded, once turned the right way up. 0 for an image
+	// Of the largest copy kept, turned the right way up. 0 for an image
 	// stored before these were recorded.
 	Width  int
 	Height int

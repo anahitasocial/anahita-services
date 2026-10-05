@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS photo_files (
     -- size is stored under this name with the size added.
     `filename` varchar(255) NOT NULL,
     `mimetype` varchar(100) NOT NULL DEFAULT '',
-    -- Of the image as uploaded, once turned the right way up. 0 for an
-    -- image stored before this table existed.
+    -- Of the largest copy kept, turned the right way up. 0 for an image
+    -- stored before this table existed.
     `width` int unsigned NOT NULL DEFAULT 0,
     `height` int unsigned NOT NULL DEFAULT 0,
     -- What the image shows, for people who cannot see it.

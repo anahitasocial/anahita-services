@@ -87,7 +87,16 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [On a person](post-language.md#on-a-person)
    - [What the web app does](post-language.md#what-the-web-app-does)
    - [What is not built](post-language.md#what-is-not-built)
-11. [Account lifecycle](account-lifecycle.md) — disabling, archiving, deleting, purging, and clearing out unused accounts
+11. [Photo posts](photos.md) — several images in one post: uploading, storing, changing and removing them
+   - [One post, several images](photos.md#one-post-several-images)
+   - [Posting](photos.md#posting)
+   - [What is stored](photos.md#what-is-stored)
+   - [Reading](photos.md#reading)
+   - [Changing a post's images](photos.md#changing-a-posts-images)
+   - [Removal](photos.md#removal)
+   - [Limits](photos.md#limits)
+   - [What is not built](photos.md#what-is-not-built)
+12. [Account lifecycle](account-lifecycle.md) — disabling, archiving, deleting, purging, and clearing out unused accounts
    - [The four states](account-lifecycle.md#the-four-states)
    - [Deleting and the 30 days](account-lifecycle.md#deleting-and-the-30-days)
    - [What a purge removes](account-lifecycle.md#what-a-purge-removes)
@@ -96,7 +105,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The accounts list](account-lifecycle.md#the-accounts-list)
    - [The sweeper](account-lifecycle.md#the-sweeper)
    - [Groups left without an administrator](account-lifecycle.md#groups-left-without-an-administrator)
-12. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
+13. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
    - [What you need](deploying.md#what-you-need)
    - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
    - [Hostnames](deploying.md#hostnames)
@@ -130,7 +139,6 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Events](plans/events.md) | 12 | not started |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
 | [Video service](plans/video-service.md) | 16 | not started |
-| [Several images per photo post; photo sets removed](plans/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 not started |
 | [Creative Commons licences](plans/content-licences.md) | 19 | kept for later (2026-10-04); look again after items 16 and 17 |
 | [Download your data](plans/data-export.md) | 21 | not started |
 | [Post insights](plans/post-insights.md) | 22 | not started |
@@ -150,6 +158,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Abuse reports](plans/done/abuse-report-service.md) | 4b | done 2026-10-03 |
 | [Complete hard delete and bulk cleanup](plans/done/actor-hard-delete.md) | 5 | done 2026-10-04 (the web part not yet tried in a browser) |
 | [One name for timestamps: `_at`](plans/done/timestamp-names.md) | 28 | done 2026-10-04 |
+| [Several images per photo post; photo sets removed](plans/done/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 done 2026-10-05 (posting and the web parts not yet tried in a browser) |
 | [Language on posts](plans/done/content-language.md) | 20 | done 2026-10-05 in a smaller form: the author chooses, nothing is detected |
 | [Instance privacy and the composer audience picker](plans/done/instance-privacy.md) | 13 | done 2026-10-05 (the web parts not yet tried in a browser) |
 | [Cloud-neutral storage and deployment](plans/done/cloud-neutral.md) | 9 | done 2026-10-03 (non-AWS providers other than Garage untested) |
