@@ -142,6 +142,17 @@ starts.
 **Not checked.** Posting with a language through the running stack, and the
 button, the setting and the `lang` attribute in a browser.
 
+**Found when the user tried it (2026-10-05).** A note posted in Persian was
+saved with no language. "The plumbing through the graph was already there"
+above was wrong: the column, the request field and the repository's insert
+were, but graph-grpc's handlers copy a post's fields one by one and
+`language` was not among them, for creating or for editing. The same was true
+of a person's posting language. So nothing had ever been saved, and no test
+went as far as the handler. Both lists now carry it, the post lists were
+moved into `medium_fields.go` beside the actors' `actor_fields.go`, and a
+test walks each list so a field left off it fails. Posts made before this
+fix have no language.
+
 ## Status
 
 | Item | State |

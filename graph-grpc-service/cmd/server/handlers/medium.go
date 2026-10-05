@@ -6,7 +6,6 @@ import (
 	"anahita-libs/event"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"encoding/json"
 	"fmt"
 	"graph/data/validators"
 	"graph/requests"
@@ -209,19 +208,7 @@ func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
-	node.Enabled = req.Medium.Enabled
-	node.Pinned = req.Medium.Pinned
-	node.Access = req.Medium.Access
-	node.Name = req.Medium.Name
-	node.Alias = req.Medium.Alias
-	node.Body = req.Medium.Body
-	node.Excerpt = req.Medium.Excerpt
-	node.Filename = req.Medium.Filename
-	node.CoverFilename = req.Medium.CoverFilename
-	node.Meta = json.RawMessage(req.Medium.Meta)
-	node.ModifiedBy = req.Medium.ModifiedBy
-	node.CommentStatus = req.Medium.CommentStatus
-	node.CommentCount = req.Medium.CommentCount
+	applyEditableMediumFields(node, req.Medium)
 
 	v := validators.NewMediumValidator()
 	if err := v.ValidateEdit(node); err != nil {
@@ -287,26 +274,7 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
-	node := entities.NewAnahitaNode()
-	node.OwnerID = req.Medium.OwnerId
-	node.OwnerType = req.Medium.OwnerType
-	node.Type = req.Medium.Type
-	node.Service = req.Medium.Service
-	node.Enabled = req.Medium.Enabled
-	node.Pinned = req.Medium.Pinned
-	node.Access = req.Medium.Access
-	node.Name = req.Medium.Name
-	node.Alias = req.Medium.Alias
-	node.Body = req.Medium.Body
-	node.Excerpt = req.Medium.Excerpt
-	node.Filename = req.Medium.Filename
-	node.Mimetype = req.Medium.Mimetype
-	node.CoverFilename = req.Medium.CoverFilename
-	node.Meta = json.RawMessage(req.Medium.Meta)
-	node.CreatedBy = req.Medium.CreatedBy
-	node.ModifiedBy = req.Medium.ModifiedBy
-	node.CommentStatus = req.Medium.CommentStatus
-	node.CommentCount = req.Medium.CommentCount
+	node := newMediumFromRequest(req.Medium)
 
 	v := validators.NewMediumValidator()
 	if err := v.ValidateAdd(node); err != nil {

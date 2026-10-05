@@ -44,6 +44,9 @@ func applyEditableActorFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.FeaturesRaw = json.RawMessage(req.FeaturesRaw)
 	node.ModifiedBy = req.ModifiedBy
 	node.PersonPronouns = req.PersonPronouns
+	// The language a person usually posts in. Kept as it is when the
+	// request carries none: the repository writes it only when it is set.
+	node.Language = req.Language
 }
 
 // personTypeIsEditable is deliberately absent from the whitelist above.
