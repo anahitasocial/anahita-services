@@ -556,6 +556,123 @@ ALTER TABLE nodes ADD COLUMN `avatar_filename` varchar(255) DEFAULT NULL AFTER `
 ALTER TABLE nodes ADD COLUMN `root_id` bigint(11) unsigned DEFAULT NULL AFTER `parent_type`;
 ALTER TABLE nodes ADD INDEX `root_id` (`root_id`);
 
+-- Comments become replies: notes that answer the post they were under. The
+-- same statements as migrations/20261011000001_comments_become_replies.sql,
+-- where the reasons are. They come after the conversion of types above,
+-- which is what gives a comment the type these look for.
+-- Comments under a post that is gone.
+--
+-- The edges at either end, as two statements. As one, joining on "this end
+-- or that end", MySQL can use neither index and compares every edge with
+-- every comment: five minutes on a database with 29,000 edges, against none
+-- for the pair.
+DELETE edge
+FROM edges edge
+JOIN nodes comment
+  ON comment.id = edge.node_a_id
+LEFT JOIN nodes post
+  ON post.id = comment.parent_id
+WHERE comment.type = 'node.base.comment-service.comment.v1'
+  AND post.id IS NULL;
+
+DELETE edge
+FROM edges edge
+JOIN nodes comment
+  ON comment.id = edge.node_b_id
+LEFT JOIN nodes post
+  ON post.id = comment.parent_id
+WHERE comment.type = 'node.base.comment-service.comment.v1'
+  AND post.id IS NULL;
+
+DELETE notification
+FROM notifications notification
+JOIN nodes comment
+  ON comment.id = notification.comment_id
+LEFT JOIN nodes post
+  ON post.id = comment.parent_id
+WHERE comment.type = 'node.base.comment-service.comment.v1'
+  AND post.id IS NULL;
+
+DELETE comment
+FROM nodes comment
+LEFT JOIN nodes post
+  ON post.id = comment.parent_id
+WHERE comment.type = 'node.base.comment-service.comment.v1'
+  AND post.id IS NULL;
+
+-- Switched-off comments under a post that is still published.
+UPDATE nodes comment
+JOIN nodes post
+  ON post.id = comment.parent_id
+SET comment.enabled = 1
+WHERE comment.type = 'node.base.comment-service.comment.v1'
+  AND comment.enabled = 0
+  AND post.enabled = 1;
+
+-- What points at a comment now points at a note.
+UPDATE edges
+SET node_a_type = 'node.medium.text-service.note.v1'
+WHERE node_a_type = 'node.base.comment-service.comment.v1';
+
+UPDATE edges
+SET node_b_type = 'node.medium.text-service.note.v1'
+WHERE node_b_type = 'node.base.comment-service.comment.v1';
+
+-- The comments themselves.
+UPDATE nodes comment
+JOIN nodes post
+  ON post.id = comment.parent_id
+SET comment.type = 'node.medium.text-service.note.v1',
+    comment.service = 'text-service',
+    comment.owner_id = comment.created_by,
+    comment.owner_type = IF(comment.created_by IS NULL, NULL, 'node.actor.person-service.person.v1'),
+    comment.root_id = comment.parent_id,
+    comment.parent_type = post.type,
+    comment.access = '',
+    comment.comment_status = 1,
+    comment.comment_count = 0
+WHERE comment.type = 'node.base.comment-service.comment.v1';
+
+-- Every post's count, from the replies there now are under it. The same
+-- count the graph keeps from here on: replies that are switched on, not
+-- removed, and not hidden from the thread.
+--
+-- Every post that has any reply is counted, including one whose replies are
+-- all switched off, which ends at zero. Counting only the posts with a reply
+-- to count would leave those showing the number they had before.
+UPDATE nodes post
+JOIN (
+  SELECT
+    reply.root_id,
+    SUM(
+      reply.enabled = 1
+      AND reply.deleted_at IS NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM edges hidden
+        WHERE hidden.type = 'edge.medium.hidden-reply.v1'
+          AND hidden.node_a_id = reply.root_id
+          AND hidden.node_b_id = reply.id
+      )
+    ) AS replies
+  FROM nodes reply
+  WHERE reply.root_id IS NOT NULL
+  GROUP BY reply.root_id
+) said
+  ON said.root_id = post.id
+SET post.comment_count = said.replies;
+
+-- And a post with nothing under it counts nothing. Some carried a number
+-- from comments deleted long ago.
+UPDATE nodes post
+LEFT JOIN nodes reply
+  ON reply.root_id = post.id
+SET post.comment_count = 0
+WHERE post.type LIKE 'node.medium.%'
+  AND post.root_id IS NULL
+  AND post.comment_count > 0
+  AND reply.id IS NULL;
+
 -- An actor's avatar moves to the column that is now its own. `filename` is
 -- cleared on actors, so it means one thing on every row that has it.
 --

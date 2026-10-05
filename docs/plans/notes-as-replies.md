@@ -308,7 +308,7 @@ Nothing is migrated. New replies are notes, and old comments keep working.
 | --- | --- |
 | Decisions 1–5 | decided 2026-09-28 (see [Decisions and schedule](#decisions-and-schedule-2026-09-28-roadmap-item-7)) |
 | Phase 1 | done 2026-10-05, on branch `m5-conversations`; see [What was built: phase 1](#what-was-built-phase-1-2026-10-05) |
-| Phase 2 | not started |
+| Phase 2 | done 2026-10-05; see [What was built: phase 2](#what-was-built-phase-2-2026-10-05) |
 | Phase 3 | not started |
 
 
@@ -353,6 +353,44 @@ Replies exist alongside comments. Nothing was migrated; comments work as before.
 - A reply under a hidden reply is still counted in the post's number. Only the reply that was hidden is left out of the count.
 - Removing a reply does not remove the notification that it was made.
 - On photos, articles and topics the old comments are still what is shown. That is phase 2.
+
+---
+
+## What was built: phase 2 (2026-10-05)
+
+Every comment is a reply. `comment-service` is still deployed, with nothing to serve.
+
+**The migration,** `20261011000001_comments_become_replies.sql`, and the same statements in `legacy/upgrade.sql`. On the development database:
+
+| | |
+| --- | --- |
+| Comments turned into replies | 10,400 |
+| Comments deleted because their post no longer exists | 10 |
+| Switched back on, under a post that is still published | 1,572 |
+| Replies switched on afterwards | 3,168 of 10,403 |
+| Edges brought up to date | 2,690 likes, 314 hashtags, 216 mentions |
+| Posts whose count was wrong before and is right now | all of them: no post's count differs from the replies under it |
+
+- Each becomes a note owned by its author, a direct reply to the post it was under, with no audience of its own. Its id does not change.
+- `parent_type` is brought up to date as well. Comments still carried the PHP application's name for their post's type.
+- 1,253 have no owner, because their author's account no longer exists. They are shown without a name, as they were.
+- Every post's count is counted again from what is under it, and posts with nothing under them are set to zero. Eleven carried a number from comments deleted long ago.
+
+**Rehearsed on a copy of the development data** before it was applied: run, checked, run again (nothing changes), timed. A backup of the development database was taken first, `db-data/dev-before-comments-become-replies-2026-10-05.sql.gz`. There is no other way back.
+
+**Web.** The reply thread is what a post's page and the lightbox show under every kind of post. The Comments tab is gone.
+
+**Found on the way.**
+- **The first version took over five minutes.** One statement deleted the edges of orphaned comments by joining on "this end or that end", which MySQL cannot use an index for. As two statements, one for each end, the whole migration takes two seconds.
+- **The first version left 2,126 posts with the wrong count.** It recounted only posts that had a reply to count, so a post whose replies are all switched off kept its old number. Both were found by the rehearsal.
+- **A thread sent replies without what the viewer may do with them** (phase 1), so nobody was offered edit or delete on their own reply. Found by the user. A thread now sends each reply in full, and a test reads what is sent.
+
+**Not done in this phase.**
+- **Reposting a reply, shown with the post it answers.** Nothing stops a reply being reposted through the API; the thread has no button for it and a feed does not show the context.
+- **Old links to a comment.** There was no page for a single comment to redirect from; a comment's link was to its post, which still works.
+- The comment code is all still there: comment-service, the comment branches in like, search, feeds and notifications, and the web app's comment components. That is phase 3.
+
+**Checked on the dev stack.** Threads of a photo and a topic that had comments return them as replies, with authors and avatars; the photo's count matches; feeds and a list of notes contain no replies. Nothing in a browser by me.
 
 ---
 

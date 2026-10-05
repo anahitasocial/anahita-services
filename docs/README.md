@@ -133,7 +133,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | --- | --- | --- |
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
-| [Notes as replies](plans/notes-as-replies.md) | 7 | phase 1 of 3 done 2026-10-05: replies exist alongside comments (nothing needing a signed-in session was tried) |
+| [Notes as replies](plans/notes-as-replies.md) | 7 | phases 1 and 2 of 3 done 2026-10-05: every comment is a reply; comment-service still to be removed |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
 | [Link previews](plans/link-previews.md) | 10 | not started |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |

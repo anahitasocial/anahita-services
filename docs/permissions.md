@@ -180,8 +180,9 @@ A reply is a note that answers a post or another reply. It can be liked,
 reposted, tagged and searched like any note, and replies can be answered in
 turn, to any depth.
 
-Notes are answered with replies today. Photos, articles and topics still have
-[comments](#comments) until those are turned into replies too.
+Every kind of post is answered with replies: notes, photos, articles and
+topics. What used to be comments were turned into replies on 2026-10-05, each
+a reply made directly to the post it was under.
 
 **Everything about a reply is decided by the post at the top of its thread,**
 called the root here. A reply is owned by whoever wrote it and has no audience
@@ -257,6 +258,11 @@ Under the rule for liking the root: see it, and meet the like permission of
 the profile the root is on.
 
 ## Comments
+
+**No longer in use.** Every comment became a [reply](#replies) on 2026-10-05,
+and nothing makes new ones. `comment-service` is still deployed and has
+nothing to serve; it and this section go when it is removed. What follows is
+how comments worked, and is the rule replies were built to keep.
 
 ### Adding a comment
 
