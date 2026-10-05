@@ -49,4 +49,4 @@ Measured: each had two routes, set and remove by node id; about 650 and 730 line
 
 | Item | State |
 | --- | --- |
-| Plan and work | done 2026-10-05, on branch `image-service` |
+| Plan and work | done 2026-10-05, on branch `identity-image-service` |
