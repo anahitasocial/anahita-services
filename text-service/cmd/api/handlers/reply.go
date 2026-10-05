@@ -180,9 +180,8 @@ func (h *mediumHandler) Thread(c echo.Context) error {
 
 	canReply := permissions.CanReply(thread)
 
-	mediaResp := &responses.MediumNodeResponse{}
 	return c.JSON(http.StatusOK, map[string]any{
-		"data": mediaResp.MapMediumNodeItems(replies),
+		"data": threadResponse(replies),
 		// For whoever looks after the thread: how many of the replies sent
 		// are hidden from everybody else.
 		"hidden_count": hidden,
@@ -372,4 +371,21 @@ func (h *mediumHandler) replyRuling(c echo.Context, reply *entities.AnahitaNode,
 	}
 
 	return thread, 0
+}
+
+// threadResponse maps the replies of a thread in full.
+//
+// Not as list items. A list item leaves out `authorized`, what the viewer
+// may do with the post, because a list of posts is drawn without controls.
+// A thread is drawn with them: reply, edit, delete, hide and like are each
+// shown only when the answer here is yes. Sent as list items, every reply
+// arrived with no answers at all, and nobody could edit or delete their own.
+func threadResponse(replies []*entities.AnahitaNode) []*responses.MediumNode {
+	mediaResp := &responses.MediumNodeResponse{}
+
+	out := make([]*responses.MediumNode, 0, len(replies))
+	for _, reply := range replies {
+		out = append(out, mediaResp.MapMediumNode(reply))
+	}
+	return out
 }
