@@ -255,8 +255,8 @@ func TestEveryHandlerThatSetsAnAudienceChecksIt(t *testing.T) {
 
 	// Changing who sees a profile or a group.
 	for path, current := range map[string]string{
-		"person-service/cmd/api/handlers/person_access.go": "person.Access",
-		"group-service/cmd/api/handlers/group_access.go":   "actor.Access",
+		"actor-service/cmd/api/handlers/person_access.go": "person.Access",
+		"actor-service/cmd/api/handlers/group_access.go":  "actor.Access",
 	} {
 		source := read(path)
 		check := strings.Index(source, "policy.MayChangeAccess("+current+", req.Access)")

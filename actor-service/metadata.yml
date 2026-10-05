@@ -1,0 +1,9 @@
+name: actor-service
+description: Actor Service for the profiles of people and groups in Anahita Services.
+version: 1.0.0
+copyright: 2025 Rastin Mehr Design Studio Inc. (rmdStudio)
+license: Rastin Mehr Design Studio License
+website: https://www.Anahita.io
+author:
+  - name: Rastin Mehr
+  - website: https://www.rmdstudio.com

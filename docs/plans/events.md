@@ -50,18 +50,18 @@ The goal is the smallest event feature that's genuinely useful, not a ticketing 
     - nearby or suggested public events later, through item 3 (recommendations) or feed generators.
 
 ## Where it lives
-- **group-service serves both `/groups` and `/events`,** the way text-service serves articles, notes and topics. The type is `node.actor.group-service.event.v1`.
+- **actor-service serves `/events` beside `/people` and `/groups`.** (When this was planned it was to be group-service; people and groups were merged into actor-service on 2026-10-05, see [done/actor-service.md](done/actor-service.md).) The type is `node.actor.actor-service.event.v1`: a new kind is named for the service it was born in.
 - Most handlers (CRUD, access, features, admins, archive, delete, purge) are shared and parameterised by type. Event-specific handlers are RSVP, cancel and ics.
-- A separate event-service would duplicate most of group-service for no benefit.
+- A separate event-service would duplicate most of what actor-service already has for no benefit.
 - Add the type to `feed-defaults` `actor_entity_types` and to `graph-grpc-defaults/actor_features/event.json`, which layers on `default.json` and sets the `invite` feature (item 11) to `admins` by default.
 
 ## Data changes (one migration, plus `init.sql` and `legacy/upgrade.sql`)
 - **On `nodes`:** `timezone_name varchar(64) NULL`, `capacity int NULL`, `online_url varchar(512) NULL` (returned only to people going and to hosts), `cancelled_at datetime NULL`, `reminded_at datetime NULL`.
-- **Or** keep the event-only fields in a side table `events(node_id PK, timezone_name, capacity, online_url, cancelled_at, reminded_at)`. That's cleaner, since `nodes` is already wide. **Recommended: the side table**, owned by group-service.
+- **Or** keep the event-only fields in a side table `events(node_id PK, timezone_name, capacity, online_url, cancelled_at, reminded_at)`. That's cleaner, since `nodes` is already wide. **Recommended: the side table**, owned by actor-service's events, through graph-grpc like every other table an actor's handlers use.
 - **New edge type:** `edge.actor.host.v1` (group → event).
 - **Follow edge `meta.rsvp`** (going | maybe). The graph needs a count of Going for the capacity check: a transactional check-and-insert under a row lock on the event, so two people can't take the last spot at the same moment.
 
-## Endpoints (group-service, plus graph-grpc RPCs)
+## Endpoints (actor-service, plus graph-grpc RPCs)
 
 | Endpoint | Purpose |
 | --- | --- |
@@ -93,7 +93,7 @@ The goal is the smallest event feature that's genuinely useful, not a ticketing 
 | Part | Time |
 | --- | --- |
 | Data: `events` side table, host edge, `rsvp` on follow meta, migration | 2–3 h |
-| group-service: event type through the shared handlers, event-specific handlers (RSVP with capacity lock, cancel, ics, lists), `event.json` features, permissions (online URL visibility, `host_followers` access) | 7–9 h |
+| actor-service: event type through the shared handlers, event-specific handlers (RSVP with capacity lock, cancel, ics, lists), `event.json` features, permissions (online URL visibility, `host_followers` access) | 7–9 h |
 | Sweeper: past, archive after 30 days, expire invites, 24 h reminders | 2–3 h |
 | Notifications: RSVP (batched), changed, cancelled, reminder | 2–3 h |
 | Web: create/edit form with time zones, event page, RSVP, events page + tabs, group/profile tabs, i18n | 8–10 h |
@@ -107,7 +107,7 @@ The goal is the smallest event feature that's genuinely useful, not a ticketing 
 - **Group hosting:** a group admin creates an event hosted by the group, and it shows on the group's Events tab. Another admin of that group can edit it.
 
 ## Decisions (item 12)
-- Events live in group-service as `node.actor.group-service.event.v1`, with a side table for event-only fields.
+- Events live in actor-service as `node.actor.actor-service.event.v1`, with a side table for event-only fields.
 - Events can be hosted by people or groups (one host group).
 - RSVP is Going / Maybe. Capacity counts Going. When full, there's no waitlist.
 - Pending invitations are capped at max(2 × capacity, 50).
@@ -122,7 +122,7 @@ The goal is the smallest event feature that's genuinely useful, not a ticketing 
 A phase is finished only when these pages match the code. anahita-services pages are under its `docs/`, anahita-web pages under its `docs/`. When a page is added, add it to that repo's `docs/README.md` contents too.
 
 - **services `permissions.md`**: events (who can create, RSVP, see the online URL; `host_followers`; invite caps).
-- **services `architecture.md`**: events in group-service, the host edge, the `events` side table, the sweeper's event tasks.
+- **services `architecture.md`**: events in actor-service, the host edge, the `events` side table, the sweeper's event tasks.
 - **web `architecture.md`**, *Routes*: `/events` and the event pages and tabs.
 
 ## Status

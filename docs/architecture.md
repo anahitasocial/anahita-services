@@ -39,8 +39,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | --- | --- | --- | --- |
 | `nginx` | 80 | — | Gateway, routing, CORS, token validation subrequest |
 | `auth-service` | 8081 | — | OAuth 2.0 / OIDC provider, server-rendered sign-in and sign-up, email verification, registration applications, the administration list of accounts, agreements, password, TOTP, WebAuthn, invites, clients, NodeInfo |
-| `group-service` | 8082 | — | Groups |
-| `person-service` | 8083 | — | People |
+| `actor-service` | 8082 | — | The profiles of people and of groups. One service for every kind of actor; see [below](#one-service-for-every-kind-of-actor) |
 | `text-service` | 8084 | — | Text media: articles, notes, topics |
 | `photo-service` | 8085 | — | Photos |
 | `hashtag-service` | 8086 | — | Hashtags |
@@ -78,8 +77,7 @@ Kubernetes, where the Ingress sends everything to it
 | --- | --- |
 | `/oauth/`, `/auth`, `/signup`, `/signup-requests`, `/accounts`, `/agreements`, `/onboarding`, `/password`, `/email`, `/username`, `/reauth`, `/totp`, `/webauthn`, `/invites`, `/clients`, `/auth-logs/`, `/oauth-signing-keys`, `/.well-known/`, `/nodeinfo/`, `/static/` | `auth-service` |
 | `/articles/`, `/notes/`, `/topics/` | `text-service` |
-| `/people/` | `person-service` |
-| `/groups/` | `group-service` |
+| `/people/`, `/groups/` | `actor-service` |
 | `/photos/` | `photo-service` |
 | `/avatars/` | `avatar-service` |
 | `/covers/` | `cover-service` |
@@ -108,6 +106,36 @@ discovered through feeds, search, hashtags and profiles.
 A photo post holds up to four images, each uploaded in a request of its own
 and kept in `photo_files`, a table beside the post. How that works, and what
 is stored for each image, is in [Photo posts](photos.md).
+
+## One service for every kind of actor
+
+People and groups are both actors: each has a profile, an avatar and a cover,
+followers, an audience, permissions, and the same life from enabled to
+archived to deleted to purged. They were served by two services,
+`person-service` and `group-service`, that were the same service written
+twice, and a fix made in one was regularly missing from the other. They are
+now one, `actor-service`.
+
+- **Each kind keeps its own address.** `/people/` and `/groups/` are
+  unchanged, and the gateway sends both to `actor-service`. A client cannot
+  tell that anything moved.
+- **The old names are still in the data, as names.** A person's type is
+  `node.actor.person-service.person.v1` and a group's
+  `node.actor.group-service.group.v1`. Those strings are in every node and
+  edge ever stored and in where avatars and covers are kept, so they stay.
+  They no longer say where anything runs.
+- **What is shared is written once:** signing in the viewer, step-up before a
+  deletion, presigning images, the answers for a refused change, the
+  configuration, the start-up. **What differs stays apart:** a person is read
+  by username and cannot be created here (that is signing up, in
+  `auth-service`); a group can be created and restored and has
+  administrators.
+- **It has no database address.** It reads and writes through
+  `graph-grpc-service` and owns no tables, so it is given no database
+  credentials.
+- **A new kind of actor** is a handler and its routes in this service, not a
+  service of its own. Events are planned that way, and so is the Website
+  actor ([plans/website-actor.md](plans/website-actor.md)).
 
 ## anahita-libs
 

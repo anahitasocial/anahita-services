@@ -145,6 +145,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Profile tabs for replies and reposts](plans/profile-tabs-and-reposts.md) | 24 | not started |
 | [Quote posts](plans/quote-posts.md) | 25 | not started |
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
+| [The Website actor](plans/website-actor.md) | 30 | goal and name recorded 2026-10-05; scope open, not to be built yet |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
 | [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b and 0c done 2026-10-03; the plan's "Not checked" list is still open |
 | [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in item 8 |
@@ -158,6 +159,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Abuse reports](plans/done/abuse-report-service.md) | 4b | done 2026-10-03 |
 | [Complete hard delete and bulk cleanup](plans/done/actor-hard-delete.md) | 5 | done 2026-10-04 (the web part not yet tried in a browser) |
 | [One name for timestamps: `_at`](plans/done/timestamp-names.md) | 28 | done 2026-10-04 |
+| [One actor service: people and groups merged](plans/done/actor-service.md) | 29 | done 2026-10-05 (nothing needing a signed-in session was tried) |
 | [Several images per photo post; photo sets removed](plans/done/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 done 2026-10-05 (posting and the web parts not yet tried in a browser) |
 | [Language on posts](plans/done/content-language.md) | 20 | done 2026-10-05 in a smaller form: the author chooses, nothing is detected |
 | [Instance privacy and the composer audience picker](plans/done/instance-privacy.md) | 13 | done 2026-10-05 (the web parts not yet tried in a browser) |

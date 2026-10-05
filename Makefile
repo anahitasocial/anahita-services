@@ -18,9 +18,9 @@ GRAPH_VERSION=latest
 GRAPH_SRV=graph-grpc-service
 SWEEPER_JOB=sweeper-job
 
-GROUP_BINARY=app-binary
-GROUP_VERSION=latest
-GROUP_SRV=group-service
+ACTOR_BINARY=app-binary
+ACTOR_VERSION=latest
+ACTOR_SRV=actor-service
 
 LIKE_BINARY=app-binary
 LIKE_VERSION=latest
@@ -28,10 +28,6 @@ LIKE_SRV=like-service
 
 NGINX_VERSION=latest
 NGINX_SRV=nginx
-
-PERSON_BINARY=app-binary
-PERSON_VERSION=latest
-PERSON_SRV=person-service
 
 TEXT_BINARY=app-binary
 TEXT_VERSION=latest
@@ -114,16 +110,15 @@ down:
 	@echo "Docker stopped!"
 
 ## build_dockerfiles: builds all dockerfile images
-build_dockerfiles: check_docker build_abuse_report build_auth build_comment build_graph build_sweeper build_group build_like build_person build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
+build_dockerfiles: check_docker build_abuse_report build_auth build_comment build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
 	@echo "Building dockerfiles..."
 	docker build -f ${DOCKERFILES}/${ABUSE_REPORT_SRV}.dockerfile -t ${REPOSITORY}/${ABUSE_REPORT_SRV}:${ABUSE_REPORT_VERSION} .
 	docker build -f ${DOCKERFILES}/${AUTH_SRV}.dockerfile -t ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION} .
 	docker build -f ${DOCKERFILES}/${COMMENT_SRV}.dockerfile -t ${REPOSITORY}/${COMMENT_SRV}:${COMMENT_VERSION} .
 	docker build -f ${DOCKERFILES}/${GRAPH_SRV}.dockerfile -t ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION} .
 	docker build -f ${DOCKERFILES}/${SWEEPER_JOB}.dockerfile -t ${REPOSITORY}/${SWEEPER_JOB}:${GRAPH_VERSION} .
-	docker build -f ${DOCKERFILES}/${GROUP_SRV}.dockerfile -t ${REPOSITORY}/${GROUP_SRV}:${GROUP_VERSION} .
+	docker build -f ${DOCKERFILES}/${ACTOR_SRV}.dockerfile -t ${REPOSITORY}/${ACTOR_SRV}:${ACTOR_VERSION} .
 	docker build -f ${DOCKERFILES}/${LIKE_SRV}.dockerfile -t ${REPOSITORY}/${LIKE_SRV}:${LIKE_VERSION} .
-	docker build -f ${DOCKERFILES}/${PERSON_SRV}.dockerfile -t ${REPOSITORY}/${PERSON_SRV}:${PERSON_VERSION} .
 	docker build -f ${DOCKERFILES}/${TEXT_SRV}.dockerfile -t ${REPOSITORY}/${TEXT_SRV}:${TEXT_VERSION} .
 	docker build -f ${DOCKERFILES}/${PHOTO_SRV}.dockerfile -t ${REPOSITORY}/${PHOTO_SRV}:${PHOTO_VERSION} .
 	docker build -f ${DOCKERFILES}/${HASHTAG_SRV}.dockerfile -t ${REPOSITORY}/${HASHTAG_SRV}:${HASHTAG_VERSION} .
@@ -148,9 +143,8 @@ push_dockerfiles: check_docker build_dockerfiles
 	docker push ${REPOSITORY}/${COMMENT_SRV}:${COMMENT_VERSION}
 	docker push ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION}
 	docker push ${REPOSITORY}/${SWEEPER_JOB}:${GRAPH_VERSION}
-	docker push ${REPOSITORY}/${GROUP_SRV}:${GROUP_VERSION}
+	docker push ${REPOSITORY}/${ACTOR_SRV}:${ACTOR_VERSION}
 	docker push ${REPOSITORY}/${LIKE_SRV}:${LIKE_VERSION}
-	docker push ${REPOSITORY}/${PERSON_SRV}:${PERSON_VERSION}
 	docker push ${REPOSITORY}/${TEXT_SRV}:${TEXT_VERSION}
 	docker push ${REPOSITORY}/${PHOTO_SRV}:${PHOTO_VERSION}
 	docker push ${REPOSITORY}/${HASHTAG_SRV}:${HASHTAG_VERSION}
@@ -202,23 +196,17 @@ build_sweeper:
 	cd ${GRAPH_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o sweeper-binary ./cmd/sweeper
 	@echo "Sweeper binary built!"
 
-## build_group: builds the group binary as a linux executable
-build_group:
-	@echo "Building group binary.."
-	cd ${GROUP_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${GROUP_BINARY} ./cmd/api
-	@echo "Groups binary built!"
+## build_actor: builds the actor binary (people and groups) as a linux executable
+build_actor:
+	@echo "Building actor binary.."
+	cd ${ACTOR_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${ACTOR_BINARY} ./cmd/api
+	@echo "Actor binary built!"
 
 ## build_like: builds the like binary as a linux executable
 build_like:
 	@echo "Building like binary.."
 	cd ${LIKE_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${LIKE_BINARY} ./cmd/api
 	@echo "Likes binary built!"
-
-## build_person: builds the person binary as a linux executable
-build_person:
-	@echo "Building person binary.."
-	cd ${PERSON_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${PERSON_BINARY} ./cmd/api
-	@echo "People binary built!"
 
 ## build_text: builds the text binary as a linux executable
 build_text:
@@ -305,8 +293,8 @@ build_feed:
 	@echo "Feed binary built!"
 
 ## up_build: stops docker-compose (if running), builds all projects and starts docker compose
-# up_build: build_auth build_person build_broker build_listener build_logger build_mail
-up_build: build_abuse_report build_auth build_comment build_graph build_group build_like build_person build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
+# up_build: build_auth build_broker build_listener build_logger build_mail
+up_build: build_abuse_report build_auth build_comment build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_avatar build_cover build_mail build_feed
 	@echo "Stopping docker images (if running...)"
 	docker-compose down
 	@echo "Building (when required) and starting docker images..."
@@ -342,14 +330,14 @@ graph: build_graph
 	docker-compose start ${GRAPH_SRV}
 	@echo "${GRAPH_SRV} built and started!"
 
-## group: stops group-service, removes docker image, builds service, and starts it
-group: build_group
-	@echo "Building ${GROUP_SRV} docker image..."
-	- docker-compose stop ${GROUP_SRV}
-	- docker-compose rm -f ${GROUP_SRV}
-	docker-compose up --build -d ${GROUP_SRV}
-	docker-compose start ${GROUP_SRV}
-	@echo "${GROUP_SRV} built and started!"
+## actor: stops actor-service (people and groups), removes docker image, builds service, and starts it
+actor: build_actor
+	@echo "Building ${ACTOR_SRV} docker image..."
+	- docker-compose stop ${ACTOR_SRV}
+	- docker-compose rm -f ${ACTOR_SRV}
+	docker-compose up --build -d ${ACTOR_SRV}
+	docker-compose start ${ACTOR_SRV}
+	@echo "${ACTOR_SRV} built and started!"
 
 ## like: stops like-service, removes docker image, builds service, and starts it
 like: build_like
@@ -359,15 +347,6 @@ like: build_like
 	docker-compose up --build -d ${LIKE_SRV}
 	docker-compose start ${LIKE_SRV}
 	@echo "${LIKE_SRV} built and started!"
-
-## person: stops person-service, removes docker image, builds service, and starts it
-person: build_person
-	@echo "Building ${PERSON_SRV} docker image..."
-	- docker-compose stop ${PERSON_SRV}
-	- docker-compose rm -f ${PERSON_SRV}
-	docker-compose up --build -d ${PERSON_SRV}
-	docker-compose start ${PERSON_SRV}
-	@echo "${PERSON_SRV} built and started!"
 
 ## text: stops text-service, removes docker image, builds service, and starts it
 text: build_text
@@ -525,12 +504,10 @@ clean:
 	@cd ${COMMENT_SRV} && go clean
 	@cd ${GRAPH_SRV} && rm -f ${GRAPH_BINARY}
 	@cd ${GRAPH_SRV} && go clean
-	@cd ${GROUP_SRV} && rm -f ${GROUP_BINARY}
-	@cd ${GROUP_SRV} && go clean
+	@cd ${ACTOR_SRV} && rm -f ${ACTOR_BINARY}
+	@cd ${ACTOR_SRV} && go clean
 	@cd ${LIKE_SRV} && rm -f ${LIKE_BINARY}
 	@cd ${LIKE_SRV} && go clean
-	@cd ${PERSON_SRV} && rm -f ${PERSON_BINARY}
-	@cd ${PERSON_SRV} && go clean
 	@cd ${TEXT_SRV} && rm -f ${TEXT_BINARY}
 	@cd ${TEXT_SRV} && go clean
 	@cd ${PHOTO_SRV} && rm -f ${PHOTO_BINARY}
@@ -576,7 +553,7 @@ K8S_LOCAL=k8s/overlays/local
 # Always the Minikube cluster, whatever kubectl currently points at, so these
 # targets can never touch a real one.
 KUBECTL=kubectl --context minikube
-K8S_IMAGES=${ABUSE_REPORT_SRV} ${AUTH_SRV} ${AVATAR_SRV} ${COMMENT_SRV} ${COVER_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${GROUP_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PERSON_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${STORY_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
+K8S_IMAGES=${ABUSE_REPORT_SRV} ${AUTH_SRV} ${AVATAR_SRV} ${COMMENT_SRV} ${COVER_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${STORY_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
 
 ## k8s-start: starts a local Minikube cluster with the ingress controller and cert-manager
 k8s-start:
@@ -651,13 +628,12 @@ test:
 	@cd ${FEED_SRV} && go test ./...
 	@cd ${FILE_SRV} && go test ./...
 	@cd ${GRAPH_SRV} && go test ./...
-	@cd ${GROUP_SRV} && go test ./...
+	@cd ${ACTOR_SRV} && go test ./...
 	@cd ${HASHTAG_SRV} && go test ./...
 	@cd ${LIKE_SRV} && go test ./...
 	@cd ${LOCATION_SRV} && go test ./...
 	@cd ${MAIL_SRV} && go test ./...
 	@cd ${NOTIFICATION_SRV} && go test ./...
-	@cd ${PERSON_SRV} && go test ./...
 	@cd ${PHOTO_SRV} && go test ./...
 	@cd ${SEARCH_SRV} && go test ./...
 	@cd ${SOCIALGRAPH_SRV} && go test ./...

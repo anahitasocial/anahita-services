@@ -46,7 +46,7 @@ So: on Bluesky the domain becomes the handle. On Mastodon the handle can't chang
 - **Names that could mislead:** domains are stored in punycode and shown in Unicode only when every label is in one script, the usual defence against look-alike domains.
 - **Rate limit** on verification attempts (the shared limiter).
 
-**Endpoints** (person-service and group-service, sharing a handler in `anahita-libs`)
+**Endpoints** (actor-service, one handler for people and groups)
 
 | Endpoint | Purpose |
 | --- | --- |

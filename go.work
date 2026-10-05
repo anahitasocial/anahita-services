@@ -2,6 +2,7 @@ go 1.25.0
 
 use (
 	./abuse-report-service
+	./actor-service
 	./anahita-libs
 	./auth-service
 	./avatar-service
@@ -10,13 +11,11 @@ use (
 	./feed-service
 	./file-grpc-service
 	./graph-grpc-service
-	./group-service
 	./hashtag-service
 	./like-service
 	./location-service
 	./mail-grpc-service
 	./notification-service
-	./person-service
 	./photo-service
 	./scripts/s3-migration
 	./search-service

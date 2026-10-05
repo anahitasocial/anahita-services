@@ -66,7 +66,7 @@ We want local people to follow Mastodon and Bluesky accounts, those accounts to 
   - ActivityPub is HTTP both ways: an inbox that must answer quickly and can scale to several replicas, plus a push-delivery worker.
   - AT Protocol is a PDS client plus one long-lived Jetstream websocket that **must run as a single consumer**, with a saved cursor.
   - Mixing the two in one service forces the single-consumer constraint onto the inbox.
-- **They take untrusted internet input.** Signature checks, HTML sanitising and remote fetches stay isolated from the core services, so a parser bug or a flood from a remote server can't take down text-service or person-service.
+- **They take untrusted internet input.** Signature checks, HTML sanitising and remote fetches stay isolated from the core services, so a parser bug or a flood from a remote server can't take down text-service or actor-service.
 - **Instances choose.** An instance runs one protocol by deploying only that service (and the PDS for AT). Turning a protocol off means stopping a container. The same swappable pattern as the recommendation and abuse-report services.
 - **They change at different speeds.** Protocol churn (FEPs, new lexicons) stays out of the core services' release cycle.
 
@@ -94,7 +94,7 @@ We want local people to follow Mastodon and Bluesky accounts, those accounts to 
 - **graph-grpc-service:** the `uuid` and `uri` columns, the two remote actor types, `UpsertRemoteActor` / `UpsertRemoteNote` / `ReadByURI` RPCs, and remote types included where person-like actors are expected (and excluded from local people browse and counts).
 - **auth-service:** NodeInfo reports the protocols of the services that are actually running (config lists them) and excludes remote nodes from the counts.
 - **file-grpc-service / nginx:** the stable media proxy (phase 0.4).
-- **person-service:** mention resolution skips remote types until phase 2.
+- **actor-service:** mention resolution skips remote types until phase 2.
 - **text-service, socialgraph-service and feed-service: no changes.** Following a remote actor uses the existing follow endpoints, and the protocol services react to the follow events.
 
 **Web:**
