@@ -376,6 +376,21 @@ audiences, both settings and how they combine, how to set and check them, what
 the web app does, and where each rule is enforced and tested.
 `configuration.md` keeps the two variables and points there.
 
+### Found when the user tried it (2026-10-05)
+
+On a preview site, opening a post showed a raw error, `[object Object]`. The
+post's page asked for its comments, the server refused as designed, and
+nothing caught the refusal. The same happened searching as a visitor on a
+members-only site.
+
+Fixed in the web app:
+- A visitor on a preview site is no longer asked for comments or follower
+  lists; a sign-in prompt stands where they would be.
+- A visitor on a members-only site is not shown the search box or the People,
+  Groups, Hashtags and Places menu entries.
+- A "sign in first" answer that no page expected is caught at the top of the
+  app instead of surfacing as an error.
+
 ## Status
 
 | Item | State |

@@ -235,9 +235,12 @@ and `5` any person's id:
   A choice wider than the profile is greyed out, with the reason.
 - **On a members-only site**, a visitor sees a notice with a Sign in button
   and the home page, in place of whatever they asked for and at the same
-  address. Pages carry `robots: noindex`.
-- **On a preview site**, a visitor sees a notice above each page, and "Sign in
-  to read more" under a post that was cut.
+  address. The search box and the People, Groups, Hashtags and Places menu
+  entries are not shown. Pages carry `robots: noindex`.
+- **On a preview site**, a visitor sees a notice above each page, "Sign in to
+  read more" under a post that was cut, and a sign-in prompt where a post's
+  comments or a profile's list of followers would be. The app does not ask the
+  server for those.
 - **Where nothing new may be public**, "Public" is not offered.
 - **Site Settings › Privacy**, for super administrators, shows the two
   settings as the server has them.
