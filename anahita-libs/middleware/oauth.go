@@ -75,6 +75,9 @@ func Authorize(config ConfigInterface, jwks *JWKSClient) echo.MiddlewareFunc {
 // those routes behave as if they required signing in. Nothing else needs to
 // know the setting, and a route cannot forget it.
 //
+// With SITE_READ_ACCESS=preview it is also where what they are sent is cut
+// down to a preview, for the same reason: every such route passes through.
+//
 // What stays open on such a site is what never came through here: signing in
 // and up, the OAuth endpoints and NodeInfo, all in auth-service. A test in
 // this package, TestEveryRouteNamesItsViewer, fails if any other service
@@ -89,13 +92,20 @@ func SetViewer(config ConfigInterface, jwks *JWKSClient) echo.MiddlewareFunc {
 			}
 
 			if policy.MembersOnly() {
-				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error":       ErrMembersOnly,
-					"description": "sign in to read this site",
-				})
+				return refuseMembersOnly(c)
 			}
 
 			c.Set(constants.ViewerContextKey, entities.NewViewer())
+
+			// The middle setting: they may read, but only the start of
+			// things. See preview.go.
+			if policy.PreviewOnly() {
+				if !previewRequest(c) {
+					return nil
+				}
+				return previewResponse(c, h)
+			}
+
 			return h(c)
 		}
 	}

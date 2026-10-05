@@ -111,7 +111,6 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Link previews](plans/link-previews.md) | 10 | not started |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
-| [Instance privacy and the composer audience picker](plans/instance-privacy.md) | 13 | everything but preview mode done 2026-10-05 |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
 | [Video service](plans/video-service.md) | 16 | not started |
 | [Several images per photo post; photo sets removed](plans/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 not started |
@@ -135,4 +134,5 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Abuse reports](plans/done/abuse-report-service.md) | 4b | done 2026-10-03 |
 | [Complete hard delete and bulk cleanup](plans/done/actor-hard-delete.md) | 5 | done 2026-10-04 (the web part not yet tried in a browser) |
 | [One name for timestamps: `_at`](plans/done/timestamp-names.md) | 28 | done 2026-10-04 |
+| [Instance privacy and the composer audience picker](plans/done/instance-privacy.md) | 13 | done 2026-10-05 (the web parts not yet tried in a browser) |
 | [Cloud-neutral storage and deployment](plans/done/cloud-neutral.md) | 9 | done 2026-10-03 (non-AWS providers other than Garage untested) |

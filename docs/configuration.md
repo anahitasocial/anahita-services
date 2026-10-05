@@ -131,7 +131,7 @@ a restart.
 
 | Variable | Value |
 | --- | --- |
-| `SITE_READ_ACCESS` | `public` (the default) or `registered`. What somebody who is **not signed in** may read |
+| `SITE_READ_ACCESS` | `public` (the default), `preview` or `registered`. What somebody who is **not signed in** may read |
 | `MIN_CONTENT_ACCESS` | `public` (the default) or `registered`. The widest audience anything **new** may be given |
 
 The two are independent. Both set to `registered` is a fully private
@@ -153,9 +153,28 @@ no more.
   the site.
 - Once federation exists, a members-only site does not federate.
 
-It is enforced in one place, the middleware that admits an anonymous reader
-(`SetViewer` in `anahita-libs/middleware`), and a test there fails if any
-service gains a route that goes around it.
+**`SITE_READ_ACCESS=preview`** is between the two. Somebody who is not signed
+in still reaches what is public, and is sent only the start of it:
+
+| | What they are sent |
+| --- | --- |
+| A post's text, and a profile's | The first 280 characters or so, as plain words, cut at a word. The post is marked `truncated: true`. A text that fits is sent as it is |
+| A photo | The smallest size only |
+| A list | The first 10 items. `pagination.more` is true when there are more, and `pagination.total` is what was sent. Asking for a later page answers 401 `members_only` |
+| Comments, and the lists of who follows whom | Nothing: 401 `members_only`. The counts on the post or profile are still there |
+| Avatars and covers | As usual |
+
+It is enough for a link shared elsewhere to say what it leads to, while the
+rest stays behind signing in. Signed-in people see everything as before, and
+nothing stored changes. Once federation exists, an installation set to preview
+does not federate: that would send out the whole of what the preview holds
+back.
+
+Both are enforced in one place, the middleware that admits an anonymous reader
+(`SetViewer` in `anahita-libs/middleware`). On a members-only site it refuses;
+on a preview site it rewrites whatever JSON the route answers, by the names of
+its fields, so a new route is covered without knowing the setting. A test
+there fails if any service gains a route that goes around it.
 
 **`MIN_CONTENT_ACCESS=registered`** is for a school, a company or a private
 community that wants nothing new to be readable by people who are not signed
@@ -178,8 +197,8 @@ in:
 - Once federation exists, nothing new is sent to other servers, since only
   public posts are.
 
-For both settings, a value that is not `public` or `registered` is treated as
-`registered`, and the log says so. A typo must not be what makes everything
+For both settings, a value that is not understood is treated as `registered`,
+and the log says so. A typo must not be what makes everything
 public again.
 
 ## First super administrator

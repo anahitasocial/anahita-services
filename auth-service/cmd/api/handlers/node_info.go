@@ -241,12 +241,12 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// client needs this only for menus that have no such list.
 			"minContentAccess": policy.MinContentAccess(),
 
-			// What somebody who is not signed in may read: "public", or
-			// "registered" on a members-only installation
-			// (SITE_READ_ACCESS). There every content route answers 401 to
-			// them, and this document is one of the few things that still
-			// answers, so the web app can show a way in instead of a page
-			// of errors.
+			// What somebody who is not signed in may read (SITE_READ_ACCESS):
+			// "public"; "preview", the start of what is public; or
+			// "registered", nothing, on a members-only installation. There
+			// every content route answers 401 to them, and this document
+			// is one of the few things that still answers, so the web app
+			// can show a way in instead of a page of errors.
 			"readAccess": policy.SiteReadAccess(),
 
 			"termsOfServiceUrl": h.Config.GetTosURL(),

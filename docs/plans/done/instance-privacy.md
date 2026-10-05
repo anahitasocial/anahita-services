@@ -312,13 +312,53 @@ routes refuse a caller with no token.
 **Not checked.** The conversion through the running stack, and the Privacy
 tab in a browser.
 
+### Preview: `SITE_READ_ACCESS=preview` (2026-10-05)
+
+**On the way out, in one place.** For somebody who is not signed in,
+`SetViewer` runs the route and rewrites the JSON it answers
+(`anahita-libs/middleware/preview.go`), by the names of the fields: `body` is
+cut to about 280 characters of plain words and the object marked
+`truncated`; `portrait_urls` keeps only the smallest size; a list with
+`pagination` is marked `more` and its total lowered to what was sent. It also
+limits what may be asked for: at most 10 items, and no page after the first.
+
+**Two kinds of route are left out altogether**, with a second middleware,
+`MembersInPreview`, on the routes themselves: comments, and the lists of who
+follows whom.
+
+**Web.** A notice above every page a visitor is shown, with a Sign in button,
+and "Sign in to read more" under a post that was cut, in lists and on the
+post's own page. Lists stop at the first page by themselves, because they page
+by the total.
+
+**Where it differs from the plan.**
+- **A rewriter in the middleware, not a filter in `anahita-libs/responses`**
+  called by each handler. Some thirty routes serve anonymous readers; a filter
+  each has to remember to call is one the next route will forget. The cost is
+  decoding and encoding the answer again, paid only for visitors on
+  installations that chose this.
+- **A text that fits is sent as it was written**, formatting and all. Only one
+  that is cut has its Markdown taken out.
+- The web shell and Open Graph tags from the preview text wait for item 10.
+
+**Checked.** Unit tests for the cutting (a word boundary, Markdown removed,
+characters not bytes, large ids kept), the rewriting, the limits and the two
+left-out routes. On the development stack set to preview: a long article came
+back cut and marked, photos with one size, lists of 10 with `more`, a second
+page refused, comments and follower lists refused, a profile whole, and
+NodeInfo saying `preview`. Set back to open afterwards.
+
+**Not checked.** The notice and the "Sign in to read more" link in a browser.
+Cards in feeds do not show the link; the notice above the page is all a
+visitor gets there.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Composer audience picker | done 2026-10-04, not yet tried in a browser |
+| Composer audience picker | done 2026-10-04 |
 | `MIN_CONTENT_ACCESS` | done 2026-10-04 |
 | `SITE_READ_ACCESS=registered` | done 2026-10-05 |
-| `SITE_READ_ACCESS=preview` | not started |
+| `SITE_READ_ACCESS=preview` | done 2026-10-05 |
 | Convert public to registered | done 2026-10-05 |

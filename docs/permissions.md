@@ -59,7 +59,8 @@ A profile's administrators meet every level. A group follows nobody, so
 Everything on this page assumes somebody who is not signed in can read what is
 `public`. An installation can switch that off with `SITE_READ_ACCESS=registered`:
 then they can read nothing, whatever each profile and post says, and `public`
-means the same as `registered`. See
+means the same as `registered`. With `SITE_READ_ACCESS=preview` they can read
+only the start of what is public. See
 [Privacy of the installation](configuration.md#privacy-of-the-installation).
 
 ## Who is always allowed

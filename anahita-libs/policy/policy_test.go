@@ -47,6 +47,7 @@ func TestSiteReadAccessIsReadStrictly(t *testing.T) {
 	for raw, want := range map[string]string{
 		"":            ReadPublic,
 		"public":      ReadPublic,
+		"preview":     ReadPreview,
 		"registered":  ReadRegistered,
 		" Registered": ReadRegistered,
 		"members":     ReadRegistered, // not understood: the stricter one

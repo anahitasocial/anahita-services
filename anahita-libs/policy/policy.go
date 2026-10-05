@@ -5,8 +5,8 @@
 // read by every service the same way, like GRPC_TLS in package grpctls. They
 // take effect on a restart.
 //
-//	SITE_READ_ACCESS    "public" or "registered". What somebody who is not
-//	                    signed in may read. Unset means public.
+//	SITE_READ_ACCESS    "public", "preview" or "registered". What somebody
+//	                    who is not signed in may read. Unset means public.
 //	MIN_CONTENT_ACCESS  "public" or "registered". The widest audience
 //	                    anything new may be given. Unset means public.
 //
@@ -15,6 +15,11 @@
 // SITE_READ_ACCESS=registered is the members-only site: nothing is served to
 // anybody who is not signed in, whatever each post or profile says. Nothing
 // stored changes, so it can be switched back.
+//
+// SITE_READ_ACCESS=preview is the middle: somebody who is not signed in sees
+// the start of what is public, and has to sign in for the rest. The first few
+// lines of a post, a small picture, the first page of a list, and no
+// comments. Enough for a shared link to say what it leads to.
 //
 // "registered" is for a school, a company or a private community that wants
 // nothing new to be readable by people who are not signed in. It governs what
@@ -40,9 +45,11 @@ const (
 	EnvSiteReadAccess   = "SITE_READ_ACCESS"
 	EnvMinContentAccess = "MIN_CONTENT_ACCESS"
 
-	// ReadPublic: anybody may read what is public. ReadRegistered: only
-	// people who are signed in may read anything.
+	// ReadPublic: anybody may read what is public. ReadPreview: anybody may
+	// read the start of it. ReadRegistered: only people who are signed in
+	// may read anything.
 	ReadPublic     = "public"
+	ReadPreview    = "preview"
 	ReadRegistered = "registered"
 )
 
@@ -63,17 +70,19 @@ func readSiteReadAccess(raw string) string {
 	switch value := strings.ToLower(strings.TrimSpace(raw)); value {
 	case "", ReadPublic:
 		return ReadPublic
+	case ReadPreview:
+		return ReadPreview
 	case ReadRegistered:
 		return ReadRegistered
 	default:
-		log.Printf("policy: %s is %q, which is neither %q nor %q; treating it as %q",
-			EnvSiteReadAccess, raw, ReadPublic, ReadRegistered, ReadRegistered)
+		log.Printf("policy: %s is %q, which is not %q, %q or %q; treating it as %q",
+			EnvSiteReadAccess, raw, ReadPublic, ReadPreview, ReadRegistered, ReadRegistered)
 		return ReadRegistered
 	}
 }
 
-// SiteReadAccess is what somebody who is not signed in may read: ReadPublic
-// or ReadRegistered.
+// SiteReadAccess is what somebody who is not signed in may read: ReadPublic,
+// ReadPreview or ReadRegistered.
 func SiteReadAccess() string {
 	load()
 	return siteReadAccess
@@ -83,6 +92,12 @@ func SiteReadAccess() string {
 // are not signed in.
 func MembersOnly() bool {
 	return SiteReadAccess() == ReadRegistered
+}
+
+// PreviewOnly reports whether people who are not signed in are shown only
+// the start of what is public.
+func PreviewOnly() bool {
+	return SiteReadAccess() == ReadPreview
 }
 
 func readMinContentAccess(raw string) string {

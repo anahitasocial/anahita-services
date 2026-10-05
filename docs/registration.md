@@ -235,8 +235,8 @@ servers read, and the web app reads it too.
   `invitationsAccepted`, `termsOfServiceUrl`, `privacyPolicyUrl`,
   `supportEmail`, `supportPhone` and `supportWebsite`. Also `invitesFrom` and
   `groupsFrom`, the least role that may invite or create a group, and
-  `readAccess`, `public` or `registered`: what somebody who is not signed in
-  may read, and `minContentAccess`, the widest audience anything new may be
+  `readAccess`, `public`, `preview` or `registered`: what somebody who is not
+  signed in may read, and `minContentAccess`, the widest audience anything new may be
   given (see
   [Privacy of the installation](configuration.md#privacy-of-the-installation)).
 
