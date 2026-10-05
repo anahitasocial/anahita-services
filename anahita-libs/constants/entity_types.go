@@ -8,6 +8,9 @@ const (
 	// Node Types
 	NodeActorPrefixEntityType  = "node.actor."
 	NodeMediumPrefixEntityType = "node.medium."
+	// A photo post. The one kind of post the shared code has to tell from
+	// the others, because it alone holds several images.
+	NodeMediumPhotoEntityType  = "node.medium.photo-service.photo.v1"
 	NodeActorPersonEntityType  = "node.actor.person-service.person.v1"
 	NodeBaseCommentEntityType  = "node.base.comment-service.comment.v1"
 	NodeBaseRepostType         = "node.base.repost-service.repost.v1"

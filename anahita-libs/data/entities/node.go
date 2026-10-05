@@ -175,6 +175,9 @@ type AnahitaNode struct {
 	Avatar   map[string]AnahitaNodeImage
 	Cover    map[string]AnahitaNodeImage
 	Portrait map[string]AnahitaNodeImage
+	// The images of a photo post, in order. Filled in by the services that
+	// show them; nil elsewhere, and for everything that is not a photo.
+	Files []*PhotoFile
 
 	// @TODO remove EdgeCount field after migrating to mixins
 	EdgeCount int64

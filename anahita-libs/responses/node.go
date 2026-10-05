@@ -45,6 +45,9 @@ type NodeItem struct {
 	Avatar   map[string]Image `json:"avatar_urls,omitempty"`
 	Cover    map[string]Image `json:"cover_urls,omitempty"`
 	Portrait map[string]Image `json:"portrait_urls,omitempty"`
+	// The images of a photo post, in order. The first is the one
+	// portrait_urls shows.
+	Files []*PhotoFile `json:"files,omitempty"`
 }
 
 type NodeResponse struct{}
@@ -123,6 +126,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 			}
 			return nil
 		}(),
+		Files: NewPhotoFiles(node.Files),
 	}
 }
 

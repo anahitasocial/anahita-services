@@ -37,6 +37,21 @@ type MediaGRPCInterface interface {
 	// Delete removes a media
 	Delete(id int64, viewer *entities.Viewer) error
 
+	// AddPhotoUpload records an image that has been stored and is in no
+	// post yet, and returns its id.
+	AddPhotoUpload(upload *entities.PhotoUpload) (int64, error)
+
+	// ReadPhotoUploads returns the uploads with these ids that still exist.
+	ReadPhotoUploads(ids []int64) ([]*entities.PhotoUpload, error)
+
+	// BrowsePhotoFiles returns the images of these photo posts, each post's
+	// in order.
+	BrowsePhotoFiles(nodeIDs []int64) ([]*entities.PhotoFile, error)
+
+	// SetPhotoFiles makes these the images of a post, in the order given,
+	// and forgets the uploads they were made from.
+	SetPhotoFiles(nodeID int64, files []*entities.PhotoFile, uploadIDs []int64) ([]*entities.PhotoFile, error)
+
 	// getClient returns the grpc client
 	getClient() (graphpb.MediumServiceClient, error)
 }

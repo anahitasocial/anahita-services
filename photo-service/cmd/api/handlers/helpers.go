@@ -26,6 +26,10 @@ func batchPresignPaths(env *Env, items []*entities.AnahitaNode) {
 		authorAvatarNodes = append(authorAvatarNodes, item.Author)
 	}
 
+	// Every image of each post, not only the first.
+	services.AttachPhotoFiles(env.Srv.MediaGRPC, items)
+	services.BatchPresignPhotoFiles(env.Srv.FilesGRPC, items)
+
 	services.BatchPresignPortrait(env.Srv.FilesGRPC, portraitNodes)
 	services.BatchPresignAvatar(env.Srv.FilesGRPC, ownerAvatarNodes)
 	services.BatchPresignAvatar(env.Srv.FilesGRPC, authorAvatarNodes)

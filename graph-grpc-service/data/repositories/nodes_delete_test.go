@@ -230,7 +230,7 @@ func TestPurgeBatchDeletesInOrder(t *testing.T) {
 	repo := newRepo(db)
 
 	mock.ExpectBegin()
-	for range 7 {
+	for range 8 {
 		mock.ExpectExec("delete").WillReturnResult(sqlmock.NewResult(0, 1))
 	}
 	mock.ExpectCommit()
@@ -250,8 +250,15 @@ func TestPurgeBatchDeletesInOrder(t *testing.T) {
 	}
 
 	edges := position("from edges")
+	photoFiles := position("from photo_files")
 	nodes := position("from nodes")
 	work := position("delete from purge_work")
+
+	// The list of a photo post's images goes with the post, in the same
+	// batch, so none is left naming a post that is gone.
+	if !(photoFiles < work) {
+		t.Errorf("photo files at %d, work at %d; want the images before the list", photoFiles, work)
+	}
 
 	if !(edges < nodes && nodes < work) {
 		t.Errorf("order is edges %d, nodes %d, work %d; want edges, nodes, work",

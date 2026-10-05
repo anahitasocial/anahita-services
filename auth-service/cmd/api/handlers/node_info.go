@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_constants "anahita-libs/constants"
 	"anahita-libs/policy"
 	"log"
 	"net/http"
@@ -248,6 +249,10 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// is one of the few things that still answers, so the web app
 			// can show a way in instead of a page of errors.
 			"readAccess": policy.SiteReadAccess(),
+
+			// How many images one photo post can hold, so a client need
+			// not carry the number itself.
+			"photoMaxFiles": an_constants.PhotoMaxFiles,
 
 			"termsOfServiceUrl": h.Config.GetTosURL(),
 			"privacyPolicyUrl":  h.Config.GetPrivacyURL(),

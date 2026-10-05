@@ -32,6 +32,9 @@ type MediumNodeItem struct {
 	// Media URLs
 	Cover    map[string]Image `json:"cover_urls,omitempty"`
 	Portrait map[string]Image `json:"portrait_urls,omitempty"`
+	// The images of a photo post, in order. The first is the one
+	// portrait_urls shows.
+	Files []*PhotoFile `json:"files,omitempty"`
 }
 
 type MediumNode struct {
@@ -69,6 +72,9 @@ type MediumNode struct {
 	// Media URLs
 	Cover    map[string]Image `json:"cover_urls,omitempty"`
 	Portrait map[string]Image `json:"portrait_urls,omitempty"`
+	// The images of a photo post, in order. The first is the one
+	// portrait_urls shows.
+	Files []*PhotoFile `json:"files,omitempty"`
 }
 
 type MediumNodeResponse struct{}
@@ -118,6 +124,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 			}
 			return nil
 		}(),
+		Files: NewPhotoFiles(node.Files),
 	}
 }
 
@@ -182,6 +189,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 			}
 			return nil
 		}(),
+		Files: NewPhotoFiles(node.Files),
 	}
 }
 

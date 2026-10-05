@@ -13,6 +13,7 @@ func NewServices(config *config.Config) *Services {
 		FeedActorGRPC:   services.NewFeedActorGRPC(config),
 		FilesGRPC:       services.NewFilesGRPC(config),
 		GraphNodeGRPC:   services.NewGraphNodeGRPC(config),
+		MediaGRPC:       services.NewMediaGRPC(config),
 		RepostGRPC:      services.NewRepostGRPC(config),
 		SocialgraphGRPC: services.NewSocialgraphGRPC(config),
 	}
@@ -27,6 +28,8 @@ type Services struct {
 	FeedActorGRPC   services.FeedActorGRPCInterface
 	FilesGRPC       services.FilesGRPCInterface
 	GraphNodeGRPC   services.GraphNodeGRPCInterface
+	// Reads the images of the photo posts in a feed.
+	MediaGRPC       services.MediaGRPCInterface
 	RepostGRPC      services.RepostGRPCInterface
 	SocialgraphGRPC services.SocialgraphGRPCInterface
 }

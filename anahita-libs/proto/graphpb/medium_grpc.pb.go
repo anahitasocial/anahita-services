@@ -19,14 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MediumService_Count_FullMethodName     = "/graph.MediumService/Count"
-	MediumService_Browse_FullMethodName    = "/graph.MediumService/Browse"
-	MediumService_Read_FullMethodName      = "/graph.MediumService/Read"
-	MediumService_BatchRead_FullMethodName = "/graph.MediumService/BatchRead"
-	MediumService_Edit_FullMethodName      = "/graph.MediumService/Edit"
-	MediumService_Add_FullMethodName       = "/graph.MediumService/Add"
-	MediumService_Delete_FullMethodName    = "/graph.MediumService/Delete"
-	MediumService_Ping_FullMethodName      = "/graph.MediumService/Ping"
+	MediumService_Count_FullMethodName            = "/graph.MediumService/Count"
+	MediumService_Browse_FullMethodName           = "/graph.MediumService/Browse"
+	MediumService_Read_FullMethodName             = "/graph.MediumService/Read"
+	MediumService_BatchRead_FullMethodName        = "/graph.MediumService/BatchRead"
+	MediumService_Edit_FullMethodName             = "/graph.MediumService/Edit"
+	MediumService_Add_FullMethodName              = "/graph.MediumService/Add"
+	MediumService_Delete_FullMethodName           = "/graph.MediumService/Delete"
+	MediumService_Ping_FullMethodName             = "/graph.MediumService/Ping"
+	MediumService_AddPhotoUpload_FullMethodName   = "/graph.MediumService/AddPhotoUpload"
+	MediumService_ReadPhotoUploads_FullMethodName = "/graph.MediumService/ReadPhotoUploads"
+	MediumService_BrowsePhotoFiles_FullMethodName = "/graph.MediumService/BrowsePhotoFiles"
+	MediumService_SetPhotoFiles_FullMethodName    = "/graph.MediumService/SetPhotoFiles"
 )
 
 // MediumServiceClient is the client API for MediumService service.
@@ -41,6 +45,12 @@ type MediumServiceClient interface {
 	Add(ctx context.Context, in *MediumAddRequest, opts ...grpc.CallOption) (*MediumAddResponse, error)
 	Delete(ctx context.Context, in *MediumDeleteRequest, opts ...grpc.CallOption) (*MediumDeleteResponse, error)
 	Ping(ctx context.Context, in *MediumPingRequest, opts ...grpc.CallOption) (*MediumPingResponse, error)
+	// The images of photo posts. A photo is a medium, and these are its
+	// images, so they are kept by the service that keeps the post.
+	AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error)
+	ReadPhotoUploads(ctx context.Context, in *PhotoUploadsReadRequest, opts ...grpc.CallOption) (*PhotoUploadsReadResponse, error)
+	BrowsePhotoFiles(ctx context.Context, in *PhotoFilesBrowseRequest, opts ...grpc.CallOption) (*PhotoFilesBrowseResponse, error)
+	SetPhotoFiles(ctx context.Context, in *PhotoFilesSetRequest, opts ...grpc.CallOption) (*PhotoFilesSetResponse, error)
 }
 
 type mediumServiceClient struct {
@@ -131,6 +141,46 @@ func (c *mediumServiceClient) Ping(ctx context.Context, in *MediumPingRequest, o
 	return out, nil
 }
 
+func (c *mediumServiceClient) AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PhotoUploadAddResponse)
+	err := c.cc.Invoke(ctx, MediumService_AddPhotoUpload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediumServiceClient) ReadPhotoUploads(ctx context.Context, in *PhotoUploadsReadRequest, opts ...grpc.CallOption) (*PhotoUploadsReadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PhotoUploadsReadResponse)
+	err := c.cc.Invoke(ctx, MediumService_ReadPhotoUploads_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediumServiceClient) BrowsePhotoFiles(ctx context.Context, in *PhotoFilesBrowseRequest, opts ...grpc.CallOption) (*PhotoFilesBrowseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PhotoFilesBrowseResponse)
+	err := c.cc.Invoke(ctx, MediumService_BrowsePhotoFiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediumServiceClient) SetPhotoFiles(ctx context.Context, in *PhotoFilesSetRequest, opts ...grpc.CallOption) (*PhotoFilesSetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PhotoFilesSetResponse)
+	err := c.cc.Invoke(ctx, MediumService_SetPhotoFiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MediumServiceServer is the server API for MediumService service.
 // All implementations must embed UnimplementedMediumServiceServer
 // for forward compatibility.
@@ -143,6 +193,12 @@ type MediumServiceServer interface {
 	Add(context.Context, *MediumAddRequest) (*MediumAddResponse, error)
 	Delete(context.Context, *MediumDeleteRequest) (*MediumDeleteResponse, error)
 	Ping(context.Context, *MediumPingRequest) (*MediumPingResponse, error)
+	// The images of photo posts. A photo is a medium, and these are its
+	// images, so they are kept by the service that keeps the post.
+	AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error)
+	ReadPhotoUploads(context.Context, *PhotoUploadsReadRequest) (*PhotoUploadsReadResponse, error)
+	BrowsePhotoFiles(context.Context, *PhotoFilesBrowseRequest) (*PhotoFilesBrowseResponse, error)
+	SetPhotoFiles(context.Context, *PhotoFilesSetRequest) (*PhotoFilesSetResponse, error)
 	mustEmbedUnimplementedMediumServiceServer()
 }
 
@@ -176,6 +232,18 @@ func (UnimplementedMediumServiceServer) Delete(context.Context, *MediumDeleteReq
 }
 func (UnimplementedMediumServiceServer) Ping(context.Context, *MediumPingRequest) (*MediumPingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedMediumServiceServer) AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddPhotoUpload not implemented")
+}
+func (UnimplementedMediumServiceServer) ReadPhotoUploads(context.Context, *PhotoUploadsReadRequest) (*PhotoUploadsReadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadPhotoUploads not implemented")
+}
+func (UnimplementedMediumServiceServer) BrowsePhotoFiles(context.Context, *PhotoFilesBrowseRequest) (*PhotoFilesBrowseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BrowsePhotoFiles not implemented")
+}
+func (UnimplementedMediumServiceServer) SetPhotoFiles(context.Context, *PhotoFilesSetRequest) (*PhotoFilesSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetPhotoFiles not implemented")
 }
 func (UnimplementedMediumServiceServer) mustEmbedUnimplementedMediumServiceServer() {}
 func (UnimplementedMediumServiceServer) testEmbeddedByValue()                       {}
@@ -342,6 +410,78 @@ func _MediumService_Ping_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediumService_AddPhotoUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PhotoUploadAddRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).AddPhotoUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_AddPhotoUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).AddPhotoUpload(ctx, req.(*PhotoUploadAddRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediumService_ReadPhotoUploads_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PhotoUploadsReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).ReadPhotoUploads(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_ReadPhotoUploads_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).ReadPhotoUploads(ctx, req.(*PhotoUploadsReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediumService_BrowsePhotoFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PhotoFilesBrowseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).BrowsePhotoFiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_BrowsePhotoFiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).BrowsePhotoFiles(ctx, req.(*PhotoFilesBrowseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediumService_SetPhotoFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PhotoFilesSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).SetPhotoFiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_SetPhotoFiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).SetPhotoFiles(ctx, req.(*PhotoFilesSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MediumService_ServiceDesc is the grpc.ServiceDesc for MediumService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -380,6 +520,22 @@ var MediumService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Ping",
 			Handler:    _MediumService_Ping_Handler,
+		},
+		{
+			MethodName: "AddPhotoUpload",
+			Handler:    _MediumService_AddPhotoUpload_Handler,
+		},
+		{
+			MethodName: "ReadPhotoUploads",
+			Handler:    _MediumService_ReadPhotoUploads_Handler,
+		},
+		{
+			MethodName: "BrowsePhotoFiles",
+			Handler:    _MediumService_BrowsePhotoFiles_Handler,
+		},
+		{
+			MethodName: "SetPhotoFiles",
+			Handler:    _MediumService_SetPhotoFiles_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

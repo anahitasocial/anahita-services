@@ -363,6 +363,12 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 		return nil, err
 	}
 
+	// The list of a photo post's images goes with the post. The stored images
+	// themselves are removed by the service that asked for this.
+	if err := h.env.Repos.PhotoFiles.DeleteForNodes([]int64{node.ID}); err != nil {
+		log.Printf("deleting the image list of %d failed: %v", node.ID, err)
+	}
+
 	// publish event
 	go func() {
 		entityName := strings.Split(node.Type, ".")[3]

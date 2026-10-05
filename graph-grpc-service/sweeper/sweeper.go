@@ -102,6 +102,9 @@ func Run(db *sql.DB, repos *repositories.Repositories, publisher *event.Publishe
 	// clock on a grace period that ran out this hour.
 	purged := drainRequests(repos, publisher, files)
 
+	// Images uploaded for a post that was never made.
+	Uploads(repos, files)
+
 	cutoff := time.Now().UTC().AddDate(0, 0, -GraceDays)
 
 	ids, err := repos.Nodes.BrowseDeletedBefore(cutoff, BatchSize)

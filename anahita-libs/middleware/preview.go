@@ -164,6 +164,9 @@ func previewJSON(document []byte) ([]byte, bool) {
 //	body           cut to PreviewBodyLength, and the object marked
 //	               "truncated": true
 //	portrait_urls  a photo's sizes: only the smallest is kept
+//	files          a photo post's images: only the first is kept, at its
+//	               smallest size, and the object says how many were held
+//	               back in "files_held_back"
 //	data with      a list: marked "more": true when there is more of it than
 //	  pagination   was sent, and its total lowered to what was sent, so that a
 //	               client which pages by the total stops
@@ -192,6 +195,21 @@ func previewValue(value any) any {
 
 		if sizes, ok := typed["portrait_urls"].(map[string]any); ok {
 			typed["portrait_urls"] = smallestSize(sizes)
+		}
+
+		// A post with several images shows a visitor one, like any photo.
+		// Without this the list would hand over every image at every size,
+		// beside a portrait_urls cut down to a thumbnail.
+		if files, ok := typed["files"].([]any); ok && len(files) > 0 {
+			if first, ok := files[0].(map[string]any); ok {
+				if sizes, ok := first["urls"].(map[string]any); ok {
+					first["urls"] = smallestSize(sizes)
+				}
+			}
+			if held := len(files) - 1; held > 0 {
+				typed["files_held_back"] = held
+			}
+			typed["files"] = files[:1]
 		}
 
 		previewList(typed)

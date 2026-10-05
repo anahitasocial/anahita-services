@@ -7,8 +7,6 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/requests"
 	"anahita-libs/responses"
-	images "anahita-libs/utils"
-	"io"
 	"log"
 	"net/http"
 	"photo/constants"
@@ -212,12 +210,25 @@ func (h *photoHandler) Edit(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
+// photoAddRequest is a new photo post.
+//
+// Sent one of two ways. As JSON, naming the images that were uploaded for it:
+// the way to make a post with several. Or as a form carrying one image in
+// "file", which is how a photo was posted before it could hold more, and
+// still works.
+type photoAddRequest struct {
+	requests.MediumAddRequest
+	// The images, in order, each an upload made for this profile.
+	Uploads []fileRef `json:"uploads" form:"-"`
+	// What the one image of a form post shows.
+	AltText string `json:"-" form:"alt_text"`
+}
+
 // Add creates a new photo
 func (h *photoHandler) Add(c echo.Context) error {
 	var (
-		req     = requests.NewMediumRequest().Add
-		fileReq = services.NewFileRequest().Add
-		viewer  = getViewer(c)
+		req    = &photoAddRequest{MediumAddRequest: *requests.NewMediumRequest().Add}
+		viewer = getViewer(c)
 	)
 
 	if err := c.Bind(req); err != nil {
@@ -236,9 +247,7 @@ func (h *photoHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	medium := entities.NewAnahitaNode()
-	medium.Type = constants.NodeMediumPhotoType
-	medium.Service = constants.PhotoService
+	medium := placeholderPhoto(owner, viewer)
 	medium.Access = req.Access
 	medium.Name = req.Name
 	medium.Alias = slug.Make(medium.Name)
@@ -251,15 +260,6 @@ func (h *photoHandler) Add(c echo.Context) error {
 	} else if language != "" {
 		medium.Language = language
 	}
-	medium.OwnerID = owner.ID
-	medium.OwnerType = owner.Type
-	// The owner as read above, merged defaults and all. It was read and
-	// never attached, so CanAdd judged the empty placeholder owner — no
-	// access, no add_permissions — and only the owner themselves, let
-	// through before the permissions are read, could post here.
-	medium.Owner = owner
-	medium.CreatedBy = viewer.ID
-	medium.ModifiedBy = viewer.ID
 	medium.Enabled = true
 	medium.CommentStatus = true
 	medium.Access = handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
@@ -281,108 +281,63 @@ func (h *photoHandler) Add(c echo.Context) error {
 		return handlers.RefuseAudience(c, mediumAccessCtx)
 	}
 
+	// The images are settled before the post is made. It used to be made
+	// first, so a file that turned out not to be an image left a photo post
+	// with no photo.
+	wanted := req.Uploads
+	var uploads []*entities.PhotoUpload
+
+	if len(wanted) > 0 {
+		uploads, err = h.Srv.MediaGRPC.ReadPhotoUploads(uploadIDs(wanted))
+		if err != nil {
+			log.Println(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+	} else {
+		upload, refused, err := h.uploadImage(c, owner, viewer)
+		if err != nil {
+			log.Println(err)
+		}
+		if refused != "" {
+			return refuseFiles(c, refused)
+		}
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
+
+		uploads = []*entities.PhotoUpload{upload}
+		wanted = []fileRef{{UploadID: upload.ID, AltText: req.AltText}}
+	}
+
+	plan, refused := planFiles(nil, uploads, wanted, viewer.ID, owner.ID)
+	if refused != "" {
+		return refuseFiles(c, refused)
+	}
+
+	// The post names its first image itself, for everything that shows one.
+	medium.Filename = plan.Files[0].Filename
+	medium.Mimetype = plan.Files[0].Mimetype
+
 	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	// Upload the photo
-	file, err := c.FormFile("file")
-	if err != nil {
-		log.Println("Error getting file:", err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	// Check if the file was uploaded
-	if file == nil {
-		log.Println("No file uploaded")
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	// Open the file from the request
-	fileHandler, err := file.Open()
-	if err != nil {
-		log.Println("Error opening file:", err)
+	if _, err := h.Srv.MediaGRPC.SetPhotoFiles(medium.ID, plan.Files, plan.UploadIDs); err != nil {
+		log.Println(err)
+		// A photo post with no images is worse than no post. The uploads
+		// are still uploads, so the same request can be sent again.
+		if err := h.Srv.MediaGRPC.Delete(medium.ID, viewer); err != nil {
+			log.Println(err)
+		}
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	defer fileHandler.Close()
 
 	medium, err = h.Srv.MediaGRPC.Read(medium.ID, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
-	}
-
-	// Read the file content into a []byte
-	fileBytes, err := io.ReadAll(fileHandler)
-	if err != nil {
-		log.Println("Error reading file:", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	// Correct the orientation of the image
-	fileBytes, err = images.CorrectOrientation(fileBytes)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	// Detect the MIME type of the corrected image
-	mimeType := http.DetectContentType(fileBytes)
-	if !images.IsValidMimeType(mimeType) {
-		return c.NoContent(http.StatusUnsupportedMediaType)
-	}
-
-	// Check if the file size is valid
-	if len(fileBytes) > constants.MaxFileSize {
-		return c.NoContent(http.StatusRequestEntityTooLarge)
-	}
-
-	// Generate a unique filename based on the MIME type
-	medium.Filename, err = images.GenerateUniqueFilename(mimeType)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	// Retrieve avatar sizes and process the image for each size
-	portraits, err := medium.GetPortraits()
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	for _, portrait := range portraits {
-		// Resize the image
-		content, err := images.ResizeImage(fileBytes, portrait.Size.Width, portrait.Size.Height)
-		if err != nil {
-			log.Println(err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-
-		// Prepare the file for upload
-		fileReq.Path = portrait.Url
-		fileReq.Content = content
-		fileReq.Mimetype = mimeType
-		fileReq.Size = int64(len(content))
-		if err := c.Validate(fileReq); err != nil {
-			log.Println(err)
-			return c.NoContent(http.StatusBadRequest)
-		}
-
-		// Upload the resized image
-		if _, err := h.Srv.FilesGRPC.Add(fileReq); err != nil {
-			log.Println(err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-	}
-
-	// Update the photo with the new filename
-	medium, err = h.Srv.MediaGRPC.Edit(medium, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	if err = h.onAfterFetched(c, medium); err != nil {
@@ -401,10 +356,9 @@ func (h *photoHandler) Add(c echo.Context) error {
 // Delete removes a photo
 func (h *photoHandler) Delete(c echo.Context) error {
 	var (
-		err     error
-		req     = requests.NewMediumRequest().Delete
-		fileReq = services.NewFileRequest().Delete
-		viewer  = getViewer(c)
+		err    error
+		req    = requests.NewMediumRequest().Delete
+		viewer = getViewer(c)
 	)
 
 	if err = c.Bind(req); err != nil {
@@ -433,26 +387,23 @@ func (h *photoHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	// delete image files
-	portraits, err := medium.GetPortraits()
+	// Every image of the post, read before the post goes: afterwards nothing
+	// says which they were. If the list cannot be read, the one image the
+	// post itself names is still removed.
+	files, err := h.Srv.MediaGRPC.BrowsePhotoFiles([]int64{medium.ID})
 	if err != nil {
 		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
 	}
-
-	go func(portraits map[string]entities.AnahitaNodeImage) {
-		for _, portrait := range portraits {
-			fileReq.Path = portrait.Url
-			if err = h.Srv.FilesGRPC.Delete(fileReq); err != nil {
-				log.Println(err)
-			}
-		}
-	}(portraits)
+	if len(files) == 0 && medium.Filename != "" {
+		files = []*entities.PhotoFile{{Filename: medium.Filename}}
+	}
 
 	if err = h.Srv.MediaGRPC.Delete(medium.ID, viewer); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	h.deleteStored(medium, files)
 
 	return c.NoContent(http.StatusOK)
 }

@@ -132,6 +132,46 @@ func TestPreviewOfAListOfPosts(t *testing.T) {
 }
 
 // An id too large for a float must come out as it went in.
+// A photo post with several images shows a visitor one of them, small, and
+// says how many more there are.
+func TestPreviewOfAPostWithSeveralImages(t *testing.T) {
+	post := decode(t, `{
+		"id": 4,
+		"portrait_urls": {"small": {"url": "s"}, "large": {"url": "l"}},
+		"files": [
+			{"id": "a.jpg", "alt_text": "a heron", "urls": {"small": {"url": "as"}, "xxlarge": {"url": "ax"}}},
+			{"id": "b.jpg", "alt_text": "", "urls": {"small": {"url": "bs"}, "xxlarge": {"url": "bx"}}},
+			{"id": "c.jpg", "alt_text": "", "urls": {"small": {"url": "cs"}, "xxlarge": {"url": "cx"}}}
+		]
+	}`)
+
+	files := post["files"].([]any)
+	if len(files) != 1 {
+		t.Fatalf("%d images sent, want 1", len(files))
+	}
+
+	first := files[0].(map[string]any)
+	if first["id"] != "a.jpg" || first["alt_text"] != "a heron" {
+		t.Errorf("the image kept is not the first, or lost its description: %v", first)
+	}
+	if urls := first["urls"].(map[string]any); len(urls) != 1 || urls["small"] == nil {
+		t.Errorf("sizes sent: %v", urls)
+	}
+
+	if post["files_held_back"] != float64(2) {
+		t.Errorf("held back = %v, want 2", post["files_held_back"])
+	}
+}
+
+// One image is all there is, so nothing is held back.
+func TestPreviewOfAPostWithOneImageHoldsNothingBack(t *testing.T) {
+	post := decode(t, `{"id": 4, "files": [{"id": "a.jpg", "urls": {"small": {"url": "as"}, "large": {"url": "al"}}}]}`)
+
+	if len(post["files"].([]any)) != 1 || post["files_held_back"] != nil {
+		t.Errorf("a single image was treated as several: %v", post)
+	}
+}
+
 func TestPreviewKeepsLargeNumbers(t *testing.T) {
 	rewritten, ok := previewJSON([]byte(`{"id": 9007199254740993, "body": "x"}`))
 	if !ok || !strings.Contains(string(rewritten), "9007199254740993") {

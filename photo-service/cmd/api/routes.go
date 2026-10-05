@@ -35,6 +35,12 @@ func (r *Routes) Init(e *echo.Echo) {
 	photos.POST("/:owner_id/", r.handler.Photo.Add, r.authorize)
 	photos.DELETE("/:id", r.handler.Photo.Delete, r.authorize)
 
+	// The images of a post. Each is uploaded in a request of its own, and a
+	// post is then made from the uploads; "files" changes the images of a
+	// post that exists.
+	photos.POST("/:owner_id/uploads", r.handler.Photo.Upload, r.authorize)
+	photos.PATCH("/:id/files", r.handler.Photo.EditFiles, r.authorize)
+
 	// photo access
 	photos.PATCH("/:id/access", r.handler.Photo.EditAccess, r.authorize)
 

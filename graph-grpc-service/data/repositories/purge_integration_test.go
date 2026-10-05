@@ -98,6 +98,8 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 		`DELETE FROM notifications`,
 		`DELETE FROM purge_work`,
 		`DELETE FROM node_deletion_logs`,
+		`DELETE FROM photo_files`,
+		`DELETE FROM photo_uploads`,
 
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,person_type,filename,follower_count,leader_count,created_at,updated_at) VALUES
 		 (1,` + person + `,'Ada','ada','public',1,'registered','avatar.jpg',1,2,NOW(),NOW()),
@@ -118,6 +120,11 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 		 (13,` + note + `,'by grace','n13','public',1,2,2,NULL,2,2,2,NOW(),NOW()),
 		 (14,` + note + `,'on grace','n14','public',1,2,1,NULL,0,0,0,NOW(),NOW()),
 		 (15,` + note + `,'grace in the group','n15','public',1,8,2,NULL,0,0,0,NOW(),NOW())`,
+
+		// Ada's photo post holds two images. The node names the first.
+		`INSERT INTO photo_files (node_id,position,filename,mimetype) VALUES
+		 (10,0,'photo.jpg','image/jpeg'),
+		 (10,1,'second.jpg','image/jpeg')`,
 
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,parent_id,created_by,created_at,updated_at) VALUES
 		 (20,` + comment + `,'c20','c20','',1,10,2,NOW(),NOW()),
@@ -298,14 +305,35 @@ func TestPurgeRemovesEverythingTheActorOwnedOrWrote(t *testing.T) {
 		t.Errorf("%d row(s) of work left behind", n)
 	}
 
-	// The photo's files and Ada's avatar.
-	var photo, avatar bool
+	// Both images of the photo post, where they are stored, and Ada's
+	// avatar.
+	//
+	// The exact paths, because a path that is nearly right deletes nothing:
+	// an image is stored under the service and the profile it is on, and a
+	// purge that left either out asked storage to remove objects that were
+	// never there, and reported no error.
+	deleted := map[string]bool{}
+	var avatar bool
 	for _, path := range files.deleted {
-		photo = photo || strings.Contains(path, "photo")
+		deleted[path] = true
 		avatar = avatar || strings.Contains(path, "avatar")
 	}
-	if !photo || !avatar {
-		t.Errorf("files deleted: %v; want the photo's and the avatar's", files.deleted)
+	for _, want := range []string{
+		"assets/v2/photo-service/photo/1/photo_medium.jpg",
+		"assets/v2/photo-service/photo/1/photo_original.jpg",
+		"assets/v2/photo-service/photo/1/second_medium.jpg",
+		"assets/v2/photo-service/photo/1/second_original.jpg",
+	} {
+		if !deleted[want] {
+			t.Errorf("%s was not deleted; deleted: %v", want, files.deleted)
+		}
+	}
+	if !avatar {
+		t.Errorf("files deleted: %v; want the avatar's too", files.deleted)
+	}
+
+	if n := count(t, db, `SELECT COUNT(*) FROM photo_files`); n != 0 {
+		t.Errorf("%d image(s) still listed for a post that is gone", n)
 	}
 
 	// A tombstone is not in the sweeper's queue, however old the deletion.

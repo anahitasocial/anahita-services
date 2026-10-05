@@ -1,0 +1,347 @@
+package handlers
+
+import (
+	"anahita-libs/constants"
+	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
+	"anahita-libs/responses"
+	images "anahita-libs/utils"
+	"bytes"
+	"image"
+	"io"
+	"log"
+	"mime/multipart"
+	"net/http"
+	photo "photo/constants"
+	"strconv"
+
+	// The formats an upload can be in, for reading its size.
+	_ "image/jpeg"
+	_ "image/png"
+
+	"github.com/labstack/echo/v4"
+)
+
+// refuseFiles answers a request whose images were refused, saying why and
+// how many a post can hold.
+func refuseFiles(c echo.Context, code string) error {
+	return c.JSON(refusalStatus(code), map[string]any{
+		"error": code,
+		"max":   constants.PhotoMaxFiles,
+	})
+}
+
+// placeholderPhoto is a photo on this profile that does not exist yet: what
+// the permission to post is judged on, and what says where an image for this
+// profile is stored.
+func placeholderPhoto(owner *entities.AnahitaNode, viewer *entities.Viewer) *entities.AnahitaNode {
+	medium := entities.NewAnahitaNode()
+	medium.Type = photo.NodeMediumPhotoType
+	medium.Service = photo.PhotoService
+	medium.OwnerID = owner.ID
+	medium.OwnerType = owner.Type
+	medium.Owner = owner
+	medium.CreatedBy = viewer.ID
+	medium.ModifiedBy = viewer.ID
+	return medium
+}
+
+// storeImage takes one uploaded image, turns it the right way up, and stores
+// every size of it for this profile.
+//
+// The image is always written out again by the resizing, never stored as it
+// arrived, so nothing a file carries besides its picture reaches storage.
+//
+// Returns what was stored, or why the file was refused.
+func (h *photoHandler) storeImage(c echo.Context, owner *entities.AnahitaNode, viewer *entities.Viewer, header *multipart.FileHeader) (*entities.PhotoUpload, string, error) {
+	opened, err := header.Open()
+	if err != nil {
+		return nil, errFileUnreadable, err
+	}
+	defer opened.Close()
+
+	content, err := io.ReadAll(opened)
+	if err != nil {
+		return nil, errFileUnreadable, err
+	}
+
+	// What the bytes are, not what the file says it is: a page of HTML
+	// named photo.jpg is refused here.
+	if !images.IsValidMimeType(http.DetectContentType(content)) {
+		return nil, errFileUnsupported, nil
+	}
+
+	content, err = images.CorrectOrientation(content)
+	if err != nil {
+		return nil, errFileUnreadable, err
+	}
+
+	mimeType := http.DetectContentType(content)
+	if !images.IsValidMimeType(mimeType) {
+		return nil, errFileUnsupported, nil
+	}
+
+	if len(content) > photo.MaxFileSize {
+		return nil, errFileTooLarge, nil
+	}
+
+	dimensions, _, err := image.DecodeConfig(bytes.NewReader(content))
+	if err != nil {
+		return nil, errFileUnreadable, err
+	}
+
+	filename, err := images.GenerateUniqueFilename(mimeType)
+	if err != nil {
+		return nil, "", err
+	}
+
+	portraits, err := placeholderPhoto(owner, viewer).PortraitsFor(filename)
+	if err != nil {
+		return nil, "", err
+	}
+
+	for _, portrait := range portraits {
+		resized, err := images.ResizeImage(content, portrait.Size.Width, portrait.Size.Height)
+		if err != nil {
+			return nil, errFileUnreadable, err
+		}
+
+		fileReq := services.NewFileRequest().Add
+		fileReq.Path = portrait.Url
+		fileReq.Content = resized
+		fileReq.Mimetype = mimeType
+		fileReq.Size = int64(len(resized))
+		if err := c.Validate(fileReq); err != nil {
+			return nil, errFileUnreadable, err
+		}
+
+		if _, err := h.Srv.FilesGRPC.Add(fileReq); err != nil {
+			return nil, "", err
+		}
+	}
+
+	return &entities.PhotoUpload{
+		OwnerID:   owner.ID,
+		CreatedBy: viewer.ID,
+		Filename:  filename,
+		Mimetype:  mimeType,
+		Width:     dimensions.Width,
+		Height:    dimensions.Height,
+	}, "", nil
+}
+
+// uploadImage stores the image a request carries and records it as an
+// upload. Recorded even when it is about to go straight into a post: if the
+// post then fails to be made, the sweeper finds the upload and removes what
+// was stored.
+func (h *photoHandler) uploadImage(c echo.Context, owner *entities.AnahitaNode, viewer *entities.Viewer) (*entities.PhotoUpload, string, error) {
+	header, err := c.FormFile("file")
+	if err != nil || header == nil {
+		return nil, errFilesRequired, err
+	}
+
+	upload, refused, err := h.storeImage(c, owner, viewer, header)
+	if refused != "" || err != nil {
+		return nil, refused, err
+	}
+
+	upload.ID, err = h.Srv.MediaGRPC.AddPhotoUpload(upload)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return upload, "", nil
+}
+
+// Upload stores one image for a post that has not been made yet.
+//
+// A post with several images is made in steps: each image in a request of
+// its own, then the post from the uploads. No request then carries more than
+// one image, however many the post has.
+func (h *photoHandler) Upload(c echo.Context) error {
+	viewer := getViewer(c)
+
+	ownerID, err := strconv.ParseInt(c.Param("owner_id"), 10, 64)
+	if err != nil || ownerID <= 0 {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	owner, err := h.Srv.ActorsGRPC.Read(ownerID, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	// Whoever may not post here may not store images here either.
+	mediumAccessCtx, err := h.getMediumAccessContext(placeholderPhoto(owner, viewer), viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if ok, err := h.Perms.Media.CanAdd(mediumAccessCtx); !ok {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	upload, refused, err := h.uploadImage(c, owner, viewer)
+	if err != nil {
+		log.Println(err)
+	}
+	if refused != "" {
+		return refuseFiles(c, refused)
+	}
+	if err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	// Shown the way an image of a post is, so the composer can draw it.
+	preview := placeholderPhoto(owner, viewer)
+	preview.Files = []*entities.PhotoFile{{
+		Filename: upload.Filename,
+		Width:    upload.Width,
+		Height:   upload.Height,
+	}}
+	preview.SetFilePortraits()
+	services.BatchPresignPhotoFiles(h.Srv.FilesGRPC, []*entities.AnahitaNode{preview})
+
+	return c.JSON(http.StatusCreated, map[string]any{
+		"upload_id": upload.ID,
+		"width":     upload.Width,
+		"height":    upload.Height,
+		"urls":      responses.NewPortrait(preview.Files[0].Portrait),
+	})
+}
+
+// photoFilesRequest is the whole list of images a post is to have.
+type photoFilesRequest struct {
+	ID    int64     `param:"id" validate:"required,numeric"`
+	Files []fileRef `json:"files"`
+}
+
+// EditFiles changes a post's images: their order, their descriptions, and
+// which there are.
+//
+// The request is the whole list as it is to be. An image left out is
+// removed; one named by an upload is added. That is one rule to explain, and
+// no order of separate changes to get wrong.
+func (h *photoHandler) EditFiles(c echo.Context) error {
+	var (
+		req    = &photoFilesRequest{}
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	medium, err := h.Srv.MediaGRPC.Read(req.ID, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if ok, err := h.Perms.Media.CanEdit(mediumAccessCtx); !ok {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	existing, err := h.Srv.MediaGRPC.BrowsePhotoFiles([]int64{medium.ID})
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	uploads, err := h.Srv.MediaGRPC.ReadPhotoUploads(uploadIDs(req.Files))
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	plan, refused := planFiles(existing, uploads, req.Files, viewer.ID, medium.GetOwnerID())
+	if refused != "" {
+		return refuseFiles(c, refused)
+	}
+
+	if _, err := h.Srv.MediaGRPC.SetPhotoFiles(medium.ID, plan.Files, plan.UploadIDs); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	// Only now that the post no longer names them.
+	h.deleteStored(medium, plan.Removed)
+
+	// Read again: the first image may have changed, and the post carries a
+	// copy of its name. Then marked as edited, by whoever did it.
+	medium, err = h.Srv.MediaGRPC.Read(medium.ID, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+	medium.ModifiedBy = viewer.ID
+	if medium, err = h.Srv.MediaGRPC.Edit(medium, viewer); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if err = h.onAfterFetched(c, medium); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	batchPresignPaths(h.Env, []*entities.AnahitaNode{medium})
+
+	mediaResp := &responses.MediumNodeResponse{}
+	return c.JSON(http.StatusOK, mediaResp.MapMediumNode(medium))
+}
+
+// uploadIDs are the uploads a list of images names.
+func uploadIDs(refs []fileRef) []int64 {
+	var ids []int64
+	for _, ref := range refs {
+		if ref.UploadID > 0 {
+			ids = append(ids, ref.UploadID)
+		}
+	}
+	return ids
+}
+
+// deleteStored removes every stored size of these images, in the background.
+// A failure is logged and no more: the post no longer names them, so there
+// is nothing to try again from.
+func (h *photoHandler) deleteStored(medium *entities.AnahitaNode, files []*entities.PhotoFile) {
+	var paths []string
+	for _, file := range files {
+		portraits, err := medium.PortraitsFor(file.Filename)
+		if err != nil {
+			continue
+		}
+		for _, portrait := range portraits {
+			paths = append(paths, portrait.Url)
+		}
+	}
+
+	if len(paths) == 0 {
+		return
+	}
+
+	go func() {
+		for _, path := range paths {
+			fileReq := services.NewFileRequest().Delete
+			fileReq.Path = path
+			if err := h.Srv.FilesGRPC.Delete(fileReq); err != nil {
+				log.Println(err)
+			}
+		}
+	}()
+}
