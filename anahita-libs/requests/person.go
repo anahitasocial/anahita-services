@@ -1,6 +1,9 @@
 package requests
 
-import "anahita-libs/constants"
+import (
+	"anahita-libs/constants"
+	"anahita-libs/policy"
+)
 
 type PersonRequest struct {
 	Browse       *ActorBrowseRequest
@@ -25,7 +28,7 @@ func NewPersonRequest() *PersonRequest {
 		Edit: &PersonEditRequest{},
 		EditAccess: &PersonEditAccessRequest{
 			ID:                 0,
-			Access:             "public",
+			Access:             policy.MinContentAccess(),
 			AllowFollowRequest: false,
 		},
 		EditFeatures: &PersonEditFeaturesRequest{

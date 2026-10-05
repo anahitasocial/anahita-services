@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/policy"
 	"crypto/subtle"
 	"database/sql"
 	"encoding/json"
@@ -356,7 +357,9 @@ func (h *signupHandler) Add(c echo.Context) error {
 	// Name is deliberately empty. Rendering falls back to the handle, which
 	// is what both federation protocols do, and it leaves onboarding able to
 	// tell "never set one" from "chose their handle as their name".
-	actor.Access = constants.AnahitaAccessPublic
+	// Public, unless the installation allows nothing new to be: then a new
+	// profile is for signed-in people, like everything else created here.
+	actor.Access = policy.MinContentAccess()
 	actor.PersonType = constants.PersonTypeRegistered
 	actor.Enabled = true
 	// Set explicitly. NewAnahitaNode leaves these as Go's zero time — year 1 —

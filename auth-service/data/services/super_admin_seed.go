@@ -1,6 +1,7 @@
 package services
 
 import (
+	"anahita-libs/policy"
 	"errors"
 	"fmt"
 	"log"
@@ -125,7 +126,9 @@ func SeedSuperAdmin(env *SuperAdminSeedEnv) (bool, error) {
 	actor.Service = libs_constants.PersonService
 	actor.Alias = alias
 	actor.Name = env.Config.GetSuperAdminName()
-	actor.Access = libs_constants.AnahitaAccessPublic
+	// Public, unless the installation allows nothing new to be: then a new
+	// profile is for signed-in people, like everything else created here.
+	actor.Access = policy.MinContentAccess()
 	actor.PersonType = libs_constants.PersonTypeSuperAdmin
 	actor.Enabled = true
 	actor.CreatedAt = time.Now()

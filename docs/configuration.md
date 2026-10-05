@@ -16,6 +16,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 - [Internal calls](#internal-calls)
 - [Site identity](#site-identity)
 - [Registration](#registration)
+- [Privacy of the installation](#privacy-of-the-installation)
 - [First super administrator](#first-super-administrator)
 - [OAuth signing and encryption](#oauth-signing-and-encryption)
 - [Storage](#storage)
@@ -121,6 +122,34 @@ Read by auth-service.
 | `INVITE_PENDING_MAX` | Outstanding invitations one person may have at once. Default `5` |
 | `INVITE_PENDING_MAX_ADMIN` | The same for administrators. Default `100` |
 | `TOS_URL`, `PRIVACY_URL` | Where the Terms and Privacy Policy are read: a path on the web app or a full URL. Default `/legal/tos` and `/legal/privacy`. Their versions are held by the web app, not here |
+
+## Privacy of the installation
+
+Read by every service, the same way, so they are set once: in `.env` for
+docker-compose, in the shared `config.env` for Kubernetes. They take effect on
+a restart.
+
+| Variable | Value |
+| --- | --- |
+| `MIN_CONTENT_ACCESS` | `public` (the default) or `registered`. The widest audience anything **new** may be given |
+
+**`MIN_CONTENT_ACCESS=registered`** is for a school, a company or a private
+community that wants nothing new to be readable by people who are not signed
+in:
+
+- A post can no longer be created public or changed to public, and neither can
+  a person's profile or a group. The answer is 422 `access_not_allowed`, with
+  the audiences that are allowed.
+- A post written without saying who can see it is for signed-in people, and so
+  is a new account's profile.
+- **What is already public stays public**, and can stay so when it is edited.
+  The setting governs what is written from now on.
+- The web app stops offering "Public".
+- Once federation exists, nothing new is sent to other servers, since only
+  public posts are.
+
+A value that is not `public` or `registered` is treated as `registered`, and
+the log says so. A typo must not be what makes everything public again.
 
 ## First super administrator
 

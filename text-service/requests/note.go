@@ -2,6 +2,7 @@ package requests
 
 import (
 	"anahita-libs/constants"
+	"anahita-libs/policy"
 	"anahita-libs/requests"
 )
 
@@ -32,10 +33,10 @@ func NewNoteRequest() *NoteRequest {
 		},
 		EditAccess: &NoteEditAccessRequest{
 			ID:     0,
-			Access: constants.AnahitaAccessPublic,
+			Access: policy.MinContentAccess(),
 		},
 		Add: &NoteAddRequest{
-			Access:   constants.AnahitaAccessPublic,
+			Access:   policy.MinContentAccess(),
 			Composed: false,
 		},
 		Delete: &requests.MediumDeleteRequest{

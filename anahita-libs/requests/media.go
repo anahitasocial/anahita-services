@@ -1,6 +1,9 @@
 package requests
 
-import "anahita-libs/constants"
+import (
+	"anahita-libs/constants"
+	"anahita-libs/policy"
+)
 
 type MediumRequest struct {
 	Browse            *MediumBrowseRequest
@@ -32,14 +35,16 @@ func NewMediumRequest() *MediumRequest {
 		},
 		EditAccess: &MediumEditAccessRequest{
 			ID:     0,
-			Access: constants.AnahitaAccessPublic,
+			Access: policy.MinContentAccess(),
 		},
 		EditCommentStatus: &MediumEditCommentStatusRequest{
 			ID:     0,
 			Status: false,
 		},
 		Add: &MediumAddRequest{
-			Access:   constants.AnahitaAccessPublic,
+			// What a post gets when the client does not say: public, or
+			// registered where the installation allows nothing public.
+			Access:   policy.MinContentAccess(),
 			Composed: false,
 		},
 		Delete: &MediumDeleteRequest{},

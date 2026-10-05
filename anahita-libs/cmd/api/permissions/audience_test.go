@@ -6,6 +6,7 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/policy"
 )
 
 const (
@@ -136,5 +137,34 @@ func TestPostAudiencesAreMediumAudiencesForANewPost(t *testing.T) {
 		if got := fmt.Sprint(tc.got); got != tc.want {
 			t.Errorf("%s: %s, want %s", tc.name, got, tc.want)
 		}
+	}
+}
+
+// An installation that allows nothing new to be public takes "public" out
+// everywhere, for a new post and for one being changed.
+func TestNoPublicAudienceWhereTheInstallationAllowsNone(t *testing.T) {
+	restore := policy.SetForTest("registered")
+	defer restore()
+
+	const person, group = constants.NodeActorPersonEntityType, "node.actor.group-service.group.v1"
+	member := audienceViewer(audAda, constants.PersonTypeRegistered)
+
+	own := audienceCtx(person, audAda, audAda, member, false)
+	if got := fmt.Sprint(MediumAudiences(own)); got != "[registered followers leaders mutuals myself]" {
+		t.Errorf("on your own profile: %s", got)
+	}
+	if IsMediumAudienceAllowed(own, constants.AnahitaAccessPublic) {
+		t.Error("a public post was allowed")
+	}
+
+	inGroup := audienceCtx(group, audGroup, audAda, member, true)
+	if got := fmt.Sprint(MediumAudiences(inGroup)); got != "[registered followers admins]" {
+		t.Errorf("in a group: %s", got)
+	}
+
+	// Not even a site administrator: the setting is the installation's.
+	admin := audienceCtx(group, audGroup, audGrace, audienceViewer(99, constants.PersonTypeSuperAdmin), false)
+	if IsMediumAudienceAllowed(admin, constants.AnahitaAccessPublic) {
+		t.Error("a super administrator made a public post")
 	}
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/policy"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -330,7 +331,9 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	actor.Service = constants.PersonService
 	actor.Alias = strings.ToLower(strings.TrimSpace(req.Username))
 	actor.Name = strings.TrimSpace(req.Name)
-	actor.Access = constants.AnahitaAccessPublic
+	// Public, unless the installation allows nothing new to be: then a new
+	// profile is for signed-in people, like everything else created here.
+	actor.Access = policy.MinContentAccess()
 	actor.PersonType = constants.PersonTypeRegistered
 	actor.Enabled = true
 	// See signup.go: NewAnahitaNode leaves these at Go's zero time, which a

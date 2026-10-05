@@ -17,6 +17,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Internal calls](configuration.md#internal-calls)
    - [Site identity](configuration.md#site-identity)
    - [Registration](configuration.md#registration)
+   - [Privacy of the installation](configuration.md#privacy-of-the-installation)
    - [First super administrator](configuration.md#first-super-administrator)
    - [OAuth signing and encryption](configuration.md#oauth-signing-and-encryption)
    - [Storage](configuration.md#storage)
@@ -110,7 +111,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Link previews](plans/link-previews.md) | 10 | not started |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
-| [Instance privacy and the composer audience picker](plans/instance-privacy.md) | 13 | the audience picker done 2026-10-04; the instance settings not started |
+| [Instance privacy and the composer audience picker](plans/instance-privacy.md) | 13 | the audience picker and `MIN_CONTENT_ACCESS` done 2026-10-04; the read-access settings not started |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
 | [Video service](plans/video-service.md) | 16 | not started |
 | [Several images per photo post; photo sets removed](plans/photo-albums.md) | 17, 18 | 18 done 2026-10-03; 17 not started |

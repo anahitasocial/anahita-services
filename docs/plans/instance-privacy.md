@@ -196,13 +196,52 @@ which comes with federation.
 **Not checked.** The picker in a browser, and a post created through the
 running stack with each audience. The rule has unit tests on both sides.
 
+### No new public content: `MIN_CONTENT_ACCESS` (2026-10-04)
+
+**One place reads it:** package `anahita-libs/policy`. A value it does not
+understand is read as `registered`, the stricter one, and logged.
+
+**Where it is enforced.**
+- **Posts:** `permissions.MediumAudiences` leaves `public` out, so creating or
+  changing a post to public is refused with 422 `access_not_allowed`, and the
+  lists a profile and a post carry (`authorized.audiences`) leave it out too.
+  The composer and the control on a post follow without knowing the setting.
+- **Profiles and groups:** the change-access handlers in person-service and
+  group-service refuse `public` the same way.
+- **Defaults:** a post with no audience said, and a new account's profile
+  (signup, an approved request, an accepted invitation, the first super
+  administrator), get `registered`.
+- **What already is public may stay so:** a change-access request that keeps
+  the current value is let through, so editing something else about a public
+  profile does not fail.
+
+**NodeInfo** carries `minContentAccess`. The web app uses it in one place, the
+profile access settings, which has no list from the server to follow.
+
+**Configuration.** `MIN_CONTENT_ACCESS` and `SITE_READ_ACCESS` are now passed
+to every service in `docker-compose.yml` and the Kubernetes manifests, as
+optional keys of the shared configuration. The second is not read yet.
+
+**Where it differs from the plan.**
+- New groups were not changed: a group already starts as `admins`, a draft.
+- The "shared validator replacing three `oneof` lists" is the audience rule
+  for posts and a two-line check for profiles. The `oneof` tags stay, as the
+  first check that the value is a word the API knows.
+
+**Checked.** Unit tests for the policy and for audiences under it. On the
+development stack, NodeInfo reports `public` by default, `registered` with the
+setting, and `registered` with a misspelt value, with the log line.
+
+**Not checked.** Creating a post or changing a profile with the setting on,
+through the running stack with a session.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
 | Composer audience picker | done 2026-10-04, not yet tried in a browser |
-| `MIN_CONTENT_ACCESS` | not started |
+| `MIN_CONTENT_ACCESS` | done 2026-10-04 |
 | `SITE_READ_ACCESS=registered` | not started |
 | `SITE_READ_ACCESS=preview` | not started |
 | Convert public to registered | not started |

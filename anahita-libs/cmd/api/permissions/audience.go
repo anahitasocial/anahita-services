@@ -5,6 +5,7 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/policy"
 )
 
 // Which audiences a post may be given, and by whom.
@@ -27,6 +28,10 @@ import (
 //
 // It answers both the create and the change-access handlers, so a post cannot
 // be given by editing an audience it could not have been created with.
+//
+// One rule is the installation's and not the profile's: with
+// MIN_CONTENT_ACCESS=registered, "public" is taken out everywhere. See package
+// policy.
 
 // ErrAudienceNotAllowed is the error code sent with a 422 when the audience
 // asked for is not one of MediumAudiences.
@@ -76,7 +81,7 @@ func audiences(viewer *entities.Viewer, owner *entities.AnahitaNode, authorID in
 			audiences = append(audiences, constants.AnahitaAccessMyself)
 		}
 
-		return audiences
+		return policy.Allowed(audiences)
 	}
 
 	audiences := []string{
@@ -92,7 +97,8 @@ func audiences(viewer *entities.Viewer, owner *entities.AnahitaNode, authorID in
 		audiences = append(audiences, constants.AnahitaAccessAdmins)
 	}
 
-	return audiences
+	// Less "public", on an installation that allows no new public content.
+	return policy.Allowed(audiences)
 }
 
 // IsMediumAudienceAllowed reports whether the viewer may give this post this

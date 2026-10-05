@@ -46,8 +46,10 @@ func (h *photoHandler) EditAccess(c echo.Context) error {
 	}
 
 	// The same rule as when a post is created, so it cannot be given by
-	// editing an audience it could not have been posted with.
-	if !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
+	// editing an audience it could not have been posted with. Keeping the
+	// audience it already has is always allowed: a rule that came later
+	// does not reach back.
+	if req.Access != medium.Access && !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
 		log.Printf("refused: audience %q is not allowed on this profile", req.Access)
 		return handlers.RefuseAudience(c, mediumAccessCtx)
 	}
