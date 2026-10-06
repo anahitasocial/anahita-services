@@ -525,7 +525,7 @@ func (h *actorHandler) DeletionCounts(ctx context.Context, req *graphpb.ActorDel
 
 	resp := &graphpb.ActorDeletionCountsResponse{
 		Posts:              counts.Posts,
-		Comments:           counts.Comments,
+		Replies:            counts.Replies,
 		Followers:          counts.Followers,
 		Following:          counts.Following,
 		Admins:             counts.Admins,

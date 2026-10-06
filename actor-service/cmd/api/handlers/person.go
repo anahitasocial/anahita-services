@@ -631,7 +631,7 @@ func (h *personHandler) DeletionCounts(c echo.Context) error {
 
 	type Response struct {
 		Posts              int64  `json:"posts"`
-		Comments           int64  `json:"comments"`
+		Replies            int64  `json:"replies"`
 		Followers          int64  `json:"followers"`
 		Following          int64  `json:"following"`
 		GroupsAdministered int64  `json:"groups_administered"`
@@ -640,7 +640,7 @@ func (h *personHandler) DeletionCounts(c echo.Context) error {
 
 	resp := &Response{
 		Posts:              counts.Posts,
-		Comments:           counts.Comments,
+		Replies:            counts.Replies,
 		Followers:          counts.Followers,
 		Following:          counts.Following,
 		GroupsAdministered: counts.GroupsAdministered,

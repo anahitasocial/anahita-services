@@ -66,4 +66,11 @@ type NoteAddRequest struct {
 	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
 	// by the author; left out, the post has none. See package language.
 	Language string `form:"language" validate:"omitempty,max=12"`
+	// As on requests.MediumAddRequest.
+	ReplyAccess string `json:"reply_access" form:"reply_access" validate:"omitempty,max=64"`
+	// As on requests.MediumAddRequest.
+	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"omitempty,max=16"`
+	// The post this note quotes: it is carried under the note's own words.
+	// Checked against that post's policy. See permissions.CanQuote.
+	QuoteID int64 `json:"quote_id" form:"quote_id" validate:"omitempty,numeric"`
 }

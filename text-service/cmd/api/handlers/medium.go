@@ -46,14 +46,25 @@ func (h *mediumHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	if ok, err := h.Perms.Medium.CanRead(mediumAccessCtx); !ok {
-		log.Println(err)
-		return c.NoContent(http.StatusForbidden)
+	// A reply is read by whoever can read the post at the top of its
+	// thread. Judged as a note it would be judged by its author's profile.
+	if medium.RootID > 0 {
+		if medium.DeletedAt != nil {
+			return c.NoContent(http.StatusGone)
+		}
+		if _, refused := h.replyRuling(c, medium, viewer, permissions.CanSeeThread); refused != 0 {
+			return c.NoContent(refused)
+		}
+	} else {
+		mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
+		if err != nil {
+			log.Println(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if ok, err := h.Perms.Medium.CanRead(mediumAccessCtx); !ok {
+			log.Println(err)
+			return c.NoContent(http.StatusForbidden)
+		}
 	}
 
 	if err = h.onAfterFetched(c, medium); err != nil {
@@ -92,14 +103,22 @@ func (h *mediumHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	if ok, err := h.Perms.Medium.CanDelete(mediumAccessCtx); !ok {
-		log.Println(err)
-		return c.NoContent(http.StatusForbidden)
+	// A reply can be removed by its author and by whoever looks after the
+	// thread it is in, which is not who could remove a note of the author's.
+	if medium.RootID > 0 {
+		if _, refused := h.replyRuling(c, medium, viewer, permissions.CanDeleteReply); refused != 0 {
+			return c.NoContent(refused)
+		}
+	} else {
+		mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
+		if err != nil {
+			log.Println(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if ok, err := h.Perms.Medium.CanDelete(mediumAccessCtx); !ok {
+			log.Println(err)
+			return c.NoContent(http.StatusForbidden)
+		}
 	}
 
 	if err = h.Srv.MediaGRPC.Delete(medium.ID, viewer); err != nil {
@@ -116,6 +135,28 @@ func (h *mediumHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNod
 		err    error
 		viewer = getViewer(c)
 	)
+
+	// A note that quotes a post is sent that post, as this viewer may see
+	// it.
+	h.setQuotes([]*entities.AnahitaNode{item}, viewer)
+
+	// A reply's answers come from its thread, not from its author's
+	// profile. If the thread cannot be read it is left with none, which
+	// shows no controls.
+	if item.RootID > 0 {
+		if thread, err := h.thread(c, item.RootID, viewer); err == nil {
+			setReplyFlags(thread, item)
+			// What it is a reply to, for a page that shows the reply on
+			// its own. Only to somebody who may see the thread.
+			if permissions.CanSeeThread(thread) {
+				item.Root = thread.Root
+				// With the profile the thread is on, whose picture has to
+				// be made ready like any other.
+				batchPresignPaths(h.Env, []*entities.AnahitaNode{thread.Root})
+			}
+		}
+		return nil
+	}
 
 	mediumAccessCtx, err := h.getMediumAccessContext(item, viewer)
 	if err != nil {

@@ -33,6 +33,13 @@ type AnahitaNodeAuthorized struct {
 	Comment     *bool
 	Like        *bool
 	AddFollower *bool
+	// On a reply: whether the viewer may hide it from its thread, or show
+	// it again. nil on anything that is not a reply.
+	Hide *bool
+	// On a post: whether the viewer may quote it. nil when not worked out.
+	Quote *bool
+	// On a post: whether the viewer may pin it to the profile it is on.
+	Pin *bool
 	// Actors only: the composers the viewer may use on this profile. nil when
 	// not worked out; empty when none.
 	Composers []string
@@ -85,6 +92,15 @@ type AnahitaNode struct {
 	OwnerType  string
 	ParentID   int64
 	ParentType string
+	// The post at the top of the thread this reply belongs to. 0 on
+	// anything that is not a reply. Who may see a reply, answer it, like it
+	// or remove it is decided by this post, never by the reply's own owner,
+	// who is its author.
+	RootID int64
+	// On a reply: hidden from its thread by whoever looks after the thread.
+	// Not a column. It is a fact about the thread, worked out when a thread
+	// is read.
+	Hidden     bool
 	QuoteCount int64
 	Enabled    bool
 	Verified   bool
@@ -137,13 +153,16 @@ type AnahitaNode struct {
 	FollowerCount      int64
 	LeaderCount        int64
 	AllowFollowRequest bool
-	Mimetype           string
-	Language           string
-	Access             string
-	PermissionsRaw     string
-	Permissions        map[string]string
-	Features           []*AnahitaNodeFeature
-	FeaturesRaw        json.RawMessage
+	// Whether what an actor reposts is also among its profile's posts. Off
+	// unless it says otherwise: reposts are in the list of reposts.
+	ShowRepostsOnProfile bool
+	Mimetype             string
+	Language             string
+	Access               string
+	PermissionsRaw       string
+	Permissions          map[string]string
+	Features             []*AnahitaNodeFeature
+	FeaturesRaw          json.RawMessage
 
 	// Parsed Fields
 	Mentions []string
@@ -157,18 +176,38 @@ type AnahitaNode struct {
 	Author *AnahitaNode
 	Editor *AnahitaNode
 	Parent *AnahitaNode
-	Owner  *AnahitaNode
+	// For a reply read on its own: the post at the top of its thread, so
+	// the page can say what it is a reply to and lead there. Not stored,
+	// and set only by a handler that has checked the viewer may see it.
+	Root  *AnahitaNode
+	Owner *AnahitaNode
 
 	SubscriberCount      int64
 	IsSubscribedByViewer bool
 
 	LikesCount      int64
 	IsLikedByViewer bool
+	// Whether the viewer has saved it, to find again. Known to them alone.
+	IsSavedByViewer bool
 
 	RepostCount        int64
 	IsRepostedByViewer bool
 	CommentCount       int64
 	CommentStatus      bool
+	// Who may reply, as the post's author sets it. Empty when they have
+	// not said. See constants.NormalizeReplyAccess.
+	ReplyAccess string
+	// Who may quote: on a post, that post; on a person, their posts when
+	// they say nothing. See constants.EffectiveQuotePolicy.
+	QuotePolicy string
+	// On a note that quotes a post: the post, and whether that post's
+	// author has taken it out of the quote.
+	QuoteID       int64
+	QuoteDetached bool
+	// The quoted post as this viewer may see it, and what to say when they
+	// may not. Not stored: filled by the handler that sends the note.
+	Quote      *AnahitaNode
+	QuoteState string
 
 	IsLeadingViewer   bool
 	Administrators    []*AnahitaNode

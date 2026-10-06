@@ -44,8 +44,6 @@ images:
     newTag: latest
   - name: anahita/auth-service
     newTag: latest
-  - name: anahita/comment-service
-    newTag: latest
   - name: anahita/feed-service
     newTag: latest
   - name: anahita/file-grpc-service
@@ -73,8 +71,6 @@ images:
   - name: anahita/search-service
     newTag: latest
   - name: anahita/socialgraph-service
-    newTag: latest
-  - name: anahita/story-service
     newTag: latest
   - name: anahita/sweeper-job
     newTag: latest

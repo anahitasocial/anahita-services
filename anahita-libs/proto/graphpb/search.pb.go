@@ -22,21 +22,20 @@ const (
 )
 
 type SearchBrowseRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Offset          uint64                 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
-	Limit           uint64                 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
-	Ordering        string                 `protobuf:"bytes,3,opt,name=ordering,proto3" json:"ordering,omitempty"`
-	OrderingDir     string                 `protobuf:"bytes,4,opt,name=ordering_dir,json=orderingDir,proto3" json:"ordering_dir,omitempty"`
-	Keywords        string                 `protobuf:"bytes,5,opt,name=keywords,proto3" json:"keywords,omitempty"`
-	Scope           string                 `protobuf:"bytes,6,opt,name=scope,proto3" json:"scope,omitempty"`
-	IncludeComments bool                   `protobuf:"varint,7,opt,name=include_comments,json=includeComments,proto3" json:"include_comments,omitempty"`
-	CoordRadius     int32                  `protobuf:"varint,8,opt,name=coord_radius,json=coordRadius,proto3" json:"coord_radius,omitempty"`
-	CoordLng        float32                `protobuf:"fixed32,9,opt,name=coord_lng,json=coordLng,proto3" json:"coord_lng,omitempty"`
-	CoordLat        float32                `protobuf:"fixed32,10,opt,name=coord_lat,json=coordLat,proto3" json:"coord_lat,omitempty"`
-	Viewer          *Viewer                `protobuf:"bytes,11,opt,name=viewer,proto3" json:"viewer,omitempty"`
-	AccessCheck     bool                   `protobuf:"varint,12,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Offset        uint64                 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit         uint64                 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Ordering      string                 `protobuf:"bytes,3,opt,name=ordering,proto3" json:"ordering,omitempty"`
+	OrderingDir   string                 `protobuf:"bytes,4,opt,name=ordering_dir,json=orderingDir,proto3" json:"ordering_dir,omitempty"`
+	Keywords      string                 `protobuf:"bytes,5,opt,name=keywords,proto3" json:"keywords,omitempty"`
+	Scope         string                 `protobuf:"bytes,6,opt,name=scope,proto3" json:"scope,omitempty"`
+	CoordRadius   int32                  `protobuf:"varint,8,opt,name=coord_radius,json=coordRadius,proto3" json:"coord_radius,omitempty"`
+	CoordLng      float32                `protobuf:"fixed32,9,opt,name=coord_lng,json=coordLng,proto3" json:"coord_lng,omitempty"`
+	CoordLat      float32                `protobuf:"fixed32,10,opt,name=coord_lat,json=coordLat,proto3" json:"coord_lat,omitempty"`
+	Viewer        *Viewer                `protobuf:"bytes,11,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	AccessCheck   bool                   `protobuf:"varint,12,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SearchBrowseRequest) Reset() {
@@ -109,13 +108,6 @@ func (x *SearchBrowseRequest) GetScope() string {
 		return x.Scope
 	}
 	return ""
-}
-
-func (x *SearchBrowseRequest) GetIncludeComments() bool {
-	if x != nil {
-		return x.IncludeComments
-	}
-	return false
 }
 
 func (x *SearchBrowseRequest) GetCoordRadius() int32 {
@@ -198,17 +190,16 @@ func (x *SearchBrowseResponse) GetNodes() []*Node {
 }
 
 type SearchCountRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Keywords        string                 `protobuf:"bytes,5,opt,name=keywords,proto3" json:"keywords,omitempty"`
-	Scope           string                 `protobuf:"bytes,6,opt,name=scope,proto3" json:"scope,omitempty"`
-	IncludeComments bool                   `protobuf:"varint,7,opt,name=include_comments,json=includeComments,proto3" json:"include_comments,omitempty"`
-	CoordRadius     int32                  `protobuf:"varint,8,opt,name=coord_radius,json=coordRadius,proto3" json:"coord_radius,omitempty"`
-	CoordLng        float32                `protobuf:"fixed32,9,opt,name=coord_lng,json=coordLng,proto3" json:"coord_lng,omitempty"`
-	CoordLat        float32                `protobuf:"fixed32,10,opt,name=coord_lat,json=coordLat,proto3" json:"coord_lat,omitempty"`
-	Viewer          *Viewer                `protobuf:"bytes,11,opt,name=viewer,proto3" json:"viewer,omitempty"`
-	AccessCheck     bool                   `protobuf:"varint,12,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keywords      string                 `protobuf:"bytes,5,opt,name=keywords,proto3" json:"keywords,omitempty"`
+	Scope         string                 `protobuf:"bytes,6,opt,name=scope,proto3" json:"scope,omitempty"`
+	CoordRadius   int32                  `protobuf:"varint,8,opt,name=coord_radius,json=coordRadius,proto3" json:"coord_radius,omitempty"`
+	CoordLng      float32                `protobuf:"fixed32,9,opt,name=coord_lng,json=coordLng,proto3" json:"coord_lng,omitempty"`
+	CoordLat      float32                `protobuf:"fixed32,10,opt,name=coord_lat,json=coordLat,proto3" json:"coord_lat,omitempty"`
+	Viewer        *Viewer                `protobuf:"bytes,11,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	AccessCheck   bool                   `protobuf:"varint,12,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SearchCountRequest) Reset() {
@@ -253,13 +244,6 @@ func (x *SearchCountRequest) GetScope() string {
 		return x.Scope
 	}
 	return ""
-}
-
-func (x *SearchCountRequest) GetIncludeComments() bool {
-	if x != nil {
-		return x.IncludeComments
-	}
-	return false
 }
 
 func (x *SearchCountRequest) GetCoordRadius() int32 {
@@ -345,33 +329,31 @@ var File_proto_graphpb_search_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_search_proto_rawDesc = "" +
 	"\n" +
-	"\x1aproto/graphpb/search.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\"\x86\x03\n" +
+	"\x1aproto/graphpb/search.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\"\xe1\x02\n" +
 	"\x13SearchBrowseRequest\x12\x16\n" +
 	"\x06offset\x18\x01 \x01(\x04R\x06offset\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x04R\x05limit\x12\x1a\n" +
 	"\bordering\x18\x03 \x01(\tR\bordering\x12!\n" +
 	"\fordering_dir\x18\x04 \x01(\tR\vorderingDir\x12\x1a\n" +
 	"\bkeywords\x18\x05 \x01(\tR\bkeywords\x12\x14\n" +
-	"\x05scope\x18\x06 \x01(\tR\x05scope\x12)\n" +
-	"\x10include_comments\x18\a \x01(\bR\x0fincludeComments\x12!\n" +
+	"\x05scope\x18\x06 \x01(\tR\x05scope\x12!\n" +
 	"\fcoord_radius\x18\b \x01(\x05R\vcoordRadius\x12\x1b\n" +
 	"\tcoord_lng\x18\t \x01(\x02R\bcoordLng\x12\x1b\n" +
 	"\tcoord_lat\x18\n" +
 	" \x01(\x02R\bcoordLat\x12%\n" +
 	"\x06viewer\x18\v \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
-	"\faccess_check\x18\f \x01(\bR\vaccessCheck\"9\n" +
+	"\faccess_check\x18\f \x01(\bR\vaccessCheckJ\x04\b\a\x10\b\"9\n" +
 	"\x14SearchBrowseResponse\x12!\n" +
-	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\x98\x02\n" +
+	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xf3\x01\n" +
 	"\x12SearchCountRequest\x12\x1a\n" +
 	"\bkeywords\x18\x05 \x01(\tR\bkeywords\x12\x14\n" +
-	"\x05scope\x18\x06 \x01(\tR\x05scope\x12)\n" +
-	"\x10include_comments\x18\a \x01(\bR\x0fincludeComments\x12!\n" +
+	"\x05scope\x18\x06 \x01(\tR\x05scope\x12!\n" +
 	"\fcoord_radius\x18\b \x01(\x05R\vcoordRadius\x12\x1b\n" +
 	"\tcoord_lng\x18\t \x01(\x02R\bcoordLng\x12\x1b\n" +
 	"\tcoord_lat\x18\n" +
 	" \x01(\x02R\bcoordLat\x12%\n" +
 	"\x06viewer\x18\v \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
-	"\faccess_check\x18\f \x01(\bR\vaccessCheck\"+\n" +
+	"\faccess_check\x18\f \x01(\bR\vaccessCheckJ\x04\b\a\x10\b\"+\n" +
 	"\x13SearchCountResponse\x12\x14\n" +
 	"\x05total\x18\x01 \x01(\x04R\x05total2\x92\x01\n" +
 	"\rSearchService\x12A\n" +

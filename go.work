@@ -5,7 +5,6 @@ use (
 	./actor-service
 	./anahita-libs
 	./auth-service
-	./comment-service
 	./feed-service
 	./file-grpc-service
 	./graph-grpc-service
@@ -19,6 +18,5 @@ use (
 	./scripts/s3-migration
 	./search-service
 	./socialgraph-service
-	./story-service
 	./text-service
 )

@@ -107,14 +107,14 @@ func TestASignedInPersonIsNotSentAPreview(t *testing.T) {
 	}
 }
 
-// Comments and follower lists are left out of a preview for visitors only.
-func TestASignedInPersonReadsCommentsOnAPreviewSite(t *testing.T) {
+// Replies and follower lists are left out of a preview for visitors only.
+func TestASignedInPersonReadsRepliesOnAPreviewSite(t *testing.T) {
 	restore := policy.SetReadAccessForTest(policy.ReadPreview)
 	defer restore()
 	asSignedIn(t, 7)
 
 	reached := false
-	rec, _ := request(t, "/comments/100/", func(c echo.Context) error {
+	rec, _ := request(t, "/notes/100/thread", func(c echo.Context) error {
 		reached = true
 		return c.NoContent(http.StatusOK)
 	}, MembersInPreview())
@@ -126,12 +126,12 @@ func TestASignedInPersonReadsCommentsOnAPreviewSite(t *testing.T) {
 
 // And on a members-only site those routes are refused by SetViewer itself,
 // before MembersInPreview is ever asked.
-func TestAVisitorCannotReadCommentsOnAMembersOnlySite(t *testing.T) {
+func TestAVisitorCannotReadRepliesOnAMembersOnlySite(t *testing.T) {
 	restore := policy.SetReadAccessForTest(policy.ReadRegistered)
 	defer restore()
 
 	reached := false
-	rec, _ := request(t, "/comments/100/", func(c echo.Context) error {
+	rec, _ := request(t, "/notes/100/thread", func(c echo.Context) error {
 		reached = true
 		return c.NoContent(http.StatusOK)
 	}, MembersInPreview())
@@ -142,11 +142,11 @@ func TestAVisitorCannotReadCommentsOnAMembersOnlySite(t *testing.T) {
 }
 
 // The routes a preview leaves out have to say so themselves, on the route:
-// SetViewer cannot know that one list is of comments and another of posts.
+// SetViewer cannot know that one list is of replies and another of posts.
 // These are the three, and a fourth such route has to be added here.
 func TestTheRoutesAPreviewLeavesOutSaySo(t *testing.T) {
 	for file, routes := range map[string][]string{
-		"comment-service":     {`notes.GET("/"`},
+		"text-service":        {`notes.GET("/:id/thread"`},
 		"socialgraph-service": {`"/:actor_id/followers/"`, `"/:actor_id/leaders/"`},
 	} {
 		source, err := os.ReadFile(filepath.Join("..", "..", file, "cmd", "api", "routes.go"))

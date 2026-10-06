@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/data/services"
 	"anahita-libs/responses"
 	"feed/data/defaults"
@@ -66,7 +67,6 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 
 	gnCountReq.IncludeReposts = req.IncludeReposts
 	gnCountReq.IncludeReposts = req.IncludeReposts
-	gnCountReq.IncludeComments = req.IncludeComments
 	gnCountReq.IncludeLiked = req.IncludeLiked
 	gnCountReq.MediumEntityTypes = feedDefaults.MediaEntityTypes
 	gnCountReq.LeaderEntityTypes = feedDefaults.ActorEntityTypes
@@ -77,7 +77,6 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 	}
 
 	gnBrowseReq.IncludeReposts = req.IncludeReposts
-	gnBrowseReq.IncludeComments = req.IncludeComments
 	gnBrowseReq.IncludeLiked = req.IncludeLiked
 	gnBrowseReq.Limit = req.Limit
 	gnBrowseReq.Offset = req.Offset
@@ -90,6 +89,12 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 	}
 	if len(nodes) == 0 {
 		return c.JSON(http.StatusOK, resp)
+	}
+
+	// A note that quotes a post is sent that post, as this viewer may see
+	// it. Before the images are made ready, so the quoted posts' are too.
+	if quoted := an_handlers.SetQuotes(h.Srv.MediaGRPC, h.Srv.GraphNodeGRPC, nodes, viewer); len(quoted) > 0 {
+		batchPresignPaths(h.Env, quoted)
 	}
 
 	batchPresignPaths(h.Env, nodes)

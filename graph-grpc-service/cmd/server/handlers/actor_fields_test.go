@@ -24,7 +24,7 @@ import (
 var editableFields = []string{
 	"Enabled", "Access", "Name", "Body", "Alias", "WebsiteURL",
 	"Verified", "AvatarFilename", "CoverFilename", "AllowFollowRequest",
-	"FeaturesRaw", "ModifiedBy", "Language",
+	"ShowRepostsOnProfile", "QuotePolicy", "FeaturesRaw", "ModifiedBy", "Language",
 }
 
 // createOnlyFields may be set when the actor is created and never afterwards.
@@ -33,24 +33,26 @@ var createOnlyFields = []string{"Type", "Service", "Meta", "CreatedBy"}
 // fullRequest sets every field the whitelists read, to non-zero values.
 func fullRequest() *graphpb.Node {
 	return &graphpb.Node{
-		Id:                 42,
-		Type:               "node.actor.group-service.group.v1",
-		Service:            "group-service",
-		Enabled:            true,
-		Access:             "public",
-		Name:               "Cyclists",
-		Alias:              "cyclists",
-		Body:               "A group.",
-		WebsiteUrl:         "https://example.com",
-		Verified:           true,
-		AvatarFilename:     "avatar.png",
-		CoverFilename:      "cover.png",
-		AllowFollowRequest: true,
-		FeaturesRaw:        `{"a":1}`,
-		Meta:               `{"b":2}`,
-		CreatedBy:          7,
-		ModifiedBy:         9,
-		Language:           "fa",
+		Id:                   42,
+		Type:                 "node.actor.group-service.group.v1",
+		Service:              "group-service",
+		Enabled:              true,
+		Access:               "public",
+		Name:                 "Cyclists",
+		Alias:                "cyclists",
+		Body:                 "A group.",
+		WebsiteUrl:           "https://example.com",
+		Verified:             true,
+		AvatarFilename:       "avatar.png",
+		CoverFilename:        "cover.png",
+		AllowFollowRequest:   true,
+		ShowRepostsOnProfile: true,
+		QuotePolicy:          "followers",
+		FeaturesRaw:          `{"a":1}`,
+		Meta:                 `{"b":2}`,
+		CreatedBy:            7,
+		ModifiedBy:           9,
+		Language:             "fa",
 	}
 }
 

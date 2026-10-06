@@ -965,7 +965,7 @@ func (x *ActorDeleteResponse) GetActor() *Node {
 //
 // The figures describe WHAT DELETING DESTROYS, which is not the same as what
 // the actor wrote — a post made into a group is owned by the group and
-// survives; a comment somebody else left on their post does not. See the
+// survives; a reply somebody else left under their post does not. See the
 // repository implementation.
 type ActorDeletionCountsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1024,9 +1024,10 @@ type ActorDeletionCountsResponse struct {
 	// Media authored by this actor, anywhere — their own profile and every
 	// group they posted into.
 	Posts int64 `protobuf:"varint,1,opt,name=posts,proto3" json:"posts,omitempty"`
-	// Comments they wrote, including on other people's content. Deleting the
-	// profile takes these too, which is the part people do not expect.
-	Comments int64 `protobuf:"varint,2,opt,name=comments,proto3" json:"comments,omitempty"`
+	// Replies that go: the ones they wrote, wherever they are, and the ones
+	// other people wrote under their posts. Deleting the profile takes these
+	// too, which is the part people do not expect.
+	Replies int64 `protobuf:"varint,2,opt,name=replies,proto3" json:"replies,omitempty"`
 	// Actors following them, and actors they follow. Both directions, because
 	// losing an audience and losing a feed are different losses.
 	Followers int64 `protobuf:"varint,3,opt,name=followers,proto3" json:"followers,omitempty"`
@@ -1083,9 +1084,9 @@ func (x *ActorDeletionCountsResponse) GetPosts() int64 {
 	return 0
 }
 
-func (x *ActorDeletionCountsResponse) GetComments() int64 {
+func (x *ActorDeletionCountsResponse) GetReplies() int64 {
 	if x != nil {
-		return x.Comments
+		return x.Replies
 	}
 	return 0
 }
@@ -2253,10 +2254,10 @@ const file_proto_graphpb_actor_proto_rawDesc = "" +
 	"\x05actor\x18\x01 \x01(\v2\v.graph.NodeR\x05actor\"S\n" +
 	"\x1aActorDeletionCountsRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12%\n" +
-	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\"\x80\x02\n" +
+	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\"\xfe\x01\n" +
 	"\x1bActorDeletionCountsResponse\x12\x14\n" +
-	"\x05posts\x18\x01 \x01(\x03R\x05posts\x12\x1a\n" +
-	"\bcomments\x18\x02 \x01(\x03R\bcomments\x12\x1c\n" +
+	"\x05posts\x18\x01 \x01(\x03R\x05posts\x12\x18\n" +
+	"\areplies\x18\x02 \x01(\x03R\areplies\x12\x1c\n" +
 	"\tfollowers\x18\x03 \x01(\x03R\tfollowers\x12\x1c\n" +
 	"\tfollowing\x18\x04 \x01(\x03R\tfollowing\x12\x16\n" +
 	"\x06admins\x18\a \x01(\x03R\x06admins\x12/\n" +

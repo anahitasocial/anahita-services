@@ -108,9 +108,9 @@ make auth
 which stops that service, removes its image, rebuilds the binary, and
 starts it again. Available service targets:
 
-`abuse_report`, `auth`, `avatar`, `comment`, `cover`, `feed`, `file`, `graph`, `group`,
+`abuse_report`, `auth`, `avatar`, `cover`, `feed`, `file`, `graph`, `group`,
 `hashtag`, `like`, `location`, `mail`, `nginx`, `notification`, `person`,
-`photo`, `search`, `socialgraph`, `story`, `text`
+`photo`, `search`, `socialgraph`, `text`
 
 Each has a matching `build_*` target that only compiles the Linux binary,
 and `make migration` runs the migration job on its own.

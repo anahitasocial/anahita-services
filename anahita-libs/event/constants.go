@@ -44,10 +44,6 @@ const (
 	EventFormatNodeMediumEdited  = "node.medium.%s.%s.edited.v1"
 	EventFormatNodeMediumDeleted = "node.medium.%s.%s.deleted.v1"
 
-	EventFormatNodeCommentAdded   = "node.comment.comment.%s.added.v1"
-	EventFormatNodeCommentEdited  = "node.comment.comment.%s.edited.v1"
-	EventFormatNodeCommentDeleted = "node.comment.comment.%s.deleted.v1"
-
 	EventFormatNodeRepostAdded   = "node.repost.repost.%s.added.v1"
 	EventFormatNodeRepostDeleted = "node.repost.repost.%s.deleted.v1"
 

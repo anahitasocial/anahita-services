@@ -114,6 +114,9 @@ func (h *repostHandler) Add(ctx context.Context, req *graphpb.RepostAddRequest) 
 	node.ParentType = parent.Type
 	node.Service = req.Service
 	node.Access = req.Access
+	// A repost is live from the moment it is made. Left unset it was stored
+	// switched off, which the feeds do not look at and other listings do.
+	node.Enabled = true
 	node.CreatedBy = viewer.ID
 	node.ModifiedBy = viewer.ID
 	node, err = h.env.Repos.Nodes.Add(node)

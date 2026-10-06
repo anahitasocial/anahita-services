@@ -2,8 +2,8 @@
 
 [Documentation](README.md) › Permissions
 
-Who can post, comment, like and add followers on a profile, and who can edit or
-delete a comment. It covers the defaults an installation ships with, how to
+Who can post, reply, like and add followers on a profile, and who can edit or
+delete a reply. It covers the defaults an installation ships with, how to
 change them, and what profile owners can change for themselves.
 
 ## Contents
@@ -15,10 +15,18 @@ change them, and what profile owners can change for themselves.
 - [Seeing posts](#seeing-posts)
   - [Choosing who can see a post](#choosing-who-can-see-a-post)
 - [Posting](#posting)
-- [Comments](#comments)
+- [Replies](#replies)
+  - [Seeing a reply](#seeing-a-reply)
+  - [Replying](#replying)
+  - [Who looks after a thread](#who-looks-after-a-thread)
+  - [Editing, deleting and hiding a reply](#editing-deleting-and-hiding-a-reply)
+  - [Liking a reply](#liking-a-reply)
 - [Likes](#likes)
 - [Adding followers to a group](#adding-followers-to-a-group)
 - [Reposts](#reposts)
+- [Quotes](#quotes)
+- [Saved posts](#saved-posts)
+- [Pinned posts](#pinned-posts)
 - [Reporting](#reporting)
 - [Removing accounts](#removing-accounts)
 - [The defaults](#the-defaults)
@@ -33,7 +41,7 @@ confuse:
 | Setting | Question it answers | Where it is set |
 | --- | --- | --- |
 | **Access** | Who can *see* this profile and its posts | Settings › Access |
-| **Permissions** | Who can *add* to it: posts, comments, likes, followers | Settings › Permissions |
+| **Permissions** | Who can *add* to it: posts, replies, likes, followers | Settings › Permissions |
 
 Permissions never widen access. Anybody refused by the profile's access is
 refused everything below, whatever the permissions say.
@@ -71,8 +79,8 @@ These people are allowed whatever a profile has set:
 - **Site administrators and super administrators**
 - **The profile's owner**: the person, or for a group its administrators
 
-The one exception is editing somebody else's comment, which nobody but its
-author can do (see [Comments](#comments)).
+The one exception is editing somebody else's reply, which nobody but its
+author can do (see [Replies](#replies)).
 
 ## Seeing posts
 
@@ -106,7 +114,7 @@ What depends on another post is judged by that post:
 
 | Item | Seen by |
 | --- | --- |
-| A comment | Whoever can see the post it is under |
+| A reply | Whoever can see the post at the top of its thread |
 | A repost | Whoever can see the original post, and the reposter's profile |
 
 So following somebody who reposts a followers-only post does not show it to
@@ -168,53 +176,141 @@ Who can create a note, article, topic or photo on somebody's profile.
 
 Default: `followers`.
 
-## Comments
+## Replies
 
-### Adding a comment
+A reply is a note that answers a post or another reply. It can be liked,
+reposted, tagged and searched like any note, and replies can be answered in
+turn, to any depth.
 
-Everybody who is not always allowed has to be able to **read the post** first.
-After that, it depends on the profile's access:
+Every kind of post is answered with replies: notes, photos, articles and
+topics. What used to be comments were turned into replies on 2026-10-05, each
+a reply made directly to the post it was under, and the service that served
+them is gone.
 
-| Profile access | Who can comment |
+**Everything about a reply is decided by the post at the top of its thread,**
+called the root here. A reply is owned by whoever wrote it and has no audience
+of its own, so none of the rules for an ordinary post apply to it. Its owner
+and its access are not consulted for anything.
+
+### Seeing a reply
+
+A reply is seen by exactly the people who can see the root. That holds in
+every place a note can turn up: the thread, a profile's list, a feed, search,
+and the page of a hashtag or a place.
+
+So a reply to a post in a private group is seen only by the group's
+followers, though the person who wrote it has a public profile. And when a
+post is later made private, everything said under it goes with it.
+
+Replies are left out of feeds and out of a profile's list of notes. They are
+read in their thread.
+
+### Replying
+
+Everybody who is not always allowed has to be able to **see the root** first.
+After that, it depends on the access of the profile the root is on:
+
+| Profile access | Who can reply |
 | --- | --- |
-| `public` or `registered` | The profile's comment setting: `registered` or `followers` |
+| `public` or `registered` | The profile's setting for replies: `registered` or `followers` |
 | `followers` | Followers only, whatever the setting says |
 | `leaders`, `mutuals`, `admins`, `myself` | Anybody who can see the profile |
 
-The comment setting only matters on a public or registered profile, because a
-narrower profile already limits who can see its posts. A followers-only profile
-is spelled out as followers only, even though people the profile follows can
-also read it.
+The setting only matters on a public or registered profile, because a narrower
+profile already limits who can see its posts. A followers-only profile is
+spelled out as followers only, even though people the profile follows can also
+read it. Default: `registered`.
 
-These people can always comment, on a post they can see:
+The setting is stored under the name `comment`, from when replies were
+comments, so what profiles had saved still applies. The scope a token needs is
+`media:write`: a reply is a post.
 
-- the profile's owner and administrators
-- the post's author
-- site administrators and super administrators
+Then the post's own setting, which its author chooses (below).
 
-Default: `registered`.
+A reply cannot be given an audience, and neither its switch for comments nor
+who may reply to it can be changed. All three follow the root.
 
-### Editing a comment
+### Who the author lets reply
 
-**Only the comment's author**, and only while they can still read the post.
+A post carries who may reply to it, in `nodes.reply_access`, returned as
+`reply_access`:
 
-Site administrators, super administrators and the profile's owner cannot edit
-somebody else's comment. An edited comment still shows its author's name, so an
-edit by anybody else would put words under that name with no record of who
-wrote them. Moderators remove comments; they do not rewrite them.
+| Value | Who may reply |
+| --- | --- |
+| `anyone` | Whoever the rule above lets. What a post has when its author has not said. |
+| `nobody` | Nobody. |
+| `followers` | People who follow the post's author. |
+| `following` | People the post's author follows. |
+| `mentioned` | People the post mentions by `@name`. |
 
-### Deleting a comment
+The last three can be combined, joined by commas (`followers,mentioned`), and
+somebody in any one of them may reply.
 
-- the comment's author, even after they have lost sight of the post
-- the profile the post is on: the person, or for a group its administrators
-- site administrators and super administrators
+- **It narrows and never widens.** The profile's rule is applied first. In a
+  group that lets only its followers comment, being mentioned in a post does
+  not let somebody outside the group reply.
+- **Measured against the author, not the profile.** They are the same for a
+  post on its author's own profile. For a post in a group, `followers` are
+  the people who follow whoever wrote it, not the group's followers.
+- **The people who look after the thread (below) reply whatever is set.**
+  Closing a post is how they stop other people, not themselves.
+- **Set when the post is made** (`reply_access` beside `access`) **or
+  afterwards** with `PATCH /{articles,notes,topics,photos}/:id/reply-access`,
+  by whoever may edit the post. A value that is not one is refused with 400
+  `reply_access_invalid`; a reply answers 422 `reply_follows_its_thread`.
+- **The older switch**, `comment_status`, is kept in step: off is `nobody`,
+  and turning it on makes `nobody` `anyone`. A post closed before this
+  setting existed has no value stored and still reads as `nobody`.
 
-The author of the *post* cannot delete other people's comments under it unless
-the profile is theirs. In a group, that is the group's administrators.
+The rule is `permissions.CanReply`; the values are in
+`anahita-libs/constants/reply_access.go`. The thread says the answer for the
+viewer (`can_reply`) and the setting (`reply_access`), so the app can say why
+not.
+
+Not built: letting in a list of people (there are no lists), and a switch for
+quote posts (there are no quote posts; roadmap item 25).
+
+### Who looks after a thread
+
+Three kinds of people can deal with what is said under a post:
+
+- **the author of the root**, wherever it is posted;
+- **the profile the root is on**: the person, or a group's administrators;
+- **site administrators.**
+
+The first is there for somebody who posts in a group they do not administer.
+The replies are under their post, and they can act on them without being one
+of the group's administrators.
+
+### Editing, deleting and hiding a reply
+
+| | Who |
+| --- | --- |
+| **Edit** | Its author only, and only while they can still see the root. Nobody who looks after the thread: an edited reply still carries its author's name |
+| **Delete** | Its author, and whoever looks after the thread. The author can delete it even after losing sight of the root |
+| **Hide**, and show again | Whoever looks after the thread. Not its author, who can delete it |
+
+**Deleting** removes a reply for good. If it has been answered, an empty
+placeholder is left where it was, with no text and no name, so the replies
+under it still hang from something. Deleting a post removes its whole thread.
+
+**Hiding** takes a reply out of the thread for everybody, with everything
+said under it. It is not destroyed and its author is not told. Whoever looks
+after the thread still sees it, marked as hidden, and can show it again. A
+hidden reply is not counted in the number of replies a post shows.
+
+Hiding exists as well as deleting because, once this installation federates, a
+reply that came from another server can be hidden here and cannot be deleted
+there.
+
+### Liking a reply
+
+Under the rule for liking the root: see it, and meet the like permission of
+the profile the root is on.
 
 ## Likes
 
-Who can like a post or a comment on a profile. The viewer has to be able to
+Who can like a post or a reply on a profile. The viewer has to be able to
 read the post, then meet the level set for likes.
 
 Default: `followers`.
@@ -237,6 +333,119 @@ profile.
 
 A repost is shown only to people who can see the original post. See
 [Seeing posts](#seeing-posts).
+
+Only people repost, as only people reply. What a person reposts is in the
+list of reposts on their profile, and not among its posts. They can have
+reposts among the posts as well ("Also show reposts in the Posts tab", under
+Settings › Access). It changes that one list and nothing else: the list of
+reposts always has them, and followers are sent them in their own feeds, which
+is what a repost is for. It does not change who can see a repost.
+
+## Quotes
+
+A quote is a note that carries another post under its own words. It sits
+between a repost, which has no words of the reposter's, and a reply, which
+stays in the other person's thread. The note is an ordinary note: its own
+audience, likes and replies, on its author's profile.
+
+Quoting puts somebody's post in front of another audience under somebody
+else's words, so **the person quoted keeps the say**.
+
+### Who can quote a post
+
+Somebody signed in, who can see the post, when:
+
+- **it is a post at the top level and still there.** Not a reply, which
+  belongs to its thread, and not a repost;
+- **it is public**, on a profile that is public or for members. A note quoting
+  a post with a narrower audience would be one most of its readers could not
+  see the point of;
+- **its author has not blocked them**;
+- **the post's quote policy lets them**:
+
+| Policy | Who can quote |
+| --- | --- |
+| `anyone` | Anybody who can see the post |
+| `followers` | People who follow the post's author |
+| `nobody` | Nobody but its author |
+
+A post has its own policy when its author sets one, in the post's interaction
+settings, beside who can reply. A post that has none follows its author's own
+setting ("Who can quote my posts", under Settings › Access), and a person who
+has never chosen lets anyone. Both are kept in `nodes.quote_policy`: on a post
+it is that post's, on a person it is their default.
+
+Somebody can always quote their own post, whatever its policy. Only people
+quote, and only a note can quote.
+
+A refusal answers 403 `quote_not_allowed` with a `reason`: `policy`,
+`not_public`, `blocked` or `unavailable`. A post the viewer cannot see answers
+`unavailable`, the same as one that is not there.
+
+### What a note shows of the post it quotes
+
+**A quote never shows anybody a post they could not otherwise see.** The
+quoted post is looked up for each reader, as that reader, every time the note
+is sent. The note carries `quote`:
+
+- the post, with its author, the profile it is on and its date, when the
+  reader may see it;
+- `{"state": "unavailable"}` when they may not, or it has been removed. So a
+  post later made private, or whose author blocks the reader, disappears from
+  the quote for that reader;
+- `{"state": "detached"}` when its author took it out (below).
+
+One level only: a quoted note that itself quotes something is shown without
+it.
+
+### Taking a post out of a quote
+
+The author of a quoted post can remove it from any note that quotes it
+(`DELETE /notes/<the quoting note>/quote`), and so can a site administrator.
+The note stays, saying "Post removed by its author". It cannot be undone, and
+the note cannot be made to quote the post again.
+
+Changing a post's policy to `nobody` stops new quotes. Notes that already
+quote it stay until the author takes the post out of each.
+
+### Counting and telling
+
+A post counts the notes that still quote it (`quote_count`): not one that was
+removed, and not one it was taken out of. Its author is told when it is
+quoted (`quote_add`), unless they quoted it themselves.
+
+The rules are `permissions.CanQuote` and `permissions.CanDetachQuote`; the
+lookup for each reader is `handlers.SetQuotes`, which asks the access gate
+(`FilterVisible`) before it reads anything.
+
+## Saved posts
+
+Anybody signed in can save a post they can see, to find it again, and take
+it out of their list whenever they like. What somebody saved is theirs alone:
+nobody else can see the list, and nobody, the author of a post included, can
+find out who saved it or whether anybody did. A saved post stays in the list
+only while its saver can still see it.
+
+## Pinned posts
+
+A post can be pinned to the profile it is on. It then comes first in that
+profile's posts, and first in the profile's list of its kind (notes, photos
+and so on), marked as pinned.
+
+- **A profile has one pin.** Pinning another post moves the pin to it: the
+  post that had it gives it up. One is also exactly what Bluesky has, so a
+  pin here will be a pin there with nothing left over.
+- **The pin is the profile's, not the post's.** It is set by whoever the
+  profile belongs to: a person on their own profile, a group's administrators
+  in the group, and site administrators. The author of a post in a group they
+  do not run can edit and remove their post, and cannot pin it.
+- **Only a post at the top level.** A reply is read in its thread.
+- **It changes the order and nothing else.** A pinned post is seen by exactly
+  the people who could see it anyway.
+
+`PUT` and `DELETE /{articles,notes,topics,photos}/<id>/pin`. The rule is
+`permissions.CanPin`, and a post says whether the viewer may in
+`authorized.pin`.
 
 ## Reporting
 
@@ -287,7 +496,7 @@ Each service lists its `add_permissions` as an entity and a level:
 }
 ```
 
-Comments and likes are shared by every service that has posts, so they are set
+Replies and likes are shared by every service that has posts, so they are set
 once in `default.json` under `common_permissions` and pulled in with
 `include_common_permissions`:
 
@@ -331,9 +540,9 @@ profile.
 - **Restore defaults** clears the profile's saved settings, and the defaults
   apply again.
 
-On a profile whose access is narrower than `registered`, the comment row
-explains who can comment instead of offering a choice. See
-[Adding a comment](#adding-a-comment).
+On a profile whose access is narrower than `registered`, the row for replies
+explains who can reply instead of offering a choice. See
+[Replying](#replying).
 
 ## Accepted values
 

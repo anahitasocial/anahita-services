@@ -120,8 +120,24 @@ type Node struct {
 	// The stored name of an actor's avatar. `filename` used to hold it, and
 	// now holds only the file a post is.
 	AvatarFilename string `protobuf:"bytes,82,opt,name=avatar_filename,json=avatarFilename,proto3" json:"avatar_filename,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// The post at the top of the thread a reply belongs to. 0 on anything
+	// that is not a reply.
+	RootId int64 `protobuf:"varint,83,opt,name=root_id,json=rootId,proto3" json:"root_id,omitempty"`
+	// Who may reply to a post, as its author sets it. Empty when they have
+	// not said.
+	ReplyAccess string `protobuf:"bytes,84,opt,name=reply_access,json=replyAccess,proto3" json:"reply_access,omitempty"`
+	// Whether what an actor reposts is also among its profile's posts.
+	ShowRepostsOnProfile bool `protobuf:"varint,85,opt,name=show_reposts_on_profile,json=showRepostsOnProfile,proto3" json:"show_reposts_on_profile,omitempty"`
+	// Quote posts. quote_policy is who may quote a post, or on a person
+	// their posts; quote_id is the post a note quotes; quote_detached says
+	// that post's author took it out of the quote.
+	QuotePolicy   string `protobuf:"bytes,86,opt,name=quote_policy,json=quotePolicy,proto3" json:"quote_policy,omitempty"`
+	QuoteId       int64  `protobuf:"varint,87,opt,name=quote_id,json=quoteId,proto3" json:"quote_id,omitempty"`
+	QuoteDetached bool   `protobuf:"varint,88,opt,name=quote_detached,json=quoteDetached,proto3" json:"quote_detached,omitempty"`
+	// Whether the viewer has saved the post. Private to them.
+	IsSavedByViewer bool `protobuf:"varint,89,opt,name=is_saved_by_viewer,json=isSavedByViewer,proto3" json:"is_saved_by_viewer,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Node) Reset() {
@@ -607,6 +623,55 @@ func (x *Node) GetAvatarFilename() string {
 		return x.AvatarFilename
 	}
 	return ""
+}
+
+func (x *Node) GetRootId() int64 {
+	if x != nil {
+		return x.RootId
+	}
+	return 0
+}
+
+func (x *Node) GetReplyAccess() string {
+	if x != nil {
+		return x.ReplyAccess
+	}
+	return ""
+}
+
+func (x *Node) GetShowRepostsOnProfile() bool {
+	if x != nil {
+		return x.ShowRepostsOnProfile
+	}
+	return false
+}
+
+func (x *Node) GetQuotePolicy() string {
+	if x != nil {
+		return x.QuotePolicy
+	}
+	return ""
+}
+
+func (x *Node) GetQuoteId() int64 {
+	if x != nil {
+		return x.QuoteId
+	}
+	return 0
+}
+
+func (x *Node) GetQuoteDetached() bool {
+	if x != nil {
+		return x.QuoteDetached
+	}
+	return false
+}
+
+func (x *Node) GetIsSavedByViewer() bool {
+	if x != nil {
+		return x.IsSavedByViewer
+	}
+	return false
 }
 
 type Nodes struct {
@@ -2557,7 +2622,7 @@ var File_proto_graphpb_node_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb2\x13\n" +
+	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb7\x15\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -2640,7 +2705,14 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x0flast_visited_at\x18P \x01(\v2\x1a.google.protobuf.TimestampR\rlastVisitedAt\x12;\n" +
 	"\vfeatured_at\x18Q \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"featuredAt\x12'\n" +
-	"\x0favatar_filename\x18R \x01(\tR\x0eavatarFilenameJ\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10J\"*\n" +
+	"\x0favatar_filename\x18R \x01(\tR\x0eavatarFilename\x12\x17\n" +
+	"\aroot_id\x18S \x01(\x03R\x06rootId\x12!\n" +
+	"\freply_access\x18T \x01(\tR\vreplyAccess\x125\n" +
+	"\x17show_reposts_on_profile\x18U \x01(\bR\x14showRepostsOnProfile\x12!\n" +
+	"\fquote_policy\x18V \x01(\tR\vquotePolicy\x12\x19\n" +
+	"\bquote_id\x18W \x01(\x03R\aquoteId\x12%\n" +
+	"\x0equote_detached\x18X \x01(\bR\rquoteDetached\x12+\n" +
+	"\x12is_saved_by_viewer\x18Y \x01(\bR\x0fisSavedByViewerJ\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10J\"*\n" +
 	"\x05Nodes\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xad\x03\n" +
 	"\x11NodeBrowseRequest\x12\x14\n" +

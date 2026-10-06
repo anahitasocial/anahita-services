@@ -48,6 +48,10 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		"view_count",
 		"parent_id",
 		"parent_type",
+		"root_id",
+		"reply_access",
+		"quote_policy",
+		"quote_id",
 		"geo_latitude",
 		"geo_longitude",
 		"geo_address",
@@ -90,6 +94,12 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		node.ViewCount,
 		node.ParentID,
 		node.ParentType,
+		// NULL, not 0, on anything that is not a reply: "top level" is
+		// asked for as root_id IS NULL.
+		nullableID(node.RootID),
+		nullableString(node.ReplyAccess),
+		nullableString(node.QuotePolicy),
+		nullableID(node.QuoteID),
 		node.GeoLatitude,
 		node.GeoLongitude,
 		node.GeoAddress,
@@ -148,4 +158,20 @@ func (r *nodesRepo) BatchAdd(nodes []*entities.AnahitaNode) ([]*entities.Anahita
 	}
 
 	return addedNodes, nil
+}
+
+// nullableID is the id, or NULL for none.
+func nullableID(id int64) any {
+	if id <= 0 {
+		return nil
+	}
+	return id
+}
+
+// nullableString is the value, or NULL for none.
+func nullableString(value string) any {
+	if value == "" {
+		return nil
+	}
+	return value
 }

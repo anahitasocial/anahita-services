@@ -23,7 +23,6 @@ func startEventListener(h *handlers.Handlers, config *config.Config) error {
 	// Everything that says a node is gone. See handlers.eventsHandler.
 	topics := []string{
 		"node.medium.*.*.deleted.v1",
-		"node.comment.*.*.deleted.v1",
 		"node.actor.*.*.purged.v1",
 	}
 

@@ -18,12 +18,20 @@ CREATE TABLE nodes (
   `owner_type` varchar(255) DEFAULT NULL,
   `owner_id` bigint(11) unsigned DEFAULT NULL,
   `comment_status` tinyint(1) DEFAULT NULL,
+  -- Who may reply, as the post's author sets it. NULL when they have not
+  -- said. See anahita-libs/constants/reply_access.go.
+  `reply_access` varchar(64) DEFAULT NULL,
+  -- Who may quote: on a post, that post; on a person, their posts when
+  -- they say nothing. See anahita-libs/constants/quote_policy.go.
+  `quote_policy` varchar(16) DEFAULT NULL,
   `comment_count` int(11) unsigned DEFAULT NULL,
   `repost_count` int(11) unsigned NOT NULL DEFAULT 0,
   `quote_count` int(11) unsigned NOT NULL DEFAULT 0,
   `enabled` tinyint(1) NOT NULL DEFAULT 0,
   `verified` tinyint(1) NOT NULL DEFAULT 0,
   `pinned` tinyint(1) NOT NULL DEFAULT 0,
+  -- When it was pinned to the profile it is on. NULL when it is not.
+  `pinned_at` datetime DEFAULT NULL,
   -- mediumtext, not text: CONVERT TO CHARACTER SET utf8mb4 promotes a text
   -- column to preserve its character capacity, so a database migrated by
   -- legacy/upgrade.sql ends up with mediumtext. Declared here so the two
@@ -35,6 +43,13 @@ CREATE TABLE nodes (
   `view_count` int(11) unsigned NOT NULL DEFAULT 0,
   `parent_id` bigint(11) unsigned DEFAULT NULL,
   `parent_type` varchar(255) DEFAULT NULL,
+  -- The post at the top of the thread a reply belongs to. NULL on anything
+  -- that is not a reply. Who may see a reply is decided by this post.
+  `root_id` bigint(11) unsigned DEFAULT NULL,
+  -- On a note that quotes a post: the post, and when that post's author
+  -- took it out of the quote.
+  `quote_id` bigint(11) unsigned DEFAULT NULL,
+  `quote_detached_at` datetime DEFAULT NULL,
   `geo_latitude` float(10,6) DEFAULT NULL,
   `geo_longitude` float(10,6) DEFAULT NULL,
   `geo_address` VARCHAR(255) DEFAULT NULL,
@@ -54,6 +69,8 @@ CREATE TABLE nodes (
   `follower_count` int(11) unsigned DEFAULT NULL,
   `leader_count` int(11) unsigned DEFAULT NULL,
   `allow_follow_request` tinyint(1) unsigned DEFAULT NULL,
+  -- Whether what an actor reposts is also among its profile's posts.
+  `show_reposts_on_profile` tinyint(1) NOT NULL DEFAULT 0,
   `subscriber_count` int(11) unsigned DEFAULT NULL,
   `vote_up_count` int(11) unsigned DEFAULT NULL,
   `excerpt` text,
@@ -135,7 +152,10 @@ CREATE TABLE nodes (
   KEY `type` (`type`),
   KEY `service` (`service`),
   KEY `owner_id` (`owner_id`),
+  KEY `owner_pinned` (`owner_id`,`pinned`),
   KEY `parent_id` (`parent_id`),
+  KEY `root_id` (`root_id`),
+  KEY `quote_id` (`quote_id`),
   KEY `starts_at` (`starts_at`),
   KEY `ends_at` (`ends_at`),
   KEY `type_enabled` (`type`,`enabled`),

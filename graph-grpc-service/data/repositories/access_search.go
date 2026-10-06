@@ -8,7 +8,7 @@ import (
 )
 
 // SetSearchAccessQuery returns the access query for media repository
-func SetSearchAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, includeCommentParentNode bool) sq.SelectBuilder {
+func SetSearchAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.SelectBuilder {
 	if viewer.IsAdmin() {
 		return sb
 	}
@@ -129,60 +129,10 @@ func SetSearchAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, includeC
 		)
 	}
 
-	sb = sb.Where(ownerGate).Where(nodeGate)
-
-	// ---- Optional: comment parent gate ----
-	if includeCommentParentNode {
-		// The comment's parent is a different row with its own owner and
-		// author, so it needs its own predicate against those aliases —
-		// previously this was the node predicate again under another name.
-		cpNotBlocked := relNotBlockedEitherWay(vID, contentActorRefs("comment_parent_node")...)
-		cpFollows := relViewerFollows("comment_parent_node", vID)
-		cpLeads := relAliasFollowsViewer("comment_parent_node", vID)
-		cpMutual := sq.And{cpFollows, cpLeads}
-		cpAdmin := relViewerAdmins("comment_parent_node", vID)
-		cpSelfAdm := relSelfOrAdmin("comment_parent_node", vID)
-
-		// Deny comments if the relationship with the comment's parent is blocked
-		sb = sb.Where(cpNotBlocked)
-
-		cpGate := sq.Or{
-			sq.Expr("comment_parent_node.access IS NULL"),
-			sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessPublic),
-		}
-		if vID != 0 {
-			cpGate = append(cpGate,
-				sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessRegistered),
-
-				sq.And{
-					sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessMyself),
-					cpSelfAdm,
-				},
-
-				sq.And{
-					sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessFollowers),
-					sq.Or{cpFollows, cpLeads, cpMutual, cpAdmin},
-				},
-
-				sq.And{
-					sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessLeaders),
-					sq.Or{cpLeads, cpMutual, cpAdmin},
-				},
-
-				sq.And{
-					sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessMutuals),
-					sq.Or{cpMutual, cpAdmin},
-				},
-
-				sq.And{
-					sq.Expr("FIND_IN_SET(?, comment_parent_node.access)", constants.AnahitaAccessAdmins),
-					cpAdmin,
-				},
-			)
-		}
-
-		sb = sb.Where(cpGate)
-	}
+	// A post is judged by its owner and its own audience. A reply has no
+	// audience of its own and is owned by its author, so it is judged by the
+	// post at the top of its thread and by nothing else.
+	sb = sb.Where(postOrReply(sq.And{ownerGate, nodeGate}, viewer))
 
 	return sb
 }

@@ -125,7 +125,7 @@ message ActorDeleteResponse {
 //
 // The figures describe WHAT DELETING DESTROYS, which is not the same as what
 // the actor wrote — a post made into a group is owned by the group and
-// survives; a comment somebody else left on their post does not. See the
+// survives; a reply somebody else left under their post does not. See the
 // repository implementation.
 message ActorDeletionCountsRequest {
     int64 id = 1;
@@ -137,9 +137,10 @@ message ActorDeletionCountsResponse {
     // group they posted into.
     int64 posts = 1;
 
-    // Comments they wrote, including on other people's content. Deleting the
-    // profile takes these too, which is the part people do not expect.
-    int64 comments = 2;
+    // Replies that go: the ones they wrote, wherever they are, and the ones
+    // other people wrote under their posts. Deleting the profile takes these
+    // too, which is the part people do not expect.
+    int64 replies = 2;
 
     // Actors following them, and actors they follow. Both directions, because
     // losing an audience and losing a feed are different losses.

@@ -11,9 +11,8 @@ const (
 	// SearchScopeTopics    = "topic"
 	// SearchScopeTodos     = "todo"
 
-	SearchNodeTypeActor   = "node.actor."
-	SearchNodeTypeMedia   = "node.medium."
-	SearchNodeTypeComment = ".comment."
+	SearchNodeTypeActor = "node.actor."
+	SearchNodeTypeMedia = "node.medium."
 
 	SearchScopeActor  = "actors"
 	SearchScopeMedium = "media"

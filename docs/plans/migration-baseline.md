@@ -45,6 +45,25 @@ rewritten anyway. The reasoning is in `docs/architecture.md`, Naming images.
   means a photo post's image. Photo posts carry their images in `files`;
   `portrait_urls` goes once the web app reads the first image from there.
 
+## Where the legacy path differs from a fresh schema today (found 2026-10-05)
+
+Compared row by row for every table, columns and indexes. The two are the
+same except for these, both from long before, and both for this item to put
+right:
+
+- **`nodes.service` allows NULL** on a database built by `legacy/upgrade.sql`
+  and does not on a fresh one. The legacy script renames `component` to
+  `service` without saying NOT NULL.
+- **The columns of `nodes` are in a different order.** `website_url`,
+  `person_type`, `person_pronouns`, `last_visited_at` and `unique_alias` are
+  added at the end by the legacy script and sit in the middle of a fresh
+  table. Nothing reads columns by position, so it changes nothing that runs.
+
+Earlier comparisons reported the schemas as matching. They compared one long
+string per table, which MySQL cuts off at 1,024 characters, so only the first
+dozen columns were ever compared. The schema test this item adds has to
+compare rows, not a joined string.
+
 ## Estimate
 About 4–6 h, 1–1½ sessions. Most of it is the schema comparison test and reading `upgrade.sql` end to end.
 

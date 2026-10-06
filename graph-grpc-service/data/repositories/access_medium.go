@@ -19,29 +19,103 @@ func SetMediumAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.Selec
 		return sb
 	}
 
-	return sb.Where(sq.Or{
+	return sb.Where(postAccessCondition(viewer))
+}
+
+// postAccessCondition is the gate for anything that is a post: a post at the
+// top level by the medium gate, and a reply by the post its thread hangs
+// from.
+//
+// THIS, AND NOT mediumAccessCondition, IS WHAT A LISTING OF POSTS USES. A
+// reply is a note owned by its author, with no audience of its own. Judged by
+// the medium gate it passes wherever its author's profile is visible, so a
+// reply to a post in a private group would show to anybody who can see the
+// author. The two branches are told apart here, in one place, so that a
+// listing cannot apply the first to a row that needs the second.
+func postAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
+	return sq.Or{
 		sq.And{
-			sq.NotEq{"node.type": constants.NodeBaseCommentEntityType},
+			sq.Expr("node.root_id IS NULL"),
 			mediumAccessCondition(viewer),
 		},
 		sq.And{
-			sq.Eq{"node.type": constants.NodeBaseCommentEntityType},
-			commentAccessCondition(viewer),
+			sq.Expr("node.root_id IS NOT NULL"),
+			replyAccessCondition(viewer),
 		},
-	})
+	}
 }
 
-// commentAccessCondition admits a comment when its post passes the medium
-// gate, and nobody on either side has blocked the other.
-func commentAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
+// replyAccessCondition admits a reply when the post at the top of its thread
+// passes the medium gate, nobody on either side has blocked the other, and
+// the reply has not been removed.
+//
+// A removed reply that still has replies under it is kept as an empty
+// placeholder, so the thread does not fall apart. It is shown in its thread
+// and nowhere else, which is why it is left out here and let through by
+// threadCondition.
+func replyAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
+	return sq.And{
+		sq.Expr("node.deleted_at IS NULL"),
+		threadCondition(viewer),
+	}
+}
+
+// threadCondition is replyAccessCondition without the check for removal: what
+// a reply needs in order to appear in its own thread.
+func threadCondition(viewer *entities.Viewer) sq.Sqlizer {
 	return sq.And{
 		relNotBlockedEitherWay(viewer.ID, contentActorRefs("node")...),
-		parentPassesMediumGate(viewer),
+		rootPassesMediumGate(viewer),
+	}
+}
+
+// rootPassesMediumGate is true when the post at the top of the row's thread
+// is one this viewer may see. Built the way parentPassesMediumGate is, and
+// for the same reason: the root is gated by the medium gate itself, not by a
+// copy of it.
+//
+// A root is never a reply, so the plain medium gate is the right one for it.
+func rootPassesMediumGate(viewer *entities.Viewer) sq.Sqlizer {
+	rootGate, args, err := sq.Select("node.id").
+		From("nodes AS node").
+		LeftJoin("nodes AS owner ON node.owner_id = owner.id").
+		Where("node.deleted_at IS NULL").
+		Where(sq.Eq{"node.enabled": true}).
+		Where(mediumAccessCondition(viewer)).
+		ToSql()
+	if err != nil {
+		// Fail closed: a gate that cannot be built admits nothing.
+		return sq.Expr("1 = 0")
+	}
+
+	return sq.Expr("node.root_id IN ("+rootGate+")", args...)
+}
+
+// postOrReply is for the gates that are written out by hand: search, and the
+// pages of a hashtag or a place. It applies their own gate to a post at the
+// top level, and the root rule to a reply.
+//
+// The caller has already refused anybody blocked, for every row.
+//
+// Their own gate cannot be applied to a reply as well. It reads the row's own
+// audience, and a reply has none, so every reply would fail it: which is why
+// comments, stored the same way, have never appeared in search.
+func postOrReply(postGate sq.Sqlizer, viewer *entities.Viewer) sq.Sqlizer {
+	return sq.Or{
+		sq.And{
+			sq.Expr("node.root_id IS NULL"),
+			postGate,
+		},
+		sq.And{
+			sq.Expr("node.root_id IS NOT NULL"),
+			sq.Expr("node.deleted_at IS NULL"),
+			rootPassesMediumGate(viewer),
+		},
 	}
 }
 
 // parentPassesMediumGate is true when the row's parent is a post this viewer
-// may see. Comments and reposts both hang off a post and are both judged by it.
+// may see. A repost hangs off a post and is judged by it.
 //
 // The post is gated in a subquery that aliases it `node` and its owner
 // `owner`, the names every medium gate helper is written against, so the gate
@@ -49,11 +123,13 @@ func commentAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
 // aliases — which is how the gates in this package have drifted before. The
 // inner aliases shadow the outer ones inside the subquery only.
 func parentPassesMediumGate(viewer *entities.Viewer) sq.Sqlizer {
+	// The parent may itself be a reply: a reply can be reposted. So it is
+	// gated as a post or as a reply, whichever it is.
 	postGate, args, err := sq.Select("node.id").
 		From("nodes AS node").
 		LeftJoin("nodes AS owner ON node.owner_id = owner.id").
 		Where("node.deleted_at IS NULL").
-		Where(mediumAccessCondition(viewer)).
+		Where(postAccessCondition(viewer)).
 		ToSql()
 	if err != nil {
 		// Fail closed: a gate that cannot be built admits nothing.

@@ -64,6 +64,11 @@ func ProtoNodeToAnahitaNode(n *graphpb.Node) *entities.AnahitaNode {
 	node.Access = n.Access
 	node.Filename = n.Filename
 	node.AvatarFilename = n.AvatarFilename
+	node.RootID = n.RootId
+	node.ReplyAccess = n.ReplyAccess
+	node.QuotePolicy = n.QuotePolicy
+	node.QuoteID = n.QuoteId
+	node.QuoteDetached = n.QuoteDetached
 	node.CoverFilename = n.CoverFilename
 	node.Mimetype = n.Mimetype
 	node.Language = n.Language
@@ -85,6 +90,7 @@ func ProtoNodeToAnahitaNode(n *graphpb.Node) *entities.AnahitaNode {
 	node.CreatedBy = n.CreatedBy
 	node.ModifiedBy = n.ModifiedBy
 	node.AllowFollowRequest = n.AllowFollowRequest
+	node.ShowRepostsOnProfile = n.ShowRepostsOnProfile
 
 	return node
 }

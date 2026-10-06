@@ -77,12 +77,11 @@ func (srv *SearchGRPC) Count(req *SearchBrowseRequest, viewer *entities.Viewer) 
 	}
 
 	resp, err := client.Count(context.Background(), &graphpb.SearchCountRequest{
-		Keywords:        req.Keywords,
-		Scope:           req.Scope,
-		IncludeComments: req.IncludeComments,
-		CoordRadius:     req.CoordRadius,
-		CoordLng:        req.CoordLng,
-		CoordLat:        req.CoordLat,
+		Keywords:    req.Keywords,
+		Scope:       req.Scope,
+		CoordRadius: req.CoordRadius,
+		CoordLng:    req.CoordLng,
+		CoordLat:    req.CoordLat,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
@@ -112,16 +111,15 @@ func (srv *SearchGRPC) Browse(req *SearchBrowseRequest, viewer *entities.Viewer)
 	}
 
 	resp, err := client.Browse(context.Background(), &graphpb.SearchBrowseRequest{
-		Offset:          req.Offset,
-		Limit:           req.Limit,
-		Ordering:        req.Ordering,
-		OrderingDir:     req.OrderingDir,
-		Keywords:        req.Keywords,
-		Scope:           req.Scope,
-		IncludeComments: req.IncludeComments,
-		CoordRadius:     req.CoordRadius,
-		CoordLng:        req.CoordLng,
-		CoordLat:        req.CoordLat,
+		Offset:      req.Offset,
+		Limit:       req.Limit,
+		Ordering:    req.Ordering,
+		OrderingDir: req.OrderingDir,
+		Keywords:    req.Keywords,
+		Scope:       req.Scope,
+		CoordRadius: req.CoordRadius,
+		CoordLng:    req.CoordLng,
+		CoordLat:    req.CoordLat,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,

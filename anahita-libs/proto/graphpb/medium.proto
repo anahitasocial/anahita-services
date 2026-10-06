@@ -17,6 +17,8 @@ message MediumCountRequest {
     string search = 3;
     Viewer viewer = 4;
     bool access_check = 5;
+    // As on a browse.
+    bool include_replies = 6;
 }
 
 message MediumCountResponse {
@@ -34,6 +36,10 @@ message MediumBrowseRequest {
     bool access_check = 8;
 
     Viewer viewer = 9;
+
+    // Replies are left out of a list of posts unless this is set: a list of
+    // somebody's notes is not to be filled with their answers to others.
+    bool include_replies = 10;
 }
 
 message MediumBrowseResponse {
@@ -93,6 +99,87 @@ message MediumPingRequest {
 
 message MediumPingResponse {
     string message = 1;
+}
+
+// Every reply under a post, oldest first, that the viewer may see.
+message MediumThreadRequest {
+    int64 root_id = 1;
+    Viewer viewer = 2;
+}
+
+message MediumThreadResponse {
+    repeated Node replies = 1;
+    // The replies among them that have been hidden from the thread. They are
+    // sent, marked here, so the caller can leave them out for most people
+    // and show them to whoever may bring them back.
+    repeated int64 hidden_ids = 2;
+}
+
+// Hides a reply from its thread, or shows it again.
+message ReplyHideRequest {
+    int64 reply_id = 1;
+    bool hidden = 2;
+    int64 viewer_id = 3;
+}
+
+message ReplyHideResponse {
+    bool success = 1;
+}
+
+// Takes the quoted post out of a note that quotes it.
+message QuoteDetachRequest {
+    int64 note_id = 1;
+    int64 viewer_id = 2;
+}
+
+message QuoteDetachResponse {
+    // False when it was detached already.
+    bool success = 1;
+}
+
+// The notes that quote a post, as the viewer may see them.
+message QuotesListRequest {
+    int64 quoted_id = 1;
+    uint64 limit = 2;
+    Viewer viewer = 3;
+}
+
+message QuotesListResponse {
+    repeated Node quotes = 1;
+}
+
+// Saves a post for the viewer, or takes it out of what they saved.
+message SavedSetRequest {
+    int64 node_id = 1;
+    bool saved = 2;
+    int64 viewer_id = 3;
+}
+
+message SavedSetResponse {
+    bool success = 1;
+}
+
+// What the viewer saved, most recently saved first.
+message SavedListRequest {
+    uint64 limit = 1;
+    uint64 offset = 2;
+    Viewer viewer = 3;
+}
+
+message SavedListResponse {
+    repeated Node nodes = 1;
+    uint64 total = 2;
+}
+
+// Pins a post to the profile it is on, or takes the pin off.
+message PinSetRequest {
+    int64 node_id = 1;
+    bool pinned = 2;
+    int64 viewer_id = 3;
+}
+
+message PinSetResponse {
+    bool success = 1;
 }
 
 // One image of a photo post.
@@ -162,6 +249,16 @@ service MediumService {
     rpc Add(MediumAddRequest) returns (MediumAddResponse) {}
     rpc Delete(MediumDeleteRequest) returns (MediumDeleteResponse) {}
     rpc Ping(MediumPingRequest) returns (MediumPingResponse) {}
+
+    // Threads. A reply is a note with a parent, added and edited through
+    // the calls above like any post.
+    rpc Thread(MediumThreadRequest) returns (MediumThreadResponse) {}
+    rpc HideReply(ReplyHideRequest) returns (ReplyHideResponse) {}
+    rpc DetachQuote(QuoteDetachRequest) returns (QuoteDetachResponse) {}
+    rpc SetPinned(PinSetRequest) returns (PinSetResponse) {}
+    rpc ListQuotes(QuotesListRequest) returns (QuotesListResponse) {}
+    rpc SetSaved(SavedSetRequest) returns (SavedSetResponse) {}
+    rpc ListSaved(SavedListRequest) returns (SavedListResponse) {}
 
     // The images of photo posts. A photo is a medium, and these are its
     // images, so they are kept by the service that keeps the post.

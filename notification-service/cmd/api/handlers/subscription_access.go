@@ -25,7 +25,7 @@ func (h *subscriptionHandler) getActorAccessContext(actor *entities.AnahitaNode,
 	return ctx, nil
 }
 
-// getMediumAccessContext retrieves the MediumAccessContext for the given CommentAccessContext
+// getMediumAccessContext retrieves the MediumAccessContext for a post
 func (h *subscriptionHandler) getMediumAccessContext(medium *entities.AnahitaNode, viewer *entities.Viewer) (*permissions.MediumAccessContext, error) {
 	var (
 		err error

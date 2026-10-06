@@ -25,7 +25,6 @@ func applyEditableMediumFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	}
 
 	node.Enabled = req.Enabled
-	node.Pinned = req.Pinned
 	node.Access = req.Access
 	node.Name = req.Name
 	node.Alias = req.Alias
@@ -36,6 +35,8 @@ func applyEditableMediumFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.Meta = json.RawMessage(req.Meta)
 	node.ModifiedBy = req.ModifiedBy
 	node.CommentStatus = req.CommentStatus
+	node.ReplyAccess = req.ReplyAccess
+	node.QuotePolicy = req.QuotePolicy
 	node.CommentCount = req.CommentCount
 	// Kept as it is when the request carries none: the repository writes
 	// it only when it is set.
@@ -58,6 +59,8 @@ func newMediumFromRequest(req *graphpb.Node) *entities.AnahitaNode {
 	node.Service = req.Service
 	node.Mimetype = req.Mimetype
 	node.CreatedBy = req.CreatedBy
+	// What it quotes, which is said once and never changed.
+	node.QuoteID = req.QuoteId
 
 	return node
 }

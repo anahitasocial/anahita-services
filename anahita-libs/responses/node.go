@@ -6,22 +6,30 @@ import (
 )
 
 type NodeItem struct {
-	ID                 int64     `json:"id"`
-	Type               string    `json:"type"`
-	Name               string    `json:"name,omitempty"`
-	Alias              string    `json:"alias,omitempty"`
-	Body               string    `json:"body,omitempty"`
-	QuoteCount         int64     `json:"quote_count,omitempty"`
-	Verified           bool      `json:"verified,omitempty"`
-	CreatedAt          time.Time `json:"created_at,omitempty"`
-	FollowerCount      int64     `json:"follower_count,omitempty"`
-	Mimetype           string    `json:"mimetype,omitempty"`
-	Language           string    `json:"language,omitempty"`
-	Access             string    `json:"access,omitempty"`
-	LikesCount         int64     `json:"likes_count,omitempty"`
-	IsLikedByViewer    bool      `json:"is_liked_by_viewer,omitempty"`
-	RepostCount        int64     `json:"repost_count,omitempty"`
-	IsRepostedByViewer bool      `json:"is_reposted_by_viewer,omitempty"`
+	ID            int64     `json:"id"`
+	Type          string    `json:"type"`
+	Name          string    `json:"name,omitempty"`
+	Alias         string    `json:"alias,omitempty"`
+	Body          string    `json:"body,omitempty"`
+	QuoteCount    int64     `json:"quote_count,omitempty"`
+	Verified      bool      `json:"verified,omitempty"`
+	CreatedAt     time.Time `json:"created_at,omitempty"`
+	FollowerCount int64     `json:"follower_count,omitempty"`
+	Mimetype      string    `json:"mimetype,omitempty"`
+	Language      string    `json:"language,omitempty"`
+	Access        string    `json:"access,omitempty"`
+	// Set on a reply: the post at the top of its thread. Its parent, what
+	// it directly answers, is sent whole as `parent`.
+	RootID int64 `json:"root_id,omitempty"`
+	// Pinned to the profile it is on, which it then leads.
+	Pinned          bool  `json:"pinned,omitempty"`
+	LikesCount      int64 `json:"likes_count,omitempty"`
+	IsLikedByViewer bool  `json:"is_liked_by_viewer,omitempty"`
+	// Whether the viewer has saved it. Sent to them alone, like the rest
+	// of what is said here about the viewer.
+	IsSavedByViewer    bool  `json:"is_saved_by_viewer,omitempty"`
+	RepostCount        int64 `json:"repost_count,omitempty"`
+	IsRepostedByViewer bool  `json:"is_reposted_by_viewer,omitempty"`
 	// Set by the subscribe and unsubscribe handlers, which answer with the
 	// node they acted on. The mapper had no field for it, so mapping their
 	// response would have silently dropped the one thing it reports.
@@ -39,7 +47,13 @@ type NodeItem struct {
 	Author *Author `json:"author,omitempty"`
 	Editor *Editor `json:"editor,omitempty"`
 	Parent *Parent `json:"parent,omitempty"`
-	Owner  *Owner  `json:"owner,omitempty"`
+	// On a reply: the post at the top of its thread, with the profile the
+	// thread is on.
+	Root *Parent `json:"root,omitempty"`
+	// On a note that quotes a post: that post, or why it is not shown.
+	Quote   *QuoteEmbed `json:"quote,omitempty"`
+	QuoteID int64       `json:"quote_id,omitempty"`
+	Owner   *Owner      `json:"owner,omitempty"`
 
 	// Media URLs
 	Avatar   map[string]Image `json:"avatar_urls,omitempty"`
@@ -64,6 +78,8 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		Alias:                node.Alias,
 		Body:                 node.Body,
 		QuoteCount:           node.QuoteCount,
+		RootID:               node.RootID,
+		Pinned:               node.Pinned,
 		Verified:             node.Verified,
 		CreatedAt:            node.CreatedAt,
 		FollowerCount:        node.FollowerCount,
@@ -72,6 +88,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		Access:               node.Access,
 		LikesCount:           node.LikesCount,
 		IsLikedByViewer:      node.IsLikedByViewer,
+		IsSavedByViewer:      node.IsSavedByViewer,
 		RepostCount:          node.RepostCount,
 		IsRepostedByViewer:   node.IsRepostedByViewer,
 		IsSubscribedByViewer: node.IsSubscribedByViewer,
@@ -102,6 +119,9 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 			}
 			return nil
 		}(),
+		Root:    NewRoot(node.Root),
+		Quote:   NewQuoteEmbed(node),
+		QuoteID: node.QuoteID,
 		Owner: func() *Owner {
 			if node.Owner != nil {
 				return NewOwner(node.Owner)

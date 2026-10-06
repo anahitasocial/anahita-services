@@ -43,11 +43,11 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Terms of Service and Privacy Policy](registration.md#terms-of-service-and-privacy-policy)
    - [NodeInfo](registration.md#nodeinfo)
    - [The first super administrator](registration.md#the-first-super-administrator)
-6. [Permissions](permissions.md) — who can post, comment, like and add followers
+6. [Permissions](permissions.md) — who can post, reply, like and add followers
    - [Access levels](permissions.md#access-levels)
    - [Seeing posts](permissions.md#seeing-posts)
    - [Choosing who can see a post](permissions.md#choosing-who-can-see-a-post)
-   - [Comments](permissions.md#comments)
+   - [Replies](permissions.md#replies)
    - [Reporting](permissions.md#reporting)
    - [Removing accounts](permissions.md#removing-accounts)
    - [The defaults](permissions.md#the-defaults)
@@ -132,7 +132,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | --- | --- | --- |
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
-| [Notes as replies](plans/notes-as-replies.md) | 7 | not started |
+| [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
 | [Link previews](plans/link-previews.md) | 10 | not started |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
@@ -141,9 +141,9 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Video service](plans/video-service.md) | 16 | not started |
 | [Creative Commons licences](plans/content-licences.md) | 19 | kept for later (2026-10-04); look again after items 16 and 17 |
 | [Download your data](plans/data-export.md) | 21 | not started |
-| [Post insights](plans/post-insights.md) | 22 | not started |
-| [Profile tabs for replies and reposts](plans/profile-tabs-and-reposts.md) | 24 | not started |
-| [Quote posts](plans/quote-posts.md) | 25 | not started |
+| [Post insights](plans/post-insights.md) | 22, set aside: a post's activity was built instead | not started |
+| [Profile tabs for replies and reposts](plans/done/profile-tabs-and-reposts.md) | 24 | done 2026-10-05 |
+| [Quote posts](plans/done/quote-posts.md) | 25 | done 2026-10-05 |
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [The Website actor](plans/website-actor.md) | 30 | goal and name recorded 2026-10-05; scope open, not to be built yet |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |

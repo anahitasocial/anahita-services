@@ -75,8 +75,8 @@ the audiences that are allowed.
   group a `public` post is still seen only by its followers.
 - A post written without saying is `public`, or `registered` where the
   installation allows nothing new to be public.
-- Comments have no audience of their own. They are seen by whoever can see the
-  post.
+- Replies have no audience of their own. They are seen by whoever can see the
+  post at the top of their thread.
 
 The API: `access` when the post is created (`POST /notes/:owner_id/`, and the
 same for articles, topics and photos), and `PATCH /…/:id/access` to change it.
@@ -118,7 +118,7 @@ so any of them can be switched to any other: a post that says `public` is
 public again the moment the setting is `public`.
 
 **`registered`, the members-only site.** Every route that serves content
-answers 401 `members_only` to a visitor: profiles, posts, feeds, comments,
+answers 401 `members_only` to a visitor: profiles, posts, feeds, replies,
 hashtags, places, followers and search. What stays open is what people need to
 get in: signing in and up, password reset, accepting an invitation, the OAuth
 endpoints and NodeInfo.
@@ -131,7 +131,7 @@ start of it:
 | A post's text, and a profile's | The first 280 characters or so, as plain words, cut at a word and ending in "…". The post is marked `truncated: true`. A text that fits is sent as it was written |
 | A photo | The first image only, at its smallest size. `files_held_back` says how many more the post has |
 | A list | The first 10 items. `pagination.more` is true when there are more, and `pagination.total` is the number sent. Asking for a later page answers 401 `members_only` |
-| Comments | Nothing: 401 `members_only`. The count on the post is still there |
+| Replies | Nothing: 401 `members_only`. The count on the post is still there |
 | Who follows a profile, and whom it follows | Nothing: 401 `members_only`. The counts on the profile are still there |
 | Avatars and covers | As usual |
 
@@ -239,7 +239,7 @@ and `5` any person's id:
   entries are not shown. Pages carry `robots: noindex`.
 - **On a preview site**, a visitor sees a notice above each page, "Sign in to
   read more" under a post that was cut, and a sign-in prompt where a post's
-  comments or a profile's list of followers would be. The app does not ask the
+  replies or a profile's list of followers would be. The app does not ask the
   server for those.
 - **Where nothing new may be public**, "Public" is not offered.
 - **Site Settings › Privacy**, for super administrators, shows the two
@@ -264,7 +264,7 @@ around a rule:
 - **`TestEveryRouteNamesItsViewer`** reads every service's routes and fails if
   one has neither `Authorize` nor `SetViewer` in front of it. Such a route
   would serve visitors on a members-only site.
-- **`TestTheRoutesAPreviewLeavesOutSaySo`** checks that comments and the
+- **`TestTheRoutesAPreviewLeavesOutSaySo`** checks that replies and the
   follower lists are marked as left out of a preview.
 - **`TestEveryHandlerThatSetsAnAudienceChecksIt`** checks that every handler
   that creates a post, changes its audience, changes a profile's access or

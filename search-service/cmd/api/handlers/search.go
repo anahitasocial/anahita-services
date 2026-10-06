@@ -63,7 +63,6 @@ func (h *searchHandler) Browse(c echo.Context) error {
 	gReq.CoordLat = req.CoordLat
 	gReq.CoordLng = req.CoordLng
 	gReq.CoordRadius = req.CoordRadius
-	gReq.IncludeComments = req.IncludeComments
 
 	resp.Pagination.Total, err = h.Srv.SearchGRPC.Count(gReq, viewer)
 	if err != nil {

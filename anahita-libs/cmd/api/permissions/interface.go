@@ -19,12 +19,3 @@ type MediumNodeInterface interface {
 	GetService() string
 	GetEntityName() string
 }
-
-// CommentNodeInterface
-type CommentNodeInterface interface {
-	GetID() int64
-	GetAuthorID() int64
-	GetAuthor() *entities.AnahitaNode
-	GetParentID() int64
-	GetParent() *entities.AnahitaNode
-}

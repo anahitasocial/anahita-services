@@ -108,7 +108,7 @@ func TestPersonTypePatternMatchesRealPeople(t *testing.T) {
 			return SetActorAccessQuery(b, testViewer(1))
 		},
 		"search": func(b sq.SelectBuilder) sq.SelectBuilder {
-			return SetSearchAccessQuery(b, testViewer(1), false)
+			return SetSearchAccessQuery(b, testViewer(1))
 		},
 	}
 
@@ -203,7 +203,7 @@ func TestSearchAppliesTheBlockPredicateOnce(t *testing.T) {
 	query := SetSearchAccessQuery(
 		sq.Select("node.id").From("nodes AS node").
 			LeftJoin("nodes AS owner ON owner.id = node.owner_id"),
-		viewer, false,
+		viewer,
 	)
 
 	sql, args, err := query.ToSql()
@@ -224,8 +224,13 @@ func TestSearchAppliesTheBlockPredicateOnce(t *testing.T) {
 		t.Fatalf("no block predicate at all — a blocked person's posts would "+
 			"show up in search:\n%s", sql)
 	}
-	if blockArgs > 1 {
-		t.Errorf("the block predicate is applied %d times; it already spans "+
-			"the row, its owner and its author, so once is enough", blockArgs)
+	// Twice, and no more: once for the row itself, its owner and its
+	// author, and once inside the gate on the post at the top of a reply's
+	// thread, which is a different row with an owner and an author of its
+	// own. A third would be the old mistake back: the same predicate over
+	// the same row under another name.
+	if blockArgs > 2 {
+		t.Errorf("the block predicate is applied %d times; once for the row "+
+			"and once for a reply's root is all there should be", blockArgs)
 	}
 }

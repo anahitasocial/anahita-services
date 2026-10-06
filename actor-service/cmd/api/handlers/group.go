@@ -683,7 +683,7 @@ func (h *groupHandler) DeletionCounts(c echo.Context) error {
 
 	type Response struct {
 		Posts       int64  `json:"posts"`
-		Comments    int64  `json:"comments"`
+		Replies     int64  `json:"replies"`
 		Followers   int64  `json:"followers"`
 		Admins      int64  `json:"admins"`
 		MemberSince string `json:"member_since,omitempty"`
@@ -695,7 +695,7 @@ func (h *groupHandler) DeletionCounts(c echo.Context) error {
 	// Better that the shape says what a group has.
 	resp := &Response{
 		Posts:     counts.Posts,
-		Comments:  counts.Comments,
+		Replies:   counts.Replies,
 		Followers: counts.Followers,
 		Admins:    counts.Admins,
 	}

@@ -61,6 +61,8 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	// Edit access
 	people.PATCH("/:id/access", r.handler.Person.EditAccess, r.authorize)
+	people.PATCH("/:id/reposts-on-profile", r.handler.Person.EditRepostsOnProfile, r.authorize)
+	people.PATCH("/:id/quote-policy", r.handler.Person.EditQuotePolicy, r.authorize)
 
 	// Edit features
 	people.PATCH("/:id/features", r.handler.Person.EditFeatures, r.authorize)

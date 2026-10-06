@@ -1,0 +1,150 @@
+# Profile tabs for replies and reposts
+
+*Roadmap item 24, planned 2026-10-02. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
+
+## Context
+A person's profile should separate what they wrote from what they replied to and what they reposted: a **Posts** tab, a **Replies** tab and a **Reposts** tab. The person chooses whether their reposts also appear in their main (Posts) feed.
+
+## What exists
+- The profile feed is `GET /feeds/actor/:actor_id/` (`feed-service/cmd/api/handlers/feed_actor.go`, graph-grpc `feed_actor.go`). It already takes `IncludeReposts` (`feed_actor.go:46,81`), which adds `node.base.repost-service.repost.v1` nodes to the query.
+- A repost is a node owned by the reposter (`graph-grpc-service/cmd/server/handlers/repost.go:111`).
+- Replies don't exist yet as notes. They arrive with item 7 (notes as replies), whose design already says profile lists show top-level notes by default and that a profile can offer a "Posts & replies" tab.
+- The web profile's tabs come from `TAB_COMPONENTS` (`anahita-web/src/constants/actor.js`), one per media type.
+
+## Decisions
+- **Three tabs: Posts, Replies, Reposts.** The per-media-type tabs (Photos, Articles, …) stay as they are.
+- **A person setting, "Show my reposts in my Posts tab"**, on by default (the Mastodon and Bluesky behaviour). Turning it off moves reposts to the Reposts tab only.
+- **The setting only affects the profile.** Followers still receive reposts in their home feed; delivering a post to followers is what a repost is for. Followers who don't want them can already exclude reposts in a custom feed (item 14).
+- ~~Groups get the same tabs. A group's setting is changed by its admins.~~ Overruled on 2026-10-05: people only. See What was built.
+
+## Design
+**API**
+- `GET /feeds/actor/:actor_id/?filter=posts|replies|reposts` (default `posts`):
+  - `posts`: top-level posts (`parent_id IS NULL`), plus reposts when the actor's setting is on. Pinned posts first (item 15).
+  - `replies`: the actor's replies (`parent_id IS NOT NULL`, item 7), each returned with a short excerpt of the post it answers so it reads in context. The reply is hidden when the viewer can't see its thread's root.
+  - `reposts`: the actor's reposts, newest first, each with the original post. A repost is hidden when the viewer can't see the original.
+- The existing `IncludeReposts` request flag stays for the leaders feed. For the actor feed, the server decides from `filter` and the actor's setting, so a client can't override the person's choice.
+- **Setting:** `show_reposts_on_profile` on the actor (a boolean in the actor's settings `meta`, default true), edited through the existing profile edit endpoint and returned on the actor.
+- The same access gate as every feed applies (item 0).
+
+**Federation (item 8)**
+- ActivityPub: the outbox keeps listing `Announce` activities whatever the setting says; it is a display preference on this site.
+- Remote actors' profiles get the same three tabs from their stored posts.
+
+## Web (anahita-web)
+- Profile tabs: **Posts**, **Replies**, **Reposts**, then the media-type tabs. Each is a URL (`/people/:alias/replies`, `/people/:alias/reposts`) so it can be linked.
+- Replies tab: each reply shows "Replying to @name" with the excerpt, linking to the thread.
+- Reposts tab: the original post with "Reposted by …" above it, as in the home feed.
+- Settings → Account (and group Settings): a switch, "Show my reposts in my Posts tab".
+- i18n in en-GB and fr-FR.
+
+## Estimate
+
+| Part | Time |
+| --- | --- |
+| Feed filter (posts, replies, reposts), reply context excerpt, setting on the actor, tests | 3–4 h |
+| Web: three tabs with routes, reply and repost rows, the settings switch | 3–4 h |
+| **Total** | **about 6–8 h, 2 sessions** |
+
+## Verification
+- With the setting on, a repost appears in both Posts and Reposts. With it off, only in Reposts, and followers still see it in their home feed.
+- Sending `IncludeReposts=true` on the actor feed while the setting is off does not bring reposts back into Posts.
+- A reply to a followers-only post doesn't show in the Replies tab for a stranger.
+- A repost of a post the viewer can't see is omitted.
+- The tab URLs load directly and survive a refresh.
+
+## Dependencies
+- **Hard:** item 7 (replies as notes) for the Replies tab. The Reposts tab and the setting can ship before it.
+- **Soft:** item 0 (feed access gate), item 15 (pinned posts lead the Posts tab), item 14 (followers filtering reposts in their own feeds).
+
+## Documentation
+
+A phase is finished only when these pages match the code. anahita-services pages are under its `docs/`, anahita-web pages under its `docs/`. When a page is added, add it to that repo's `docs/README.md` contents too.
+
+- **services `architecture.md`**: the actor feed's `filter` values and the reposts setting.
+- **services `permissions.md`**, *Reposts*: what the setting does and doesn't affect.
+- **web `architecture.md`**, *Routes*: the Replies and Reposts profile routes.
+
+## Status
+
+| Item | State |
+| --- | --- |
+| Plan | written 2026-10-02 |
+| Implementation | done 2026-10-05, on branch `m5-conversations`; see [What was built](#what-was-built-2026-10-05) |
+
+## What was built (2026-10-05)
+
+**The three lists.** `GET /feeds/actor/:id/?filter=posts|replies|reposts`, as
+planned. The rows are chosen in one place in the graph
+(`actorFeedCondition`), and who may see each row is the feed gate's, which
+already judged a reply by the post at the top of its thread.
+
+**Replies.** A reply in the list is sent with `root_id` and with what it
+directly answers as `parent`, which a feed row already carried: its author
+and its text, for "Replying to …". What the viewer may do with each reply is
+worked out from its thread, not from its author's profile, by reading the
+roots of the page once (`setReplyFeedFlags`).
+
+**The setting** is a column, `nodes.show_reposts_on_profile`, and not a key in
+`meta` as planned. **Off by default, which is the opposite of the plan**: the
+user decided, with the tabs in front of them, that a profile's posts should be
+what was posted on it, and reposts should be in the Reposts tab unless the
+owner asks for both. (It was first built as `hide_reposts_on_profile`, on by
+default; a second migration renames it on a database that ran the first.) Changed through a route of
+its own for people and for groups, so that a form editing something else
+cannot reset it; it is written whichever way it is, so it can be turned off
+again. The feed reads the profile and decides, and `include_reposts` is no
+longer read from the caller on this feed.
+
+**A page for a reply on its own**, which was missing since replies were
+built: a link to a reply, from search, a report or the new list, opened it as
+a note with no thread. `GET /notes/:id` of a reply now carries `root`, and the
+page shows what it answers above it and, below, the part of the thread that
+is under it. Replying there answers that reply.
+
+**Where a reply was said.** Asked for by the user once the list was in front
+of them: a reply is very often to a post on somebody else's profile or in a
+group, and the reply's own owner is its author. Every reply in the list, and
+a reply read on its own, is sent `root` with `root.owner`, the profile the
+thread is on, and it is shown above the reply. The list fills the page in a
+masonry, like the lists of notes, articles and photos, also at the user's
+asking.
+
+**People only.** The plan gave groups the same tabs and the setting. The user
+ruled that out: only people reply and repost. A group's profile has the Posts
+tab alone, there is no switch in a group's settings, and no route for one.
+
+**In the Reposts tab the reposted post is shown as itself**, without the card
+of the person who reposted it around it: everything in that tab is theirs. A
+row now carries the date of what it reposts for that.
+
+**Found on the way: a repost was stored switched off** (`enabled` was never
+set). The feeds do not read that column, so it showed anyway. New reposts are
+stored on; ones made before are as they were.
+
+**Web.** Posts, Replies and Reposts are the first three tabs of a person's profile,
+each with an address (`/people/:id/replies`, `/groups/:id/reposts`). The
+switch is under Settings › Access for a person and in a group's Access tab.
+
+**Different from the plan, or decided while building.**
+- The Posts tab is not led by pinned posts: that is item 15, not built yet.
+- A reply hidden from its thread is not in its author's list of replies. A
+  reply under a hidden one still is: what was hidden is the branch's first
+  reply, and the list does not walk up the thread.
+- A reply in the list has no menu and no repost button. It is edited,
+  removed and hidden in its thread, and reposting a reply with what it
+  answers is still not built.
+- On a site that shows visitors a preview, the list of replies is for
+  members, like a thread.
+- The remote-actor part of the plan waits for federation.
+
+**Checked.** The three lists against a real database: a reply in a private
+group or under an "only me" post is not listed to somebody who cannot see the
+thread, a blocked person's are not listed to whoever blocked them, a removed
+or hidden one is not listed at all, and the count agrees with the list. The
+setting turned on and off, and kept by an unrelated edit. The migration run
+twice and against a table without the column. The web app's 24 suites, and it
+builds. On the dev stack, signed out: the three lists of a profile with 1,341
+replies, a reply's `root`, and the new routes refusing a visitor. Nothing
+signed in, and nothing in a browser, by me.
+

@@ -9,11 +9,15 @@ import "proto/graphpb/node.proto";
 
 message FeedActorCountRequest {
     int64 actor_id = 1;
-    bool include_comments = 2;
+    // 2 was include_comments.
+    reserved 2;
     bool include_reposts = 3;
     bool include_liked = 4;
     repeated string medium_entity_types = 5;
     Viewer viewer = 6;
+    // Which of the profile's lists: "posts" (also what empty means),
+    // "replies" or "reposts". See constants.FeedFilter*.
+    string filter = 7;
 }
 
 message FeedActorCountResponse {
@@ -22,13 +26,16 @@ message FeedActorCountResponse {
 
 message FeedActorBrowseRequest {
     int64 actor_id = 1;
-    bool include_comments = 2;
+    // 2 was include_comments.
+    reserved 2;
     bool include_reposts = 3;
     bool include_liked = 4;
     repeated string medium_entity_types = 5;
     uint64 limit = 6;
     uint64 offset = 7;
     Viewer viewer = 8;
+    // As on FeedActorCountRequest.
+    string filter = 9;
 }
 
 message FeedActorBrowseResponse {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
@@ -156,43 +157,22 @@ func (h *likeHandler) Add(c echo.Context) error {
 	go func() {
 		entityName := strings.Split(node.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatEdgeVoteupAdded, entityName)
-		if node.IsComment() {
-			payload := &event.EventPayload{
-				Name:             routing_key,
-				SourceService:    constants.ConfigServiceName,
-				OwnerID:          node.Author.ID,
-				SubjectID:        viewer.ID,
-				ObjectID:         node.ID,
-				TargetID:         node.Parent.Author.ID,
-				ViewerID:         viewer.ID,
-				ViewerPersonType: viewer.PersonType,
-			}
-			h.Publisher.Publish(payload, routing_key)
-		} else {
-			payload := &event.EventPayload{
-				Name:             routing_key,
-				SourceService:    constants.ConfigServiceName,
-				OwnerID:          node.Author.ID,
-				SubjectID:        viewer.ID,
-				ObjectID:         node.ID,
-				TargetID:         node.Author.ID,
-				ViewerID:         viewer.ID,
-				ViewerPersonType: viewer.PersonType,
-			}
-			h.Publisher.Publish(payload, routing_key)
+		payload := &event.EventPayload{
+			Name:             routing_key,
+			SourceService:    constants.ConfigServiceName,
+			OwnerID:          node.Author.ID,
+			SubjectID:        viewer.ID,
+			ObjectID:         node.ID,
+			TargetID:         node.Author.ID,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
+		h.Publisher.Publish(payload, routing_key)
 	}()
 
-	var resp any
-	if node.IsComment() {
-		nodeResp := &responses.CommentResponse{}
-		resp = nodeResp.MapCommentItem(node)
-	} else {
-		nodeResp := &responses.MediumNodeResponse{}
-		resp = nodeResp.MapMediumNode(node)
-	}
+	nodeResp := &responses.MediumNodeResponse{}
 
-	return c.JSON(http.StatusCreated, resp)
+	return c.JSON(http.StatusCreated, nodeResp.MapMediumNode(node))
 }
 
 // Delete removes a like
@@ -253,85 +233,36 @@ func (h *likeHandler) Delete(c echo.Context) error {
 	go func() {
 		entityName := strings.Split(node.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatEdgeVoteupDeleted, entityName)
-		if node.IsComment() {
-			payload := &event.EventPayload{
-				Name:             routing_key,
-				SourceService:    constants.ConfigServiceName,
-				OwnerID:          node.Author.ID,
-				SubjectID:        viewer.ID,
-				ObjectID:         node.ID,
-				TargetID:         node.Parent.Author.ID,
-				ViewerID:         viewer.ID,
-				ViewerPersonType: viewer.PersonType,
-			}
-			h.Publisher.Publish(payload, routing_key)
-		} else {
-			payload := &event.EventPayload{
-				Name:             routing_key,
-				SourceService:    constants.ConfigServiceName,
-				OwnerID:          node.Author.ID,
-				SubjectID:        viewer.ID,
-				ObjectID:         node.ID,
-				TargetID:         node.Author.ID,
-				ViewerID:         viewer.ID,
-				ViewerPersonType: viewer.PersonType,
-			}
-			h.Publisher.Publish(payload, routing_key)
+		payload := &event.EventPayload{
+			Name:             routing_key,
+			SourceService:    constants.ConfigServiceName,
+			OwnerID:          node.Author.ID,
+			SubjectID:        viewer.ID,
+			ObjectID:         node.ID,
+			TargetID:         node.Author.ID,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
+		h.Publisher.Publish(payload, routing_key)
 	}()
 
-	var resp any
-	if node.IsComment() {
-		nodeResp := &responses.CommentResponse{}
-		resp = nodeResp.MapCommentItem(node)
-	} else {
-		nodeResp := &responses.MediumNodeResponse{}
-		resp = nodeResp.MapMediumNode(node)
-	}
+	nodeResp := &responses.MediumNodeResponse{}
 
-	return c.JSON(http.StatusOK, resp)
+	return c.JSON(http.StatusOK, nodeResp.MapMediumNode(node))
 }
 
-// onAfterFetched is called after fetching a comment
+// onAfterFetched answers what the viewer may do with what they liked.
 func (h *likeHandler) onAfterFetched(c echo.Context, node *entities.AnahitaNode) error {
-	if node.IsComment() {
-		h.onAfterFetchedComment(c, node)
-	} else {
-		h.onAfterFetchedMedium(c, node)
-	}
-
-	return nil
-}
-
-// onAfterFetchedComment sets access context for a comment node
-func (h *likeHandler) onAfterFetchedComment(c echo.Context, node *entities.AnahitaNode) error {
 	var (
 		err    error
 		viewer = getViewer(c)
 	)
 
-	commentAccessCtx, err := h.getCommentAccessContext(node, viewer)
-	if err != nil {
-		return err
+	// A reply's answers come from its thread, as text-service gives them.
+	// readLikeTarget has loaded the post at the top as its Parent.
+	if node.RootID > 0 {
+		return h.onAfterFetchedReply(node, viewer)
 	}
-
-	node.Authorized.Edit, _ = h.Perms.Comments.CanEdit(commentAccessCtx)
-	node.Authorized.Delete, _ = h.Perms.Comments.CanDelete(commentAccessCtx)
-	node.Authorized.Administration, _ = h.Perms.Comments.CanAdministrate(commentAccessCtx)
-
-	// The web app replaces the comment with this response, so it carries the
-	// same answer comment-service gives: may the viewer like it.
-	commentFlags(node, viewer, commentAccessCtx.ParentOwnerViewerRel)
-
-	return err
-}
-
-// onAfterFetchedMedium sets access context for a medium node
-func (h *likeHandler) onAfterFetchedMedium(c echo.Context, node *entities.AnahitaNode) error {
-	var (
-		err    error
-		viewer = getViewer(c)
-	)
 
 	mediumAccessCtx, err := h.getMediumAccessContext(node, viewer)
 	if err != nil {
@@ -347,4 +278,37 @@ func (h *likeHandler) onAfterFetchedMedium(c echo.Context, node *entities.Anahit
 	postFlags(node, viewer, mediumAccessCtx.OwnerViewerRel)
 
 	return err
+}
+
+// onAfterFetchedReply answers what the viewer may do with a reply, by the
+// rules for the thread it is in.
+func (h *likeHandler) onAfterFetchedReply(reply *entities.AnahitaNode, viewer *entities.Viewer) error {
+	root := reply.GetParent()
+	if root == nil || root.GetID() == 0 {
+		return nil
+	}
+
+	rels, err := h.Srv.SocialgraphGRPC.Browse([]int64{root.GetOwnerID()}, viewer.ID)
+	if err != nil {
+		return err
+	}
+
+	ctx := &permissions.ReplyAccessContext{
+		Viewer:             viewer,
+		Reply:              reply,
+		Root:               root,
+		RootOwnerViewerRel: rels[root.GetOwnerID()],
+	}
+
+	hide := permissions.CanHideReply(ctx)
+	canReply := permissions.CanReply(ctx)
+	like := permissions.CanLikeReply(ctx)
+
+	reply.Authorized.Edit = permissions.CanEditReply(ctx)
+	reply.Authorized.Delete = permissions.CanDeleteReply(ctx)
+	reply.Authorized.Hide = &hide
+	reply.Authorized.Comment = &canReply
+	reply.Authorized.Like = &like
+
+	return nil
 }

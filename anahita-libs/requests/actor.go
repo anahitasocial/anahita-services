@@ -139,3 +139,18 @@ type ActorAddRequest struct {
 type ActorDeleteRequest struct {
 	ID int64 `param:"id" validate:"required,numeric"`
 }
+
+// ActorEditRepostsOnProfileRequest says whether what a person reposts is
+// also shown among the posts on their profile. People only: nothing else
+// reposts.
+type ActorEditRepostsOnProfileRequest struct {
+	ID   int64 `param:"id" validate:"required,numeric"`
+	Show bool  `json:"show_reposts_on_profile" form:"show_reposts_on_profile"`
+}
+
+// PersonEditQuotePolicyRequest says who may quote a person's posts, for the
+// posts that do not say themselves.
+type PersonEditQuotePolicyRequest struct {
+	ID          int64  `param:"id" validate:"required,numeric"`
+	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"required,max=16"`
+}

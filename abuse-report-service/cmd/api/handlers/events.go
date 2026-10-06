@@ -15,7 +15,7 @@ type eventsHandler struct {
 // nothing left to decide about something that no longer exists. When the node
 // was a person, the reports that person filed are removed as well.
 //
-// Posts and comments are gone the moment they are deleted. A person or a
+// Posts and replies are gone the moment they are deleted. A person or a
 // group is not: deleting one starts a 30-day wait during which it can be
 // restored, so its case stays open until it is purged.
 //

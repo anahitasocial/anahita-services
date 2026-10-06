@@ -48,6 +48,17 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	}
 
 	query = query.Set("comment_status", node.CommentStatus)
+	// Left as it is unless a value is given. "Whoever the profile lets
+	// reply" is given as the word "anyone", so it can be set back.
+	if node.ReplyAccess != "" {
+		query = query.Set("reply_access", node.ReplyAccess)
+	}
+	// The same: left as it is unless a value is given, and "anyone" is how
+	// it is set back. What a note quotes is set once, when it is made, and
+	// is not written here at all.
+	if node.QuotePolicy != "" {
+		query = query.Set("quote_policy", node.QuotePolicy)
+	}
 	query = query.Set("comment_count", node.CommentCount)
 	query = query.Set("enabled", node.Enabled)
 	query = query.Set("verified", node.Verified)
@@ -55,7 +66,9 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	// person_type is deliberately not here: it is an authority level, not a
 	// profile field. See applyEditableActorFields.
 	query = query.Set("person_pronouns", node.PersonPronouns)
-	query = query.Set("pinned", node.Pinned)
+	// Not pinned: a post is pinned and unpinned through PinsRepo, which
+	// keeps the limit and the date. An edit used to write the flag from
+	// whatever it carried.
 
 	if node.Meta != nil {
 		query = query.Set("meta", node.Meta)
@@ -107,6 +120,9 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	if node.AllowFollowRequest {
 		query = query.Set("allow_follow_request", node.AllowFollowRequest)
 	}
+	// Written whichever way it is, so that it can be turned off again. An
+	// edit of anything else carries what was read, and leaves it as it was.
+	query = query.Set("show_reposts_on_profile", node.ShowRepostsOnProfile)
 	if node.Excerpt != "" {
 		query = query.Set("excerpt", node.Excerpt)
 	}

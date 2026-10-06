@@ -44,11 +44,9 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `photo-service` | 8085 | — | Photos |
 | `hashtag-service` | 8086 | — | Hashtags |
 | `location-service` | 8087 | — | Locations and geocoding |
-| `story-service` | 8090 | — | Stories |
 | `notification-service` | 8091 | 50057 | Notifications |
 | `socialgraph-service` | 8092 | — | Follow, block, subscribe relationships |
 | `search-service` | 8093 | — | Search |
-| `comment-service` | 8094 | — | Comments |
 | `like-service` | 8095 | 50058 | Votes / likes |
 | `identity-image-service` | 8096 | — | The avatars and covers of profiles and posts; see [Naming images](#naming-images) |
 | `feed-service` | 8098 | 50059 | Feeds and reposts |
@@ -79,11 +77,9 @@ Kubernetes, where the Ingress sends everything to it
 | `/people/`, `/groups/` | `actor-service` |
 | `/photos/` | `photo-service` |
 | `/avatars/`, `/covers/` | `identity-image-service` |
-| `/comments/` | `comment-service` |
 | `/likes/` | `like-service` |
 | `/hashtags/` | `hashtag-service` |
 | `/locations/` | `location-service` |
-| `/stories/` | `story-service` |
 | `/feeds/`, `/reposts/` | `feed-service` |
 | `/notifications/` | `notification-service` |
 | `/abuse-reports` | `abuse-report-service` |
@@ -100,6 +96,122 @@ A list of posts is always one profile's: `GET /notes/<owner id>/`, and the same
 for `/articles/`, `/topics/` and `/photos/`. There is no list of every post of
 a type across the site, and a request without an owner is refused. Posts are
 discovered through feeds, search, hashtags and profiles.
+
+### No stories
+
+There is no story service and there are no stories, and nothing records who
+looked at what. A story service existed as a stub and was removed; so, after
+being built, was a row of "who posted lately" on the home page, which a new
+installation with few people on it has no use for yet. What may come later is
+in the web app's roadmap, under Kept for later.
+
+### Pinned posts
+
+`nodes.pinned` says a post is pinned to the profile it is on, and
+`nodes.pinned_at` when, which is the order pins are shown in. A profile's
+posts (`GET /feeds/actor/<id>/`) and its lists of one kind
+(`GET /notes/<owner id>/` and the like) are led by what is pinned: one
+ordering over the whole list, so a pinned post is on the first page and on no
+other. A profile has `constants.MaxPinnedPosts`, one. The rules are in
+[Permissions](permissions.md#pinned-posts).
+
+An ordinary edit of a post neither pins nor unpins it. That is done through
+the pin routes alone, which keep the limit and the date.
+
+### Quote posts
+
+A quote is a note with `quote_id`, the post it quotes. Nothing else about it
+is different from a note: it is made with `POST /notes/<owner id>/`, listed in
+feeds and on profiles as a note, and gated as one. The rules are in
+[Permissions](permissions.md#quotes).
+
+| On `nodes` | Holds |
+| --- | --- |
+| `quote_id` | On the quoting note: the post it quotes. Set once, when the note is made |
+| `quote_detached_at` | On the quoting note: when the quoted post's author took their post out |
+| `quote_policy` | Who may quote: on a post, that post; on a person, their posts when a post does not say |
+| `quote_count` | On the quoted post: the notes that still quote it. Counted over the rows, on every quote, removal and detach, and after a purge |
+
+- **A note that quotes is sent `quote`**: `{ "post": … }` when the reader may
+  see the quoted post, or `{ "state": "unavailable" | "detached" }`. Each
+  service that sends notes fills it in with `handlers.SetQuotes`, which first
+  asks the graph which of the quoted posts this reader may see
+  (`FilterVisible`, the gate every listing uses) and reads only those.
+  Reading one post through the graph checks nothing: it is the filter that
+  decides. A response whose handler
+  did not look the post up carries `quote_id` and no `quote` at all.
+- **`authorized.quote`** on a post says whether the viewer may quote it. In a
+  list it is exact for a post on its author's own profile; for a post
+  somebody wrote in a group it does not know the author's own setting, and
+  making the quote asks again with everything.
+- **Routes**: `PATCH /{articles,notes,topics,photos}/<id>/quote-policy`,
+  `PATCH /people/<id>/quote-policy`, `DELETE /notes/<id>/quote`, and
+  `GET /notes/<id>/quotes` for the notes that quote a post.
+
+### Saved posts
+
+Somebody can save a post, of any kind, to find it again: `PUT` and
+`DELETE /bookmarks/<id>`, and `GET /bookmarks/` for their own list, most
+recently saved first. A post they have saved carries `is_saved_by_viewer`.
+
+- **Private.** A saved post is an edge from the person to the post
+  (`edge.base.bookmark.v1`), and every question about it is asked with the
+  asker's own id. Nobody can ask what somebody else saved or who saved a
+  post; nothing is counted on the post, no event is published, and its author
+  is not told.
+- **Saving does not keep a post open.** The list goes through the gate a post
+  is read through. A post saved while public and since made private, or whose
+  author has since blocked the person, is left out, and is back if it is
+  opened up again. It can always be taken out of the list.
+- **No folders.** One list.
+
+### A post's activity
+
+Who liked a post, reposted it, quoted it and replied to it is four lists
+that already exist or follow from what does:
+
+| List | From |
+| --- | --- |
+| Likes | `GET /likes/<id>/` |
+| Reposts | `GET /reposts/<id>/` |
+| Quotes | `GET /notes/<id>/quotes` |
+| Replies | `GET /notes/<id>/thread` |
+
+Each is for anybody who can see the post, and each lists only the people and
+notes that reader may see, so a list can be shorter than the count on the
+post. There is no count of views and no list of who looked: nothing records
+that. The plan that had both (`plans/post-insights.md`) was set aside for
+this.
+
+### A profile's three lists
+
+`GET /feeds/actor/<actor id>/` is everything a profile shows, in one of three
+lists chosen with `filter`. Replies and reposts are a person's: only people
+reply and repost, so for a group or any other kind of actor the last two are
+empty.
+
+| `filter` | Holds |
+| --- | --- |
+| `posts` (the default) | What was posted on the profile. Also what its owner reposted, when they have asked for that. Not replies |
+| `replies` | The replies its owner wrote, wherever the threads are. Each is sent with what it answers as `parent`, and with `root`: the post at the top of its thread and, as `root.owner`, the profile that thread is on |
+| `reposts` | What its owner reposted, and nothing else. Each is sent with the post it reposts as `parent`, with that post's author, owner and date |
+
+- **Reposts are not among the posts unless the profile asks for it.** The
+  choice is kept on the actor as `show_reposts_on_profile`, off until somebody
+  turns it on, and changed with `PATCH /people/<id>/reposts-on-profile` by
+  whoever may edit the profile. There is no such route for a group. A
+  caller cannot ask for them: the feed reads the profile and decides.
+  The choice is about the profile only. Followers are sent reposts in their
+  own feeds either way, and the list of reposts always has them.
+- **A reply is listed only to somebody who can see the post at the top of its
+  thread**, like everywhere else a reply turns up. Not one that was removed,
+  and not one that was hidden from its thread.
+- **On a site that shows visitors a preview**, the list of replies answers a
+  visitor 401 `members_only`: replies are not part of a preview.
+
+A reply read on its own (`GET /notes/<id>`) carries `root` too, with its
+owner, so a page can say what it is a reply to and whose profile it is on. The
+thread is the root's: `GET /notes/<root id>/thread`.
 
 A photo post holds up to four images, each uploaded in a request of its own
 and kept in `photo_files`, a table beside the post. How that works, and what

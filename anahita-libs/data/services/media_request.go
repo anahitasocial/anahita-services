@@ -29,4 +29,6 @@ type MediaGRPCBrowseRequest struct {
 	Disabled  bool     `validate:"omitempty"`
 	// Required, for the reason given on requests.MediumBrowseRequest.
 	OwnerID int64 `validate:"required,min=1"`
+	// Replies are left out of a list of posts unless this is set.
+	IncludeReplies bool `validate:"omitempty"`
 }

@@ -89,6 +89,8 @@ func (h *feedActorHandler) Browse(ctx context.Context, req *graphpb.FeedActorBro
 		}
 	}
 
+	markSaved(h.env, viewer.ID, results)
+
 	return &graphpb.FeedActorBrowseResponse{
 		Nodes: nodesToGrpc(results),
 	}, nil

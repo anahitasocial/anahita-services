@@ -17,6 +17,10 @@ func NewRepositories(db *sql.DB) *Repositories {
 		PhotoFiles:        NewPhotoFilesRepo(db),
 		PublicAccess:      NewPublicAccessRepo(db),
 		PurgeRequests:     NewPurgeRequestsRepo(db),
+		Replies:           NewRepliesRepo(db),
+		Quotes:            NewQuotesRepo(db),
+		Pins:              NewPinsRepo(db),
+		Bookmarks:         NewBookmarksRepo(db),
 		Reposts:           NewRepostsRepo(db),
 		Search:            NewSearchRepo(db),
 		SocialgraphRel:    NewSocialgraphRelRepo(db),
@@ -37,6 +41,10 @@ type Repositories struct {
 	PhotoFiles        PhotoFilesRepoInterface
 	PublicAccess      PublicAccessRepoInterface
 	PurgeRequests     PurgeRequestsRepoInterface
+	Replies           RepliesRepoInterface
+	Quotes            QuotesRepoInterface
+	Pins              PinsRepoInterface
+	Bookmarks         BookmarksRepoInterface
 	Reposts           RepostsRepoInterface
 	Search            SearchRepoInterface
 	SocialgraphRel    SocialgraphRelInterface

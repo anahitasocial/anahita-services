@@ -34,17 +34,6 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 	}
 
-	// Comment node events
-	if strings.Contains(payload.Name, "node.comment.") {
-		if strings.Contains(payload.Name, ".edited.") {
-			err = h.eventFormatNodeCommentEdited(payload)
-		} else if strings.Contains(payload.Name, ".added.v1") {
-			err = h.eventFormatNodeCommentAdded(payload)
-		} else if strings.Contains(payload.Name, ".deleted.v1") {
-			err = h.eventFormatNodeCommentDeleted(payload)
-		}
-	}
-
 	// Repost node events
 	if strings.Contains(payload.Name, "node.repost.") {
 		if strings.Contains(payload.Name, ".added.v1") {

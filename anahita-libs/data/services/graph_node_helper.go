@@ -56,6 +56,11 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.CoverFilename = m.CoverFilename
 	n.Filename = m.Filename
 	n.AvatarFilename = m.AvatarFilename
+	n.RootID = m.RootId
+	n.ReplyAccess = m.ReplyAccess
+	n.QuotePolicy = m.QuotePolicy
+	n.QuoteID = m.QuoteId
+	n.QuoteDetached = m.QuoteDetached
 	n.Meta = rawJSON(m.Meta)
 	n.EdgeCount = m.EdgeCount
 
@@ -99,6 +104,7 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 
 	// Viewer interaction flags
 	n.IsLikedByViewer = m.IsLikedByViewer
+	n.IsSavedByViewer = m.IsSavedByViewer
 	n.IsSubscribedByViewer = m.IsSubscribedByViewer
 	n.IsRepostedByViewer = m.IsRepostedByViewer
 	n.IsFollowingViewer = m.IsFollowingViewer
@@ -118,6 +124,7 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.ParentID = m.ParentId
 	n.ParentType = m.ParentType
 	n.AllowFollowRequest = m.AllowFollowRequest
+	n.ShowRepostsOnProfile = m.ShowRepostsOnProfile
 	n.CreatedBy = m.CreatedBy
 	n.ModifiedBy = m.ModifiedBy
 	n.Mimetype = m.Mimetype
@@ -248,6 +255,11 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Excerpt:              node.Excerpt,
 		Filename:             node.Filename,
 		AvatarFilename:       node.AvatarFilename,
+		RootId:               node.RootID,
+		ReplyAccess:          node.ReplyAccess,
+		QuotePolicy:          node.QuotePolicy,
+		QuoteId:              node.QuoteID,
+		QuoteDetached:        node.QuoteDetached,
 		CoverFilename:        node.CoverFilename,
 		Meta:                 string(node.Meta),
 		CreatedAt:            timestamppb.New(node.CreatedAt),
@@ -259,6 +271,7 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		CommentCount:         node.CommentCount,
 		LikesCount:           node.LikesCount,
 		IsLikedByViewer:      node.IsLikedByViewer,
+		IsSavedByViewer:      node.IsSavedByViewer,
 		RepostCount:          node.RepostCount,
 		QuoteCount:           node.QuoteCount,
 		IsSubscribedByViewer: node.IsSubscribedByViewer,
@@ -268,6 +281,7 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		IsAdminedByViewer:    node.IsAdminedByViewer,
 		IsBlockedByViewer:    node.IsBlockedByViewer,
 		AllowFollowRequest:   node.AllowFollowRequest,
+		ShowRepostsOnProfile: node.ShowRepostsOnProfile,
 		StartsAt:             timestamppb.New(node.StartsAt),
 		EndsAt:               timestamppb.New(node.EndsAt),
 		OwnerType:            node.OwnerType,

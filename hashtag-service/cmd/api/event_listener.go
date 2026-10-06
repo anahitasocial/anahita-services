@@ -22,7 +22,6 @@ func startEventListerner(h *handlers.Handlers, config *config.Config) error {
 	topics := []string{
 		"node.medium.*.*.*.v1",
 		"node.actor.*.*.*.v1",
-		"node.comment.*.*.v1",
 	}
 	if err = cosumer.Listen(topics, h.Hashtag.HandleEvents); err != nil {
 		return err

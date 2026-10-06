@@ -31,8 +31,10 @@ func TestPublicAccessIsCountedAndMadeRegistered(t *testing.T) {
 		 (12,` + note + `,'n12','n12','public',1,NOW(),NOW()),
 		 (13,` + note + `,'n13','n13','myself',1,NOW(),NOW()),
 		 (14,'node.base.text-service.article-revision.v1','text-service','r14','r14','public',1,NOW(),NOW()),
-		 (20,'node.base.comment-service.comment.v1','comment-service','c20','c20','',1,NOW(),NOW()),
+		 (20,` + note + `,'c20','c20','',1,NOW(),NOW()),
 		 (30,'node.tag.hashtag-service.hashtag.v1','hashtag-service','seeds','seeds','public',1,NOW(),NOW())`,
+		// A reply to the first note.
+		`UPDATE nodes SET root_id = 10, parent_id = 10 WHERE id = 20`,
 		`UPDATE nodes SET updated_at = '2020-01-01 00:00:00'`,
 	} {
 		if _, err := db.Exec(stmt); err != nil {
@@ -72,7 +74,7 @@ func TestPublicAccessIsCountedAndMadeRegistered(t *testing.T) {
 		1: "registered", 8: "registered", 10: "registered", 14: "registered",
 		// What was narrower stays as it was.
 		3: "followers", 9: "admins", 13: "myself",
-		// A comment says nothing of its own; it follows its post.
+		// A reply says nothing of its own; it follows its post.
 		20: "",
 		// A tag is nobody's content.
 		30: "public",

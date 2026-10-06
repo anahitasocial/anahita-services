@@ -13,7 +13,6 @@ func NewFeedActorRequest() *FeedActorRequest {
 	return &FeedActorRequest{
 		Browse: &FeedActorBrowseRequest{
 			MediumEntityTypes: []string{},
-			IncludeComments:   false,
 			IncludeLiked:      false,
 			IncludeReposts:    true,
 			ActorID:           0,
@@ -22,7 +21,6 @@ func NewFeedActorRequest() *FeedActorRequest {
 		},
 		Count: &FeedActorCountRequest{
 			MediumEntityTypes: []string{},
-			IncludeComments:   false,
 			IncludeLiked:      false,
 			IncludeReposts:    true,
 			ActorID:           0,
@@ -31,7 +29,8 @@ func NewFeedActorRequest() *FeedActorRequest {
 }
 
 type FeedActorBrowseRequest struct {
-	IncludeComments   bool
+	// Which of the profile's lists. See constants.FeedFilter*.
+	Filter            string
 	IncludeLiked      bool
 	IncludeReposts    bool
 	MediumEntityTypes []string
@@ -41,7 +40,8 @@ type FeedActorBrowseRequest struct {
 }
 
 type FeedActorCountRequest struct {
-	IncludeComments   bool
+	// Which of the profile's lists. See constants.FeedFilter*.
+	Filter            string
 	IncludeLiked      bool
 	IncludeReposts    bool
 	MediumEntityTypes []string

@@ -173,12 +173,12 @@ func TestBlockingIsSymmetric(t *testing.T) {
 	}
 }
 
-func visibleComments(t *testing.T, db *sql.DB, viewer *entities.Viewer) map[int64]bool {
+func visibleReplies(t *testing.T, db *sql.DB, viewer *entities.Viewer) map[int64]bool {
 	t.Helper()
 
 	base := sq.Select("node.id").From("nodes AS node").
 		LeftJoin("nodes AS owner ON node.owner_id = owner.id").
-		Where(sq.Eq{"node.type": "node.base.comment-service.comment.v1"})
+		Where("node.root_id IS NOT NULL")
 
 	query, args, err := SetMediumAccessQuery(base, viewer).ToSql()
 	if err != nil {
@@ -202,22 +202,23 @@ func visibleComments(t *testing.T, db *sql.DB, viewer *entities.Viewer) map[int6
 	return visible
 }
 
-// Comments are stored as comment-service writes them — access ” and no owner
-// — and are visible to whoever can see the post they sit under.
+// Replies are stored with no audience of their own, owned by whoever wrote
+// them, and are visible to whoever can see the post they are under.
 //
-// Gated like posts, every one failed the node gate on its empty access, and
-// nobody but site administrators saw any comment at all.
-func TestCommentsFollowTheirPost(t *testing.T) {
+// These were comments once, and the cases are the ones that guarded them:
+// gated like posts, every one failed on its empty access, and nobody but
+// site administrators saw any at all.
+func TestRepliesFollowTheirPost(t *testing.T) {
 	db := accessTestDB(t)
 	seedAccessFixture(t, db)
 
 	for _, stmt := range []string{
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_at,updated_at) VALUES
 		 (4,'node.actor.person-service.person.v1','person-service','Carol','carol','public',1,NOW(),NOW())`,
-		`INSERT INTO nodes (id,type,service,body,access,enabled,parent_id,created_by,created_at,updated_at) VALUES
-		 (30,'node.base.comment-service.comment.v1','comment-service','on a public post','',1,12,1,NOW(),NOW()),
-		 (31,'node.base.comment-service.comment.v1','comment-service','on a private post','',1,20,1,NOW(),NOW()),
-		 (32,'node.base.comment-service.comment.v1','comment-service','by a blocked person','',1,12,2,NOW(),NOW())`,
+		`INSERT INTO nodes (id,type,service,body,access,enabled,parent_id,root_id,owner_id,owner_type,created_by,created_at,updated_at) VALUES
+		 (30,'node.medium.text-service.note.v1','text-service','on a public post','',1,12,12,1,'node.actor.person-service.person.v1',1,NOW(),NOW()),
+		 (31,'node.medium.text-service.note.v1','text-service','on a private post','',1,20,20,1,'node.actor.person-service.person.v1',1,NOW(),NOW()),
+		 (32,'node.medium.text-service.note.v1','text-service','by a blocked person','',1,12,12,2,'node.actor.person-service.person.v1',2,NOW(),NOW())`,
 	} {
 		if _, err := db.Exec(stmt); err != nil {
 			t.Fatalf("seed: %v\n%s", err, stmt)
@@ -241,17 +242,17 @@ func TestCommentsFollowTheirPost(t *testing.T) {
 	}{
 		{4, 30, true, "anybody signed in, on a public post"},
 		{4, 31, false, "not on a post only its owner can see"},
-		{4, 32, true, "a comment by somebody the viewer has not blocked"},
+		{4, 32, true, "a reply by somebody the viewer has not blocked"},
 		{1, 31, true, "the post's owner, on their own private post"},
-		{1, 32, false, "a comment by somebody the viewer has blocked"},
+		{1, 32, false, "a reply by somebody the viewer has blocked"},
 		{0, 30, true, "a guest, on a public post"},
 		{0, 31, false, "a guest, not on a private post"},
 	}
 
 	for _, c := range cases {
 		t.Run(c.what, func(t *testing.T) {
-			if got := visibleComments(t, db, viewer(c.viewer))[c.id]; got != c.want {
-				t.Errorf("comment %d as viewer %d: visible=%v, want %v", c.id, c.viewer, got, c.want)
+			if got := visibleReplies(t, db, viewer(c.viewer))[c.id]; got != c.want {
+				t.Errorf("reply %d as viewer %d: visible=%v, want %v", c.id, c.viewer, got, c.want)
 			}
 		})
 	}
@@ -270,12 +271,12 @@ const (
 	repostOfFollowers = 50
 	repostOfPublic    = 51
 
-	commentOnFollowers = 60
-	commentOnPublic    = 61
+	replyOnFollowers = 60
+	replyOnPublic    = 61
 )
 
 // seedFeedFixture: Bob posts at four access levels on his own profile. Carol
-// follows Bob, and reposts and comments on his posts. Dave follows Carol but
+// follows Bob, and reposts and replies to his posts. Dave follows Carol but
 // not Bob, so anything of Bob's that reaches Dave reaches him through Carol.
 // Alice follows nobody and wrote a private post into a group.
 func seedFeedFixture(t *testing.T, db *sql.DB) {
@@ -302,13 +303,13 @@ func seedFeedFixture(t *testing.T, db *sql.DB) {
 		 (43,` + note + `,'mutuals','n43','mutuals',1,2,2,NOW(),NOW()),
 		 (44,` + note + `,'alice, admins only, in a group','n44','admins',1,3,1,NOW(),NOW())`,
 		// Reposts are owned by the reposter and carry a copy of the original's
-		// access; comments have no owner and an empty access.
+		// access; replies are owned by whoever wrote them and have none.
 		`INSERT INTO nodes (id,type,service,alias,access,enabled,owner_id,parent_id,created_by,created_at,updated_at) VALUES
 		 (50,'node.base.repost-service.repost.v1','feed-service','n41','followers',1,4,41,4,NOW(),NOW()),
 		 (51,'node.base.repost-service.repost.v1','feed-service','n40','public',1,4,40,4,NOW(),NOW())`,
-		`INSERT INTO nodes (id,type,service,body,access,enabled,parent_id,created_by,created_at,updated_at) VALUES
-		 (60,'node.base.comment-service.comment.v1','comment-service','on the followers post','',1,41,4,NOW(),NOW()),
-		 (61,'node.base.comment-service.comment.v1','comment-service','on the public post','',1,40,4,NOW(),NOW())`,
+		`INSERT INTO nodes (id,type,service,body,access,enabled,parent_id,root_id,owner_id,owner_type,created_by,created_at,updated_at) VALUES
+		 (60,` + note + `,'on the followers post','',1,41,41,4,'node.actor.person-service.person.v1',4,NOW(),NOW()),
+		 (61,` + note + `,'on the public post','',1,40,40,4,'node.actor.person-service.person.v1',4,NOW(),NOW())`,
 		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
 		 ('edge.actor.follow.v1',4,` + "'node.actor.person-service.person.v1'" + `,2,` + "'node.actor.person-service.person.v1'" + `,NOW()),
 		 ('edge.actor.follow.v1',5,` + "'node.actor.person-service.person.v1'" + `,4,` + "'node.actor.person-service.person.v1'" + `,NOW())`,
@@ -405,13 +406,14 @@ func TestActorFeedHonoursAPostsOwnAccess(t *testing.T) {
 	})
 }
 
-// The home feed carries the leaders' posts, their reposts and their comments.
-// Each is shown only when the viewer may see the post underneath it.
+// The home feed carries the leaders' posts and their reposts, each shown only
+// when the viewer may see the post underneath it. It carries no replies:
+// those are read in their thread.
 //
 // A repost used to be judged by the original's access, but with "is the viewer
 // a follower" asked of the reposter. Following the reposter was enough to see
 // a followers-only post by somebody the viewer did not follow.
-func TestLeadersFeedJudgesRepostsAndCommentsByTheirPost(t *testing.T) {
+func TestLeadersFeedJudgesRepostsByTheirPostAndLeavesRepliesOut(t *testing.T) {
 	db := accessTestDB(t)
 	seedFeedFixture(t, db)
 	repo := NewFeedLeadersRepo(db)
@@ -420,7 +422,6 @@ func TestLeadersFeedJudgesRepostsAndCommentsByTheirPost(t *testing.T) {
 		req := &graphpb.FeedLeadersBrowseRequest{
 			MediumEntityTypes: feedNoteTypes,
 			IncludeReposts:    true,
-			IncludeComments:   true,
 			Limit:             50,
 		}
 		nodes, err := repo.Browse(req, feedViewer(viewer))
@@ -436,8 +437,9 @@ func TestLeadersFeedJudgesRepostsAndCommentsByTheirPost(t *testing.T) {
 		// Dave follows Carol, not Bob.
 		{daveID, repostOfPublic, true, "a repost of a public post reaches the reposter's follower"},
 		{daveID, repostOfFollowers, false, "a repost of a followers-only post does not reach somebody who does not follow its author"},
-		{daveID, commentOnPublic, true, "a leader's comment on a public post"},
-		{daveID, commentOnFollowers, false, "a leader's comment on a post the viewer cannot see"},
+		{daveID, replyOnPublic, false, "a leader's reply, even to a public post"},
+		{daveID, replyOnFollowers, false, "a leader's reply to a post the viewer cannot see"},
+		{carolID, replyOnPublic, false, "the viewer's own reply"},
 
 		// Carol follows Bob.
 		{carolID, notePublic, true, "a leader's public post"},

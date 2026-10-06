@@ -378,45 +378,6 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.16
 
-# story-service - handles stories
-  story-service:
-    build:
-      context: .
-      dockerfile: ./dockerfiles/story-service.dockerfile
-    restart: always
-    ports:
-      - "8090:80"
-    depends_on:
-      - file-grpc-service
-      - graph-grpc-service
-    deploy:
-      mode: replicated
-      replicas: 1
-    environment:
-      ENV: ${ENV}
-      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
-      GRPC_TLS: ${GRPC_TLS:-on}
-      # What the installation lets people who are not signed in see, and
-      # whether anything new may be public. The same for every service; see
-      # docs/configuration.md, Privacy of the installation.
-      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
-      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
-      DSN: ${DSN}
-      AMQP_ADDR: ${AMQP_ADDR}
-      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
-      FILE_SERVICE_ADDR: "file-grpc-service:50051"
-      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
-      OAUTH_ISSUER: ${OAUTH_ISSUER}
-      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
-    volumes:
-      - ./grpc-certs:/run/secrets/grpc:ro
-    networks:
-      anahita-network:
-        ipv4_address: 172.20.1.19
-
 # notification-service - handles notifications
   notification-service:
     build:
@@ -532,45 +493,6 @@ services:
     networks:
       anahita-network:
         ipv4_address: 172.20.1.22
-
-# comment-service - handles comments
-  comment-service:
-    build:
-      context: .
-      dockerfile: ./dockerfiles/comment-service.dockerfile
-    restart: always
-    ports:
-      - "8094:80"
-    depends_on:
-      - file-grpc-service
-      - graph-grpc-service
-    deploy:
-      mode: replicated
-      replicas: 1
-    environment:
-      ENV: ${ENV}
-      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
-      GRPC_TLS: ${GRPC_TLS:-on}
-      # What the installation lets people who are not signed in see, and
-      # whether anything new may be public. The same for every service; see
-      # docs/configuration.md, Privacy of the installation.
-      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
-      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
-      DSN: ${DSN}
-      AMQP_ADDR: ${AMQP_ADDR}
-      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
-      REDIS_ADDR: ${REDIS_ADDR}
-      REDIS_TLS: ${REDIS_TLS:-}
-      REDIS_PASSWORD: ""
-      FILE_SERVICE_ADDR: "file-grpc-service:50051"
-      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
-      OAUTH_ISSUER: ${OAUTH_ISSUER}
-      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
-    volumes:
-      - ./grpc-certs:/run/secrets/grpc:ro
-    networks:
-      anahita-network:
-        ipv4_address: 172.20.1.23
 
 # like-service - handles likes
   like-service:

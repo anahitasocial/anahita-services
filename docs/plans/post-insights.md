@@ -1,5 +1,12 @@
 # Post insights: views, replies, reposts, quotes and likes
 
+> **Set aside on 2026-10-05.** The user decided against insights: no view
+> counts, daily or otherwise. What was built instead is a **post's activity**,
+> the counts of likes, reposts, quotes and replies with who did each, from
+> lists that already existed plus `GET /notes/:id/quotes`. See
+> `docs/architecture.md`, A post's activity. This plan is kept for the
+> reasoning about views, should they ever be wanted.
+
 *Roadmap item 22, planned 2026-10-02. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
 ## Context

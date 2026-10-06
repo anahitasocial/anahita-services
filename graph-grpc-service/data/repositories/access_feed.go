@@ -31,16 +31,10 @@ func SetFeedAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.SelectB
 		return sb
 	}
 
-	derived := []string{an_const.NodeBaseCommentEntityType, an_const.NodeBaseRepostType}
-
 	return sb.Where(sq.Or{
 		sq.And{
-			sq.NotEq{"node.type": derived},
-			mediumAccessCondition(viewer),
-		},
-		sq.And{
-			sq.Eq{"node.type": an_const.NodeBaseCommentEntityType},
-			commentAccessCondition(viewer),
+			sq.NotEq{"node.type": an_const.NodeBaseRepostType},
+			postAccessCondition(viewer),
 		},
 		sq.And{
 			sq.Eq{"node.type": an_const.NodeBaseRepostType},
