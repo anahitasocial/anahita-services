@@ -107,7 +107,7 @@ lists chosen with `filter`:
 | `filter` | Holds |
 | --- | --- |
 | `posts` (the default) | What was posted on the profile, and what its owner reposted. Not replies |
-| `replies` | The replies its owner wrote, wherever the threads are. Each is sent with `root_id` and, as `parent`, what it answers |
+| `replies` | The replies its owner wrote, wherever the threads are. Each is sent with what it answers as `parent`, and with `root`: the post at the top of its thread and, as `root.owner`, the profile that thread is on |
 | `reposts` | What its owner reposted, and nothing else |
 
 - **Whether reposts are among the posts is the profile's choice**, kept on the
@@ -123,8 +123,8 @@ lists chosen with `filter`:
 - **On a site that shows visitors a preview**, the list of replies answers a
   visitor 401 `members_only`: replies are not part of a preview.
 
-A reply read on its own (`GET /notes/<id>`) carries `root`, a summary of the
-post at the top of its thread, so a page can say what it is a reply to. The
+A reply read on its own (`GET /notes/<id>`) carries `root` too, with its
+owner, so a page can say what it is a reply to and whose profile it is on. The
 thread is the root's: `GET /notes/<root id>/thread`.
 
 A photo post holds up to four images, each uploaded in a request of its own

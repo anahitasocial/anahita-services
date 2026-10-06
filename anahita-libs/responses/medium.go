@@ -172,7 +172,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		Language:           node.Language,
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
-		Root:               NewParent(node.Root),
+		Root:               NewRoot(node.Root),
 		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
 		Hidden:             node.Hidden,
 		Access:             node.Access,

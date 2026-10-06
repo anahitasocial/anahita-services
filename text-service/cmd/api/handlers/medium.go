@@ -146,6 +146,9 @@ func (h *mediumHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNod
 			// its own. Only to somebody who may see the thread.
 			if permissions.CanSeeThread(thread) {
 				item.Root = thread.Root
+				// With the profile the thread is on, whose picture has to
+				// be made ready like any other.
+				batchPresignPaths(h.Env, []*entities.AnahitaNode{thread.Root})
 			}
 		}
 		return nil

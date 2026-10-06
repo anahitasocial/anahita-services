@@ -42,7 +42,10 @@ type NodeItem struct {
 	Author *Author `json:"author,omitempty"`
 	Editor *Editor `json:"editor,omitempty"`
 	Parent *Parent `json:"parent,omitempty"`
-	Owner  *Owner  `json:"owner,omitempty"`
+	// On a reply: the post at the top of its thread, with the profile the
+	// thread is on.
+	Root  *Parent `json:"root,omitempty"`
+	Owner *Owner  `json:"owner,omitempty"`
 
 	// Media URLs
 	Avatar   map[string]Image `json:"avatar_urls,omitempty"`
@@ -106,6 +109,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 			}
 			return nil
 		}(),
+		Root: NewRoot(node.Root),
 		Owner: func() *Owner {
 			if node.Owner != nil {
 				return NewOwner(node.Owner)

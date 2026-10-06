@@ -59,3 +59,20 @@ type Parent struct {
 	IsRepostedByViewer bool             `json:"is_reposted_by_viewer,omitempty"`
 	Authorized         *NodeAuthorized  `json:"authorized,omitempty"`
 }
+
+// NewRoot is the post at the top of a reply's thread, as it is sent with a
+// reply shown away from that thread: enough to say what the reply is under,
+// and whose profile the conversation is on. A reply is owned by whoever
+// wrote it, so its own owner says nothing about where it was said.
+func NewRoot(node *entities.AnahitaNode) *Parent {
+	if node == nil {
+		return nil
+	}
+
+	dto := NewParent(node)
+	if node.Owner != nil {
+		dto.Owner = NewOwner(node.Owner)
+	}
+
+	return dto
+}

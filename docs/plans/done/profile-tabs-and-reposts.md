@@ -99,6 +99,14 @@ a note with no thread. `GET /notes/:id` of a reply now carries `root`, and the
 page shows what it answers above it and, below, the part of the thread that
 is under it. Replying there answers that reply.
 
+**Where a reply was said.** Asked for by the user once the list was in front
+of them: a reply is very often to a post on somebody else's profile or in a
+group, and the reply's own owner is its author. Every reply in the list, and
+a reply read on its own, is sent `root` with `root.owner`, the profile the
+thread is on, and it is shown above the reply. The list fills the page in a
+masonry, like the lists of notes, articles and photos, also at the user's
+asking.
+
 **Web.** Posts, Replies and Reposts are the first three tabs of a profile,
 each with an address (`/people/:id/replies`, `/groups/:id/reposts`). The
 switch is under Settings › Access for a person and in a group's Access tab.

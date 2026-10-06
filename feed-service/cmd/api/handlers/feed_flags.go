@@ -88,10 +88,13 @@ func setFeedFlags(env *Env, nodes []*entities.AnahitaNode, viewer *entities.View
 // the reply's author's profile. The roots are read here, once for the page,
 // with their owners and both relationships the rule needs.
 //
-// The roots are read without a viewer. That is safe for this and for nothing
-// else: every reply in the list has already passed the access gate, which
-// admits a reply only when the viewer may see its root, and nothing of the
-// root is sent from here.
+// Each reply is also given its root, with the profile the thread is on, to
+// be sent with it: a reply is owned by whoever wrote it, and the list has to
+// be able to say where it was said.
+//
+// The roots are read without a viewer. That is safe here and nowhere else:
+// every reply in the list has already passed the access gate, which admits a
+// reply only when the viewer may see its root.
 //
 // On any failure the answers are left unset rather than guessed.
 func setReplyFeedFlags(env *Env, replies []*entities.AnahitaNode, viewer *entities.Viewer) {
@@ -155,23 +158,38 @@ func setReplyFeedFlags(env *Env, replies []*entities.AnahitaNode, viewer *entiti
 		return
 	}
 
-	for _, reply := range replies {
-		root, ok := rootsByID[reply.RootID]
-		if !ok || reply.Authorized == nil {
-			continue
-		}
+	// The roots as they are sent, each with its owner as the actor read
+	// returned it, and the images of both made ready.
+	sent := make(map[int64]*entities.AnahitaNode, len(roots))
+	sentList := make([]*entities.AnahitaNode, 0, len(roots))
+	for _, root := range roots {
 		owner, ok := ownersByID[root.OwnerID]
 		if !ok {
 			continue
 		}
-
 		withOwner := *root
 		withOwner.Owner = owner
+		sent[root.ID] = &withOwner
+		sentList = append(sentList, &withOwner)
+	}
+	batchPresignPaths(env, sentList)
+
+	for _, reply := range replies {
+		withOwner, ok := sent[reply.RootID]
+		if !ok {
+			continue
+		}
+		reply.Root = withOwner
+
+		if reply.Authorized == nil {
+			continue
+		}
+		root := withOwner
 
 		ctx := &permissions.ReplyAccessContext{
 			Viewer:              viewer,
 			Reply:               reply,
-			Root:                &withOwner,
+			Root:                withOwner,
 			RootOwnerViewerRel:  rels[root.OwnerID],
 			RootAuthorViewerRel: rels[root.GetAuthorID()],
 		}
