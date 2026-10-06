@@ -72,7 +72,6 @@ func TestNodeRoundTripAgainstTheSchema(t *testing.T) {
 
 	note.Body = "hello again"
 	note.ViewCount = 3
-	note.Pinned = true
 	note.ModifiedBy = person.ID
 	if _, err := repo.Edit(note); err != nil {
 		t.Fatalf("edit: %v", err)
@@ -82,9 +81,9 @@ func TestNodeRoundTripAgainstTheSchema(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read: %v", err)
 	}
-	if got.Body != "hello again" || got.ViewCount != 3 || !got.Pinned {
-		t.Errorf("read back body=%q view_count=%d pinned=%v, want %q, 3, true",
-			got.Body, got.ViewCount, got.Pinned, "hello again")
+	if got.Body != "hello again" || got.ViewCount != 3 {
+		t.Errorf("read back body=%q view_count=%d, want %q, 3",
+			got.Body, got.ViewCount, "hello again")
 	}
 
 	// Who may reply was not part of that edit, and is as it was. An edit

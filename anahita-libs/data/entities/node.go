@@ -38,6 +38,8 @@ type AnahitaNodeAuthorized struct {
 	Hide *bool
 	// On a post: whether the viewer may quote it. nil when not worked out.
 	Quote *bool
+	// On a post: whether the viewer may pin it to the profile it is on.
+	Pin *bool
 	// Actors only: the composers the viewer may use on this profile. nil when
 	// not worked out; empty when none.
 	Composers []string

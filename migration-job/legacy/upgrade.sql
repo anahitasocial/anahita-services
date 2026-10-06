@@ -556,6 +556,11 @@ ALTER TABLE nodes ADD COLUMN `avatar_filename` varchar(255) DEFAULT NULL AFTER `
 ALTER TABLE nodes ADD COLUMN `root_id` bigint(11) unsigned DEFAULT NULL AFTER `parent_type`;
 ALTER TABLE nodes ADD INDEX `root_id` (`root_id`);
 
+-- nodes.pinned_at. See migrations/20261016000001_nodes_pinned_at.sql.
+ALTER TABLE nodes ADD COLUMN `pinned_at` datetime DEFAULT NULL AFTER `pinned`;
+ALTER TABLE nodes ADD INDEX `owner_pinned` (`owner_id`, `pinned`);
+UPDATE nodes SET pinned_at = COALESCE(updated_at, created_at) WHERE pinned = 1 AND pinned_at IS NULL;
+
 -- Quote posts. See migrations/20261015000001_nodes_quotes.sql.
 ALTER TABLE nodes ADD COLUMN `quote_id` bigint(11) unsigned DEFAULT NULL AFTER `root_id`;
 ALTER TABLE nodes ADD COLUMN `quote_detached_at` datetime DEFAULT NULL AFTER `quote_id`;

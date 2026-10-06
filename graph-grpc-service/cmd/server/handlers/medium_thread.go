@@ -149,3 +149,28 @@ func (h *mediumHandler) DetachQuote(ctx context.Context, req *graphpb.QuoteDetac
 
 	return &graphpb.QuoteDetachResponse{Success: changed}, nil
 }
+
+// SetPinned pins a post to the profile it is on, or takes the pin off. Who
+// may is the calling service's to check. A profile has room for
+// constants.MaxPinnedPosts; pinning past that moves the pin from the oldest.
+func (h *mediumHandler) SetPinned(ctx context.Context, req *graphpb.PinSetRequest) (*graphpb.PinSetResponse, error) {
+	node, err := h.env.Repos.Nodes.Read(req.GetNodeId())
+	if err != nil {
+		return nil, err
+	}
+	if node.RootID > 0 || !node.IsMedium() {
+		return nil, status.Error(codes.InvalidArgument, "only a post can be pinned")
+	}
+
+	if req.GetPinned() {
+		err = h.env.Repos.Pins.Pin(node.ID, node.OwnerID, req.GetViewerId())
+	} else {
+		err = h.env.Repos.Pins.Unpin(node.ID, req.GetViewerId())
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &graphpb.PinSetResponse{Success: true}, nil
+}

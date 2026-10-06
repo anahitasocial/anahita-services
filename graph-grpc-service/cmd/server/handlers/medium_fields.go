@@ -25,7 +25,6 @@ func applyEditableMediumFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	}
 
 	node.Enabled = req.Enabled
-	node.Pinned = req.Pinned
 	node.Access = req.Access
 	node.Name = req.Name
 	node.Alias = req.Alias

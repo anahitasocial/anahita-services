@@ -66,6 +66,14 @@ func (repo *FeedActorRepo) Browse(req *graphpb.FeedActorBrowseRequest, viewer *e
 
 	query = SetFeedAccessQuery(query, viewer)
 
+	// The posts are led by what is pinned to the profile, most recently
+	// pinned first. One ordering over the whole list, so a pinned post is
+	// on the first page and on no other. Replies and reposts are not
+	// pinned, and those lists are by date alone.
+	if req.Filter == "" || req.Filter == constants.FeedFilterPosts {
+		query = query.OrderBy("node.pinned DESC", "node.pinned_at DESC")
+	}
+
 	// Sort & paginate
 	query = query.OrderBy("node.created_at DESC").
 		Limit(req.Limit).

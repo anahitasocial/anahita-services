@@ -44,6 +44,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	articles.PATCH("/:id/comment-status", r.handler.Article.EditCommentStatus, r.authorize)
 	articles.PATCH("/:id/reply-access", r.handler.Article.EditReplyAccess, r.authorize)
 	articles.PATCH("/:id/quote-policy", r.handler.Article.EditQuotePolicy, r.authorize)
+	articles.PUT("/:id/pin", r.handler.Article.Pin, r.authorize)
+	articles.DELETE("/:id/pin", r.handler.Article.Unpin, r.authorize)
 
 	// notes
 	notes := e.Group("notes")
@@ -73,6 +75,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	notes.PATCH("/:id/comment-status", r.handler.Note.EditCommentStatus, r.authorize)
 	notes.PATCH("/:id/reply-access", r.handler.Note.EditReplyAccess, r.authorize)
 	notes.PATCH("/:id/quote-policy", r.handler.Note.EditQuotePolicy, r.authorize)
+	notes.PUT("/:id/pin", r.handler.Note.Pin, r.authorize)
+	notes.DELETE("/:id/pin", r.handler.Note.Unpin, r.authorize)
 
 	// topics
 	topics := e.Group("topics")
@@ -89,4 +93,6 @@ func (r *Routes) Init(e *echo.Echo) {
 	topics.PATCH("/:id/comment-status", r.handler.Topic.EditCommentStatus, r.authorize)
 	topics.PATCH("/:id/reply-access", r.handler.Topic.EditReplyAccess, r.authorize)
 	topics.PATCH("/:id/quote-policy", r.handler.Topic.EditQuotePolicy, r.authorize)
+	topics.PUT("/:id/pin", r.handler.Topic.Pin, r.authorize)
+	topics.DELETE("/:id/pin", r.handler.Topic.Unpin, r.authorize)
 }

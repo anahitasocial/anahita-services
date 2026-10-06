@@ -71,6 +71,22 @@ func (srv *MediaGRPC) DetachQuote(noteID int64, viewer *entities.Viewer) error {
 	return err
 }
 
+// SetPinned pins a post to the profile it is on, or takes the pin off. A
+// profile has one pin: pinning moves it from the post that had it.
+func (srv *MediaGRPC) SetPinned(nodeID int64, pinned bool, viewer *entities.Viewer) error {
+	client, err := srv.getClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.SetPinned(context.Background(), &graphpb.PinSetRequest{
+		NodeId:   nodeID,
+		Pinned:   pinned,
+		ViewerId: viewer.ID,
+	})
+	return err
+}
+
 // VisibleInThread leaves out of a thread what most people are not shown:
 // the replies that have been hidden from it, and everything said under
 // them. Whoever looks after the thread is given the whole of it, with the

@@ -63,6 +63,10 @@ type MediaGRPCInterface interface {
 	// DetachQuote takes the quoted post out of a note that quotes it.
 	DetachQuote(noteID int64, viewer *entities.Viewer) error
 
+	// SetPinned pins a post to the profile it is on, or takes the pin
+	// off. Pinning moves the pin from a post that had it.
+	SetPinned(nodeID int64, pinned bool, viewer *entities.Viewer) error
+
 	// getClient returns the grpc client
 	getClient() (graphpb.MediumServiceClient, error)
 }

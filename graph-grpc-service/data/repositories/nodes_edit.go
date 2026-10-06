@@ -66,7 +66,9 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	// person_type is deliberately not here: it is an authority level, not a
 	// profile field. See applyEditableActorFields.
 	query = query.Set("person_pronouns", node.PersonPronouns)
-	query = query.Set("pinned", node.Pinned)
+	// Not pinned: a post is pinned and unpinned through PinsRepo, which
+	// keeps the limit and the date. An edit used to write the flag from
+	// whatever it carried.
 
 	if node.Meta != nil {
 		query = query.Set("meta", node.Meta)

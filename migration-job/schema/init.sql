@@ -30,6 +30,8 @@ CREATE TABLE nodes (
   `enabled` tinyint(1) NOT NULL DEFAULT 0,
   `verified` tinyint(1) NOT NULL DEFAULT 0,
   `pinned` tinyint(1) NOT NULL DEFAULT 0,
+  -- When it was pinned to the profile it is on. NULL when it is not.
+  `pinned_at` datetime DEFAULT NULL,
   -- mediumtext, not text: CONVERT TO CHARACTER SET utf8mb4 promotes a text
   -- column to preserve its character capacity, so a database migrated by
   -- legacy/upgrade.sql ends up with mediumtext. Declared here so the two
@@ -150,6 +152,7 @@ CREATE TABLE nodes (
   KEY `type` (`type`),
   KEY `service` (`service`),
   KEY `owner_id` (`owner_id`),
+  KEY `owner_pinned` (`owner_id`,`pinned`),
   KEY `parent_id` (`parent_id`),
   KEY `root_id` (`root_id`),
   KEY `quote_id` (`quote_id`),

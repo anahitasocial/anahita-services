@@ -11,7 +11,7 @@ import (
 // What an edit may change on a post. A field the services send and expect
 // to be saved belongs here.
 var editableMediumFields = []string{
-	"Enabled", "Pinned", "Access", "Name", "Alias", "Body", "Excerpt",
+	"Enabled", "Access", "Name", "Alias", "Body", "Excerpt",
 	"Filename", "CoverFilename", "Meta", "ModifiedBy", "CommentStatus",
 	"CommentCount", "Language", "ReplyAccess", "QuotePolicy",
 }

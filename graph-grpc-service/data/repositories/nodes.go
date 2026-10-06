@@ -98,6 +98,14 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 		req.Limit = constants.MaxPageSize
 	}
 
+	// One profile's list is led by what is pinned to it, most recently
+	// pinned first. The rest follows in whatever order was asked for, and
+	// because it is one ordering over the whole list a pinned post is on
+	// the first page and on no other.
+	if len(req.OwnerIDs) == 1 && req.NearbyLatitude == 0 && req.NearbyLongitude == 0 {
+		query = query.OrderBy("node.pinned DESC", "node.pinned_at DESC")
+	}
+
 	if req.Ordering != "" && req.NearbyLatitude == 0 && req.NearbyLongitude == 0 {
 		if req.Ordering == constants.OrderingPopular {
 			query = query.OrderBy("(COALESCE(node.repost_count,0) + COALESCE(node.comment_count,0) + COALESCE(node.vote_up_count,0) + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0)) DESC")

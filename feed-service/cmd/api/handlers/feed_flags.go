@@ -78,7 +78,9 @@ func setFeedFlags(env *Env, nodes []*entities.AnahitaNode, viewer *entities.View
 		quote := permissions.CanQuotePost(viewer, &withOwner, rels[post.OwnerID])
 		post.Authorized.Comment = &comment
 		post.Authorized.Like = &like
+		pin := permissions.CanPin(viewer, &withOwner, rels[post.OwnerID])
 		post.Authorized.Quote = &quote
+		post.Authorized.Pin = &pin
 
 		// Whether the viewer may edit and remove it, by the rule the
 		// services that serve posts enforce, so the feed can offer both

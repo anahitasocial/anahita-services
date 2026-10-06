@@ -48,4 +48,6 @@ func (r *Routes) Init(e *echo.Echo) {
 	photos.PATCH("/:id/comment-status", r.handler.Photo.EditCommentStatus, r.authorize)
 	photos.PATCH("/:id/reply-access", r.handler.Photo.EditReplyAccess, r.authorize)
 	photos.PATCH("/:id/quote-policy", r.handler.Photo.EditQuotePolicy, r.authorize)
+	photos.PUT("/:id/pin", r.handler.Photo.Pin, r.authorize)
+	photos.DELETE("/:id/pin", r.handler.Photo.Unpin, r.authorize)
 }

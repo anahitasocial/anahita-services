@@ -20,7 +20,9 @@ type NodeItem struct {
 	Access        string    `json:"access,omitempty"`
 	// Set on a reply: the post at the top of its thread. Its parent, what
 	// it directly answers, is sent whole as `parent`.
-	RootID             int64 `json:"root_id,omitempty"`
+	RootID int64 `json:"root_id,omitempty"`
+	// Pinned to the profile it is on, which it then leads.
+	Pinned             bool  `json:"pinned,omitempty"`
 	LikesCount         int64 `json:"likes_count,omitempty"`
 	IsLikedByViewer    bool  `json:"is_liked_by_viewer,omitempty"`
 	RepostCount        int64 `json:"repost_count,omitempty"`
@@ -74,6 +76,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		Body:                 node.Body,
 		QuoteCount:           node.QuoteCount,
 		RootID:               node.RootID,
+		Pinned:               node.Pinned,
 		Verified:             node.Verified,
 		CreatedAt:            node.CreatedAt,
 		FollowerCount:        node.FollowerCount,
