@@ -29,6 +29,9 @@ func (r *Routes) Init(e *echo.Echo) {
 	// present so the viewer drives access filtering.
 	feeds := e.Group("feeds")
 	feeds.GET("/leaders/", r.handler.FeedLeaders.Browse, r.setViewer)
+	// Who the viewer follows that posted lately. For somebody signed in:
+	// it is about the people they follow.
+	feeds.GET("/leaders/active", r.handler.FeedLeaders.Active, r.authorize)
 	feeds.GET("/actor/:actor_id/", r.handler.FeedActor.Browse, r.setViewer)
 
 	// reposts — every route requires a valid OAuth access token.

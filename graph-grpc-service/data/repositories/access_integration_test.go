@@ -500,3 +500,56 @@ func TestAuthorSeesTheirOwnPostInAGroup(t *testing.T) {
 		t.Error("a stranger sees an admins-only post in a group")
 	}
 }
+
+// Who the viewer follows that has posted lately: the row of faces on the
+// home page. It counts posts, by the actors the viewer follows, that the
+// viewer may see, and nothing else.
+func TestActiveLeadersCountsOnlyWhatTheViewerMaySee(t *testing.T) {
+	db := accessTestDB(t)
+	seedFeedFixture(t, db)
+	repo := NewFeedLeadersRepo(db)
+
+	active := func(viewer int64, hours uint32) map[int64]uint64 {
+		leaders, err := repo.Active(feedViewer(viewer), hours, 30, feedNoteTypes)
+		if err != nil {
+			t.Fatalf("active: %v", err)
+		}
+		counts := map[int64]uint64{}
+		for _, leader := range leaders {
+			counts[leader.ActorID] = leader.Count
+		}
+		return counts
+	}
+
+	// Carol follows Bob. Of his four notes she may see the public one and
+	// the one for followers: not the one for himself, and not the one for
+	// mutuals, since he does not follow her back.
+	if got := active(carolID, 24); len(got) != 1 || got[bobID] != 2 {
+		t.Errorf("Carol is shown %v, want Bob with 2", got)
+	}
+
+	// Dave follows Carol, who has only reposted and replied. Neither is a
+	// post of hers.
+	if got := active(daveID, 24); len(got) != 0 {
+		t.Errorf("Dave is shown %v, want nobody", got)
+	}
+
+	// Bob follows nobody, and his own posts are not news to him. A visitor
+	// follows nobody either.
+	for _, viewer := range []int64{bobID, 0} {
+		if got := active(viewer, 24); len(got) != 0 {
+			t.Errorf("viewer %d is shown %v, want nobody", viewer, got)
+		}
+	}
+
+	// Outside the window, not shown; inside a longer one, shown again.
+	if _, err := db.Exec(`UPDATE nodes SET created_at = UTC_TIMESTAMP() - INTERVAL 3 DAY WHERE owner_id = ?`, bobID); err != nil {
+		t.Fatal(err)
+	}
+	if got := active(carolID, 24); len(got) != 0 {
+		t.Errorf("after three days Carol is shown %v, want nobody", got)
+	}
+	if got := active(carolID, 96); got[bobID] != 2 {
+		t.Errorf("over four days Carol is shown %v, want Bob with 2", got)
+	}
+}

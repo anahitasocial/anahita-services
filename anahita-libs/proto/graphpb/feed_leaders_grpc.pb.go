@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	FeedLeadersService_Count_FullMethodName  = "/graph.FeedLeadersService/Count"
 	FeedLeadersService_Browse_FullMethodName = "/graph.FeedLeadersService/Browse"
+	FeedLeadersService_Active_FullMethodName = "/graph.FeedLeadersService/Active"
 )
 
 // FeedLeadersServiceClient is the client API for FeedLeadersService service.
@@ -29,6 +30,7 @@ const (
 type FeedLeadersServiceClient interface {
 	Count(ctx context.Context, in *FeedLeadersCountRequest, opts ...grpc.CallOption) (*FeedLeadersCountResponse, error)
 	Browse(ctx context.Context, in *FeedLeadersBrowseRequest, opts ...grpc.CallOption) (*FeedLeadersBrowseResponse, error)
+	Active(ctx context.Context, in *FeedLeadersActiveRequest, opts ...grpc.CallOption) (*FeedLeadersActiveResponse, error)
 }
 
 type feedLeadersServiceClient struct {
@@ -59,12 +61,23 @@ func (c *feedLeadersServiceClient) Browse(ctx context.Context, in *FeedLeadersBr
 	return out, nil
 }
 
+func (c *feedLeadersServiceClient) Active(ctx context.Context, in *FeedLeadersActiveRequest, opts ...grpc.CallOption) (*FeedLeadersActiveResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FeedLeadersActiveResponse)
+	err := c.cc.Invoke(ctx, FeedLeadersService_Active_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FeedLeadersServiceServer is the server API for FeedLeadersService service.
 // All implementations must embed UnimplementedFeedLeadersServiceServer
 // for forward compatibility.
 type FeedLeadersServiceServer interface {
 	Count(context.Context, *FeedLeadersCountRequest) (*FeedLeadersCountResponse, error)
 	Browse(context.Context, *FeedLeadersBrowseRequest) (*FeedLeadersBrowseResponse, error)
+	Active(context.Context, *FeedLeadersActiveRequest) (*FeedLeadersActiveResponse, error)
 	mustEmbedUnimplementedFeedLeadersServiceServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedFeedLeadersServiceServer) Count(context.Context, *FeedLeaders
 }
 func (UnimplementedFeedLeadersServiceServer) Browse(context.Context, *FeedLeadersBrowseRequest) (*FeedLeadersBrowseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Browse not implemented")
+}
+func (UnimplementedFeedLeadersServiceServer) Active(context.Context, *FeedLeadersActiveRequest) (*FeedLeadersActiveResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Active not implemented")
 }
 func (UnimplementedFeedLeadersServiceServer) mustEmbedUnimplementedFeedLeadersServiceServer() {}
 func (UnimplementedFeedLeadersServiceServer) testEmbeddedByValue()                            {}
@@ -138,6 +154,24 @@ func _FeedLeadersService_Browse_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FeedLeadersService_Active_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FeedLeadersActiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FeedLeadersServiceServer).Active(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FeedLeadersService_Active_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FeedLeadersServiceServer).Active(ctx, req.(*FeedLeadersActiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FeedLeadersService_ServiceDesc is the grpc.ServiceDesc for FeedLeadersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var FeedLeadersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Browse",
 			Handler:    _FeedLeadersService_Browse_Handler,
+		},
+		{
+			MethodName: "Active",
+			Handler:    _FeedLeadersService_Active_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
