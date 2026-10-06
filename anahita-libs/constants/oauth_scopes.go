@@ -30,7 +30,6 @@ const (
 	OAuthScopeActorsWrite        = "actors:write"
 	OAuthScopeMediaRead          = "media:read"
 	OAuthScopeMediaWrite         = "media:write"
-	OAuthScopeCommentsWrite      = "comments:write"
 	OAuthScopeLikesWrite         = "likes:write"
 	OAuthScopeSocialgraphRead    = "socialgraph:read"
 	OAuthScopeSocialgraphWrite   = "socialgraph:write"
@@ -145,13 +144,10 @@ var OAuthScopeDefinitions = map[string]OAuthScopeDefinition{
 		Description: "Create, edit, and delete posts, photos, articles, and notes, and tag them with hashtags and locations",
 	},
 
-	// Engaging with content someone else owns is separated from owning
-	// it, so a client can be granted one without the other. Reads ride
-	// on media:read — there is no comments:read or likes:read.
-	OAuthScopeCommentsWrite: {
-		Scope:       OAuthScopeCommentsWrite,
-		Description: "No longer grants anything. Comments became replies, which are posts and are written under media:write",
-	},
+	// Liking content someone else owns is separated from writing posts,
+	// so a client can be granted one without the other. Reads ride on
+	// media:read; there is no likes:read. Replying needs no scope of its
+	// own: a reply is a post, written under media:write.
 	OAuthScopeLikesWrite: {
 		Scope:       OAuthScopeLikesWrite,
 		Description: "Like and repost content",

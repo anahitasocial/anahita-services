@@ -98,7 +98,7 @@ func TestNoScopeStringLiterals(t *testing.T) {
 // ScopeDescriptions and the discovery document disagree; an empty
 // Description silently degrades the consent screen to a blank bullet.
 func TestScopeDefinitionsAreWellFormed(t *testing.T) {
-	const want = 19
+	const want = 18
 	if got := len(OAuthScopeDefinitions); got != want {
 		t.Errorf("registry has %d scopes, want %d", got, want)
 	}

@@ -42,13 +42,14 @@ on their own account's behalf. Reading and deciding reported cases needs
 
 The current catalog: `openid`, `profile`, `email`, `offline_access`,
 `actors:read`, `actors:write`, `media:read`, `media:write`,
-`comments:write`, `likes:write`, `socialgraph:read`, `socialgraph:write`,
+`likes:write`, `socialgraph:read`, `socialgraph:write`,
 `notifications:read`, `notifications:write`, `taxonomy:write`,
 `account:read`, `account:write`, `oauth:read`, `oauth:write`.
 
-`comments:write` no longer grants anything. Comments became replies, which are
-posts and are written under `media:write`. It is still in the catalog so that
-clients registered with it, and tokens already issued with it, stay valid.
+There is no scope for replies. A reply is a post, written under `media:write`.
+`comments:write` was removed with comments: a client registered with it has to
+be registered again without it, and the seeded clients are in
+`auth-defaults/oauth_seed_clients.json`.
 
 `oauth:*` is the sole super-admin-only family. A token carrying
 `oauth:write` is equivalent to owning the identity provider — its holder

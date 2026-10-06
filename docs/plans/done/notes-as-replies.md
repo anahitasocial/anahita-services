@@ -490,11 +490,13 @@ thread itself uses. A test purges somebody from the middle of a thread.
   reply. Notifications from before, of the kinds `comment_add` and
   `comment_edit` and under the service name `comment-service`, are still
   stored and still shown and removed with their post.
-- **The `comments:write` scope**, which no longer grants anything. It is in
-  every installation's client records and in tokens already issued, so taking
-  it out of the catalog needs those brought up to date first. Not done here.
 - The comment types named in older migrations and in the legacy upgrade,
   which is what they convert.
+
+**The `comments:write` scope is removed** from the catalog and from the
+seeded clients, in a step of its own after this phase, once the user had said
+there is no live installation. Client records made before then still name it:
+they are cleared and seeded again.
 
 **To do when deploying to Kubernetes.** The manifests no longer describe
 comment-service, and `kubectl apply -k` does not remove what it no longer

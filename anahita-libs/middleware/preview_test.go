@@ -300,6 +300,6 @@ func TestSomeRoutesAreNotPreviewedAtAll(t *testing.T) {
 		return c.NoContent(http.StatusOK)
 	}))
 	if err := handler(c); err != nil || !reached {
-		t.Errorf("an open site refused comments: %v, reached=%v", err, reached)
+		t.Errorf("an open site refused replies: %v, reached=%v", err, reached)
 	}
 }
