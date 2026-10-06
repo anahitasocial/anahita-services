@@ -9,10 +9,13 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// EditRepostsOnProfile says whether what a person reposts is kept out of the
+// EditRepostsOnProfile says whether what a person reposts is also shown among the
 // posts on their profile.
 //
 // PATCH /people/:id/reposts-on-profile
+//
+// People only. A repost is made by a person, as a reply is; a group or any
+// other kind of actor has none to show.
 //
 // A route of its own, as a profile's access has: a form that edits something
 // else and does not send this must not change it. The choice is about the
@@ -50,7 +53,7 @@ func (h *personHandler) EditRepostsOnProfile(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	person.HideRepostsOnProfile = req.Hide
+	person.ShowRepostsOnProfile = req.Show
 	person.ModifiedBy = viewer.ID
 
 	if _, err = h.Srv.ActorsGRPC.Edit(&person.AnahitaNode, viewer); err != nil {

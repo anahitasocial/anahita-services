@@ -102,19 +102,21 @@ discovered through feeds, search, hashtags and profiles.
 ### A profile's three lists
 
 `GET /feeds/actor/<actor id>/` is everything a profile shows, in one of three
-lists chosen with `filter`:
+lists chosen with `filter`. Replies and reposts are a person's: only people
+reply and repost, so for a group or any other kind of actor the last two are
+empty.
 
 | `filter` | Holds |
 | --- | --- |
-| `posts` (the default) | What was posted on the profile, and what its owner reposted. Not replies |
+| `posts` (the default) | What was posted on the profile. Also what its owner reposted, when they have asked for that. Not replies |
 | `replies` | The replies its owner wrote, wherever the threads are. Each is sent with what it answers as `parent`, and with `root`: the post at the top of its thread and, as `root.owner`, the profile that thread is on |
-| `reposts` | What its owner reposted, and nothing else |
+| `reposts` | What its owner reposted, and nothing else. Each is sent with the post it reposts as `parent`, with that post's author, owner and date |
 
-- **Whether reposts are among the posts is the profile's choice**, kept on the
-  actor as `hide_reposts_on_profile` and changed with
-  `PATCH /people/<id>/reposts-on-profile` or
-  `PATCH /groups/<id>/reposts-on-profile` by whoever may edit the profile. A
-  caller cannot ask for them back: the feed reads the profile and decides.
+- **Reposts are not among the posts unless the profile asks for it.** The
+  choice is kept on the actor as `show_reposts_on_profile`, off until somebody
+  turns it on, and changed with `PATCH /people/<id>/reposts-on-profile` by
+  whoever may edit the profile. There is no such route for a group. A
+  caller cannot ask for them: the feed reads the profile and decides.
   The choice is about the profile only. Followers are sent reposts in their
   own feeds either way, and the list of reposts always has them.
 - **A reply is listed only to somebody who can see the post at the top of its

@@ -77,7 +77,7 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(node.follower_count, 0) AS follower_count",
 		"COALESCE(node.leader_count, 0) AS leader_count",
 		"COALESCE(node.allow_follow_request, false) AS allow_follow_request",
-		"COALESCE(node.hide_reposts_on_profile, false) AS hide_reposts_on_profile",
+		"COALESCE(node.show_reposts_on_profile, false) AS show_reposts_on_profile",
 		"COALESCE(node.subscriber_count, 0) AS subscriber_count",
 		"COALESCE(node.vote_up_count, 0) AS vote_up_count",
 		"COALESCE(node.excerpt, '') AS excerpt",
@@ -125,6 +125,9 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(parent.vote_up_count, 0) AS parent_vote_up_count",
 		"COALESCE(parent.repost_count, 0) AS parent_repost_count",
 		"COALESCE(parent.quote_count, 0) AS parent_quote_count",
+		// When what it answers or reposts was written. Never NULL, so it
+		// scans like the row's own date; a row with no parent does not use it.
+		"COALESCE(parent.created_at, node.created_at, NOW()) AS parent_created_at",
 	}...)
 
 	// Parent Owner fields
@@ -245,7 +248,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.FollowerCount,
 		&item.LeaderCount,
 		&item.AllowFollowRequest,
-		&item.HideRepostsOnProfile,
+		&item.ShowRepostsOnProfile,
 		&item.SubscriberCount,
 		&item.LikesCount,
 		&item.Excerpt,
@@ -283,6 +286,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.Parent.LikesCount,
 		&item.Parent.RepostCount,
 		&item.Parent.QuoteCount,
+		&item.Parent.CreatedAt,
 		// Parent Owner fields
 		&item.Parent.Owner.ID,
 		&item.Parent.Owner.Type,
@@ -386,7 +390,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.FollowerCount,
 			&item.LeaderCount,
 			&item.AllowFollowRequest,
-			&item.HideRepostsOnProfile,
+			&item.ShowRepostsOnProfile,
 			&item.SubscriberCount,
 			&item.LikesCount,
 			&item.Excerpt,
@@ -424,6 +428,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.Parent.LikesCount,
 			&item.Parent.RepostCount,
 			&item.Parent.QuoteCount,
+			&item.Parent.CreatedAt,
 			// Parent Owner fields
 			&item.Parent.Owner.ID,
 			&item.Parent.Owner.Type,

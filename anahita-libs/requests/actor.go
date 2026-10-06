@@ -140,9 +140,10 @@ type ActorDeleteRequest struct {
 	ID int64 `param:"id" validate:"required,numeric"`
 }
 
-// ActorEditRepostsOnProfileRequest says whether what a person or a group
-// reposts is kept out of the posts on its profile.
+// ActorEditRepostsOnProfileRequest says whether what a person reposts is
+// also shown among the posts on their profile. People only: nothing else
+// reposts.
 type ActorEditRepostsOnProfileRequest struct {
 	ID   int64 `param:"id" validate:"required,numeric"`
-	Hide bool  `json:"hide_reposts_on_profile" form:"hide_reposts_on_profile"`
+	Show bool  `json:"show_reposts_on_profile" form:"show_reposts_on_profile"`
 }

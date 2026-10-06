@@ -43,8 +43,8 @@ type ActorNodeItem struct {
 	// by anybody whose follow-request setting was off.
 	Access             string `json:"access"`
 	AllowFollowRequest bool   `json:"allow_follow_request"`
-	// Whether what this actor reposts is kept out of its profile's posts.
-	HideRepostsOnProfile bool `json:"hide_reposts_on_profile"`
+	// Whether what this actor reposts is also among its profile's posts.
+	ShowRepostsOnProfile bool `json:"show_reposts_on_profile"`
 	// Permanent, and set only once archived, so the settings page can show the
 	// state rather than offering an action that no longer applies.
 	ArchivedAt *time.Time `json:"archived_at,omitempty"`
@@ -141,7 +141,7 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		Enabled:              node.Enabled,
 		Access:               node.Access,
 		AllowFollowRequest:   node.AllowFollowRequest,
-		HideRepostsOnProfile: node.HideRepostsOnProfile,
+		ShowRepostsOnProfile: node.ShowRepostsOnProfile,
 		ArchivedAt:           node.ArchivedAt,
 		FeaturedAt:           node.FeaturedAt,
 		CreatedAt:            node.CreatedAt,

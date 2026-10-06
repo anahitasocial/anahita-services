@@ -15,7 +15,7 @@ A person's profile should separate what they wrote from what they replied to and
 - **Three tabs: Posts, Replies, Reposts.** The per-media-type tabs (Photos, Articles, …) stay as they are.
 - **A person setting, "Show my reposts in my Posts tab"**, on by default (the Mastodon and Bluesky behaviour). Turning it off moves reposts to the Reposts tab only.
 - **The setting only affects the profile.** Followers still receive reposts in their home feed; delivering a post to followers is what a repost is for. Followers who don't want them can already exclude reposts in a custom feed (item 14).
-- Groups get the same tabs. A group's setting is changed by its admins.
+- ~~Groups get the same tabs. A group's setting is changed by its admins.~~ Overruled on 2026-10-05: people only. See What was built.
 
 ## Design
 **API**
@@ -85,9 +85,12 @@ and its text, for "Replying to …". What the viewer may do with each reply is
 worked out from its thread, not from its author's profile, by reading the
 roots of the page once (`setReplyFeedFlags`).
 
-**The setting** is a column, `nodes.hide_reposts_on_profile`, and not a key in
-`meta` as planned. Stored as "hide" so that every profile from before it, and
-every row written without it, shows its reposts. Changed through a route of
+**The setting** is a column, `nodes.show_reposts_on_profile`, and not a key in
+`meta` as planned. **Off by default, which is the opposite of the plan**: the
+user decided, with the tabs in front of them, that a profile's posts should be
+what was posted on it, and reposts should be in the Reposts tab unless the
+owner asks for both. (It was first built as `hide_reposts_on_profile`, on by
+default; a second migration renames it on a database that ran the first.) Changed through a route of
 its own for people and for groups, so that a form editing something else
 cannot reset it; it is written whichever way it is, so it can be turned off
 again. The feed reads the profile and decides, and `include_reposts` is no
@@ -107,7 +110,19 @@ thread is on, and it is shown above the reply. The list fills the page in a
 masonry, like the lists of notes, articles and photos, also at the user's
 asking.
 
-**Web.** Posts, Replies and Reposts are the first three tabs of a profile,
+**People only.** The plan gave groups the same tabs and the setting. The user
+ruled that out: only people reply and repost. A group's profile has the Posts
+tab alone, there is no switch in a group's settings, and no route for one.
+
+**In the Reposts tab the reposted post is shown as itself**, without the card
+of the person who reposted it around it: everything in that tab is theirs. A
+row now carries the date of what it reposts for that.
+
+**Found on the way: a repost was stored switched off** (`enabled` was never
+set). The feeds do not read that column, so it showed anyway. New reposts are
+stored on; ones made before are as they were.
+
+**Web.** Posts, Replies and Reposts are the first three tabs of a person's profile,
 each with an address (`/people/:id/replies`, `/groups/:id/reposts`). The
 switch is under Settings › Access for a person and in a group's Access tab.
 

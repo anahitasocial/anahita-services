@@ -60,8 +60,8 @@ CREATE TABLE nodes (
   `follower_count` int(11) unsigned DEFAULT NULL,
   `leader_count` int(11) unsigned DEFAULT NULL,
   `allow_follow_request` tinyint(1) unsigned DEFAULT NULL,
-  -- Whether an actor keeps what it reposts out of its profile's posts.
-  `hide_reposts_on_profile` tinyint(1) NOT NULL DEFAULT 0,
+  -- Whether what an actor reposts is also among its profile's posts.
+  `show_reposts_on_profile` tinyint(1) NOT NULL DEFAULT 0,
   `subscriber_count` int(11) unsigned DEFAULT NULL,
   `vote_up_count` int(11) unsigned DEFAULT NULL,
   `excerpt` text,

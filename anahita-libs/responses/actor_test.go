@@ -43,7 +43,7 @@ func fullyPopulatedNode() *entities.AnahitaNode {
 	// makes the card save its default over the real value.
 	n.Access = "followers"
 	n.AllowFollowRequest = true
-	n.HideRepostsOnProfile = true
+	n.ShowRepostsOnProfile = true
 	archived := time.Now()
 	n.ArchivedAt = &archived
 	featured := time.Now()

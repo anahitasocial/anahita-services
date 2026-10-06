@@ -126,8 +126,8 @@ type Node struct {
 	// Who may reply to a post, as its author sets it. Empty when they have
 	// not said.
 	ReplyAccess string `protobuf:"bytes,84,opt,name=reply_access,json=replyAccess,proto3" json:"reply_access,omitempty"`
-	// Whether an actor keeps what it reposts out of its profile's posts.
-	HideRepostsOnProfile bool `protobuf:"varint,85,opt,name=hide_reposts_on_profile,json=hideRepostsOnProfile,proto3" json:"hide_reposts_on_profile,omitempty"`
+	// Whether what an actor reposts is also among its profile's posts.
+	ShowRepostsOnProfile bool `protobuf:"varint,85,opt,name=show_reposts_on_profile,json=showRepostsOnProfile,proto3" json:"show_reposts_on_profile,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -631,9 +631,9 @@ func (x *Node) GetReplyAccess() string {
 	return ""
 }
 
-func (x *Node) GetHideRepostsOnProfile() bool {
+func (x *Node) GetShowRepostsOnProfile() bool {
 	if x != nil {
-		return x.HideRepostsOnProfile
+		return x.ShowRepostsOnProfile
 	}
 	return false
 }
@@ -2672,7 +2672,7 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x0favatar_filename\x18R \x01(\tR\x0eavatarFilename\x12\x17\n" +
 	"\aroot_id\x18S \x01(\x03R\x06rootId\x12!\n" +
 	"\freply_access\x18T \x01(\tR\vreplyAccess\x125\n" +
-	"\x17hide_reposts_on_profile\x18U \x01(\bR\x14hideRepostsOnProfileJ\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10J\"*\n" +
+	"\x17show_reposts_on_profile\x18U \x01(\bR\x14showRepostsOnProfileJ\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10J\"*\n" +
 	"\x05Nodes\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xad\x03\n" +
 	"\x11NodeBrowseRequest\x12\x14\n" +

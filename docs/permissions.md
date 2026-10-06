@@ -331,11 +331,12 @@ profile.
 A repost is shown only to people who can see the original post. See
 [Seeing posts](#seeing-posts).
 
-A person, or a group's administrators, can keep what they repost out of the
-list of posts on their profile ("Show reposts in the Posts tab", under
-Settings › Access). It changes that one list and nothing else: the profile's
-list of reposts still has them, and followers are still sent them in their own
-feeds, which is what a repost is for. It does not change who can see a repost.
+Only people repost, as only people reply. What a person reposts is in the
+list of reposts on their profile, and not among its posts. They can have
+reposts among the posts as well ("Also show reposts in the Posts tab", under
+Settings › Access). It changes that one list and nothing else: the list of
+reposts always has them, and followers are sent them in their own feeds, which
+is what a repost is for. It does not change who can see a repost.
 
 ## Reporting
 

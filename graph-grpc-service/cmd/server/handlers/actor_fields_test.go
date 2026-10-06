@@ -24,7 +24,7 @@ import (
 var editableFields = []string{
 	"Enabled", "Access", "Name", "Body", "Alias", "WebsiteURL",
 	"Verified", "AvatarFilename", "CoverFilename", "AllowFollowRequest",
-	"HideRepostsOnProfile", "FeaturesRaw", "ModifiedBy", "Language",
+	"ShowRepostsOnProfile", "FeaturesRaw", "ModifiedBy", "Language",
 }
 
 // createOnlyFields may be set when the actor is created and never afterwards.
@@ -46,7 +46,7 @@ func fullRequest() *graphpb.Node {
 		AvatarFilename:       "avatar.png",
 		CoverFilename:        "cover.png",
 		AllowFollowRequest:   true,
-		HideRepostsOnProfile: true,
+		ShowRepostsOnProfile: true,
 		FeaturesRaw:          `{"a":1}`,
 		Meta:                 `{"b":2}`,
 		CreatedBy:            7,

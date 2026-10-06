@@ -149,8 +149,9 @@ type AnahitaNode struct {
 	FollowerCount      int64
 	LeaderCount        int64
 	AllowFollowRequest bool
-	// Whether an actor keeps what it reposts out of its profile's posts.
-	HideRepostsOnProfile bool
+	// Whether what an actor reposts is also among its profile's posts. Off
+	// unless it says otherwise: reposts are in the list of reposts.
+	ShowRepostsOnProfile bool
 	Mimetype             string
 	Language             string
 	Access               string

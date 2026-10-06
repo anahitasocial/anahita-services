@@ -79,7 +79,7 @@ func (h *feedActorHandler) Browse(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
-	includeReposts := !actor.HideRepostsOnProfile
+	includeReposts := actor.ShowRepostsOnProfile
 
 	gnCountReq.ActorID = req.ActorID
 	gnCountReq.Filter = req.Filter

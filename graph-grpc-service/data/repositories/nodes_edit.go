@@ -114,7 +114,7 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	}
 	// Written whichever way it is, so that it can be turned off again. An
 	// edit of anything else carries what was read, and leaves it as it was.
-	query = query.Set("hide_reposts_on_profile", node.HideRepostsOnProfile)
+	query = query.Set("show_reposts_on_profile", node.ShowRepostsOnProfile)
 	if node.Excerpt != "" {
 		query = query.Set("excerpt", node.Excerpt)
 	}

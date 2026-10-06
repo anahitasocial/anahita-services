@@ -133,8 +133,8 @@ message Node {
     // not said.
     string reply_access = 84;
 
-    // Whether an actor keeps what it reposts out of its profile's posts.
-    bool hide_reposts_on_profile = 85;
+    // Whether what an actor reposts is also among its profile's posts.
+    bool show_reposts_on_profile = 85;
 }
 
 message Nodes {

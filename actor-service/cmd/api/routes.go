@@ -94,7 +94,6 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	// group edit access
 	groups.PATCH("/:id/access", r.handler.Group.EditAccess, r.authorize)
-	groups.PATCH("/:id/reposts-on-profile", r.handler.Group.EditRepostsOnProfile, r.authorize)
 
 	// group edit features
 	groups.PATCH("/:id/features", r.handler.Group.EditFeatures, r.authorize)

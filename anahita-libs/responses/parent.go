@@ -1,6 +1,8 @@
 package responses
 
 import (
+	"time"
+
 	"anahita-libs/data/entities"
 )
 
@@ -15,6 +17,7 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 		Alias:              node.Alias,
 		Name:               node.Name,
 		Body:               node.Body,
+		CreatedAt:          createdAtOrNil(node),
 		IsLikedByViewer:    node.IsLikedByViewer,
 		IsRepostedByViewer: node.IsRepostedByViewer,
 	}
@@ -45,11 +48,13 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 }
 
 type Parent struct {
-	ID                 int64            `json:"id"`
-	Type               string           `json:"type"`
-	Alias              string           `json:"alias,omitempty"`
-	Name               string           `json:"name,omitempty"`
-	Body               string           `json:"body,omitempty"`
+	ID    int64  `json:"id"`
+	Type  string `json:"type"`
+	Alias string `json:"alias,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Body  string `json:"body,omitempty"`
+	// When it was written, so that a reposted post can be shown as itself.
+	CreatedAt          *time.Time       `json:"created_at,omitempty"`
 	Cover              map[string]Image `json:"cover_urls,omitempty"`
 	Portrait           map[string]Image `json:"portrait_urls,omitempty"`
 	Files              []*PhotoFile     `json:"files,omitempty"`
@@ -75,4 +80,14 @@ func NewRoot(node *entities.AnahitaNode) *Parent {
 	}
 
 	return dto
+}
+
+// createdAtOrNil leaves the date out when there is none, where a zero time
+// would be sent as the year 1.
+func createdAtOrNil(node *entities.AnahitaNode) *time.Time {
+	if node.CreatedAt.IsZero() {
+		return nil
+	}
+	created := node.CreatedAt
+	return &created
 }
