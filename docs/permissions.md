@@ -2,8 +2,8 @@
 
 [Documentation](README.md) › Permissions
 
-Who can post, comment, like and add followers on a profile, and who can edit or
-delete a comment. It covers the defaults an installation ships with, how to
+Who can post, reply, like and add followers on a profile, and who can edit or
+delete a reply. It covers the defaults an installation ships with, how to
 change them, and what profile owners can change for themselves.
 
 ## Contents
@@ -21,7 +21,6 @@ change them, and what profile owners can change for themselves.
   - [Who looks after a thread](#who-looks-after-a-thread)
   - [Editing, deleting and hiding a reply](#editing-deleting-and-hiding-a-reply)
   - [Liking a reply](#liking-a-reply)
-- [Comments](#comments)
 - [Likes](#likes)
 - [Adding followers to a group](#adding-followers-to-a-group)
 - [Reposts](#reposts)
@@ -39,7 +38,7 @@ confuse:
 | Setting | Question it answers | Where it is set |
 | --- | --- | --- |
 | **Access** | Who can *see* this profile and its posts | Settings › Access |
-| **Permissions** | Who can *add* to it: posts, comments, likes, followers | Settings › Permissions |
+| **Permissions** | Who can *add* to it: posts, replies, likes, followers | Settings › Permissions |
 
 Permissions never widen access. Anybody refused by the profile's access is
 refused everything below, whatever the permissions say.
@@ -77,8 +76,8 @@ These people are allowed whatever a profile has set:
 - **Site administrators and super administrators**
 - **The profile's owner**: the person, or for a group its administrators
 
-The one exception is editing somebody else's comment, which nobody but its
-author can do (see [Comments](#comments)).
+The one exception is editing somebody else's reply, which nobody but its
+author can do (see [Replies](#replies)).
 
 ## Seeing posts
 
@@ -112,7 +111,7 @@ What depends on another post is judged by that post:
 
 | Item | Seen by |
 | --- | --- |
-| A comment | Whoever can see the post it is under |
+| A reply | Whoever can see the post at the top of its thread |
 | A repost | Whoever can see the original post, and the reposter's profile |
 
 So following somebody who reposts a followers-only post does not show it to
@@ -182,7 +181,8 @@ turn, to any depth.
 
 Every kind of post is answered with replies: notes, photos, articles and
 topics. What used to be comments were turned into replies on 2026-10-05, each
-a reply made directly to the post it was under.
+a reply made directly to the post it was under, and the service that served
+them is gone.
 
 **Everything about a reply is decided by the post at the top of its thread,**
 called the root here. A reply is owned by whoever wrote it and has no audience
@@ -204,13 +204,23 @@ read in their thread.
 
 ### Replying
 
-Somebody may reply when they can see the root and would be allowed to comment
-on it:
+Everybody who is not always allowed has to be able to **see the root** first.
+After that, it depends on the access of the profile the root is on:
 
-- on a public or registered profile, the profile's comment setting:
-  `registered` or `followers`;
-- on a followers-only profile, followers;
-- on anything narrower, whoever can see it.
+| Profile access | Who can reply |
+| --- | --- |
+| `public` or `registered` | The profile's setting for replies: `registered` or `followers` |
+| `followers` | Followers only, whatever the setting says |
+| `leaders`, `mutuals`, `admins`, `myself` | Anybody who can see the profile |
+
+The setting only matters on a public or registered profile, because a narrower
+profile already limits who can see its posts. A followers-only profile is
+spelled out as followers only, even though people the profile follows can also
+read it. Default: `registered`.
+
+The setting is stored under the name `comment`, from when replies were
+comments, so what profiles had saved still applies. The scope a token needs is
+`media:write`: a reply is a post.
 
 Then the post's own setting, which its author chooses (below).
 
@@ -295,58 +305,9 @@ there.
 Under the rule for liking the root: see it, and meet the like permission of
 the profile the root is on.
 
-## Comments
-
-**No longer in use.** Every comment became a [reply](#replies) on 2026-10-05,
-and nothing makes new ones. `comment-service` is still deployed and has
-nothing to serve; it and this section go when it is removed. What follows is
-how comments worked, and is the rule replies were built to keep.
-
-### Adding a comment
-
-Everybody who is not always allowed has to be able to **read the post** first.
-After that, it depends on the profile's access:
-
-| Profile access | Who can comment |
-| --- | --- |
-| `public` or `registered` | The profile's comment setting: `registered` or `followers` |
-| `followers` | Followers only, whatever the setting says |
-| `leaders`, `mutuals`, `admins`, `myself` | Anybody who can see the profile |
-
-The comment setting only matters on a public or registered profile, because a
-narrower profile already limits who can see its posts. A followers-only profile
-is spelled out as followers only, even though people the profile follows can
-also read it.
-
-These people can always comment, on a post they can see:
-
-- the profile's owner and administrators
-- the post's author
-- site administrators and super administrators
-
-Default: `registered`.
-
-### Editing a comment
-
-**Only the comment's author**, and only while they can still read the post.
-
-Site administrators, super administrators and the profile's owner cannot edit
-somebody else's comment. An edited comment still shows its author's name, so an
-edit by anybody else would put words under that name with no record of who
-wrote them. Moderators remove comments; they do not rewrite them.
-
-### Deleting a comment
-
-- the comment's author, even after they have lost sight of the post
-- the profile the post is on: the person, or for a group its administrators
-- site administrators and super administrators
-
-The author of the *post* cannot delete other people's comments under it unless
-the profile is theirs. In a group, that is the group's administrators.
-
 ## Likes
 
-Who can like a post or a comment on a profile. The viewer has to be able to
+Who can like a post or a reply on a profile. The viewer has to be able to
 read the post, then meet the level set for likes.
 
 Default: `followers`.
@@ -419,7 +380,7 @@ Each service lists its `add_permissions` as an entity and a level:
 }
 ```
 
-Comments and likes are shared by every service that has posts, so they are set
+Replies and likes are shared by every service that has posts, so they are set
 once in `default.json` under `common_permissions` and pulled in with
 `include_common_permissions`:
 
@@ -463,9 +424,9 @@ profile.
 - **Restore defaults** clears the profile's saved settings, and the defaults
   apply again.
 
-On a profile whose access is narrower than `registered`, the comment row
-explains who can comment instead of offering a choice. See
-[Adding a comment](#adding-a-comment).
+On a profile whose access is narrower than `registered`, the row for replies
+explains who can reply instead of offering a choice. See
+[Replying](#replying).
 
 ## Accepted values
 

@@ -257,7 +257,7 @@ or `secrets.env` and applying again restarts the services that read them.
 Every Deployment starts with one replica. The services that only answer
 requests can be given more:
 
-avatar, comment, cover, feed, group, like, location, photo, search,
+avatar, cover, feed, group, like, location, photo, search,
 socialgraph, story, text, and the gateway.
 
 These listen for events, and each copy receives every event, so two copies

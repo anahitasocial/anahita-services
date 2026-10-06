@@ -9,10 +9,10 @@ import (
 )
 
 // setFeedFlags answers, for every post in a feed, whether the viewer may
-// comment on it and like it — onto the post itself, or for a repost onto the
+// reply to it and like it — onto the post itself, or for a repost onto the
 // post it reposts, which is what the feed's buttons act on.
 //
-// The answers come from the checks comment-service and like-service enforce.
+// The answers come from the rules for replying and for liking.
 // Both need each post's owner as the actor read returns it, and the owner's
 // relationship to the viewer, so those are read once for the whole page: one
 // batch read of the distinct owners, one relationship lookup.
@@ -72,7 +72,7 @@ func setFeedFlags(env *Env, nodes []*entities.AnahitaNode, viewer *entities.View
 		withOwner := *post
 		withOwner.Owner = owner
 
-		comment := permissions.CanComment(viewer, &withOwner, rels[post.OwnerID])
+		comment := permissions.CanReplyToPost(viewer, &withOwner, rels[post.OwnerID])
 		like := permissions.CanLike(viewer, &withOwner, rels[post.OwnerID])
 		post.Authorized.Comment = &comment
 		post.Authorized.Like = &like

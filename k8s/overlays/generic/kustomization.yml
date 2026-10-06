@@ -47,8 +47,6 @@ images:
     newTag: latest
   - name: anahita/auth-service
     newTag: latest
-  - name: anahita/comment-service
-    newTag: latest
   - name: anahita/feed-service
     newTag: latest
   - name: anahita/file-grpc-service

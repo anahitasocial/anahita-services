@@ -278,10 +278,10 @@ func TestPreviewLeavesErrorsAndOtherAnswersAlone(t *testing.T) {
 	}
 }
 
-// Comments and the lists of who follows whom are not part of a preview.
+// Replies and the lists of who follows whom are not part of a preview.
 func TestSomeRoutesAreNotPreviewedAtAll(t *testing.T) {
 	reached := false
-	rec, _ := previewed(t, "/comments/100/", func(c echo.Context) error {
+	rec, _ := previewed(t, "/notes/100/thread", func(c echo.Context) error {
 		reached = true
 		return c.NoContent(http.StatusOK)
 	}, MembersInPreview())
@@ -293,7 +293,7 @@ func TestSomeRoutesAreNotPreviewedAtAll(t *testing.T) {
 	// On an open site the same middleware does nothing.
 	e := echo.New()
 	open := httptest.NewRecorder()
-	c := e.NewContext(httptest.NewRequest(http.MethodGet, "/comments/100/", nil), open)
+	c := e.NewContext(httptest.NewRequest(http.MethodGet, "/notes/100/thread", nil), open)
 	reached = false
 	handler := SetViewer(nil, nil)(MembersInPreview()(func(c echo.Context) error {
 		reached = true

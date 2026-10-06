@@ -167,6 +167,8 @@ func (h *eventHandler) eventFormatNodeMediumDeleted(payload *event.EventPayload)
 		return err
 	}
 
+	// Notifications about comments, from before comments became replies,
+	// are still stored under the name of the service that made them.
 	n.Service = "comment-service"
 	if err = h.Repos.Notifications.Delete(n); err != nil {
 		return err

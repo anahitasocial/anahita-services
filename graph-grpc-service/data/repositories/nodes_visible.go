@@ -77,16 +77,13 @@ func visibleQuery(ids []int64, viewer *entities.Viewer) sq.SelectBuilder {
 
 	isActor := sq.Like{"node.type": constants.NodeActorPrefixEntityType + "%"}
 	isMedium := sq.Like{"node.type": constants.NodeMediumPrefixEntityType + "%"}
-	isComment := sq.Eq{"node.type": constants.NodeBaseCommentEntityType}
 
 	return query.Where(sq.Or{
 		sq.And{isActor, actorAccessCondition(viewer)},
 		sq.And{isMedium, postAccessCondition(viewer)},
-		sq.And{isComment, commentAccessCondition(viewer)},
 		// Everything else is a tag, a hashtag or a place, and those have no
 		// audience: anybody may see one.
 		sq.And{sq.NotLike{"node.type": constants.NodeActorPrefixEntityType + "%"},
-			sq.NotLike{"node.type": constants.NodeMediumPrefixEntityType + "%"},
-			sq.NotEq{"node.type": constants.NodeBaseCommentEntityType}},
+			sq.NotLike{"node.type": constants.NodeMediumPrefixEntityType + "%"}},
 	})
 }

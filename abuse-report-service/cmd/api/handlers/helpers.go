@@ -34,7 +34,7 @@ func language(c echo.Context) string {
 }
 
 // responsibleFor is who answers for a node: the actor itself for a person or
-// a group, the author for a post or a comment, and nobody for a hashtag or a
+// a group, the author for a post or a reply, and nobody for a hashtag or a
 // place.
 func responsibleFor(node *entities.AnahitaNode) int64 {
 	switch {

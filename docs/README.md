@@ -43,12 +43,11 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Terms of Service and Privacy Policy](registration.md#terms-of-service-and-privacy-policy)
    - [NodeInfo](registration.md#nodeinfo)
    - [The first super administrator](registration.md#the-first-super-administrator)
-6. [Permissions](permissions.md) — who can post, comment, like and add followers
+6. [Permissions](permissions.md) — who can post, reply, like and add followers
    - [Access levels](permissions.md#access-levels)
    - [Seeing posts](permissions.md#seeing-posts)
    - [Choosing who can see a post](permissions.md#choosing-who-can-see-a-post)
    - [Replies](permissions.md#replies)
-   - [Comments](permissions.md#comments)
    - [Reporting](permissions.md#reporting)
    - [Removing accounts](permissions.md#removing-accounts)
    - [The defaults](permissions.md#the-defaults)
@@ -133,7 +132,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | --- | --- | --- |
 | [Recommendation service](plans/recommendation-service.md) | 3 | not started |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
-| [Notes as replies](plans/notes-as-replies.md) | 7 | phases 1 and 2 of 3 done 2026-10-05: every comment is a reply; comment-service still to be removed |
+| [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
 | [Link previews](plans/link-previews.md) | 10 | not started |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |

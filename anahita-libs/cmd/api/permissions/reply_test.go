@@ -96,7 +96,7 @@ func TestWhoCanReply(t *testing.T) {
 
 		// A reply is a post, so it needs the scope for writing posts.
 		{"not a token that cannot write posts", publicProfile, "public", true,
-			replyViewer(bystanderID, constants.PersonTypeRegistered, constants.OAuthScopeCommentsWrite), stranger, false},
+			replyViewer(bystanderID, constants.PersonTypeRegistered, constants.OAuthScopeLikesWrite), stranger, false},
 	}
 
 	for _, c := range cases {

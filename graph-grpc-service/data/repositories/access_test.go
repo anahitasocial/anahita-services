@@ -108,7 +108,7 @@ func TestPersonTypePatternMatchesRealPeople(t *testing.T) {
 			return SetActorAccessQuery(b, testViewer(1))
 		},
 		"search": func(b sq.SelectBuilder) sq.SelectBuilder {
-			return SetSearchAccessQuery(b, testViewer(1), false)
+			return SetSearchAccessQuery(b, testViewer(1))
 		},
 	}
 
@@ -203,7 +203,7 @@ func TestSearchAppliesTheBlockPredicateOnce(t *testing.T) {
 	query := SetSearchAccessQuery(
 		sq.Select("node.id").From("nodes AS node").
 			LeftJoin("nodes AS owner ON owner.id = node.owner_id"),
-		viewer, false,
+		viewer,
 	)
 
 	sql, args, err := query.ToSql()

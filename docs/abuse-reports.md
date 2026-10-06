@@ -18,7 +18,7 @@ abuse-report-service, under `/abuse-reports`.
 
 ## Reports and cases
 
-Anything can be reported: a person, a group, a post, a comment, a hashtag or
+Anything can be reported: a person, a group, a post, a reply, a hashtag or
 a place.
 
 A **report** is one person's complaint. A **case** is one reported thing and
@@ -107,7 +107,7 @@ restart.
 | `key` | What is stored on each report. Up to 64 characters, and unique. Treat it as permanent: reports that used a key you remove show the key in place of a label |
 | `label` | The name, by language. `en-GB` is required |
 | `description` | A sentence shown under the name. Optional |
-| `applies_to` | The kinds of thing the reason can be given for, as type prefixes: `node.actor.` (people and groups), `node.medium.` (posts), `node.base.comment-service.` (comments), `node.tag.` (hashtags and places). Leave it out for everything |
+| `applies_to` | The kinds of thing the reason can be given for, as type prefixes: `node.actor.` (people and groups), `node.medium.` (posts and replies), `node.tag.` (hashtags and places). Leave it out for everything |
 | `requires_details` | `true` makes the reporter explain |
 | `atproto_reason` | The AT Protocol reason this corresponds to. Not used yet; it is there for when reports are sent to other servers |
 
@@ -149,7 +149,7 @@ There is nothing left to decide about something that no longer exists, so its
 open case is closed as `actioned`, `deleted`, with nobody named as having
 decided it.
 
-- A **post or comment** is gone the moment it is deleted.
+- A **post or reply** is gone the moment it is deleted.
 - A **person or group** is not: deleting one starts a 30-day wait during which
   it can be restored. Its case stays open until it is purged.
 

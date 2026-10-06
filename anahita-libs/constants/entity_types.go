@@ -2,8 +2,7 @@ package constants
 
 const (
 	// Services
-	PersonService  = "person-service"
-	CommentService = "comment-service"
+	PersonService = "person-service"
 
 	// Node Types
 	NodeActorPrefixEntityType  = "node.actor."
@@ -12,7 +11,6 @@ const (
 	// the others, because it alone holds several images.
 	NodeMediumPhotoEntityType  = "node.medium.photo-service.photo.v1"
 	NodeActorPersonEntityType  = "node.actor.person-service.person.v1"
-	NodeBaseCommentEntityType  = "node.base.comment-service.comment.v1"
 	NodeBaseRepostType         = "node.base.repost-service.repost.v1"
 	NodeBaseHashtagEntityType  = "node.tag.hashtag-service.hashtag.v1"
 	NodeBaseLocationEntityType = "node.tag.location-service.location.v1"

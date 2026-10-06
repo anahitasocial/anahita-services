@@ -51,10 +51,10 @@ const (
 	purgeGracePost      = 13 // on Grace's profile
 	purgeAdaOnGrace     = 14 // written by Ada on Grace's profile
 	purgeGraceInGroup   = 15 // written by Grace into the group
-	purgeGraceOnAdaPost = 20 // Grace's comment under Ada's post
-	purgeGraceOnAdaInGr = 21 // Grace's comment under Ada's post in the group
-	purgeAdaOnGracePost = 22 // Ada's comment under Grace's post
-	purgeGraceOnOwnPost = 23 // Grace's comment under her own post
+	purgeGraceOnAdaPost = 20 // Grace's reply under Ada's post
+	purgeGraceOnAdaInGr = 21 // Grace's reply under Ada's post in the group
+	purgeAdaOnGracePost = 22 // Ada's reply under Grace's post
+	purgeGraceOnOwnPost = 23 // Grace's reply under her own post
 	purgeAdaRevision    = 25 // a revision of Ada's article
 
 	purgeHashtag  = 30 // Ada used it first
@@ -86,7 +86,6 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 
 	const person = "'node.actor.person-service.person.v1','person-service'"
 	const note = "'node.medium.text-service.note.v1','text-service'"
-	const comment = "'node.base.comment-service.comment.v1','comment-service'"
 	const follow = "'edge.actor.follow.v1'"
 	const personType = "'node.actor.person-service.person.v1'"
 	const groupType = "'node.actor.group-service.group.v1'"
@@ -117,7 +116,7 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 		 (10,'node.medium.photo-service.photo.v1','photo-service','a photo','n10','public',1,1,1,'photo.jpg',1,0,0,NOW(),NOW()),
 		 (11,'node.medium.text-service.article.v1','text-service','an article','n11','public',1,1,1,NULL,0,0,0,NOW(),NOW()),
 		 (12,` + note + `,'in the group','n12','public',1,8,1,NULL,1,0,0,NOW(),NOW()),
-		 (13,` + note + `,'by grace','n13','public',1,2,2,NULL,2,2,2,NOW(),NOW()),
+		 (13,` + note + `,'by grace','n13','public',1,2,2,NULL,4,2,2,NOW(),NOW()),
 		 (14,` + note + `,'on grace','n14','public',1,2,1,NULL,0,0,0,NOW(),NOW()),
 		 (15,` + note + `,'grace in the group','n15','public',1,8,2,NULL,0,0,0,NOW(),NOW())`,
 
@@ -126,11 +125,17 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 		 (10,0,'photo.jpg','image/jpeg'),
 		 (10,1,'second.jpg','image/jpeg')`,
 
+		// Replies: notes owned by whoever wrote them. 24 and 26 are under
+		// Grace's reply to her own post: Ada's answer to it, which goes, and
+		// Grace's answer to that, which goes with it.
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,parent_id,root_id,owner_id,owner_type,created_by,comment_count,created_at,updated_at) VALUES
+		 (20,` + note + `,'c20','c20','',1,10,10,2,` + personType + `,2,0,NOW(),NOW()),
+		 (21,` + note + `,'c21','c21','',1,12,12,2,` + personType + `,2,0,NOW(),NOW()),
+		 (22,` + note + `,'c22','c22','',1,13,13,1,` + personType + `,1,0,NOW(),NOW()),
+		 (23,` + note + `,'c23','c23','',1,13,13,2,` + personType + `,2,1,NOW(),NOW()),
+		 (24,` + note + `,'c24','c24','',1,23,13,1,` + personType + `,1,1,NOW(),NOW()),
+		 (26,` + note + `,'c26','c26','',1,24,13,2,` + personType + `,2,0,NOW(),NOW())`,
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,parent_id,created_by,created_at,updated_at) VALUES
-		 (20,` + comment + `,'c20','c20','',1,10,2,NOW(),NOW()),
-		 (21,` + comment + `,'c21','c21','',1,12,2,NOW(),NOW()),
-		 (22,` + comment + `,'c22','c22','',1,13,1,NOW(),NOW()),
-		 (23,` + comment + `,'c23','c23','',1,13,2,NOW(),NOW()),
 		 (25,'node.base.text-service.article-revision.v1','text-service','r25','r25','',1,11,1,NOW(),NOW())`,
 
 		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
@@ -152,11 +157,11 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 		`INSERT INTO notifications (type,service,recipient_id,subject_id,object_id,target_id,comment_id,created_at) VALUES
 		 ('follow','socialgraph-service',1,2,NULL,NULL,NULL,NOW()),
 		 ('follow','socialgraph-service',2,1,NULL,NULL,NULL,NOW()),
-		 ('comment','comment-service',2,3,10,NULL,NULL,NOW()),
-		 ('comment','comment-service',2,3,13,NULL,22,NOW()),
+		 ('reply_add','text-service',2,3,10,NULL,NULL,NOW()),
+		 ('reply_add','text-service',2,3,13,NULL,22,NOW()),
 		 ('medium','text-service',2,3,15,12,NULL,NOW()),
 		 ('follow','socialgraph-service',2,3,1,NULL,NULL,NOW()),
-		 ('comment','comment-service',2,3,13,NULL,23,NOW())`,
+		 ('reply_add','text-service',2,3,13,NULL,23,NOW())`,
 	} {
 		if _, err := db.Exec(stmt); err != nil {
 			t.Fatalf("seed: %v\n%s", err, stmt)
@@ -224,15 +229,15 @@ func TestPurgeRemovesEverythingTheActorOwnedOrWrote(t *testing.T) {
 
 	// The confirmation dialog first, while there is something to count. Four
 	// posts — the photo, the article, and the two notes Ada wrote elsewhere —
-	// and the three comments that go: two of Grace's under Ada's posts, one of
-	// Ada's under Grace's.
+	// and the five replies that go: two of Grace's under Ada's posts, two of
+	// Ada's under Grace's, and Grace's answer to one of those.
 	counts, err := repos.Nodes.ReadDeletionCounts(purgeAda)
 	if err != nil {
 		t.Fatalf("counts: %v", err)
 	}
-	if counts.Posts != 4 || counts.Comments != 3 {
-		t.Errorf("the dialog promises %d posts and %d comments; the purge "+
-			"removes 4 and 3", counts.Posts, counts.Comments)
+	if counts.Posts != 4 || counts.Replies != 5 {
+		t.Errorf("the dialog promises %d posts and %d replies; the purge "+
+			"removes 4 and 5", counts.Posts, counts.Replies)
 	}
 
 	if err := purge.Account(repos, nil, files, purgeAda); err != nil {
@@ -277,7 +282,10 @@ func TestPurgeRemovesEverythingTheActorOwnedOrWrote(t *testing.T) {
 		{"Grace's followers, without Ada", purgeGrace, "follower_count", 0},
 		{"Grace's leaders, now only the group", purgeGrace, "leader_count", 1},
 		{"the group's members", purgeGroup, "follower_count", 1},
-		{"comments under Grace's post", purgeGracePost, "comment_count", 1},
+		// Four were said under Grace's post. Her own reply is what is left,
+		// and nothing is left under that.
+		{"replies under Grace's post", purgeGracePost, "comment_count", 1},
+		{"replies to Grace's reply", purgeGraceOnOwnPost, "comment_count", 0},
 		{"votes on Grace's post", purgeGracePost, "vote_up_count", 1},
 		{"subscribers to Grace's post", purgeGracePost, "subscriber_count", 1},
 	} {

@@ -23,7 +23,6 @@ const (
 
 type FeedLeadersCountRequest struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	IncludeComments   bool                   `protobuf:"varint,1,opt,name=include_comments,json=includeComments,proto3" json:"include_comments,omitempty"`
 	IncludeReposts    bool                   `protobuf:"varint,2,opt,name=include_reposts,json=includeReposts,proto3" json:"include_reposts,omitempty"`
 	IncludeLiked      bool                   `protobuf:"varint,3,opt,name=include_liked,json=includeLiked,proto3" json:"include_liked,omitempty"`
 	LeaderEntityTypes []string               `protobuf:"bytes,4,rep,name=leader_entity_types,json=leaderEntityTypes,proto3" json:"leader_entity_types,omitempty"`
@@ -61,13 +60,6 @@ func (x *FeedLeadersCountRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use FeedLeadersCountRequest.ProtoReflect.Descriptor instead.
 func (*FeedLeadersCountRequest) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_feed_leaders_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *FeedLeadersCountRequest) GetIncludeComments() bool {
-	if x != nil {
-		return x.IncludeComments
-	}
-	return false
 }
 
 func (x *FeedLeadersCountRequest) GetIncludeReposts() bool {
@@ -151,7 +143,6 @@ func (x *FeedLeadersCountResponse) GetTotal() uint64 {
 
 type FeedLeadersBrowseRequest struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	IncludeComments   bool                   `protobuf:"varint,1,opt,name=include_comments,json=includeComments,proto3" json:"include_comments,omitempty"`
 	IncludeReposts    bool                   `protobuf:"varint,2,opt,name=include_reposts,json=includeReposts,proto3" json:"include_reposts,omitempty"`
 	IncludeLiked      bool                   `protobuf:"varint,3,opt,name=include_liked,json=includeLiked,proto3" json:"include_liked,omitempty"`
 	LeaderEntityTypes []string               `protobuf:"bytes,4,rep,name=leader_entity_types,json=leaderEntityTypes,proto3" json:"leader_entity_types,omitempty"`
@@ -191,13 +182,6 @@ func (x *FeedLeadersBrowseRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use FeedLeadersBrowseRequest.ProtoReflect.Descriptor instead.
 func (*FeedLeadersBrowseRequest) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_feed_leaders_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *FeedLeadersBrowseRequest) GetIncludeComments() bool {
-	if x != nil {
-		return x.IncludeComments
-	}
-	return false
 }
 
 func (x *FeedLeadersBrowseRequest) GetIncludeReposts() bool {
@@ -297,25 +281,23 @@ var File_proto_graphpb_feed_leaders_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_feed_leaders_proto_rawDesc = "" +
 	"\n" +
-	" proto/graphpb/feed_leaders.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\"\x99\x02\n" +
-	"\x17FeedLeadersCountRequest\x12)\n" +
-	"\x10include_comments\x18\x01 \x01(\bR\x0fincludeComments\x12'\n" +
+	" proto/graphpb/feed_leaders.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\"\xf4\x01\n" +
+	"\x17FeedLeadersCountRequest\x12'\n" +
 	"\x0finclude_reposts\x18\x02 \x01(\bR\x0eincludeReposts\x12#\n" +
 	"\rinclude_liked\x18\x03 \x01(\bR\fincludeLiked\x12.\n" +
 	"\x13leader_entity_types\x18\x04 \x03(\tR\x11leaderEntityTypes\x12.\n" +
 	"\x13medium_entity_types\x18\x05 \x03(\tR\x11mediumEntityTypes\x12%\n" +
-	"\x06viewer\x18\x06 \x01(\v2\r.graph.ViewerR\x06viewer\"0\n" +
+	"\x06viewer\x18\x06 \x01(\v2\r.graph.ViewerR\x06viewerJ\x04\b\x01\x10\x02\"0\n" +
 	"\x18FeedLeadersCountResponse\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\x04R\x05total\"\xc8\x02\n" +
-	"\x18FeedLeadersBrowseRequest\x12)\n" +
-	"\x10include_comments\x18\x01 \x01(\bR\x0fincludeComments\x12'\n" +
+	"\x05total\x18\x01 \x01(\x04R\x05total\"\xa3\x02\n" +
+	"\x18FeedLeadersBrowseRequest\x12'\n" +
 	"\x0finclude_reposts\x18\x02 \x01(\bR\x0eincludeReposts\x12#\n" +
 	"\rinclude_liked\x18\x03 \x01(\bR\fincludeLiked\x12.\n" +
 	"\x13leader_entity_types\x18\x04 \x03(\tR\x11leaderEntityTypes\x12.\n" +
 	"\x13medium_entity_types\x18\x05 \x03(\tR\x11mediumEntityTypes\x12\x14\n" +
 	"\x05limit\x18\x06 \x01(\x04R\x05limit\x12\x16\n" +
 	"\x06offset\x18\a \x01(\x04R\x06offset\x12%\n" +
-	"\x06viewer\x18\b \x01(\v2\r.graph.ViewerR\x06viewer\">\n" +
+	"\x06viewer\x18\b \x01(\v2\r.graph.ViewerR\x06viewerJ\x04\b\x01\x10\x02\">\n" +
 	"\x19FeedLeadersBrowseResponse\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes2\xab\x01\n" +
 	"\x12FeedLeadersService\x12H\n" +

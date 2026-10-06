@@ -188,7 +188,7 @@ func TestPurgeListsContentButNotTheActorOrWhatItFounded(t *testing.T) {
 	repo := newRepo(db)
 
 	expectSuperAdminGuard(mock)
-	for range 7 {
+	for range 8 {
 		mock.ExpectExec("insert").WillReturnResult(sqlmock.NewResult(0, 1))
 	}
 

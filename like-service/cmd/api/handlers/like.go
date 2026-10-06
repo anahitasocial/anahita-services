@@ -157,43 +157,22 @@ func (h *likeHandler) Add(c echo.Context) error {
 	go func() {
 		entityName := strings.Split(node.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatEdgeVoteupAdded, entityName)
-		if node.IsComment() {
-			payload := &event.EventPayload{
-				Name:             routing_key,
-				SourceService:    constants.ConfigServiceName,
-				OwnerID:          node.Author.ID,
-				SubjectID:        viewer.ID,
-				ObjectID:         node.ID,
-				TargetID:         node.Parent.Author.ID,
-				ViewerID:         viewer.ID,
-				ViewerPersonType: viewer.PersonType,
-			}
-			h.Publisher.Publish(payload, routing_key)
-		} else {
-			payload := &event.EventPayload{
-				Name:             routing_key,
-				SourceService:    constants.ConfigServiceName,
-				OwnerID:          node.Author.ID,
-				SubjectID:        viewer.ID,
-				ObjectID:         node.ID,
-				TargetID:         node.Author.ID,
-				ViewerID:         viewer.ID,
-				ViewerPersonType: viewer.PersonType,
-			}
-			h.Publisher.Publish(payload, routing_key)
+		payload := &event.EventPayload{
+			Name:             routing_key,
+			SourceService:    constants.ConfigServiceName,
+			OwnerID:          node.Author.ID,
+			SubjectID:        viewer.ID,
+			ObjectID:         node.ID,
+			TargetID:         node.Author.ID,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
+		h.Publisher.Publish(payload, routing_key)
 	}()
 
-	var resp any
-	if node.IsComment() {
-		nodeResp := &responses.CommentResponse{}
-		resp = nodeResp.MapCommentItem(node)
-	} else {
-		nodeResp := &responses.MediumNodeResponse{}
-		resp = nodeResp.MapMediumNode(node)
-	}
+	nodeResp := &responses.MediumNodeResponse{}
 
-	return c.JSON(http.StatusCreated, resp)
+	return c.JSON(http.StatusCreated, nodeResp.MapMediumNode(node))
 }
 
 // Delete removes a like
@@ -254,81 +233,26 @@ func (h *likeHandler) Delete(c echo.Context) error {
 	go func() {
 		entityName := strings.Split(node.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatEdgeVoteupDeleted, entityName)
-		if node.IsComment() {
-			payload := &event.EventPayload{
-				Name:             routing_key,
-				SourceService:    constants.ConfigServiceName,
-				OwnerID:          node.Author.ID,
-				SubjectID:        viewer.ID,
-				ObjectID:         node.ID,
-				TargetID:         node.Parent.Author.ID,
-				ViewerID:         viewer.ID,
-				ViewerPersonType: viewer.PersonType,
-			}
-			h.Publisher.Publish(payload, routing_key)
-		} else {
-			payload := &event.EventPayload{
-				Name:             routing_key,
-				SourceService:    constants.ConfigServiceName,
-				OwnerID:          node.Author.ID,
-				SubjectID:        viewer.ID,
-				ObjectID:         node.ID,
-				TargetID:         node.Author.ID,
-				ViewerID:         viewer.ID,
-				ViewerPersonType: viewer.PersonType,
-			}
-			h.Publisher.Publish(payload, routing_key)
+		payload := &event.EventPayload{
+			Name:             routing_key,
+			SourceService:    constants.ConfigServiceName,
+			OwnerID:          node.Author.ID,
+			SubjectID:        viewer.ID,
+			ObjectID:         node.ID,
+			TargetID:         node.Author.ID,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
 		}
+		h.Publisher.Publish(payload, routing_key)
 	}()
 
-	var resp any
-	if node.IsComment() {
-		nodeResp := &responses.CommentResponse{}
-		resp = nodeResp.MapCommentItem(node)
-	} else {
-		nodeResp := &responses.MediumNodeResponse{}
-		resp = nodeResp.MapMediumNode(node)
-	}
+	nodeResp := &responses.MediumNodeResponse{}
 
-	return c.JSON(http.StatusOK, resp)
+	return c.JSON(http.StatusOK, nodeResp.MapMediumNode(node))
 }
 
-// onAfterFetched is called after fetching a comment
+// onAfterFetched answers what the viewer may do with what they liked.
 func (h *likeHandler) onAfterFetched(c echo.Context, node *entities.AnahitaNode) error {
-	if node.IsComment() {
-		h.onAfterFetchedComment(c, node)
-	} else {
-		h.onAfterFetchedMedium(c, node)
-	}
-
-	return nil
-}
-
-// onAfterFetchedComment sets access context for a comment node
-func (h *likeHandler) onAfterFetchedComment(c echo.Context, node *entities.AnahitaNode) error {
-	var (
-		err    error
-		viewer = getViewer(c)
-	)
-
-	commentAccessCtx, err := h.getCommentAccessContext(node, viewer)
-	if err != nil {
-		return err
-	}
-
-	node.Authorized.Edit, _ = h.Perms.Comments.CanEdit(commentAccessCtx)
-	node.Authorized.Delete, _ = h.Perms.Comments.CanDelete(commentAccessCtx)
-	node.Authorized.Administration, _ = h.Perms.Comments.CanAdministrate(commentAccessCtx)
-
-	// The web app replaces the comment with this response, so it carries the
-	// same answer comment-service gives: may the viewer like it.
-	commentFlags(node, viewer, commentAccessCtx.ParentOwnerViewerRel)
-
-	return err
-}
-
-// onAfterFetchedMedium sets access context for a medium node
-func (h *likeHandler) onAfterFetchedMedium(c echo.Context, node *entities.AnahitaNode) error {
 	var (
 		err    error
 		viewer = getViewer(c)

@@ -8,7 +8,9 @@ import "proto/graphpb/context.proto";
 import "proto/graphpb/node.proto";
 
 message FeedLeadersCountRequest {
-    bool include_comments = 1;
+    // 1 was include_comments. Comments became replies, which a feed leaves
+    // out.
+    reserved 1;
     bool include_reposts = 2;
     bool include_liked = 3;
     repeated string leader_entity_types = 4;
@@ -21,7 +23,9 @@ message FeedLeadersCountResponse {
 }
 
 message FeedLeadersBrowseRequest {
-    bool include_comments = 1;
+    // 1 was include_comments. Comments became replies, which a feed leaves
+    // out.
+    reserved 1;
     bool include_reposts = 2;
     bool include_liked = 3;
     repeated string leader_entity_types = 4;

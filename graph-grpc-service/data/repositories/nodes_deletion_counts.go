@@ -11,7 +11,7 @@ import (
 // DeletionCounts is what an actor stands to lose.
 type DeletionCounts struct {
 	Posts              int64
-	Comments           int64
+	Replies            int64
 	Followers          int64
 	Following          int64
 	Admins             int64
@@ -31,10 +31,10 @@ type DeletionCounts struct {
 // everything the actor wrote, and everything underneath either.
 //
 // The two have disagreed before, in both directions. Counting only what the
-// actor wrote missed the comments other people left on their posts, which go
+// actor wrote missed the replies other people left under their posts, which go
 // with the posts. Counting only what the actor owned was right while the purge
 // did the same, and stopped being right when the purge learned to follow the
-// actor's own posts and comments into groups and onto other people's posts.
+// actor's own posts and replies into groups and onto other people's posts.
 // Sharing the text is what keeps a dialog whose entire job is to be believed
 // from drifting again.
 //
@@ -51,15 +51,15 @@ func (r *nodesRepo) ReadDeletionCounts(actorID int64) (*DeletionCounts, error) {
 	const query = purgeContent + `,
 destroyed AS (
   SELECT
-    COALESCE(SUM(n.type LIKE ?), 0) AS posts,
-    COALESCE(SUM(n.type = ?), 0)    AS comments
+    COALESCE(SUM(n.type LIKE ? AND n.root_id IS NULL), 0) AS posts,
+    COALESCE(SUM(n.root_id IS NOT NULL), 0)               AS replies
   FROM content c
   JOIN nodes n ON n.id = c.id
   WHERE n.id <> ?
 )
 SELECT
   d.posts,
-  d.comments,
+  d.replies,
   -- Actors following this one, and actors it follows. Both directions,
   -- because losing an audience and losing a feed are different losses.
   (SELECT COUNT(*) FROM edges e WHERE e.node_b_id = ? AND e.type = ?) AS followers,
@@ -83,7 +83,6 @@ FROM destroyed d;
 	err := r.db.QueryRowContext(ctx, query,
 		actorID, actorID,
 		constants.NodeMediumPrefixEntityType+"%",
-		constants.NodeBaseCommentEntityType,
 		actorID,
 		actorID, constants.EdgeFollowEntityType,
 		actorID, constants.EdgeFollowEntityType,
@@ -92,7 +91,7 @@ FROM destroyed d;
 		actorID,
 	).Scan(
 		&counts.Posts,
-		&counts.Comments,
+		&counts.Replies,
 		&counts.Followers,
 		&counts.Following,
 		&counts.Admins,

@@ -54,7 +54,7 @@ const (
 	purgeTaskCountFollows     = "count_follows"
 	purgeTaskCountVotes       = "count_votes"
 	purgeTaskCountSubscribers = "count_subscribers"
-	purgeTaskCountComments    = "count_comments"
+	purgeTaskCountReplies     = "count_replies"
 	purgeTaskCountReposts     = "count_reposts"
 )
 
@@ -174,9 +174,9 @@ WHERE type = ?
 		}
 	}
 
-	// A post that stays, under which one of the actor's comments or reposts
-	// is about to go. A parent that is itself going is listed too, and counting
-	// it again later simply matches no row.
+	// A post that stays, under which one of the actor's reposts is about to
+	// go. A parent that is itself going is listed too, and counting it again
+	// later simply matches no row.
 	const listParents = `
 INSERT IGNORE INTO purge_work (actor_id, task, node_id)
 SELECT ?, ?, child.parent_id
@@ -188,14 +188,43 @@ WHERE work.actor_id = ?
   AND child.type = ?
   AND child.parent_id IS NOT NULL`
 
-	for task, childType := range map[string]string{
-		purgeTaskCountComments: constants.NodeBaseCommentEntityType,
-		purgeTaskCountReposts:  constants.NodeBaseRepostType,
-	} {
-		if _, err := r.db.ExecContext(ctx, listParents,
-			actorID, task,
+	if _, err := r.db.ExecContext(ctx, listParents,
+		actorID, purgeTaskCountReposts,
+		actorID, purgeTaskDelete,
+		constants.NodeBaseRepostType,
+	); err != nil {
+		return err
+	}
+
+	// What loses a reply. A reply is counted in two places: on the post at
+	// the top of its thread, which counts everything said under it, and on
+	// the reply it answers, which counts what was said to it directly. Both
+	// are listed; they are the same row for a reply made to the post itself.
+	const listThreadRoots = `
+INSERT IGNORE INTO purge_work (actor_id, task, node_id)
+SELECT ?, ?, reply.root_id
+FROM purge_work work
+JOIN nodes reply
+  ON reply.id = work.node_id
+WHERE work.actor_id = ?
+  AND work.task = ?
+  AND reply.root_id IS NOT NULL`
+
+	const listAnsweredReplies = `
+INSERT IGNORE INTO purge_work (actor_id, task, node_id)
+SELECT ?, ?, reply.parent_id
+FROM purge_work work
+JOIN nodes reply
+  ON reply.id = work.node_id
+WHERE work.actor_id = ?
+  AND work.task = ?
+  AND reply.root_id IS NOT NULL
+  AND reply.parent_id IS NOT NULL`
+
+	for _, query := range []string{listThreadRoots, listAnsweredReplies} {
+		if _, err := r.db.ExecContext(ctx, query,
+			actorID, purgeTaskCountReplies,
 			actorID, purgeTaskDelete,
-			childType,
 		); err != nil {
 			return err
 		}
@@ -575,28 +604,63 @@ SET subscribed.subscriber_count = (
 WHERE work.actor_id = ?
   AND work.task = ?`
 
-	// Comments and reposts are nodes, and MySQL will not read the table an
+	// Replies and reposts are nodes, and MySQL will not read the table an
 	// UPDATE is writing from a subquery. The children are counted into a
 	// derived table first and joined in; a parent with none left is absent
 	// from it, which is what the COALESCE is for.
-	const countComments = `
+	//
+	// The two counts of replies are the ones RepliesRepo.Recount keeps, by
+	// the same rules: a post counts every reply in its thread that is
+	// neither removed nor hidden, and a reply counts the replies made to it.
+	const countThreadReplies = `
+UPDATE nodes root
+JOIN purge_work work
+  ON work.node_id = root.id
+LEFT JOIN (
+  SELECT reply.root_id, COUNT(*) AS total
+  FROM nodes reply
+  JOIN purge_work listed
+    ON listed.node_id = reply.root_id
+  WHERE listed.actor_id = ?
+    AND listed.task = ?
+    AND reply.enabled = 1
+    AND reply.deleted_at IS NULL
+    AND NOT EXISTS (
+      SELECT 1
+      FROM edges hidden
+      WHERE hidden.type = ?
+        AND hidden.node_a_id = reply.root_id
+        AND hidden.node_b_id = reply.id
+    )
+  GROUP BY reply.root_id
+) counted
+  ON counted.root_id = root.id
+SET root.comment_count = COALESCE(counted.total, 0)
+WHERE work.actor_id = ?
+  AND work.task = ?
+  AND root.root_id IS NULL`
+
+	const countDirectReplies = `
 UPDATE nodes parent
 JOIN purge_work work
   ON work.node_id = parent.id
 LEFT JOIN (
-  SELECT child.parent_id, COUNT(*) AS total
-  FROM nodes child
+  SELECT reply.parent_id, COUNT(*) AS total
+  FROM nodes reply
   JOIN purge_work listed
-    ON listed.node_id = child.parent_id
+    ON listed.node_id = reply.parent_id
   WHERE listed.actor_id = ?
     AND listed.task = ?
-    AND child.type = ?
-  GROUP BY child.parent_id
+    AND reply.root_id IS NOT NULL
+    AND reply.enabled = 1
+    AND reply.deleted_at IS NULL
+  GROUP BY reply.parent_id
 ) counted
   ON counted.parent_id = parent.id
 SET parent.comment_count = COALESCE(counted.total, 0)
 WHERE work.actor_id = ?
-  AND work.task = ?`
+  AND work.task = ?
+  AND parent.root_id IS NOT NULL`
 
 	const countReposts = `
 UPDATE nodes parent
@@ -634,9 +698,13 @@ WHERE work.actor_id = ?
 			constants.EdgeBaseSubscriptionEntityType,
 			actorID, purgeTaskCountSubscribers,
 		}},
-		{countComments, []any{
-			actorID, purgeTaskCountComments, constants.NodeBaseCommentEntityType,
-			actorID, purgeTaskCountComments,
+		{countThreadReplies, []any{
+			actorID, purgeTaskCountReplies, constants.EdgeMediumHiddenReplyType,
+			actorID, purgeTaskCountReplies,
+		}},
+		{countDirectReplies, []any{
+			actorID, purgeTaskCountReplies,
+			actorID, purgeTaskCountReplies,
 		}},
 		{countReposts, []any{
 			actorID, purgeTaskCountReposts, constants.NodeBaseRepostType,

@@ -19,16 +19,7 @@ func SetMediumAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.Selec
 		return sb
 	}
 
-	return sb.Where(sq.Or{
-		sq.And{
-			sq.NotEq{"node.type": constants.NodeBaseCommentEntityType},
-			postAccessCondition(viewer),
-		},
-		sq.And{
-			sq.Eq{"node.type": constants.NodeBaseCommentEntityType},
-			commentAccessCondition(viewer),
-		},
-	})
+	return sb.Where(postAccessCondition(viewer))
 }
 
 // postAccessCondition is the gate for anything that is a post: a post at the
@@ -123,17 +114,8 @@ func postOrReply(postGate sq.Sqlizer, viewer *entities.Viewer) sq.Sqlizer {
 	}
 }
 
-// commentAccessCondition admits a comment when its post passes the medium
-// gate, and nobody on either side has blocked the other.
-func commentAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
-	return sq.And{
-		relNotBlockedEitherWay(viewer.ID, contentActorRefs("node")...),
-		parentPassesMediumGate(viewer),
-	}
-}
-
 // parentPassesMediumGate is true when the row's parent is a post this viewer
-// may see. Comments and reposts both hang off a post and are both judged by it.
+// may see. A repost hangs off a post and is judged by it.
 //
 // The post is gated in a subquery that aliases it `node` and its owner
 // `owner`, the names every medium gate helper is written against, so the gate

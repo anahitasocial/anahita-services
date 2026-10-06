@@ -24,10 +24,3 @@ type MediumAccessContext struct {
 	OwnerViewerRel  *entities.ActorRelation
 	AuthorViewerRel *entities.ActorRelation
 }
-
-type CommentAccessContext struct {
-	Viewer               *entities.Viewer
-	Comment              CommentNodeInterface
-	ParentOwnerViewerRel *entities.ActorRelation
-	AuthorViewerRel      *entities.ActorRelation
-}

@@ -13,7 +13,3 @@ func (a *AnahitaNode) IsPerson() bool {
 func (a *AnahitaNode) IsMedium() bool {
 	return strings.Contains(a.Type, "node.medium.")
 }
-
-func (a *AnahitaNode) IsComment() bool {
-	return strings.Contains(a.Type, ".comment.")
-}

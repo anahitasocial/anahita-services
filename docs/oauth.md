@@ -46,6 +46,10 @@ The current catalog: `openid`, `profile`, `email`, `offline_access`,
 `notifications:read`, `notifications:write`, `taxonomy:write`,
 `account:read`, `account:write`, `oauth:read`, `oauth:write`.
 
+`comments:write` no longer grants anything. Comments became replies, which are
+posts and are written under `media:write`. It is still in the catalog so that
+clients registered with it, and tokens already issued with it, stay valid.
+
 `oauth:*` is the sole super-admin-only family. A token carrying
 `oauth:write` is equivalent to owning the identity provider — its holder
 can add a redirect URI to any client and harvest authorization codes for

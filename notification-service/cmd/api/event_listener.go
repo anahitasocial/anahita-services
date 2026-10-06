@@ -21,7 +21,6 @@ func startEventListerner(h *handlers.Handlers, config *config.Config) error {
 
 	topics := []string{
 		"node.medium.*.*.*.v1",
-		"node.comment.*.*.*.v1",
 		"node.repost.*.*.*.v1",
 		"edge.voteup.*.*.v1",
 		"edge.follow.*.*.v1",

@@ -10,6 +10,11 @@ import (
 
 // profileWith is a person profile with text-service composing notes and
 // articles, and the given add_permissions.
+const (
+	ownerID  = 1
+	authorID = 2
+)
+
 func profileWith(access string, perms ...entities.AnahitaNodeAddPermission) *entities.AnahitaNode {
 	n := entities.NewAnahitaNode()
 	n.ID = ownerID
@@ -122,23 +127,43 @@ func TestCanLike(t *testing.T) {
 	}
 }
 
-// CanComment is CanAdd asked of a comment that does not exist yet, so only
-// its own additions need pinning here: the guest refusal, and that it passes
-// the post through.
-func TestCanComment(t *testing.T) {
+// CanReplyToPost is CanReply asked with what a list has to hand, so only its
+// own additions need pinning here: that it passes the post through, that a
+// guest is refused, and that the profile's relationship stands in for the
+// author's on the author's own profile and nowhere else.
+func TestCanReplyToPost(t *testing.T) {
 	owner := profileWith("public", perm("comment", "followers"))
-	comments := constants.OAuthScopeCommentsWrite
+	posts := constants.OAuthScopeMediaWrite
 
-	if !CanComment(viewerAs(100, comments), postOn(owner, "public"), &entities.ActorRelation{IsLeading: true}) {
-		t.Error("refused a follower on followers-only comments")
+	openPost := postOn(owner, "public")
+	openPost.CommentStatus = true
+
+	if !CanReplyToPost(viewerAs(100, posts), openPost, &entities.ActorRelation{IsLeading: true}) {
+		t.Error("refused a follower where followers may reply")
 	}
-	if CanComment(viewerAs(100, comments), postOn(owner, "public"), &entities.ActorRelation{}) {
-		t.Error("allowed a stranger on followers-only comments")
+	if CanReplyToPost(viewerAs(100, posts), openPost, &entities.ActorRelation{}) {
+		t.Error("allowed a stranger where only followers may reply")
 	}
-	// CanAdd lets guests past its scope check, relying on the route; the
-	// answer shown to a guest has to be no.
-	if CanComment(entities.NewViewer(), postOn(profileWith("public"), "public"), nil) {
+	if CanReplyToPost(entities.NewViewer(), postOn(profileWith("public"), "public"), nil) {
 		t.Error("allowed a guest")
+	}
+
+	// Limited by its author to the people who follow them.
+	open := profileWith("public")
+	own := postOn(open, "public")
+	own.CommentStatus = true
+	own.ReplyAccess = "followers"
+	own.CreatedBy = own.OwnerID
+	if !CanReplyToPost(viewerAs(100, posts), own, &entities.ActorRelation{IsLeading: true}) {
+		t.Error("refused a follower of the author on the author's own profile")
+	}
+
+	elsewhere := postOn(open, "public")
+	elsewhere.CommentStatus = true
+	elsewhere.ReplyAccess = "followers"
+	elsewhere.CreatedBy = own.OwnerID + 1000
+	if CanReplyToPost(viewerAs(100, posts), elsewhere, &entities.ActorRelation{IsLeading: true}) {
+		t.Error("took a follower of the profile for a follower of the author")
 	}
 }
 

@@ -35,7 +35,7 @@ const (
 	rootInGroup  = 100 // Alice's note in the private group
 	rootPublic   = 101 // a public note on Alice's profile
 	rootOnlyMe   = 102 // Alice's "only me" note
-	rootPhoto    = 103 // a public photo on Alice's profile, with an old comment
+	rootPhoto    = 103 // a public photo on Alice's profile, with nothing under it
 	replyInGroup = 200 // Alice answers her note in the group
 	replyNested  = 201 // Carol answers that
 	replyByBob   = 210 // Bob answers the public note
@@ -43,7 +43,6 @@ const (
 	replyRemoved = 212 // a removed reply, kept as a placeholder
 	replyToGone  = 213 // Bob's answer to the removed reply
 	replyOnlyMe  = 220 // Alice answers her own private note
-	oldComment   = 300 // a comment, as comment-service stores them
 )
 
 const noteType = "node.medium.text-service.note.v1"
@@ -86,10 +85,6 @@ func seedRepliesFixture(t *testing.T, db *sql.DB) {
 		 (220,` + note + `,'','alice to herself','r220','',1,1,` + personType + `,1,102,'` + noteType + `',102,NOW() + INTERVAL 1 SECOND,NOW())`,
 
 		`UPDATE nodes SET deleted_at = NOW() WHERE id = 212`,
-
-		// A comment from before replies, under the photo.
-		`INSERT INTO nodes (id,type,service,name,body,alias,access,enabled,created_by,parent_id,parent_type,created_at,updated_at) VALUES
-		 (300,'node.base.comment-service.comment.v1','comment-service','','an old comment','c300','',1,2,103,'node.medium.photo-service.photo.v1',NOW(),NOW())`,
 
 		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
 		 ('edge.actor.follow.v1',1,` + personType + `,3,` + groupType + `,NOW()),
@@ -214,7 +209,7 @@ func TestRepliesDoNotLeakThroughSearchOrTagPages(t *testing.T) {
 
 	gates := map[string]func(sq.SelectBuilder) sq.SelectBuilder{
 		"search": func(sb sq.SelectBuilder) sq.SelectBuilder {
-			return SetSearchAccessQuery(sb, bob, false)
+			return SetSearchAccessQuery(sb, bob)
 		},
 		"a hashtag or place page": func(sb sq.SelectBuilder) sq.SelectBuilder {
 			return SetPolymorphicAccessQuery(sb, bob)
@@ -397,13 +392,12 @@ func TestCountsAreOfWhatIsThereAndNotHidden(t *testing.T) {
 		t.Errorf("hidden replies: %v, %v", hidden, err)
 	}
 
-	// While there are still comments from before replies, a post counts
-	// both: the photo has one comment and no replies.
+	// A post with nothing under it counts nothing.
 	if err := repo.Recount(rootPhoto, 0); err != nil {
 		t.Fatal(err)
 	}
-	if got := commentCount(t, db, rootPhoto); got != 1 {
-		t.Errorf("the photo counts %d, want its 1 old comment", got)
+	if got := commentCount(t, db, rootPhoto); got != 0 {
+		t.Errorf("the photo counts %d, want 0", got)
 	}
 }
 
@@ -419,9 +413,8 @@ func TestARemovedReplyIsEmptiedAndKeptOnlyWhileItHoldsAThreadTogether(t *testing
 	if answered, _ := repo.HasReplies(replyNested); answered {
 		t.Error("Carol's reply has nothing under it")
 	}
-	// An old comment under a post is not a reply to it.
 	if answered, _ := repo.HasReplies(rootPhoto); answered {
-		t.Error("a comment was counted as a reply")
+		t.Error("the photo has nothing under it")
 	}
 
 	if err := repo.Tombstone(replyInGroup, replyAlice); err != nil {

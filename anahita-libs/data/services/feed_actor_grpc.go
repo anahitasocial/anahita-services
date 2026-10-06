@@ -83,7 +83,6 @@ func (srv *FeedActorGRPC) Count(req *FeedActorCountRequest, viewer *entities.Vie
 
 	resp, err := client.Count(context.Background(), &graphpb.FeedActorCountRequest{
 		ActorId:           req.ActorID,
-		IncludeComments:   req.IncludeComments,
 		IncludeReposts:    req.IncludeReposts,
 		IncludeLiked:      req.IncludeLiked,
 		MediumEntityTypes: req.MediumEntityTypes,
@@ -111,7 +110,6 @@ func (srv *FeedActorGRPC) Browse(req *FeedActorBrowseRequest, viewer *entities.V
 
 	resp, err := client.Browse(context.Background(), &graphpb.FeedActorBrowseRequest{
 		ActorId:           req.ActorID,
-		IncludeComments:   req.IncludeComments,
 		IncludeReposts:    req.IncludeReposts,
 		IncludeLiked:      req.IncludeLiked,
 		MediumEntityTypes: req.MediumEntityTypes,

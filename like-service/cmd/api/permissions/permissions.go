@@ -13,14 +13,12 @@ type Env struct {
 
 func NewPermissions(env *Env) *Permissions {
 	return &Permissions{
-		Comments: permissions.NewCommentPermissions(),
-		Likes:    NewLikePermissions(env),
-		Medium:   permissions.NewMediumPermissions(),
+		Likes:  NewLikePermissions(env),
+		Medium: permissions.NewMediumPermissions(),
 	}
 }
 
 type Permissions struct {
-	Comments permissions.CommentPermissionsInterface
-	Likes    LikePermissionsInterface
-	Medium   permissions.MediumPermissionsInterface
+	Likes  LikePermissionsInterface
+	Medium permissions.MediumPermissionsInterface
 }

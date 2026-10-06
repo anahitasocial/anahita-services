@@ -12,7 +12,6 @@ type FeedLeadersRequest struct {
 func NewFeedLeadersRequest() *FeedLeadersRequest {
 	return &FeedLeadersRequest{
 		Browse: &FeedLeadersBrowseRequest{
-			IncludeComments:   false,
 			IncludeLiked:      false,
 			IncludeReposts:    false,
 			MediumEntityTypes: []string{},
@@ -21,7 +20,6 @@ func NewFeedLeadersRequest() *FeedLeadersRequest {
 			Limit:             constants.RequestLimitDefault,
 		},
 		Count: &FeedLeadersCountRequest{
-			IncludeComments:   false,
 			IncludeLiked:      false,
 			IncludeReposts:    false,
 			MediumEntityTypes: []string{},
@@ -31,7 +29,6 @@ func NewFeedLeadersRequest() *FeedLeadersRequest {
 }
 
 type FeedLeadersBrowseRequest struct {
-	IncludeComments   bool
 	IncludeLiked      bool
 	IncludeReposts    bool
 	MediumEntityTypes []string
@@ -41,7 +38,6 @@ type FeedLeadersBrowseRequest struct {
 }
 
 type FeedLeadersCountRequest struct {
-	IncludeComments   bool
 	IncludeLiked      bool
 	IncludeReposts    bool
 	MediumEntityTypes []string

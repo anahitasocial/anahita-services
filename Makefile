@@ -9,9 +9,6 @@ AUTH_BINARY=app-binary
 AUTH_VERSION=latest
 AUTH_SRV=auth-service
 
-COMMENT_BINARY=app-binary
-COMMENT_VERSION=latest
-COMMENT_SRV=comment-service
 
 GRAPH_BINARY=app-binary
 GRAPH_VERSION=latest
@@ -106,11 +103,10 @@ down:
 	@echo "Docker stopped!"
 
 ## build_dockerfiles: builds all dockerfile images
-build_dockerfiles: check_docker build_abuse_report build_auth build_comment build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_identity_image build_mail build_feed
+build_dockerfiles: check_docker build_abuse_report build_auth build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_identity_image build_mail build_feed
 	@echo "Building dockerfiles..."
 	docker build -f ${DOCKERFILES}/${ABUSE_REPORT_SRV}.dockerfile -t ${REPOSITORY}/${ABUSE_REPORT_SRV}:${ABUSE_REPORT_VERSION} .
 	docker build -f ${DOCKERFILES}/${AUTH_SRV}.dockerfile -t ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION} .
-	docker build -f ${DOCKERFILES}/${COMMENT_SRV}.dockerfile -t ${REPOSITORY}/${COMMENT_SRV}:${COMMENT_VERSION} .
 	docker build -f ${DOCKERFILES}/${GRAPH_SRV}.dockerfile -t ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION} .
 	docker build -f ${DOCKERFILES}/${SWEEPER_JOB}.dockerfile -t ${REPOSITORY}/${SWEEPER_JOB}:${GRAPH_VERSION} .
 	docker build -f ${DOCKERFILES}/${ACTOR_SRV}.dockerfile -t ${REPOSITORY}/${ACTOR_SRV}:${ACTOR_VERSION} .
@@ -135,7 +131,6 @@ build_dockerfiles: check_docker build_abuse_report build_auth build_comment buil
 push_dockerfiles: check_docker build_dockerfiles
 	docker push ${REPOSITORY}/${ABUSE_REPORT_SRV}:${ABUSE_REPORT_VERSION}
 	docker push ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION}
-	docker push ${REPOSITORY}/${COMMENT_SRV}:${COMMENT_VERSION}
 	docker push ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION}
 	docker push ${REPOSITORY}/${SWEEPER_JOB}:${GRAPH_VERSION}
 	docker push ${REPOSITORY}/${ACTOR_SRV}:${ACTOR_VERSION}
@@ -171,12 +166,6 @@ build_auth:
 	@echo "Building auth binary.."
 	cd ${AUTH_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${AUTH_BINARY} ./cmd/api
 	@echo "Authentication binary built!"
-
-## build_comment: builds the comment binary as a linux executable
-build_comment:
-	@echo "Building comment binary.."
-	cd ${COMMENT_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${COMMENT_BINARY} ./cmd/api
-	@echo "Comment binary built!"
 
 ## build_graph: builds the graph binary as a linux executable
 build_graph:
@@ -282,7 +271,7 @@ build_feed:
 
 ## up_build: stops docker-compose (if running), builds all projects and starts docker compose
 # up_build: build_auth build_broker build_listener build_logger build_mail
-up_build: build_abuse_report build_auth build_comment build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_identity_image build_mail build_feed
+up_build: build_abuse_report build_auth build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_identity_image build_mail build_feed
 	@echo "Stopping docker images (if running...)"
 	docker-compose down
 	@echo "Building (when required) and starting docker images..."
@@ -299,15 +288,6 @@ auth: build_auth
 	docker-compose up --build -d ${AUTH_SRV}
 	docker-compose start ${AUTH_SRV}
 	@echo "${AUTH_SRV} built and started!"
-
-## comment: stops comment-service, removes docker image, builds service, and starts it
-comment: build_comment
-	@echo "Building ${COMMENT_SRV} docker image..."
-	- docker-compose stop ${COMMENT_SRV}
-	- docker-compose rm -f ${COMMENT_SRV}
-	docker-compose up --build -d ${COMMENT_SRV}
-	docker-compose start ${COMMENT_SRV}
-	@echo "${COMMENT_SRV} built and started!"
 
 ## graph: stops graph-grpc-service, removes docker image, builds service, and starts it
 graph: build_graph
@@ -479,8 +459,7 @@ clean:
 	@echo "Cleaning..."
 	@cd ${AUTH_SRV} && rm -f ${AUTH_BINARY}
 	@cd ${AUTH_SRV} && go clean
-	@cd ${COMMENT_SRV} && rm -f ${COMMENT_BINARY}
-	@cd ${COMMENT_SRV} && go clean
+	@cd && go clean
 	@cd ${GRAPH_SRV} && rm -f ${GRAPH_BINARY}
 	@cd ${GRAPH_SRV} && go clean
 	@cd ${ACTOR_SRV} && rm -f ${ACTOR_BINARY}
@@ -530,7 +509,7 @@ K8S_LOCAL=k8s/overlays/local
 # Always the Minikube cluster, whatever kubectl currently points at, so these
 # targets can never touch a real one.
 KUBECTL=kubectl --context minikube
-K8S_IMAGES=${ABUSE_REPORT_SRV} ${AUTH_SRV} ${COMMENT_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${STORY_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
+K8S_IMAGES=${ABUSE_REPORT_SRV} ${AUTH_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${STORY_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
 
 ## k8s-start: starts a local Minikube cluster with the ingress controller and cert-manager
 k8s-start:
@@ -599,7 +578,7 @@ test:
 	@echo "Testing anahita-libs..."
 	@cd anahita-libs && go test ./...
 	@cd ${AUTH_SRV} && go test ./...
-	@cd ${COMMENT_SRV} && go test ./...
+	@cd && go test ./...
 	@cd ${IDENTITY_IMAGE_SRV} && go test ./...
 	@cd ${FEED_SRV} && go test ./...
 	@cd ${FILE_SRV} && go test ./...

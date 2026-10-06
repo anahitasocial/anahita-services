@@ -138,7 +138,7 @@ var OAuthScopeDefinitions = map[string]OAuthScopeDefinition{
 	// privacy settings and hashtag/location tags.
 	OAuthScopeMediaRead: {
 		Scope:       OAuthScopeMediaRead,
-		Description: "View posts, photos, articles, notes, and their comments",
+		Description: "View posts, photos, articles, notes, and the replies to them",
 	},
 	OAuthScopeMediaWrite: {
 		Scope:       OAuthScopeMediaWrite,
@@ -150,7 +150,7 @@ var OAuthScopeDefinitions = map[string]OAuthScopeDefinition{
 	// on media:read — there is no comments:read or likes:read.
 	OAuthScopeCommentsWrite: {
 		Scope:       OAuthScopeCommentsWrite,
-		Description: "Write, edit, and delete comments",
+		Description: "No longer grants anything. Comments became replies, which are posts and are written under media:write",
 	},
 	OAuthScopeLikesWrite: {
 		Scope:       OAuthScopeLikesWrite,

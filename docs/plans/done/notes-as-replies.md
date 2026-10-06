@@ -35,7 +35,7 @@ comment-service and every comment branch elsewhere are gone.
 | Comments with `enabled = 0` | every one before 2016-01-30, about 9,400; 1,625 of them under posts that are still published |
 
 The comment rules in force are documented in
-[Permissions › Comments](../permissions.md#comments). Replies have to keep
+[Permissions › Comments](../../permissions.md#replies). Replies have to keep
 them.
 
 ---
@@ -279,7 +279,7 @@ Nothing is migrated. New replies are notes, and old comments keep working.
   - `CommentPermissions` in anahita-libs;
   - the `NodeBaseCommentEntityType` constant;
   - the client's comment containers, actions, reducers and API.
-- Update [Permissions](../permissions.md): comments become replies.
+- Update [Permissions](../../permissions.md): comments become replies.
 
 ---
 
@@ -310,7 +310,7 @@ Nothing is migrated. New replies are notes, and old comments keep working.
 | Phase 1 | done 2026-10-05, on branch `m5-conversations`; see [What was built: phase 1](#what-was-built-phase-1-2026-10-05) |
 | Phase 2 | done 2026-10-05; see [What was built: phase 2](#what-was-built-phase-2-2026-10-05) |
 | Who can reply, per post | done 2026-10-05; see [What was built: who can reply](#what-was-built-who-can-reply-2026-10-05). Asked for by the user after phase 2; this is the "reply controls" that decision 4 left for later |
-| Phase 3 | not started |
+| Phase 3 | done 2026-10-05; see [What was built: phase 3](#what-was-built-phase-3-2026-10-05) |
 
 
 ---
@@ -439,6 +439,76 @@ and left alone by an unrelated edit, on a real database; the migration run
 twice and against a table without the column. On the dev stack a post and its
 thread return `reply_access`, and the new routes refuse a visitor. Nothing
 signed in, and nothing in a browser, by me.
+
+## What was built: phase 3 (2026-10-05)
+
+Comments are gone from the code. Nothing was changed in the database: phase 2
+left no comment rows to remove.
+
+**Removed.**
+- **comment-service**: its code, its image, and its entries in the compose
+  file, the gateway (`/comments/` now answers 404), the Kubernetes base and
+  overlays, the Makefile and `go.work`.
+- **The shared library**: `CommentPermissions`, the comment response, the
+  comment node type and service name, the comment events, and
+  `AnahitaNode.IsComment`.
+- **The graph**: the comment branch in the post gate, the feed gate, the
+  mixed-kind gate and search; the "include comments" option on search and on
+  both feeds (the protobuf field numbers are reserved); the comment half of
+  the count a post keeps.
+- **like-service, notification-service and the event listeners** of the
+  hashtag, actor and abuse report services: every comment branch and every
+  subscription to comment events.
+- **The web app**: the comment components, actions, reducers, API modules and
+  prop types, the comment like controls, the comment card in search and in
+  the feeds, the "include comments" switch on the search page, and the older
+  open-and-close control. Wording that said "comment" says "reply", in English
+  and French.
+
+**Changed rather than removed.**
+- **`authorized.comment` on a post** is now the reply rule
+  (`permissions.CanReplyToPost`), not the comment rule. It needs `media:write`
+  where it needed `comments:write`, and it follows who the author lets reply
+  when the post is on its author's own profile. The field keeps its name.
+- **The reply button in a feed** did nothing: it was the comment button, left
+  from before threads. It is now a link to the post, where the thread is.
+- **What deleting an account would cost** counts replies, and no longer counts
+  a reply as a post. The field is `replies` where it was `comments`.
+
+**Found and fixed: a purge did not recount replies.** Deleting an account for
+good recounts what other people's posts show. It looked for comments by their
+type, found none after phase 2, and left the number of replies on a post as it
+was, counting replies that were gone. It now lists every post that loses a
+reply, and every reply that loses an answer, and counts both by the rules the
+thread itself uses. A test purges somebody from the middle of a thread.
+
+**Kept on purpose.**
+- **The `comment` permission** in `actor_features`, and the columns
+  `comment_count` and `comment_status`: what profiles saved still applies, and
+  item 27 is where columns are renamed.
+- **`notifications.comment_id`**, which a reply notification fills with the
+  reply. Notifications from before, of the kinds `comment_add` and
+  `comment_edit` and under the service name `comment-service`, are still
+  stored and still shown and removed with their post.
+- **The `comments:write` scope**, which no longer grants anything. It is in
+  every installation's client records and in tokens already issued, so taking
+  it out of the catalog needs those brought up to date first. Not done here.
+- The comment types named in older migrations and in the legacy upgrade,
+  which is what they convert.
+
+**To do when deploying to Kubernetes.** The manifests no longer describe
+comment-service, and `kubectl apply -k` does not remove what it no longer
+describes: delete its Deployment and Service by hand.
+
+**Still not built** (from phase 2): reposting a reply with the post it
+answers, and a page for a reply on its own. A link to a reply, from search or
+from a report, opens it as a note without its thread.
+
+**Checked.** Every service builds and passes its tests; the graph's against a
+real database, with the fixtures that were comments rewritten as replies. The
+web app's 24 suites pass and it builds. On the dev stack, rebuilt without the
+service: a post, its thread, search and a feed answer, and `/comments/`
+answers 404. Nothing signed in, and nothing in a browser, by me.
 
 ---
 

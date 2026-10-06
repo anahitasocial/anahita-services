@@ -27,8 +27,8 @@ const (
 	visGroupPost     = 14 // public, in the followers-only group
 	visDisabledPost  = 15 // public, by the disabled account
 
-	visCommentOnPublic  = 20 // under Ada's public post
-	visCommentOnPrivate = 21 // under Ada's only-me post
+	visReplyOnPublic  = 20 // under Ada's public post
+	visReplyOnPrivate = 21 // under Ada's only-me post
 
 	visHashtag  = 30
 	visLocation = 31
@@ -39,7 +39,7 @@ const (
 var visAll = []int64{
 	visAda, visGrace, visStranger, visFollower, visBlocked, visDisabled, visDeleted, visGroup,
 	visPublicPost, visFollowersPost, visPrivatePost, visGracePost, visGroupPost, visDisabledPost,
-	visCommentOnPublic, visCommentOnPrivate,
+	visReplyOnPublic, visReplyOnPrivate,
 	visHashtag, visLocation,
 	visMissing,
 }
@@ -49,7 +49,6 @@ func seedVisibleFixture(t *testing.T, db *sql.DB) {
 
 	const person = "'node.actor.person-service.person.v1','person-service'"
 	const note = "'node.medium.text-service.note.v1','text-service'"
-	const comment = "'node.base.comment-service.comment.v1','comment-service'"
 
 	for _, stmt := range []string{
 		`DELETE FROM edges`,
@@ -73,9 +72,11 @@ func seedVisibleFixture(t *testing.T, db *sql.DB) {
 		 (13,` + note + `,'on grace','n13','public',1,2,2,NOW(),NOW()),
 		 (14,` + note + `,'in group','n14','public',1,8,4,NOW(),NOW()),
 		 (15,` + note + `,'by disabled','n15','public',1,6,6,NOW(),NOW())`,
-		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,parent_id,created_by,created_at,updated_at) VALUES
-		 (20,` + comment + `,'c20','c20','',1,10,3,NOW(),NOW()),
-		 (21,` + comment + `,'c21','c21','',1,12,1,NOW(),NOW())`,
+		// Replies: notes owned by whoever wrote them, with no audience of
+		// their own.
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,parent_id,root_id,owner_id,owner_type,created_by,created_at,updated_at) VALUES
+		 (20,` + note + `,'c20','c20','',1,10,10,3,'node.actor.person-service.person.v1',3,NOW(),NOW()),
+		 (21,` + note + `,'c21','c21','',1,12,12,1,'node.actor.person-service.person.v1',1,NOW(),NOW())`,
 		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
 		 ('edge.actor.follow.v1',4,'node.actor.person-service.person.v1',1,'node.actor.person-service.person.v1',NOW()),
 		 ('edge.actor.follow.v1',4,'node.actor.person-service.person.v1',2,'node.actor.person-service.person.v1',NOW()),
@@ -121,11 +122,11 @@ func TestFilterVisibleAgainstRealData(t *testing.T) {
 	repo := NewNodesRepo(db)
 
 	// What anybody may see: public profiles, Ada's public post and the
-	// comment under it, and the tags. Not Grace or her post, not the group
+	// reply under it, and the tags. Not Grace or her post, not the group
 	// or its post, nothing disabled or deleted, nothing that does not exist.
 	public := []int64{
 		visAda, visStranger, visFollower, visBlocked,
-		visPublicPost, visCommentOnPublic,
+		visPublicPost, visReplyOnPublic,
 		visHashtag, visLocation,
 	}
 
@@ -143,19 +144,19 @@ func TestFilterVisibleAgainstRealData(t *testing.T) {
 				visGrace, visGroup, visFollowersPost, visGracePost, visGroupPost),
 		},
 		{
-			// Ada's profile, her posts and the comment under her post all
+			// Ada's profile, her posts and the reply under her post all
 			// go. The tags and everybody else's profile stay.
 			"somebody Ada has blocked sees nothing of hers",
 			visViewer(visBlocked, constants.PersonTypeRegistered),
 			[]int64{visStranger, visFollower, visBlocked, visHashtag, visLocation},
 		},
 		{
-			"Ada sees her own private post and the comment under it",
+			"Ada sees her own private post and the reply under it",
 			visViewer(visAda, constants.PersonTypeRegistered),
 			[]int64{
 				visAda, visStranger, visFollower,
 				visPublicPost, visFollowersPost, visPrivatePost,
-				visCommentOnPublic, visCommentOnPrivate,
+				visReplyOnPublic, visReplyOnPrivate,
 				visHashtag, visLocation,
 			},
 		},
@@ -165,7 +166,7 @@ func TestFilterVisibleAgainstRealData(t *testing.T) {
 			[]int64{
 				visAda, visGrace, visStranger, visFollower, visBlocked, visDisabled, visDeleted, visGroup,
 				visPublicPost, visFollowersPost, visPrivatePost, visGracePost, visGroupPost, visDisabledPost,
-				visCommentOnPublic, visCommentOnPrivate,
+				visReplyOnPublic, visReplyOnPrivate,
 				visHashtag, visLocation,
 			},
 		},

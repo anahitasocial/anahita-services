@@ -50,12 +50,6 @@ func (repo *SearchRepo) getBaseSelectQuery(req *graphpb.SearchBrowseRequest) sq.
 		)
 	}
 
-	if req.IncludeComments {
-		query = query.LeftJoin(
-			"nodes AS comment_parent_node ON comment_parent_node.id = node.parent_id",
-		)
-	}
-
 	return query
 }
 
@@ -87,14 +81,8 @@ func (repo *SearchRepo) Count(req *graphpb.SearchCountRequest, viewer *entities.
 		)
 	}
 
-	if req.IncludeComments {
-		query = query.LeftJoin(
-			"nodes AS comment_parent_node ON comment_parent_node.id = node.parent_id",
-		)
-	}
-
-	query = repo.getScopeQuery(query, req.Scope, req.IncludeComments)
-	query = SetSearchAccessQuery(query, viewer, req.IncludeComments)
+	query = repo.getScopeQuery(query, req.Scope)
+	query = SetSearchAccessQuery(query, viewer)
 	query = SetLifecycleQuery(query, viewer)
 	query = SetArchiveSearchQuery(query, viewer)
 
@@ -131,8 +119,8 @@ func (repo *SearchRepo) Count(req *graphpb.SearchCountRequest, viewer *entities.
 // Browse returns a list of Searchs
 func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
 	query := repo.getBaseSelectQuery(req)
-	query = repo.getScopeQuery(query, req.Scope, req.IncludeComments)
-	query = SetSearchAccessQuery(query, viewer, req.IncludeComments)
+	query = repo.getScopeQuery(query, req.Scope)
+	query = SetSearchAccessQuery(query, viewer)
 	query = SetLifecycleQuery(query, viewer)
 	query = SetArchiveSearchQuery(query, viewer)
 
@@ -169,30 +157,16 @@ func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entitie
 	return FetchNodes(repo.db, query)
 }
 
-func (repo *SearchRepo) getScopeQuery(query sq.SelectBuilder, scope string, includeComments bool) sq.SelectBuilder {
+func (repo *SearchRepo) getScopeQuery(query sq.SelectBuilder, scope string) sq.SelectBuilder {
 	actorCondition := sq.Like{"node.type": constants.NodeActorPrefixEntityType + "%"}
 	mediumCondition := sq.Like{"node.type": constants.NodeMediumPrefixEntityType + "%"}
-	commentCondition := sq.Eq{"node.type": constants.NodeBaseCommentEntityType}
 
-	if includeComments {
-		switch scope {
-		case constants.SearchScopeActor:
-			query = query.Where(sq.Or{actorCondition})
-		case constants.SearchScopeMedium:
-			query = query.Where(sq.Or{mediumCondition, commentCondition})
-		default:
-			query = query.Where(sq.Or{actorCondition, mediumCondition, commentCondition})
-		}
-	} else {
-		switch scope {
-		case constants.SearchScopeActor:
-			query = query.Where(sq.Or{actorCondition})
-		case constants.SearchScopeMedium:
-			query = query.Where(sq.Or{mediumCondition})
-		default:
-			query = query.Where(sq.Or{actorCondition, mediumCondition})
-		}
+	switch scope {
+	case constants.SearchScopeActor:
+		return query.Where(actorCondition)
+	case constants.SearchScopeMedium:
+		return query.Where(mediumCondition)
+	default:
+		return query.Where(sq.Or{actorCondition, mediumCondition})
 	}
-
-	return query
 }

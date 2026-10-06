@@ -234,3 +234,12 @@ func CanLikeReply(ctx *ReplyAccessContext) bool {
 
 	return CanLike(ctx.Viewer, ctx.Root, ctx.RootOwnerViewerRel)
 }
+
+// relationOrEmpty stands in for a missing relationship. A viewer with none to
+// the owner is ordinary, and ActorPermissions.CanRead dereferences it.
+func relationOrEmpty(rel *entities.ActorRelation) *entities.ActorRelation {
+	if rel == nil {
+		return &entities.ActorRelation{}
+	}
+	return rel
+}

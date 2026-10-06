@@ -82,7 +82,6 @@ func (srv *FeedLeadersGRPC) Count(req *FeedLeadersCountRequest, viewer *entities
 	}
 
 	resp, err := client.Count(context.Background(), &graphpb.FeedLeadersCountRequest{
-		IncludeComments:   req.IncludeComments,
 		IncludeReposts:    req.IncludeReposts,
 		IncludeLiked:      req.IncludeLiked,
 		LeaderEntityTypes: req.LeaderEntityTypes,
@@ -113,7 +112,6 @@ func (srv *FeedLeadersGRPC) Browse(req *FeedLeadersBrowseRequest, viewer *entiti
 	}
 
 	resp, err := client.Browse(context.Background(), &graphpb.FeedLeadersBrowseRequest{
-		IncludeComments:   req.IncludeComments,
 		IncludeReposts:    req.IncludeReposts,
 		IncludeLiked:      req.IncludeLiked,
 		LeaderEntityTypes: req.LeaderEntityTypes,

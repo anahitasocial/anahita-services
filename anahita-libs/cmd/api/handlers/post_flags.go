@@ -11,8 +11,8 @@ import (
 // requestOwnersKey holds the owners read so far in this request, by id.
 const requestOwnersKey = "anahita.post_flags.owners"
 
-// SetPostFlags answers whether the viewer may comment on and like post, onto
-// post.Authorized, from the checks comment-service and like-service enforce.
+// SetPostFlags answers whether the viewer may reply to and like post, onto
+// post.Authorized, from the rules for replying and for liking.
 //
 // Both need the post's owner as the actor read returns it — its access level,
 // and its add_permissions with the actor_features defaults merged in. A medium
@@ -37,7 +37,7 @@ func SetPostFlags(c echo.Context, actors services.ActorsGRPCInterface, post *ent
 	withOwner := *post
 	withOwner.Owner = owner
 
-	comment := permissions.CanComment(viewer, &withOwner, rel)
+	comment := permissions.CanReplyToPost(viewer, &withOwner, rel)
 	like := permissions.CanLike(viewer, &withOwner, rel)
 	post.Authorized.Comment = &comment
 	post.Authorized.Like = &like

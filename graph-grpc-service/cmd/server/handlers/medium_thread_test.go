@@ -45,10 +45,10 @@ func TestAReplyNamesTheRootOfItsThread(t *testing.T) {
 
 func TestOnlyAPostThatIsStillThereCanBeAnswered(t *testing.T) {
 	for what, parent := range map[string]*entities.AnahitaNode{
-		"a profile":      post(1, "node.actor.person-service.person.v1", 0),
-		"a hashtag":      post(30, "node.tag.hashtag-service.hashtag.v1", 0),
-		"an old comment": post(300, "node.base.comment-service.comment.v1", 0),
-		"nothing":        nil,
+		"a profile": post(1, "node.actor.person-service.person.v1", 0),
+		"a hashtag": post(30, "node.tag.hashtag-service.hashtag.v1", 0),
+		"a repost":  post(300, "node.base.repost-service.repost.v1", 0),
+		"nothing":   nil,
 	} {
 		if err := placeInThread(entities.NewAnahitaNode(), parent); err == nil {
 			t.Errorf("a reply to %s was accepted", what)

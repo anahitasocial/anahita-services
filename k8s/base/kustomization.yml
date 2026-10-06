@@ -22,7 +22,6 @@ resources:
   - services/actor.yml
   - services/abuse-report.yml
   - services/auth.yml
-  - services/comment.yml
   - services/feed.yml
   - services/hashtag.yml
   - services/identity-image.yml

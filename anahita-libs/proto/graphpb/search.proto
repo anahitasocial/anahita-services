@@ -14,7 +14,8 @@ message SearchBrowseRequest {
     string ordering_dir = 4;
     string keywords = 5;
     string scope = 6;
-    bool include_comments = 7;
+    // 7 was include_comments. A reply is a note, and is searched as one.
+    reserved 7;
     int32 coord_radius = 8;
     float coord_lng = 9;
     float coord_lat = 10;
@@ -29,7 +30,8 @@ message SearchBrowseResponse {
 message SearchCountRequest {
     string keywords = 5;
     string scope = 6;
-    bool include_comments = 7;
+    // 7 was include_comments. A reply is a note, and is searched as one.
+    reserved 7;
     int32 coord_radius = 8;
     float coord_lng = 9;
     float coord_lat = 10;

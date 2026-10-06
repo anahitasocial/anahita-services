@@ -51,8 +51,9 @@ underneath either:
 
 - its posts, wherever they are: on its own profile, in a group, or on somebody
   else's profile;
-- its comments on other people's posts;
-- **other people's comments on its posts**, which go with the posts;
+- its replies to other people's posts, and whatever was said under those
+  replies;
+- **other people's replies to its posts**, which go with the posts;
 - every like, follow, subscription, block and administrator role it had;
 - every notification sent to it, or sent to others about it or its posts;
 - its uploaded avatar, cover and photos, from object storage;
@@ -62,8 +63,8 @@ underneath either:
 - the abuse reports it filed.
 
 The numbers other people see are counted again afterwards: the follower and
-following counts of everybody it was connected to, and the like, comment and
-subscriber counts on posts that stay.
+following counts of everybody it was connected to, and the like, reply and
+subscriber counts on posts and replies that stay.
 
 The confirmation shown before a deletion counts this same set, so the figures
 there are what will go.
@@ -138,7 +139,7 @@ active first. Super administrators only.
 | `state` | `active`, `disabled`, `archived` or `deleted` |
 | `last_active_before` | A date, `YYYY-MM-DD` |
 | `created_before` | A date, `YYYY-MM-DD` |
-| `content_max` | At most this many posts and comments. `0` for none |
+| `content_max` | At most this many posts and replies. `0` for none |
 | `email_verified=false` | People who never verified their address |
 | `onboarded=false` | People who never finished the welcome steps |
 | `has_admin=false` | Groups nobody administers |

@@ -89,27 +89,36 @@ func Composers(viewer *entities.Viewer, owner *entities.AnahitaNode, rel *entiti
 	return composers
 }
 
-// CanComment reports whether the viewer may comment on post: exactly
-// CommentPermissions.CanAdd, asked of a comment that does not exist yet.
+// CanReplyToPost reports whether the viewer may reply to post: CanReply,
+// asked with what a list of posts has to hand.
 //
-// post.Owner has to be loaded, as for CanAdd.
-func CanComment(viewer *entities.Viewer, post *entities.AnahitaNode, rel *entities.ActorRelation) bool {
-	// CanAdd lets an unauthenticated viewer past its scope check — the route
-	// refuses them before it runs. The answer here has to say no itself.
-	if viewer == nil || !viewer.Authenticated || post == nil {
+// rel is the relationship of the post's owner to the viewer. A list does not
+// read the author's as well, so for a post that somebody wrote on a profile
+// other than their own, and limited to people they follow or who follow
+// them, this says no where the thread may say yes. The thread's own answer
+// is the full one, and the server decides a reply by that.
+//
+// post.Owner has to be loaded.
+func CanReplyToPost(viewer *entities.Viewer, post *entities.AnahitaNode, rel *entities.ActorRelation) bool {
+	if viewer == nil || post == nil {
 		return false
 	}
 
-	comment := &entities.AnahitaNode{ParentID: post.ID, Parent: post}
-	ok, _ := NewCommentPermissions().CanAdd(&CommentAccessContext{
-		Viewer:               viewer,
-		Comment:              comment,
-		ParentOwnerViewerRel: rel,
-	})
-	return ok
+	ctx := &ReplyAccessContext{
+		Viewer:             viewer,
+		Root:               post,
+		RootOwnerViewerRel: rel,
+	}
+
+	// On its author's own profile the two relationships are one.
+	if post.GetAuthorID() == post.GetOwnerID() {
+		ctx.RootAuthorViewerRel = rel
+	}
+
+	return CanReply(ctx)
 }
 
-// CanLike reports whether the viewer may like post, or a comment under it:
+// CanLike reports whether the viewer may like post, or a reply under it:
 // be able to read the post, then meet the owner's like permission for the
 // post's service. The owner and site administrators always may.
 //

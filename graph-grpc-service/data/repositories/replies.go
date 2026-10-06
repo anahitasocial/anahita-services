@@ -193,8 +193,7 @@ func (r *repliesRepo) Tombstone(id int64, by int64) error {
 }
 
 // A post's count is everything said under it: the replies in its thread that
-// are neither removed nor hidden, and, until they are turned into replies,
-// the comments it has.
+// are neither removed nor hidden.
 //
 // Written as a count over the rows, not as "add one", so it is right whatever
 // happened before it: this count used to be kept by adding and subtracting,
@@ -217,14 +216,6 @@ SET root.comment_count = (
           AND hidden.node_a_id = reply.root_id
           AND hidden.node_b_id = reply.id
       )
-
-    UNION ALL
-
-    SELECT comment.id
-    FROM nodes comment
-    WHERE comment.parent_id = ?
-      AND comment.type = ?
-      AND comment.enabled = 1
   ) said
 )
 WHERE root.id = ?`
@@ -253,7 +244,6 @@ func (r *repliesRepo) Recount(rootID int64, parentID int64) error {
 	if rootID > 0 {
 		if _, err := r.db.ExecContext(ctx, recountThread,
 			rootID, constants.EdgeMediumHiddenReplyType,
-			rootID, constants.NodeBaseCommentEntityType,
 			rootID,
 		); err != nil {
 			return err

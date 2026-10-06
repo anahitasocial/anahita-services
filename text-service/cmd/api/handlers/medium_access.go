@@ -84,7 +84,7 @@ func (h *mediumHandler) EditAccess(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// getMediumAccessContext retrieves the MediumAccessContext for the given CommentAccessContext
+// getMediumAccessContext retrieves the MediumAccessContext for a post
 func (h *mediumHandler) getMediumAccessContext(medium *entities.AnahitaNode, viewer *entities.Viewer) (*permissions.MediumAccessContext, error) {
 	var (
 		err error

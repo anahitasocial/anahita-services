@@ -23,22 +23,20 @@ type FeedLeadersRepoInterface interface {
 // NewFeedLeaders creates a new FeedLeaders repository
 func NewFeedLeadersRepo(db *sql.DB) FeedLeadersRepoInterface {
 	return &FeedLeadersRepo{
-		commentEntityType: constants.NodeBaseCommentEntityType,
-		followEntityType:  constants.EdgeFollowEntityType,
-		likeEntityType:    constants.EdgeBaseLikeEntityType,
-		db:                db,
-		dbTimeout:         constants.DBTimeout,
+		followEntityType: constants.EdgeFollowEntityType,
+		likeEntityType:   constants.EdgeBaseLikeEntityType,
+		db:               db,
+		dbTimeout:        constants.DBTimeout,
 	}
 }
 
 // FeedLeadersRepo is the FeedLeaders repository
 type FeedLeadersRepo struct {
-	db                *sql.DB
-	commentEntityType string
-	repostEntityType  string
-	followEntityType  string
-	likeEntityType    string
-	dbTimeout         time.Duration
+	db               *sql.DB
+	repostEntityType string
+	followEntityType string
+	likeEntityType   string
+	dbTimeout        time.Duration
 }
 
 // Count returns the number of nodes
@@ -75,19 +73,6 @@ func (repo *FeedLeadersRepo) Count(req *graphpb.FeedLeadersCountRequest, viewer 
 	}
 
 	branches = append(branches, branchMedia)
-
-	// Branch 2: comments authored by leaders (parent visibility can be added separately)
-	if req.IncludeComments {
-		branches = append(branches, sq.And{
-			sq.Eq{"node.type": repo.commentEntityType},
-			sq.Expr(`EXISTS (
-               SELECT 1 FROM edges le
-               WHERE le.type = ?
-                 AND le.node_a_id = ?
-                 AND le.node_b_id = node.created_by
-            )`, repo.followEntityType, viewer.ID),
-		})
-	}
 
 	// Branch 3: media liked by leaders
 	if req.IncludeLiked {
@@ -157,19 +142,6 @@ func (repo *FeedLeadersRepo) Browse(req *graphpb.FeedLeadersBrowseRequest, viewe
 	}
 
 	branches = append(branches, branchMedia)
-
-	// Branch 2: comments authored by leaders (parent visibility can be added separately)
-	if req.IncludeComments {
-		branches = append(branches, sq.And{
-			sq.Eq{"node.type": repo.commentEntityType},
-			sq.Expr(`EXISTS (
-               SELECT 1 FROM edges le
-               WHERE le.type = ?
-                 AND le.node_a_id = ?
-                 AND le.node_b_id = node.created_by
-            )`, repo.followEntityType, viewer.ID),
-		})
-	}
 
 	// Branch 3: media liked by leaders
 	if req.IncludeLiked {
