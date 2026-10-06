@@ -97,25 +97,13 @@ for `/articles/`, `/topics/` and `/photos/`. There is no list of every post of
 a type across the site, and a request without an owner is refused. Posts are
 discovered through feeds, search, hashtags and profiles.
 
-### Home: who posted lately
+### No stories
 
-`GET /feeds/leaders/active?hours=24` returns the people and groups the viewer
-follows that have posted in the last so many hours, most recent first, up to
-30: each with the actor, `latest_post_at` and `count`. It is the row of faces
-at the top of the home page.
-
-- **Posts only**, by actors the viewer follows: not replies, not reposts, and
-  not the viewer's own.
-- **Only what the viewer may see is counted**, through the gate the home feed
-  uses. An actor whose only recent post is one the viewer cannot see is not
-  listed, so the list does not give away that such a post exists.
-- **It says who posted. It records nothing about who looked.** Whether the
-  viewer has seen an actor's posts is kept by the app on the viewer's own
-  device and is never sent to a service. There is no view tracking, here or
-  anywhere.
-
-There is no story service and there are no stories: nothing disappears after
-a day. The faces lead to ordinary posts.
+There is no story service and there are no stories, and nothing records who
+looked at what. A story service existed as a stub and was removed; so, after
+being built, was a row of "who posted lately" on the home page, which a new
+installation with few people on it has no use for yet. What may come later is
+in the web app's roadmap, under Kept for later.
 
 ### Pinned posts
 

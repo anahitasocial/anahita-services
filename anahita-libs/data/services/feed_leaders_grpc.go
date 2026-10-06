@@ -25,10 +25,6 @@ type FeedLeadersGRPCInterface interface {
 	// Browse returns a list of feed nodes from leaders
 	Browse(req *FeedLeadersBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
 
-	// Active returns the actors the viewer follows that have posted in the
-	// last so many hours, most recent first.
-	Active(hours uint32, limit uint32, mediumTypes []string, viewer *entities.Viewer) ([]ActiveLeader, error)
-
 	// getClient returns the grpc client
 	getClient() (graphpb.FeedLeadersServiceClient, error)
 }
@@ -137,46 +133,4 @@ func (srv *FeedLeadersGRPC) Browse(req *FeedLeadersBrowseRequest, viewer *entiti
 	}
 
 	return grpcToGraphNodes(resp.Nodes), nil
-}
-
-// ActiveLeader is one actor the viewer follows, and what they posted lately:
-// when the newest was made, and how many there are that the viewer may see.
-type ActiveLeader struct {
-	ActorID  int64
-	LatestAt time.Time
-	Count    uint64
-}
-
-// Active returns the actors the viewer follows that have posted lately.
-func (srv *FeedLeadersGRPC) Active(hours uint32, limit uint32, mediumTypes []string, viewer *entities.Viewer) ([]ActiveLeader, error) {
-	client, err := srv.getClient()
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := client.Active(context.Background(), &graphpb.FeedLeadersActiveRequest{
-		Hours:             hours,
-		Limit:             limit,
-		MediumEntityTypes: mediumTypes,
-		Viewer: &graphpb.Viewer{
-			Id:         viewer.ID,
-			PersonType: viewer.PersonType,
-			Email:      viewer.Email,
-			Username:   viewer.Username,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	leaders := make([]ActiveLeader, 0, len(resp.GetLeaders()))
-	for _, leader := range resp.GetLeaders() {
-		leaders = append(leaders, ActiveLeader{
-			ActorID:  leader.GetActorId(),
-			LatestAt: time.Unix(leader.GetLatestAt(), 0).UTC(),
-			Count:    leader.GetCount(),
-		})
-	}
-
-	return leaders, nil
 }

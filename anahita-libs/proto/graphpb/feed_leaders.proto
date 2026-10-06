@@ -39,29 +39,7 @@ message FeedLeadersBrowseResponse {
     repeated Node nodes = 1;
 }
 
-// Which of the actors the viewer follows have posted lately.
-message FeedLeadersActiveRequest {
-    // How far back, in hours.
-    uint32 hours = 1;
-    uint32 limit = 2;
-    repeated string medium_entity_types = 3;
-    Viewer viewer = 4;
-}
-
-message ActiveLeader {
-    int64 actor_id = 1;
-    // When the newest of their posts in the window was made, as seconds
-    // since the epoch, and how many there are that the viewer may see.
-    int64 latest_at = 2;
-    uint64 count = 3;
-}
-
-message FeedLeadersActiveResponse {
-    repeated ActiveLeader leaders = 1;
-}
-
 service FeedLeadersService {
     rpc Count(FeedLeadersCountRequest) returns (FeedLeadersCountResponse);
     rpc Browse(FeedLeadersBrowseRequest) returns (FeedLeadersBrowseResponse);
-    rpc Active(FeedLeadersActiveRequest) returns (FeedLeadersActiveResponse);
 }
