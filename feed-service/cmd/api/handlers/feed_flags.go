@@ -9,8 +9,9 @@ import (
 )
 
 // setFeedFlags answers, for every post in a feed, whether the viewer may
-// reply to it and like it — onto the post itself, or for a repost onto the
-// post it reposts, which is what the feed's buttons act on.
+// reply to it, like it, quote it, edit it and remove it — onto the post
+// itself, or for a repost onto the post it reposts, which is what the feed's
+// buttons act on.
 //
 // The answers come from the rules for replying and for liking.
 // Both need each post's owner as the actor read returns it, and the owner's
@@ -78,6 +79,23 @@ func setFeedFlags(env *Env, nodes []*entities.AnahitaNode, viewer *entities.View
 		post.Authorized.Comment = &comment
 		post.Authorized.Like = &like
 		post.Authorized.Quote = &quote
+
+		// Whether the viewer may edit and remove it, by the rule the
+		// services that serve posts enforce, so the feed can offer both
+		// where the post's own page would.
+		rel := rels[post.OwnerID]
+		if rel == nil {
+			rel = &entities.ActorRelation{}
+		}
+		mediumCtx := &permissions.MediumAccessContext{
+			Viewer:          viewer,
+			Medium:          &withOwner,
+			OwnerViewerRel:  rel,
+			AuthorViewerRel: rel,
+		}
+		media := permissions.NewMediumPermissions()
+		post.Authorized.Edit, _ = media.CanEdit(mediumCtx)
+		post.Authorized.Delete, _ = media.CanDelete(mediumCtx)
 	}
 }
 
