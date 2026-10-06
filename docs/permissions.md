@@ -25,6 +25,7 @@ change them, and what profile owners can change for themselves.
 - [Adding followers to a group](#adding-followers-to-a-group)
 - [Reposts](#reposts)
 - [Quotes](#quotes)
+- [Pinned posts](#pinned-posts)
 - [Reporting](#reporting)
 - [Removing accounts](#removing-accounts)
 - [The defaults](#the-defaults)
@@ -414,6 +415,27 @@ quoted (`quote_add`), unless they quoted it themselves.
 
 The rules are `permissions.CanQuote` and `permissions.CanDetachQuote`; the
 lookup for each reader is `handlers.SetQuotes`.
+
+## Pinned posts
+
+A post can be pinned to the profile it is on. It then comes first in that
+profile's posts, and first in the profile's list of its kind (notes, photos
+and so on), marked as pinned.
+
+- **A profile has one pin.** Pinning another post moves the pin to it: the
+  post that had it gives it up. One is also exactly what Bluesky has, so a
+  pin here will be a pin there with nothing left over.
+- **The pin is the profile's, not the post's.** It is set by whoever the
+  profile belongs to: a person on their own profile, a group's administrators
+  in the group, and site administrators. The author of a post in a group they
+  do not run can edit and remove their post, and cannot pin it.
+- **Only a post at the top level.** A reply is read in its thread.
+- **It changes the order and nothing else.** A pinned post is seen by exactly
+  the people who could see it anyway.
+
+`PUT` and `DELETE /{articles,notes,topics,photos}/<id>/pin`. The rule is
+`permissions.CanPin`, and a post says whether the viewer may in
+`authorized.pin`.
 
 ## Reporting
 
