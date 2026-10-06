@@ -15,7 +15,7 @@ It is a feature of Anahita installations only. It is not sent to Mastodon or Blu
 3. **It has the same levels of privacy** as other media nodes.
 4. **Its author can change the order** of what is in it.
 5. **It can be viewed as a slide show,** in the light box there already is.
-6. **People, groups and events can have collections.**
+6. **People, groups and events can have collections.** The Website actor (item 30) is left out on purpose: beyond syndication, too little is known about it yet. To be looked at again when its scope is settled.
 7. **What goes into a collection comes from what you saved,** and goes into a collection that already exists.
 8. **It does not federate.**
 
