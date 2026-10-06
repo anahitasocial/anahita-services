@@ -24,6 +24,7 @@ change them, and what profile owners can change for themselves.
 - [Likes](#likes)
 - [Adding followers to a group](#adding-followers-to-a-group)
 - [Reposts](#reposts)
+- [Quotes](#quotes)
 - [Reporting](#reporting)
 - [Removing accounts](#removing-accounts)
 - [The defaults](#the-defaults)
@@ -337,6 +338,82 @@ reposts among the posts as well ("Also show reposts in the Posts tab", under
 Settings › Access). It changes that one list and nothing else: the list of
 reposts always has them, and followers are sent them in their own feeds, which
 is what a repost is for. It does not change who can see a repost.
+
+## Quotes
+
+A quote is a note that carries another post under its own words. It sits
+between a repost, which has no words of the reposter's, and a reply, which
+stays in the other person's thread. The note is an ordinary note: its own
+audience, likes and replies, on its author's profile.
+
+Quoting puts somebody's post in front of another audience under somebody
+else's words, so **the person quoted keeps the say**.
+
+### Who can quote a post
+
+Somebody signed in, who can see the post, when:
+
+- **it is a post at the top level and still there.** Not a reply, which
+  belongs to its thread, and not a repost;
+- **it is public**, on a profile that is public or for members. A note quoting
+  a post with a narrower audience would be one most of its readers could not
+  see the point of;
+- **its author has not blocked them**;
+- **the post's quote policy lets them**:
+
+| Policy | Who can quote |
+| --- | --- |
+| `anyone` | Anybody who can see the post |
+| `followers` | People who follow the post's author |
+| `nobody` | Nobody but its author |
+
+A post has its own policy when its author sets one, in the post's interaction
+settings, beside who can reply. A post that has none follows its author's own
+setting ("Who can quote my posts", under Settings › Access), and a person who
+has never chosen lets anyone. Both are kept in `nodes.quote_policy`: on a post
+it is that post's, on a person it is their default.
+
+Somebody can always quote their own post, whatever its policy. Only people
+quote, and only a note can quote.
+
+A refusal answers 403 `quote_not_allowed` with a `reason`: `policy`,
+`not_public`, `blocked` or `unavailable`. A post the viewer cannot see answers
+`unavailable`, the same as one that is not there.
+
+### What a note shows of the post it quotes
+
+**A quote never shows anybody a post they could not otherwise see.** The
+quoted post is looked up for each reader, as that reader, every time the note
+is sent. The note carries `quote`:
+
+- the post, with its author, the profile it is on and its date, when the
+  reader may see it;
+- `{"state": "unavailable"}` when they may not, or it has been removed. So a
+  post later made private, or whose author blocks the reader, disappears from
+  the quote for that reader;
+- `{"state": "detached"}` when its author took it out (below).
+
+One level only: a quoted note that itself quotes something is shown without
+it.
+
+### Taking a post out of a quote
+
+The author of a quoted post can remove it from any note that quotes it
+(`DELETE /notes/<the quoting note>/quote`), and so can a site administrator.
+The note stays, saying "Post removed by its author". It cannot be undone, and
+the note cannot be made to quote the post again.
+
+Changing a post's policy to `nobody` stops new quotes. Notes that already
+quote it stay until the author takes the post out of each.
+
+### Counting and telling
+
+A post counts the notes that still quote it (`quote_count`): not one that was
+removed, and not one it was taken out of. Its author is told when it is
+quoted (`quote_add`), unless they quoted it themselves.
+
+The rules are `permissions.CanQuote` and `permissions.CanDetachQuote`; the
+lookup for each reader is `handlers.SetQuotes`.
 
 ## Reporting
 

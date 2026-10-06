@@ -101,4 +101,66 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-02 |
-| Implementation | not started |
+| Implementation | done 2026-10-05, on branch `m5-conversations`; see [What was built](#what-was-built-2026-10-05) |
+
+## What was built (2026-10-05)
+
+**As planned.** A quote is a note with `quote_id`. Who may quote is the quoted
+author's to set, per post and for all their posts; only public posts; the
+embed is looked up for each reader; the author can take their post out of a
+quote, which leaves "Post removed by its author"; `quote_count`; a `quote_add`
+notification; a refusal says why.
+
+**One column for both policies.** `nodes.quote_policy` is the post's policy on
+a post and the person's default on a person, instead of a separate
+`default_quote_policy` in the person's settings. A post with none follows its
+author's.
+
+**The per-post choice is in the post's interaction settings**, the dialog
+built for who can reply, as its third part, and not a separate control. It
+opens on what the post is quoted under now, and only a different choice is
+saved, so a post left alone keeps following its author's setting.
+
+**The repost button is a menu**, Repost or Quote, opening upward. Quote is
+there and switched off where the server said no. It is on a post's own page
+too, which had no repost button before. The number on it is reposts and
+quotes together.
+
+**How the embed is filled.** Each service that sends notes calls
+`handlers.SetQuotes`, which reads every quoted post through the graph as the
+reader: one read for each distinct quoted post on the page. Not one batch
+with the feed, as planned: there is no read of several posts as a viewer, and
+a page rarely holds more than a few quotes. A response whose handler did not
+look (a like answers with the note, for one) sends no `quote` at all, so it
+does not wipe out one the app already has.
+
+**Narrower than the plan, for now.**
+- **A reply cannot be quoted**, and a reply cannot quote. The plan did not
+  say. A reply is seen by whoever sees its thread and has no audience of its
+  own, so "only public posts" does not apply to it cleanly.
+- **Only notes are searched for a quote to fill**: text-service and the two
+  feeds. A note that quotes, found through search or a hashtag page, is shown
+  without its embed.
+- **A repost of a note that quotes** shows the note without what it quotes.
+- **`GET /{ns}/:id/quotes`**, the list of a post's quotes, is not built. It
+  was for the insights panel (item 22) and belongs with it.
+- **The quote dialog has no audience or language picker.** The note goes to
+  the audience its author last posted to on their own profile, in the
+  language they write in, like a reply.
+- **Federation** waits for item 8.
+
+**Also done.** A purge recounts the quotes of posts that stay when a quoting
+note goes with its author.
+
+**Checked.** The rule, in unit tests: each policy, a post's own over its
+author's, a block, a group, what cannot be quoted at all, and who may detach.
+The lookup for each reader, with a fake reader: shown, unavailable, detached,
+and one read for each quoted post. Against a real database: a quoting note
+written and read back, the count after a quote and after a detach, a second
+detach changing nothing, an edit leaving what is quoted alone, and a purge
+recounting. The migration run twice and compared with a fresh schema. The web
+app's 25 suites, and it builds. On the dev stack, signed out: a post carries
+`authorized.quote`, and the four new routes refuse a visitor. **Nothing
+signed in, and nothing in a browser, by me**: making a quote, seeing it in a
+feed, detaching, the policy dialog and the notification are untried.
+

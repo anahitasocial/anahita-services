@@ -99,6 +99,32 @@ for `/articles/`, `/topics/` and `/photos/`. There is no list of every post of
 a type across the site, and a request without an owner is refused. Posts are
 discovered through feeds, search, hashtags and profiles.
 
+### Quote posts
+
+A quote is a note with `quote_id`, the post it quotes. Nothing else about it
+is different from a note: it is made with `POST /notes/<owner id>/`, listed in
+feeds and on profiles as a note, and gated as one. The rules are in
+[Permissions](permissions.md#quotes).
+
+| On `nodes` | Holds |
+| --- | --- |
+| `quote_id` | On the quoting note: the post it quotes. Set once, when the note is made |
+| `quote_detached_at` | On the quoting note: when the quoted post's author took their post out |
+| `quote_policy` | Who may quote: on a post, that post; on a person, their posts when a post does not say |
+| `quote_count` | On the quoted post: the notes that still quote it. Counted over the rows, on every quote, removal and detach, and after a purge |
+
+- **A note that quotes is sent `quote`**: `{ "post": … }` when the reader may
+  see the quoted post, or `{ "state": "unavailable" | "detached" }`. Each
+  service that sends notes fills it in with `handlers.SetQuotes`, which reads
+  the quoted post through the graph as the reader. A response whose handler
+  did not look the post up carries `quote_id` and no `quote` at all.
+- **`authorized.quote`** on a post says whether the viewer may quote it. In a
+  list it is exact for a post on its author's own profile; for a post
+  somebody wrote in a group it does not know the author's own setting, and
+  making the quote asks again with everything.
+- **Routes**: `PATCH /{articles,notes,topics,photos}/<id>/quote-policy`,
+  `PATCH /people/<id>/quote-policy`, `DELETE /notes/<id>/quote`.
+
 ### A profile's three lists
 
 `GET /feeds/actor/<actor id>/` is everything a profile shows, in one of three

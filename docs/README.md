@@ -143,7 +143,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Download your data](plans/data-export.md) | 21 | not started |
 | [Post insights](plans/post-insights.md) | 22 | not started |
 | [Profile tabs for replies and reposts](plans/done/profile-tabs-and-reposts.md) | 24 | done 2026-10-05 |
-| [Quote posts](plans/quote-posts.md) | 25 | not started |
+| [Quote posts](plans/done/quote-posts.md) | 25 | done 2026-10-05 |
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [The Website actor](plans/website-actor.md) | 30 | goal and name recorded 2026-10-05; scope open, not to be built yet |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
