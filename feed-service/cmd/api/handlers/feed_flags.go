@@ -74,8 +74,10 @@ func setFeedFlags(env *Env, nodes []*entities.AnahitaNode, viewer *entities.View
 
 		comment := permissions.CanReplyToPost(viewer, &withOwner, rels[post.OwnerID])
 		like := permissions.CanLike(viewer, &withOwner, rels[post.OwnerID])
+		quote := permissions.CanQuotePost(viewer, &withOwner, rels[post.OwnerID])
 		post.Authorized.Comment = &comment
 		post.Authorized.Like = &like
+		post.Authorized.Quote = &quote
 	}
 }
 

@@ -29,6 +29,7 @@ const (
 	MediumService_Ping_FullMethodName             = "/graph.MediumService/Ping"
 	MediumService_Thread_FullMethodName           = "/graph.MediumService/Thread"
 	MediumService_HideReply_FullMethodName        = "/graph.MediumService/HideReply"
+	MediumService_DetachQuote_FullMethodName      = "/graph.MediumService/DetachQuote"
 	MediumService_AddPhotoUpload_FullMethodName   = "/graph.MediumService/AddPhotoUpload"
 	MediumService_ReadPhotoUploads_FullMethodName = "/graph.MediumService/ReadPhotoUploads"
 	MediumService_BrowsePhotoFiles_FullMethodName = "/graph.MediumService/BrowsePhotoFiles"
@@ -51,6 +52,7 @@ type MediumServiceClient interface {
 	// the calls above like any post.
 	Thread(ctx context.Context, in *MediumThreadRequest, opts ...grpc.CallOption) (*MediumThreadResponse, error)
 	HideReply(ctx context.Context, in *ReplyHideRequest, opts ...grpc.CallOption) (*ReplyHideResponse, error)
+	DetachQuote(ctx context.Context, in *QuoteDetachRequest, opts ...grpc.CallOption) (*QuoteDetachResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error)
@@ -167,6 +169,16 @@ func (c *mediumServiceClient) HideReply(ctx context.Context, in *ReplyHideReques
 	return out, nil
 }
 
+func (c *mediumServiceClient) DetachQuote(ctx context.Context, in *QuoteDetachRequest, opts ...grpc.CallOption) (*QuoteDetachResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QuoteDetachResponse)
+	err := c.cc.Invoke(ctx, MediumService_DetachQuote_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *mediumServiceClient) AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PhotoUploadAddResponse)
@@ -223,6 +235,7 @@ type MediumServiceServer interface {
 	// the calls above like any post.
 	Thread(context.Context, *MediumThreadRequest) (*MediumThreadResponse, error)
 	HideReply(context.Context, *ReplyHideRequest) (*ReplyHideResponse, error)
+	DetachQuote(context.Context, *QuoteDetachRequest) (*QuoteDetachResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error)
@@ -268,6 +281,9 @@ func (UnimplementedMediumServiceServer) Thread(context.Context, *MediumThreadReq
 }
 func (UnimplementedMediumServiceServer) HideReply(context.Context, *ReplyHideRequest) (*ReplyHideResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HideReply not implemented")
+}
+func (UnimplementedMediumServiceServer) DetachQuote(context.Context, *QuoteDetachRequest) (*QuoteDetachResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DetachQuote not implemented")
 }
 func (UnimplementedMediumServiceServer) AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddPhotoUpload not implemented")
@@ -482,6 +498,24 @@ func _MediumService_HideReply_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediumService_DetachQuote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QuoteDetachRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).DetachQuote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_DetachQuote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).DetachQuote(ctx, req.(*QuoteDetachRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MediumService_AddPhotoUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PhotoUploadAddRequest)
 	if err := dec(in); err != nil {
@@ -600,6 +634,10 @@ var MediumService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "HideReply",
 			Handler:    _MediumService_HideReply_Handler,
+		},
+		{
+			MethodName: "DetachQuote",
+			Handler:    _MediumService_DetachQuote_Handler,
 		},
 		{
 			MethodName: "AddPhotoUpload",

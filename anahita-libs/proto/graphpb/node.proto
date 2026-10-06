@@ -135,6 +135,13 @@ message Node {
 
     // Whether what an actor reposts is also among its profile's posts.
     bool show_reposts_on_profile = 85;
+
+    // Quote posts. quote_policy is who may quote a post, or on a person
+    // their posts; quote_id is the post a note quotes; quote_detached says
+    // that post's author took it out of the quote.
+    string quote_policy = 86;
+    int64 quote_id = 87;
+    bool quote_detached = 88;
 }
 
 message Nodes {

@@ -50,6 +50,8 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		"parent_type",
 		"root_id",
 		"reply_access",
+		"quote_policy",
+		"quote_id",
 		"geo_latitude",
 		"geo_longitude",
 		"geo_address",
@@ -96,6 +98,8 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		// asked for as root_id IS NULL.
 		nullableID(node.RootID),
 		nullableString(node.ReplyAccess),
+		nullableString(node.QuotePolicy),
+		nullableID(node.QuoteID),
 		node.GeoLatitude,
 		node.GeoLongitude,
 		node.GeoAddress,

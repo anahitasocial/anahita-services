@@ -136,6 +136,10 @@ func (h *mediumHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNod
 		viewer = getViewer(c)
 	)
 
+	// A note that quotes a post is sent that post, as this viewer may see
+	// it.
+	h.setQuotes([]*entities.AnahitaNode{item}, viewer)
+
 	// A reply's answers come from its thread, not from its author's
 	// profile. If the thread cannot be read it is left with none, which
 	// shows no controls.

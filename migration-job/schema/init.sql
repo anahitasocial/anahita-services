@@ -21,6 +21,9 @@ CREATE TABLE nodes (
   -- Who may reply, as the post's author sets it. NULL when they have not
   -- said. See anahita-libs/constants/reply_access.go.
   `reply_access` varchar(64) DEFAULT NULL,
+  -- Who may quote: on a post, that post; on a person, their posts when
+  -- they say nothing. See anahita-libs/constants/quote_policy.go.
+  `quote_policy` varchar(16) DEFAULT NULL,
   `comment_count` int(11) unsigned DEFAULT NULL,
   `repost_count` int(11) unsigned NOT NULL DEFAULT 0,
   `quote_count` int(11) unsigned NOT NULL DEFAULT 0,
@@ -41,6 +44,10 @@ CREATE TABLE nodes (
   -- The post at the top of the thread a reply belongs to. NULL on anything
   -- that is not a reply. Who may see a reply is decided by this post.
   `root_id` bigint(11) unsigned DEFAULT NULL,
+  -- On a note that quotes a post: the post, and when that post's author
+  -- took it out of the quote.
+  `quote_id` bigint(11) unsigned DEFAULT NULL,
+  `quote_detached_at` datetime DEFAULT NULL,
   `geo_latitude` float(10,6) DEFAULT NULL,
   `geo_longitude` float(10,6) DEFAULT NULL,
   `geo_address` VARCHAR(255) DEFAULT NULL,
@@ -145,6 +152,7 @@ CREATE TABLE nodes (
   KEY `owner_id` (`owner_id`),
   KEY `parent_id` (`parent_id`),
   KEY `root_id` (`root_id`),
+  KEY `quote_id` (`quote_id`),
   KEY `starts_at` (`starts_at`),
   KEY `ends_at` (`ends_at`),
   KEY `type_enabled` (`type`,`enabled`),

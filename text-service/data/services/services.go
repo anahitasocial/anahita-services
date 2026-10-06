@@ -11,6 +11,7 @@ func NewServices(config *config.Config) *Services {
 		FilesGRPC:       services.NewFilesGRPC(config),
 		MediaGRPC:       services.NewMediaGRPC(config),
 		SocialgraphGRPC: services.NewSocialgraphGRPC(config),
+		GraphNodeGRPC:   services.NewGraphNodeGRPC(config),
 	}
 }
 
@@ -19,4 +20,7 @@ type Services struct {
 	FilesGRPC       services.FilesGRPCInterface
 	MediaGRPC       services.MediaGRPCInterface
 	SocialgraphGRPC services.SocialgraphGRPCInterface
+	// Reads a post as it is, whoever is asking: for the one question of who
+	// wrote a quoted post, when its author takes it out of a quote.
+	GraphNodeGRPC services.GraphNodeGRPCInterface
 }

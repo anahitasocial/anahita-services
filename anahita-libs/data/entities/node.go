@@ -36,6 +36,8 @@ type AnahitaNodeAuthorized struct {
 	// On a reply: whether the viewer may hide it from its thread, or show
 	// it again. nil on anything that is not a reply.
 	Hide *bool
+	// On a post: whether the viewer may quote it. nil when not worked out.
+	Quote *bool
 	// Actors only: the composers the viewer may use on this profile. nil when
 	// not worked out; empty when none.
 	Composers []string
@@ -191,6 +193,17 @@ type AnahitaNode struct {
 	// Who may reply, as the post's author sets it. Empty when they have
 	// not said. See constants.NormalizeReplyAccess.
 	ReplyAccess string
+	// Who may quote: on a post, that post; on a person, their posts when
+	// they say nothing. See constants.EffectiveQuotePolicy.
+	QuotePolicy string
+	// On a note that quotes a post: the post, and whether that post's
+	// author has taken it out of the quote.
+	QuoteID       int64
+	QuoteDetached bool
+	// The quoted post as this viewer may see it, and what to say when they
+	// may not. Not stored: filled by the handler that sends the note.
+	Quote      *AnahitaNode
+	QuoteState string
 
 	IsLeadingViewer   bool
 	Administrators    []*AnahitaNode

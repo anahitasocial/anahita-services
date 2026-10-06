@@ -124,3 +124,28 @@ func (h *mediumHandler) HideReply(ctx context.Context, req *graphpb.ReplyHideReq
 
 	return &graphpb.ReplyHideResponse{Success: true}, nil
 }
+
+// DetachQuote takes the quoted post out of a note that quotes it, at the
+// asking of that post's author. Who may ask is the calling service's to
+// check; this records it and counts again.
+func (h *mediumHandler) DetachQuote(ctx context.Context, req *graphpb.QuoteDetachRequest) (*graphpb.QuoteDetachResponse, error) {
+	note, err := h.env.Repos.Nodes.Read(req.GetNoteId())
+	if err != nil {
+		return nil, err
+	}
+	if note.QuoteID <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "this note quotes nothing")
+	}
+
+	changed, err := h.env.Repos.Quotes.Detach(note.ID, req.GetViewerId())
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	if err := h.env.Repos.Quotes.Recount(note.QuoteID); err != nil {
+		log.Printf("counting the quotes of %d failed: %v", note.QuoteID, err)
+	}
+
+	return &graphpb.QuoteDetachResponse{Success: changed}, nil
+}

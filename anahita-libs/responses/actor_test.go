@@ -44,6 +44,7 @@ func fullyPopulatedNode() *entities.AnahitaNode {
 	n.Access = "followers"
 	n.AllowFollowRequest = true
 	n.ShowRepostsOnProfile = true
+	n.QuotePolicy = "followers"
 	archived := time.Now()
 	n.ArchivedAt = &archived
 	featured := time.Now()

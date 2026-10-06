@@ -4,6 +4,7 @@ import (
 	an_entities "anahita-libs/data/entities"
 	"anahita-libs/event"
 	"fmt"
+	"log"
 	"notification/data/entities"
 )
 
@@ -94,6 +95,15 @@ func (h *eventHandler) eventFormatNodeMediumAdded(payload *event.EventPayload) e
 	// answers, and to nobody else.
 	if object.RootID > 0 {
 		return h.replyAdded(payload, subject, object)
+	}
+
+	// A note that quotes a post is news to that post's author, as well as
+	// being a new post like any other. Failing to tell them does not stop
+	// the note's own notifications.
+	if object.QuoteID > 0 {
+		if err := h.quoteAdded(payload, subject, object); err != nil {
+			log.Printf("telling the author of %d that it was quoted failed: %v", object.QuoteID, err)
+		}
 	}
 
 	target, err := h.Srv.ActorsGRPC.Read(payload.TargetID, viewer)

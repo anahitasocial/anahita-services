@@ -307,6 +307,13 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 		}
 	}
 
+	// A note that quotes a post is one more quote of it.
+	if node.QuoteID > 0 {
+		if err := h.env.Repos.Quotes.Recount(node.QuoteID); err != nil {
+			log.Printf("counting the quotes of %d failed: %v", node.QuoteID, err)
+		}
+	}
+
 	// publish event
 	go func() {
 		entityName := strings.Split(node.Type, ".")[3]
@@ -369,6 +376,13 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 	if node.RootID > 0 {
 		if err := h.env.Repos.Replies.Recount(node.RootID, node.ParentID); err != nil {
 			log.Printf("counting the replies of %d failed: %v", node.RootID, err)
+		}
+	}
+
+	// One quote fewer of what it quoted.
+	if node.QuoteID > 0 {
+		if err := h.env.Repos.Quotes.Recount(node.QuoteID); err != nil {
+			log.Printf("counting the quotes of %d failed: %v", node.QuoteID, err)
 		}
 	}
 

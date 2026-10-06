@@ -15,6 +15,7 @@ func NewNodeAuthorized(node *entities.AnahitaNode) *NodeAuthorized {
 		Like:           node.Authorized.Like,
 		AddFollower:    node.Authorized.AddFollower,
 		Hide:           node.Authorized.Hide,
+		Quote:          node.Authorized.Quote,
 		Composers:      node.Authorized.Composers,
 		Audiences:      node.Authorized.Audiences,
 	}
@@ -35,7 +36,9 @@ type NodeAuthorized struct {
 	Like        *bool `json:"like,omitempty"`
 	AddFollower *bool `json:"add_follower,omitempty"`
 	// On a reply: whether the viewer may hide it from its thread.
-	Hide      *bool    `json:"hide,omitempty"`
+	Hide *bool `json:"hide,omitempty"`
+	// On a post: whether the viewer may quote it.
+	Quote     *bool    `json:"quote,omitempty"`
 	Composers []string `json:"composers,omitempty"`
 	// On a person or group: who a new post there may be shown to. On a
 	// post: who it may be changed to be shown to, for somebody who may edit

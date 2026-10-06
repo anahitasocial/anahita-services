@@ -60,6 +60,9 @@ type MediaGRPCInterface interface {
 	// HideReply hides a reply from its thread, or shows it again.
 	HideReply(replyID int64, hidden bool, viewer *entities.Viewer) error
 
+	// DetachQuote takes the quoted post out of a note that quotes it.
+	DetachQuote(noteID int64, viewer *entities.Viewer) error
+
 	// getClient returns the grpc client
 	getClient() (graphpb.MediumServiceClient, error)
 }

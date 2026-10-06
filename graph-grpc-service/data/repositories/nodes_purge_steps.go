@@ -56,6 +56,7 @@ const (
 	purgeTaskCountSubscribers = "count_subscribers"
 	purgeTaskCountReplies     = "count_replies"
 	purgeTaskCountReposts     = "count_reposts"
+	purgeTaskCountQuotes      = "count_quotes"
 )
 
 // purgeContent is the set a purge removes, as a common table expression named
@@ -228,6 +229,24 @@ WHERE work.actor_id = ?
 		); err != nil {
 			return err
 		}
+	}
+
+	// A post that stays, quoted by a note that is about to go.
+	const listQuoted = `
+INSERT IGNORE INTO purge_work (actor_id, task, node_id)
+SELECT ?, ?, quoting.quote_id
+FROM purge_work work
+JOIN nodes quoting
+  ON quoting.id = work.node_id
+WHERE work.actor_id = ?
+  AND work.task = ?
+  AND quoting.quote_id IS NOT NULL`
+
+	if _, err := r.db.ExecContext(ctx, listQuoted,
+		actorID, purgeTaskCountQuotes,
+		actorID, purgeTaskDelete,
+	); err != nil {
+		return err
 	}
 
 	return nil
@@ -662,6 +681,29 @@ WHERE work.actor_id = ?
   AND work.task = ?
   AND parent.root_id IS NOT NULL`
 
+	// The count QuotesRepo.Recount keeps, by the same rule: the notes that
+	// still quote a post.
+	const countQuotes = `
+UPDATE nodes quoted
+JOIN purge_work work
+  ON work.node_id = quoted.id
+LEFT JOIN (
+  SELECT quoting.quote_id, COUNT(*) AS total
+  FROM nodes quoting
+  JOIN purge_work listed
+    ON listed.node_id = quoting.quote_id
+  WHERE listed.actor_id = ?
+    AND listed.task = ?
+    AND quoting.quote_detached_at IS NULL
+    AND quoting.enabled = 1
+    AND quoting.deleted_at IS NULL
+  GROUP BY quoting.quote_id
+) counted
+  ON counted.quote_id = quoted.id
+SET quoted.quote_count = COALESCE(counted.total, 0)
+WHERE work.actor_id = ?
+  AND work.task = ?`
+
 	const countReposts = `
 UPDATE nodes parent
 JOIN purge_work work
@@ -705,6 +747,10 @@ WHERE work.actor_id = ?
 		{countDirectReplies, []any{
 			actorID, purgeTaskCountReplies,
 			actorID, purgeTaskCountReplies,
+		}},
+		{countQuotes, []any{
+			actorID, purgeTaskCountQuotes,
+			actorID, purgeTaskCountQuotes,
 		}},
 		{countReposts, []any{
 			actorID, purgeTaskCountReposts, constants.NodeBaseRepostType,

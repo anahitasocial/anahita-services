@@ -135,6 +135,12 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 		 (23,` + note + `,'c23','c23','',1,13,13,2,` + personType + `,2,1,NOW(),NOW()),
 		 (24,` + note + `,'c24','c24','',1,23,13,1,` + personType + `,1,1,NOW(),NOW()),
 		 (26,` + note + `,'c26','c26','',1,24,13,2,` + personType + `,2,0,NOW(),NOW())`,
+		// Quotes. Ada's note quoting Grace's post goes, and Grace's post
+		// is quoted once fewer. Grace's note quoting it stays.
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,owner_type,created_by,quote_id,created_at,updated_at) VALUES
+		 (27,` + note + `,'ada quotes grace','n27','public',1,1,` + personType + `,1,13,NOW(),NOW()),
+		 (28,` + note + `,'grace quotes herself','n28','public',1,2,` + personType + `,2,13,NOW(),NOW())`,
+		`UPDATE nodes SET quote_count = 2 WHERE id = 13`,
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,parent_id,created_by,created_at,updated_at) VALUES
 		 (25,'node.base.text-service.article-revision.v1','text-service','r25','r25','',1,11,1,NOW(),NOW())`,
 
@@ -235,9 +241,10 @@ func TestPurgeRemovesEverythingTheActorOwnedOrWrote(t *testing.T) {
 	if err != nil {
 		t.Fatalf("counts: %v", err)
 	}
-	if counts.Posts != 4 || counts.Replies != 5 {
+	// Five posts now: the four, and her note quoting Grace.
+	if counts.Posts != 5 || counts.Replies != 5 {
 		t.Errorf("the dialog promises %d posts and %d replies; the purge "+
-			"removes 4 and 5", counts.Posts, counts.Replies)
+			"removes 5 and 5", counts.Posts, counts.Replies)
 	}
 
 	if err := purge.Account(repos, nil, files, purgeAda); err != nil {
@@ -246,7 +253,7 @@ func TestPurgeRemovesEverythingTheActorOwnedOrWrote(t *testing.T) {
 
 	wantNodes := []int64{
 		purgeAda, purgeGrace, purgeRoot, purgeGroup,
-		purgeGracePost, purgeGraceInGroup, purgeGraceOnOwnPost,
+		purgeGracePost, purgeGraceInGroup, purgeGraceOnOwnPost, 28,
 		purgeHashtag, purgeLocation,
 	}
 	if got := ids(t, db, `SELECT id FROM nodes`); !sameIDs(got, wantNodes) {
@@ -286,6 +293,7 @@ func TestPurgeRemovesEverythingTheActorOwnedOrWrote(t *testing.T) {
 		// and nothing is left under that.
 		{"replies under Grace's post", purgeGracePost, "comment_count", 1},
 		{"replies to Grace's reply", purgeGraceOnOwnPost, "comment_count", 0},
+		{"quotes of Grace's post, without Ada's", purgeGracePost, "quote_count", 1},
 		{"votes on Grace's post", purgeGracePost, "vote_up_count", 1},
 		{"subscribers to Grace's post", purgeGracePost, "subscriber_count", 1},
 	} {

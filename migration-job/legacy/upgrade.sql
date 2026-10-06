@@ -556,9 +556,15 @@ ALTER TABLE nodes ADD COLUMN `avatar_filename` varchar(255) DEFAULT NULL AFTER `
 ALTER TABLE nodes ADD COLUMN `root_id` bigint(11) unsigned DEFAULT NULL AFTER `parent_type`;
 ALTER TABLE nodes ADD INDEX `root_id` (`root_id`);
 
+-- Quote posts. See migrations/20261015000001_nodes_quotes.sql.
+ALTER TABLE nodes ADD COLUMN `quote_id` bigint(11) unsigned DEFAULT NULL AFTER `root_id`;
+ALTER TABLE nodes ADD COLUMN `quote_detached_at` datetime DEFAULT NULL AFTER `quote_id`;
+ALTER TABLE nodes ADD INDEX `quote_id` (`quote_id`);
+
 -- nodes.reply_access, who may reply to a post. See
 -- migrations/20261012000001_nodes_reply_access.sql.
 ALTER TABLE nodes ADD COLUMN `reply_access` varchar(64) DEFAULT NULL AFTER `comment_status`;
+ALTER TABLE nodes ADD COLUMN `quote_policy` varchar(16) DEFAULT NULL AFTER `reply_access`;
 
 -- nodes.show_reposts_on_profile. See
 -- migrations/20261013000001_nodes_show_reposts_on_profile.sql.

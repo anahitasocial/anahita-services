@@ -270,6 +270,14 @@ func (h *photoHandler) Add(c echo.Context) error {
 	} else if replyAccess != "" {
 		handlers.SetReplyAccess(medium, replyAccess)
 	}
+
+	// Who may quote it, when the author says. Not saying leaves it to
+	// their own setting.
+	if quotePolicy, valid := handlers.RequestQuotePolicy(req.QuotePolicy); !valid {
+		return handlers.RefuseQuotePolicy(c)
+	} else if quotePolicy != "" {
+		medium.QuotePolicy = quotePolicy
+	}
 	medium.Access = handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
 
 	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)

@@ -22,6 +22,10 @@ type MediumNodeItem struct {
 	// its thread. Left out on anything that is not a reply.
 	ParentID int64 `json:"parent_id,omitempty"`
 	RootID   int64 `json:"root_id,omitempty"`
+	// On a note that quotes a post: that post, or why it is not shown.
+	Quote *QuoteEmbed `json:"quote,omitempty"`
+	// The id of the post it quotes, whether or not it is shown.
+	QuoteID int64 `json:"quote_id,omitempty"`
 	// On a reply: removed, and kept as an empty placeholder because other
 	// replies hang from it. It carries no text and no author.
 	Deleted bool `json:"deleted,omitempty"`
@@ -62,17 +66,25 @@ type MediumNode struct {
 	// As on MediumNodeItem.
 	ParentID int64 `json:"parent_id,omitempty"`
 	RootID   int64 `json:"root_id,omitempty"`
+	// On a note that quotes a post: that post, or why it is not shown.
+	Quote *QuoteEmbed `json:"quote,omitempty"`
+	// The id of the post it quotes, whether or not it is shown.
+	QuoteID int64 `json:"quote_id,omitempty"`
 	// On a reply read on its own: the post at the top of its thread.
-	Root          *Parent `json:"root,omitempty"`
-	Deleted       bool    `json:"deleted,omitempty"`
-	Hidden        bool    `json:"hidden,omitempty"`
-	Access        string  `json:"access,omitempty"`
-	ViewCount     int64   `json:"view_count"`
-	LikesCount    int64   `json:"likes_count"`
-	QuoteCount    int64   `json:"quote_count"`
-	RepostCount   int64   `json:"repost_count"`
-	CommentCount  int64   `json:"comment_count"`
-	CommentStatus bool    `json:"comment_status"`
+	Root *Parent `json:"root,omitempty"`
+	// Who may quote this post, when its author has said: "anyone",
+	// "followers" or "nobody". Left out when they have not, and their own
+	// setting applies.
+	QuotePolicy   string `json:"quote_policy,omitempty"`
+	Deleted       bool   `json:"deleted,omitempty"`
+	Hidden        bool   `json:"hidden,omitempty"`
+	Access        string `json:"access,omitempty"`
+	ViewCount     int64  `json:"view_count"`
+	LikesCount    int64  `json:"likes_count"`
+	QuoteCount    int64  `json:"quote_count"`
+	RepostCount   int64  `json:"repost_count"`
+	CommentCount  int64  `json:"comment_count"`
+	CommentStatus bool   `json:"comment_status"`
 	// Who may reply, as the author set it: "anyone", "nobody", or any of
 	// "followers", "following" and "mentioned" joined by commas. Not on a
 	// reply, which follows the post at the top of its thread.
@@ -118,6 +130,8 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		Language:           node.Language,
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
+		Quote:              NewQuoteEmbed(node),
+		QuoteID:            node.QuoteID,
 		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
 		Hidden:             node.Hidden,
 		Access:             node.Access,
@@ -172,7 +186,10 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		Language:           node.Language,
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
+		Quote:              NewQuoteEmbed(node),
+		QuoteID:            node.QuoteID,
 		Root:               NewRoot(node.Root),
+		QuotePolicy:        node.QuotePolicy,
 		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
 		Hidden:             node.Hidden,
 		Access:             node.Access,

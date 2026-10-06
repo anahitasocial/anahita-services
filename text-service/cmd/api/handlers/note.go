@@ -228,6 +228,14 @@ func (h *noteHandler) Add(c echo.Context) error {
 	} else if replyAccess != "" {
 		an_handlers.SetReplyAccess(medium, replyAccess)
 	}
+
+	// Who may quote it, when the author says. Not saying leaves it to
+	// their own setting.
+	if quotePolicy, valid := an_handlers.RequestQuotePolicy(req.QuotePolicy); !valid {
+		return an_handlers.RefuseQuotePolicy(c)
+	} else if quotePolicy != "" {
+		medium.QuotePolicy = quotePolicy
+	}
 	medium.Access = an_handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
 	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
 	if err != nil {
@@ -244,6 +252,19 @@ func (h *noteHandler) Add(c echo.Context) error {
 	if !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
 		log.Printf("refused: audience %q is not allowed on this profile", req.Access)
 		return an_handlers.RefuseAudience(c, mediumAccessCtx)
+	}
+
+	// A note that quotes a post. Whether it may is the quoted post's to
+	// say, and is asked last, once the note itself is known to be allowed.
+	if req.QuoteID > 0 {
+		if allowed, reason, status := h.mayQuote(req.QuoteID, viewer); !allowed {
+			if status != 0 {
+				return c.NoContent(status)
+			}
+			log.Printf("refused: %d may not quote %d: %s", viewer.ID, req.QuoteID, reason)
+			return an_handlers.RefuseQuote(c, reason)
+		}
+		medium.QuoteID = req.QuoteID
 	}
 
 	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)

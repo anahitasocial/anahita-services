@@ -56,6 +56,21 @@ func (srv *MediaGRPC) HideReply(replyID int64, hidden bool, viewer *entities.Vie
 	return err
 }
 
+// DetachQuote takes the quoted post out of a note that quotes it. The note
+// stays, saying that the post was removed by its author.
+func (srv *MediaGRPC) DetachQuote(noteID int64, viewer *entities.Viewer) error {
+	client, err := srv.getClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.DetachQuote(context.Background(), &graphpb.QuoteDetachRequest{
+		NoteId:   noteID,
+		ViewerId: viewer.ID,
+	})
+	return err
+}
+
 // VisibleInThread leaves out of a thread what most people are not shown:
 // the replies that have been hidden from it, and everything said under
 // them. Whoever looks after the thread is given the whole of it, with the

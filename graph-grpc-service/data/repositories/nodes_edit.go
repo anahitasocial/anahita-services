@@ -53,6 +53,12 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	if node.ReplyAccess != "" {
 		query = query.Set("reply_access", node.ReplyAccess)
 	}
+	// The same: left as it is unless a value is given, and "anyone" is how
+	// it is set back. What a note quotes is set once, when it is made, and
+	// is not written here at all.
+	if node.QuotePolicy != "" {
+		query = query.Set("quote_policy", node.QuotePolicy)
+	}
 	query = query.Set("comment_count", node.CommentCount)
 	query = query.Set("enabled", node.Enabled)
 	query = query.Set("verified", node.Verified)

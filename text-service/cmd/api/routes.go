@@ -43,6 +43,7 @@ func (r *Routes) Init(e *echo.Echo) {
 	// article comment status
 	articles.PATCH("/:id/comment-status", r.handler.Article.EditCommentStatus, r.authorize)
 	articles.PATCH("/:id/reply-access", r.handler.Article.EditReplyAccess, r.authorize)
+	articles.PATCH("/:id/quote-policy", r.handler.Article.EditQuotePolicy, r.authorize)
 
 	// notes
 	notes := e.Group("notes")
@@ -61,12 +62,17 @@ func (r *Routes) Init(e *echo.Echo) {
 	notes.POST("/:id/replies", r.handler.Note.AddReply, r.authorize)
 	notes.PATCH("/:id/hidden", r.handler.Note.HideReply, r.authorize)
 
+	// Taking a quoted post out of a note that quotes it, for that post's
+	// author.
+	notes.DELETE("/:id/quote", r.handler.Note.DetachQuote, r.authorize)
+
 	// note access
 	notes.PATCH("/:id/access", r.handler.Note.EditAccess, r.authorize)
 
 	// note comment status
 	notes.PATCH("/:id/comment-status", r.handler.Note.EditCommentStatus, r.authorize)
 	notes.PATCH("/:id/reply-access", r.handler.Note.EditReplyAccess, r.authorize)
+	notes.PATCH("/:id/quote-policy", r.handler.Note.EditQuotePolicy, r.authorize)
 
 	// topics
 	topics := e.Group("topics")
@@ -82,4 +88,5 @@ func (r *Routes) Init(e *echo.Echo) {
 	// topic comment status
 	topics.PATCH("/:id/comment-status", r.handler.Topic.EditCommentStatus, r.authorize)
 	topics.PATCH("/:id/reply-access", r.handler.Topic.EditReplyAccess, r.authorize)
+	topics.PATCH("/:id/quote-policy", r.handler.Topic.EditQuotePolicy, r.authorize)
 }

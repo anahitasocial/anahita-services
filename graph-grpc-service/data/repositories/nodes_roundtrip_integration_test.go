@@ -110,6 +110,74 @@ func TestNodeRoundTripAgainstTheSchema(t *testing.T) {
 		t.Errorf("reply_access %q (err %v), want anyone", got.ReplyAccess, err)
 	}
 
+	// A note that quotes the first. What it quotes is set when it is made
+	// and read back; the quoted note is counted, and counted again when its
+	// author takes it out of the quote.
+	got.QuotePolicy = "followers"
+	got.ModifiedBy = person.ID
+	if _, err := repo.Edit(got); err != nil {
+		t.Fatalf("edit quote_policy: %v", err)
+	}
+
+	quoting := entities.NewAnahitaNode()
+	quoting.Type = note.Type
+	quoting.Service = note.Service
+	quoting.Body = "look at this"
+	quoting.Access = "public"
+	quoting.Enabled = true
+	quoting.OwnerID = person.ID
+	quoting.OwnerType = person.Type
+	quoting.CreatedBy = person.ID
+	quoting.QuoteID = note.ID
+	if quoting, err = repo.Add(quoting); err != nil {
+		t.Fatalf("add the quoting note: %v", err)
+	}
+	if quoting.QuoteID != note.ID || quoting.QuoteDetached {
+		t.Errorf("quoting note: quote_id %d, detached %v", quoting.QuoteID, quoting.QuoteDetached)
+	}
+
+	quotes := NewQuotesRepo(db)
+	quoteCount := func() int64 {
+		quoted, err := repo.Read(note.ID)
+		if err != nil {
+			t.Fatalf("read the quoted note: %v", err)
+		}
+		if quoted.QuotePolicy != "followers" {
+			t.Errorf("quote_policy %q, want followers", quoted.QuotePolicy)
+		}
+		return quoted.QuoteCount
+	}
+
+	if err := quotes.Recount(note.ID); err != nil {
+		t.Fatal(err)
+	}
+	if n := quoteCount(); n != 1 {
+		t.Errorf("quote_count %d, want 1", n)
+	}
+
+	// An edit of the quoting note leaves what it quotes alone.
+	quoting.Body = "look at this again"
+	quoting.ModifiedBy = person.ID
+	if _, err := repo.Edit(quoting); err != nil {
+		t.Fatal(err)
+	}
+
+	for step, wantChanged := range []bool{true, false} {
+		changed, err := quotes.Detach(quoting.ID, person.ID)
+		if err != nil || changed != wantChanged {
+			t.Errorf("detach %d: changed %v, err %v; want %v", step, changed, err, wantChanged)
+		}
+	}
+	if err := quotes.Recount(note.ID); err != nil {
+		t.Fatal(err)
+	}
+	if n := quoteCount(); n != 0 {
+		t.Errorf("quote_count %d after the post was taken out, want 0", n)
+	}
+	if after, err := repo.Read(quoting.ID); err != nil || !after.QuoteDetached || after.QuoteID != note.ID || after.Body != "look at this again" {
+		t.Errorf("the quoting note after: %+v, %v", after, err)
+	}
+
 	batch, err := repo.BatchRead(&requests.NodeBatchReadRequest{IDs: []int64{person.ID, note.ID}})
 	if err != nil {
 		t.Fatalf("batch read: %v", err)

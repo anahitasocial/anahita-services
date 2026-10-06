@@ -105,6 +105,15 @@ type MediumAddRequest struct {
 	// and "mentioned" joined by commas. Left out, anyone the profile lets.
 	// See constants.NormalizeReplyAccess.
 	ReplyAccess string `json:"reply_access" form:"reply_access" validate:"omitempty,max=64"`
+	// Who may quote it: "anyone", "followers" or "nobody". Left out, the
+	// author's own setting applies. See constants.EffectiveQuotePolicy.
+	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"omitempty,max=16"`
+}
+
+// MediumEditQuotePolicyRequest changes who may quote a post.
+type MediumEditQuotePolicyRequest struct {
+	ID          int64  `param:"id" validate:"required,numeric"`
+	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"required,max=16"`
 }
 
 // MediumEditReplyAccessRequest changes who may reply to a post.

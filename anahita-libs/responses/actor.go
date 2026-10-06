@@ -45,6 +45,10 @@ type ActorNodeItem struct {
 	AllowFollowRequest bool   `json:"allow_follow_request"`
 	// Whether what this actor reposts is also among its profile's posts.
 	ShowRepostsOnProfile bool `json:"show_reposts_on_profile"`
+	// On a person: who may quote their posts, when a post does not say.
+	// "anyone", "followers" or "nobody"; left out when they have not said,
+	// which is anyone.
+	QuotePolicy string `json:"quote_policy,omitempty"`
 	// Permanent, and set only once archived, so the settings page can show the
 	// state rather than offering an action that no longer applies.
 	ArchivedAt *time.Time `json:"archived_at,omitempty"`
@@ -142,6 +146,7 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		Access:               node.Access,
 		AllowFollowRequest:   node.AllowFollowRequest,
 		ShowRepostsOnProfile: node.ShowRepostsOnProfile,
+		QuotePolicy:          node.QuotePolicy,
 		ArchivedAt:           node.ArchivedAt,
 		FeaturedAt:           node.FeaturedAt,
 		CreatedAt:            node.CreatedAt,
