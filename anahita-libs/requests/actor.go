@@ -139,3 +139,10 @@ type ActorAddRequest struct {
 type ActorDeleteRequest struct {
 	ID int64 `param:"id" validate:"required,numeric"`
 }
+
+// ActorEditRepostsOnProfileRequest says whether what a person or a group
+// reposts is kept out of the posts on its profile.
+type ActorEditRepostsOnProfileRequest struct {
+	ID   int64 `param:"id" validate:"required,numeric"`
+	Hide bool  `json:"hide_reposts_on_profile" form:"hide_reposts_on_profile"`
+}

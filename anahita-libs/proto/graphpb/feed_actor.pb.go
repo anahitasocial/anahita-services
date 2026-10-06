@@ -28,8 +28,11 @@ type FeedActorCountRequest struct {
 	IncludeLiked      bool                   `protobuf:"varint,4,opt,name=include_liked,json=includeLiked,proto3" json:"include_liked,omitempty"`
 	MediumEntityTypes []string               `protobuf:"bytes,5,rep,name=medium_entity_types,json=mediumEntityTypes,proto3" json:"medium_entity_types,omitempty"`
 	Viewer            *Viewer                `protobuf:"bytes,6,opt,name=viewer,proto3" json:"viewer,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// Which of the profile's lists: "posts" (also what empty means),
+	// "replies" or "reposts". See constants.FeedFilter*.
+	Filter        string `protobuf:"bytes,7,opt,name=filter,proto3" json:"filter,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FeedActorCountRequest) Reset() {
@@ -97,6 +100,13 @@ func (x *FeedActorCountRequest) GetViewer() *Viewer {
 	return nil
 }
 
+func (x *FeedActorCountRequest) GetFilter() string {
+	if x != nil {
+		return x.Filter
+	}
+	return ""
+}
+
 type FeedActorCountResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Total         uint64                 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
@@ -150,8 +160,10 @@ type FeedActorBrowseRequest struct {
 	Limit             uint64                 `protobuf:"varint,6,opt,name=limit,proto3" json:"limit,omitempty"`
 	Offset            uint64                 `protobuf:"varint,7,opt,name=offset,proto3" json:"offset,omitempty"`
 	Viewer            *Viewer                `protobuf:"bytes,8,opt,name=viewer,proto3" json:"viewer,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// As on FeedActorCountRequest.
+	Filter        string `protobuf:"bytes,9,opt,name=filter,proto3" json:"filter,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FeedActorBrowseRequest) Reset() {
@@ -233,6 +245,13 @@ func (x *FeedActorBrowseRequest) GetViewer() *Viewer {
 	return nil
 }
 
+func (x *FeedActorBrowseRequest) GetFilter() string {
+	if x != nil {
+		return x.Filter
+	}
+	return ""
+}
+
 type FeedActorBrowseResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Nodes         []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
@@ -281,15 +300,16 @@ var File_proto_graphpb_feed_actor_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_feed_actor_proto_rawDesc = "" +
 	"\n" +
-	"\x1eproto/graphpb/feed_actor.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\"\xdd\x01\n" +
+	"\x1eproto/graphpb/feed_actor.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\"\xf5\x01\n" +
 	"\x15FeedActorCountRequest\x12\x19\n" +
 	"\bactor_id\x18\x01 \x01(\x03R\aactorId\x12'\n" +
 	"\x0finclude_reposts\x18\x03 \x01(\bR\x0eincludeReposts\x12#\n" +
 	"\rinclude_liked\x18\x04 \x01(\bR\fincludeLiked\x12.\n" +
 	"\x13medium_entity_types\x18\x05 \x03(\tR\x11mediumEntityTypes\x12%\n" +
-	"\x06viewer\x18\x06 \x01(\v2\r.graph.ViewerR\x06viewerJ\x04\b\x02\x10\x03\".\n" +
+	"\x06viewer\x18\x06 \x01(\v2\r.graph.ViewerR\x06viewer\x12\x16\n" +
+	"\x06filter\x18\a \x01(\tR\x06filterJ\x04\b\x02\x10\x03\".\n" +
 	"\x16FeedActorCountResponse\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\x04R\x05total\"\x8c\x02\n" +
+	"\x05total\x18\x01 \x01(\x04R\x05total\"\xa4\x02\n" +
 	"\x16FeedActorBrowseRequest\x12\x19\n" +
 	"\bactor_id\x18\x01 \x01(\x03R\aactorId\x12'\n" +
 	"\x0finclude_reposts\x18\x03 \x01(\bR\x0eincludeReposts\x12#\n" +
@@ -297,7 +317,8 @@ const file_proto_graphpb_feed_actor_proto_rawDesc = "" +
 	"\x13medium_entity_types\x18\x05 \x03(\tR\x11mediumEntityTypes\x12\x14\n" +
 	"\x05limit\x18\x06 \x01(\x04R\x05limit\x12\x16\n" +
 	"\x06offset\x18\a \x01(\x04R\x06offset\x12%\n" +
-	"\x06viewer\x18\b \x01(\v2\r.graph.ViewerR\x06viewerJ\x04\b\x02\x10\x03\"<\n" +
+	"\x06viewer\x18\b \x01(\v2\r.graph.ViewerR\x06viewer\x12\x16\n" +
+	"\x06filter\x18\t \x01(\tR\x06filterJ\x04\b\x02\x10\x03\"<\n" +
 	"\x17FeedActorBrowseResponse\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes2\xa1\x01\n" +
 	"\x10FeedActorService\x12D\n" +

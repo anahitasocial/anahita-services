@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"anahita-libs/constants"
 	"anahita-libs/data/services"
+	"anahita-libs/policy"
 	"anahita-libs/responses"
 	"feed/data/defaults"
 	"feed/requests"
@@ -46,6 +48,13 @@ func (h *feedActorHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	// Replies are not part of a preview. A visitor to a site that shows
+	// one is sent a profile's posts and not what its owner said under
+	// other people's.
+	if req.Filter == constants.FeedFilterReplies && policy.PreviewOnly() && viewer.ID == 0 {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "members_only"})
+	}
+
 	type Response struct {
 		Data       []*responses.NodeItem `json:"data"`
 		Pagination responses.Pagination  `json:"pagination"`
@@ -61,8 +70,20 @@ func (h *feedActorHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// Whether reposts are among a profile's posts is the profile's choice,
+	// and not the caller's: asking for them does not bring them back. The
+	// profile is read as the viewer, so one they may not see answers as
+	// one that is not there.
+	actor, err := h.Srv.ActorsGRPC.Read(req.ActorID, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+	includeReposts := !actor.HideRepostsOnProfile
+
 	gnCountReq.ActorID = req.ActorID
-	gnCountReq.IncludeReposts = req.IncludeReposts
+	gnCountReq.Filter = req.Filter
+	gnCountReq.IncludeReposts = includeReposts
 	gnCountReq.MediumEntityTypes = feedDefaults.MediaEntityTypes
 	resp.Pagination.Total, err = h.Srv.FeedActorGRPC.Count(gnCountReq, viewer)
 	if err != nil {
@@ -71,7 +92,8 @@ func (h *feedActorHandler) Browse(c echo.Context) error {
 	}
 
 	gnBrowseReq.ActorID = req.ActorID
-	gnBrowseReq.IncludeReposts = req.IncludeReposts
+	gnBrowseReq.Filter = req.Filter
+	gnBrowseReq.IncludeReposts = includeReposts
 	gnBrowseReq.Limit = req.Limit
 	gnBrowseReq.Offset = req.Offset
 	gnBrowseReq.MediumEntityTypes = feedDefaults.MediaEntityTypes
@@ -86,7 +108,11 @@ func (h *feedActorHandler) Browse(c echo.Context) error {
 	}
 
 	batchPresignPaths(h.Env, nodes)
-	setFeedFlags(h.Env, nodes, viewer)
+	if req.Filter == constants.FeedFilterReplies {
+		setReplyFeedFlags(h.Env, nodes, viewer)
+	} else {
+		setFeedFlags(h.Env, nodes, viewer)
+	}
 
 	nodeResp := &responses.NodeResponse{}
 	resp.Data = nodeResp.MapNodeItems(nodes)

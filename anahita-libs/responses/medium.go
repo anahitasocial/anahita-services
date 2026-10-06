@@ -60,17 +60,19 @@ type MediumNode struct {
 	Mimetype  string    `json:"mimetype,omitempty"`
 	Language  string    `json:"language,omitempty"`
 	// As on MediumNodeItem.
-	ParentID      int64  `json:"parent_id,omitempty"`
-	RootID        int64  `json:"root_id,omitempty"`
-	Deleted       bool   `json:"deleted,omitempty"`
-	Hidden        bool   `json:"hidden,omitempty"`
-	Access        string `json:"access,omitempty"`
-	ViewCount     int64  `json:"view_count"`
-	LikesCount    int64  `json:"likes_count"`
-	QuoteCount    int64  `json:"quote_count"`
-	RepostCount   int64  `json:"repost_count"`
-	CommentCount  int64  `json:"comment_count"`
-	CommentStatus bool   `json:"comment_status"`
+	ParentID int64 `json:"parent_id,omitempty"`
+	RootID   int64 `json:"root_id,omitempty"`
+	// On a reply read on its own: the post at the top of its thread.
+	Root          *Parent `json:"root,omitempty"`
+	Deleted       bool    `json:"deleted,omitempty"`
+	Hidden        bool    `json:"hidden,omitempty"`
+	Access        string  `json:"access,omitempty"`
+	ViewCount     int64   `json:"view_count"`
+	LikesCount    int64   `json:"likes_count"`
+	QuoteCount    int64   `json:"quote_count"`
+	RepostCount   int64   `json:"repost_count"`
+	CommentCount  int64   `json:"comment_count"`
+	CommentStatus bool    `json:"comment_status"`
 	// Who may reply, as the author set it: "anyone", "nobody", or any of
 	// "followers", "following" and "mentioned" joined by commas. Not on a
 	// reply, which follows the post at the top of its thread.
@@ -170,6 +172,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		Language:           node.Language,
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
+		Root:               NewParent(node.Root),
 		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
 		Hidden:             node.Hidden,
 		Access:             node.Access,

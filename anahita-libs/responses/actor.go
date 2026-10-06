@@ -43,6 +43,8 @@ type ActorNodeItem struct {
 	// by anybody whose follow-request setting was off.
 	Access             string `json:"access"`
 	AllowFollowRequest bool   `json:"allow_follow_request"`
+	// Whether what this actor reposts is kept out of its profile's posts.
+	HideRepostsOnProfile bool `json:"hide_reposts_on_profile"`
 	// Permanent, and set only once archived, so the settings page can show the
 	// state rather than offering an action that no longer applies.
 	ArchivedAt *time.Time `json:"archived_at,omitempty"`
@@ -136,12 +138,13 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		// Declared since this struct was written and never assigned, so
 		// `enabled` has never appeared in the API at all and no client could
 		// tell an enabled actor from a disabled one.
-		Enabled:            node.Enabled,
-		Access:             node.Access,
-		AllowFollowRequest: node.AllowFollowRequest,
-		ArchivedAt:         node.ArchivedAt,
-		FeaturedAt:         node.FeaturedAt,
-		CreatedAt:          node.CreatedAt,
+		Enabled:              node.Enabled,
+		Access:               node.Access,
+		AllowFollowRequest:   node.AllowFollowRequest,
+		HideRepostsOnProfile: node.HideRepostsOnProfile,
+		ArchivedAt:           node.ArchivedAt,
+		FeaturedAt:           node.FeaturedAt,
+		CreatedAt:            node.CreatedAt,
 		// nil for everything not scheduled for deletion, and omitempty keeps it
 		// off the wire in that case — which is every actor but a handful.
 		DeletedAt: node.DeletedAt,

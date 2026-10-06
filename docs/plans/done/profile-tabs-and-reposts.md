@@ -70,4 +70,58 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-02 |
-| Implementation | not started |
+| Implementation | done 2026-10-05, on branch `m5-conversations`; see [What was built](#what-was-built-2026-10-05) |
+
+## What was built (2026-10-05)
+
+**The three lists.** `GET /feeds/actor/:id/?filter=posts|replies|reposts`, as
+planned. The rows are chosen in one place in the graph
+(`actorFeedCondition`), and who may see each row is the feed gate's, which
+already judged a reply by the post at the top of its thread.
+
+**Replies.** A reply in the list is sent with `root_id` and with what it
+directly answers as `parent`, which a feed row already carried: its author
+and its text, for "Replying to …". What the viewer may do with each reply is
+worked out from its thread, not from its author's profile, by reading the
+roots of the page once (`setReplyFeedFlags`).
+
+**The setting** is a column, `nodes.hide_reposts_on_profile`, and not a key in
+`meta` as planned. Stored as "hide" so that every profile from before it, and
+every row written without it, shows its reposts. Changed through a route of
+its own for people and for groups, so that a form editing something else
+cannot reset it; it is written whichever way it is, so it can be turned off
+again. The feed reads the profile and decides, and `include_reposts` is no
+longer read from the caller on this feed.
+
+**A page for a reply on its own**, which was missing since replies were
+built: a link to a reply, from search, a report or the new list, opened it as
+a note with no thread. `GET /notes/:id` of a reply now carries `root`, and the
+page shows what it answers above it and, below, the part of the thread that
+is under it. Replying there answers that reply.
+
+**Web.** Posts, Replies and Reposts are the first three tabs of a profile,
+each with an address (`/people/:id/replies`, `/groups/:id/reposts`). The
+switch is under Settings › Access for a person and in a group's Access tab.
+
+**Different from the plan, or decided while building.**
+- The Posts tab is not led by pinned posts: that is item 15, not built yet.
+- A reply hidden from its thread is not in its author's list of replies. A
+  reply under a hidden one still is: what was hidden is the branch's first
+  reply, and the list does not walk up the thread.
+- A reply in the list has no menu and no repost button. It is edited,
+  removed and hidden in its thread, and reposting a reply with what it
+  answers is still not built.
+- On a site that shows visitors a preview, the list of replies is for
+  members, like a thread.
+- The remote-actor part of the plan waits for federation.
+
+**Checked.** The three lists against a real database: a reply in a private
+group or under an "only me" post is not listed to somebody who cannot see the
+thread, a blocked person's are not listed to whoever blocked them, a removed
+or hidden one is not listed at all, and the count agrees with the list. The
+setting turned on and off, and kept by an unrelated edit. The migration run
+twice and against a table without the column. The web app's 24 suites, and it
+builds. On the dev stack, signed out: the three lists of a profile with 1,341
+replies, a reply's `root`, and the new routes refusing a visitor. Nothing
+signed in, and nothing in a browser, by me.
+

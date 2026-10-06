@@ -29,6 +29,8 @@ func NewFeedActorRequest() *FeedActorRequest {
 }
 
 type FeedActorBrowseRequest struct {
+	// Which of the profile's lists. See constants.FeedFilter*.
+	Filter            string
 	IncludeLiked      bool
 	IncludeReposts    bool
 	MediumEntityTypes []string
@@ -38,6 +40,8 @@ type FeedActorBrowseRequest struct {
 }
 
 type FeedActorCountRequest struct {
+	// Which of the profile's lists. See constants.FeedFilter*.
+	Filter            string
 	IncludeLiked      bool
 	IncludeReposts    bool
 	MediumEntityTypes []string

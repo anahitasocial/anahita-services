@@ -61,6 +61,7 @@ func nodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		IsLeadingViewer:      node.IsLeadingViewer,
 		IsAdminedByViewer:    node.IsAdminedByViewer,
 		AllowFollowRequest:   node.AllowFollowRequest,
+		HideRepostsOnProfile: node.HideRepostsOnProfile,
 		StartsAt:             timestamppb.New(node.StartsAt),
 		EndsAt:               timestamppb.New(node.EndsAt),
 		OwnerType:            node.OwnerType,

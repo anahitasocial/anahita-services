@@ -132,6 +132,9 @@ message Node {
     // Who may reply to a post, as its author sets it. Empty when they have
     // not said.
     string reply_access = 84;
+
+    // Whether an actor keeps what it reposts out of its profile's posts.
+    bool hide_reposts_on_profile = 85;
 }
 
 message Nodes {

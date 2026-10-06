@@ -36,6 +36,20 @@ func TestNodeRoundTripAgainstTheSchema(t *testing.T) {
 		t.Fatalf("add the person: %v", err)
 	}
 
+	// Whether reposts are kept off the profile can be turned on and, unlike
+	// a setting that is only written when it is true, off again.
+	for _, hide := range []bool{true, false} {
+		person.HideRepostsOnProfile = hide
+		person.ModifiedBy = person.ID
+		if _, err := repo.Edit(person); err != nil {
+			t.Fatalf("edit the person: %v", err)
+		}
+		got, err := repo.Read(person.ID)
+		if err != nil || got.HideRepostsOnProfile != hide {
+			t.Fatalf("hide_reposts_on_profile is %v (err %v), want %v", got.HideRepostsOnProfile, err, hide)
+		}
+	}
+
 	note := entities.NewAnahitaNode()
 	note.Type = "node.medium.text-service.note.v1"
 	note.Service = "text-service"

@@ -149,13 +149,15 @@ type AnahitaNode struct {
 	FollowerCount      int64
 	LeaderCount        int64
 	AllowFollowRequest bool
-	Mimetype           string
-	Language           string
-	Access             string
-	PermissionsRaw     string
-	Permissions        map[string]string
-	Features           []*AnahitaNodeFeature
-	FeaturesRaw        json.RawMessage
+	// Whether an actor keeps what it reposts out of its profile's posts.
+	HideRepostsOnProfile bool
+	Mimetype             string
+	Language             string
+	Access               string
+	PermissionsRaw       string
+	Permissions          map[string]string
+	Features             []*AnahitaNodeFeature
+	FeaturesRaw          json.RawMessage
 
 	// Parsed Fields
 	Mentions []string
@@ -169,7 +171,11 @@ type AnahitaNode struct {
 	Author *AnahitaNode
 	Editor *AnahitaNode
 	Parent *AnahitaNode
-	Owner  *AnahitaNode
+	// For a reply read on its own: the post at the top of its thread, so
+	// the page can say what it is a reply to and lead there. Not stored,
+	// and set only by a handler that has checked the viewer may see it.
+	Root  *AnahitaNode
+	Owner *AnahitaNode
 
 	SubscriberCount      int64
 	IsSubscribedByViewer bool

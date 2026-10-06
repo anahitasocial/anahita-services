@@ -560,6 +560,10 @@ ALTER TABLE nodes ADD INDEX `root_id` (`root_id`);
 -- migrations/20261012000001_nodes_reply_access.sql.
 ALTER TABLE nodes ADD COLUMN `reply_access` varchar(64) DEFAULT NULL AFTER `comment_status`;
 
+-- nodes.hide_reposts_on_profile. See
+-- migrations/20261013000001_nodes_hide_reposts_on_profile.sql.
+ALTER TABLE nodes ADD COLUMN `hide_reposts_on_profile` tinyint(1) NOT NULL DEFAULT 0 AFTER `allow_follow_request`;
+
 -- Comments become replies: notes that answer the post they were under. The
 -- same statements as migrations/20261011000001_comments_become_replies.sql,
 -- where the reasons are. They come after the conversion of types above,

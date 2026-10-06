@@ -41,23 +41,7 @@ func (repo *FeedActorRepo) Count(req *graphpb.FeedActorCountRequest, viewer *ent
 		From("nodes AS node").
 		LeftJoin("nodes AS owner ON owner.id = node.owner_id")
 
-	nodeTypes := req.MediumEntityTypes
-	if req.IncludeReposts {
-		nodeTypes = append(nodeTypes, constants.NodeBaseRepostType)
-	}
-
-	// Branch 0: actor’s media
-	branchMedia := sq.And{
-		sq.Eq{"node.type": nodeTypes}, // slice → IN (...)
-		sq.Eq{"node.owner_id": req.ActorId},
-	}
-
-	// Combine branches with OR
-	sb = sb.Where(sq.Or{branchMedia})
-
-	// Apply your access gate
-	// Replies are read in their thread, not in a feed.
-	sb = sb.Where("node.root_id IS NULL")
+	sb = sb.Where(actorFeedCondition(req.ActorId, req.Filter, req.MediumEntityTypes, req.IncludeReposts))
 
 	sb = SetFeedAccessQuery(sb, viewer)
 
@@ -78,23 +62,7 @@ func (repo *FeedActorRepo) Count(req *graphpb.FeedActorCountRequest, viewer *ent
 func (repo *FeedActorRepo) Browse(req *graphpb.FeedActorBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
 	query := GetBaseSelectQuery()
 
-	nodeTypes := req.MediumEntityTypes
-	if req.IncludeReposts {
-		nodeTypes = append(nodeTypes, constants.NodeBaseRepostType)
-	}
-
-	// Branch 1: actor’s media
-	branchMedia := sq.And{
-		sq.Eq{"node.type": nodeTypes},
-		sq.Eq{"node.owner_id": req.ActorId},
-	}
-
-	// Combine branches with OR
-	query = query.Where(sq.Or{branchMedia})
-
-	// Apply access checks
-	// Replies are read in their thread, not in a feed.
-	query = query.Where("node.root_id IS NULL")
+	query = query.Where(actorFeedCondition(req.ActorId, req.Filter, req.MediumEntityTypes, req.IncludeReposts))
 
 	query = SetFeedAccessQuery(query, viewer)
 
@@ -104,4 +72,53 @@ func (repo *FeedActorRepo) Browse(req *graphpb.FeedActorBrowseRequest, viewer *e
 		Offset(req.Offset)
 
 	return FetchNodes(repo.db, query)
+}
+
+// actorFeedCondition picks the rows of one of a profile's three lists. Who
+// may see each row is the access gate's to say, not this.
+//
+//   - posts: what was posted on the profile, and, when asked, what its owner
+//     reposted. Not replies, which are read in their thread.
+//   - replies: the replies the actor wrote, wherever the threads are. A reply
+//     is owned by whoever wrote it, so these are the actor's by owner as well
+//     as by author. Not one that has been removed, and not one that has been
+//     hidden from its thread: it is hidden for everybody, and a profile is
+//     not a way round that.
+//   - reposts: what the actor reposted, and nothing else.
+func actorFeedCondition(actorID int64, filter string, mediumTypes []string, includeReposts bool) sq.Sqlizer {
+	owned := sq.Eq{"node.owner_id": actorID}
+
+	switch filter {
+	case constants.FeedFilterReplies:
+		return sq.And{
+			owned,
+			sq.Eq{"node.type": mediumTypes},
+			sq.Expr("node.root_id IS NOT NULL"),
+			sq.Expr("node.deleted_at IS NULL"),
+			sq.Expr(`NOT EXISTS (
+        SELECT 1
+        FROM edges hidden
+        WHERE hidden.type = ?
+          AND hidden.node_a_id = node.root_id
+          AND hidden.node_b_id = node.id
+      )`, constants.EdgeMediumHiddenReplyType),
+		}
+
+	case constants.FeedFilterReposts:
+		return sq.And{
+			owned,
+			sq.Eq{"node.type": constants.NodeBaseRepostType},
+		}
+	}
+
+	nodeTypes := append([]string{}, mediumTypes...)
+	if includeReposts {
+		nodeTypes = append(nodeTypes, constants.NodeBaseRepostType)
+	}
+
+	return sq.And{
+		owned,
+		sq.Eq{"node.type": nodeTypes},
+		sq.Expr("node.root_id IS NULL"),
+	}
 }

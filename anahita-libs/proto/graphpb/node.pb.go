@@ -125,9 +125,11 @@ type Node struct {
 	RootId int64 `protobuf:"varint,83,opt,name=root_id,json=rootId,proto3" json:"root_id,omitempty"`
 	// Who may reply to a post, as its author sets it. Empty when they have
 	// not said.
-	ReplyAccess   string `protobuf:"bytes,84,opt,name=reply_access,json=replyAccess,proto3" json:"reply_access,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ReplyAccess string `protobuf:"bytes,84,opt,name=reply_access,json=replyAccess,proto3" json:"reply_access,omitempty"`
+	// Whether an actor keeps what it reposts out of its profile's posts.
+	HideRepostsOnProfile bool `protobuf:"varint,85,opt,name=hide_reposts_on_profile,json=hideRepostsOnProfile,proto3" json:"hide_reposts_on_profile,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *Node) Reset() {
@@ -627,6 +629,13 @@ func (x *Node) GetReplyAccess() string {
 		return x.ReplyAccess
 	}
 	return ""
+}
+
+func (x *Node) GetHideRepostsOnProfile() bool {
+	if x != nil {
+		return x.HideRepostsOnProfile
+	}
+	return false
 }
 
 type Nodes struct {
@@ -2577,7 +2586,7 @@ var File_proto_graphpb_node_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xee\x13\n" +
+	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa5\x14\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -2662,7 +2671,8 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"featuredAt\x12'\n" +
 	"\x0favatar_filename\x18R \x01(\tR\x0eavatarFilename\x12\x17\n" +
 	"\aroot_id\x18S \x01(\x03R\x06rootId\x12!\n" +
-	"\freply_access\x18T \x01(\tR\vreplyAccessJ\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10J\"*\n" +
+	"\freply_access\x18T \x01(\tR\vreplyAccess\x125\n" +
+	"\x17hide_reposts_on_profile\x18U \x01(\bR\x14hideRepostsOnProfileJ\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10J\"*\n" +
 	"\x05Nodes\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xad\x03\n" +
 	"\x11NodeBrowseRequest\x12\x14\n" +

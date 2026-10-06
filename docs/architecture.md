@@ -99,6 +99,34 @@ for `/articles/`, `/topics/` and `/photos/`. There is no list of every post of
 a type across the site, and a request without an owner is refused. Posts are
 discovered through feeds, search, hashtags and profiles.
 
+### A profile's three lists
+
+`GET /feeds/actor/<actor id>/` is everything a profile shows, in one of three
+lists chosen with `filter`:
+
+| `filter` | Holds |
+| --- | --- |
+| `posts` (the default) | What was posted on the profile, and what its owner reposted. Not replies |
+| `replies` | The replies its owner wrote, wherever the threads are. Each is sent with `root_id` and, as `parent`, what it answers |
+| `reposts` | What its owner reposted, and nothing else |
+
+- **Whether reposts are among the posts is the profile's choice**, kept on the
+  actor as `hide_reposts_on_profile` and changed with
+  `PATCH /people/<id>/reposts-on-profile` or
+  `PATCH /groups/<id>/reposts-on-profile` by whoever may edit the profile. A
+  caller cannot ask for them back: the feed reads the profile and decides.
+  The choice is about the profile only. Followers are sent reposts in their
+  own feeds either way, and the list of reposts always has them.
+- **A reply is listed only to somebody who can see the post at the top of its
+  thread**, like everywhere else a reply turns up. Not one that was removed,
+  and not one that was hidden from its thread.
+- **On a site that shows visitors a preview**, the list of replies answers a
+  visitor 401 `members_only`: replies are not part of a preview.
+
+A reply read on its own (`GET /notes/<id>`) carries `root`, a summary of the
+post at the top of its thread, so a page can say what it is a reply to. The
+thread is the root's: `GET /notes/<root id>/thread`.
+
 A photo post holds up to four images, each uploaded in a request of its own
 and kept in `photo_files`, a table beside the post. How that works, and what
 is stored for each image, is in [Photo posts](photos.md).
