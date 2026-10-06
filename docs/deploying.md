@@ -258,7 +258,7 @@ Every Deployment starts with one replica. The services that only answer
 requests can be given more:
 
 avatar, cover, feed, group, like, location, photo, search,
-socialgraph, story, text, and the gateway.
+socialgraph, text, and the gateway.
 
 These listen for events, and each copy receives every event, so two copies
 would do the work twice (two notifications, two emails). Keep them at one

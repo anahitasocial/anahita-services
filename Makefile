@@ -50,9 +50,6 @@ SOCIALGRAPH_BINARY=app-binary
 SOCIALGRAPH_VERSION=latest
 SOCIALGRAPH_SRV=socialgraph-service
 
-STORY_BINARY=app-binary
-STORY_VERSION=latest
-STORY_SRV=story-service
 
 NOTIFICATION_BINARY=app-binary
 NOTIFICATION_VERSION=latest
@@ -103,7 +100,7 @@ down:
 	@echo "Docker stopped!"
 
 ## build_dockerfiles: builds all dockerfile images
-build_dockerfiles: check_docker build_abuse_report build_auth build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_identity_image build_mail build_feed
+build_dockerfiles: check_docker build_abuse_report build_auth build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
 	@echo "Building dockerfiles..."
 	docker build -f ${DOCKERFILES}/${ABUSE_REPORT_SRV}.dockerfile -t ${REPOSITORY}/${ABUSE_REPORT_SRV}:${ABUSE_REPORT_VERSION} .
 	docker build -f ${DOCKERFILES}/${AUTH_SRV}.dockerfile -t ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION} .
@@ -118,7 +115,6 @@ build_dockerfiles: check_docker build_abuse_report build_auth build_graph build_
 	docker build -f ${DOCKERFILES}/${NGINX_SRV}.dockerfile -t ${REPOSITORY}/${NGINX_SRV}:${NGINX_VERSION} .
 	docker build -f ${DOCKERFILES}/${SEARCH_SRV}.dockerfile -t ${REPOSITORY}/${SEARCH_SRV}:${SEARCH_VERSION} .
 	docker build -f ${DOCKERFILES}/${SOCIALGRAPH_SRV}.dockerfile -t ${REPOSITORY}/${SOCIALGRAPH_SRV}:${SOCIALGRAPH_VERSION} .
-	docker build -f ${DOCKERFILES}/${STORY_SRV}.dockerfile -t ${REPOSITORY}/${STORY_SRV}:${STORY_VERSION} .
 	docker build -f ${DOCKERFILES}/${NOTIFICATION_SRV}.dockerfile -t ${REPOSITORY}/${NOTIFICATION_SRV}:${NOTIFICATION_VERSION} .
 	docker build -f ${DOCKERFILES}/${FILE_SRV}.dockerfile -t ${REPOSITORY}/${FILE_SRV}:${FILE_VERSION} .
 	docker build -f ${DOCKERFILES}/${IDENTITY_IMAGE_SRV}.dockerfile -t ${REPOSITORY}/${IDENTITY_IMAGE_SRV}:${IDENTITY_IMAGE_VERSION} .
@@ -142,7 +138,6 @@ push_dockerfiles: check_docker build_dockerfiles
 	docker push ${REPOSITORY}/${NGINX_SRV}:${NGINX_VERSION}
 	docker push ${REPOSITORY}/${SEARCH_SRV}:${SEARCH_VERSION}
 	docker push ${REPOSITORY}/${SOCIALGRAPH_SRV}:${SOCIALGRAPH_VERSION}
-	docker push ${REPOSITORY}/${STORY_SRV}:${STORY_VERSION}
 	docker push ${REPOSITORY}/${NOTIFICATION_SRV}:${NOTIFICATION_VERSION}
 	docker push ${REPOSITORY}/${FILE_SRV}:${FILE_VERSION}
 	docker push ${REPOSITORY}/${IDENTITY_IMAGE_SRV}:${IDENTITY_IMAGE_VERSION}
@@ -233,12 +228,6 @@ build_socialgraph:
 	cd ${SOCIALGRAPH_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${SOCIALGRAPH_BINARY} ./cmd/api
 	@echo "Socialgraph binary built!"
 
-## build_story: builds the story binary as a linux executable
-build_story:
-	@echo "Building story binary.."
-	cd ${STORY_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${STORY_BINARY} ./cmd/api
-	@echo "Stories binary built!"
-
 ## build_notification: builds the notification binary as a linux executable
 build_notification:
 	@echo "Building notification binary.."
@@ -271,7 +260,7 @@ build_feed:
 
 ## up_build: stops docker-compose (if running), builds all projects and starts docker compose
 # up_build: build_auth build_broker build_listener build_logger build_mail
-up_build: build_abuse_report build_auth build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_story build_notification build_file build_identity_image build_mail build_feed
+up_build: build_abuse_report build_auth build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
 	@echo "Stopping docker images (if running...)"
 	docker-compose down
 	@echo "Building (when required) and starting docker images..."
@@ -391,15 +380,6 @@ socialgraph: build_socialgraph
 	docker-compose start ${SOCIALGRAPH_SRV}
 	@echo "${SOCIALGRAPH_SRV} built and started!"
 
-## story: stops story-service, removes docker image, builds service, and starts it
-story: build_story
-	@echo "Building ${STORY_SRV} docker image..."
-	- docker-compose stop ${STORY_SRV}
-	- docker-compose rm -f ${STORY_SRV}
-	docker-compose up --build -d ${STORY_SRV}
-	docker-compose start ${STORY_SRV}
-	@echo "${STORY_SRV} built and started!"
-
 ## notification: stops notification-service, removes docker image, builds service, and starts it
 notification: build_notification
 	@echo "Building ${NOTIFICATION_SRV} docker image..."
@@ -480,8 +460,7 @@ clean:
 	@cd ${SEARCH_SRV} && go clean
 	@cd ${SOCIALGRAPH_SRV} && rm -f ${SOCIALGRAPH_BINARY}
 	@cd ${SOCIALGRAPH_SRV} && go clean
-	@cd ${STORY_SRV} && rm -f ${STORY_BINARY}
-	@cd ${STORY_SRV} && go clean
+	@cd && go clean
 	@cd ${NOTIFICATION_SRV} && rm -f ${NOTIFICATION_BINARY}
 	@cd ${NOTIFICATION_SRV} && go clean
 	@cd ${FILE_SRV} && rm -f ${FILE_BINARY}
@@ -509,7 +488,7 @@ K8S_LOCAL=k8s/overlays/local
 # Always the Minikube cluster, whatever kubectl currently points at, so these
 # targets can never touch a real one.
 KUBECTL=kubectl --context minikube
-K8S_IMAGES=${ABUSE_REPORT_SRV} ${AUTH_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${STORY_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
+K8S_IMAGES=${ABUSE_REPORT_SRV} ${AUTH_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
 
 ## k8s-start: starts a local Minikube cluster with the ingress controller and cert-manager
 k8s-start:
@@ -592,6 +571,6 @@ test:
 	@cd ${PHOTO_SRV} && go test ./...
 	@cd ${SEARCH_SRV} && go test ./...
 	@cd ${SOCIALGRAPH_SRV} && go test ./...
-	@cd ${STORY_SRV} && go test ./...
+	@cd && go test ./...
 	@cd ${TEXT_SRV} && go test ./...
 	@echo "Tests passed!"

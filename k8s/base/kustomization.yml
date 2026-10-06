@@ -31,7 +31,6 @@ resources:
   - services/photo.yml
   - services/search.yml
   - services/socialgraph.yml
-  - services/story.yml
   - services/text.yml
 
 # Non-secret settings, one entry per variable in docs/configuration.md. Each

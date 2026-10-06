@@ -18,6 +18,5 @@ use (
 	./scripts/s3-migration
 	./search-service
 	./socialgraph-service
-	./story-service
 	./text-service
 )

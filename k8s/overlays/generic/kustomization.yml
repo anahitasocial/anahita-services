@@ -75,8 +75,6 @@ images:
     newTag: latest
   - name: anahita/socialgraph-service
     newTag: latest
-  - name: anahita/story-service
-    newTag: latest
   - name: anahita/sweeper-job
     newTag: latest
   - name: anahita/text-service

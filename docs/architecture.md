@@ -44,7 +44,6 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `photo-service` | 8085 | — | Photos |
 | `hashtag-service` | 8086 | — | Hashtags |
 | `location-service` | 8087 | — | Locations and geocoding |
-| `story-service` | 8090 | — | Stories |
 | `notification-service` | 8091 | 50057 | Notifications |
 | `socialgraph-service` | 8092 | — | Follow, block, subscribe relationships |
 | `search-service` | 8093 | — | Search |
@@ -81,7 +80,6 @@ Kubernetes, where the Ingress sends everything to it
 | `/likes/` | `like-service` |
 | `/hashtags/` | `hashtag-service` |
 | `/locations/` | `location-service` |
-| `/stories/` | `story-service` |
 | `/feeds/`, `/reposts/` | `feed-service` |
 | `/notifications/` | `notification-service` |
 | `/abuse-reports` | `abuse-report-service` |
