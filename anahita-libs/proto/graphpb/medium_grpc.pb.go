@@ -31,6 +31,7 @@ const (
 	MediumService_HideReply_FullMethodName        = "/graph.MediumService/HideReply"
 	MediumService_DetachQuote_FullMethodName      = "/graph.MediumService/DetachQuote"
 	MediumService_SetPinned_FullMethodName        = "/graph.MediumService/SetPinned"
+	MediumService_ListQuotes_FullMethodName       = "/graph.MediumService/ListQuotes"
 	MediumService_AddPhotoUpload_FullMethodName   = "/graph.MediumService/AddPhotoUpload"
 	MediumService_ReadPhotoUploads_FullMethodName = "/graph.MediumService/ReadPhotoUploads"
 	MediumService_BrowsePhotoFiles_FullMethodName = "/graph.MediumService/BrowsePhotoFiles"
@@ -55,6 +56,7 @@ type MediumServiceClient interface {
 	HideReply(ctx context.Context, in *ReplyHideRequest, opts ...grpc.CallOption) (*ReplyHideResponse, error)
 	DetachQuote(ctx context.Context, in *QuoteDetachRequest, opts ...grpc.CallOption) (*QuoteDetachResponse, error)
 	SetPinned(ctx context.Context, in *PinSetRequest, opts ...grpc.CallOption) (*PinSetResponse, error)
+	ListQuotes(ctx context.Context, in *QuotesListRequest, opts ...grpc.CallOption) (*QuotesListResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error)
@@ -191,6 +193,16 @@ func (c *mediumServiceClient) SetPinned(ctx context.Context, in *PinSetRequest, 
 	return out, nil
 }
 
+func (c *mediumServiceClient) ListQuotes(ctx context.Context, in *QuotesListRequest, opts ...grpc.CallOption) (*QuotesListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QuotesListResponse)
+	err := c.cc.Invoke(ctx, MediumService_ListQuotes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *mediumServiceClient) AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PhotoUploadAddResponse)
@@ -249,6 +261,7 @@ type MediumServiceServer interface {
 	HideReply(context.Context, *ReplyHideRequest) (*ReplyHideResponse, error)
 	DetachQuote(context.Context, *QuoteDetachRequest) (*QuoteDetachResponse, error)
 	SetPinned(context.Context, *PinSetRequest) (*PinSetResponse, error)
+	ListQuotes(context.Context, *QuotesListRequest) (*QuotesListResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error)
@@ -300,6 +313,9 @@ func (UnimplementedMediumServiceServer) DetachQuote(context.Context, *QuoteDetac
 }
 func (UnimplementedMediumServiceServer) SetPinned(context.Context, *PinSetRequest) (*PinSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetPinned not implemented")
+}
+func (UnimplementedMediumServiceServer) ListQuotes(context.Context, *QuotesListRequest) (*QuotesListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListQuotes not implemented")
 }
 func (UnimplementedMediumServiceServer) AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddPhotoUpload not implemented")
@@ -550,6 +566,24 @@ func _MediumService_SetPinned_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediumService_ListQuotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QuotesListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).ListQuotes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_ListQuotes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).ListQuotes(ctx, req.(*QuotesListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MediumService_AddPhotoUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PhotoUploadAddRequest)
 	if err := dec(in); err != nil {
@@ -676,6 +710,10 @@ var MediumService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetPinned",
 			Handler:    _MediumService_SetPinned_Handler,
+		},
+		{
+			MethodName: "ListQuotes",
+			Handler:    _MediumService_ListQuotes_Handler,
 		},
 		{
 			MethodName: "AddPhotoUpload",

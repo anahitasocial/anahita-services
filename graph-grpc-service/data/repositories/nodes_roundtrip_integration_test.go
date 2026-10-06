@@ -154,6 +154,12 @@ func TestNodeRoundTripAgainstTheSchema(t *testing.T) {
 		t.Errorf("quote_count %d, want 1", n)
 	}
 
+	// Listed as a quote of the first, to somebody who may see it.
+	visitor := entities.NewViewer()
+	if listed, err := quotes.List(note.ID, visitor, 0); err != nil || len(listed) != 1 || listed[0].ID != quoting.ID {
+		t.Errorf("quotes listed to a visitor: %v, %v", listed, err)
+	}
+
 	// An edit of the quoting note leaves what it quotes alone.
 	quoting.Body = "look at this again"
 	quoting.ModifiedBy = person.ID
@@ -172,6 +178,9 @@ func TestNodeRoundTripAgainstTheSchema(t *testing.T) {
 	}
 	if n := quoteCount(); n != 0 {
 		t.Errorf("quote_count %d after the post was taken out, want 0", n)
+	}
+	if listed, err := quotes.List(note.ID, visitor, 0); err != nil || len(listed) != 0 {
+		t.Errorf("a note the post was taken out of is still listed: %v, %v", listed, err)
 	}
 	if after, err := repo.Read(quoting.ID); err != nil || !after.QuoteDetached || after.QuoteID != note.ID || after.Body != "look at this again" {
 		t.Errorf("the quoting note after: %+v, %v", after, err)

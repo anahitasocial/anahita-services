@@ -174,3 +174,26 @@ func (h *mediumHandler) SetPinned(ctx context.Context, req *graphpb.PinSetReques
 
 	return &graphpb.PinSetResponse{Success: true}, nil
 }
+
+// ListQuotes returns the notes that quote a post and that the viewer may see.
+func (h *mediumHandler) ListQuotes(ctx context.Context, req *graphpb.QuotesListRequest) (*graphpb.QuotesListResponse, error) {
+	if req.GetQuotedId() <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "a post is required")
+	}
+
+	viewer := entities.NewViewer()
+	if req.Viewer != nil {
+		viewer.ID = req.Viewer.Id
+		viewer.PersonType = req.Viewer.PersonType
+		viewer.Username = req.Viewer.Username
+		viewer.Email = req.Viewer.Email
+	}
+
+	quotes, err := h.env.Repos.Quotes.List(req.GetQuotedId(), viewer, req.GetLimit())
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &graphpb.QuotesListResponse{Quotes: nodesToGrpc(quotes)}, nil
+}

@@ -1251,6 +1251,111 @@ func (x *QuoteDetachResponse) GetSuccess() bool {
 	return false
 }
 
+// The notes that quote a post, as the viewer may see them.
+type QuotesListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	QuotedId      int64                  `protobuf:"varint,1,opt,name=quoted_id,json=quotedId,proto3" json:"quoted_id,omitempty"`
+	Limit         uint64                 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Viewer        *Viewer                `protobuf:"bytes,3,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *QuotesListRequest) Reset() {
+	*x = QuotesListRequest{}
+	mi := &file_proto_graphpb_medium_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QuotesListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QuotesListRequest) ProtoMessage() {}
+
+func (x *QuotesListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_medium_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QuotesListRequest.ProtoReflect.Descriptor instead.
+func (*QuotesListRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *QuotesListRequest) GetQuotedId() int64 {
+	if x != nil {
+		return x.QuotedId
+	}
+	return 0
+}
+
+func (x *QuotesListRequest) GetLimit() uint64 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *QuotesListRequest) GetViewer() *Viewer {
+	if x != nil {
+		return x.Viewer
+	}
+	return nil
+}
+
+type QuotesListResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Quotes        []*Node                `protobuf:"bytes,1,rep,name=quotes,proto3" json:"quotes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *QuotesListResponse) Reset() {
+	*x = QuotesListResponse{}
+	mi := &file_proto_graphpb_medium_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QuotesListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QuotesListResponse) ProtoMessage() {}
+
+func (x *QuotesListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_medium_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QuotesListResponse.ProtoReflect.Descriptor instead.
+func (*QuotesListResponse) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *QuotesListResponse) GetQuotes() []*Node {
+	if x != nil {
+		return x.Quotes
+	}
+	return nil
+}
+
 // Pins a post to the profile it is on, or takes the pin off.
 type PinSetRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1263,7 +1368,7 @@ type PinSetRequest struct {
 
 func (x *PinSetRequest) Reset() {
 	*x = PinSetRequest{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[23]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1275,7 +1380,7 @@ func (x *PinSetRequest) String() string {
 func (*PinSetRequest) ProtoMessage() {}
 
 func (x *PinSetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[23]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1288,7 +1393,7 @@ func (x *PinSetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PinSetRequest.ProtoReflect.Descriptor instead.
 func (*PinSetRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{23}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *PinSetRequest) GetNodeId() int64 {
@@ -1321,7 +1426,7 @@ type PinSetResponse struct {
 
 func (x *PinSetResponse) Reset() {
 	*x = PinSetResponse{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[24]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1333,7 +1438,7 @@ func (x *PinSetResponse) String() string {
 func (*PinSetResponse) ProtoMessage() {}
 
 func (x *PinSetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[24]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1346,7 +1451,7 @@ func (x *PinSetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PinSetResponse.ProtoReflect.Descriptor instead.
 func (*PinSetResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{24}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *PinSetResponse) GetSuccess() bool {
@@ -1372,7 +1477,7 @@ type PhotoFile struct {
 
 func (x *PhotoFile) Reset() {
 	*x = PhotoFile{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[25]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1384,7 +1489,7 @@ func (x *PhotoFile) String() string {
 func (*PhotoFile) ProtoMessage() {}
 
 func (x *PhotoFile) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[25]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1397,7 +1502,7 @@ func (x *PhotoFile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhotoFile.ProtoReflect.Descriptor instead.
 func (*PhotoFile) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{25}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *PhotoFile) GetNodeId() int64 {
@@ -1465,7 +1570,7 @@ type PhotoUpload struct {
 
 func (x *PhotoUpload) Reset() {
 	*x = PhotoUpload{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[26]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1477,7 +1582,7 @@ func (x *PhotoUpload) String() string {
 func (*PhotoUpload) ProtoMessage() {}
 
 func (x *PhotoUpload) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[26]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1490,7 +1595,7 @@ func (x *PhotoUpload) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhotoUpload.ProtoReflect.Descriptor instead.
 func (*PhotoUpload) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{26}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *PhotoUpload) GetId() int64 {
@@ -1551,7 +1656,7 @@ type PhotoUploadAddRequest struct {
 
 func (x *PhotoUploadAddRequest) Reset() {
 	*x = PhotoUploadAddRequest{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[27]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1563,7 +1668,7 @@ func (x *PhotoUploadAddRequest) String() string {
 func (*PhotoUploadAddRequest) ProtoMessage() {}
 
 func (x *PhotoUploadAddRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[27]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1576,7 +1681,7 @@ func (x *PhotoUploadAddRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhotoUploadAddRequest.ProtoReflect.Descriptor instead.
 func (*PhotoUploadAddRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{27}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *PhotoUploadAddRequest) GetUpload() *PhotoUpload {
@@ -1595,7 +1700,7 @@ type PhotoUploadAddResponse struct {
 
 func (x *PhotoUploadAddResponse) Reset() {
 	*x = PhotoUploadAddResponse{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[28]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1607,7 +1712,7 @@ func (x *PhotoUploadAddResponse) String() string {
 func (*PhotoUploadAddResponse) ProtoMessage() {}
 
 func (x *PhotoUploadAddResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[28]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1620,7 +1725,7 @@ func (x *PhotoUploadAddResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhotoUploadAddResponse.ProtoReflect.Descriptor instead.
 func (*PhotoUploadAddResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{28}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *PhotoUploadAddResponse) GetId() int64 {
@@ -1639,7 +1744,7 @@ type PhotoUploadsReadRequest struct {
 
 func (x *PhotoUploadsReadRequest) Reset() {
 	*x = PhotoUploadsReadRequest{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[29]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1651,7 +1756,7 @@ func (x *PhotoUploadsReadRequest) String() string {
 func (*PhotoUploadsReadRequest) ProtoMessage() {}
 
 func (x *PhotoUploadsReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[29]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1664,7 +1769,7 @@ func (x *PhotoUploadsReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhotoUploadsReadRequest.ProtoReflect.Descriptor instead.
 func (*PhotoUploadsReadRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{29}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *PhotoUploadsReadRequest) GetIds() []int64 {
@@ -1683,7 +1788,7 @@ type PhotoUploadsReadResponse struct {
 
 func (x *PhotoUploadsReadResponse) Reset() {
 	*x = PhotoUploadsReadResponse{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[30]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1695,7 +1800,7 @@ func (x *PhotoUploadsReadResponse) String() string {
 func (*PhotoUploadsReadResponse) ProtoMessage() {}
 
 func (x *PhotoUploadsReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[30]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1708,7 +1813,7 @@ func (x *PhotoUploadsReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhotoUploadsReadResponse.ProtoReflect.Descriptor instead.
 func (*PhotoUploadsReadResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{30}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *PhotoUploadsReadResponse) GetUploads() []*PhotoUpload {
@@ -1727,7 +1832,7 @@ type PhotoFilesBrowseRequest struct {
 
 func (x *PhotoFilesBrowseRequest) Reset() {
 	*x = PhotoFilesBrowseRequest{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[31]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1739,7 +1844,7 @@ func (x *PhotoFilesBrowseRequest) String() string {
 func (*PhotoFilesBrowseRequest) ProtoMessage() {}
 
 func (x *PhotoFilesBrowseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[31]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1752,7 +1857,7 @@ func (x *PhotoFilesBrowseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhotoFilesBrowseRequest.ProtoReflect.Descriptor instead.
 func (*PhotoFilesBrowseRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{31}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *PhotoFilesBrowseRequest) GetNodeIds() []int64 {
@@ -1771,7 +1876,7 @@ type PhotoFilesBrowseResponse struct {
 
 func (x *PhotoFilesBrowseResponse) Reset() {
 	*x = PhotoFilesBrowseResponse{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[32]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1783,7 +1888,7 @@ func (x *PhotoFilesBrowseResponse) String() string {
 func (*PhotoFilesBrowseResponse) ProtoMessage() {}
 
 func (x *PhotoFilesBrowseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[32]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1796,7 +1901,7 @@ func (x *PhotoFilesBrowseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhotoFilesBrowseResponse.ProtoReflect.Descriptor instead.
 func (*PhotoFilesBrowseResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{32}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *PhotoFilesBrowseResponse) GetFiles() []*PhotoFile {
@@ -1819,7 +1924,7 @@ type PhotoFilesSetRequest struct {
 
 func (x *PhotoFilesSetRequest) Reset() {
 	*x = PhotoFilesSetRequest{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[33]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1831,7 +1936,7 @@ func (x *PhotoFilesSetRequest) String() string {
 func (*PhotoFilesSetRequest) ProtoMessage() {}
 
 func (x *PhotoFilesSetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[33]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1844,7 +1949,7 @@ func (x *PhotoFilesSetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhotoFilesSetRequest.ProtoReflect.Descriptor instead.
 func (*PhotoFilesSetRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{33}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *PhotoFilesSetRequest) GetNodeId() int64 {
@@ -1877,7 +1982,7 @@ type PhotoFilesSetResponse struct {
 
 func (x *PhotoFilesSetResponse) Reset() {
 	*x = PhotoFilesSetResponse{}
-	mi := &file_proto_graphpb_medium_proto_msgTypes[34]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1889,7 +1994,7 @@ func (x *PhotoFilesSetResponse) String() string {
 func (*PhotoFilesSetResponse) ProtoMessage() {}
 
 func (x *PhotoFilesSetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_medium_proto_msgTypes[34]
+	mi := &file_proto_graphpb_medium_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1902,7 +2007,7 @@ func (x *PhotoFilesSetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhotoFilesSetResponse.ProtoReflect.Descriptor instead.
 func (*PhotoFilesSetResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{34}
+	return file_proto_graphpb_medium_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *PhotoFilesSetResponse) GetFiles() []*PhotoFile {
@@ -1990,7 +2095,13 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\anote_id\x18\x01 \x01(\x03R\x06noteId\x12\x1b\n" +
 	"\tviewer_id\x18\x02 \x01(\x03R\bviewerId\"/\n" +
 	"\x13QuoteDetachResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"]\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"m\n" +
+	"\x11QuotesListRequest\x12\x1b\n" +
+	"\tquoted_id\x18\x01 \x01(\x03R\bquotedId\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x04R\x05limit\x12%\n" +
+	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\"9\n" +
+	"\x12QuotesListResponse\x12#\n" +
+	"\x06quotes\x18\x01 \x03(\v2\v.graph.NodeR\x06quotes\"]\n" +
 	"\rPinSetRequest\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\x03R\x06nodeId\x12\x16\n" +
 	"\x06pinned\x18\x02 \x01(\bR\x06pinned\x12\x1b\n" +
@@ -2032,7 +2143,7 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\n" +
 	"upload_ids\x18\x03 \x03(\x03R\tuploadIds\"?\n" +
 	"\x15PhotoFilesSetResponse\x12&\n" +
-	"\x05files\x18\x01 \x03(\v2\x10.graph.PhotoFileR\x05files2\xfa\b\n" +
+	"\x05files\x18\x01 \x03(\v2\x10.graph.PhotoFileR\x05files2\xbf\t\n" +
 	"\rMediumService\x12@\n" +
 	"\x05Count\x12\x19.graph.MediumCountRequest\x1a\x1a.graph.MediumCountResponse\"\x00\x12C\n" +
 	"\x06Browse\x12\x1a.graph.MediumBrowseRequest\x1a\x1b.graph.MediumBrowseResponse\"\x00\x12=\n" +
@@ -2045,7 +2156,9 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\x06Thread\x12\x1a.graph.MediumThreadRequest\x1a\x1b.graph.MediumThreadResponse\"\x00\x12@\n" +
 	"\tHideReply\x12\x17.graph.ReplyHideRequest\x1a\x18.graph.ReplyHideResponse\"\x00\x12F\n" +
 	"\vDetachQuote\x12\x19.graph.QuoteDetachRequest\x1a\x1a.graph.QuoteDetachResponse\"\x00\x12:\n" +
-	"\tSetPinned\x12\x14.graph.PinSetRequest\x1a\x15.graph.PinSetResponse\"\x00\x12O\n" +
+	"\tSetPinned\x12\x14.graph.PinSetRequest\x1a\x15.graph.PinSetResponse\"\x00\x12C\n" +
+	"\n" +
+	"ListQuotes\x12\x18.graph.QuotesListRequest\x1a\x19.graph.QuotesListResponse\"\x00\x12O\n" +
 	"\x0eAddPhotoUpload\x12\x1c.graph.PhotoUploadAddRequest\x1a\x1d.graph.PhotoUploadAddResponse\"\x00\x12U\n" +
 	"\x10ReadPhotoUploads\x12\x1e.graph.PhotoUploadsReadRequest\x1a\x1f.graph.PhotoUploadsReadResponse\"\x00\x12U\n" +
 	"\x10BrowsePhotoFiles\x12\x1e.graph.PhotoFilesBrowseRequest\x1a\x1f.graph.PhotoFilesBrowseResponse\"\x00\x12L\n" +
@@ -2064,7 +2177,7 @@ func file_proto_graphpb_medium_proto_rawDescGZIP() []byte {
 	return file_proto_graphpb_medium_proto_rawDescData
 }
 
-var file_proto_graphpb_medium_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_proto_graphpb_medium_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_proto_graphpb_medium_proto_goTypes = []any{
 	(*Media)(nil),                    // 0: graph.Media
 	(*MediumCountRequest)(nil),       // 1: graph.MediumCountRequest
@@ -2089,81 +2202,87 @@ var file_proto_graphpb_medium_proto_goTypes = []any{
 	(*ReplyHideResponse)(nil),        // 20: graph.ReplyHideResponse
 	(*QuoteDetachRequest)(nil),       // 21: graph.QuoteDetachRequest
 	(*QuoteDetachResponse)(nil),      // 22: graph.QuoteDetachResponse
-	(*PinSetRequest)(nil),            // 23: graph.PinSetRequest
-	(*PinSetResponse)(nil),           // 24: graph.PinSetResponse
-	(*PhotoFile)(nil),                // 25: graph.PhotoFile
-	(*PhotoUpload)(nil),              // 26: graph.PhotoUpload
-	(*PhotoUploadAddRequest)(nil),    // 27: graph.PhotoUploadAddRequest
-	(*PhotoUploadAddResponse)(nil),   // 28: graph.PhotoUploadAddResponse
-	(*PhotoUploadsReadRequest)(nil),  // 29: graph.PhotoUploadsReadRequest
-	(*PhotoUploadsReadResponse)(nil), // 30: graph.PhotoUploadsReadResponse
-	(*PhotoFilesBrowseRequest)(nil),  // 31: graph.PhotoFilesBrowseRequest
-	(*PhotoFilesBrowseResponse)(nil), // 32: graph.PhotoFilesBrowseResponse
-	(*PhotoFilesSetRequest)(nil),     // 33: graph.PhotoFilesSetRequest
-	(*PhotoFilesSetResponse)(nil),    // 34: graph.PhotoFilesSetResponse
-	(*Node)(nil),                     // 35: graph.Node
-	(*Viewer)(nil),                   // 36: graph.Viewer
+	(*QuotesListRequest)(nil),        // 23: graph.QuotesListRequest
+	(*QuotesListResponse)(nil),       // 24: graph.QuotesListResponse
+	(*PinSetRequest)(nil),            // 25: graph.PinSetRequest
+	(*PinSetResponse)(nil),           // 26: graph.PinSetResponse
+	(*PhotoFile)(nil),                // 27: graph.PhotoFile
+	(*PhotoUpload)(nil),              // 28: graph.PhotoUpload
+	(*PhotoUploadAddRequest)(nil),    // 29: graph.PhotoUploadAddRequest
+	(*PhotoUploadAddResponse)(nil),   // 30: graph.PhotoUploadAddResponse
+	(*PhotoUploadsReadRequest)(nil),  // 31: graph.PhotoUploadsReadRequest
+	(*PhotoUploadsReadResponse)(nil), // 32: graph.PhotoUploadsReadResponse
+	(*PhotoFilesBrowseRequest)(nil),  // 33: graph.PhotoFilesBrowseRequest
+	(*PhotoFilesBrowseResponse)(nil), // 34: graph.PhotoFilesBrowseResponse
+	(*PhotoFilesSetRequest)(nil),     // 35: graph.PhotoFilesSetRequest
+	(*PhotoFilesSetResponse)(nil),    // 36: graph.PhotoFilesSetResponse
+	(*Node)(nil),                     // 37: graph.Node
+	(*Viewer)(nil),                   // 38: graph.Viewer
 }
 var file_proto_graphpb_medium_proto_depIdxs = []int32{
-	35, // 0: graph.Media.mediums:type_name -> graph.Node
-	36, // 1: graph.MediumCountRequest.viewer:type_name -> graph.Viewer
-	36, // 2: graph.MediumBrowseRequest.viewer:type_name -> graph.Viewer
-	35, // 3: graph.MediumBrowseResponse.media:type_name -> graph.Node
-	36, // 4: graph.MediumReadRequest.viewer:type_name -> graph.Viewer
-	35, // 5: graph.MediumReadResponse.medium:type_name -> graph.Node
-	36, // 6: graph.MediumBatchReadRequest.viewer:type_name -> graph.Viewer
-	35, // 7: graph.MediumBatchReadResponse.media:type_name -> graph.Node
-	35, // 8: graph.MediumEditRequest.medium:type_name -> graph.Node
-	36, // 9: graph.MediumEditRequest.viewer:type_name -> graph.Viewer
-	35, // 10: graph.MediumEditResponse.medium:type_name -> graph.Node
-	35, // 11: graph.MediumAddRequest.medium:type_name -> graph.Node
-	36, // 12: graph.MediumAddRequest.viewer:type_name -> graph.Viewer
-	35, // 13: graph.MediumAddResponse.medium:type_name -> graph.Node
-	36, // 14: graph.MediumDeleteRequest.viewer:type_name -> graph.Viewer
-	36, // 15: graph.MediumThreadRequest.viewer:type_name -> graph.Viewer
-	35, // 16: graph.MediumThreadResponse.replies:type_name -> graph.Node
-	26, // 17: graph.PhotoUploadAddRequest.upload:type_name -> graph.PhotoUpload
-	26, // 18: graph.PhotoUploadsReadResponse.uploads:type_name -> graph.PhotoUpload
-	25, // 19: graph.PhotoFilesBrowseResponse.files:type_name -> graph.PhotoFile
-	25, // 20: graph.PhotoFilesSetRequest.files:type_name -> graph.PhotoFile
-	25, // 21: graph.PhotoFilesSetResponse.files:type_name -> graph.PhotoFile
-	1,  // 22: graph.MediumService.Count:input_type -> graph.MediumCountRequest
-	3,  // 23: graph.MediumService.Browse:input_type -> graph.MediumBrowseRequest
-	5,  // 24: graph.MediumService.Read:input_type -> graph.MediumReadRequest
-	7,  // 25: graph.MediumService.BatchRead:input_type -> graph.MediumBatchReadRequest
-	9,  // 26: graph.MediumService.Edit:input_type -> graph.MediumEditRequest
-	11, // 27: graph.MediumService.Add:input_type -> graph.MediumAddRequest
-	13, // 28: graph.MediumService.Delete:input_type -> graph.MediumDeleteRequest
-	15, // 29: graph.MediumService.Ping:input_type -> graph.MediumPingRequest
-	17, // 30: graph.MediumService.Thread:input_type -> graph.MediumThreadRequest
-	19, // 31: graph.MediumService.HideReply:input_type -> graph.ReplyHideRequest
-	21, // 32: graph.MediumService.DetachQuote:input_type -> graph.QuoteDetachRequest
-	23, // 33: graph.MediumService.SetPinned:input_type -> graph.PinSetRequest
-	27, // 34: graph.MediumService.AddPhotoUpload:input_type -> graph.PhotoUploadAddRequest
-	29, // 35: graph.MediumService.ReadPhotoUploads:input_type -> graph.PhotoUploadsReadRequest
-	31, // 36: graph.MediumService.BrowsePhotoFiles:input_type -> graph.PhotoFilesBrowseRequest
-	33, // 37: graph.MediumService.SetPhotoFiles:input_type -> graph.PhotoFilesSetRequest
-	2,  // 38: graph.MediumService.Count:output_type -> graph.MediumCountResponse
-	4,  // 39: graph.MediumService.Browse:output_type -> graph.MediumBrowseResponse
-	6,  // 40: graph.MediumService.Read:output_type -> graph.MediumReadResponse
-	8,  // 41: graph.MediumService.BatchRead:output_type -> graph.MediumBatchReadResponse
-	10, // 42: graph.MediumService.Edit:output_type -> graph.MediumEditResponse
-	12, // 43: graph.MediumService.Add:output_type -> graph.MediumAddResponse
-	14, // 44: graph.MediumService.Delete:output_type -> graph.MediumDeleteResponse
-	16, // 45: graph.MediumService.Ping:output_type -> graph.MediumPingResponse
-	18, // 46: graph.MediumService.Thread:output_type -> graph.MediumThreadResponse
-	20, // 47: graph.MediumService.HideReply:output_type -> graph.ReplyHideResponse
-	22, // 48: graph.MediumService.DetachQuote:output_type -> graph.QuoteDetachResponse
-	24, // 49: graph.MediumService.SetPinned:output_type -> graph.PinSetResponse
-	28, // 50: graph.MediumService.AddPhotoUpload:output_type -> graph.PhotoUploadAddResponse
-	30, // 51: graph.MediumService.ReadPhotoUploads:output_type -> graph.PhotoUploadsReadResponse
-	32, // 52: graph.MediumService.BrowsePhotoFiles:output_type -> graph.PhotoFilesBrowseResponse
-	34, // 53: graph.MediumService.SetPhotoFiles:output_type -> graph.PhotoFilesSetResponse
-	38, // [38:54] is the sub-list for method output_type
-	22, // [22:38] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	37, // 0: graph.Media.mediums:type_name -> graph.Node
+	38, // 1: graph.MediumCountRequest.viewer:type_name -> graph.Viewer
+	38, // 2: graph.MediumBrowseRequest.viewer:type_name -> graph.Viewer
+	37, // 3: graph.MediumBrowseResponse.media:type_name -> graph.Node
+	38, // 4: graph.MediumReadRequest.viewer:type_name -> graph.Viewer
+	37, // 5: graph.MediumReadResponse.medium:type_name -> graph.Node
+	38, // 6: graph.MediumBatchReadRequest.viewer:type_name -> graph.Viewer
+	37, // 7: graph.MediumBatchReadResponse.media:type_name -> graph.Node
+	37, // 8: graph.MediumEditRequest.medium:type_name -> graph.Node
+	38, // 9: graph.MediumEditRequest.viewer:type_name -> graph.Viewer
+	37, // 10: graph.MediumEditResponse.medium:type_name -> graph.Node
+	37, // 11: graph.MediumAddRequest.medium:type_name -> graph.Node
+	38, // 12: graph.MediumAddRequest.viewer:type_name -> graph.Viewer
+	37, // 13: graph.MediumAddResponse.medium:type_name -> graph.Node
+	38, // 14: graph.MediumDeleteRequest.viewer:type_name -> graph.Viewer
+	38, // 15: graph.MediumThreadRequest.viewer:type_name -> graph.Viewer
+	37, // 16: graph.MediumThreadResponse.replies:type_name -> graph.Node
+	38, // 17: graph.QuotesListRequest.viewer:type_name -> graph.Viewer
+	37, // 18: graph.QuotesListResponse.quotes:type_name -> graph.Node
+	28, // 19: graph.PhotoUploadAddRequest.upload:type_name -> graph.PhotoUpload
+	28, // 20: graph.PhotoUploadsReadResponse.uploads:type_name -> graph.PhotoUpload
+	27, // 21: graph.PhotoFilesBrowseResponse.files:type_name -> graph.PhotoFile
+	27, // 22: graph.PhotoFilesSetRequest.files:type_name -> graph.PhotoFile
+	27, // 23: graph.PhotoFilesSetResponse.files:type_name -> graph.PhotoFile
+	1,  // 24: graph.MediumService.Count:input_type -> graph.MediumCountRequest
+	3,  // 25: graph.MediumService.Browse:input_type -> graph.MediumBrowseRequest
+	5,  // 26: graph.MediumService.Read:input_type -> graph.MediumReadRequest
+	7,  // 27: graph.MediumService.BatchRead:input_type -> graph.MediumBatchReadRequest
+	9,  // 28: graph.MediumService.Edit:input_type -> graph.MediumEditRequest
+	11, // 29: graph.MediumService.Add:input_type -> graph.MediumAddRequest
+	13, // 30: graph.MediumService.Delete:input_type -> graph.MediumDeleteRequest
+	15, // 31: graph.MediumService.Ping:input_type -> graph.MediumPingRequest
+	17, // 32: graph.MediumService.Thread:input_type -> graph.MediumThreadRequest
+	19, // 33: graph.MediumService.HideReply:input_type -> graph.ReplyHideRequest
+	21, // 34: graph.MediumService.DetachQuote:input_type -> graph.QuoteDetachRequest
+	25, // 35: graph.MediumService.SetPinned:input_type -> graph.PinSetRequest
+	23, // 36: graph.MediumService.ListQuotes:input_type -> graph.QuotesListRequest
+	29, // 37: graph.MediumService.AddPhotoUpload:input_type -> graph.PhotoUploadAddRequest
+	31, // 38: graph.MediumService.ReadPhotoUploads:input_type -> graph.PhotoUploadsReadRequest
+	33, // 39: graph.MediumService.BrowsePhotoFiles:input_type -> graph.PhotoFilesBrowseRequest
+	35, // 40: graph.MediumService.SetPhotoFiles:input_type -> graph.PhotoFilesSetRequest
+	2,  // 41: graph.MediumService.Count:output_type -> graph.MediumCountResponse
+	4,  // 42: graph.MediumService.Browse:output_type -> graph.MediumBrowseResponse
+	6,  // 43: graph.MediumService.Read:output_type -> graph.MediumReadResponse
+	8,  // 44: graph.MediumService.BatchRead:output_type -> graph.MediumBatchReadResponse
+	10, // 45: graph.MediumService.Edit:output_type -> graph.MediumEditResponse
+	12, // 46: graph.MediumService.Add:output_type -> graph.MediumAddResponse
+	14, // 47: graph.MediumService.Delete:output_type -> graph.MediumDeleteResponse
+	16, // 48: graph.MediumService.Ping:output_type -> graph.MediumPingResponse
+	18, // 49: graph.MediumService.Thread:output_type -> graph.MediumThreadResponse
+	20, // 50: graph.MediumService.HideReply:output_type -> graph.ReplyHideResponse
+	22, // 51: graph.MediumService.DetachQuote:output_type -> graph.QuoteDetachResponse
+	26, // 52: graph.MediumService.SetPinned:output_type -> graph.PinSetResponse
+	24, // 53: graph.MediumService.ListQuotes:output_type -> graph.QuotesListResponse
+	30, // 54: graph.MediumService.AddPhotoUpload:output_type -> graph.PhotoUploadAddResponse
+	32, // 55: graph.MediumService.ReadPhotoUploads:output_type -> graph.PhotoUploadsReadResponse
+	34, // 56: graph.MediumService.BrowsePhotoFiles:output_type -> graph.PhotoFilesBrowseResponse
+	36, // 57: graph.MediumService.SetPhotoFiles:output_type -> graph.PhotoFilesSetResponse
+	41, // [41:58] is the sub-list for method output_type
+	24, // [24:41] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_proto_graphpb_medium_proto_init() }
@@ -2179,7 +2298,7 @@ func file_proto_graphpb_medium_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_graphpb_medium_proto_rawDesc), len(file_proto_graphpb_medium_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   35,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

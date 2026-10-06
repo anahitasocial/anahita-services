@@ -137,6 +137,17 @@ message QuoteDetachResponse {
     bool success = 1;
 }
 
+// The notes that quote a post, as the viewer may see them.
+message QuotesListRequest {
+    int64 quoted_id = 1;
+    uint64 limit = 2;
+    Viewer viewer = 3;
+}
+
+message QuotesListResponse {
+    repeated Node quotes = 1;
+}
+
 // Pins a post to the profile it is on, or takes the pin off.
 message PinSetRequest {
     int64 node_id = 1;
@@ -222,6 +233,7 @@ service MediumService {
     rpc HideReply(ReplyHideRequest) returns (ReplyHideResponse) {}
     rpc DetachQuote(QuoteDetachRequest) returns (QuoteDetachResponse) {}
     rpc SetPinned(PinSetRequest) returns (PinSetResponse) {}
+    rpc ListQuotes(QuotesListRequest) returns (QuotesListResponse) {}
 
     // The images of photo posts. A photo is a medium, and these are its
     // images, so they are kept by the service that keeps the post.

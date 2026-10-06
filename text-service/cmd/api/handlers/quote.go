@@ -137,3 +137,38 @@ func (h *noteHandler) DetachQuote(c echo.Context) error {
 	mediaResp := &responses.MediumNodeResponse{}
 	return c.JSON(http.StatusOK, mediaResp.MapMediumNode(note))
 }
+
+// Quotes returns the notes that quote a post, newest first: who quoted it,
+// for the post's activity.
+//
+// GET /notes/:id/quotes, where :id is the quoted post, of any kind.
+//
+// For anybody who can see the post. Each quote is a note and is listed only
+// to somebody who may see that note, so the list can be shorter than the
+// count on the post.
+func (h *mediumHandler) Quotes(c echo.Context) error {
+	viewer := getViewer(c)
+
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	// Read as the viewer: a post they cannot see has no list for them.
+	if _, err := h.Srv.MediaGRPC.Read(id, viewer); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	quotes, err := h.Srv.MediaGRPC.Quotes(id, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	batchPresignPaths(h.Env, quotes)
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"data": threadResponse(quotes),
+	})
+}

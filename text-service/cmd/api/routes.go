@@ -67,6 +67,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	// Taking a quoted post out of a note that quotes it, for that post's
 	// author.
 	notes.DELETE("/:id/quote", r.handler.Note.DetachQuote, r.authorize)
+	// Who quoted a post, of any kind. Not part of a preview, like a thread.
+	notes.GET("/:id/quotes", r.handler.Note.Quotes, r.setViewer, an_mw.MembersInPreview())
 
 	// note access
 	notes.PATCH("/:id/access", r.handler.Note.EditAccess, r.authorize)

@@ -71,6 +71,35 @@ func (srv *MediaGRPC) DetachQuote(noteID int64, viewer *entities.Viewer) error {
 	return err
 }
 
+// Quotes returns the notes that quote a post and that the viewer may see,
+// newest first.
+func (srv *MediaGRPC) Quotes(quotedID int64, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.ListQuotes(context.Background(), &graphpb.QuotesListRequest{
+		QuotedId: quotedID,
+		Viewer: &graphpb.Viewer{
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	quotes := make([]*entities.AnahitaNode, 0, len(resp.GetQuotes()))
+	for _, node := range resp.GetQuotes() {
+		quotes = append(quotes, grpcToGraphNode(node))
+	}
+
+	return quotes, nil
+}
+
 // SetPinned pins a post to the profile it is on, or takes the pin off. A
 // profile has one pin: pinning moves it from the post that had it.
 func (srv *MediaGRPC) SetPinned(nodeID int64, pinned bool, viewer *entities.Viewer) error {

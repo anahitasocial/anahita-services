@@ -142,7 +142,26 @@ feeds and on profiles as a note, and gated as one. The rules are in
   somebody wrote in a group it does not know the author's own setting, and
   making the quote asks again with everything.
 - **Routes**: `PATCH /{articles,notes,topics,photos}/<id>/quote-policy`,
-  `PATCH /people/<id>/quote-policy`, `DELETE /notes/<id>/quote`.
+  `PATCH /people/<id>/quote-policy`, `DELETE /notes/<id>/quote`, and
+  `GET /notes/<id>/quotes` for the notes that quote a post.
+
+### A post's activity
+
+Who liked a post, reposted it, quoted it and replied to it is four lists
+that already exist or follow from what does:
+
+| List | From |
+| --- | --- |
+| Likes | `GET /likes/<id>/` |
+| Reposts | `GET /reposts/<id>/` |
+| Quotes | `GET /notes/<id>/quotes` |
+| Replies | `GET /notes/<id>/thread` |
+
+Each is for anybody who can see the post, and each lists only the people and
+notes that reader may see, so a list can be shorter than the count on the
+post. There is no count of views and no list of who looked: nothing records
+that. The plan that had both (`plans/post-insights.md`) was set aside for
+this.
 
 ### A profile's three lists
 

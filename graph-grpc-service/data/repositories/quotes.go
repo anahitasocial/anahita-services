@@ -3,6 +3,10 @@ package repositories
 import (
 	"context"
 	"database/sql"
+
+	"anahita-libs/data/entities"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
 // QuotesRepoInterface is what quote posts need beyond what any post does.
@@ -18,7 +22,14 @@ type QuotesRepoInterface interface {
 	// note stays. It reports whether anything changed: false when the note
 	// quotes nothing, or was detached already.
 	Detach(quoteNoteID int64, by int64) (bool, error)
+
+	// List returns the notes that quote a post and that this viewer may
+	// see, newest first: not one the post was taken out of.
+	List(quotedID int64, viewer *entities.Viewer, limit uint64) ([]*entities.AnahitaNode, error)
 }
+
+// QuotesLimit is how many of a post's quotes are read at once.
+const QuotesLimit = 100
 
 func NewQuotesRepo(db *sql.DB) QuotesRepoInterface {
 	return &quotesRepo{db: db}
@@ -83,4 +94,31 @@ func (r *quotesRepo) Detach(quoteNoteID int64, by int64) (bool, error) {
 
 	changed, err := result.RowsAffected()
 	return changed > 0, err
+}
+
+// List returns the notes that quote a post.
+//
+// Each is a note like any other and is gated as one: a note the viewer could
+// not see on its author's profile is not listed as a quote either, so the
+// list is shorter than the count on the post for anybody who cannot see them
+// all.
+func (r *quotesRepo) List(quotedID int64, viewer *entities.Viewer, limit uint64) ([]*entities.AnahitaNode, error) {
+	if viewer == nil {
+		viewer = entities.NewViewer()
+	}
+	if limit == 0 || limit > QuotesLimit {
+		limit = QuotesLimit
+	}
+
+	query := GetBaseSelectQuery().
+		Where(sq.Eq{"node.quote_id": quotedID}).
+		Where("node.quote_detached_at IS NULL").
+		Where("node.deleted_at IS NULL").
+		Where(sq.Eq{"node.enabled": true})
+
+	query = SetMediumAccessQuery(query, viewer)
+
+	query = query.OrderBy("node.created_at DESC", "node.id DESC").Limit(limit)
+
+	return FetchNodes(r.db, query)
 }
