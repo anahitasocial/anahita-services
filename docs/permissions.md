@@ -25,6 +25,7 @@ change them, and what profile owners can change for themselves.
 - [Adding followers to a group](#adding-followers-to-a-group)
 - [Reposts](#reposts)
 - [Quotes](#quotes)
+- [Saved posts](#saved-posts)
 - [Pinned posts](#pinned-posts)
 - [Reporting](#reporting)
 - [Removing accounts](#removing-accounts)
@@ -414,7 +415,16 @@ removed, and not one it was taken out of. Its author is told when it is
 quoted (`quote_add`), unless they quoted it themselves.
 
 The rules are `permissions.CanQuote` and `permissions.CanDetachQuote`; the
-lookup for each reader is `handlers.SetQuotes`.
+lookup for each reader is `handlers.SetQuotes`, which asks the access gate
+(`FilterVisible`) before it reads anything.
+
+## Saved posts
+
+Anybody signed in can save a post they can see, to find it again, and take
+it out of their list whenever they like. What somebody saved is theirs alone:
+nobody else can see the list, and nobody, the author of a post included, can
+find out who saved it or whether anybody did. A saved post stays in the list
+only while its saver can still see it.
 
 ## Pinned posts
 

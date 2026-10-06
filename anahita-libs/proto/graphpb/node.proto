@@ -142,6 +142,9 @@ message Node {
     string quote_policy = 86;
     int64 quote_id = 87;
     bool quote_detached = 88;
+
+    // Whether the viewer has saved the post. Private to them.
+    bool is_saved_by_viewer = 89;
 }
 
 message Nodes {

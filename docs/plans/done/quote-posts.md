@@ -134,6 +134,16 @@ a page rarely holds more than a few quotes. A response whose handler did not
 look (a like answers with the note, for one) sends no `quote` at all, so it
 does not wipe out one the app already has.
 
+**A mistake in the first version, found and fixed the next day.** `SetQuotes`
+read each quoted post "as the viewer" and took a successful read to mean the
+viewer may see it. The read through the graph checks nothing; it hands a post
+to whoever asks. A post made private after it was quoted, or one whose author
+had blocked the reader, would have been shown inside the note. It now asks
+`FilterVisible` first, once for the page, and reads only what passes; when
+the filter cannot be asked nothing is shown. A test has the case. The same
+false assumption was in the list of a post's quotes and in taking a post out
+of a quote, and both now ask the filter. Nothing had been released.
+
 **Narrower than the plan, for now.**
 - **A reply cannot be quoted**, and a reply cannot quote. The plan did not
   say. A reply is seen by whoever sees its thread and has no audience of its

@@ -95,6 +95,8 @@ func (h *mediumHandler) Thread(ctx context.Context, req *graphpb.MediumThreadReq
 		return nil, err
 	}
 
+	h.markSaved(viewer.ID, replies)
+
 	return &graphpb.MediumThreadResponse{
 		Replies:   nodesToGrpc(replies),
 		HiddenIds: hidden,
@@ -194,6 +196,8 @@ func (h *mediumHandler) ListQuotes(ctx context.Context, req *graphpb.QuotesListR
 		log.Println(err)
 		return nil, err
 	}
+
+	h.markSaved(viewer.ID, quotes)
 
 	return &graphpb.QuotesListResponse{Quotes: nodesToGrpc(quotes)}, nil
 }

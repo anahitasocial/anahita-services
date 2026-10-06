@@ -24,7 +24,8 @@ import (
 // reason when they may not, or with a status when the post cannot be read at
 // all: not found, which is also what a post they may not see answers.
 func (h *noteHandler) mayQuote(quotedID int64, viewer *entities.Viewer) (bool, string, int) {
-	// Read as the viewer: a post they cannot see is not found.
+	// The read does not check who is asking; the rule below does, with the
+	// owner and the relationships loaded here.
 	quoted, err := h.Srv.MediaGRPC.Read(quotedID, viewer)
 	if err != nil {
 		log.Println(err)
@@ -74,7 +75,7 @@ func (h *noteHandler) mayQuote(quotedID int64, viewer *entities.Viewer) (bool, s
 // setQuotes gives the notes that quote a post that post, as this viewer may
 // see it, with its images made ready.
 func (h *mediumHandler) setQuotes(nodes []*entities.AnahitaNode, viewer *entities.Viewer) {
-	if quoted := an_handlers.SetQuotes(h.Srv.MediaGRPC, nodes, viewer); len(quoted) > 0 {
+	if quoted := an_handlers.SetQuotes(h.Srv.MediaGRPC, h.Srv.GraphNodeGRPC, nodes, viewer); len(quoted) > 0 {
 		batchPresignPaths(h.Env, quoted)
 	}
 }
@@ -93,6 +94,12 @@ func (h *noteHandler) DetachQuote(c echo.Context) error {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || id <= 0 {
 		return c.NoContent(http.StatusBadRequest)
+	}
+
+	// A note the viewer may not see is not found, whoever they are: the
+	// author of a quoted post takes it out of the notes they can read.
+	if !an_handlers.MaySee(h.Srv.GraphNodeGRPC, id, viewer) {
+		return c.NoContent(http.StatusNotFound)
 	}
 
 	note, err := h.Srv.MediaGRPC.Read(id, viewer)
@@ -154,9 +161,8 @@ func (h *mediumHandler) Quotes(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	// Read as the viewer: a post they cannot see has no list for them.
-	if _, err := h.Srv.MediaGRPC.Read(id, viewer); err != nil {
-		log.Println(err)
+	// A post the viewer cannot see has no list for them.
+	if !an_handlers.MaySee(h.Srv.GraphNodeGRPC, id, viewer) {
 		return c.NoContent(http.StatusNotFound)
 	}
 

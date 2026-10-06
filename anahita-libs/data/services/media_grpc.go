@@ -67,6 +67,12 @@ type MediaGRPCInterface interface {
 	// see, newest first.
 	Quotes(quotedID int64, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
 
+	// SetSaved saves a post for the viewer, or takes it out of what they
+	// saved. Saved returns what they saved, most recently saved first, as
+	// they may see it now, and how many there are.
+	SetSaved(nodeID int64, saved bool, viewer *entities.Viewer) error
+	Saved(limit uint64, offset uint64, viewer *entities.Viewer) ([]*entities.AnahitaNode, uint64, error)
+
 	// SetPinned pins a post to the profile it is on, or takes the pin
 	// off. Pinning moves the pin from a post that had it.
 	SetPinned(nodeID int64, pinned bool, viewer *entities.Viewer) error

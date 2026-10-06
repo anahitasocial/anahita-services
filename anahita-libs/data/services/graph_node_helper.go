@@ -104,6 +104,7 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 
 	// Viewer interaction flags
 	n.IsLikedByViewer = m.IsLikedByViewer
+	n.IsSavedByViewer = m.IsSavedByViewer
 	n.IsSubscribedByViewer = m.IsSubscribedByViewer
 	n.IsRepostedByViewer = m.IsRepostedByViewer
 	n.IsFollowingViewer = m.IsFollowingViewer
@@ -270,6 +271,7 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		CommentCount:         node.CommentCount,
 		LikesCount:           node.LikesCount,
 		IsLikedByViewer:      node.IsLikedByViewer,
+		IsSavedByViewer:      node.IsSavedByViewer,
 		RepostCount:          node.RepostCount,
 		QuoteCount:           node.QuoteCount,
 		IsSubscribedByViewer: node.IsSubscribedByViewer,

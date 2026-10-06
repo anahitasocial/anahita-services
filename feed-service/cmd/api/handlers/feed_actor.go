@@ -110,7 +110,7 @@ func (h *feedActorHandler) Browse(c echo.Context) error {
 
 	// A note that quotes a post is sent that post, as this viewer may see
 	// it. Before the images are made ready, so the quoted posts' are too.
-	if quoted := an_handlers.SetQuotes(h.Srv.MediaGRPC, nodes, viewer); len(quoted) > 0 {
+	if quoted := an_handlers.SetQuotes(h.Srv.MediaGRPC, h.Srv.GraphNodeGRPC, nodes, viewer); len(quoted) > 0 {
 		batchPresignPaths(h.Env, quoted)
 	}
 

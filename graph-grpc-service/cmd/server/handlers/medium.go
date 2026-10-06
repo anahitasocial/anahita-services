@@ -108,6 +108,8 @@ func (h *mediumHandler) Browse(ctx context.Context, req *graphpb.MediumBrowseReq
 		node.IsRepostedByViewer = isRepostedMap[node.ID]
 	}
 
+	h.markSaved(viewer.ID, nodes)
+
 	return &graphpb.MediumBrowseResponse{
 		Media: nodesToGrpc(nodes),
 	}, nil
@@ -142,6 +144,8 @@ func (h *mediumHandler) Read(ctx context.Context, req *graphpb.MediumReadRequest
 	// log.Println("Medium subscription status:", medium.IsSubscribedByViewer)
 	// log.Println("Medium like status:", node.IsLikedByViewer)
 	// log.Println("Medium repost status:", node.IsRepostedByViewer)
+
+	h.markSaved(req.Viewer.Id, []*entities.AnahitaNode{node})
 
 	return &graphpb.MediumReadResponse{
 		Medium: nodeToGrpc(node),
@@ -189,6 +193,8 @@ func (h *mediumHandler) BatchRead(ctx context.Context, req *graphpb.MediumBatchR
 		node.IsRepostedByViewer = isRepostedMap[node.ID]
 		node.IsLikedByViewer = isLikedMap[node.ID].IsLiked
 	}
+
+	h.markSaved(viewer.ID, nodes)
 
 	return &graphpb.MediumBatchReadResponse{
 		Media: nodesToGrpc(nodes),

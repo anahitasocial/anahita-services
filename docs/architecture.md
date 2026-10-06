@@ -134,8 +134,11 @@ feeds and on profiles as a note, and gated as one. The rules are in
 
 - **A note that quotes is sent `quote`**: `{ "post": … }` when the reader may
   see the quoted post, or `{ "state": "unavailable" | "detached" }`. Each
-  service that sends notes fills it in with `handlers.SetQuotes`, which reads
-  the quoted post through the graph as the reader. A response whose handler
+  service that sends notes fills it in with `handlers.SetQuotes`, which first
+  asks the graph which of the quoted posts this reader may see
+  (`FilterVisible`, the gate every listing uses) and reads only those.
+  Reading one post through the graph checks nothing: it is the filter that
+  decides. A response whose handler
   did not look the post up carries `quote_id` and no `quote` at all.
 - **`authorized.quote`** on a post says whether the viewer may quote it. In a
   list it is exact for a post on its author's own profile; for a post
@@ -144,6 +147,23 @@ feeds and on profiles as a note, and gated as one. The rules are in
 - **Routes**: `PATCH /{articles,notes,topics,photos}/<id>/quote-policy`,
   `PATCH /people/<id>/quote-policy`, `DELETE /notes/<id>/quote`, and
   `GET /notes/<id>/quotes` for the notes that quote a post.
+
+### Saved posts
+
+Somebody can save a post, of any kind, to find it again: `PUT` and
+`DELETE /bookmarks/<id>`, and `GET /bookmarks/` for their own list, most
+recently saved first. A post they have saved carries `is_saved_by_viewer`.
+
+- **Private.** A saved post is an edge from the person to the post
+  (`edge.base.bookmark.v1`), and every question about it is asked with the
+  asker's own id. Nobody can ask what somebody else saved or who saved a
+  post; nothing is counted on the post, no event is published, and its author
+  is not told.
+- **Saving does not keep a post open.** The list goes through the gate a post
+  is read through. A post saved while public and since made private, or whose
+  author has since blocked the person, is left out, and is back if it is
+  opened up again. It can always be taken out of the list.
+- **No folders.** One list.
 
 ### A post's activity
 

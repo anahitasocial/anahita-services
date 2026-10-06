@@ -56,6 +56,7 @@ func nodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		CommentCount:         node.CommentCount,
 		LikesCount:           node.LikesCount,
 		IsLikedByViewer:      node.IsLikedByViewer,
+		IsSavedByViewer:      node.IsSavedByViewer,
 		RepostCount:          node.RepostCount,
 		QuoteCount:           node.QuoteCount,
 		IsSubscribedByViewer: node.IsSubscribedByViewer,

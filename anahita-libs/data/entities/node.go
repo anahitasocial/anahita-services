@@ -187,6 +187,8 @@ type AnahitaNode struct {
 
 	LikesCount      int64
 	IsLikedByViewer bool
+	// Whether the viewer has saved it, to find again. Known to them alone.
+	IsSavedByViewer bool
 
 	RepostCount        int64
 	IsRepostedByViewer bool

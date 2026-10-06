@@ -22,9 +22,12 @@ type NodeItem struct {
 	// it directly answers, is sent whole as `parent`.
 	RootID int64 `json:"root_id,omitempty"`
 	// Pinned to the profile it is on, which it then leads.
-	Pinned             bool  `json:"pinned,omitempty"`
-	LikesCount         int64 `json:"likes_count,omitempty"`
-	IsLikedByViewer    bool  `json:"is_liked_by_viewer,omitempty"`
+	Pinned          bool  `json:"pinned,omitempty"`
+	LikesCount      int64 `json:"likes_count,omitempty"`
+	IsLikedByViewer bool  `json:"is_liked_by_viewer,omitempty"`
+	// Whether the viewer has saved it. Sent to them alone, like the rest
+	// of what is said here about the viewer.
+	IsSavedByViewer    bool  `json:"is_saved_by_viewer,omitempty"`
 	RepostCount        int64 `json:"repost_count,omitempty"`
 	IsRepostedByViewer bool  `json:"is_reposted_by_viewer,omitempty"`
 	// Set by the subscribe and unsubscribe handlers, which answer with the
@@ -85,6 +88,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		Access:               node.Access,
 		LikesCount:           node.LikesCount,
 		IsLikedByViewer:      node.IsLikedByViewer,
+		IsSavedByViewer:      node.IsSavedByViewer,
 		RepostCount:          node.RepostCount,
 		IsRepostedByViewer:   node.IsRepostedByViewer,
 		IsSubscribedByViewer: node.IsSubscribedByViewer,

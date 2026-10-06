@@ -29,6 +29,14 @@ func NewRoutes(
 // but still identify the caller when a token is present, so the viewer
 // drives access filtering; the writes require a valid access token.
 func (r *Routes) Init(e *echo.Echo) {
+	// saved posts — each person's own, so every route needs a token. For
+	// posts of any kind.
+	bookmarks := e.Group("bookmarks")
+	bookmarks.Use(r.authorize)
+	bookmarks.GET("/", r.handler.Note.Saved)
+	bookmarks.PUT("/:id", r.handler.Note.Save)
+	bookmarks.DELETE("/:id", r.handler.Note.Unsave)
+
 	// articles
 	articles := e.Group("articles")
 	articles.GET("/:owner_id/", r.handler.Article.Browse, r.setViewer)

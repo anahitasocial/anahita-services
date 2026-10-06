@@ -31,14 +31,17 @@ type MediumNodeItem struct {
 	Deleted bool `json:"deleted,omitempty"`
 	// On a reply: hidden from its thread. Sent only to somebody who may
 	// show it again.
-	Hidden             bool   `json:"hidden,omitempty"`
-	Access             string `json:"access,omitempty"`
-	LikesCount         int64  `json:"likes_count"`
-	QuoteCount         int64  `json:"quote_count"`
-	RepostCount        int64  `json:"repost_count"`
-	CommentCount       int64  `json:"comment_count"`
-	IsLikedByViewer    bool   `json:"is_liked_by_viewer"`
-	IsRepostedByViewer bool   `json:"is_reposted_by_viewer"`
+	Hidden          bool   `json:"hidden,omitempty"`
+	Access          string `json:"access,omitempty"`
+	LikesCount      int64  `json:"likes_count"`
+	QuoteCount      int64  `json:"quote_count"`
+	RepostCount     int64  `json:"repost_count"`
+	CommentCount    int64  `json:"comment_count"`
+	IsLikedByViewer bool   `json:"is_liked_by_viewer"`
+	// Whether the viewer has saved it. Sent to them alone, like the rest
+	// of what is said here about the viewer.
+	IsSavedByViewer    bool `json:"is_saved_by_viewer,omitempty"`
+	IsRepostedByViewer bool `json:"is_reposted_by_viewer"`
 
 	// Related Entities
 	Author *Author `json:"author,omitempty"`
@@ -92,7 +95,10 @@ type MediumNode struct {
 	Pinned      bool   `json:"pinned"`
 	Enabled     bool   `json:"enabled"`
 
-	IsLikedByViewer    bool `json:"is_liked_by_viewer"`
+	IsLikedByViewer bool `json:"is_liked_by_viewer"`
+	// Whether the viewer has saved it. Sent to them alone, like the rest
+	// of what is said here about the viewer.
+	IsSavedByViewer    bool `json:"is_saved_by_viewer,omitempty"`
 	IsRepostedByViewer bool `json:"is_reposted_by_viewer"`
 
 	// Authorization Information
@@ -137,6 +143,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		Access:             node.Access,
 		LikesCount:         node.LikesCount,
 		IsLikedByViewer:    node.IsLikedByViewer,
+		IsSavedByViewer:    node.IsSavedByViewer,
 		RepostCount:        node.RepostCount,
 		IsRepostedByViewer: node.IsRepostedByViewer,
 		CommentCount:       node.CommentCount,
@@ -195,6 +202,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		Access:             node.Access,
 		LikesCount:         node.LikesCount,
 		IsLikedByViewer:    node.IsLikedByViewer,
+		IsSavedByViewer:    node.IsSavedByViewer,
 		RepostCount:        node.RepostCount,
 		IsRepostedByViewer: node.IsRepostedByViewer,
 		CommentCount:       node.CommentCount,

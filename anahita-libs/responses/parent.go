@@ -19,6 +19,7 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 		Body:               node.Body,
 		CreatedAt:          createdAtOrNil(node),
 		IsLikedByViewer:    node.IsLikedByViewer,
+		IsSavedByViewer:    node.IsSavedByViewer,
 		IsRepostedByViewer: node.IsRepostedByViewer,
 	}
 
@@ -54,15 +55,18 @@ type Parent struct {
 	Name  string `json:"name,omitempty"`
 	Body  string `json:"body,omitempty"`
 	// When it was written, so that a reposted post can be shown as itself.
-	CreatedAt          *time.Time       `json:"created_at,omitempty"`
-	Cover              map[string]Image `json:"cover_urls,omitempty"`
-	Portrait           map[string]Image `json:"portrait_urls,omitempty"`
-	Files              []*PhotoFile     `json:"files,omitempty"`
-	Owner              *Owner           `json:"owner,omitempty"`
-	Author             *Author          `json:"author,omitempty"`
-	IsLikedByViewer    bool             `json:"is_liked_by_viewer,omitempty"`
-	IsRepostedByViewer bool             `json:"is_reposted_by_viewer,omitempty"`
-	Authorized         *NodeAuthorized  `json:"authorized,omitempty"`
+	CreatedAt       *time.Time       `json:"created_at,omitempty"`
+	Cover           map[string]Image `json:"cover_urls,omitempty"`
+	Portrait        map[string]Image `json:"portrait_urls,omitempty"`
+	Files           []*PhotoFile     `json:"files,omitempty"`
+	Owner           *Owner           `json:"owner,omitempty"`
+	Author          *Author          `json:"author,omitempty"`
+	IsLikedByViewer bool             `json:"is_liked_by_viewer,omitempty"`
+	// Whether the viewer has saved it. Sent to them alone, like the rest
+	// of what is said here about the viewer.
+	IsSavedByViewer    bool            `json:"is_saved_by_viewer,omitempty"`
+	IsRepostedByViewer bool            `json:"is_reposted_by_viewer,omitempty"`
+	Authorized         *NodeAuthorized `json:"authorized,omitempty"`
 }
 
 // NewRoot is the post at the top of a reply's thread, as it is sent with a

@@ -100,6 +100,51 @@ func (srv *MediaGRPC) Quotes(quotedID int64, viewer *entities.Viewer) ([]*entiti
 	return quotes, nil
 }
 
+// SetSaved saves a post for the viewer, or takes it out of what they saved.
+func (srv *MediaGRPC) SetSaved(nodeID int64, saved bool, viewer *entities.Viewer) error {
+	client, err := srv.getClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.SetSaved(context.Background(), &graphpb.SavedSetRequest{
+		NodeId:   nodeID,
+		Saved:    saved,
+		ViewerId: viewer.ID,
+	})
+	return err
+}
+
+// Saved returns what the viewer saved, most recently saved first, as they
+// may see it now, and how many there are.
+func (srv *MediaGRPC) Saved(limit uint64, offset uint64, viewer *entities.Viewer) ([]*entities.AnahitaNode, uint64, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := client.ListSaved(context.Background(), &graphpb.SavedListRequest{
+		Limit:  limit,
+		Offset: offset,
+		Viewer: &graphpb.Viewer{
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
+		},
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	nodes := make([]*entities.AnahitaNode, 0, len(resp.GetNodes()))
+	for _, node := range resp.GetNodes() {
+		nodes = append(nodes, grpcToGraphNode(node))
+	}
+
+	return nodes, resp.GetTotal(), nil
+}
+
 // SetPinned pins a post to the profile it is on, or takes the pin off. A
 // profile has one pin: pinning moves it from the post that had it.
 func (srv *MediaGRPC) SetPinned(nodeID int64, pinned bool, viewer *entities.Viewer) error {

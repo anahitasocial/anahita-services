@@ -32,6 +32,8 @@ const (
 	MediumService_DetachQuote_FullMethodName      = "/graph.MediumService/DetachQuote"
 	MediumService_SetPinned_FullMethodName        = "/graph.MediumService/SetPinned"
 	MediumService_ListQuotes_FullMethodName       = "/graph.MediumService/ListQuotes"
+	MediumService_SetSaved_FullMethodName         = "/graph.MediumService/SetSaved"
+	MediumService_ListSaved_FullMethodName        = "/graph.MediumService/ListSaved"
 	MediumService_AddPhotoUpload_FullMethodName   = "/graph.MediumService/AddPhotoUpload"
 	MediumService_ReadPhotoUploads_FullMethodName = "/graph.MediumService/ReadPhotoUploads"
 	MediumService_BrowsePhotoFiles_FullMethodName = "/graph.MediumService/BrowsePhotoFiles"
@@ -57,6 +59,8 @@ type MediumServiceClient interface {
 	DetachQuote(ctx context.Context, in *QuoteDetachRequest, opts ...grpc.CallOption) (*QuoteDetachResponse, error)
 	SetPinned(ctx context.Context, in *PinSetRequest, opts ...grpc.CallOption) (*PinSetResponse, error)
 	ListQuotes(ctx context.Context, in *QuotesListRequest, opts ...grpc.CallOption) (*QuotesListResponse, error)
+	SetSaved(ctx context.Context, in *SavedSetRequest, opts ...grpc.CallOption) (*SavedSetResponse, error)
+	ListSaved(ctx context.Context, in *SavedListRequest, opts ...grpc.CallOption) (*SavedListResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error)
@@ -203,6 +207,26 @@ func (c *mediumServiceClient) ListQuotes(ctx context.Context, in *QuotesListRequ
 	return out, nil
 }
 
+func (c *mediumServiceClient) SetSaved(ctx context.Context, in *SavedSetRequest, opts ...grpc.CallOption) (*SavedSetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SavedSetResponse)
+	err := c.cc.Invoke(ctx, MediumService_SetSaved_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediumServiceClient) ListSaved(ctx context.Context, in *SavedListRequest, opts ...grpc.CallOption) (*SavedListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SavedListResponse)
+	err := c.cc.Invoke(ctx, MediumService_ListSaved_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *mediumServiceClient) AddPhotoUpload(ctx context.Context, in *PhotoUploadAddRequest, opts ...grpc.CallOption) (*PhotoUploadAddResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PhotoUploadAddResponse)
@@ -262,6 +286,8 @@ type MediumServiceServer interface {
 	DetachQuote(context.Context, *QuoteDetachRequest) (*QuoteDetachResponse, error)
 	SetPinned(context.Context, *PinSetRequest) (*PinSetResponse, error)
 	ListQuotes(context.Context, *QuotesListRequest) (*QuotesListResponse, error)
+	SetSaved(context.Context, *SavedSetRequest) (*SavedSetResponse, error)
+	ListSaved(context.Context, *SavedListRequest) (*SavedListResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
 	AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error)
@@ -316,6 +342,12 @@ func (UnimplementedMediumServiceServer) SetPinned(context.Context, *PinSetReques
 }
 func (UnimplementedMediumServiceServer) ListQuotes(context.Context, *QuotesListRequest) (*QuotesListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListQuotes not implemented")
+}
+func (UnimplementedMediumServiceServer) SetSaved(context.Context, *SavedSetRequest) (*SavedSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSaved not implemented")
+}
+func (UnimplementedMediumServiceServer) ListSaved(context.Context, *SavedListRequest) (*SavedListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSaved not implemented")
 }
 func (UnimplementedMediumServiceServer) AddPhotoUpload(context.Context, *PhotoUploadAddRequest) (*PhotoUploadAddResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddPhotoUpload not implemented")
@@ -584,6 +616,42 @@ func _MediumService_ListQuotes_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediumService_SetSaved_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SavedSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).SetSaved(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_SetSaved_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).SetSaved(ctx, req.(*SavedSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediumService_ListSaved_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SavedListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).ListSaved(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_ListSaved_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).ListSaved(ctx, req.(*SavedListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MediumService_AddPhotoUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PhotoUploadAddRequest)
 	if err := dec(in); err != nil {
@@ -714,6 +782,14 @@ var MediumService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListQuotes",
 			Handler:    _MediumService_ListQuotes_Handler,
+		},
+		{
+			MethodName: "SetSaved",
+			Handler:    _MediumService_SetSaved_Handler,
+		},
+		{
+			MethodName: "ListSaved",
+			Handler:    _MediumService_ListSaved_Handler,
 		},
 		{
 			MethodName: "AddPhotoUpload",
