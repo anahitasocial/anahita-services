@@ -51,7 +51,9 @@ func TestCanFollow(t *testing.T) {
 		{"somebody else, a person", &FollowContext{viewer, other, personNode(followTargetID, "public"), none, none}, false},
 		{"somebody else, a person, as a site administrator", &FollowContext{viewerWith(constants.PersonTypeAdmin), other, personNode(followTargetID, "public"), none, none}, false},
 		{"somebody else, your own profile", &FollowContext{viewer, other, me, none, none}, false},
-		{"somebody else, a group you administer", &FollowContext{viewer, other, groupNode("public", "admins"), admin, none}, true},
+		// Not even a group's administrators: people are invited, and choose.
+		{"somebody else, a group you administer", &FollowContext{viewer, other, groupNode("public", "admins"), admin, none}, false},
+		{"somebody else, a group, as a site administrator", &FollowContext{viewerWith(constants.PersonTypeAdmin), other, groupNode("public", "admins"), none, none}, true},
 		{"somebody else, a group you only follow", &FollowContext{viewer, other, groupNode("public", "admins"), &entities.ActorRelation{IsLeading: true}, none}, false},
 		{"somebody else who is blocked by the group", &FollowContext{viewer, other, groupNode("public", "admins"), admin, blocked}, false},
 		{"a profile following itself", &FollowContext{viewer, me, me, none, none}, false},

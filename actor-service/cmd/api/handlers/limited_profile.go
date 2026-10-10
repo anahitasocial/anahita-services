@@ -16,7 +16,10 @@ func limitedProfile(env *Env, actor *entities.AnahitaNode, ctx *permissions.Acto
 
 	batchPresignPaths(env, []*entities.AnahitaNode{actor})
 
-	return responses.NewLimitedActor(actor, ctx.ActorViewerRel != nil && ctx.ActorViewerRel.HasRequested)
+	limited := responses.NewLimitedActor(actor, ctx.ActorViewerRel != nil && ctx.ActorViewerRel.HasRequested)
+	limited.IsInvited = ctx.ActorViewerRel != nil && ctx.ActorViewerRel.HasInvite
+
+	return limited
 }
 
 // listsAskable reports whether a list of people or of groups also shows the

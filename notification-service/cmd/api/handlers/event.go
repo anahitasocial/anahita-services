@@ -73,6 +73,17 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 	}
 
+	// Invitations to follow an actor.
+	if strings.Contains(payload.Name, "edge.invite.") {
+		if strings.Contains(payload.Name, ".added.v1") {
+			err = h.eventFormatEdgeInviteAdded(payload)
+		} else if strings.Contains(payload.Name, ".accepted.v1") {
+			err = h.eventFormatEdgeInviteAccepted(payload)
+		} else if strings.Contains(payload.Name, ".declined.v1") || strings.Contains(payload.Name, ".deleted.v1") {
+			err = h.eventFormatEdgeInviteEnded(payload)
+		}
+	}
+
 	// Voteup edge events
 	if strings.Contains(payload.Name, "edge.voteup.") {
 		if strings.Contains(payload.Name, ".added.v1") {

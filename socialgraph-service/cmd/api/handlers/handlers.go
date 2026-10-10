@@ -18,6 +18,7 @@ type Handlers struct {
 	Leader        *leaderHandler
 	Mutual        *mutualHandler
 	FollowRequest *followRequestHandler
+	Invite        *inviteHandler
 }
 
 func NewHandlers(env *Env) *Handlers {
@@ -27,5 +28,6 @@ func NewHandlers(env *Env) *Handlers {
 		Leader:        NewLeaderHandler(env),
 		Mutual:        NewMutualHandler(env),
 		FollowRequest: NewFollowRequestHandler(env),
+		Invite:        NewInviteHandler(env),
 	}
 }

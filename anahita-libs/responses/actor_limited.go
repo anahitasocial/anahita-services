@@ -18,10 +18,14 @@ type LimitedActor struct {
 	Avatar   map[string]Image `json:"avatar_urls,omitempty"`
 	// Always true. What tells a client this is not the profile itself.
 	Restricted bool `json:"restricted"`
-	// Always true: it is why this much is shown.
+	// Whether it lets people ask to follow it. False for one shown only
+	// because the viewer was invited.
 	AllowFollowRequest bool `json:"allow_follow_request"`
 	// Whether the viewer has asked already and is waiting.
 	IsFollowRequestedByViewer bool `json:"is_follow_requested_by_viewer"`
+	// Whether the viewer has been invited to follow it and is yet to
+	// answer.
+	IsInvited bool `json:"is_invited,omitempty"`
 }
 
 // NewLimitedActor maps a node to what a stranger is shown of it.
@@ -37,7 +41,7 @@ func NewLimitedActor(node *entities.AnahitaNode, requested bool) *LimitedActor {
 		Alias:                     node.Alias,
 		Verified:                  node.Verified,
 		Restricted:                true,
-		AllowFollowRequest:        true,
+		AllowFollowRequest:        node.AllowFollowRequest,
 		IsFollowRequestedByViewer: requested,
 	}
 

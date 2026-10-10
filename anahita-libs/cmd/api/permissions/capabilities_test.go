@@ -192,13 +192,13 @@ func TestCanAddOthersAsFollowers(t *testing.T) {
 		rel    *entities.ActorRelation
 		want   bool
 	}{
-		{"admins: a group admin", viewerAs(100), groupWith("public", "admins"), admin, true},
-		{"admins: a follower", viewerAs(100), groupWith("public", "admins"), follower, false},
-		{"followers: a follower", viewerAs(100), groupWith("public", "followers"), follower, true},
-		{"followers: a stranger", viewerAs(100), groupWith("public", "followers"), &entities.ActorRelation{}, false},
+		// Nobody is put in a group without saying yes, whatever the group's
+		// old "follower" setting says. They are invited: see CanInvite.
+		{"a group admin", viewerAs(100), groupWith("public", "admins"), admin, false},
+		{"a follower, where followers could", viewerAs(100), groupWith("public", "followers"), follower, false},
 		{"a site administrator", siteAdmin, groupWith("public", "admins"), nil, true},
 		{"a guest", entities.NewViewer(), groupWith("public", "followers"), nil, false},
-		{"never a person", viewerAs(100), profileWith("public"), admin, false},
+		{"never a person", siteAdmin, profileWith("public"), admin, false},
 	}
 
 	for _, c := range cases {

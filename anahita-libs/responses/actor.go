@@ -54,16 +54,19 @@ type ActorNodeItem struct {
 	ArchivedAt *time.Time `json:"archived_at,omitempty"`
 	// Set only while the installation features this actor, so a super
 	// administrator's profile menu can show the toggle's state.
-	FeaturedAt        *time.Time       `json:"featured_at,omitempty"`
-	CreatedAt         time.Time        `json:"created_at"`
-	FollowerCount     int64            `json:"follower_count,omitempty"`
-	LeaderCount       int64            `json:"leader_count,omitempty"`
-	IsLeadingViewer   bool             `json:"is_leading_viewer,omitempty"`
-	IsAdminedByViewer bool             `json:"is_admined_by_viewer,omitempty"`
-	IsFollowingViewer bool             `json:"is_following_viewer,omitempty"`
-	IsBlockedByViewer bool             `json:"is_blocked_by_viewer,omitempty"`
-	Avatar            map[string]Image `json:"avatar_urls,omitempty"`
-	Cover             map[string]Image `json:"cover_urls,omitempty"`
+	FeaturedAt        *time.Time `json:"featured_at,omitempty"`
+	CreatedAt         time.Time  `json:"created_at"`
+	FollowerCount     int64      `json:"follower_count,omitempty"`
+	LeaderCount       int64      `json:"leader_count,omitempty"`
+	IsLeadingViewer   bool       `json:"is_leading_viewer,omitempty"`
+	IsAdminedByViewer bool       `json:"is_admined_by_viewer,omitempty"`
+	IsFollowingViewer bool       `json:"is_following_viewer,omitempty"`
+	IsBlockedByViewer bool       `json:"is_blocked_by_viewer,omitempty"`
+	// Whether the viewer has been invited to follow this actor and is yet
+	// to answer.
+	IsInvited bool             `json:"is_invited,omitempty"`
+	Avatar    map[string]Image `json:"avatar_urls,omitempty"`
+	Cover     map[string]Image `json:"cover_urls,omitempty"`
 
 	// Author information
 	Author *Author `json:"author,omitempty"`
@@ -165,6 +168,7 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		IsAdminedByViewer: node.IsAdminedByViewer,
 		IsFollowingViewer: node.IsFollowingViewer,
 		IsBlockedByViewer: node.IsBlockedByViewer,
+		IsInvited:         node.IsInvitedViewer,
 		Avatar: func() map[string]Image {
 			if node.Avatar != nil {
 				return NewAvatar(node.Avatar)

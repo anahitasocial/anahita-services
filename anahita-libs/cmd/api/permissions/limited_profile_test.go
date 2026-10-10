@@ -28,6 +28,9 @@ func TestCanSeeLimitedProfile(t *testing.T) {
 	}{
 		{"a profile that may be asked", viewerAs(100), asked(nil), nil, true},
 		{"one that may not", viewerAs(100), asked(func(n *entities.AnahitaNode) { n.AllowFollowRequest = false }), nil, false},
+		// An invitation has to be seen to be answered.
+		{"one that may not, to somebody invited", viewerAs(100), asked(func(n *entities.AnahitaNode) { n.AllowFollowRequest = false }), &entities.ActorRelation{HasInvite: true}, true},
+		{"somebody invited and since blocked", viewerAs(100), asked(nil), &entities.ActorRelation{HasInvite: true, IsBlocking: true}, false},
 		{"a visitor", entities.NewViewer(), asked(nil), nil, false},
 		{"somebody it blocked", viewerAs(100), asked(nil), &entities.ActorRelation{IsBlocking: true}, false},
 		{"a disabled profile", viewerAs(100), asked(func(n *entities.AnahitaNode) { n.Enabled = false }), nil, false},

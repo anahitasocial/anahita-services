@@ -157,31 +157,21 @@ func CanLike(viewer *entities.Viewer, post *entities.AnahitaNode, rel *entities.
 	return AddAccessAllows(owner.AddPermissionAccess(post.GetService(), "like"), rel, viewer)
 }
 
-// CanAddOthersAsFollowers reports whether the viewer may add somebody else to
-// a group as a follower: the group's "follower" permission, measured against
-// the viewer. Site administrators always may.
+// CanAddOthersAsFollowers reports whether the viewer may make somebody else
+// a follower of a group, without that person saying yes: site
+// administrators alone, for moderation and for moving data.
 //
-// Joining a group yourself is not this question — that depends only on
-// whether you can see the group, as it does for a person. Only groups have
-// the setting; nobody adds followers to a person.
+// It was the group's "follower" permission, which let a group's
+// administrators, or its followers, put anybody in it. People are now
+// invited (CanInvite) and choose. The stored setting is left where it is
+// and no longer read.
+//
+// Joining a group yourself is not this question. Nobody adds followers to a
+// person.
 func CanAddOthersAsFollowers(viewer *entities.Viewer, group *entities.AnahitaNode, rel *entities.ActorRelation) bool {
 	if viewer == nil || !viewer.Authenticated || viewer.ID <= 0 || group == nil || group.IsPerson() {
 		return false
 	}
 
-	if viewer.IsAdmin() {
-		return true
-	}
-
-	rel = relationOrEmpty(rel)
-
-	if ok, _ := NewActorPermissions().CanRead(&ActorAccessContext{
-		Viewer:         viewer,
-		Actor:          group,
-		ActorViewerRel: rel,
-	}); !ok {
-		return false
-	}
-
-	return AddAccessAllows(group.AddPermissionAccess("socialgraph-service", "follower"), rel, viewer)
+	return viewer.IsAdmin()
 }

@@ -760,6 +760,10 @@ func (h *groupHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 	item.Authorized.Audiences = permissions.PostAudiences(viewer, item, rel)
 	addFollower := permissions.CanAddOthersAsFollowers(viewer, item, rel)
 	item.Authorized.AddFollower = &addFollower
+	invite := permissions.CanInvite(viewer, item, rel)
+	item.Authorized.Invite = &invite
+	// And whether the viewer has themselves been invited, to answer here.
+	item.IsInvitedViewer = rel.HasInvite
 
 	return nil
 }

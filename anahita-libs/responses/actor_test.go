@@ -56,6 +56,7 @@ func fullyPopulatedNode() *entities.AnahitaNode {
 	n.IsAdminedByViewer = true
 	n.IsFollowingViewer = true
 	n.IsBlockedByViewer = true
+	n.IsInvitedViewer = true
 	return n
 }
 
