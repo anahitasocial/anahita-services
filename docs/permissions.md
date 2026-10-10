@@ -450,6 +450,15 @@ maybe.
 - **Invitations.** Accepting one is going, or maybe when every place is
   taken. An event with a limit on places may have twice that many invitations
   waiting, and never fewer than 50; with no limit, 500 as for a group.
+- **For the followers of the group hosting it.** An event hosted by a group
+  can be opened to everybody who follows that group
+  (`events.open_to_host_followers`). They are then treated as invited, all at
+  once: shown the event's name, time and description where they could not
+  otherwise see it, in the group's list of events and on the event's own
+  page, and able to answer going or maybe. It is not an access level. What is
+  posted on the event stays for the people who answered, and a follower of
+  the group sees that only once they have. The relation says so as
+  `via_host`.
 - **Its address** is set when it is made and does not change when it is
   renamed, since invitations and calendars link to it.
 

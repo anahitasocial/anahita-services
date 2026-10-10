@@ -218,11 +218,17 @@ Found while answering the user's question about who may make an event, which thi
 
 `EVENTS_FROM`, a setting of its own, decided by the user: `registered` unless an installation sets it higher. Read by actor-service, which enforces it, and published by auth-service in NodeInfo as `eventsFrom`, which is what the web app's + on the Events page follows. `GROUPS_FROM` is unchanged. An event for a group is its administrators' to make whatever either says.
 
-### Still to do
+### For a host group's followers, and a place on the form: 2026-10-10
 
-1. **`host_followers` access,** for an event open to its host group's followers.
-2. **Start a group from an event,** raised by the user on 2026-10-10: a new group with the event's hosts as administrators, to which whoever went is invited. Proposed in place of turning the event itself into a group, which would make followers of people who agreed to one evening and would break the event's address. Not decided.
-3. **Choosing a place on the event form.** A place can be tagged from the event's Locations tab.
+- **An event can be opened to the followers of the group hosting it** (`events.open_to_host_followers`, migration `20261019000001`). The design above called this an access level, `host_followers`. It was built as an invitation everybody in the group has, which is what it is for: a follower of the group is shown the event's name, time and description and can answer; what is posted on the event is still for whoever answered. That left every access rule for posts, feeds and search as it was, where a new level would have had to be added to each. `ViaHost` on the relation, `CanRsvp` and `CanSeeLimitedProfile` in the rules, and the group's list of events is widened for its followers.
+- **A place on the form** (web): a field that finds a location by name and tags it once the event is saved.
+- **Fixed on the way:** an event whose followers had all followed it without answering could not be read, because the count of answers came back as nothing.
+
+Tests: `TestEventsHostedByAGroup` covers the open event, the relation and that being let in is not seeing its posts.
+
+### Decided against
+
+- **Turning an event into a group,** and starting a group from one. Raised by the user on 2026-10-10 and dropped the same day.
 
 ## Status
 
@@ -234,4 +240,4 @@ Found while answering the user's question about who may make an event, which thi
 | Phase 3, hosting by a group (server) | done 2026-10-10 |
 | Phase 4, the web app | done 2026-10-10 |
 | Phase 5, the sweep and notifications | done 2026-10-10 |
-| The rest, listed under Still to do | not started |
+| Open to a host group's followers; a place on the form | done 2026-10-10 |
