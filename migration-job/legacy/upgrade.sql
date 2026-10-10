@@ -1250,6 +1250,7 @@ ALTER TABLE nodes
         GENERATED ALWAYS AS (
             CASE
                 WHEN alias IS NULL OR alias = '' THEN NULL
+                WHEN type = 'node.actor.actor-service.event.v1' THEN NULL
                 WHEN type LIKE 'node.actor.%'    THEN CONCAT('actor:', alias)
                 ELSE NULL
             END

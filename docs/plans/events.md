@@ -206,6 +206,14 @@ Differences from the design:
 
 Tests: `TestEventSweepQueries` on a real database; `TestSetEventDetails`.
 
+### Events take no handle: 2026-10-10
+
+Every actor's alias is in one namespace (`nodes.unique_alias`), since a handle is how an actor is found from elsewhere. An event is an actor, so it was in it, and should not be: a second event called "Birthday" could not be made, and an event named for a town took that handle from the group that would want it. An event is addressed by its id, with its name after it for reading.
+
+Migration `20261018000001_events_take_no_handle` gives an event NULL in that column, like everything that is not an actor; `init.sql` and `legacy/upgrade.sql` say the same. Rehearsed on a copy of the schema as it was, and compared with a new one. Test: `TestEventsTakeNoHandle`.
+
+Found while answering the user's question about who may make an event, which this had to come before.
+
 ### Still to do
 
 1. **`host_followers` access,** for an event open to its host group's followers.

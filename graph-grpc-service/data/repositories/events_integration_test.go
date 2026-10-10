@@ -485,3 +485,35 @@ func TestEventSweepQueries(t *testing.T) {
 		t.Errorf("archived, and still to archive: %v", over)
 	}
 }
+
+// An event takes no handle: two can be called the same thing, and neither
+// takes the name from a group or a person, who still cannot share one.
+func TestEventsTakeNoHandle(t *testing.T) {
+	db := accessTestDB(t)
+	seedRepliesFixture(t, db)
+
+	insert := func(id int64, nodeType string, alias string) error {
+		_, err := db.Exec(`INSERT INTO nodes (id,type,service,name,alias,access,enabled,created_at,updated_at) VALUES (?,?,?,?,?,'public',1,NOW(),NOW())`,
+			id, nodeType, "actor-service", alias, alias)
+		return err
+	}
+
+	if err := insert(910, constants.NodeActorEventEntityType, "birthday"); err != nil {
+		t.Fatalf("the first event: %v", err)
+	}
+	if err := insert(911, constants.NodeActorEventEntityType, "birthday"); err != nil {
+		t.Errorf("a second event called the same: %v", err)
+	}
+	// An event called what a person is called takes nothing from them.
+	if err := insert(912, constants.NodeActorEventEntityType, "alice"); err != nil {
+		t.Errorf("an event named as a person is: %v", err)
+	}
+	// And a group may still take a name an event has.
+	if err := insert(913, "node.actor.group-service.group.v1", "birthday"); err != nil {
+		t.Errorf("a group named as an event is: %v", err)
+	}
+	// Handles are still one namespace for everything else.
+	if err := insert(914, "node.actor.group-service.group.v1", "alice"); err == nil {
+		t.Error("a group took a person's handle")
+	}
+}

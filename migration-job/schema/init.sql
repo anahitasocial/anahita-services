@@ -128,12 +128,18 @@ CREATE TABLE nodes (
   -- and a group with the same alias would make both unaddressable once this
   -- instance federates.
   --
+  -- An event is an actor and is left out. It is not addressed by a handle:
+  -- its address carries its id, and two events may well be called the same
+  -- thing. Left in, a second "Birthday" could not be made, and an event
+  -- named for a town would take that handle from the group that wants it.
+  --
   -- The `actor:` prefix is redundant with one branch. It is there so a second
   -- namespace — hashtags, which are addressed by alias — is one CASE line
   -- rather than another column and another index.
   `unique_alias` varchar(300) GENERATED ALWAYS AS (
       CASE
           WHEN alias IS NULL OR alias = '' THEN NULL
+          WHEN type = 'node.actor.actor-service.event.v1' THEN NULL
           WHEN type LIKE 'node.actor.%'    THEN CONCAT('actor:', alias)
           ELSE NULL
       END
