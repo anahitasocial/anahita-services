@@ -1,0 +1,194 @@
+package repositories
+
+import (
+	"sync"
+	"testing"
+
+	"anahita-libs/constants"
+)
+
+// Events against a real database, on the fixture the thread tests use.
+//
+//	ACCESS_TEST_DSN="root@tcp(127.0.0.1:13309)/fresh?parseTime=true" \
+//	  go test ./data/repositories/ -run TestEvent -v
+//
+// WHAT THESE GUARD. Never more people going than there are places, however
+// many ask at once. No answering an event that is over or called off. And
+// an answer can always be taken back.
+
+const (
+	testEvent     = 900
+	testEventOver = 901
+)
+
+func seedEvents(t *testing.T, repo EventsRepoInterface, capacity uint32) {
+	t.Helper()
+
+	db := repo.(*eventsRepo).db
+	for _, stmt := range []string{
+		`DELETE FROM events`,
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,starts_at,ends_at,created_at,updated_at) VALUES
+		 (900,'` + constants.NodeActorEventEntityType + `','actor-service','Picnic','picnic','public',1,NOW() + INTERVAL 1 DAY,NOW() + INTERVAL 2 DAY,NOW(),NOW()),
+		 (901,'` + constants.NodeActorEventEntityType + `','actor-service','Last year','last-year','public',1,NOW() - INTERVAL 3 DAY,NOW() - INTERVAL 2 DAY,NOW(),NOW())`,
+	} {
+		if _, err := db.Exec(stmt); err != nil {
+			t.Fatalf("seed: %v\n%s", err, stmt)
+		}
+	}
+
+	for _, id := range []int64{testEvent, testEventOver} {
+		if err := repo.Save(&EventDetails{NodeID: id, TimezoneName: "America/Toronto", Capacity: capacity, OnlineURL: "https://meet.example/x"}); err != nil {
+			t.Fatalf("save %d: %v", id, err)
+		}
+	}
+}
+
+func TestEventAnswers(t *testing.T) {
+	db := accessTestDB(t)
+	seedRepliesFixture(t, db)
+	repo := NewEventsRepo(db)
+	seedEvents(t, repo, 2)
+
+	answer := func(person int64, rsvp string, want string) {
+		t.Helper()
+		got, err := repo.Rsvp(testEvent, person, rsvp)
+		if err != nil || got != want {
+			t.Errorf("person %d answering %q: %q (err %v), want %q", person, rsvp, got, err, want)
+		}
+	}
+	read := func(person int64) *EventDetails {
+		t.Helper()
+		events, err := repo.Read([]int64{testEvent, 12345}, person)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, isEvent := events[12345]; isEvent {
+			t.Error("something that is not an event has details")
+		}
+		return events[testEvent]
+	}
+
+	// Two places. Alice and Bob take them; Carol is told it is full, and
+	// can still say maybe.
+	answer(replyAlice, constants.EventRsvpGoing, constants.EventRsvpSaved)
+	answer(replyBob, constants.EventRsvpGoing, constants.EventRsvpSaved)
+	answer(replyCarol, constants.EventRsvpGoing, constants.EventRsvpFull)
+	answer(replyCarol, constants.EventRsvpMaybe, constants.EventRsvpSaved)
+
+	if got := read(replyCarol); got.GoingCount != 2 || got.MaybeCount != 1 || got.ViewerRsvp != constants.EventRsvpMaybe {
+		t.Errorf("as Carol: %+v, want 2 going, 1 maybe, and maybe for her", got)
+	}
+	if got := read(replyAlice); got.ViewerRsvp != constants.EventRsvpGoing || got.TimezoneName != "America/Toronto" || got.Capacity != 2 {
+		t.Errorf("as Alice: %+v", got)
+	}
+	if got := read(0); got.ViewerRsvp != "" {
+		t.Errorf("a visitor has answered %q", got.ViewerRsvp)
+	}
+
+	// Somebody already going can say so again: their own place is not
+	// counted against them.
+	answer(replyAlice, constants.EventRsvpGoing, constants.EventRsvpSaved)
+
+	// Bob moves to maybe, which frees a place for Carol.
+	answer(replyBob, constants.EventRsvpMaybe, constants.EventRsvpSaved)
+	answer(replyCarol, constants.EventRsvpGoing, constants.EventRsvpSaved)
+	if got := read(replyBob); got.GoingCount != 2 || got.MaybeCount != 1 {
+		t.Errorf("after the swap: %d going, %d maybe, want 2 and 1", got.GoingCount, got.MaybeCount)
+	}
+
+	// One edge a person, however often they answer.
+	var edges int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM edges WHERE type = 'edge.actor.follow.v1' AND node_b_id = ?`, testEvent).Scan(&edges); err != nil || edges != 3 {
+		t.Errorf("%d follow edges on the event (err %v), want 3", edges, err)
+	}
+
+	// Following it the ordinary way, with nothing said, counts as maybe.
+	if _, err := db.Exec(`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES ('edge.actor.follow.v1',5,'node.actor.person-service.person.v1',?,?,NOW())`, testEvent, constants.NodeActorEventEntityType); err != nil {
+		t.Fatal(err)
+	}
+	if got := read(5); got.MaybeCount != 2 || got.ViewerRsvp != constants.EventRsvpMaybe {
+		t.Errorf("after a plain follow: %+v, want 2 maybe and maybe for the follower", got)
+	}
+
+	// Taking an answer back.
+	answer(replyAlice, "", constants.EventRsvpSaved)
+	if got := read(replyAlice); got.GoingCount != 1 || got.ViewerRsvp != "" {
+		t.Errorf("after Alice left: %+v", got)
+	}
+
+	// An event that is over takes no answers, and one that is not there
+	// says so.
+	if got, err := repo.Rsvp(testEventOver, replyAlice, constants.EventRsvpGoing); err != nil || got != constants.EventRsvpClosed {
+		t.Errorf("answering an event that is over: %q (err %v), want closed", got, err)
+	}
+	if got, err := repo.Rsvp(4242, replyAlice, constants.EventRsvpGoing); err != nil || got != constants.EventRsvpMissing {
+		t.Errorf("answering nothing: %q (err %v), want missing", got, err)
+	}
+	if _, err := repo.Rsvp(testEvent, replyAlice, "definitely"); err == nil {
+		t.Error("an answer there is no such thing as was accepted")
+	}
+
+	// Called off: once, and then no more answers. Leaving still works.
+	if changed, err := repo.Cancel(testEvent); err != nil || !changed {
+		t.Fatalf("cancel: %v (err %v)", changed, err)
+	}
+	if changed, _ := repo.Cancel(testEvent); changed {
+		t.Error("called off twice")
+	}
+	answer(replyAlice, constants.EventRsvpMaybe, constants.EventRsvpClosed)
+	answer(replyCarol, "", constants.EventRsvpSaved)
+	if got := read(replyCarol); got.CancelledAt == nil || got.ViewerRsvp != "" {
+		t.Errorf("after it was called off: %+v", got)
+	}
+
+	// Saving its details again does not call it back on.
+	if err := repo.Save(&EventDetails{NodeID: testEvent, TimezoneName: "Europe/Paris", Capacity: 5}); err != nil {
+		t.Fatal(err)
+	}
+	if got := read(0); got.CancelledAt == nil || got.TimezoneName != "Europe/Paris" || got.Capacity != 5 || got.OnlineURL != "" {
+		t.Errorf("after saving again: %+v", got)
+	}
+}
+
+// The last place is given once, however many ask for it in the same moment.
+func TestEventLastPlaceIsGivenOnce(t *testing.T) {
+	db := accessTestDB(t)
+	seedRepliesFixture(t, db)
+	repo := NewEventsRepo(db)
+	seedEvents(t, repo, 1)
+
+	people := []int64{replyAlice, replyBob, replyCarol, 5}
+	results := make([]string, len(people))
+
+	var wait sync.WaitGroup
+	for i, person := range people {
+		wait.Add(1)
+		go func(i int, person int64) {
+			defer wait.Done()
+			got, err := repo.Rsvp(testEvent, person, constants.EventRsvpGoing)
+			if err != nil {
+				got = "error: " + err.Error()
+			}
+			results[i] = got
+		}(i, person)
+	}
+	wait.Wait()
+
+	saved, full := 0, 0
+	for _, result := range results {
+		switch result {
+		case constants.EventRsvpSaved:
+			saved++
+		case constants.EventRsvpFull:
+			full++
+		}
+	}
+	if saved != 1 || full != len(people)-1 {
+		t.Errorf("one place, four askers: %v, want one saved and three full", results)
+	}
+
+	events, err := repo.Read([]int64{testEvent}, 0)
+	if err != nil || events[testEvent].GoingCount != 1 {
+		t.Errorf("%d going (err %v), want 1", events[testEvent].GoingCount, err)
+	}
+}

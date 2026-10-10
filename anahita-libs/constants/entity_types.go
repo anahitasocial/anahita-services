@@ -9,8 +9,11 @@ const (
 	NodeMediumPrefixEntityType = "node.medium."
 	// A photo post. The one kind of post the shared code has to tell from
 	// the others, because it alone holds several images.
-	NodeMediumPhotoEntityType  = "node.medium.photo-service.photo.v1"
-	NodeActorPersonEntityType  = "node.actor.person-service.person.v1"
+	NodeMediumPhotoEntityType = "node.medium.photo-service.photo.v1"
+	NodeActorPersonEntityType = "node.actor.person-service.person.v1"
+	// An event: an actor people say they are going to. Served by
+	// actor-service, and named for it. See constants/events.go.
+	NodeActorEventEntityType   = "node.actor.actor-service.event.v1"
 	NodeBaseRepostType         = "node.base.repost-service.repost.v1"
 	NodeBaseHashtagEntityType  = "node.tag.hashtag-service.hashtag.v1"
 	NodeBaseLocationEntityType = "node.tag.location-service.location.v1"
