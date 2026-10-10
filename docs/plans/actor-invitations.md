@@ -165,6 +165,23 @@ Invitations use the same limited view for somebody invited to a profile they can
 
 Tests: `anahita-libs/cmd/api/permissions/follow_test.go` and `limited_profile_test.go`, `anahita-libs/responses/actor_limited_test.go`; on a real database, `TestFollowersByName`, `TestAskableProfilesAreListedAndStillNotSeen` and the round trip of `allow_follow_request`.
 
+### Invitations, 2026-10-09 and 10
+
+Built as designed above, with these differences.
+
+- **Addressed by the pair, not by an id.** There is one invitation for each person and actor, so the routes name the actor and the person: `POST /socialgraph/:actor_id/invites`, `GET /socialgraph/:actor_id/invites/`, `GET /socialgraph/invites/`, `POST /socialgraph/:actor_id/invites/accept` and `/decline` (the viewer's own), `DELETE /socialgraph/:actor_id/invites/:person_id`. A notification then needs no invitation id: its target is the actor.
+- **The daily limit is counted in the database,** not in the shared limiter: invitations the inviter made in the last day that are still waiting. socialgraph-service has no Redis, and this needed none.
+- **A notification is removed when its invitation ends,** not rewritten to say what happened. Its Accept and Decline answer 404 if the event was lost, and the web app says the invitation is no longer open. There is no live `actions` field.
+- **One more answer, `requested`:** somebody who has asked to follow and is waiting is not also invited.
+- **The pending-invitations list is a tab of the Invite dialog,** not a list beside Follow requests.
+- **The stored `follower` setting is left in place** and no longer read.
+
+Where it is: constants in `anahita-libs/constants/invites.go`; the edge `edge.actor.invite.v1`; `InvitesRepo` and the `Invite*` calls on the graph's follow service; rules in `permissions/invite.go`; socialgraph-service `handlers/invite.go`; notification-service `event_edge_invite.go` (`actor_invite`, `actor_invite_accept`); the sweep in `graph-grpc-service/sweeper/invites.go`; `authorized.invite` and `is_invited` on a group; `has_invite` on a relation. Web: `containers/actors/Invite`, `containers/controls/InviteAnswer.jsx`, `utils/invites.js`.
+
+Tests: `permissions/invite_test.go`; on a real database `TestInvitations`; web `utils/__tests__/invites.test.js` and the permission rows in `featurePermissions.test.js`.
+
+**Not done:** events as an actor that can be invited to (they come with events, row 18); mapping to ActivityPub `Invite` (federation).
+
 ## Status
 
 | Item | State |
@@ -172,4 +189,4 @@ Tests: `anahita-libs/cmd/api/permissions/follow_test.go` and `limited_profile_te
 | Plan | written 2026-09-28 |
 | Step 0, the follow path | done 2026-10-09 |
 | The limited profile and asking to follow | done 2026-10-09 |
-| Invitations | not started |
+| Invitations | done 2026-10-10 |

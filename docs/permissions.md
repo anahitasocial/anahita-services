@@ -23,7 +23,7 @@ change them, and what profile owners can change for themselves.
   - [Liking a reply](#liking-a-reply)
 - [Likes](#likes)
 - [Following](#following)
-- [Adding followers to a group](#adding-followers-to-a-group)
+- [Invitations](#invitations)
 - [Reposts](#reposts)
 - [Quotes](#quotes)
 - [Saved posts](#saved-posts)
@@ -349,7 +349,8 @@ Whoever asked is told when it is accepted (`actor_follow_request_accept`).
 ### What a stranger is shown of a private profile
 
 A profile somebody may not see is refused whole (403), with one exception. A
-profile that lets people ask to follow it shows **its name, alias, picture
+profile that lets people ask to follow it, or that the viewer has been invited
+to follow, shows **its name, alias, picture
 and verified mark, and nothing else** to somebody signed in whom it has not
 blocked. Without that there would be nothing to ask from.
 
@@ -366,16 +367,56 @@ done inside the graph (`restrictUnseen`), before the actor leaves it, and the
 response is a `LimitedActor`, a written-out list of fields. It is not the
 ordinary item with fields blanked.
 
-## Adding followers to a group
+## Invitations
 
-Who can add somebody else to a group as a follower: `followers` or `admins`.
-Site administrators always can.
+Nobody is made a follower of a group without saying yes. They are invited,
+told, and choose. The rules are in
+`anahita-libs/cmd/api/permissions/invite.go`, and what the data allows of
+each person is in the graph (`data/repositories/invites.go`).
 
-Following a group yourself is not governed by this setting. Anybody who can
-see the group can follow it, as with a person. This setting has no effect on
-people, because nobody adds followers to a person.
+**Who can invite** is the group's setting, `invite` under socialgraph-service:
+`admins` or `followers`. Default, and what a group that never set it gets:
+`admins`. Site administrators always can. Only to a group the inviter can see
+that is in use. Nobody is invited to follow a person.
 
-Default: `admins`.
+**Who can be invited:** a person who follows the inviter. The answer for
+each person named is one of:
+
+| Answer | Meaning |
+| --- | --- |
+| `invited` | An invitation was made |
+| `already_follower` | They follow the group |
+| `not_follower` | They do not follow the inviter |
+| `blocked` | Somebody among the person, the inviter and the group has blocked another |
+| `pending` | They are invited already and have not answered |
+| `cooldown` | They declined within the last 90 days |
+| `requested` | They have asked to follow and are waiting; accept that instead |
+| `unavailable` | Not a person, not there, or the inviter themselves |
+| `full` | 500 invitations to the group are waiting |
+
+Limits: 50 people in one request (400), and 200 invitations made in the last
+day that are still waiting (429).
+
+**An invitation** waits 30 days, then lapses. While it waits, the person
+invited:
+
+- is shown the group's name and picture even where they could not see it
+  (see *What a stranger is shown of a private profile*);
+- becomes a follower on accepting, whatever the group's access says. The
+  invitation is the group's consent.
+
+Declining keeps the invitation, marked refused, for 90 days, which is what
+stops the next one. Whoever invited is not told of a refusal.
+
+| Action | Who |
+| --- | --- |
+| Accept or decline | The person invited, and nobody for them |
+| See who is still to answer | Whoever looks after the group |
+| Take an invitation back | Whoever made it, or whoever looks after the group |
+
+**Adding a follower without asking** is for site administrators alone
+(`CanAddOthersAsFollowers`), for moderation and for moving data. It was the
+group's `follower` setting, which is still stored and is no longer read.
 
 ## Reposts
 
