@@ -281,7 +281,7 @@ func (h *groupHandler) Add(c echo.Context) error {
 	actor.WebsiteURL = req.WebsiteURL
 	actor.Enabled = req.Enabled
 
-	actor, status := h.create(actor, viewer)
+	actor, status := h.create(actor, viewer, false)
 	if status != 0 {
 		return c.NoContent(status)
 	}
@@ -306,7 +306,12 @@ func (h *groupHandler) Add(c echo.Context) error {
 //
 // Shared by groups and events, which differ in what they are given, not in
 // how they come to be.
-func (h *groupHandler) create(actor *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, int) {
+//
+// allowed says the caller has already established that this viewer may make
+// this one, so the installation's setting for who may make an actor is not
+// asked: an event made for a group by that group's administrator. They
+// still have to be signed in with the scope to write actors.
+func (h *groupHandler) create(actor *entities.AnahitaNode, viewer *entities.Viewer, allowed bool) (*entities.AnahitaNode, int) {
 	actor.Type = h.nodeType
 	actor.Service = h.service
 	actor.Alias = slug.Make(actor.Name)
@@ -318,7 +323,11 @@ func (h *groupHandler) create(actor *entities.AnahitaNode, viewer *entities.View
 		log.Println(err)
 		return nil, http.StatusInternalServerError
 	}
-	if ok, err := h.Perms.Actors.CanAdd(actorAccessCtx); !ok {
+	if allowed {
+		if !viewer.Authenticated || viewer.ID <= 0 || !viewer.HasScope(an_constants.OAuthScopeActorsWrite) {
+			return nil, http.StatusForbidden
+		}
+	} else if ok, err := h.Perms.Actors.CanAdd(actorAccessCtx); !ok {
 		log.Println(err)
 		return nil, http.StatusForbidden
 	}

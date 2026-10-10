@@ -209,7 +209,7 @@ Tests: `TestEventSweepQueries` on a real database; `TestSetEventDetails`.
 ### Still to do
 
 1. **`host_followers` access,** for an event open to its host group's followers.
-2. **Who may make an event.** It follows `GROUPS_FROM`, which is administrators unless set otherwise. Asked of the user on 2026-10-10 and not answered: a setting of its own, `EVENTS_FROM`, was suggested.
+2. **Who may make an event of their own.** It follows `GROUPS_FROM`, which is administrators unless set otherwise. An event for a group is not held to that: its administrators may make one, and only they (fixed 2026-10-10, after the user asked). Asked of the user on 2026-10-10 and not answered: a setting of its own, `EVENTS_FROM`, was suggested.
 3. **Start a group from an event,** raised by the user on 2026-10-10: a new group with the event's hosts as administrators, to which whoever went is invited. Proposed in place of turning the event itself into a group, which would make followers of people who agreed to one evening and would break the event's address. Not decided.
 4. **Choosing a place on the event form.** A place can be tagged from the event's Locations tab.
 

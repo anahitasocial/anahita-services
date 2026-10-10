@@ -433,7 +433,8 @@ maybe.
 
 | Action | Who |
 | --- | --- |
-| Make an event | Whoever may make a group. They look after it, and are going |
+| Make an event of your own | Whoever may make a group (`GROUPS_FROM`). They look after it, and are going |
+| Make an event for a group | That group's administrators, and nobody else, whatever `GROUPS_FROM` says. The group's administrators become the event's |
 | Answer going or maybe | Somebody who can see the event and whom it has not blocked, or somebody invited to it |
 | Take an answer back | Always yours to do |
 | See where to join online | Whoever is going, and whoever looks after the event. Not maybe, not invited |

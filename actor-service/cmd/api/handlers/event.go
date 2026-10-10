@@ -174,7 +174,10 @@ func (h *eventHandler) Add(c echo.Context) error {
 	actor.StartsAt = startsAt
 	actor.EndsAt = endsAt
 
-	actor, status := h.create(actor, viewer)
+	// An event for a group is its administrators' to make, whoever the
+	// installation lets make an event of their own: hostGroup has checked
+	// that this viewer is one.
+	actor, status := h.create(actor, viewer, host != nil)
 	if status != 0 {
 		return c.NoContent(status)
 	}
