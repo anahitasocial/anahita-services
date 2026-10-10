@@ -99,6 +99,9 @@ func (r *Routes) Init(e *echo.Echo) {
 	// group edit features
 	groups.PATCH("/:id/features", r.handler.Group.EditFeatures, r.authorize)
 
+	// The events a group hosts.
+	groups.GET("/:id/events/", r.handler.Event.HostedBy, r.setViewer)
+
 	groups.GET("/:id/admins/", r.handler.Admin.Browse, r.authorize)
 	groups.POST("/:id/admins/", r.handler.Admin.Add, r.authorize)
 	groups.DELETE("/:id/admins/:admin_id", r.handler.Admin.Delete, r.authorize)

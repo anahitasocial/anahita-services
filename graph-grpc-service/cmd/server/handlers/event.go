@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"anahita-libs/constants"
+	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
 	"graph/data/repositories"
 )
@@ -37,6 +38,7 @@ func eventToGrpc(details *repositories.EventDetails) *graphpb.EventDetails {
 		GoingCount:   details.GoingCount,
 		MaybeCount:   details.MaybeCount,
 		ViewerRsvp:   details.ViewerRsvp,
+		HostId:       details.HostID,
 	}
 	if details.CancelledAt != nil {
 		out.CancelledAt = details.CancelledAt.Unix()
@@ -64,6 +66,7 @@ func (h *eventGrpcHandler) Save(ctx context.Context, req *graphpb.EventSaveReque
 		TimezoneName: req.Details.TimezoneName,
 		Capacity:     req.Details.Capacity,
 		OnlineURL:    req.Details.OnlineUrl,
+		HostID:       req.Details.HostId,
 	}); err != nil {
 		log.Println(err)
 		return nil, err
@@ -126,13 +129,28 @@ func (h *eventGrpcHandler) Cancel(ctx context.Context, req *graphpb.EventCancelR
 
 // List returns the ids of the events that are one person's.
 func (h *eventGrpcHandler) List(ctx context.Context, req *graphpb.EventListRequest) (*graphpb.EventListResponse, error) {
-	if req.PersonId == 0 {
-		return nil, errors.New("a person is required")
-	}
-
 	limit := req.Limit
 	if limit == 0 || limit > constants.MaxPageSize {
 		limit = constants.DefaultPageSize
+	}
+
+	// A group's events, as the viewer may see them.
+	if req.HostId > 0 {
+		viewer := entities.NewViewer()
+		viewer.ID = req.ViewerId
+		viewer.PersonType = req.ViewerPersonType
+
+		ids, total, err := h.env.Repos.Events.ListHostedBy(req.HostId, viewer, req.Filter, limit, req.Offset)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		return &graphpb.EventListResponse{Ids: ids, Total: total}, nil
+	}
+
+	if req.PersonId == 0 {
+		return nil, errors.New("a person or a host is required")
 	}
 
 	ids, total, err := h.env.Repos.Events.ListFor(req.PersonId, req.Filter, limit, req.Offset)

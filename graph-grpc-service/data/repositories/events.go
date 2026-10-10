@@ -8,6 +8,9 @@ import (
 	"time"
 
 	"anahita-libs/constants"
+	"anahita-libs/data/entities"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
 // EventDetails is what only an event has, beside the node every actor is,
@@ -23,6 +26,8 @@ type EventDetails struct {
 	MaybeCount uint64
 	// What the person asked about has answered: going, maybe, or "".
 	ViewerRsvp string
+	// The group hosting it, or 0.
+	HostID int64
 }
 
 // EventsRepoInterface is what only an event has: its time zone, how many
@@ -56,6 +61,11 @@ type EventsRepoInterface interface {
 	// it, look after it or were invited to it. Whoever sends them on decides
 	// how much of an event the person was only invited to is shown.
 	ListFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
+
+	// ListHostedBy returns the ids of the events a group hosts, upcoming or
+	// past, and how many. Unlike a person's own lists these are gated: only
+	// the events this viewer may see.
+	ListHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
 }
 
 func NewEventsRepo(db *sql.DB) EventsRepoInterface {
@@ -153,6 +163,36 @@ WHERE type = ?
   AND node_a_id = ?
   AND node_b_id = ?`
 
+// One host an event, set once: nothing is inserted when it has one.
+const insertEventHost = `
+INSERT INTO edges (
+  type,
+  node_a_id,
+  node_a_type,
+  node_b_id,
+  node_b_type,
+  created_at,
+  updated_at
+)
+SELECT ?, host.id, host.type, event.id, event.type, NOW(), NOW()
+FROM nodes AS event
+JOIN nodes AS host ON host.id = ?
+WHERE event.id = ?
+  AND NOT EXISTS (
+    SELECT 1
+    FROM edges AS had
+    WHERE had.type = ?
+      AND had.node_b_id = ?
+  )`
+
+const selectEventHosts = `
+SELECT
+  edge.node_b_id,
+  edge.node_a_id
+FROM edges AS edge
+WHERE edge.type = ?
+  AND edge.node_b_id IN (%s)`
+
 const cancelEvent = `
 UPDATE events
 SET cancelled_at = NOW()
@@ -164,8 +204,21 @@ func (r *eventsRepo) Save(details *EventDetails) error {
 		return errors.New("an event is required")
 	}
 
-	_, err := r.db.Exec(saveEvent,
-		details.NodeID, details.TimezoneName, details.Capacity, details.OnlineURL)
+	if _, err := r.db.Exec(saveEvent,
+		details.NodeID, details.TimezoneName, details.Capacity, details.OnlineURL); err != nil {
+		return err
+	}
+
+	// Who hosts it is said once. An event that has a host keeps it.
+	if details.HostID <= 0 {
+		return nil
+	}
+
+	_, err := r.db.Exec(insertEventHost,
+		constants.EdgeActorHostEntityType,
+		details.HostID,
+		details.NodeID,
+		constants.EdgeActorHostEntityType, details.NodeID)
 
 	return err
 }
@@ -219,6 +272,26 @@ func (r *eventsRepo) Read(ids []int64, personID int64) (map[int64]*EventDetails,
 		if details, ok := events[id]; ok {
 			details.GoingCount = going
 			details.MaybeCount = maybe
+		}
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	hostArgs := append([]any{constants.EdgeActorHostEntityType}, args...)
+	rows, err = r.db.Query(strings.Replace(selectEventHosts, "%s", in, 1), hostArgs...)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var id, hostID int64
+		if err := rows.Scan(&id, &hostID); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		if details, ok := events[id]; ok {
+			details.HostID = hostID
 		}
 	}
 	rows.Close()
@@ -410,6 +483,77 @@ func (r *eventsRepo) ListFor(personID int64, filter string, limit uint64, offset
 	}
 
 	rows, err := r.db.Query("SELECT node.id"+from+order, append(args, limit, offset)...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	ids := []int64{}
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, 0, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, total, rows.Err()
+}
+
+// ListHostedBy lists a group's events for a viewer. Built with the same
+// gate as every other list of actors, so an event for its followers alone
+// is not shown to somebody who is not one, whoever hosts it.
+func (r *eventsRepo) ListHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
+	if viewer == nil {
+		viewer = entities.NewViewer()
+	}
+
+	hosted := func(columns string) sq.SelectBuilder {
+		query := sq.Select(columns).
+			From("nodes AS node").
+			Join("edges AS host ON host.node_b_id = node.id").
+			Where(sq.Eq{
+				"host.type":      constants.EdgeActorHostEntityType,
+				"host.node_a_id": groupID,
+				"node.type":      constants.NodeActorEventEntityType,
+				"node.enabled":   true,
+			}).
+			Where("node.deleted_at IS NULL")
+
+		if filter == constants.EventListPast {
+			query = query.Where("node.ends_at <= NOW()")
+		} else {
+			query = query.Where("node.ends_at > NOW()")
+		}
+
+		return SetActorAccessQuery(query, viewer)
+	}
+
+	if filter != constants.EventListPast && filter != constants.EventListUpcoming {
+		return nil, 0, errors.New("no such list of events")
+	}
+
+	countSQL, countArgs, err := hosted("COUNT(*)").ToSql()
+	if err != nil {
+		return nil, 0, err
+	}
+	var total uint64
+	if err := r.db.QueryRow(countSQL, countArgs...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	list := hosted("node.id")
+	if filter == constants.EventListPast {
+		list = list.OrderBy("node.starts_at DESC", "node.id DESC")
+	} else {
+		list = list.OrderBy("node.starts_at ASC", "node.id ASC")
+	}
+	listSQL, listArgs, err := list.Limit(limit).Offset(offset).ToSql()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := r.db.Query(listSQL, listArgs...)
 	if err != nil {
 		return nil, 0, err
 	}

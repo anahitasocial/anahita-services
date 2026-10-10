@@ -34,6 +34,10 @@ type EventsGRPCInterface interface {
 	// order to show them, and how many there are. The filter is one of the
 	// constants.EventList* names.
 	ListFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
+
+	// ListHostedBy returns the ids of the events a group hosts that this
+	// viewer may see, upcoming or past, and how many there are.
+	ListHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
 }
 
 type EventsGRPC struct {
@@ -75,6 +79,7 @@ func grpcToEventDetails(details *graphpb.EventDetails) *entities.EventDetails {
 		GoingCount:   details.GoingCount,
 		MaybeCount:   details.MaybeCount,
 		ViewerRsvp:   details.ViewerRsvp,
+		HostID:       details.HostId,
 	}
 	if details.CancelledAt > 0 {
 		at := time.Unix(details.CancelledAt, 0).UTC()
@@ -96,6 +101,7 @@ func (srv *EventsGRPC) Save(details *entities.EventDetails) error {
 			TimezoneName: details.TimezoneName,
 			Capacity:     details.Capacity,
 			OnlineUrl:    details.OnlineURL,
+			HostId:       details.HostID,
 		},
 	})
 
@@ -165,6 +171,31 @@ func (srv *EventsGRPC) ListFor(personID int64, filter string, limit uint64, offs
 		Limit:    limit,
 		Offset:   offset,
 	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return resp.Ids, resp.Total, nil
+}
+
+func (srv *EventsGRPC) ListHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	req := &graphpb.EventListRequest{
+		HostId: groupID,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+	if viewer != nil {
+		req.ViewerId = viewer.ID
+		req.ViewerPersonType = viewer.PersonType
+	}
+
+	resp, err := client.List(context.Background(), req)
 	if err != nil {
 		return nil, 0, err
 	}

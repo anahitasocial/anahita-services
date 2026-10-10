@@ -313,3 +313,82 @@ func TestEventListsAndWhoIsGoing(t *testing.T) {
 		t.Errorf("maybe: %v, counted %d, want Bob and Carol", got, total)
 	}
 }
+
+// A group hosting events: said once, and listed for each viewer as that
+// viewer may see the events.
+func TestEventsHostedByAGroup(t *testing.T) {
+	db := accessTestDB(t)
+	seedRepliesFixture(t, db)
+	repo := NewEventsRepo(db)
+	seedEvents(t, repo, 0)
+
+	const private = 902
+	eventType := constants.NodeActorEventEntityType
+
+	if _, err := db.Exec(`INSERT INTO nodes (id,type,service,name,alias,access,enabled,starts_at,ends_at,created_at,updated_at) VALUES
+		 (902,'` + eventType + `','actor-service','Members evening','members','followers',1,NOW() + INTERVAL 5 DAY,NOW() + INTERVAL 6 DAY,NOW(),NOW())`); err != nil {
+		t.Fatal(err)
+	}
+
+	// The group hosts all three: the picnic, last year's, and one only its
+	// own followers may see, which Carol follows.
+	for _, id := range []int64{testEvent, testEventOver, private} {
+		if err := repo.Save(&EventDetails{NodeID: id, TimezoneName: "UTC", HostID: replyGroup}); err != nil {
+			t.Fatalf("save %d: %v", id, err)
+		}
+	}
+	if _, err := db.Exec(`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES ('edge.actor.follow.v1',4,'node.actor.person-service.person.v1',902,?,NOW())`, eventType); err != nil {
+		t.Fatal(err)
+	}
+
+	// Its host is read back, and saying another does not change it.
+	if err := repo.Save(&EventDetails{NodeID: testEvent, TimezoneName: "UTC", HostID: replyAlice}); err != nil {
+		t.Fatal(err)
+	}
+	events, err := repo.Read([]int64{testEvent}, 0)
+	if err != nil || events[testEvent].HostID != replyGroup {
+		t.Errorf("the picnic's host: %d (err %v), want the group", events[testEvent].HostID, err)
+	}
+	var hostEdges int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM edges WHERE type = ? AND node_b_id = ?`, constants.EdgeActorHostEntityType, testEvent).Scan(&hostEdges); err != nil || hostEdges != 1 {
+		t.Errorf("%d host edges (err %v), want 1", hostEdges, err)
+	}
+
+	hosted := func(viewer int64, filter string) map[int64]bool {
+		t.Helper()
+		ids, total, err := repo.ListHostedBy(replyGroup, replyViewer(viewer), filter, 20, 0)
+		if err != nil {
+			t.Fatalf("%s: %v", filter, err)
+		}
+		if int(total) != len(ids) {
+			t.Errorf("%s: counted %d, listed %d", filter, total, len(ids))
+		}
+		got := map[int64]bool{}
+		for _, id := range ids {
+			got[id] = true
+		}
+		return got
+	}
+
+	// Bob follows neither the group nor the private event.
+	if got := hosted(replyBob, constants.EventListUpcoming); !sameSet(got, testEvent) {
+		t.Errorf("Bob, upcoming: %v, want the picnic alone", got)
+	}
+	// Alice follows the group and not the private event: following the
+	// host is not following the event.
+	if got := hosted(replyAlice, constants.EventListUpcoming); !sameSet(got, testEvent) {
+		t.Errorf("Alice, upcoming: %v, want the picnic alone", got)
+	}
+	if got := hosted(replyCarol, constants.EventListUpcoming); !sameSet(got, testEvent, private) {
+		t.Errorf("Carol, upcoming: %v, want the picnic and the members evening", got)
+	}
+	if got := hosted(replyBob, constants.EventListPast); !sameSet(got, testEventOver) {
+		t.Errorf("Bob, past: %v, want last year's", got)
+	}
+	if got := hosted(0, constants.EventListUpcoming); !sameSet(got, testEvent) {
+		t.Errorf("a visitor, upcoming: %v, want the picnic alone", got)
+	}
+	if _, _, err := repo.ListHostedBy(replyGroup, replyViewer(replyBob), constants.EventListInvited, 20, 0); err == nil {
+		t.Error("a list a group has no such thing as was given")
+	}
+}

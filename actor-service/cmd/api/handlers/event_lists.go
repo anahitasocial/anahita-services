@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"actor/constants"
 	"log"
 	"net/http"
 
@@ -230,6 +231,108 @@ func (h *eventHandler) Attendees(c echo.Context) error {
 
 	actorResp := &responses.ActorResponse{}
 	resp.Data = actorResp.MapNodeItems(people)
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+type eventHostedRequest struct {
+	// The group.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// upcoming or past. Upcoming when left out.
+	Filter string `query:"filter" validate:"omitempty,oneof=upcoming past"`
+	Offset uint64 `query:"start"`
+	Limit  uint64 `query:"limit" validate:"omitempty,max=100"`
+}
+
+// HostedBy lists the events a group hosts, to anybody who can see the
+// group: the ones still to come, or the ones that are over. Each event only
+// if the viewer may see it, so an event for its own followers is not shown
+// to somebody who merely follows the group.
+//
+// GET /groups/:id/events/?filter=upcoming|past
+func (h *eventHandler) HostedBy(c echo.Context) error {
+	var (
+		req    = &eventHostedRequest{Limit: an_constants.RequestLimitDefault}
+		viewer = getViewer(c)
+	)
+
+	if err := c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	filter := req.Filter
+	if filter == "" {
+		filter = an_constants.EventListUpcoming
+	}
+
+	group, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	groupCtx, err := h.getActorAccessContext(group, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if ok, err := h.Perms.Actors.CanRead(groupCtx); !ok {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	resp := &struct {
+		Data       []*responses.ActorNodeItem `json:"data"`
+		Pagination responses.Pagination       `json:"pagination"`
+	}{
+		Data: []*responses.ActorNodeItem{},
+		Pagination: responses.Pagination{
+			Limit:  req.Limit,
+			Offset: req.Offset,
+		},
+	}
+
+	ids, total, err := h.Srv.EventsGRPC.ListHostedBy(group.ID, viewer, filter, req.Limit, req.Offset)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	resp.Pagination.Total = total
+
+	if len(ids) == 0 {
+		return c.JSON(http.StatusOK, resp)
+	}
+
+	readReq := services.NewActorGRPCRequest().BatchRead
+	readReq.IDs = ids
+	events, err := h.Srv.ActorsGRPC.BatchRead(readReq, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	byID := make(map[int64]*entities.AnahitaNode, len(events))
+	for _, event := range events {
+		byID[event.ID] = event
+	}
+	ordered := make([]*entities.AnahitaNode, 0, len(ids))
+	for _, id := range ids {
+		if event, ok := byID[id]; ok {
+			ordered = append(ordered, event)
+		}
+	}
+
+	h.setEventDetails(ordered, viewer)
+	an_handlers.SetViewerRelations(h.Srv.SocialgraphGRPC, ordered, viewer)
+	batchPresignPaths(h.Env, ordered)
+
+	actorResp := &responses.ActorResponse{}
+	resp.Data = actorResp.MapNodeItems(ordered)
 
 	return c.JSON(http.StatusOK, resp)
 }

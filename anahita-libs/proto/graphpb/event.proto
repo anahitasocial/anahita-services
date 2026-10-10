@@ -22,6 +22,9 @@ message EventDetails {
     uint64 maybe_count = 7;
     // What the person asked about has answered: going, maybe, or nothing.
     string viewer_rsvp = 8;
+    // The group hosting it, or 0. On Save it is set once, when there is
+    // none yet, and 0 leaves it as it is.
+    int64 host_id = 9;
 }
 
 message EventSaveRequest {
@@ -70,6 +73,11 @@ message EventListRequest {
     string filter = 2;
     uint64 limit = 3;
     uint64 offset = 4;
+    // Instead of a person: the events a group hosts, as this viewer may
+    // see them. The filter is then upcoming or past.
+    int64 host_id = 5;
+    int64 viewer_id = 6;
+    string viewer_person_type = 7;
 }
 
 message EventListResponse {

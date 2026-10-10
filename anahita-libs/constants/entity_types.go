@@ -20,6 +20,9 @@ const (
 
 	// Edge Types
 	EdgeActorAdminEntityType = "edge.actor.admin.v1"
+	// A group hosting an event: from the group to the event. Set when the
+	// event is made, and what puts it on the group's list of events.
+	EdgeActorHostEntityType = "edge.actor.host.v1"
 	// From a post to a reply in its thread that has been hidden from the
 	// thread. An edge and not a flag on the reply: the reply is its
 	// author's, and "hidden" is a fact about the thread.

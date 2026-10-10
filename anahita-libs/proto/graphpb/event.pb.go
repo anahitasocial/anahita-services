@@ -36,7 +36,10 @@ type EventDetails struct {
 	GoingCount  uint64 `protobuf:"varint,6,opt,name=going_count,json=goingCount,proto3" json:"going_count,omitempty"`
 	MaybeCount  uint64 `protobuf:"varint,7,opt,name=maybe_count,json=maybeCount,proto3" json:"maybe_count,omitempty"`
 	// What the person asked about has answered: going, maybe, or nothing.
-	ViewerRsvp    string `protobuf:"bytes,8,opt,name=viewer_rsvp,json=viewerRsvp,proto3" json:"viewer_rsvp,omitempty"`
+	ViewerRsvp string `protobuf:"bytes,8,opt,name=viewer_rsvp,json=viewerRsvp,proto3" json:"viewer_rsvp,omitempty"`
+	// The group hosting it, or 0. On Save it is set once, when there is
+	// none yet, and 0 leaves it as it is.
+	HostId        int64 `protobuf:"varint,9,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -125,6 +128,13 @@ func (x *EventDetails) GetViewerRsvp() string {
 		return x.ViewerRsvp
 	}
 	return ""
+}
+
+func (x *EventDetails) GetHostId() int64 {
+	if x != nil {
+		return x.HostId
+	}
+	return 0
 }
 
 type EventSaveRequest struct {
@@ -506,11 +516,16 @@ type EventListRequest struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	PersonId int64                  `protobuf:"varint,1,opt,name=person_id,json=personId,proto3" json:"person_id,omitempty"`
 	// upcoming, past, hosting or invited.
-	Filter        string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
-	Limit         uint64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
-	Offset        uint64 `protobuf:"varint,4,opt,name=offset,proto3" json:"offset,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Filter string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
+	Limit  uint64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset uint64 `protobuf:"varint,4,opt,name=offset,proto3" json:"offset,omitempty"`
+	// Instead of a person: the events a group hosts, as this viewer may
+	// see them. The filter is then upcoming or past.
+	HostId           int64  `protobuf:"varint,5,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`
+	ViewerId         int64  `protobuf:"varint,6,opt,name=viewer_id,json=viewerId,proto3" json:"viewer_id,omitempty"`
+	ViewerPersonType string `protobuf:"bytes,7,opt,name=viewer_person_type,json=viewerPersonType,proto3" json:"viewer_person_type,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *EventListRequest) Reset() {
@@ -571,6 +586,27 @@ func (x *EventListRequest) GetOffset() uint64 {
 	return 0
 }
 
+func (x *EventListRequest) GetHostId() int64 {
+	if x != nil {
+		return x.HostId
+	}
+	return 0
+}
+
+func (x *EventListRequest) GetViewerId() int64 {
+	if x != nil {
+		return x.ViewerId
+	}
+	return 0
+}
+
+func (x *EventListRequest) GetViewerPersonType() string {
+	if x != nil {
+		return x.ViewerPersonType
+	}
+	return ""
+}
+
 type EventListResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// In the order to show them.
@@ -628,7 +664,7 @@ var File_proto_graphpb_event_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_event_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/graphpb/event.proto\x12\x05graph\"\x8d\x02\n" +
+	"\x19proto/graphpb/event.proto\x12\x05graph\"\xa6\x02\n" +
 	"\fEventDetails\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\x03R\x06nodeId\x12#\n" +
 	"\rtimezone_name\x18\x02 \x01(\tR\ftimezoneName\x12\x1a\n" +
@@ -641,7 +677,8 @@ const file_proto_graphpb_event_proto_rawDesc = "" +
 	"\vmaybe_count\x18\a \x01(\x04R\n" +
 	"maybeCount\x12\x1f\n" +
 	"\vviewer_rsvp\x18\b \x01(\tR\n" +
-	"viewerRsvp\"A\n" +
+	"viewerRsvp\x12\x17\n" +
+	"\ahost_id\x18\t \x01(\x03R\x06hostId\"A\n" +
 	"\x10EventSaveRequest\x12-\n" +
 	"\adetails\x18\x01 \x01(\v2\x13.graph.EventDetailsR\adetails\"\x13\n" +
 	"\x11EventSaveResponse\"A\n" +
@@ -662,12 +699,15 @@ const file_proto_graphpb_event_proto_rawDesc = "" +
 	"\x12EventCancelRequest\x12\x19\n" +
 	"\bevent_id\x18\x01 \x01(\x03R\aeventId\"/\n" +
 	"\x13EventCancelResponse\x12\x18\n" +
-	"\achanged\x18\x01 \x01(\bR\achanged\"u\n" +
+	"\achanged\x18\x01 \x01(\bR\achanged\"\xd9\x01\n" +
 	"\x10EventListRequest\x12\x1b\n" +
 	"\tperson_id\x18\x01 \x01(\x03R\bpersonId\x12\x16\n" +
 	"\x06filter\x18\x02 \x01(\tR\x06filter\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\x04R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x04 \x01(\x04R\x06offset\";\n" +
+	"\x06offset\x18\x04 \x01(\x04R\x06offset\x12\x17\n" +
+	"\ahost_id\x18\x05 \x01(\x03R\x06hostId\x12\x1b\n" +
+	"\tviewer_id\x18\x06 \x01(\x03R\bviewerId\x12,\n" +
+	"\x12viewer_person_type\x18\a \x01(\tR\x10viewerPersonType\";\n" +
 	"\x11EventListResponse\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\x03R\x03ids\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x04R\x05total2\xbb\x02\n" +

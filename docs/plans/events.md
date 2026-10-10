@@ -162,13 +162,24 @@ Server only.
 
 Tests: `TestEventListsAndWhoIsGoing` on a real database; `handlers/event_ics_test.go`.
 
+### Phase 3, hosting by a group: 2026-10-10
+
+Server only.
+
+- **`host_group_id` when an event is made,** for somebody who administers that group. The host is an edge from the group to the event (`edge.actor.host.v1`), set once.
+- **The group's administrators are copied onto the event** as its own administrators when it is made (`carryOverAdmins`). Nothing is asked of the group afterwards: the user chose this on 2026-10-10, over working out an event's administrators from its host each time. Somebody who later becomes or stops being an administrator of the group is added to or removed from the event by hand.
+- **`GET /groups/:id/events/?filter=upcoming|past`:** the events a group hosts, each only if the viewer may see it. Following the host is not following the event.
+- **The event says who hosts it** (`event.host`), when the viewer may see that group.
+
+Tests: `TestEventsHostedByAGroup` on a real database.
+
 ### Still to do
 
-1. **Hosting by a group:** the host edge, the group's Events tab, and the group's administrators looking after its events.
-2. **The sweep:** archive 30 days after the end, drop invitations to events that are over, remind whoever is going a day before.
-3. **Notifications:** an answer (to hosts), a change of time or place, calling off, the reminder.
-4. **`host_followers` access,** for an event open to its host group's followers.
-5. **The web app:** the form with time zones, the event page, answering, the Events page and tabs.
+1. **The sweep:** archive 30 days after the end, drop invitations to events that are over, remind whoever is going a day before.
+2. **Notifications:** an answer (to hosts), a change of time or place, calling off, the reminder.
+3. **`host_followers` access,** for an event open to its host group's followers.
+4. **The web app:** the form with time zones, the event page, answering, the Events page and tabs.
+5. **Start a group from an event,** raised by the user on 2026-10-10: a new group with the event's hosts as administrators, to which whoever went is invited. Proposed in place of turning the event itself into a group, which would make followers of people who agreed to one evening and would break the event's address. Not decided.
 
 ## Status
 
@@ -177,4 +188,5 @@ Tests: `TestEventListsAndWhoIsGoing` on a real database; `handlers/event_ics_tes
 | Plan | written 2026-09-28 |
 | Phase 1, the event itself (server) | done 2026-10-10 |
 | Phase 2, lists and the calendar file (server) | done 2026-10-10 |
+| Phase 3, hosting by a group (server) | done 2026-10-10 |
 | The rest, listed under Still to do | not started |

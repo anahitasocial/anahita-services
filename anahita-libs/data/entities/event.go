@@ -19,4 +19,9 @@ type EventDetails struct {
 	MaybeCount  uint64
 	// What the viewer has answered: going, maybe, or "".
 	ViewerRsvp string
+	// The group hosting it, or 0.
+	HostID int64
+	// That group, when the viewer may see it. Filled in by whoever sends
+	// the event on.
+	Host *AnahitaNode
 }

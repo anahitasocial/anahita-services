@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"actor/constants"
 	"log"
 	"net/http"
 	"time"
@@ -65,6 +66,9 @@ type eventAddRequest struct {
 	eventFields
 	// Who can see it. Anybody, unless it says otherwise.
 	Access string `form:"access" json:"access" validate:"omitempty,oneof=public registered followers"`
+	// A group hosting it, which whoever makes the event must administer.
+	// Left out for an event that is its maker's own.
+	HostGroupID int64 `form:"host_group_id" json:"host_group_id" validate:"omitempty,numeric"`
 }
 
 type eventEditRequest struct {
@@ -144,6 +148,15 @@ func (h *eventHandler) Add(c echo.Context) error {
 		return refuseEvent(c, http.StatusBadRequest, "already_over")
 	}
 
+	// Hosted by a group: only by somebody who administers that group.
+	var host *entities.AnahitaNode
+	if req.HostGroupID > 0 {
+		var status int
+		if host, status = h.hostGroup(req.HostGroupID, viewer); status != 0 {
+			return refuseEvent(c, status, "host_not_allowed")
+		}
+	}
+
 	actor := entities.NewAnahitaNode()
 	actor.Access = an_constants.AnahitaAccessPublic
 	if req.Access != "" {
@@ -161,14 +174,22 @@ func (h *eventHandler) Add(c echo.Context) error {
 		return c.NoContent(status)
 	}
 
-	if err := h.Srv.EventsGRPC.Save(&entities.EventDetails{
+	details := &entities.EventDetails{
 		NodeID:       actor.ID,
 		TimezoneName: req.TimezoneName,
 		Capacity:     req.Capacity,
 		OnlineURL:    req.OnlineURL,
-	}); err != nil {
+	}
+	if host != nil {
+		details.HostID = host.ID
+	}
+	if err := h.Srv.EventsGRPC.Save(details); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if host != nil {
+		h.carryOverAdmins(host, actor, viewer)
 	}
 
 	// Whoever makes it is going. They follow it already; this says how.
@@ -448,5 +469,114 @@ func (h *groupHandler) setEventDetails(events []*entities.AnahitaNode, viewer *e
 	for _, event := range events {
 		event.Event = details[event.ID]
 		event.EventShowsOnlineURL = permissions.CanSeeOnlineURL(viewer, event, rels[event.ID], event.Event)
+	}
+
+	h.setEventHosts(events, viewer)
+}
+
+// setEventHosts names the group hosting each event, where the viewer may
+// see that group. A host they may not see is left unnamed: the event does
+// not give away a group that is not theirs to know about.
+func (h *groupHandler) setEventHosts(events []*entities.AnahitaNode, viewer *entities.Viewer) {
+	hosts := map[int64]*entities.AnahitaNode{}
+	for _, event := range events {
+		if event.Event != nil && event.Event.HostID > 0 {
+			hosts[event.Event.HostID] = nil
+		}
+	}
+	if len(hosts) == 0 {
+		return
+	}
+
+	ids := make([]int64, 0, len(hosts))
+	for id := range hosts {
+		ids = append(ids, id)
+	}
+
+	rels, err := h.Srv.SocialgraphGRPC.Browse(ids, viewer.ID)
+	if err != nil {
+		log.Println("event hosts: relations:", err)
+		return
+	}
+
+	actorPerms := permissions.NewActorPermissions()
+	shown := []*entities.AnahitaNode{}
+	for _, id := range ids {
+		group, err := h.Srv.ActorsGRPC.Read(id, viewer)
+		if err != nil || group == nil {
+			continue
+		}
+		rel := rels[id]
+		if rel == nil {
+			rel = &entities.ActorRelation{}
+		}
+		if ok, _ := actorPerms.CanRead(&permissions.ActorAccessContext{
+			Viewer:         viewer,
+			Actor:          group,
+			ActorViewerRel: rel,
+		}); !ok {
+			continue
+		}
+		hosts[id] = group
+		shown = append(shown, group)
+	}
+
+	batchPresignPaths(h.Env, shown)
+
+	for _, event := range events {
+		if event.Event != nil {
+			event.Event.Host = hosts[event.Event.HostID]
+		}
+	}
+}
+
+// hostGroup reads the group that is to host an event, for a viewer who
+// administers it. The status is 0 when they do.
+func (h *eventHandler) hostGroup(groupID int64, viewer *entities.Viewer) (*entities.AnahitaNode, int) {
+	group, err := h.Srv.ActorsGRPC.ReadOfType(groupID, constants.NodeActorGroupType, viewer)
+	if err != nil || group == nil {
+		log.Println(err)
+		return nil, http.StatusNotFound
+	}
+
+	rel, err := h.Srv.SocialgraphGRPC.Read(group.ID, viewer.ID)
+	if err != nil {
+		log.Println(err)
+		return nil, http.StatusInternalServerError
+	}
+
+	if !viewer.IsAdmin() && (rel == nil || !rel.HasAdmin) {
+		return nil, http.StatusForbidden
+	}
+
+	return group, 0
+}
+
+// carryOverAdmins makes the administrators of the hosting group
+// administrators of the event as well.
+//
+// They are the event's own administrators from then on. Nothing is asked of
+// the group afterwards: somebody who later joins or leaves the group's
+// administrators is added to or taken off the event by hand, like anybody
+// else. That was the user's choice, and it keeps "who looks after this
+// actor" one question with one answer, everywhere it is asked.
+//
+// Whoever made the event is one already. A failure for one of them is
+// logged and the others are still added: the event exists, and an
+// administrator can add whoever is missing.
+func (h *eventHandler) carryOverAdmins(group *entities.AnahitaNode, event *entities.AnahitaNode, viewer *entities.Viewer) {
+	admins, err := h.Srv.ActorAdminsGRPC.Browse(group.ID)
+	if err != nil {
+		log.Println("event admins: reading the group's:", err)
+		return
+	}
+
+	for _, admin := range admins {
+		if admin == nil || admin.ID == viewer.ID {
+			continue
+		}
+		if _, err := h.Srv.ActorAdminsGRPC.Add(event, admin, viewer); err != nil {
+			log.Printf("event admins: adding %d to event %d: %v", admin.ID, event.ID, err)
+		}
 	}
 }

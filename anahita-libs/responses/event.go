@@ -29,6 +29,8 @@ type Event struct {
 	ViewerRsvp string `json:"viewer_rsvp,omitempty"`
 	// upcoming, happening, past or cancelled, as of when it was sent.
 	State string `json:"state"`
+	// The group hosting it, when there is one the viewer may see.
+	Host *ActorBrief `json:"host,omitempty"`
 }
 
 const (
@@ -71,6 +73,7 @@ func NewEvent(node *entities.AnahitaNode) *Event {
 		IsFull:       details.Capacity > 0 && details.GoingCount >= uint64(details.Capacity),
 		ViewerRsvp:   details.ViewerRsvp,
 		State:        EventState(node.StartsAt, node.EndsAt, details.CancelledAt != nil, time.Now()),
+		Host:         NewActorBrief(details.Host),
 	}
 
 	if node.EventShowsOnlineURL {
