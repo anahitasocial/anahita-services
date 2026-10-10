@@ -50,6 +50,10 @@ type EventAddress struct {
 	StateProvince string `json:"state_province,omitempty"`
 	PostalCode    string `json:"postal_code,omitempty"`
 	Country       string `json:"country,omitempty"`
+	// Where that is on a map, when whoever made the event asked for one
+	// and the address was found. Left out otherwise.
+	Latitude  float64 `json:"latitude,omitempty"`
+	Longitude float64 `json:"longitude,omitempty"`
 }
 
 // NewEventAddress reads an event's address off its node, or nil when it
@@ -69,6 +73,11 @@ func NewEventAddress(node *entities.AnahitaNode) *EventAddress {
 	if *address == (EventAddress{}) {
 		return nil
 	}
+
+	// A point with no address beside it is not shown: the address is what
+	// it is a point for.
+	address.Latitude = node.GeoLatitude
+	address.Longitude = node.GeoLongitude
 
 	return address
 }

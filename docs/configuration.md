@@ -243,7 +243,8 @@ cd file-grpc-service && STORAGE_TEST_ENDPOINT=https://… go test ./data/service
 
 ## Places
 
-Read by location-service. An address is turned into coordinates by Photon
+Read by location-service, and by actor-service for an event whose maker asked
+for a map of its address. An address is turned into coordinates by Photon
 first, then Nominatim, both open-source geocoders built on OpenStreetMap.
 
 | Variable | Value |
@@ -254,8 +255,10 @@ first, then Nominatim, both open-source geocoders built on OpenStreetMap.
 
 The public instances are shared services with strict limits, and they see every
 address a member types. Both can be self-hosted; point the variables at your
-own. At least one has to stay on, because a place cannot be saved without
-coordinates.
+own. At least one has to stay on for location-service, because a place cannot
+be saved without coordinates. actor-service starts without either, and events
+are then saved with their address and no map. An event's address is sent to
+a geocoder only when "Show a map" is ticked on its form.
 
 ## Mail
 

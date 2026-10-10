@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"actor/constants"
+	"context"
 	"log"
 	"net/http"
 	"strings"
@@ -74,6 +75,10 @@ type eventFields struct {
 	StateProvince string `form:"state_province" json:"state_province" validate:"omitempty,max=100"`
 	PostalCode    string `form:"postal_code" json:"postal_code" validate:"omitempty,max=20"`
 	Country       string `form:"country" json:"country" validate:"omitempty,max=100"`
+	// Whether to show that address on a map. Off unless asked for: finding
+	// it means sending it to a mapping service, and an address may be
+	// somebody's home.
+	ShowMap bool `form:"show_map" json:"show_map"`
 	// Whether everybody who follows the group hosting it may see that it
 	// is on and answer it. Means nothing on an event with no host.
 	OpenToHostFollowers bool `form:"open_to_host_followers" json:"open_to_host_followers"`
@@ -108,13 +113,59 @@ func refuseEvent(c echo.Context, status int, reason string) error {
 	return c.JSON(status, map[string]string{"error": reason})
 }
 
-// setEventAddress puts where an event is held onto its node, trimmed.
-func setEventAddress(actor *entities.AnahitaNode, fields *eventFields) {
+// How long an address may take to be found on a map. Saving the event does
+// not wait longer than this for it.
+const eventGeocodeTimeout = 6 * time.Second
+
+// setEventPlace puts where an event is held onto its node: the address as
+// it was typed, and where that is on a map when a map was asked for.
+//
+// The address is looked up only when whoever is saving the event ticked the
+// box, since looking it up sends it to a mapping service. It is looked up
+// again only when it has changed, and what was found before is kept
+// otherwise. With the box unticked, or no address, there is no point on a
+// map. An address that cannot be found is kept all the same, without one.
+func (h *eventHandler) setEventPlace(actor *entities.AnahitaNode, fields *eventFields) {
+	before := responses.NewEventAddress(actor).OneLine()
+	hadPoint := actor.GeoLatitude != 0 || actor.GeoLongitude != 0
+
 	actor.GeoAddress = strings.TrimSpace(fields.Address)
 	actor.GeoCity = strings.TrimSpace(fields.City)
 	actor.GeoStateProvince = strings.TrimSpace(fields.StateProvince)
 	actor.GeoPostalcode = strings.TrimSpace(fields.PostalCode)
 	actor.GeoCountry = strings.TrimSpace(fields.Country)
+
+	address := responses.NewEventAddress(actor).OneLine()
+
+	if !fields.ShowMap || address == "" {
+		actor.GeoLatitude, actor.GeoLongitude = 0, 0
+		return
+	}
+
+	if hadPoint && address == before {
+		return
+	}
+
+	actor.GeoLatitude, actor.GeoLongitude = h.findOnMap(address)
+}
+
+// findOnMap asks the geocoder where an address is. Zeros when there is no
+// geocoder, when it does not answer in time, or when it does not know.
+func (h *eventHandler) findOnMap(address string) (float64, float64) {
+	if h.Srv.Geocoder == nil {
+		return 0, 0
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), eventGeocodeTimeout)
+	defer cancel()
+
+	found, err := h.Srv.Geocoder.Geocode(ctx, address)
+	if err != nil || found == nil {
+		log.Println("event address not found on a map:", err)
+		return 0, 0
+	}
+
+	return found.Latitude, found.Longitude
 }
 
 // eventTimes reads when an event is, and says why not when it cannot be:
@@ -194,7 +245,7 @@ func (h *eventHandler) Add(c echo.Context) error {
 	actor.Enabled = true
 	actor.StartsAt = startsAt
 	actor.EndsAt = endsAt
-	setEventAddress(actor, &req.eventFields)
+	h.setEventPlace(actor, &req.eventFields)
 
 	// An event for a group is its administrators' to make, whoever the
 	// installation lets make an event of their own: hostGroup has checked
@@ -285,7 +336,7 @@ func (h *eventHandler) Edit(c echo.Context) error {
 	actor.WebsiteURL = req.WebsiteURL
 	actor.StartsAt = startsAt
 	actor.EndsAt = endsAt
-	setEventAddress(actor, &req.eventFields)
+	h.setEventPlace(actor, &req.eventFields)
 	actor.ModifiedBy = viewer.ID
 	if _, err = h.Srv.ActorsGRPC.Edit(actor, viewer); err != nil {
 		log.Println(err)

@@ -116,6 +116,26 @@ spec:
                   name: anahita-config
                   key: WEB_ORIGIN
                   optional: true
+            # Where the geocoders are reached, for showing an event's address
+            # on a map. Unset means the public instances.
+            - name: GEOCODER_PHOTON_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GEOCODER_PHOTON_URL
+                  optional: true
+            - name: GEOCODER_NOMINATIM_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GEOCODER_NOMINATIM_URL
+                  optional: true
+            - name: GEOCODER_CONTACT
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GEOCODER_CONTACT
+                  optional: true
           readinessProbe:
             httpGet:
               path: /ping

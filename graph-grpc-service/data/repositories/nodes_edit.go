@@ -84,17 +84,26 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 		query = query.Set("parent_type", node.ParentType)
 	}
 
-	if node.GeoLatitude != 0 {
+	if node.GeoLatitude != 0 && node.Type != constants.NodeActorEventEntityType {
 		query = query.Set("geo_latitude", node.GeoLatitude)
 	}
-	if node.GeoLongitude != 0 {
+	if node.GeoLongitude != 0 && node.Type != constants.NodeActorEventEntityType {
 		query = query.Set("geo_longitude", node.GeoLongitude)
 	}
 	// An event's address is written whatever it is, so that one given can
 	// be taken off again. On anything else a field left empty is left as it
 	// was, below.
 	if node.Type == constants.NodeActorEventEntityType {
+		// No coordinates is nothing there, not a point in the sea off
+		// Africa.
+		var latitude, longitude any
+		if node.GeoLatitude != 0 || node.GeoLongitude != 0 {
+			latitude, longitude = node.GeoLatitude, node.GeoLongitude
+		}
+
 		query = query.
+			Set("geo_latitude", latitude).
+			Set("geo_longitude", longitude).
 			Set("geo_address", node.GeoAddress).
 			Set("geo_city", node.GeoCity).
 			Set("geo_state_province", node.GeoStateProvince).

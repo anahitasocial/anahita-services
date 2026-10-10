@@ -65,10 +65,13 @@ func applyEventTimes(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.StartsAt = req.StartsAt.AsTime()
 	node.EndsAt = req.EndsAt.AsTime()
 
-	// Where it is held, in the node's own address fields. Copied whatever
-	// it is, so that it can be taken off again. Its coordinates are left
-	// alone: nothing works them out from an address typed on a form, and an
-	// event with none is not found by a search for what is nearby.
+	// Where it is held, in the node's own address fields, with where that
+	// is on a map when whoever made it asked for one. Copied whatever it
+	// is, so that either can be taken off again. Nothing searches for an
+	// event by them: the searches for what is nearby go by the places
+	// tagged on things, not by a node's own coordinates.
+	node.GeoLatitude = req.GeoLatitude
+	node.GeoLongitude = req.GeoLongitude
 	node.GeoAddress = req.GeoAddress
 	node.GeoCity = req.GeoCity
 	node.GeoStateProvince = req.GeoStateProvince

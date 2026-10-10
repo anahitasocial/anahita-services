@@ -462,9 +462,11 @@ maybe.
 - **Where it is held** is an address kept on the event's own node
   (`geo_address` and the fields beside it), not a place on the site's map.
   Places are public and shared, and an event at somebody's home should not
-  put their home among them. Nothing searches for an event by it, and it has
-  no coordinates. A public venue can be tagged on the event like a place on
-  any post.
+  put their home among them. Nothing searches for an event by it. A public
+  venue can be tagged on the event like a place on any post.
+- **Its place on a map** is kept only when whoever saves the event asks for
+  a map (`show_map`), since finding it sends the address to a geocoder. The
+  point is sent with the address and to nobody who is not sent the address.
 - **Its address on the site** is set when it is made and does not change when it is
   renamed, since invitations and calendars link to it.
 

@@ -232,7 +232,17 @@ The place field on the form searched the site's locations, and the user pointed 
 
 - `address`, `city`, `state_province`, `postal_code` and `country` on `POST` and `PATCH /events`, written to the node's `geo_*` fields. For an event they are written whatever they are, so one given can be taken off.
 - Sent as `event.address` to whoever is going or looks after the event, with `has_address` for everybody else, by the flag that decides the online address. In the calendar file as its place, for the same people.
-- No coordinates are stored and nothing is looked up, so there is no map of it yet. **Open:** the user asked for a map. One needs the address looked up by a geocoder, and the two configured are public services unless an installation runs its own, which would send each private address to them. Asked of the user before building it.
+
+### A map of the address: 2026-10-10
+
+The user asked for the address in the About card of the event's page, with a map. A map needs the address looked up by a geocoder, and the two configured are public services unless an installation runs its own, so each address looked up is sent to them. Built as something whoever makes the event chooses, off unless chosen.
+
+- `show_map` on `POST` and `PATCH /events`. With it set and an address given, actor-service looks the address up (`setEventPlace`, six seconds at most) and stores the point in the node's `geo_latitude` and `geo_longitude`. Without it, or with no address, the point is cleared. An address that is not found is kept without a point, and the event is saved all the same.
+- Saving again with the same address keeps the point and looks nothing up.
+- The point is sent inside `event.address` as `latitude` and `longitude`, so only to whoever is sent the address. Nobody else is sent it: an actor's response has no coordinates of its own.
+- The geocoder is the one location-service uses (`anahita-libs/geocoding`), which no longer imports location-service's configuration, and has `NewOptionalLocationService` for a service that can work without one. actor-service takes the same `GEOCODER_*` settings. With both switched off, events are saved without a map.
+- Nothing searches for an event by its point: searches for what is nearby go by the places tagged on things.
+- The geocoding library wrote each address it found to the service's log. It no longer does: an event's address may be somebody's home.
 
 ### Decided against
 

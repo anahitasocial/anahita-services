@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"location/config"
 	"log"
 	"net/http"
 	"time"
@@ -33,8 +32,31 @@ type LocationService struct {
 	httpClient *http.Client
 }
 
-// NewLocationService creates a service with fallback providers
-func NewLocationService(config *config.Config) *LocationService {
+// Environment is the one thing the geocoder asks of a service's
+// configuration: whether it is running in development. Any service's
+// config answers it, so this package belongs to none of them. It used to
+// import location-service's own, which only that service could give it.
+type Environment interface {
+	IsDev() bool
+}
+
+// NewLocationService creates a service with fallback providers. With no
+// geocoder configured it stops the program: for a service that cannot do
+// its work without one. See NewOptionalLocationService for one that can.
+func NewLocationService(config Environment) *LocationService {
+	service := NewOptionalLocationService(config)
+	if service == nil {
+		log.Fatalf("%s and %s are both off; a place cannot be saved without a geocoder", PhotonURLEnv, NominatimURLEnv)
+	}
+
+	return service
+}
+
+// NewOptionalLocationService creates the same service, or nil when every
+// geocoder is switched off. For a service to which looking an address up is
+// an extra and not its work: an event's address is kept whether or not it
+// can be put on a map.
+func NewOptionalLocationService(config Environment) *LocationService {
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
@@ -51,8 +73,13 @@ func NewLocationService(config *config.Config) *LocationService {
 		},
 	}
 
+	providers := configuredProviders(httpClient)
+	if len(providers) == 0 {
+		return nil
+	}
+
 	return &LocationService{
-		providers:  configuredProviders(httpClient),
+		providers:  providers,
 		httpClient: httpClient,
 	}
 }
@@ -83,10 +110,6 @@ func configuredProviders(httpClient *http.Client) []Provider {
 		providers = append(providers, NewRateLimitedProvider(NewNominatimProvider(httpClient, nominatimURL), 1.0))
 	}
 
-	if len(providers) == 0 {
-		log.Fatalf("%s and %s are both off; a place cannot be saved without a geocoder", PhotonURLEnv, NominatimURLEnv)
-	}
-
 	return providers
 }
 
@@ -98,8 +121,9 @@ func (s *LocationService) Geocode(ctx context.Context, address string) (*Locatio
 	for i, provider := range s.providers {
 		location, err := provider.Geocode(ctx, cleanAddress)
 		if err == nil && location != nil {
-			log.Printf("Provider %s succeeded on attempt %d for address: %s",
-				provider.Name(), i+1, cleanAddress)
+			// The address is left out of the log: it may be somebody's
+			// home.
+			log.Printf("Provider %s succeeded on attempt %d", provider.Name(), i+1)
 			return location, nil
 		}
 		log.Printf("Provider %s failed: %v", provider.Name(), err)
