@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+// Events: what only an event has beside the node every actor is, and who
+// is going. The event itself is read and written as an actor.
+
+message EventDetails {
+    int64 node_id = 1;
+    // The zone the times were given in, as IANA names it.
+    string timezone_name = 2;
+    // How many may be going. 0 for no limit.
+    uint32 capacity = 3;
+    // Where to join when it is online. Whoever sends this on decides who
+    // may be shown it.
+    string online_url = 4;
+    // Seconds since the epoch, or 0 when it has not been called off.
+    int64 cancelled_at = 5;
+    uint64 going_count = 6;
+    uint64 maybe_count = 7;
+    // What the person asked about has answered: going, maybe, or nothing.
+    string viewer_rsvp = 8;
+}
+
+message EventSaveRequest {
+    EventDetails details = 1;
+}
+
+message EventSaveResponse {}
+
+message EventReadRequest {
+    repeated int64 ids = 1;
+    // Whose answer to give with each. 0 for nobody's.
+    int64 person_id = 2;
+}
+
+message EventReadResponse {
+    // By the event's id. An id that is not an event has no entry.
+    map<int64, EventDetails> events = 1;
+}
+
+message EventRsvpRequest {
+    int64 event_id = 1;
+    int64 person_id = 2;
+    // going, maybe, or nothing to take the answer back.
+    string rsvp = 3;
+}
+
+message EventRsvpResponse {
+    // saved, full, closed or missing.
+    string result = 1;
+}
+
+message EventCancelRequest {
+    int64 event_id = 1;
+}
+
+message EventCancelResponse {
+    // False when it was called off already, or is not an event.
+    bool changed = 1;
+}
+
+service EventService {
+    rpc Save(EventSaveRequest) returns (EventSaveResponse);
+    rpc Read(EventReadRequest) returns (EventReadResponse);
+    rpc Rsvp(EventRsvpRequest) returns (EventRsvpResponse);
+    rpc Cancel(EventCancelRequest) returns (EventCancelResponse);
+}

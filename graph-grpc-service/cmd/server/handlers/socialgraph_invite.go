@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"anahita-libs/constants"
 	"anahita-libs/event"
@@ -55,7 +56,27 @@ func (h *socialgraphFollowGrpcHandler) InviteAdd(ctx context.Context, req *graph
 		return &graphpb.InviteAddResponse{OverDailyLimit: true}, nil
 	}
 
-	results, err := h.env.Repos.Invites.Add(actor, req.Viewer.Id, req.InviteeIds)
+	// An event takes fewer waiting invitations than a group when it has a
+	// limit on places, and none once it is over or called off.
+	maxWaiting := uint64(constants.InviteMaxPending)
+	if actor.Type == constants.NodeActorEventEntityType {
+		events, err := h.env.Repos.Events.Read([]int64{actor.ID}, 0)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		details := events[actor.ID]
+		if details == nil || details.CancelledAt != nil || !actor.EndsAt.After(time.Now()) {
+			closed := map[int64]string{}
+			for _, id := range req.InviteeIds {
+				closed[id] = constants.InviteResultClosed
+			}
+			return &graphpb.InviteAddResponse{Results: closed}, nil
+		}
+		maxWaiting = constants.InviteMaxPendingFor(details.Capacity)
+	}
+
+	results, err := h.env.Repos.Invites.Add(actor, req.Viewer.Id, req.InviteeIds, maxWaiting)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -158,6 +179,15 @@ func (h *socialgraphFollowGrpcHandler) InviteAnswer(ctx context.Context, req *gr
 	}
 	if err = h.env.Repos.SocialGraphCounts.UpdateFollowerCount(req.ActorId); err != nil {
 		log.Println(err)
+	}
+
+	// Accepting an invitation to an event is saying you are going. When
+	// every place is taken the follow stands as it was made, which counts
+	// as maybe.
+	if target, err := h.env.Repos.Nodes.Read(req.ActorId); err == nil && target.Type == constants.NodeActorEventEntityType {
+		if _, err := h.env.Repos.Events.Rsvp(req.ActorId, req.InviteeId, constants.EventRsvpGoing); err != nil {
+			log.Println(err)
+		}
 	}
 
 	h.publishInvite(event.EventFormatEdgeInviteAccepted, invite, req.InviteeId)

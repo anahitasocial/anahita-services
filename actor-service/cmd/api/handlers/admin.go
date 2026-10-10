@@ -13,15 +13,21 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// adminHandler serves the administrators of one kind of actor: a group's,
+// or an event's.
 type adminHandler struct {
 	*Env
+	nodeType string
 }
 
 // NewAdminHandler creates a new admin handler
 func NewAdminHandler(env *Env) *adminHandler {
-	return &adminHandler{
-		env,
-	}
+	return &adminHandler{Env: env, nodeType: constants.NodeActorGroupType}
+}
+
+// NewEventAdminHandler serves the administrators of events.
+func NewEventAdminHandler(env *Env) *adminHandler {
+	return &adminHandler{Env: env, nodeType: an_constants.NodeActorEventEntityType}
 }
 
 // Browse returns a list of admins
@@ -42,7 +48,7 @@ func (h *adminHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ActorID, constants.NodeActorGroupType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ActorID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -95,7 +101,7 @@ func (h *adminHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ActorID, constants.NodeActorGroupType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ActorID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -175,7 +181,7 @@ func (h *adminHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ActorID, constants.NodeActorGroupType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ActorID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)

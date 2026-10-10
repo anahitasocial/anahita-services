@@ -31,7 +31,30 @@ const (
 	InviteMaxPerDay = 200
 	// InviteMaxPending is how many invitations to one actor may be waiting.
 	InviteMaxPending = 500
+	// InviteMinPendingForEvent is the least an event with a limit on places
+	// may have waiting, however few the places. See InviteMaxPendingFor.
+	InviteMinPendingForEvent = 50
 )
+
+// InviteMaxPendingFor is how many invitations may be waiting to an event
+// with this many places: twice the places, since not everybody says yes,
+// and never fewer than fifty. An event with no limit, like a group, has the
+// general one.
+func InviteMaxPendingFor(capacity uint32) uint64 {
+	if capacity == 0 {
+		return InviteMaxPending
+	}
+
+	most := uint64(capacity) * 2
+	if most < InviteMinPendingForEvent {
+		most = InviteMinPendingForEvent
+	}
+	if most > InviteMaxPending {
+		most = InviteMaxPending
+	}
+
+	return most
+}
 
 // What became of each person named in a request to invite.
 const (
@@ -44,4 +67,6 @@ const (
 	InviteResultRequested       = "requested"
 	InviteResultUnavailable     = "unavailable"
 	InviteResultFull            = "full"
+	// The event is over, or was called off: there is nothing to invite to.
+	InviteResultClosed = "closed"
 )

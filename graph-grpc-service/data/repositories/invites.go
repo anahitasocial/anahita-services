@@ -32,7 +32,8 @@ type Invite struct {
 // to this actor at all is asked before it is called.
 type InvitesRepoInterface interface {
 	// Add invites each of these people, and says what became of each one.
-	Add(actor *entities.AnahitaNode, inviterID int64, inviteeIDs []int64) (map[int64]string, error)
+	// maxWaiting is how many invitations to this actor may be waiting.
+	Add(actor *entities.AnahitaNode, inviterID int64, inviteeIDs []int64, maxWaiting uint64) (map[int64]string, error)
 
 	// Read returns the invitation waiting for this person to this actor, or
 	// nil.
@@ -327,7 +328,7 @@ func (r *invitesRepo) CountMadeLately(inviterID int64) (int, error) {
 // nobody among the three has blocked another, and they have not refused this
 // actor within the cooldown. An invitation that is already waiting is left
 // as it is.
-func (r *invitesRepo) Add(actor *entities.AnahitaNode, inviterID int64, inviteeIDs []int64) (map[int64]string, error) {
+func (r *invitesRepo) Add(actor *entities.AnahitaNode, inviterID int64, inviteeIDs []int64, maxWaiting uint64) (map[int64]string, error) {
 	results := map[int64]string{}
 	if actor == nil || len(inviteeIDs) == 0 {
 		return results, nil
@@ -484,7 +485,7 @@ WHERE type = ?
 			}
 		}
 
-		if waiting >= constants.InviteMaxPending {
+		if waiting >= maxWaiting {
 			results[id] = constants.InviteResultFull
 			continue
 		}

@@ -63,7 +63,7 @@ func TestInvitations(t *testing.T) {
 	}
 
 	// Alice invites everybody she can think of, herself and nobody included.
-	got, err := repo.Add(group, replyAlice, []int64{replyBob, replyCarol, dave, eve, frank, 99, replyAlice, replyBob})
+	got, err := repo.Add(group, replyAlice, []int64{replyBob, replyCarol, dave, eve, frank, 99, replyAlice, replyBob}, constants.InviteMaxPending)
 	if err != nil {
 		t.Fatalf("invite: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestInvitations(t *testing.T) {
 	}
 
 	// Inviting him again changes nothing.
-	if got, _ := repo.Add(group, replyAlice, []int64{replyBob}); got[replyBob] != constants.InviteResultPending {
+	if got, _ := repo.Add(group, replyAlice, []int64{replyBob}, constants.InviteMaxPending); got[replyBob] != constants.InviteResultPending {
 		t.Errorf("invited twice: %q, want pending", got[replyBob])
 	}
 
@@ -124,7 +124,7 @@ func TestInvitations(t *testing.T) {
 	if _, err := repo.Accept(replyGroup, replyBob); !errors.Is(err, ErrNoInvite) {
 		t.Errorf("accepting what was refused: %v, want ErrNoInvite", err)
 	}
-	if got, _ := repo.Add(group, replyAlice, []int64{replyBob}); got[replyBob] != constants.InviteResultCooldown {
+	if got, _ := repo.Add(group, replyAlice, []int64{replyBob}, constants.InviteMaxPending); got[replyBob] != constants.InviteResultCooldown {
 		t.Errorf("invited after refusing: %q, want cooldown", got[replyBob])
 	}
 
@@ -132,13 +132,13 @@ func TestInvitations(t *testing.T) {
 	if _, err := repo.Sweep(); err != nil {
 		t.Fatal(err)
 	}
-	if got, _ := repo.Add(group, replyAlice, []int64{replyBob}); got[replyBob] != constants.InviteResultCooldown {
+	if got, _ := repo.Add(group, replyAlice, []int64{replyBob}, constants.InviteMaxPending); got[replyBob] != constants.InviteResultCooldown {
 		t.Errorf("after a sweep inside the cooldown: %q, want cooldown", got[replyBob])
 	}
 	if _, err := db.Exec(`UPDATE edges SET updated_at = NOW() - INTERVAL 91 DAY WHERE type = ? AND node_a_id = ?`, constants.EdgeActorInviteEntityType, replyBob); err != nil {
 		t.Fatal(err)
 	}
-	if got, _ := repo.Add(group, replyAlice, []int64{replyBob}); got[replyBob] != constants.InviteResultInvited {
+	if got, _ := repo.Add(group, replyAlice, []int64{replyBob}, constants.InviteMaxPending); got[replyBob] != constants.InviteResultInvited {
 		t.Errorf("invited after the cooldown: %q, want invited", got[replyBob])
 	}
 
@@ -158,7 +158,7 @@ func TestInvitations(t *testing.T) {
 	}
 
 	// Grace is invited and the invitation is taken back.
-	if got, _ := repo.Add(group, replyAlice, []int64{grace}); got[grace] != constants.InviteResultInvited {
+	if got, _ := repo.Add(group, replyAlice, []int64{grace}, constants.InviteMaxPending); got[grace] != constants.InviteResultInvited {
 		t.Fatalf("Grace: %q, want invited", got[grace])
 	}
 	if _, err := repo.Delete(replyGroup, grace); err != nil {
@@ -169,7 +169,7 @@ func TestInvitations(t *testing.T) {
 	}
 
 	// Invited again and never answered: it lapses, and the sweep says so.
-	if got, _ := repo.Add(group, replyAlice, []int64{grace}); got[grace] != constants.InviteResultInvited {
+	if got, _ := repo.Add(group, replyAlice, []int64{grace}, constants.InviteMaxPending); got[grace] != constants.InviteResultInvited {
 		t.Fatalf("Grace again: %q, want invited", got[grace])
 	}
 	if _, err := db.Exec(`UPDATE edges SET ends_at = NOW() - INTERVAL 1 MINUTE WHERE type = ? AND node_a_id = ?`, constants.EdgeActorInviteEntityType, grace); err != nil {

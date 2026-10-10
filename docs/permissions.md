@@ -24,6 +24,7 @@ change them, and what profile owners can change for themselves.
 - [Likes](#likes)
 - [Following](#following)
 - [Invitations](#invitations)
+- [Events](#events)
 - [Reposts](#reposts)
 - [Quotes](#quotes)
 - [Saved posts](#saved-posts)
@@ -417,6 +418,39 @@ stops the next one. Whoever invited is not told of a refusal.
 **Adding a follower without asking** is for site administrators alone
 (`CanAddOthersAsFollowers`), for moderation and for moving data. It was the
 group's `follower` setting, which is still stored and is no longer read.
+
+## Events
+
+An event is an actor like a group, with a time and a place: followed, posted
+on, looked after by administrators. Everything said of a group here is true
+of an event: its access, its permissions, who can invite to it. What only an
+event has is below. The rules are in
+`anahita-libs/cmd/api/permissions/event.go`.
+
+Going to an event is following it. The answer, **going** or **maybe**, is on
+the follow. Following an event the ordinary way, with nothing said, counts as
+maybe.
+
+| Action | Who |
+| --- | --- |
+| Make an event | Whoever may make a group. They look after it, and are going |
+| Answer going or maybe | Somebody who can see the event and whom it has not blocked, or somebody invited to it |
+| Take an answer back | Always yours to do |
+| See where to join online | Whoever is going, and whoever looks after the event. Not maybe, not invited |
+| Change it, call it off | Whoever looks after it |
+
+- **Places.** An event can limit how many are going. Going is refused when
+  every place is taken (409 `event_full`); maybe is not counted. The check and
+  the answer are made under a lock on the event, so the last place is given
+  once however many ask at the same moment.
+- **Over or called off.** No answers are taken (410 `event_closed`), and
+  nobody can be invited. Leaving still works. An event that is called off is
+  kept, saying so.
+- **Invitations.** Accepting one is going, or maybe when every place is
+  taken. An event with a limit on places may have twice that many invitations
+  waiting, and never fewer than 50; with no limit, 500 as for a group.
+- **Its address** is set when it is made and does not change when it is
+  renamed, since invitations and calendars link to it.
 
 ## Reposts
 

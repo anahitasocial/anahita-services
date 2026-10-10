@@ -102,4 +102,31 @@ func (r *Routes) Init(e *echo.Echo) {
 	groups.GET("/:id/admins/", r.handler.Admin.Browse, r.authorize)
 	groups.POST("/:id/admins/", r.handler.Admin.Add, r.authorize)
 	groups.DELETE("/:id/admins/:admin_id", r.handler.Admin.Delete, r.authorize)
+
+	// events — an actor like a group, with a time and a place. Everything
+	// a group has, an event has, from the same handler told a different
+	// kind. What only an event has follows.
+	events := e.Group("events")
+	events.GET("/", r.handler.Event.Browse, r.setViewer)
+	events.GET("/:id", r.handler.Event.Read, r.setViewer)
+	events.POST("/", r.handler.Event.Add, r.authorize)
+	events.PATCH("/:id", r.handler.Event.Edit, r.authorize)
+	events.DELETE("/:id", r.handler.Event.Delete, r.authorize)
+	events.GET("/:id/deletion-counts", r.handler.Event.DeletionCounts, r.authorize)
+	events.DELETE("/:id/purge", r.handler.Event.Purge, r.authorize)
+	events.POST("/:id/archive", r.handler.Event.Archive, r.authorize)
+	events.PATCH("/:id/enabled", r.handler.Event.SetEnabled, r.authorize)
+	events.POST("/:id/restore", r.handler.Event.Restore, r.authorize)
+	events.PATCH("/:id/access", r.handler.Event.EditAccess, r.authorize)
+	events.PATCH("/:id/features", r.handler.Event.EditFeatures, r.authorize)
+
+	events.GET("/:id/admins/", r.handler.EventAdmin.Browse, r.authorize)
+	events.POST("/:id/admins/", r.handler.EventAdmin.Add, r.authorize)
+	events.DELETE("/:id/admins/:admin_id", r.handler.EventAdmin.Delete, r.authorize)
+
+	// Going, maybe, and not after all.
+	events.PUT("/:id/rsvp", r.handler.Event.Rsvp, r.authorize)
+	events.DELETE("/:id/rsvp", r.handler.Event.Unrsvp, r.authorize)
+	// Calling it off. It is kept, saying so.
+	events.POST("/:id/cancel", r.handler.Event.Cancel, r.authorize)
 }

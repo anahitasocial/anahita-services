@@ -125,9 +125,44 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **services `architecture.md`**: events in actor-service, the host edge, the `events` side table, the sweeper's event tasks.
 - **web `architecture.md`**, *Routes*: `/events` and the event pages and tabs.
 
+## What was built
+
+### Phase 1, the event itself: 2026-10-10
+
+Server only. An event can be made, read, changed, answered and called off through the API. Nothing in the web app yet.
+
+- **The type** `node.actor.actor-service.event.v1` (`constants.NodeActorEventEntityType`), with `graph-grpc-defaults/actor_features/event.json` and an entry in `feed-defaults`.
+- **One handler for both.** actor-service's group handler is told which kind it serves (`nodeType`), and serves events from the same code: read, list, access, features, administrators, archive, delete, purge. `handlers/event.go` adds what only an event has. `/events/` is routed by the gateway.
+- **The `events` table** (migration `20261017000001_events`, `init.sql`, `legacy/upgrade.sql`): time zone, places, online address, called off, reminded. When it starts and ends are the node's `starts_at` and `ends_at`.
+- **Answering** is following, with the answer in the follow edge's meta (`constants/events.go`). `EventsRepo.Rsvp` records it under a lock on the event's row.
+- **Routes:** `POST /events/`, `GET /events/:id`, `PATCH /events/:id`, `PUT` and `DELETE /events/:id/rsvp`, `POST /events/:id/cancel`, and everything `/groups/:id/...` has.
+- **The response** carries an `event` block: times in UTC, the zone, places, counts, `is_full`, the viewer's answer, and `state` (upcoming, happening, past, cancelled). `online_url` is in it only for whoever is going or looks after the event; `has_online_url` says there is one.
+- **Invitations know events:** none to an event that is over or called off (`closed`), fewer waiting when places are limited (`constants.InviteMaxPendingFor`), and accepting is going.
+
+Found and fixed on the way: **making a group made the group follow its maker**, not the maker follow the group. The two were the wrong way round in the call. No group had been made through this service on the development database, so no rows needed mending.
+
+Differences from the design above:
+
+- **Times are given as RFC 3339 with an offset** and stored in UTC, with the zone's name beside them.
+- **An event's address does not change when it is renamed.** A group's does.
+- **A follow with no answer counts as maybe,** so following an event from anywhere that offers Follow does something sensible.
+- **`GET /events/` lists every event the viewer may see,** as `/groups/` does. The plan has no list of everything; the viewer's own lists replace it in the next phase.
+
+Tests: `permissions/event_test.go`, `responses/event_test.go`, `constants/invites_test.go`; the graph's `TestEventTimesAreAnEventsAlone`; on a real database `TestEventAnswers` and `TestEventLastPlaceIsGivenOnce` (four people asking for one place at once).
+
+### Still to do
+
+1. **Lists:** the viewer's own (upcoming, invited, hosting, past), who is going and who said maybe, and an event's host group with the group's Events tab.
+2. **The calendar file** (`/events/:id/ics`).
+3. **The sweep:** archive 30 days after the end, drop invitations to events that are over, remind whoever is going a day before.
+4. **Notifications:** an answer (to hosts), a change of time or place, calling off, the reminder.
+5. **`host_followers` access,** for an event open to its host group's followers.
+6. **The web app:** the form with time zones, the event page, answering, the Events page and tabs.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Phase 1, the event itself (server) | done 2026-10-10 |
+| The rest, listed under Still to do | not started |

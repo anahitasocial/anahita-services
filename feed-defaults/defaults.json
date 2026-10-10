@@ -7,6 +7,7 @@
     ],
     "actor_entity_types": [
         "node.actor.group-service.group.v1",
+        "node.actor.actor-service.event.v1",
         "node.actor.person-service.person.v1"
     ]
 }

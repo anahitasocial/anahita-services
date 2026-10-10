@@ -39,12 +39,17 @@ type Handlers struct {
 	Person *personHandler
 	Group  *groupHandler
 	Admin  *adminHandler
+	// Events, and the administrators of events.
+	Event      *eventHandler
+	EventAdmin *adminHandler
 }
 
 func NewHandlers(env *Env) *Handlers {
 	return &Handlers{
-		Person: NewPersonHandler(env),
-		Group:  NewGroupHandler(env),
-		Admin:  NewAdminHandler(env),
+		Person:     NewPersonHandler(env),
+		Group:      NewGroupHandler(env),
+		Admin:      NewAdminHandler(env),
+		Event:      NewEventHandler(env),
+		EventAdmin: NewEventAdminHandler(env),
 	}
 }

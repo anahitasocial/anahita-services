@@ -201,6 +201,11 @@ type AnahitaNode struct {
 	// to answer.
 	IsInvitedViewer bool
 
+	// On an event: what only an event has. Nil on anything else.
+	Event *EventDetails
+	// Whether the viewer may be shown where to join it online.
+	EventShowsOnlineURL bool
+
 	RepostCount        int64
 	IsRepostedByViewer bool
 	CommentCount       int64

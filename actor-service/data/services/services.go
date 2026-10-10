@@ -12,6 +12,7 @@ func NewServices(config *config.Config) *Services {
 	return &Services{
 		ActorsGRPC:            services.NewActorsGRPC(config),
 		ActorAdminsGRPC:       services.NewActorAdminsGRPC(config),
+		EventsGRPC:            services.NewEventsGRPC(config),
 		FilesGRPC:             services.NewFilesGRPC(config),
 		GraphEdgeGRPC:         edges,
 		GraphNodeGRPC:         nodes,
@@ -25,6 +26,7 @@ type Services struct {
 	ActorsGRPC services.ActorsGRPCInterface
 	// The administrators of a group.
 	ActorAdminsGRPC services.ActorAdminsGRPCInterface
+	EventsGRPC      services.EventsGRPCInterface
 	FilesGRPC       services.FilesGRPCInterface
 	GraphEdgeGRPC   services.GraphEdgeGRPCInterface
 	GraphNodeGRPC   services.GraphNodeGRPCInterface

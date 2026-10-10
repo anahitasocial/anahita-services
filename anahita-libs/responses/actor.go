@@ -70,6 +70,10 @@ type ActorNodeItem struct {
 
 	// Author information
 	Author *Author `json:"author,omitempty"`
+
+	// On an event: when it is, how many may go and are going, and what the
+	// viewer answered. Left out on anything else.
+	Event *Event `json:"event,omitempty"`
 }
 
 type ActorNode struct {
@@ -169,6 +173,7 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		IsFollowingViewer: node.IsFollowingViewer,
 		IsBlockedByViewer: node.IsBlockedByViewer,
 		IsInvited:         node.IsInvitedViewer,
+		Event:             NewEvent(node),
 		Avatar: func() map[string]Image {
 			if node.Avatar != nil {
 				return NewAvatar(node.Avatar)

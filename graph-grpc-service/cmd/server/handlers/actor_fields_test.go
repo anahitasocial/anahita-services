@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+	"time"
 
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Edit re-reads the node and copies a whitelist over it, so a field left out
@@ -157,5 +161,41 @@ func TestActorFieldHelpersSurviveNilInput(t *testing.T) {
 
 	if node := newActorFromRequest(nil); node == nil {
 		t.Error("newActorFromRequest(nil) returned nil rather than an empty node")
+	}
+}
+
+// When an event is can be set as it is made and changed afterwards. On any
+// other actor the request's times are ignored.
+func TestEventTimesAreAnEventsAlone(t *testing.T) {
+	start := time.Date(2026, 11, 5, 19, 0, 0, 0, time.UTC)
+	end := start.Add(2 * time.Hour)
+
+	req := &graphpb.Node{
+		Type:     constants.NodeActorEventEntityType,
+		Name:     "Picnic",
+		StartsAt: timestamppb.New(start),
+		EndsAt:   timestamppb.New(end),
+	}
+
+	made := newActorFromRequest(req)
+	if !made.StartsAt.Equal(start) || !made.EndsAt.Equal(end) {
+		t.Errorf("a new event: %v to %v, want %v to %v", made.StartsAt, made.EndsAt, start, end)
+	}
+
+	later := start.Add(24 * time.Hour)
+	req.StartsAt = timestamppb.New(later)
+	req.EndsAt = timestamppb.New(later.Add(time.Hour))
+	applyEditableActorFields(made, req)
+	if !made.StartsAt.Equal(later) {
+		t.Errorf("an edited event starts %v, want %v", made.StartsAt, later)
+	}
+
+	group := &graphpb.Node{
+		Type:     "node.actor.group-service.group.v1",
+		StartsAt: timestamppb.New(start),
+		EndsAt:   timestamppb.New(end),
+	}
+	if got := newActorFromRequest(group); got.StartsAt.Equal(start) {
+		t.Error("a group took the request's start time")
 	}
 }

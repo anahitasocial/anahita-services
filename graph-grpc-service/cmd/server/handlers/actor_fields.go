@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/constants"
 	"encoding/json"
 
 	"anahita-libs/data/entities"
@@ -41,6 +42,7 @@ func applyEditableActorFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.AvatarFilename = req.AvatarFilename
 	node.CoverFilename = req.CoverFilename
 	node.AllowFollowRequest = req.AllowFollowRequest
+	applyEventTimes(node, req)
 	node.ShowRepostsOnProfile = req.ShowRepostsOnProfile
 	// Who may quote this person's posts, when a post does not say.
 	node.QuotePolicy = req.QuotePolicy
@@ -50,6 +52,18 @@ func applyEditableActorFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	// The language a person usually posts in. Kept as it is when the
 	// request carries none: the repository writes it only when it is set.
 	node.Language = req.Language
+}
+
+// applyEventTimes copies when an event starts and ends. Only an event's: on
+// any other actor these are not something anybody set, and are left as they
+// were.
+func applyEventTimes(node *entities.AnahitaNode, req *graphpb.Node) {
+	if node.Type != constants.NodeActorEventEntityType || req.StartsAt == nil || req.EndsAt == nil {
+		return
+	}
+
+	node.StartsAt = req.StartsAt.AsTime()
+	node.EndsAt = req.EndsAt.AsTime()
 }
 
 // personTypeIsEditable is deliberately absent from the whitelist above.
@@ -79,6 +93,9 @@ func newActorFromRequest(req *graphpb.Node) *entities.AnahitaNode {
 
 	node.Type = req.Type
 	node.Service = req.Service
+	// Again, now that it is known to be an event: the first time, above,
+	// the new node had no type yet.
+	applyEventTimes(node, req)
 	node.Meta = json.RawMessage(req.Meta)
 	node.CreatedBy = req.CreatedBy
 	// Settable once, at creation: signup has to be able to say "registered",

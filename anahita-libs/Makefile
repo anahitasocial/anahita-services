@@ -13,6 +13,7 @@ gen-proto:
 		proto/graphpb/like_rel.proto \
 		proto/graphpb/actor.proto \
 		proto/graphpb/actor_admin.proto \
+		proto/graphpb/event.proto \
 		proto/graphpb/medium.proto \
 		proto/graphpb/feed_leaders.proto \
 		proto/graphpb/feed_actor.proto \

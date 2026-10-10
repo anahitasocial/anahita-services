@@ -10,8 +10,6 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/requests"
 
-	"actor/constants"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -123,7 +121,7 @@ func (h *groupHandler) PurgeBatch(c echo.Context) error {
 func (h *groupHandler) requestPurge(c echo.Context, viewer *entities.Viewer, ids []int64, allowAdministrators bool) error {
 	result, err := h.Srv.ActorsGRPC.RequestPurge(&services.ActorPurgeRequest{
 		IDs:                 ids,
-		Type:                constants.NodeActorGroupType,
+		Type:                h.nodeType,
 		AllowAdministrators: allowAdministrators,
 	}, viewer)
 	if err != nil {
