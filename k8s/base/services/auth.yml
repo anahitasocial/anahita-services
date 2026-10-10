@@ -246,6 +246,12 @@ spec:
                   name: anahita-config
                   key: GROUPS_FROM
                   optional: true
+            - name: EVENTS_FROM
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: EVENTS_FROM
+                  optional: true
             - name: INVITE_PENDING_MAX
               valueFrom:
                 configMapKeyRef:

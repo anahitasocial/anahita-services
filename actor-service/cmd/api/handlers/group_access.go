@@ -94,7 +94,10 @@ func (h *groupHandler) getActorAccessContext(actor *entities.AnahitaNode, viewer
 		// future caller of CanAdd can forget: left empty the level ranks
 		// above every person type and nobody may create anything. Resolved
 		// through the config getter, so the default is already applied.
-		CreateLevel: h.Config.GetGroupsFrom(),
+		//
+		// Which setting depends on what this handler serves: making a
+		// group and making an event are asked separately.
+		CreateLevel: h.createLevel(),
 	}
 
 	ctx.ActorViewerRel, err = h.Srv.SocialgraphGRPC.Read(actor.ID, viewer.ID)
@@ -103,4 +106,14 @@ func (h *groupHandler) getActorAccessContext(actor *entities.AnahitaNode, viewer
 	}
 
 	return ctx, nil
+}
+
+// createLevel is the least role that may make an actor of the kind this
+// handler serves: GROUPS_FROM for a group, EVENTS_FROM for an event.
+func (h *groupHandler) createLevel() string {
+	if h.nodeType == an_constants.NodeActorEventEntityType {
+		return h.Config.GetEventsFrom()
+	}
+
+	return h.Config.GetGroupsFrom()
 }

@@ -214,12 +214,15 @@ Migration `20261018000001_events_take_no_handle` gives an event NULL in that col
 
 Found while answering the user's question about who may make an event, which this had to come before.
 
+### Who may make an event: 2026-10-10
+
+`EVENTS_FROM`, a setting of its own, decided by the user: `registered` unless an installation sets it higher. Read by actor-service, which enforces it, and published by auth-service in NodeInfo as `eventsFrom`, which is what the web app's + on the Events page follows. `GROUPS_FROM` is unchanged. An event for a group is its administrators' to make whatever either says.
+
 ### Still to do
 
 1. **`host_followers` access,** for an event open to its host group's followers.
-2. **Who may make an event of their own.** It follows `GROUPS_FROM`, which is administrators unless set otherwise. An event for a group is not held to that: its administrators may make one, and only they (fixed 2026-10-10, after the user asked). Asked of the user on 2026-10-10 and not answered: a setting of its own, `EVENTS_FROM`, was suggested.
-3. **Start a group from an event,** raised by the user on 2026-10-10: a new group with the event's hosts as administrators, to which whoever went is invited. Proposed in place of turning the event itself into a group, which would make followers of people who agreed to one evening and would break the event's address. Not decided.
-4. **Choosing a place on the event form.** A place can be tagged from the event's Locations tab.
+2. **Start a group from an event,** raised by the user on 2026-10-10: a new group with the event's hosts as administrators, to which whoever went is invited. Proposed in place of turning the event itself into a group, which would make followers of people who agreed to one evening and would break the event's address. Not decided.
+3. **Choosing a place on the event form.** A place can be tagged from the event's Locations tab.
 
 ## Status
 

@@ -10,9 +10,9 @@ import "strings"
 // anything else. A level that is not the plural of a person type would be a
 // person type Anahita does not have.
 //
-// Two settings use this scale today: INVITES_FROM, read by auth-service, and
-// GROUPS_FROM, read by group-service and republished by auth-service in
-// NodeInfo. They share the scale so the two cannot drift apart.
+// Three settings use this scale today: INVITES_FROM, read by auth-service,
+// and GROUPS_FROM and EVENTS_FROM, read by actor-service and republished by
+// auth-service in NodeInfo. They share the scale so they cannot drift apart.
 const (
 	// RoleLevelRegistered — any registered person, and everyone above.
 	RoleLevelRegistered = "registered"

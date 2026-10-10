@@ -119,6 +119,8 @@ Read by auth-service.
 | --- | --- |
 | `REGISTRATION_MODE` | `open`, `approval`, `invite` or `closed`. **Unset means `closed`**: no self-serve sign-up, and outstanding invitations stop working |
 | `INVITES_FROM` | `registered`, `administrators` (default) or `super-administrators` — the minimum role that may invite. Each admits that role and every role above it. In `approval` mode, an invitation from somebody who is not an administrator goes to the approval queue |
+| `GROUPS_FROM` | `registered`, `administrators` (default) or `super-administrators` — the minimum role that may make a group. Read by actor-service, which enforces it, and by auth-service, which publishes it in NodeInfo as `groupsFrom`; give both the same value |
+| `EVENTS_FROM` | `registered` (default), `administrators` or `super-administrators` — the minimum role that may make an event of their own. Read by actor-service, which enforces it, and by auth-service, which publishes it in NodeInfo as `eventsFrom`; give both the same value. An event made for a group is for that group's administrators whatever this says |
 | `INVITE_PENDING_MAX` | Outstanding invitations one person may have at once. Default `5` |
 | `INVITE_PENDING_MAX_ADMIN` | The same for administrators. Default `100` |
 | `TOS_URL`, `PRIVACY_URL` | Where the Terms and Privacy Policy are read: a path on the web app or a full URL. Default `/legal/tos` and `/legal/privacy`. Their versions are held by the web app, not here |
