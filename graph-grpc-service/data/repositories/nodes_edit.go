@@ -117,9 +117,10 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	if node.CoverFilename != "" {
 		query = query.Set("cover_filename", node.CoverFilename)
 	}
-	if node.AllowFollowRequest {
-		query = query.Set("allow_follow_request", node.AllowFollowRequest)
-	}
+	// Written whichever way it is, like the setting below it. It was only
+	// written when true, so once somebody let people ask to follow them
+	// there was no way to stop.
+	query = query.Set("allow_follow_request", node.AllowFollowRequest)
 	// Written whichever way it is, so that it can be turned off again. An
 	// edit of anything else carries what was read, and leaves it as it was.
 	query = query.Set("show_reposts_on_profile", node.ShowRepostsOnProfile)

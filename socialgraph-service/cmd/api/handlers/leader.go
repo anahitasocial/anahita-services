@@ -81,6 +81,7 @@ func (h *leaderHandler) Browse(c echo.Context) error {
 	graphReq.Direction = constants.GraphQueryDirectionOutbound
 	graphReq.Offset = req.Offset
 	graphReq.Limit = req.Limit
+	graphReq.Search = req.Search
 	graphReq.Viewer = viewer
 	graphReq.AccessCheck = true
 

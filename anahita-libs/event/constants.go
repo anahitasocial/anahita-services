@@ -56,6 +56,10 @@ const (
 
 	EventFormatEdgeFollowRequestAdded   = "edge.follow-request.%s.added.v1"
 	EventFormatEdgeFollowRequestDeleted = "edge.follow-request.%s.deleted.v1"
+	// Accepted, which also publishes Deleted (the request is gone) and
+	// EdgeFollowAdded (the follow is made). This one is for telling whoever
+	// asked.
+	EventFormatEdgeFollowRequestAccepted = "edge.follow-request.%s.accepted.v1"
 
 	EventFormatEdgeBlockAdded   = "edge.block.%s.added.v1"
 	EventFormatEdgeBlockDeleted = "edge.block.%s.deleted.v1"

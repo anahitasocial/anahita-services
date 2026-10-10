@@ -28,6 +28,9 @@ message SocialgraphFollowDeleteRequest {
     Target target = 1;
     Source source = 2;
     Viewer viewer = 3;
+    // The request to follow is what goes, not a follow: one ignored by
+    // whoever it was sent to, or taken back by whoever sent it.
+    bool is_follow_request = 4;
 }
 
 message SocialgraphFollowDeleteResponse {}

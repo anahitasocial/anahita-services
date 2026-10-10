@@ -82,6 +82,7 @@ func (h *followerHandler) Browse(c echo.Context) error {
 	graphReq.Direction = constants.GraphQueryDirectionInbound
 	graphReq.Offset = req.Offset
 	graphReq.Limit = req.Limit
+	graphReq.Search = req.Search
 	graphReq.Viewer = viewer
 	graphReq.AccessCheck = true
 	followers, total, err := h.Srv.GraphGRPC.BrowseConnectionNodes(graphReq)

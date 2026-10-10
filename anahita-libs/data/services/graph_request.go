@@ -67,11 +67,13 @@ type GrapBrowseNeighboursRequest struct {
 }
 
 type GraphBrowseConnectionNodesRequest struct {
-	NodeId      int64  `validate:"required,numeric"`
-	EdgeType    string `validate:"string,omitempty"`
-	Direction   string `validate:"required,oneof=IN OUT BOTH"`
-	Hops        uint32 `validate:"required,numeric"`
-	Distinct    bool
+	NodeId    int64  `validate:"required,numeric"`
+	EdgeType  string `validate:"string,omitempty"`
+	Direction string `validate:"required,oneof=IN OUT BOTH"`
+	Hops      uint32 `validate:"required,numeric"`
+	Distinct  bool
+	// Only the ones whose name or alias holds this.
+	Search      string
 	Limit       uint64 `validate:"omitempty,numeric,max=100"`
 	Offset      uint64 `validate:"omitempty,numeric"`
 	Ordering    string `validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`

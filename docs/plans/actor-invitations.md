@@ -122,9 +122,44 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **services `architecture.md`**: the invite edge, endpoints and events.
 - **web `architecture.md`**: the Invite dialog, notification actions (Accept/Decline) and pending invitations.
 
+## What was built
+
+### Step 0: the follow path, 2026-10-09
+
+The eight bugs listed above, checked against the code as it was that day, and
+five more found while checking.
+
+**From the list**
+
+| # | What | Fix |
+| --- | --- | --- |
+| 1 | The add-follower picker threw on the first letter | It is given the viewer, and lists the viewer's followers by name |
+| 2 | Accept sent POST | It sends PATCH |
+| 3 | Ignoring a request deleted nothing | The delete says it is a request (`is_follow_request`), and the graph removes that edge |
+| 4 | `allow_follow_request` could not be turned off | Written whichever way it is |
+| 5 | Anybody could make somebody else follow a person | `permissions.CanFollow`: the source is the viewer |
+| 6 | Unfollow looked for the notification under whoever did it | It looks under the follower |
+| 7 | A request told nobody | `edge.follow-request.*` events are published and notification-service listens: `actor_follow_request`, removed when answered, and `actor_follow_request_accept` to whoever asked |
+| 8 | Followers could not be searched | `search` on the graph's neighbour queries, by name or alias, in the list and in its count |
+
+**Found while checking**
+
+- **Anybody signed in could end anybody's follow** of a profile they could see. `permissions.CanRemoveFollower`: unfollowing, or whoever looks after the profile.
+- **A request could be filed on somebody else's behalf.** `permissions.CanRequestToFollow`: the source is the viewer.
+- **Accepting never worked in the graph either.** It set the type on the edge and saved it, and saving an edge does not write its type, so the request stayed a request while a "is following" notification went out. Accept now removes the request and adds a follow, and recounts.
+- **Whoever was asked could not ignore a request:** the two arguments of the check were named the wrong way round, so it asked about the asker's profile.
+- **Asking needed the asker to be able to see the profile,** and a profile that can be seen can be followed outright. So no request could be made of the only profiles worth asking.
+
+**Left open, for the user to decide**
+
+Follow requests now work through the API and are tested, but nothing in the web app makes one. The Follow button always follows, and somebody who cannot see a profile is refused the whole page (403), so there is nothing to press. Making them usable needs a limited view of a restricted profile (name, avatar, and a button to ask) for a profile that lets people ask. Invitations need the same limited view: "a pending invitation grants read access to the actor's profile". Proposed: build it once, as the first part of the invitation work.
+
+Tests: `anahita-libs/cmd/api/permissions/follow_test.go`; on a real database, `TestFollowersByName` and the round trip of `allow_follow_request`.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Step 0, the follow path | done 2026-10-09 |
+| Invitations | not started |

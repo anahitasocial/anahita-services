@@ -22,6 +22,7 @@ change them, and what profile owners can change for themselves.
   - [Editing, deleting and hiding a reply](#editing-deleting-and-hiding-a-reply)
   - [Liking a reply](#liking-a-reply)
 - [Likes](#likes)
+- [Following](#following)
 - [Adding followers to a group](#adding-followers-to-a-group)
 - [Reposts](#reposts)
 - [Quotes](#quotes)
@@ -314,6 +315,40 @@ Who can like a post or a reply on a profile. The viewer has to be able to
 read the post, then meet the level set for likes.
 
 Default: `followers`.
+
+## Following
+
+The rules are in `anahita-libs/cmd/api/permissions/follow.go`, and
+socialgraph-service asks them.
+
+| Action | Who |
+| --- | --- |
+| Follow a profile | Yourself, a profile you can see, and that has not blocked you |
+| Unfollow | Always yours to do, whether or not you can still see the profile |
+| Remove a follower | Whoever looks after the profile: the person, a group's administrators, a site administrator |
+| Ask to follow | Yourself, of a profile that lets people ask and has not blocked you, when you do not follow it already |
+| Accept a request | Whoever looks after the profile that was asked |
+| Ignore a request, or take it back | Whoever looks after the profile, or whoever asked |
+
+Nobody follows, or asks to follow, on somebody else's behalf. The one
+exception is the group setting below.
+
+Asking does not need you to be able to see the profile. A profile you can see,
+you can follow outright; the ones worth asking are the ones you cannot.
+"Others can request to follow" (`allow_follow_request`) is the profile saying
+it may be asked, and it can be turned off again.
+
+A request is an edge of its own, `edge.actor.follow-request.v1`, and is not
+counted among followers. Accepting removes it and makes the follow. Following
+directly, where that is allowed, removes a request that was waiting.
+
+Whoever looks after the profile is told of a request (`actor_follow_request`),
+and that notification goes when the request is answered or taken back.
+Whoever asked is told when it is accepted (`actor_follow_request_accept`).
+
+**Not built yet:** somebody who cannot see a profile is shown nothing of it,
+so there is nowhere in the web app to ask from. The requests work through the
+API. See [plans/actor-invitations.md](plans/actor-invitations.md).
 
 ## Adding followers to a group
 

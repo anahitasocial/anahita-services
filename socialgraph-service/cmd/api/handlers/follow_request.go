@@ -263,6 +263,10 @@ func (h *followRequestHandler) Delete(c echo.Context) error {
 	delReq.Source = source
 	delReq.Target = target
 	delReq.Viewer = viewer
+	// The request is what goes. Without saying so the graph looked for a
+	// follow between the two, found none and removed nothing, so an ignored
+	// request stayed in the list for good.
+	delReq.IsFollowRequest = true
 	if err := h.Srv.SocialgraphFollowGRPC.Delete(delReq); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

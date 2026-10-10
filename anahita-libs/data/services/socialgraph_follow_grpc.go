@@ -131,6 +131,7 @@ func (srv *SocialgraphFollowGRPC) Delete(req *SocialgraphFollowDeleteRequest) er
 			Email:      req.Viewer.Email,
 			Username:   req.Viewer.Username,
 		},
+		IsFollowRequest: req.IsFollowRequest,
 	})
 	if err != nil {
 		return err

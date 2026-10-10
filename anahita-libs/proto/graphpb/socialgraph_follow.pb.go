@@ -230,12 +230,15 @@ func (*SocialgraphFollowAddResponse) Descriptor() ([]byte, []int) {
 }
 
 type SocialgraphFollowDeleteRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
-	Source        *Source                `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
-	Viewer        *Viewer                `protobuf:"bytes,3,opt,name=viewer,proto3" json:"viewer,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Target *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Source *Source                `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
+	Viewer *Viewer                `protobuf:"bytes,3,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	// The request to follow is what goes, not a follow: one ignored by
+	// whoever it was sent to, or taken back by whoever sent it.
+	IsFollowRequest bool `protobuf:"varint,4,opt,name=is_follow_request,json=isFollowRequest,proto3" json:"is_follow_request,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *SocialgraphFollowDeleteRequest) Reset() {
@@ -287,6 +290,13 @@ func (x *SocialgraphFollowDeleteRequest) GetViewer() *Viewer {
 		return x.Viewer
 	}
 	return nil
+}
+
+func (x *SocialgraphFollowDeleteRequest) GetIsFollowRequest() bool {
+	if x != nil {
+		return x.IsFollowRequest
+	}
+	return false
 }
 
 type SocialgraphFollowDeleteResponse struct {
@@ -341,11 +351,12 @@ const file_proto_graphpb_socialgraph_follow_proto_rawDesc = "" +
 	"\x06source\x18\x02 \x01(\v2\r.graph.SourceR\x06source\x12%\n" +
 	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\x12*\n" +
 	"\x11is_follow_request\x18\x04 \x01(\bR\x0fisFollowRequest\"\x1e\n" +
-	"\x1cSocialgraphFollowAddResponse\"\x95\x01\n" +
+	"\x1cSocialgraphFollowAddResponse\"\xc1\x01\n" +
 	"\x1eSocialgraphFollowDeleteRequest\x12%\n" +
 	"\x06target\x18\x01 \x01(\v2\r.graph.TargetR\x06target\x12%\n" +
 	"\x06source\x18\x02 \x01(\v2\r.graph.SourceR\x06source\x12%\n" +
-	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\"!\n" +
+	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\x12*\n" +
+	"\x11is_follow_request\x18\x04 \x01(\bR\x0fisFollowRequest\"!\n" +
 	"\x1fSocialgraphFollowDeleteResponse2\x96\x02\n" +
 	"\x18SocialgraphFollowService\x12Q\n" +
 	"\x04Edit\x12#.graph.SocialgraphFollowEditRequest\x1a$.graph.SocialgraphFollowEditResponse\x12N\n" +

@@ -19,6 +19,8 @@ message BrowseNeighboursRequest {
     string ordering_dir = 7; // "ASC", "DESC"
     Viewer viewer = 8;
     bool access_check = 9;
+    // Only neighbours whose name or alias holds this.
+    string search = 10;
 }
 
 message BrowseNeighboursResponse {
@@ -38,6 +40,8 @@ message BrowseConnectionNodesRequest {
     string ordering_dir = 9;
     Viewer viewer = 10;
     bool access_check = 11;
+    // Only the ones whose name or alias holds this.
+    string search = 12;
 }
 
 message BrowseConnectionNodesResponse {

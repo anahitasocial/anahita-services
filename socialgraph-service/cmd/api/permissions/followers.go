@@ -52,61 +52,15 @@ func (p *followersPermissions) CanAdd(source *entities.AnahitaNode, target *enti
 		return false, errors.New(ErrInsufficientScope)
 	}
 
-	if source.ID == target.ID {
-		return false, fmt.Errorf("source %d cannot follow itself", source.ID)
-	}
-
-	if viewer.ID == target.ID {
-		return false, fmt.Errorf("viewer %d cannot follow itself", viewer.ID)
-	}
-
-	targetVsViewer, err := p.Srv.SocialgraphGRPC.Read(target.ID, viewer.ID)
+	ctx, err := followContext(p.Env, source, target, viewer)
 	if err != nil {
 		return false, err
 	}
 
-	actorPerm := permissions.NewActorPermissions()
-	ctx := &permissions.ActorAccessContext{
-		Viewer:         viewer,
-		Actor:          target,
-		ActorViewerRel: targetVsViewer,
-	}
-
-	ok, err := actorPerm.CanRead(ctx)
-	if err != nil {
-		return false, err
-	}
-	if !ok {
-		return false, fmt.Errorf("%s: source %d, target %d", ErrFollowersAddNotAllowed, source.ID, target.ID)
-	}
-
-	targetVsSourceRel, err := p.Srv.SocialgraphGRPC.Read(target.ID, source.ID)
-	if err != nil {
-		return false, err
-	}
-	if targetVsSourceRel.IsBlocking {
-		return false, fmt.Errorf("target %d is blocking source %d", target.ID, source.ID)
-	}
-
-	if target.IsPerson() {
-		return true, nil
-	}
-
-	// Joining a group yourself: seeing it is enough, as for a person. The
-	// read check above has already asked that.
-	if source.ID == viewer.ID {
-		return true, nil
-	}
-
-	// Adding somebody else: the group's "follower" permission, measured
-	// against the VIEWER doing the adding.
-	//
-	// It used to test targetVsSourceRel.HasAdmin — whether the person being
-	// ADDED administers the group — and every join goes through here with
-	// the joiner as the source. So with the default, admins, nobody but the
-	// group's own administrators could follow a public group, and those
-	// administrators could not add anybody else.
-	if permissions.CanAddOthersAsFollowers(viewer, target, targetVsViewer) {
+	// The rule is in anahita-libs: following is done for yourself, to
+	// something you can see, and the one case of adding somebody else is a
+	// group's "follower" permission.
+	if permissions.CanFollow(ctx) {
 		return true, nil
 	}
 
@@ -118,25 +72,41 @@ func (p *followersPermissions) CanDelete(source *entities.AnahitaNode, target *e
 		return false, errors.New(ErrInsufficientScope)
 	}
 
-	targetVsViewer, err := p.Srv.SocialgraphGRPC.Read(target.ID, viewer.ID)
+	ctx, err := followContext(p.Env, source, target, viewer)
 	if err != nil {
 		return false, err
 	}
 
-	actorPerm := permissions.NewActorPermissions()
-	ctx := &permissions.ActorAccessContext{
-		Viewer:         viewer,
-		Actor:          target,
-		ActorViewerRel: targetVsViewer,
-	}
-
-	ok, err := actorPerm.CanRead(ctx)
-	if err != nil {
-		return false, err
-	}
-	if ok {
+	// Unfollowing, or whoever looks after the target removing a follower.
+	// It was anybody who could see the target.
+	if permissions.CanRemoveFollower(ctx) {
 		return true, nil
 	}
 
 	return false, fmt.Errorf("%s: viewer %d, source %d, target %d", ErrFollowersDeleteNotAllowed, viewer.ID, source.ID, target.ID)
+}
+
+// followContext reads what the follow rules are asked over: the target's
+// relation to the viewer, and to the source when that is somebody else.
+func followContext(env *Env, source *entities.AnahitaNode, target *entities.AnahitaNode, viewer *entities.Viewer) (*permissions.FollowContext, error) {
+	targetVsViewer, err := env.Srv.SocialgraphGRPC.Read(target.ID, viewer.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	targetVsSource := targetVsViewer
+	if source.ID != viewer.ID {
+		targetVsSource, err = env.Srv.SocialgraphGRPC.Read(target.ID, source.ID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &permissions.FollowContext{
+		Viewer:          viewer,
+		Source:          source,
+		Target:          target,
+		TargetViewerRel: targetVsViewer,
+		TargetSourceRel: targetVsSource,
+	}, nil
 }

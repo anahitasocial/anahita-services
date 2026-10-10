@@ -63,6 +63,8 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 		query = query.Where(sq.Eq{"edge.type": req.EdgeTypes})
 	}
 
+	query = setNeighbourSearchQuery(query, req.Search)
+
 	// ALWAYS, not `if req.AccessCheck` — see the note in nodes.go. The flag is
 	// a protobuf bool that arrives false unless a caller sets it, and none do.
 	//
@@ -135,6 +137,9 @@ func (r *graphRepo) CountNeighbours(req *graphpb.BrowseNeighboursRequest, viewer
 		query = query.Where(sq.Eq{"edge.type": req.EdgeTypes[0]})
 	}
 
+	// The same narrowing as the list, or the total is of a different list.
+	query = setNeighbourSearchQuery(query, req.Search)
+
 	// countQuery = countQuery.Where(sq.Eq{"node.enabled": req.Enabled})
 
 	// The owner join exists only so the gate below can read owner.access. The
@@ -178,8 +183,25 @@ func (r *graphRepo) BrowseConnectionNodes(req *graphpb.BrowseConnectionNodesRequ
 		AccessCheck: req.AccessCheck,
 		Ordering:    req.Ordering,
 		OrderingDir: req.OrderingDir,
+		Search:      req.Search,
 	}
 	return r.BrowseNeighbours(req2, viewer)
+}
+
+// setNeighbourSearchQuery keeps the neighbours whose name or alias holds what
+// was typed: a follower found by name. Nothing typed keeps them all.
+func setNeighbourSearchQuery(query sq.SelectBuilder, search string) sq.SelectBuilder {
+	search = sanitizeSearchString(search)
+	if search == "" {
+		return query
+	}
+
+	likePattern := "%" + search + "%"
+
+	return query.Where(sq.Or{
+		sq.Like{"node.name": likePattern},
+		sq.Like{"node.alias": likePattern},
+	})
 }
 
 // CountConnectionNodes returns the total number of 1-hop neighbors connected by a single edge type.
@@ -193,6 +215,7 @@ func (r *graphRepo) CountConnectionNodes(req *graphpb.BrowseConnectionNodesReque
 		EdgeTypes:   []string{req.EdgeType},
 		Direction:   req.Direction,
 		AccessCheck: req.AccessCheck,
+		Search:      req.Search,
 	}
 	return r.CountNeighbours(req2, viewer)
 }

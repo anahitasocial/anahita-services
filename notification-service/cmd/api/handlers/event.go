@@ -61,6 +61,18 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 	}
 
+	// Requests to follow. Not caught by the test above: that one ends in
+	// a full stop, and this name goes on with a hyphen.
+	if strings.Contains(payload.Name, "edge.follow-request.") {
+		if strings.Contains(payload.Name, ".added.v1") {
+			err = h.eventFormatEdgeFollowRequestAdded(payload)
+		} else if strings.Contains(payload.Name, ".deleted.v1") {
+			err = h.eventFormatEdgeFollowRequestDeleted(payload)
+		} else if strings.Contains(payload.Name, ".accepted.v1") {
+			err = h.eventFormatEdgeFollowRequestAccepted(payload)
+		}
+	}
+
 	// Voteup edge events
 	if strings.Contains(payload.Name, "edge.voteup.") {
 		if strings.Contains(payload.Name, ".added.v1") {

@@ -24,6 +24,7 @@ func startEventListerner(h *handlers.Handlers, config *config.Config) error {
 		"node.repost.*.*.*.v1",
 		"edge.voteup.*.*.v1",
 		"edge.follow.*.*.v1",
+		"edge.follow-request.*.*.v1",
 		"edge.admin.*.*.v1",
 	}
 	if err = cosumer.Listen(topics, h.Event.HandleEvents); err != nil {
