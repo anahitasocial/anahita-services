@@ -109,6 +109,10 @@ func Run(db *sql.DB, repos *repositories.Repositories, publisher *event.Publishe
 	// over.
 	Invites(repos, publisher)
 
+	// What time does to events: reminders, invitations to ones that are
+	// over, and archiving the ones long finished.
+	Events(repos, publisher)
+
 	cutoff := time.Now().UTC().AddDate(0, 0, -GraceDays)
 
 	ids, err := repos.Nodes.BrowseDeletedBefore(cutoff, BatchSize)

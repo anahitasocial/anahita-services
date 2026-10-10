@@ -51,6 +51,18 @@ message EventRsvpRequest {
     string rsvp = 3;
 }
 
+// Telling everybody who answered an event that when it is has changed.
+message EventAnnounceChangeRequest {
+    int64 event_id = 1;
+    // Whoever changed it. They are not told.
+    int64 viewer_id = 2;
+}
+
+message EventAnnounceChangeResponse {
+    // How many people were told.
+    uint64 told = 1;
+}
+
 message EventRsvpResponse {
     // saved, full, closed or missing.
     string result = 1;
@@ -58,6 +70,8 @@ message EventRsvpResponse {
 
 message EventCancelRequest {
     int64 event_id = 1;
+    // Whoever called it off. Everybody else who answered is told.
+    int64 viewer_id = 2;
 }
 
 message EventCancelResponse {
@@ -92,4 +106,5 @@ service EventService {
     rpc Rsvp(EventRsvpRequest) returns (EventRsvpResponse);
     rpc Cancel(EventCancelRequest) returns (EventCancelResponse);
     rpc List(EventListRequest) returns (EventListResponse);
+    rpc AnnounceChange(EventAnnounceChangeRequest) returns (EventAnnounceChangeResponse);
 }

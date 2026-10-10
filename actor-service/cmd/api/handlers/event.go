@@ -248,6 +248,10 @@ func (h *eventHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
+	// Whether when it is is being changed, which is what whoever answered
+	// has to hear of. A new name or description is not.
+	timesChanged := !actor.StartsAt.Equal(startsAt) || !actor.EndsAt.Equal(endsAt)
+
 	// Its address is left as it was when it was made: an event is linked to
 	// from invitations and calendars, and renaming it should not break them.
 	actor.Name = req.Name
@@ -269,6 +273,12 @@ func (h *eventHandler) Edit(c echo.Context) error {
 	}); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if timesChanged {
+		if err := h.Srv.EventsGRPC.AnnounceChange(actor.ID, viewer.ID); err != nil {
+			log.Println(err)
+		}
 	}
 
 	return h.respond(c, actor.ID, viewer, http.StatusOK)
@@ -414,7 +424,7 @@ func (h *eventHandler) Cancel(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	if _, err := h.Srv.EventsGRPC.Cancel(actor.ID); err != nil {
+	if _, err := h.Srv.EventsGRPC.Cancel(actor.ID, viewer.ID); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}

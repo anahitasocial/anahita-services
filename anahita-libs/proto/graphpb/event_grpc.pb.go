@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EventService_Save_FullMethodName   = "/graph.EventService/Save"
-	EventService_Read_FullMethodName   = "/graph.EventService/Read"
-	EventService_Rsvp_FullMethodName   = "/graph.EventService/Rsvp"
-	EventService_Cancel_FullMethodName = "/graph.EventService/Cancel"
-	EventService_List_FullMethodName   = "/graph.EventService/List"
+	EventService_Save_FullMethodName           = "/graph.EventService/Save"
+	EventService_Read_FullMethodName           = "/graph.EventService/Read"
+	EventService_Rsvp_FullMethodName           = "/graph.EventService/Rsvp"
+	EventService_Cancel_FullMethodName         = "/graph.EventService/Cancel"
+	EventService_List_FullMethodName           = "/graph.EventService/List"
+	EventService_AnnounceChange_FullMethodName = "/graph.EventService/AnnounceChange"
 )
 
 // EventServiceClient is the client API for EventService service.
@@ -35,6 +36,7 @@ type EventServiceClient interface {
 	Rsvp(ctx context.Context, in *EventRsvpRequest, opts ...grpc.CallOption) (*EventRsvpResponse, error)
 	Cancel(ctx context.Context, in *EventCancelRequest, opts ...grpc.CallOption) (*EventCancelResponse, error)
 	List(ctx context.Context, in *EventListRequest, opts ...grpc.CallOption) (*EventListResponse, error)
+	AnnounceChange(ctx context.Context, in *EventAnnounceChangeRequest, opts ...grpc.CallOption) (*EventAnnounceChangeResponse, error)
 }
 
 type eventServiceClient struct {
@@ -95,6 +97,16 @@ func (c *eventServiceClient) List(ctx context.Context, in *EventListRequest, opt
 	return out, nil
 }
 
+func (c *eventServiceClient) AnnounceChange(ctx context.Context, in *EventAnnounceChangeRequest, opts ...grpc.CallOption) (*EventAnnounceChangeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EventAnnounceChangeResponse)
+	err := c.cc.Invoke(ctx, EventService_AnnounceChange_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EventServiceServer is the server API for EventService service.
 // All implementations must embed UnimplementedEventServiceServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type EventServiceServer interface {
 	Rsvp(context.Context, *EventRsvpRequest) (*EventRsvpResponse, error)
 	Cancel(context.Context, *EventCancelRequest) (*EventCancelResponse, error)
 	List(context.Context, *EventListRequest) (*EventListResponse, error)
+	AnnounceChange(context.Context, *EventAnnounceChangeRequest) (*EventAnnounceChangeResponse, error)
 	mustEmbedUnimplementedEventServiceServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedEventServiceServer) Cancel(context.Context, *EventCancelReque
 }
 func (UnimplementedEventServiceServer) List(context.Context, *EventListRequest) (*EventListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedEventServiceServer) AnnounceChange(context.Context, *EventAnnounceChangeRequest) (*EventAnnounceChangeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AnnounceChange not implemented")
 }
 func (UnimplementedEventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
 func (UnimplementedEventServiceServer) testEmbeddedByValue()                      {}
@@ -240,6 +256,24 @@ func _EventService_List_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EventService_AnnounceChange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EventAnnounceChangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).AnnounceChange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EventService_AnnounceChange_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).AnnounceChange(ctx, req.(*EventAnnounceChangeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EventService_ServiceDesc is the grpc.ServiceDesc for EventService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _EventService_List_Handler,
+		},
+		{
+			MethodName: "AnnounceChange",
+			Handler:    _EventService_AnnounceChange_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

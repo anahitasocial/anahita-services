@@ -376,6 +376,105 @@ func (x *EventRsvpRequest) GetRsvp() string {
 	return ""
 }
 
+// Telling everybody who answered an event that when it is has changed.
+type EventAnnounceChangeRequest struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	EventId int64                  `protobuf:"varint,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	// Whoever changed it. They are not told.
+	ViewerId      int64 `protobuf:"varint,2,opt,name=viewer_id,json=viewerId,proto3" json:"viewer_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EventAnnounceChangeRequest) Reset() {
+	*x = EventAnnounceChangeRequest{}
+	mi := &file_proto_graphpb_event_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EventAnnounceChangeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EventAnnounceChangeRequest) ProtoMessage() {}
+
+func (x *EventAnnounceChangeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_event_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EventAnnounceChangeRequest.ProtoReflect.Descriptor instead.
+func (*EventAnnounceChangeRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *EventAnnounceChangeRequest) GetEventId() int64 {
+	if x != nil {
+		return x.EventId
+	}
+	return 0
+}
+
+func (x *EventAnnounceChangeRequest) GetViewerId() int64 {
+	if x != nil {
+		return x.ViewerId
+	}
+	return 0
+}
+
+type EventAnnounceChangeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// How many people were told.
+	Told          uint64 `protobuf:"varint,1,opt,name=told,proto3" json:"told,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EventAnnounceChangeResponse) Reset() {
+	*x = EventAnnounceChangeResponse{}
+	mi := &file_proto_graphpb_event_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EventAnnounceChangeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EventAnnounceChangeResponse) ProtoMessage() {}
+
+func (x *EventAnnounceChangeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_event_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EventAnnounceChangeResponse.ProtoReflect.Descriptor instead.
+func (*EventAnnounceChangeResponse) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *EventAnnounceChangeResponse) GetTold() uint64 {
+	if x != nil {
+		return x.Told
+	}
+	return 0
+}
+
 type EventRsvpResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// saved, full, closed or missing.
@@ -386,7 +485,7 @@ type EventRsvpResponse struct {
 
 func (x *EventRsvpResponse) Reset() {
 	*x = EventRsvpResponse{}
-	mi := &file_proto_graphpb_event_proto_msgTypes[6]
+	mi := &file_proto_graphpb_event_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -398,7 +497,7 @@ func (x *EventRsvpResponse) String() string {
 func (*EventRsvpResponse) ProtoMessage() {}
 
 func (x *EventRsvpResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_event_proto_msgTypes[6]
+	mi := &file_proto_graphpb_event_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -411,7 +510,7 @@ func (x *EventRsvpResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventRsvpResponse.ProtoReflect.Descriptor instead.
 func (*EventRsvpResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{6}
+	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *EventRsvpResponse) GetResult() string {
@@ -422,15 +521,17 @@ func (x *EventRsvpResponse) GetResult() string {
 }
 
 type EventCancelRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	EventId       int64                  `protobuf:"varint,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	EventId int64                  `protobuf:"varint,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	// Whoever called it off. Everybody else who answered is told.
+	ViewerId      int64 `protobuf:"varint,2,opt,name=viewer_id,json=viewerId,proto3" json:"viewer_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EventCancelRequest) Reset() {
 	*x = EventCancelRequest{}
-	mi := &file_proto_graphpb_event_proto_msgTypes[7]
+	mi := &file_proto_graphpb_event_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -442,7 +543,7 @@ func (x *EventCancelRequest) String() string {
 func (*EventCancelRequest) ProtoMessage() {}
 
 func (x *EventCancelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_event_proto_msgTypes[7]
+	mi := &file_proto_graphpb_event_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -455,12 +556,19 @@ func (x *EventCancelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventCancelRequest.ProtoReflect.Descriptor instead.
 func (*EventCancelRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{7}
+	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *EventCancelRequest) GetEventId() int64 {
 	if x != nil {
 		return x.EventId
+	}
+	return 0
+}
+
+func (x *EventCancelRequest) GetViewerId() int64 {
+	if x != nil {
+		return x.ViewerId
 	}
 	return 0
 }
@@ -475,7 +583,7 @@ type EventCancelResponse struct {
 
 func (x *EventCancelResponse) Reset() {
 	*x = EventCancelResponse{}
-	mi := &file_proto_graphpb_event_proto_msgTypes[8]
+	mi := &file_proto_graphpb_event_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -487,7 +595,7 @@ func (x *EventCancelResponse) String() string {
 func (*EventCancelResponse) ProtoMessage() {}
 
 func (x *EventCancelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_event_proto_msgTypes[8]
+	mi := &file_proto_graphpb_event_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -500,7 +608,7 @@ func (x *EventCancelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventCancelResponse.ProtoReflect.Descriptor instead.
 func (*EventCancelResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{8}
+	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *EventCancelResponse) GetChanged() bool {
@@ -530,7 +638,7 @@ type EventListRequest struct {
 
 func (x *EventListRequest) Reset() {
 	*x = EventListRequest{}
-	mi := &file_proto_graphpb_event_proto_msgTypes[9]
+	mi := &file_proto_graphpb_event_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -542,7 +650,7 @@ func (x *EventListRequest) String() string {
 func (*EventListRequest) ProtoMessage() {}
 
 func (x *EventListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_event_proto_msgTypes[9]
+	mi := &file_proto_graphpb_event_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -555,7 +663,7 @@ func (x *EventListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventListRequest.ProtoReflect.Descriptor instead.
 func (*EventListRequest) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{9}
+	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *EventListRequest) GetPersonId() int64 {
@@ -618,7 +726,7 @@ type EventListResponse struct {
 
 func (x *EventListResponse) Reset() {
 	*x = EventListResponse{}
-	mi := &file_proto_graphpb_event_proto_msgTypes[10]
+	mi := &file_proto_graphpb_event_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -630,7 +738,7 @@ func (x *EventListResponse) String() string {
 func (*EventListResponse) ProtoMessage() {}
 
 func (x *EventListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_graphpb_event_proto_msgTypes[10]
+	mi := &file_proto_graphpb_event_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -643,7 +751,7 @@ func (x *EventListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventListResponse.ProtoReflect.Descriptor instead.
 func (*EventListResponse) Descriptor() ([]byte, []int) {
-	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{10}
+	return file_proto_graphpb_event_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *EventListResponse) GetIds() []int64 {
@@ -693,11 +801,17 @@ const file_proto_graphpb_event_proto_rawDesc = "" +
 	"\x10EventRsvpRequest\x12\x19\n" +
 	"\bevent_id\x18\x01 \x01(\x03R\aeventId\x12\x1b\n" +
 	"\tperson_id\x18\x02 \x01(\x03R\bpersonId\x12\x12\n" +
-	"\x04rsvp\x18\x03 \x01(\tR\x04rsvp\"+\n" +
+	"\x04rsvp\x18\x03 \x01(\tR\x04rsvp\"T\n" +
+	"\x1aEventAnnounceChangeRequest\x12\x19\n" +
+	"\bevent_id\x18\x01 \x01(\x03R\aeventId\x12\x1b\n" +
+	"\tviewer_id\x18\x02 \x01(\x03R\bviewerId\"1\n" +
+	"\x1bEventAnnounceChangeResponse\x12\x12\n" +
+	"\x04told\x18\x01 \x01(\x04R\x04told\"+\n" +
 	"\x11EventRsvpResponse\x12\x16\n" +
-	"\x06result\x18\x01 \x01(\tR\x06result\"/\n" +
+	"\x06result\x18\x01 \x01(\tR\x06result\"L\n" +
 	"\x12EventCancelRequest\x12\x19\n" +
-	"\bevent_id\x18\x01 \x01(\x03R\aeventId\"/\n" +
+	"\bevent_id\x18\x01 \x01(\x03R\aeventId\x12\x1b\n" +
+	"\tviewer_id\x18\x02 \x01(\x03R\bviewerId\"/\n" +
 	"\x13EventCancelResponse\x12\x18\n" +
 	"\achanged\x18\x01 \x01(\bR\achanged\"\xd9\x01\n" +
 	"\x10EventListRequest\x12\x1b\n" +
@@ -710,13 +824,14 @@ const file_proto_graphpb_event_proto_rawDesc = "" +
 	"\x12viewer_person_type\x18\a \x01(\tR\x10viewerPersonType\";\n" +
 	"\x11EventListResponse\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\x03R\x03ids\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x04R\x05total2\xbb\x02\n" +
+	"\x05total\x18\x02 \x01(\x04R\x05total2\x94\x03\n" +
 	"\fEventService\x129\n" +
 	"\x04Save\x12\x17.graph.EventSaveRequest\x1a\x18.graph.EventSaveResponse\x129\n" +
 	"\x04Read\x12\x17.graph.EventReadRequest\x1a\x18.graph.EventReadResponse\x129\n" +
 	"\x04Rsvp\x12\x17.graph.EventRsvpRequest\x1a\x18.graph.EventRsvpResponse\x12?\n" +
 	"\x06Cancel\x12\x19.graph.EventCancelRequest\x1a\x1a.graph.EventCancelResponse\x129\n" +
-	"\x04List\x12\x17.graph.EventListRequest\x1a\x18.graph.EventListResponseB\n" +
+	"\x04List\x12\x17.graph.EventListRequest\x1a\x18.graph.EventListResponse\x12W\n" +
+	"\x0eAnnounceChange\x12!.graph.EventAnnounceChangeRequest\x1a\".graph.EventAnnounceChangeResponseB\n" +
 	"Z\b/graphpbb\x06proto3"
 
 var (
@@ -731,37 +846,41 @@ func file_proto_graphpb_event_proto_rawDescGZIP() []byte {
 	return file_proto_graphpb_event_proto_rawDescData
 }
 
-var file_proto_graphpb_event_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_proto_graphpb_event_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_proto_graphpb_event_proto_goTypes = []any{
-	(*EventDetails)(nil),        // 0: graph.EventDetails
-	(*EventSaveRequest)(nil),    // 1: graph.EventSaveRequest
-	(*EventSaveResponse)(nil),   // 2: graph.EventSaveResponse
-	(*EventReadRequest)(nil),    // 3: graph.EventReadRequest
-	(*EventReadResponse)(nil),   // 4: graph.EventReadResponse
-	(*EventRsvpRequest)(nil),    // 5: graph.EventRsvpRequest
-	(*EventRsvpResponse)(nil),   // 6: graph.EventRsvpResponse
-	(*EventCancelRequest)(nil),  // 7: graph.EventCancelRequest
-	(*EventCancelResponse)(nil), // 8: graph.EventCancelResponse
-	(*EventListRequest)(nil),    // 9: graph.EventListRequest
-	(*EventListResponse)(nil),   // 10: graph.EventListResponse
-	nil,                         // 11: graph.EventReadResponse.EventsEntry
+	(*EventDetails)(nil),                // 0: graph.EventDetails
+	(*EventSaveRequest)(nil),            // 1: graph.EventSaveRequest
+	(*EventSaveResponse)(nil),           // 2: graph.EventSaveResponse
+	(*EventReadRequest)(nil),            // 3: graph.EventReadRequest
+	(*EventReadResponse)(nil),           // 4: graph.EventReadResponse
+	(*EventRsvpRequest)(nil),            // 5: graph.EventRsvpRequest
+	(*EventAnnounceChangeRequest)(nil),  // 6: graph.EventAnnounceChangeRequest
+	(*EventAnnounceChangeResponse)(nil), // 7: graph.EventAnnounceChangeResponse
+	(*EventRsvpResponse)(nil),           // 8: graph.EventRsvpResponse
+	(*EventCancelRequest)(nil),          // 9: graph.EventCancelRequest
+	(*EventCancelResponse)(nil),         // 10: graph.EventCancelResponse
+	(*EventListRequest)(nil),            // 11: graph.EventListRequest
+	(*EventListResponse)(nil),           // 12: graph.EventListResponse
+	nil,                                 // 13: graph.EventReadResponse.EventsEntry
 }
 var file_proto_graphpb_event_proto_depIdxs = []int32{
 	0,  // 0: graph.EventSaveRequest.details:type_name -> graph.EventDetails
-	11, // 1: graph.EventReadResponse.events:type_name -> graph.EventReadResponse.EventsEntry
+	13, // 1: graph.EventReadResponse.events:type_name -> graph.EventReadResponse.EventsEntry
 	0,  // 2: graph.EventReadResponse.EventsEntry.value:type_name -> graph.EventDetails
 	1,  // 3: graph.EventService.Save:input_type -> graph.EventSaveRequest
 	3,  // 4: graph.EventService.Read:input_type -> graph.EventReadRequest
 	5,  // 5: graph.EventService.Rsvp:input_type -> graph.EventRsvpRequest
-	7,  // 6: graph.EventService.Cancel:input_type -> graph.EventCancelRequest
-	9,  // 7: graph.EventService.List:input_type -> graph.EventListRequest
-	2,  // 8: graph.EventService.Save:output_type -> graph.EventSaveResponse
-	4,  // 9: graph.EventService.Read:output_type -> graph.EventReadResponse
-	6,  // 10: graph.EventService.Rsvp:output_type -> graph.EventRsvpResponse
-	8,  // 11: graph.EventService.Cancel:output_type -> graph.EventCancelResponse
-	10, // 12: graph.EventService.List:output_type -> graph.EventListResponse
-	8,  // [8:13] is the sub-list for method output_type
-	3,  // [3:8] is the sub-list for method input_type
+	9,  // 6: graph.EventService.Cancel:input_type -> graph.EventCancelRequest
+	11, // 7: graph.EventService.List:input_type -> graph.EventListRequest
+	6,  // 8: graph.EventService.AnnounceChange:input_type -> graph.EventAnnounceChangeRequest
+	2,  // 9: graph.EventService.Save:output_type -> graph.EventSaveResponse
+	4,  // 10: graph.EventService.Read:output_type -> graph.EventReadResponse
+	8,  // 11: graph.EventService.Rsvp:output_type -> graph.EventRsvpResponse
+	10, // 12: graph.EventService.Cancel:output_type -> graph.EventCancelResponse
+	12, // 13: graph.EventService.List:output_type -> graph.EventListResponse
+	7,  // 14: graph.EventService.AnnounceChange:output_type -> graph.EventAnnounceChangeResponse
+	9,  // [9:15] is the sub-list for method output_type
+	3,  // [3:9] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name
 	3,  // [3:3] is the sub-list for extension extendee
 	0,  // [0:3] is the sub-list for field type_name
@@ -778,7 +897,7 @@ func file_proto_graphpb_event_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_graphpb_event_proto_rawDesc), len(file_proto_graphpb_event_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

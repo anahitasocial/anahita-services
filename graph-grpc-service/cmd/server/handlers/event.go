@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 	// Every zone's rules, built into the program: the image this runs in
@@ -11,6 +12,7 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/event"
 	"anahita-libs/proto/graphpb"
 	"graph/data/repositories"
 )
@@ -114,6 +116,12 @@ func (h *eventGrpcHandler) Rsvp(ctx context.Context, req *graphpb.EventRsvpReque
 		if err = h.env.Repos.SocialGraphCounts.UpdateFollowerCount(req.EventId); err != nil {
 			log.Println(err)
 		}
+
+		// Whoever looks after the event hears that somebody is coming.
+		// Not of a maybe, nor of somebody leaving.
+		if req.Rsvp == constants.EventRsvpGoing {
+			h.publish(event.EventFormatEventAnswered, req.EventId, req.PersonId, req.PersonId)
+		}
 	}
 
 	return &graphpb.EventRsvpResponse{Result: result}, nil
@@ -127,7 +135,77 @@ func (h *eventGrpcHandler) Cancel(ctx context.Context, req *graphpb.EventCancelR
 		return nil, err
 	}
 
+	// Everybody who answered is told, once: only when this is what called
+	// it off.
+	if changed {
+		h.tell(event.EventFormatEventCancelled, req.EventId, req.ViewerId, false)
+	}
+
 	return &graphpb.EventCancelResponse{Changed: changed}, nil
+}
+
+// AnnounceChange tells everybody who answered an event that when it is has
+// changed. Whoever changed it decides that it has; this only tells.
+func (h *eventGrpcHandler) AnnounceChange(ctx context.Context, req *graphpb.EventAnnounceChangeRequest) (*graphpb.EventAnnounceChangeResponse, error) {
+	if req.EventId == 0 {
+		return nil, errors.New("an event is required")
+	}
+
+	told := h.tell(event.EventFormatEventChanged, req.EventId, req.ViewerId, false)
+
+	return &graphpb.EventAnnounceChangeResponse{Told: uint64(told)}, nil
+}
+
+// tell publishes one event for each person who answered an event, or only
+// the ones going, leaving out whoever did the thing being told. It answers
+// how many were told.
+func (h *eventGrpcHandler) tell(format string, eventID int64, by int64, goingOnly bool) int {
+	people, err := h.env.Repos.Events.AttendeeIDs(eventID, goingOnly)
+	if err != nil {
+		log.Println("telling an event's people:", err)
+		return 0
+	}
+
+	told := 0
+	for _, personID := range people {
+		if personID == by {
+			continue
+		}
+		h.publish(format, eventID, personID, by)
+		told++
+	}
+
+	return told
+}
+
+// publish tells the other services something about an event. The object is
+// whoever it is about or for, the subject whoever did it.
+func (h *eventGrpcHandler) publish(format string, eventID int64, objectID int64, by int64) {
+	if h.env.Publisher == nil {
+		return
+	}
+
+	payload := EventNotice(format, eventID, objectID, by)
+
+	go func() {
+		log.Println("Publishing event", payload.Name)
+		h.env.Publisher.Publish(payload, payload.Name)
+	}()
+}
+
+// EventNotice is the event for something that happened to an event. The
+// sweep uses it too, for reminders.
+func EventNotice(format string, eventID int64, objectID int64, by int64) *event.EventPayload {
+	routingKey := fmt.Sprintf(format, "actor")
+
+	return &event.EventPayload{
+		Name:          routingKey,
+		SourceService: "graph-grpc-service",
+		SubjectID:     by,
+		ObjectID:      objectID,
+		TargetID:      eventID,
+		ViewerID:      by,
+	}
 }
 
 // List returns the ids of the events that are one person's.

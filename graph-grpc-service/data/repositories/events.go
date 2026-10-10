@@ -66,6 +66,20 @@ type EventsRepoInterface interface {
 	// past, and how many. Unlike a person's own lists these are gated: only
 	// the events this viewer may see.
 	ListHostedBy(groupID int64, viewer *entities.Viewer, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
+
+	// AttendeeIDs returns who answered an event: everybody, or only the
+	// ones going. For telling them something.
+	AttendeeIDs(eventID int64, goingOnly bool) ([]int64, error)
+
+	// ClaimReminders returns the events that start within the time given
+	// and whose people have not been reminded, and marks each as reminded
+	// as it is returned, so an event is handed out once however many
+	// sweeps run.
+	ClaimReminders(within time.Duration, limit int) ([]int64, error)
+
+	// OverSince returns the events that ended before the time given and
+	// are not archived yet.
+	OverSince(before time.Time, limit int) ([]int64, error)
 }
 
 func NewEventsRepo(db *sql.DB) EventsRepoInterface {
@@ -569,4 +583,99 @@ func (r *eventsRepo) ListHostedBy(groupID int64, viewer *entities.Viewer, filter
 	}
 
 	return ids, total, rows.Err()
+}
+
+const selectAttendees = `
+SELECT edge.node_a_id
+FROM edges AS edge
+WHERE edge.type = ?
+  AND edge.node_b_id = ?`
+
+const andGoing = `
+  AND edge.meta = ?`
+
+func (r *eventsRepo) AttendeeIDs(eventID int64, goingOnly bool) ([]int64, error) {
+	query := selectAttendees
+	args := []any{constants.EdgeFollowEntityType, eventID}
+	if goingOnly {
+		query += andGoing
+		args = append(args, constants.EventRsvpGoingMeta)
+	}
+
+	return r.ids(query, args...)
+}
+
+const selectRemindersDue = `
+SELECT event.node_id
+FROM events AS event
+JOIN nodes AS node ON node.id = event.node_id
+WHERE event.reminded_at IS NULL
+  AND event.cancelled_at IS NULL
+  AND node.enabled = 1
+  AND node.deleted_at IS NULL
+  AND node.starts_at > NOW()
+  AND node.starts_at <= ?
+ORDER BY node.starts_at ASC
+LIMIT ?`
+
+const claimReminder = `
+UPDATE events
+SET reminded_at = NOW()
+WHERE node_id = ?
+  AND reminded_at IS NULL`
+
+func (r *eventsRepo) ClaimReminders(within time.Duration, limit int) ([]int64, error) {
+	due, err := r.ids(selectRemindersDue, time.Now().UTC().Add(within), limit)
+	if err != nil {
+		return nil, err
+	}
+
+	// Each is claimed by the update. A sweep that lost the race for one
+	// changes no row and leaves it to whoever won.
+	claimed := []int64{}
+	for _, id := range due {
+		result, err := r.db.Exec(claimReminder, id)
+		if err != nil {
+			return claimed, err
+		}
+		if changed, _ := result.RowsAffected(); changed > 0 {
+			claimed = append(claimed, id)
+		}
+	}
+
+	return claimed, nil
+}
+
+const selectEventsOver = `
+SELECT node.id
+FROM nodes AS node
+WHERE node.type = ?
+  AND node.archived_at IS NULL
+  AND node.deleted_at IS NULL
+  AND node.ends_at <= ?
+ORDER BY node.ends_at ASC
+LIMIT ?`
+
+func (r *eventsRepo) OverSince(before time.Time, limit int) ([]int64, error) {
+	return r.ids(selectEventsOver, constants.NodeActorEventEntityType, before.UTC(), limit)
+}
+
+// ids runs a query that returns one column of ids, in its order.
+func (r *eventsRepo) ids(query string, args ...any) ([]int64, error) {
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	ids := []int64{}
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, rows.Err()
 }

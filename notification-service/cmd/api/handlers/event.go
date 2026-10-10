@@ -84,6 +84,20 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 	}
 
+	// Events, the kind people go to. The name starts with it, where the
+	// others here are found anywhere in theirs.
+	if strings.HasPrefix(payload.Name, "event.") {
+		if strings.HasSuffix(payload.Name, ".answered.v1") {
+			err = h.eventFormatEventAnswered(payload)
+		} else if strings.HasSuffix(payload.Name, ".changed.v1") {
+			err = h.eventFormatEventTold(payload, NotificationTypeEventChanged)
+		} else if strings.HasSuffix(payload.Name, ".cancelled.v1") {
+			err = h.eventFormatEventTold(payload, NotificationTypeEventCancelled)
+		} else if strings.HasSuffix(payload.Name, ".reminded.v1") {
+			err = h.eventFormatEventTold(payload, NotificationTypeEventReminder)
+		}
+	}
+
 	// Voteup edge events
 	if strings.Contains(payload.Name, "edge.voteup.") {
 		if strings.Contains(payload.Name, ".added.v1") {

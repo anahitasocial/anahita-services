@@ -183,13 +183,35 @@ In anahita-web; see *Events* in its `docs/architecture.md`.
 - **A group's Events tab,** with Add event for its administrators, which makes the group the host.
 - **Not built in the web app:** choosing a place for an event with the locations picker. An event's page has the same Locations tab a group's has.
 
+### Phase 5, the sweep and notifications: 2026-10-10
+
+- **The hourly sweep** (`graph-grpc-service/sweeper/events.go`):
+  - reminds whoever is going to an event that starts within a day, once (`events.reminded_at`, claimed by the update so two sweeps cannot both send);
+  - removes invitations still waiting to an event that is over or was called off, and takes their notifications with them;
+  - archives an event thirty days after it ended.
+- **Notifications** (`notification-service/handlers/event_event.go`), from four events the graph publishes (`event.actor.answered|changed|cancelled|reminded.v1`):
+  - `event_rsvp`, to whoever looks after an event, when somebody says they are going;
+  - `event_changed`, to everybody who answered, when its start or end moves;
+  - `event_cancelled`, to everybody who answered;
+  - `event_reminder`, to whoever is going.
+- **Search results** carry an event's times and counts, so its card can be drawn there.
+- **The time zone database is built into actor-service and graph-grpc-service** (`time/tzdata`). Their images have none, and every zone was being refused.
+- **The image services take a 10 MB upload,** as documented. A general 2 MB request limit stood in front of them.
+
+Differences from the design:
+
+- **An answer is told at once, not gathered up hourly.** Only "going" is told, and once for each person and event however often they change their mind.
+- **A change of place is not told,** only a change of time. A place is a location tagged on the event's page, which this service does not hear about.
+- **One notification of each kind for a person and an event:** an event moved three times says so once.
+
+Tests: `TestEventSweepQueries` on a real database; `TestSetEventDetails`.
+
 ### Still to do
 
-1. **The sweep:** archive 30 days after the end, drop invitations to events that are over, remind whoever is going a day before.
-2. **Notifications:** an answer (to hosts), a change of time or place, calling off, the reminder.
-3. **`host_followers` access,** for an event open to its host group's followers.
-4. **Who may make an event.** It follows `GROUPS_FROM`, which is administrators unless set otherwise. Asked of the user on 2026-10-10 and not answered: a setting of its own, `EVENTS_FROM`, was suggested.
-5. **Start a group from an event,** raised by the user on 2026-10-10: a new group with the event's hosts as administrators, to which whoever went is invited. Proposed in place of turning the event itself into a group, which would make followers of people who agreed to one evening and would break the event's address. Not decided.
+1. **`host_followers` access,** for an event open to its host group's followers.
+2. **Who may make an event.** It follows `GROUPS_FROM`, which is administrators unless set otherwise. Asked of the user on 2026-10-10 and not answered: a setting of its own, `EVENTS_FROM`, was suggested.
+3. **Start a group from an event,** raised by the user on 2026-10-10: a new group with the event's hosts as administrators, to which whoever went is invited. Proposed in place of turning the event itself into a group, which would make followers of people who agreed to one evening and would break the event's address. Not decided.
+4. **Choosing a place on the event form.** A place can be tagged from the event's Locations tab.
 
 ## Status
 
@@ -200,4 +222,5 @@ In anahita-web; see *Events* in its `docs/architecture.md`.
 | Phase 2, lists and the calendar file (server) | done 2026-10-10 |
 | Phase 3, hosting by a group (server) | done 2026-10-10 |
 | Phase 4, the web app | done 2026-10-10 |
+| Phase 5, the sweep and notifications | done 2026-10-10 |
 | The rest, listed under Still to do | not started |

@@ -27,8 +27,13 @@ type EventsGRPCInterface interface {
 	// when rsvp is "". It returns saved, full, closed or missing.
 	Rsvp(eventID int64, personID int64, rsvp string) (string, error)
 
-	// Cancel calls an event off. False when it already was.
-	Cancel(eventID int64) (bool, error)
+	// Cancel calls an event off, and tells everybody who answered except
+	// whoever called it off. False when it already was.
+	Cancel(eventID int64, viewerID int64) (bool, error)
+
+	// AnnounceChange tells everybody who answered that when the event is
+	// has changed, except whoever changed it.
+	AnnounceChange(eventID int64, viewerID int64) error
 
 	// ListFor returns the ids of the events that are one person's, in the
 	// order to show them, and how many there are. The filter is one of the
@@ -145,13 +150,27 @@ func (srv *EventsGRPC) Rsvp(eventID int64, personID int64, rsvp string) (string,
 	return resp.Result, nil
 }
 
-func (srv *EventsGRPC) Cancel(eventID int64) (bool, error) {
+func (srv *EventsGRPC) AnnounceChange(eventID int64, viewerID int64) error {
+	client, err := srv.getClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.AnnounceChange(context.Background(), &graphpb.EventAnnounceChangeRequest{
+		EventId:  eventID,
+		ViewerId: viewerID,
+	})
+
+	return err
+}
+
+func (srv *EventsGRPC) Cancel(eventID int64, viewerID int64) (bool, error) {
 	client, err := srv.getClient()
 	if err != nil {
 		return false, err
 	}
 
-	resp, err := client.Cancel(context.Background(), &graphpb.EventCancelRequest{EventId: eventID})
+	resp, err := client.Cancel(context.Background(), &graphpb.EventCancelRequest{EventId: eventID, ViewerId: viewerID})
 	if err != nil {
 		return false, err
 	}

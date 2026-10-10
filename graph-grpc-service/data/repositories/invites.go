@@ -63,6 +63,11 @@ type InvitesRepoInterface interface {
 	// Sweep removes what has run out: invitations nobody answered in time,
 	// which it returns, and refusals whose cooldown is over.
 	Sweep() ([]*Invite, error)
+
+	// SweepClosedEvents removes the invitations still waiting to events
+	// that are over or were called off, and returns them: there is nothing
+	// left to say yes to.
+	SweepClosedEvents() ([]*Invite, error)
 }
 
 func NewInvitesRepo(db *sql.DB) InvitesRepoInterface {
@@ -603,4 +608,37 @@ func (r *invitesRepo) Sweep() ([]*Invite, error) {
 	}
 
 	return lapsed, nil
+}
+
+// The invitations waiting to an event nobody can go to any more.
+const invitesToClosedEvents = `
+FROM edges
+WHERE type = ?
+  AND meta = ?
+  AND node_b_id IN (
+    SELECT closed.id FROM (
+      SELECT node.id
+      FROM nodes AS node
+      JOIN events AS event ON event.node_id = node.id
+      WHERE node.type = ?
+        AND (node.ends_at <= NOW() OR event.cancelled_at IS NOT NULL)
+    ) AS closed
+  )`
+
+func (r *invitesRepo) SweepClosedEvents() ([]*Invite, error) {
+	args := []any{constants.EdgeActorInviteEntityType, constants.InviteMetaPending, constants.NodeActorEventEntityType}
+
+	gone, err := r.list("SELECT"+inviteColumns+invitesToClosedEvents, args...)
+	if err != nil {
+		return nil, err
+	}
+	if len(gone) == 0 {
+		return gone, nil
+	}
+
+	if _, err = r.db.Exec("DELETE"+invitesToClosedEvents, args...); err != nil {
+		return nil, err
+	}
+
+	return gone, nil
 }

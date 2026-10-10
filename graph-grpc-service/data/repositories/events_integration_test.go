@@ -3,6 +3,7 @@ package repositories
 import (
 	"sync"
 	"testing"
+	"time"
 
 	"anahita-libs/constants"
 	"anahita-libs/proto/graphpb"
@@ -390,5 +391,97 @@ func TestEventsHostedByAGroup(t *testing.T) {
 	}
 	if _, _, err := repo.ListHostedBy(replyGroup, replyViewer(replyBob), constants.EventListInvited, 20, 0); err == nil {
 		t.Error("a list a group has no such thing as was given")
+	}
+}
+
+// What the hourly sweep asks of events: who to remind, which invitations
+// have nothing left to answer, and which events are long over.
+func TestEventSweepQueries(t *testing.T) {
+	db := accessTestDB(t)
+	seedRepliesFixture(t, db)
+	repo := NewEventsRepo(db)
+	seedEvents(t, repo, 0)
+
+	const (
+		soon      = 902 // starts in six hours
+		long      = 903 // ended two months ago
+		cancelled = 904 // starts in six hours, called off
+	)
+	personType := constants.NodeActorPersonEntityType
+	eventType := constants.NodeActorEventEntityType
+
+	for _, stmt := range []string{
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,starts_at,ends_at,created_at,updated_at) VALUES
+		 (902,'` + eventType + `','actor-service','Soon','soon','public',1,NOW() + INTERVAL 6 HOUR,NOW() + INTERVAL 8 HOUR,NOW(),NOW()),
+		 (903,'` + eventType + `','actor-service','Long ago','long-ago','public',1,NOW() - INTERVAL 61 DAY,NOW() - INTERVAL 60 DAY,NOW(),NOW()),
+		 (904,'` + eventType + `','actor-service','Off','off','public',1,NOW() + INTERVAL 6 HOUR,NOW() + INTERVAL 8 HOUR,NOW(),NOW())`,
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,meta,created_at) VALUES
+		 ('edge.actor.follow.v1',1,'` + personType + `',902,'` + eventType + `','` + constants.EventRsvpGoingMeta + `',NOW()),
+		 ('edge.actor.follow.v1',2,'` + personType + `',902,'` + eventType + `','` + constants.EventRsvpMaybeMeta + `',NOW())`,
+		// Invited: Carol to the one that is soon, Bob to last year's, Dave
+		// to the one called off.
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,meta,created_at,created_by,ends_at) VALUES
+		 ('edge.actor.invite.v1',4,'` + personType + `',902,'` + eventType + `','` + constants.InviteMetaPending + `',NOW(),1,NOW() + INTERVAL 30 DAY),
+		 ('edge.actor.invite.v1',2,'` + personType + `',901,'` + eventType + `','` + constants.InviteMetaPending + `',NOW(),1,NOW() + INTERVAL 30 DAY),
+		 ('edge.actor.invite.v1',5,'` + personType + `',904,'` + eventType + `','` + constants.InviteMetaPending + `',NOW(),1,NOW() + INTERVAL 30 DAY)`,
+	} {
+		if _, err := db.Exec(stmt); err != nil {
+			t.Fatalf("seed: %v\n%s", err, stmt)
+		}
+	}
+	for _, id := range []int64{soon, long, cancelled} {
+		if err := repo.Save(&EventDetails{NodeID: id, TimezoneName: "UTC"}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := repo.Cancel(cancelled); err != nil {
+		t.Fatal(err)
+	}
+
+	// Who answered, and who is going.
+	if everybody, err := repo.AttendeeIDs(soon, false); err != nil || len(everybody) != 2 {
+		t.Errorf("answered the one that is soon: %v (err %v), want two", everybody, err)
+	}
+	if going, err := repo.AttendeeIDs(soon, true); err != nil || len(going) != 1 || going[0] != replyAlice {
+		t.Errorf("going to the one that is soon: %v (err %v), want Alice", going, err)
+	}
+
+	// Reminders: the one that starts within a day and is still on. Not the
+	// picnic (tomorrow, and a little more), not the one called off. And
+	// only once.
+	day := constants.EventReminderBefore
+	due, err := repo.ClaimReminders(day-time.Hour, 50)
+	if err != nil || len(due) != 1 || due[0] != soon {
+		t.Errorf("to remind: %v (err %v), want the one that is soon", due, err)
+	}
+	if again, err := repo.ClaimReminders(day-time.Hour, 50); err != nil || len(again) != 0 {
+		t.Errorf("reminded twice: %v (err %v)", again, err)
+	}
+
+	// Invitations to events nobody can go to: last year's and the one
+	// called off. Carol's, to an event still to come, stays.
+	gone, err := NewInvitesRepo(db).SweepClosedEvents()
+	if err != nil || len(gone) != 2 {
+		t.Fatalf("invitations removed: %+v (err %v), want two", gone, err)
+	}
+	var left, carols int
+	if err := db.QueryRow(`SELECT COUNT(*), COALESCE(SUM(node_a_id = 4), 0) FROM edges WHERE type = ?`, constants.EdgeActorInviteEntityType).Scan(&left, &carols); err != nil || left != 1 || carols != 1 {
+		t.Errorf("%d invitations left, %d of them Carol's (err %v), want hers alone", left, carols, err)
+	}
+	if again, err := NewInvitesRepo(db).SweepClosedEvents(); err != nil || len(again) != 0 {
+		t.Errorf("a second sweep removed %d (err %v)", len(again), err)
+	}
+
+	// Long over: the one that ended two months ago. Not last year's, which
+	// in this fixture ended two days ago.
+	over, err := repo.OverSince(time.Now().Add(-constants.EventArchiveAfter), 50)
+	if err != nil || len(over) != 1 || over[0] != long {
+		t.Errorf("to archive: %v (err %v), want the one long ago", over, err)
+	}
+	if changed, err := NewNodesRepo(db).ArchiveActor(long); err != nil || !changed {
+		t.Fatalf("archive: %v (err %v)", changed, err)
+	}
+	if over, _ := repo.OverSince(time.Now().Add(-constants.EventArchiveAfter), 50); len(over) != 0 {
+		t.Errorf("archived, and still to archive: %v", over)
 	}
 }
