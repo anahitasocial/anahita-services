@@ -173,12 +173,22 @@ Server only.
 
 Tests: `TestEventsHostedByAGroup` on a real database.
 
+### Phase 4, the web app: 2026-10-10
+
+In anahita-web; see *Events* in its `docs/architecture.md`.
+
+- **Events** in the left menu: the viewer's own lists, with a + for whoever may make one.
+- **The form:** name, description, start and end on the clocks of a chosen time zone, places, a link to join online, and who can see it. `utils/events.js` turns the chosen times into instants with `Intl`, tested across clock changes.
+- **An event's page** is the actor page with a panel above its tabs: when (in the reader's zone, and the event's when that differs), who hosts it, how many are going, Going and Maybe, Add to calendar, and for its administrators Edit and Cancel.
+- **A group's Events tab,** with Add event for its administrators, which makes the group the host.
+- **Not built in the web app:** choosing a place for an event with the locations picker. An event's page has the same Locations tab a group's has.
+
 ### Still to do
 
 1. **The sweep:** archive 30 days after the end, drop invitations to events that are over, remind whoever is going a day before.
 2. **Notifications:** an answer (to hosts), a change of time or place, calling off, the reminder.
 3. **`host_followers` access,** for an event open to its host group's followers.
-4. **The web app:** the form with time zones, the event page, answering, the Events page and tabs.
+4. **Who may make an event.** It follows `GROUPS_FROM`, which is administrators unless set otherwise. Asked of the user on 2026-10-10 and not answered: a setting of its own, `EVENTS_FROM`, was suggested.
 5. **Start a group from an event,** raised by the user on 2026-10-10: a new group with the event's hosts as administrators, to which whoever went is invited. Proposed in place of turning the event itself into a group, which would make followers of people who agreed to one evening and would break the event's address. Not decided.
 
 ## Status
@@ -189,4 +199,5 @@ Tests: `TestEventsHostedByAGroup` on a real database.
 | Phase 1, the event itself (server) | done 2026-10-10 |
 | Phase 2, lists and the calendar file (server) | done 2026-10-10 |
 | Phase 3, hosting by a group (server) | done 2026-10-10 |
+| Phase 4, the web app | done 2026-10-10 |
 | The rest, listed under Still to do | not started |
