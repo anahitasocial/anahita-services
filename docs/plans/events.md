@@ -226,6 +226,14 @@ Found while answering the user's question about who may make an event, which thi
 
 Tests: `TestEventsHostedByAGroup` covers the open event, the relation and that being let in is not seeing its posts.
 
+### An address on the event: 2026-10-10
+
+The place field on the form searched the site's locations, and the user pointed out the problem with adding a missing one from there: a location is public and shared, so an event at somebody's home would put their home on the map. Decided by the user: the form takes an address, stored on the event's own node in the address fields every node has, and tagging a location stays a separate thing somebody may choose to do.
+
+- `address`, `city`, `state_province`, `postal_code` and `country` on `POST` and `PATCH /events`, written to the node's `geo_*` fields. For an event they are written whatever they are, so one given can be taken off.
+- Sent as `event.address` to whoever is going or looks after the event, with `has_address` for everybody else, by the flag that decides the online address. In the calendar file as its place, for the same people.
+- No coordinates are stored and nothing is looked up, so there is no map of it yet. **Open:** the user asked for a map. One needs the address looked up by a geocoder, and the two configured are public services unless an installation runs its own, which would send each private address to them. Asked of the user before building it.
+
 ### Decided against
 
 - **Turning an event into a group,** and starting a group from one. Raised by the user on 2026-10-10 and dropped the same day.

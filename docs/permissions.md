@@ -437,7 +437,7 @@ maybe.
 | Make an event for a group | That group's administrators, and nobody else, whatever `EVENTS_FROM` says. The group's administrators become the event's |
 | Answer going or maybe | Somebody who can see the event and whom it has not blocked, or somebody invited to it |
 | Take an answer back | Always yours to do |
-| See where to join online | Whoever is going, and whoever looks after the event. Not maybe, not invited |
+| See where to join online, and the address it is held at | Whoever is going, and whoever looks after the event. Not maybe, not invited |
 | Change it, call it off | Whoever looks after it |
 
 - **Places.** An event can limit how many are going. Going is refused when
@@ -459,7 +459,13 @@ maybe.
   posted on the event stays for the people who answered, and a follower of
   the group sees that only once they have. The relation says so as
   `via_host`.
-- **Its address** is set when it is made and does not change when it is
+- **Where it is held** is an address kept on the event's own node
+  (`geo_address` and the fields beside it), not a place on the site's map.
+  Places are public and shared, and an event at somebody's home should not
+  put their home among them. Nothing searches for an event by it, and it has
+  no coordinates. A public venue can be tagged on the event like a place on
+  any post.
+- **Its address on the site** is set when it is made and does not change when it is
   renamed, since invitations and calendars link to it.
 
 ## Reposts
