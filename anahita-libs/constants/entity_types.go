@@ -24,9 +24,12 @@ const (
 	// From a person to a post they have saved, to find again. Private:
 	// nobody but that person is ever told it is there, the post's author
 	// included, and nothing is counted from it.
-	EdgeBaseBookmarkEntityType     = "edge.base.bookmark.v1"
-	EdgeFollowEntityType           = "edge.actor.follow.v1"
-	EdgeFollowRequestEntityType    = "edge.actor.follow-request.v1"
+	EdgeBaseBookmarkEntityType  = "edge.base.bookmark.v1"
+	EdgeFollowEntityType        = "edge.actor.follow.v1"
+	EdgeFollowRequestEntityType = "edge.actor.follow-request.v1"
+	// A person invited to follow an actor: from the person to the actor,
+	// created by whoever invited them. See constants/invites.go.
+	EdgeActorInviteEntityType      = "edge.actor.invite.v1"
 	EdgeBlockEntityType            = "edge.actor.block.v1"
 	EdgeBaseSubscriptionEntityType = "edge.base.subscription.v1"
 	EdgeBaseLikeEntityType         = "edge.base.voteup.v1"

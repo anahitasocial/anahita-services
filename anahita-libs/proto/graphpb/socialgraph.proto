@@ -14,6 +14,8 @@ message Socialgraph {
     bool has_admin = 7;
     // Actor B has asked to follow actor A, and has not been answered.
     bool has_requested = 8;
+    // Actor B has been invited to follow actor A, and has not answered.
+    bool has_invite = 9;
 }
 
 message SocialgraphReadRequest {

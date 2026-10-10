@@ -252,5 +252,40 @@ func (r *socialgraphRelRepo) getRelations(actorAIDs []int64, actorBID int64) (ma
 			return nil, err
 		}
 	}
+
+	// 6) actorB has been invited to follow actorA (HasInvite)
+	{
+		q := sq.
+			Select("e.node_b_id AS actor_id").
+			From("edges e").
+			Where(sq.Eq{
+				"e.type":      constants.EdgeActorInviteEntityType,
+				"e.node_a_id": actorBID,
+				"e.node_b_id": actorAIDs,
+				"e.meta":      constants.InviteMetaPending,
+			}).
+			Where("e.ends_at > NOW()")
+		sqlStr, args, err := q.ToSql()
+		if err != nil {
+			return nil, err
+		}
+
+		rows, err := r.db.QueryContext(ctx, sqlStr, args...)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var actorID int64
+			if err := rows.Scan(&actorID); err != nil {
+				return nil, err
+			}
+			rels[actorID].HasInvite = true
+		}
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+	}
 	return rels, nil
 }

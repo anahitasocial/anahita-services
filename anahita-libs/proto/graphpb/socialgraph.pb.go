@@ -31,7 +31,9 @@ type Socialgraph struct {
 	IsBlocking  bool                   `protobuf:"varint,6,opt,name=is_blocking,json=isBlocking,proto3" json:"is_blocking,omitempty"`
 	HasAdmin    bool                   `protobuf:"varint,7,opt,name=has_admin,json=hasAdmin,proto3" json:"has_admin,omitempty"`
 	// Actor B has asked to follow actor A, and has not been answered.
-	HasRequested  bool `protobuf:"varint,8,opt,name=has_requested,json=hasRequested,proto3" json:"has_requested,omitempty"`
+	HasRequested bool `protobuf:"varint,8,opt,name=has_requested,json=hasRequested,proto3" json:"has_requested,omitempty"`
+	// Actor B has been invited to follow actor A, and has not answered.
+	HasInvite     bool `protobuf:"varint,9,opt,name=has_invite,json=hasInvite,proto3" json:"has_invite,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -118,6 +120,13 @@ func (x *Socialgraph) GetHasAdmin() bool {
 func (x *Socialgraph) GetHasRequested() bool {
 	if x != nil {
 		return x.HasRequested
+	}
+	return false
+}
+
+func (x *Socialgraph) GetHasInvite() bool {
+	if x != nil {
+		return x.HasInvite
 	}
 	return false
 }
@@ -318,7 +327,7 @@ var File_proto_graphpb_socialgraph_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_socialgraph_proto_rawDesc = "" +
 	"\n" +
-	"\x1fproto/graphpb/socialgraph.proto\x12\x05graph\"\x8b\x02\n" +
+	"\x1fproto/graphpb/socialgraph.proto\x12\x05graph\"\xaa\x02\n" +
 	"\vSocialgraph\x12\x1c\n" +
 	"\n" +
 	"actor_a_id\x18\x01 \x01(\x03R\bactorAId\x12\x1c\n" +
@@ -331,7 +340,9 @@ const file_proto_graphpb_socialgraph_proto_rawDesc = "" +
 	"\vis_blocking\x18\x06 \x01(\bR\n" +
 	"isBlocking\x12\x1b\n" +
 	"\thas_admin\x18\a \x01(\bR\bhasAdmin\x12#\n" +
-	"\rhas_requested\x18\b \x01(\bR\fhasRequested\"T\n" +
+	"\rhas_requested\x18\b \x01(\bR\fhasRequested\x12\x1d\n" +
+	"\n" +
+	"has_invite\x18\t \x01(\bR\thasInvite\"T\n" +
 	"\x16SocialgraphReadRequest\x12\x1c\n" +
 	"\n" +
 	"actor_a_id\x18\x01 \x01(\x03R\bactorAId\x12\x1c\n" +

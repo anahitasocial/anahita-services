@@ -12,6 +12,7 @@ func NewRepositories(db *sql.DB) *Repositories {
 		FeedActor:         NewFeedActorRepo(db),
 		FeedLeaders:       NewFeedLeadersRepo(db),
 		Graph:             NewGraphRepo(db),
+		Invites:           NewInvitesRepo(db),
 		LikesRel:          NewLikesRelRepo(db),
 		Nodes:             NewNodesRepo(db),
 		PhotoFiles:        NewPhotoFilesRepo(db),
@@ -36,6 +37,7 @@ type Repositories struct {
 	FeedActor         FeedActorRepoInterface
 	FeedLeaders       FeedLeadersRepoInterface
 	Graph             GraphRepoInterface
+	Invites           InvitesRepoInterface
 	LikesRel          LikesRelInterface
 	Nodes             NodesRepoInterface
 	PhotoFiles        PhotoFilesRepoInterface

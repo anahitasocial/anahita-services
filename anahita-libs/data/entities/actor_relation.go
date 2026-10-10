@@ -10,4 +10,6 @@ type ActorRelation struct {
 	HasAdmin    bool // actorA has actorB as admin
 	// actorB has asked to follow actorA, and has not been answered
 	HasRequested bool
+	// actorB has been invited to follow actorA, and has not answered
+	HasInvite bool
 }
