@@ -35,8 +35,11 @@ type ActorGRPCBrowseRequest struct {
 	// Only featured actors. An empty Ordering then means most recently
 	// featured first.
 	Featured bool `validate:"omitempty"`
-	Offset   uint64
-	Limit    uint64
+	// Also list the actors the viewer may not see but may ask to follow.
+	// They come back marked Restricted, with a name and a picture only.
+	IncludeAskable bool
+	Offset         uint64
+	Limit          uint64
 }
 
 type ActorGRPCBatchReadRequest struct {

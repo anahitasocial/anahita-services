@@ -22,12 +22,47 @@ func SetActorAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.Select
 // A condition rather than a builder step, so FilterVisible can apply it to
 // the actors in a list that also holds posts and tags.
 func actorAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
+	// Hard deny if blocked either way.
+	return sq.And{
+		relNotBlockedEitherWay(viewer.ID, "node.id"),
+		actorAccessGate(viewer),
+	}
+}
+
+// SetActorAccessOrAskableQuery is the gate for a LIST of actors that also
+// shows the ones the viewer may not see but may ask to follow.
+//
+// Whoever uses it has to tell the two apart afterwards (FilterVisible does)
+// and send the second kind as their name and picture only. It is for the
+// lists of people and of groups, and nothing else: every other listing keeps
+// SetActorAccessQuery.
+func SetActorAccessOrAskableQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.SelectBuilder {
+	if viewer.IsAdmin() {
+		return sb
+	}
+
+	// Asking is for somebody signed in, so a visitor's list is unchanged.
+	if viewer.ID == 0 {
+		return sb.Where(actorAccessCondition(viewer))
+	}
+
+	return sb.Where(sq.And{
+		relNotBlockedEitherWay(viewer.ID, "node.id"),
+		sq.Or{
+			actorAccessGate(viewer),
+			sq.Expr("node.allow_follow_request = 1"),
+		},
+	})
+}
+
+// actorAccessGate is whether the actor's own access admits the viewer,
+// leaving blocks aside.
+func actorAccessGate(viewer *entities.Viewer) sq.Sqlizer {
 	vID := viewer.ID
 	follows := relViewerFollowsNode(vID)
 	leaders := relNodeFollowsViewer(vID)
 	mutual := sq.And{follows, leaders}
 	isAdmin := relViewerAdminsNode(vID)
-	notBlocked := relNotBlockedEitherWay(vID, "node.id")
 	selfOrAdmin := relSelfOrAdminForNode(vID)
 
 	// Build the access gate for the ACTOR node (profile visibility)
@@ -112,8 +147,7 @@ func actorAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
 
 	// return sb.Where(cases)
 
-	// Hard deny if blocked either way.
-	return sq.And{notBlocked, nodeGate}
+	return nodeGate
 }
 
 // relViewerFollowsNode checks if the viewer follows the node.

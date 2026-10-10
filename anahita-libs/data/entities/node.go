@@ -190,6 +190,12 @@ type AnahitaNode struct {
 	// Whether the viewer has saved it, to find again. Known to them alone.
 	IsSavedByViewer bool
 
+	// An actor the viewer may not see, shown because it lets people ask to
+	// follow it. It carries its name and picture and nothing else.
+	Restricted bool
+	// Whether the viewer has asked to follow this actor and is waiting.
+	IsFollowRequestedByViewer bool
+
 	RepostCount        int64
 	IsRepostedByViewer bool
 	CommentCount       int64

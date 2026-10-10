@@ -12,6 +12,8 @@ message Socialgraph {
     bool is_mutual = 5;
     bool is_blocking = 6;
     bool has_admin = 7;
+    // Actor B has asked to follow actor A, and has not been answered.
+    bool has_requested = 8;
 }
 
 message SocialgraphReadRequest {

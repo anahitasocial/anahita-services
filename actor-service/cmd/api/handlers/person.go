@@ -55,10 +55,12 @@ func (h *personHandler) Browse(c echo.Context) error {
 	}
 
 	type Response struct {
-		People     []*responses.PersonNodeItem `json:"data"`
-		Pagination an_responses.Pagination     `json:"pagination"`
+		// Each a person, or what is shown of one the viewer may only
+		// ask to follow (LimitedActor, marked restricted).
+		People     []any                   `json:"data"`
+		Pagination an_responses.Pagination `json:"pagination"`
 	}
-	resp := &Response{}
+	resp := &Response{People: []any{}}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
@@ -70,6 +72,7 @@ func (h *personHandler) Browse(c echo.Context) error {
 	gReq.Search = req.Search
 	gReq.Disabled = req.Disabled
 	gReq.Featured = req.Featured
+	gReq.IncludeAskable = listsAskable(viewer, req.Featured, req.Disabled)
 	gReq.Ordering = req.GraphOrdering(c.QueryParam("ordering") != "")
 	if err := c.Validate(gReq); err != nil {
 		log.Println(err)
@@ -106,6 +109,10 @@ func (h *personHandler) Browse(c echo.Context) error {
 	}
 
 	for _, person := range people {
+		if person.Restricted {
+			resp.People = append(resp.People, an_responses.NewLimitedActor(&person.AnahitaNode, person.IsFollowRequestedByViewer))
+			continue
+		}
 		if err := h.onAfterFetched(c, person); err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -153,6 +160,11 @@ func (h *personHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if ok, err := h.Perms.People.CanRead(actorAccessCtx); !ok {
+		// A profile that lets people ask to follow it shows that much
+		// of itself to somebody it would otherwise refuse.
+		if limited := limitedProfile(h.Env, &person.AnahitaNode, actorAccessCtx); limited != nil {
+			return c.JSON(http.StatusOK, limited)
+		}
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
 	}

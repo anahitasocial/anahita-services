@@ -346,9 +346,25 @@ Whoever looks after the profile is told of a request (`actor_follow_request`),
 and that notification goes when the request is answered or taken back.
 Whoever asked is told when it is accepted (`actor_follow_request_accept`).
 
-**Not built yet:** somebody who cannot see a profile is shown nothing of it,
-so there is nowhere in the web app to ask from. The requests work through the
-API. See [plans/actor-invitations.md](plans/actor-invitations.md).
+### What a stranger is shown of a private profile
+
+A profile somebody may not see is refused whole (403), with one exception. A
+profile that lets people ask to follow it shows **its name, alias, picture
+and verified mark, and nothing else** to somebody signed in whom it has not
+blocked. Without that there would be nothing to ask from.
+
+- **Opening the profile** answers 200 with that much, marked
+  `restricted: true`, and `is_follow_requested_by_viewer`.
+- **The lists of people and of groups** include such profiles for somebody
+  signed in, each marked the same way. Not the featured list, and not any
+  other listing: search, followers, mentions and feeds are unchanged.
+- **Visitors** are shown nothing, as before. So is anybody when the profile
+  is disabled, archived, on its way out, or does not let people ask.
+
+The rule is `permissions.CanSeeLimitedProfile`. In a list the cutting down is
+done inside the graph (`restrictUnseen`), before the actor leaves it, and the
+response is a `LimitedActor`, a written-out list of fields. It is not the
+ordinary item with fields blanked.
 
 ## Adding followers to a group
 

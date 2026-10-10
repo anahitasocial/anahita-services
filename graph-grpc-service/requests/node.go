@@ -62,6 +62,9 @@ type NodeBrowseRequest struct {
 	Enabled         bool
 	// Only featured actors. See setFeaturedQuery.
 	Featured bool
+	// Actors only: also the ones the viewer may not see but may ask to
+	// follow. Whoever asks for this has to send them on as restricted.
+	IncludeAskable bool
 	// Leave replies out: only rows that are not part of a thread. What a
 	// list of somebody's posts wants, so that it is not filled with their
 	// answers to other people.
@@ -107,6 +110,9 @@ type NodeCountRequest struct {
 	Enabled         bool
 	// Only featured actors. See setFeaturedQuery.
 	Featured bool
+	// Actors only: also the ones the viewer may not see but may ask to
+	// follow. Whoever asks for this has to send them on as restricted.
+	IncludeAskable bool
 	// Leave replies out: only rows that are not part of a thread. What a
 	// list of somebody's posts wants, so that it is not filled with their
 	// answers to other people.

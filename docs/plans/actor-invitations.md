@@ -150,11 +150,20 @@ five more found while checking.
 - **Whoever was asked could not ignore a request:** the two arguments of the check were named the wrong way round, so it asked about the asker's profile.
 - **Asking needed the asker to be able to see the profile,** and a profile that can be seen can be followed outright. So no request could be made of the only profiles worth asking.
 
-**Left open, for the user to decide**
+### The limited profile, 2026-10-09
 
-Follow requests now work through the API and are tested, but nothing in the web app makes one. The Follow button always follows, and somebody who cannot see a profile is refused the whole page (403), so there is nothing to press. Making them usable needs a limited view of a restricted profile (name, avatar, and a button to ask) for a profile that lets people ask. Invitations need the same limited view: "a pending invitation grants read access to the actor's profile". Proposed: build it once, as the first part of the invitation work.
+Follow requests worked through the API after step 0 and nothing in the web app could make one: somebody who cannot see a profile was refused the whole page. The user chose, the same day: **a limited profile on the profile page, and a list-item card in the lists.**
 
-Tests: `anahita-libs/cmd/api/permissions/follow_test.go`; on a real database, `TestFollowersByName` and the round trip of `allow_follow_request`.
+- A profile that lets people ask shows its name, alias, picture and verified mark to somebody signed in whom it has not blocked (`permissions.CanSeeLimitedProfile`, `responses.LimitedActor`).
+- `GET /people/:alias` and `GET /groups/:id` answer 200 with that, marked `restricted`, where they answered 403.
+- `GET /people/` and `GET /groups/` include such profiles (`include_askable` on the graph's actor browse and count; `SetActorAccessOrAskableQuery`). The graph cuts them down before they leave it (`restrictUnseen`).
+- A relation says whether the viewer has asked (`has_requested`).
+- Asking and taking back answer with the limited profile. Asking used to answer with the profile's whole list item, description and counts included.
+- Web: `components/LimitedActorCard.jsx` and `containers/controls/FollowRequest.jsx`, used by the list card and by the profile page.
+
+Invitations use the same limited view for somebody invited to a profile they cannot see. That part is still to do: an invitation would have to open it even where the profile does not let people ask.
+
+Tests: `anahita-libs/cmd/api/permissions/follow_test.go` and `limited_profile_test.go`, `anahita-libs/responses/actor_limited_test.go`; on a real database, `TestFollowersByName`, `TestAskableProfilesAreListedAndStillNotSeen` and the round trip of `allow_follow_request`.
 
 ## Status
 
@@ -162,4 +171,5 @@ Tests: `anahita-libs/cmd/api/permissions/follow_test.go`; on a real database, `T
 | --- | --- |
 | Plan | written 2026-09-28 |
 | Step 0, the follow path | done 2026-10-09 |
+| The limited profile and asking to follow | done 2026-10-09 |
 | Invitations | not started |

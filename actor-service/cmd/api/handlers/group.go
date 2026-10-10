@@ -54,10 +54,10 @@ func (h *groupHandler) Browse(c echo.Context) error {
 	}
 
 	type Response struct {
-		Data       []*responses.ActorNodeItem `json:"data"`
-		Pagination responses.Pagination       `json:"pagination"`
+		Data       []any                `json:"data"`
+		Pagination responses.Pagination `json:"pagination"`
 	}
-	resp := &Response{}
+	resp := &Response{Data: []any{}}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
@@ -69,6 +69,7 @@ func (h *groupHandler) Browse(c echo.Context) error {
 	gReq.Direction = req.Direction
 	gReq.Disabled = req.Disabled
 	gReq.Featured = req.Featured
+	gReq.IncludeAskable = listsAskable(viewer, req.Featured, req.Disabled)
 	gReq.Ordering = req.GraphOrdering(c.QueryParam("ordering") != "")
 	if err := c.Validate(gReq); err != nil {
 		log.Println(err)
@@ -92,6 +93,9 @@ func (h *groupHandler) Browse(c echo.Context) error {
 	}
 
 	for _, node := range nodes {
+		if node.Restricted {
+			continue
+		}
 		if err = h.onAfterFetched(c, node); err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -100,8 +104,16 @@ func (h *groupHandler) Browse(c echo.Context) error {
 
 	batchPresignPaths(h.Env, nodes)
 
+	// Each a group, or what is shown of one the viewer may only ask to
+	// follow (LimitedActor, marked restricted).
 	actorResp := &responses.ActorResponse{}
-	resp.Data = actorResp.MapNodeItems(nodes)
+	for _, node := range nodes {
+		if node.Restricted {
+			resp.Data = append(resp.Data, responses.NewLimitedActor(node, node.IsFollowRequestedByViewer))
+			continue
+		}
+		resp.Data = append(resp.Data, actorResp.MapNodeItem(node))
+	}
 
 	return c.JSON(http.StatusOK, resp)
 }
@@ -135,6 +147,11 @@ func (h *groupHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if ok, err := h.Perms.Actors.CanRead(actorAccessCtx); !ok {
+		// As for a person: a group that lets people ask shows its name
+		// and picture to somebody it would otherwise refuse.
+		if limited := limitedProfile(h.Env, actor, actorAccessCtx); limited != nil {
+			return c.JSON(http.StatusOK, limited)
+		}
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
 	}
