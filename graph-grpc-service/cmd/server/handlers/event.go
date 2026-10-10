@@ -5,6 +5,9 @@ import (
 	"errors"
 	"log"
 	"time"
+	// Every zone's rules, built into the program: the image this runs in
+	// has no zone database of its own. See actor-service's event handler.
+	_ "time/tzdata"
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"

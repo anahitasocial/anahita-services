@@ -5,6 +5,11 @@ import (
 	"log"
 	"net/http"
 	"time"
+	// Every zone's rules, built into the program. The image this runs in
+	// has no zone database of its own, and without one no zone by name can
+	// be found: every event was refused for its time zone, whichever it
+	// was.
+	_ "time/tzdata"
 
 	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
