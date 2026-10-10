@@ -82,6 +82,8 @@ func (h *leaderHandler) Browse(c echo.Context) error {
 	graphReq.Offset = req.Offset
 	graphReq.Limit = req.Limit
 	graphReq.Search = req.Search
+	// Whoever followed most lately first.
+	graphReq.Ordering = constants.OrderingConnected
 	graphReq.Viewer = viewer
 	graphReq.AccessCheck = true
 
@@ -107,6 +109,8 @@ func (h *leaderHandler) Browse(c echo.Context) error {
 	for _, leader := range leaders {
 		if rel, exists := relationshipMap[leader.ID]; exists {
 			leader.IsLeadingViewer = rel.IsLeading
+			// And whether they follow the viewer, for "Follows you".
+			leader.IsFollowingViewer = rel.IsFollowing
 		}
 	}
 

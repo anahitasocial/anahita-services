@@ -67,3 +67,50 @@ func TestFollowersByName(t *testing.T) {
 		}
 	}
 }
+
+// A profile's followers in the order they followed, newest first.
+func TestFollowersNewestFirst(t *testing.T) {
+	db := accessTestDB(t)
+	seedRepliesFixture(t, db)
+	repo := NewGraphRepo(db)
+
+	// Alice followed the group first, Carol after her. Alice joined the
+	// site after Carol, which is what the list used to go by.
+	for _, stmt := range []string{
+		`UPDATE edges SET created_at = NOW() - INTERVAL 2 DAY WHERE type = 'edge.actor.follow.v1' AND node_a_id = 1 AND node_b_id = 3`,
+		`UPDATE edges SET created_at = NOW() - INTERVAL 1 DAY WHERE type = 'edge.actor.follow.v1' AND node_a_id = 4 AND node_b_id = 3`,
+		`UPDATE nodes SET created_at = NOW() - INTERVAL 9 YEAR WHERE id = 4`,
+	} {
+		if _, err := db.Exec(stmt); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	order := func(ordering string) []int64 {
+		t.Helper()
+
+		nodes, err := repo.BrowseConnectionNodes(&graphpb.BrowseConnectionNodesRequest{
+			NodeId:    replyGroup,
+			EdgeType:  constants.EdgeFollowEntityType,
+			Direction: constants.GraphQueryDirectionInbound,
+			Limit:     50,
+			Ordering:  ordering,
+		}, replyViewer(replyAlice))
+		if err != nil {
+			t.Fatal(err)
+		}
+		ids := []int64{}
+		for _, node := range nodes {
+			ids = append(ids, node.ID)
+		}
+		return ids
+	}
+
+	if got := order(constants.OrderingConnected); len(got) != 2 || got[0] != replyCarol || got[1] != replyAlice {
+		t.Errorf("by when they followed: %v, want Carol then Alice", got)
+	}
+	// The old order, by when each joined, puts them the other way round.
+	if got := order(constants.OrderingRecent); len(got) != 2 || got[0] != replyAlice {
+		t.Errorf("by when they joined: %v, want Alice first", got)
+	}
+}

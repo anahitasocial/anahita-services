@@ -16,9 +16,12 @@ const (
 	DBTimeout = 3 * time.Second
 
 	// Ordering
-	OrderingPopular   = "popular"
-	OrderingTrending  = "trending"
-	OrderingRecent    = "recent"
+	OrderingPopular  = "popular"
+	OrderingTrending = "trending"
+	OrderingRecent   = "recent"
+	// For a list of who is connected to something, such as a profile's
+	// followers: the newest connection first.
+	OrderingConnected = "connected"
 	OrderingOldest    = "oldest"
 	OrderingNewest    = "newest"
 	OrderingCreatedAt = "created_at"

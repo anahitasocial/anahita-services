@@ -35,8 +35,84 @@ message SocialgraphFollowDeleteRequest {
 
 message SocialgraphFollowDeleteResponse {}
 
+// An invitation: a person asked to follow an actor, who has yet to answer.
+message Invite {
+    int64 actor_id = 1;
+    int64 invitee_id = 2;
+    int64 inviter_id = 3;
+    string status = 4;
+    // Seconds since the epoch.
+    int64 created_at = 5;
+    int64 ends_at = 6;
+}
+
+message InviteAddRequest {
+    int64 actor_id = 1;
+    repeated int64 invitee_ids = 2;
+    Viewer viewer = 3;
+}
+
+message InviteAddResponse {
+    // What became of each person, by their id: invited, already_follower,
+    // not_follower, blocked, cooldown, pending, requested, unavailable, full.
+    map<int64, string> results = 1;
+    // The inviter has made too many lately. Nobody was invited.
+    bool over_daily_limit = 2;
+}
+
+// One of the two: the invitations waiting to an actor, or for a person.
+message InviteBrowseRequest {
+    int64 actor_id = 1;
+    int64 invitee_id = 2;
+    uint64 limit = 3;
+    uint64 offset = 4;
+}
+
+message InviteBrowseResponse {
+    repeated Invite invites = 1;
+    uint64 total = 2;
+}
+
+message InviteReadRequest {
+    int64 actor_id = 1;
+    int64 invitee_id = 2;
+}
+
+message InviteReadResponse {
+    // Absent when there is none waiting.
+    Invite invite = 1;
+}
+
+message InviteAnswerRequest {
+    int64 actor_id = 1;
+    int64 invitee_id = 2;
+    bool accept = 3;
+    Viewer viewer = 4;
+}
+
+message InviteAnswerResponse {
+    // False when there was no invitation waiting to answer.
+    bool found = 1;
+}
+
+message InviteDeleteRequest {
+    int64 actor_id = 1;
+    int64 invitee_id = 2;
+    Viewer viewer = 3;
+}
+
+message InviteDeleteResponse {
+    bool found = 1;
+}
+
 service SocialgraphFollowService {
     rpc Edit(SocialgraphFollowEditRequest) returns (SocialgraphFollowEditResponse);
     rpc Add(SocialgraphFollowAddRequest) returns (SocialgraphFollowAddResponse);
     rpc Delete(SocialgraphFollowDeleteRequest) returns (SocialgraphFollowDeleteResponse);
+
+    rpc InviteAdd(InviteAddRequest) returns (InviteAddResponse);
+    rpc InviteBrowse(InviteBrowseRequest) returns (InviteBrowseResponse);
+    rpc InviteRead(InviteReadRequest) returns (InviteReadResponse);
+    rpc InviteAnswer(InviteAnswerRequest) returns (InviteAnswerResponse);
+    rpc InviteDelete(InviteDeleteRequest) returns (InviteDeleteResponse);
 }

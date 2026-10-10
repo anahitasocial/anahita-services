@@ -79,7 +79,11 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
 
 	// Add ordering
-	if req.Ordering != "" {
+	if req.Ordering == constants.OrderingConnected {
+		// By when the connection was made, newest first: who followed most
+		// lately, not who joined the site most lately.
+		query = query.OrderBy("edge.created_at DESC", "edge.id DESC")
+	} else if req.Ordering != "" {
 		if req.Ordering == constants.OrderingPopular {
 			query = query.OrderBy("(COALESCE(node.repost_count,0) + COALESCE(node.comment_count,0) + COALESCE(node.vote_up_count,0) + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0)) DESC")
 		} else if req.Ordering == constants.OrderingRecent {

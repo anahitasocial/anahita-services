@@ -61,6 +61,15 @@ const (
 	// asked.
 	EventFormatEdgeFollowRequestAccepted = "edge.follow-request.%s.accepted.v1"
 
+	// Invitations to follow an actor. In each: the object is the person
+	// invited, the target the actor, the owner whoever invited them, and
+	// the subject whoever did this: the inviter, the invited, or whoever
+	// took it back. Deleted is also what the sweep says of one that lapsed.
+	EventFormatEdgeInviteAdded    = "edge.invite.%s.added.v1"
+	EventFormatEdgeInviteAccepted = "edge.invite.%s.accepted.v1"
+	EventFormatEdgeInviteDeclined = "edge.invite.%s.declined.v1"
+	EventFormatEdgeInviteDeleted  = "edge.invite.%s.deleted.v1"
+
 	EventFormatEdgeBlockAdded   = "edge.block.%s.added.v1"
 	EventFormatEdgeBlockDeleted = "edge.block.%s.deleted.v1"
 
