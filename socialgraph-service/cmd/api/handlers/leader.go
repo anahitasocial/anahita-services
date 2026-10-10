@@ -82,8 +82,10 @@ func (h *leaderHandler) Browse(c echo.Context) error {
 	graphReq.Offset = req.Offset
 	graphReq.Limit = req.Limit
 	graphReq.Search = req.Search
-	// Whoever followed most lately first.
+	// By when each followed: the latest first, or the oldest when asked
+	// (?dir=asc).
 	graphReq.Ordering = constants.OrderingConnected
+	graphReq.OrderingDir = req.Direction
 	graphReq.Viewer = viewer
 	graphReq.AccessCheck = true
 

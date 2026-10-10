@@ -78,8 +78,10 @@ func (h *mutualHandler) Browse(c echo.Context) error {
 	graphReq.Search = req.Search
 	// Among the actor's followers, the ones the viewer follows.
 	graphReq.FollowedBy = viewer.ID
-	// Whoever followed the actor most lately first.
+	// By when each followed: the latest first, or the oldest when asked
+	// (?dir=asc).
 	graphReq.Ordering = constants.OrderingConnected
+	graphReq.OrderingDir = req.Direction
 	graphReq.Viewer = viewer
 	graphReq.AccessCheck = true
 

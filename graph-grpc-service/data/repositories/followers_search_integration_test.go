@@ -86,15 +86,17 @@ func TestFollowersNewestFirst(t *testing.T) {
 		}
 	}
 
+	direction := constants.DirDesc
 	order := func(ordering string) []int64 {
 		t.Helper()
 
 		nodes, err := repo.BrowseConnectionNodes(&graphpb.BrowseConnectionNodesRequest{
-			NodeId:    replyGroup,
-			EdgeType:  constants.EdgeFollowEntityType,
-			Direction: constants.GraphQueryDirectionInbound,
-			Limit:     50,
-			Ordering:  ordering,
+			NodeId:      replyGroup,
+			EdgeType:    constants.EdgeFollowEntityType,
+			Direction:   constants.GraphQueryDirectionInbound,
+			Limit:       50,
+			Ordering:    ordering,
+			OrderingDir: direction,
 		}, replyViewer(replyAlice))
 		if err != nil {
 			t.Fatal(err)
@@ -112,6 +114,12 @@ func TestFollowersNewestFirst(t *testing.T) {
 	// The old order, by when each joined, puts them the other way round.
 	if got := order(constants.OrderingRecent); len(got) != 2 || got[0] != replyAlice {
 		t.Errorf("by when they joined: %v, want Alice first", got)
+	}
+
+	// Oldest first, when asked.
+	direction = constants.DirAsc
+	if got := order(constants.OrderingConnected); len(got) != 2 || got[0] != replyAlice || got[1] != replyCarol {
+		t.Errorf("oldest first: %v, want Alice then Carol", got)
 	}
 }
 
