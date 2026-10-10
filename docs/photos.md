@@ -174,7 +174,7 @@ one rule to explain and no order of changes to get wrong.
 | | |
 | --- | --- |
 | Images in a post | 4 |
-| One uploaded file | 10 MB, which is what the gateway lets one request carry (`client_max_body_size` in `nginx.conf`) |
+| One uploaded file | 10 MB, which is what the gateway lets one request carry (`client_max_body_size` in `nginx.conf`). The two services that take images, photo-service and identity-image-service, allow a request of 11M for it (`constants.ImageRequestBodyMaxSizeLimit`); until 2026-10-10 they used the general 2M, which refused anything larger before this limit was reached |
 | Pixels in one image | 50 million |
 | Formats | JPEG, PNG |
 | A description | 1,500 characters |

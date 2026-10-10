@@ -25,7 +25,7 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
-	e.Use(middleware.BodyLimit(constants.RequestBodyMaxSizeLimit))
+	e.Use(middleware.BodyLimit(constants.ImageRequestBodyMaxSizeLimit))
 
 	// set custom validator
 	e.Validator = validators.NewRequestValidator(validator.New())
