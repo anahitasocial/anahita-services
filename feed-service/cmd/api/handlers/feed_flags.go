@@ -68,6 +68,15 @@ func setFeedFlags(env *Env, nodes []*entities.AnahitaNode, viewer *entities.View
 			continue
 		}
 
+		// How the owner the feed shows stands with the viewer, for the
+		// Follow item in the post's menu.
+		if post.Owner != nil {
+			if rel := rels[post.OwnerID]; rel != nil {
+				post.Owner.IsLeadingViewer = rel.IsLeading
+				post.Owner.IsFollowingViewer = rel.IsFollowing
+			}
+		}
+
 		// A copy with the owner attached, so the owner the feed shows is
 		// left exactly as the feed read returned it.
 		withOwner := *post

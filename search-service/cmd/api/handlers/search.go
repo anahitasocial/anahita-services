@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/data/services"
 	"anahita-libs/responses"
 	"log"
@@ -76,6 +77,10 @@ func (h *searchHandler) Browse(c echo.Context) error {
 	}
 
 	batchPresignPaths(h.Env, nodes)
+
+	// The people and groups among what was found say whether the viewer
+	// follows them, and whether they follow the viewer.
+	an_handlers.SetViewerRelations(h.Srv.SocialgraphGRPC, nodes, viewer)
 
 	nodeResp := &responses.NodeResponse{}
 	resp.Data = nodeResp.MapNodeItems(nodes)

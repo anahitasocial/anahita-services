@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
@@ -87,6 +88,9 @@ func (h *likeHandler) Browse(c echo.Context) error {
 	}
 
 	batchPresignPaths(h.Env, nodes)
+
+	// Whether the viewer follows each of them, and is followed by them.
+	an_handlers.SetViewerRelations(h.Srv.SocialgraphGRPC, nodes, viewer)
 
 	actorsResp := &responses.ActorResponse{}
 	resp.Data = actorsResp.MapNodeItems(nodes)
