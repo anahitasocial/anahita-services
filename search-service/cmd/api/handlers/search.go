@@ -81,6 +81,8 @@ func (h *searchHandler) Browse(c echo.Context) error {
 	// The people and groups among what was found say whether the viewer
 	// follows them, and whether they follow the viewer.
 	an_handlers.SetViewerRelations(h.Srv.SocialgraphGRPC, nodes, viewer)
+	// And the events among them say when they are.
+	an_handlers.SetEventDetails(h.Srv.EventsGRPC, nodes, viewer)
 
 	nodeResp := &responses.NodeResponse{}
 	resp.Data = nodeResp.MapNodeItems(nodes)

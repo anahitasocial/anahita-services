@@ -69,3 +69,54 @@ func TestSetViewerRelations(t *testing.T) {
 	}
 	SetViewerRelations(nil, fresh, viewer)
 }
+
+type fakeEvents struct {
+	asked []int64
+	err   error
+}
+
+func (f *fakeEvents) Read(ids []int64, personID int64) (map[int64]*entities.EventDetails, error) {
+	f.asked = ids
+	out := map[int64]*entities.EventDetails{}
+	for _, id := range ids {
+		out[id] = &entities.EventDetails{NodeID: id, OnlineURL: "https://meet.example/x", GoingCount: 3}
+	}
+	return out, f.err
+}
+
+func TestSetEventDetails(t *testing.T) {
+	const event = "node.actor.actor-service.event.v1"
+	const person = "node.actor.person-service.person.v1"
+
+	nodes := []*entities.AnahitaNode{relNode(1, person), relNode(2, event), nil}
+	events := &fakeEvents{}
+
+	SetEventDetails(events, nodes, entities.NewViewer())
+
+	if len(events.asked) != 1 || events.asked[0] != 2 {
+		t.Errorf("asked about %v, want the event alone", events.asked)
+	}
+	if nodes[0].Event != nil {
+		t.Error("a person was given event details")
+	}
+	if nodes[1].Event == nil || nodes[1].Event.GoingCount != 3 {
+		t.Errorf("the event: %+v", nodes[1].Event)
+	}
+	// Never the way in from a list.
+	if nodes[1].EventShowsOnlineURL {
+		t.Error("a list shows where to join online")
+	}
+
+	// A failure leaves the list as it was, and nothing is asked without events.
+	fresh := []*entities.AnahitaNode{relNode(2, event)}
+	SetEventDetails(&fakeEvents{err: errors.New("down")}, fresh, nil)
+	if fresh[0].Event != nil {
+		t.Error("details after a failed read")
+	}
+	none := &fakeEvents{}
+	SetEventDetails(none, []*entities.AnahitaNode{relNode(1, person)}, nil)
+	if none.asked != nil {
+		t.Error("asked with no events in the list")
+	}
+	SetEventDetails(nil, fresh, nil)
+}

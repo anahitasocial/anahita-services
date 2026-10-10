@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 )
 
@@ -53,6 +54,55 @@ func SetViewerRelations(relations RelationReader, nodes []*entities.AnahitaNode,
 			// actor follows the viewer.
 			node.IsLeadingViewer = rel.IsLeading
 			node.IsFollowingViewer = rel.IsFollowing
+		}
+	}
+}
+
+// EventReader is the one question SetEventDetails asks: what only each of
+// these events has, and what the viewer answered.
+type EventReader interface {
+	Read(ids []int64, personID int64) (map[int64]*entities.EventDetails, error)
+}
+
+// SetEventDetails attaches, to each event in a list of mixed things, when
+// it is and how many are going: what a card for an event shows.
+//
+// For a list that is not an event's own page, such as search results.
+// Where to join online is never shown from here (EventShowsOnlineURL is
+// left false): that is for the event's page, which asks who is looking.
+//
+// Nodes that are not events are left alone. A failure to read is logged and
+// the list goes out without the details.
+func SetEventDetails(events EventReader, nodes []*entities.AnahitaNode, viewer *entities.Viewer) {
+	if events == nil {
+		return
+	}
+
+	ids := []int64{}
+	for _, node := range nodes {
+		if node != nil && node.Type == constants.NodeActorEventEntityType {
+			ids = append(ids, node.ID)
+		}
+	}
+	if len(ids) == 0 {
+		return
+	}
+
+	var viewerID int64
+	if viewer != nil {
+		viewerID = viewer.ID
+	}
+
+	details, err := events.Read(ids, viewerID)
+	if err != nil {
+		log.Println("event details:", err)
+		return
+	}
+
+	for _, node := range nodes {
+		if node != nil && node.Type == constants.NodeActorEventEntityType {
+			node.Event = details[node.ID]
+			node.EventShowsOnlineURL = false
 		}
 	}
 }

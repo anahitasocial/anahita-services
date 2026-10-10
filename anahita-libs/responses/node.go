@@ -39,6 +39,10 @@ type NodeItem struct {
 	IsFollowingViewer    bool `json:"is_following_viewer,omitempty"`
 	IsBlockedByViewer    bool `json:"is_blocked_by_viewer,omitempty"`
 
+	// On an event: when it is and how many are going. Left out on anything
+	// else, and where whoever sent the node did not attach it.
+	Event *Event `json:"event,omitempty"`
+
 	// What the viewer may do with the item. feed-service fills in comment and
 	// like, which the feed's buttons read; nothing else here computes it.
 	Authorized *NodeAuthorized `json:"authorized,omitempty"`
@@ -96,6 +100,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		IsAdminedByViewer:    node.IsAdminedByViewer,
 		IsFollowingViewer:    node.IsFollowingViewer,
 		IsBlockedByViewer:    node.IsBlockedByViewer,
+		Event:                NewEvent(node),
 		Authorized:           NewNodeAuthorized(node),
 		Author: func() *Author {
 			if node.Author != nil {
