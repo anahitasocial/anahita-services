@@ -72,6 +72,9 @@ type GraphBrowseConnectionNodesRequest struct {
 	Direction string `validate:"required,oneof=IN OUT BOTH"`
 	Hops      uint32 `validate:"required,numeric"`
 	Distinct  bool
+	// Only the ones this actor follows. Asked of a profile's followers, it
+	// gives who that actor and the profile have in common.
+	FollowedBy int64
 	// Only the ones whose name or alias holds this.
 	Search      string
 	Limit       uint64 `validate:"omitempty,numeric,max=100"`

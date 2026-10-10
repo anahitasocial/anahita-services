@@ -2,11 +2,9 @@ package handlers
 
 import (
 	"anahita-libs/constants"
-	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/responses"
 	"log"
-	"maps"
 	"net/http"
 	"socialgraph/requests"
 
@@ -24,13 +22,18 @@ func NewMutualHandler(env *Env) *mutualHandler {
 	}
 }
 
-// Browse returns a list of mutual
+// Browse returns who the viewer has in common with an actor: the people
+// the viewer follows who follow that actor.
+//
+// GET /socialgraph/:actor_id/mutuals/
+//
+// One query in the graph, so the list is whole, paged and counted. It used
+// to compare a page of the actor's followers with a page of who the viewer
+// follows, and so found nobody past the first page of either.
 func (h *mutualHandler) Browse(c echo.Context) error {
 	var (
-		err      error
 		req      = requests.NewSocialgraphRequest().Browse
 		graphReq = services.NewGraphRequest().BrowseConnectionNodes
-		actorReq = services.NewActorGRPCRequest().BatchRead
 		viewer   = getViewer(c)
 	)
 
@@ -72,98 +75,42 @@ func (h *mutualHandler) Browse(c echo.Context) error {
 	graphReq.Direction = constants.GraphQueryDirectionInbound
 	graphReq.Offset = req.Offset
 	graphReq.Limit = req.Limit
+	graphReq.Search = req.Search
+	// Among the actor's followers, the ones the viewer follows.
+	graphReq.FollowedBy = viewer.ID
+	// Whoever followed the actor most lately first.
+	graphReq.Ordering = constants.OrderingConnected
 	graphReq.Viewer = viewer
 	graphReq.AccessCheck = true
-	if err := c.Validate(graphReq); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
 
-	followers, _, err := h.Srv.GraphGRPC.BrowseConnectionNodes(graphReq)
+	common, total, err := h.Srv.GraphGRPC.BrowseConnectionNodes(graphReq)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	resp.Pagination.Total = total
 
-	graphReq.NodeId = viewer.ID
-	graphReq.EdgeType = constants.EdgeFollowEntityType
-	graphReq.Direction = constants.GraphQueryDirectionOutbound
-	graphReq.Offset = req.Offset
-	graphReq.Limit = req.Limit
-	graphReq.Viewer = viewer
-	if err := c.Validate(graphReq); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	leaders, _, err := h.Srv.GraphGRPC.BrowseConnectionNodes(graphReq)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	// Find mutual IDs
-	actorIdSet := make(map[int64]struct{})
-	for _, follower := range followers {
-		actorIdSet[follower.ID] = struct{}{}
-	}
-
-	var actorIds []int64
-	for _, leader := range leaders {
-		if _, exists := actorIdSet[leader.ID]; exists {
-			actorIds = append(actorIds, leader.ID)
-		}
-	}
-
-	if len(actorIds) == 0 {
+	if len(common) == 0 {
 		return c.JSON(http.StatusOK, resp)
 	}
 
-	count := len(actorIds)
-	resp.Pagination.Total = uint64(count)
-
-	actorReq.IDs = actorIds
-	actorReq.Ordering = req.Ordering
-	actorReq.Direction = req.Direction
-	if err := c.Validate(actorReq); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	nodes, err := h.Srv.ActorsGRPC.BatchRead(actorReq, viewer)
+	relationships, err := h.Srv.SocialgraphGRPC.Browse(extractNodeIDs(common), viewer.ID)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	mutualRelationships, err := h.Srv.SocialgraphGRPC.Browse(actorIds, viewer.ID)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	relationshipsMap := make(map[int64]*entities.ActorRelation)
-	maps.Copy(relationshipsMap, mutualRelationships)
-
-	for _, mutual := range nodes {
-		if rel, exists := relationshipsMap[mutual.ID]; exists {
-			mutual.IsLeadingViewer = rel.IsLeading
+	for _, node := range common {
+		if rel, exists := relationships[node.ID]; exists {
+			node.IsLeadingViewer = rel.IsLeading
+			node.IsFollowingViewer = rel.IsFollowing
 		}
 	}
 
-	onAfterActorFetched(h.Env, nodes)
+	onAfterActorFetched(h.Env, common)
 
 	actorResp := &responses.ActorResponse{}
-	resp.Data = actorResp.MapNodeItems(nodes)
+	resp.Data = actorResp.MapNodeItems(common)
 
 	return c.JSON(http.StatusOK, resp)
-}
-
-// Add adds a mutual to an actor
-func (h *mutualHandler) Add(c echo.Context) error {
-	return c.NoContent(http.StatusNotImplemented)
-}
-
-// Delete a mutual from an actor
-func (h *mutualHandler) Delete(c echo.Context) error {
-	return c.NoContent(http.StatusNotImplemented)
 }

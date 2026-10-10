@@ -114,3 +114,55 @@ func TestFollowersNewestFirst(t *testing.T) {
 		t.Errorf("by when they joined: %v, want Alice first", got)
 	}
 }
+
+// Who somebody has in common with a profile: the people they follow who
+// follow it. Found whole, however long either list is.
+func TestInCommon(t *testing.T) {
+	db := accessTestDB(t)
+	seedRepliesFixture(t, db)
+	repo := NewGraphRepo(db)
+
+	const personType = "node.actor.person-service.person.v1"
+
+	// The group's followers are Alice and Carol. Bob follows Carol and
+	// Dave, and not Alice.
+	if _, err := db.Exec(`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
+		 ('edge.actor.follow.v1',2,'` + personType + `',4,'` + personType + `',NOW()),
+		 ('edge.actor.follow.v1',2,'` + personType + `',5,'` + personType + `',NOW())`); err != nil {
+		t.Fatal(err)
+	}
+
+	common := func(with int64) (map[int64]bool, uint64) {
+		t.Helper()
+
+		// The group is private; an administrator of the site looks, so
+		// that it is the narrowing being tested and not the gate.
+		viewer := replyViewer(with)
+		viewer.PersonType = constants.PersonTypeAdmin
+
+		req := &graphpb.BrowseConnectionNodesRequest{
+			NodeId:     replyGroup,
+			EdgeType:   constants.EdgeFollowEntityType,
+			Direction:  constants.GraphQueryDirectionInbound,
+			Limit:      50,
+			FollowedBy: with,
+			Ordering:   constants.OrderingConnected,
+		}
+		nodes, err := repo.BrowseConnectionNodes(req, viewer)
+		got := nodeIDs(t, nodes, err)
+
+		total, err := repo.CountConnectionNodes(req, viewer)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return got, total
+	}
+
+	if got, total := common(replyBob); !sameSet(got, replyCarol) || total != 1 {
+		t.Errorf("Bob and the group: %v, counted %d, want Carol alone", got, total)
+	}
+	// Carol follows nobody who follows the group.
+	if got, total := common(replyCarol); len(got) != 0 || total != 0 {
+		t.Errorf("Carol and the group: %v, counted %d, want nobody", got, total)
+	}
+}

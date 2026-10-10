@@ -145,6 +145,7 @@ func (srv *GraphGRPC) BrowseConnectionNodes(req *GraphBrowseConnectionNodesReque
 		Ordering:    req.Ordering,
 		OrderingDir: req.OrderingDir,
 		Search:      req.Search,
+		FollowedBy:  req.FollowedBy,
 		Viewer: &graphpb.Viewer{
 			Id:         req.Viewer.ID,
 			PersonType: req.Viewer.PersonType,

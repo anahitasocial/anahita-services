@@ -64,6 +64,7 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 	}
 
 	query = setNeighbourSearchQuery(query, req.Search)
+	query = setFollowedByQuery(query, req.FollowedBy)
 
 	// ALWAYS, not `if req.AccessCheck` — see the note in nodes.go. The flag is
 	// a protobuf bool that arrives false unless a caller sets it, and none do.
@@ -143,6 +144,7 @@ func (r *graphRepo) CountNeighbours(req *graphpb.BrowseNeighboursRequest, viewer
 
 	// The same narrowing as the list, or the total is of a different list.
 	query = setNeighbourSearchQuery(query, req.Search)
+	query = setFollowedByQuery(query, req.FollowedBy)
 
 	// countQuery = countQuery.Where(sq.Eq{"node.enabled": req.Enabled})
 
@@ -188,6 +190,7 @@ func (r *graphRepo) BrowseConnectionNodes(req *graphpb.BrowseConnectionNodesRequ
 		Ordering:    req.Ordering,
 		OrderingDir: req.OrderingDir,
 		Search:      req.Search,
+		FollowedBy:  req.FollowedBy,
 	}
 	return r.BrowseNeighbours(req2, viewer)
 }
@@ -208,6 +211,29 @@ func setNeighbourSearchQuery(query sq.SelectBuilder, search string) sq.SelectBui
 	})
 }
 
+// setFollowedByQuery keeps the neighbours that one actor follows.
+//
+// Asked of a profile's followers, it gives who that actor and the profile
+// have in common: the people the actor follows who follow the profile. It is
+// done in the query so that the whole of it is found, paged and counted.
+// It used to be worked out by comparing one page of each side, which missed
+// everybody past the first page of either.
+func setFollowedByQuery(query sq.SelectBuilder, actorID int64) sq.SelectBuilder {
+	if actorID <= 0 {
+		return query
+	}
+
+	return query.Where(sq.Expr(`
+        EXISTS (
+          SELECT 1 FROM edges common
+          WHERE common.type = ?
+            AND common.node_a_id = ?
+            AND common.node_b_id = node.id
+        )`,
+		constants.EdgeFollowEntityType, actorID,
+	))
+}
+
 // CountConnectionNodes returns the total number of 1-hop neighbors connected by a single edge type.
 //
 // This mirrors CountNeighbours but is specialized for a single edge type.
@@ -220,6 +246,7 @@ func (r *graphRepo) CountConnectionNodes(req *graphpb.BrowseConnectionNodesReque
 		Direction:   req.Direction,
 		AccessCheck: req.AccessCheck,
 		Search:      req.Search,
+		FollowedBy:  req.FollowedBy,
 	}
 	return r.CountNeighbours(req2, viewer)
 }
