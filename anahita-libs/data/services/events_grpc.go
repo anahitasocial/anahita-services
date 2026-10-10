@@ -29,6 +29,11 @@ type EventsGRPCInterface interface {
 
 	// Cancel calls an event off. False when it already was.
 	Cancel(eventID int64) (bool, error)
+
+	// ListFor returns the ids of the events that are one person's, in the
+	// order to show them, and how many there are. The filter is one of the
+	// constants.EventList* names.
+	ListFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
 }
 
 type EventsGRPC struct {
@@ -146,4 +151,23 @@ func (srv *EventsGRPC) Cancel(eventID int64) (bool, error) {
 	}
 
 	return resp.Changed, nil
+}
+
+func (srv *EventsGRPC) ListFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := client.List(context.Background(), &graphpb.EventListRequest{
+		PersonId: personID,
+		Filter:   filter,
+		Limit:    limit,
+		Offset:   offset,
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return resp.Ids, resp.Total, nil
 }

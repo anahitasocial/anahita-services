@@ -24,6 +24,10 @@ message BrowseNeighboursRequest {
     // Only neighbours this actor follows: what somebody has in common with
     // the node.
     int64 followed_by = 11;
+    // Only neighbours whose edge says exactly this in its meta, or does
+    // not. For the people going to an event, and the ones who said maybe.
+    string edge_meta = 12;
+    string edge_meta_not = 13;
 }
 
 message BrowseNeighboursResponse {
@@ -48,6 +52,9 @@ message BrowseConnectionNodesRequest {
     // Only the ones this actor follows. With the followers of a profile,
     // that is who the actor and the profile have in common.
     int64 followed_by = 13;
+    // Only the ones whose edge says exactly this in its meta, or does not.
+    string edge_meta = 14;
+    string edge_meta_not = 15;
 }
 
 message BrowseConnectionNodesResponse {

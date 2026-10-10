@@ -10,9 +10,11 @@ func NewServices(config *config.Config) *Services {
 	edges := services.NewGraphEdgeGRPC(config)
 
 	return &Services{
-		ActorsGRPC:            services.NewActorsGRPC(config),
-		ActorAdminsGRPC:       services.NewActorAdminsGRPC(config),
-		EventsGRPC:            services.NewEventsGRPC(config),
+		ActorsGRPC:      services.NewActorsGRPC(config),
+		ActorAdminsGRPC: services.NewActorAdminsGRPC(config),
+		EventsGRPC:      services.NewEventsGRPC(config),
+		// Who is going to an event: the event's followers, by their answer.
+		GraphGRPC:             services.NewGraphGRPC(config),
 		FilesGRPC:             services.NewFilesGRPC(config),
 		GraphEdgeGRPC:         edges,
 		GraphNodeGRPC:         nodes,
@@ -27,6 +29,7 @@ type Services struct {
 	// The administrators of a group.
 	ActorAdminsGRPC services.ActorAdminsGRPCInterface
 	EventsGRPC      services.EventsGRPCInterface
+	GraphGRPC       services.GraphGRPCInterface
 	FilesGRPC       services.FilesGRPCInterface
 	GraphEdgeGRPC   services.GraphEdgeGRPCInterface
 	GraphNodeGRPC   services.GraphNodeGRPCInterface

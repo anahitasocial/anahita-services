@@ -37,6 +37,9 @@ type Config struct {
 	OAuthIssuer      string
 	OAuthJWKSURL     string
 	GroupsFrom       string
+	// The web app's address, for links that leave the site: the one in a
+	// calendar file. Optional; without it the link is left out.
+	WebOrigin string
 }
 
 func NewConfig() *Config {
@@ -52,6 +55,7 @@ func NewConfig() *Config {
 		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
 		GroupsFrom:       os.Getenv("GROUPS_FROM"),
+		WebOrigin:        strings.TrimRight(os.Getenv("WEB_ORIGIN"), "/"),
 	}
 
 	// If JWKS URL is unset, derive it from the issuer — auth-service is
@@ -168,6 +172,12 @@ func (config *Config) GetOAuthIssuer() string {
 // JWT signatures locally.
 func (config *Config) GetOAuthJWKSURL() string {
 	return config.OAuthJWKSURL
+}
+
+// GetWebOrigin returns the web app's address with no slash at its end, or
+// "" when it has not been set.
+func (config *Config) GetWebOrigin() string {
+	return config.WebOrigin
 }
 
 // GetGroupsFrom returns the minimum role that may create a group.

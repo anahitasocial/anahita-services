@@ -65,6 +65,7 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 
 	query = setNeighbourSearchQuery(query, req.Search)
 	query = setFollowedByQuery(query, req.FollowedBy)
+	query = setEdgeMetaQuery(query, req.EdgeMeta, req.EdgeMetaNot)
 
 	// ALWAYS, not `if req.AccessCheck` — see the note in nodes.go. The flag is
 	// a protobuf bool that arrives false unless a caller sets it, and none do.
@@ -151,6 +152,7 @@ func (r *graphRepo) CountNeighbours(req *graphpb.BrowseNeighboursRequest, viewer
 	// The same narrowing as the list, or the total is of a different list.
 	query = setNeighbourSearchQuery(query, req.Search)
 	query = setFollowedByQuery(query, req.FollowedBy)
+	query = setEdgeMetaQuery(query, req.EdgeMeta, req.EdgeMetaNot)
 
 	// countQuery = countQuery.Where(sq.Eq{"node.enabled": req.Enabled})
 
@@ -197,6 +199,8 @@ func (r *graphRepo) BrowseConnectionNodes(req *graphpb.BrowseConnectionNodesRequ
 		OrderingDir: req.OrderingDir,
 		Search:      req.Search,
 		FollowedBy:  req.FollowedBy,
+		EdgeMeta:    req.EdgeMeta,
+		EdgeMetaNot: req.EdgeMetaNot,
 	}
 	return r.BrowseNeighbours(req2, viewer)
 }
@@ -240,6 +244,26 @@ func setFollowedByQuery(query sq.SelectBuilder, actorID int64) sq.SelectBuilder 
 	))
 }
 
+// setEdgeMetaQuery keeps the neighbours whose edge says exactly this in its
+// meta, or the ones whose edge does not.
+//
+// An answer to an event is kept whole in the follow edge's meta, so the
+// people going are the edges that say so, and the ones who said maybe are
+// every other follow, an edge with nothing in it included.
+func setEdgeMetaQuery(query sq.SelectBuilder, is string, isNot string) sq.SelectBuilder {
+	if is != "" {
+		query = query.Where(sq.Eq{"edge.meta": is})
+	}
+	if isNot != "" {
+		query = query.Where(sq.Or{
+			sq.Expr("edge.meta IS NULL"),
+			sq.NotEq{"edge.meta": isNot},
+		})
+	}
+
+	return query
+}
+
 // CountConnectionNodes returns the total number of 1-hop neighbors connected by a single edge type.
 //
 // This mirrors CountNeighbours but is specialized for a single edge type.
@@ -253,6 +277,8 @@ func (r *graphRepo) CountConnectionNodes(req *graphpb.BrowseConnectionNodesReque
 		AccessCheck: req.AccessCheck,
 		Search:      req.Search,
 		FollowedBy:  req.FollowedBy,
+		EdgeMeta:    req.EdgeMeta,
+		EdgeMetaNot: req.EdgeMetaNot,
 	}
 	return r.CountNeighbours(req2, viewer)
 }

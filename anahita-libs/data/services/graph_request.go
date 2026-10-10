@@ -72,6 +72,9 @@ type GraphBrowseConnectionNodesRequest struct {
 	Direction string `validate:"required,oneof=IN OUT BOTH"`
 	Hops      uint32 `validate:"required,numeric"`
 	Distinct  bool
+	// Only the ones whose edge says exactly this in its meta, or does not.
+	EdgeMeta    string
+	EdgeMetaNot string
 	// Only the ones this actor follows. Asked of a profile's followers, it
 	// gives who that actor and the profile have in common.
 	FollowedBy int64

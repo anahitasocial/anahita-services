@@ -146,18 +146,29 @@ Differences from the design above:
 - **Times are given as RFC 3339 with an offset** and stored in UTC, with the zone's name beside them.
 - **An event's address does not change when it is renamed.** A group's does.
 - **A follow with no answer counts as maybe,** so following an event from anywhere that offers Follow does something sensible.
-- **`GET /events/` lists every event the viewer may see,** as `/groups/` does. The plan has no list of everything; the viewer's own lists replace it in the next phase.
+- **`GET /events/` listed every event the viewer may see** in this phase, as `/groups/` does. It was removed in phase 2, when the viewer's own lists arrived.
 
 Tests: `permissions/event_test.go`, `responses/event_test.go`, `constants/invites_test.go`; the graph's `TestEventTimesAreAnEventsAlone`; on a real database `TestEventAnswers` and `TestEventLastPlaceIsGivenOnce` (four people asking for one place at once).
 
+### Phase 2, lists and the calendar file: 2026-10-10
+
+Server only.
+
+- **`GET /events/mine?filter=upcoming|past|hosting|invited`:** the viewer's own events. Upcoming and past are what they answered, split by whether it is over; hosting is what they look after; invited is what they were asked to and have not answered. Soonest first for what is to come, latest first for the rest. An event they were invited to and may not yet see comes as its name, picture and time, marked `restricted`.
+- **`GET /events/:id/attendees/?rsvp=going|maybe`:** who is going, or said maybe, to anybody who can see the event, each person gated as a follower list is. Through the graph's neighbour query, which can now be narrowed by what an edge's meta says.
+- **`GET /events/:id/ics`:** the event as a calendar file. Its times are written in UTC, which every calendar shows in its owner's zone, so no zone rules are in the file. `STATUS:CANCELLED` when it was called off. The address to join online is in it only for whoever is going or looks after the event. The link back needs `WEB_ORIGIN` set for actor-service.
+- **`GET /events/` was removed.** There is no list of every event, as the plan says.
+- **The limited view of an event says when it is,** to somebody invited.
+
+Tests: `TestEventListsAndWhoIsGoing` on a real database; `handlers/event_ics_test.go`.
+
 ### Still to do
 
-1. **Lists:** the viewer's own (upcoming, invited, hosting, past), who is going and who said maybe, and an event's host group with the group's Events tab.
-2. **The calendar file** (`/events/:id/ics`).
-3. **The sweep:** archive 30 days after the end, drop invitations to events that are over, remind whoever is going a day before.
-4. **Notifications:** an answer (to hosts), a change of time or place, calling off, the reminder.
-5. **`host_followers` access,** for an event open to its host group's followers.
-6. **The web app:** the form with time zones, the event page, answering, the Events page and tabs.
+1. **Hosting by a group:** the host edge, the group's Events tab, and the group's administrators looking after its events.
+2. **The sweep:** archive 30 days after the end, drop invitations to events that are over, remind whoever is going a day before.
+3. **Notifications:** an answer (to hosts), a change of time or place, calling off, the reminder.
+4. **`host_followers` access,** for an event open to its host group's followers.
+5. **The web app:** the form with time zones, the event page, answering, the Events page and tabs.
 
 ## Status
 
@@ -165,4 +176,5 @@ Tests: `permissions/event_test.go`, `responses/event_test.go`, `constants/invite
 | --- | --- |
 | Plan | written 2026-09-28 |
 | Phase 1, the event itself (server) | done 2026-10-10 |
+| Phase 2, lists and the calendar file (server) | done 2026-10-10 |
 | The rest, listed under Still to do | not started |

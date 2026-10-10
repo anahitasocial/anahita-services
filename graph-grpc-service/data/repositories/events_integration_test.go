@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"anahita-libs/constants"
+	"anahita-libs/proto/graphpb"
 )
 
 // Events against a real database, on the fixture the thread tests use.
@@ -190,5 +191,125 @@ func TestEventLastPlaceIsGivenOnce(t *testing.T) {
 	events, err := repo.Read([]int64{testEvent}, 0)
 	if err != nil || events[testEvent].GoingCount != 1 {
 		t.Errorf("%d going (err %v), want 1", events[testEvent].GoingCount, err)
+	}
+}
+
+// The events that are one person's, and who is going to one.
+func TestEventListsAndWhoIsGoing(t *testing.T) {
+	db := accessTestDB(t)
+	seedRepliesFixture(t, db)
+	repo := NewEventsRepo(db)
+	seedEvents(t, repo, 0)
+
+	const (
+		later   = 902 // further off than the picnic
+		deleted = 903 // answered, then removed
+	)
+	personType := constants.NodeActorPersonEntityType
+	eventType := constants.NodeActorEventEntityType
+
+	for _, stmt := range []string{
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,starts_at,ends_at,created_at,updated_at) VALUES
+		 (902,'` + eventType + `','actor-service','Later','later','followers',1,NOW() + INTERVAL 9 DAY,NOW() + INTERVAL 10 DAY,NOW(),NOW()),
+		 (903,'` + eventType + `','actor-service','Gone','gone','public',1,NOW() + INTERVAL 3 DAY,NOW() + INTERVAL 4 DAY,NOW(),NOW())`,
+		`UPDATE nodes SET deleted_at = NOW() WHERE id = 903`,
+		// Alice looks after the picnic and is going. She went to last
+		// year's. She said maybe to the one that is gone.
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,meta,created_at) VALUES
+		 ('edge.actor.admin.v1',1,'` + personType + `',900,'` + eventType + `',NULL,NOW()),
+		 ('edge.actor.follow.v1',1,'` + personType + `',900,'` + eventType + `','` + constants.EventRsvpGoingMeta + `',NOW() - INTERVAL 2 HOUR),
+		 ('edge.actor.follow.v1',1,'` + personType + `',901,'` + eventType + `','` + constants.EventRsvpGoingMeta + `',NOW()),
+		 ('edge.actor.follow.v1',1,'` + personType + `',903,'` + eventType + `','` + constants.EventRsvpMaybeMeta + `',NOW()),
+		 ('edge.actor.follow.v1',2,'` + personType + `',900,'` + eventType + `','` + constants.EventRsvpMaybeMeta + `',NOW() - INTERVAL 1 HOUR),
+		 ('edge.actor.follow.v1',4,'` + personType + `',900,'` + eventType + `',NULL,NOW())`,
+		// Alice is invited to the later one. Bob's invitation to it lapsed.
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,meta,created_at,ends_at) VALUES
+		 ('edge.actor.invite.v1',1,'` + personType + `',902,'` + eventType + `','` + constants.InviteMetaPending + `',NOW(),NOW() + INTERVAL 30 DAY),
+		 ('edge.actor.invite.v1',2,'` + personType + `',902,'` + eventType + `','` + constants.InviteMetaPending + `',NOW(),NOW() - INTERVAL 1 DAY)`,
+	} {
+		if _, err := db.Exec(stmt); err != nil {
+			t.Fatalf("seed: %v\n%s", err, stmt)
+		}
+	}
+	for _, id := range []int64{later, deleted} {
+		if err := repo.Save(&EventDetails{NodeID: id, TimezoneName: "UTC"}); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	list := func(person int64, filter string) []int64 {
+		t.Helper()
+		ids, total, err := repo.ListFor(person, filter, 20, 0)
+		if err != nil {
+			t.Fatalf("%s: %v", filter, err)
+		}
+		if int(total) != len(ids) {
+			t.Errorf("%s: counted %d, listed %d", filter, total, len(ids))
+		}
+		return ids
+	}
+	same := func(got []int64, want ...int64) bool {
+		if len(got) != len(want) {
+			return false
+		}
+		for i := range want {
+			if got[i] != want[i] {
+				return false
+			}
+		}
+		return true
+	}
+
+	// What is gone is in no list. What is over is only in the past.
+	if got := list(replyAlice, constants.EventListUpcoming); !same(got, testEvent) {
+		t.Errorf("Alice, upcoming: %v, want the picnic", got)
+	}
+	if got := list(replyAlice, constants.EventListPast); !same(got, testEventOver) {
+		t.Errorf("Alice, past: %v, want last year's", got)
+	}
+	if got := list(replyAlice, constants.EventListHosting); !same(got, testEvent) {
+		t.Errorf("Alice, hosting: %v, want the picnic", got)
+	}
+	if got := list(replyAlice, constants.EventListInvited); !same(got, later) {
+		t.Errorf("Alice, invited: %v, want the later one", got)
+	}
+	// An invitation that lapsed is not one to answer.
+	if got := list(replyBob, constants.EventListInvited); len(got) != 0 {
+		t.Errorf("Bob, invited: %v, want nothing", got)
+	}
+	if got := list(replyBob, constants.EventListHosting); len(got) != 0 {
+		t.Errorf("Bob, hosting: %v, want nothing", got)
+	}
+	if _, _, err := repo.ListFor(replyAlice, "everything", 20, 0); err == nil {
+		t.Error("a list there is no such thing as was given")
+	}
+
+	// Who is going, and who said maybe: Carol followed it saying nothing,
+	// which counts as maybe.
+	graph := NewGraphRepo(db)
+	who := func(is string, isNot string) (map[int64]bool, uint64) {
+		t.Helper()
+		req := &graphpb.BrowseConnectionNodesRequest{
+			NodeId:      testEvent,
+			EdgeType:    constants.EdgeFollowEntityType,
+			Direction:   constants.GraphQueryDirectionInbound,
+			Limit:       50,
+			EdgeMeta:    is,
+			EdgeMetaNot: isNot,
+		}
+		nodes, err := graph.BrowseConnectionNodes(req, replyViewer(replyAlice))
+		got := nodeIDs(t, nodes, err)
+		total, err := graph.CountConnectionNodes(req, replyViewer(replyAlice))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return got, total
+	}
+
+	if got, total := who(constants.EventRsvpGoingMeta, ""); !sameSet(got, replyAlice) || total != 1 {
+		t.Errorf("going: %v, counted %d, want Alice alone", got, total)
+	}
+	if got, total := who("", constants.EventRsvpGoingMeta); !sameSet(got, replyBob, replyCarol) || total != 2 {
+		t.Errorf("maybe: %v, counted %d, want Bob and Carol", got, total)
 	}
 }

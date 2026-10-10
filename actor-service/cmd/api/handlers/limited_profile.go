@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"anahita-libs/cmd/api/permissions"
+	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/responses"
+	"log"
 )
 
 // limitedProfile is what the viewer is sent of a profile they may not see:
@@ -19,6 +21,12 @@ func limitedProfile(env *Env, actor *entities.AnahitaNode, ctx *permissions.Acto
 	limited := responses.NewLimitedActor(actor, ctx.ActorViewerRel != nil && ctx.ActorViewerRel.HasRequested)
 	limited.IsInvited = ctx.ActorViewerRel != nil && ctx.ActorViewerRel.HasInvite
 
+	// Somebody invited to an event is told when it is. That is what an
+	// invitation is for. Somebody who may only ask to follow it is not.
+	if limited.IsInvited && actor.Type == an_constants.NodeActorEventEntityType {
+		limited.Event = limitedEvent(env, actor, ctx.Viewer)
+	}
+
 	return limited
 }
 
@@ -30,4 +38,20 @@ func limitedProfile(env *Env, actor *entities.AnahitaNode, ctx *permissions.Acto
 // administrator's list of disabled accounts.
 func listsAskable(viewer *entities.Viewer, featured bool, disabled bool) bool {
 	return viewer != nil && viewer.Authenticated && viewer.ID > 0 && !featured && !disabled
+}
+
+// limitedEvent is when an event is and how full, for somebody invited to it
+// who may not otherwise see it. Where to join it online is never in it.
+func limitedEvent(env *Env, actor *entities.AnahitaNode, viewer *entities.Viewer) *responses.Event {
+	details, err := env.Srv.EventsGRPC.Read([]int64{actor.ID}, viewer.ID)
+	if err != nil {
+		log.Println("limited event:", err)
+		return nil
+	}
+
+	shown := *actor
+	shown.Event = details[actor.ID]
+	shown.EventShowsOnlineURL = false
+
+	return responses.NewEvent(&shown)
 }

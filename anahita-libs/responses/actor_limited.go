@@ -26,6 +26,9 @@ type LimitedActor struct {
 	// Whether the viewer has been invited to follow it and is yet to
 	// answer.
 	IsInvited bool `json:"is_invited,omitempty"`
+	// On an event the viewer was invited to: when it is, so they can
+	// decide. Never where to join it online.
+	Event *Event `json:"event,omitempty"`
 }
 
 // NewLimitedActor maps a node to what a stranger is shown of it.

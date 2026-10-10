@@ -102,6 +102,14 @@ spec:
                   name: anahita-config
                   key: GROUPS_FROM
                   optional: true
+            # The web app's address, for the link back in an event's calendar
+            # file. Without it the link is left out.
+            - name: WEB_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: WEB_ORIGIN
+                  optional: true
           readinessProbe:
             httpGet:
               path: /ping

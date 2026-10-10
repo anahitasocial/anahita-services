@@ -37,7 +37,11 @@ type BrowseNeighboursRequest struct {
 	Search string `protobuf:"bytes,10,opt,name=search,proto3" json:"search,omitempty"`
 	// Only neighbours this actor follows: what somebody has in common with
 	// the node.
-	FollowedBy    int64 `protobuf:"varint,11,opt,name=followed_by,json=followedBy,proto3" json:"followed_by,omitempty"`
+	FollowedBy int64 `protobuf:"varint,11,opt,name=followed_by,json=followedBy,proto3" json:"followed_by,omitempty"`
+	// Only neighbours whose edge says exactly this in its meta, or does
+	// not. For the people going to an event, and the ones who said maybe.
+	EdgeMeta      string `protobuf:"bytes,12,opt,name=edge_meta,json=edgeMeta,proto3" json:"edge_meta,omitempty"`
+	EdgeMetaNot   string `protobuf:"bytes,13,opt,name=edge_meta_not,json=edgeMetaNot,proto3" json:"edge_meta_not,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -149,6 +153,20 @@ func (x *BrowseNeighboursRequest) GetFollowedBy() int64 {
 	return 0
 }
 
+func (x *BrowseNeighboursRequest) GetEdgeMeta() string {
+	if x != nil {
+		return x.EdgeMeta
+	}
+	return ""
+}
+
+func (x *BrowseNeighboursRequest) GetEdgeMetaNot() string {
+	if x != nil {
+		return x.EdgeMetaNot
+	}
+	return ""
+}
+
 type BrowseNeighboursResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Nodes         []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
@@ -218,7 +236,10 @@ type BrowseConnectionNodesRequest struct {
 	Search string `protobuf:"bytes,12,opt,name=search,proto3" json:"search,omitempty"`
 	// Only the ones this actor follows. With the followers of a profile,
 	// that is who the actor and the profile have in common.
-	FollowedBy    int64 `protobuf:"varint,13,opt,name=followed_by,json=followedBy,proto3" json:"followed_by,omitempty"`
+	FollowedBy int64 `protobuf:"varint,13,opt,name=followed_by,json=followedBy,proto3" json:"followed_by,omitempty"`
+	// Only the ones whose edge says exactly this in its meta, or does not.
+	EdgeMeta      string `protobuf:"bytes,14,opt,name=edge_meta,json=edgeMeta,proto3" json:"edge_meta,omitempty"`
+	EdgeMetaNot   string `protobuf:"bytes,15,opt,name=edge_meta_not,json=edgeMetaNot,proto3" json:"edge_meta_not,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -342,6 +363,20 @@ func (x *BrowseConnectionNodesRequest) GetFollowedBy() int64 {
 		return x.FollowedBy
 	}
 	return 0
+}
+
+func (x *BrowseConnectionNodesRequest) GetEdgeMeta() string {
+	if x != nil {
+		return x.EdgeMeta
+	}
+	return ""
+}
+
+func (x *BrowseConnectionNodesRequest) GetEdgeMetaNot() string {
+	if x != nil {
+		return x.EdgeMetaNot
+	}
+	return ""
 }
 
 type BrowseConnectionNodesResponse struct {
@@ -1152,7 +1187,7 @@ var File_proto_graphpb_graph_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/graphpb/graph.proto\x12\x05graph\x1a\x18proto/graphpb/node.proto\x1a\x18proto/graphpb/edge.proto\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xdf\x02\n" +
+	"\x19proto/graphpb/graph.proto\x12\x05graph\x1a\x18proto/graphpb/node.proto\x1a\x18proto/graphpb/edge.proto\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa0\x03\n" +
 	"\x17BrowseNeighboursRequest\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\x03R\x06nodeId\x12\x1d\n" +
 	"\n" +
@@ -1167,10 +1202,12 @@ const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"\x06search\x18\n" +
 	" \x01(\tR\x06search\x12\x1f\n" +
 	"\vfollowed_by\x18\v \x01(\x03R\n" +
-	"followedBy\"S\n" +
+	"followedBy\x12\x1b\n" +
+	"\tedge_meta\x18\f \x01(\tR\bedgeMeta\x12\"\n" +
+	"\redge_meta_not\x18\r \x01(\tR\vedgeMetaNot\"S\n" +
 	"\x18BrowseNeighboursResponse\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x04R\x05total\"\x92\x03\n" +
+	"\x05total\x18\x02 \x01(\x04R\x05total\"\xd3\x03\n" +
 	"\x1cBrowseConnectionNodesRequest\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\x03R\x06nodeId\x12\x1b\n" +
 	"\tedge_type\x18\x02 \x01(\tR\bedgeType\x12\x1c\n" +
@@ -1186,7 +1223,9 @@ const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"\faccess_check\x18\v \x01(\bR\vaccessCheck\x12\x16\n" +
 	"\x06search\x18\f \x01(\tR\x06search\x12\x1f\n" +
 	"\vfollowed_by\x18\r \x01(\x03R\n" +
-	"followedBy\"X\n" +
+	"followedBy\x12\x1b\n" +
+	"\tedge_meta\x18\x0e \x01(\tR\bedgeMeta\x12\"\n" +
+	"\redge_meta_not\x18\x0f \x01(\tR\vedgeMetaNot\"X\n" +
 	"\x1dBrowseConnectionNodesResponse\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x04R\x05total\"\x93\x02\n" +

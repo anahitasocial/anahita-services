@@ -37,7 +37,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 | `AMQP_ADDR` | publishers and consumers | RabbitMQ, e.g. `amqp://rabbitmq:5672` |
 | `OAUTH_ISSUER` | all HTTP services | Issuer URL that tokens are signed with and checked against |
 | `OAUTH_JWKS_URL` | all HTTP services | Where public signing keys are fetched. Defaults to auth-service inside the network |
-| `WEB_ORIGIN` | nginx | The web app's origin, e.g. `https://example.org`. The one origin allowed to call the API with the session cookie. Default `http://localhost:3000` |
+| `WEB_ORIGIN` | nginx, actor-service | The web app's origin, e.g. `https://example.org`. For nginx, the one origin allowed to call the API with the session cookie. For actor-service, where the link in an event's calendar file leads; without it the link is left out. Default `http://localhost:3000` |
 
 ### Client addresses
 

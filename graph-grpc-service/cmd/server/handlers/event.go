@@ -123,3 +123,23 @@ func (h *eventGrpcHandler) Cancel(ctx context.Context, req *graphpb.EventCancelR
 
 	return &graphpb.EventCancelResponse{Changed: changed}, nil
 }
+
+// List returns the ids of the events that are one person's.
+func (h *eventGrpcHandler) List(ctx context.Context, req *graphpb.EventListRequest) (*graphpb.EventListResponse, error) {
+	if req.PersonId == 0 {
+		return nil, errors.New("a person is required")
+	}
+
+	limit := req.Limit
+	if limit == 0 || limit > constants.MaxPageSize {
+		limit = constants.DefaultPageSize
+	}
+
+	ids, total, err := h.env.Repos.Events.ListFor(req.PersonId, req.Filter, limit, req.Offset)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &graphpb.EventListResponse{Ids: ids, Total: total}, nil
+}

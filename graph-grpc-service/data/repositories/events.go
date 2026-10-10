@@ -47,6 +47,15 @@ type EventsRepoInterface interface {
 	// Cancel calls an event off. It answers false when it already was, or
 	// there is no such event.
 	Cancel(eventID int64) (bool, error)
+
+	// ListFor returns the ids of the events that are one person's, in the
+	// order to show them, and how many there are: upcoming, past, hosting or
+	// invited (the constants.EventList* names).
+	//
+	// These are the person's own, so nothing is gated here: they answered
+	// it, look after it or were invited to it. Whoever sends them on decides
+	// how much of an event the person was only invited to is shown.
+	ListFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error)
 }
 
 func NewEventsRepo(db *sql.DB) EventsRepoInterface {
@@ -327,4 +336,93 @@ func (r *eventsRepo) Cancel(eventID int64) (bool, error) {
 	changed, err := result.RowsAffected()
 
 	return changed > 0, err
+}
+
+// What makes a node an event that is still there to be listed.
+const eventIsListed = `
+  node.type = ?
+  AND node.enabled = 1
+  AND node.deleted_at IS NULL`
+
+// Answered and looked after are the same join on a different kind of edge.
+const eventsByEdge = `
+FROM nodes AS node
+JOIN edges AS edge ON edge.node_b_id = node.id
+WHERE edge.type = ?
+  AND edge.node_a_id = ?
+  AND` + eventIsListed
+
+const eventsInvitedTo = `
+FROM nodes AS node
+JOIN edges AS edge ON edge.node_b_id = node.id
+WHERE edge.type = ?
+  AND edge.node_a_id = ?
+  AND edge.meta = ?
+  AND edge.ends_at > NOW()
+  AND` + eventIsListed + `
+  AND node.ends_at > NOW()`
+
+const eventStillToCome = `
+  AND node.ends_at > NOW()`
+
+const eventOver = `
+  AND node.ends_at <= NOW()`
+
+const eventsSoonestFirst = `
+ORDER BY node.starts_at ASC, node.id ASC
+LIMIT ? OFFSET ?`
+
+const eventsLatestFirst = `
+ORDER BY node.starts_at DESC, node.id DESC
+LIMIT ? OFFSET ?`
+
+func (r *eventsRepo) ListFor(personID int64, filter string, limit uint64, offset uint64) ([]int64, uint64, error) {
+	var (
+		from  string
+		order string
+		args  []any
+	)
+
+	switch filter {
+	case constants.EventListUpcoming:
+		from = eventsByEdge + eventStillToCome
+		order = eventsSoonestFirst
+		args = []any{constants.EdgeFollowEntityType, personID, constants.NodeActorEventEntityType}
+	case constants.EventListPast:
+		from = eventsByEdge + eventOver
+		order = eventsLatestFirst
+		args = []any{constants.EdgeFollowEntityType, personID, constants.NodeActorEventEntityType}
+	case constants.EventListHosting:
+		from = eventsByEdge
+		order = eventsLatestFirst
+		args = []any{constants.EdgeActorAdminEntityType, personID, constants.NodeActorEventEntityType}
+	case constants.EventListInvited:
+		from = eventsInvitedTo
+		order = eventsSoonestFirst
+		args = []any{constants.EdgeActorInviteEntityType, personID, constants.InviteMetaPending, constants.NodeActorEventEntityType}
+	default:
+		return nil, 0, errors.New("no such list of events")
+	}
+
+	var total uint64
+	if err := r.db.QueryRow("SELECT COUNT(*)"+from, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := r.db.Query("SELECT node.id"+from+order, append(args, limit, offset)...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	ids := []int64{}
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, 0, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, total, rows.Err()
 }

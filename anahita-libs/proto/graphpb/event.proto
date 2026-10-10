@@ -62,9 +62,26 @@ message EventCancelResponse {
     bool changed = 1;
 }
 
+// The events that are one person's: the ones they answered, were invited
+// to, or look after.
+message EventListRequest {
+    int64 person_id = 1;
+    // upcoming, past, hosting or invited.
+    string filter = 2;
+    uint64 limit = 3;
+    uint64 offset = 4;
+}
+
+message EventListResponse {
+    // In the order to show them.
+    repeated int64 ids = 1;
+    uint64 total = 2;
+}
+
 service EventService {
     rpc Save(EventSaveRequest) returns (EventSaveResponse);
     rpc Read(EventReadRequest) returns (EventReadResponse);
     rpc Rsvp(EventRsvpRequest) returns (EventRsvpResponse);
     rpc Cancel(EventCancelRequest) returns (EventCancelResponse);
+    rpc List(EventListRequest) returns (EventListResponse);
 }

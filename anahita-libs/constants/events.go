@@ -28,6 +28,21 @@ const (
 	EventRsvpMissing = "missing"
 )
 
+// The lists of events that are one person's.
+const (
+	// EventListUpcoming: what they said going or maybe to, still to come
+	// or on now, soonest first.
+	EventListUpcoming = "upcoming"
+	// EventListPast: what they said going or maybe to, now over, latest
+	// first.
+	EventListPast = "past"
+	// EventListHosting: what they look after, latest first.
+	EventListHosting = "hosting"
+	// EventListInvited: what they were invited to and have not answered,
+	// still to come, soonest first.
+	EventListInvited = "invited"
+)
+
 // EventArchiveAfter is how long after it ends an event is archived.
 const EventArchiveAfter = 30 * 24 * time.Hour
 

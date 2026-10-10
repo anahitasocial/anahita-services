@@ -219,6 +219,8 @@ services:
       # Who may create a group. Enforced here; auth-service is given the same
       # value so it can publish it in NodeInfo. See the note there.
       GROUPS_FROM: ${GROUPS_FROM:-}
+      # The web app's address, for the link back in an event's calendar file.
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
     networks:

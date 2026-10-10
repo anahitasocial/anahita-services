@@ -106,9 +106,19 @@ func (r *Routes) Init(e *echo.Echo) {
 	// events — an actor like a group, with a time and a place. Everything
 	// a group has, an event has, from the same handler told a different
 	// kind. What only an event has follows.
+	//
+	// There is no GET /events/: no list of every event on the site, as
+	// there is none of every note or photo. An event is found from an
+	// invitation, from whoever hosts it, or by its address.
 	events := e.Group("events")
-	events.GET("/", r.handler.Event.Browse, r.setViewer)
+	// The viewer's own: what they answered, look after, or were invited
+	// to. Before /:id, though a word is never mistaken for an id.
+	events.GET("/mine", r.handler.Event.Mine, r.authorize)
 	events.GET("/:id", r.handler.Event.Read, r.setViewer)
+	// Who is going, and who said maybe.
+	events.GET("/:id/attendees/", r.handler.Event.Attendees, r.setViewer)
+	// "Add to calendar".
+	events.GET("/:id/ics", r.handler.Event.ICS, r.setViewer)
 	events.POST("/", r.handler.Event.Add, r.authorize)
 	events.PATCH("/:id", r.handler.Event.Edit, r.authorize)
 	events.DELETE("/:id", r.handler.Event.Delete, r.authorize)
