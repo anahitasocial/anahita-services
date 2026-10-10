@@ -220,5 +220,109 @@ func (r *socialgraphRelRepo) getRelations(actorAIDs []int64, actorBID int64) (ma
 		rel.IsMutual = rel.IsLeading && rel.IsFollowing
 	}
 
+	// 5) actorB has asked to follow actorA (HasRequested)
+	{
+		q := sq.
+			Select("e.node_b_id AS actor_id").
+			From("edges e").
+			Where(sq.Eq{
+				"e.type":      constants.EdgeFollowRequestEntityType,
+				"e.node_a_id": actorBID,
+				"e.node_b_id": actorAIDs,
+			})
+		sqlStr, args, err := q.ToSql()
+		if err != nil {
+			return nil, err
+		}
+
+		rows, err := r.db.QueryContext(ctx, sqlStr, args...)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var actorID int64
+			if err := rows.Scan(&actorID); err != nil {
+				return nil, err
+			}
+			rels[actorID].HasRequested = true
+		}
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+	}
+
+	// 6) actorB has been invited to follow actorA (HasInvite)
+	{
+		q := sq.
+			Select("e.node_b_id AS actor_id").
+			From("edges e").
+			Where(sq.Eq{
+				"e.type":      constants.EdgeActorInviteEntityType,
+				"e.node_a_id": actorBID,
+				"e.node_b_id": actorAIDs,
+				"e.meta":      constants.InviteMetaPending,
+			}).
+			Where("e.ends_at > NOW()")
+		sqlStr, args, err := q.ToSql()
+		if err != nil {
+			return nil, err
+		}
+
+		rows, err := r.db.QueryContext(ctx, sqlStr, args...)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var actorID int64
+			if err := rows.Scan(&actorID); err != nil {
+				return nil, err
+			}
+			rels[actorID].HasInvite = true
+		}
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+	}
+
+	// 7) actorA is an event open to its host's followers, and actorB
+	// follows the group hosting it (ViaHost)
+	{
+		q := sq.
+			Select("host.node_b_id AS actor_id").
+			From("edges host").
+			Join("events ev ON ev.node_id = host.node_b_id AND ev.open_to_host_followers = 1").
+			Join("edges follows ON follows.node_b_id = host.node_a_id").
+			Where(sq.Eq{
+				"host.type":         constants.EdgeActorHostEntityType,
+				"host.node_b_id":    actorAIDs,
+				"follows.type":      constants.EdgeFollowEntityType,
+				"follows.node_a_id": actorBID,
+			})
+		sqlStr, args, err := q.ToSql()
+		if err != nil {
+			return nil, err
+		}
+
+		rows, err := r.db.QueryContext(ctx, sqlStr, args...)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var actorID int64
+			if err := rows.Scan(&actorID); err != nil {
+				return nil, err
+			}
+			rels[actorID].ViaHost = true
+		}
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+	}
 	return rels, nil
 }

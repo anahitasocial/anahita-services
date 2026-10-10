@@ -144,6 +144,10 @@ func (srv *GraphGRPC) BrowseConnectionNodes(req *GraphBrowseConnectionNodesReque
 		Limit:       req.Limit,
 		Ordering:    req.Ordering,
 		OrderingDir: req.OrderingDir,
+		Search:      req.Search,
+		FollowedBy:  req.FollowedBy,
+		EdgeMeta:    req.EdgeMeta,
+		EdgeMetaNot: req.EdgeMetaNot,
 		Viewer: &graphpb.Viewer{
 			Id:         req.Viewer.ID,
 			PersonType: req.Viewer.PersonType,

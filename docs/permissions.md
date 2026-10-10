@@ -22,7 +22,9 @@ change them, and what profile owners can change for themselves.
   - [Editing, deleting and hiding a reply](#editing-deleting-and-hiding-a-reply)
   - [Liking a reply](#liking-a-reply)
 - [Likes](#likes)
-- [Adding followers to a group](#adding-followers-to-a-group)
+- [Following](#following)
+- [Invitations](#invitations)
+- [Events](#events)
 - [Reposts](#reposts)
 - [Quotes](#quotes)
 - [Saved posts](#saved-posts)
@@ -315,16 +317,158 @@ read the post, then meet the level set for likes.
 
 Default: `followers`.
 
-## Adding followers to a group
+## Following
 
-Who can add somebody else to a group as a follower: `followers` or `admins`.
-Site administrators always can.
+The rules are in `anahita-libs/cmd/api/permissions/follow.go`, and
+socialgraph-service asks them.
 
-Following a group yourself is not governed by this setting. Anybody who can
-see the group can follow it, as with a person. This setting has no effect on
-people, because nobody adds followers to a person.
+| Action | Who |
+| --- | --- |
+| Follow a profile | Yourself, a profile you can see, and that has not blocked you |
+| Unfollow | Always yours to do, whether or not you can still see the profile |
+| Remove a follower | Whoever looks after the profile: the person, a group's administrators, a site administrator |
+| Ask to follow | Yourself, of a profile that lets people ask and has not blocked you, when you do not follow it already |
+| Accept a request | Whoever looks after the profile that was asked |
+| Ignore a request, or take it back | Whoever looks after the profile, or whoever asked |
 
-Default: `admins`.
+Nobody follows, or asks to follow, on somebody else's behalf. The one
+exception is the group setting below.
+
+Asking does not need you to be able to see the profile. A profile you can see,
+you can follow outright; the ones worth asking are the ones you cannot.
+"Others can request to follow" (`allow_follow_request`) is the profile saying
+it may be asked, and it can be turned off again.
+
+A request is an edge of its own, `edge.actor.follow-request.v1`, and is not
+counted among followers. Accepting removes it and makes the follow. Following
+directly, where that is allowed, removes a request that was waiting.
+
+Whoever looks after the profile is told of a request (`actor_follow_request`),
+and that notification goes when the request is answered or taken back.
+Whoever asked is told when it is accepted (`actor_follow_request_accept`).
+
+### What a stranger is shown of a private profile
+
+A profile somebody may not see is refused whole (403), with one exception. A
+profile that lets people ask to follow it, or that the viewer has been invited
+to follow, shows **its name, alias, picture
+and verified mark, and nothing else** to somebody signed in whom it has not
+blocked. Without that there would be nothing to ask from.
+
+- **Opening the profile** answers 200 with that much, marked
+  `restricted: true`, and `is_follow_requested_by_viewer`.
+- **The lists of people and of groups** include such profiles for somebody
+  signed in, each marked the same way. Not the featured list, and not any
+  other listing: search, followers, mentions and feeds are unchanged.
+- **Visitors** are shown nothing, as before. So is anybody when the profile
+  is disabled, archived, on its way out, or does not let people ask.
+
+The rule is `permissions.CanSeeLimitedProfile`. In a list the cutting down is
+done inside the graph (`restrictUnseen`), before the actor leaves it, and the
+response is a `LimitedActor`, a written-out list of fields. It is not the
+ordinary item with fields blanked.
+
+## Invitations
+
+Nobody is made a follower of a group without saying yes. They are invited,
+told, and choose. The rules are in
+`anahita-libs/cmd/api/permissions/invite.go`, and what the data allows of
+each person is in the graph (`data/repositories/invites.go`).
+
+**Who can invite** is the group's setting, `invite` under socialgraph-service:
+`admins` or `followers`. Default, and what a group that never set it gets:
+`admins`. Site administrators always can. Only to a group the inviter can see
+that is in use. Nobody is invited to follow a person.
+
+**Who can be invited:** a person who follows the inviter. The answer for
+each person named is one of:
+
+| Answer | Meaning |
+| --- | --- |
+| `invited` | An invitation was made |
+| `already_follower` | They follow the group |
+| `not_follower` | They do not follow the inviter |
+| `blocked` | Somebody among the person, the inviter and the group has blocked another |
+| `pending` | They are invited already and have not answered |
+| `cooldown` | They declined within the last 90 days |
+| `requested` | They have asked to follow and are waiting; accept that instead |
+| `unavailable` | Not a person, not there, or the inviter themselves |
+| `full` | 500 invitations to the group are waiting |
+
+Limits: 50 people in one request (400), and 200 invitations made in the last
+day that are still waiting (429).
+
+**An invitation** waits 30 days, then lapses. While it waits, the person
+invited:
+
+- is shown the group's name and picture even where they could not see it
+  (see *What a stranger is shown of a private profile*);
+- becomes a follower on accepting, whatever the group's access says. The
+  invitation is the group's consent.
+
+Declining keeps the invitation, marked refused, for 90 days, which is what
+stops the next one. Whoever invited is not told of a refusal.
+
+| Action | Who |
+| --- | --- |
+| Accept or decline | The person invited, and nobody for them |
+| See who is still to answer | Whoever looks after the group |
+| Take an invitation back | Whoever made it, or whoever looks after the group |
+
+**Adding a follower without asking** is for site administrators alone
+(`CanAddOthersAsFollowers`), for moderation and for moving data. It was the
+group's `follower` setting, which is still stored and is no longer read.
+
+## Events
+
+An event is an actor like a group, with a time and a place: followed, posted
+on, looked after by administrators. Everything said of a group here is true
+of an event: its access, its permissions, who can invite to it. What only an
+event has is below. The rules are in
+`anahita-libs/cmd/api/permissions/event.go`.
+
+Going to an event is following it. The answer, **going** or **maybe**, is on
+the follow. Following an event the ordinary way, with nothing said, counts as
+maybe.
+
+| Action | Who |
+| --- | --- |
+| Make an event of your own | Anybody signed in, unless the installation sets `EVENTS_FROM` higher. They look after it, and are going |
+| Make an event for a group | That group's administrators, and nobody else, whatever `EVENTS_FROM` says. The group's administrators become the event's |
+| Answer going or maybe | Somebody who can see the event and whom it has not blocked, or somebody invited to it |
+| Take an answer back | Always yours to do |
+| See where to join online, and the address it is held at | Whoever is going, and whoever looks after the event. Not maybe, not invited |
+| Change it, call it off | Whoever looks after it |
+
+- **Places.** An event can limit how many are going. Going is refused when
+  every place is taken (409 `event_full`); maybe is not counted. The check and
+  the answer are made under a lock on the event, so the last place is given
+  once however many ask at the same moment.
+- **Over or called off.** No answers are taken (410 `event_closed`), and
+  nobody can be invited. Leaving still works. An event that is called off is
+  kept, saying so.
+- **Invitations.** Accepting one is going, or maybe when every place is
+  taken. An event with a limit on places may have twice that many invitations
+  waiting, and never fewer than 50; with no limit, 500 as for a group.
+- **For the followers of the group hosting it.** An event hosted by a group
+  can be opened to everybody who follows that group
+  (`events.open_to_host_followers`). They are then treated as invited, all at
+  once: shown the event's name, time and description where they could not
+  otherwise see it, in the group's list of events and on the event's own
+  page, and able to answer going or maybe. It is not an access level. What is
+  posted on the event stays for the people who answered, and a follower of
+  the group sees that only once they have. The relation says so as
+  `via_host`.
+- **Where it is held** is an address kept on the event's own node
+  (`geo_address` and the fields beside it), not a place on the site's map.
+  Places are public and shared, and an event at somebody's home should not
+  put their home among them. Nothing searches for an event by it. A public
+  venue can be tagged on the event like a place on any post.
+- **Its place on a map** is kept only when whoever saves the event asks for
+  a map (`show_map`), since finding it sends the address to a geocoder. The
+  point is sent with the address and to nobody who is not sent the address.
+- **Its address on the site** is set when it is made and does not change when it is
+  renamed, since invitations and calendars link to it.
 
 ## Reposts
 

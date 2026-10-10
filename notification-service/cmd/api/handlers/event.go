@@ -61,6 +61,43 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 	}
 
+	// Requests to follow. Not caught by the test above: that one ends in
+	// a full stop, and this name goes on with a hyphen.
+	if strings.Contains(payload.Name, "edge.follow-request.") {
+		if strings.Contains(payload.Name, ".added.v1") {
+			err = h.eventFormatEdgeFollowRequestAdded(payload)
+		} else if strings.Contains(payload.Name, ".deleted.v1") {
+			err = h.eventFormatEdgeFollowRequestDeleted(payload)
+		} else if strings.Contains(payload.Name, ".accepted.v1") {
+			err = h.eventFormatEdgeFollowRequestAccepted(payload)
+		}
+	}
+
+	// Invitations to follow an actor.
+	if strings.Contains(payload.Name, "edge.invite.") {
+		if strings.Contains(payload.Name, ".added.v1") {
+			err = h.eventFormatEdgeInviteAdded(payload)
+		} else if strings.Contains(payload.Name, ".accepted.v1") {
+			err = h.eventFormatEdgeInviteAccepted(payload)
+		} else if strings.Contains(payload.Name, ".declined.v1") || strings.Contains(payload.Name, ".deleted.v1") {
+			err = h.eventFormatEdgeInviteEnded(payload)
+		}
+	}
+
+	// Events, the kind people go to. The name starts with it, where the
+	// others here are found anywhere in theirs.
+	if strings.HasPrefix(payload.Name, "event.") {
+		if strings.HasSuffix(payload.Name, ".answered.v1") {
+			err = h.eventFormatEventAnswered(payload)
+		} else if strings.HasSuffix(payload.Name, ".changed.v1") {
+			err = h.eventFormatEventTold(payload, NotificationTypeEventChanged)
+		} else if strings.HasSuffix(payload.Name, ".cancelled.v1") {
+			err = h.eventFormatEventTold(payload, NotificationTypeEventCancelled)
+		} else if strings.HasSuffix(payload.Name, ".reminded.v1") {
+			err = h.eventFormatEventTold(payload, NotificationTypeEventReminder)
+		}
+	}
+
 	// Voteup edge events
 	if strings.Contains(payload.Name, "edge.voteup.") {
 		if strings.Contains(payload.Name, ".added.v1") {

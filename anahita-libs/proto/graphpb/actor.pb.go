@@ -73,9 +73,11 @@ type ActorCountRequest struct {
 	AccessCheck bool                   `protobuf:"varint,4,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
 	// Only featured actors. Count and Browse must agree on this, or the
 	// pagination total describes a different list from the page.
-	Featured      bool `protobuf:"varint,5,opt,name=featured,proto3" json:"featured,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Featured bool `protobuf:"varint,5,opt,name=featured,proto3" json:"featured,omitempty"`
+	// As on ActorBrowseRequest. The two must agree.
+	IncludeAskable bool `protobuf:"varint,6,opt,name=include_askable,json=includeAskable,proto3" json:"include_askable,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ActorCountRequest) Reset() {
@@ -143,6 +145,13 @@ func (x *ActorCountRequest) GetFeatured() bool {
 	return false
 }
 
+func (x *ActorCountRequest) GetIncludeAskable() bool {
+	if x != nil {
+		return x.IncludeAskable
+	}
+	return false
+}
+
 type ActorCountResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Total         uint64                 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
@@ -199,9 +208,12 @@ type ActorBrowseRequest struct {
 	AccessCheck bool                   `protobuf:"varint,8,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
 	// Only featured actors — the accounts onboarding offers to follow. With no
 	// ordering, most recently featured first.
-	Featured      bool `protobuf:"varint,9,opt,name=featured,proto3" json:"featured,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Featured bool `protobuf:"varint,9,opt,name=featured,proto3" json:"featured,omitempty"`
+	// Also list the actors the viewer may not see but may ask to follow.
+	// They come back marked restricted, with their name and picture only.
+	IncludeAskable bool `protobuf:"varint,10,opt,name=include_askable,json=includeAskable,proto3" json:"include_askable,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ActorBrowseRequest) Reset() {
@@ -293,6 +305,13 @@ func (x *ActorBrowseRequest) GetAccessCheck() bool {
 func (x *ActorBrowseRequest) GetFeatured() bool {
 	if x != nil {
 		return x.Featured
+	}
+	return false
+}
+
+func (x *ActorBrowseRequest) GetIncludeAskable() bool {
+	if x != nil {
+		return x.IncludeAskable
 	}
 	return false
 }
@@ -2198,15 +2217,16 @@ const file_proto_graphpb_actor_proto_rawDesc = "" +
 	"\n" +
 	"\x19proto/graphpb/actor.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\"-\n" +
 	"\x06Actors\x12#\n" +
-	"\x06actors\x18\x01 \x03(\v2\v.graph.NodeR\x06actors\"\xa7\x01\n" +
+	"\x06actors\x18\x01 \x03(\v2\v.graph.NodeR\x06actors\"\xd0\x01\n" +
 	"\x11ActorCountRequest\x12\x14\n" +
 	"\x05types\x18\x01 \x03(\tR\x05types\x12\x16\n" +
 	"\x06search\x18\x02 \x01(\tR\x06search\x12%\n" +
 	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
 	"\faccess_check\x18\x04 \x01(\bR\vaccessCheck\x12\x1a\n" +
-	"\bfeatured\x18\x05 \x01(\bR\bfeatured\"*\n" +
+	"\bfeatured\x18\x05 \x01(\bR\bfeatured\x12'\n" +
+	"\x0finclude_askable\x18\x06 \x01(\bR\x0eincludeAskable\"*\n" +
 	"\x12ActorCountResponse\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\x04R\x05total\"\x90\x02\n" +
+	"\x05total\x18\x01 \x01(\x04R\x05total\"\xb9\x02\n" +
 	"\x12ActorBrowseRequest\x12\x14\n" +
 	"\x05types\x18\x01 \x03(\tR\x05types\x12\x1a\n" +
 	"\bordering\x18\x02 \x01(\tR\bordering\x12\x1c\n" +
@@ -2216,7 +2236,9 @@ const file_proto_graphpb_actor_proto_rawDesc = "" +
 	"\x06search\x18\x06 \x01(\tR\x06search\x12%\n" +
 	"\x06viewer\x18\a \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
 	"\faccess_check\x18\b \x01(\bR\vaccessCheck\x12\x1a\n" +
-	"\bfeatured\x18\t \x01(\bR\bfeatured\":\n" +
+	"\bfeatured\x18\t \x01(\bR\bfeatured\x12'\n" +
+	"\x0finclude_askable\x18\n" +
+	" \x01(\bR\x0eincludeAskable\":\n" +
 	"\x13ActorBrowseResponse\x12#\n" +
 	"\x06actors\x18\x01 \x03(\v2\v.graph.NodeR\x06actors\"f\n" +
 	"\x10ActorReadRequest\x12\x0e\n" +

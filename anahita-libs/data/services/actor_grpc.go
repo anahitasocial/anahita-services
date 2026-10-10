@@ -146,9 +146,10 @@ func (srv *ActorsGRPC) Count(req *ActorGRPCBrowseRequest, viewer *entities.Viewe
 	}
 
 	resp, err := client.Count(context.Background(), &graphpb.ActorCountRequest{
-		Types:    req.Types,
-		Search:   req.Search,
-		Featured: req.Featured,
+		Types:          req.Types,
+		Search:         req.Search,
+		Featured:       req.Featured,
+		IncludeAskable: req.IncludeAskable,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
@@ -174,13 +175,14 @@ func (srv *ActorsGRPC) Browse(req *ActorGRPCBrowseRequest, viewer *entities.View
 	}
 
 	resp, err := client.Browse(context.Background(), &graphpb.ActorBrowseRequest{
-		Types:     req.Types,
-		Limit:     req.Limit,
-		Offset:    req.Offset,
-		Ordering:  req.Ordering,
-		Direction: req.Direction,
-		Search:    req.Search,
-		Featured:  req.Featured,
+		Types:          req.Types,
+		Limit:          req.Limit,
+		Offset:         req.Offset,
+		Ordering:       req.Ordering,
+		Direction:      req.Direction,
+		Search:         req.Search,
+		Featured:       req.Featured,
+		IncludeAskable: req.IncludeAskable,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,

@@ -230,12 +230,15 @@ func (*SocialgraphFollowAddResponse) Descriptor() ([]byte, []int) {
 }
 
 type SocialgraphFollowDeleteRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Target        *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
-	Source        *Source                `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
-	Viewer        *Viewer                `protobuf:"bytes,3,opt,name=viewer,proto3" json:"viewer,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Target *Target                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Source *Source                `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
+	Viewer *Viewer                `protobuf:"bytes,3,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	// The request to follow is what goes, not a follow: one ignored by
+	// whoever it was sent to, or taken back by whoever sent it.
+	IsFollowRequest bool `protobuf:"varint,4,opt,name=is_follow_request,json=isFollowRequest,proto3" json:"is_follow_request,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *SocialgraphFollowDeleteRequest) Reset() {
@@ -289,6 +292,13 @@ func (x *SocialgraphFollowDeleteRequest) GetViewer() *Viewer {
 	return nil
 }
 
+func (x *SocialgraphFollowDeleteRequest) GetIsFollowRequest() bool {
+	if x != nil {
+		return x.IsFollowRequest
+	}
+	return false
+}
+
 type SocialgraphFollowDeleteResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -325,6 +335,642 @@ func (*SocialgraphFollowDeleteResponse) Descriptor() ([]byte, []int) {
 	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{5}
 }
 
+// An invitation: a person asked to follow an actor, who has yet to answer.
+type Invite struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	ActorId   int64                  `protobuf:"varint,1,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
+	InviteeId int64                  `protobuf:"varint,2,opt,name=invitee_id,json=inviteeId,proto3" json:"invitee_id,omitempty"`
+	InviterId int64                  `protobuf:"varint,3,opt,name=inviter_id,json=inviterId,proto3" json:"inviter_id,omitempty"`
+	Status    string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	// Seconds since the epoch.
+	CreatedAt     int64 `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	EndsAt        int64 `protobuf:"varint,6,opt,name=ends_at,json=endsAt,proto3" json:"ends_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Invite) Reset() {
+	*x = Invite{}
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Invite) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Invite) ProtoMessage() {}
+
+func (x *Invite) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Invite.ProtoReflect.Descriptor instead.
+func (*Invite) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *Invite) GetActorId() int64 {
+	if x != nil {
+		return x.ActorId
+	}
+	return 0
+}
+
+func (x *Invite) GetInviteeId() int64 {
+	if x != nil {
+		return x.InviteeId
+	}
+	return 0
+}
+
+func (x *Invite) GetInviterId() int64 {
+	if x != nil {
+		return x.InviterId
+	}
+	return 0
+}
+
+func (x *Invite) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *Invite) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *Invite) GetEndsAt() int64 {
+	if x != nil {
+		return x.EndsAt
+	}
+	return 0
+}
+
+type InviteAddRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ActorId       int64                  `protobuf:"varint,1,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
+	InviteeIds    []int64                `protobuf:"varint,2,rep,packed,name=invitee_ids,json=inviteeIds,proto3" json:"invitee_ids,omitempty"`
+	Viewer        *Viewer                `protobuf:"bytes,3,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InviteAddRequest) Reset() {
+	*x = InviteAddRequest{}
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteAddRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteAddRequest) ProtoMessage() {}
+
+func (x *InviteAddRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteAddRequest.ProtoReflect.Descriptor instead.
+func (*InviteAddRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *InviteAddRequest) GetActorId() int64 {
+	if x != nil {
+		return x.ActorId
+	}
+	return 0
+}
+
+func (x *InviteAddRequest) GetInviteeIds() []int64 {
+	if x != nil {
+		return x.InviteeIds
+	}
+	return nil
+}
+
+func (x *InviteAddRequest) GetViewer() *Viewer {
+	if x != nil {
+		return x.Viewer
+	}
+	return nil
+}
+
+type InviteAddResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// What became of each person, by their id: invited, already_follower,
+	// not_follower, blocked, cooldown, pending, requested, unavailable, full.
+	Results map[int64]string `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// The inviter has made too many lately. Nobody was invited.
+	OverDailyLimit bool `protobuf:"varint,2,opt,name=over_daily_limit,json=overDailyLimit,proto3" json:"over_daily_limit,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *InviteAddResponse) Reset() {
+	*x = InviteAddResponse{}
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteAddResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteAddResponse) ProtoMessage() {}
+
+func (x *InviteAddResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteAddResponse.ProtoReflect.Descriptor instead.
+func (*InviteAddResponse) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *InviteAddResponse) GetResults() map[int64]string {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
+func (x *InviteAddResponse) GetOverDailyLimit() bool {
+	if x != nil {
+		return x.OverDailyLimit
+	}
+	return false
+}
+
+// One of the two: the invitations waiting to an actor, or for a person.
+type InviteBrowseRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ActorId       int64                  `protobuf:"varint,1,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
+	InviteeId     int64                  `protobuf:"varint,2,opt,name=invitee_id,json=inviteeId,proto3" json:"invitee_id,omitempty"`
+	Limit         uint64                 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        uint64                 `protobuf:"varint,4,opt,name=offset,proto3" json:"offset,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InviteBrowseRequest) Reset() {
+	*x = InviteBrowseRequest{}
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteBrowseRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteBrowseRequest) ProtoMessage() {}
+
+func (x *InviteBrowseRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteBrowseRequest.ProtoReflect.Descriptor instead.
+func (*InviteBrowseRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *InviteBrowseRequest) GetActorId() int64 {
+	if x != nil {
+		return x.ActorId
+	}
+	return 0
+}
+
+func (x *InviteBrowseRequest) GetInviteeId() int64 {
+	if x != nil {
+		return x.InviteeId
+	}
+	return 0
+}
+
+func (x *InviteBrowseRequest) GetLimit() uint64 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *InviteBrowseRequest) GetOffset() uint64 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+type InviteBrowseResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Invites       []*Invite              `protobuf:"bytes,1,rep,name=invites,proto3" json:"invites,omitempty"`
+	Total         uint64                 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InviteBrowseResponse) Reset() {
+	*x = InviteBrowseResponse{}
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteBrowseResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteBrowseResponse) ProtoMessage() {}
+
+func (x *InviteBrowseResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteBrowseResponse.ProtoReflect.Descriptor instead.
+func (*InviteBrowseResponse) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *InviteBrowseResponse) GetInvites() []*Invite {
+	if x != nil {
+		return x.Invites
+	}
+	return nil
+}
+
+func (x *InviteBrowseResponse) GetTotal() uint64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type InviteReadRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ActorId       int64                  `protobuf:"varint,1,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
+	InviteeId     int64                  `protobuf:"varint,2,opt,name=invitee_id,json=inviteeId,proto3" json:"invitee_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InviteReadRequest) Reset() {
+	*x = InviteReadRequest{}
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteReadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteReadRequest) ProtoMessage() {}
+
+func (x *InviteReadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteReadRequest.ProtoReflect.Descriptor instead.
+func (*InviteReadRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *InviteReadRequest) GetActorId() int64 {
+	if x != nil {
+		return x.ActorId
+	}
+	return 0
+}
+
+func (x *InviteReadRequest) GetInviteeId() int64 {
+	if x != nil {
+		return x.InviteeId
+	}
+	return 0
+}
+
+type InviteReadResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Absent when there is none waiting.
+	Invite        *Invite `protobuf:"bytes,1,opt,name=invite,proto3" json:"invite,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InviteReadResponse) Reset() {
+	*x = InviteReadResponse{}
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteReadResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteReadResponse) ProtoMessage() {}
+
+func (x *InviteReadResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteReadResponse.ProtoReflect.Descriptor instead.
+func (*InviteReadResponse) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *InviteReadResponse) GetInvite() *Invite {
+	if x != nil {
+		return x.Invite
+	}
+	return nil
+}
+
+type InviteAnswerRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ActorId       int64                  `protobuf:"varint,1,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
+	InviteeId     int64                  `protobuf:"varint,2,opt,name=invitee_id,json=inviteeId,proto3" json:"invitee_id,omitempty"`
+	Accept        bool                   `protobuf:"varint,3,opt,name=accept,proto3" json:"accept,omitempty"`
+	Viewer        *Viewer                `protobuf:"bytes,4,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InviteAnswerRequest) Reset() {
+	*x = InviteAnswerRequest{}
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteAnswerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteAnswerRequest) ProtoMessage() {}
+
+func (x *InviteAnswerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteAnswerRequest.ProtoReflect.Descriptor instead.
+func (*InviteAnswerRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *InviteAnswerRequest) GetActorId() int64 {
+	if x != nil {
+		return x.ActorId
+	}
+	return 0
+}
+
+func (x *InviteAnswerRequest) GetInviteeId() int64 {
+	if x != nil {
+		return x.InviteeId
+	}
+	return 0
+}
+
+func (x *InviteAnswerRequest) GetAccept() bool {
+	if x != nil {
+		return x.Accept
+	}
+	return false
+}
+
+func (x *InviteAnswerRequest) GetViewer() *Viewer {
+	if x != nil {
+		return x.Viewer
+	}
+	return nil
+}
+
+type InviteAnswerResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// False when there was no invitation waiting to answer.
+	Found         bool `protobuf:"varint,1,opt,name=found,proto3" json:"found,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InviteAnswerResponse) Reset() {
+	*x = InviteAnswerResponse{}
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteAnswerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteAnswerResponse) ProtoMessage() {}
+
+func (x *InviteAnswerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteAnswerResponse.ProtoReflect.Descriptor instead.
+func (*InviteAnswerResponse) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *InviteAnswerResponse) GetFound() bool {
+	if x != nil {
+		return x.Found
+	}
+	return false
+}
+
+type InviteDeleteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ActorId       int64                  `protobuf:"varint,1,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
+	InviteeId     int64                  `protobuf:"varint,2,opt,name=invitee_id,json=inviteeId,proto3" json:"invitee_id,omitempty"`
+	Viewer        *Viewer                `protobuf:"bytes,3,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InviteDeleteRequest) Reset() {
+	*x = InviteDeleteRequest{}
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteDeleteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteDeleteRequest) ProtoMessage() {}
+
+func (x *InviteDeleteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteDeleteRequest.ProtoReflect.Descriptor instead.
+func (*InviteDeleteRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *InviteDeleteRequest) GetActorId() int64 {
+	if x != nil {
+		return x.ActorId
+	}
+	return 0
+}
+
+func (x *InviteDeleteRequest) GetInviteeId() int64 {
+	if x != nil {
+		return x.InviteeId
+	}
+	return 0
+}
+
+func (x *InviteDeleteRequest) GetViewer() *Viewer {
+	if x != nil {
+		return x.Viewer
+	}
+	return nil
+}
+
+type InviteDeleteResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Found         bool                   `protobuf:"varint,1,opt,name=found,proto3" json:"found,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InviteDeleteResponse) Reset() {
+	*x = InviteDeleteResponse{}
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteDeleteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteDeleteResponse) ProtoMessage() {}
+
+func (x *InviteDeleteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_socialgraph_follow_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteDeleteResponse.ProtoReflect.Descriptor instead.
+func (*InviteDeleteResponse) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *InviteDeleteResponse) GetFound() bool {
+	if x != nil {
+		return x.Found
+	}
+	return false
+}
+
 var File_proto_graphpb_socialgraph_follow_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_socialgraph_follow_proto_rawDesc = "" +
@@ -341,16 +987,74 @@ const file_proto_graphpb_socialgraph_follow_proto_rawDesc = "" +
 	"\x06source\x18\x02 \x01(\v2\r.graph.SourceR\x06source\x12%\n" +
 	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\x12*\n" +
 	"\x11is_follow_request\x18\x04 \x01(\bR\x0fisFollowRequest\"\x1e\n" +
-	"\x1cSocialgraphFollowAddResponse\"\x95\x01\n" +
+	"\x1cSocialgraphFollowAddResponse\"\xc1\x01\n" +
 	"\x1eSocialgraphFollowDeleteRequest\x12%\n" +
 	"\x06target\x18\x01 \x01(\v2\r.graph.TargetR\x06target\x12%\n" +
 	"\x06source\x18\x02 \x01(\v2\r.graph.SourceR\x06source\x12%\n" +
-	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\"!\n" +
-	"\x1fSocialgraphFollowDeleteResponse2\x96\x02\n" +
+	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\x12*\n" +
+	"\x11is_follow_request\x18\x04 \x01(\bR\x0fisFollowRequest\"!\n" +
+	"\x1fSocialgraphFollowDeleteResponse\"\xb1\x01\n" +
+	"\x06Invite\x12\x19\n" +
+	"\bactor_id\x18\x01 \x01(\x03R\aactorId\x12\x1d\n" +
+	"\n" +
+	"invitee_id\x18\x02 \x01(\x03R\tinviteeId\x12\x1d\n" +
+	"\n" +
+	"inviter_id\x18\x03 \x01(\x03R\tinviterId\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\x03R\tcreatedAt\x12\x17\n" +
+	"\aends_at\x18\x06 \x01(\x03R\x06endsAt\"u\n" +
+	"\x10InviteAddRequest\x12\x19\n" +
+	"\bactor_id\x18\x01 \x01(\x03R\aactorId\x12\x1f\n" +
+	"\vinvitee_ids\x18\x02 \x03(\x03R\n" +
+	"inviteeIds\x12%\n" +
+	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\"\xba\x01\n" +
+	"\x11InviteAddResponse\x12?\n" +
+	"\aresults\x18\x01 \x03(\v2%.graph.InviteAddResponse.ResultsEntryR\aresults\x12(\n" +
+	"\x10over_daily_limit\x18\x02 \x01(\bR\x0eoverDailyLimit\x1a:\n" +
+	"\fResultsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\x03R\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"}\n" +
+	"\x13InviteBrowseRequest\x12\x19\n" +
+	"\bactor_id\x18\x01 \x01(\x03R\aactorId\x12\x1d\n" +
+	"\n" +
+	"invitee_id\x18\x02 \x01(\x03R\tinviteeId\x12\x14\n" +
+	"\x05limit\x18\x03 \x01(\x04R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x04 \x01(\x04R\x06offset\"U\n" +
+	"\x14InviteBrowseResponse\x12'\n" +
+	"\ainvites\x18\x01 \x03(\v2\r.graph.InviteR\ainvites\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x04R\x05total\"M\n" +
+	"\x11InviteReadRequest\x12\x19\n" +
+	"\bactor_id\x18\x01 \x01(\x03R\aactorId\x12\x1d\n" +
+	"\n" +
+	"invitee_id\x18\x02 \x01(\x03R\tinviteeId\";\n" +
+	"\x12InviteReadResponse\x12%\n" +
+	"\x06invite\x18\x01 \x01(\v2\r.graph.InviteR\x06invite\"\x8e\x01\n" +
+	"\x13InviteAnswerRequest\x12\x19\n" +
+	"\bactor_id\x18\x01 \x01(\x03R\aactorId\x12\x1d\n" +
+	"\n" +
+	"invitee_id\x18\x02 \x01(\x03R\tinviteeId\x12\x16\n" +
+	"\x06accept\x18\x03 \x01(\bR\x06accept\x12%\n" +
+	"\x06viewer\x18\x04 \x01(\v2\r.graph.ViewerR\x06viewer\",\n" +
+	"\x14InviteAnswerResponse\x12\x14\n" +
+	"\x05found\x18\x01 \x01(\bR\x05found\"v\n" +
+	"\x13InviteDeleteRequest\x12\x19\n" +
+	"\bactor_id\x18\x01 \x01(\x03R\aactorId\x12\x1d\n" +
+	"\n" +
+	"invitee_id\x18\x02 \x01(\x03R\tinviteeId\x12%\n" +
+	"\x06viewer\x18\x03 \x01(\v2\r.graph.ViewerR\x06viewer\",\n" +
+	"\x14InviteDeleteResponse\x12\x14\n" +
+	"\x05found\x18\x01 \x01(\bR\x05found2\xf4\x04\n" +
 	"\x18SocialgraphFollowService\x12Q\n" +
 	"\x04Edit\x12#.graph.SocialgraphFollowEditRequest\x1a$.graph.SocialgraphFollowEditResponse\x12N\n" +
 	"\x03Add\x12\".graph.SocialgraphFollowAddRequest\x1a#.graph.SocialgraphFollowAddResponse\x12W\n" +
-	"\x06Delete\x12%.graph.SocialgraphFollowDeleteRequest\x1a&.graph.SocialgraphFollowDeleteResponseB\n" +
+	"\x06Delete\x12%.graph.SocialgraphFollowDeleteRequest\x1a&.graph.SocialgraphFollowDeleteResponse\x12>\n" +
+	"\tInviteAdd\x12\x17.graph.InviteAddRequest\x1a\x18.graph.InviteAddResponse\x12G\n" +
+	"\fInviteBrowse\x12\x1a.graph.InviteBrowseRequest\x1a\x1b.graph.InviteBrowseResponse\x12A\n" +
+	"\n" +
+	"InviteRead\x12\x18.graph.InviteReadRequest\x1a\x19.graph.InviteReadResponse\x12G\n" +
+	"\fInviteAnswer\x12\x1a.graph.InviteAnswerRequest\x1a\x1b.graph.InviteAnswerResponse\x12G\n" +
+	"\fInviteDelete\x12\x1a.graph.InviteDeleteRequest\x1a\x1b.graph.InviteDeleteResponseB\n" +
 	"Z\b/graphpbb\x06proto3"
 
 var (
@@ -365,7 +1069,7 @@ func file_proto_graphpb_socialgraph_follow_proto_rawDescGZIP() []byte {
 	return file_proto_graphpb_socialgraph_follow_proto_rawDescData
 }
 
-var file_proto_graphpb_socialgraph_follow_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_graphpb_socialgraph_follow_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_proto_graphpb_socialgraph_follow_proto_goTypes = []any{
 	(*SocialgraphFollowEditRequest)(nil),    // 0: graph.SocialgraphFollowEditRequest
 	(*SocialgraphFollowEditResponse)(nil),   // 1: graph.SocialgraphFollowEditResponse
@@ -373,31 +1077,59 @@ var file_proto_graphpb_socialgraph_follow_proto_goTypes = []any{
 	(*SocialgraphFollowAddResponse)(nil),    // 3: graph.SocialgraphFollowAddResponse
 	(*SocialgraphFollowDeleteRequest)(nil),  // 4: graph.SocialgraphFollowDeleteRequest
 	(*SocialgraphFollowDeleteResponse)(nil), // 5: graph.SocialgraphFollowDeleteResponse
-	(*Target)(nil),                          // 6: graph.Target
-	(*Source)(nil),                          // 7: graph.Source
-	(*Viewer)(nil),                          // 8: graph.Viewer
+	(*Invite)(nil),                          // 6: graph.Invite
+	(*InviteAddRequest)(nil),                // 7: graph.InviteAddRequest
+	(*InviteAddResponse)(nil),               // 8: graph.InviteAddResponse
+	(*InviteBrowseRequest)(nil),             // 9: graph.InviteBrowseRequest
+	(*InviteBrowseResponse)(nil),            // 10: graph.InviteBrowseResponse
+	(*InviteReadRequest)(nil),               // 11: graph.InviteReadRequest
+	(*InviteReadResponse)(nil),              // 12: graph.InviteReadResponse
+	(*InviteAnswerRequest)(nil),             // 13: graph.InviteAnswerRequest
+	(*InviteAnswerResponse)(nil),            // 14: graph.InviteAnswerResponse
+	(*InviteDeleteRequest)(nil),             // 15: graph.InviteDeleteRequest
+	(*InviteDeleteResponse)(nil),            // 16: graph.InviteDeleteResponse
+	nil,                                     // 17: graph.InviteAddResponse.ResultsEntry
+	(*Target)(nil),                          // 18: graph.Target
+	(*Source)(nil),                          // 19: graph.Source
+	(*Viewer)(nil),                          // 20: graph.Viewer
 }
 var file_proto_graphpb_socialgraph_follow_proto_depIdxs = []int32{
-	6,  // 0: graph.SocialgraphFollowEditRequest.target:type_name -> graph.Target
-	7,  // 1: graph.SocialgraphFollowEditRequest.source:type_name -> graph.Source
-	8,  // 2: graph.SocialgraphFollowEditRequest.viewer:type_name -> graph.Viewer
-	6,  // 3: graph.SocialgraphFollowAddRequest.target:type_name -> graph.Target
-	7,  // 4: graph.SocialgraphFollowAddRequest.source:type_name -> graph.Source
-	8,  // 5: graph.SocialgraphFollowAddRequest.viewer:type_name -> graph.Viewer
-	6,  // 6: graph.SocialgraphFollowDeleteRequest.target:type_name -> graph.Target
-	7,  // 7: graph.SocialgraphFollowDeleteRequest.source:type_name -> graph.Source
-	8,  // 8: graph.SocialgraphFollowDeleteRequest.viewer:type_name -> graph.Viewer
-	0,  // 9: graph.SocialgraphFollowService.Edit:input_type -> graph.SocialgraphFollowEditRequest
-	2,  // 10: graph.SocialgraphFollowService.Add:input_type -> graph.SocialgraphFollowAddRequest
-	4,  // 11: graph.SocialgraphFollowService.Delete:input_type -> graph.SocialgraphFollowDeleteRequest
-	1,  // 12: graph.SocialgraphFollowService.Edit:output_type -> graph.SocialgraphFollowEditResponse
-	3,  // 13: graph.SocialgraphFollowService.Add:output_type -> graph.SocialgraphFollowAddResponse
-	5,  // 14: graph.SocialgraphFollowService.Delete:output_type -> graph.SocialgraphFollowDeleteResponse
-	12, // [12:15] is the sub-list for method output_type
-	9,  // [9:12] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	18, // 0: graph.SocialgraphFollowEditRequest.target:type_name -> graph.Target
+	19, // 1: graph.SocialgraphFollowEditRequest.source:type_name -> graph.Source
+	20, // 2: graph.SocialgraphFollowEditRequest.viewer:type_name -> graph.Viewer
+	18, // 3: graph.SocialgraphFollowAddRequest.target:type_name -> graph.Target
+	19, // 4: graph.SocialgraphFollowAddRequest.source:type_name -> graph.Source
+	20, // 5: graph.SocialgraphFollowAddRequest.viewer:type_name -> graph.Viewer
+	18, // 6: graph.SocialgraphFollowDeleteRequest.target:type_name -> graph.Target
+	19, // 7: graph.SocialgraphFollowDeleteRequest.source:type_name -> graph.Source
+	20, // 8: graph.SocialgraphFollowDeleteRequest.viewer:type_name -> graph.Viewer
+	20, // 9: graph.InviteAddRequest.viewer:type_name -> graph.Viewer
+	17, // 10: graph.InviteAddResponse.results:type_name -> graph.InviteAddResponse.ResultsEntry
+	6,  // 11: graph.InviteBrowseResponse.invites:type_name -> graph.Invite
+	6,  // 12: graph.InviteReadResponse.invite:type_name -> graph.Invite
+	20, // 13: graph.InviteAnswerRequest.viewer:type_name -> graph.Viewer
+	20, // 14: graph.InviteDeleteRequest.viewer:type_name -> graph.Viewer
+	0,  // 15: graph.SocialgraphFollowService.Edit:input_type -> graph.SocialgraphFollowEditRequest
+	2,  // 16: graph.SocialgraphFollowService.Add:input_type -> graph.SocialgraphFollowAddRequest
+	4,  // 17: graph.SocialgraphFollowService.Delete:input_type -> graph.SocialgraphFollowDeleteRequest
+	7,  // 18: graph.SocialgraphFollowService.InviteAdd:input_type -> graph.InviteAddRequest
+	9,  // 19: graph.SocialgraphFollowService.InviteBrowse:input_type -> graph.InviteBrowseRequest
+	11, // 20: graph.SocialgraphFollowService.InviteRead:input_type -> graph.InviteReadRequest
+	13, // 21: graph.SocialgraphFollowService.InviteAnswer:input_type -> graph.InviteAnswerRequest
+	15, // 22: graph.SocialgraphFollowService.InviteDelete:input_type -> graph.InviteDeleteRequest
+	1,  // 23: graph.SocialgraphFollowService.Edit:output_type -> graph.SocialgraphFollowEditResponse
+	3,  // 24: graph.SocialgraphFollowService.Add:output_type -> graph.SocialgraphFollowAddResponse
+	5,  // 25: graph.SocialgraphFollowService.Delete:output_type -> graph.SocialgraphFollowDeleteResponse
+	8,  // 26: graph.SocialgraphFollowService.InviteAdd:output_type -> graph.InviteAddResponse
+	10, // 27: graph.SocialgraphFollowService.InviteBrowse:output_type -> graph.InviteBrowseResponse
+	12, // 28: graph.SocialgraphFollowService.InviteRead:output_type -> graph.InviteReadResponse
+	14, // 29: graph.SocialgraphFollowService.InviteAnswer:output_type -> graph.InviteAnswerResponse
+	16, // 30: graph.SocialgraphFollowService.InviteDelete:output_type -> graph.InviteDeleteResponse
+	23, // [23:31] is the sub-list for method output_type
+	15, // [15:23] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_proto_graphpb_socialgraph_follow_proto_init() }
@@ -412,7 +1144,7 @@ func file_proto_graphpb_socialgraph_follow_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_graphpb_socialgraph_follow_proto_rawDesc), len(file_proto_graphpb_socialgraph_follow_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

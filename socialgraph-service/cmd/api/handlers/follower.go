@@ -82,6 +82,11 @@ func (h *followerHandler) Browse(c echo.Context) error {
 	graphReq.Direction = constants.GraphQueryDirectionInbound
 	graphReq.Offset = req.Offset
 	graphReq.Limit = req.Limit
+	graphReq.Search = req.Search
+	// By when each followed: the latest first, or the oldest when asked
+	// (?dir=asc).
+	graphReq.Ordering = constants.OrderingConnected
+	graphReq.OrderingDir = req.Direction
 	graphReq.Viewer = viewer
 	graphReq.AccessCheck = true
 	followers, total, err := h.Srv.GraphGRPC.BrowseConnectionNodes(graphReq)
@@ -104,6 +109,8 @@ func (h *followerHandler) Browse(c echo.Context) error {
 	for _, follower := range followers {
 		if rel, exists := relationshipMap[follower.ID]; exists {
 			follower.IsLeadingViewer = rel.IsLeading
+			// And whether they follow the viewer, for "Follows you".
+			follower.IsFollowingViewer = rel.IsFollowing
 		}
 	}
 

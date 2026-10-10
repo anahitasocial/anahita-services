@@ -136,8 +136,13 @@ type Node struct {
 	QuoteDetached bool   `protobuf:"varint,88,opt,name=quote_detached,json=quoteDetached,proto3" json:"quote_detached,omitempty"`
 	// Whether the viewer has saved the post. Private to them.
 	IsSavedByViewer bool `protobuf:"varint,89,opt,name=is_saved_by_viewer,json=isSavedByViewer,proto3" json:"is_saved_by_viewer,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// An actor the viewer may not see, listed because it lets people ask
+	// to follow it. Only its name and picture are sent.
+	Restricted bool `protobuf:"varint,90,opt,name=restricted,proto3" json:"restricted,omitempty"`
+	// Whether the viewer has asked to follow it and is waiting.
+	IsFollowRequestedByViewer bool `protobuf:"varint,91,opt,name=is_follow_requested_by_viewer,json=isFollowRequestedByViewer,proto3" json:"is_follow_requested_by_viewer,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *Node) Reset() {
@@ -670,6 +675,20 @@ func (x *Node) GetQuoteDetached() bool {
 func (x *Node) GetIsSavedByViewer() bool {
 	if x != nil {
 		return x.IsSavedByViewer
+	}
+	return false
+}
+
+func (x *Node) GetRestricted() bool {
+	if x != nil {
+		return x.Restricted
+	}
+	return false
+}
+
+func (x *Node) GetIsFollowRequestedByViewer() bool {
+	if x != nil {
+		return x.IsFollowRequestedByViewer
 	}
 	return false
 }
@@ -2622,7 +2641,7 @@ var File_proto_graphpb_node_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb7\x15\n" +
+	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x99\x16\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -2712,7 +2731,11 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\fquote_policy\x18V \x01(\tR\vquotePolicy\x12\x19\n" +
 	"\bquote_id\x18W \x01(\x03R\aquoteId\x12%\n" +
 	"\x0equote_detached\x18X \x01(\bR\rquoteDetached\x12+\n" +
-	"\x12is_saved_by_viewer\x18Y \x01(\bR\x0fisSavedByViewerJ\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10J\"*\n" +
+	"\x12is_saved_by_viewer\x18Y \x01(\bR\x0fisSavedByViewer\x12\x1e\n" +
+	"\n" +
+	"restricted\x18Z \x01(\bR\n" +
+	"restricted\x12@\n" +
+	"\x1dis_follow_requested_by_viewer\x18[ \x01(\bR\x19isFollowRequestedByViewerJ\x04\b\x1e\x10\x1fJ\x04\b\f\x10\rJ\x04\b\x12\x10\x13J\x04\b\x17\x10\x18J\x04\b/\x103J\x04\b5\x106J\x04\b@\x10AJ\x04\bB\x10CJ\x04\bD\x10HJ\x04\bI\x10J\"*\n" +
 	"\x05Nodes\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xad\x03\n" +
 	"\x11NodeBrowseRequest\x12\x14\n" +

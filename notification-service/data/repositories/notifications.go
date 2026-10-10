@@ -271,6 +271,13 @@ func (repo *Notification) Delete(item *entities.Notification) error {
 			query = query.Where(sq.Eq{"recipient_id": item.RecipientID})
 		}
 
+		// Only this kind, when one is named. Without it, everything between
+		// the two goes: a request to follow being answered would take the
+		// news of the follow with it.
+		if item.Type != "" {
+			query = query.Where(sq.Eq{"type": item.Type})
+		}
+
 		if item.CommentID > 0 {
 			if item.Object.ID == 0 {
 				return fmt.Errorf("Object.ID must exist if CommentID is provided")

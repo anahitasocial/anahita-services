@@ -86,7 +86,11 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 	// There is no need for an opt-out: the gate returns early for an
 	// administrator, so a privileged read passes an administrator viewer
 	// rather than a flag.
-	query = setAccessQueryForTypes(query, req.Viewer, req.Types)
+	if req.IncludeAskable {
+		query = SetActorAccessOrAskableQuery(query, req.Viewer)
+	} else {
+		query = setAccessQueryForTypes(query, req.Viewer, req.Types)
+	}
 
 	if req.Featured {
 		query = setFeaturedQuery(query)
@@ -196,7 +200,11 @@ func (r *nodesRepo) Count(req *requests.NodeCountRequest) (uint64, error) {
 	// There is no need for an opt-out: the gate returns early for an
 	// administrator, so a privileged read passes an administrator viewer
 	// rather than a flag.
-	query = setAccessQueryForTypes(query, req.Viewer, req.Types)
+	if req.IncludeAskable {
+		query = SetActorAccessOrAskableQuery(query, req.Viewer)
+	} else {
+		query = setAccessQueryForTypes(query, req.Viewer, req.Types)
+	}
 
 	// The same narrowing as Browse, or the total describes a different list
 	// from the page it is paginating.

@@ -18,14 +18,24 @@ import (
 	an_constants "anahita-libs/constants"
 )
 
+// groupHandler serves an actor that is looked after by administrators and
+// followed by people: a group, and an event, which is the same thing with a
+// time and a place. Which of the two it serves is its nodeType, and every
+// read is narrowed to it, so an event's id on /groups/ is not found.
 type groupHandler struct {
 	*Env
+	nodeType string
+	// The service name stored on the node, which is also part of where its
+	// pictures are kept.
+	service string
 }
 
-// NewUserHandler creates a new user handler
+// NewGroupHandler serves groups.
 func NewGroupHandler(env *Env) *groupHandler {
 	return &groupHandler{
-		env,
+		Env:      env,
+		nodeType: constants.NodeActorGroupType,
+		service:  constants.GroupService,
 	}
 }
 
@@ -54,14 +64,14 @@ func (h *groupHandler) Browse(c echo.Context) error {
 	}
 
 	type Response struct {
-		Data       []*responses.ActorNodeItem `json:"data"`
-		Pagination responses.Pagination       `json:"pagination"`
+		Data       []any                `json:"data"`
+		Pagination responses.Pagination `json:"pagination"`
 	}
-	resp := &Response{}
+	resp := &Response{Data: []any{}}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
-	gReq.Types = []string{constants.NodeActorGroupType}
+	gReq.Types = []string{h.nodeType}
 	gReq.Offset = req.Offset
 	gReq.Limit = req.Limit
 	gReq.Search = req.Search
@@ -69,6 +79,7 @@ func (h *groupHandler) Browse(c echo.Context) error {
 	gReq.Direction = req.Direction
 	gReq.Disabled = req.Disabled
 	gReq.Featured = req.Featured
+	gReq.IncludeAskable = listsAskable(viewer, req.Featured, req.Disabled)
 	gReq.Ordering = req.GraphOrdering(c.QueryParam("ordering") != "")
 	if err := c.Validate(gReq); err != nil {
 		log.Println(err)
@@ -92,6 +103,9 @@ func (h *groupHandler) Browse(c echo.Context) error {
 	}
 
 	for _, node := range nodes {
+		if node.Restricted {
+			continue
+		}
 		if err = h.onAfterFetched(c, node); err != nil {
 			log.Println(err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -100,8 +114,16 @@ func (h *groupHandler) Browse(c echo.Context) error {
 
 	batchPresignPaths(h.Env, nodes)
 
+	// Each a group, or what is shown of one the viewer may only ask to
+	// follow (LimitedActor, marked restricted).
 	actorResp := &responses.ActorResponse{}
-	resp.Data = actorResp.MapNodeItems(nodes)
+	for _, node := range nodes {
+		if node.Restricted {
+			resp.Data = append(resp.Data, responses.NewLimitedActor(node, node.IsFollowRequestedByViewer))
+			continue
+		}
+		resp.Data = append(resp.Data, actorResp.MapNodeItem(node))
+	}
 
 	return c.JSON(http.StatusOK, resp)
 }
@@ -123,7 +145,7 @@ func (h *groupHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -135,6 +157,11 @@ func (h *groupHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if ok, err := h.Perms.Actors.CanRead(actorAccessCtx); !ok {
+		// As for a person: a group that lets people ask shows its name
+		// and picture to somebody it would otherwise refuse.
+		if limited := limitedProfile(h.Env, actor, actorAccessCtx); limited != nil {
+			return c.JSON(http.StatusOK, limited)
+		}
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -175,7 +202,7 @@ func (h *groupHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -203,7 +230,7 @@ func (h *groupHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	actor, err = h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	actor, err = h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -249,58 +276,14 @@ func (h *groupHandler) Add(c echo.Context) error {
 	// Create the group entity
 	actor := entities.NewAnahitaNode()
 	actor.Access = an_constants.AnahitaAccessAdmins
-	actor.Type = constants.NodeActorGroupType
-	actor.Service = constants.GroupService
 	actor.Name = req.Name
-	actor.Alias = slug.Make(req.Name)
 	actor.Body = req.Body
 	actor.WebsiteURL = req.WebsiteURL
 	actor.Enabled = req.Enabled
-	actor.CreatedBy = viewer.ID
-	actor.ModifiedBy = viewer.ID
-	actorAccessCtx, err := h.getActorAccessContext(actor, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	if ok, err := h.Perms.Actors.CanAdd(actorAccessCtx); !ok {
-		log.Println(err)
-		return c.NoContent(http.StatusForbidden)
-	}
 
-	actor, err = h.Srv.ActorsGRPC.Add(actor, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	// Add the viewer as the group admin
-	admin, err := h.Srv.ActorsGRPC.ReadOfType(viewer.ID, an_constants.NodeActorPersonEntityType, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusNotFound)
-	}
-
-	actor, err = h.Srv.ActorsGRPC.ReadOfType(actor.ID, constants.NodeActorGroupType, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusNotFound)
-	}
-
-	admin, err = h.Srv.ActorAdminsGRPC.Add(actor, admin, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	// Add the admin as a follower to the group
-	followReq := services.NewSocialgraphFollowRequest().Add
-	followReq.Source = actor
-	followReq.Target = admin
-	followReq.Viewer = viewer
-	if err := h.Srv.SocialgraphFollowGRPC.Add(followReq); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
+	actor, status := h.create(actor, viewer, false)
+	if status != 0 {
+		return c.NoContent(status)
 	}
 
 	if err = h.onAfterFetched(c, actor); err != nil {
@@ -315,6 +298,78 @@ func (h *groupHandler) Add(c echo.Context) error {
 	resp := actorResp.MapNode(actor)
 
 	return c.JSON(http.StatusCreated, resp)
+}
+
+// create makes an actor of this handler's kind from the fields given, with
+// the viewer as its first administrator and its first follower. It answers
+// the actor as stored, or the status to refuse with.
+//
+// Shared by groups and events, which differ in what they are given, not in
+// how they come to be.
+//
+// allowed says the caller has already established that this viewer may make
+// this one, so the installation's setting for who may make an actor is not
+// asked: an event made for a group by that group's administrator. They
+// still have to be signed in with the scope to write actors.
+func (h *groupHandler) create(actor *entities.AnahitaNode, viewer *entities.Viewer, allowed bool) (*entities.AnahitaNode, int) {
+	actor.Type = h.nodeType
+	actor.Service = h.service
+	actor.Alias = slug.Make(actor.Name)
+	actor.CreatedBy = viewer.ID
+	actor.ModifiedBy = viewer.ID
+
+	actorAccessCtx, err := h.getActorAccessContext(actor, viewer)
+	if err != nil {
+		log.Println(err)
+		return nil, http.StatusInternalServerError
+	}
+	if allowed {
+		if !viewer.Authenticated || viewer.ID <= 0 || !viewer.HasScope(an_constants.OAuthScopeActorsWrite) {
+			return nil, http.StatusForbidden
+		}
+	} else if ok, err := h.Perms.Actors.CanAdd(actorAccessCtx); !ok {
+		log.Println(err)
+		return nil, http.StatusForbidden
+	}
+
+	actor, err = h.Srv.ActorsGRPC.Add(actor, viewer)
+	if err != nil {
+		log.Println(err)
+		return nil, http.StatusInternalServerError
+	}
+
+	// Add the viewer as its administrator
+	admin, err := h.Srv.ActorsGRPC.ReadOfType(viewer.ID, an_constants.NodeActorPersonEntityType, viewer)
+	if err != nil {
+		log.Println(err)
+		return nil, http.StatusNotFound
+	}
+
+	actor, err = h.Srv.ActorsGRPC.ReadOfType(actor.ID, h.nodeType, viewer)
+	if err != nil {
+		log.Println(err)
+		return nil, http.StatusNotFound
+	}
+
+	admin, err = h.Srv.ActorAdminsGRPC.Add(actor, admin, viewer)
+	if err != nil {
+		log.Println(err)
+		return nil, http.StatusInternalServerError
+	}
+
+	// And as its first follower: the person follows the actor. These were
+	// the other way round, so a new group was made to follow whoever made
+	// it and its maker followed nothing.
+	followReq := services.NewSocialgraphFollowRequest().Add
+	followReq.Source = admin
+	followReq.Target = actor
+	followReq.Viewer = viewer
+	if err := h.Srv.SocialgraphFollowGRPC.Add(followReq); err != nil {
+		log.Println(err)
+		return nil, http.StatusInternalServerError
+	}
+
+	return actor, 0
 }
 
 // Restore reverses a soft delete, within the grace period.
@@ -353,7 +408,7 @@ func (h *groupHandler) Restore(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -413,7 +468,7 @@ func (h *groupHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -483,7 +538,7 @@ func (h *groupHandler) Archive(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -554,7 +609,7 @@ func (h *groupHandler) SetEnabled(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -607,7 +662,7 @@ func (h *groupHandler) SetFeatured(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -659,7 +714,7 @@ func (h *groupHandler) DeletionCounts(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, constants.NodeActorGroupType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(req.ID, h.nodeType, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
@@ -743,6 +798,15 @@ func (h *groupHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode
 	item.Authorized.Audiences = permissions.PostAudiences(viewer, item, rel)
 	addFollower := permissions.CanAddOthersAsFollowers(viewer, item, rel)
 	item.Authorized.AddFollower = &addFollower
+	// What only an event has: when, how many, who is going.
+	if h.nodeType == an_constants.NodeActorEventEntityType {
+		h.setEventDetails([]*entities.AnahitaNode{item}, viewer)
+	}
+
+	invite := permissions.CanInvite(viewer, item, rel)
+	item.Authorized.Invite = &invite
+	// And whether the viewer has themselves been invited, to answer here.
+	item.IsInvitedViewer = rel.HasInvite
 
 	return nil
 }

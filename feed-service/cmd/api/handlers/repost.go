@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"fmt"
 	"log"
 	"net/http"
@@ -74,6 +75,9 @@ func (h *repostHandler) Browse(c echo.Context) error {
 	for _, item := range reposters {
 		services.PresignAvatar(h.Srv.FilesGRPC, item)
 	}
+
+	// Whether the viewer follows each of them, and is followed by them.
+	an_handlers.SetViewerRelations(h.Srv.SocialgraphGRPC, reposters, viewer)
 
 	actorResp := &responses.ActorResponse{}
 	resp.Reposters = actorResp.MapNodeItems(reposters)

@@ -17,7 +17,8 @@
             "optional": false,
             "enabled": true,
             "add_permissions": [
-                { "entity": "follower", "access": "admins" }
+                { "entity": "follower", "access": "admins" },
+                { "entity": "invite", "access": "admins" }
             ],
             "ordering": 2
         },

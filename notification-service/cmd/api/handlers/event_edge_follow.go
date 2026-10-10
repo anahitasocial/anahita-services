@@ -95,7 +95,11 @@ func (h *eventHandler) eventFormatEdgeFollowDeleted(payload *event.EventPayload)
 		viewer = an_entities.NewViewer()
 	)
 
-	subject, err := h.Srv.ActorsGRPC.Read(payload.SubjectID, viewer)
+	// The follower, which is the event's object. Its subject is whoever
+	// ended the follow, and that is somebody else when an administrator
+	// removes a follower: the notification was looked for under the
+	// administrator, not found, and left behind.
+	subject, err := h.Srv.ActorsGRPC.Read(payload.ObjectID, viewer)
 	if err != nil {
 		return err
 	}
@@ -105,7 +109,7 @@ func (h *eventHandler) eventFormatEdgeFollowDeleted(payload *event.EventPayload)
 		return err
 	}
 
-	// Create notification
+	// Delete the notification
 	n.Service = payload.SourceService
 	n.Subject.ID = subject.ID
 	n.Target.ID = target.ID

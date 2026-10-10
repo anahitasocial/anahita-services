@@ -233,6 +233,11 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// it, so a client reading it is reading a policy, not a gate.
 			"groupsFrom": h.Config.GetGroupsFrom(),
 
+			// The same for an event of one's own, which is a setting of
+			// its own (EVENTS_FROM): anybody signed in, unless the
+			// installation says otherwise. actor-service enforces it.
+			"eventsFrom": h.Config.GetEventsFrom(),
+
 			// The widest audience anything new may be given: "public", or
 			// "registered" on an installation that allows no new public
 			// content (MIN_CONTENT_ACCESS). The services refuse a public

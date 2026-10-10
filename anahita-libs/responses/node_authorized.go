@@ -14,6 +14,7 @@ func NewNodeAuthorized(node *entities.AnahitaNode) *NodeAuthorized {
 		Comment:        node.Authorized.Comment,
 		Like:           node.Authorized.Like,
 		AddFollower:    node.Authorized.AddFollower,
+		Invite:         node.Authorized.Invite,
 		Hide:           node.Authorized.Hide,
 		Quote:          node.Authorized.Quote,
 		Pin:            node.Authorized.Pin,
@@ -36,6 +37,8 @@ type NodeAuthorized struct {
 	Comment     *bool `json:"comment,omitempty"`
 	Like        *bool `json:"like,omitempty"`
 	AddFollower *bool `json:"add_follower,omitempty"`
+	// Whether the viewer may invite people to follow this actor.
+	Invite *bool `json:"invite,omitempty"`
 	// On a reply: whether the viewer may hide it from its thread.
 	Hide *bool `json:"hide,omitempty"`
 	// On a post: whether the viewer may quote it.

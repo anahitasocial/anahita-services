@@ -150,6 +150,10 @@ services:
       # knows whether to offer a + on the groups page. Both read this one
       # entry, so they cannot be given different answers.
       GROUPS_FROM: ${GROUPS_FROM:-}
+      # Who may make an event of their own: registered (the default),
+      # administrators or super-administrators. Enforced by actor-service
+      # and published by auth-service, from this one entry.
+      EVENTS_FROM: ${EVENTS_FROM:-}
       # How many invitations one person may have OUTSTANDING at once. A slot
       # frees when one is accepted, expires, or is revoked. Defaults to 5 for
       # members and 100 for administrators.
@@ -219,6 +223,17 @@ services:
       # Who may create a group. Enforced here; auth-service is given the same
       # value so it can publish it in NodeInfo. See the note there.
       GROUPS_FROM: ${GROUPS_FROM:-}
+      # Who may make an event of their own: registered (the default),
+      # administrators or super-administrators. Enforced by actor-service
+      # and published by auth-service, from this one entry.
+      EVENTS_FROM: ${EVENTS_FROM:-}
+      # The web app's address, for the link back in an event's calendar file.
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+      # The geocoders, as location-service has them: an event's address is
+      # found on a map here, when whoever makes the event asks for one.
+      GEOCODER_PHOTON_URL: ${GEOCODER_PHOTON_URL:-}
+      GEOCODER_NOMINATIM_URL: ${GEOCODER_NOMINATIM_URL:-}
+      GEOCODER_CONTACT: ${GEOCODER_CONTACT:-}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
     networks:

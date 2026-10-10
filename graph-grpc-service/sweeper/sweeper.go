@@ -105,6 +105,14 @@ func Run(db *sql.DB, repos *repositories.Repositories, publisher *event.Publishe
 	// Images uploaded for a post that was never made.
 	Uploads(repos, files)
 
+	// Invitations nobody answered in time, and refusals whose cooldown is
+	// over.
+	Invites(repos, publisher)
+
+	// What time does to events: reminders, invitations to ones that are
+	// over, and archiving the ones long finished.
+	Events(repos, publisher)
+
 	cutoff := time.Now().UTC().AddDate(0, 0, -GraceDays)
 
 	ids, err := repos.Nodes.BrowseDeletedBefore(cutoff, BatchSize)

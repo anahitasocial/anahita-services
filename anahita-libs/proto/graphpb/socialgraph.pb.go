@@ -22,14 +22,21 @@ const (
 )
 
 type Socialgraph struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ActorAId      int64                  `protobuf:"varint,1,opt,name=actor_a_id,json=actorAId,proto3" json:"actor_a_id,omitempty"` // The ID of the first actor in the relationship
-	ActorBId      int64                  `protobuf:"varint,2,opt,name=actor_b_id,json=actorBId,proto3" json:"actor_b_id,omitempty"` // The ID of the second actor in the relationship
-	IsLeading     bool                   `protobuf:"varint,3,opt,name=is_leading,json=isLeading,proto3" json:"is_leading,omitempty"`
-	IsFollowing   bool                   `protobuf:"varint,4,opt,name=is_following,json=isFollowing,proto3" json:"is_following,omitempty"`
-	IsMutual      bool                   `protobuf:"varint,5,opt,name=is_mutual,json=isMutual,proto3" json:"is_mutual,omitempty"`
-	IsBlocking    bool                   `protobuf:"varint,6,opt,name=is_blocking,json=isBlocking,proto3" json:"is_blocking,omitempty"`
-	HasAdmin      bool                   `protobuf:"varint,7,opt,name=has_admin,json=hasAdmin,proto3" json:"has_admin,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	ActorAId    int64                  `protobuf:"varint,1,opt,name=actor_a_id,json=actorAId,proto3" json:"actor_a_id,omitempty"` // The ID of the first actor in the relationship
+	ActorBId    int64                  `protobuf:"varint,2,opt,name=actor_b_id,json=actorBId,proto3" json:"actor_b_id,omitempty"` // The ID of the second actor in the relationship
+	IsLeading   bool                   `protobuf:"varint,3,opt,name=is_leading,json=isLeading,proto3" json:"is_leading,omitempty"`
+	IsFollowing bool                   `protobuf:"varint,4,opt,name=is_following,json=isFollowing,proto3" json:"is_following,omitempty"`
+	IsMutual    bool                   `protobuf:"varint,5,opt,name=is_mutual,json=isMutual,proto3" json:"is_mutual,omitempty"`
+	IsBlocking  bool                   `protobuf:"varint,6,opt,name=is_blocking,json=isBlocking,proto3" json:"is_blocking,omitempty"`
+	HasAdmin    bool                   `protobuf:"varint,7,opt,name=has_admin,json=hasAdmin,proto3" json:"has_admin,omitempty"`
+	// Actor B has asked to follow actor A, and has not been answered.
+	HasRequested bool `protobuf:"varint,8,opt,name=has_requested,json=hasRequested,proto3" json:"has_requested,omitempty"`
+	// Actor B has been invited to follow actor A, and has not answered.
+	HasInvite bool `protobuf:"varint,9,opt,name=has_invite,json=hasInvite,proto3" json:"has_invite,omitempty"`
+	// Actor A is an event that lets its host's followers in, and actor B
+	// follows the group hosting it.
+	ViaHost       bool `protobuf:"varint,10,opt,name=via_host,json=viaHost,proto3" json:"via_host,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -109,6 +116,27 @@ func (x *Socialgraph) GetIsBlocking() bool {
 func (x *Socialgraph) GetHasAdmin() bool {
 	if x != nil {
 		return x.HasAdmin
+	}
+	return false
+}
+
+func (x *Socialgraph) GetHasRequested() bool {
+	if x != nil {
+		return x.HasRequested
+	}
+	return false
+}
+
+func (x *Socialgraph) GetHasInvite() bool {
+	if x != nil {
+		return x.HasInvite
+	}
+	return false
+}
+
+func (x *Socialgraph) GetViaHost() bool {
+	if x != nil {
+		return x.ViaHost
 	}
 	return false
 }
@@ -309,7 +337,7 @@ var File_proto_graphpb_socialgraph_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_socialgraph_proto_rawDesc = "" +
 	"\n" +
-	"\x1fproto/graphpb/socialgraph.proto\x12\x05graph\"\xe6\x01\n" +
+	"\x1fproto/graphpb/socialgraph.proto\x12\x05graph\"\xc5\x02\n" +
 	"\vSocialgraph\x12\x1c\n" +
 	"\n" +
 	"actor_a_id\x18\x01 \x01(\x03R\bactorAId\x12\x1c\n" +
@@ -321,7 +349,12 @@ const file_proto_graphpb_socialgraph_proto_rawDesc = "" +
 	"\tis_mutual\x18\x05 \x01(\bR\bisMutual\x12\x1f\n" +
 	"\vis_blocking\x18\x06 \x01(\bR\n" +
 	"isBlocking\x12\x1b\n" +
-	"\thas_admin\x18\a \x01(\bR\bhasAdmin\"T\n" +
+	"\thas_admin\x18\a \x01(\bR\bhasAdmin\x12#\n" +
+	"\rhas_requested\x18\b \x01(\bR\fhasRequested\x12\x1d\n" +
+	"\n" +
+	"has_invite\x18\t \x01(\bR\thasInvite\x12\x19\n" +
+	"\bvia_host\x18\n" +
+	" \x01(\bR\aviaHost\"T\n" +
 	"\x16SocialgraphReadRequest\x12\x1c\n" +
 	"\n" +
 	"actor_a_id\x18\x01 \x01(\x03R\bactorAId\x12\x1c\n" +

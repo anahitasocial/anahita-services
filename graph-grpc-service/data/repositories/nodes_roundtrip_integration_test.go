@@ -50,6 +50,19 @@ func TestNodeRoundTripAgainstTheSchema(t *testing.T) {
 		}
 	}
 
+	// The same for letting people ask to follow, which was that setting:
+	// once on, nothing wrote it off.
+	for _, allow := range []bool{true, false} {
+		person.AllowFollowRequest = allow
+		if _, err := repo.Edit(person); err != nil {
+			t.Fatalf("edit the person: %v", err)
+		}
+		got, err := repo.Read(person.ID)
+		if err != nil || got.AllowFollowRequest != allow {
+			t.Fatalf("allow_follow_request is %v (err %v), want %v", got.AllowFollowRequest, err, allow)
+		}
+	}
+
 	note := entities.NewAnahitaNode()
 	note.Type = "node.medium.text-service.note.v1"
 	note.Service = "text-service"

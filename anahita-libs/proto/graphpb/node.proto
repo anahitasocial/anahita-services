@@ -145,6 +145,12 @@ message Node {
 
     // Whether the viewer has saved the post. Private to them.
     bool is_saved_by_viewer = 89;
+
+    // An actor the viewer may not see, listed because it lets people ask
+    // to follow it. Only its name and picture are sent.
+    bool restricted = 90;
+    // Whether the viewer has asked to follow it and is waiting.
+    bool is_follow_requested_by_viewer = 91;
 }
 
 message Nodes {

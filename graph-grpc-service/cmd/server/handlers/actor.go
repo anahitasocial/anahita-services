@@ -47,6 +47,7 @@ func (h *actorHandler) Count(ctx context.Context, req *graphpb.ActorCountRequest
 	rReq.Search = req.Search
 	rReq.AccessCheck = req.AccessCheck
 	rReq.Featured = req.Featured
+	rReq.IncludeAskable = req.IncludeAskable
 
 	total, err := h.env.Repos.Nodes.Count(rReq)
 	if err != nil {
@@ -79,10 +80,20 @@ func (h *actorHandler) Browse(ctx context.Context, req *graphpb.ActorBrowseReque
 	rReq.OrderingDir = req.Direction
 	rReq.AccessCheck = req.AccessCheck
 	rReq.Featured = req.Featured
+	rReq.IncludeAskable = req.IncludeAskable
 
 	actors, err := h.env.Repos.Nodes.Browse(rReq)
 	if err != nil {
 		return nil, err
+	}
+
+	// The list was widened to the actors the viewer may only ask to
+	// follow. Those are cut down to a name and a picture here, before they
+	// leave the graph, so no caller can send on what it should not.
+	if req.IncludeAskable {
+		if actors, err = h.restrictUnseen(actors, viewer); err != nil {
+			return nil, err
+		}
 	}
 
 	targetIds := extractNodeIDs(actors)

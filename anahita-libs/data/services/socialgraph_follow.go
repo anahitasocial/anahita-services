@@ -38,4 +38,6 @@ type SocialgraphFollowDeleteRequest struct {
 	Source *entities.AnahitaNode
 	Target *entities.AnahitaNode
 	Viewer *entities.Viewer
+	// The request to follow is what goes, not a follow.
+	IsFollowRequest bool
 }

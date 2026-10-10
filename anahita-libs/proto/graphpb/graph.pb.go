@@ -23,16 +23,25 @@ const (
 )
 
 type BrowseNeighboursRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	NodeId        int64                  `protobuf:"varint,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	EdgeTypes     []string               `protobuf:"bytes,2,rep,name=edge_types,json=edgeTypes,proto3" json:"edge_types,omitempty"`
-	Direction     string                 `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"` // "IN", "OUT", "BOTH"
-	Limit         uint64                 `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
-	Offset        uint64                 `protobuf:"varint,5,opt,name=offset,proto3" json:"offset,omitempty"`
-	Ordering      string                 `protobuf:"bytes,6,opt,name=ordering,proto3" json:"ordering,omitempty"`
-	OrderingDir   string                 `protobuf:"bytes,7,opt,name=ordering_dir,json=orderingDir,proto3" json:"ordering_dir,omitempty"` // "ASC", "DESC"
-	Viewer        *Viewer                `protobuf:"bytes,8,opt,name=viewer,proto3" json:"viewer,omitempty"`
-	AccessCheck   bool                   `protobuf:"varint,9,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	NodeId      int64                  `protobuf:"varint,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	EdgeTypes   []string               `protobuf:"bytes,2,rep,name=edge_types,json=edgeTypes,proto3" json:"edge_types,omitempty"`
+	Direction   string                 `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"` // "IN", "OUT", "BOTH"
+	Limit       uint64                 `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset      uint64                 `protobuf:"varint,5,opt,name=offset,proto3" json:"offset,omitempty"`
+	Ordering    string                 `protobuf:"bytes,6,opt,name=ordering,proto3" json:"ordering,omitempty"`
+	OrderingDir string                 `protobuf:"bytes,7,opt,name=ordering_dir,json=orderingDir,proto3" json:"ordering_dir,omitempty"` // "ASC", "DESC"
+	Viewer      *Viewer                `protobuf:"bytes,8,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	AccessCheck bool                   `protobuf:"varint,9,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
+	// Only neighbours whose name or alias holds this.
+	Search string `protobuf:"bytes,10,opt,name=search,proto3" json:"search,omitempty"`
+	// Only neighbours this actor follows: what somebody has in common with
+	// the node.
+	FollowedBy int64 `protobuf:"varint,11,opt,name=followed_by,json=followedBy,proto3" json:"followed_by,omitempty"`
+	// Only neighbours whose edge says exactly this in its meta, or does
+	// not. For the people going to an event, and the ones who said maybe.
+	EdgeMeta      string `protobuf:"bytes,12,opt,name=edge_meta,json=edgeMeta,proto3" json:"edge_meta,omitempty"`
+	EdgeMetaNot   string `protobuf:"bytes,13,opt,name=edge_meta_not,json=edgeMetaNot,proto3" json:"edge_meta_not,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -130,6 +139,34 @@ func (x *BrowseNeighboursRequest) GetAccessCheck() bool {
 	return false
 }
 
+func (x *BrowseNeighboursRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+func (x *BrowseNeighboursRequest) GetFollowedBy() int64 {
+	if x != nil {
+		return x.FollowedBy
+	}
+	return 0
+}
+
+func (x *BrowseNeighboursRequest) GetEdgeMeta() string {
+	if x != nil {
+		return x.EdgeMeta
+	}
+	return ""
+}
+
+func (x *BrowseNeighboursRequest) GetEdgeMetaNot() string {
+	if x != nil {
+		return x.EdgeMetaNot
+	}
+	return ""
+}
+
 type BrowseNeighboursResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Nodes         []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
@@ -183,18 +220,26 @@ func (x *BrowseNeighboursResponse) GetTotal() uint64 {
 }
 
 type BrowseConnectionNodesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	NodeId        int64                  `protobuf:"varint,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	EdgeType      string                 `protobuf:"bytes,2,opt,name=edge_type,json=edgeType,proto3" json:"edge_type,omitempty"`
-	Direction     string                 `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"` // "IN", "OUT", "BOTH"
-	Hops          uint32                 `protobuf:"varint,4,opt,name=hops,proto3" json:"hops,omitempty"`
-	Distinct      bool                   `protobuf:"varint,5,opt,name=distinct,proto3" json:"distinct,omitempty"`
-	Limit         uint64                 `protobuf:"varint,6,opt,name=limit,proto3" json:"limit,omitempty"`
-	Offset        uint64                 `protobuf:"varint,7,opt,name=offset,proto3" json:"offset,omitempty"`
-	Ordering      string                 `protobuf:"bytes,8,opt,name=ordering,proto3" json:"ordering,omitempty"`
-	OrderingDir   string                 `protobuf:"bytes,9,opt,name=ordering_dir,json=orderingDir,proto3" json:"ordering_dir,omitempty"`
-	Viewer        *Viewer                `protobuf:"bytes,10,opt,name=viewer,proto3" json:"viewer,omitempty"`
-	AccessCheck   bool                   `protobuf:"varint,11,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	NodeId      int64                  `protobuf:"varint,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	EdgeType    string                 `protobuf:"bytes,2,opt,name=edge_type,json=edgeType,proto3" json:"edge_type,omitempty"`
+	Direction   string                 `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"` // "IN", "OUT", "BOTH"
+	Hops        uint32                 `protobuf:"varint,4,opt,name=hops,proto3" json:"hops,omitempty"`
+	Distinct    bool                   `protobuf:"varint,5,opt,name=distinct,proto3" json:"distinct,omitempty"`
+	Limit       uint64                 `protobuf:"varint,6,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset      uint64                 `protobuf:"varint,7,opt,name=offset,proto3" json:"offset,omitempty"`
+	Ordering    string                 `protobuf:"bytes,8,opt,name=ordering,proto3" json:"ordering,omitempty"`
+	OrderingDir string                 `protobuf:"bytes,9,opt,name=ordering_dir,json=orderingDir,proto3" json:"ordering_dir,omitempty"`
+	Viewer      *Viewer                `protobuf:"bytes,10,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	AccessCheck bool                   `protobuf:"varint,11,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
+	// Only the ones whose name or alias holds this.
+	Search string `protobuf:"bytes,12,opt,name=search,proto3" json:"search,omitempty"`
+	// Only the ones this actor follows. With the followers of a profile,
+	// that is who the actor and the profile have in common.
+	FollowedBy int64 `protobuf:"varint,13,opt,name=followed_by,json=followedBy,proto3" json:"followed_by,omitempty"`
+	// Only the ones whose edge says exactly this in its meta, or does not.
+	EdgeMeta      string `protobuf:"bytes,14,opt,name=edge_meta,json=edgeMeta,proto3" json:"edge_meta,omitempty"`
+	EdgeMetaNot   string `protobuf:"bytes,15,opt,name=edge_meta_not,json=edgeMetaNot,proto3" json:"edge_meta_not,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -304,6 +349,34 @@ func (x *BrowseConnectionNodesRequest) GetAccessCheck() bool {
 		return x.AccessCheck
 	}
 	return false
+}
+
+func (x *BrowseConnectionNodesRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+func (x *BrowseConnectionNodesRequest) GetFollowedBy() int64 {
+	if x != nil {
+		return x.FollowedBy
+	}
+	return 0
+}
+
+func (x *BrowseConnectionNodesRequest) GetEdgeMeta() string {
+	if x != nil {
+		return x.EdgeMeta
+	}
+	return ""
+}
+
+func (x *BrowseConnectionNodesRequest) GetEdgeMetaNot() string {
+	if x != nil {
+		return x.EdgeMetaNot
+	}
+	return ""
 }
 
 type BrowseConnectionNodesResponse struct {
@@ -1114,7 +1187,7 @@ var File_proto_graphpb_graph_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/graphpb/graph.proto\x12\x05graph\x1a\x18proto/graphpb/node.proto\x1a\x18proto/graphpb/edge.proto\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa6\x02\n" +
+	"\x19proto/graphpb/graph.proto\x12\x05graph\x1a\x18proto/graphpb/node.proto\x1a\x18proto/graphpb/edge.proto\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa0\x03\n" +
 	"\x17BrowseNeighboursRequest\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\x03R\x06nodeId\x12\x1d\n" +
 	"\n" +
@@ -1125,10 +1198,16 @@ const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"\bordering\x18\x06 \x01(\tR\bordering\x12!\n" +
 	"\fordering_dir\x18\a \x01(\tR\vorderingDir\x12%\n" +
 	"\x06viewer\x18\b \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
-	"\faccess_check\x18\t \x01(\bR\vaccessCheck\"S\n" +
+	"\faccess_check\x18\t \x01(\bR\vaccessCheck\x12\x16\n" +
+	"\x06search\x18\n" +
+	" \x01(\tR\x06search\x12\x1f\n" +
+	"\vfollowed_by\x18\v \x01(\x03R\n" +
+	"followedBy\x12\x1b\n" +
+	"\tedge_meta\x18\f \x01(\tR\bedgeMeta\x12\"\n" +
+	"\redge_meta_not\x18\r \x01(\tR\vedgeMetaNot\"S\n" +
 	"\x18BrowseNeighboursResponse\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x04R\x05total\"\xd9\x02\n" +
+	"\x05total\x18\x02 \x01(\x04R\x05total\"\xd3\x03\n" +
 	"\x1cBrowseConnectionNodesRequest\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\x03R\x06nodeId\x12\x1b\n" +
 	"\tedge_type\x18\x02 \x01(\tR\bedgeType\x12\x1c\n" +
@@ -1141,7 +1220,12 @@ const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"\fordering_dir\x18\t \x01(\tR\vorderingDir\x12%\n" +
 	"\x06viewer\x18\n" +
 	" \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
-	"\faccess_check\x18\v \x01(\bR\vaccessCheck\"X\n" +
+	"\faccess_check\x18\v \x01(\bR\vaccessCheck\x12\x16\n" +
+	"\x06search\x18\f \x01(\tR\x06search\x12\x1f\n" +
+	"\vfollowed_by\x18\r \x01(\x03R\n" +
+	"followedBy\x12\x1b\n" +
+	"\tedge_meta\x18\x0e \x01(\tR\bedgeMeta\x12\"\n" +
+	"\redge_meta_not\x18\x0f \x01(\tR\vedgeMetaNot\"X\n" +
 	"\x1dBrowseConnectionNodesResponse\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x04R\x05total\"\x93\x02\n" +

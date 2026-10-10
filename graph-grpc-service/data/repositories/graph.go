@@ -63,6 +63,10 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 		query = query.Where(sq.Eq{"edge.type": req.EdgeTypes})
 	}
 
+	query = setNeighbourSearchQuery(query, req.Search)
+	query = setFollowedByQuery(query, req.FollowedBy)
+	query = setEdgeMetaQuery(query, req.EdgeMeta, req.EdgeMetaNot)
+
 	// ALWAYS, not `if req.AccessCheck` — see the note in nodes.go. The flag is
 	// a protobuf bool that arrives false unless a caller sets it, and none do.
 	//
@@ -77,7 +81,17 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
 
 	// Add ordering
-	if req.Ordering != "" {
+	if req.Ordering == constants.OrderingConnected {
+		// By when the connection was made: who followed most lately, not
+		// who joined the site most lately. Newest first unless the oldest
+		// are asked for. The oldest edges of all have no date, and an
+		// order by date puts them at the old end either way.
+		if req.OrderingDir == constants.DirAsc {
+			query = query.OrderBy("edge.created_at ASC", "edge.id ASC")
+		} else {
+			query = query.OrderBy("edge.created_at DESC", "edge.id DESC")
+		}
+	} else if req.Ordering != "" {
 		if req.Ordering == constants.OrderingPopular {
 			query = query.OrderBy("(COALESCE(node.repost_count,0) + COALESCE(node.comment_count,0) + COALESCE(node.vote_up_count,0) + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0)) DESC")
 		} else if req.Ordering == constants.OrderingRecent {
@@ -135,6 +149,11 @@ func (r *graphRepo) CountNeighbours(req *graphpb.BrowseNeighboursRequest, viewer
 		query = query.Where(sq.Eq{"edge.type": req.EdgeTypes[0]})
 	}
 
+	// The same narrowing as the list, or the total is of a different list.
+	query = setNeighbourSearchQuery(query, req.Search)
+	query = setFollowedByQuery(query, req.FollowedBy)
+	query = setEdgeMetaQuery(query, req.EdgeMeta, req.EdgeMetaNot)
+
 	// countQuery = countQuery.Where(sq.Eq{"node.enabled": req.Enabled})
 
 	// The owner join exists only so the gate below can read owner.access. The
@@ -178,8 +197,71 @@ func (r *graphRepo) BrowseConnectionNodes(req *graphpb.BrowseConnectionNodesRequ
 		AccessCheck: req.AccessCheck,
 		Ordering:    req.Ordering,
 		OrderingDir: req.OrderingDir,
+		Search:      req.Search,
+		FollowedBy:  req.FollowedBy,
+		EdgeMeta:    req.EdgeMeta,
+		EdgeMetaNot: req.EdgeMetaNot,
 	}
 	return r.BrowseNeighbours(req2, viewer)
+}
+
+// setNeighbourSearchQuery keeps the neighbours whose name or alias holds what
+// was typed: a follower found by name. Nothing typed keeps them all.
+func setNeighbourSearchQuery(query sq.SelectBuilder, search string) sq.SelectBuilder {
+	search = sanitizeSearchString(search)
+	if search == "" {
+		return query
+	}
+
+	likePattern := "%" + search + "%"
+
+	return query.Where(sq.Or{
+		sq.Like{"node.name": likePattern},
+		sq.Like{"node.alias": likePattern},
+	})
+}
+
+// setFollowedByQuery keeps the neighbours that one actor follows.
+//
+// Asked of a profile's followers, it gives who that actor and the profile
+// have in common: the people the actor follows who follow the profile. It is
+// done in the query so that the whole of it is found, paged and counted.
+// It used to be worked out by comparing one page of each side, which missed
+// everybody past the first page of either.
+func setFollowedByQuery(query sq.SelectBuilder, actorID int64) sq.SelectBuilder {
+	if actorID <= 0 {
+		return query
+	}
+
+	return query.Where(sq.Expr(`
+        EXISTS (
+          SELECT 1 FROM edges common
+          WHERE common.type = ?
+            AND common.node_a_id = ?
+            AND common.node_b_id = node.id
+        )`,
+		constants.EdgeFollowEntityType, actorID,
+	))
+}
+
+// setEdgeMetaQuery keeps the neighbours whose edge says exactly this in its
+// meta, or the ones whose edge does not.
+//
+// An answer to an event is kept whole in the follow edge's meta, so the
+// people going are the edges that say so, and the ones who said maybe are
+// every other follow, an edge with nothing in it included.
+func setEdgeMetaQuery(query sq.SelectBuilder, is string, isNot string) sq.SelectBuilder {
+	if is != "" {
+		query = query.Where(sq.Eq{"edge.meta": is})
+	}
+	if isNot != "" {
+		query = query.Where(sq.Or{
+			sq.Expr("edge.meta IS NULL"),
+			sq.NotEq{"edge.meta": isNot},
+		})
+	}
+
+	return query
 }
 
 // CountConnectionNodes returns the total number of 1-hop neighbors connected by a single edge type.
@@ -193,6 +275,10 @@ func (r *graphRepo) CountConnectionNodes(req *graphpb.BrowseConnectionNodesReque
 		EdgeTypes:   []string{req.EdgeType},
 		Direction:   req.Direction,
 		AccessCheck: req.AccessCheck,
+		Search:      req.Search,
+		FollowedBy:  req.FollowedBy,
+		EdgeMeta:    req.EdgeMeta,
+		EdgeMetaNot: req.EdgeMetaNot,
 	}
 	return r.CountNeighbours(req2, viewer)
 }

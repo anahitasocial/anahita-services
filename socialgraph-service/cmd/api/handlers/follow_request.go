@@ -211,17 +211,13 @@ func (h *followRequestHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	target, err = h.Srv.ActorsGRPC.Read(req.TargetID, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusNotFound)
-	}
-
+	// What the asker is sent is what they are allowed of the profile: its
+	// name and picture, and that they have now asked. This used to send the
+	// profile's whole list item, description and counts included, to
+	// somebody the profile does not admit.
 	h.onAfterFetched(target)
 
-	actorResp := &responses.ActorResponse{}
-
-	return c.JSON(http.StatusCreated, actorResp.MapNodeItem(target))
+	return c.JSON(http.StatusCreated, responses.NewLimitedActor(target, true))
 }
 
 // Delete a follower from an actor
@@ -263,12 +259,23 @@ func (h *followRequestHandler) Delete(c echo.Context) error {
 	delReq.Source = source
 	delReq.Target = target
 	delReq.Viewer = viewer
+	// The request is what goes. Without saying so the graph looked for a
+	// follow between the two, found none and removed nothing, so an ignored
+	// request stayed in the list for good.
+	delReq.IsFollowRequest = true
 	if err := h.Srv.SocialgraphFollowGRPC.Delete(delReq); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	h.onAfterFetched(target)
+
+	// Taken back by whoever asked: they are sent the limited profile, as
+	// when they asked. Ignored by whoever was asked: it is their own
+	// profile, or one they administer.
+	if source.ID == viewer.ID {
+		return c.JSON(http.StatusOK, responses.NewLimitedActor(target, false))
+	}
 
 	actorResp := &responses.ActorResponse{}
 

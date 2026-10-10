@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"context"
 	"time"
@@ -83,12 +84,33 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 		query = query.Set("parent_type", node.ParentType)
 	}
 
-	if node.GeoLatitude != 0 {
+	if node.GeoLatitude != 0 && node.Type != constants.NodeActorEventEntityType {
 		query = query.Set("geo_latitude", node.GeoLatitude)
 	}
-	if node.GeoLongitude != 0 {
+	if node.GeoLongitude != 0 && node.Type != constants.NodeActorEventEntityType {
 		query = query.Set("geo_longitude", node.GeoLongitude)
 	}
+	// An event's address is written whatever it is, so that one given can
+	// be taken off again. On anything else a field left empty is left as it
+	// was, below.
+	if node.Type == constants.NodeActorEventEntityType {
+		// No coordinates is nothing there, not a point in the sea off
+		// Africa.
+		var latitude, longitude any
+		if node.GeoLatitude != 0 || node.GeoLongitude != 0 {
+			latitude, longitude = node.GeoLatitude, node.GeoLongitude
+		}
+
+		query = query.
+			Set("geo_latitude", latitude).
+			Set("geo_longitude", longitude).
+			Set("geo_address", node.GeoAddress).
+			Set("geo_city", node.GeoCity).
+			Set("geo_state_province", node.GeoStateProvince).
+			Set("geo_country", node.GeoCountry).
+			Set("geo_postalcode", node.GeoPostalcode)
+	}
+
 	if node.GeoAddress != "" {
 		query = query.Set("geo_address", node.GeoAddress)
 	}
@@ -117,9 +139,10 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	if node.CoverFilename != "" {
 		query = query.Set("cover_filename", node.CoverFilename)
 	}
-	if node.AllowFollowRequest {
-		query = query.Set("allow_follow_request", node.AllowFollowRequest)
-	}
+	// Written whichever way it is, like the setting below it. It was only
+	// written when true, so once somebody let people ask to follow them
+	// there was no way to stop.
+	query = query.Set("allow_follow_request", node.AllowFollowRequest)
 	// Written whichever way it is, so that it can be turned off again. An
 	// edit of anything else carries what was read, and leaves it as it was.
 	query = query.Set("show_reposts_on_profile", node.ShowRepostsOnProfile)

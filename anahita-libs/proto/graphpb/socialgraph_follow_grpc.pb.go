@@ -19,9 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SocialgraphFollowService_Edit_FullMethodName   = "/graph.SocialgraphFollowService/Edit"
-	SocialgraphFollowService_Add_FullMethodName    = "/graph.SocialgraphFollowService/Add"
-	SocialgraphFollowService_Delete_FullMethodName = "/graph.SocialgraphFollowService/Delete"
+	SocialgraphFollowService_Edit_FullMethodName         = "/graph.SocialgraphFollowService/Edit"
+	SocialgraphFollowService_Add_FullMethodName          = "/graph.SocialgraphFollowService/Add"
+	SocialgraphFollowService_Delete_FullMethodName       = "/graph.SocialgraphFollowService/Delete"
+	SocialgraphFollowService_InviteAdd_FullMethodName    = "/graph.SocialgraphFollowService/InviteAdd"
+	SocialgraphFollowService_InviteBrowse_FullMethodName = "/graph.SocialgraphFollowService/InviteBrowse"
+	SocialgraphFollowService_InviteRead_FullMethodName   = "/graph.SocialgraphFollowService/InviteRead"
+	SocialgraphFollowService_InviteAnswer_FullMethodName = "/graph.SocialgraphFollowService/InviteAnswer"
+	SocialgraphFollowService_InviteDelete_FullMethodName = "/graph.SocialgraphFollowService/InviteDelete"
 )
 
 // SocialgraphFollowServiceClient is the client API for SocialgraphFollowService service.
@@ -31,6 +36,11 @@ type SocialgraphFollowServiceClient interface {
 	Edit(ctx context.Context, in *SocialgraphFollowEditRequest, opts ...grpc.CallOption) (*SocialgraphFollowEditResponse, error)
 	Add(ctx context.Context, in *SocialgraphFollowAddRequest, opts ...grpc.CallOption) (*SocialgraphFollowAddResponse, error)
 	Delete(ctx context.Context, in *SocialgraphFollowDeleteRequest, opts ...grpc.CallOption) (*SocialgraphFollowDeleteResponse, error)
+	InviteAdd(ctx context.Context, in *InviteAddRequest, opts ...grpc.CallOption) (*InviteAddResponse, error)
+	InviteBrowse(ctx context.Context, in *InviteBrowseRequest, opts ...grpc.CallOption) (*InviteBrowseResponse, error)
+	InviteRead(ctx context.Context, in *InviteReadRequest, opts ...grpc.CallOption) (*InviteReadResponse, error)
+	InviteAnswer(ctx context.Context, in *InviteAnswerRequest, opts ...grpc.CallOption) (*InviteAnswerResponse, error)
+	InviteDelete(ctx context.Context, in *InviteDeleteRequest, opts ...grpc.CallOption) (*InviteDeleteResponse, error)
 }
 
 type socialgraphFollowServiceClient struct {
@@ -71,6 +81,56 @@ func (c *socialgraphFollowServiceClient) Delete(ctx context.Context, in *Socialg
 	return out, nil
 }
 
+func (c *socialgraphFollowServiceClient) InviteAdd(ctx context.Context, in *InviteAddRequest, opts ...grpc.CallOption) (*InviteAddResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InviteAddResponse)
+	err := c.cc.Invoke(ctx, SocialgraphFollowService_InviteAdd_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *socialgraphFollowServiceClient) InviteBrowse(ctx context.Context, in *InviteBrowseRequest, opts ...grpc.CallOption) (*InviteBrowseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InviteBrowseResponse)
+	err := c.cc.Invoke(ctx, SocialgraphFollowService_InviteBrowse_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *socialgraphFollowServiceClient) InviteRead(ctx context.Context, in *InviteReadRequest, opts ...grpc.CallOption) (*InviteReadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InviteReadResponse)
+	err := c.cc.Invoke(ctx, SocialgraphFollowService_InviteRead_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *socialgraphFollowServiceClient) InviteAnswer(ctx context.Context, in *InviteAnswerRequest, opts ...grpc.CallOption) (*InviteAnswerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InviteAnswerResponse)
+	err := c.cc.Invoke(ctx, SocialgraphFollowService_InviteAnswer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *socialgraphFollowServiceClient) InviteDelete(ctx context.Context, in *InviteDeleteRequest, opts ...grpc.CallOption) (*InviteDeleteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InviteDeleteResponse)
+	err := c.cc.Invoke(ctx, SocialgraphFollowService_InviteDelete_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SocialgraphFollowServiceServer is the server API for SocialgraphFollowService service.
 // All implementations must embed UnimplementedSocialgraphFollowServiceServer
 // for forward compatibility.
@@ -78,6 +138,11 @@ type SocialgraphFollowServiceServer interface {
 	Edit(context.Context, *SocialgraphFollowEditRequest) (*SocialgraphFollowEditResponse, error)
 	Add(context.Context, *SocialgraphFollowAddRequest) (*SocialgraphFollowAddResponse, error)
 	Delete(context.Context, *SocialgraphFollowDeleteRequest) (*SocialgraphFollowDeleteResponse, error)
+	InviteAdd(context.Context, *InviteAddRequest) (*InviteAddResponse, error)
+	InviteBrowse(context.Context, *InviteBrowseRequest) (*InviteBrowseResponse, error)
+	InviteRead(context.Context, *InviteReadRequest) (*InviteReadResponse, error)
+	InviteAnswer(context.Context, *InviteAnswerRequest) (*InviteAnswerResponse, error)
+	InviteDelete(context.Context, *InviteDeleteRequest) (*InviteDeleteResponse, error)
 	mustEmbedUnimplementedSocialgraphFollowServiceServer()
 }
 
@@ -96,6 +161,21 @@ func (UnimplementedSocialgraphFollowServiceServer) Add(context.Context, *Socialg
 }
 func (UnimplementedSocialgraphFollowServiceServer) Delete(context.Context, *SocialgraphFollowDeleteRequest) (*SocialgraphFollowDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedSocialgraphFollowServiceServer) InviteAdd(context.Context, *InviteAddRequest) (*InviteAddResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InviteAdd not implemented")
+}
+func (UnimplementedSocialgraphFollowServiceServer) InviteBrowse(context.Context, *InviteBrowseRequest) (*InviteBrowseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InviteBrowse not implemented")
+}
+func (UnimplementedSocialgraphFollowServiceServer) InviteRead(context.Context, *InviteReadRequest) (*InviteReadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InviteRead not implemented")
+}
+func (UnimplementedSocialgraphFollowServiceServer) InviteAnswer(context.Context, *InviteAnswerRequest) (*InviteAnswerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InviteAnswer not implemented")
+}
+func (UnimplementedSocialgraphFollowServiceServer) InviteDelete(context.Context, *InviteDeleteRequest) (*InviteDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InviteDelete not implemented")
 }
 func (UnimplementedSocialgraphFollowServiceServer) mustEmbedUnimplementedSocialgraphFollowServiceServer() {
 }
@@ -173,6 +253,96 @@ func _SocialgraphFollowService_Delete_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SocialgraphFollowService_InviteAdd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InviteAddRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SocialgraphFollowServiceServer).InviteAdd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SocialgraphFollowService_InviteAdd_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SocialgraphFollowServiceServer).InviteAdd(ctx, req.(*InviteAddRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SocialgraphFollowService_InviteBrowse_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InviteBrowseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SocialgraphFollowServiceServer).InviteBrowse(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SocialgraphFollowService_InviteBrowse_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SocialgraphFollowServiceServer).InviteBrowse(ctx, req.(*InviteBrowseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SocialgraphFollowService_InviteRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InviteReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SocialgraphFollowServiceServer).InviteRead(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SocialgraphFollowService_InviteRead_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SocialgraphFollowServiceServer).InviteRead(ctx, req.(*InviteReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SocialgraphFollowService_InviteAnswer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InviteAnswerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SocialgraphFollowServiceServer).InviteAnswer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SocialgraphFollowService_InviteAnswer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SocialgraphFollowServiceServer).InviteAnswer(ctx, req.(*InviteAnswerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SocialgraphFollowService_InviteDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InviteDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SocialgraphFollowServiceServer).InviteDelete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SocialgraphFollowService_InviteDelete_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SocialgraphFollowServiceServer).InviteDelete(ctx, req.(*InviteDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SocialgraphFollowService_ServiceDesc is the grpc.ServiceDesc for SocialgraphFollowService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -191,6 +361,26 @@ var SocialgraphFollowService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _SocialgraphFollowService_Delete_Handler,
+		},
+		{
+			MethodName: "InviteAdd",
+			Handler:    _SocialgraphFollowService_InviteAdd_Handler,
+		},
+		{
+			MethodName: "InviteBrowse",
+			Handler:    _SocialgraphFollowService_InviteBrowse_Handler,
+		},
+		{
+			MethodName: "InviteRead",
+			Handler:    _SocialgraphFollowService_InviteRead_Handler,
+		},
+		{
+			MethodName: "InviteAnswer",
+			Handler:    _SocialgraphFollowService_InviteAnswer_Handler,
+		},
+		{
+			MethodName: "InviteDelete",
+			Handler:    _SocialgraphFollowService_InviteDelete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

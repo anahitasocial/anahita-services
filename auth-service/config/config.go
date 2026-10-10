@@ -205,6 +205,11 @@ type Config struct {
 	// entry to both.
 	GroupsFrom string
 
+	// EventsFrom is who may make an event of their own. Enforced by
+	// actor-service; held here only to be published in NodeInfo, like
+	// GroupsFrom, and given the same value by the same .env entry.
+	EventsFrom string
+
 	// RegistrationMode is how this installation lets people in — see
 	// constants.RegistrationMode*. Empty means unset, which reads as closed.
 	RegistrationMode string

@@ -60,21 +60,29 @@ type GrapBrowseNeighboursRequest struct {
 	Direction   string   `validate:"required,oneof=IN OUT BOTH"`
 	Offset      uint64   `validate:"omitempty,numeric"`
 	Limit       uint64   `validate:"omitempty,numeric,max=100"`
-	Ordering    string   `validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
+	Ordering    string   `validate:"max=10,omitempty,oneof=created_at updated_at recent popular connected"`
 	OrderingDir string   `validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer      *entities.Viewer
 	AccessCheck bool
 }
 
 type GraphBrowseConnectionNodesRequest struct {
-	NodeId      int64  `validate:"required,numeric"`
-	EdgeType    string `validate:"string,omitempty"`
-	Direction   string `validate:"required,oneof=IN OUT BOTH"`
-	Hops        uint32 `validate:"required,numeric"`
-	Distinct    bool
+	NodeId    int64  `validate:"required,numeric"`
+	EdgeType  string `validate:"string,omitempty"`
+	Direction string `validate:"required,oneof=IN OUT BOTH"`
+	Hops      uint32 `validate:"required,numeric"`
+	Distinct  bool
+	// Only the ones whose edge says exactly this in its meta, or does not.
+	EdgeMeta    string
+	EdgeMetaNot string
+	// Only the ones this actor follows. Asked of a profile's followers, it
+	// gives who that actor and the profile have in common.
+	FollowedBy int64
+	// Only the ones whose name or alias holds this.
+	Search      string
 	Limit       uint64 `validate:"omitempty,numeric,max=100"`
 	Offset      uint64 `validate:"omitempty,numeric"`
-	Ordering    string `validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
+	Ordering    string `validate:"max=10,omitempty,oneof=created_at updated_at recent popular connected"`
 	OrderingDir string `validate:"max=4,omitempty,oneof=asc desc"`
 	Viewer      *entities.Viewer
 	AccessCheck bool

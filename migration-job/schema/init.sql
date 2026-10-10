@@ -128,12 +128,18 @@ CREATE TABLE nodes (
   -- and a group with the same alias would make both unaddressable once this
   -- instance federates.
   --
+  -- An event is an actor and is left out. It is not addressed by a handle:
+  -- its address carries its id, and two events may well be called the same
+  -- thing. Left in, a second "Birthday" could not be made, and an event
+  -- named for a town would take that handle from the group that wants it.
+  --
   -- The `actor:` prefix is redundant with one branch. It is there so a second
   -- namespace — hashtags, which are addressed by alias — is one CASE line
   -- rather than another column and another index.
   `unique_alias` varchar(300) GENERATED ALWAYS AS (
       CASE
           WHEN alias IS NULL OR alias = '' THEN NULL
+          WHEN type = 'node.actor.actor-service.event.v1' THEN NULL
           WHEN type LIKE 'node.actor.%'    THEN CONCAT('actor:', alias)
           ELSE NULL
       END
@@ -533,6 +539,39 @@ CREATE TABLE IF NOT EXISTS photo_uploads (
     `created_at` datetime NOT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_photo_uploads_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Events: an actor people say they are going to.
+--
+-- An event is a node like a group: followed, posted on, administered. What
+-- only an event has is kept here, one row an event: its time zone, how many
+-- may go, where to join online, and whether it was called off. Saying you are
+-- going is following it, with the answer in the follow edge's meta.
+--
+-- Owned by graph-grpc-service. No foreign keys, like the rest of this schema.
+CREATE TABLE IF NOT EXISTS events (
+    -- The event, which is an actor: node.actor.actor-service.event.v1. Its
+    -- name, description, access and when it starts and ends are on the node.
+    `node_id` bigint unsigned NOT NULL,
+    -- The zone the times were given in, as IANA names it (America/Toronto),
+    -- so they read correctly on either side of a clock change.
+    `timezone_name` varchar(64) NOT NULL DEFAULT '',
+    -- How many may be going. 0 for no limit.
+    `capacity` int unsigned NOT NULL DEFAULT 0,
+    -- Where to join when it is online. Sent only to whoever is going, and to
+    -- whoever looks after the event.
+    `online_url` varchar(512) NOT NULL DEFAULT '',
+    -- Whether everybody who follows the group hosting it may see that it is
+    -- on and answer it, without being invited one by one. Only means
+    -- something on an event that has a host and is not open to everybody
+    -- already.
+    `open_to_host_followers` tinyint(1) NOT NULL DEFAULT 0,
+    -- Set when it is called off. It is kept, so people can see that it was.
+    `cancelled_at` datetime DEFAULT NULL,
+    -- Set when whoever is going has been reminded, so it is done once.
+    `reminded_at` datetime DEFAULT NULL,
+    PRIMARY KEY (`node_id`),
+    KEY `idx_events_reminded_at` (`reminded_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Add indices

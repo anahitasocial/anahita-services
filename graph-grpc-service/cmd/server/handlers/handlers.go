@@ -41,6 +41,7 @@ type Handlers struct {
 	Search            *searchHandler
 	Socialgraph       *socialgraphGrpcHandler
 	SocialgraphFollow *socialgraphFollowGrpcHandler
+	Event             *eventGrpcHandler
 	SocialgraphBlock  *socialgraphBlockGrpcHandler
 	Subscription      *subscriptionGrpcHandler
 }
@@ -61,6 +62,7 @@ func NewHandlers(env *Env) *Handlers {
 		Search:            NewSearchHandler(env),
 		Socialgraph:       NewSocialgraphGrpcHandler(env),
 		SocialgraphFollow: NewSocialgraphFollowGrpcHandler(env),
+		Event:             NewEventGrpcHandler(env),
 		SocialgraphBlock:  NewSocialgraphBlockGrpcHandler(env),
 		Subscription:      NewSubscriptionGrpcHandler(env),
 	}

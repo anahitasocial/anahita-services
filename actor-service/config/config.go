@@ -18,6 +18,7 @@ const (
 	ErrMissingOAuthIssuer       = "OAuth issuer is missing"
 	ErrMissingOAuthJWKSURL      = "OAuth JWKS URL is missing"
 	ErrInvalidGroupsFrom        = "GROUPS_FROM must be one of: "
+	ErrInvalidEventsFrom        = "EVENTS_FROM must be one of: "
 )
 
 // Config is what actor-service is told from its environment.
@@ -37,6 +38,11 @@ type Config struct {
 	OAuthIssuer      string
 	OAuthJWKSURL     string
 	GroupsFrom       string
+	// Who may make an event of their own. See GetEventsFrom.
+	EventsFrom string
+	// The web app's address, for links that leave the site: the one in a
+	// calendar file. Optional; without it the link is left out.
+	WebOrigin string
 }
 
 func NewConfig() *Config {
@@ -52,6 +58,8 @@ func NewConfig() *Config {
 		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
 		GroupsFrom:       os.Getenv("GROUPS_FROM"),
+		EventsFrom:       os.Getenv("EVENTS_FROM"),
+		WebOrigin:        strings.TrimRight(os.Getenv("WEB_ORIGIN"), "/"),
 	}
 
 	// If JWKS URL is unset, derive it from the issuer — auth-service is
@@ -105,6 +113,12 @@ func (config *Config) Validate() error {
 	// hint as to why.
 	if config.GroupsFrom != "" && !constants.IsRoleLevel(constants.NormalizeRoleLevel(config.GroupsFrom)) {
 		return errors.New(ErrInvalidGroupsFrom + strings.Join(constants.RoleLevelValues, ", "))
+	}
+
+	// The same for events: a value nobody recognises is a typo, and would
+	// refuse every event with no hint as to why.
+	if config.EventsFrom != "" && !constants.IsRoleLevel(constants.NormalizeRoleLevel(config.EventsFrom)) {
+		return errors.New(ErrInvalidEventsFrom + strings.Join(constants.RoleLevelValues, ", "))
 	}
 
 	return nil
@@ -170,6 +184,12 @@ func (config *Config) GetOAuthJWKSURL() string {
 	return config.OAuthJWKSURL
 }
 
+// GetWebOrigin returns the web app's address with no slash at its end, or
+// "" when it has not been set.
+func (config *Config) GetWebOrigin() string {
+	return config.WebOrigin
+}
+
 // GetGroupsFrom returns the minimum role that may create a group.
 //
 // Defaults to administrators, which is what happened before this setting
@@ -178,6 +198,26 @@ func (config *Config) GetGroupsFrom() string {
 	value := constants.NormalizeRoleLevel(config.GroupsFrom)
 	if value == "" {
 		return constants.RoleLevelAdministrators
+	}
+
+	return value
+}
+
+// GetEventsFrom returns the minimum role that may make an event of their
+// own.
+//
+// Defaults to registered: anybody signed in. A group is a standing place
+// with a name others will look for, which is why making one is kept to
+// administrators until an installation says otherwise. An event is an
+// evening, and an installation where only administrators can hold one would
+// have none. One that wants them kept sets EVENTS_FROM.
+//
+// An event made for a group is not this question: that is for the group's
+// administrators, whatever is set here.
+func (config *Config) GetEventsFrom() string {
+	value := constants.NormalizeRoleLevel(config.EventsFrom)
+	if value == "" {
+		return constants.RoleLevelRegistered
 	}
 
 	return value

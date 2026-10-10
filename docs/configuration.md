@@ -37,7 +37,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 | `AMQP_ADDR` | publishers and consumers | RabbitMQ, e.g. `amqp://rabbitmq:5672` |
 | `OAUTH_ISSUER` | all HTTP services | Issuer URL that tokens are signed with and checked against |
 | `OAUTH_JWKS_URL` | all HTTP services | Where public signing keys are fetched. Defaults to auth-service inside the network |
-| `WEB_ORIGIN` | nginx | The web app's origin, e.g. `https://example.org`. The one origin allowed to call the API with the session cookie. Default `http://localhost:3000` |
+| `WEB_ORIGIN` | nginx, actor-service | The web app's origin, e.g. `https://example.org`. For nginx, the one origin allowed to call the API with the session cookie. For actor-service, where the link in an event's calendar file leads; without it the link is left out. Default `http://localhost:3000` |
 
 ### Client addresses
 
@@ -119,6 +119,8 @@ Read by auth-service.
 | --- | --- |
 | `REGISTRATION_MODE` | `open`, `approval`, `invite` or `closed`. **Unset means `closed`**: no self-serve sign-up, and outstanding invitations stop working |
 | `INVITES_FROM` | `registered`, `administrators` (default) or `super-administrators` — the minimum role that may invite. Each admits that role and every role above it. In `approval` mode, an invitation from somebody who is not an administrator goes to the approval queue |
+| `GROUPS_FROM` | `registered`, `administrators` (default) or `super-administrators` — the minimum role that may make a group. Read by actor-service, which enforces it, and by auth-service, which publishes it in NodeInfo as `groupsFrom`; give both the same value |
+| `EVENTS_FROM` | `registered` (default), `administrators` or `super-administrators` — the minimum role that may make an event of their own. Read by actor-service, which enforces it, and by auth-service, which publishes it in NodeInfo as `eventsFrom`; give both the same value. An event made for a group is for that group's administrators whatever this says |
 | `INVITE_PENDING_MAX` | Outstanding invitations one person may have at once. Default `5` |
 | `INVITE_PENDING_MAX_ADMIN` | The same for administrators. Default `100` |
 | `TOS_URL`, `PRIVACY_URL` | Where the Terms and Privacy Policy are read: a path on the web app or a full URL. Default `/legal/tos` and `/legal/privacy`. Their versions are held by the web app, not here |
@@ -241,7 +243,8 @@ cd file-grpc-service && STORAGE_TEST_ENDPOINT=https://… go test ./data/service
 
 ## Places
 
-Read by location-service. An address is turned into coordinates by Photon
+Read by location-service, and by actor-service for an event whose maker asked
+for a map of its address. An address is turned into coordinates by Photon
 first, then Nominatim, both open-source geocoders built on OpenStreetMap.
 
 | Variable | Value |
@@ -252,8 +255,10 @@ first, then Nominatim, both open-source geocoders built on OpenStreetMap.
 
 The public instances are shared services with strict limits, and they see every
 address a member types. Both can be self-hosted; point the variables at your
-own. At least one has to stay on, because a place cannot be saved without
-coordinates.
+own. At least one has to stay on for location-service, because a place cannot
+be saved without coordinates. actor-service starts without either, and events
+are then saved with their address and no map. An event's address is sent to
+a geocoder only when "Show a map" is ticked on its form.
 
 ## Mail
 

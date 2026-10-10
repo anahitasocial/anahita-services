@@ -56,6 +56,31 @@ const (
 
 	EventFormatEdgeFollowRequestAdded   = "edge.follow-request.%s.added.v1"
 	EventFormatEdgeFollowRequestDeleted = "edge.follow-request.%s.deleted.v1"
+	// Accepted, which also publishes Deleted (the request is gone) and
+	// EdgeFollowAdded (the follow is made). This one is for telling whoever
+	// asked.
+	EventFormatEdgeFollowRequestAccepted = "edge.follow-request.%s.accepted.v1"
+
+	// Events, the kind people go to. In each the target is the event.
+	//
+	// Answered: the object is whoever said they are going. For whoever
+	// looks after the event.
+	// Changed, Cancelled, Reminded: one is published for each person to
+	// tell, who is the object. The subject is whoever changed it or called
+	// it off, and nobody for a reminder.
+	EventFormatEventAnswered  = "event.%s.answered.v1"
+	EventFormatEventChanged   = "event.%s.changed.v1"
+	EventFormatEventCancelled = "event.%s.cancelled.v1"
+	EventFormatEventReminded  = "event.%s.reminded.v1"
+
+	// Invitations to follow an actor. In each: the object is the person
+	// invited, the target the actor, the owner whoever invited them, and
+	// the subject whoever did this: the inviter, the invited, or whoever
+	// took it back. Deleted is also what the sweep says of one that lapsed.
+	EventFormatEdgeInviteAdded    = "edge.invite.%s.added.v1"
+	EventFormatEdgeInviteAccepted = "edge.invite.%s.accepted.v1"
+	EventFormatEdgeInviteDeclined = "edge.invite.%s.declined.v1"
+	EventFormatEdgeInviteDeleted  = "edge.invite.%s.deleted.v1"
 
 	EventFormatEdgeBlockAdded   = "edge.block.%s.added.v1"
 	EventFormatEdgeBlockDeleted = "edge.block.%s.deleted.v1"

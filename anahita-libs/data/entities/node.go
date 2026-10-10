@@ -33,6 +33,8 @@ type AnahitaNodeAuthorized struct {
 	Comment     *bool
 	Like        *bool
 	AddFollower *bool
+	// Whether the viewer may invite people to follow this actor.
+	Invite *bool
 	// On a reply: whether the viewer may hide it from its thread, or show
 	// it again. nil on anything that is not a reply.
 	Hide *bool
@@ -189,6 +191,20 @@ type AnahitaNode struct {
 	IsLikedByViewer bool
 	// Whether the viewer has saved it, to find again. Known to them alone.
 	IsSavedByViewer bool
+
+	// An actor the viewer may not see, shown because it lets people ask to
+	// follow it. It carries its name and picture and nothing else.
+	Restricted bool
+	// Whether the viewer has asked to follow this actor and is waiting.
+	IsFollowRequestedByViewer bool
+	// Whether the viewer has been invited to follow this actor and is yet
+	// to answer.
+	IsInvitedViewer bool
+
+	// On an event: what only an event has. Nil on anything else.
+	Event *EventDetails
+	// Whether the viewer may be shown where to join it online.
+	EventShowsOnlineURL bool
 
 	RepostCount        int64
 	IsRepostedByViewer bool

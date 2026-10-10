@@ -122,9 +122,71 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **services `architecture.md`**: the invite edge, endpoints and events.
 - **web `architecture.md`**: the Invite dialog, notification actions (Accept/Decline) and pending invitations.
 
+## What was built
+
+### Step 0: the follow path, 2026-10-09
+
+The eight bugs listed above, checked against the code as it was that day, and
+five more found while checking.
+
+**From the list**
+
+| # | What | Fix |
+| --- | --- | --- |
+| 1 | The add-follower picker threw on the first letter | It is given the viewer, and lists the viewer's followers by name |
+| 2 | Accept sent POST | It sends PATCH |
+| 3 | Ignoring a request deleted nothing | The delete says it is a request (`is_follow_request`), and the graph removes that edge |
+| 4 | `allow_follow_request` could not be turned off | Written whichever way it is |
+| 5 | Anybody could make somebody else follow a person | `permissions.CanFollow`: the source is the viewer |
+| 6 | Unfollow looked for the notification under whoever did it | It looks under the follower |
+| 7 | A request told nobody | `edge.follow-request.*` events are published and notification-service listens: `actor_follow_request`, removed when answered, and `actor_follow_request_accept` to whoever asked |
+| 8 | Followers could not be searched | `search` on the graph's neighbour queries, by name or alias, in the list and in its count |
+
+**Found while checking**
+
+- **Anybody signed in could end anybody's follow** of a profile they could see. `permissions.CanRemoveFollower`: unfollowing, or whoever looks after the profile.
+- **A request could be filed on somebody else's behalf.** `permissions.CanRequestToFollow`: the source is the viewer.
+- **Accepting never worked in the graph either.** It set the type on the edge and saved it, and saving an edge does not write its type, so the request stayed a request while a "is following" notification went out. Accept now removes the request and adds a follow, and recounts.
+- **Whoever was asked could not ignore a request:** the two arguments of the check were named the wrong way round, so it asked about the asker's profile.
+- **Asking needed the asker to be able to see the profile,** and a profile that can be seen can be followed outright. So no request could be made of the only profiles worth asking.
+
+### The limited profile, 2026-10-09
+
+Follow requests worked through the API after step 0 and nothing in the web app could make one: somebody who cannot see a profile was refused the whole page. The user chose, the same day: **a limited profile on the profile page, and a list-item card in the lists.**
+
+- A profile that lets people ask shows its name, alias, picture and verified mark to somebody signed in whom it has not blocked (`permissions.CanSeeLimitedProfile`, `responses.LimitedActor`).
+- `GET /people/:alias` and `GET /groups/:id` answer 200 with that, marked `restricted`, where they answered 403.
+- `GET /people/` and `GET /groups/` include such profiles (`include_askable` on the graph's actor browse and count; `SetActorAccessOrAskableQuery`). The graph cuts them down before they leave it (`restrictUnseen`).
+- A relation says whether the viewer has asked (`has_requested`).
+- Asking and taking back answer with the limited profile. Asking used to answer with the profile's whole list item, description and counts included.
+- Web: `components/LimitedActorCard.jsx` and `containers/controls/FollowRequest.jsx`, used by the list card and by the profile page.
+
+Invitations use the same limited view for somebody invited to a profile they cannot see. That part is still to do: an invitation would have to open it even where the profile does not let people ask.
+
+Tests: `anahita-libs/cmd/api/permissions/follow_test.go` and `limited_profile_test.go`, `anahita-libs/responses/actor_limited_test.go`; on a real database, `TestFollowersByName`, `TestAskableProfilesAreListedAndStillNotSeen` and the round trip of `allow_follow_request`.
+
+### Invitations, 2026-10-09 and 10
+
+Built as designed above, with these differences.
+
+- **Addressed by the pair, not by an id.** There is one invitation for each person and actor, so the routes name the actor and the person: `POST /socialgraph/:actor_id/invites`, `GET /socialgraph/:actor_id/invites/`, `GET /socialgraph/invites/`, `POST /socialgraph/:actor_id/invites/accept` and `/decline` (the viewer's own), `DELETE /socialgraph/:actor_id/invites/:person_id`. A notification then needs no invitation id: its target is the actor.
+- **The daily limit is counted in the database,** not in the shared limiter: invitations the inviter made in the last day that are still waiting. socialgraph-service has no Redis, and this needed none.
+- **A notification is removed when its invitation ends,** not rewritten to say what happened. Its Accept and Decline answer 404 if the event was lost, and the web app says the invitation is no longer open. There is no live `actions` field.
+- **One more answer, `requested`:** somebody who has asked to follow and is waiting is not also invited.
+- **The pending-invitations list is a tab of the Invite dialog,** not a list beside Follow requests.
+- **The stored `follower` setting is left in place** and no longer read.
+
+Where it is: constants in `anahita-libs/constants/invites.go`; the edge `edge.actor.invite.v1`; `InvitesRepo` and the `Invite*` calls on the graph's follow service; rules in `permissions/invite.go`; socialgraph-service `handlers/invite.go`; notification-service `event_edge_invite.go` (`actor_invite`, `actor_invite_accept`); the sweep in `graph-grpc-service/sweeper/invites.go`; `authorized.invite` and `is_invited` on a group; `has_invite` on a relation. Web: `containers/actors/Invite`, `containers/controls/InviteAnswer.jsx`, `utils/invites.js`.
+
+Tests: `permissions/invite_test.go`; on a real database `TestInvitations`; web `utils/__tests__/invites.test.js` and the permission rows in `featurePermissions.test.js`.
+
+**Not done:** events as an actor that can be invited to (they come with events, row 18); mapping to ActivityPub `Invite` (federation).
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Step 0, the follow path | done 2026-10-09 |
+| The limited profile and asking to follow | done 2026-10-09 |
+| Invitations | done 2026-10-10 |

@@ -125,9 +125,137 @@ A phase is finished only when these pages match the code. anahita-services pages
 - **services `architecture.md`**: events in actor-service, the host edge, the `events` side table, the sweeper's event tasks.
 - **web `architecture.md`**, *Routes*: `/events` and the event pages and tabs.
 
+## What was built
+
+### Phase 1, the event itself: 2026-10-10
+
+Server only. An event can be made, read, changed, answered and called off through the API. Nothing in the web app yet.
+
+- **The type** `node.actor.actor-service.event.v1` (`constants.NodeActorEventEntityType`), with `graph-grpc-defaults/actor_features/event.json` and an entry in `feed-defaults`.
+- **One handler for both.** actor-service's group handler is told which kind it serves (`nodeType`), and serves events from the same code: read, list, access, features, administrators, archive, delete, purge. `handlers/event.go` adds what only an event has. `/events/` is routed by the gateway.
+- **The `events` table** (migration `20261017000001_events`, `init.sql`, `legacy/upgrade.sql`): time zone, places, online address, called off, reminded. When it starts and ends are the node's `starts_at` and `ends_at`.
+- **Answering** is following, with the answer in the follow edge's meta (`constants/events.go`). `EventsRepo.Rsvp` records it under a lock on the event's row.
+- **Routes:** `POST /events/`, `GET /events/:id`, `PATCH /events/:id`, `PUT` and `DELETE /events/:id/rsvp`, `POST /events/:id/cancel`, and everything `/groups/:id/...` has.
+- **The response** carries an `event` block: times in UTC, the zone, places, counts, `is_full`, the viewer's answer, and `state` (upcoming, happening, past, cancelled). `online_url` is in it only for whoever is going or looks after the event; `has_online_url` says there is one.
+- **Invitations know events:** none to an event that is over or called off (`closed`), fewer waiting when places are limited (`constants.InviteMaxPendingFor`), and accepting is going.
+
+Found and fixed on the way: **making a group made the group follow its maker**, not the maker follow the group. The two were the wrong way round in the call. No group had been made through this service on the development database, so no rows needed mending.
+
+Differences from the design above:
+
+- **Times are given as RFC 3339 with an offset** and stored in UTC, with the zone's name beside them.
+- **An event's address does not change when it is renamed.** A group's does.
+- **A follow with no answer counts as maybe,** so following an event from anywhere that offers Follow does something sensible.
+- **`GET /events/` listed every event the viewer may see** in this phase, as `/groups/` does. It was removed in phase 2, when the viewer's own lists arrived.
+
+Tests: `permissions/event_test.go`, `responses/event_test.go`, `constants/invites_test.go`; the graph's `TestEventTimesAreAnEventsAlone`; on a real database `TestEventAnswers` and `TestEventLastPlaceIsGivenOnce` (four people asking for one place at once).
+
+### Phase 2, lists and the calendar file: 2026-10-10
+
+Server only.
+
+- **`GET /events/mine?filter=upcoming|past|hosting|invited`:** the viewer's own events. Upcoming and past are what they answered, split by whether it is over; hosting is what they look after; invited is what they were asked to and have not answered. Soonest first for what is to come, latest first for the rest. An event they were invited to and may not yet see comes as its name, picture and time, marked `restricted`.
+- **`GET /events/:id/attendees/?rsvp=going|maybe`:** who is going, or said maybe, to anybody who can see the event, each person gated as a follower list is. Through the graph's neighbour query, which can now be narrowed by what an edge's meta says.
+- **`GET /events/:id/ics`:** the event as a calendar file. Its times are written in UTC, which every calendar shows in its owner's zone, so no zone rules are in the file. `STATUS:CANCELLED` when it was called off. The address to join online is in it only for whoever is going or looks after the event. The link back needs `WEB_ORIGIN` set for actor-service.
+- **`GET /events/` was removed.** There is no list of every event, as the plan says.
+- **The limited view of an event says when it is,** to somebody invited.
+
+Tests: `TestEventListsAndWhoIsGoing` on a real database; `handlers/event_ics_test.go`.
+
+### Phase 3, hosting by a group: 2026-10-10
+
+Server only.
+
+- **`host_group_id` when an event is made,** for somebody who administers that group. The host is an edge from the group to the event (`edge.actor.host.v1`), set once.
+- **The group's administrators are copied onto the event** as its own administrators when it is made (`carryOverAdmins`). Nothing is asked of the group afterwards: the user chose this on 2026-10-10, over working out an event's administrators from its host each time. Somebody who later becomes or stops being an administrator of the group is added to or removed from the event by hand.
+- **`GET /groups/:id/events/?filter=upcoming|past`:** the events a group hosts, each only if the viewer may see it. Following the host is not following the event.
+- **The event says who hosts it** (`event.host`), when the viewer may see that group.
+
+Tests: `TestEventsHostedByAGroup` on a real database.
+
+### Phase 4, the web app: 2026-10-10
+
+In anahita-web; see *Events* in its `docs/architecture.md`.
+
+- **Events** in the left menu: the viewer's own lists, with a + for whoever may make one.
+- **The form:** name, description, start and end on the clocks of a chosen time zone, places, a link to join online, and who can see it. `utils/events.js` turns the chosen times into instants with `Intl`, tested across clock changes.
+- **An event's page** is the actor page with a panel above its tabs: when (in the reader's zone, and the event's when that differs), who hosts it, how many are going, Going and Maybe, Add to calendar, and for its administrators Edit and Cancel.
+- **A group's Events tab,** with Add event for its administrators, which makes the group the host.
+- **Not built in the web app:** choosing a place for an event with the locations picker. An event's page has the same Locations tab a group's has.
+
+### Phase 5, the sweep and notifications: 2026-10-10
+
+- **The hourly sweep** (`graph-grpc-service/sweeper/events.go`):
+  - reminds whoever is going to an event that starts within a day, once (`events.reminded_at`, claimed by the update so two sweeps cannot both send);
+  - removes invitations still waiting to an event that is over or was called off, and takes their notifications with them;
+  - archives an event thirty days after it ended.
+- **Notifications** (`notification-service/handlers/event_event.go`), from four events the graph publishes (`event.actor.answered|changed|cancelled|reminded.v1`):
+  - `event_rsvp`, to whoever looks after an event, when somebody says they are going;
+  - `event_changed`, to everybody who answered, when its start or end moves;
+  - `event_cancelled`, to everybody who answered;
+  - `event_reminder`, to whoever is going.
+- **Search results** carry an event's times and counts, so its card can be drawn there.
+- **The time zone database is built into actor-service and graph-grpc-service** (`time/tzdata`). Their images have none, and every zone was being refused.
+- **The image services take a 10 MB upload,** as documented. A general 2 MB request limit stood in front of them.
+
+Differences from the design:
+
+- **An answer is told at once, not gathered up hourly.** Only "going" is told, and once for each person and event however often they change their mind.
+- **A change of place is not told,** only a change of time. A place is a location tagged on the event's page, which this service does not hear about.
+- **One notification of each kind for a person and an event:** an event moved three times says so once.
+
+Tests: `TestEventSweepQueries` on a real database; `TestSetEventDetails`.
+
+### Events take no handle: 2026-10-10
+
+Every actor's alias is in one namespace (`nodes.unique_alias`), since a handle is how an actor is found from elsewhere. An event is an actor, so it was in it, and should not be: a second event called "Birthday" could not be made, and an event named for a town took that handle from the group that would want it. An event is addressed by its id, with its name after it for reading.
+
+Migration `20261018000001_events_take_no_handle` gives an event NULL in that column, like everything that is not an actor; `init.sql` and `legacy/upgrade.sql` say the same. Rehearsed on a copy of the schema as it was, and compared with a new one. Test: `TestEventsTakeNoHandle`.
+
+Found while answering the user's question about who may make an event, which this had to come before.
+
+### Who may make an event: 2026-10-10
+
+`EVENTS_FROM`, a setting of its own, decided by the user: `registered` unless an installation sets it higher. Read by actor-service, which enforces it, and published by auth-service in NodeInfo as `eventsFrom`, which is what the web app's + on the Events page follows. `GROUPS_FROM` is unchanged. An event for a group is its administrators' to make whatever either says.
+
+### For a host group's followers, and a place on the form: 2026-10-10
+
+- **An event can be opened to the followers of the group hosting it** (`events.open_to_host_followers`, migration `20261019000001`). The design above called this an access level, `host_followers`. It was built as an invitation everybody in the group has, which is what it is for: a follower of the group is shown the event's name, time and description and can answer; what is posted on the event is still for whoever answered. That left every access rule for posts, feeds and search as it was, where a new level would have had to be added to each. `ViaHost` on the relation, `CanRsvp` and `CanSeeLimitedProfile` in the rules, and the group's list of events is widened for its followers.
+- **A place on the form** (web): a field that finds a location by name and tags it once the event is saved.
+- **Fixed on the way:** an event whose followers had all followed it without answering could not be read, because the count of answers came back as nothing.
+
+Tests: `TestEventsHostedByAGroup` covers the open event, the relation and that being let in is not seeing its posts.
+
+### An address on the event: 2026-10-10
+
+The place field on the form searched the site's locations, and the user pointed out the problem with adding a missing one from there: a location is public and shared, so an event at somebody's home would put their home on the map. Decided by the user: the form takes an address, stored on the event's own node in the address fields every node has, and tagging a location stays a separate thing somebody may choose to do.
+
+- `address`, `city`, `state_province`, `postal_code` and `country` on `POST` and `PATCH /events`, written to the node's `geo_*` fields. For an event they are written whatever they are, so one given can be taken off.
+- Sent as `event.address` to whoever is going or looks after the event, with `has_address` for everybody else, by the flag that decides the online address. In the calendar file as its place, for the same people.
+
+### A map of the address: 2026-10-10
+
+The user asked for the address in the About card of the event's page, with a map. A map needs the address looked up by a geocoder, and the two configured are public services unless an installation runs its own, so each address looked up is sent to them. Built as something whoever makes the event chooses, off unless chosen.
+
+- `show_map` on `POST` and `PATCH /events`. With it set and an address given, actor-service looks the address up (`setEventPlace`, six seconds at most) and stores the point in the node's `geo_latitude` and `geo_longitude`. Without it, or with no address, the point is cleared. An address that is not found is kept without a point, and the event is saved all the same.
+- Saving again with the same address keeps the point and looks nothing up.
+- The point is sent inside `event.address` as `latitude` and `longitude`, so only to whoever is sent the address. Nobody else is sent it: an actor's response has no coordinates of its own.
+- The geocoder is the one location-service uses (`anahita-libs/geocoding`), which no longer imports location-service's configuration, and has `NewOptionalLocationService` for a service that can work without one. actor-service takes the same `GEOCODER_*` settings. With both switched off, events are saved without a map.
+- Nothing searches for an event by its point: searches for what is nearby go by the places tagged on things.
+- The geocoding library wrote each address it found to the service's log. It no longer does: an event's address may be somebody's home.
+
+### Decided against
+
+- **Turning an event into a group,** and starting a group from one. Raised by the user on 2026-10-10 and dropped the same day.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Phase 1, the event itself (server) | done 2026-10-10 |
+| Phase 2, lists and the calendar file (server) | done 2026-10-10 |
+| Phase 3, hosting by a group (server) | done 2026-10-10 |
+| Phase 4, the web app | done 2026-10-10 |
+| Phase 5, the sweep and notifications | done 2026-10-10 |
+| Open to a host group's followers; a place on the form | done 2026-10-10 |

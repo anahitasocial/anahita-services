@@ -25,20 +25,26 @@ func actorNodeToSocialgraphSource(a *entities.AnahitaNode) *graphpb.Source {
 
 func GrpcToRelationEntity(relation *graphpb.Socialgraph) *entities.ActorRelation {
 	return &entities.ActorRelation{
-		IsLeading:   relation.IsLeading,
-		IsFollowing: relation.IsFollowing,
-		IsMutual:    relation.IsMutual,
-		IsBlocking:  relation.IsBlocking,
-		HasAdmin:    relation.HasAdmin,
+		IsLeading:    relation.IsLeading,
+		IsFollowing:  relation.IsFollowing,
+		IsMutual:     relation.IsMutual,
+		IsBlocking:   relation.IsBlocking,
+		HasAdmin:     relation.HasAdmin,
+		HasRequested: relation.HasRequested,
+		HasInvite:    relation.HasInvite,
+		ViaHost:      relation.ViaHost,
 	}
 }
 
 func RelationEntityToGrpc(relation *entities.ActorRelation) *graphpb.Socialgraph {
 	return &graphpb.Socialgraph{
-		IsLeading:   relation.IsLeading,
-		IsFollowing: relation.IsFollowing,
-		IsMutual:    relation.IsMutual,
-		IsBlocking:  relation.IsBlocking,
-		HasAdmin:    relation.HasAdmin,
+		IsLeading:    relation.IsLeading,
+		IsFollowing:  relation.IsFollowing,
+		IsMutual:     relation.IsMutual,
+		IsBlocking:   relation.IsBlocking,
+		HasAdmin:     relation.HasAdmin,
+		HasRequested: relation.HasRequested,
+		HasInvite:    relation.HasInvite,
+		ViaHost:      relation.ViaHost,
 	}
 }

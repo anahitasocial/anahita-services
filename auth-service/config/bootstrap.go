@@ -152,6 +152,21 @@ func (config *Config) GetGroupsFrom() string {
 	return value
 }
 
+// GetEventsFrom returns the minimum role that may make an event of their
+// own.
+//
+// Defaults to registered, matching actor-service, which enforces it. The two
+// resolve the same variable independently and have to agree on what unset
+// means.
+func (config *Config) GetEventsFrom() string {
+	value := libs_constants.NormalizeRoleLevel(config.EventsFrom)
+	if value == "" {
+		return libs_constants.RoleLevelRegistered
+	}
+
+	return value
+}
+
 // MayInvite reports whether somebody of this person type meets the
 // configured minimum.
 //
@@ -165,7 +180,6 @@ func (config *Config) GetGroupsFrom() string {
 func (config *Config) MayInvite(personType string) bool {
 	return libs_constants.MeetsRoleLevel(personType, config.GetInvitesFrom())
 }
-
 
 // Above every role, so an unknown level is refused rather than waved
 // through.
@@ -254,6 +268,7 @@ func (config *Config) bootstrapFromEnv() {
 	config.SupportWebsite = os.Getenv("SUPPORT_WEBSITE")
 	config.InvitesFrom = os.Getenv("INVITES_FROM")
 	config.GroupsFrom = os.Getenv("GROUPS_FROM")
+	config.EventsFrom = os.Getenv("EVENTS_FROM")
 	config.InvitePendingMax = getIntEnv("INVITE_PENDING_MAX", 0)
 	config.InvitePendingMaxAdmin = getIntEnv("INVITE_PENDING_MAX_ADMIN", 0)
 	config.TosURL = os.Getenv("TOS_URL")
@@ -294,6 +309,13 @@ func (config *Config) validateBootstrap(missingFields []string) []string {
 		missingFields = append(missingFields, fmt.Sprintf(
 			"GROUPS_FROM must be one of %s (got %q)",
 			strings.Join(libs_constants.RoleLevelValues, ", "), config.GroupsFrom))
+	}
+
+	if config.EventsFrom != "" &&
+		!libs_constants.IsRoleLevel(config.GetEventsFrom()) {
+		missingFields = append(missingFields, fmt.Sprintf(
+			"EVENTS_FROM must be one of %s (got %q)",
+			strings.Join(libs_constants.RoleLevelValues, ", "), config.EventsFrom))
 	}
 
 	// Negative is refused rather than read as unlimited. An operator who

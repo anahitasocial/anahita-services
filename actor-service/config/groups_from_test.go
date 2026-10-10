@@ -114,3 +114,24 @@ func validConfig() *Config {
 		OAuthJWKSURL:     "https://auth.example.com/.well-known/jwks.json",
 	}
 }
+
+// Events default the other way from groups: anybody signed in may make one
+// until an installation says otherwise.
+func TestGetEventsFromDefaultsToRegistered(t *testing.T) {
+	config := &Config{}
+	if got := config.GetEventsFrom(); got != constants.RoleLevelRegistered {
+		t.Errorf("GetEventsFrom() = %q, want %q", got, constants.RoleLevelRegistered)
+	}
+
+	// And says what it was set to, however it was written.
+	set := &Config{EventsFrom: " Administrators "}
+	if got := set.GetEventsFrom(); got != constants.RoleLevelAdministrators {
+		t.Errorf("GetEventsFrom() = %q, want %q", got, constants.RoleLevelAdministrators)
+	}
+
+	// The two settings do not move each other.
+	both := &Config{GroupsFrom: constants.RoleLevelSuperAdministrators}
+	if got := both.GetEventsFrom(); got != constants.RoleLevelRegistered {
+		t.Errorf("with GROUPS_FROM set, GetEventsFrom() = %q, want %q", got, constants.RoleLevelRegistered)
+	}
+}

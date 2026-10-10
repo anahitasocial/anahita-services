@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+	"time"
 
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Edit re-reads the node and copies a whitelist over it, so a field left out
@@ -157,5 +161,60 @@ func TestActorFieldHelpersSurviveNilInput(t *testing.T) {
 
 	if node := newActorFromRequest(nil); node == nil {
 		t.Error("newActorFromRequest(nil) returned nil rather than an empty node")
+	}
+}
+
+// When an event is can be set as it is made and changed afterwards. On any
+// other actor the request's times are ignored.
+func TestEventTimesAreAnEventsAlone(t *testing.T) {
+	start := time.Date(2026, 11, 5, 19, 0, 0, 0, time.UTC)
+	end := start.Add(2 * time.Hour)
+
+	req := &graphpb.Node{
+		Type:     constants.NodeActorEventEntityType,
+		Name:     "Picnic",
+		StartsAt: timestamppb.New(start),
+		EndsAt:   timestamppb.New(end),
+	}
+
+	made := newActorFromRequest(req)
+	if !made.StartsAt.Equal(start) || !made.EndsAt.Equal(end) {
+		t.Errorf("a new event: %v to %v, want %v to %v", made.StartsAt, made.EndsAt, start, end)
+	}
+
+	later := start.Add(24 * time.Hour)
+	req.StartsAt = timestamppb.New(later)
+	req.EndsAt = timestamppb.New(later.Add(time.Hour))
+	applyEditableActorFields(made, req)
+	if !made.StartsAt.Equal(later) {
+		t.Errorf("an edited event starts %v, want %v", made.StartsAt, later)
+	}
+
+	// Where it is held goes with it, and can be taken off again.
+	req.GeoAddress = "123 Main St"
+	req.GeoCity = "Vancouver"
+	applyEditableActorFields(made, req)
+	if made.GeoAddress != "123 Main St" || made.GeoCity != "Vancouver" {
+		t.Errorf("an event's address: %q, %q", made.GeoAddress, made.GeoCity)
+	}
+	req.GeoAddress = ""
+	req.GeoCity = ""
+	applyEditableActorFields(made, req)
+	if made.GeoAddress != "" || made.GeoCity != "" {
+		t.Errorf("an address taken off is still there: %q, %q", made.GeoAddress, made.GeoCity)
+	}
+
+	group := &graphpb.Node{
+		Type:       "node.actor.group-service.group.v1",
+		StartsAt:   timestamppb.New(start),
+		EndsAt:     timestamppb.New(end),
+		GeoAddress: "123 Main St",
+	}
+	got := newActorFromRequest(group)
+	if got.StartsAt.Equal(start) {
+		t.Error("a group took the request's start time")
+	}
+	if got.GeoAddress != "" {
+		t.Error("a group took the request's address")
 	}
 }

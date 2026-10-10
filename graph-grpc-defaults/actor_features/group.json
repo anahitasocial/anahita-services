@@ -2,7 +2,8 @@
     {
         "service": "socialgraph-service",
         "add_permissions": [
-            { "entity": "follower", "access": "admins" }
+            { "entity": "follower", "access": "admins" },
+            { "entity": "invite", "access": "admins" }
         ]
     },
     {
