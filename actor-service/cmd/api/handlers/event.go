@@ -4,6 +4,7 @@ import (
 	"actor/constants"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 	// Every zone's rules, built into the program. The image this runs in
 	// has no zone database of its own, and without one no zone by name can
@@ -65,6 +66,14 @@ type eventFields struct {
 	Capacity uint32 `form:"capacity" json:"capacity" validate:"omitempty,max=100000"`
 	// Where to join, when it is online.
 	OnlineURL string `form:"online_url" json:"online_url" validate:"omitempty,http_url,max=512"`
+	// Where it is held, when it is somewhere: an address as it is typed,
+	// kept on the event and shown to whoever is going. Not a place on the
+	// map, which is public. Every part is optional.
+	Address       string `form:"address" json:"address" validate:"omitempty,max=255"`
+	City          string `form:"city" json:"city" validate:"omitempty,max=100"`
+	StateProvince string `form:"state_province" json:"state_province" validate:"omitempty,max=100"`
+	PostalCode    string `form:"postal_code" json:"postal_code" validate:"omitempty,max=20"`
+	Country       string `form:"country" json:"country" validate:"omitempty,max=100"`
 	// Whether everybody who follows the group hosting it may see that it
 	// is on and answer it. Means nothing on an event with no host.
 	OpenToHostFollowers bool `form:"open_to_host_followers" json:"open_to_host_followers"`
@@ -97,6 +106,15 @@ type eventRsvpRequest struct {
 // word the web app has wording for.
 func refuseEvent(c echo.Context, status int, reason string) error {
 	return c.JSON(status, map[string]string{"error": reason})
+}
+
+// setEventAddress puts where an event is held onto its node, trimmed.
+func setEventAddress(actor *entities.AnahitaNode, fields *eventFields) {
+	actor.GeoAddress = strings.TrimSpace(fields.Address)
+	actor.GeoCity = strings.TrimSpace(fields.City)
+	actor.GeoStateProvince = strings.TrimSpace(fields.StateProvince)
+	actor.GeoPostalcode = strings.TrimSpace(fields.PostalCode)
+	actor.GeoCountry = strings.TrimSpace(fields.Country)
 }
 
 // eventTimes reads when an event is, and says why not when it cannot be:
@@ -176,6 +194,7 @@ func (h *eventHandler) Add(c echo.Context) error {
 	actor.Enabled = true
 	actor.StartsAt = startsAt
 	actor.EndsAt = endsAt
+	setEventAddress(actor, &req.eventFields)
 
 	// An event for a group is its administrators' to make, whoever the
 	// installation lets make an event of their own: hostGroup has checked
@@ -266,6 +285,7 @@ func (h *eventHandler) Edit(c echo.Context) error {
 	actor.WebsiteURL = req.WebsiteURL
 	actor.StartsAt = startsAt
 	actor.EndsAt = endsAt
+	setEventAddress(actor, &req.eventFields)
 	actor.ModifiedBy = viewer.ID
 	if _, err = h.Srv.ActorsGRPC.Edit(actor, viewer); err != nil {
 		log.Println(err)

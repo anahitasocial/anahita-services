@@ -25,7 +25,7 @@ func TestEventICS(t *testing.T) {
 	event := icsEvent()
 	link := eventLink("https://example.org", event)
 
-	got := eventICS(event, &entities.EventDetails{}, link, "", "example.org", now)
+	got := eventICS(event, &entities.EventDetails{}, link, "", "", "example.org", now)
 
 	for _, want := range []string{
 		"BEGIN:VCALENDAR\r\n",
@@ -56,14 +56,24 @@ func TestEventICS(t *testing.T) {
 	if strings.Contains(got, "LOCATION:") {
 		t.Error("a location with nothing given")
 	}
-	with := eventICS(event, &entities.EventDetails{}, link, "https://meet.example/x", "example.org", now)
+	with := eventICS(event, &entities.EventDetails{}, link, "https://meet.example/x", "", "example.org", now)
 	if !strings.Contains(with, "LOCATION:https://meet.example/x\r\n") {
 		t.Errorf("the online address is missing:\n%s", with)
 	}
 
+	// Held somewhere: that is the calendar's place, commas and all, and
+	// the way in online moves to the description.
+	held := eventICS(event, &entities.EventDetails{}, link, "https://meet.example/x", "123 Main St, Vancouver", "example.org", now)
+	if !strings.Contains(held, "LOCATION:123 Main St\\, Vancouver\r\n") {
+		t.Errorf("the address is not the place:\n%s", held)
+	}
+	if !strings.Contains(strings.ReplaceAll(held, "\r\n ", ""), "https://meet.example/x") {
+		t.Errorf("the online address is lost when there is a place:\n%s", held)
+	}
+
 	// Called off.
 	at := now
-	off := eventICS(event, &entities.EventDetails{CancelledAt: &at}, link, "", "example.org", now)
+	off := eventICS(event, &entities.EventDetails{CancelledAt: &at}, link, "", "", "example.org", now)
 	if !strings.Contains(off, "STATUS:CANCELLED\r\n") || strings.Contains(off, "STATUS:CONFIRMED") {
 		t.Errorf("a called-off event does not say so:\n%s", off)
 	}

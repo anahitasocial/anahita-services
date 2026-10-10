@@ -54,9 +54,9 @@ func applyEditableActorFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.Language = req.Language
 }
 
-// applyEventTimes copies when an event starts and ends. Only an event's: on
-// any other actor these are not something anybody set, and are left as they
-// were.
+// applyEventTimes copies when an event starts and ends, and where it is
+// held. Only an event's: on any other actor these are not something anybody
+// set, and are left as they were.
 func applyEventTimes(node *entities.AnahitaNode, req *graphpb.Node) {
 	if node.Type != constants.NodeActorEventEntityType || req.StartsAt == nil || req.EndsAt == nil {
 		return
@@ -64,6 +64,16 @@ func applyEventTimes(node *entities.AnahitaNode, req *graphpb.Node) {
 
 	node.StartsAt = req.StartsAt.AsTime()
 	node.EndsAt = req.EndsAt.AsTime()
+
+	// Where it is held, in the node's own address fields. Copied whatever
+	// it is, so that it can be taken off again. Its coordinates are left
+	// alone: nothing works them out from an address typed on a form, and an
+	// event with none is not found by a search for what is nearby.
+	node.GeoAddress = req.GeoAddress
+	node.GeoCity = req.GeoCity
+	node.GeoStateProvince = req.GeoStateProvince
+	node.GeoCountry = req.GeoCountry
+	node.GeoPostalcode = req.GeoPostalcode
 }
 
 // personTypeIsEditable is deliberately absent from the whitelist above.

@@ -190,12 +190,31 @@ func TestEventTimesAreAnEventsAlone(t *testing.T) {
 		t.Errorf("an edited event starts %v, want %v", made.StartsAt, later)
 	}
 
-	group := &graphpb.Node{
-		Type:     "node.actor.group-service.group.v1",
-		StartsAt: timestamppb.New(start),
-		EndsAt:   timestamppb.New(end),
+	// Where it is held goes with it, and can be taken off again.
+	req.GeoAddress = "123 Main St"
+	req.GeoCity = "Vancouver"
+	applyEditableActorFields(made, req)
+	if made.GeoAddress != "123 Main St" || made.GeoCity != "Vancouver" {
+		t.Errorf("an event's address: %q, %q", made.GeoAddress, made.GeoCity)
 	}
-	if got := newActorFromRequest(group); got.StartsAt.Equal(start) {
+	req.GeoAddress = ""
+	req.GeoCity = ""
+	applyEditableActorFields(made, req)
+	if made.GeoAddress != "" || made.GeoCity != "" {
+		t.Errorf("an address taken off is still there: %q, %q", made.GeoAddress, made.GeoCity)
+	}
+
+	group := &graphpb.Node{
+		Type:       "node.actor.group-service.group.v1",
+		StartsAt:   timestamppb.New(start),
+		EndsAt:     timestamppb.New(end),
+		GeoAddress: "123 Main St",
+	}
+	got := newActorFromRequest(group)
+	if got.StartsAt.Equal(start) {
 		t.Error("a group took the request's start time")
+	}
+	if got.GeoAddress != "" {
+		t.Error("a group took the request's address")
 	}
 }

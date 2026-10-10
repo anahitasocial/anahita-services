@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"anahita-libs/data/entities"
+	"anahita-libs/responses"
 
 	"github.com/labstack/echo/v4"
 )
@@ -66,13 +67,22 @@ func icsFold(line string) string {
 // eventICS writes an event as a calendar file.
 //
 // link is the event's page, or "" to leave it out. onlineURL is where to
-// join it, given only when this viewer may be shown it.
-func eventICS(event *entities.AnahitaNode, details *entities.EventDetails, link string, onlineURL string, host string, now time.Time) string {
+// join it and address where it is held, each given only when this viewer
+// may be shown it.
+func eventICS(event *entities.AnahitaNode, details *entities.EventDetails, link string, onlineURL string, address string, host string, now time.Time) string {
 	if host == "" {
 		host = "anahita"
 	}
 
 	description := event.Body
+	// Held somewhere and online as well: the calendar's place is where it
+	// is held, so the way in online goes with the description.
+	if address != "" && onlineURL != "" {
+		if description != "" {
+			description += "\n\n"
+		}
+		description += onlineURL
+	}
 	if link != "" {
 		if description != "" {
 			description += "\n\n"
@@ -97,7 +107,9 @@ func eventICS(event *entities.AnahitaNode, details *entities.EventDetails, link 
 	if description != "" {
 		lines = append(lines, "DESCRIPTION:"+icsEscape(description))
 	}
-	if onlineURL != "" {
+	if address != "" {
+		lines = append(lines, "LOCATION:"+icsEscape(address))
+	} else if onlineURL != "" {
 		lines = append(lines, "LOCATION:"+icsEscape(onlineURL))
 	}
 	if link != "" {
@@ -176,15 +188,16 @@ func (h *eventHandler) ICS(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	onlineURL := ""
+	onlineURL, address := "", ""
 	if actor.EventShowsOnlineURL {
 		onlineURL = actor.Event.OnlineURL
+		address = responses.NewEventAddress(actor).OneLine()
 	}
 
 	origin := h.Config.GetWebOrigin()
 	host := strings.TrimPrefix(strings.TrimPrefix(origin, "https://"), "http://")
 
-	body := eventICS(actor, actor.Event, eventLink(origin, actor), onlineURL, host, time.Now())
+	body := eventICS(actor, actor.Event, eventLink(origin, actor), onlineURL, address, host, time.Now())
 
 	c.Response().Header().Set(echo.HeaderContentDisposition, fmt.Sprintf(`attachment; filename="event-%d.ics"`, actor.ID))
 

@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"context"
 	"time"
@@ -89,6 +90,18 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	if node.GeoLongitude != 0 {
 		query = query.Set("geo_longitude", node.GeoLongitude)
 	}
+	// An event's address is written whatever it is, so that one given can
+	// be taken off again. On anything else a field left empty is left as it
+	// was, below.
+	if node.Type == constants.NodeActorEventEntityType {
+		query = query.
+			Set("geo_address", node.GeoAddress).
+			Set("geo_city", node.GeoCity).
+			Set("geo_state_province", node.GeoStateProvince).
+			Set("geo_country", node.GeoCountry).
+			Set("geo_postalcode", node.GeoPostalcode)
+	}
+
 	if node.GeoAddress != "" {
 		query = query.Set("geo_address", node.GeoAddress)
 	}

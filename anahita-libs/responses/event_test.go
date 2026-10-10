@@ -60,6 +60,32 @@ func TestEventOnlineURLIsHeldBack(t *testing.T) {
 		t.Errorf("the address is not sent to somebody going: %s", raw)
 	}
 
+	// The same for where it is held, which may be somebody's home.
+	node.EventShowsOnlineURL = false
+	node.GeoAddress = "123 HOME ST"
+	node.GeoCity = "Vancouver"
+	raw, _ = json.Marshal(NewEvent(node))
+	if strings.Contains(string(raw), "HOME ST") || strings.Contains(string(raw), "Vancouver") {
+		t.Errorf("where it is held is sent to somebody not shown it: %s", raw)
+	}
+	if !strings.Contains(string(raw), `"has_address":true`) {
+		t.Errorf("missing has_address: %s", raw)
+	}
+
+	node.EventShowsOnlineURL = true
+	shown := NewEvent(node)
+	if shown.Address == nil || shown.Address.OneLine() != "123 HOME ST, Vancouver" {
+		t.Errorf("the address for somebody going: %+v", shown.Address)
+	}
+
+	// And none at all when there is none.
+	bare := entities.NewAnahitaNode()
+	bare.Event = &entities.EventDetails{}
+	bare.EventShowsOnlineURL = true
+	if got := NewEvent(bare); got.Address != nil || got.HasAddress {
+		t.Errorf("an address where there is none: %+v", got.Address)
+	}
+
 	if NewEvent(entities.NewAnahitaNode()) != nil {
 		t.Error("a node that is not an event has an event block")
 	}
