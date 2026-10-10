@@ -11,7 +11,8 @@ import (
 //
 // Somebody who can see it and whom it has not blocked, as for following
 // anything. And somebody invited, whether or not they could otherwise see
-// it: the invitation is the event's consent.
+// it: the invitation is the event's consent. An event that lets in the
+// followers of the group hosting it has invited all of them at once.
 //
 // Whether there is a place left, and whether the event is still to come,
 // are answered by the graph when the answer is recorded.
@@ -29,7 +30,8 @@ func CanRsvp(viewer *entities.Viewer, event *entities.AnahitaNode, rel *entities
 		return false
 	}
 
-	if rel.HasInvite {
+	// Invited, one by one or as a follower of the group hosting it.
+	if rel.HasInvite || rel.ViaHost {
 		return true
 	}
 

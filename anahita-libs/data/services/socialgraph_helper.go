@@ -32,6 +32,7 @@ func GrpcToRelationEntity(relation *graphpb.Socialgraph) *entities.ActorRelation
 		HasAdmin:     relation.HasAdmin,
 		HasRequested: relation.HasRequested,
 		HasInvite:    relation.HasInvite,
+		ViaHost:      relation.ViaHost,
 	}
 }
 
@@ -44,5 +45,6 @@ func RelationEntityToGrpc(relation *entities.ActorRelation) *graphpb.Socialgraph
 		HasAdmin:     relation.HasAdmin,
 		HasRequested: relation.HasRequested,
 		HasInvite:    relation.HasInvite,
+		ViaHost:      relation.ViaHost,
 	}
 }

@@ -39,9 +39,12 @@ type EventDetails struct {
 	ViewerRsvp string `protobuf:"bytes,8,opt,name=viewer_rsvp,json=viewerRsvp,proto3" json:"viewer_rsvp,omitempty"`
 	// The group hosting it, or 0. On Save it is set once, when there is
 	// none yet, and 0 leaves it as it is.
-	HostId        int64 `protobuf:"varint,9,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	HostId int64 `protobuf:"varint,9,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`
+	// Whether everybody who follows the host may see that it is on and
+	// answer it.
+	OpenToHostFollowers bool `protobuf:"varint,10,opt,name=open_to_host_followers,json=openToHostFollowers,proto3" json:"open_to_host_followers,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *EventDetails) Reset() {
@@ -135,6 +138,13 @@ func (x *EventDetails) GetHostId() int64 {
 		return x.HostId
 	}
 	return 0
+}
+
+func (x *EventDetails) GetOpenToHostFollowers() bool {
+	if x != nil {
+		return x.OpenToHostFollowers
+	}
+	return false
 }
 
 type EventSaveRequest struct {
@@ -772,7 +782,7 @@ var File_proto_graphpb_event_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_event_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/graphpb/event.proto\x12\x05graph\"\xa6\x02\n" +
+	"\x19proto/graphpb/event.proto\x12\x05graph\"\xdb\x02\n" +
 	"\fEventDetails\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\x03R\x06nodeId\x12#\n" +
 	"\rtimezone_name\x18\x02 \x01(\tR\ftimezoneName\x12\x1a\n" +
@@ -786,7 +796,9 @@ const file_proto_graphpb_event_proto_rawDesc = "" +
 	"maybeCount\x12\x1f\n" +
 	"\vviewer_rsvp\x18\b \x01(\tR\n" +
 	"viewerRsvp\x12\x17\n" +
-	"\ahost_id\x18\t \x01(\x03R\x06hostId\"A\n" +
+	"\ahost_id\x18\t \x01(\x03R\x06hostId\x123\n" +
+	"\x16open_to_host_followers\x18\n" +
+	" \x01(\bR\x13openToHostFollowers\"A\n" +
 	"\x10EventSaveRequest\x12-\n" +
 	"\adetails\x18\x01 \x01(\v2\x13.graph.EventDetailsR\adetails\"\x13\n" +
 	"\x11EventSaveResponse\"A\n" +

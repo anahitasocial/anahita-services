@@ -21,10 +21,15 @@ func limitedProfile(env *Env, actor *entities.AnahitaNode, ctx *permissions.Acto
 	limited := responses.NewLimitedActor(actor, ctx.ActorViewerRel != nil && ctx.ActorViewerRel.HasRequested)
 	limited.IsInvited = ctx.ActorViewerRel != nil && ctx.ActorViewerRel.HasInvite
 
-	// Somebody invited to an event is told when it is. That is what an
-	// invitation is for. Somebody who may only ask to follow it is not.
-	if limited.IsInvited && actor.Type == an_constants.NodeActorEventEntityType {
+	limited.ViaHost = ctx.ActorViewerRel != nil && ctx.ActorViewerRel.ViaHost
+
+	// Somebody invited to an event is told what it is and when. That is
+	// what an invitation is for, whether it came to them alone or to
+	// everybody who follows the group hosting it. Somebody who may only
+	// ask to follow it is not.
+	if (limited.IsInvited || limited.ViaHost) && actor.Type == an_constants.NodeActorEventEntityType {
 		limited.Event = limitedEvent(env, actor, ctx.Viewer)
+		limited.Body = actor.Body
 	}
 
 	return limited
@@ -54,4 +59,43 @@ func limitedEvent(env *Env, actor *entities.AnahitaNode, viewer *entities.Viewer
 	shown.EventShowsOnlineURL = false
 
 	return responses.NewEvent(&shown)
+}
+
+// eventListItem is an event as it goes into a list: whole for somebody who
+// may see it, and as its name, picture and time for somebody who was
+// invited to it, alone or as a follower of the group hosting it. Nil for
+// somebody who is neither, to whom it is not shown.
+func eventListItem(event *entities.AnahitaNode, rel *entities.ActorRelation, viewer *entities.Viewer) any {
+	if rel == nil {
+		rel = &entities.ActorRelation{}
+	}
+
+	canRead, _ := permissions.NewActorPermissions().CanRead(&permissions.ActorAccessContext{
+		Viewer:         viewer,
+		Actor:          event,
+		ActorViewerRel: rel,
+	})
+	if canRead {
+		event.IsLeadingViewer = rel.IsLeading
+		event.IsAdminedByViewer = rel.HasAdmin
+		event.IsInvitedViewer = rel.HasInvite
+
+		return (&responses.ActorResponse{}).MapNodeItem(event)
+	}
+
+	if !permissions.CanSeeLimitedProfile(viewer, event, rel) {
+		return nil
+	}
+
+	limited := responses.NewLimitedActor(event, rel.HasRequested)
+	limited.IsInvited = rel.HasInvite
+	limited.ViaHost = rel.ViaHost
+	if rel.HasInvite || rel.ViaHost {
+		// Never the way in: that is for whoever is going.
+		event.EventShowsOnlineURL = false
+		limited.Event = responses.NewEvent(event)
+		limited.Body = event.Body
+	}
+
+	return limited
 }

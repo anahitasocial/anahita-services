@@ -28,6 +28,9 @@ type EventDetails struct {
 	ViewerRsvp string
 	// The group hosting it, or 0.
 	HostID int64
+	// Whether everybody who follows the host may see that it is on and
+	// answer it.
+	OpenToHostFollowers bool
 }
 
 // EventsRepoInterface is what only an event has: its time zone, how many
@@ -96,12 +99,14 @@ INSERT INTO events (
   node_id,
   timezone_name,
   capacity,
-  online_url
-) VALUES (?, ?, ?, ?)
+  online_url,
+  open_to_host_followers
+) VALUES (?, ?, ?, ?, ?)
 ON DUPLICATE KEY UPDATE
   timezone_name = VALUES(timezone_name),
   capacity = VALUES(capacity),
-  online_url = VALUES(online_url)`
+  online_url = VALUES(online_url),
+  open_to_host_followers = VALUES(open_to_host_followers)`
 
 const selectEvents = `
 SELECT
@@ -109,15 +114,19 @@ SELECT
   event.timezone_name,
   event.capacity,
   event.online_url,
-  event.cancelled_at
+  event.cancelled_at,
+  event.open_to_host_followers
 FROM events AS event
 WHERE event.node_id IN (%s)`
 
+// <=> and not =, which is NULL beside a follow with nothing in its meta:
+// an event all of whose followers had followed it the ordinary way had a
+// count of NULL, and could not be read at all.
 const countEventAnswers = `
 SELECT
   edge.node_b_id,
-  SUM(edge.meta = ?),
-  SUM(edge.meta IS NULL OR edge.meta <> ?)
+  COALESCE(SUM(edge.meta <=> ?), 0),
+  COALESCE(SUM(NOT (edge.meta <=> ?)), 0)
 FROM edges AS edge
 WHERE edge.type = ?
   AND edge.node_b_id IN (%s)
@@ -219,7 +228,7 @@ func (r *eventsRepo) Save(details *EventDetails) error {
 	}
 
 	if _, err := r.db.Exec(saveEvent,
-		details.NodeID, details.TimezoneName, details.Capacity, details.OnlineURL); err != nil {
+		details.NodeID, details.TimezoneName, details.Capacity, details.OnlineURL, details.OpenToHostFollowers); err != nil {
 		return err
 	}
 
@@ -252,7 +261,7 @@ func (r *eventsRepo) Read(ids []int64, personID int64) (map[int64]*EventDetails,
 	for rows.Next() {
 		details := &EventDetails{}
 		var cancelled sql.NullTime
-		if err := rows.Scan(&details.NodeID, &details.TimezoneName, &details.Capacity, &details.OnlineURL, &cancelled); err != nil {
+		if err := rows.Scan(&details.NodeID, &details.TimezoneName, &details.Capacity, &details.OnlineURL, &cancelled, &details.OpenToHostFollowers); err != nil {
 			rows.Close()
 			return nil, err
 		}
@@ -540,7 +549,32 @@ func (r *eventsRepo) ListHostedBy(groupID int64, viewer *entities.Viewer, filter
 			query = query.Where("node.ends_at > NOW()")
 		}
 
-		return SetActorAccessQuery(query, viewer)
+		// What the viewer may see anyway, and, for somebody who follows
+		// this group, the events that let their host's followers in.
+		// Those come back to a caller that has to send them on as their
+		// name and time alone: see the relation's ViaHost.
+		if viewer.IsAdmin() {
+			return query
+		}
+
+		gate := sq.Or{actorAccessCondition(viewer)}
+		if viewer.ID > 0 {
+			gate = append(gate, sq.And{
+				relNotBlockedEitherWay(viewer.ID, "node.id"),
+				sq.Expr(`
+        EXISTS (
+          SELECT 1
+          FROM events AS open
+          JOIN edges AS follows ON follows.node_b_id = host.node_a_id
+          WHERE open.node_id = node.id
+            AND open.open_to_host_followers = 1
+            AND follows.type = ?
+            AND follows.node_a_id = ?
+        )`, constants.EdgeFollowEntityType, viewer.ID),
+			})
+		}
+
+		return query.Where(gate)
 	}
 
 	if filter != constants.EventListPast && filter != constants.EventListUpcoming {

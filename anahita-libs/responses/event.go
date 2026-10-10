@@ -31,6 +31,9 @@ type Event struct {
 	State string `json:"state"`
 	// The group hosting it, when there is one the viewer may see.
 	Host *ActorBrief `json:"host,omitempty"`
+	// Whether everybody who follows the host may see that it is on and
+	// answer it.
+	OpenToHostFollowers bool `json:"open_to_host_followers,omitempty"`
 }
 
 const (
@@ -62,18 +65,19 @@ func NewEvent(node *entities.AnahitaNode) *Event {
 
 	details := node.Event
 	event := &Event{
-		StartsAt:     node.StartsAt.UTC(),
-		EndsAt:       node.EndsAt.UTC(),
-		TimezoneName: details.TimezoneName,
-		Capacity:     details.Capacity,
-		HasOnlineURL: details.OnlineURL != "",
-		CancelledAt:  details.CancelledAt,
-		GoingCount:   details.GoingCount,
-		MaybeCount:   details.MaybeCount,
-		IsFull:       details.Capacity > 0 && details.GoingCount >= uint64(details.Capacity),
-		ViewerRsvp:   details.ViewerRsvp,
-		State:        EventState(node.StartsAt, node.EndsAt, details.CancelledAt != nil, time.Now()),
-		Host:         NewActorBrief(details.Host),
+		StartsAt:            node.StartsAt.UTC(),
+		EndsAt:              node.EndsAt.UTC(),
+		TimezoneName:        details.TimezoneName,
+		Capacity:            details.Capacity,
+		HasOnlineURL:        details.OnlineURL != "",
+		CancelledAt:         details.CancelledAt,
+		GoingCount:          details.GoingCount,
+		MaybeCount:          details.MaybeCount,
+		IsFull:              details.Capacity > 0 && details.GoingCount >= uint64(details.Capacity),
+		ViewerRsvp:          details.ViewerRsvp,
+		State:               EventState(node.StartsAt, node.EndsAt, details.CancelledAt != nil, time.Now()),
+		Host:                NewActorBrief(details.Host),
+		OpenToHostFollowers: details.OpenToHostFollowers,
 	}
 
 	if node.EventShowsOnlineURL {

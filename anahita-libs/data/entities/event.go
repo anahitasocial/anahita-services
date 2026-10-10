@@ -21,6 +21,9 @@ type EventDetails struct {
 	ViewerRsvp string
 	// The group hosting it, or 0.
 	HostID int64
+	// Whether everybody who follows the host may see that it is on and
+	// answer it.
+	OpenToHostFollowers bool
 	// That group, when the viewer may see it. Filled in by whoever sends
 	// the event on.
 	Host *AnahitaNode

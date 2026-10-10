@@ -77,14 +77,15 @@ func grpcToEventDetails(details *graphpb.EventDetails) *entities.EventDetails {
 	}
 
 	out := &entities.EventDetails{
-		NodeID:       details.NodeId,
-		TimezoneName: details.TimezoneName,
-		Capacity:     details.Capacity,
-		OnlineURL:    details.OnlineUrl,
-		GoingCount:   details.GoingCount,
-		MaybeCount:   details.MaybeCount,
-		ViewerRsvp:   details.ViewerRsvp,
-		HostID:       details.HostId,
+		NodeID:              details.NodeId,
+		TimezoneName:        details.TimezoneName,
+		Capacity:            details.Capacity,
+		OnlineURL:           details.OnlineUrl,
+		GoingCount:          details.GoingCount,
+		MaybeCount:          details.MaybeCount,
+		ViewerRsvp:          details.ViewerRsvp,
+		HostID:              details.HostId,
+		OpenToHostFollowers: details.OpenToHostFollowers,
 	}
 	if details.CancelledAt > 0 {
 		at := time.Unix(details.CancelledAt, 0).UTC()
@@ -102,11 +103,12 @@ func (srv *EventsGRPC) Save(details *entities.EventDetails) error {
 
 	_, err = client.Save(context.Background(), &graphpb.EventSaveRequest{
 		Details: &graphpb.EventDetails{
-			NodeId:       details.NodeID,
-			TimezoneName: details.TimezoneName,
-			Capacity:     details.Capacity,
-			OnlineUrl:    details.OnlineURL,
-			HostId:       details.HostID,
+			NodeId:              details.NodeID,
+			TimezoneName:        details.TimezoneName,
+			Capacity:            details.Capacity,
+			OnlineUrl:           details.OnlineURL,
+			HostId:              details.HostID,
+			OpenToHostFollowers: details.OpenToHostFollowers,
 		},
 	})
 

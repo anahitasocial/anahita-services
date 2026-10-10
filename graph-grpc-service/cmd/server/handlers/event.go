@@ -36,14 +36,15 @@ func eventToGrpc(details *repositories.EventDetails) *graphpb.EventDetails {
 	}
 
 	out := &graphpb.EventDetails{
-		NodeId:       details.NodeID,
-		TimezoneName: details.TimezoneName,
-		Capacity:     details.Capacity,
-		OnlineUrl:    details.OnlineURL,
-		GoingCount:   details.GoingCount,
-		MaybeCount:   details.MaybeCount,
-		ViewerRsvp:   details.ViewerRsvp,
-		HostId:       details.HostID,
+		NodeId:              details.NodeID,
+		TimezoneName:        details.TimezoneName,
+		Capacity:            details.Capacity,
+		OnlineUrl:           details.OnlineURL,
+		GoingCount:          details.GoingCount,
+		MaybeCount:          details.MaybeCount,
+		ViewerRsvp:          details.ViewerRsvp,
+		HostId:              details.HostID,
+		OpenToHostFollowers: details.OpenToHostFollowers,
 	}
 	if details.CancelledAt != nil {
 		out.CancelledAt = details.CancelledAt.Unix()
@@ -67,11 +68,12 @@ func (h *eventGrpcHandler) Save(ctx context.Context, req *graphpb.EventSaveReque
 	}
 
 	if err := h.env.Repos.Events.Save(&repositories.EventDetails{
-		NodeID:       req.Details.NodeId,
-		TimezoneName: req.Details.TimezoneName,
-		Capacity:     req.Details.Capacity,
-		OnlineURL:    req.Details.OnlineUrl,
-		HostID:       req.Details.HostId,
+		NodeID:              req.Details.NodeId,
+		TimezoneName:        req.Details.TimezoneName,
+		Capacity:            req.Details.Capacity,
+		OnlineURL:           req.Details.OnlineUrl,
+		HostID:              req.Details.HostId,
+		OpenToHostFollowers: req.Details.OpenToHostFollowers,
 	}); err != nil {
 		log.Println(err)
 		return nil, err

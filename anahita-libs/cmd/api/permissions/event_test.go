@@ -34,6 +34,7 @@ func TestCanRsvp(t *testing.T) {
 		{"one for its followers, by somebody already in", viewerAs(100), eventNode("followers"), &entities.ActorRelation{IsLeading: true}, true},
 		// The invitation is the event's consent.
 		{"one for its followers, by somebody invited", viewerAs(100), eventNode("followers"), &entities.ActorRelation{HasInvite: true}, true},
+		{"one for its followers, by a follower of the group hosting it", viewerAs(100), eventNode("followers"), &entities.ActorRelation{ViaHost: true}, true},
 		{"somebody invited and since blocked", viewerAs(100), eventNode("public"), &entities.ActorRelation{HasInvite: true, IsBlocking: true}, false},
 		{"an archived event", viewerAs(100), archived, nil, false},
 		{"a guest", entities.NewViewer(), eventNode("public"), nil, false},

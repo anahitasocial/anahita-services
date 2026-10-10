@@ -33,7 +33,10 @@ type Socialgraph struct {
 	// Actor B has asked to follow actor A, and has not been answered.
 	HasRequested bool `protobuf:"varint,8,opt,name=has_requested,json=hasRequested,proto3" json:"has_requested,omitempty"`
 	// Actor B has been invited to follow actor A, and has not answered.
-	HasInvite     bool `protobuf:"varint,9,opt,name=has_invite,json=hasInvite,proto3" json:"has_invite,omitempty"`
+	HasInvite bool `protobuf:"varint,9,opt,name=has_invite,json=hasInvite,proto3" json:"has_invite,omitempty"`
+	// Actor A is an event that lets its host's followers in, and actor B
+	// follows the group hosting it.
+	ViaHost       bool `protobuf:"varint,10,opt,name=via_host,json=viaHost,proto3" json:"via_host,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -127,6 +130,13 @@ func (x *Socialgraph) GetHasRequested() bool {
 func (x *Socialgraph) GetHasInvite() bool {
 	if x != nil {
 		return x.HasInvite
+	}
+	return false
+}
+
+func (x *Socialgraph) GetViaHost() bool {
+	if x != nil {
+		return x.ViaHost
 	}
 	return false
 }
@@ -327,7 +337,7 @@ var File_proto_graphpb_socialgraph_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_socialgraph_proto_rawDesc = "" +
 	"\n" +
-	"\x1fproto/graphpb/socialgraph.proto\x12\x05graph\"\xaa\x02\n" +
+	"\x1fproto/graphpb/socialgraph.proto\x12\x05graph\"\xc5\x02\n" +
 	"\vSocialgraph\x12\x1c\n" +
 	"\n" +
 	"actor_a_id\x18\x01 \x01(\x03R\bactorAId\x12\x1c\n" +
@@ -342,7 +352,9 @@ const file_proto_graphpb_socialgraph_proto_rawDesc = "" +
 	"\thas_admin\x18\a \x01(\bR\bhasAdmin\x12#\n" +
 	"\rhas_requested\x18\b \x01(\bR\fhasRequested\x12\x1d\n" +
 	"\n" +
-	"has_invite\x18\t \x01(\bR\thasInvite\"T\n" +
+	"has_invite\x18\t \x01(\bR\thasInvite\x12\x19\n" +
+	"\bvia_host\x18\n" +
+	" \x01(\bR\aviaHost\"T\n" +
 	"\x16SocialgraphReadRequest\x12\x1c\n" +
 	"\n" +
 	"actor_a_id\x18\x01 \x01(\x03R\bactorAId\x12\x1c\n" +

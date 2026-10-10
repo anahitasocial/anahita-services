@@ -7,8 +7,9 @@ import "anahita-libs/data/entities"
 // it.
 //
 // A profile that lets people ask (allow_follow_request), or one the viewer
-// has been invited to follow, which has to be seen to be answered. Only to
-// somebody signed in whom it has not blocked. Without this nobody could ask:
+// has been invited to follow, which has to be seen to be answered, or an
+// event that lets in the followers of the group hosting it, when the viewer
+// is one. Only to somebody signed in whom it has not blocked. Without this nobody could ask:
 // the profile was refused whole, so there was nothing to ask from. A profile
 // that does not let people ask stays as it was, refused whole.
 //
@@ -28,5 +29,5 @@ func CanSeeLimitedProfile(viewer *entities.Viewer, actor *entities.AnahitaNode, 
 		return false
 	}
 
-	return actor.AllowFollowRequest || rel.HasInvite
+	return actor.AllowFollowRequest || rel.HasInvite || rel.ViaHost
 }

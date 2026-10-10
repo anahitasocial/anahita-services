@@ -392,6 +392,50 @@ func TestEventsHostedByAGroup(t *testing.T) {
 	if _, _, err := repo.ListHostedBy(replyGroup, replyViewer(replyBob), constants.EventListInvited, 20, 0); err == nil {
 		t.Error("a list a group has no such thing as was given")
 	}
+
+	// The members evening is opened to whoever follows the group. Alice
+	// follows the group and not the event: she now has it in the group's
+	// list, and stands with it as somebody let in through its host. Bob
+	// follows neither, and nothing changes for him or for a visitor.
+	if err := repo.Save(&EventDetails{NodeID: private, TimezoneName: "UTC", OpenToHostFollowers: true}); err != nil {
+		t.Fatal(err)
+	}
+	if details, err := repo.Read([]int64{private}, 0); err != nil || !details[private].OpenToHostFollowers || details[private].HostID != replyGroup {
+		t.Errorf("the members evening: %+v (err %v), want open and still the group's", details[private], err)
+	}
+	if got := hosted(replyAlice, constants.EventListUpcoming); !sameSet(got, testEvent, private) {
+		t.Errorf("Alice, once it is open: %v, want both", got)
+	}
+	if got := hosted(replyBob, constants.EventListUpcoming); !sameSet(got, testEvent) {
+		t.Errorf("Bob, once it is open: %v, want the picnic alone", got)
+	}
+	if got := hosted(0, constants.EventListUpcoming); !sameSet(got, testEvent) {
+		t.Errorf("a visitor, once it is open: %v, want the picnic alone", got)
+	}
+
+	rels := NewSocialgraphRelRepo(db)
+	alice, err := rels.GetMany([]int64{private, testEvent}, replyAlice)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !alice[private].ViaHost {
+		t.Error("Alice follows the host of an open event and is not let in through it")
+	}
+	// The picnic has the same host and is not open in this way.
+	if alice[testEvent].ViaHost {
+		t.Error("let in through the host of an event that is not open to its followers")
+	}
+	bob, err := rels.GetMany([]int64{private}, replyBob)
+	if err != nil || bob[private].ViaHost {
+		t.Errorf("Bob, who does not follow the host: %+v (err %v)", bob[private], err)
+	}
+
+	// Being let in is not being able to see it: what is posted on the
+	// event is still for the people who answered.
+	visible, err := NewNodesRepo(db).FilterVisible([]int64{private}, replyViewer(replyAlice))
+	if err != nil || len(visible) != 0 {
+		t.Errorf("visible to Alice before she answers: %v (err %v), want nothing", visible, err)
+	}
 }
 
 // What the hourly sweep asks of events: who to remind, which invitations

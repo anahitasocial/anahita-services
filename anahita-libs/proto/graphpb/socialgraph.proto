@@ -16,6 +16,9 @@ message Socialgraph {
     bool has_requested = 8;
     // Actor B has been invited to follow actor A, and has not answered.
     bool has_invite = 9;
+    // Actor A is an event that lets its host's followers in, and actor B
+    // follows the group hosting it.
+    bool via_host = 10;
 }
 
 message SocialgraphReadRequest {

@@ -29,6 +29,11 @@ type LimitedActor struct {
 	// On an event the viewer was invited to: when it is, so they can
 	// decide. Never where to join it online.
 	Event *Event `json:"event,omitempty"`
+	// And what it is, for the same reason. Only with Event.
+	Body string `json:"body,omitempty"`
+	// An event that lets in the followers of the group hosting it, shown
+	// to one of them. They can answer it as it stands, going or maybe.
+	ViaHost bool `json:"via_host,omitempty"`
 }
 
 // NewLimitedActor maps a node to what a stranger is shown of it.

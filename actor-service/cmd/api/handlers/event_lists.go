@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	an_handlers "anahita-libs/cmd/api/handlers"
-	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
@@ -112,40 +111,12 @@ func (h *eventHandler) Mine(c echo.Context) error {
 	h.setEventDetails(ordered, viewer)
 	batchPresignPaths(h.Env, ordered)
 
-	actorPerms := permissions.NewActorPermissions()
-	actorResp := &responses.ActorResponse{}
-
 	for _, event := range ordered {
-		rel := rels[event.ID]
-		if rel == nil {
-			rel = &entities.ActorRelation{}
+		// An event that is no longer theirs to see, in any way, is left
+		// out.
+		if item := eventListItem(event, rels[event.ID], viewer); item != nil {
+			resp.Data = append(resp.Data, item)
 		}
-
-		canRead, _ := actorPerms.CanRead(&permissions.ActorAccessContext{
-			Viewer:         viewer,
-			Actor:          event,
-			ActorViewerRel: rel,
-		})
-		if !canRead {
-			// Invited to it and not otherwise let in. An event that is
-			// neither is left out: it has stopped being theirs.
-			if !permissions.CanSeeLimitedProfile(viewer, event, rel) {
-				continue
-			}
-			limited := responses.NewLimitedActor(event, rel.HasRequested)
-			limited.IsInvited = rel.HasInvite
-			if rel.HasInvite {
-				event.EventShowsOnlineURL = false
-				limited.Event = responses.NewEvent(event)
-			}
-			resp.Data = append(resp.Data, limited)
-			continue
-		}
-
-		event.IsLeadingViewer = rel.IsLeading
-		event.IsAdminedByViewer = rel.HasAdmin
-		event.IsInvitedViewer = rel.HasInvite
-		resp.Data = append(resp.Data, actorResp.MapNodeItem(event))
 	}
 
 	return c.JSON(http.StatusOK, resp)
@@ -287,10 +258,12 @@ func (h *eventHandler) HostedBy(c echo.Context) error {
 	}
 
 	resp := &struct {
-		Data       []*responses.ActorNodeItem `json:"data"`
-		Pagination responses.Pagination       `json:"pagination"`
+		// Each an event, or what is shown of one the viewer may only
+		// answer as a follower of this group.
+		Data       []any                `json:"data"`
+		Pagination responses.Pagination `json:"pagination"`
 	}{
-		Data: []*responses.ActorNodeItem{},
+		Data: []any{},
 		Pagination: responses.Pagination{
 			Limit:  req.Limit,
 			Offset: req.Offset,
@@ -327,12 +300,20 @@ func (h *eventHandler) HostedBy(c echo.Context) error {
 		}
 	}
 
+	rels, err := h.Srv.SocialgraphGRPC.Browse(ids, viewer.ID)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
 	h.setEventDetails(ordered, viewer)
-	an_handlers.SetViewerRelations(h.Srv.SocialgraphGRPC, ordered, viewer)
 	batchPresignPaths(h.Env, ordered)
 
-	actorResp := &responses.ActorResponse{}
-	resp.Data = actorResp.MapNodeItems(ordered)
+	for _, event := range ordered {
+		if item := eventListItem(event, rels[event.ID], viewer); item != nil {
+			resp.Data = append(resp.Data, item)
+		}
+	}
 
 	return c.JSON(http.StatusOK, resp)
 }

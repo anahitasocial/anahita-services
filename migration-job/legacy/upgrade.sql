@@ -887,6 +887,11 @@ CREATE TABLE IF NOT EXISTS events (
     -- Where to join when it is online. Sent only to whoever is going, and to
     -- whoever looks after the event.
     `online_url` varchar(512) NOT NULL DEFAULT '',
+    -- Whether everybody who follows the group hosting it may see that it is
+    -- on and answer it, without being invited one by one. Only means
+    -- something on an event that has a host and is not open to everybody
+    -- already.
+    `open_to_host_followers` tinyint(1) NOT NULL DEFAULT 0,
     -- Set when it is called off. It is kept, so people can see that it was.
     `cancelled_at` datetime DEFAULT NULL,
     -- Set when whoever is going has been reminded, so it is done once.

@@ -65,6 +65,9 @@ type eventFields struct {
 	Capacity uint32 `form:"capacity" json:"capacity" validate:"omitempty,max=100000"`
 	// Where to join, when it is online.
 	OnlineURL string `form:"online_url" json:"online_url" validate:"omitempty,http_url,max=512"`
+	// Whether everybody who follows the group hosting it may see that it
+	// is on and answer it. Means nothing on an event with no host.
+	OpenToHostFollowers bool `form:"open_to_host_followers" json:"open_to_host_followers"`
 }
 
 type eventAddRequest struct {
@@ -190,6 +193,7 @@ func (h *eventHandler) Add(c echo.Context) error {
 	}
 	if host != nil {
 		details.HostID = host.ID
+		details.OpenToHostFollowers = req.OpenToHostFollowers
 	}
 	if err := h.Srv.EventsGRPC.Save(details); err != nil {
 		log.Println(err)
@@ -269,10 +273,11 @@ func (h *eventHandler) Edit(c echo.Context) error {
 	}
 
 	if err := h.Srv.EventsGRPC.Save(&entities.EventDetails{
-		NodeID:       actor.ID,
-		TimezoneName: req.TimezoneName,
-		Capacity:     req.Capacity,
-		OnlineURL:    req.OnlineURL,
+		NodeID:              actor.ID,
+		TimezoneName:        req.TimezoneName,
+		Capacity:            req.Capacity,
+		OnlineURL:           req.OnlineURL,
+		OpenToHostFollowers: req.OpenToHostFollowers,
 	}); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

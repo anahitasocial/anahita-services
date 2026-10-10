@@ -25,6 +25,9 @@ message EventDetails {
     // The group hosting it, or 0. On Save it is set once, when there is
     // none yet, and 0 leaves it as it is.
     int64 host_id = 9;
+    // Whether everybody who follows the host may see that it is on and
+    // answer it.
+    bool open_to_host_followers = 10;
 }
 
 message EventSaveRequest {
