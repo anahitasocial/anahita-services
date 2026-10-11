@@ -290,6 +290,8 @@ Row 19, on branch `m7-discovery` in both repos. What a feed is and how it is use
 - A feed is put on its maker's home page when it is made, and the web app lists the feeds on the home page under Home in the left menu, with "Custom feed" under them to make another. The separate "Custom feeds" entry in the menu went; the list page is reached from the end of the tabs on Home.
 - Tests for the endpoints (`feed-service/cmd/api/handlers/custom_feed_test.go`), which had none.
 
+- The editor became a dialog of two steps, at the user's asking, with phones in mind: build, then preview and save. It is the whole screen on a phone. A person owns 10 feeds at most, not 20, the number the home page holds, so that every feed made is listed in the menu.
+
 **Not tried**
 
 Nothing that needs somebody signed in was tried by me: making, changing, copying and pinning a feed, and every screen. The routes answer as they should without a session (404 for a feed that is not there, 401 for the ones that need signing in), the query is tested against a real database, and the web app builds and its tests pass.

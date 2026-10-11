@@ -403,9 +403,9 @@ func TestAPersonOwnsOnlySoManyFeeds(t *testing.T) {
 		t.Errorf("one more answered %d %v", status, answer)
 	}
 
-	// The home page was full long before, and the feeds were made anyway.
-	if got := len(f.graph.pinsOf(testAlice)); got != feeds.MaxPinned {
-		t.Errorf("%d feeds on the home page, want %d", got, feeds.MaxPinned)
+	// Every one of them has its place on the home page.
+	if got := len(f.graph.pinsOf(testAlice)); got != feeds.MaxOwned {
+		t.Errorf("%d feeds on the home page, want %d", got, feeds.MaxOwned)
 	}
 
 	// Somebody else has their own count.
@@ -564,9 +564,11 @@ func TestFeedsOnTheHomePage(t *testing.T) {
 	f := newFeedTest(t)
 	bob := person(testBob)
 
+	// Eleven public feeds, each by somebody else, and one kept private.
+	const firstOwner = 20
 	var shared []int64
 	for i := 0; i < feeds.MaxPinned+1; i++ {
-		shared = append(shared, f.make(testAlice, `{"name":"P","access":"public","definition":{"sources":{"following":true}}}`))
+		shared = append(shared, f.make(int64(firstOwner+i), `{"name":"P","access":"public","definition":{"sources":{"following":true}}}`))
 	}
 	hidden := f.make(testAlice, followingFeed)
 
@@ -628,8 +630,11 @@ func TestFeedsOnTheHomePage(t *testing.T) {
 		t.Errorf("%d feeds on the home page after taking one off", got)
 	}
 
-	// Alice's own home page was never touched by any of this.
-	if got := len(f.graph.pinsOf(testAlice)); got != feeds.MaxPinned {
-		t.Errorf("Alice's home page holds %d", got)
+	// Nobody else's home page was touched by any of this.
+	if got := fmt.Sprint(f.graph.pinsOf(firstOwner)); got != fmt.Sprint([]int64{shared[0]}) {
+		t.Errorf("its owner's home page holds %s", got)
+	}
+	if got := fmt.Sprint(f.graph.pinsOf(testAlice)); got != fmt.Sprint([]int64{hidden}) {
+		t.Errorf("Alice's home page holds %s", got)
 	}
 }

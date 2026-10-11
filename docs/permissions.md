@@ -608,7 +608,7 @@ A custom feed is its maker's, and has an audience of its own. See
 - **Whoever may see a feed** may read it, copy it, and keep it on their home
   page. Its owner, and site administrators, may change and delete it.
 - **Making and changing one** needs somebody signed in, with the
-  `media:write` scope. A person owns 20 at most.
+  `media:write` scope. A person owns 10 at most.
 - **No new public feed** on an installation that takes no new public content
   (`MIN_CONTENT_ACCESS`). One that was public already may stay so.
 

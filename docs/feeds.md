@@ -87,7 +87,7 @@ A key the code does not know is refused, at any depth. A definition is tidied wh
 | Hashtags, in the filter and left out | 10 each |
 | Keywords, in the filter and left out | 10 each, of 2 to 50 characters |
 | Places | 5 |
-| Feeds one person owns | 20 |
+| Feeds one person owns | 10 |
 | Feeds on one person's home page | 10 |
 | Posts in a page | 20 by default, 40 at most |
 
@@ -122,7 +122,7 @@ A query that cannot finish in the time a query is given is answered `422` with `
 
 `PUT /feeds/<id>/pin` adds a feed after the ones already there, and `DELETE` takes it off. `PUT /feeds/pins` with `{ "ids": [...] }` replaces the whole list in that order, which is how the tabs are reordered. `GET /feeds/pinned` returns them in order.
 
-A feed is put on its maker's home page when it is made, or copied, after the ones there. With the home page full it is made all the same, and waits on the list of their feeds.
+A feed is put on its maker's home page when it is made, or copied, after the ones there. A person owns as many feeds as the home page holds, so there is room unless they keep other people's feeds there. With the home page full the feed is made all the same, and waits on the list of their feeds.
 
 Keeping somebody else's feed on your home page is how a feed is followed. There is no separate following of feeds. A feed that is deleted, or that its owner stops sharing, drops out of the list.
 

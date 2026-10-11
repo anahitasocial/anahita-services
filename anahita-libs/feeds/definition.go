@@ -36,8 +36,10 @@ const (
 	// A keyword's length, in characters.
 	MinKeywordLength = 2
 	MaxKeywordLength = 50
-	// How many feeds one person may own, and keep on their home page.
-	MaxOwned  = 20
+	// How many feeds one person may own, and keep on their home page. The
+	// same number, so that every feed somebody makes has a place there:
+	// the feeds on the home page are the ones listed in the menu.
+	MaxOwned  = 10
 	MaxPinned = 10
 	// Posts in a page of a feed.
 	PageSize = 20
