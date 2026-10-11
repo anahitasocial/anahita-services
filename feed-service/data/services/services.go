@@ -11,6 +11,8 @@ func NewServices(config *config.Config) *Services {
 		LikesGRPC:       services.NewLikesGRPC(config),
 		FeedLeadersGRPC: services.NewFeedLeadersGRPC(config),
 		FeedActorGRPC:   services.NewFeedActorGRPC(config),
+		FeedCustomGRPC:  services.NewFeedCustomGRPC(config),
+		GraphEdgeGRPC:   services.NewGraphEdgeGRPC(config),
 		FilesGRPC:       services.NewFilesGRPC(config),
 		GraphNodeGRPC:   services.NewGraphNodeGRPC(config),
 		MediaGRPC:       services.NewMediaGRPC(config),
@@ -26,8 +28,12 @@ type Services struct {
 	LikesGRPC       services.LikesGRPCInterface
 	FeedLeadersGRPC services.FeedLeadersGRPCInterface
 	FeedActorGRPC   services.FeedActorGRPCInterface
-	FilesGRPC       services.FilesGRPCInterface
-	GraphNodeGRPC   services.GraphNodeGRPCInterface
+	// Reads a custom feed: what its definition asks for, for one viewer.
+	FeedCustomGRPC services.FeedCustomGRPCInterface
+	// The feeds a person keeps on their home page are edges.
+	GraphEdgeGRPC services.GraphEdgeGRPCInterface
+	FilesGRPC     services.FilesGRPCInterface
+	GraphNodeGRPC services.GraphNodeGRPCInterface
 	// Reads the images of the photo posts in a feed.
 	MediaGRPC       services.MediaGRPCInterface
 	RepostGRPC      services.RepostGRPCInterface
