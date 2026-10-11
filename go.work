@@ -15,6 +15,7 @@ use (
 	./mail-grpc-service
 	./notification-service
 	./photo-service
+	./recommendation-service
 	./scripts/s3-migration
 	./search-service
 	./socialgraph-service

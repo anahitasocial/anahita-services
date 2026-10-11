@@ -1,0 +1,427 @@
+package repositories
+
+import (
+	"context"
+	"database/sql"
+	"strconv"
+	"strings"
+	"time"
+
+	an_const "anahita-libs/constants"
+
+	"recommendation/constants"
+	"recommendation/scoring"
+)
+
+// The signals: each finds profiles the viewer might follow, for one reason,
+// with how strongly. Reading only; this service writes nothing but its own
+// two tables.
+//
+// EVERY SIGNAL IS KEPT TO PROFILES THAT MAY BE SUGGESTED, by the one clause
+// below. What is left to the graph afterwards is who may SEE a profile,
+// which is its own rule and is asked of it, not copied here.
+
+// The candidate, `c`, may be suggested to the viewer: it is of the kind
+// asked for, is somebody else, is there and in use, has a picture or says
+// something of itself, is not followed or asked to be followed already, has
+// no block with the viewer either way, was not turned down by them, has not
+// asked to be left out of suggestions, and, for a person, has confirmed
+// their email address.
+const eligibleCandidate = `c.type = ?
+  AND c.id <> ?
+  AND c.enabled = 1
+  AND c.deleted_at IS NULL
+  AND c.archived_at IS NULL
+  AND (COALESCE(c.avatar_filename, '') <> '' OR COALESCE(c.body, '') <> '')
+  AND NOT EXISTS (
+      SELECT 1
+      FROM edges AS held
+      WHERE held.type IN (?, ?)
+        AND held.node_a_id = ?
+        AND held.node_b_id = c.id
+  )
+  AND NOT EXISTS (
+      SELECT 1
+      FROM edges AS blocked
+      WHERE blocked.type = ?
+        AND (
+            (blocked.node_a_id = ? AND blocked.node_b_id = c.id)
+            OR (blocked.node_a_id = c.id AND blocked.node_b_id = ?)
+        )
+  )
+  AND NOT EXISTS (
+      SELECT 1
+      FROM recommendation_dismissals AS dismissed
+      WHERE dismissed.person_id = ?
+        AND dismissed.actor_id = c.id
+  )
+  AND NOT EXISTS (
+      SELECT 1
+      FROM recommendation_preferences AS hidden
+      WHERE hidden.person_id = c.id
+        AND hidden.discoverable = 0
+  )
+  AND (
+      c.type <> ?
+      OR EXISTS (
+          SELECT 1
+          FROM auth_accounts AS account
+          WHERE account.node_id = c.id
+            AND account.email_verified_at IS NOT NULL
+      )
+  )`
+
+func eligibleArgs(kindType string, viewerID int64) []any {
+	return []any{
+		kindType,
+		viewerID,
+		an_const.EdgeFollowEntityType, an_const.EdgeFollowRequestEntityType,
+		viewerID,
+		an_const.EdgeBlockEntityType,
+		viewerID, viewerID,
+		viewerID,
+		constants.PersonType,
+	}
+}
+
+// They follow the viewer, who does not follow them.
+const signalFollowsYou = `
+SELECT c.id, 1, ''
+FROM edges AS follows
+JOIN nodes AS c ON c.id = follows.node_a_id
+WHERE follows.type = ?
+  AND follows.node_b_id = ?
+  AND ` + eligibleCandidate + `
+LIMIT ?`
+
+// People the viewer follows, follow them. With which of those people.
+const signalFollowedByLeaders = `
+SELECT c.id, COUNT(DISTINCT mine.node_b_id), GROUP_CONCAT(DISTINCT mine.node_b_id ORDER BY mine.node_b_id)
+FROM edges AS mine
+JOIN nodes AS leader ON leader.id = mine.node_b_id
+JOIN edges AS theirs ON theirs.node_a_id = mine.node_b_id
+JOIN nodes AS c ON c.id = theirs.node_b_id
+WHERE mine.type = ?
+  AND mine.node_a_id = ?
+  AND leader.type = ?
+  AND theirs.type = ?
+  AND ` + eligibleCandidate + `
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
+LIMIT ?`
+
+// Whoever invited the viewer, and whoever the viewer invited.
+const signalInviter = `
+SELECT c.id, 1, ''
+FROM auth_accounts AS mine
+JOIN nodes AS c ON c.id = mine.invited_by
+WHERE mine.node_id = ?
+  AND ` + eligibleCandidate + `
+UNION
+SELECT c.id, 1, ''
+FROM auth_accounts AS theirs
+JOIN nodes AS c ON c.id = theirs.node_id
+WHERE theirs.invited_by = ?
+  AND ` + eligibleCandidate + `
+LIMIT ?`
+
+// Their public posts carry hashtags the viewer has used or liked. With
+// which hashtags. Only public posts are looked at: the hashtags come back
+// as the reason, and a reason must not say what is in a post the viewer
+// could not read.
+const signalSharedInterest = `
+SELECT c.id, COUNT(DISTINCT theirs.node_a_id), GROUP_CONCAT(DISTINCT theirs.node_a_id ORDER BY theirs.node_a_id)
+FROM edges AS theirs
+JOIN nodes AS post ON post.id = theirs.node_b_id
+JOIN nodes AS c ON c.id = post.owner_id
+WHERE theirs.type = ?
+  AND post.created_at > ?
+  AND post.access = 'public'
+  AND post.deleted_at IS NULL
+  AND theirs.node_a_id IN (
+      SELECT interest.node_a_id
+      FROM edges AS interest
+      JOIN nodes AS mine ON mine.id = interest.node_b_id
+      WHERE interest.type = ?
+        AND mine.created_at > ?
+        AND (
+            mine.created_by = ?
+            OR EXISTS (
+                SELECT 1
+                FROM edges AS liked
+                WHERE liked.type = ?
+                  AND liked.node_a_id = ?
+                  AND liked.node_b_id = mine.id
+            )
+        )
+  )
+  AND ` + eligibleCandidate + `
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
+LIMIT ?`
+
+// The viewer has liked what is posted on their profile, lately.
+const signalYouEngaged = `
+SELECT c.id, COUNT(*), ''
+FROM edges AS liked
+JOIN nodes AS post ON post.id = liked.node_b_id
+JOIN nodes AS c ON c.id = post.owner_id
+WHERE liked.type = ?
+  AND liked.node_a_id = ?
+  AND liked.created_at > ?
+  AND ` + eligibleCandidate + `
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
+LIMIT ?`
+
+// Many people have followed them lately.
+const signalPopular = `
+SELECT c.id, COUNT(*), ''
+FROM edges AS follows
+JOIN nodes AS c ON c.id = follows.node_b_id
+WHERE follows.type = ?
+  AND follows.created_at > ?
+  AND ` + eligibleCandidate + `
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
+LIMIT ?`
+
+// The installation's administrators have featured them.
+const signalFeatured = `
+SELECT c.id, 1, ''
+FROM nodes AS c
+WHERE c.featured_at IS NOT NULL
+  AND ` + eligibleCandidate + `
+ORDER BY c.featured_at DESC
+LIMIT ?`
+
+// When each profile was last alive: visited, or posted on.
+const lastActiveOf = `
+SELECT c.id, c.last_visited_at, (
+    SELECT MAX(post.created_at)
+    FROM nodes AS post
+    WHERE post.owner_id = c.id
+)
+FROM nodes AS c
+WHERE c.id IN (`
+
+type SignalsInterface interface {
+	// Find runs every signal that applies and returns what each found, by
+	// the reason's name.
+	Find(viewerID int64, kind string, useActivity, onlyColdStart bool, now time.Time) (map[string][]scoring.Hit, error)
+	// LastActive says when each of these profiles was last visited or
+	// posted on. One with neither is not in the answer.
+	LastActive(ids []int64) (map[int64]time.Time, error)
+}
+
+type Signals struct {
+	db      *sql.DB
+	timeout time.Duration
+}
+
+func NewSignals(db *sql.DB) SignalsInterface {
+	return &Signals{db: db, timeout: an_const.DBTimeout}
+}
+
+// KindType is the type a kind stands for, or "" for one there is not.
+func KindType(kind string) string {
+	switch kind {
+	case constants.KindPerson:
+		return constants.PersonType
+	case constants.KindGroup:
+		return constants.GroupType
+	}
+	return ""
+}
+
+func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart bool, now time.Time) (map[string][]scoring.Hit, error) {
+	kindType := KindType(kind)
+	found := map[string][]scoring.Hit{}
+	if kindType == "" || viewerID <= 0 {
+		return found, nil
+	}
+
+	eligible := eligibleArgs(kindType, viewerID)
+	limit := constants.MaxCandidatesFromASignal
+	isPerson := kind == constants.KindPerson
+
+	type signal struct {
+		reason string
+		query  string
+		args   []any
+		// Left out for somebody who has just joined and follows nobody.
+		needsFollows bool
+		// Left out when the viewer has said not to use what they do.
+		needsActivity bool
+		// Only people follow back, and only people are invited.
+		peopleOnly bool
+	}
+
+	with := func(before []any, after ...any) []any {
+		args := append([]any{}, before...)
+		args = append(args, eligible...)
+		return append(args, after...)
+	}
+
+	signals := []signal{
+		{
+			reason:       constants.ReasonFollowsYou,
+			query:        signalFollowsYou,
+			args:         with([]any{an_const.EdgeFollowEntityType, viewerID}, limit),
+			needsFollows: true,
+			peopleOnly:   true,
+		},
+		{
+			reason:       constants.ReasonFollowedByLeaders,
+			query:        signalFollowedByLeaders,
+			args:         with([]any{an_const.EdgeFollowEntityType, viewerID, constants.PersonType, an_const.EdgeFollowEntityType}, limit),
+			needsFollows: true,
+		},
+		{
+			reason: constants.ReasonInviter,
+			query:  signalInviter,
+			args: append(
+				with([]any{viewerID}),
+				with([]any{viewerID}, limit)...,
+			),
+			peopleOnly: true,
+		},
+		{
+			reason: constants.ReasonSharedInterest,
+			query:  signalSharedInterest,
+			args: with([]any{
+				an_const.EdgeTagHashtagType, now.Add(-constants.InterestWindow),
+				an_const.EdgeTagHashtagType, now.Add(-constants.InterestWindow),
+				viewerID,
+				an_const.EdgeBaseLikeEntityType, viewerID,
+			}, limit),
+			needsActivity: true,
+		},
+		{
+			reason:        constants.ReasonYouEngaged,
+			query:         signalYouEngaged,
+			args:          with([]any{an_const.EdgeBaseLikeEntityType, viewerID, now.Add(-constants.EngagedWindow)}, limit),
+			needsFollows:  true,
+			needsActivity: true,
+		},
+		{
+			reason: constants.ReasonPopular,
+			query:  signalPopular,
+			args:   with([]any{an_const.EdgeFollowEntityType, now.Add(-constants.PopularWindow)}, limit),
+		},
+		{
+			reason: constants.ReasonFeatured,
+			query:  signalFeatured,
+			args:   with(nil, limit),
+		},
+	}
+
+	for _, each := range signals {
+		if each.peopleOnly && !isPerson {
+			continue
+		}
+		if each.needsActivity && !useActivity {
+			continue
+		}
+		if each.needsFollows && onlyColdStart {
+			continue
+		}
+
+		hits, err := r.hits(each.query, each.args)
+		if err != nil {
+			return nil, err
+		}
+		if len(hits) > 0 {
+			found[each.reason] = hits
+		}
+	}
+
+	return found, nil
+}
+
+func (r *Signals) hits(query string, args []any) ([]scoring.Hit, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
+	defer cancel()
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var hits []scoring.Hit
+	for rows.Next() {
+		var (
+			hit   scoring.Hit
+			count int64
+			ids   sql.NullString
+		)
+		if err := rows.Scan(&hit.ID, &count, &ids); err != nil {
+			return nil, err
+		}
+		hit.Count = int(count)
+		hit.IDs = parseIDs(ids.String)
+		hits = append(hits, hit)
+	}
+
+	return hits, rows.Err()
+}
+
+func (r *Signals) LastActive(ids []int64) (map[int64]time.Time, error) {
+	active := map[int64]time.Time{}
+	if len(ids) == 0 {
+		return active, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
+	defer cancel()
+
+	args := make([]any, 0, len(ids))
+	for _, id := range ids {
+		args = append(args, id)
+	}
+	query := lastActiveOf + strings.TrimSuffix(strings.Repeat("?,", len(ids)), ",") + ")"
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			id      int64
+			visited sql.NullTime
+			posted  sql.NullTime
+		)
+		if err := rows.Scan(&id, &visited, &posted); err != nil {
+			return nil, err
+		}
+
+		last := visited.Time
+		if posted.Valid && posted.Time.After(last) {
+			last = posted.Time
+		}
+		if !last.IsZero() {
+			active[id] = last
+		}
+	}
+
+	return active, rows.Err()
+}
+
+// parseIDs reads "3,7,12" as ids, leaving out what is not one.
+func parseIDs(list string) []int64 {
+	if list == "" {
+		return nil
+	}
+
+	var ids []int64
+	for _, part := range strings.Split(list, ",") {
+		if id, err := strconv.ParseInt(strings.TrimSpace(part), 10, 64); err == nil && id > 0 {
+			ids = append(ids, id)
+		}
+	}
+
+	return ids
+}

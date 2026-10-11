@@ -68,6 +68,8 @@ images:
     newTag: latest
   - name: anahita/photo-service
     newTag: latest
+  - name: anahita/recommendation-service
+    newTag: latest
   - name: anahita/search-service
     newTag: latest
   - name: anahita/socialgraph-service

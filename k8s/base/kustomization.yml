@@ -29,6 +29,7 @@ resources:
   - services/location.yml
   - services/notification.yml
   - services/photo.yml
+  - services/recommendation.yml
   - services/search.yml
   - services/socialgraph.yml
   - services/text.yml
