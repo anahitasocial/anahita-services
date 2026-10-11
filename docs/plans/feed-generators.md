@@ -160,6 +160,10 @@ than after it, since (A) is a special case of (C) and would be thrown away.
 - **A ranked feed, when one is built, is never the site's.** It is a feed somebody makes: they choose the parameters and the weight of each, save them with that feed, and call it what they like. That is their "For You", and they can have several.
 - **What this asks of the work now:** nothing ranked is built in item 14. The definition's reserved `order` key is where it goes later: beside `"newest"`, an order by weights, with the weights stored in the same definition, shown in the same plain-language summary and copied by "Copy this algorithm". The signals and weights of the recommendation service (item 3) are the natural ones to offer, so a ranked feed and suggested posts would be one mechanism and not two.
 
+### The name: custom feeds (user, 2026-10-11)
+
+The feature is called **custom feeds**, everywhere a person reads it: the menu, the editor, the buttons, the help. The user chose it over "your algorithm" as better for the people using it and for telling others about it, "algorithm" being a word many now dislike. So: "Create a custom feed", "Edit feed", "Copy this feed" where the sections below say "Your algorithm" and "Copy this algorithm". A ranked one, when there are ranked ones, is still a custom feed, named by whoever made it. "Algorithm" and "generator" stay as words for the code and for these plans.
+
 ### "Each feed is your own algorithm"
 - The definition below **is** the feed's algorithm, and the editor is where people build it. The web app presents it that way: a "Your algorithm" editor, not a settings form.
 - **Plain-language summary:** every feed shows a readable sentence generated from its definition, for example "Photos and notes from my groups tagged #garden or #seeds, without replies, newest first". Nothing about a feed is hidden, which is the point of choosing this over an opaque "For You".
