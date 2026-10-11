@@ -151,7 +151,7 @@ All on feed-service. Writing needs the `media:write` scope.
 | `PATCH /feeds/<id>` | its owner | Changes it |
 | `DELETE /feeds/<id>` | its owner | Deletes it |
 | `GET /feeds/<id>/items?cursor=&limit=` | whoever may see it | A page of its posts |
-| `POST /feeds/<id>/copy` | whoever may see it | A feed of the viewer's own showing the same thing, seen by them alone |
+| `POST /feeds/<id>/copy` `{ name }` | whoever may see it | A feed of the viewer's own showing the same thing, seen by them alone. Called `name`, or "Copy of" the other's name |
 | `PUT`, `DELETE /feeds/<id>/pin` | whoever may see it | Keeps it on the home page, or takes it off |
 
 A feed is sent with its `icon`, `is_pinned` and `authorized` (`edit`, `delete`, `pin`, `copy`).

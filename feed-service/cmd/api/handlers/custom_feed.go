@@ -66,6 +66,13 @@ type customFeedIDRequest struct {
 	ID int64 `param:"id" validate:"required,numeric"`
 }
 
+type customFeedCopyRequest struct {
+	ID int64 `param:"id" validate:"required,numeric"`
+	// What to call the copy, in the copier's own language. "Copy of" and
+	// the feed's name when left out.
+	Name string `json:"name" validate:"omitempty,max=100"`
+}
+
 type customFeedItemsRequest struct {
 	ID     int64  `param:"id" validate:"required,numeric"`
 	Cursor string `query:"cursor" validate:"omitempty,max=100"`
@@ -587,14 +594,15 @@ func (h *customFeedHandler) Delete(c echo.Context) error {
 }
 
 // Copy makes a feed of the viewer's own from one they may see: the same
-// thing shown, kept to themselves, to change as they like.
+// thing shown, kept to themselves, to change as they like. It is called
+// "Copy of" the other, or whatever name is sent.
 func (h *customFeedHandler) Copy(c echo.Context) error {
 	viewer := getViewer(c)
 	if !mayWriteFeeds(viewer) {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &customFeedIDRequest{}
+	req := &customFeedCopyRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -612,7 +620,17 @@ func (h *customFeedHandler) Copy(c echo.Context) error {
 		return refuseFeed(c, http.StatusUnprocessableEntity, string(feeds.RefusedMalformed))
 	}
 
-	feed, status, reason := h.create(viewer, source.Name, source.Body, constants.AnahitaAccessMyself, stored)
+	// Named apart from the one it was copied from, so that the two can be
+	// told from each other in a list until the copy is given a name.
+	name := strings.TrimSpace(req.Name)
+	if name == "" {
+		name = "Copy of " + source.Name
+	}
+	if runes := []rune(name); len(runes) > 100 {
+		name = string(runes[:100])
+	}
+
+	feed, status, reason := h.create(viewer, name, source.Body, constants.AnahitaAccessMyself, stored)
 	if feed == nil {
 		return refuseFeed(c, status, reason)
 	}

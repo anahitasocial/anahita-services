@@ -576,7 +576,7 @@ func TestACopyIsTheCopiersOwnAndPrivate(t *testing.T) {
 	}
 
 	copied := f.graph.nodes[int64(answer["id"].(float64))]
-	if copied.ID == source || copied.OwnerID != testBob || copied.Access != constants.AnahitaAccessMyself || copied.Name != "Gardens" {
+	if copied.ID == source || copied.OwnerID != testBob || copied.Access != constants.AnahitaAccessMyself || copied.Name != "Copy of Gardens" {
 		t.Errorf("copy is %d, owner %d, access %q, name %q", copied.ID, copied.OwnerID, copied.Access, copied.Name)
 	}
 	if answer["icon"] != "photo" {
@@ -584,6 +584,18 @@ func TestACopyIsTheCopiersOwnAndPrivate(t *testing.T) {
 	}
 	if string(copied.Meta) != string(f.graph.nodes[source].Meta) {
 		t.Errorf("copy shows %s, not %s", copied.Meta, f.graph.nodes[source].Meta)
+	}
+
+	// Named by whoever copies it, when they say; never longer than a name
+	// may be.
+	_, named := f.call(f.handler.Copy, http.MethodPost, person(testBob), source, `{"name":" Copie de Gardens "}`)
+	if named["name"] != "Copie de Gardens" {
+		t.Errorf("a copy given a name is called %v", named["name"])
+	}
+	long := f.make(testAlice, `{"name":"`+strings.Repeat("n", 100)+`","access":"public","definition":{"sources":{"following":true}}}`)
+	_, longCopy := f.call(f.handler.Copy, http.MethodPost, person(testBob), long, "")
+	if got := len([]rune(longCopy["name"].(string))); got != 100 {
+		t.Errorf("a copy of a feed with a long name has a name of %d characters", got)
 	}
 
 	if status, _ := f.call(f.handler.Copy, http.MethodPost, person(testBob), hidden, ""); status != http.StatusNotFound {
