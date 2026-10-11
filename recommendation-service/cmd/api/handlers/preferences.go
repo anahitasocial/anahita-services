@@ -4,15 +4,17 @@ import (
 	"log"
 	"net/http"
 
+	"recommendation/constants"
 	"recommendation/data/repositories"
 
 	"github.com/labstack/echo/v4"
 )
 
 // What somebody has chosen about suggestions: whether to be suggested
-// people and groups, whether what they do may be used to choose, and
-// whether they may be suggested to others. Their own to read and change,
-// and nobody else's.
+// people, groups and events, whether what they do may be used to choose,
+// whether they may be suggested to others, and how much each reason counts
+// for when choosing for them. Their own to read and change, and nobody
+// else's.
 
 type preferencesHandler struct {
 	*Env
@@ -23,8 +25,46 @@ type preferencesHandler struct {
 type preferencesRequest struct {
 	SuggestPeople *bool `json:"suggest_people"`
 	SuggestGroups *bool `json:"suggest_groups"`
+	SuggestEvents *bool `json:"suggest_events"`
 	UseActivity   *bool `json:"use_activity"`
 	Discoverable  *bool `json:"discoverable"`
+	// How much each reason counts for, by its name: 0, which turns the
+	// reason off, to constants.MaxWeight. The ones sent are set and the
+	// others left.
+	Weights map[string]float64 `json:"weights"`
+	// Back to the service's own weights. Before any sent with it.
+	ResetWeights bool `json:"reset_weights"`
+}
+
+// preferencesResponse is somebody's choices as they are sent: with the
+// weights they are ranked by, each reason there, and the service's own to
+// go back to.
+type preferencesResponse struct {
+	*repositories.Preferences
+	Weights        map[string]float64 `json:"weights"`
+	DefaultWeights map[string]float64 `json:"default_weights"`
+	MaxWeight      float64            `json:"max_weight"`
+	// The reasons, in the order to list them.
+	Reasons []string `json:"reasons"`
+}
+
+func respondPreferences(prefs *repositories.Preferences) *preferencesResponse {
+	resp := &preferencesResponse{
+		Preferences:    prefs,
+		Weights:        map[string]float64{},
+		DefaultWeights: map[string]float64{},
+		MaxWeight:      constants.MaxWeight,
+		Reasons:        constants.ReasonOrder,
+	}
+
+	for reason, weight := range constants.WeightsFor(prefs.Weights) {
+		resp.Weights[reason] = weight.Each
+	}
+	for reason, weight := range constants.Weights {
+		resp.DefaultWeights[reason] = weight.Each
+	}
+
+	return resp
 }
 
 func (h *preferencesHandler) Read(c echo.Context) error {
@@ -39,7 +79,7 @@ func (h *preferencesHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, prefs)
+	return c.JSON(http.StatusOK, respondPreferences(prefs))
 }
 
 func (h *preferencesHandler) Edit(c echo.Context) error {
@@ -59,17 +99,22 @@ func (h *preferencesHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	apply(prefs, req)
+	if !apply(prefs, req) {
+		return c.JSON(http.StatusUnprocessableEntity, map[string]string{"error": "invalid_weight"})
+	}
 
 	if err := h.Repos.Preferences.Write(viewer.ID, prefs); err != nil {
 		log.Println("recommendations: saving preferences:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, prefs)
+	return c.JSON(http.StatusOK, respondPreferences(prefs))
 }
 
-func apply(prefs *repositories.Preferences, req *preferencesRequest) {
+// apply puts what was sent onto somebody's choices. False, with nothing
+// changed that matters, for a weight that is not one: a reason there is
+// not, or a number out of range.
+func apply(prefs *repositories.Preferences, req *preferencesRequest) bool {
 	if req.SuggestPeople != nil {
 		prefs.SuggestPeople = *req.SuggestPeople
 	}
@@ -82,4 +127,24 @@ func apply(prefs *repositories.Preferences, req *preferencesRequest) {
 	if req.Discoverable != nil {
 		prefs.Discoverable = *req.Discoverable
 	}
+	if req.SuggestEvents != nil {
+		prefs.SuggestEvents = *req.SuggestEvents
+	}
+
+	if req.ResetWeights {
+		prefs.Weights = nil
+	}
+	for reason, each := range req.Weights {
+		if _, known := constants.Weights[reason]; !known || each < 0 || each > constants.MaxWeight {
+			return false
+		}
+	}
+	for reason, each := range req.Weights {
+		if prefs.Weights == nil {
+			prefs.Weights = map[string]float64{}
+		}
+		prefs.Weights[reason] = each
+	}
+
+	return true
 }

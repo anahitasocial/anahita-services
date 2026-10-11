@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"reflect"
 	"sort"
 	"testing"
 	"time"
@@ -365,7 +366,7 @@ func TestPreferencesAndDismissalsAreKept(t *testing.T) {
 
 	// Nothing chosen is every choice at yes.
 	prefs, err := repos.Preferences.Read(viewer)
-	if err != nil || *prefs != *DefaultPreferences() {
+	if err != nil || !reflect.DeepEqual(prefs, DefaultPreferences()) {
 		t.Fatalf("nothing chosen read as %+v (%v)", prefs, err)
 	}
 
@@ -381,6 +382,17 @@ func TestPreferencesAndDismissalsAreKept(t *testing.T) {
 	read, err := repos.Preferences.Read(viewer)
 	if err != nil || read.SuggestGroups || read.Discoverable || read.UseActivity || !read.SuggestPeople {
 		t.Errorf("read back %+v (%v)", read, err)
+	}
+
+	// Their own weights, and whether to be suggested events.
+	read.Weights = map[string]float64{constants.ReasonPopular: 7.5, constants.ReasonFollowsYou: 0}
+	read.SuggestEvents = false
+	if err := repos.Preferences.Write(viewer, read); err != nil {
+		t.Fatal(err)
+	}
+	again, err := repos.Preferences.Read(viewer)
+	if err != nil || again.SuggestEvents || again.Weights[constants.ReasonPopular] != 7.5 || len(again.Weights) != 2 {
+		t.Errorf("weights read back %+v (%v)", again, err)
 	}
 
 	// Turned down twice is once, and can be taken back.
@@ -414,7 +426,86 @@ func TestPreferencesAndDismissalsAreKept(t *testing.T) {
 	if list, _ := repos.Dismissals.List(viewer); len(list) != 0 {
 		t.Errorf("still turned down after they were removed: %v", list)
 	}
-	if read, _ := repos.Preferences.Read(viewer); *read != *DefaultPreferences() {
+	if read, _ := repos.Preferences.Read(viewer); !reflect.DeepEqual(read, DefaultPreferences()) {
 		t.Errorf("choices kept after being forgotten: %+v", read)
+	}
+}
+
+// Events: the ones still to come, that were not called off and that the
+// viewer has not answered.
+func TestSignalsFindEvents(t *testing.T) {
+	db := testDB(t)
+	seed(t, db)
+
+	const (
+		event     = "'node.actor.actor-service.event.v1','actor-service'"
+		anEvent   = "'node.actor.actor-service.event.v1'"
+		aPerson   = "'node.actor.person-service.person.v1'"
+		aGroup    = "'node.actor.group-service.group.v1'"
+		upcoming  = 40 // B and C are going; hosted by the group the viewer follows
+		over      = 41 // ended yesterday
+		calledOff = 42
+		answered  = 43 // the viewer is going already
+		plain     = 44 // nobody the viewer knows is going
+	)
+
+	for _, stmt := range []string{
+		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,starts_at,ends_at,created_at,updated_at) VALUES
+		 (40,` + event + `,'Seed swap','','public',1,NOW() + INTERVAL 2 DAY,NOW() + INTERVAL 3 DAY,NOW() - INTERVAL 200 DAY,NOW()),
+		 (41,` + event + `,'Last week','','public',1,NOW() - INTERVAL 3 DAY,NOW() - INTERVAL 1 DAY,NOW(),NOW()),
+		 (42,` + event + `,'Called off','','public',1,NOW() + INTERVAL 2 DAY,NOW() + INTERVAL 3 DAY,NOW(),NOW()),
+		 (43,` + event + `,'Going already','','public',1,NOW() + INTERVAL 2 DAY,NOW() + INTERVAL 3 DAY,NOW(),NOW()),
+		 (44,` + event + `,'Somebody else\'s','','public',1,NOW() + INTERVAL 2 DAY,NOW() + INTERVAL 3 DAY,NOW(),NOW())`,
+		`INSERT INTO events (node_id,timezone_name,cancelled_at) VALUES
+		 (40,'UTC',NULL),(41,'UTC',NULL),(42,'UTC',NOW()),(43,'UTC',NULL),(44,'UTC',NULL)`,
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
+		 ('edge.actor.follow.v1',1,` + aPerson + `,20,` + aGroup + `,NOW()),
+		 ('edge.actor.host.v1',20,` + aGroup + `,40,` + anEvent + `,NOW()),
+		 ('edge.actor.host.v1',20,` + aGroup + `,41,` + anEvent + `,NOW()),
+		 ('edge.actor.host.v1',20,` + aGroup + `,42,` + anEvent + `,NOW()),
+		 ('edge.actor.host.v1',20,` + aGroup + `,43,` + anEvent + `,NOW()),
+		 ('edge.actor.follow.v1',2,` + aPerson + `,40,` + anEvent + `,NOW()),
+		 ('edge.actor.follow.v1',3,` + aPerson + `,40,` + anEvent + `,NOW()),
+		 ('edge.actor.follow.v1',2,` + aPerson + `,41,` + anEvent + `,NOW()),
+		 ('edge.actor.follow.v1',2,` + aPerson + `,42,` + anEvent + `,NOW()),
+		 ('edge.actor.follow.v1',1,` + aPerson + `,43,` + anEvent + `,NOW()),
+		 ('edge.actor.follow.v1',30,` + aPerson + `,44,` + anEvent + `,NOW())`,
+	} {
+		if _, err := db.Exec(stmt); err != nil {
+			t.Fatalf("seed: %v\n%s", err, stmt)
+		}
+	}
+
+	found, err := NewSignals(db).Find(viewer, constants.KindEvent, true, false, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if hit := hitFor(found[constants.ReasonHostedByLeader], upcoming); hit == nil || fmt.Sprint(hit.IDs) != "[20]" {
+		t.Errorf("hosted by a group the viewer follows: %+v among %v", hit, idsOf(found[constants.ReasonHostedByLeader]))
+	}
+	if hit := hitFor(found[constants.ReasonFollowedByLeaders], upcoming); hit == nil || hit.Count != 2 {
+		t.Errorf("people the viewer follows are going: %+v", hit)
+	}
+	if hitFor(found[constants.ReasonPopular], plain) == nil {
+		t.Errorf("an event people have answered lately is not found: %v", idsOf(found[constants.ReasonPopular]))
+	}
+
+	for reason, hits := range found {
+		for _, hit := range hits {
+			switch hit.ID {
+			case over, calledOff, answered:
+				t.Errorf("%s found event %d, which is over, called off or answered", reason, hit.ID)
+			case upcoming, plain:
+			default:
+				t.Errorf("%s found %d among events", reason, hit.ID)
+			}
+		}
+	}
+
+	// A group is not hosted by anything, nor a person.
+	people, _ := NewSignals(db).Find(viewer, constants.KindPerson, true, false, time.Now())
+	if len(people[constants.ReasonHostedByLeader]) != 0 {
+		t.Errorf("people hosted by a group: %v", people[constants.ReasonHostedByLeader])
 	}
 }

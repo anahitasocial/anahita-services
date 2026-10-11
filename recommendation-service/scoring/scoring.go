@@ -38,12 +38,17 @@ type Suggestion struct {
 
 // Rank puts the profiles found in order. `found` is each signal's hits by
 // the reason's name, and `lastActive` when each profile was last visited or
-// posted to. A profile with no date is taken as dormant.
-func Rank(found map[string][]Hit, lastActive map[int64]time.Time, now time.Time) []Suggestion {
+// posted to. A profile with no date is taken as dormant. `weights` is how
+// much each reason counts for: the service's own, or the viewer's.
+func Rank(found map[string][]Hit, lastActive map[int64]time.Time, now time.Time, weights map[string]constants.Weight) []Suggestion {
 	byActor := map[int64]*Suggestion{}
 
 	for _, reason := range constants.ReasonOrder {
-		weight := constants.Weights[reason]
+		weight := weights[reason]
+		// Set to nothing, a reason is not one.
+		if weight.Each <= 0 {
+			continue
+		}
 
 		for _, hit := range found[reason] {
 			if hit.ID <= 0 || hit.Count <= 0 {

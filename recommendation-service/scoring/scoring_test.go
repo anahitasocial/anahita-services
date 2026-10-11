@@ -33,7 +33,7 @@ func TestRankAddsUpWhatWasFoundAndSaysWhy(t *testing.T) {
 		constants.ReasonPopular:           {{ID: 6, Count: 30}},
 	}
 
-	ranked := Rank(found, recently(4, 5, 6), now)
+	ranked := Rank(found, recently(4, 5, 6), now, constants.Weights)
 
 	// 5: follows you (4) + one leader (3) = 7. 4: two leaders = 6. 6: 0.5.
 	if got := order(ranked); got != "[5 4 6]" {
@@ -58,7 +58,7 @@ func TestRankCapsAReason(t *testing.T) {
 		constants.ReasonPopular:           {{ID: 5, Count: 900}},
 	}
 
-	ranked := Rank(found, recently(4, 5), now)
+	ranked := Rank(found, recently(4, 5), now, constants.Weights)
 
 	if ranked[0].Score != constants.Weights[constants.ReasonFollowedByLeaders].Most {
 		t.Errorf("forty leaders scored %v", ranked[0].Score)
@@ -85,7 +85,7 @@ func TestRankPutsTheQuietAndTheDormantLast(t *testing.T) {
 		// 4 has never been seen.
 	}
 
-	ranked := Rank(found, active, now)
+	ranked := Rank(found, active, now, constants.Weights)
 
 	// Alive, quiet, then the two that are dormant, by id.
 	if got := order(ranked); got != "[1 2 3 4]" {
@@ -103,8 +103,40 @@ func TestRankIsTheSameEachTime(t *testing.T) {
 	}
 
 	for i := 0; i < 20; i++ {
-		if got := order(Rank(found, recently(3, 7, 9, 8), now)); got != "[3 7 9]" {
+		if got := order(Rank(found, recently(3, 7, 9, 8), now, constants.Weights)); got != "[3 7 9]" {
 			t.Fatalf("order %s", got)
 		}
+	}
+}
+
+// Somebody's own weights are ranked by, and a reason they set to nothing is
+// not a reason for them.
+func TestRankUsesTheViewersWeights(t *testing.T) {
+	found := map[string][]Hit{
+		constants.ReasonFollowsYou:        {{ID: 1, Count: 1}},
+		constants.ReasonFollowedByLeaders: {{ID: 2, Count: 1, IDs: []int64{9}}, {ID: 3, Count: 10}},
+		constants.ReasonPopular:           {{ID: 4, Count: 50}},
+	}
+	weights := constants.WeightsFor(map[string]float64{
+		constants.ReasonFollowsYou:        0,
+		constants.ReasonFollowedByLeaders: 1,
+		constants.ReasonPopular:           10,
+	})
+
+	ranked := Rank(found, recently(1, 2, 3, 4), now, weights)
+
+	// 4: popular at 10. 3: ten leaders at 1 each, capped at 5 as 15 is to
+	// 3. 2: one leader. 1 follows the viewer, which counts for nothing.
+	if got := order(ranked); got != "[4 3 2]" {
+		t.Fatalf("order %s", got)
+	}
+	if ranked[0].Score != 10 || ranked[1].Score != 5 || ranked[2].Score != 1 {
+		t.Errorf("scores %v %v %v", ranked[0].Score, ranked[1].Score, ranked[2].Score)
+	}
+
+	// What is not set, or is out of range, is the service's own.
+	mixed := constants.WeightsFor(map[string]float64{constants.ReasonInviter: 99, "made_up": 5})
+	if mixed[constants.ReasonInviter] != constants.Weights[constants.ReasonInviter] || len(mixed) != len(constants.Weights) {
+		t.Errorf("weights out of range were taken: %v", mixed)
 	}
 }

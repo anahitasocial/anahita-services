@@ -1,6 +1,6 @@
 # Recommendations
 
-recommendation-service suggests people and groups to follow. It uses no model: each suggestion is worked out from the graph as it stands, by rules written down here, and is sent with the reasons for it.
+recommendation-service suggests people, groups and events to follow. It uses no model: each suggestion is worked out from the graph as it stands, by rules written down here, and is sent with the reasons for it.
 
 It is optional. An installation that does not want suggestions leaves the service out, and the web app shows none. An installation that wants them chosen another way runs another service that answers the same paths.
 
@@ -10,6 +10,7 @@ It is optional. An installation that does not want suggestions leaves the servic
 - [Why somebody is suggested](#why-somebody-is-suggested)
 - [Who is never suggested](#who-is-never-suggested)
 - [What each person chooses](#what-each-person-chooses)
+- [Each person's own weights](#each-persons-own-weights)
 - [Not interested](#not-interested)
 - [Running it, and not running it](#running-it-and-not-running-it)
 - [Where the code is](#where-the-code-is)
@@ -32,7 +33,7 @@ Every path needs somebody signed in: a suggestion is made to a person, about tha
 
 | Parameter | Values |
 | --- | --- |
-| `kind` | `person` (the default) or `group`. Events are not suggested |
+| `kind` | `person` (the default), `group` or `event` |
 | `context` | `home` (the default), or `onboarding` for somebody who has just joined and follows nobody: nothing worked out from who they follow is used |
 | `limit` | Up to 50. 10 when left out |
 
@@ -69,6 +70,7 @@ Each reason adds to a score, up to a most. The score is then kept in full for a 
 | `follows_you` | They follow the viewer, who does not follow them. People only | 4 | 4 |
 | `followed_by_leaders` | People the viewer follows, follow them. `ids` are those people | 3 | 15 |
 | `inviter` | They invited the viewer, or the viewer invited them. People only | 3 | 3 |
+| `hosted_by_leader` | A group the viewer follows is hosting it. Events only. `ids` are those groups | 3 | 3 |
 | `you_engaged` | The viewer liked what is posted on their profile, in the last 90 days | 2 | 8 |
 | `shared_interest` | Their public posts of the last year carry hashtags the viewer has used or liked. `ids` are those hashtags | 2 | 8 |
 | `featured` | The installation's administrators featured them | 0.5 | 0.5 |
@@ -78,7 +80,11 @@ Two profiles that score the same are in the order of their ids, so an answer is 
 
 `shared_interest` looks only at public posts. The hashtags come back as the reason, and a reason must not say what is in a post the viewer could not read.
 
-The numbers are constants in `recommendation-service/constants`. They are the service's own judgement of what makes a good suggestion.
+The numbers are constants in `recommendation-service/constants`. They are the service's own judgement of what makes a good suggestion, and each person can set their own in its place: see [Each person's own weights](#each-persons-own-weights).
+
+### Events
+
+An event is suggested while it is still to come or on, and has not been called off. For an event, `followed_by_leaders` is people the viewer follows who have answered it, and following already is having answered it. An event is not asked to have a picture or a description, and is not marked down for when it was last visited: one that is still to come is as alive as anything is. It is sent with its `event` block, as it is in search results.
 
 ## Who is never suggested
 
@@ -89,8 +95,9 @@ Whatever the reason, a profile is left out when it is:
 - one the viewer said they were not interested in;
 - somebody who asked not to be suggested;
 - disabled, archived or deleted;
+- an event that is over or was called off;
 - a person who has not confirmed their email address;
-- without a picture and with nothing said about itself;
+- a person or group without a picture and with nothing said about itself;
 - one the viewer may not see.
 
 All but the last are one clause every signal's query ends with (`eligibleCandidate`). The last is the graph's rule and is asked of the graph: the best hundred of what was found are put to `FilterVisible`, and only what it returns is sent. So is everything in `related`.
@@ -103,10 +110,23 @@ All but the last are one clause every signal's query ends with (`eligibleCandida
 | --- | --- |
 | `suggest_people` | To be suggested people |
 | `suggest_groups` | To be suggested groups |
+| `suggest_events` | To be suggested events |
 | `use_activity` | That what they liked and wrote may be used to choose for them. Off, `you_engaged` and `shared_interest` are not looked for. Who they follow is still used |
 | `discoverable` | That they may be suggested to other people |
 
 Every choice is yes until its owner says otherwise. They are theirs to read and change and nobody else's.
+
+### Each person's own weights
+
+Somebody can set how much each reason counts for when choosing for them. It changes the order they are suggested things in, and nothing about what anybody else is suggested.
+
+- `GET /recommendations/preferences` sends `weights` (what each reason counts for, for them), `default_weights` (the service's own), `max_weight` (10) and `reasons` (the order to list them in).
+- `PUT` takes `weights`, by the reason's name. The ones sent are set and the others left. A weight is from 0 to 10; a reason there is not, or a number out of range, is answered `422` with `invalid_weight` and nothing is changed.
+- A reason set to 0 is not used for them at all.
+- What a reason may count for at most keeps its proportion: `followed_by_leaders` counts for up to five times what it counts for once, whatever that is set to.
+- `reset_weights: true` goes back to the service's own.
+
+Kept as JSON in `recommendation_preferences.weights`, empty until set (migration `20261021000001_recommendation_weights`).
 
 ## Not interested
 

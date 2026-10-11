@@ -8,14 +8,16 @@ package constants
 import "time"
 
 // The kinds of actor that are suggested, as a request names them, and the
-// types they stand for. Events are not suggested: an event is answered, and
-// found through its group or by being invited.
+// types they stand for. An event is suggested while it is still to come or
+// on, and has not been called off.
 const (
 	KindPerson = "person"
 	KindGroup  = "group"
+	KindEvent  = "event"
 
 	PersonType = "node.actor.person-service.person.v1"
 	GroupType  = "node.actor.group-service.group.v1"
+	EventType  = "node.actor.actor-service.event.v1"
 )
 
 // Where a suggestion is asked for from. Somebody who has just joined
@@ -31,6 +33,7 @@ const (
 	ReasonFollowsYou         = "follows_you"
 	ReasonFollowedByLeaders  = "followed_by_leaders"
 	ReasonInviter            = "inviter"
+	ReasonHostedByLeader     = "hosted_by_leader"
 	ReasonSharedInterest     = "shared_interest"
 	ReasonYouEngaged         = "you_engaged"
 	ReasonPopular            = "popular"
@@ -50,10 +53,32 @@ var Weights = map[string]Weight{
 	ReasonFollowsYou:        {Each: 4, Most: 4},
 	ReasonFollowedByLeaders: {Each: 3, Most: 15},
 	ReasonInviter:           {Each: 3, Most: 3},
+	ReasonHostedByLeader:    {Each: 3, Most: 3},
 	ReasonSharedInterest:    {Each: 2, Most: 8},
 	ReasonYouEngaged:        {Each: 2, Most: 8},
 	ReasonPopular:           {Each: 0.5, Most: 0.5},
 	ReasonFeatured:          {Each: 0.5, Most: 0.5},
+}
+
+// The most somebody may set a reason to count for, each time it is found.
+// Set to nothing, a reason is not used for them at all.
+const MaxWeight = 10
+
+// WeightsFor is the weights to rank for somebody by: the service's own,
+// with theirs in place of each they have set. What a reason may count for
+// at most keeps its proportion to what it counts for each time.
+func WeightsFor(own map[string]float64) map[string]Weight {
+	weights := make(map[string]Weight, len(Weights))
+
+	for reason, weight := range Weights {
+		each, set := own[reason]
+		if set && each >= 0 && each <= MaxWeight && weight.Each > 0 {
+			weight = Weight{Each: each, Most: each * weight.Most / weight.Each}
+		}
+		weights[reason] = weight
+	}
+
+	return weights
 }
 
 // The order reasons are given in when two count the same: the more
@@ -62,6 +87,7 @@ var ReasonOrder = []string{
 	ReasonFollowsYou,
 	ReasonFollowedByLeaders,
 	ReasonInviter,
+	ReasonHostedByLeader,
 	ReasonYouEngaged,
 	ReasonSharedInterest,
 	ReasonFeatured,

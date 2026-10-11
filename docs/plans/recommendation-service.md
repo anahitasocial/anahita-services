@@ -134,6 +134,11 @@ Row 20, on branch `m7-discovery`. What the service does is in `docs/recommendati
 - **Onboarding is not changed.** `context=onboarding` is answered, and nothing asks it yet.
 - **`GET /recommendations/dismissals`** was added, for the list in settings.
 
+**Added the same day, at the user's asking**
+
+- **Events are suggested,** with a reason of their own: a group the viewer follows is hosting it.
+- **Each person can set their own weights,** from 0 to 10 for each reason, kept with their choices. The plan had weights as the installation's configuration; these are each person's, as the custom feeds plan says a ranked feed's would be.
+
 ## Verification
 - **Seed data:** an integration test DB in the style of `access_integration_test.go`, with people A–F.
   - A follows B and C; B and C follow D, so D should come first for A with the reason `followed_by_leaders [B, C]`.

@@ -8,6 +8,7 @@ import (
 	"recommendation/constants"
 	"recommendation/scoring"
 
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/responses"
@@ -32,7 +33,7 @@ type actorsHandler struct {
 }
 
 type actorsRequest struct {
-	Kind    string `query:"kind" validate:"omitempty,oneof=person group"`
+	Kind    string `query:"kind" validate:"omitempty,oneof=person group event"`
 	Context string `query:"context" validate:"omitempty,oneof=home onboarding"`
 	Limit   int    `query:"limit" validate:"omitempty,min=1,max=50"`
 }
@@ -83,7 +84,8 @@ func (h *actorsHandler) Browse(c echo.Context) error {
 	}
 	// Asked not to be suggested this kind: nothing, and nothing looked for.
 	if (req.Kind == constants.KindPerson && !prefs.SuggestPeople) ||
-		(req.Kind == constants.KindGroup && !prefs.SuggestGroups) {
+		(req.Kind == constants.KindGroup && !prefs.SuggestGroups) ||
+		(req.Kind == constants.KindEvent && !prefs.SuggestEvents) {
 		return c.JSON(http.StatusOK, resp)
 	}
 
@@ -102,7 +104,16 @@ func (h *actorsHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	ranked := scoring.Rank(found, active, now)
+	// An event that is still to come is as alive as anything is, however
+	// long ago it was put in the calendar.
+	if req.Kind == constants.KindEvent {
+		for _, id := range candidates {
+			active[id] = now
+		}
+	}
+
+	// By the viewer's own weights, where they have set any.
+	ranked := scoring.Rank(found, active, now, constants.WeightsFor(prefs.Weights))
 	if len(ranked) > constants.GateSize {
 		ranked = ranked[:constants.GateSize]
 	}
@@ -134,6 +145,14 @@ func (h *actorsHandler) Browse(c echo.Context) error {
 	}
 
 	actors := h.readActors(kept, viewer)
+	// An event says when it is, and how many are going.
+	if req.Kind == constants.KindEvent {
+		list := make([]*entities.AnahitaNode, 0, len(actors))
+		for _, actor := range actors {
+			list = append(list, actor)
+		}
+		an_handlers.SetEventDetails(h.Srv.EventsGRPC, list, viewer)
+	}
 	nodeResp := &responses.NodeResponse{}
 
 	for _, suggestion := range kept {

@@ -901,10 +901,14 @@ CREATE TABLE IF NOT EXISTS recommendation_preferences (
     -- Whether to be suggested people, and groups.
     `suggest_people` tinyint(1) NOT NULL DEFAULT 1,
     `suggest_groups` tinyint(1) NOT NULL DEFAULT 1,
+    `suggest_events` tinyint(1) NOT NULL DEFAULT 1,
     -- Whether what they liked and wrote may be used to choose for them.
     `use_activity` tinyint(1) NOT NULL DEFAULT 1,
     -- Whether they may be suggested to other people.
     `discoverable` tinyint(1) NOT NULL DEFAULT 1,
+    -- How much each reason counts for when choosing for them, as JSON by the
+    -- reason's name, where they have set it. Empty for the service's own.
+    `weights` varchar(1000) NOT NULL DEFAULT '',
     `updated_at` datetime NOT NULL,
     PRIMARY KEY (`person_id`),
     KEY `idx_recommendation_preferences_discoverable` (`discoverable`)

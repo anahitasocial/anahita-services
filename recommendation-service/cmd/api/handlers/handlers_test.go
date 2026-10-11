@@ -319,8 +319,21 @@ func TestChoicesDecideWhatIsLookedFor(t *testing.T) {
 	}
 
 	// A kind there is not is refused.
-	if status, _ := f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=event", person(1), ""); status != http.StatusBadRequest {
-		t.Errorf("events answered %d", status)
+	if status, _ := f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=website", person(1), ""); status != http.StatusBadRequest {
+		t.Errorf("a kind there is not answered %d", status)
+	}
+
+	// Events are a kind, with a choice of their own.
+	f.signals.asked = 0
+	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=event", person(1), "")
+	if suggested(answer) != "[4]" || f.signals.kind != constants.KindEvent {
+		t.Errorf("events: suggested %s, asked for %q", suggested(answer), f.signals.kind)
+	}
+	f.call(f.handlers.Preferences.Edit, http.MethodPut, "/", person(1), `{"suggest_events":false}`)
+	f.signals.asked = 0
+	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/?kind=event", person(1), "")
+	if suggested(answer) != "[]" || f.signals.asked != 0 {
+		t.Errorf("events after asking for none: %s after %d searches", suggested(answer), f.signals.asked)
 	}
 }
 
@@ -355,5 +368,66 @@ func TestTurningASuggestionDown(t *testing.T) {
 	}
 	if got := fmt.Sprint(f.dismiss.rows[1]); got != "[5]" {
 		t.Errorf("still turned down: %s", got)
+	}
+}
+
+// Somebody's own weights change the order they are suggested in, and can be
+// put back.
+func TestWeightsAreTheViewersToSet(t *testing.T) {
+	f := newFixture(t)
+	f.signals.found = map[string][]scoring.Hit{
+		constants.ReasonFollowsYou: {{ID: 4, Count: 1}},
+		constants.ReasonPopular:    {{ID: 5, Count: 40}},
+	}
+
+	// As the service has it: whoever follows the viewer comes first.
+	_, answer := f.call(f.handlers.Actors.Browse, http.MethodGet, "/", person(1), "")
+	if got := suggested(answer); got != "[4 5]" {
+		t.Fatalf("suggested %s", got)
+	}
+
+	_, prefs := f.call(f.handlers.Preferences.Read, http.MethodGet, "/", person(1), "")
+	weights := prefs["weights"].(map[string]any)
+	defaults := prefs["default_weights"].(map[string]any)
+	if weights[constants.ReasonFollowsYou] != float64(4) || defaults[constants.ReasonPopular] != 0.5 ||
+		prefs["max_weight"] != float64(constants.MaxWeight) || len(prefs["reasons"].([]any)) != len(constants.Weights) {
+		t.Errorf("what the weights are sent as: %v", prefs)
+	}
+
+	// The viewer turns popularity up and following back off.
+	status, prefs := f.call(f.handlers.Preferences.Edit, http.MethodPut, "/", person(1),
+		`{"weights":{"popular":10,"follows_you":0}}`)
+	if status != http.StatusOK || prefs["weights"].(map[string]any)[constants.ReasonPopular] != float64(10) {
+		t.Fatalf("answered %d %v", status, prefs)
+	}
+	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/", person(1), "")
+	if got := suggested(answer); got != "[5]" {
+		t.Errorf("suggested %s by the viewer's weights", got)
+	}
+	// Somebody else is ranked as before.
+	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/", person(2), "")
+	if got := suggested(answer); got != "[4 5]" {
+		t.Errorf("somebody else was suggested %s", got)
+	}
+
+	// A weight that is not one changes nothing.
+	for _, body := range []string{`{"weights":{"popular":11}}`, `{"weights":{"popular":-1}}`, `{"weights":{"made_up":3}}`} {
+		status, refused := f.call(f.handlers.Preferences.Edit, http.MethodPut, "/", person(1), body)
+		if status != http.StatusUnprocessableEntity || refused["error"] != "invalid_weight" {
+			t.Errorf("%s answered %d %v", body, status, refused)
+		}
+	}
+	if f.prefs.rows[1].Weights[constants.ReasonPopular] != 10 {
+		t.Errorf("a refused weight changed what was kept: %v", f.prefs.rows[1].Weights)
+	}
+
+	// Back to the service's own.
+	_, prefs = f.call(f.handlers.Preferences.Edit, http.MethodPut, "/", person(1), `{"reset_weights":true}`)
+	if prefs["weights"].(map[string]any)[constants.ReasonPopular] != 0.5 {
+		t.Errorf("weights after being put back: %v", prefs["weights"])
+	}
+	_, answer = f.call(f.handlers.Actors.Browse, http.MethodGet, "/", person(1), "")
+	if got := suggested(answer); got != "[4 5]" {
+		t.Errorf("suggested %s after the weights were put back", got)
 	}
 }

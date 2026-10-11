@@ -22,17 +22,18 @@ import (
 // which is its own rule and is asked of it, not copied here.
 
 // The candidate, `c`, may be suggested to the viewer: it is of the kind
-// asked for, is somebody else, is there and in use, has a picture or says
-// something of itself, is not followed or asked to be followed already, has
-// no block with the viewer either way, was not turned down by them, has not
-// asked to be left out of suggestions, and, for a person, has confirmed
-// their email address.
+// asked for, is somebody else, is there and in use, is not followed or asked
+// to be followed already (for an event: not answered), has no block with the
+// viewer either way, was not turned down by them, has not asked to be left
+// out of suggestions, and, for a person, has confirmed their email address.
+//
+// {{kind}} is one more condition that depends on the kind asked for.
 const eligibleCandidate = `c.type = ?
   AND c.id <> ?
   AND c.enabled = 1
   AND c.deleted_at IS NULL
   AND c.archived_at IS NULL
-  AND (COALESCE(c.avatar_filename, '') <> '' OR COALESCE(c.body, '') <> '')
+  {{kind}}
   AND NOT EXISTS (
       SELECT 1
       FROM edges AS held
@@ -71,6 +72,30 @@ const eligibleCandidate = `c.type = ?
       )
   )`
 
+// A person or a group has a picture, or says something of itself: an empty
+// profile is nothing to suggest.
+const eligibleProfile = `AND (COALESCE(c.avatar_filename, '') <> '' OR COALESCE(c.body, '') <> '')`
+
+// An event is still to come or on, and has not been called off. It has no
+// picture of its own, and is not asked to say anything.
+const eligibleEvent = `AND c.ends_at > NOW()
+  AND NOT EXISTS (
+      SELECT 1
+      FROM events AS called_off
+      WHERE called_off.node_id = c.id
+        AND called_off.cancelled_at IS NOT NULL
+  )`
+
+// eligibleFor is the clause for one kind.
+func eligibleFor(kind string) string {
+	extra := eligibleProfile
+	if kind == constants.KindEvent {
+		extra = eligibleEvent
+	}
+
+	return strings.Replace(eligibleCandidate, "{{kind}}", extra, 1)
+}
+
 func eligibleArgs(kindType string, viewerID int64) []any {
 	return []any{
 		kindType,
@@ -91,7 +116,7 @@ FROM edges AS follows
 JOIN nodes AS c ON c.id = follows.node_a_id
 WHERE follows.type = ?
   AND follows.node_b_id = ?
-  AND ` + eligibleCandidate + `
+  AND {{eligible}}
 LIMIT ?`
 
 // People the viewer follows, follow them. With which of those people.
@@ -105,7 +130,7 @@ WHERE mine.type = ?
   AND mine.node_a_id = ?
   AND leader.type = ?
   AND theirs.type = ?
-  AND ` + eligibleCandidate + `
+  AND {{eligible}}
 GROUP BY c.id
 ORDER BY 2 DESC, c.id
 LIMIT ?`
@@ -116,13 +141,27 @@ SELECT c.id, 1, ''
 FROM auth_accounts AS mine
 JOIN nodes AS c ON c.id = mine.invited_by
 WHERE mine.node_id = ?
-  AND ` + eligibleCandidate + `
+  AND {{eligible}}
 UNION
 SELECT c.id, 1, ''
 FROM auth_accounts AS theirs
 JOIN nodes AS c ON c.id = theirs.node_id
 WHERE theirs.invited_by = ?
-  AND ` + eligibleCandidate + `
+  AND {{eligible}}
+LIMIT ?`
+
+// A group the viewer follows is hosting it. With which groups.
+const signalHostedByLeader = `
+SELECT c.id, COUNT(DISTINCT hosted.node_a_id), GROUP_CONCAT(DISTINCT hosted.node_a_id ORDER BY hosted.node_a_id)
+FROM edges AS mine
+JOIN edges AS hosted ON hosted.node_a_id = mine.node_b_id
+JOIN nodes AS c ON c.id = hosted.node_b_id
+WHERE mine.type = ?
+  AND mine.node_a_id = ?
+  AND hosted.type = ?
+  AND {{eligible}}
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
 LIMIT ?`
 
 // Their public posts carry hashtags the viewer has used or liked. With
@@ -155,7 +194,7 @@ WHERE theirs.type = ?
             )
         )
   )
-  AND ` + eligibleCandidate + `
+  AND {{eligible}}
 GROUP BY c.id
 ORDER BY 2 DESC, c.id
 LIMIT ?`
@@ -169,7 +208,7 @@ JOIN nodes AS c ON c.id = post.owner_id
 WHERE liked.type = ?
   AND liked.node_a_id = ?
   AND liked.created_at > ?
-  AND ` + eligibleCandidate + `
+  AND {{eligible}}
 GROUP BY c.id
 ORDER BY 2 DESC, c.id
 LIMIT ?`
@@ -181,7 +220,7 @@ FROM edges AS follows
 JOIN nodes AS c ON c.id = follows.node_b_id
 WHERE follows.type = ?
   AND follows.created_at > ?
-  AND ` + eligibleCandidate + `
+  AND {{eligible}}
 GROUP BY c.id
 ORDER BY 2 DESC, c.id
 LIMIT ?`
@@ -191,7 +230,7 @@ const signalFeatured = `
 SELECT c.id, 1, ''
 FROM nodes AS c
 WHERE c.featured_at IS NOT NULL
-  AND ` + eligibleCandidate + `
+  AND {{eligible}}
 ORDER BY c.featured_at DESC
 LIMIT ?`
 
@@ -231,6 +270,8 @@ func KindType(kind string) string {
 		return constants.PersonType
 	case constants.KindGroup:
 		return constants.GroupType
+	case constants.KindEvent:
+		return constants.EventType
 	}
 	return ""
 }
@@ -256,6 +297,8 @@ func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart b
 		needsActivity bool
 		// Only people follow back, and only people are invited.
 		peopleOnly bool
+		// Only an event has a group hosting it.
+		eventsOnly bool
 	}
 
 	with := func(before []any, after ...any) []any {
@@ -286,6 +329,13 @@ func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart b
 				with([]any{viewerID}, limit)...,
 			),
 			peopleOnly: true,
+		},
+		{
+			reason:       constants.ReasonHostedByLeader,
+			query:        signalHostedByLeader,
+			args:         with([]any{an_const.EdgeFollowEntityType, viewerID, an_const.EdgeActorHostEntityType}, limit),
+			needsFollows: true,
+			eventsOnly:   true,
 		},
 		{
 			reason: constants.ReasonSharedInterest,
@@ -321,6 +371,9 @@ func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart b
 		if each.peopleOnly && !isPerson {
 			continue
 		}
+		if each.eventsOnly && kind != constants.KindEvent {
+			continue
+		}
 		if each.needsActivity && !useActivity {
 			continue
 		}
@@ -328,7 +381,7 @@ func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart b
 			continue
 		}
 
-		hits, err := r.hits(each.query, each.args)
+		hits, err := r.hits(strings.ReplaceAll(each.query, "{{eligible}}", eligibleFor(kind)), each.args)
 		if err != nil {
 			return nil, err
 		}
