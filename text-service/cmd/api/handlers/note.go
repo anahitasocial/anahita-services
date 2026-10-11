@@ -5,9 +5,11 @@ import (
 	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/linkpreviews"
 	"anahita-libs/responses"
 	"log"
 	"net/http"
+	"strings"
 	"text/constants"
 	"text/requests"
 
@@ -153,6 +155,9 @@ func (h *noteHandler) Edit(c echo.Context) error {
 		medium.Language = language
 	}
 	medium.ModifiedBy = viewer.ID
+	// Its preview follows the edit: the one kept now, or none.
+	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body)
+
 	medium, err = h.Srv.MediaGRPC.Edit(medium, viewer)
 	if err != nil {
 		log.Println(err)
@@ -267,6 +272,9 @@ func (h *noteHandler) Add(c echo.Context) error {
 		medium.QuoteID = req.QuoteID
 	}
 
+	// The preview of a link in it, when its writer kept one.
+	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body)
+
 	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)
 	if err != nil {
 		log.Println(err)
@@ -284,4 +292,31 @@ func (h *noteHandler) Add(c echo.Context) error {
 	resp := mediaResp.MapMediumNode(medium)
 
 	return c.JSON(http.StatusCreated, resp)
+}
+
+// withLinkPreview puts the preview of a link into a note's meta, or takes
+// out the one that was there.
+//
+// The browser says which link, and nothing else. The link has to be in the
+// note's own text, and the preview is the one link-preview-service read
+// and kept: what a card says of a page is what this installation found
+// there, so a card cannot be made to say something the page does not. With
+// no address sent, a link that is not in the note, or no preview kept for
+// it, the note has no card.
+func (h *noteHandler) withLinkPreview(meta []byte, address, body string) []byte {
+	var snapshot *linkpreviews.Snapshot
+
+	if normal, ok := linkpreviews.Normalise(address); ok && h.Previews != nil && strings.Contains(body, strings.TrimSpace(address)) {
+		if preview, kept := h.Previews.Get(normal); kept {
+			snapshot = linkpreviews.NewSnapshot(preview)
+		}
+	}
+
+	// Nothing to put in and nothing there to take out: left as it was,
+	// which for most notes is no meta at all.
+	if snapshot == nil && linkpreviews.FromMeta(meta) == nil {
+		return meta
+	}
+
+	return linkpreviews.IntoMeta(meta, snapshot)
 }

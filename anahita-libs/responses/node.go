@@ -43,6 +43,9 @@ type NodeItem struct {
 	// else, and where whoever sent the node did not attach it.
 	Event *Event `json:"event,omitempty"`
 
+	// On a note that carries one: the preview of a link in it.
+	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
+
 	// On a custom feed: its picture and what it shows. Left out on
 	// anything else.
 	Feed *FeedBrief `json:"feed,omitempty"`
@@ -106,6 +109,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		IsBlockedByViewer:    node.IsBlockedByViewer,
 		Event:                NewEvent(node),
 		Feed:                 NewFeedBrief(node),
+		LinkPreview:          NewLinkPreview(node),
 		Authorized:           NewNodeAuthorized(node),
 		Author: func() *Author {
 			if node.Author != nil {

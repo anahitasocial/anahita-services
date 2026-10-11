@@ -48,6 +48,8 @@ func NewNoteRequest() *NoteRequest {
 type NoteEditRequest struct {
 	ID   int64  `param:"id" validate:"required,numeric"`
 	Body string `form:"body" validate:"required,max=8000"`
+	// As on NoteAddRequest. Left out, the note's preview is taken off.
+	LinkPreviewURL string `json:"link_preview_url" form:"link_preview_url" validate:"omitempty,max=2000"`
 	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
 	// by the author; left out, the post has none. See package language.
 	Language string `form:"language" validate:"omitempty,max=12"`
@@ -73,4 +75,9 @@ type NoteAddRequest struct {
 	// The post this note quotes: it is carried under the note's own words.
 	// Checked against that post's policy. See permissions.CanQuote.
 	QuoteID int64 `json:"quote_id" form:"quote_id" validate:"omitempty,numeric"`
+	// The link whose preview the note carries: one its writer was shown a
+	// preview of while writing. Only the address is taken. What the card
+	// says is what this installation read off the page, and never what is
+	// sent here.
+	LinkPreviewURL string `json:"link_preview_url" form:"link_preview_url" validate:"omitempty,max=2000"`
 }

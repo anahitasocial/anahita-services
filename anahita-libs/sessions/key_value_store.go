@@ -1,6 +1,8 @@
 package sessions
 
 import (
+	"time"
+
 	"github.com/go-redis/redis"
 )
 
@@ -55,4 +57,44 @@ func (s *keyValueStore) Del(keys ...string) error {
 		return nil
 	}
 	return s.client.Del(keys...).Err()
+}
+
+// CacheInterface is the store used to keep something for a while: written
+// with how long it is good for, and read back until then.
+type CacheInterface interface {
+	// Get returns what is kept under key, and whether anything is.
+	Get(key string) (string, bool, error)
+	// Set keeps value under key for ttl.
+	Set(key string, value string, ttl time.Duration) error
+}
+
+// NewCache opens the store for keeping things a while. The same Redis the
+// sessions and the rate limits are in.
+func NewCache(config StoreConfigInterface) (CacheInterface, error) {
+	options, err := redisOptions(config)
+	if err != nil {
+		return nil, err
+	}
+	client := redis.NewClient(options)
+
+	if _, err := client.Ping().Result(); err != nil {
+		return nil, err
+	}
+
+	return &keyValueStore{client: client}, nil
+}
+
+func (s *keyValueStore) Get(key string) (string, bool, error) {
+	value, err := s.client.Get(key).Result()
+	if err == redis.Nil {
+		return "", false, nil
+	}
+	if err != nil {
+		return "", false, err
+	}
+	return value, true, nil
+}
+
+func (s *keyValueStore) Set(key string, value string, ttl time.Duration) error {
+	return s.client.Set(key, value, ttl).Err()
 }

@@ -173,4 +173,4 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Implementation | built 2026-10-11 |

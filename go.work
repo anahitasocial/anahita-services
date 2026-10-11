@@ -11,6 +11,7 @@ use (
 	./hashtag-service
 	./identity-image-service
 	./like-service
+	./link-preview-service
 	./location-service
 	./mail-grpc-service
 	./notification-service

@@ -21,12 +21,13 @@ import (
 // notMappedFromANode lists fields that legitimately stay zero when mapping a
 // bare node, with the reason. Anything NOT here is expected to be populated.
 var notMappedFromANode = map[string]string{
-	"DeletedAt": "nil unless the actor is scheduled for deletion — that is the signal",
-	"Avatar":    "built from the node's avatar map, which a bare node has none of",
-	"Cover":     "built from the node's cover map, which a bare node has none of",
-	"Author":    "nil unless the node carries a separate author record",
-	"Event":     "nil unless the node is an event with its details attached",
-	"Feed":      "nil unless the node is a custom feed",
+	"DeletedAt":   "nil unless the actor is scheduled for deletion — that is the signal",
+	"Avatar":      "built from the node's avatar map, which a bare node has none of",
+	"Cover":       "built from the node's cover map, which a bare node has none of",
+	"Author":      "nil unless the node carries a separate author record",
+	"Event":       "nil unless the node is an event with its details attached",
+	"Feed":        "nil unless the node is a custom feed",
+	"LinkPreview": "nil unless the node is a note carrying the preview of a link",
 }
 
 // fullyPopulatedNode sets every source field the response is expected to read.

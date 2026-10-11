@@ -23,7 +23,9 @@ type MediumNodeItem struct {
 	ParentID int64 `json:"parent_id,omitempty"`
 	RootID   int64 `json:"root_id,omitempty"`
 	// On a note that quotes a post: that post, or why it is not shown.
-	Quote *QuoteEmbed `json:"quote,omitempty"`
+	// On a note that carries one: the preview of a link in it.
+	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
+	Quote       *QuoteEmbed  `json:"quote,omitempty"`
 	// The id of the post it quotes, whether or not it is shown.
 	QuoteID int64 `json:"quote_id,omitempty"`
 	// On a reply: removed, and kept as an empty placeholder because other
@@ -70,7 +72,9 @@ type MediumNode struct {
 	ParentID int64 `json:"parent_id,omitempty"`
 	RootID   int64 `json:"root_id,omitempty"`
 	// On a note that quotes a post: that post, or why it is not shown.
-	Quote *QuoteEmbed `json:"quote,omitempty"`
+	// On a note that carries one: the preview of a link in it.
+	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
+	Quote       *QuoteEmbed  `json:"quote,omitempty"`
 	// The id of the post it quotes, whether or not it is shown.
 	QuoteID int64 `json:"quote_id,omitempty"`
 	// On a reply read on its own: the post at the top of its thread.
@@ -136,6 +140,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		Language:           node.Language,
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
+		LinkPreview:        NewLinkPreview(node),
 		Quote:              NewQuoteEmbed(node),
 		QuoteID:            node.QuoteID,
 		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
@@ -193,6 +198,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		Language:           node.Language,
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
+		LinkPreview:        NewLinkPreview(node),
 		Quote:              NewQuoteEmbed(node),
 		QuoteID:            node.QuoteID,
 		Root:               NewRoot(node.Root),

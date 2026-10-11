@@ -64,4 +64,20 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Implementation | part A built 2026-10-11 |
+
+## What was built
+
+Part A, 2026-10-11. The page that describes it is [Link previews](../link-previews.md).
+
+- `link-preview-service` (port 8101, `/link-previews`), with the fetcher's rules as planned: http and https on 80 and 443, the address checked on the dialer and again on each redirect, 3 redirects, 5 seconds, 1 MB of `text/html`.
+- `anahita-libs/linkpreviews`: the preview, the store, and the card in a note's `meta`.
+- `text-service` takes `link_preview_url` on a new and an edited note, and copies the kept preview. It takes no title or picture from the client.
+- `link_preview` on a note wherever it is sent, and on the note a repost reposts.
+
+**Different from the plan:**
+
+- **Redis, not a `link_previews` table.** A preview is a cache with a lifetime, which is what Redis is for; there is no migration and the service has no database access at all.
+- **text-service reads the store** and does not call the service. The composer has already asked for the preview by the time the note is posted, so it is there; the note is not held up by a fetch.
+- **The request field is `link_preview_url`**, a string, not `link_preview { url }`.
+- **Not built:** oEmbed, favicons, and the domain blocklist, which waits for federation.

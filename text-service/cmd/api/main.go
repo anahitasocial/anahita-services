@@ -6,7 +6,9 @@ import (
 	"net/http"
 
 	"anahita-libs/constants"
+	"anahita-libs/linkpreviews"
 	an_mw "anahita-libs/middleware"
+	"anahita-libs/sessions"
 	"anahita-libs/validators"
 	"text/cmd/api/handlers"
 	"text/cmd/api/permissions"
@@ -59,6 +61,13 @@ func main() {
 		Config: config,
 		Srv:    services.NewServices(config),
 		Perms:  permissions.NewPermissions(),
+	}
+	// Where link-preview-service keeps what it read. Without it notes are
+	// saved as they always were, with no preview card.
+	if cache, err := sessions.NewCache(config); err != nil {
+		log.Println("link previews: no cache, notes are saved without previews:", err)
+	} else {
+		hEnv.Previews = linkpreviews.NewStore(cache)
 	}
 	h := handlers.NewHandlers(hEnv)
 

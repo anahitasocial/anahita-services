@@ -32,6 +32,8 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 	}
 
 	dto.Files = NewPhotoFiles(node.Files)
+	// A reposted note is shown as itself, with the card it carries.
+	dto.LinkPreview = NewLinkPreview(node)
 
 	if node.Owner != nil {
 		dto.Owner = NewOwner(node.Owner)
@@ -59,6 +61,7 @@ type Parent struct {
 	Cover           map[string]Image `json:"cover_urls,omitempty"`
 	Portrait        map[string]Image `json:"portrait_urls,omitempty"`
 	Files           []*PhotoFile     `json:"files,omitempty"`
+	LinkPreview     *LinkPreview     `json:"link_preview,omitempty"`
 	Owner           *Owner           `json:"owner,omitempty"`
 	Author          *Author          `json:"author,omitempty"`
 	IsLikedByViewer bool             `json:"is_liked_by_viewer,omitempty"`
