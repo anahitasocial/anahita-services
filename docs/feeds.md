@@ -11,6 +11,7 @@ A custom feed is a feed somebody builds: where its posts come from, what they ar
 - [Who sees a feed, and what they see in it](#who-sees-a-feed-and-what-they-see-in-it)
 - [Reading a feed](#reading-a-feed)
 - [Keeping feeds on the home page](#keeping-feeds-on-the-home-page)
+- [In search](#in-search)
 - [Discover](#discover)
 - [Endpoints](#endpoints)
 - [Where the code is](#where-the-code-is)
@@ -129,7 +130,16 @@ Keeping somebody else's feed on your home page is how a feed is followed. There 
 
 Following a hashtag is the same thing: the web app makes a feed of that one hashtag, seen by its owner alone, and puts it on their home page.
 
+## In search
+
+Search finds shared feeds like anything else: `GET /search/` with `scope=all` has them among the profiles and posts that match, and `scope=feeds` has them alone. A feed matches by its name and by what it is for. One kept to its owner is never found, by its owner either. Each is gated for the viewer as a post is, by its own audience and its owner's.
+
+A feed among search results is a node like the others, with a `feed` block: its `icon` and its `definition`.
+
 ## Discover
+
+The web app's search uses the above. This endpoint is still served and nothing in the web app calls it.
+
 
 `GET /feeds/discover` lists the feeds people have shared, newest first: public ones, ones for anyone signed in, and ones for the followers of somebody the viewer follows. Each is gated for the viewer by its own audience and its owner's, as a post is. A feed kept to its owner is in nobody's list, its owner's included; the viewer's own shared feeds are in theirs, as everybody else sees them.
 

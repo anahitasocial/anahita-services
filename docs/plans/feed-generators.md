@@ -296,6 +296,8 @@ Row 19, on branch `m7-discovery` in both repos. What a feed is and how it is use
 
 - Discover: a list of the feeds people have shared (`GET /feeds/discover`), as a second tab on the page of feeds, at the user's asking, so that other people's feeds, which will be many, are not in one list with the viewer's own.
 
+- Shared feeds are found by the site's search, among the other results and under a Feeds tab of their own (`scope=feeds`). The user first had Discover moved into search as that tab, then asked for feeds to be results like any other, which meant the graph's search query learning about them. `GET /feeds/discover` is still served and no longer called.
+
 **Not tried**
 
 Nothing that needs somebody signed in was tried by me: making, changing, copying and pinning a feed, and every screen. The routes answer as they should without a session (404 for a feed that is not there, 401 for the ones that need signing in), the query is tested against a real database, and the web app builds and its tests pass.

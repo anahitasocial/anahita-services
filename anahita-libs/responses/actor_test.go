@@ -26,6 +26,7 @@ var notMappedFromANode = map[string]string{
 	"Cover":     "built from the node's cover map, which a bare node has none of",
 	"Author":    "nil unless the node carries a separate author record",
 	"Event":     "nil unless the node is an event with its details attached",
+	"Feed":      "nil unless the node is a custom feed",
 }
 
 // fullyPopulatedNode sets every source field the response is expected to read.

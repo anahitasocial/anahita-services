@@ -43,6 +43,10 @@ type NodeItem struct {
 	// else, and where whoever sent the node did not attach it.
 	Event *Event `json:"event,omitempty"`
 
+	// On a custom feed: its picture and what it shows. Left out on
+	// anything else.
+	Feed *FeedBrief `json:"feed,omitempty"`
+
 	// What the viewer may do with the item. feed-service fills in comment and
 	// like, which the feed's buttons read; nothing else here computes it.
 	Authorized *NodeAuthorized `json:"authorized,omitempty"`
@@ -101,6 +105,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		IsFollowingViewer:    node.IsFollowingViewer,
 		IsBlockedByViewer:    node.IsBlockedByViewer,
 		Event:                NewEvent(node),
+		Feed:                 NewFeedBrief(node),
 		Authorized:           NewNodeAuthorized(node),
 		Author: func() *Author {
 			if node.Author != nil {

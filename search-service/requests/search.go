@@ -26,7 +26,7 @@ type SearchBrowseRequest struct {
 	Ordering    string  `query:"sort" validate:"max=15,omitempty,oneof=relevant recent"`
 	OrderingDir string  `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	Keywords    string  `query:"term" validate:"required,max=100,search_query"`
-	Scope       string  `query:"scope" validate:"omitempty,max=20,oneof=all media actors"`
+	Scope       string  `query:"scope" validate:"omitempty,max=20,oneof=all media actors feeds"`
 	CoordRadius int32   `query:"search_range" validate:"number,omitempty"`
 	CoordLng    float32 `query:"coord_lng" validate:"number,omitempty"`
 	CoordLat    float32 `query:"coord_lat" validate:"number,omitempty"`
