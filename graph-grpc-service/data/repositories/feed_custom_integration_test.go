@@ -7,6 +7,7 @@ import (
 
 	"anahita-libs/data/entities"
 	"anahita-libs/feeds"
+	"graph/requests"
 )
 
 // Custom feeds against a real database.
@@ -321,4 +322,95 @@ func pageIDs(nodes []*entities.AnahitaNode) []int64 {
 		ids = append(ids, node.ID)
 	}
 	return ids
+}
+
+// A feed is kept and read back by the ordinary node calls feed-service
+// makes: what it shows in its meta, its audience, and its owner beside it.
+func TestACustomFeedIsKeptAsANode(t *testing.T) {
+	db := accessTestDB(t)
+	seedCustomFeedFixture(t, db)
+	repo := NewNodesRepo(db)
+
+	def, err := feeds.Parse([]byte(`{"filters":{"hashtags_any":["garden"]}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	node := entities.NewAnahitaNode()
+	node.Type = feeds.NodeType
+	node.Service = feeds.Service
+	node.Name = "Gardens"
+	node.Body = "What is growing"
+	node.Access = "myself"
+	node.Meta = def.JSON()
+	node.Enabled = true
+	node.OwnerID = feedCarol
+	node.OwnerType = "node.actor.person-service.person.v1"
+	node.CreatedBy = feedCarol
+	node.ModifiedBy = feedCarol
+
+	added, err := repo.Add(node)
+	if err != nil || added == nil || added.ID == 0 {
+		t.Fatalf("add: %v %v", added, err)
+	}
+
+	read, err := repo.Read(added.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if read.Type != feeds.NodeType || read.Name != "Gardens" || read.Access != "myself" || read.OwnerID != feedCarol {
+		t.Fatalf("read back %q %q %q owner %d", read.Type, read.Name, read.Access, read.OwnerID)
+	}
+	if read.Owner == nil || read.Owner.Name != "Carol" {
+		t.Errorf("read without its owner: %+v", read.Owner)
+	}
+	again, err := feeds.Parse(read.Meta)
+	if err != nil || string(again.JSON()) != string(def.JSON()) {
+		t.Fatalf("definition read back as %s (%v)", read.Meta, err)
+	}
+
+	// Changed: another name, another audience, something else shown.
+	changed, _ := feeds.Parse([]byte(`{"sources":{"following":true}}`))
+	read.Name = "Following"
+	read.Access = "public"
+	read.Meta = changed.JSON()
+	read.ModifiedBy = feedCarol
+	if _, err := repo.Edit(read); err != nil {
+		t.Fatalf("edit: %v", err)
+	}
+
+	edited, err := repo.Read(added.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if edited.Name != "Following" || edited.Access != "public" || !edited.Enabled {
+		t.Errorf("after the edit: %q %q enabled %v", edited.Name, edited.Access, edited.Enabled)
+	}
+	if after, err := feeds.Parse(edited.Meta); err != nil || !after.Sources.Following {
+		t.Errorf("definition after the edit: %s (%v)", edited.Meta, err)
+	}
+
+	// Listed among its owner's feeds, with the fixture's one of hers.
+	req := requests.NewNodeRequest().Browse
+	req.Types = []string{feeds.NodeType}
+	req.OwnerIDs = []int64{feedCarol}
+	req.Viewer = feedViewer(feedCarol)
+	list, err := repo.Browse(req)
+	got := nodeIDs(t, list, err)
+	if !sameSet(got, feedOfGroup, added.ID) {
+		t.Errorf("Carol's feeds are %v", sortedIDs(got))
+	}
+
+	// Gone, with whoever kept it on their home page.
+	if _, err := db.Exec(`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,ordering,created_by,created_at) VALUES
+		(?,?,'node.actor.person-service.person.v1',?,?,1,?,NOW())`, feeds.EdgePinType, feedAlice, added.ID, feeds.NodeType, feedAlice); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repo.Delete(added.ID); err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+	var kept int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM edges WHERE node_b_id = ?`, added.ID).Scan(&kept); err != nil || kept != 0 {
+		t.Errorf("%d edges still point at a feed that is gone (%v)", kept, err)
+	}
 }
