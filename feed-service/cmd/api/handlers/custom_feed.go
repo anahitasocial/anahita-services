@@ -51,6 +51,8 @@ type customFeedFields struct {
 	// What it is for, in its owner's words.
 	Body   string `json:"body" validate:"omitempty,max=500"`
 	Access string `json:"access" validate:"omitempty,oneof=myself followers registered public"`
+	// Its picture, by name: one of feeds.Icons. The default when left out.
+	Icon string `json:"icon" validate:"omitempty,max=20"`
 	// What it shows, as anahita-libs/feeds reads it.
 	Definition json.RawMessage `json:"definition"`
 }
@@ -85,6 +87,7 @@ type customFeedResponse struct {
 	Name       string              `json:"name"`
 	Body       string              `json:"body"`
 	Access     string              `json:"access"`
+	Icon       string              `json:"icon"`
 	Definition json.RawMessage     `json:"definition"`
 	Owner      *responses.NodeItem `json:"owner,omitempty"`
 	// Whether the viewer keeps it on their home page.
@@ -151,21 +154,31 @@ func (h *customFeedHandler) read(id int64, viewer *entities.Viewer) *entities.An
 	return feed
 }
 
+// storedOf reads what a feed's node keeps: what it shows, and its picture.
+func storedOf(feed *entities.AnahitaNode) (*feeds.Stored, error) {
+	return feeds.ReadStored(feed.Meta)
+}
+
 // definitionOf reads what a stored feed shows. A feed whose definition can
 // no longer be read shows nothing, and says so to whoever tries to read it.
 func definitionOf(feed *entities.AnahitaNode) (*feeds.Definition, error) {
-	return feeds.Parse(feed.Meta)
+	stored, err := storedOf(feed)
+	if err != nil {
+		return nil, err
+	}
+
+	return stored.Definition, nil
 }
 
 func (h *customFeedHandler) respond(feed *entities.AnahitaNode, viewer *entities.Viewer, pinned map[int64]bool) *customFeedResponse {
 	own := ownsFeed(viewer, feed) || viewer.IsAdmin()
 	signedIn := viewer.Authenticated && viewer.ID > 0
 
-	definition := json.RawMessage(feed.Meta)
-	if def, err := definitionOf(feed); err == nil {
-		definition = def.JSON()
-	} else {
-		definition = json.RawMessage("null")
+	definition := json.RawMessage("null")
+	icon := feeds.DefaultIcon
+	if stored, err := storedOf(feed); err == nil {
+		definition = stored.Definition.JSON()
+		icon = stored.Icon
 	}
 
 	nodeResp := &responses.NodeResponse{}
@@ -176,6 +189,7 @@ func (h *customFeedHandler) respond(feed *entities.AnahitaNode, viewer *entities
 		Name:       feed.Name,
 		Body:       feed.Body,
 		Access:     feed.Access,
+		Icon:       icon,
 		Definition: definition,
 		Owner:      nodeResp.MapNodeItem(feed.Owner),
 		IsPinned:   pinned[feed.ID],
@@ -345,7 +359,7 @@ func (h *customFeedHandler) Add(c echo.Context) error {
 		return refuseFeed(c, http.StatusUnprocessableEntity, reason)
 	}
 
-	feed, status, reason := h.create(viewer, fields.Name, fields.Body, fields.Access, def)
+	feed, status, reason := h.create(viewer, fields.Name, fields.Body, fields.Access, feeds.NewStored(def, fields.Icon))
 	if feed == nil {
 		return refuseFeed(c, status, reason)
 	}
@@ -382,7 +396,7 @@ func (h *customFeedHandler) keepOnHome(viewer *entities.Viewer, id int64) bool {
 }
 
 // create writes a new feed owned by the viewer, when they have room for one.
-func (h *customFeedHandler) create(viewer *entities.Viewer, name, body, access string, def *feeds.Definition) (*entities.AnahitaNode, int, string) {
+func (h *customFeedHandler) create(viewer *entities.Viewer, name, body, access string, stored *feeds.Stored) (*entities.AnahitaNode, int, string) {
 	owned, err := h.ownedCount(viewer.ID)
 	if err != nil {
 		log.Println(err)
@@ -398,7 +412,7 @@ func (h *customFeedHandler) create(viewer *entities.Viewer, name, body, access s
 	node.Name = name
 	node.Body = body
 	node.Access = access
-	node.Meta = def.JSON()
+	node.Meta = stored.JSON()
 	node.Enabled = true
 	node.OwnerID = viewer.ID
 	node.OwnerType = constants.NodeActorPersonEntityType
@@ -521,7 +535,7 @@ func (h *customFeedHandler) Edit(c echo.Context) error {
 	feed.Name = req.Name
 	feed.Body = req.Body
 	feed.Access = req.Access
-	feed.Meta = def.JSON()
+	feed.Meta = feeds.NewStored(def, req.Icon).JSON()
 	feed.ModifiedBy = viewer.ID
 
 	if _, err := h.Srv.GraphNodeGRPC.Edit(feed); err != nil {
@@ -586,12 +600,12 @@ func (h *customFeedHandler) Copy(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	def, err := definitionOf(source)
+	stored, err := storedOf(source)
 	if err != nil {
 		return refuseFeed(c, http.StatusUnprocessableEntity, string(feeds.RefusedMalformed))
 	}
 
-	feed, status, reason := h.create(viewer, source.Name, source.Body, constants.AnahitaAccessMyself, def)
+	feed, status, reason := h.create(viewer, source.Name, source.Body, constants.AnahitaAccessMyself, stored)
 	if feed == nil {
 		return refuseFeed(c, status, reason)
 	}

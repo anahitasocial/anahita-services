@@ -151,3 +151,47 @@ func TestCursorGoesThereAndBack(t *testing.T) {
 		}
 	}
 }
+
+func TestStoredGoesThereAndBack(t *testing.T) {
+	def, err := Parse([]byte(`{"filters":{"hashtags_any":["garden"]}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	back, err := ReadStored(NewStored(def, "hashtag").JSON())
+	if err != nil || back.Icon != "hashtag" || string(back.Definition.JSON()) != string(def.JSON()) {
+		t.Fatalf("read back %+v (%v)", back, err)
+	}
+
+	// A picture that is not one of ours is the default.
+	if got := NewStored(def, "skull").Icon; got != DefaultIcon {
+		t.Errorf("an unknown picture was kept as %q", got)
+	}
+	unknown, err := ReadStored([]byte(`{"definition":{"sources":{"following":true}},"icon":"skull"}`))
+	if err != nil || unknown.Icon != DefaultIcon {
+		t.Errorf("an unknown picture was read as %+v (%v)", unknown, err)
+	}
+
+	// A definition alone, as the first feeds were kept.
+	old, err := ReadStored(def.JSON())
+	if err != nil || old.Icon != DefaultIcon || len(old.Definition.Filters.Hashtags) != 1 {
+		t.Errorf("a definition alone was read as %+v (%v)", old, err)
+	}
+
+	// What is wrong with a definition is still what is said.
+	for raw, want := range map[string]Refusal{
+		`{"definition":{},"icon":"feed"}`:          RefusedTooBroad,
+		`{"definition":{"sql":"1"},"icon":"feed"}`: RefusedUnknownField,
+		`not json`: RefusedMalformed,
+		`{"sources":{"following":true},"extra":true}`: RefusedUnknownField,
+	} {
+		_, err := ReadStored([]byte(raw))
+		if got, ok := AsRefusal(err); !ok || got != want {
+			t.Errorf("%s: got %v, want %s", raw, err, want)
+		}
+	}
+
+	if !ValidIcon("feed") || ValidIcon("") || ValidIcon("skull") {
+		t.Error("which pictures there are is wrong")
+	}
+}

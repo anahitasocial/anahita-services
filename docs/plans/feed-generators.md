@@ -292,6 +292,8 @@ Row 19, on branch `m7-discovery` in both repos. What a feed is and how it is use
 
 - The editor became a dialog, at the user's asking, with phones in mind: it is the whole screen on one. It had a second step that previewed the feed, which the user took out the same day: saving opens the feed itself. `POST /feeds/preview` is still served and the web app no longer calls it. A person owns 10 feeds at most, not 20, the number the home page holds, so that every feed made is listed in the menu.
 
+- A feed has an icon, one of sixteen that follow what a feed can be made of, chosen in the editor and kept by name beside the definition (`feeds.Stored`). The new feed's form went back into the page, and changing a feed is a dialog opened from Home, with a pencil at the end of the tabs so that a phone has it.
+
 **Not tried**
 
 Nothing that needs somebody signed in was tried by me: making, changing, copying and pinning a feed, and every screen. The routes answer as they should without a session (404 for a feed that is not there, 401 for the ones that need signing in), the query is tested against a real database, and the web app builds and its tests pass.

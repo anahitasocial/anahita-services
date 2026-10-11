@@ -24,7 +24,7 @@ Nothing on the site orders posts by anything but their date. A feed ordered by w
 ## A feed is a node
 
 - Type `node.feed.feed-service.generator.v1`, owned by the person who made it (`owner_id`), with its name in `name`, what it is for in `body`, and its audience in `access`.
-- What it shows, the definition, is JSON in the node's `meta`.
+- The node's `meta` is JSON holding what it shows, the `definition`, and its `icon`: one of sixteen pictures, by name (`feeds.Icons`), with `feed` for one given none. Meta that is a definition alone, as the first feeds were kept, is read as that.
 - Keeping a feed on the home page is an edge from the person to the feed, `edge.feed.pin.v1`, with its place among the tabs in the edge's `ordering`.
 - There is no table of its own and no migration. Deleting a feed deletes its node and, with it, every edge that kept it on somebody's home page. Removing an account removes its feeds as it removes everything else it owns.
 
@@ -134,7 +134,7 @@ All on feed-service. Writing needs the `media:write` scope.
 
 | Endpoint | Who | What |
 | --- | --- | --- |
-| `POST /feeds/` `{ name, body, access, definition }` | signed in | Makes a feed, and puts it on the home page. `access` is `myself` unless given |
+| `POST /feeds/` `{ name, body, access, icon, definition }` | signed in | Makes a feed, and puts it on the home page. `access` is `myself` unless given |
 | `GET /feeds/mine` | signed in | The feeds the viewer made |
 | `GET /feeds/pinned` | signed in | The feeds on the viewer's home page, in order |
 | `PUT /feeds/pins` `{ ids }` | signed in | Replaces the feeds on the home page |
@@ -146,7 +146,7 @@ All on feed-service. Writing needs the `media:write` scope.
 | `POST /feeds/<id>/copy` | whoever may see it | A feed of the viewer's own showing the same thing, seen by them alone |
 | `PUT`, `DELETE /feeds/<id>/pin` | whoever may see it | Keeps it on the home page, or takes it off |
 
-A feed is sent with `is_pinned` and `authorized` (`edit`, `delete`, `pin`, `copy`).
+A feed is sent with its `icon`, `is_pinned` and `authorized` (`edit`, `delete`, `pin`, `copy`).
 
 ## Where the code is
 

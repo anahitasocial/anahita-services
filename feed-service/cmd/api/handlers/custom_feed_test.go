@@ -332,8 +332,11 @@ func TestACustomFeedIsMadePrivateAndPutOnHome(t *testing.T) {
 	if stored.Type != feeds.NodeType || stored.OwnerID != testAlice || stored.Access != constants.AnahitaAccessMyself {
 		t.Errorf("stored as %q, owner %d, access %q", stored.Type, stored.OwnerID, stored.Access)
 	}
-	if def, err := feeds.Parse(stored.Meta); err != nil || !def.Sources.Following {
-		t.Errorf("definition stored as %s (%v)", stored.Meta, err)
+	if kept, err := feeds.ReadStored(stored.Meta); err != nil || !kept.Definition.Sources.Following || kept.Icon != feeds.DefaultIcon {
+		t.Errorf("stored as %s (%v)", stored.Meta, err)
+	}
+	if answer["icon"] != feeds.DefaultIcon {
+		t.Errorf("sent with the picture %v", answer["icon"])
 	}
 	if answer["is_pinned"] != true || fmt.Sprint(f.graph.pinsOf(testAlice)) != fmt.Sprint([]int64{id}) {
 		t.Errorf("not put on its maker's home page: %v, pins %v", answer["is_pinned"], f.graph.pinsOf(testAlice))
@@ -469,14 +472,17 @@ func TestWhoMaySeeChangeAndDeleteAFeed(t *testing.T) {
 
 	// Its owner changes it: the name, the audience, what it shows.
 	status, answer := f.call(f.handler.Edit, http.MethodPatch, person(testAlice), onlyMe,
-		`{"name":"Gardens","access":"public","definition":{"filters":{"hashtags_any":["#Garden"]}}}`)
+		`{"name":"Gardens","access":"public","icon":"hashtag","definition":{"filters":{"hashtags_any":["#Garden"]}}}`)
 	if status != http.StatusOK {
 		t.Fatalf("its owner changing it answered %d %v", status, answer)
 	}
 	stored := f.graph.nodes[onlyMe]
-	def, _ := feeds.Parse(stored.Meta)
-	if stored.Name != "Gardens" || stored.Access != constants.AnahitaAccessPublic || fmt.Sprint(def.Filters.Hashtags) != "[garden]" {
+	kept, _ := feeds.ReadStored(stored.Meta)
+	if stored.Name != "Gardens" || stored.Access != constants.AnahitaAccessPublic || fmt.Sprint(kept.Definition.Filters.Hashtags) != "[garden]" || kept.Icon != "hashtag" {
 		t.Errorf("stored as %q %q %s", stored.Name, stored.Access, stored.Meta)
+	}
+	if answer["icon"] != "hashtag" {
+		t.Errorf("sent with the picture %v", answer["icon"])
 	}
 
 	// A change that is refused changes nothing. The audience is kept when
@@ -539,7 +545,7 @@ func TestAFeedIsReadAsItsOwnersForTheReader(t *testing.T) {
 
 func TestACopyIsTheCopiersOwnAndPrivate(t *testing.T) {
 	f := newFeedTest(t)
-	source := f.make(testAlice, `{"name":"Gardens","body":"What grows","access":"public","definition":{"filters":{"hashtags_any":["garden"]}}}`)
+	source := f.make(testAlice, `{"name":"Gardens","body":"What grows","access":"public","icon":"photo","definition":{"filters":{"hashtags_any":["garden"]}}}`)
 	hidden := f.make(testAlice, followingFeed)
 
 	status, answer := f.call(f.handler.Copy, http.MethodPost, person(testBob), source, "")
@@ -550,6 +556,9 @@ func TestACopyIsTheCopiersOwnAndPrivate(t *testing.T) {
 	copied := f.graph.nodes[int64(answer["id"].(float64))]
 	if copied.ID == source || copied.OwnerID != testBob || copied.Access != constants.AnahitaAccessMyself || copied.Name != "Gardens" {
 		t.Errorf("copy is %d, owner %d, access %q, name %q", copied.ID, copied.OwnerID, copied.Access, copied.Name)
+	}
+	if answer["icon"] != "photo" {
+		t.Errorf("copy has the picture %v", answer["icon"])
 	}
 	if string(copied.Meta) != string(f.graph.nodes[source].Meta) {
 		t.Errorf("copy shows %s, not %s", copied.Meta, f.graph.nodes[source].Meta)
