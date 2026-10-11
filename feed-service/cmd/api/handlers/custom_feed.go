@@ -350,7 +350,35 @@ func (h *customFeedHandler) Add(c echo.Context) error {
 		return refuseFeed(c, status, reason)
 	}
 
-	return c.JSON(http.StatusCreated, h.respondMany([]*entities.AnahitaNode{feed}, viewer, nil)[0])
+	pinned := map[int64]bool{feed.ID: h.keepOnHome(viewer, feed.ID)}
+
+	return c.JSON(http.StatusCreated, h.respondMany([]*entities.AnahitaNode{feed}, viewer, pinned)[0])
+}
+
+// keepOnHome puts a feed its owner has just made on their home page, after
+// the ones there, when there is room. A feed is made to be read, and one
+// that had to be looked for and added by hand read as if making it had not
+// worked. With the home page full the feed is made all the same, and is on
+// the list of the viewer's feeds to be added when they choose.
+func (h *customFeedHandler) keepOnHome(viewer *entities.Viewer, id int64) bool {
+	current, pinned, err := h.pinnedIDs(viewer.ID)
+	if err != nil {
+		log.Println("custom feed: keep on home:", err)
+		return false
+	}
+	if pinned[id] {
+		return true
+	}
+	if len(current) >= feeds.MaxPinned {
+		return false
+	}
+
+	if err := h.writePins(viewer, append(current, id)); err != nil {
+		log.Println("custom feed: keep on home:", err)
+		return false
+	}
+
+	return true
 }
 
 // create writes a new feed owned by the viewer, when they have room for one.
@@ -568,7 +596,9 @@ func (h *customFeedHandler) Copy(c echo.Context) error {
 		return refuseFeed(c, status, reason)
 	}
 
-	return c.JSON(http.StatusCreated, h.respondMany([]*entities.AnahitaNode{feed}, viewer, nil)[0])
+	pinned := map[int64]bool{feed.ID: h.keepOnHome(viewer, feed.ID)}
+
+	return c.JSON(http.StatusCreated, h.respondMany([]*entities.AnahitaNode{feed}, viewer, pinned)[0])
 }
 
 // Mine lists the feeds the viewer has made, newest first.

@@ -285,6 +285,11 @@ Row 19, on branch `m7-discovery` in both repos. What a feed is and how it is use
 - **The hashtag shortcut is in the web app:** it makes the feed and pins it with the ordinary endpoints.
 - **Wording:** "custom feed", "Copy this feed". Nothing a person reads says "algorithm".
 
+**Added the same day, after the user tried it**
+
+- A feed is put on its maker's home page when it is made, and the web app lists the feeds on the home page under Home in the left menu, with "Custom feed" under them to make another. The separate "Custom feeds" entry in the menu went; the list page is reached from the end of the tabs on Home.
+- Tests for the endpoints (`feed-service/cmd/api/handlers/custom_feed_test.go`), which had none.
+
 **Not tried**
 
 Nothing that needs somebody signed in was tried by me: making, changing, copying and pinning a feed, and every screen. The routes answer as they should without a session (404 for a feed that is not there, 401 for the ones that need signing in), the query is tested against a real database, and the web app builds and its tests pass.

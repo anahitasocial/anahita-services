@@ -122,6 +122,8 @@ A query that cannot finish in the time a query is given is answered `422` with `
 
 `PUT /feeds/<id>/pin` adds a feed after the ones already there, and `DELETE` takes it off. `PUT /feeds/pins` with `{ "ids": [...] }` replaces the whole list in that order, which is how the tabs are reordered. `GET /feeds/pinned` returns them in order.
 
+A feed is put on its maker's home page when it is made, or copied, after the ones there. With the home page full it is made all the same, and waits on the list of their feeds.
+
 Keeping somebody else's feed on your home page is how a feed is followed. There is no separate following of feeds. A feed that is deleted, or that its owner stops sharing, drops out of the list.
 
 Following a hashtag is the same thing: the web app makes a feed of that one hashtag, seen by its owner alone, and puts it on their home page.
@@ -132,7 +134,7 @@ All on feed-service. Writing needs the `media:write` scope.
 
 | Endpoint | Who | What |
 | --- | --- | --- |
-| `POST /feeds/` `{ name, body, access, definition }` | signed in | Makes a feed. `access` is `myself` unless given |
+| `POST /feeds/` `{ name, body, access, definition }` | signed in | Makes a feed, and puts it on the home page. `access` is `myself` unless given |
 | `GET /feeds/mine` | signed in | The feeds the viewer made |
 | `GET /feeds/pinned` | signed in | The feeds on the viewer's home page, in order |
 | `PUT /feeds/pins` `{ ids }` | signed in | Replaces the feeds on the home page |
@@ -151,7 +153,7 @@ A feed is sent with `is_pinned` and `authorized` (`edit`, `delete`, `pin`, `copy
 - **`anahita-libs/feeds`:** the definition, its rules and limits (`Parse`, `Check`), and the cursor. feed-service checks a definition with it when a feed is saved, and graph-grpc-service reads it again with the same code before building a query, so nothing reaches the database that was not read into its fields.
 - **`graph-grpc-service/data/repositories/feed_custom.go`:** the query. Every value is a parameter. It ends with `SetFeedAccessQuery`, `SetLifecycleQuery` and `SetArchiveQuery`, for the reader.
 - **`graph-grpc-service/data/repositories/nodes_visible.go`:** a feed's own visibility, in `FilterVisible`.
-- **`feed-service/cmd/api/handlers/custom_feed.go`:** the endpoints.
+- **`feed-service/cmd/api/handlers/custom_feed.go`:** the endpoints. `custom_feed_test.go` runs them over a graph held in memory: who may see, change, copy and delete a feed, the limits, and the home page.
 
 ## What is not built
 
