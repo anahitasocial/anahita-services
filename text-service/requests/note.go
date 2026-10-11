@@ -48,7 +48,8 @@ func NewNoteRequest() *NoteRequest {
 type NoteEditRequest struct {
 	ID   int64  `param:"id" validate:"required,numeric"`
 	Body string `form:"body" validate:"required,max=8000"`
-	// As on NoteAddRequest. Left out, the note's preview is taken off.
+	// As on NoteAddRequest. Left out, the note keeps the preview it has for
+	// as long as that link is still in it.
 	LinkPreviewURL string `json:"link_preview_url" form:"link_preview_url" validate:"omitempty,max=2000"`
 	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
 	// by the author; left out, the post has none. See package language.

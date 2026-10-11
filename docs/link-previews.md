@@ -98,8 +98,12 @@ fetched once. The card on a note is a copy and does not expire.
 `POST /notes/:owner_id/` and `PATCH /notes/:id` take `link_preview_url`. When that
 address is in the note's body and a preview of it is in the store, the
 preview is copied into the note's `meta` under `link_preview`. Sent empty,
-or with an address that is not in the body, the note has no card, and an
-edit removes the one it had.
+or with an address that is not in the body, a new note has no card.
+
+An edited note keeps the card it has for as long as its link is still in
+the body, whatever is sent, and is given another only when the address sent
+has a preview in the store. With the link taken out of the note, the card
+goes too.
 
 Wherever the note is sent, it has `link_preview` with the same fields as
 above. A repost carries the card of the note it reposts.

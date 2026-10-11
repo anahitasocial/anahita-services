@@ -294,29 +294,36 @@ func (h *noteHandler) Add(c echo.Context) error {
 	return c.JSON(http.StatusCreated, resp)
 }
 
-// withLinkPreview puts the preview of a link into a note's meta, or takes
-// out the one that was there.
+// withLinkPreview puts the preview of a link into a note's meta, keeps the
+// one that is there, or takes it out.
 //
 // The browser says which link, and nothing else. The link has to be in the
 // note's own text, and the preview is the one link-preview-service read
 // and kept: what a card says of a page is what this installation found
-// there, so a card cannot be made to say something the page does not. With
-// no address sent, a link that is not in the note, or no preview kept for
-// it, the note has no card.
+// there, so a card cannot be made to say something the page does not.
+//
+// A note that already has a card keeps it for as long as its link is still
+// in the note, whatever is sent: a card is as the page was when the note
+// was written, and correcting a word is no reason to lose it or to fetch
+// it again. With the link gone, so is the card.
 func (h *noteHandler) withLinkPreview(meta []byte, address, body string) []byte {
-	var snapshot *linkpreviews.Snapshot
-
 	if normal, ok := linkpreviews.Normalise(address); ok && h.Previews != nil && strings.Contains(body, strings.TrimSpace(address)) {
-		if preview, kept := h.Previews.Get(normal); kept {
-			snapshot = linkpreviews.NewSnapshot(preview)
+		if preview, kept := h.Previews.Get(normal); kept && preview.Usable() {
+			return linkpreviews.IntoMeta(meta, linkpreviews.NewSnapshot(preview))
 		}
 	}
 
 	// Nothing to put in and nothing there to take out: left as it was,
 	// which for most notes is no meta at all.
-	if snapshot == nil && linkpreviews.FromMeta(meta) == nil {
+	existing := linkpreviews.FromMeta(meta)
+	if existing == nil {
+		return meta
+	}
+	// Its address is kept tidied, with the host in lower case, where the
+	// note has it as it was typed.
+	if strings.Contains(strings.ToLower(body), strings.ToLower(existing.URL)) {
 		return meta
 	}
 
-	return linkpreviews.IntoMeta(meta, snapshot)
+	return linkpreviews.IntoMeta(meta, nil)
 }
