@@ -30,6 +30,7 @@ change them, and what profile owners can change for themselves.
 - [Saved posts](#saved-posts)
 - [Pinned posts](#pinned-posts)
 - [Custom feeds](#custom-feeds)
+- [Suggestions](#suggestions)
 - [Reporting](#reporting)
 - [Removing accounts](#removing-accounts)
 - [The defaults](#the-defaults)
@@ -611,6 +612,20 @@ A custom feed is its maker's, and has an audience of its own. See
   `media:write` scope. A person owns 10 at most.
 - **No new public feed** on an installation that takes no new public content
   (`MIN_CONTENT_ACCESS`). One that was public already may stay so.
+
+## Suggestions
+
+Suggestions of who to follow are made to somebody signed in, about that
+person, and to nobody else. See [recommendations.md](recommendations.md).
+
+- **Nobody is suggested whom the viewer may not see.** What is found is put
+  to the graph (`FilterVisible`) before any of it is sent, and so is what a
+  reason names.
+- **Nobody is suggested who asked not to be** (`discoverable`), nor anybody
+  on either side of a block with the viewer, nor an account that is
+  disabled, archived, deleted or unconfirmed.
+- **What somebody chose, and whom they turned down, is theirs alone.** Whoever
+  was turned down is not told.
 
 ## Reporting
 

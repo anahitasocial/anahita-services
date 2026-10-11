@@ -195,9 +195,10 @@ WHERE c.featured_at IS NOT NULL
 ORDER BY c.featured_at DESC
 LIMIT ?`
 
-// When each profile was last alive: visited, or posted on.
+// When each profile was last alive: visited, posted on, or failing both,
+// made. A group that was started yesterday is alive.
 const lastActiveOf = `
-SELECT c.id, c.last_visited_at, (
+SELECT c.id, COALESCE(c.last_visited_at, c.created_at), (
     SELECT MAX(post.created_at)
     FROM nodes AS post
     WHERE post.owner_id = c.id
@@ -210,7 +211,7 @@ type SignalsInterface interface {
 	// the reason's name.
 	Find(viewerID int64, kind string, useActivity, onlyColdStart bool, now time.Time) (map[string][]scoring.Hit, error)
 	// LastActive says when each of these profiles was last visited or
-	// posted on. One with neither is not in the answer.
+	// posted on, or when it was made.
 	LastActive(ids []int64) (map[int64]time.Time, error)
 }
 

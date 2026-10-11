@@ -75,13 +75,16 @@ const (
 	PopularWindow  = 30 * 24 * time.Hour
 )
 
-// A profile nobody has been on or posted to for a year is not suggested,
-// and one quiet for three months counts for half.
+// A profile quiet for three months counts for half, and one nobody has been
+// on or posted to for a year for a tenth: it comes after every profile that
+// is alive, and is still there when nothing else is. On an installation
+// brought over from an older one, or a small one in a slow season, leaving
+// the dormant out altogether left nobody to suggest.
 const (
 	ActiveWithin  = 90 * 24 * time.Hour
 	DormantAfter  = 365 * 24 * time.Hour
 	QuietFactor   = 0.5
-	DormantFactor = 0
+	DormantFactor = 0.1
 )
 
 // How many suggestions an answer holds, and how many of the best are put to

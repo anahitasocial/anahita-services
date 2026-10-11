@@ -175,3 +175,11 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
    - [Keeping feeds on the home page](feeds.md#keeping-feeds-on-the-home-page)
    - [Endpoints](feeds.md#endpoints)
    - [What is not built](feeds.md#what-is-not-built)
+15. [Recommendations](recommendations.md) — suggestions of who to follow: the contract, the reasons, who is never suggested, and running without it
+   - [The contract](recommendations.md#the-contract)
+   - [Why somebody is suggested](recommendations.md#why-somebody-is-suggested)
+   - [Who is never suggested](recommendations.md#who-is-never-suggested)
+   - [What each person chooses](recommendations.md#what-each-person-chooses)
+   - [Not interested](recommendations.md#not-interested)
+   - [Running it, and not running it](recommendations.md#running-it-and-not-running-it)
+   - [What is not built](recommendations.md#what-is-not-built)

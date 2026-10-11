@@ -349,14 +349,12 @@ func TestLastActiveIsTheLaterOfVisitingAndPosting(t *testing.T) {
 	if since := time.Since(active[15]); since > time.Hour || since < -time.Hour {
 		t.Errorf("Q was last active %v ago", since)
 	}
-	if _, known := active[4]; known {
-		t.Errorf("D, who never visited or posted, has a date: %v", active[4])
-	}
-	if _, known := active[18]; !known {
-		t.Errorf("T, who was here yesterday, has none")
-	}
-	if _, known := active[20]; known {
-		t.Errorf("a group nobody posted in has a date")
+	// D never visited or posted, and the group has no posts: each is as
+	// alive as the day it was made, which is today.
+	for _, id := range []int64{4, 18, 20} {
+		if since := time.Since(active[id]); since > 48*time.Hour || since < -time.Hour {
+			t.Errorf("%d was last active %v ago", id, since)
+		}
 	}
 }
 

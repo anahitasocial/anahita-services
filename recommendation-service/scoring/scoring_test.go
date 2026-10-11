@@ -74,7 +74,7 @@ func TestRankCapsAReason(t *testing.T) {
 	}
 }
 
-func TestRankLeavesOutTheDormantAndHalvesTheQuiet(t *testing.T) {
+func TestRankPutsTheQuietAndTheDormantLast(t *testing.T) {
 	found := map[string][]Hit{
 		constants.ReasonFollowsYou: {{ID: 1, Count: 1}, {ID: 2, Count: 1}, {ID: 3, Count: 1}, {ID: 4, Count: 1}},
 	}
@@ -87,11 +87,12 @@ func TestRankLeavesOutTheDormantAndHalvesTheQuiet(t *testing.T) {
 
 	ranked := Rank(found, active, now)
 
-	if got := order(ranked); got != "[1 2]" {
+	// Alive, quiet, then the two that are dormant, by id.
+	if got := order(ranked); got != "[1 2 3 4]" {
 		t.Fatalf("order %s", got)
 	}
-	if ranked[0].Score != 4 || ranked[1].Score != 2 {
-		t.Errorf("scores %v %v", ranked[0].Score, ranked[1].Score)
+	if ranked[0].Score != 4 || ranked[1].Score != 2 || ranked[2].Score != 0.4 || ranked[3].Score != 0.4 {
+		t.Errorf("scores %v %v %v %v", ranked[0].Score, ranked[1].Score, ranked[2].Score, ranked[3].Score)
 	}
 }
 

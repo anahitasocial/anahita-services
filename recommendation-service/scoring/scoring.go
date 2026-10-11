@@ -38,7 +38,7 @@ type Suggestion struct {
 
 // Rank puts the profiles found in order. `found` is each signal's hits by
 // the reason's name, and `lastActive` when each profile was last visited or
-// posted to. A profile with no date is taken as dormant, and left out.
+// posted to. A profile with no date is taken as dormant.
 func Rank(found map[string][]Hit, lastActive map[int64]time.Time, now time.Time) []Suggestion {
 	byActor := map[int64]*Suggestion{}
 

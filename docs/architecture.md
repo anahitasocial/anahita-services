@@ -50,6 +50,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `like-service` | 8095 | 50058 | Votes / likes |
 | `identity-image-service` | 8096 | — | The avatars and covers of profiles and posts; see [Naming images](#naming-images) |
 | `feed-service` | 8098 | 50059 | Feeds and reposts |
+| `recommendation-service` | 8100 | | Suggestions of who to follow. Optional |
 | `abuse-report-service` | 8099 | — | Reports of people and posts, and the cases administrators decide. See [Abuse reports](abuse-reports.md) |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
 | `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is |
@@ -81,6 +82,7 @@ Kubernetes, where the Ingress sends everything to it
 | `/hashtags/` | `hashtag-service` |
 | `/locations/` | `location-service` |
 | `/feeds/`, `/reposts/` | `feed-service` |
+| `/recommendations/` | `recommendation-service` |
 | `/notifications/` | `notification-service` |
 | `/abuse-reports` | `abuse-report-service` |
 | `/socialgraph/` | `socialgraph-service` |
