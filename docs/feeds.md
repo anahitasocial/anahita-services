@@ -11,6 +11,7 @@ A custom feed is a feed somebody builds: where its posts come from, what they ar
 - [Who sees a feed, and what they see in it](#who-sees-a-feed-and-what-they-see-in-it)
 - [Reading a feed](#reading-a-feed)
 - [Keeping feeds on the home page](#keeping-feeds-on-the-home-page)
+- [Discover](#discover)
 - [Endpoints](#endpoints)
 - [Where the code is](#where-the-code-is)
 - [What is not built](#what-is-not-built)
@@ -128,6 +129,12 @@ Keeping somebody else's feed on your home page is how a feed is followed. There 
 
 Following a hashtag is the same thing: the web app makes a feed of that one hashtag, seen by its owner alone, and puts it on their home page.
 
+## Discover
+
+`GET /feeds/discover` lists the feeds people have shared, newest first: public ones, ones for anyone signed in, and ones for the followers of somebody the viewer follows. Each is gated for the viewer by its own audience and its owner's, as a post is. A feed kept to its owner is in nobody's list, its owner's included; the viewer's own shared feeds are in theirs, as everybody else sees them.
+
+The list is of feeds, not of posts: opening or adding one shows its reader only what they could see anyway.
+
 ## Endpoints
 
 All on feed-service. Writing needs the `media:write` scope.
@@ -137,6 +144,7 @@ All on feed-service. Writing needs the `media:write` scope.
 | `POST /feeds/` `{ name, body, access, icon, definition }` | signed in | Makes a feed, and puts it on the home page. `access` is `myself` unless given |
 | `GET /feeds/mine` | signed in | The feeds the viewer made |
 | `GET /feeds/pinned` | signed in | The feeds on the viewer's home page, in order |
+| `GET /feeds/discover?q=&start=&limit=` | anybody | The feeds people have shared that the viewer may see, newest first. `q` is part of a name. Paged by `pagination.next_start` |
 | `PUT /feeds/pins` `{ ids }` | signed in | Replaces the feeds on the home page |
 | `POST /feeds/preview` `{ definition }` | signed in | The first page of a feed not saved yet, as the viewer's own |
 | `GET /feeds/<id>` | whoever may see it | The feed, with `references`: the profiles and places it names that the viewer may see |

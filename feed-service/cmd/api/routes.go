@@ -38,6 +38,7 @@ func (r *Routes) Init(e *echo.Echo) {
 	feeds.POST("/", custom.Add, r.authorize)
 	feeds.GET("/mine", custom.Mine, r.authorize)
 	feeds.GET("/pinned", custom.Pinned, r.authorize)
+	feeds.GET("/discover", custom.Discover, r.setViewer)
 	feeds.PUT("/pins", custom.SetPins, r.authorize)
 	feeds.POST("/preview", custom.Preview, r.authorize)
 	feeds.GET("/:id", custom.Read, r.setViewer)

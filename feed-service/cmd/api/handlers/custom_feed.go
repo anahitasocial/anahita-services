@@ -72,6 +72,13 @@ type customFeedItemsRequest struct {
 	Limit  uint64 `query:"limit" validate:"omitempty,numeric,max=40"`
 }
 
+type customFeedDiscoverRequest struct {
+	// Part of a name, to find a feed by.
+	Search string `query:"q" validate:"omitempty,max=100"`
+	Start  uint64 `query:"start" validate:"omitempty,numeric"`
+	Limit  uint64 `query:"limit" validate:"omitempty,numeric,max=40"`
+}
+
 type customFeedPreviewRequest struct {
 	Definition json.RawMessage `json:"definition"`
 }
@@ -640,6 +647,74 @@ func (h *customFeedHandler) Mine(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]any{"data": h.respondMany(list, viewer, pinned)})
+}
+
+// Discover lists the feeds people have shared, the ones the viewer may see,
+// newest first: public ones, ones for anyone signed in, and ones for the
+// followers of somebody the viewer follows. A feed kept to its owner is in
+// nobody's list here, its owner's included: theirs are under their own.
+//
+// The graph's list of nodes gates each feed by its own audience and its
+// owner's, for the viewer, as it does a post. The viewer's own private
+// feeds pass that gate, being theirs, and are taken out here. So a page can
+// come back a little short, and where the next one starts is said by
+// `next_start`, counted in what the graph returned and not in what was
+// sent.
+func (h *customFeedHandler) Discover(c echo.Context) error {
+	viewer := getViewer(c)
+
+	req := &customFeedDiscoverRequest{}
+	if err := c.Bind(req); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if req.Limit == 0 {
+		req.Limit = feeds.PageSize
+	}
+
+	browse := services.NewGraphNodeRequest().Browse
+	browse.Types = []string{feeds.NodeType}
+	browse.Search = strings.TrimSpace(req.Search)
+	browse.Offset = req.Start
+	// One more than the page, to know whether there is another.
+	browse.Limit = req.Limit + 1
+	browse.Viewer = viewer
+	browse.AccessCheck = true
+
+	found, err := h.Srv.GraphNodeGRPC.Browse(browse)
+	if err != nil {
+		log.Println("custom feed: discover:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	hasMore := uint64(len(found)) > req.Limit
+	if hasMore {
+		found = found[:req.Limit]
+	}
+
+	shared := make([]*entities.AnahitaNode, 0, len(found))
+	for _, feed := range found {
+		if feed.Type == feeds.NodeType && feed.Access != constants.AnahitaAccessMyself {
+			shared = append(shared, feed)
+		}
+	}
+
+	_, pinned, err := h.pinnedIDs(viewer.ID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"data": h.respondMany(shared, viewer, pinned),
+		"pagination": map[string]any{
+			"limit":      req.Limit,
+			"start":      req.Start,
+			"next_start": req.Start + uint64(len(found)),
+			"has_more":   hasMore,
+		},
+	})
 }
 
 // Pinned lists the feeds the viewer keeps on their home page, in order:

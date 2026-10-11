@@ -294,6 +294,8 @@ Row 19, on branch `m7-discovery` in both repos. What a feed is and how it is use
 
 - A feed has an icon, one of sixteen that follow what a feed can be made of, chosen in the editor and kept by name beside the definition (`feeds.Stored`). The new feed's form went back into the page, and changing a feed is a dialog opened from Home, with a pencil at the end of the tabs so that a phone has it.
 
+- Discover: a list of the feeds people have shared (`GET /feeds/discover`), as a second tab on the page of feeds, at the user's asking, so that other people's feeds, which will be many, are not in one list with the viewer's own.
+
 **Not tried**
 
 Nothing that needs somebody signed in was tried by me: making, changing, copying and pinning a feed, and every screen. The routes answer as they should without a session (404 for a feed that is not there, 401 for the ones that need signing in), the query is tested against a real database, and the web app builds and its tests pass.

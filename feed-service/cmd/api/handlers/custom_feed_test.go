@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strings"
 	"testing"
 
@@ -102,8 +103,29 @@ func (g *fakeGraph) Count(req *an_services.GraphNodeBrowseRequest) (uint64, erro
 	return uint64(len(g.owned(req))), nil
 }
 
+// Browse lists one person's feeds, or with no owner named every feed the
+// viewer may see, newest first, as the graph's gate would have it.
 func (g *fakeGraph) Browse(req *an_services.GraphNodeBrowseRequest) ([]*entities.AnahitaNode, error) {
-	return g.owned(req), nil
+	if len(req.OwnerIDs) > 0 {
+		return g.owned(req), nil
+	}
+
+	var ids []int64
+	for id, node := range g.nodes {
+		if node.Type == req.Types[0] && strings.Contains(strings.ToLower(node.Name), strings.ToLower(req.Search)) {
+			ids = append(ids, id)
+		}
+	}
+	visible, _ := g.FilterVisible(ids, req.Viewer)
+	sort.Slice(visible, func(i, j int) bool { return visible[i] > visible[j] })
+
+	var list []*entities.AnahitaNode
+	for place, id := range visible {
+		if uint64(place) >= req.Offset && uint64(len(list)) < req.Limit {
+			list = append(list, g.nodes[id])
+		}
+	}
+	return list, nil
 }
 
 func (g *fakeGraph) BatchRead(req *an_services.GraphNodeBatchReadRequest) ([]*entities.AnahitaNode, error) {
@@ -645,5 +667,93 @@ func TestFeedsOnTheHomePage(t *testing.T) {
 	}
 	if got := fmt.Sprint(f.graph.pinsOf(testAlice)); got != fmt.Sprint([]int64{hidden}) {
 		t.Errorf("Alice's home page holds %s", got)
+	}
+}
+
+// callQuery is call, with a query string.
+func (f *feedTest) callQuery(handler echo.HandlerFunc, viewer *entities.Viewer, query string) (int, map[string]any) {
+	f.t.Helper()
+
+	req := httptest.NewRequest(http.MethodGet, "/?"+query, nil)
+	rec := httptest.NewRecorder()
+	c := f.echo.NewContext(req, rec)
+	c.Set(constants.ViewerContextKey, viewer)
+
+	if err := handler(c); err != nil {
+		f.t.Fatalf("handler: %v", err)
+	}
+
+	answer := map[string]any{}
+	if err := json.Unmarshal(rec.Body.Bytes(), &answer); err != nil {
+		f.t.Fatalf("answer is not JSON: %s", rec.Body.String())
+	}
+
+	return rec.Code, answer
+}
+
+func discovered(answer map[string]any) []int64 {
+	var ids []int64
+	for _, feed := range answer["data"].([]any) {
+		ids = append(ids, int64(feed.(map[string]any)["id"].(float64)))
+	}
+	return ids
+}
+
+// Discover lists what has been shared with the viewer, and nothing kept to
+// its owner: not other people's, and not the viewer's own.
+func TestDiscoverListsWhatIsSharedWithTheViewer(t *testing.T) {
+	f := newFeedTest(t)
+	f.graph.follows[testAlice] = []int64{testBob}
+
+	const carol = 3
+
+	alicePrivate := f.make(testAlice, followingFeed)
+	aliceFollowers := f.make(testAlice, `{"name":"For followers","access":"followers","definition":{"sources":{"following":true}}}`)
+	alicePublic := f.make(testAlice, `{"name":"Gardens","access":"public","definition":{"sources":{"following":true}}}`)
+	bobPrivate := f.make(testBob, followingFeed)
+	bobSignedIn := f.make(testBob, `{"name":"Members","access":"registered","definition":{"sources":{"following":true}}}`)
+
+	cases := []struct {
+		what   string
+		viewer int64
+		want   []int64
+	}{
+		{"a visitor", 0, []int64{alicePublic}},
+		{"somebody who follows nobody", carol, []int64{bobSignedIn, alicePublic}},
+		{"a follower of Alice", testBob, []int64{bobSignedIn, alicePublic, aliceFollowers}},
+		{"Alice", testAlice, []int64{bobSignedIn, alicePublic, aliceFollowers}},
+	}
+	for _, c := range cases {
+		status, answer := f.callQuery(f.handler.Discover, person(c.viewer), "")
+		if got := discovered(answer); status != http.StatusOK || fmt.Sprint(got) != fmt.Sprint(c.want) {
+			t.Errorf("%s: answered %d with %v, want %v", c.what, status, got, c.want)
+		}
+		for _, id := range discovered(answer) {
+			if id == alicePrivate || id == bobPrivate {
+				t.Errorf("%s was shown a feed kept to its owner", c.what)
+			}
+		}
+	}
+
+	// Found by part of a name.
+	_, answer := f.callQuery(f.handler.Discover, person(carol), "q=gard")
+	if got := discovered(answer); fmt.Sprint(got) != fmt.Sprint([]int64{alicePublic}) {
+		t.Errorf("a search found %v", got)
+	}
+
+	// A page at a time, and what is on the viewer's home page is marked.
+	f.call(f.handler.Pin, http.MethodPut, person(carol), alicePublic, "")
+	_, first := f.callQuery(f.handler.Discover, person(carol), "limit=1")
+	pagination := first["pagination"].(map[string]any)
+	if got := discovered(first); fmt.Sprint(got) != fmt.Sprint([]int64{bobSignedIn}) || pagination["has_more"] != true || pagination["next_start"] != float64(1) {
+		t.Errorf("first page %v %v", got, pagination)
+	}
+	_, second := f.callQuery(f.handler.Discover, person(carol), "limit=1&start=1")
+	pagination = second["pagination"].(map[string]any)
+	if got := discovered(second); fmt.Sprint(got) != fmt.Sprint([]int64{alicePublic}) || pagination["has_more"] != false {
+		t.Errorf("second page %v %v", got, pagination)
+	}
+	if second["data"].([]any)[0].(map[string]any)["is_pinned"] != true {
+		t.Errorf("a feed on the viewer's home page is not marked as there")
 	}
 }
