@@ -162,7 +162,7 @@ than after it, since (A) is a special case of (C) and would be thrown away.
 
 ### The name: custom feeds (user, 2026-10-11)
 
-The feature is called **custom feeds**, everywhere a person reads it: the menu, the editor, the buttons, the help. The user chose it over "your algorithm" as better for the people using it and for telling others about it, "algorithm" being a word many now dislike. So: "Create a custom feed", "Edit feed", "Copy this feed" where the sections below say "Your algorithm" and "Copy this algorithm". A ranked one, when there are ranked ones, is still a custom feed, named by whoever made it. "Algorithm" and "generator" stay as words for the code and for these plans.
+The feature is called **custom feeds**, everywhere a person reads it: the menu, the editor, the buttons, the help. The user chose it over "your algorithm" as better for the people using it and for telling others about it, "algorithm" being a word many now dislike. So: "Create a custom feed", "Edit feed", "Copy this feed" where the sections below say "Your algorithm" and "Copy this algorithm". One ordered by weights, when there are such feeds, is a custom feed like any other, named by whoever made it: nobody is shown the words "ranked feed" or "algorithmic feed". The user asked for this in particular. "Algorithm" and "generator" stay as words for the code and for these plans.
 
 ### "Each feed is your own algorithm"
 - The definition below **is** the feed's algorithm, and the editor is where people build it. The web app presents it that way: a "Your algorithm" editor, not a settings form.
