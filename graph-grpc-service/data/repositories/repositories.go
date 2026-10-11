@@ -11,6 +11,7 @@ func NewRepositories(db *sql.DB) *Repositories {
 		Edges:             NewEdgesRepo(db),
 		Events:            NewEventsRepo(db),
 		FeedActor:         NewFeedActorRepo(db),
+		FeedCustom:        NewFeedCustomRepo(db),
 		FeedLeaders:       NewFeedLeadersRepo(db),
 		Graph:             NewGraphRepo(db),
 		Invites:           NewInvitesRepo(db),
@@ -37,6 +38,7 @@ type Repositories struct {
 	Edges             EdgesRepoInterface
 	Events            EventsRepoInterface
 	FeedActor         FeedActorRepoInterface
+	FeedCustom        FeedCustomRepoInterface
 	FeedLeaders       FeedLeadersRepoInterface
 	Graph             GraphRepoInterface
 	Invites           InvitesRepoInterface

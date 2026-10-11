@@ -30,6 +30,7 @@ type Handlers struct {
 	Actor             *actorHandler
 	ActorAdmin        *actorAdminHandler
 	FeedActor         *feedActorHandler
+	FeedCustom        *feedCustomHandler
 	FeedLeaders       *feedLeadersHandler
 	Graph             *graphHandler
 	Like              *likeGrpcHandler
@@ -51,6 +52,7 @@ func NewHandlers(env *Env) *Handlers {
 		Actor:             NewActorHandler(env),
 		ActorAdmin:        NewActorAdminHandler(env),
 		FeedActor:         NewFeedActorHandler(env),
+		FeedCustom:        NewFeedCustomHandler(env),
 		FeedLeaders:       NewFeedLeadersHandler(env),
 		Graph:             NewGraphHandler(env),
 		Like:              NewLikeGrpcHandler(env),

@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+import "proto/graphpb/node.proto";
+
+// A page of a custom feed: the posts its definition asks for, as this viewer
+// may see them.
+message FeedCustomBrowseRequest {
+    // The definition, as anahita-libs/feeds reads it. Read again on this
+    // side with the same code, and never as query text.
+    string definition = 1;
+    // Whose feed it is: "whoever I follow" in a definition is whoever this
+    // person follows, whoever is reading.
+    int64 owner_id = 2;
+    // The last post of the page before: its time, in seconds, and its id.
+    // Both 0 for the first page.
+    int64 before_time = 3;
+    int64 before_id = 4;
+    uint64 limit = 5;
+    Viewer viewer = 6;
+}
+
+message FeedCustomBrowseResponse {
+    repeated Node nodes = 1;
+}
+
+service FeedCustomService {
+    rpc Browse(FeedCustomBrowseRequest) returns (FeedCustomBrowseResponse);
+}
