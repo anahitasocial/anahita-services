@@ -154,6 +154,12 @@ than after it, since (A) is a special case of (C) and would be thrown away.
 - Feeds are **nodes**, **private ("Only me") by default**. The owner can make a feed public or followers-only, and others can follow and pin it.
 - **Chronological only** (newest first).
 
+### Confirmed and extended by the user: 2026-10-11
+
+- **The default feed is chronological:** posts from the actors the viewer follows, newest first. Many people are unhappy with algorithmic feeds, and the default is not one.
+- **A ranked feed, when one is built, is never the site's.** It is a feed somebody makes: they choose the parameters and the weight of each, save them with that feed, and call it what they like. That is their "For You", and they can have several.
+- **What this asks of the work now:** nothing ranked is built in item 14. The definition's reserved `order` key is where it goes later: beside `"newest"`, an order by weights, with the weights stored in the same definition, shown in the same plain-language summary and copied by "Copy this algorithm". The signals and weights of the recommendation service (item 3) are the natural ones to offer, so a ranked feed and suggested posts would be one mechanism and not two.
+
 ### "Each feed is your own algorithm"
 - The definition below **is** the feed's algorithm, and the editor is where people build it. The web app presents it that way: a "Your algorithm" editor, not a settings form.
 - **Plain-language summary:** every feed shows a readable sentence generated from its definition, for example "Photos and notes from my groups tagged #garden or #seeds, without replies, newest first". Nothing about a feed is hidden, which is the point of choosing this over an opaque "For You".
