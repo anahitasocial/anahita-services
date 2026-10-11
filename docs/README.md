@@ -165,3 +165,13 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Language on posts](plans/done/content-language.md) | 20 | done 2026-10-05 in a smaller form: the author chooses, nothing is detected |
 | [Instance privacy and the composer audience picker](plans/done/instance-privacy.md) | 13 | done 2026-10-05 (the web parts not yet tried in a browser) |
 | [Cloud-neutral storage and deployment](plans/done/cloud-neutral.md) | 9 | done 2026-10-03 (non-AWS providers other than Garage untested) |
+14. [Custom feeds](feeds.md) — feeds people build: what one is made of, who sees it, and what they see in it
+   - [The home page](feeds.md#the-home-page)
+   - [A feed is a node](feeds.md#a-feed-is-a-node)
+   - [The definition](feeds.md#the-definition)
+   - [Limits](feeds.md#limits)
+   - [Who sees a feed, and what they see in it](feeds.md#who-sees-a-feed-and-what-they-see-in-it)
+   - [Reading a feed](feeds.md#reading-a-feed)
+   - [Keeping feeds on the home page](feeds.md#keeping-feeds-on-the-home-page)
+   - [Endpoints](feeds.md#endpoints)
+   - [What is not built](feeds.md#what-is-not-built)

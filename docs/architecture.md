@@ -105,6 +105,17 @@ being built, was a row of "who posted lately" on the home page, which a new
 installation with few people on it has no use for yet. What may come later is
 in the web app's roadmap, under Kept for later.
 
+### Custom feeds
+
+A custom feed is a node of type `node.feed.feed-service.generator.v1`, owned
+by whoever made it, with what it shows as JSON in the node's `meta`. Keeping
+one on the home page is an edge, `edge.feed.pin.v1`. feed-service serves them
+(`POST /feeds/`, `GET /feeds/<id>/items` and the rest), and reads a feed's
+posts from the graph over `FeedCustomService.Browse`, which builds its query
+from the definition and gates it for whoever is reading. The definition and
+its rules are in `anahita-libs/feeds`, used on both sides. See
+[Custom feeds](feeds.md).
+
 ### Pinned posts
 
 `nodes.pinned` says a post is pinned to the profile it is on, and

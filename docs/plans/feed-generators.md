@@ -252,6 +252,43 @@ The feature is called **custom feeds**, everywhere a person reads it: the menu, 
 | Update `feed-generators.md` and `docs/permissions.md` | 1 h |
 | **Total** | **about 22–27 h, 5–7 sessions** |
 
+### What was built: 2026-10-11
+
+Row 19, on branch `m7-discovery` in both repos. What a feed is and how it is used is in `docs/feeds.md`; this is what was done and where it differs from the sections above.
+
+**Services**
+
+- **`anahita-libs/feeds`:** the definition (`Parse`, `Check`, the limits, the words for kinds of post and profile) and the cursor. Used by feed-service when a feed is saved and by graph-grpc-service before it builds a query.
+- **graph-grpc-service:** `FeedCustomService.Browse` (`proto/graphpb/feed_custom.proto`, `handlers/feed_custom.go`, `repositories/feed_custom.go`). Gated with `SetFeedAccessQuery`, `SetLifecycleQuery` and `SetArchiveQuery` for the reader, and paged by a cursor on `(created_at, id)`. `FilterVisible` judges a feed node by its own access and its owner's: before this a feed would have fallen among hashtags and places, which anybody may see.
+- **feed-service:** `handlers/custom_feed.go` and its routes: make, read, change, delete, copy, list mine, preview, items, and the feeds on the home page.
+- **No migration.** The definition is in the node's `meta`, and a feed on the home page is an edge with its place in `ordering`.
+- **Tests:** `anahita-libs/feeds` (what is tidied, every refusal, the cursor), and `feed_custom_integration_test.go` against a real database: 33 cases over who sees what, each source, filter and exclusion, paging while a post is written, two posts in one second, and a feed's own audience.
+
+**Web**
+
+- Home has tabs: Following, then the feeds kept there, with the open one in the address (`?feed=`).
+- "Custom feeds" in the left menu (`/feeds`): the viewer's feeds and the ones of other people's they keep, with adding to and removing from the home page and moving among its tabs.
+- The editor (`/feeds/new`, `/feeds/:id/edit`) with what the feed shows in a sentence and a live preview beside it.
+- A feed's own page (`/feeds/:id`): add to home, copy, edit, delete.
+- "Follow #tag" on a hashtag's page makes a feed of that hashtag and puts it on the home page.
+
+**Different from the plan above**
+
+- **`actor_types` is a filter, not a source.** As a source added to the others it could not say "the groups I follow", which is the feed most wanted. As a filter it does: `following` with `actor_types: ["group"]`.
+- **`members_of` was left out,** for the same reason: that feed is the line above.
+- **`with_images` was left out.** `media_types: ["photo"]` is the photo posts.
+- **Following a feed is keeping it on the home page.** One edge, `edge.feed.pin.v1`, and no follow edge to a feed: the follow rules are about actors, and a second way of holding on to a feed added nothing a person would notice.
+- **No feeds are made for a new account.** Following is the first tab already.
+- **No cache of a first page,** and the time allowed is the three seconds every query has, not two.
+- **Moving tabs is by arrows on the list page,** not by dragging.
+- **A feed is addressed by its id,** `/feeds/:id`, not by an alias.
+- **The hashtag shortcut is in the web app:** it makes the feed and pins it with the ordinary endpoints.
+- **Wording:** "custom feed", "Copy this feed". Nothing a person reads says "algorithm".
+
+**Not tried**
+
+Nothing that needs somebody signed in was tried by me: making, changing, copying and pinning a feed, and every screen. The routes answer as they should without a session (404 for a feed that is not there, 401 for the ones that need signing in), the query is tested against a real database, and the web app builds and its tests pass.
+
 ### Verification
 - **Algorithm summary:** the summary sentence matches the definition for every combination in the validator's tests. "Copy this algorithm" creates a private feed with the same definition, owned by the copier.
 - **Access (real-MySQL tests):** a public feed built on a private group's hashtag shows nothing from that group to a non-member viewer and shows it to a member. Blocked authors never appear.
