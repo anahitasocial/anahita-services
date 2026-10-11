@@ -292,7 +292,7 @@ Row 19, on branch `m7-discovery` in both repos. What a feed is and how it is use
 
 - The editor became a dialog, at the user's asking, with phones in mind: it is the whole screen on one. It had a second step that previewed the feed, which the user took out the same day: saving opens the feed itself. `POST /feeds/preview` is still served and the web app no longer calls it. A person owns 10 feeds at most, not 20, the number the home page holds, so that every feed made is listed in the menu.
 
-- A feed has an icon, one of sixteen that follow what a feed can be made of, chosen in the editor and kept by name beside the definition (`feeds.Stored`). The new feed's form went back into the page, and changing a feed is a dialog opened from Home, with a pencil at the end of the tabs so that a phone has it.
+- A feed has an icon, one of sixteen that follow what a feed can be made of, chosen in the editor and kept by name beside the definition (`feeds.Stored`). The form is in the page for a new feed and for changing one, both reached from the list of feeds ("Customize feeds" under Home): the user tried a dialog, and a dialog opened from Home, and took both out as more than was needed.
 
 - Discover: a list of the feeds people have shared (`GET /feeds/discover`), as a second tab on the page of feeds, at the user's asking, so that other people's feeds, which will be many, are not in one list with the viewer's own.
 
