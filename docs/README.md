@@ -135,7 +135,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
 | [Link previews](plans/link-previews.md) | 10 | built 2026-10-11, with the web shell of its part B |
-| [Downloading what a post holds](plans/downloads.md) | 37 | not started; with the video service |
+| [Downloading what a post holds](plans/downloads.md) | 37 | built 2026-10-11 |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |

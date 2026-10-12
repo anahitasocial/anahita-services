@@ -29,6 +29,7 @@ change them, and what profile owners can change for themselves.
 - [Quotes](#quotes)
 - [Saved posts](#saved-posts)
 - [Pinned posts](#pinned-posts)
+- [Downloading photos and videos](#downloading-photos-and-videos)
 - [Custom feeds](#custom-feeds)
 - [Suggestions](#suggestions)
 - [Reporting](#reporting)
@@ -592,6 +593,28 @@ and so on), marked as pinned.
 `PUT` and `DELETE /{articles,notes,topics,photos}/<id>/pin`. The rule is
 `permissions.CanPin`, and a post says whether the viewer may in
 `authorized.pin`.
+
+## Downloading photos and videos
+
+Whether what a post holds may be downloaded is its author's to say, on
+each post, and is no until they say yes. The rule is
+`permissions.CanDownload`, and `handlers.MayDownload` is what a download
+address asks.
+
+| Who | May download |
+| --- | --- |
+| Somebody who can see the post, when it allows download | Yes |
+| The post's author | Always, whatever the post says |
+| Somebody who can see the post, when it does not | No (`403`) |
+| Somebody who cannot see the post | No, and told there is no such post (`404`) |
+| A visitor on a site in `preview` mode | No |
+
+Allowing download never widens who can see a post: it is asked only of
+somebody who already can.
+
+Whoever may edit the post may change the switch: its author, and the
+admins of the group it is on. A profile's default for new posts is changed
+by whoever may edit the profile. See [Photo posts](photos.md#downloading).
 
 ## Custom feeds
 

@@ -111,4 +111,20 @@ Video adds an hour inside item 16: one more address, the same switch.
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11 |
-| Implementation | not started; with item 16 |
+| Implementation | built 2026-10-11 |
+
+## What was built
+
+2026-10-11, for photos and videos. Described in [Photo posts](../photos.md#downloading), [Videos](../videos.md#downloading) and [Permissions](../permissions.md#downloading-photos-and-videos).
+
+- `nodes.allow_download` (migration `20261023000001_allow_download`): on a post, the switch; on a person or a group, what their new posts start with. One column for both, as `quote_policy` is.
+- `PATCH /photos|videos/:id/download`, `GET /photos|videos/:id/download`, `PATCH /people|groups/:id/download-default`.
+- `authorized.download` on every photo and video, wherever it is sent.
+- `file-grpc-service` signs an address that saves a file under a name, which is cut down to letters, digits, dots and dashes before it goes into a header.
+
+**Different from the plan:**
+
+- **The default is the profile's that the post is on, and nothing behind it.** The plan had the author's own default after a group's. A switch is on or off, with no "not said" for a group to fall through from, so a post in a group takes the group's choice.
+- **The author can always download their own**, not "whoever may edit it": a group's admin can change the switch, which is the same thing said honestly.
+- **No profile default for events.** What is posted on an event starts with download off.
+- **Not built:** files attached to posts, which do not exist; the switch in a feed's menu (it is on the post's own page); a zip of a post's images.

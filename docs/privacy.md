@@ -227,6 +227,7 @@ and `5` any person's id:
 | `GET /notes/5/?limit=50` | 200 | 200, at most 10 items, long ones cut and marked `truncated` | 401 |
 | `GET /notes/5/?start=10` | 200 | 401 | 401 |
 | `GET /socialgraph/5/followers/` | 200 | 401 | 401 |
+| `GET /photos/5/download` (where the post allows it) | 302 | 403 | 401 |
 | `GET /oauth/login` | 200 | 200 | 200 |
 
 ## What the web app does

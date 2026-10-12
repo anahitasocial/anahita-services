@@ -15,6 +15,7 @@ the files that are shown, and only then is there a post.
 - [The post](#the-post)
 - [Playing it](#playing-it)
 - [Sizes](#sizes)
+- [Downloading](#downloading)
 - [Endpoints](#endpoints)
 - [Settings](#settings)
 - [Storage](#storage)
@@ -169,6 +170,19 @@ The player chooses between the sizes a video has. Nothing changes size
 while it plays: that needs a different way of storing video (HLS), which
 is not built.
 
+## Downloading
+
+As for a photo, and by the same rules: see
+[Photo posts](photos.md#downloading).
+
+- Whether a video may be downloaded is chosen when its upload begins
+  (`allow_download`, or what the profile says when it is left out) and is
+  carried to the post when the worker makes it. It is changed afterwards
+  with `PATCH /videos/:id/download`.
+- `GET /videos/:id/download` saves the largest size the video has, and
+  `?size=720` another. What is downloaded is what the worker made: the
+  upload itself was deleted.
+
 ## Endpoints
 
 | Method and path | Who | What |
@@ -184,6 +198,8 @@ is not built.
 | `GET /videos/:id/files/:name` | whoever may see it | Redirect to `1080.mp4`, `720.mp4`, `360.mp4` or `poster.jpg` |
 | `PATCH /videos/:id`, `DELETE /videos/:id` | whoever may edit or delete it | Change its title and text; delete it and its files |
 | `PATCH /videos/:id/access`, `/comment-status`, `/reply-access`, `/quote-policy`; `PUT`/`DELETE /videos/:id/pin` | as for any post | As for any post |
+| `PATCH /videos/:id/download` | whoever may edit it | Whether it may be downloaded |
+| `GET /videos/:id/download` | whoever may see it, where it is allowed | Redirect to the file, to be saved |
 
 An upload belongs to whoever began it. Anybody else is told there is none.
 
@@ -257,4 +273,3 @@ once; each needs processor and working space of its own.
   failed. The composer asks.
 - Changing size while playing (HLS), captions, and a choice of poster.
 - Video in ActivityPub and AT Protocol, which comes with federation.
-- Downloading a video: roadmap item 37.

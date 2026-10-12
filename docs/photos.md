@@ -12,6 +12,7 @@ stored, changed and removed.
 - [What is stored](#what-is-stored)
 - [Reading](#reading)
 - [Changing a post's images](#changing-a-posts-images)
+- [Downloading](#downloading)
 - [Removal](#removal)
 - [Limits](#limits)
 - [What is not built](#what-is-not-built)
@@ -161,6 +162,42 @@ is cleared. The rules and refusals are the same as when posting.
 
 One list, and not separate requests to reorder, add and remove, so there is
 one rule to explain and no order of changes to get wrong.
+
+## Downloading
+
+Anybody who can see a photo can save what their browser was shown. The
+download is something else: a proper file, at the largest size kept, with a
+sensible name, **where whoever posted it has said so**.
+
+- **The switch.** `allow_download` on a photo post, off unless turned on.
+  Sent when the post is made, and changed with
+  `PATCH /photos/:id/download` `{ "allow": true }` by whoever may edit the
+  post: its author, and the admins of the group it is on. Every photo
+  posted before this existed is off: nobody is taken to have agreed.
+- **What a new post starts with**, when its author does not say, is what
+  the profile it is posted on says: a person's own choice for their
+  profile, a group's for what is posted in the group
+  (`PATCH /people/:id/download-default`, `PATCH /groups/:id/download-default`).
+  That is where a post starts and no more. Changing it changes nothing
+  already posted.
+- **The download.** `GET /photos/:id/download?file=<position>` answers with
+  a redirect to a signed address that makes a browser save the file. The
+  first image when no position is given, and one image at a time. The file
+  is the largest copy kept, which was encoded here from what was uploaded;
+  it is named for the post's title, or `photo-<id>`.
+- **Who may.** Somebody who can see the post, when the switch is on; and
+  its author always, whatever the switch says. Somebody who cannot see the
+  post is told it is not there (`404`), as for the post itself; somebody
+  who can and may not download is told so (`403`). A visitor on a site in
+  `preview` mode downloads nothing. 60 a minute for each person.
+- **What a client is told.** A post that holds a file says
+  `authorized.download` for the viewer, wherever it is sent; the post's
+  own page also says `allow_download`, and a profile says its default.
+
+Nothing is counted and nobody is told who downloaded what.
+
+Videos work the same way, with `/videos/` in place of `/photos/`; see
+[Videos](videos.md#downloading).
 
 ## Removal
 
