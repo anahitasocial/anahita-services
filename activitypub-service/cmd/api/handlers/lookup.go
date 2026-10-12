@@ -233,6 +233,7 @@ func (h *Handlers) keep(actor *remote.Actor) (*entities.AnahitaNode, error) {
 		KeyID:       actor.KeyID,
 		PublicKey:   actor.PublicKeyPEM,
 		IconURL:     actor.Icon,
+		HeaderURL:   actor.Header,
 		Locked:      actor.Locked,
 	})
 	if err != nil {
@@ -244,6 +245,10 @@ func (h *Handlers) keep(actor *remote.Actor) (*entities.AnahitaNode, error) {
 	if actor.Icon != "" && (before == nil || before.IconURL != actor.Icon || saved.AvatarFilename == "") {
 		id, icon := saved.ID, actor.Icon
 		h.later(func() { h.copyAvatar(id, icon) })
+	}
+	if actor.Header != "" && (before == nil || before.HeaderURL != actor.Header || saved.CoverFilename == "") {
+		id, header := saved.ID, actor.Header
+		h.later(func() { h.copyPicture(id, header, coverPicture) })
 	}
 	return saved, nil
 }

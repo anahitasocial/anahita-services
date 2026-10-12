@@ -52,8 +52,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	activitypub.PUT("/settings", r.handler.EditSettings)
 	// Finding somebody on another server.
 	activitypub.GET("/lookup", r.handler.Lookup)
-	// The servers this installation refuses. Administrators only: the
-	// handlers check.
+	// The servers this installation refuses. Super administrators only:
+	// the handlers check.
 	activitypub.GET("/blocks", r.handler.BrowseBlocks)
 	activitypub.POST("/blocks", r.handler.AddBlock)
 	activitypub.DELETE("/blocks/:domain", r.handler.DeleteBlock)

@@ -43,7 +43,7 @@ func (f *fakeFiles) Delete(req *services.FileDeleteRequest) error {
 	return nil
 }
 
-func picture(t *testing.T) []byte {
+func aPicture(t *testing.T) []byte {
 	t.Helper()
 	img := image.NewRGBA(image.Rect(0, 0, 600, 400))
 	for x := 0; x < 600; x++ {
@@ -63,7 +63,7 @@ func picture(t *testing.T) []byte {
 // of what it was sent, and never from where it came from.
 func TestTheirPictureIsCopiedHere(t *testing.T) {
 	w := newInboxWorld()
-	pictures := &fakePictures{content: picture(t)}
+	pictures := &fakePictures{content: aPicture(t)}
 	files := &fakeFiles{stored: map[string]int{}}
 	w.h.Pictures, w.h.Files = pictures, files
 
@@ -73,18 +73,26 @@ func TestTheirPictureIsCopiedHere(t *testing.T) {
 	if alice == nil || alice.AvatarFilename == "" {
 		t.Fatalf("she has no picture: %+v", alice)
 	}
-	if len(pictures.asked) != 1 || pictures.asked[0] != "https://mastodon.example/a.png" {
-		t.Errorf("asked %v", pictures.asked)
+	if strings.Join(pictures.asked, " ") != "https://mastodon.example/a.png https://mastodon.example/header.png" || alice.CoverFilename == "" {
+		t.Errorf("asked %v, cover %q", pictures.asked, alice.CoverFilename)
 	}
 
 	// Every size an avatar has, under this installation's own folders, and
 	// under her node.
-	sizes, _ := alice.GetAvatars()
-	if len(files.stored) != len(sizes) || len(sizes) == 0 {
+	avatars, _ := alice.GetAvatars()
+	covers, _ := alice.GetCovers()
+	sizes := map[string]bool{}
+	for _, size := range avatars {
+		sizes[size.Url] = true
+	}
+	for _, size := range covers {
+		sizes[size.Url] = true
+	}
+	if len(files.stored) != len(sizes) || len(avatars) == 0 || len(covers) == 0 {
 		t.Fatalf("stored %d of %d sizes: %v", len(files.stored), len(sizes), files.stored)
 	}
 	for path := range files.stored {
-		if !strings.HasPrefix(path, entities.IdentityImagesPrefix+"avatars/") || strings.Contains(path, "mastodon.example") {
+		if !strings.HasPrefix(path, entities.IdentityImagesPrefix) || strings.Contains(path, "mastodon.example") {
 			t.Errorf("stored at %q", path)
 		}
 	}
@@ -92,7 +100,7 @@ func TestTheirPictureIsCopiedHere(t *testing.T) {
 
 	// Looked up again with the same picture: not fetched again.
 	w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q=@alice@mastodon.example", "", anaID)
-	if len(pictures.asked) != 1 {
+	if len(pictures.asked) != 2 {
 		t.Errorf("fetched again: %v", pictures.asked)
 	}
 
@@ -129,7 +137,7 @@ func TestAPictureThatIsNotOneIsNotKept(t *testing.T) {
 
 	// A server that is refused is not asked for a picture.
 	w := newInboxWorld()
-	pictures := &fakePictures{content: picture(t)}
+	pictures := &fakePictures{content: aPicture(t)}
 	w.h.Pictures, w.h.Files = pictures, &fakeFiles{stored: map[string]int{}}
 	w.blocks.domains["mastodon.example"] = ""
 	w.h.copyAvatar(1, "https://mastodon.example/a.png")

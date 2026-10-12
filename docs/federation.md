@@ -6,7 +6,7 @@ and what an installation has to do for that to happen.
 **This is being built.** What is described here is what works today: a
 person can choose to be found, people follow each other across servers
 either way round, their public notes travel with the follow, a person can
-leave again, an administrator can refuse a server, and the web app has the
+leave again, a super administrator can refuse a server, and the web app has the
 switch, the lookup, and shows people and posts from other servers.
 Replies, likes, reposts and the pictures in posts do not travel yet.
 
@@ -309,13 +309,16 @@ people and by other servers, so it fetches through the same guarded client
 as link previews (`anahita-libs/safehttp`): https only, public addresses
 only, decided at the moment of connecting, a megabyte at most.
 
-**Their picture is copied here.** An avatar is fetched once, checked to be
+**Their pictures are copied here.** Their avatar, and the cover across the
+top of their profile (what Mastodon calls the header, `image` in their
+description), are each fetched once, checked to be
 a picture and nothing else, written again at this installation's own sizes,
-and kept in its storage like anybody's (`avatar.go`). It is shown from
+and kept in its storage like anybody's (`avatar.go`). They are shown from
 there, never from the server it came from: a picture loaded straight from
-another server tells that server who looked at whom, for every reader. It
-is fetched again only when their server gives a different address for it,
-and is removed from storage when they are.
+another server tells that server who looked at whom, for every reader. Each
+is fetched again only when their server gives a different address for it
+(`activitypub_actors.icon_url`, `header_url`), and both are removed from
+storage when the person is.
 
 A lookup is limited to 30 in ten minutes for each person.
 
@@ -624,7 +627,8 @@ server it knows.
 
 ## Servers that are refused
 
-An administrator's list (`federation_domain_blocks`). A server on it:
+A list kept by super administrators (`federation_domain_blocks`). A server
+on it:
 
 - is not listened to: what it sends is answered `403` before its key is
   even fetched;
@@ -645,10 +649,16 @@ removed one by one, as any post or person is.
 | `POST /activitypub/blocks` `{ "domain": "spam.example", "reason": "…" }` | Refuses a server, or changes why. The domain may be typed as a name, an address or a handle |
 | `DELETE /activitypub/blocks/spam.example` | Stops refusing it |
 
-Administrators only. The reason is for the administrators who come after,
-and is never sent to the server refused. A change takes up to half a
-minute to take hold in every copy of the service. **There is no screen for
-this in the web app yet;** until there is, it is done through the API.
+**Super administrators only,** like the rest of what is set for the whole
+installation: refusing a server is a choice made for everybody on it, and
+an administrator who is not a super administrator is answered `403`. The
+reason is for the super administrators who come after, and is never sent to
+the server refused. A change takes up to half a minute to take hold in
+every copy of the service.
+
+In the web app the list is in **Site settings, under Fediverse**: the
+servers refused with why, a field for a server's name and one for the
+reason, and a button beside each to stop refusing it.
 
 **How much one address may send** is limited too: 600 messages a minute to
 the inbox, counted before anything is read, and answered `429` beyond

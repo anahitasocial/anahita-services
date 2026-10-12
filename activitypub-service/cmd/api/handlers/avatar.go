@@ -10,9 +10,10 @@ import (
 	images "anahita-libs/utils"
 )
 
-// The picture of somebody on another server.
+// The pictures of somebody on another server: their avatar, and the wide
+// one across the top of their profile.
 //
-// It is copied here, once, and shown from this installation's own storage
+// Each is copied here, once, and shown from this installation's own storage
 // like anybody's avatar. It is never shown from where it came from: a
 // picture loaded straight from another server tells that server who looked
 // at whom, and when, for every reader. The same rule as the picture on a
@@ -32,15 +33,48 @@ const (
 	avatarMaxStored = 4*1024*1024 - 64*1024
 )
 
+// picture is one of the two: where its stored name is kept on a node, and
+// the sizes it is stored at.
+type picture struct {
+	name     string
+	filename func(node *entities.AnahitaNode) string
+	rename   func(node *entities.AnahitaNode, filename string)
+	sizes    func(node *entities.AnahitaNode) (map[string]entities.AnahitaNodeImage, error)
+}
+
+var (
+	avatarPicture = picture{
+		name:     "avatar",
+		filename: func(node *entities.AnahitaNode) string { return node.AvatarFilename },
+		rename:   func(node *entities.AnahitaNode, filename string) { node.AvatarFilename = filename },
+		sizes: func(node *entities.AnahitaNode) (map[string]entities.AnahitaNodeImage, error) {
+			return node.GetAvatars()
+		},
+	}
+	coverPicture = picture{
+		name:     "cover",
+		filename: func(node *entities.AnahitaNode) string { return node.CoverFilename },
+		rename:   func(node *entities.AnahitaNode, filename string) { node.CoverFilename = filename },
+		sizes: func(node *entities.AnahitaNode) (map[string]entities.AnahitaNodeImage, error) {
+			return node.GetCovers()
+		},
+	}
+)
+
 // Pictures is what fetches a picture from another server.
 type Pictures interface {
 	Bytes(ctx context.Context, address string, max int64) ([]byte, string, error)
 }
 
 // copyAvatar fetches somebody's picture and keeps it as their avatar here.
+func (h *Handlers) copyAvatar(nodeID int64, address string) {
+	h.copyPicture(nodeID, address, avatarPicture)
+}
+
+// copyPicture fetches one of somebody's pictures and keeps it here.
 // Whatever goes wrong, they are left as they were: with the picture they
 // had, or none.
-func (h *Handlers) copyAvatar(nodeID int64, address string) {
+func (h *Handlers) copyPicture(nodeID int64, address string, which picture) {
 	if h.Pictures == nil || h.Files == nil || address == "" {
 		return
 	}
@@ -58,28 +92,28 @@ func (h *Handlers) copyAvatar(nodeID int64, address string) {
 
 	raw, _, err := h.Pictures.Bytes(ctx, address, avatarMaxBytes)
 	if err != nil {
-		log.Printf("the picture of %s was not fetched: %v", node.Alias, err)
+		log.Printf("the %s of %s was not fetched: %v", which.name, node.Alias, err)
 		return
 	}
 	// Whatever the server said it was, it is looked at.
 	content, mimeType, err := images.Accept(raw, avatarMaxBytes, avatarMaxPixels)
 	if err != nil {
-		log.Printf("the picture of %s is not one that is kept: %v", node.Alias, err)
+		log.Printf("the %s of %s is not one that is kept: %v", which.name, node.Alias, err)
 		return
 	}
 
 	// What they had, to remove once the new one is in place.
 	var previous map[string]entities.AnahitaNodeImage
-	if node.AvatarFilename != "" {
-		previous, _ = node.GetAvatars()
+	if which.filename(node) != "" {
+		previous, _ = which.sizes(node)
 	}
 
 	filename, err := images.GenerateUniqueFilename(mimeType)
 	if err != nil {
 		return
 	}
-	node.AvatarFilename = filename
-	sizes, err := node.GetAvatars()
+	which.rename(node, filename)
+	sizes, err := which.sizes(node)
 	if err != nil {
 		return
 	}
@@ -122,7 +156,7 @@ func (h *Handlers) copyAvatar(nodeID int64, address string) {
 	update := entities.NewAnahitaNode()
 	update.Type, update.URI, update.OriginDomain = node.Type, node.URI, node.OriginDomain
 	update.Name, update.Alias, update.Body, update.WebsiteURL = node.Name, node.Alias, node.Body, node.WebsiteURL
-	update.AvatarFilename = filename
+	which.rename(update, filename)
 	if _, _, err := h.Nodes.UpsertRemote(update); err != nil {
 		log.Printf("the picture of %s was stored and not named: %v", node.Alias, err)
 		h.deleteFiles(stored)
@@ -136,20 +170,25 @@ func (h *Handlers) copyAvatar(nodeID int64, address string) {
 	h.deleteFiles(old)
 }
 
-// deleteAvatar removes what is stored of somebody's picture.
+// deleteAvatar removes what is stored of somebody's pictures, both of them.
 func (h *Handlers) deleteAvatar(node *entities.AnahitaNode) {
-	if node == nil || node.AvatarFilename == "" {
+	if node == nil {
 		return
 	}
-	sizes, err := node.GetAvatars()
-	if err != nil {
-		return
+	for _, which := range []picture{avatarPicture, coverPicture} {
+		if which.filename(node) == "" {
+			continue
+		}
+		sizes, err := which.sizes(node)
+		if err != nil {
+			continue
+		}
+		var stored []string
+		for _, size := range sizes {
+			stored = append(stored, size.Url)
+		}
+		h.deleteFiles(stored)
 	}
-	var stored []string
-	for _, size := range sizes {
-		stored = append(stored, size.Url)
-	}
-	h.deleteFiles(stored)
 }
 
 func (h *Handlers) deleteFiles(paths []string) {

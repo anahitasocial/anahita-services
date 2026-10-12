@@ -1072,6 +1072,8 @@ CREATE TABLE IF NOT EXISTS activitypub_actors (
     `public_key` text NOT NULL,
     -- Where their avatar is on their own server. '' for none.
     `icon_url` varchar(512) NOT NULL DEFAULT '',
+    -- Where their cover is on their own server. '' for none.
+    `header_url` varchar(512) NOT NULL DEFAULT '',
     -- Whether a follow of theirs waits to be approved.
     `locked` tinyint(1) NOT NULL DEFAULT 0,
     -- When they were last read from their server.

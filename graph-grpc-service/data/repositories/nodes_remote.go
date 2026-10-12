@@ -333,6 +333,9 @@ func (r *nodesRepo) addRemote(ctx context.Context, node *entities.AnahitaNode) (
 	if node.AvatarFilename != "" {
 		columns["avatar_filename"] = node.AvatarFilename
 	}
+	if node.CoverFilename != "" {
+		columns["cover_filename"] = node.CoverFilename
+	}
 	if !IsRemoteActorType(node.Type) {
 		columns["owner_id"] = node.OwnerID
 		columns["owner_type"] = node.OwnerType
@@ -374,6 +377,9 @@ func (r *nodesRepo) editRemote(ctx context.Context, id int64, node *entities.Ana
 	// up to date does not take their picture away.
 	if node.AvatarFilename != "" {
 		columns["avatar_filename"] = node.AvatarFilename
+	}
+	if node.CoverFilename != "" {
+		columns["cover_filename"] = node.CoverFilename
 	}
 
 	query, args, err := sq.Update("nodes").SetMap(columns).

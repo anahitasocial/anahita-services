@@ -223,7 +223,7 @@ func TestAServerThatIsRefused(t *testing.T) {
 	}
 }
 
-func TestOnlyAnAdministratorKeepsTheList(t *testing.T) {
+func TestOnlyASuperAdministratorKeepsTheList(t *testing.T) {
 	w := newInboxWorld()
 
 	// Ana is nobody in particular.
@@ -240,8 +240,14 @@ func TestOnlyAnAdministratorKeepsTheList(t *testing.T) {
 		t.Fatal("somebody who is not an administrator refused a server")
 	}
 
+	// Nor an administrator: the list is the whole installation's, and is
+	// kept with its other settings, by super administrators.
+	if rec := w.callAs("administrator", w.h.AddBlock, http.MethodPost, `{"domain":"spam.example"}`); rec.Code != http.StatusForbidden || len(w.blocks.domains) != 0 {
+		t.Errorf("an administrator: %d", rec.Code)
+	}
+
 	admin := func(handler func(c echoContext) error, method, body string, params ...string) (int, string) {
-		rec := w.callAs("administrator", handler, method, body, params...)
+		rec := w.callAs("super-administrator", handler, method, body, params...)
 		return rec.Code, rec.Body.String()
 	}
 

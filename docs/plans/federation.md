@@ -377,7 +377,8 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: the web app: the switch, people and posts from elsewhere, the lookup | done 2026-10-13 |
 | Phase 1, ActivityPub: leaving, profile changes, accounts closed elsewhere, refused servers, a limit on the inbox, NodeInfo | done 2026-10-13 |
 | Phase 1, ActivityPub: avatars of people elsewhere, their earlier posts | done 2026-10-13 |
-| Phase 1, ActivityPub: a screen for refused servers, the sweep for lost events, a test against Mastodon itself with a real name | not started |
+| Phase 1, ActivityPub: covers of people elsewhere; refused servers kept by super administrators, with a screen in Site settings | done 2026-10-12 |
+| Phase 1, ActivityPub: the sweep for lost events, a test against Mastodon itself with a real name | not started |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -406,6 +407,10 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   own sizes, and never shown from where it came from. Tried with a real
   account: the avatar of `rastin@mastodon.world` was fetched, stored and
   served through the API like anybody's.
+- **So is their cover** (`image` in their description, Mastodon's header),
+  by the same path: `activitypub_actors.header_url` says when it changes,
+  the graph keeps `cover_filename` for a remote person. Tried with the same
+  account: its header was stored and comes back in `cover_urls`.
 - **On a first follow, up to twenty recent public notes are read** from the
   person's own server. Tried in the lab: two notes alice had posted before
   anybody followed her arrived when she was followed.
@@ -455,8 +460,10 @@ rewritten around a guide to setting it up.
 - **Refusing a server does not remove what came from it.** Not in the plan
   either way; removing people in bulk is a decision for an administrator to
   take one at a time until there is a screen that shows what would go.
-- **Still to do:** a screen in the administration area for refused servers
-  (the API is there); the limit is by address and fixed at 600 a minute.
+- **Refused servers are the super administrators' to keep,** not every
+  administrator's: the three requests answer `403` to anybody else, and the
+  web app has the list in Site settings, under Fediverse.
+- **Still to do:** the limit is by address and fixed at 600 a minute.
 
 **The web app, and what may be done with what came from elsewhere.**
 

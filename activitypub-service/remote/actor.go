@@ -42,8 +42,10 @@ type Actor struct {
 	// KeyID and PublicKeyPEM are the key they sign with.
 	KeyID        string
 	PublicKeyPEM string
-	// Icon is the address of their avatar there, or "".
-	Icon string
+	// Icon is the address of their avatar there, and Header of the wide
+	// picture across the top of their profile. "" for none.
+	Icon   string
+	Header string
 	// Locked says a follow of theirs waits to be approved.
 	Locked bool
 }
@@ -83,6 +85,7 @@ type wire struct {
 		PublicKeyPem string `json:"publicKeyPem"`
 	} `json:"publicKey"`
 	Icon                      json.RawMessage `json:"icon"`
+	Image                     json.RawMessage `json:"image"`
 	ManuallyApprovesFollowers bool            `json:"manuallyApprovesFollowers"`
 }
 
@@ -170,6 +173,9 @@ func read(w *wire, from string, isOurs func(string) bool) (*Actor, error) {
 	}
 	if icon, err := httpsURL(firstURL(w.Icon)); err == nil {
 		actor.Icon = icon.String()
+	}
+	if header, err := httpsURL(firstURL(w.Image)); err == nil {
+		actor.Header = header.String()
 	}
 
 	return actor, nil

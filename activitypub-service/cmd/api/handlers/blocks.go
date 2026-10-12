@@ -13,7 +13,10 @@ import (
 
 // The servers this installation will have nothing to do with.
 //
-// An administrator's list. A server on it is not listened to (what it
+// A list kept by super administrators, with the other settings that are
+// the whole installation's: refusing a server is a choice made for
+// everybody on it, not a decision about one report. A server on it is not
+// listened to (what it
 // sends is refused before its key is even fetched), is sent nothing, and
 // nobody on it can be looked up. A name covers every name under it.
 //
@@ -31,7 +34,7 @@ var domainShape = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0
 
 // BrowseBlocks lists the servers that are refused.
 func (h *Handlers) BrowseBlocks(c echo.Context) error {
-	if !getViewer(c).IsAdmin() {
+	if !getViewer(c).IsSuperAdmin() {
 		return c.NoContent(http.StatusForbidden)
 	}
 	blocks, err := h.Blocks.Browse()
@@ -45,7 +48,7 @@ func (h *Handlers) BrowseBlocks(c echo.Context) error {
 // AddBlock refuses a server, or changes why it is refused.
 func (h *Handlers) AddBlock(c echo.Context) error {
 	viewer := getViewer(c)
-	if !viewer.IsAdmin() {
+	if !viewer.IsSuperAdmin() {
 		return c.NoContent(http.StatusForbidden)
 	}
 
@@ -78,7 +81,7 @@ func (h *Handlers) AddBlock(c echo.Context) error {
 
 // DeleteBlock stops refusing a server.
 func (h *Handlers) DeleteBlock(c echo.Context) error {
-	if !getViewer(c).IsAdmin() {
+	if !getViewer(c).IsSuperAdmin() {
 		return c.NoContent(http.StatusForbidden)
 	}
 	domain := repositories.CleanDomain(c.Param("domain"))

@@ -69,6 +69,7 @@ func (f *fakeFetcher) Object(_ context.Context, address string, into any) (strin
 		"inbox":   aliceID + "/inbox", "endpoints": map[string]any{"sharedInbox": "https://mastodon.example/inbox"},
 		"publicKey":                 map[string]any{"id": aliceID + "#main-key", "owner": aliceID, "publicKeyPem": remoteKey.PublicPEM},
 		"icon":                      map[string]any{"url": "https://mastodon.example/a.png"},
+		"image":                     map[string]any{"url": "https://mastodon.example/header.png"},
 		"manuallyApprovesFollowers": true,
 	})
 	return address, json.Unmarshal(raw, into)
@@ -112,6 +113,9 @@ func (f *fakeNodes) UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaN
 			kept.Name, kept.Alias, kept.Body = node.Name, node.Alias, node.Body
 			if node.AvatarFilename != "" {
 				kept.AvatarFilename = node.AvatarFilename
+			}
+			if node.CoverFilename != "" {
+				kept.CoverFilename = node.CoverFilename
 			}
 			copied := *kept
 			return &copied, false, nil
