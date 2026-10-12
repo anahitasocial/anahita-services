@@ -1187,6 +1187,7 @@ services:
       REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
       # Where the installation is, as other servers are told. On a
@@ -1201,9 +1202,12 @@ services:
       # the same as auth-service's secrets.
       CRYPT_BACKEND: ${CRYPT_BACKEND}
       CRYPT_LOCAL_KEY: ${CRYPT_LOCAL_KEY}
-      # In the lab only: the one authority whose certificates are trusted.
-      # Empty anywhere else, which leaves the system's own.
+      # In the lab only: the one authority whose certificates are trusted,
+      # and leave to fetch from the private addresses its servers are at.
+      # Empty anywhere else, which leaves the system's own authorities and
+      # public addresses only.
       SSL_CERT_FILE: ${ACTIVITYPUB_CA_FILE:-}
+      ACTIVITYPUB_LAB: ${ACTIVITYPUB_LAB:-}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
       - ./fedi-lab/certs:/fedi-lab-certs:ro

@@ -47,6 +47,11 @@ spec:
                   name: anahita-config
                   key: MIN_CONTENT_ACCESS
                   optional: true
+            - name: SECURE_COOKIE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: SECURE_COOKIE_KEY
             - name: REDIS_ADDR
               valueFrom:
                 configMapKeyRef:

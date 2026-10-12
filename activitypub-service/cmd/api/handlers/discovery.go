@@ -32,6 +32,23 @@ func (h *Handlers) WebFinger(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	// The installation itself, which signs what it asks of other servers
+	// in nobody's name. A server that is shown its key asks who that is.
+	if h.isInstance(resource) {
+		if ok, _ := h.siteFederates(); !ok {
+			return c.NoContent(http.StatusNotFound)
+		}
+		c.Response().Header().Set(echo.HeaderContentType, ap.JRDContentType)
+		c.Response().Header().Set("Cache-Control", "public, max-age=300")
+		return c.JSON(http.StatusOK, &ap.JRD{
+			Subject: "acct:" + h.Site.Handle(h.Site.Domain),
+			Aliases: []string{h.addresses.Instance()},
+			Links: []ap.JRDLink{
+				{Rel: "self", Type: "application/activity+json", Href: h.addresses.Instance()},
+			},
+		})
+	}
+
 	person := h.federating(h.resolve(resource))
 	if person == nil {
 		return c.NoContent(http.StatusNotFound)
@@ -59,7 +76,7 @@ func (h *Handlers) resolve(resource string) *entities.AnahitaNode {
 	case strings.HasPrefix(resource, "acct:"):
 		handle := strings.TrimPrefix(strings.TrimPrefix(resource, "acct:"), "@")
 		alias, domain, found := strings.Cut(handle, "@")
-		if !found || !strings.EqualFold(domain, h.Site.Domain) {
+		if !found || !h.isOurDomain(domain) {
 			return nil
 		}
 		return h.personByAlias(alias)
@@ -78,6 +95,36 @@ func (h *Handlers) resolve(resource string) *entities.AnahitaNode {
 		}
 	}
 	return nil
+}
+
+// isOurDomain says whether the part of a handle after the @ is this
+// installation: the domain people know it by, or the host its API is on.
+//
+// The second because of how a server checks somebody it met by their
+// address and not by their handle: it asks the host in the address who
+// "name@that-host" is, and expects to be told their real handle. Here that
+// host is the API's, which is not the handle's.
+func (h *Handlers) isOurDomain(domain string) bool {
+	if strings.EqualFold(domain, h.Site.Domain) {
+		return true
+	}
+	api, err := url.Parse(h.Site.APIURL)
+	return err == nil && api.Host != "" && strings.EqualFold(domain, api.Host)
+}
+
+// isInstance says whether a WebFinger resource names the installation
+// itself: by its address, or by the handle it goes by, which is its domain
+// twice over (example.org@example.org), as Mastodon's own is.
+func (h *Handlers) isInstance(resource string) bool {
+	if resource == h.addresses.Instance() {
+		return true
+	}
+	handle, ok := strings.CutPrefix(resource, "acct:")
+	if !ok {
+		return false
+	}
+	name, domain, found := strings.Cut(strings.TrimPrefix(handle, "@"), "@")
+	return found && strings.EqualFold(name, h.Site.Domain) && h.isOurDomain(domain)
 }
 
 func (h *Handlers) personByAlias(alias string) *entities.AnahitaNode {

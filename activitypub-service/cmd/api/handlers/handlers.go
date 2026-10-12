@@ -5,6 +5,7 @@ import (
 
 	"activitypub/ap"
 	"activitypub/data/repositories"
+	"activitypub/remote"
 
 	libhandlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/constants"
@@ -13,6 +14,7 @@ import (
 	"anahita-libs/data/services"
 	an_mw "anahita-libs/middleware"
 	"anahita-libs/policy"
+	"anahita-libs/ratelimit"
 	"anahita-libs/site"
 
 	"github.com/labstack/echo/v4"
@@ -24,12 +26,19 @@ type Env struct {
 	Nodes    services.GraphNodeGRPCInterface
 	Accounts repositories.AccountsInterface
 	Keys     repositories.KeysInterface
+	Actors   repositories.ActorsInterface
 	Crypt    crypt.Crypt
+	// What reads from other servers. Signed as the installation.
+	Fetcher remote.Fetcher
+	// Counts lookups, so that nobody can have this service call the whole
+	// internet. Nil for no limit, in tests.
+	Limiter ratelimit.Counter
 }
 
 type Handlers struct {
 	*Env
 	addresses ap.Addresses
+	signing   signing
 }
 
 func NewHandlers(env *Env) *Handlers {

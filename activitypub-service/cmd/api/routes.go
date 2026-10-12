@@ -33,6 +33,7 @@ func (r *Routes) Init(e *echo.Echo) {
 	e.GET("/.well-known/host-meta", r.handler.HostMeta, r.setViewer)
 
 	ap := e.Group("ap")
+	ap.GET("/actor", r.handler.InstanceActor, r.setViewer)
 	ap.GET("/users/:uuid", r.handler.Actor, r.setViewer)
 	ap.GET("/users/:uuid/followers", r.handler.Followers, r.setViewer)
 	ap.GET("/users/:uuid/following", r.handler.Following, r.setViewer)
@@ -42,4 +43,6 @@ func (r *Routes) Init(e *echo.Echo) {
 	activitypub.Use(r.authorize)
 	activitypub.GET("/settings", r.handler.ReadSettings)
 	activitypub.PUT("/settings", r.handler.EditSettings)
+	// Finding somebody on another server.
+	activitypub.GET("/lookup", r.handler.Lookup)
 }

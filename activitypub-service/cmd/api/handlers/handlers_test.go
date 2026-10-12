@@ -197,6 +197,8 @@ func TestWebFingerFindsWhoChoseToBeFound(t *testing.T) {
 	for _, resource := range []string{
 		"acct:ana@example.org",
 		"acct:Ana@EXAMPLE.org",
+		// Asked of the API's host, as a server does that met her by her address.
+		"acct:ana@api.example.org",
 		"https://api.example.org/ap/users/" + anaUUID,
 		"https://example.org/people/ana",
 	} {
@@ -235,6 +237,23 @@ func TestWebFingerFindsWhoChoseToBeFound(t *testing.T) {
 
 	if rec := w.get(w.h.WebFinger, "/.well-known/webfinger"); rec.Code != http.StatusBadRequest {
 		t.Errorf("asked for nobody: %d", rec.Code)
+	}
+}
+
+func TestWebFingerFindsTheInstallationItself(t *testing.T) {
+	w := newWorld()
+	for _, resource := range []string{"acct:example.org@example.org", "acct:example.org@api.example.org", "https://api.example.org/ap/actor"} {
+		rec := w.get(w.h.WebFinger, "/.well-known/webfinger?resource="+resource)
+		var jrd ap.JRD
+		_ = json.Unmarshal(rec.Body.Bytes(), &jrd)
+		if rec.Code != http.StatusOK || jrd.Subject != "acct:example.org@example.org" || len(jrd.Links) != 1 || jrd.Links[0].Href != "https://api.example.org/ap/actor" {
+			t.Errorf("%s: %d %+v", resource, rec.Code, jrd)
+		}
+	}
+
+	w.h.Site = site.Addresses{Domain: "localhost", WebURL: "http://localhost:3000", APIURL: "http://localhost"}
+	if rec := w.get(w.h.WebFinger, "/.well-known/webfinger?resource=acct:localhost@localhost"); rec.Code != http.StatusNotFound {
+		t.Errorf("a site with no address: %d", rec.Code)
 	}
 }
 

@@ -13,11 +13,15 @@ type Config struct {
 	Env              string
 	DSN              string
 	GraphServiceAddr string
-	RedisAddr        string
-	RedisPassword    string
-	RedisDB          int
-	OAuthIssuer      string
-	OAuthJWKSURL     string
+	SecureCookieKey  string
+	// For the federation lab only: go to private addresses, where the
+	// lab's servers are.
+	Lab           bool
+	RedisAddr     string
+	RedisPassword string
+	RedisDB       int
+	OAuthIssuer   string
+	OAuthJWKSURL  string
 	// How the private half of each person's signing key is kept: encrypted,
 	// by the same means auth-service keeps its secrets.
 	CryptBackend  string
@@ -30,6 +34,8 @@ func NewConfig() *Config {
 		Env:              getEnv("ENV", constants.ConfigEnvDev),
 		DSN:              os.Getenv("DSN"),
 		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
+		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
+		Lab:              os.Getenv("ACTIVITYPUB_LAB") == "on",
 		RedisAddr:        getEnv("REDIS_ADDR", "localhost:6379"),
 		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
 		RedisDB:          getIntEnv("REDIS_DB", 0),
@@ -48,6 +54,14 @@ func NewConfig() *Config {
 }
 
 func (config *Config) Validate() error {
+	if len(config.SecureCookieKey) != 32 {
+		return errors.New("SECURE_COOKIE_KEY must be 32 bytes long")
+	}
+	// The lab's rule lets this service reach inside the network it is on.
+	// Never on a live site.
+	if config.Lab && config.IsProd() {
+		return errors.New("ACTIVITYPUB_LAB is for the federation lab and cannot be on with ENV=prod")
+	}
 	var names []string
 	for name, value := range map[string]string{
 		"DSN":                config.DSN,
@@ -71,6 +85,7 @@ func (config *Config) IsProd() bool    { return config.Env == constants.ConfigEn
 
 func (config *Config) GetDSN() string              { return config.DSN }
 func (config *Config) GetGraphServiceAddr() string { return config.GraphServiceAddr }
+func (config *Config) GetSecureCookieKey() string  { return config.SecureCookieKey }
 func (config *Config) GetRedisAddr() string        { return config.RedisAddr }
 func (config *Config) GetRedisPassword() string    { return config.RedisPassword }
 func (config *Config) GetRedisDB() int             { return config.RedisDB }

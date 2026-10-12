@@ -370,7 +370,8 @@ A phase is finished only when these pages match the code. anahita-services pages
 | 0.7 Durable delivery queue | done 2026-10-12 |
 | 0.8 Routing and the TLS lab | done 2026-10-12; the gateway's routes to `activitypub-service` come with that service |
 | Phase 1, ActivityPub: the service, opting in, keys, discovery, a person's description | done 2026-10-12 |
-| Phase 1, ActivityPub: signatures, the inbox, following, posts out and in, lookup, the blocklist, the web app | not started |
+| Phase 1, ActivityPub: signing and checking requests, fetching, looking somebody up | done 2026-10-12 |
+| Phase 1, ActivityPub: the inbox, following, posts out and in, backfill, the blocklist, the web app | not started |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -392,6 +393,38 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   page, when it joined, what it says of itself with the hashtags as links,
   and the avatar and cover, which it fetched through the addresses that
   stay.
+
+**Signed requests, and looking somebody up.** `httpsig/` (signing and
+checking), `fetch/` (reading from other servers, guarded and signed),
+`remote/` (who somebody elsewhere is and what is believed of it), the
+installation's own actor at `/ap/actor`, `GET /activitypub/lookup`, and the
+table `activitypub_actors` (migration `20261028000001`).
+
+- **Tried in the lab against GoToSocial,** which answers nobody without a
+  signature it can check: `app-binary lookup @alice@gts.test` found her and
+  kept her. On the way GoToSocial fetched this installation's key and asked
+  WebFinger who it belongs to.
+- **Signatures are written here and not taken from the library the plan
+  named.** The scheme is a hundred lines and fixed; every line of it is
+  something an attacker will try, and each check has its own test.
+- **Found by trying, not by reading:**
+  - A server that is shown a key asks WebFinger for `name@<the host in the
+    key's address>`. Here that host is the API's and not the handle's, so
+    WebFinger answers for both and names the real one. Without this,
+    GoToSocial refused every signed request.
+  - The installation's own actor has to be found by WebFinger too, as
+    `example.org@example.org`.
+  - A proxy that does not pass on the `Host` it was asked for breaks every
+    signature. The lab's own front door did, for GoToSocial.
+- **The guarded HTTP client moved** from link-preview-service to
+  `anahita-libs/safehttp`, for both services.
+- **Avatars of people elsewhere are not shown yet.** Their address is kept
+  (`activitypub_actors.icon_url`); copying the picture into this
+  installation's storage, so that no reader's browser calls another server,
+  is still to do.
+- **A handle that somebody else kept here already has** falls back to
+  `name@<the server they are on>`; when that is taken too the lookup fails.
+  Rare, and to be looked at again with profile updates.
 
 **Different from the plan, or decided on the way:**
 - **Somebody who is not on the fediverse answers `404`, always,** and never

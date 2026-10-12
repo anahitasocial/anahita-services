@@ -423,7 +423,7 @@ recommendation: build_recommendation
 	@echo "${RECOMMENDATION_SRV} built and started!"
 
 # What activitypub-service is told while the lab is up.
-FEDI_LAB_ENV=PUBLIC_DOMAIN=anahita.test PUBLIC_WEB_URL=https://anahita.test PUBLIC_API_URL=https://api.anahita.test ACTIVITYPUB_CA_FILE=/fedi-lab-certs/ca.crt
+FEDI_LAB_ENV=PUBLIC_DOMAIN=anahita.test PUBLIC_WEB_URL=https://anahita.test PUBLIC_API_URL=https://api.anahita.test ACTIVITYPUB_CA_FILE=/fedi-lab-certs/ca.crt ACTIVITYPUB_LAB=on
 
 ## fedi_lab: starts the federation lab: https at anahita.test, api.anahita.test and gts.test, and a GoToSocial server to talk to. See docs/federation-lab.md
 fedi_lab:

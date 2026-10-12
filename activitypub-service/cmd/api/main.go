@@ -1,20 +1,25 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"activitypub/cmd/api/handlers"
 	"activitypub/config"
 	"activitypub/data/repositories"
+	"activitypub/fetch"
 
 	"anahita-libs/constants"
 	"anahita-libs/crypt"
 	"anahita-libs/data/services"
 	an_mw "anahita-libs/middleware"
+	"anahita-libs/sessions"
 	"anahita-libs/site"
 	"anahita-libs/validators"
 
@@ -68,13 +73,42 @@ func main() {
 	authorize := an_mw.Authorize(config, jwks)
 	setViewer := an_mw.SetViewer(config, jwks)
 
-	h := handlers.NewHandlers(&handlers.Env{
+	env := &handlers.Env{
 		Site:     addresses,
 		Nodes:    services.NewGraphNodeGRPC(config),
 		Accounts: repositories.NewAccounts(db),
 		Keys:     repositories.NewKeys(db),
+		Actors:   repositories.NewActors(db),
 		Crypt:    secrets,
-	})
+		Limiter:  sessions.NewSession(config),
+	}
+	h := handlers.NewHandlers(env)
+
+	// What reads from other servers, signed as the installation. It goes
+	// only to public addresses, except in the lab, where every server is
+	// at a private one.
+	userAgent := "Anahita/1.0 (+" + addresses.WebURL + ")"
+	if config.Lab {
+		log.Println("ACTIVITYPUB_LAB is on: private addresses are fetched from. For the federation lab only.")
+		env.Fetcher = fetch.NewWith(userAgent, h.SignAsInstance, fetch.LabAddresses)
+	} else {
+		env.Fetcher = fetch.New(userAgent, h.SignAsInstance)
+	}
+
+	// `app-binary lookup @alice@example.net`: look somebody up as the
+	// installation, print who was found, and stop. See docs/federation.md.
+	if len(os.Args) == 3 && os.Args[1] == "lookup" {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+		found, err := h.LookupFromTheCommandLine(ctx, os.Args[2])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "not found:", err)
+			os.Exit(1)
+		}
+		out, _ := json.MarshalIndent(found, "", "  ")
+		fmt.Println(string(out))
+		return
+	}
 
 	e.GET("/ping", func(c echo.Context) error {
 		return c.String(http.StatusOK, "pong")

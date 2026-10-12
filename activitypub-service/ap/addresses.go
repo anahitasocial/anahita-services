@@ -28,6 +28,10 @@ func (a Addresses) Following(uuid string) string { return a.Actor(uuid) + "/foll
 // Key is the name of a person's signing key: their address, and which key.
 func (a Addresses) Key(uuid string) string { return a.Actor(uuid) + "#main-key" }
 
+// Instance is the installation's own address, for what it signs as itself.
+func (a Addresses) Instance() string    { return a.Site.API("/ap/actor") }
+func (a Addresses) InstanceKey() string { return a.Instance() + "#main-key" }
+
 // SharedInbox takes what is for anybody here, sent once and not once for
 // each of them.
 func (a Addresses) SharedInbox() string { return a.Site.API("/inbox") }

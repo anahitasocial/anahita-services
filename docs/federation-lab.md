@@ -11,6 +11,7 @@ each at a name of its own, speaking to each other over https.
 - [Opening it in a browser](#opening-it-in-a-browser)
 - [Somebody to talk to](#somebody-to-talk-to)
 - [Having GoToSocial look somebody up](#having-gotosocial-look-somebody-up)
+- [Looking somebody on GoToSocial up from here](#looking-somebody-on-gotosocial-up-from-here)
 - [Asking as another server would](#asking-as-another-server-would)
 - [Stopping and emptying it](#stopping-and-emptying-it)
 - [What it is not](#what-it-is-not)
@@ -37,7 +38,9 @@ real site. Nothing in the lab is reachable from outside your machine.
 
 While the lab is up, `activitypub-service` is this installation's part in
 it: `make fedi_lab` starts it again as the site `anahita.test`, reached at
-`https://api.anahita.test`, trusting the lab's authority and nothing else.
+`https://api.anahita.test`, trusting the lab's authority and nothing else,
+and allowed to fetch from the private addresses the lab's servers are at
+(`ACTIVITYPUB_LAB=on`).
 `make fedi_lab_down` puts it back as it was.
 
 `fedi-lab-tls` is the front door: an nginx that holds the certificate and is
@@ -105,6 +108,18 @@ fetches the person's description and their pictures, and answers with the
 account as it understood it. Somebody who has not turned federation on is
 not found. Until the web app has the switch, it is turned on for a person
 with `PUT /activitypub/settings` ([Federation](federation.md#the-api)).
+
+## Looking somebody on GoToSocial up from here
+
+The other direction, and the test that what this installation signs is
+accepted: GoToSocial answers for nobody without a signature it can check.
+
+~~~sh
+docker compose exec activitypub-service /app/app-binary lookup @alice@gts.test
+~~~
+
+It prints who was found, and keeps her as a person of another server in the
+development database.
 
 ## Asking as another server would
 

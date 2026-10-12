@@ -54,6 +54,30 @@ func NewActor(a Addresses, person *entities.AnahitaNode, publicKeyPEM string) *A
 	return actor
 }
 
+// NewInstanceActor describes the installation itself: who signs what it
+// asks of other servers in nobody's name.
+func NewInstanceActor(a Addresses, publicKeyPEM string) *Actor {
+	return &Actor{
+		Context:           actorContext,
+		ID:                a.Instance(),
+		Type:              "Application",
+		PreferredUsername: a.Site.Domain,
+		Name:              a.Site.Domain,
+		URL:               a.Site.WebURL,
+		Inbox:             a.SharedInbox(),
+		Outbox:            a.Instance() + "/outbox",
+		Followers:         a.Instance() + "/followers",
+		Following:         a.Instance() + "/following",
+		Endpoints:         &Endpoints{SharedInbox: a.SharedInbox()},
+		PublicKey: PublicKey{
+			ID:           a.InstanceKey(),
+			Owner:        a.Instance(),
+			PublicKeyPem: publicKeyPEM,
+		},
+		ManuallyApprovesFollowers: true,
+	}
+}
+
 // mediaType is what kind of picture a stored name says it is.
 func mediaType(filename string) string {
 	switch strings.ToLower(path.Ext(filename)) {
