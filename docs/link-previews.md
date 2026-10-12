@@ -105,8 +105,9 @@ or with an address that is not in the body, a new note has no card.
 
 An edited note keeps the card it has for as long as its link is still in
 the body, whatever is sent, and is given another only when the address sent
-has a preview in the store. With the link taken out of the note, the card
-goes too.
+is another link's and has a preview in the store. With the link taken out
+of the note, the card goes too, and `link_preview_remove` takes it off
+while the link stays.
 
 Wherever the note is sent, it has `link_preview` with the same fields as
 above. A repost carries the card of the note it reposts.

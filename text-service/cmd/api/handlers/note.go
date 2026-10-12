@@ -156,7 +156,7 @@ func (h *noteHandler) Edit(c echo.Context) error {
 	}
 	medium.ModifiedBy = viewer.ID
 	// Its preview follows the edit: the one kept now, or none.
-	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body)
+	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body, req.LinkPreviewRemove)
 
 	medium, err = h.Srv.MediaGRPC.Edit(medium, viewer)
 	if err != nil {
@@ -273,7 +273,7 @@ func (h *noteHandler) Add(c echo.Context) error {
 	}
 
 	// The preview of a link in it, when its writer kept one.
-	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body)
+	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body, false)
 
 	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)
 	if err != nil {
@@ -305,9 +305,23 @@ func (h *noteHandler) Add(c echo.Context) error {
 // A note that already has a card keeps it for as long as its link is still
 // in the note, whatever is sent: a card is as the page was when the note
 // was written, and correcting a word is no reason to lose it or to fetch
-// it again. With the link gone, so is the card.
-func (h *noteHandler) withLinkPreview(meta []byte, address, body string) []byte {
+// it again. With the link gone, so is the card; and `remove` is its writer
+// taking it off while the link stays.
+func (h *noteHandler) withLinkPreview(meta []byte, address, body string, remove bool) []byte {
+	existing := linkpreviews.FromMeta(meta)
+
+	if remove {
+		if existing == nil {
+			return meta
+		}
+		return linkpreviews.IntoMeta(meta, nil)
+	}
+
 	if normal, ok := linkpreviews.Normalise(address); ok && h.Previews != nil && strings.Contains(body, strings.TrimSpace(address)) {
+		// The card it already has for this link is the one it keeps.
+		if existing != nil && existing.URL == normal {
+			return meta
+		}
 		if preview, kept := h.Previews.Get(normal); kept && preview.Usable() {
 			return linkpreviews.IntoMeta(meta, linkpreviews.NewSnapshot(preview))
 		}
@@ -315,7 +329,6 @@ func (h *noteHandler) withLinkPreview(meta []byte, address, body string) []byte 
 
 	// Nothing to put in and nothing there to take out: left as it was,
 	// which for most notes is no meta at all.
-	existing := linkpreviews.FromMeta(meta)
 	if existing == nil {
 		return meta
 	}

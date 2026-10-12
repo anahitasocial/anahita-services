@@ -51,6 +51,9 @@ type NoteEditRequest struct {
 	// As on NoteAddRequest. Left out, the note keeps the preview it has for
 	// as long as that link is still in it.
 	LinkPreviewURL string `json:"link_preview_url" form:"link_preview_url" validate:"omitempty,max=2000"`
+	// The writer took the card off: the note is saved without one, though
+	// its link is still there.
+	LinkPreviewRemove bool `json:"link_preview_remove" form:"link_preview_remove"`
 	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
 	// by the author; left out, the post has none. See package language.
 	Language string `form:"language" validate:"omitempty,max=12"`
