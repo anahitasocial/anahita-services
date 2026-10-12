@@ -37,7 +37,7 @@ type Subject struct {
 }
 
 var (
-	postPath  = regexp.MustCompile(`^/(notes|photos|articles|topics)/(\d+)(?:-[^/]*)?/?$`)
+	postPath  = regexp.MustCompile(`^/(notes|photos|videos|articles|topics)/(\d+)(?:-[^/]*)?/?$`)
 	actorPath = regexp.MustCompile(`^/(groups|events)/(\d+)(?:-[^/]*)?(?:/.*)?$`)
 	// Not a person's page: /people/add, and a person's settings and
 	// notifications, which are theirs alone.
@@ -181,6 +181,7 @@ func actor(node *entities.AnahitaNode, kind string) *Subject {
 var postTypes = map[string]string{
 	"notes":    "note",
 	"photos":   "photo",
+	"videos":   "video",
 	"articles": "article",
 	"topics":   "topic",
 }

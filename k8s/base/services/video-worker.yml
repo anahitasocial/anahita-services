@@ -1,0 +1,88 @@
+# video-worker: Makes the sizes of each uploaded video with ffmpeg, and then the post. Answers no requests. One video at a time for each replica; add replicas to make more at once.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: video-worker
+  template:
+    metadata:
+      labels:
+        app: video-worker
+    spec:
+      containers:
+        - name: video-worker
+          image: anahita/video-worker
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ENV
+            # Mutual TLS on the calls to the gRPC services. Unset means on,
+            # except with ENV=dev.
+            - name: GRPC_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRPC_TLS
+                  optional: true
+            - name: FILE_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FILE_SERVICE_ADDR
+            - name: GRAPH_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRAPH_SERVICE_ADDR
+            - name: DSN
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: DSN
+            - name: VIDEO_MAX_BYTES
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: VIDEO_MAX_BYTES
+                  optional: true
+            - name: VIDEO_MAX_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: VIDEO_MAX_SECONDS
+                  optional: true
+            # The sizes each video is made in, by height.
+            - name: VIDEO_RENDITIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: VIDEO_RENDITIONS
+                  optional: true
+          resources:
+            # Encoding takes what it is given. These are what it needs to
+            # get on at all.
+            requests:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: work
+              mountPath: /work
+            - name: grpc-tls
+              mountPath: /run/secrets/grpc
+              readOnly: true
+      volumes:
+        # Where a video is kept while it is worked on: as much room as the
+        # largest upload and everything made of it.
+        - name: work
+          emptyDir: {}
+        # The certificate this service presents when it calls a gRPC
+        # service, from k8s/base/grpc-tls.yml.
+        - name: grpc-tls
+          secret:
+            secretName: anahita-grpc-client

@@ -139,7 +139,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
-| [Video service](plans/video-service.md) | 16 | not started |
+| [Video: video-service and a transcoding worker](plans/video-service.md) | 16 | services built 2026-10-11; the web app's part is next |
 | [Creative Commons licences](plans/content-licences.md) | 19 | kept for later (2026-10-04); look again after items 16 and 17 |
 | [Download your data](plans/data-export.md) | 21 | not started |
 | [Post insights](plans/post-insights.md) | 22, set aside: a post's activity was built instead | not started |
@@ -203,3 +203,16 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
    - [Settings](web-shell.md#settings)
    - [Not running it](web-shell.md#not-running-it)
    - [What is not built](web-shell.md#what-is-not-built)
+18. [Videos](videos.md) — a video sent straight to storage, the worker that makes a post of it, and how it is played
+   - [The parts](videos.md#the-parts)
+   - [Sending a video](videos.md#sending-a-video)
+   - [What the worker does](videos.md#what-the-worker-does)
+   - [What a file has to be](videos.md#what-a-file-has-to-be)
+   - [The post](videos.md#the-post)
+   - [Playing it](videos.md#playing-it)
+   - [Sizes](videos.md#sizes)
+   - [Endpoints](videos.md#endpoints)
+   - [Settings](videos.md#settings)
+   - [Storage](videos.md#storage)
+   - [Running it, and not running it](videos.md#running-it-and-not-running-it)
+   - [What is not built](videos.md#what-is-not-built)

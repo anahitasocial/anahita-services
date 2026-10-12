@@ -30,6 +30,8 @@ resources:
   - services/location.yml
   - services/notification.yml
   - services/photo.yml
+  - services/video.yml
+  - services/video-worker.yml
   - services/recommendation.yml
   - services/search.yml
   - services/socialgraph.yml

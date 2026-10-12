@@ -103,4 +103,23 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Implementation | services built 2026-10-11; web app next |
+
+## What was built
+
+The services, 2026-10-11. The page that describes them is [Videos](../videos.md).
+
+- `file-grpc-service`: large files sent to the store in parts, and addresses for a worker to read and write at, each held to its place (`uploads/`, `videos/`).
+- `video-service` and `video-worker`, one module with two programs. Migration `20261022000001_video_uploads`.
+- `video` on a post wherever it is sent; the kind `video` in custom feeds; `/videos/<id>` in the web shell; a video's files removed with the post and by an account purge.
+- `VIDEO_UPLOADS`, `VIDEO_MAX_BYTES`, `VIDEO_MAX_SECONDS` published in NodeInfo.
+
+**Different from the plan:**
+
+- **There is no post until the video is ready.** The plan made the node when the upload began and hid it until it was `ready`. Instead the upload row carries what the post will say, and the worker makes the post last. Nothing in the graph has to know about a post that is not finished, and an abandoned upload leaves no node behind.
+- **One table, `video_uploads`**, is the upload, the job and its record. No separate `videos` and `video_jobs`: what a video post has is in its node's `meta`.
+- **Sizes are `1080,720,360`** by default, and up to 4K by setting, at the user's request (2026-10-11). The plan had 720 and 360.
+- **Files are reached through `/videos/:id/files/:name`**, which asks who may see the post and redirects to a signed address. The plan assumed stable public media addresses, which do not exist.
+- **How much was uploaded is asked of the store** when an upload is finished, and the worker checks again as it reads.
+- **The worker tidies up abandoned uploads itself**; the account sweeper is not involved.
+- **Not built:** a notification when a video is ready or has failed, and PeerTube embeds, which are the web app's.

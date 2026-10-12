@@ -11,6 +11,7 @@
 package purge
 
 import (
+	"anahita-libs/videos"
 	"fmt"
 	"log"
 	"strings"
@@ -238,6 +239,11 @@ func filePaths(node *entities.AnahitaNode) []string {
 				paths = append(paths, image.Url)
 			}
 		}
+	}
+
+	// A video post's sizes and its poster, which its meta lists.
+	if node.Type == videos.NodeType {
+		paths = append(paths, videos.FromMeta(node.Meta).Keys()...)
 	}
 
 	return paths

@@ -28,6 +28,7 @@ var notMappedFromANode = map[string]string{
 	"Event":       "nil unless the node is an event with its details attached",
 	"Feed":        "nil unless the node is a custom feed",
 	"LinkPreview": "nil unless the node is a note carrying the preview of a link",
+	"Video":       "nil unless the node is a video post",
 }
 
 // fullyPopulatedNode sets every source field the response is expected to read.
