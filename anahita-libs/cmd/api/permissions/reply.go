@@ -138,6 +138,12 @@ func CanReply(ctx *ReplyAccessContext) bool {
 		return false
 	}
 
+	// A post from another server is not replied to from here yet: the
+	// reply would not reach whoever it answers.
+	if ctx.Root.IsRemote() {
+		return false
+	}
+
 	// A reply is a post. A token that may not write posts may not write
 	// this one.
 	if !ctx.Viewer.HasScope(constants.OAuthScopeMediaWrite) {

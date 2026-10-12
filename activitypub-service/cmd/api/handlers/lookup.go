@@ -187,6 +187,8 @@ func (h *Handlers) keep(actor *remote.Actor) (*entities.AnahitaNode, error) {
 	node.Name = actor.Name
 	node.Alias = actor.Handle
 	node.Body = actor.Bio
+	// Their page on their own server: where they are looked at in full.
+	node.WebsiteURL = actor.Page
 
 	saved, _, err := h.Nodes.UpsertRemote(node)
 	// Somebody else kept here goes by that handle: it was theirs once and

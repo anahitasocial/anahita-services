@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"strings"
 )
 
 type personHandler struct {
@@ -147,7 +148,7 @@ func (h *personHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(person.ID, constants.NodeActorPersonEntityType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(person.ID, personTypeOf(req.Alias), viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -701,6 +702,17 @@ func (h *personHandler) onAfterFetched(c echo.Context, node *entities.Person) er
 	// services enforce.
 	node.Authorized.Audiences = permissions.PostAudiences(viewer, &node.AnahitaNode, actorAccessCtx.ActorViewerRel)
 
+	// Somebody on another server is looked at and followed, and nothing
+	// else: their profile is theirs, there. Nobody here changes it, runs it
+	// or posts on it, an administrator included.
+	if node.IsRemote() {
+		node.Authorized.Edit = false
+		node.Authorized.Delete = false
+		node.Authorized.Administration = false
+		node.Authorized.Composers = []string{}
+		node.Authorized.Audiences = []string{}
+	}
+
 	return nil
 }
 
@@ -714,11 +726,19 @@ func (h *personHandler) onAfterFetched(c echo.Context, node *entities.Person) er
 func (h *personHandler) readPersonByAlias(c echo.Context, alias string) (*entities.Person, error) {
 	req := services.NewGraphNodeRequest().ReadByAlias
 	req.Alias = alias
-	req.NodeType = constants.NodeActorPersonEntityType
+	req.NodeType = personTypeOf(alias)
 
 	node, err := h.Srv.GraphNodeGRPC.ReadByAlias(req)
 	if err != nil {
 		return nil, err
+	}
+
+	// Somebody on another server is read here and nowhere else in this
+	// file: every route that changes a person reads them with fetchPerson,
+	// as a person of this installation, and does not find somebody who is
+	// not one.
+	if req.NodeType != constants.NodeActorPersonEntityType {
+		return h.fetchPersonOfType(c, node.ID, req.NodeType)
 	}
 
 	// Resolved to an id, then read through the access-checked path rather than
@@ -729,7 +749,21 @@ func (h *personHandler) readPersonByAlias(c echo.Context, alias string) (*entiti
 	return h.fetchPerson(c, node.ID)
 }
 
+// personTypeOf says what kind of person a handle is: somebody here, or
+// somebody on another server, whose handle has their server in it
+// (alice@mastodon.example). A username here cannot contain an @.
+func personTypeOf(alias string) string {
+	if strings.Contains(alias, "@") {
+		return constants.NodeActorActivityPubPersonEntityType
+	}
+	return constants.NodeActorPersonEntityType
+}
+
 func (h *personHandler) fetchPerson(c echo.Context, id int64) (*entities.Person, error) {
+	return h.fetchPersonOfType(c, id, constants.NodeActorPersonEntityType)
+}
+
+func (h *personHandler) fetchPersonOfType(c echo.Context, id int64, personType string) (*entities.Person, error) {
 	viewer := getViewer(c)
 
 	// One read, not two stitched together.
@@ -743,7 +777,7 @@ func (h *personHandler) fetchPerson(c echo.Context, id int64) (*entities.Person,
 	// The stitch also had a failure mode of its own: a people_people row whose
 	// node did not come back left the caller holding a Person with a zero
 	// AnahitaNode rather than an error.
-	actor, err := h.Srv.ActorsGRPC.ReadOfType(id, constants.NodeActorPersonEntityType, viewer)
+	actor, err := h.Srv.ActorsGRPC.ReadOfType(id, personType, viewer)
 	if err != nil {
 		log.Println(err)
 		return nil, err

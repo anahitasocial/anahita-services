@@ -24,6 +24,11 @@ import (
 // owner has to come from the actor read, which merges the actor_features
 // defaults in; rel is owner's relationship to the viewer.
 func CanPostTo(viewer *entities.Viewer, owner *entities.AnahitaNode, rel *entities.ActorRelation, service, entity string) (bool, error) {
+	// Nobody posts on the profile of somebody on another server, an
+	// administrator included: it is not this installation's profile.
+	if owner != nil && owner.IsRemote() {
+		return false, fmt.Errorf("actor %d is on another server", owner.GetID())
+	}
 	if viewer.IsAdmin() {
 		return true, nil
 	}
@@ -125,6 +130,11 @@ func CanReplyToPost(viewer *entities.Viewer, post *entities.AnahitaNode, rel *en
 // like-service enforces exactly this. post.Owner has to be loaded.
 func CanLike(viewer *entities.Viewer, post *entities.AnahitaNode, rel *entities.ActorRelation) bool {
 	if viewer == nil || !viewer.Authenticated || !viewer.HasScope(constants.OAuthScopeLikesWrite) {
+		return false
+	}
+	// A post from another server is not liked from here yet: its author
+	// would never be told, so the like would be a lie to whoever made it.
+	if post != nil && post.IsRemote() {
 		return false
 	}
 

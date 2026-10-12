@@ -6,7 +6,11 @@ import (
 )
 
 type NodeItem struct {
-	ID            int64     `json:"id"`
+	ID int64 `json:"id"`
+	// What it is called on the server it came from, and that server, when it
+	// came from another. Left out of everything made here.
+	URI           string    `json:"uri,omitempty"`
+	OriginDomain  string    `json:"origin_domain,omitempty"`
 	Type          string    `json:"type"`
 	Name          string    `json:"name,omitempty"`
 	Alias         string    `json:"alias,omitempty"`
@@ -86,6 +90,8 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 
 	return &NodeItem{
 		ID:                   node.ID,
+		URI:                  node.URI,
+		OriginDomain:         node.OriginDomain,
 		Type:                 node.Type,
 		Name:                 node.Name,
 		Alias:                node.Alias,

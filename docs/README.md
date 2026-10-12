@@ -225,6 +225,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Following somebody on another server](federation.md#following-somebody-on-another-server)
    - [Posts going out](federation.md#posts-going-out)
    - [Posts coming in](federation.md#posts-coming-in)
+   - [What can be done with what came from elsewhere](federation.md#what-can-be-done-with-what-came-from-elsewhere)
    - [The inbox](federation.md#the-inbox)
    - [What is sent, and when it does not arrive](federation.md#what-is-sent-and-when-it-does-not-arrive)
    - [Signing keys and signed requests](federation.md#signing-keys-and-signed-requests)

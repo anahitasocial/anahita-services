@@ -40,6 +40,10 @@ func fullyPopulatedNode() *entities.AnahitaNode {
 	n.Alias = "ada"
 	n.Body = "Mathematician."
 	n.WebsiteURL = "https://example.com"
+	// Set only on somebody from another server; here so that the check of
+	// every field has something to find.
+	n.URI = "https://mastodon.example/users/ada"
+	n.OriginDomain = "mastodon.example"
 	n.Verified = true
 	n.Enabled = true
 	// The three that carry a viewer-facing setting. Access especially: the

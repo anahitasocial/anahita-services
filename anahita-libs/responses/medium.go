@@ -8,14 +8,18 @@ import (
 )
 
 type MediumNodeItem struct {
-	ID        int64     `json:"id"`
-	Type      string    `json:"type"`
-	Name      string    `json:"name,omitempty"`
-	Alias     string    `json:"alias,omitempty"`
-	Body      string    `json:"body,omitempty"`
-	Excerpt   string    `json:"excerpt,omitempty"`
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	Mimetype  string    `json:"mimetype,omitempty"`
+	ID int64 `json:"id"`
+	// What it is called on the server it came from, and that server, when it
+	// came from another. Left out of everything made here.
+	URI          string    `json:"uri,omitempty"`
+	OriginDomain string    `json:"origin_domain,omitempty"`
+	Type         string    `json:"type"`
+	Name         string    `json:"name,omitempty"`
+	Alias        string    `json:"alias,omitempty"`
+	Body         string    `json:"body,omitempty"`
+	Excerpt      string    `json:"excerpt,omitempty"`
+	CreatedAt    time.Time `json:"created_at,omitempty"`
+	Mimetype     string    `json:"mimetype,omitempty"`
 	// The language the author said it is written in. Left out when they did
 	// not say.
 	Language string `json:"language,omitempty"`
@@ -61,16 +65,20 @@ type MediumNodeItem struct {
 }
 
 type MediumNode struct {
-	ID        int64     `json:"id"`
-	Type      string    `json:"type"`
-	Name      string    `json:"name,omitempty"`
-	Alias     string    `json:"alias,omitempty"`
-	Body      string    `json:"body,omitempty"`
-	Excerpt   string    `json:"excerpt,omitempty"`
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	Mimetype  string    `json:"mimetype,omitempty"`
-	Language  string    `json:"language,omitempty"`
+	ID int64 `json:"id"`
+	// What it is called on the server it came from, and that server, when it
+	// came from another. Left out of everything made here.
+	URI          string    `json:"uri,omitempty"`
+	OriginDomain string    `json:"origin_domain,omitempty"`
+	Type         string    `json:"type"`
+	Name         string    `json:"name,omitempty"`
+	Alias        string    `json:"alias,omitempty"`
+	Body         string    `json:"body,omitempty"`
+	Excerpt      string    `json:"excerpt,omitempty"`
+	CreatedAt    time.Time `json:"created_at,omitempty"`
+	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	Mimetype     string    `json:"mimetype,omitempty"`
+	Language     string    `json:"language,omitempty"`
 	// As on MediumNodeItem.
 	ParentID int64 `json:"parent_id,omitempty"`
 	RootID   int64 `json:"root_id,omitempty"`
@@ -138,6 +146,8 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 
 	return &MediumNodeItem{
 		ID:                 node.ID,
+		URI:                node.URI,
+		OriginDomain:       node.OriginDomain,
 		Type:               node.Type,
 		Name:               node.Name,
 		Alias:              node.Alias,
@@ -196,6 +206,8 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 
 	return &MediumNode{
 		ID:                 node.ID,
+		URI:                node.URI,
+		OriginDomain:       node.OriginDomain,
 		Type:               node.Type,
 		Name:               node.Name,
 		Alias:              node.Alias,

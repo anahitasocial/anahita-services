@@ -374,7 +374,8 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: the inbox, being followed from elsewhere, the delivery worker | done 2026-10-13 |
 | Phase 1, ActivityPub: following from here, and the other server's yes or no | done 2026-10-13 |
 | Phase 1, ActivityPub: notes out and in, with their changes and deletions | done 2026-10-13 |
-| Phase 1, ActivityPub: profile changes and opting out, backfill, the blocklist and limits, the web app | not started |
+| Phase 1, ActivityPub: the web app: the switch, people and posts from elsewhere, the lookup | done 2026-10-13 |
+| Phase 1, ActivityPub: profile changes and opting out, avatars of people elsewhere, backfill, the blocklist and limits, the sweep for lost events | not started |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -396,6 +397,26 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   page, when it joined, what it says of itself with the hashtags as links,
   and the avatar and cover, which it fetched through the addresses that
   stay.
+
+**The web app, and what may be done with what came from elsewhere.**
+
+- **Web:** the Fediverse card under Settings › Privacy; a remote person
+  opened at `/people/<handle>` by the same page as anybody, with their
+  whole handle, a notice that they are on another server and a link to
+  their page there; "View on <server>" on a remote post; the lookup card on
+  the search page. Tests for the helpers; the app builds.
+- **Services:** `GET /people/<handle>` in actor-service serves a remote
+  person, read-only; responses carry `uri` and `origin_domain`; and the
+  shared permissions refuse posting on a remote profile, changing a remote
+  post, and liking or replying to one, for everybody, administrators
+  included (`permissions/remote_test.go`). An administrator could do all of
+  these before this.
+- **Different from the plan:** the plan had the app choose a badge by the
+  person's type and show "Reply on <server>" links. The notice and the
+  "View on" link are what was built; a reply there is one click further.
+  Likes and replies are refused by the server, not merely hidden.
+- **Not tried in a browser by me.** The API was: a remote person's profile
+  and feed answer for a visitor, and nobody@nowhere is not found.
 
 **Notes, out and in.** `notes.go` and `ap/note.go`; the inbox's `Create`,
 `Update` and `Delete`; `/ap/notes/<uuid>` and the outbox; the graph's

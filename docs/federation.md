@@ -5,10 +5,10 @@ and what an installation has to do for that to happen.
 
 **This is being built.** What is described here is what works today: a
 person can choose to be found, people follow each other across servers
-either way round, and their public notes travel with the follow. The web
-app cannot yet show somebody from another server or what they post, so
-none of it can be seen there yet. Replies, likes, reposts, pictures and
-profile changes do not travel yet.
+either way round, their public notes travel with the follow, and the web
+app has the switch, the lookup, and shows people and posts from other
+servers. Replies, likes, reposts, pictures and profile changes do not
+travel yet.
 
 ## Contents
 
@@ -22,6 +22,7 @@ profile changes do not travel yet.
 - [Following somebody on another server](#following-somebody-on-another-server)
 - [Posts going out](#posts-going-out)
 - [Posts coming in](#posts-coming-in)
+- [What can be done with what came from elsewhere](#what-can-be-done-with-what-came-from-elsewhere)
 - [The inbox](#the-inbox)
 - [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
 - [Signing keys and signed requests](#signing-keys-and-signed-requests)
@@ -248,6 +249,26 @@ in the name of whoever it belongs to
 **Not kept:** pictures and other attachments, replies, boosts, polls, and
 what was posted before the follow.
 
+## What can be done with what came from elsewhere
+
+Somebody from another server, and what they post, are looked at here and
+followed, and little else. The rules are the installation's own, in
+`anahita-libs/cmd/api/permissions`, so every service keeps them:
+
+| | Allowed? |
+| --- | --- |
+| Reading their profile, at `GET /people/<handle>` with the whole handle (`alice@mastodon.example`) | As for any public profile. It answers with `uri` and `origin_domain`, which nothing made here has |
+| Following and unfollowing them, blocking them | Yes, through the same routes as for anybody |
+| Changing their profile, their settings, their pictures | Nobody, an administrator included: every route that changes a person reads them as a person of this installation, and does not find them |
+| Posting on their profile | Nobody |
+| Changing a post of theirs | Nobody. An administrator may remove it from this installation |
+| Liking or replying to a post of theirs | Not yet: it would never reach them |
+| Reposting, saving a post of theirs | Yes; it stays here |
+
+Their avatar is not shown yet: its address on their server is kept, and
+the picture is to be copied here, so that no reader's browser calls
+another server.
+
 ## The inbox
 
 `POST /inbox`, and `POST /ap/users/<uuid>/inbox` for each person: the same
@@ -400,6 +421,7 @@ it.
 | Following from here | `cmd/api/handlers/events.go`, listening for `edge.follow.*` on the bus (`AMQP_ADDR`) |
 | Posts going out | `cmd/api/handlers/notes.go`, `ap/note.go`, listening for `node.medium.*`, table `activitypub_objects` |
 | Posts coming in | `cmd/api/handlers/inbox.go`: `received`, `withdrawn` |
+| What may be done with what came from elsewhere | `anahita-libs/cmd/api/permissions` (`remote_test.go` holds the rule); `actor-service/cmd/api/handlers/person.go`: `personTypeOf` |
 | What is sent | `cmd/api/handlers/deliver.go`, `ap/activity.go`, table `activitypub_deliveries`, over `anahita-libs/federation` (`queue.go`) |
 | The installation's own actor | `cmd/api/handlers/instance.go` |
 | A person's choice | `cmd/api/handlers/settings.go`, table `activitypub_accounts` |

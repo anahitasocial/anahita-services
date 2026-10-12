@@ -6,11 +6,15 @@ import (
 )
 
 type ActorNodeItem struct {
-	ID    int64  `json:"id"`
-	Type  string `json:"type"`
-	Name  string `json:"name,omitempty"`
-	Alias string `json:"alias,omitempty"`
-	Body  string `json:"body,omitempty"`
+	ID int64 `json:"id"`
+	// What it is called on the server it came from, and that server, when it
+	// came from another. Left out of everything made here.
+	URI          string `json:"uri,omitempty"`
+	OriginDomain string `json:"origin_domain,omitempty"`
+	Type         string `json:"type"`
+	Name         string `json:"name,omitempty"`
+	Alias        string `json:"alias,omitempty"`
+	Body         string `json:"body,omitempty"`
 	// One link on the profile. Rendered as an anchor, so the value is
 	// validated to http(s) on the way in — see requests/actor.go.
 	WebsiteURL string `json:"website_url,omitempty"`
@@ -139,11 +143,13 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 	}
 
 	return &ActorNodeItem{
-		ID:    node.ID,
-		Type:  node.Type,
-		Name:  node.Name,
-		Alias: node.Alias,
-		Body:  node.Body,
+		ID:           node.ID,
+		URI:          node.URI,
+		OriginDomain: node.OriginDomain,
+		Type:         node.Type,
+		Name:         node.Name,
+		Alias:        node.Alias,
+		Body:         node.Body,
 		// Declared and never assigned until this was caught: the column, the
 		// proto and the response struct all carried it while the mapper did
 		// not, so it stored correctly and never appeared on the wire.
