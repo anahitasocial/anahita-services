@@ -342,7 +342,7 @@ The shared module every service imports:
 | `grpctls` | Mutual TLS for the calls between services |
 | `ratelimit` | A counter in Redis: so many of something in a window, for each person |
 | `policy` | The installation's settings on who may see what, which several services must agree on |
-| `federation` | What the services that speak to other servers share. So far the text of a post, there and back: Markdown to HTML that is safe to send, and HTML that arrived to Markdown that is safe to keep |
+| `federation` | What the services that speak to other servers share: the text of a post there and back (Markdown to HTML that is safe to send, HTML that arrived to Markdown that is safe to keep), and the queue of what is to be sent |
 | `site` | Where the installation is, as the internet sees it: its domain, and the addresses of its web app and API. See [What a node is called elsewhere](#what-a-node-is-called-elsewhere) |
 | `language` | The language a post is written in |
 | `feeds` | What a custom feed is made of, and the rules a definition keeps |
@@ -387,9 +387,25 @@ by servers this one may never hear from again.
   not a person elsewhere or a note of theirs, and anything under one of this
   installation's own addresses (`graph-grpc-service/data/repositories/nodes_remote.go`).
 
+- **A public profile's pictures have an address that stays,**
+  `/avatars/<uuid>/<size>` and `/covers/<uuid>/<size>` on the API, which
+  sends whoever asks on to a freshly signed one. Another server keeps the
+  address of an avatar for weeks; the signed one lasts a quarter of an hour.
+  Only what somebody not signed in may see is answered for
+  (`identity-image-service/cmd/api/handlers/public.go`).
+- **What is to be sent to another server waits in a table** until it has
+  been sent, or tried for two days (`anahita-libs/federation`, `queue.go`).
+  The bus cannot promise that a message arrives, and another server may be
+  down for an afternoon. Each protocol's service has a table of its own and
+  any number of workers on it; a row is handed to one at a time.
+- **The web app's host answers what other servers ask it under
+  `/.well-known`** by sending them on to the API
+  ([The web shell](web-shell.md)).
+
 This is groundwork for federation
 ([plans/federation.md](plans/federation.md)). Nothing is sent to or kept
-from another server yet: no service calls any of this.
+from another server yet: no service calls any of this. To try what is built
+on it, see [The federation lab](federation-lab.md).
 
 ## Naming dates and times
 

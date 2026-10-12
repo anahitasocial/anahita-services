@@ -51,6 +51,9 @@ func main() {
 	// unauthenticated requests; the viewer it builds from the token
 	// claims is read by handlers via an_mw.GetViewer.
 	authorize := an_mw.Authorize(config, jwks)
+	// For the two addresses anybody may ask: it is what refuses them on a
+	// site for members only.
+	setViewer := an_mw.SetViewer(config, jwks)
 
 	// create handlers
 	hEnv := &handlers.Env{
@@ -66,7 +69,7 @@ func main() {
 	})
 
 	// create routes
-	NewRoutes(h, authorize).Init(e)
+	NewRoutes(h, authorize, setViewer).Init(e)
 
 	// start server
 	err := e.Start(fmt.Sprintf(":%v", webPort))

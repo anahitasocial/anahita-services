@@ -1,6 +1,7 @@
 package main
 
 import (
+	"anahita-libs/site"
 	"log"
 	"net/http"
 	"os"
@@ -41,6 +42,7 @@ func main() {
 		Signer:    &shell.FileSigner{Files: services.NewFilesGRPC(config)},
 		Dir:       config.WebBuildDir,
 		PublicURL: config.PublicWebURL,
+		APIURL:    site.FromEnv().APIURL,
 	}
 
 	mux := http.NewServeMux()

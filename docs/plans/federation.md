@@ -364,11 +364,11 @@ A phase is finished only when these pages match the code. anahita-services pages
 | 0.1 Hosting layout | settled by item 10, 2026-10-11: see below |
 | 0.2 UUIDs on nodes | done 2026-10-11 |
 | 0.3 Public addresses | done 2026-10-11 |
-| 0.4 Stable media addresses | not started |
+| 0.4 Stable media addresses | done 2026-10-12, for avatars and covers |
 | 0.5 Remote identity | the graph's part done 2026-10-11; the protocols' own tables come with each service |
 | 0.6 Content conversion | done 2026-10-11 |
-| 0.7 Durable delivery queue | not started |
-| 0.8 Routing and the TLS lab | not started |
+| 0.7 Durable delivery queue | done 2026-10-12 |
+| 0.8 Routing and the TLS lab | done 2026-10-12; the gateway's routes to `activitypub-service` come with that service |
 | Phase 1 | not started |
 
 ## What was built
@@ -418,6 +418,63 @@ https.
   they are** (auth-service's `FRONTEND_URL`, actor-service's `WEB_ORIGIN`).
   They agree with this package wherever the usual hosts are used, and it
   reads `FRONTEND_URL` too.
+
+**0.4, an address for a picture that does not change.**
+`GET /avatars/<uuid>/<size>` and `GET /covers/<uuid>/<size>`, in
+`identity-image-service`, answer with a redirect to a freshly signed
+address, kept for five minutes.
+
+- **Only for what anybody may see.** The node is asked about as somebody not
+  signed in and must say of itself that it is public; a members-only site
+  answers for nothing. Everything else is not found, with nothing said.
+- **By UUID and by the node, not by the file's key** as the plan had it
+  (`/media/<key>`). An address made of a key would have sent anybody on to
+  any file whose name they could work out, whoever it was meant for.
+- **Avatars and covers only.** They are what a person's description to
+  another server carries. A photo post's images get theirs when photos
+  federate (phase 3).
+- **Not built: letting another server's address for a picture pass through
+  unsigned.** A picture shown straight from another server tells that server
+  who looked. A remote person's avatar is to be copied into this
+  installation's storage, as a link preview's picture already is; that is
+  for phase 1, with the service that fetches them.
+
+**0.7, the queue of what is to be sent.** `anahita-libs/federation`
+(`queue.go`): `Enqueue`, `Claim`, `Done`, `Fail` and `Run`, over a table
+whose shape is `TableSQL`. Each protocol's service has a table of its own.
+
+- **A row is taken by putting off when it is next due,** and not by a state
+  of its own. A worker that stops leaves nothing to put right: its row is
+  simply due again ten minutes on. The first version marked a row as being
+  sent and reset the ones held too long, and eight workers on one table
+  deadlocked on it.
+- **Tried again after 1, 4, 16, 64 and 256 minutes, then every six hours,
+  for two days;** given up at once when the other server says the address is
+  gone (`Permanent`). What is given up is kept, with why.
+- **Added once** when given a key, so that whatever sweeps for what the bus
+  lost can add again what is already waiting.
+- Tested against MySQL with `FEDERATION_TEST_DSN`: eight workers, two
+  hundred rows, each sent once.
+
+**0.8, routing and the lab.**
+
+- **The web app's host sends on what other servers ask it.** `web-shell`
+  answers `/.well-known/webfinger`, `/.well-known/host-meta` and
+  `/.well-known/nodeinfo` with a redirect to the same path on the API
+  (`PUBLIC_API_URL`). Whoever hosts the web app some other way has to do the
+  same; that is in `docs/web-shell.md`.
+- **The lab** (`make fedi_lab`, `docs/federation-lab.md`): https at
+  `anahita.test`, `api.anahita.test` and `gts.test` on one machine, with a
+  GoToSocial to talk to. Tried: from inside the network, GoToSocial and this
+  installation's API each answer by name over https to a caller that trusts
+  only the lab's authority, and an account made on GoToSocial is found by
+  WebFinger.
+- **Not done here: the gateway's routes to `activitypub-service`** (`/ap/`,
+  `/inbox`, `/.well-known/webfinger` on the API). nginx will not start with
+  a route to a service that does not exist, so they are added with the
+  service, first thing in row 25.
+- **Nothing to fix in `k8s/99-ingress.yml`:** item 9 replaced it with the
+  overlays' own ingress, which has TLS from cert-manager.
 
 **0.5, what comes from another server.** The graph's part.
 

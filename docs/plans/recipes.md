@@ -63,7 +63,7 @@ Each recipe's `README.md` ends with **the three things to decide before the firs
 
 Writing them will turn up settings that do not exist. Expected, to be confirmed while writing and listed in the plan as they are found, not built here:
 
-- who may create a group or an event at all (a school will want staff only);
+- ~~who may create a group or an event at all~~: there is one, `GROUPS_FROM` and `EVENTS_FROM`, found while writing this. A school's recipe sets both to administrators;
 - a site-wide default for a new profile's own privacy;
 - turning the report reasons to a kind of site (a school's list is not a newsroom's): possible today by replacing the file, which a recipe can do;
 - terms and a privacy policy fitted to each kind. A recipe can carry a **starting text marked as such**; it is not legal advice and must say so.

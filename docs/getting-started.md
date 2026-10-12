@@ -123,6 +123,8 @@ and `make migration` runs the migration job on its own.
 - **`web_shell` is not started by `make up`.** It sends the web app's build,
   so it has to be given one: `make web_shell WEB_BUILD=<the build folder>`.
   Developing the web app does not need it; see [The web shell](web-shell.md).
+- **`make fedi_lab` starts the federation lab,** which is not part of `make up`
+  either: see [The federation lab](federation-lab.md).
 - **After a change to `anahita-libs` or to a `.proto` file,** rebuild
   everything with `make up_build`: every service is built with the library.
 
@@ -157,6 +159,7 @@ docker rm -fv anahita-test
 | `RECOMMENDATION_TEST_DSN` | `recommendation-service`: the signals |
 | `VIDEO_TEST_DSN` | `video-service`: uploads |
 | `EXPORT_TEST_DSN` | `export-service`: exports |
+| `FEDERATION_TEST_DSN` | `anahita-libs/federation`: the queue of what is sent to other servers. It makes and drops a table of its own |
 | `STORAGE_TEST_ENDPOINT`, `STORAGE_TEST_PUBLIC_ENDPOINT`, `STORAGE_TEST_REGION`, `STORAGE_TEST_BUCKET`, `STORAGE_TEST_ACCESS_KEY`, `STORAGE_TEST_SECRET_KEY` | `file-grpc-service` and `scripts/s3-migration` against a real bucket: see [Tested stores](configuration.md#tested-stores) |
 
 ## Other targets

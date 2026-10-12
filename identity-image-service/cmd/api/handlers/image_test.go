@@ -43,6 +43,9 @@ type world struct {
 
 	failEdit  bool
 	failClear bool
+
+	// Whether somebody who is not signed in is refused the node.
+	hidden bool
 }
 
 func (w *world) copyOfNode() *entities.AnahitaNode {
@@ -60,6 +63,20 @@ func (f *fakeNodes) Read(id int64) (*entities.AnahitaNode, error) {
 		return nil, errors.New("not found")
 	}
 	return f.w.copyOfNode(), nil
+}
+
+func (f *fakeNodes) ReadByUUID(uuid string) (*entities.AnahitaNode, error) {
+	if f.w.node == nil || f.w.node.UUID != uuid {
+		return nil, nil
+	}
+	return f.w.copyOfNode(), nil
+}
+
+func (f *fakeNodes) FilterVisible(ids []int64, viewer *entities.Viewer) ([]int64, error) {
+	if f.w.hidden || viewer == nil || viewer.ID != 0 {
+		return nil, nil
+	}
+	return ids, nil
 }
 
 func (f *fakeNodes) ClearFile(id int64, kind string, modifiedBy int64) (bool, error) {

@@ -35,6 +35,9 @@ type Server struct {
 	Dir string
 	// "https://www.example.org", or "" to use the address asked for.
 	PublicURL string
+	// "https://api.example.org": where what other servers look for under
+	// /.well-known is answered. "" to answer for none of it.
+	APIURL string
 
 	mu   sync.Mutex
 	kept map[string]keptSubject
@@ -55,6 +58,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	clean := path.Clean("/" + r.URL.Path)
 
+	if wellKnown[clean] {
+		s.wellKnown(w, r, clean)
+		return
+	}
+
 	if strings.HasPrefix(clean, ImagePath) {
 		s.image(w, r, strings.TrimPrefix(clean, ImagePath))
 		return
@@ -69,6 +77,36 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.page(w, r, clean)
+}
+
+// What another server asks of a site's own host to find things out about
+// it, and which the API answers.
+//
+// Somebody here is known elsewhere as ana@example.org, so a server that
+// wants to find her asks example.org, the host the web app is on, where
+// she is. This shell is what answers on that host, and it knows nothing of
+// people. The API does; so the question is sent on to it, as asked. A server
+// asking these follows where it is sent.
+var wellKnown = map[string]bool{
+	"/.well-known/webfinger": true,
+	"/.well-known/host-meta": true,
+	"/.well-known/nodeinfo":  true,
+}
+
+func (s *Server) wellKnown(w http.ResponseWriter, r *http.Request, clean string) {
+	if s.APIURL == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	to := s.APIURL + clean
+	if r.URL.RawQuery != "" {
+		to += "?" + r.URL.RawQuery
+	}
+
+	// Any site may ask, from a page in a browser too.
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	http.Redirect(w, r, to, http.StatusFound)
 }
 
 // file sends one of the build's own files, and says whether there was one.

@@ -957,6 +957,10 @@ services:
       # The address people reach the web app at. Left out, the address each
       # request came to is used.
       PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      # Where the API is, for sending on what other servers ask this host
+      # under /.well-known. Worked out from DOMAIN_NAME when not said.
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
       # The web app's build: anahita-web's build/ folder.
@@ -1155,9 +1159,69 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.27
 
+# The federation lab: https at three names on one machine, and another
+# server to talk to. Not started by `up`; `make fedi_lab` starts it. See
+# docs/federation-lab.md.
+#
+# fedi-lab-tls is the front door. The network knows it by all three names,
+# so that the servers reach each other as they would on the internet.
+  fedi-lab-tls:
+    image: nginx:alpine
+    profiles: ["fedi-lab"]
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    volumes:
+      - ./fedi-lab/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./fedi-lab/certs:/certs:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.50
+        aliases:
+          - anahita.test
+          - api.anahita.test
+          - gts.test
+
+# GoToSocial: a small server that speaks ActivityPub, as Mastodon does. What
+# this installation follows, is followed by, and exchanges posts with, to
+# see that it is understood by something it did not write.
+  gotosocial:
+    image: docker.io/superseriousbusiness/gotosocial:latest
+    profiles: ["fedi-lab"]
+    restart: unless-stopped
+    user: "1000:1000"
+    environment:
+      GTS_HOST: gts.test
+      GTS_PROTOCOL: https
+      GTS_BIND_ADDRESS: 0.0.0.0
+      GTS_PORT: 8080
+      GTS_DB_TYPE: sqlite
+      GTS_DB_ADDRESS: /gotosocial/storage/sqlite.db
+      GTS_STORAGE_LOCAL_BASE_PATH: /gotosocial/storage
+      GTS_LETSENCRYPT_ENABLED: "false"
+      GTS_TRUSTED_PROXIES: 172.20.1.0/24
+      # It refuses, as it should, to fetch from a private address. In the
+      # lab every server is at one.
+      GTS_HTTP_CLIENT_ALLOW_IPS: 172.20.1.0/24
+      # It trusts the lab's authority and nothing else, which is all there
+      # is to reach here.
+      SSL_CERT_FILE: /certs/ca.crt
+      GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
+      TZ: UTC
+    volumes:
+      - fedi-lab-gotosocial:/gotosocial/storage
+      - ./fedi-lab/certs:/certs:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.51
+
 networks:
     anahita-network:
         driver: bridge
         ipam:
             config:
                 - subnet: 172.20.1.0/24
+
+volumes:
+    # What the lab's GoToSocial keeps. `make fedi_lab_reset` empties it.
+    fedi-lab-gotosocial:

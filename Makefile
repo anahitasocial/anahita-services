@@ -410,6 +410,21 @@ recommendation: build_recommendation
 	docker-compose start ${RECOMMENDATION_SRV}
 	@echo "${RECOMMENDATION_SRV} built and started!"
 
+## fedi_lab: starts the federation lab: https at anahita.test, api.anahita.test and gts.test, and a GoToSocial server to talk to. See docs/federation-lab.md
+fedi_lab:
+	@./scripts/fedi-lab-certs.sh
+	docker-compose --profile fedi-lab up -d fedi-lab-tls gotosocial
+	@echo "The lab is up. Add to /etc/hosts:  127.0.0.1 anahita.test api.anahita.test gts.test"
+
+## fedi_lab_down: stops the federation lab, keeping what its GoToSocial holds
+fedi_lab_down:
+	- docker-compose --profile fedi-lab stop fedi-lab-tls gotosocial
+	- docker-compose --profile fedi-lab rm -f fedi-lab-tls gotosocial
+
+## fedi_lab_reset: stops the federation lab and empties its GoToSocial
+fedi_lab_reset: fedi_lab_down
+	- docker volume rm anahita-services_fedi-lab-gotosocial
+
 ## web_shell: builds the web shell and starts it. Not started by `up`: it needs the web app's build, given as WEB_BUILD=<folder> or WEB_BUILD_PATH in .env
 web_shell: build_web_shell
 	@echo "Building ${WEB_SHELL_SRV} docker image..."

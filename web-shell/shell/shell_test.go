@@ -324,3 +324,34 @@ func TestTextIsMadePlainAndCut(t *testing.T) {
 		t.Errorf("a page with no head was taken")
 	}
 }
+
+// The web app's host is where other servers come looking; what they look
+// for is the API's to answer.
+func TestWhatOtherServersLookForIsSentOnToTheAPI(t *testing.T) {
+	s, _ := newServer(t)
+	s.APIURL = "https://api.example.org"
+
+	found := get(s, "/.well-known/webfinger?resource=acct:ana@example.org")
+	if found.Code != http.StatusFound || found.Header().Get("Location") != "https://api.example.org/.well-known/webfinger?resource=acct:ana@example.org" {
+		t.Errorf("webfinger: %d to %q", found.Code, found.Header().Get("Location"))
+	}
+	if found.Header().Get("Access-Control-Allow-Origin") != "*" {
+		t.Error("a page on another site could not ask")
+	}
+	for _, path := range []string{"/.well-known/host-meta", "/.well-known/nodeinfo"} {
+		if got := get(s, path); got.Code != http.StatusFound || got.Header().Get("Location") != "https://api.example.org"+path {
+			t.Errorf("%s: %d to %q", path, got.Code, got.Header().Get("Location"))
+		}
+	}
+
+	// Nothing else under that name is sent anywhere, and it is not a page.
+	if other := get(s, "/.well-known/webfinger/../../people/ana"); other.Header().Get("Location") != "" {
+		t.Errorf("sent on to %q", other.Header().Get("Location"))
+	}
+
+	// With no API named, there is nothing to send anybody on to.
+	s.APIURL = ""
+	if got := get(s, "/.well-known/webfinger?resource=acct:ana@example.org"); got.Code != http.StatusNotFound {
+		t.Errorf("with no API: %d", got.Code)
+	}
+}
