@@ -134,6 +134,62 @@ func (r *nodesRepo) UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaN
 	return saved, !known, err
 }
 
+const (
+	readRemoteNote = `
+SELECT id
+FROM nodes
+WHERE uri = ?
+  AND owner_id = ?
+  AND type = ?`
+
+	deleteRemoteNoteEdges = `
+DELETE FROM edges
+WHERE node_a_id = ?
+   OR node_b_id = ?`
+
+	// "uri IS NOT NULL" again, here where the row goes: never something
+	// that was made here, whatever the lines above found.
+	deleteRemoteNote = `
+DELETE FROM nodes
+WHERE id = ?
+  AND uri IS NOT NULL`
+)
+
+// DeleteRemote takes away a note that came from another server, because
+// its author took it away there. It says whether there was one.
+//
+// Only a note, only one that came from elsewhere, and only when it is asked
+// for in the name of whoever it belongs to: the service that asks is passing
+// on what it was sent, and what it was sent may be a lie about whose a note
+// is. Whatever points at the note (a like, a save) goes with it.
+func (r *nodesRepo) DeleteRemote(uri string, ownerID int64) (bool, error) {
+	if uri == "" || ownerID <= 0 {
+		return false, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
+	defer cancel()
+
+	var id int64
+	err := r.db.QueryRowContext(ctx, readRemoteNote, uri, ownerID, constants.NodeMediumNoteEntityType).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	if _, err := r.db.ExecContext(ctx, deleteRemoteNoteEdges, id, id); err != nil {
+		return false, err
+	}
+	result, err := r.db.ExecContext(ctx, deleteRemoteNote, id)
+	if err != nil {
+		return false, err
+	}
+	gone, err := result.RowsAffected()
+	return gone == 1, err
+}
+
 // knownRemote finds the node already kept under a URI, and refuses when it
 // is not the thing now being sent.
 func (r *nodesRepo) knownRemote(ctx context.Context, node *entities.AnahitaNode) (int64, bool, error) {

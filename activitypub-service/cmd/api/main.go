@@ -4,10 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"activitypub/cmd/api/handlers"
@@ -82,6 +85,7 @@ func main() {
 		Keys:        repositories.NewKeys(db),
 		Actors:      repositories.NewActors(db),
 		Follows:     repositories.NewFollows(db),
+		Objects:     repositories.NewObjects(db),
 		FollowEdges: services.NewSocialgraphFollowGRPC(config),
 		Relations:   services.NewSocialgraphGRPC(config),
 		Crypt:       secrets,
@@ -124,34 +128,17 @@ func main() {
 		return
 	}
 
-	// For the lab only: `app-binary lab-follow <username here> <handle
-	// elsewhere>` makes somebody here follow somebody on another server, as
-	// pressing Follow would. It is how following is tried before the web
-	// app can show somebody from another server.
-	if len(os.Args) == 4 && os.Args[1] == "lab-follow" {
+	// For the lab only: `app-binary lab-follow|lab-unfollow|lab-post|
+	// lab-unpost …` do what somebody here would do by pressing a button. See
+	// handlers/lab.go.
+	if len(os.Args) > 1 && strings.HasPrefix(os.Args[1], "lab-") {
 		if !config.Lab {
-			log.Fatal("lab-follow is for the federation lab: ACTIVITYPUB_LAB is not on")
+			log.Fatal(os.Args[1], " is for the federation lab: ACTIVITYPUB_LAB is not on")
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-		defer cancel()
-		if err := h.LabFollow(ctx, os.Args[2], os.Args[3], true); err != nil {
-			fmt.Fprintln(os.Stderr, "not followed:", err)
+		if err := lab(h, config, os.Args[1:]); err != nil {
+			fmt.Fprintln(os.Stderr, "not done:", err)
 			os.Exit(1)
 		}
-		fmt.Println("followed here; the other server is asked by the running service")
-		return
-	}
-	if len(os.Args) == 4 && os.Args[1] == "lab-unfollow" {
-		if !config.Lab {
-			log.Fatal("lab-unfollow is for the federation lab: ACTIVITYPUB_LAB is not on")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-		defer cancel()
-		if err := h.LabFollow(ctx, os.Args[2], os.Args[3], false); err != nil {
-			fmt.Fprintln(os.Stderr, "not unfollowed:", err)
-			os.Exit(1)
-		}
-		fmt.Println("unfollowed here; the other server is told by the running service")
 		return
 	}
 
@@ -173,6 +160,32 @@ func main() {
 	if err := e.Start(fmt.Sprintf(":%v", webPort)); err != nil {
 		e.Logger.Fatal(err)
 	}
+}
+
+// lab runs one of the lab's commands.
+func lab(h *handlers.Handlers, config *config.Config, args []string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	switch {
+	case args[0] == "lab-follow" && len(args) == 3:
+		return h.LabFollow(ctx, args[1], args[2], true)
+	case args[0] == "lab-unfollow" && len(args) == 3:
+		return h.LabFollow(ctx, args[1], args[2], false)
+	case args[0] == "lab-post" && len(args) == 3:
+		id, err := h.LabPost(services.NewMediaGRPC(config), args[1], args[2])
+		if err == nil {
+			fmt.Println("posted as note", id)
+		}
+		return err
+	case args[0] == "lab-unpost" && len(args) == 2:
+		id, err := strconv.ParseInt(args[1], 10, 64)
+		if err != nil {
+			return err
+		}
+		return h.LabUnpost(services.NewMediaGRPC(config), id)
+	}
+	return errors.New("lab-follow <name here> <handle>, lab-unfollow <name here> <handle>, lab-post <name here> <text>, lab-unpost <note id>")
 }
 
 // listen hears what happens here, for as long as the bus is there, and

@@ -8,6 +8,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"activitypub/ap"
@@ -17,8 +19,10 @@ import (
 	"activitypub/keys"
 	"activitypub/remote"
 
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/federation"
 
 	"github.com/labstack/echo/v4"
 )
@@ -90,6 +94,10 @@ func (h *Handlers) Inbox(c echo.Context) error {
 		}
 	case "Accept", "Reject":
 		err = h.answered(from, &activity, activity.Type == "Accept")
+	case "Create", "Update":
+		err = h.received(from, &activity)
+	case "Delete":
+		err = h.withdrawn(from, &activity)
 	}
 	if err != nil {
 		// Ours to have done and not done. The sender tries again.
@@ -266,6 +274,96 @@ func (h *Handlers) answered(from *remote.Actor, activity *ap.Activity, yes bool)
 	remove := services.NewSocialgraphFollowRequest().Delete
 	remove.Source, remove.Target, remove.Viewer = follower, followed, viewer
 	return h.FollowEdges.Delete(remove)
+}
+
+// The longest post that is kept. Longer ones are cut, and can be read whole
+// where they were written.
+const receivedNoteMax = 20000
+
+// received is somebody elsewhere having posted, or changed a post.
+//
+// A post is kept only when somebody here follows whoever wrote it: this
+// installation is not a copy of the fediverse, and what nobody here asked
+// for is not stored. And only when it is the sender's own, open to
+// everybody, and not a reply: replies are not kept yet.
+func (h *Handlers) received(from *remote.Actor, activity *ap.Activity) error {
+	note := activity.Note()
+	if note == nil || note.Type != "Note" || note.Author() != from.ID {
+		return nil
+	}
+	// Its address must be on its author's own server.
+	if !sameHost(note.ID, from.ID) || h.Site.IsOurs(note.ID) || len(note.ID) > 512 {
+		return nil
+	}
+	if !note.IsPublic() || note.IsReply() {
+		return nil
+	}
+
+	kept, err := h.Actors.ReadByURI(from.ID)
+	if err != nil || kept == nil {
+		return err
+	}
+	followed, err := h.Follows.IsFollowedFromHere(kept.NodeID)
+	if err != nil || !followed {
+		return err
+	}
+
+	node := entities.NewAnahitaNode()
+	node.Type = constants.NodeMediumNoteEntityType
+	node.URI = note.ID
+	node.OriginDomain = hostOf(note.ID)
+	node.OwnerID = kept.NodeID
+	node.Body = cutRunes(federation.ToMarkdown(note.Content), receivedNoteMax)
+	node.Language = note.Language()
+	if published, err := time.Parse(time.RFC3339, note.Published); err == nil {
+		node.CreatedAt = published
+	}
+	if node.Body == "" {
+		// Nothing to show: a picture alone, which is not kept yet.
+		return nil
+	}
+
+	_, _, err = h.Nodes.UpsertRemote(node)
+	return err
+}
+
+// withdrawn is somebody elsewhere having taken a post away.
+func (h *Handlers) withdrawn(from *remote.Actor, activity *ap.Activity) error {
+	gone := activity.ObjectID()
+	// Themselves: an account closed. What that takes with it here is still
+	// to be done; their posts stay until then.
+	if gone == "" || gone == from.ID || !sameHost(gone, from.ID) {
+		return nil
+	}
+
+	kept, err := h.Actors.ReadByURI(from.ID)
+	if err != nil || kept == nil {
+		return err
+	}
+	// The graph takes it away only if it is theirs.
+	_, err = h.Nodes.DeleteRemote(gone, kept.NodeID)
+	return err
+}
+
+func hostOf(address string) string {
+	parsed, err := url.Parse(address)
+	if err != nil {
+		return ""
+	}
+	return strings.ToLower(parsed.Host)
+}
+
+func sameHost(a, b string) bool {
+	host := hostOf(a)
+	return host != "" && host == hostOf(b)
+}
+
+func cutRunes(text string, max int) string {
+	runes := []rune(text)
+	if len(runes) <= max {
+		return text
+	}
+	return string(runes[:max])
 }
 
 // unfollowed is somebody elsewhere taking a follow back, or a request to.

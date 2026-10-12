@@ -82,6 +82,57 @@ func (f *fakeQueue) Enqueue(_ context.Context, actorID int64, target string, pay
 
 type fakeFollows struct {
 	kept map[string]*repositories.Follow
+	// Where a person's followers elsewhere are written to.
+	inboxes []string
+}
+
+func (f *fakeFollows) FollowerInboxes(int64) ([]string, error) { return f.inboxes, nil }
+func (f *fakeFollows) IsFollowedFromHere(remoteID int64) (bool, error) {
+	for _, follow := range f.kept {
+		if follow.RemoteID == remoteID && follow.Direction == repositories.FollowOut {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+type fakeObjects struct {
+	kept map[int64]*repositories.Object
+}
+
+func (f *fakeObjects) Begin(object *repositories.Object) (bool, error) {
+	if f.kept[object.NodeID] != nil {
+		return false, nil
+	}
+	f.kept[object.NodeID] = object
+	return true, nil
+}
+func (f *fakeObjects) Read(id int64) (*repositories.Object, error) { return f.kept[id], nil }
+func (f *fakeObjects) End(id int64) (bool, error) {
+	_, was := f.kept[id]
+	delete(f.kept, id)
+	return was, nil
+}
+func (f *fakeObjects) Count(actorID int64) (int64, error) {
+	var n int64
+	for _, object := range f.kept {
+		if object.ActorID == actorID {
+			n++
+		}
+	}
+	return n, nil
+}
+
+// DeleteRemote as the graph does it: only something from elsewhere, and
+// only its owner's.
+func (f *fakeNodes) DeleteRemote(uri string, ownerID int64) (bool, error) {
+	for i, kept := range f.people {
+		if kept.URI == uri && uri != "" && kept.OwnerID == ownerID {
+			f.people = append(f.people[:i], f.people[i+1:]...)
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func followKey(l, r int64, d string) string { return string(rune(l)) + "|" + string(rune(r)) + "|" + d }
@@ -122,6 +173,7 @@ type inboxWorld struct {
 	relations *fakeRelations
 	queue     *fakeQueue
 	follows   *fakeFollows
+	objects   *fakeObjects
 }
 
 func newInboxWorld() *inboxWorld {
@@ -130,8 +182,10 @@ func newInboxWorld() *inboxWorld {
 		world: w, fetcher: fetcher, actors: actors,
 		edges: &fakeEdges{}, relations: &fakeRelations{}, queue: &fakeQueue{},
 		follows: &fakeFollows{kept: map[string]*repositories.Follow{}},
+		objects: &fakeObjects{kept: map[int64]*repositories.Object{}},
 	}
 	w.h.FollowEdges, w.h.Relations, w.h.Queue, w.h.Follows = iw.edges, iw.relations, iw.queue, iw.follows
+	w.h.Objects = iw.objects
 	return iw
 }
 

@@ -25,6 +25,7 @@ const (
 	NodeService_ReadByUUID_FullMethodName              = "/graph.NodeService/ReadByUUID"
 	NodeService_ReadByURI_FullMethodName               = "/graph.NodeService/ReadByURI"
 	NodeService_UpsertRemote_FullMethodName            = "/graph.NodeService/UpsertRemote"
+	NodeService_DeleteRemote_FullMethodName            = "/graph.NodeService/DeleteRemote"
 	NodeService_Edit_FullMethodName                    = "/graph.NodeService/Edit"
 	NodeService_Add_FullMethodName                     = "/graph.NodeService/Add"
 	NodeService_Delete_FullMethodName                  = "/graph.NodeService/Delete"
@@ -51,6 +52,7 @@ type NodeServiceClient interface {
 	ReadByUUID(ctx context.Context, in *NodeReadByUUIDRequest, opts ...grpc.CallOption) (*NodeReadByUUIDResponse, error)
 	ReadByURI(ctx context.Context, in *NodeReadByURIRequest, opts ...grpc.CallOption) (*NodeReadByURIResponse, error)
 	UpsertRemote(ctx context.Context, in *NodeUpsertRemoteRequest, opts ...grpc.CallOption) (*NodeUpsertRemoteResponse, error)
+	DeleteRemote(ctx context.Context, in *NodeDeleteRemoteRequest, opts ...grpc.CallOption) (*NodeDeleteRemoteResponse, error)
 	Edit(ctx context.Context, in *NodeEditRequest, opts ...grpc.CallOption) (*NodeEditResponse, error)
 	Add(ctx context.Context, in *NodeAddRequest, opts ...grpc.CallOption) (*NodeAddResponse, error)
 	Delete(ctx context.Context, in *NodeDeleteRequest, opts ...grpc.CallOption) (*NodeDeleteResponse, error)
@@ -133,6 +135,16 @@ func (c *nodeServiceClient) UpsertRemote(ctx context.Context, in *NodeUpsertRemo
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(NodeUpsertRemoteResponse)
 	err := c.cc.Invoke(ctx, NodeService_UpsertRemote_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) DeleteRemote(ctx context.Context, in *NodeDeleteRemoteRequest, opts ...grpc.CallOption) (*NodeDeleteRemoteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NodeDeleteRemoteResponse)
+	err := c.cc.Invoke(ctx, NodeService_DeleteRemote_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -289,6 +301,7 @@ type NodeServiceServer interface {
 	ReadByUUID(context.Context, *NodeReadByUUIDRequest) (*NodeReadByUUIDResponse, error)
 	ReadByURI(context.Context, *NodeReadByURIRequest) (*NodeReadByURIResponse, error)
 	UpsertRemote(context.Context, *NodeUpsertRemoteRequest) (*NodeUpsertRemoteResponse, error)
+	DeleteRemote(context.Context, *NodeDeleteRemoteRequest) (*NodeDeleteRemoteResponse, error)
 	Edit(context.Context, *NodeEditRequest) (*NodeEditResponse, error)
 	Add(context.Context, *NodeAddRequest) (*NodeAddResponse, error)
 	Delete(context.Context, *NodeDeleteRequest) (*NodeDeleteResponse, error)
@@ -334,6 +347,9 @@ func (UnimplementedNodeServiceServer) ReadByURI(context.Context, *NodeReadByURIR
 }
 func (UnimplementedNodeServiceServer) UpsertRemote(context.Context, *NodeUpsertRemoteRequest) (*NodeUpsertRemoteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpsertRemote not implemented")
+}
+func (UnimplementedNodeServiceServer) DeleteRemote(context.Context, *NodeDeleteRemoteRequest) (*NodeDeleteRemoteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRemote not implemented")
 }
 func (UnimplementedNodeServiceServer) Edit(context.Context, *NodeEditRequest) (*NodeEditResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Edit not implemented")
@@ -502,6 +518,24 @@ func _NodeService_UpsertRemote_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NodeServiceServer).UpsertRemote(ctx, req.(*NodeUpsertRemoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_DeleteRemote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NodeDeleteRemoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).DeleteRemote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_DeleteRemote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).DeleteRemote(ctx, req.(*NodeDeleteRemoteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -788,6 +822,10 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpsertRemote",
 			Handler:    _NodeService_UpsertRemote_Handler,
+		},
+		{
+			MethodName: "DeleteRemote",
+			Handler:    _NodeService_DeleteRemote_Handler,
 		},
 		{
 			MethodName: "Edit",

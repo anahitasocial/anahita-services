@@ -40,6 +40,13 @@ type FollowsInterface interface {
 	Read(localID, remoteID int64, direction string) (*Follow, error)
 	// ReadByActivity is the follow that was called this when it was sent.
 	ReadByActivity(activityID string) (*Follow, error)
+	// FollowerInboxes is where to send what a person here posts: one
+	// address for each server that has a follower of theirs, the one that
+	// takes for everybody on that server where there is one.
+	FollowerInboxes(localID int64) ([]string, error)
+	// IsFollowedFromHere says whether anybody here follows somebody
+	// elsewhere, or has asked to.
+	IsFollowedFromHere(remoteID int64) (bool, error)
 	// Delete forgets it.
 	Delete(localID, remoteID int64, direction string) error
 }
@@ -131,6 +138,52 @@ func (repo *Follows) ReadByActivity(activityID string) (*Follow, error) {
 		return nil, err
 	}
 	return follow, nil
+}
+
+const followerInboxes = `
+SELECT DISTINCT IF(actor.shared_inbox <> '', actor.shared_inbox, actor.inbox)
+FROM activitypub_follows AS follow
+JOIN activitypub_actors AS actor ON actor.node_id = follow.remote_id
+WHERE follow.local_id = ?
+  AND follow.direction = 'in'
+  AND follow.state = 'accepted'`
+
+func (repo *Follows) FollowerInboxes(localID int64) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	rows, err := repo.db.QueryContext(ctx, followerInboxes, localID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var inboxes []string
+	for rows.Next() {
+		var inbox string
+		if err := rows.Scan(&inbox); err != nil {
+			return nil, err
+		}
+		inboxes = append(inboxes, inbox)
+	}
+	return inboxes, rows.Err()
+}
+
+const isFollowedFromHere = `
+SELECT EXISTS (
+    SELECT 1
+    FROM activitypub_follows
+    WHERE remote_id = ?
+      AND direction = 'out'
+)`
+
+func (repo *Follows) IsFollowedFromHere(remoteID int64) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	var followed bool
+	err := repo.db.QueryRowContext(ctx, isFollowedFromHere, remoteID).Scan(&followed)
+	return followed, err
 }
 
 const deleteFollow = `

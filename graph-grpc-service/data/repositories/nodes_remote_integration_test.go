@@ -172,6 +172,38 @@ func TestWhatIsKeptFromAnotherServer(t *testing.T) {
 		t.Errorf("what was made here changed: %q, %q, %d", name, body, remote)
 	}
 
+	// Taken away where it was written, it is taken away here: by its
+	// author, and nobody else, and never something that was made here.
+	if _, err := db.Exec(`INSERT INTO edges (type, node_a_id, node_a_type, node_b_id, node_b_type, created_by, modified_by, created_at, updated_at) VALUES ('edge.base.voteup.v1', 1, 'node.actor.person-service.person.v1', ?, 'node.medium.text-service.note.v1', 1, 1, NOW(), NOW())`, kept.ID); err != nil {
+		t.Fatal(err)
+	}
+	for name, try := range map[string]struct {
+		uri   string
+		owner int64
+	}{
+		"by somebody else":         {kept.URI, bobSaved.ID},
+		"a person":                 {saved.URI, saved.ID},
+		"something made here":      {"", 1},
+		"an address nothing is at": {"https://mastodon.example/nothing", saved.ID},
+	} {
+		if gone, err := repo.DeleteRemote(try.uri, try.owner); err != nil || gone {
+			t.Errorf("%s: deleted %v (%v)", name, gone, err)
+		}
+	}
+	if gone, err := repo.DeleteRemote(kept.URI, saved.ID); err != nil || !gone {
+		t.Errorf("by its author: %v (%v)", gone, err)
+	}
+	var left, likes int
+	if err := db.QueryRow(`SELECT (SELECT COUNT(*) FROM nodes WHERE id = ?), (SELECT COUNT(*) FROM edges WHERE node_b_id = ?)`, kept.ID, kept.ID).Scan(&left, &likes); err != nil || left != 0 || likes != 0 {
+		t.Errorf("after: %d node, %d likes (%v)", left, likes, err)
+	}
+	if again, _ := repo.DeleteRemote(kept.URI, saved.ID); again {
+		t.Error("deleted twice")
+	}
+	if err := db.QueryRow(`SELECT COUNT(*) FROM nodes WHERE id IN (1, 10)`).Scan(&left); err != nil || left != 2 {
+		t.Errorf("what was made here: %d left", left)
+	}
+
 	// Somebody on Bluesky, under an at:// URI.
 	carol, created, err := repo.UpsertRemote(&entities.AnahitaNode{
 		Type:         constants.NodeActorATProtoPersonEntityType,

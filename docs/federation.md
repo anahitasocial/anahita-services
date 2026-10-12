@@ -4,10 +4,11 @@ How people here are found and followed from other servers of the fediverse,
 and what an installation has to do for that to happen.
 
 **This is being built.** What is described here is what works today: a
-person can choose to be found, another server can find and describe them,
-somebody on another server can be looked up from here, and people follow
-each other across servers, either way round. Posts going out and coming in
-are not built yet, so a follow carries nothing so far.
+person can choose to be found, people follow each other across servers
+either way round, and their public notes travel with the follow. The web
+app cannot yet show somebody from another server or what they post, so
+none of it can be seen there yet. Replies, likes, reposts, pictures and
+profile changes do not travel yet.
 
 ## Contents
 
@@ -19,6 +20,8 @@ are not built yet, so a follow carries nothing so far.
 - [Looking somebody up on another server](#looking-somebody-up-on-another-server)
 - [Being followed from another server](#being-followed-from-another-server)
 - [Following somebody on another server](#following-somebody-on-another-server)
+- [Posts going out](#posts-going-out)
+- [Posts coming in](#posts-coming-in)
 - [The inbox](#the-inbox)
 - [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
 - [Signing keys and signed requests](#signing-keys-and-signed-requests)
@@ -188,6 +191,63 @@ happened and asks the other server, with a signed `Follow`.
   about stays as it is here and carries nothing. Unfollowing and following
   again puts it right; a sweep that does so by itself is not written yet.
 
+## Posts going out
+
+What is sent to another server cannot be called back, so what is sent is
+narrow, and is asked of the post as it is at that moment:
+
+- a **note**, written here, by somebody who is on the fediverse;
+- on **their own profile**: not in a group, not on somebody else's;
+- **open to everybody**: not to members, not to followers;
+- **not a reply**;
+- and a visitor may see it, by the graph's own reckoning.
+
+Such a note goes to every server that has a follower of its author, once
+for each server. It is sent as HTML made from its Markdown, with nothing in
+it that runs; the hashtags and people it names are links, and are listed
+beside the text; its language is said when its author said one. It can also
+be fetched, at `/ap/notes/<uuid>`.
+
+| Then | Other servers are sent |
+| --- | --- |
+| The note is changed | An `Update`, with the note as it is now |
+| It stops being one that goes out (made for followers only, say) | A `Delete`: it is taken back |
+| It is deleted | A `Delete` |
+
+A note that never went out is deleted at nobody. Which notes went out is
+kept in `activitypub_objects`: a deleted note's node is gone by the time
+anybody hears of it, and that table is what still knows what it was called.
+
+**Not sent:** articles, topics, photos and videos; anything in a group;
+replies; a quoted post (the note that quotes goes, without what it quotes);
+the card for a link. Somebody who starts following is sent what is posted
+from then on, and nothing from before.
+
+## Posts coming in
+
+A note from another server is kept when all of these are so:
+
+- **somebody here follows whoever wrote it.** This installation is not a
+  copy of the fediverse: what nobody here asked for is not stored;
+- it is **its sender's own**, at an address on their own server;
+- it is **addressed to everybody**;
+- it is **not a reply**, and has some text.
+
+It is kept as an ordinary note, owned by the node kept for its author, with
+its address as its `uri`. Its HTML is kept as Markdown with nothing in it
+that runs, at most 20,000 characters, dated when its author says it was
+written, in the language it says. Because it is an ordinary note on the
+profile of somebody followed, it is in the feed of whoever follows them
+with nothing changed in the feeds.
+
+Changed there, it is changed here; taken away there, it is taken away here,
+and only by its author: the graph removes a note from another server only
+in the name of whoever it belongs to
+(`graph-grpc-service/data/repositories/nodes_remote.go`).
+
+**Not kept:** pictures and other attachments, replies, boosts, polls, and
+what was posted before the follow.
+
 ## The inbox
 
 `POST /inbox`, and `POST /ap/users/<uuid>/inbox` for each person: the same
@@ -201,9 +261,9 @@ says, until it is known who sent it:
 2. **Whoever the message says did the thing must be whoever signed it.**
    Nobody is believed about what somebody else did.
 3. **Only then is it read,** and only what this installation understands is
-   done: today `Follow`, `Undo` of a `Follow`, and `Accept` or `Reject` of
-   a follow asked for from here. Everything else is answered `202` and
-   ignored.
+   done: `Follow` and its `Undo`; `Accept` or `Reject` of a follow asked
+   for from here; `Create`, `Update` and `Delete` of a note. Everything
+   else is answered `202` and ignored.
 
 A message of more than a megabyte is refused. What cannot be checked is
 answered `401`, and nothing is kept of whoever sent it.
@@ -338,6 +398,8 @@ it.
 | Looking somebody up | `cmd/api/handlers/lookup.go`, table `activitypub_actors` |
 | The inbox, and being followed | `cmd/api/handlers/inbox.go`, table `activitypub_follows` |
 | Following from here | `cmd/api/handlers/events.go`, listening for `edge.follow.*` on the bus (`AMQP_ADDR`) |
+| Posts going out | `cmd/api/handlers/notes.go`, `ap/note.go`, listening for `node.medium.*`, table `activitypub_objects` |
+| Posts coming in | `cmd/api/handlers/inbox.go`: `received`, `withdrawn` |
 | What is sent | `cmd/api/handlers/deliver.go`, `ap/activity.go`, table `activitypub_deliveries`, over `anahita-libs/federation` (`queue.go`) |
 | The installation's own actor | `cmd/api/handlers/instance.go` |
 | A person's choice | `cmd/api/handlers/settings.go`, table `activitypub_accounts` |

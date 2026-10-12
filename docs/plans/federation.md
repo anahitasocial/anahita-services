@@ -373,7 +373,8 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: signing and checking requests, fetching, looking somebody up | done 2026-10-12 |
 | Phase 1, ActivityPub: the inbox, being followed from elsewhere, the delivery worker | done 2026-10-13 |
 | Phase 1, ActivityPub: following from here, and the other server's yes or no | done 2026-10-13 |
-| Phase 1, ActivityPub: posts out and in, profile changes, backfill, the blocklist and limits, the web app | not started |
+| Phase 1, ActivityPub: notes out and in, with their changes and deletions | done 2026-10-13 |
+| Phase 1, ActivityPub: profile changes and opting out, backfill, the blocklist and limits, the web app | not started |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -395,6 +396,33 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   page, when it joined, what it says of itself with the hashtags as links,
   and the avatar and cover, which it fetched through the addresses that
   stay.
+
+**Notes, out and in.** `notes.go` and `ap/note.go`; the inbox's `Create`,
+`Update` and `Delete`; `/ap/notes/<uuid>` and the outbox; the graph's
+`DeleteRemote`; table `activitypub_objects` (migration `20261030000001`).
+
+- **Tried in the lab, all four ways:** a note posted here appeared in
+  alice's home timeline on GoToSocial, with its bold text and its hashtag
+  as a link, and went from it when deleted here; a note she posted was kept
+  here in her name, in French as she said, and went when she deleted it.
+- **Which notes went out is recorded,** which the plan did not have. A
+  deleted note's node is gone before anybody hears of the deletion, so
+  without a record there is nothing left to say what it was called; and the
+  record is what makes a note go out once though every copy of the service
+  hears of it.
+- **A note that stops being public is taken back,** with a `Delete`. Not in
+  the plan, and the only safe reading of "only public posts federate".
+- **The graph removes a note from elsewhere only for its author**
+  (`DeleteRemote`): the service passes on what it was sent, and is not
+  trusted with deleting nodes by number.
+- **The outbox says how many and not which.** The plan had it list recent
+  posts; nothing here reads another server's outbox yet either, so there is
+  no backfill in either direction. With the web app's part.
+- **Still to do, found here:**
+  - an account closed elsewhere (`Delete` of the person): their follows and
+    posts here stay until that is handled;
+  - what a note mentions is linked and listed, but the person mentioned is
+    not sent it unless they follow (phase 2, with replies).
 
 **Following from here.** `events.go` listens for `edge.follow.*` on the bus
 and sends `Follow` and `Undo`; the inbox takes `Accept` and `Reject`.

@@ -28,6 +28,7 @@ type Env struct {
 	Keys     repositories.KeysInterface
 	Actors   repositories.ActorsInterface
 	Follows  repositories.FollowsInterface
+	Objects  repositories.ObjectsInterface
 	// The graph's own record of who follows whom, and who has blocked whom.
 	FollowEdges services.SocialgraphFollowGRPCInterface
 	Relations   services.SocialgraphGRPCInterface

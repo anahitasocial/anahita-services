@@ -237,6 +237,18 @@ message NodeUpsertRemoteResponse {
     bool created = 2;
 }
 
+// A note from another server, taken away because its author took it away
+// there. Only ever something that came from elsewhere, and only its
+// author's: see nodes_remote.go.
+message NodeDeleteRemoteRequest {
+    string uri = 1;
+    int64 owner_id = 2;
+}
+
+message NodeDeleteRemoteResponse {
+    bool deleted = 1;
+}
+
 message NodeEditRequest {
     Node node = 1;
 }
@@ -399,6 +411,7 @@ service NodeService {
     rpc ReadByUUID(NodeReadByUUIDRequest) returns (NodeReadByUUIDResponse);
     rpc ReadByURI(NodeReadByURIRequest) returns (NodeReadByURIResponse);
     rpc UpsertRemote(NodeUpsertRemoteRequest) returns (NodeUpsertRemoteResponse);
+    rpc DeleteRemote(NodeDeleteRemoteRequest) returns (NodeDeleteRemoteResponse);
     rpc Edit(NodeEditRequest) returns (NodeEditResponse);
     rpc Add(NodeAddRequest) returns (NodeAddResponse);
     rpc Delete(NodeDeleteRequest) returns (NodeDeleteResponse);

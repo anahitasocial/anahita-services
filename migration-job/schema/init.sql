@@ -1129,5 +1129,19 @@ CREATE TABLE IF NOT EXISTS activitypub_follows (
     KEY `activity_id` (`activity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- Which posts made here other servers have been told of. See
+-- migrations/20261030000001_activitypub_objects.sql.
+CREATE TABLE IF NOT EXISTS activitypub_objects (
+    `node_id` bigint unsigned NOT NULL,
+    -- The post's UUID: what its address between servers is made of.
+    `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    -- Whose it is: the person here who wrote it.
+    `actor_id` bigint unsigned NOT NULL,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`node_id`),
+    KEY `actor_id` (`actor_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
 
 

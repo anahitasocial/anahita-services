@@ -37,6 +37,10 @@ type NodesRepoInterface interface {
 	// whether it was new.
 	UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaNode, bool, error)
 
+	// DeleteRemote takes away a note that came from another server, for
+	// its author.
+	DeleteRemote(uri string, ownerID int64) (bool, error)
+
 	// Edit updates an existing node based on the provided edit request and viewer context.
 	Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
 

@@ -16,7 +16,6 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
-	"anahita-libs/data/services"
 	"anahita-libs/ratelimit"
 
 	"github.com/labstack/echo/v4"
@@ -108,36 +107,6 @@ func (h *Handlers) LookupFromTheCommandLine(ctx context.Context, query string) (
 		return nil, errors.New(code)
 	}
 	return h.keepAs(actor)
-}
-
-// LabFollow makes somebody here follow, or stop following, somebody on
-// another server, as they would by pressing the button. For the federation
-// lab only; see main.
-func (h *Handlers) LabFollow(ctx context.Context, alias, handle string, follow bool) error {
-	person := h.personByAlias(alias)
-	if person == nil {
-		return errors.New("nobody here is called " + alias)
-	}
-	found, err := h.LookupFromTheCommandLine(ctx, handle)
-	if err != nil {
-		return err
-	}
-	target, err := h.Nodes.Read(found.ID)
-	if err != nil || target == nil {
-		return errors.New("the person elsewhere was not kept")
-	}
-
-	viewer := entities.NewViewer()
-	viewer.ID = person.ID
-
-	if follow {
-		add := services.NewSocialgraphFollowRequest().Add
-		add.Source, add.Target, add.Viewer = person, target, viewer
-		return h.FollowEdges.Add(add)
-	}
-	remove := services.NewSocialgraphFollowRequest().Delete
-	remove.Source, remove.Target, remove.Viewer = person, target, viewer
-	return h.FollowEdges.Delete(remove)
 }
 
 func (h *Handlers) keepAs(actor *remote.Actor) (*RemotePerson, error) {

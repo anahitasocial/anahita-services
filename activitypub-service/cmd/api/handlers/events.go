@@ -31,6 +31,7 @@ import (
 // EventTopics is what this service listens for.
 var EventTopics = []string{
 	"edge.follow.*.*.v1",
+	"node.medium.*.*.*.v1",
 }
 
 // HandleEvent is told of something that happened here.
@@ -48,6 +49,15 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		err = h.localFollowed(ctx, payload.ObjectID, payload.TargetID)
 	case strings.HasPrefix(payload.Name, "edge.follow.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
 		err = h.localUnfollowed(ctx, payload.ObjectID, payload.TargetID)
+
+	// A post made, changed or deleted. Only notes go out; the rest of what
+	// decides is asked of the post itself.
+	case strings.HasPrefix(payload.Name, "node.medium.") && payload.ObjectType == constants.NodeMediumNoteEntityType:
+		if strings.HasSuffix(payload.Name, ".deleted.v1") {
+			err = h.removed(ctx, payload.ObjectID)
+		} else {
+			err = h.posted(ctx, payload.ObjectID)
+		}
 	}
 	if err != nil {
 		log.Printf("event %s (%d > %d): %v", payload.Name, payload.ObjectID, payload.TargetID, err)

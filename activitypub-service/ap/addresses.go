@@ -1,6 +1,7 @@
 package ap
 
 import (
+	"fmt"
 	"strings"
 
 	"anahita-libs/site"
@@ -28,6 +29,14 @@ func (a Addresses) Following(uuid string) string { return a.Actor(uuid) + "/foll
 // Activity is the address of something this installation did: an Accept,
 // a Follow. Named by a UUID made for it.
 func (a Addresses) Activity(uuid string) string { return a.Site.API("/ap/activities/" + uuid) }
+
+// Note is the address of a post made here, and NoteCreate of its having
+// been posted. Made of the post's UUID, like a person's.
+func (a Addresses) Note(uuid string) string       { return a.Site.API("/ap/notes/" + uuid) }
+func (a Addresses) NoteCreate(uuid string) string { return a.Note(uuid) + "/activity" }
+
+// NotePage is where a post is read, in the web app.
+func (a Addresses) NotePage(id int64) string { return a.Site.Web(fmt.Sprintf("/notes/%d", id)) }
 
 // Key is the name of a person's signing key: their address, and which key.
 func (a Addresses) Key(uuid string) string { return a.Actor(uuid) + "#main-key" }

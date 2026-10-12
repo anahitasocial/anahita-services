@@ -42,6 +42,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	ap.GET("/users/:uuid", r.handler.Actor, r.setViewer)
 	ap.GET("/users/:uuid/followers", r.handler.Followers, r.setViewer)
 	ap.GET("/users/:uuid/following", r.handler.Following, r.setViewer)
+	ap.GET("/users/:uuid/outbox", r.handler.Outbox, r.setViewer)
+	ap.GET("/notes/:uuid", r.handler.Note, r.setViewer)
 
 	// A person's own choice to be on the fediverse.
 	activitypub := e.Group("activitypub")

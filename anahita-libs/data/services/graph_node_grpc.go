@@ -42,6 +42,10 @@ type GraphNodeGRPCInterface interface {
 	// was new. The graph refuses anything else: see its nodes_remote.go.
 	UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaNode, bool, error)
 
+	// DeleteRemote takes away a note that came from another server, in the
+	// name of whoever it belongs to. It says whether there was one.
+	DeleteRemote(uri string, ownerID int64) (bool, error)
+
 	// Edit edits a graph node
 	Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
 
@@ -271,6 +275,23 @@ func (srv *GraphNodeGRPC) UpsertRemote(node *entities.AnahitaNode) (*entities.An
 	}
 
 	return grpcToGraphNode(resp.Node), resp.Created, nil
+}
+
+// DeleteRemote takes away a note that came from another server
+func (srv *GraphNodeGRPC) DeleteRemote(uri string, ownerID int64) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.DeleteRemote(context.Background(), &graphpb.NodeDeleteRemoteRequest{Uri: uri, OwnerId: ownerID})
+	if err != nil || resp == nil {
+		return false, err
+	}
+	return resp.Deleted, nil
 }
 
 // Edit edits a graph node

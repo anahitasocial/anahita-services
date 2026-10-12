@@ -13,6 +13,7 @@ each at a name of its own, speaking to each other over https.
 - [Having GoToSocial look somebody up](#having-gotosocial-look-somebody-up)
 - [Following somebody here from GoToSocial](#following-somebody-here-from-gotosocial)
 - [Following somebody on GoToSocial from here](#following-somebody-on-gotosocial-from-here)
+- [Posts, both ways](#posts-both-ways)
 - [Looking somebody on GoToSocial up from here](#looking-somebody-on-gotosocial-up-from-here)
 - [Asking as another server would](#asking-as-another-server-would)
 - [Stopping and emptying it](#stopping-and-emptying-it)
@@ -148,6 +149,27 @@ docker compose exec activitypub-service /app/app-binary lab-unfollow <username h
 The person here has to be on the fediverse. After her yes,
 `activitypub_follows` has the follow as `accepted`; after the unfollow it
 is gone, and GoToSocial no longer lists them among her followers.
+
+## Posts, both ways
+
+With alice following somebody here, and somebody here following alice:
+
+~~~sh
+# From here to there.
+docker compose exec activitypub-service /app/app-binary lab-post <username here> "Hello **fediverse** #anahita"
+G "https://gts.test/api/v1/timelines/home?limit=5"                 # it is in her timeline
+docker compose exec activitypub-service /app/app-binary lab-unpost <the note's number>
+                                                                    # and gone from it
+
+# From there to here.
+G -X POST "https://gts.test/api/v1/statuses" --data-urlencode "status=Bonjour" -d visibility=public
+G -X DELETE "https://gts.test/api/v1/statuses/<id>"
+~~~
+
+What arrived is a note in the development database whose `uri` begins
+`https://gts.test/`. A note posted from the web app, by somebody who is on
+the fediverse, goes out the same way while the lab is up: `lab-post` is
+only for when nobody is signed in.
 
 ## Looking somebody on GoToSocial up from here
 

@@ -143,6 +143,15 @@ func (h *nodeHandler) UpsertRemote(ctx context.Context, req *graphpb.NodeUpsertR
 	}, nil
 }
 
+// DeleteRemote
+func (h *nodeHandler) DeleteRemote(ctx context.Context, req *graphpb.NodeDeleteRemoteRequest) (*graphpb.NodeDeleteRemoteResponse, error) {
+	deleted, err := h.env.Repos.Nodes.DeleteRemote(req.Uri, req.OwnerId)
+	if err != nil {
+		return nil, err
+	}
+	return &graphpb.NodeDeleteRemoteResponse{Deleted: deleted}, nil
+}
+
 // Edit
 func (h *nodeHandler) Edit(ctx context.Context, req *graphpb.NodeEditRequest) (*graphpb.NodeEditResponse, error) {
 	log.Printf("Received Edit request: %v", req)
