@@ -27,6 +27,8 @@ type fakeFetcher struct {
 	gone  bool
 	kind  string
 	name  string
+	// Other things at her server's addresses: the list of what she posted.
+	pages map[string]string
 }
 
 func (f *fakeFetcher) nameOrAlice() string {
@@ -47,6 +49,9 @@ func (f *fakeFetcher) JSON(_ context.Context, address string, into any) (string,
 
 func (f *fakeFetcher) Object(_ context.Context, address string, into any) (string, error) {
 	f.asked = append(f.asked, address)
+	if page, ok := f.pages[address]; ok {
+		return address, json.Unmarshal([]byte(page), into)
+	}
 	// A key named as its owner's address with a fragment is its owner's.
 	address, _, _ = strings.Cut(address, "#")
 	if f.gone || address != aliceID {
@@ -60,6 +65,7 @@ func (f *fakeFetcher) Object(_ context.Context, address string, into any) (strin
 		"id": aliceID, "type": kind, "preferredUsername": "alice", "name": f.nameOrAlice(),
 		"summary": "<p>Grows <strong>beans</strong></p><script>alert(1)</script>",
 		"url":     "https://mastodon.example/@alice",
+		"outbox":  aliceID + "/outbox",
 		"inbox":   aliceID + "/inbox", "endpoints": map[string]any{"sharedInbox": "https://mastodon.example/inbox"},
 		"publicKey":                 map[string]any{"id": aliceID + "#main-key", "owner": aliceID, "publicKeyPem": remoteKey.PublicPEM},
 		"icon":                      map[string]any{"url": "https://mastodon.example/a.png"},
@@ -104,10 +110,13 @@ func (f *fakeNodes) UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaN
 	for _, kept := range f.people {
 		if kept.URI == node.URI {
 			kept.Name, kept.Alias, kept.Body = node.Name, node.Alias, node.Body
+			if node.AvatarFilename != "" {
+				kept.AvatarFilename = node.AvatarFilename
+			}
 			copied := *kept
 			return &copied, false, nil
 		}
-		if kept.Alias == node.Alias && kept.URI != "" {
+		if node.Alias != "" && kept.Alias == node.Alias && kept.URI != "" {
 			return nil, false, errors.New("rpc error: " + node.Alias + " is somebody already known")
 		}
 	}

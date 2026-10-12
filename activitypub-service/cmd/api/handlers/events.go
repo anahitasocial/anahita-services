@@ -103,6 +103,19 @@ func (h *Handlers) localFollowed(ctx context.Context, sourceID, targetID int64) 
 		return err
 	}
 
+	// From the lab, somebody on a real server is looked at and not
+	// followed: the request could not be checked there and would never be
+	// answered. The follow is taken away again, so that it does not sit
+	// here saying something that is not so.
+	if h.Lab && !strings.HasSuffix(hostOf(kept.URI), ".test") {
+		log.Printf("%s follows %s from the lab: real servers are not written to, and the follow is removed", source.Alias, target.Alias)
+		viewer := entities.NewViewer()
+		viewer.ID = source.ID
+		remove := services.NewSocialgraphFollowRequest().Delete
+		remove.Source, remove.Target, remove.Viewer = source, target, viewer
+		return h.FollowEdges.Delete(remove)
+	}
+
 	// Only somebody who is on the fediverse can follow across it: the other
 	// server has to be able to find out who is asking. Anybody else's
 	// follow would wait for ever, so it is taken away again.
@@ -127,7 +140,14 @@ func (h *Handlers) localFollowed(ctx context.Context, sourceID, targetID int64) 
 	}
 
 	actor := h.addresses.Actor(source.UUID)
-	return h.send(ctx, source.ID, kept.Inbox, ap.NewFollow(follow.ActivityID, actor, kept.URI), "follow:"+follow.ActivityID)
+	if err := h.send(ctx, source.ID, kept.Inbox, ap.NewFollow(follow.ActivityID, actor, kept.URI), "follow:"+follow.ActivityID); err != nil {
+		return err
+	}
+
+	// What they posted lately, so that their profile here is not empty
+	// until they next post. Not waited for.
+	h.later(func() { h.backfill(kept) })
+	return nil
 }
 
 // localUnfollowed is somebody here having stopped following somebody

@@ -37,6 +37,8 @@ type Actor struct {
 	Page        string
 	Inbox       string
 	SharedInbox string
+	// Outbox is where what they have posted is listed, or "".
+	Outbox string
 	// KeyID and PublicKeyPEM are the key they sign with.
 	KeyID        string
 	PublicKeyPEM string
@@ -71,6 +73,7 @@ type wire struct {
 	Summary           string          `json:"summary"`
 	URL               json.RawMessage `json:"url"`
 	Inbox             string          `json:"inbox"`
+	Outbox            string          `json:"outbox"`
 	Endpoints         struct {
 		SharedInbox string `json:"sharedInbox"`
 	} `json:"endpoints"`
@@ -157,6 +160,10 @@ func read(w *wire, from string, isOurs func(string) bool) (*Actor, error) {
 
 	if shared, err := httpsURL(w.Endpoints.SharedInbox); err == nil && !isOurs(w.Endpoints.SharedInbox) {
 		actor.SharedInbox = shared.String()
+	}
+	// Only on their own server: it is fetched, signed, in their name's wake.
+	if outbox, err := httpsURL(w.Outbox); err == nil && strings.EqualFold(outbox.Host, id.Host) {
+		actor.Outbox = outbox.String()
 	}
 	if page, err := httpsURL(firstString(w.URL)); err == nil {
 		actor.Page = page.String()

@@ -273,3 +273,89 @@ func TestOnlyAnAdministratorKeepsTheList(t *testing.T) {
 		t.Errorf("delete: %d", code)
 	}
 }
+
+// The lab reads from real servers and writes to none of them.
+func TestTheLabWritesOnlyToTheLab(t *testing.T) {
+	w, alice := settledWorld()
+	w.h.Lab = true
+	poster := &fakePoster{}
+	w.h.Poster = poster
+
+	err := w.h.Deliver(context.Background(), federation.Delivery{ActorID: anaID, Target: "https://mastodon.example/inbox", Payload: []byte(`{}`)})
+	if err == nil || len(poster.posted) != 0 {
+		t.Errorf("sent to a real server: %v %v", err, poster.posted)
+	}
+	if err := w.h.Deliver(context.Background(), federation.Delivery{ActorID: anaID, Target: "https://gts.test/inbox", Payload: []byte(`{}`)}); err != nil || len(poster.posted) != 1 {
+		t.Errorf("to the lab's own: %v %v", err, poster.posted)
+	}
+
+	// Following somebody on a real server from the lab is undone, and
+	// nothing is queued for them.
+	_ = w.follows.Delete(anaID, alice.NodeID, repositories.FollowOut)
+	w.queue.sent, w.edges.log = nil, nil
+	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.added.v1", ObjectID: anaID, TargetID: alice.NodeID})
+	if len(w.queue.sent) != 0 || len(w.edges.log) != 1 || w.edges.log[0] != "delete follow ana>alice@mastodon.example" {
+		t.Errorf("queued %d, edges %v", len(w.queue.sent), w.edges.log)
+	}
+}
+
+// Somebody who is followed is read back a little way, so that their
+// profile here is not empty until they next post.
+func TestTheRecentPostsOfSomebodyNewlyFollowed(t *testing.T) {
+	w := newInboxWorld()
+	w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q=@alice@mastodon.example", "", anaID)
+	var alice *repositories.RemoteActor
+	for _, kept := range w.actors.kept {
+		alice = kept
+	}
+
+	note := func(n, extra string) string {
+		id := aliceID + "/statuses/" + n
+		return `{"id":"` + id + `/activity","type":"Create","actor":"` + aliceID + `","object":{"id":"` + id + `","type":"Note","attributedTo":"` + aliceID + `","content":"<p>Post ` + n + `</p>","published":"2026-09-0` + n + `T12:00:00Z","to":["https://www.w3.org/ns/activitystreams#Public"]` + extra + `}}`
+	}
+	w.fetcher.pages = map[string]string{
+		aliceID + "/outbox": `{"type":"OrderedCollection","totalItems":5,"first":"` + aliceID + `/outbox?page=true"}`,
+		aliceID + "/outbox?page=true": `{"type":"OrderedCollectionPage","orderedItems":[` +
+			note("1", "") + `,` +
+			note("2", `,"inReplyTo":"https://other.example/n/1"`) + `,` +
+			`{"id":"x","type":"Announce","actor":"` + aliceID + `","object":"https://other.example/n/2"},` +
+			`{"id":"y","type":"Create","actor":"` + aliceID + `","object":"` + aliceID + `/statuses/3"},` +
+			strings.Replace(note("4", ""), `"actor":"`+aliceID+`"`, `"actor":"https://mastodon.example/users/bob"`, 1) + `,` +
+			`"https://mastodon.example/just-an-address"` +
+			`]}`,
+		// One given only by its address is fetched.
+		aliceID + "/statuses/3": `{"id":"` + aliceID + `/statuses/3","type":"Note","attributedTo":"` + aliceID + `","content":"<p>Post 3</p>","to":"https://www.w3.org/ns/activitystreams#Public"}`,
+	}
+
+	// Following her reads them.
+	if err := w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.added.v1", ObjectID: anaID, TargetID: alice.NodeID}); err != nil {
+		t.Fatal(err)
+	}
+
+	var kept []string
+	for _, node := range w.nodes.people {
+		if node.OwnerID == alice.NodeID {
+			kept = append(kept, node.Body)
+		}
+	}
+	// Her own public posts, and not the reply, the boost, or the one that
+	// says it is somebody else's.
+	if strings.Join(kept, ", ") != "Post 1, Post 3" {
+		t.Errorf("kept %v", kept)
+	}
+
+	// A list that leads to another server is not followed there.
+	w = newInboxWorld()
+	w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q=@alice@mastodon.example", "", anaID)
+	for _, known := range w.actors.kept {
+		alice = known
+	}
+	w.fetcher.pages = map[string]string{aliceID + "/outbox": `{"first":"https://evil.example/outbox"}`}
+	w.fetcher.asked = nil
+	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.added.v1", ObjectID: anaID, TargetID: alice.NodeID})
+	for _, asked := range w.fetcher.asked {
+		if strings.Contains(asked, "evil.example") {
+			t.Errorf("went to %s", asked)
+		}
+	}
+}

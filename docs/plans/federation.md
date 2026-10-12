@@ -376,7 +376,8 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: notes out and in, with their changes and deletions | done 2026-10-13 |
 | Phase 1, ActivityPub: the web app: the switch, people and posts from elsewhere, the lookup | done 2026-10-13 |
 | Phase 1, ActivityPub: leaving, profile changes, accounts closed elsewhere, refused servers, a limit on the inbox, NodeInfo | done 2026-10-13 |
-| Phase 1, ActivityPub: a screen for refused servers, avatars of people elsewhere, backfill, the sweep for lost events, a test against Mastodon itself | not started |
+| Phase 1, ActivityPub: avatars of people elsewhere, their earlier posts | done 2026-10-13 |
+| Phase 1, ActivityPub: a screen for refused servers, the sweep for lost events, a test against Mastodon itself with a real name | not started |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -398,6 +399,26 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   page, when it joined, what it says of itself with the hashtags as links,
   and the avatar and cover, which it fetched through the addresses that
   stay.
+
+**Pictures, and earlier posts.** `avatar.go`, `backfill.go`.
+
+- **An avatar is copied into this installation's storage,** re-made at its
+  own sizes, and never shown from where it came from. Tried with a real
+  account: the avatar of `rastin@mastodon.world` was fetched, stored and
+  served through the API like anybody's.
+- **On a first follow, up to twenty recent public notes are read** from the
+  person's own server. Tried in the lab: two notes alice had posted before
+  anybody followed her arrived when she was followed.
+- **First contact with Mastodon itself,** by accident and to good effect:
+  the user looked up their own account on mastodon.world from the lab, and
+  it was found and understood. The lab reaches the internet, and Mastodon
+  answers for a public profile without being able to check who asks. So
+  **the lab now writes only to servers whose names end in `.test`**: what
+  it sent a real server could not be checked there, and would be tried for
+  two days.
+- **Found on the way:** the command-line lookup stopped before the picture
+  was copied, since that is done beside the answer; the commands now do all
+  of their own work before they stop.
 
 **Leaving, changes, and refusing servers.** `leaving.go`; the inbox's
 `Update` and `Delete` of a person; the graph's `DeleteRemoteActor`;

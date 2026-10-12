@@ -8,8 +8,7 @@ person can choose to be found, people follow each other across servers
 either way round, their public notes travel with the follow, a person can
 leave again, an administrator can refuse a server, and the web app has the
 switch, the lookup, and shows people and posts from other servers.
-Replies, likes, reposts and pictures do not travel yet, and the avatars of
-people on other servers are not shown.
+Replies, likes, reposts and the pictures in posts do not travel yet.
 
 ## Contents
 
@@ -94,6 +93,7 @@ already in `config.env` and `secrets.env`:
 | --- | --- |
 | `DSN` | Its own tables |
 | `GRAPH_SERVICE_ADDR` | People, posts and follows are the graph's |
+| `FILE_SERVICE_ADDR` | The avatars of people on other servers are copied into this installation's storage |
 | `AMQP_ADDR` | It hears there that somebody here followed, posted or changed their profile |
 | `REDIS_ADDR` | Limits on lookups and on what one address may send |
 | `SECURE_COOKIE_KEY`, `OAUTH_ISSUER` | Knowing who is signed in, for a person's own switch |
@@ -309,6 +309,14 @@ people and by other servers, so it fetches through the same guarded client
 as link previews (`anahita-libs/safehttp`): https only, public addresses
 only, decided at the moment of connecting, a megabyte at most.
 
+**Their picture is copied here.** An avatar is fetched once, checked to be
+a picture and nothing else, written again at this installation's own sizes,
+and kept in its storage like anybody's (`avatar.go`). It is shown from
+there, never from the server it came from: a picture loaded straight from
+another server tells that server who looked at whom, for every reader. It
+is fetched again only when their server gives a different address for it,
+and is removed from storage when they are.
+
 A lookup is limited to 30 in ten minutes for each person.
 
 ## Being followed from another server
@@ -418,8 +426,16 @@ and only by its author: the graph removes a note from another server only
 in the name of whoever it belongs to
 (`graph-grpc-service/data/repositories/nodes_remote.go`).
 
-**Not kept:** pictures and other attachments, replies, boosts, polls, and
-what was posted before the follow.
+**What they posted before they were followed.** A server sends a follower
+what is posted from then on, so somebody followed today would have an
+empty profile here until they next post. When somebody is first followed,
+their most recent public notes, up to twenty, are read once from the list
+their server keeps (`backfill.go`), each held to the same rule as a note
+that is sent. Only ever from their own server, and in no more than
+twenty-five requests whatever it answers.
+
+**Not kept:** pictures and other attachments in posts, replies, boosts and
+polls.
 
 ## What can be done with what came from elsewhere
 
@@ -436,10 +452,6 @@ followed, and little else. The rules are the installation's own, in
 | Changing a post of theirs | Nobody. An administrator may remove it from this installation |
 | Liking or replying to a post of theirs | Not yet: it would never reach them |
 | Reposting, saving a post of theirs | Yes; it stays here |
-
-Their avatar is not shown yet: its address on their server is kept, and
-the picture is to be copied here, so that no reader's browser calls
-another server.
 
 ## The inbox
 
@@ -656,6 +668,7 @@ that.
 | Reading from other servers | `fetch/`, over `anahita-libs/safehttp` |
 | Who somebody elsewhere is, and what is believed of it | `remote/` |
 | Looking somebody up | `cmd/api/handlers/lookup.go`, table `activitypub_actors` |
+| Their picture, and their earlier posts | `cmd/api/handlers/avatar.go`, `backfill.go` |
 | The inbox, and being followed | `cmd/api/handlers/inbox.go`, table `activitypub_follows` |
 | Following from here | `cmd/api/handlers/events.go`, listening for `edge.follow.*` on the bus (`AMQP_ADDR`) |
 | Posts going out | `cmd/api/handlers/notes.go`, `ap/note.go`, listening for `node.medium.*`, table `activitypub_objects` |

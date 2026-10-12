@@ -18,6 +18,7 @@ each at a name of its own, speaking to each other over https.
 - [Looking somebody on GoToSocial up from here](#looking-somebody-on-gotosocial-up-from-here)
 - [Asking as another server would](#asking-as-another-server-would)
 - [Stopping and emptying it](#stopping-and-emptying-it)
+- [Real servers, from the lab](#real-servers-from-the-lab)
 - [What it is not](#what-it-is-not)
 - [Where the code is](#where-the-code-is)
 
@@ -30,7 +31,8 @@ internet has: names, certificates, and a server it did not write to be
 understood by.
 
 The names end in `.test`, which is set aside for this and can never be a
-real site. Nothing in the lab is reachable from outside your machine.
+real site. Nothing in the lab is reachable from outside your machine,
+though it can reach out: see [Real servers, from the lab](#real-servers-from-the-lab).
 
 ## What is in it
 
@@ -227,6 +229,23 @@ make fedi_lab_reset    # stop it and empty GoToSocial
 **Empty it whenever this installation's identity changes** (a fresh
 database, different keys). A server remembers who it was told somebody is,
 and will refuse the same name with a different key.
+
+## Real servers, from the lab
+
+The lab is not sealed off from the internet, and that is of use: a
+containers's requests go out as anybody's do.
+
+- **Reading works.** `lookup @somebody@mastodon.social`, or the same from
+  the search page, finds a real person on a real server, with their
+  picture. Mastodon answers for a public profile without being able to
+  check who asks.
+- **Writing does not, on purpose.** The lab calls itself `anahita.test`,
+  a name no real server can look up, so nothing it sent could be checked
+  there. `activitypub-service` therefore sends nothing from the lab to a
+  server whose name does not end in `.test`, and a follow of somebody on a
+  real server is undone as soon as it is made. Following and posting to
+  real servers is for a site with a real name: see
+  [Federation](federation.md#setting-it-up), step 8.
 
 ## What it is not
 

@@ -326,14 +326,7 @@ const receivedNoteMax = 20000
 // everybody, and not a reply: replies are not kept yet.
 func (h *Handlers) received(from *remote.Actor, activity *ap.Activity) error {
 	note := activity.Note()
-	if note == nil || note.Type != "Note" || note.Author() != from.ID {
-		return nil
-	}
-	// Its address must be on its author's own server.
-	if !sameHost(note.ID, from.ID) || h.Site.IsOurs(note.ID) || len(note.ID) > 512 {
-		return nil
-	}
-	if !note.IsPublic() || note.IsReply() {
+	if note == nil {
 		return nil
 	}
 
@@ -341,7 +334,25 @@ func (h *Handlers) received(from *remote.Actor, activity *ap.Activity) error {
 	if err != nil || kept == nil {
 		return err
 	}
-	followed, err := h.Follows.IsFollowedFromHere(kept.NodeID)
+	return h.keepNote(kept, note)
+}
+
+// keepNote keeps one post of somebody elsewhere, if it is one that is kept.
+// The same rule whether it was sent here or read from the list of what they
+// have posted.
+func (h *Handlers) keepNote(author *repositories.RemoteActor, note *ap.ReceivedNote) error {
+	if note == nil || note.Type != "Note" || note.Author() != author.URI {
+		return nil
+	}
+	// Its address must be on its author's own server.
+	if !sameHost(note.ID, author.URI) || h.Site.IsOurs(note.ID) || len(note.ID) > 512 {
+		return nil
+	}
+	if !note.IsPublic() || note.IsReply() {
+		return nil
+	}
+
+	followed, err := h.Follows.IsFollowedFromHere(author.NodeID)
 	if err != nil || !followed {
 		return err
 	}
@@ -350,7 +361,7 @@ func (h *Handlers) received(from *remote.Actor, activity *ap.Activity) error {
 	node.Type = constants.NodeMediumNoteEntityType
 	node.URI = note.ID
 	node.OriginDomain = hostOf(note.ID)
-	node.OwnerID = kept.NodeID
+	node.OwnerID = author.NodeID
 	node.Body = cutRunes(federation.ToMarkdown(note.Content), receivedNoteMax)
 	node.Language = note.Language()
 	if published, err := time.Parse(time.RFC3339, note.Published); err == nil {
@@ -394,6 +405,10 @@ func (h *Handlers) forget(kept *repositories.RemoteActor) error {
 	// taken for somebody here unfollowing, and answered with an Undo.
 	if err := h.Follows.DeleteAllWith(kept.NodeID); err != nil {
 		return err
+	}
+	// Their picture, which is in this installation's storage.
+	if node, err := h.Nodes.Read(kept.NodeID); err == nil {
+		h.deleteAvatar(node)
 	}
 	if _, err := h.Nodes.DeleteRemoteActor(kept.URI); err != nil {
 		return err

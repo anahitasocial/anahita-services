@@ -204,6 +204,9 @@ func (h *Handlers) keep(actor *remote.Actor) (*entities.AnahitaNode, error) {
 	// Their page on their own server: where they are looked at in full.
 	node.WebsiteURL = actor.Page
 
+	// What was known of them before, to tell whether their picture changed.
+	before, _ := h.Actors.ReadByURI(actor.ID)
+
 	saved, _, err := h.Nodes.UpsertRemote(node)
 	// Somebody else kept here goes by that handle: it was theirs once and
 	// has been taken over, or it is claimed by two. This one is then called
@@ -235,5 +238,21 @@ func (h *Handlers) keep(actor *remote.Actor) (*entities.AnahitaNode, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Their picture, copied here when it is new or was never copied. Not
+	// waited for: who they are does not depend on it.
+	if actor.Icon != "" && (before == nil || before.IconURL != actor.Icon || saved.AvatarFilename == "") {
+		id, icon := saved.ID, actor.Icon
+		h.later(func() { h.copyAvatar(id, icon) })
+	}
 	return saved, nil
+}
+
+// later runs what need not hold up an answer.
+func (h *Handlers) later(work func()) {
+	if h.Later != nil {
+		h.Later(work)
+		return
+	}
+	work()
 }

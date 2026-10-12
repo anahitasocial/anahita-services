@@ -13,6 +13,7 @@ type Config struct {
 	Env              string
 	DSN              string
 	GraphServiceAddr string
+	FileServiceAddr  string
 	// The bus the services talk over: where this one hears that somebody
 	// here followed somebody elsewhere.
 	AmqpAddr        string
@@ -37,6 +38,7 @@ func NewConfig() *Config {
 		Env:              getEnv("ENV", constants.ConfigEnvDev),
 		DSN:              os.Getenv("DSN"),
 		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
+		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
 		AmqpAddr:         os.Getenv("AMQP_ADDR"),
 		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
 		Lab:              os.Getenv("ACTIVITYPUB_LAB") == "on",
@@ -70,6 +72,7 @@ func (config *Config) Validate() error {
 	for name, value := range map[string]string{
 		"DSN":                config.DSN,
 		"GRAPH_SERVICE_ADDR": config.GraphServiceAddr,
+		"FILE_SERVICE_ADDR":  config.FileServiceAddr,
 		"AMQP_ADDR":          config.AmqpAddr,
 		"OAUTH_ISSUER":       config.OAuthIssuer,
 		"OAUTH_JWKS_URL":     config.OAuthJWKSURL,
@@ -90,6 +93,7 @@ func (config *Config) IsProd() bool    { return config.Env == constants.ConfigEn
 
 func (config *Config) GetDSN() string              { return config.DSN }
 func (config *Config) GetGraphServiceAddr() string { return config.GraphServiceAddr }
+func (config *Config) GetFileServiceAddr() string  { return config.FileServiceAddr }
 func (config *Config) GetAmqpAddr() string         { return config.AmqpAddr }
 func (config *Config) GetSecureCookieKey() string  { return config.SecureCookieKey }
 func (config *Config) GetRedisAddr() string        { return config.RedisAddr }

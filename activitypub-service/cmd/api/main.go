@@ -105,6 +105,9 @@ func main() {
 	}
 	env.Fetcher = client
 	env.Poster = client
+	env.Lab = config.Lab
+	env.Pictures = client
+	env.Files = services.NewFilesGRPC(config)
 
 	// What is to be sent to other servers waits in a table, and is sent
 	// from there until it arrives or two days have passed.
@@ -142,6 +145,11 @@ func main() {
 		}
 		return
 	}
+
+	// From here on this is the service, answering requests: what need not
+	// hold up an answer is done beside it. The commands above are done by
+	// then, having waited for all of their own work.
+	env.Later = func(work func()) { go work() }
 
 	// Any number of copies of this service may run: a row of the queue is
 	// handed to one of them at a time.

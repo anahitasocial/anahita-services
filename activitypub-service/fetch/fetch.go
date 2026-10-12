@@ -101,6 +101,54 @@ func (c *Client) JSON(ctx context.Context, address string, into any) (string, er
 	return c.get(ctx, address, "application/jrd+json, application/json", false, into)
 }
 
+// Bytes fetches a file from another server: somebody's picture. Unsigned,
+// https only, to public addresses only, following where it is sent a few
+// times, and never more than `max` bytes. It answers with what kind of file
+// the server said it is, which is not to be believed without looking.
+func (c *Client) Bytes(ctx context.Context, address string, max int64) ([]byte, string, error) {
+	for hop := 0; hop <= MaxRedirects; hop++ {
+		parsed, err := url.Parse(address)
+		if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.User != nil {
+			return nil, "", fmt.Errorf("%w: %s", ErrNotAllowed, address)
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
+		if err != nil {
+			return nil, "", fmt.Errorf("%w: %v", ErrNotAllowed, err)
+		}
+		req.Header.Set("User-Agent", c.userAgent)
+
+		resp, err := c.http.Do(req)
+		if err != nil {
+			return nil, "", err
+		}
+
+		if resp.StatusCode >= 300 && resp.StatusCode < 400 {
+			next, err := resp.Location()
+			resp.Body.Close()
+			if err != nil {
+				return nil, "", fmt.Errorf("%w: sent on to nowhere", ErrUnreadable)
+			}
+			address = next.String()
+			continue
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, "", fmt.Errorf("%w: status %d from %s", ErrUnreadable, resp.StatusCode, parsed.Host)
+		}
+		body, err := io.ReadAll(io.LimitReader(resp.Body, max+1))
+		if err != nil {
+			return nil, "", err
+		}
+		if int64(len(body)) > max {
+			return nil, "", fmt.Errorf("%w: more than %d bytes", ErrUnreadable, max)
+		}
+		return body, resp.Header.Get("Content-Type"), nil
+	}
+	return nil, "", fmt.Errorf("%w: sent on too many times", ErrUnreadable)
+}
+
 // ErrRefused is the other server saying it will never take what was sent:
 // trying again would get the same answer.
 var ErrRefused = errors.New("the other server will not take it")

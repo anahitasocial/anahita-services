@@ -74,6 +74,11 @@ spec:
                   name: anahita-secrets
                   key: REDIS_PASSWORD
                   optional: true
+            - name: FILE_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FILE_SERVICE_ADDR
             - name: GRAPH_SERVICE_ADDR
               valueFrom:
                 configMapKeyRef:

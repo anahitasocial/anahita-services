@@ -29,6 +29,16 @@ type Env struct {
 	Actors   repositories.ActorsInterface
 	Follows  repositories.FollowsInterface
 	Objects  repositories.ObjectsInterface
+	// Where pictures of people elsewhere are fetched from and kept. Nil for
+	// neither, in tests: then nobody's picture is copied.
+	Pictures Pictures
+	Files    services.FilesGRPCInterface
+	// Runs what need not hold up an answer: copying a picture, reading
+	// somebody's recent posts. Nil runs it at once, which tests want.
+	Later func(func())
+	// In the federation lab: nothing is sent to a server that is not the
+	// lab's own. See Deliver.
+	Lab bool
 	// The servers that are refused. Nil for none, in tests.
 	Blocks repositories.BlocksInterface
 	// The graph's own record of who follows whom, and who has blocked whom.

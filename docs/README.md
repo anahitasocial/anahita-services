@@ -250,6 +250,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Looking somebody on GoToSocial up from here](federation-lab.md#looking-somebody-on-gotosocial-up-from-here)
    - [Asking as another server would](federation-lab.md#asking-as-another-server-would)
    - [Stopping and emptying it](federation-lab.md#stopping-and-emptying-it)
+   - [Real servers, from the lab](federation-lab.md#real-servers-from-the-lab)
    - [What it is not](federation-lab.md#what-it-is-not)
    - [Where the code is](federation-lab.md#where-the-code-is)
 

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"activitypub/fetch"
 
@@ -45,6 +46,14 @@ func (h *Handlers) Deliver(ctx context.Context, delivery federation.Delivery) er
 	// Nothing is sent to a server that is refused, whenever it was queued.
 	if h.Blocks != nil && h.Blocks.IsBlocked(hostOf(delivery.Target)) {
 		return federation.Permanent(errors.New("that server is refused"))
+	}
+
+	// The lab reaches the internet, and can read from real servers, but it
+	// calls itself by a name no real server can look up. What it sent one
+	// could never be checked, and would be tried for two days. So from the
+	// lab, only the lab's own servers are written to.
+	if h.Lab && !strings.HasSuffix(hostOf(delivery.Target), ".test") {
+		return federation.Permanent(errors.New("the lab sends nothing to a real server"))
 	}
 
 	sender, err := h.Nodes.Read(delivery.ActorID)
