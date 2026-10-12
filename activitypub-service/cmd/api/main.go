@@ -89,6 +89,7 @@ func main() {
 		Follows:     repositories.NewFollows(db),
 		Objects:     repositories.NewObjects(db),
 		Blocks:      repositories.NewBlocks(db),
+		Missed:      repositories.NewMissed(db),
 		FollowEdges: services.NewSocialgraphFollowGRPC(config),
 		Relations:   services.NewSocialgraphGRPC(config),
 		Crypt:       secrets,
@@ -153,6 +154,9 @@ func main() {
 	// hold up an answer is done beside it. The commands above are done by
 	// then, having waited for all of their own work.
 	env.Later = func(work func()) { go work() }
+
+	// What the bus lost is looked for now and then. See handlers/sweep.go.
+	go h.RunSweep(context.Background(), 5*time.Minute)
 
 	// Any number of copies of this service may run: a row of the queue is
 	// handed to one of them at a time.

@@ -37,6 +37,9 @@ type Env struct {
 	// Runs what need not hold up an answer: copying a picture, reading
 	// somebody's recent posts. Nil runs it at once, which tests want.
 	Later func(func())
+	// Finds what the bus lost. Nil for no sweep, in tests that are not of
+	// it.
+	Missed repositories.MissedInterface
 	// Says on the bus that a post from another server was kept, for the
 	// hashtag service to give it its hashtags. Nil says nothing, in tests.
 	Announce func(payload *event.EventPayload, name string) error

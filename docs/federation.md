@@ -372,8 +372,8 @@ happened and asks the other server, with a signed `Follow`.
   installation is waiting on, by the name that follow was sent under. Nobody
   can be made to follow somebody by being told they were accepted.
 - **The bus can lose a message.** A follow the other server was never asked
-  about stays as it is here and carries nothing. Unfollowing and following
-  again puts it right; a sweep that does so by itself is not written yet.
+  about stays as it is here and carries nothing, until
+  [the sweep](#what-the-bus-lost) finds it, within a few minutes, and asks.
 
 ## Posts going out
 
@@ -514,6 +514,37 @@ ORDER BY created_at DESC;
 
 The sending runs inside `activitypub-service`. Any number of copies of the
 service may run: a row is handed to one of them at a time.
+
+### What the bus lost
+
+The service is told of what happens here (a follow, a post, a profile
+closed) on a bus that can drop a message, and what it was not told of,
+other servers were not told of either. So every five minutes, and a minute
+after it starts, it looks for itself (`cmd/api/handlers/sweep.go`,
+`data/repositories/missed.go`) at where the graph and its own records
+differ:
+
+| Found | Done |
+| --- | --- |
+| A follow of somebody elsewhere that their server was never asked about | It is asked. Or the follow is taken away, where it is one that cannot be: by somebody not on the fediverse, or from the lab to a real server |
+| A follow their server was asked about that is no longer in the graph | Their server is told it is over |
+| A public note by somebody on the fediverse, written in the last two days and since they joined, that was never sent | It is sent to their followers |
+| A note that was sent and is gone here, disabled, or no longer open to everybody | Servers that have it are told to drop it |
+| Somebody on the fediverse whose profile is no longer open to everybody, or is disabled or gone | They leave, as they would have |
+
+Each is handed to what would have handled the event, which decides again
+from the thing as it is now and does its work once however often it is
+asked. So a sweep that finds nothing new sends nothing, every copy of the
+service may sweep at once, and an event that was only late does no harm.
+Something is not taken for lost until two minutes have passed, and at most
+200 of each kind are put right in one sweep. A line in the log says what a
+sweep put right; one that found nothing says nothing.
+
+**What it does not find** is a lost change to something other servers
+already have: a note edited, a profile edited. Nothing records what they
+were last sent, so there is nothing to compare with. The next change to the
+same thing carries the one that was lost. A note that went unsent for more
+than two days is not sent late, since followers would be shown it as new.
 
 ## Signing keys and signed requests
 
@@ -698,6 +729,7 @@ that.
 | Signing and checking requests | `httpsig/` |
 | Reading from other servers | `fetch/`, over `anahita-libs/safehttp` |
 | Who somebody elsewhere is, and what is believed of it | `remote/` |
+| What the bus lost | `cmd/api/handlers/sweep.go`, `data/repositories/missed.go` |
 | Looking somebody up | `cmd/api/handlers/lookup.go`, table `activitypub_actors` |
 | Their picture, and their earlier posts | `cmd/api/handlers/avatar.go`, `backfill.go` |
 | The inbox, and being followed | `cmd/api/handlers/inbox.go`, table `activitypub_follows` |

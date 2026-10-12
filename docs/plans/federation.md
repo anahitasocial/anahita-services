@@ -379,7 +379,8 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: leaving, profile changes, accounts closed elsewhere, refused servers, a limit on the inbox, NodeInfo | done 2026-10-13 |
 | Phase 1, ActivityPub: avatars of people elsewhere, their earlier posts | done 2026-10-13 |
 | Phase 1, ActivityPub: covers of people elsewhere; refused servers kept by super administrators, with a screen in Site settings | done 2026-10-12 |
-| Phase 1, ActivityPub: the sweep for lost events, a test against Mastodon itself with a real name | not started |
+| Phase 1, ActivityPub: hashtags of posts from elsewhere; the sweep for what the bus lost; no notifications made for people elsewhere | done 2026-10-12 |
+| Phase 1, ActivityPub: a test against Mastodon itself with a real name | not started: needs a name other servers can reach |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -546,7 +547,14 @@ and sends `Follow` and `Undo`; the inbox takes `Accept` and `Reject`.
   federate; a public profile is followed by any stranger here, and a
   stranger elsewhere is held to the same and no more. It also removes what
   was listed below as still to do: answering a request that was held.
-- **Still to do:** the sweep for follows the bus lost.
+- **The sweep for what the bus lost is written** (`sweep.go`, `missed.go`):
+  follows never asked about and follows that are over, notes never sent and
+  notes that are gone, and people who may no longer be on the fediverse.
+  Each is handed to what handles the event, which does its work once. Its
+  first run on the development data found a follow of somebody on a real
+  server that the lab should have taken away when it was made, and took it
+  away. Not found by it: a lost edit of a note or a profile, since nothing
+  records what other servers were last sent.
 
 **The inbox, and being followed.** `POST /inbox` and each person's own;
 `Follow` and `Undo(Follow)`; the queue's table `activitypub_deliveries` and
@@ -564,12 +572,13 @@ its worker; `activitypub_follows` (migration `20261029000001`).
   (`…/users/alice/main-key`). Who signed is found from the key's own
   address either way, and must be on the key's server.
 - **Still to do, found here:**
-  - **A follower from elsewhere is subscribed to the person they follow,**
+  - **A follower from elsewhere was subscribed to the person they follow,**
     as every follower is (`edge.base.subscription.v1`), so
-    notification-service will make notifications for somebody who can never
-    read them. Harmless, and wasteful: to be stopped there.
-  - **The web app cannot show somebody from another server,** so the
-    notification that they followed has no profile behind it.
+    notification-service would have made notifications for somebody who can
+    never read them. Stopped there since: a follower from elsewhere is not
+    subscribed, and nothing is made for somebody elsewhere who is followed
+    from here. Somebody here is still told that they were followed, and
+    the web app can now show who by.
   - **No limit yet on how much one server may send,** and no list of servers
     that are refused. Both before any live site federates.
 

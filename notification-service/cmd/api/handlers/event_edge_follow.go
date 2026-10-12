@@ -28,6 +28,13 @@ func (h *eventHandler) eventFormatEdgeFollowAdded(payload *event.EventPayload) e
 		return err
 	}
 
+	// Somebody on another server was followed from here. There is nobody
+	// here to tell, and nothing of theirs to be told about later: what they
+	// post arrives through the follow itself.
+	if target.IsRemote() {
+		return nil
+	}
+
 	n.Type = NotificationTypeActorFollow
 	n.Service = payload.SourceService
 	n.Subject.ID = subject.ID
@@ -70,6 +77,13 @@ func (h *eventHandler) eventFormatEdgeFollowAdded(payload *event.EventPayload) e
 				return err
 			}
 		}
+	}
+
+	// A follower on another server is told of new posts by their own
+	// server, which is sent them. Subscribed here, a notification would be
+	// made for each post and read by nobody.
+	if subject.IsRemote() {
+		return nil
 	}
 
 	isSubscribed, err := h.Srv.SubscriptionsGRPC.IsSubscribedTo(subject.ID, target.ID)
