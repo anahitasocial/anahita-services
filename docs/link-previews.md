@@ -109,6 +109,9 @@ is another link's and has a preview in the store. With the link taken out
 of the note, the card goes too, and `link_preview_remove` takes it off
 while the link stays.
 
+A reply is a note: `POST /notes/:id/replies` takes `link_preview_url` the
+same way, and a reply is edited like any note.
+
 Wherever the note is sent, it has `link_preview` with the same fields as
 above. A repost carries the card of the note it reposts.
 
@@ -124,6 +127,6 @@ still shown; only their pictures need the service.
 ## What is not built
 
 - oEmbed, and a favicon for a page with no picture.
-- Cards on anything but notes, and for any link but the first.
+- Cards on anything but notes and replies, and for any link but the first.
 - Blocking previews of chosen domains: it comes with federation's domain
   blocklist.

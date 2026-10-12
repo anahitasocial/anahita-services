@@ -24,7 +24,7 @@ func TestTheCardANoteCarries(t *testing.T) {
 	if err := store.Put(&linkpreviews.Preview{URL: "https://example.org/heap", Title: "Compost", Status: linkpreviews.StatusOK}); err != nil {
 		t.Fatal(err)
 	}
-	h := &noteHandler{Env: &Env{Previews: store}}
+	h := &mediumHandler{Env: &Env{Previews: store}}
 	titleOf := func(meta []byte) string {
 		if card := linkpreviews.FromMeta(meta); card != nil {
 			return card.Title

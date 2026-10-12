@@ -123,6 +123,8 @@ func blankRemoved(reply *entities.AnahitaNode) {
 
 	reply.Body = ""
 	reply.Name = ""
+	// With its words went the card for a link in them.
+	reply.Meta = nil
 	reply.Author = nil
 	reply.Owner = nil
 	reply.Editor = nil
@@ -213,6 +215,8 @@ const replyThreadLimit = 500
 type replyAddRequest struct {
 	Body     string `json:"body" form:"body" validate:"required,max=8000"`
 	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
+	// The link in it to show a card for, as on a note. See NoteAddRequest.
+	LinkPreviewURL string `json:"link_preview_url" form:"link_preview_url" validate:"omitempty,max=2000"`
 }
 
 // AddReply answers a post or a reply.
@@ -289,6 +293,9 @@ func (h *mediumHandler) AddReply(c echo.Context) error {
 	// Only what it answers is sent. The graph works out the root from
 	// that, and gives the reply no audience of its own.
 	reply.ParentID = parent.ID
+
+	// A reply is a note, and carries a card for a link like one.
+	reply.Meta = h.withLinkPreview(reply.Meta, req.LinkPreviewURL, reply.Body, false)
 
 	reply, err = h.Srv.MediaGRPC.Add(reply, viewer)
 	if err != nil {

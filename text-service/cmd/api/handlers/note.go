@@ -307,7 +307,7 @@ func (h *noteHandler) Add(c echo.Context) error {
 // was written, and correcting a word is no reason to lose it or to fetch
 // it again. With the link gone, so is the card; and `remove` is its writer
 // taking it off while the link stays.
-func (h *noteHandler) withLinkPreview(meta []byte, address, body string, remove bool) []byte {
+func (h *mediumHandler) withLinkPreview(meta []byte, address, body string, remove bool) []byte {
 	existing := linkpreviews.FromMeta(meta)
 
 	if remove {
