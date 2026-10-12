@@ -27,5 +27,15 @@
             { "entity": "photo", "access": "followers" }
         ],
         "include_common_permissions": ["content_creator"]
+    },
+    {
+        "service": "video-service",
+        "node_types": ["video"],
+        "composers": ["video"],
+        "enabled": true,
+        "add_permissions": [
+            { "entity": "video", "access": "followers" }
+        ],
+        "include_common_permissions": ["content_creator"]
     }
 ]
