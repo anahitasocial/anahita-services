@@ -101,6 +101,10 @@ services:
       # Both optional: the name falls back through SITE_NAME to DOMAIN_NAME,
       # and an unwritten description is published empty rather than invented.
       ANAHITA_INSTANCE_NAME: ${ANAHITA_INSTANCE_NAME:-}
+      # What NodeInfo says the installation speaks to other servers:
+      # "activitypub" when activitypub-service is run for real. See
+      # docs/federation.md.
+      FEDERATION_PROTOCOLS: ${FEDERATION_PROTOCOLS:-}
       ANAHITA_INSTANCE_DESCRIPTION: ${ANAHITA_INSTANCE_DESCRIPTION:-}
       SYSTEM_EMAIL: ${SYSTEM_EMAIL}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL}

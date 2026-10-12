@@ -71,6 +71,19 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 		}
 	}
 
+	// Off, having been on: every server that knows them is told to forget
+	// them, and what crossed between servers is undone here.
+	if !*req.Enabled && settings.Enabled {
+		person, err := h.Nodes.Read(viewer.ID)
+		if err == nil {
+			err = h.leave(c.Request().Context(), person)
+		}
+		if err != nil {
+			log.Println("activitypub leaving:", err)
+			return refuse(c, http.StatusInternalServerError, "unavailable")
+		}
+	}
+
 	if err := h.Accounts.Set(viewer.ID, *req.Enabled); err != nil {
 		log.Println("activitypub settings:", err)
 		return refuse(c, http.StatusInternalServerError, "unavailable")

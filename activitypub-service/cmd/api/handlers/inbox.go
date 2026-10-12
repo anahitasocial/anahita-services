@@ -23,6 +23,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/federation"
+	"anahita-libs/ratelimit"
 
 	"github.com/labstack/echo/v4"
 )
@@ -46,6 +47,11 @@ type rsaKey = rsa.PrivateKey
 // hundred bytes; a long post with its attachments listed, a few kilobytes.
 const inboxMaxBytes = 1 << 20
 
+// How much one address may send. A busy server sends a great deal, to one
+// inbox for everybody here; this is well above that and well below what it
+// takes to keep this service from anything else.
+var inboxLimit = ratelimit.Limit{Max: 600, Window: time.Minute}
+
 // Inbox takes what another server sends.
 func (h *Handlers) Inbox(c echo.Context) error {
 	if ok, _ := h.siteFederates(); !ok {
@@ -53,6 +59,14 @@ func (h *Handlers) Inbox(c echo.Context) error {
 	}
 
 	req := c.Request()
+
+	// So much from one address in a minute, and no more: nothing here is
+	// cheap enough to do for whoever asks as often as they like. Counted
+	// before anything is read.
+	if h.Limiter != nil && ratelimit.Exceeded(h.Limiter, "activitypub_inbox", c.RealIP(), inboxLimit) {
+		return c.NoContent(http.StatusTooManyRequests)
+	}
+
 	body, err := io.ReadAll(io.LimitReader(req.Body, inboxMaxBytes+1))
 	if err != nil {
 		return c.NoContent(http.StatusBadRequest)
@@ -69,6 +83,23 @@ func (h *Handlers) Inbox(c echo.Context) error {
 	var activity ap.Activity
 	if err := json.Unmarshal(body, &activity); err != nil || activity.Type == "" || activity.ActorID() == "" {
 		return c.NoContent(http.StatusBadRequest)
+	}
+
+	// A server that is refused is not listened to, and is not asked for
+	// anything either: its key is not fetched.
+	if h.Blocks != nil && (h.Blocks.IsBlocked(hostOf(sig.KeyID)) || h.Blocks.IsBlocked(hostOf(activity.ActorID()))) {
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	// Somebody saying they are gone, whom nobody here ever heard of. A
+	// large server tells every server it knows each time an account is
+	// closed; nearly all of those are strangers here. There is nothing to
+	// remove, so there is nothing to check, and their server (which no
+	// longer has their key to give) is not asked.
+	if activity.Type == "Delete" && activity.ObjectID() == activity.ActorID() {
+		if kept, err := h.Actors.ReadByURI(activity.ActorID()); err == nil && kept == nil {
+			return c.NoContent(http.StatusAccepted)
+		}
 	}
 
 	ctx, cancel := context.WithTimeout(req.Context(), 3*fetch.Timeout)
@@ -94,7 +125,14 @@ func (h *Handlers) Inbox(c echo.Context) error {
 		}
 	case "Accept", "Reject":
 		err = h.answered(from, &activity, activity.Type == "Accept")
-	case "Create", "Update":
+	case "Update":
+		// Themselves: their name, their words about themselves, their key.
+		if activity.ObjectID() == from.ID {
+			err = h.refreshed(ctx, from)
+		} else {
+			err = h.received(from, &activity)
+		}
+	case "Create":
 		err = h.received(from, &activity)
 	case "Delete":
 		err = h.withdrawn(from, &activity)
@@ -330,9 +368,7 @@ func (h *Handlers) received(from *remote.Actor, activity *ap.Activity) error {
 // withdrawn is somebody elsewhere having taken a post away.
 func (h *Handlers) withdrawn(from *remote.Actor, activity *ap.Activity) error {
 	gone := activity.ObjectID()
-	// Themselves: an account closed. What that takes with it here is still
-	// to be done; their posts stay until then.
-	if gone == "" || gone == from.ID || !sameHost(gone, from.ID) {
+	if gone == "" || !sameHost(gone, from.ID) {
 		return nil
 	}
 
@@ -340,8 +376,45 @@ func (h *Handlers) withdrawn(from *remote.Actor, activity *ap.Activity) error {
 	if err != nil || kept == nil {
 		return err
 	}
+
+	// Themselves: their account was closed there. They go from here, with
+	// what they posted and everybody's follows of them and theirs of
+	// everybody.
+	if gone == from.ID {
+		return h.forget(kept)
+	}
 	// The graph takes it away only if it is theirs.
 	_, err = h.Nodes.DeleteRemote(gone, kept.NodeID)
+	return err
+}
+
+// forget removes somebody from another server and everything of theirs.
+func (h *Handlers) forget(kept *repositories.RemoteActor) error {
+	// What this service keeps goes first, so that the follows' going is not
+	// taken for somebody here unfollowing, and answered with an Undo.
+	if err := h.Follows.DeleteAllWith(kept.NodeID); err != nil {
+		return err
+	}
+	if _, err := h.Nodes.DeleteRemoteActor(kept.URI); err != nil {
+		return err
+	}
+	return h.Actors.Delete(kept.NodeID)
+}
+
+// refreshed is somebody elsewhere having changed their profile. What they
+// sent is not taken at its word: they are read again from their own server,
+// and believed as far as anybody is.
+func (h *Handlers) refreshed(ctx context.Context, from *remote.Actor) error {
+	kept, err := h.Actors.ReadByURI(from.ID)
+	if err != nil || kept == nil {
+		// Nobody kept here: nothing to bring up to date.
+		return err
+	}
+	fetched, err := remote.Fetch(ctx, h.Fetcher, from.ID, h.Site.IsOurs)
+	if err != nil {
+		return err
+	}
+	_, err = h.keep(fetched)
 	return err
 }
 

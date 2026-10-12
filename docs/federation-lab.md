@@ -11,6 +11,7 @@ each at a name of its own, speaking to each other over https.
 - [Opening it in a browser](#opening-it-in-a-browser)
 - [Somebody to talk to](#somebody-to-talk-to)
 - [Having GoToSocial look somebody up](#having-gotosocial-look-somebody-up)
+- [Turning the fediverse on and off for somebody](#turning-the-fediverse-on-and-off-for-somebody)
 - [Following somebody here from GoToSocial](#following-somebody-here-from-gotosocial)
 - [Following somebody on GoToSocial from here](#following-somebody-on-gotosocial-from-here)
 - [Posts, both ways](#posts-both-ways)
@@ -111,6 +112,21 @@ fetches the person's description and their pictures, and answers with the
 account as it understood it. Somebody who has not turned federation on is
 not found. Until the web app has the switch, it is turned on for a person
 with `PUT /activitypub/settings` ([Federation](federation.md#the-api)).
+
+## Turning the fediverse on and off for somebody
+
+Nobody is signed in when the lab is driven from a terminal, so the switch
+in a person's settings has commands that do the same:
+
+~~~sh
+docker compose exec activitypub-service /app/app-binary lab-join <username here>
+docker compose exec activitypub-service /app/app-binary lab-leave <username here>
+~~~
+
+**Leaving cannot be tried twice against the same GoToSocial.** It is told
+the person is deleted, marks them suspended, and does not take them back
+when they join again: which is what leaving means, and was found out here.
+`make fedi_lab_reset` empties it; make its accounts again afterwards.
 
 ## Following somebody here from GoToSocial
 

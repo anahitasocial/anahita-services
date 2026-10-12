@@ -32,6 +32,7 @@ import (
 var EventTopics = []string{
 	"edge.follow.*.*.v1",
 	"node.medium.*.*.*.v1",
+	"node.actor.*.*.*.v1",
 }
 
 // HandleEvent is told of something that happened here.
@@ -49,6 +50,12 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		err = h.localFollowed(ctx, payload.ObjectID, payload.TargetID)
 	case strings.HasPrefix(payload.Name, "edge.follow.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
 		err = h.localUnfollowed(ctx, payload.ObjectID, payload.TargetID)
+
+	// A person's profile edited, or their account disabled, archived,
+	// deleted, purged, or brought back. What decides is asked of the person
+	// as they are now.
+	case strings.HasPrefix(payload.Name, "node.actor.") && !strings.HasSuffix(payload.Name, ".added.v1"):
+		err = h.profileChanged(ctx, payload.ObjectID)
 
 	// A post made, changed or deleted. Only notes go out; the rest of what
 	// decides is asked of the post itself.

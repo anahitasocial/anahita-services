@@ -6,6 +6,8 @@ import (
 	"anahita-libs/videos"
 	"log"
 	"net/http"
+	"os"
+	"slices"
 	"strings"
 
 	"auth/data/repositories"
@@ -172,10 +174,9 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			Version:    softwareVersion,
 			Repository: softwareRepository,
 		},
-		// ActivityPub is where this is going and the protocol the plan is
-		// designed against, but nothing federates yet. Claiming it before it
-		// works would have remote servers attempting deliveries that fail.
-		Protocols: []string{},
+		// What the installation speaks to other servers, which is whatever
+		// its operator says is running. See federationProtocols.
+		Protocols: federationProtocols(),
 		Services: nodeInfoServices{
 			Inbound:  []string{},
 			Outbound: []string{},
@@ -287,4 +288,30 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			"supportWebsite": h.Config.GetSupportWebsite(),
 		},
 	})
+}
+
+// The protocols an installation can be said to speak.
+var knownProtocols = map[string]bool{"activitypub": true}
+
+// federationProtocols is the protocols this installation speaks to other
+// servers, as NodeInfo lists them: FEDERATION_PROTOCOLS, a list separated by
+// commas, of the ones there is a service for.
+//
+// Said by the operator and not found out: this service cannot see which
+// others are running, and claiming a protocol that is not there has other
+// servers trying to deliver to an address that does not answer. Nothing is
+// claimed on a site that is not open to read, which does not federate
+// whatever is deployed.
+func federationProtocols() []string {
+	protocols := []string{}
+	if policy.SiteReadAccess() != policy.ReadPublic {
+		return protocols
+	}
+	for _, name := range strings.Split(os.Getenv("FEDERATION_PROTOCOLS"), ",") {
+		name = strings.ToLower(strings.TrimSpace(name))
+		if knownProtocols[name] && !slices.Contains(protocols, name) {
+			protocols = append(protocols, name)
+		}
+	}
+	return protocols
 }

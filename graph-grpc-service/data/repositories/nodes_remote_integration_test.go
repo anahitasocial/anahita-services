@@ -204,6 +204,37 @@ func TestWhatIsKeptFromAnotherServer(t *testing.T) {
 		t.Errorf("what was made here: %d left", left)
 	}
 
+	// Her account closed there: she goes, with what she posted and every
+	// follow that touched her. Nobody made here goes with her.
+	if _, _, err := repo.UpsertRemote(note()); err != nil {
+		t.Fatal(err)
+	}
+	for _, edge := range []string{
+		`INSERT INTO edges (type, node_a_id, node_a_type, node_b_id, node_b_type, created_by, modified_by, created_at, updated_at) VALUES ('edge.actor.follow.v1', 1, 'p', ?, 'p', 1, 1, NOW(), NOW())`,
+		`INSERT INTO edges (type, node_a_id, node_a_type, node_b_id, node_b_type, created_by, modified_by, created_at, updated_at) VALUES ('edge.actor.follow.v1', ?, 'p', 1, 'p', 1, 1, NOW(), NOW())`,
+	} {
+		if _, err := db.Exec(edge, saved.ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, not := range []string{"", "https://mastodon.example/nobody", note().URI} {
+		if gone, _, err := repo.DeleteRemoteActor(not); err != nil || gone {
+			t.Errorf("%q: deleted %v (%v)", not, gone, err)
+		}
+	}
+	gone, neighbours, err := repo.DeleteRemoteActor(saved.URI)
+	if err != nil || !gone || len(neighbours) != 1 || neighbours[0] != 1 {
+		t.Errorf("alice: deleted %v, neighbours %v (%v)", gone, neighbours, err)
+	}
+	var hers, edges, ours int
+	if err := db.QueryRow(`SELECT (SELECT COUNT(*) FROM nodes WHERE id = ? OR owner_id = ?), (SELECT COUNT(*) FROM edges WHERE node_a_id = ? OR node_b_id = ?), (SELECT COUNT(*) FROM nodes WHERE id IN (1, 10))`, saved.ID, saved.ID, saved.ID, saved.ID).Scan(&hers, &edges, &ours); err != nil || hers != 0 || edges != 0 || ours != 2 {
+		t.Errorf("after: %d of hers, %d edges, %d of ours (%v)", hers, edges, ours, err)
+	}
+	// Bob, on the same server, is untouched.
+	if still, _ := repo.ReadByURI(bobSaved.URI); still == nil {
+		t.Error("somebody else from her server went with her")
+	}
+
 	// Somebody on Bluesky, under an at:// URI.
 	carol, created, err := repo.UpsertRemote(&entities.AnahitaNode{
 		Type:         constants.NodeActorATProtoPersonEntityType,

@@ -30,6 +30,8 @@ type ActorsInterface interface {
 	ReadByNode(nodeID int64) (*RemoteActor, error)
 	// ReadByURI is what is kept of the person at an address, or nil.
 	ReadByURI(uri string) (*RemoteActor, error)
+	// Delete forgets somebody.
+	Delete(nodeID int64) error
 	// ReadByKeyID is what is kept of whoever signs with a key, or nil.
 	ReadByKeyID(keyID string) (*RemoteActor, error)
 }
@@ -82,6 +84,18 @@ func (repo *Actors) ReadByURI(uri string) (*RemoteActor, error) {
 
 func (repo *Actors) ReadByKeyID(keyID string) (*RemoteActor, error) {
 	return repo.read(readActor+"key_id = ?", keyID)
+}
+
+const deleteActor = `
+DELETE FROM activitypub_actors
+WHERE node_id = ?`
+
+func (repo *Actors) Delete(nodeID int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	_, err := repo.db.ExecContext(ctx, deleteActor, nodeID)
+	return err
 }
 
 func (repo *Actors) read(query string, arg any) (*RemoteActor, error) {

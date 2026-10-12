@@ -1653,6 +1653,19 @@ CREATE TABLE IF NOT EXISTS activitypub_objects (
     KEY `actor_id` (`actor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- The servers this installation will have nothing to do with. See
+-- migrations/20261031000001_federation_domain_blocks.sql.
+CREATE TABLE IF NOT EXISTS federation_domain_blocks (
+    `domain` varchar(255) NOT NULL,
+    -- Why, for the administrators who come after. Never shown to anybody
+    -- else, and never sent to the server refused.
+    `reason` varchar(500) NOT NULL DEFAULT '',
+    `created_by` bigint unsigned NOT NULL,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`domain`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
 
 
 

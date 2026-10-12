@@ -144,12 +144,45 @@ func newWorld() *world {
 		Accounts: w.accounts,
 		Keys:     w.keys,
 		Crypt:    fakeCrypt{},
+		// Nothing crosses between servers in these: empty, and there so that
+		// turning the fediverse off has somewhere to look.
+		Follows:     &fakeFollows{kept: map[string]*repositories.Follow{}},
+		Objects:     &fakeObjects{kept: map[int64]*repositories.Object{}},
+		FollowEdges: &fakeEdges{},
+		Queue:       &fakeQueue{},
 	})
 	return w
 }
 
 func (w *world) get(handler echo.HandlerFunc, target string, params ...string) *httptest.ResponseRecorder {
 	return w.call(handler, http.MethodGet, target, "", 0, params...)
+}
+
+// For the tests' own shorthand.
+type (
+	entitiesNode = entities.AnahitaNode
+	echoContext  = echo.Context
+)
+
+// callAs calls a handler as somebody of a given standing: "administrator".
+func (w *world) callAs(personType string, handler echo.HandlerFunc, method, body string, params ...string) *httptest.ResponseRecorder {
+	e := echo.New()
+	req := httptest.NewRequest(method, "/", strings.NewReader(body))
+	if body != "" {
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	}
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	for i := 0; i+1 < len(params); i += 2 {
+		c.SetParamNames(params[i])
+		c.SetParamValues(params[i+1])
+	}
+	v := entities.NewViewer()
+	v.ID = 2
+	v.PersonType = personType
+	c.Set(constants.ViewerContextKey, v)
+	_ = handler(c)
+	return rec
 }
 
 func (w *world) call(handler echo.HandlerFunc, method, target, body string, viewer int64, params ...string) *httptest.ResponseRecorder {

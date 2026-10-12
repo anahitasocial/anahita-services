@@ -34,7 +34,7 @@ var actorContext = []any{
 
 // Actor is somebody, as they are described to another server.
 type Actor struct {
-	Context           any        `json:"@context"`
+	Context           any        `json:"@context,omitempty"`
 	ID                string     `json:"id"`
 	Type              string     `json:"type"`
 	PreferredUsername string     `json:"preferredUsername"`

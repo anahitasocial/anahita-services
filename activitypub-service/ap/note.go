@@ -122,6 +122,19 @@ func NewDelete(id, actor, noteID string) *Posted {
 	}
 }
 
+// NewDeletePerson says somebody is gone, to everybody: whatever a server
+// has of them is to be removed.
+func NewDeletePerson(id, actor string) *Posted {
+	return &Posted{Context: contextActivityStreams, ID: id, Type: "Delete", Actor: actor, To: []string{Public}, Object: actor}
+}
+
+// NewUpdatePerson says somebody's description changed, and gives it whole.
+func NewUpdatePerson(id string, actor *Actor) *Posted {
+	described := *actor
+	described.Context = nil
+	return &Posted{Context: actorContext, ID: id, Type: "Update", Actor: actor.ID, To: []string{Public}, Object: &described}
+}
+
 // ReceivedNote is a post as another server sends it. Read leniently: what
 // servers send as one thing or as several is kept raw.
 type ReceivedNote struct {

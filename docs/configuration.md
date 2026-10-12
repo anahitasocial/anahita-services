@@ -100,13 +100,15 @@ and, for a server, require a client certificate.
 ## Site identity
 
 Read by auth-service, and mail-grpc-service for the branding. `PUBLIC_DOMAIN`
-and `PUBLIC_API_URL` are for whatever speaks to other servers
-(`anahita-libs/site`); nothing does yet, so today they change nothing.
+and `PUBLIC_API_URL` are for what speaks to other servers
+(`anahita-libs/site`): `activitypub-service`, whose other settings and the
+order to do things in are in [Federation](federation.md#setting-it-up).
 
 | Variable | Value |
 | --- | --- |
 | `DOMAIN_NAME` | The installation's domain. Public URLs are derived from it on staging and production |
 | `PUBLIC_DOMAIN` | Optional. The domain in a person's handle, `ana@example.org`, as other servers will know them. Left out, it is `DOMAIN_NAME` on a live site, `staging.DOMAIN_NAME` on a staging one, or the host of `PUBLIC_WEB_URL` when that is set. **Not to be changed once anybody here has been spoken of to another server:** they would become somebody else there |
+| `FEDERATION_PROTOCOLS` | Optional, read by auth-service. What NodeInfo says the installation speaks to other servers: `activitypub` when `activitypub-service` is run for real. Left out, nothing is claimed. See [Federation](federation.md#setting-it-up) |
 | `PUBLIC_API_URL` | Optional. The address other servers reach the API at. Left out, `https://api.DOMAIN_NAME` on a live site and `https://api.staging.DOMAIN_NAME` on a staging one. The same warning applies: the address of every person and post, as told to other servers, begins with it |
 | `SITE_NAME` | Name shown on auth pages and in email |
 | `ANAHITA_INSTANCE_NAME` | How this installation introduces itself to other servers, published as `nodeName` in NodeInfo. Optional — falls back to `SITE_NAME`, then `DOMAIN_NAME` |
@@ -171,7 +173,7 @@ Read by auth-service.
 | `OAUTH_SEED_CLIENT_PATH` | First-party clients seeded at first boot. See [Seeding clients](oauth.md#seeding-clients) |
 | `OAUTH_KEY_LIFETIME_DAYS` | Optional, not in `docker-compose.yml`. Signing key rotation, default `90` |
 | `CRYPT_BACKEND` | Encryption of secrets at rest: `local` (default) or `kms` |
-| `CRYPT_LOCAL_KEY` | Key for `local`: exactly 32 characters. Keep it out of the database and its backups. activitypub-service keeps every person's signing key under it too, so it must be given the same value: see [Federation](federation.md#signing-keys) |
+| `CRYPT_LOCAL_KEY` | Key for `local`: exactly 32 characters. Keep it out of the database and its backups. activitypub-service keeps every person's signing key under it too, so it must be given the same value: see [Federation](federation.md#signing-keys-and-signed-requests) |
 | `AWS_KMS_KEY_ID` | Key for `kms` |
 | `CRYPT_KMS_REGION` | Region of that KMS key. Optional: defaults to the AWS region in the environment (`AWS_DEFAULT_REGION`) |
 | `MAX_DB_CONNECTIONS` | Optional database pool size |

@@ -41,6 +41,10 @@ type NodesRepoInterface interface {
 	// its author.
 	DeleteRemote(uri string, ownerID int64) (bool, error)
 
+	// DeleteRemoteActor takes away somebody from another server, with
+	// everything of theirs. It also says who here was connected to them.
+	DeleteRemoteActor(uri string) (bool, []int64, error)
+
 	// Edit updates an existing node based on the provided edit request and viewer context.
 	Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
 

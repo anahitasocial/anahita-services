@@ -42,6 +42,11 @@ func (h *Handlers) send(ctx context.Context, actorID int64, inbox string, activi
 // for, to the inbox it is for. What it answers decides whether the queue
 // tries again.
 func (h *Handlers) Deliver(ctx context.Context, delivery federation.Delivery) error {
+	// Nothing is sent to a server that is refused, whenever it was queued.
+	if h.Blocks != nil && h.Blocks.IsBlocked(hostOf(delivery.Target)) {
+		return federation.Permanent(errors.New("that server is refused"))
+	}
+
 	sender, err := h.Nodes.Read(delivery.ActorID)
 	if err != nil {
 		return err

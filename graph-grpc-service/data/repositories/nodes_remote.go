@@ -190,6 +190,95 @@ func (r *nodesRepo) DeleteRemote(uri string, ownerID int64) (bool, error) {
 	return gone == 1, err
 }
 
+const (
+	readRemoteActor = `
+SELECT id, type
+FROM nodes
+WHERE uri = ?`
+
+	// Everybody here who followed them or was followed by them: whose
+	// counts of followers and of people followed are about to be wrong.
+	readRemoteActorNeighbours = `
+SELECT DISTINCT IF(node_a_id = ?, node_b_id, node_a_id)
+FROM edges
+WHERE node_a_id = ?
+   OR node_b_id = ?`
+
+	deleteRemoteActorPostEdges = `
+DELETE edge
+FROM edges AS edge
+JOIN nodes AS post
+  ON post.id IN (edge.node_a_id, edge.node_b_id)
+WHERE post.owner_id = ?
+  AND post.uri IS NOT NULL`
+
+	deleteRemoteActorPosts = `
+DELETE FROM nodes
+WHERE owner_id = ?
+  AND uri IS NOT NULL`
+)
+
+// DeleteRemoteActor takes away somebody from another server, with what
+// they posted and every follow, like and save that touches either. It says
+// whether there was such a person, and who here was connected to them, for
+// their counts to be put right.
+//
+// Only ever somebody who came from elsewhere: a person of another server,
+// found by the address they have there. Nothing made here has one.
+func (r *nodesRepo) DeleteRemoteActor(uri string) (bool, []int64, error) {
+	if uri == "" {
+		return false, nil, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
+	defer cancel()
+
+	var (
+		id       int64
+		nodeType string
+	)
+	err := r.db.QueryRowContext(ctx, readRemoteActor, uri).Scan(&id, &nodeType)
+	if errors.Is(err, sql.ErrNoRows) || (err == nil && !IsRemoteActorType(nodeType)) {
+		return false, nil, nil
+	}
+	if err != nil {
+		return false, nil, err
+	}
+
+	rows, err := r.db.QueryContext(ctx, readRemoteActorNeighbours, id, id, id)
+	if err != nil {
+		return false, nil, err
+	}
+	var neighbours []int64
+	for rows.Next() {
+		var neighbour int64
+		if err := rows.Scan(&neighbour); err != nil {
+			rows.Close()
+			return false, nil, err
+		}
+		neighbours = append(neighbours, neighbour)
+	}
+	if err := rows.Close(); err != nil {
+		return false, nil, err
+	}
+
+	for _, statement := range []struct {
+		query string
+		args  []any
+	}{
+		{deleteRemoteActorPostEdges, []any{id}},
+		{deleteRemoteActorPosts, []any{id}},
+		{deleteRemoteNoteEdges, []any{id, id}},
+		{deleteRemoteNote, []any{id}},
+	} {
+		if _, err := r.db.ExecContext(ctx, statement.query, statement.args...); err != nil {
+			return false, nil, err
+		}
+	}
+
+	return true, neighbours, nil
+}
+
 // knownRemote finds the node already kept under a URI, and refuses when it
 // is not the thing now being sent.
 func (r *nodesRepo) knownRemote(ctx context.Context, node *entities.AnahitaNode) (int64, bool, error) {

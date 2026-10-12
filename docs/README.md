@@ -142,6 +142,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
      - [Moving a bucket to the v1 layout](deploying.md#moving-a-bucket-to-the-v1-layout)
    - [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)
    - [On AWS](deploying.md#on-aws)
+   - [Joining the fediverse](deploying.md#joining-the-fediverse)
    - [Upgrading](deploying.md#upgrading)
    - [Running more than one copy of a service](deploying.md#running-more-than-one-copy-of-a-service)
    - [Trying it on your own machine](deploying.md#trying-it-on-your-own-machine)
@@ -216,7 +217,9 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [What is not built](data-export.md#what-is-not-built)
 20. [Federation](federation.md) — being found and followed from other servers: turning it on, who is on the fediverse, what they are called and what is told about them
    - [What it is](federation.md#what-it-is)
-   - [Turning it on](federation.md#turning-it-on)
+   - [Setting it up](federation.md#setting-it-up)
+   - [Keeping it running](federation.md#keeping-it-running)
+   - [When something does not work](federation.md#when-something-does-not-work)
    - [Who is on the fediverse](federation.md#who-is-on-the-fediverse)
    - [What a person is called](federation.md#what-a-person-is-called)
    - [What other servers are told](federation.md#what-other-servers-are-told)
@@ -229,9 +232,9 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The inbox](federation.md#the-inbox)
    - [What is sent, and when it does not arrive](federation.md#what-is-sent-and-when-it-does-not-arrive)
    - [Signing keys and signed requests](federation.md#signing-keys-and-signed-requests)
-   - [Signing keys](federation.md#signing-keys)
    - [The API](federation.md#the-api)
-   - [Turning it off](federation.md#turning-it-off)
+   - [Leaving, and what follows a person's changes](federation.md#leaving-and-what-follows-a-persons-changes)
+   - [Servers that are refused](federation.md#servers-that-are-refused)
    - [Where the code is](federation.md#where-the-code-is)
 21. [The federation lab](federation-lab.md) — trying federation on one machine: names, certificates, and another server to talk to
    - [Why it is needed](federation-lab.md#why-it-is-needed)
@@ -240,6 +243,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Opening it in a browser](federation-lab.md#opening-it-in-a-browser)
    - [Somebody to talk to](federation-lab.md#somebody-to-talk-to)
    - [Having GoToSocial look somebody up](federation-lab.md#having-gotosocial-look-somebody-up)
+   - [Turning the fediverse on and off for somebody](federation-lab.md#turning-the-fediverse-on-and-off-for-somebody)
    - [Following somebody here from GoToSocial](federation-lab.md#following-somebody-here-from-gotosocial)
    - [Following somebody on GoToSocial from here](federation-lab.md#following-somebody-on-gotosocial-from-here)
    - [Posts, both ways](federation-lab.md#posts-both-ways)
@@ -264,7 +268,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
-| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0 done 2026-10-12; phase 1, ActivityPub, begun: people can be found and described |
+| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0 done 2026-10-12; phase 1, ActivityPub, mostly built 2026-10-13: see [Federation](federation.md). AT Protocol not started |
 | [Link previews](plans/done/link-previews.md) | 10 | built 2026-10-11, with the web shell of its part B |
 | [Downloading what a post holds](plans/done/downloads.md) | 37 | built 2026-10-11 |
 | [Invitations](plans/done/actor-invitations.md) | 11 | done 2026-10-10 |

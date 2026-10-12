@@ -86,6 +86,7 @@ func main() {
 		Actors:      repositories.NewActors(db),
 		Follows:     repositories.NewFollows(db),
 		Objects:     repositories.NewObjects(db),
+		Blocks:      repositories.NewBlocks(db),
 		FollowEdges: services.NewSocialgraphFollowGRPC(config),
 		Relations:   services.NewSocialgraphGRPC(config),
 		Crypt:       secrets,
@@ -172,6 +173,10 @@ func lab(h *handlers.Handlers, config *config.Config, args []string) error {
 		return h.LabFollow(ctx, args[1], args[2], true)
 	case args[0] == "lab-unfollow" && len(args) == 3:
 		return h.LabFollow(ctx, args[1], args[2], false)
+	case args[0] == "lab-join" && len(args) == 2:
+		return h.LabJoin(args[1])
+	case args[0] == "lab-leave" && len(args) == 2:
+		return h.LabLeave(ctx, args[1])
 	case args[0] == "lab-post" && len(args) == 3:
 		id, err := h.LabPost(services.NewMediaGRPC(config), args[1], args[2])
 		if err == nil {
@@ -185,7 +190,7 @@ func lab(h *handlers.Handlers, config *config.Config, args []string) error {
 		}
 		return h.LabUnpost(services.NewMediaGRPC(config), id)
 	}
-	return errors.New("lab-follow <name here> <handle>, lab-unfollow <name here> <handle>, lab-post <name here> <text>, lab-unpost <note id>")
+	return errors.New("lab-join <name here>, lab-leave <name here>, lab-follow <name here> <handle>, lab-unfollow <name here> <handle>, lab-post <name here> <text>, lab-unpost <note id>")
 }
 
 // listen hears what happens here, for as long as the bus is there, and

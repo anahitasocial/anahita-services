@@ -46,6 +46,10 @@ type GraphNodeGRPCInterface interface {
 	// name of whoever it belongs to. It says whether there was one.
 	DeleteRemote(uri string, ownerID int64) (bool, error)
 
+	// DeleteRemoteActor takes away somebody from another server, with what
+	// they posted and every follow that touches them.
+	DeleteRemoteActor(uri string) (bool, error)
+
 	// Edit edits a graph node
 	Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
 
@@ -288,6 +292,23 @@ func (srv *GraphNodeGRPC) DeleteRemote(uri string, ownerID int64) (bool, error) 
 	}
 
 	resp, err := client.DeleteRemote(context.Background(), &graphpb.NodeDeleteRemoteRequest{Uri: uri, OwnerId: ownerID})
+	if err != nil || resp == nil {
+		return false, err
+	}
+	return resp.Deleted, nil
+}
+
+// DeleteRemoteActor takes away somebody from another server
+func (srv *GraphNodeGRPC) DeleteRemoteActor(uri string) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.DeleteRemoteActor(context.Background(), &graphpb.NodeDeleteRemoteActorRequest{Uri: uri})
 	if err != nil || resp == nil {
 		return false, err
 	}

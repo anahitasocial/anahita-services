@@ -29,6 +29,8 @@ type Env struct {
 	Actors   repositories.ActorsInterface
 	Follows  repositories.FollowsInterface
 	Objects  repositories.ObjectsInterface
+	// The servers that are refused. Nil for none, in tests.
+	Blocks repositories.BlocksInterface
 	// The graph's own record of who follows whom, and who has blocked whom.
 	FollowEdges services.SocialgraphFollowGRPCInterface
 	Relations   services.SocialgraphGRPCInterface

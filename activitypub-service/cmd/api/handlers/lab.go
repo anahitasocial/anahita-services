@@ -56,6 +56,30 @@ func (h *Handlers) LabUnpost(media services.MediaGRPCInterface, id int64) error 
 	return media.Delete(id, viewer)
 }
 
+// LabJoin turns the fediverse on for somebody, and LabLeave turns it off,
+// as the switch in their settings would.
+func (h *Handlers) LabJoin(alias string) error {
+	person := h.personByAlias(alias)
+	if person == nil {
+		return errors.New("nobody here is called " + alias)
+	}
+	if !h.mayFederate(person) {
+		return errors.New(reasonProfileNotPublic)
+	}
+	if _, err := h.publicKeyOf(person.ID); err != nil {
+		return err
+	}
+	return h.Accounts.Set(person.ID, true)
+}
+
+func (h *Handlers) LabLeave(ctx context.Context, alias string) error {
+	person := h.personByAlias(alias)
+	if person == nil {
+		return errors.New("nobody here is called " + alias)
+	}
+	return h.leave(ctx, person)
+}
+
 // LabFollow makes somebody here follow, or stop following, somebody on
 // another server, as they would by pressing the button.
 func (h *Handlers) LabFollow(ctx context.Context, alias, handle string, follow bool) error {

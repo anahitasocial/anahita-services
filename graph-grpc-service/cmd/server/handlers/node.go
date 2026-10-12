@@ -152,6 +152,26 @@ func (h *nodeHandler) DeleteRemote(ctx context.Context, req *graphpb.NodeDeleteR
 	return &graphpb.NodeDeleteRemoteResponse{Deleted: deleted}, nil
 }
 
+// DeleteRemoteActor
+func (h *nodeHandler) DeleteRemoteActor(ctx context.Context, req *graphpb.NodeDeleteRemoteActorRequest) (*graphpb.NodeDeleteRemoteActorResponse, error) {
+	deleted, neighbours, err := h.env.Repos.Nodes.DeleteRemoteActor(req.Uri)
+	if err != nil {
+		return nil, err
+	}
+
+	// Whoever followed them, or was followed by them, has one fewer.
+	for _, id := range neighbours {
+		if err := h.env.Repos.SocialGraphCounts.UpdateLeaderCount(id); err != nil {
+			log.Printf("counting who %d follows failed: %v", id, err)
+		}
+		if err := h.env.Repos.SocialGraphCounts.UpdateFollowerCount(id); err != nil {
+			log.Printf("counting the followers of %d failed: %v", id, err)
+		}
+	}
+
+	return &graphpb.NodeDeleteRemoteActorResponse{Deleted: deleted}, nil
+}
+
 // Edit
 func (h *nodeHandler) Edit(ctx context.Context, req *graphpb.NodeEditRequest) (*graphpb.NodeEditResponse, error) {
 	log.Printf("Received Edit request: %v", req)

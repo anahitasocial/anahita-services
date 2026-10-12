@@ -87,6 +87,32 @@ type fakeFollows struct {
 }
 
 func (f *fakeFollows) FollowerInboxes(int64) ([]string, error) { return f.inboxes, nil }
+func (f *fakeFollows) KnownInboxes(int64) ([]string, error)    { return f.inboxes, nil }
+func (f *fakeFollows) AllFor(localID int64) ([]*repositories.Follow, error) {
+	var all []*repositories.Follow
+	for _, follow := range f.kept {
+		if follow.LocalID == localID {
+			all = append(all, follow)
+		}
+	}
+	return all, nil
+}
+func (f *fakeFollows) DeleteAllFor(localID int64) error {
+	for key, follow := range f.kept {
+		if follow.LocalID == localID {
+			delete(f.kept, key)
+		}
+	}
+	return nil
+}
+func (f *fakeFollows) DeleteAllWith(remoteID int64) error {
+	for key, follow := range f.kept {
+		if follow.RemoteID == remoteID {
+			delete(f.kept, key)
+		}
+	}
+	return nil
+}
 func (f *fakeFollows) IsFollowedFromHere(remoteID int64) (bool, error) {
 	for _, follow := range f.kept {
 		if follow.RemoteID == remoteID && follow.Direction == repositories.FollowOut {
@@ -113,6 +139,14 @@ func (f *fakeObjects) End(id int64) (bool, error) {
 	delete(f.kept, id)
 	return was, nil
 }
+func (f *fakeObjects) EndAll(actorID int64) error {
+	for id, object := range f.kept {
+		if object.ActorID == actorID {
+			delete(f.kept, id)
+		}
+	}
+	return nil
+}
 func (f *fakeObjects) Count(actorID int64) (int64, error) {
 	var n int64
 	for _, object := range f.kept {
@@ -121,6 +155,60 @@ func (f *fakeObjects) Count(actorID int64) (int64, error) {
 		}
 	}
 	return n, nil
+}
+
+// DeleteRemoteActor as the graph does it: somebody from elsewhere, and what
+// they posted.
+func (f *fakeNodes) DeleteRemoteActor(uri string) (bool, error) {
+	var gone int64
+	for _, kept := range f.people {
+		if kept.URI == uri && uri != "" && kept.OwnerID == 0 {
+			gone = kept.ID
+		}
+	}
+	if gone == 0 {
+		return false, nil
+	}
+	left := f.people[:0]
+	for _, kept := range f.people {
+		if kept.ID != gone && kept.OwnerID != gone {
+			left = append(left, kept)
+		}
+	}
+	f.people = left
+	return true, nil
+}
+
+type fakeBlocks struct{ domains map[string]string }
+
+func (f *fakeBlocks) IsBlocked(domain string) bool {
+	domain = repositories.CleanDomain(domain)
+	for domain != "" {
+		if _, blocked := f.domains[domain]; blocked {
+			return true
+		}
+		_, rest, found := strings.Cut(domain, ".")
+		if !found {
+			break
+		}
+		domain = rest
+	}
+	return false
+}
+func (f *fakeBlocks) Browse() ([]*repositories.DomainBlock, error) {
+	var all []*repositories.DomainBlock
+	for domain, reason := range f.domains {
+		all = append(all, &repositories.DomainBlock{Domain: domain, Reason: reason})
+	}
+	return all, nil
+}
+func (f *fakeBlocks) Add(block *repositories.DomainBlock) error {
+	f.domains[block.Domain] = block.Reason
+	return nil
+}
+func (f *fakeBlocks) Delete(domain string) error {
+	delete(f.domains, domain)
+	return nil
 }
 
 // DeleteRemote as the graph does it: only something from elsewhere, and
@@ -174,6 +262,7 @@ type inboxWorld struct {
 	queue     *fakeQueue
 	follows   *fakeFollows
 	objects   *fakeObjects
+	blocks    *fakeBlocks
 }
 
 func newInboxWorld() *inboxWorld {
@@ -183,9 +272,11 @@ func newInboxWorld() *inboxWorld {
 		edges: &fakeEdges{}, relations: &fakeRelations{}, queue: &fakeQueue{},
 		follows: &fakeFollows{kept: map[string]*repositories.Follow{}},
 		objects: &fakeObjects{kept: map[int64]*repositories.Object{}},
+		blocks:  &fakeBlocks{domains: map[string]string{}},
 	}
 	w.h.FollowEdges, w.h.Relations, w.h.Queue, w.h.Follows = iw.edges, iw.relations, iw.queue, iw.follows
 	w.h.Objects = iw.objects
+	w.h.Blocks = iw.blocks
 	return iw
 }
 

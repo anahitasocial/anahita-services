@@ -249,6 +249,16 @@ message NodeDeleteRemoteResponse {
     bool deleted = 1;
 }
 
+// Somebody from another server, taken away with everything of theirs,
+// because their account was closed there or their server is refused here.
+message NodeDeleteRemoteActorRequest {
+    string uri = 1;
+}
+
+message NodeDeleteRemoteActorResponse {
+    bool deleted = 1;
+}
+
 message NodeEditRequest {
     Node node = 1;
 }
@@ -412,6 +422,7 @@ service NodeService {
     rpc ReadByURI(NodeReadByURIRequest) returns (NodeReadByURIResponse);
     rpc UpsertRemote(NodeUpsertRemoteRequest) returns (NodeUpsertRemoteResponse);
     rpc DeleteRemote(NodeDeleteRemoteRequest) returns (NodeDeleteRemoteResponse);
+    rpc DeleteRemoteActor(NodeDeleteRemoteActorRequest) returns (NodeDeleteRemoteActorResponse);
     rpc Edit(NodeEditRequest) returns (NodeEditResponse);
     rpc Add(NodeAddRequest) returns (NodeAddResponse);
     rpc Delete(NodeDeleteRequest) returns (NodeDeleteResponse);

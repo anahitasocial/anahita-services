@@ -57,6 +57,8 @@ const (
 	errLookupKind   = "lookup_not_a_person"
 	errLookupFailed = "lookup_failed"
 	errLookupLimit  = "too_many_lookups"
+	// The server asked about is one this installation refuses.
+	errLookupBlocked = "lookup_refused"
 )
 
 // Lookup finds somebody on another server and keeps them.
@@ -139,11 +141,15 @@ func (h *Handlers) find(ctx context.Context, query string) (*remote.Actor, strin
 
 	switch {
 	case strings.HasPrefix(query, "https://"):
-		if parsed, parseErr := url.Parse(query); parseErr != nil || parsed.Host == "" {
+		parsed, parseErr := url.Parse(query)
+		if parseErr != nil || parsed.Host == "" {
 			return nil, errLookupQuery
 		}
 		if h.Site.IsOurs(query) {
 			return nil, errLookupOurs
+		}
+		if h.Blocks != nil && h.Blocks.IsBlocked(parsed.Host) {
+			return nil, errLookupBlocked
 		}
 		actor, err = remote.Fetch(ctx, h.Fetcher, query, h.Site.IsOurs)
 
@@ -156,7 +162,15 @@ func (h *Handlers) find(ctx context.Context, query string) (*remote.Actor, strin
 		if mentions[0].IsLocal(h.Site.Domain) {
 			return nil, errLookupOurs
 		}
+		if h.Blocks != nil && h.Blocks.IsBlocked(mentions[0].Host) {
+			return nil, errLookupBlocked
+		}
 		actor, err = remote.Lookup(ctx, h.Fetcher, mentions[0].User, mentions[0].Host, h.Site.IsOurs)
+	}
+
+	// A handle on one server can lead to somebody on another.
+	if err == nil && h.Blocks != nil && h.Blocks.IsBlocked(actor.Domain) {
+		return nil, errLookupBlocked
 	}
 
 	switch {

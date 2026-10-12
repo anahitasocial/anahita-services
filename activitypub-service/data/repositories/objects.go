@@ -23,6 +23,8 @@ type ObjectsInterface interface {
 	Read(nodeID int64) (*Object, error)
 	// End forgets a post, and says whether it was this call that did.
 	End(nodeID int64) (bool, error)
+	// EndAll forgets every post of a person's.
+	EndAll(actorID int64) error
 	// Count is how many of a person's posts went out.
 	Count(actorID int64) (int64, error)
 }
@@ -85,6 +87,18 @@ func (repo *Objects) End(nodeID int64) (bool, error) {
 	}
 	gone, err := result.RowsAffected()
 	return gone == 1, err
+}
+
+const endAllObjects = `
+DELETE FROM activitypub_objects
+WHERE actor_id = ?`
+
+func (repo *Objects) EndAll(actorID int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	_, err := repo.db.ExecContext(ctx, endAllObjects, actorID)
+	return err
 }
 
 const countObjects = `

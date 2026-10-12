@@ -375,7 +375,8 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: following from here, and the other server's yes or no | done 2026-10-13 |
 | Phase 1, ActivityPub: notes out and in, with their changes and deletions | done 2026-10-13 |
 | Phase 1, ActivityPub: the web app: the switch, people and posts from elsewhere, the lookup | done 2026-10-13 |
-| Phase 1, ActivityPub: profile changes and opting out, avatars of people elsewhere, backfill, the blocklist and limits, the sweep for lost events | not started |
+| Phase 1, ActivityPub: leaving, profile changes, accounts closed elsewhere, refused servers, a limit on the inbox, NodeInfo | done 2026-10-13 |
+| Phase 1, ActivityPub: a screen for refused servers, avatars of people elsewhere, backfill, the sweep for lost events, a test against Mastodon itself | not started |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -397,6 +398,39 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   page, when it joined, what it says of itself with the hashtags as links,
   and the avatar and cover, which it fetched through the addresses that
   stay.
+
+**Leaving, changes, and refusing servers.** `leaving.go`; the inbox's
+`Update` and `Delete` of a person; the graph's `DeleteRemoteActor`;
+`blocks.go` and table `federation_domain_blocks` (migration
+`20261031000001`); a limit of 600 a minute on the inbox;
+`FEDERATION_PROTOCOLS` for NodeInfo; and the page `docs/federation.md`
+rewritten around a guide to setting it up.
+
+- **Leaving sends a `Delete` of the person,** to every server with a
+  follower of theirs or somebody they follow, and undoes the follows here.
+  The same when somebody stops being eligible: profile made private,
+  disabled, archived, deleted.
+- **Tried in the lab, and what was learned:** with follows both ways round,
+  leaving removed them on both sides and GoToSocial marked the account
+  suspended. **Joining again was not accepted:** GoToSocial still answered
+  with the suspended, emptied account. So leaving is for good as far as a
+  server that was told goes. The web app now asks before it is turned off
+  and says that making a profile private does the same. This is the
+  consequence of two rules that are both right (only public profiles
+  federate; a person who leaves is removed elsewhere), and is the one thing
+  in this phase a person can do by accident and not undo.
+- **Considered and not chosen: leaving quietly,** by simply not answering
+  any more. Other servers would keep the profile and every post they were
+  sent, in public, for good, which is the opposite of what somebody who
+  turns it off or makes their profile private is asking for.
+- **A stranger's `Delete` of themselves is taken unchecked.** Checking
+  would mean asking a server for the key of an account it has just
+  removed, once for every account closed anywhere on a large server.
+- **Refusing a server does not remove what came from it.** Not in the plan
+  either way; removing people in bulk is a decision for an administrator to
+  take one at a time until there is a screen that shows what would go.
+- **Still to do:** a screen in the administration area for refused servers
+  (the API is there); the limit is by address and fixed at 600 a minute.
 
 **The web app, and what may be done with what came from elsewhere.**
 

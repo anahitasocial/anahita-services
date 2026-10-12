@@ -26,6 +26,14 @@ type fakeFetcher struct {
 	asked []string
 	gone  bool
 	kind  string
+	name  string
+}
+
+func (f *fakeFetcher) nameOrAlice() string {
+	if f.name != "" {
+		return f.name
+	}
+	return "Alice"
 }
 
 func (f *fakeFetcher) JSON(_ context.Context, address string, into any) (string, error) {
@@ -49,7 +57,7 @@ func (f *fakeFetcher) Object(_ context.Context, address string, into any) (strin
 		kind = "Person"
 	}
 	raw, _ := json.Marshal(map[string]any{
-		"id": aliceID, "type": kind, "preferredUsername": "alice", "name": "Alice",
+		"id": aliceID, "type": kind, "preferredUsername": "alice", "name": f.nameOrAlice(),
 		"summary": "<p>Grows <strong>beans</strong></p><script>alert(1)</script>",
 		"url":     "https://mastodon.example/@alice",
 		"inbox":   aliceID + "/inbox", "endpoints": map[string]any{"sharedInbox": "https://mastodon.example/inbox"},
@@ -75,6 +83,10 @@ func (f *fakeActors) ReadByKeyID(keyID string) (*repositories.RemoteActor, error
 		}
 	}
 	return nil, nil
+}
+func (f *fakeActors) Delete(id int64) error {
+	delete(f.kept, id)
+	return nil
 }
 func (f *fakeActors) ReadByNode(id int64) (*repositories.RemoteActor, error) { return f.kept[id], nil }
 func (f *fakeActors) ReadByURI(uri string) (*repositories.RemoteActor, error) {

@@ -47,6 +47,16 @@ type FollowsInterface interface {
 	// IsFollowedFromHere says whether anybody here follows somebody
 	// elsewhere, or has asked to.
 	IsFollowedFromHere(remoteID int64) (bool, error)
+	// AllFor is every follow across servers that somebody here is one end
+	// of, either way round.
+	AllFor(localID int64) ([]*Follow, error)
+	// KnownInboxes is every server that knows somebody here: the ones with
+	// a follower of theirs, and the ones with somebody they follow.
+	KnownInboxes(localID int64) ([]string, error)
+	// DeleteAllFor forgets every follow somebody here is one end of, and
+	// DeleteAllWith every follow somebody elsewhere is.
+	DeleteAllFor(localID int64) error
+	DeleteAllWith(remoteID int64) error
 	// Delete forgets it.
 	Delete(localID, remoteID int64, direction string) error
 }
@@ -184,6 +194,85 @@ func (repo *Follows) IsFollowedFromHere(remoteID int64) (bool, error) {
 	var followed bool
 	err := repo.db.QueryRowContext(ctx, isFollowedFromHere, remoteID).Scan(&followed)
 	return followed, err
+}
+
+const allFollowsFor = `
+SELECT local_id, remote_id, direction, activity_id, state
+FROM activitypub_follows
+WHERE local_id = ?`
+
+func (repo *Follows) AllFor(localID int64) ([]*Follow, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	rows, err := repo.db.QueryContext(ctx, allFollowsFor, localID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var follows []*Follow
+	for rows.Next() {
+		follow := &Follow{}
+		if err := rows.Scan(&follow.LocalID, &follow.RemoteID, &follow.Direction, &follow.ActivityID, &follow.State); err != nil {
+			return nil, err
+		}
+		follows = append(follows, follow)
+	}
+	return follows, rows.Err()
+}
+
+const knownInboxes = `
+SELECT DISTINCT IF(actor.shared_inbox <> '', actor.shared_inbox, actor.inbox)
+FROM activitypub_follows AS follow
+JOIN activitypub_actors AS actor ON actor.node_id = follow.remote_id
+WHERE follow.local_id = ?`
+
+func (repo *Follows) KnownInboxes(localID int64) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	rows, err := repo.db.QueryContext(ctx, knownInboxes, localID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var inboxes []string
+	for rows.Next() {
+		var inbox string
+		if err := rows.Scan(&inbox); err != nil {
+			return nil, err
+		}
+		inboxes = append(inboxes, inbox)
+	}
+	return inboxes, rows.Err()
+}
+
+const (
+	deleteFollowsFor = `
+DELETE FROM activitypub_follows
+WHERE local_id = ?`
+
+	deleteFollowsWith = `
+DELETE FROM activitypub_follows
+WHERE remote_id = ?`
+)
+
+func (repo *Follows) DeleteAllFor(localID int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	_, err := repo.db.ExecContext(ctx, deleteFollowsFor, localID)
+	return err
+}
+
+func (repo *Follows) DeleteAllWith(remoteID int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	_, err := repo.db.ExecContext(ctx, deleteFollowsWith, remoteID)
+	return err
 }
 
 const deleteFollow = `
