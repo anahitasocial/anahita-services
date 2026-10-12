@@ -272,7 +272,7 @@ func TestOnlyASuperAdministratorKeepsTheList(t *testing.T) {
 		}
 	}
 
-	if code, answer := admin(w.h.BrowseBlocks, http.MethodGet, ""); code != http.StatusOK || !strings.Contains(answer, "spam.example") {
+	if code, answer := admin(w.h.BrowseBlocks, http.MethodGet, ""); code != http.StatusOK || !strings.Contains(answer, "spam.example") || !strings.Contains(answer, `"total":4`) {
 		t.Errorf("list: %d %s", code, answer)
 	}
 	if code, _ := admin(w.h.DeleteBlock, http.MethodDelete, "", "domain", "spam.example"); code != http.StatusNoContent || w.blocks.IsBlocked("spam.example") {

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"activitypub/data/repositories"
@@ -32,17 +33,42 @@ type blockRequest struct {
 
 var domainShape = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$`)
 
-// BrowseBlocks lists the servers that are refused.
+// How many of the list are sent at once, asked for or not.
+const (
+	blocksPage    = 50
+	blocksPageMax = 200
+)
+
+// BrowseBlocks lists the servers that are refused, a page at a time, by
+// name: `q` narrows it to the names and reasons it is found in, `limit`
+// and `offset` say which page.
 func (h *Handlers) BrowseBlocks(c echo.Context) error {
 	if !getViewer(c).IsSuperAdmin() {
 		return c.NoContent(http.StatusForbidden)
 	}
-	blocks, err := h.Blocks.Browse()
+
+	limit, _ := strconv.Atoi(c.QueryParam("limit"))
+	if limit < 1 || limit > blocksPageMax {
+		limit = blocksPage
+	}
+	offset, _ := strconv.Atoi(c.QueryParam("offset"))
+	if offset < 0 {
+		offset = 0
+	}
+
+	blocks, total, err := h.Blocks.Browse(c.QueryParam("q"), limit, offset)
 	if err != nil {
 		log.Println("activitypub blocks:", err)
 		return refuse(c, http.StatusInternalServerError, "unavailable")
 	}
-	return c.JSON(http.StatusOK, map[string]any{"data": blocks})
+	return c.JSON(http.StatusOK, map[string]any{
+		"data": blocks,
+		"pagination": map[string]int{
+			"total":  total,
+			"limit":  limit,
+			"offset": offset,
+		},
+	})
 }
 
 // AddBlock refuses a server, or changes why it is refused.

@@ -21,7 +21,9 @@ type BlocksInterface interface {
 	// IsBlocked says whether a server is refused: itself, or any name it
 	// is under.
 	IsBlocked(domain string) bool
-	Browse() ([]*DomainBlock, error)
+	// Browse is a page of the list, by name, and how many there are in
+	// all. `search` narrows it to the names and reasons it is found in.
+	Browse(search string, limit, offset int) ([]*DomainBlock, int, error)
 	Add(block *DomainBlock) error
 	Delete(domain string) error
 }
@@ -120,18 +122,39 @@ func (repo *Blocks) forget() {
 	repo.mu.Unlock()
 }
 
+const countBlocks = `
+SELECT COUNT(*)
+FROM federation_domain_blocks
+WHERE domain LIKE ? ESCAPE '!'
+   OR reason LIKE ? ESCAPE '!'`
+
 const browseBlocks = `
 SELECT domain, reason, created_by, created_at
 FROM federation_domain_blocks
-ORDER BY domain`
+WHERE domain LIKE ? ESCAPE '!'
+   OR reason LIKE ? ESCAPE '!'
+ORDER BY domain
+LIMIT ? OFFSET ?`
 
-func (repo *Blocks) Browse() ([]*DomainBlock, error) {
+// What is searched for is looked for as it was typed, not as a pattern.
+var likeEscaper = strings.NewReplacer("!", "!!", "%", "!%", "_", "!_")
+
+// Browse reads a page and not the list: an installation that takes a list
+// of servers to refuse from somebody else has thousands.
+func (repo *Blocks) Browse(search string, limit, offset int) ([]*DomainBlock, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	rows, err := repo.db.QueryContext(ctx, browseBlocks)
+	pattern := "%" + likeEscaper.Replace(strings.TrimSpace(search)) + "%"
+
+	var total int
+	if err := repo.db.QueryRowContext(ctx, countBlocks, pattern, pattern).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := repo.db.QueryContext(ctx, browseBlocks, pattern, pattern, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
@@ -139,11 +162,11 @@ func (repo *Blocks) Browse() ([]*DomainBlock, error) {
 	for rows.Next() {
 		block := &DomainBlock{}
 		if err := rows.Scan(&block.Domain, &block.Reason, &block.CreatedBy, &block.CreatedAt); err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		blocks = append(blocks, block)
 	}
-	return blocks, rows.Err()
+	return blocks, total, rows.Err()
 }
 
 const addBlock = `

@@ -645,7 +645,7 @@ removed one by one, as any post or person is.
 
 | Request | Does |
 | --- | --- |
-| `GET /activitypub/blocks` | The list |
+| `GET /activitypub/blocks?q=&limit=&offset=` | A page of the list, by name, with `pagination.total`. `q` narrows it to the names and reasons it is found in; `limit` is 50 unless asked, 200 at most |
 | `POST /activitypub/blocks` `{ "domain": "spam.example", "reason": "…" }` | Refuses a server, or changes why. The domain may be typed as a name, an address or a handle |
 | `DELETE /activitypub/blocks/spam.example` | Stops refusing it |
 
@@ -657,8 +657,10 @@ the server refused. A change takes up to half a minute to take hold in
 every copy of the service.
 
 In the web app the list is in **Site settings, under Fediverse**: the
-servers refused with why, a field for a server's name and one for the
-reason, and a button beside each to stop refusing it.
+servers refused with why, a search by name or reason, a button beside each
+to stop refusing it, and a dialog to refuse another. It is read a page at a
+time as it is scrolled, so a list of thousands is no heavier than a list of
+ten.
 
 **How much one address may send** is limited too: 600 messages a minute to
 the inbox, counted before anything is read, and answered `429` beyond

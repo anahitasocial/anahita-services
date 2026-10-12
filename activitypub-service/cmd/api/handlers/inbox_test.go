@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -195,12 +196,24 @@ func (f *fakeBlocks) IsBlocked(domain string) bool {
 	}
 	return false
 }
-func (f *fakeBlocks) Browse() ([]*repositories.DomainBlock, error) {
-	var all []*repositories.DomainBlock
+func (f *fakeBlocks) Browse(search string, limit, offset int) ([]*repositories.DomainBlock, int, error) {
+	all := []*repositories.DomainBlock{}
 	for domain, reason := range f.domains {
-		all = append(all, &repositories.DomainBlock{Domain: domain, Reason: reason})
+		if strings.Contains(domain, search) || strings.Contains(reason, search) {
+			all = append(all, &repositories.DomainBlock{Domain: domain, Reason: reason})
+		}
 	}
-	return all, nil
+	sort.Slice(all, func(i, j int) bool { return all[i].Domain < all[j].Domain })
+
+	total := len(all)
+	if offset > total {
+		offset = total
+	}
+	all = all[offset:]
+	if len(all) > limit {
+		all = all[:limit]
+	}
+	return all, total, nil
 }
 func (f *fakeBlocks) Add(block *repositories.DomainBlock) error {
 	f.domains[block.Domain] = block.Reason
