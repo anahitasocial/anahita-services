@@ -32,8 +32,12 @@ type preferencesRequest struct {
 	// reason off, to constants.MaxWeight. The ones sent are set and the
 	// others left.
 	Weights map[string]float64 `json:"weights"`
-	// Back to the service's own weights. Before any sent with it.
+	// Back to the service's own weights, and its own limit on how lately
+	// somebody was here. Before any sent with it.
 	ResetWeights bool `json:"reset_weights"`
+	// How lately somebody must have been here to be suggested, in days:
+	// one of constants.ActiveWithinChoices.
+	ActiveWithinDays *int `json:"active_within_days"`
 }
 
 // preferencesResponse is somebody's choices as they are sent: with the
@@ -46,6 +50,10 @@ type preferencesResponse struct {
 	MaxWeight      float64            `json:"max_weight"`
 	// The reasons, in the order to list them.
 	Reasons []string `json:"reasons"`
+	// What active_within_days may be, nearest first, and what it is for
+	// somebody who has not chosen.
+	ActiveWithinChoices []int `json:"active_within_choices"`
+	ActiveWithinDefault int   `json:"active_within_default"`
 }
 
 func respondPreferences(prefs *repositories.Preferences) *preferencesResponse {
@@ -55,6 +63,9 @@ func respondPreferences(prefs *repositories.Preferences) *preferencesResponse {
 		DefaultWeights: map[string]float64{},
 		MaxWeight:      constants.MaxWeight,
 		Reasons:        constants.ReasonOrder,
+
+		ActiveWithinChoices: constants.ActiveWithinChoices,
+		ActiveWithinDefault: constants.ActiveWithinDefault,
 	}
 
 	for reason, weight := range constants.WeightsFor(prefs.Weights) {
@@ -133,6 +144,13 @@ func apply(prefs *repositories.Preferences, req *preferencesRequest) bool {
 
 	if req.ResetWeights {
 		prefs.Weights = nil
+		prefs.ActiveWithinDays = constants.ActiveWithinDefault
+	}
+	if req.ActiveWithinDays != nil {
+		if !constants.IsActiveWithinChoice(*req.ActiveWithinDays) {
+			return false
+		}
+		prefs.ActiveWithinDays = *req.ActiveWithinDays
 	}
 	for reason, each := range req.Weights {
 		if _, known := constants.Weights[reason]; !known || each < 0 || each > constants.MaxWeight {

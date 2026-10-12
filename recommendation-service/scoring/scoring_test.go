@@ -94,6 +94,13 @@ func TestRankPutsTheQuietAndTheDormantLast(t *testing.T) {
 	if ranked[0].Score != 4 || ranked[1].Score != 2 || ranked[2].Score != 0.4 || ranked[3].Score != 0.4 {
 		t.Errorf("scores %v %v %v %v", ranked[0].Score, ranked[1].Score, ranked[2].Score, ranked[3].Score)
 	}
+
+	// For people, only as far back as the reader chose.
+	for days, want := range map[int]string{30: "[1]", 365: "[1 2]", 730: "[1 2 3]", 0: "[1 2 3 4]"} {
+		if got := order(ActiveWithin(ranked, active, now, days)); got != want {
+			t.Errorf("active within %d days: %s, want %s", days, got, want)
+		}
+	}
 }
 
 func TestRankIsTheSameEachTime(t *testing.T) {

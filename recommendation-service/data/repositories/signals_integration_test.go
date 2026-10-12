@@ -395,6 +395,20 @@ func TestPreferencesAndDismissalsAreKept(t *testing.T) {
 		t.Errorf("weights read back %+v (%v)", again, err)
 	}
 
+	// How lately somebody must have been here is kept beside the weights,
+	// and is not taken for one of them.
+	if again.ActiveWithinDays != constants.ActiveWithinDefault {
+		t.Errorf("no limit chosen read as %d days", again.ActiveWithinDays)
+	}
+	again.ActiveWithinDays = 0
+	if err := repos.Preferences.Write(viewer, again); err != nil {
+		t.Fatal(err)
+	}
+	limited, err := repos.Preferences.Read(viewer)
+	if err != nil || limited.ActiveWithinDays != 0 || len(limited.Weights) != 2 {
+		t.Errorf("no limit read back %+v (%v)", limited, err)
+	}
+
 	// Turned down twice is once, and can be taken back.
 	for i := 0; i < 2; i++ {
 		if err := repos.Dismissals.Add(viewer, friendD); err != nil {

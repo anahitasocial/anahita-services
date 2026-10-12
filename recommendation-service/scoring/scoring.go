@@ -107,6 +107,26 @@ func Rank(found map[string][]Hit, lastActive map[int64]time.Time, now time.Time,
 	return ranked
 }
 
+// ActiveWithin leaves out whoever has not been here, nor posted, for longer
+// than `days`. For people: somebody who has gone will not see that they
+// were followed, and has nothing new to show. No days is no limit.
+func ActiveWithin(ranked []Suggestion, lastActive map[int64]time.Time, now time.Time, days int) []Suggestion {
+	if days <= 0 {
+		return ranked
+	}
+	within := time.Duration(days) * 24 * time.Hour
+
+	kept := make([]Suggestion, 0, len(ranked))
+	for _, suggestion := range ranked {
+		last := lastActive[suggestion.ActorID]
+		if last.IsZero() || now.Sub(last) > within {
+			continue
+		}
+		kept = append(kept, suggestion)
+	}
+	return kept
+}
+
 // activity is how much a profile's score is kept by, for how lately it was
 // last alive.
 func activity(last time.Time, now time.Time) float64 {

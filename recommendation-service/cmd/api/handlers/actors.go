@@ -114,6 +114,13 @@ func (h *actorsHandler) Browse(c echo.Context) error {
 
 	// By the viewer's own weights, where they have set any.
 	ranked := scoring.Rank(found, active, now, constants.WeightsFor(prefs.Weights))
+
+	// Somebody who has been away for longer than the viewer chose is not
+	// suggested at all, whatever else speaks for them. A group that is
+	// quiet is only put last: it is still there to be joined and woken.
+	if req.Kind == constants.KindPerson {
+		ranked = scoring.ActiveWithin(ranked, active, now, prefs.ActiveWithinDays)
+	}
 	if len(ranked) > constants.GateSize {
 		ranked = ranked[:constants.GateSize]
 	}
