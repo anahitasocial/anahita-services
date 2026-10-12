@@ -47,6 +47,15 @@ type StorageInterface interface {
 	Exists(path string) (bool, error)
 	Presign(path string) (string, error)
 	BatchPresign(paths []string) ([]string, error)
+
+	// Large files, sent to the store directly. See uploads.go.
+	UploadStart(path string) (string, error)
+	UploadParts(path, uploadID string, numbers []int32) ([]string, error)
+	UploadComplete(path, uploadID string, maxSize int64) (int64, error)
+	UploadAbort(path, uploadID string) error
+	Stat(path string) (exists bool, size int64, contentType string, err error)
+	FetchURL(path string) (string, error)
+	StoreURL(path, contentType string) (string, error)
 }
 
 // Storage talks to any S3-compatible store. See config.Storage for what each
@@ -54,12 +63,14 @@ type StorageInterface interface {
 //
 // It holds two clients. `client` is for the work this service does itself,
 // through the endpoint it can reach. `presigner` signs the URLs browsers
-// open, for the endpoint THEY can reach. A URL signed for one host is not
+// open, for the endpoint THEY can reach, and `internal` the ones another
+// service reads and writes large files at, for the endpoint services reach. A URL signed for one host is not
 // valid on another, so the public endpoint cannot be swapped in afterwards.
 type Storage struct {
 	config    config.Storage
 	client    *s3.Client
 	presigner *s3.PresignClient
+	internal  *s3.PresignClient
 }
 
 // NewStorage builds the clients once. The old code built a new client on
@@ -100,6 +111,7 @@ func NewStorage(cfg *config.Config) (*Storage, error) {
 		config:    storage,
 		client:    clientFor(storage.Endpoint),
 		presigner: s3.NewPresignClient(clientFor(storage.GetPublicEndpoint())),
+		internal:  s3.NewPresignClient(clientFor(storage.Endpoint)),
 	}, nil
 }
 
@@ -288,10 +300,16 @@ func (s *Storage) Presign(path string) (string, error) {
 	ctx, cancel := requestContext()
 	defer cancel()
 
-	req, err := s.presigner.PresignGetObject(ctx, &s3.GetObjectInput{
+	input := &s3.GetObjectInput{
 		Bucket: aws.String(s.config.Bucket),
 		Key:    aws.String(path),
-	}, s3.WithPresignExpires(presignExpiry))
+	}
+	// Large files did not pass through admit; see uploads.go.
+	if err := readerRules(path, input); err != nil {
+		return "", err
+	}
+
+	req, err := s.presigner.PresignGetObject(ctx, input, s3.WithPresignExpires(presignExpiry))
 	if err != nil {
 		return "", err
 	}
