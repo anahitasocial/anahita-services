@@ -21,7 +21,7 @@ A custom feed is a feed somebody builds: where its posts come from, what they ar
 
 The first tab of somebody's home page is always the feed of the people, groups and events they follow, newest first (`GET /feeds/leaders/`). It is not a custom feed and cannot be removed or reordered. Custom feeds are the tabs after it.
 
-Nothing on the site orders posts by anything but their date. A feed ordered by weights of its owner's choosing is planned as one more kind of custom feed, and would be named by whoever made it like any other. See the plan, `docs/plans/feed-generators.md`.
+Nothing on the site orders posts by anything but their date. A feed ordered by weights of its owner's choosing is planned as one more kind of custom feed, and would be named by whoever made it like any other. See the plan, `docs/plans/done/feed-generators.md`.
 
 ## A feed is a node
 

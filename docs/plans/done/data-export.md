@@ -77,7 +77,7 @@
 - **Rate limits:** the shared limiter from item 4b, plus the 7-day rule.
 
 **Security notes from dxp to carry over:**
-- The step-up gate must be real: auth-service must stop stamping `TotpLastVerifiedAt` without a passcode (`auth-service/cmd/api/handlers/totp.go:93`). That fix is roadmap item 0b ([auth-service-hardening.md](auth-service-hardening.md)).
+- The step-up gate must be real: auth-service must stop stamping `TotpLastVerifiedAt` without a passcode (`auth-service/cmd/api/handlers/totp.go:93`). That fix is roadmap item 0b ([auth-service-hardening.md](../auth-service-hardening.md)).
 - `ENV` must have no silent default.
 - An empty key lookup is refused.
 - Nothing from the archive is ever logged.
@@ -148,7 +148,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 
 ## What was built
 
-The services, 2026-10-11. The page that describes them is [Download your data](../data-export.md).
+The services, 2026-10-11. The page that describes them is [Download your data](../../data-export.md).
 
 - `export-service` and `export-worker`, one module with two programs. Migration `20261024000001_data_exports`.
 - `ListAuthored` in the graph: everything one person wrote, with no access rule, for their own copy.

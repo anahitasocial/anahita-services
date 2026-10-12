@@ -9,6 +9,8 @@ How the services, the gateway and the shared library fit together.
 - [Components](#components)
 - [Services](#services)
 - [Routing](#routing)
+- [One service for every kind of actor](#one-service-for-every-kind-of-actor)
+- [Naming images](#naming-images)
 - [anahita-libs](#anahita-libs)
 - [Naming dates and times](#naming-dates-and-times)
 
@@ -39,7 +41,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | --- | --- | --- | --- |
 | `nginx` | 80 | — | Gateway, routing, CORS, token validation subrequest |
 | `auth-service` | 8081 | — | OAuth 2.0 / OIDC provider, server-rendered sign-in and sign-up, email verification, registration applications, the administration list of accounts, agreements, password, TOTP, WebAuthn, invites, clients, NodeInfo |
-| `actor-service` | 8082 | — | The profiles of people and of groups. One service for every kind of actor; see [below](#one-service-for-every-kind-of-actor) |
+| `actor-service` | 8082 | — | The profiles of people, of groups and of events. One service for every kind of actor; see [below](#one-service-for-every-kind-of-actor) |
 | `text-service` | 8084 | — | Text media: articles, notes, topics |
 | `photo-service` | 8085 | — | Photos |
 | `hashtag-service` | 8086 | — | Hashtags |
@@ -62,7 +64,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is, and signs the addresses large files are sent to directly |
 | `mail-grpc-service` | — | 50051 | Email delivery over SMTP |
 | `migration-job` | — | — | One-shot database migrations |
-| `account-sweeper` | — | — | Purges accounts past their 30-day deletion grace period, and finishes purges a super administrator asked for. Not started by `up`; run with `docker compose run --rm account-sweeper`. See [Account lifecycle](account-lifecycle.md) |
+| `account-sweeper` | — | — | What is done by the clock, hourly: purges accounts past their 30-day deletion grace period, and finishes purges a super administrator asked for; removes images uploaded for a post that was never made, and invitations nobody answered; reminds people of an event a day before, and archives one thirty days after it ended. Not started by `up`; run with `docker compose run --rm account-sweeper`. See [Account lifecycle](account-lifecycle.md) |
 
 Backing services in `docker-compose.yml`:
 
@@ -81,7 +83,7 @@ Kubernetes, where the Ingress sends everything to it
 | --- | --- |
 | `/oauth/`, `/auth`, `/signup`, `/signup-requests`, `/accounts`, `/agreements`, `/onboarding`, `/password`, `/email`, `/username`, `/reauth`, `/totp`, `/webauthn`, `/invites`, `/clients`, `/auth-logs/`, `/oauth-signing-keys`, `/.well-known/`, `/nodeinfo/`, `/static/` | `auth-service` |
 | `/articles/`, `/notes/`, `/topics/` | `text-service` |
-| `/people/`, `/groups/` | `actor-service` |
+| `/people/`, `/groups/`, `/events/` | `actor-service` |
 | `/photos/` | `photo-service` |
 | `/videos/` | `video-service` |
 | `/exports` | `export-service` |
@@ -266,8 +268,24 @@ now one, `actor-service`.
   `graph-grpc-service` and owns no tables, so it is given no database
   credentials.
 - **A new kind of actor** is a handler and its routes in this service, not a
-  service of its own. Events are planned that way, and so is the Website
-  actor ([plans/website-actor.md](plans/website-actor.md)).
+  service of its own. The Website actor is planned that way
+  ([plans/website-actor.md](plans/website-actor.md)).
+- **An event is one.** Its type is `node.actor.actor-service.event.v1`, it
+  is served at `/events/` by the handler a group has, told a different kind,
+  and what only an event has is beside it: answering going or maybe, calling
+  it off, and its calendar file. Its start and end are on the node; its time
+  zone, how many may go, where to join online and when it was called off are
+  in the `events` table. A group hosts one through an
+  `edge.actor.host.v1` edge from the group to the event, and
+  `GET /groups/<id>/events/` lists them. Who may do what is in
+  [Permissions](permissions.md#events).
+- **An invitation is an edge,** `edge.actor.invite.v1`, from the person
+  invited to the group or event, so every kind of actor can have them. They
+  are made and answered through `socialgraph-service`
+  (`/socialgraph/<actor>/invites` and its `accept` and `decline`, and
+  `/socialgraph/invites/` for the ones waiting for the viewer), and each is
+  announced on the bus so that the notification for it can be answered where
+  it is read. The rules are in [Permissions](permissions.md#invitations).
 
 ## Naming images
 

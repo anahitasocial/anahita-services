@@ -9,7 +9,7 @@ the single public entry point; there is no broker service and no etcd —
 service addresses are plain DNS names inside the Docker/Kubernetes network,
 injected as environment variables.
 
-The web app lives in a separate repository, `anahita-react`.
+The web app lives in a separate repository, `anahita-web`.
 
 ## Quick start
 
@@ -40,8 +40,10 @@ The full walk-through is in [Getting started](docs/getting-started.md).
 4. [OAuth scopes and clients](docs/oauth.md) — how scopes are enforced and clients seeded
 5. [Registration and agreements](docs/registration.md) — registration modes, invitations, the approval queue, bot protection, Terms and Privacy Policy
 
-Design documents are in [docs/plans](docs/plans/); the
-[documentation index](docs/README.md) lists them.
+Those are the first five. The [documentation index](docs/README.md) lists
+every page: permissions, privacy, signing in, feeds, photos, videos,
+deploying and the rest. It also lists the design documents in
+[docs/plans](docs/plans/).
 
 ## Resources
 

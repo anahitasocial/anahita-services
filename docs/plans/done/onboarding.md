@@ -211,7 +211,7 @@ blocks and disabled accounts are handled there, not here.
 
 ## Towards a recommendation engine
 
-> **Superseded 2026-09-28** by [recommendation-service.md](../recommendation-service.md),
+> **Superseded 2026-09-28** by [recommendation-service.md](recommendation-service.md),
 > which plans the engine as its own service. This section is kept for its reasoning.
 
 `feed-generators.md` already chooses the shape: rankers are unbundled from

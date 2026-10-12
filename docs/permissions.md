@@ -45,7 +45,7 @@ confuse:
 
 | Setting | Question it answers | Where it is set |
 | --- | --- | --- |
-| **Access** | Who can *see* this profile and its posts | Settings › Access |
+| **Access** | Who can *see* this profile and its posts | Settings › Privacy |
 | **Permissions** | Who can *add* to it: posts, replies, likes, followers | Settings › Permissions |
 
 Permissions never widen access. Anybody refused by the profile's access is
@@ -484,7 +484,7 @@ A repost is shown only to people who can see the original post. See
 Only people repost, as only people reply. What a person reposts is in the
 list of reposts on their profile, and not among its posts. They can have
 reposts among the posts as well ("Also show reposts in the Posts tab", under
-Settings › Access). It changes that one list and nothing else: the list of
+Settings › Privacy). It changes that one list and nothing else: the list of
 reposts always has them, and followers are sent them in their own feeds, which
 is what a repost is for. It does not change who can see a repost.
 
@@ -518,7 +518,7 @@ Somebody signed in, who can see the post, when:
 
 A post has its own policy when its author sets one, in the post's interaction
 settings, beside who can reply. A post that has none follows its author's own
-setting ("Who can quote my posts", under Settings › Access), and a person who
+setting ("Who can quote my posts", under Settings › Permissions), and a person who
 has never chosen lets anyone. Both are kept in `nodes.quote_policy`: on a post
 it is that post's, on a person it is their default.
 

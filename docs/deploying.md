@@ -19,6 +19,7 @@ your own machine, use docker-compose instead: see
 - [Upgrading](#upgrading)
 - [Running more than one copy of a service](#running-more-than-one-copy-of-a-service)
 - [Trying it on your own machine](#trying-it-on-your-own-machine)
+- [One machine without Kubernetes](#one-machine-without-kubernetes)
 
 ## What you need
 
