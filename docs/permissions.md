@@ -246,7 +246,7 @@ A post carries who may reply to it, in `nodes.reply_access`, returned as
 | `nobody` | Nobody. |
 | `followers` | People who follow the post's author. |
 | `following` | People the post's author follows. |
-| `mentioned` | People the post mentions by `@name`. |
+| `mentioned` | People the post mentions by `@name`. A name with a host after it, `@name@example.net`, is somebody on another server and nobody here, whoever here shares the name. |
 
 The last three can be combined, joined by commas (`followers,mentioned`), and
 somebody in any one of them may reply.

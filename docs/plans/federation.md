@@ -366,7 +366,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 | 0.3 Public addresses | done 2026-10-11 |
 | 0.4 Stable media addresses | not started |
 | 0.5 Remote identity | not started |
-| 0.6 Content conversion | not started |
+| 0.6 Content conversion | done 2026-10-11 |
 | 0.7 Durable delivery queue | not started |
 | 0.8 Routing and the TLS lab | not started |
 | Phase 1 | not started |
@@ -418,3 +418,28 @@ https.
   they are** (auth-service's `FRONTEND_URL`, actor-service's `WEB_ORIGIN`).
   They agree with this package wherever the usual hosts are used, and it
   reads `FRONTEND_URL` too.
+
+**0.6, the text of a post.** `anahita-libs/federation`:
+
+- **`ToHTML`**: a post's Markdown as the HTML other servers are sent
+  (goldmark, with the same GitHub flavour the web app reads), the people and
+  hashtags it names made into links marked up as Mastodon marks them, and
+  listed beside the text for the protocol to carry. Who a name is, is asked
+  of the caller; somebody who cannot be found is left as written.
+- **`ToMarkdown`**: the HTML of a post that arrived, as the Markdown a post
+  here is kept as (html-to-markdown).
+- **Both pass through one short list of what a post may be made of**
+  (bluemonday): paragraphs, emphasis, quotations, lists, code, headings and
+  links to the web. No pictures, which travel beside the text; nothing that
+  runs or styles. HTML typed into a post is not passed on as HTML.
+- **`entities.ParseMentions` understands `@user@host`.** This was a fault
+  already, with or without federation: `@alice@mastodon.social` was read as
+  `@alice`, so whoever is called alice here was told they had been
+  mentioned. Somebody named on another server is now nobody here, unless the
+  host is this installation's own. The web app's filter was made to agree:
+  it also made a link of the end of an email address.
+- **The libraries were added at versions that leave the rest of the module
+  alone** (html-to-markdown 2.3.3, goldmark 1.7.13, bluemonday 1.0.27). The
+  newest of each asked for a newer Go and newer `golang.org/x` modules than
+  the services are built with. `go mod tidy` is not run on `anahita-libs`:
+  it upgrades what it has no reason to.

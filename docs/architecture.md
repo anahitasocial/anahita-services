@@ -342,6 +342,7 @@ The shared module every service imports:
 | `grpctls` | Mutual TLS for the calls between services |
 | `ratelimit` | A counter in Redis: so many of something in a window, for each person |
 | `policy` | The installation's settings on who may see what, which several services must agree on |
+| `federation` | What the services that speak to other servers share. So far the text of a post, there and back: Markdown to HTML that is safe to send, and HTML that arrived to Markdown that is safe to keep |
 | `site` | Where the installation is, as the internet sees it: its domain, and the addresses of its web app and API. See [What a node is called elsewhere](#what-a-node-is-called-elsewhere) |
 | `language` | The language a post is written in |
 | `feeds` | What a custom feed is made of, and the rules a definition keeps |
