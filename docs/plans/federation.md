@@ -369,9 +369,48 @@ A phase is finished only when these pages match the code. anahita-services pages
 | 0.6 Content conversion | done 2026-10-11 |
 | 0.7 Durable delivery queue | done 2026-10-12 |
 | 0.8 Routing and the TLS lab | done 2026-10-12; the gateway's routes to `activitypub-service` come with that service |
-| Phase 1 | not started |
+| Phase 1, ActivityPub: the service, opting in, keys, discovery, a person's description | done 2026-10-12 |
+| Phase 1, ActivityPub: signatures, the inbox, following, posts out and in, lookup, the blocklist, the web app | not started |
+| Phase 1, AT Protocol | not started |
 
 ## What was built
+
+### Phase 1, ActivityPub, begun 2026-10-12
+
+**The service, and being found.** `activitypub-service` (port 8105), with
+the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
+(migration `20261027000001_activitypub.sql`); the page `docs/federation.md`.
+
+- A person turns it on for themselves (`/activitypub/settings`), and only
+  when their profile is open to everybody on a site that is open to read and
+  can be reached. A key is made for them then.
+- WebFinger, host-meta, a person's description, and the lengths of their
+  followers and following.
+- **Tried in the lab against GoToSocial:** asked to find
+  `rastin@anahita.test`, it asked the web app's host, was sent on to the
+  API, fetched the description, and answered with the account, its name, its
+  page, when it joined, what it says of itself with the hashtags as links,
+  and the avatar and cover, which it fetched through the addresses that
+  stay.
+
+**Different from the plan, or decided on the way:**
+- **Somebody who is not on the fediverse answers `404`, always,** and never
+  `410`. The plan had a purged person answer `410 Gone`. That would tell
+  anybody who asks that an address was once somebody's, and of every other
+  reason the plan itself says "404 or 410". Telling the servers that knew
+  somebody to forget them is done by sending them a `Delete`, which is for
+  the part that sends.
+- **`setViewer` is on every route other servers use,** though a server has
+  no token: it is what answers for a site that is for members only, and the
+  test that every route names its viewer holds this service to it like the
+  rest.
+- **A person's description is not served at their page's address** by
+  asking for it as JSON. Their page is on the web app's host, which the
+  shell serves; WebFinger gives the address directly, which is what servers
+  use. Left for when something needs it.
+- **Opening one's account to the fediverse again after turning it off** will
+  need care once turning it off sends a `Delete`: Mastodon treats a deleted
+  person as gone for good. To be decided with the part that sends.
 
 ### Phase 0, begun 2026-10-11
 

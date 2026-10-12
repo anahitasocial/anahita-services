@@ -15,6 +15,10 @@ VIDEO_WORKER_BINARY=worker-binary
 VIDEO_VERSION=latest
 VIDEO_SRV=video-service
 VIDEO_WORKER=video-worker
+ACTIVITYPUB_BINARY=app-binary
+ACTIVITYPUB_VERSION=latest
+ACTIVITYPUB_SRV=activitypub-service
+
 EXPORT_BINARY=app-binary
 EXPORT_WORKER_BINARY=worker-binary
 EXPORT_VERSION=latest
@@ -119,7 +123,7 @@ down:
 	@echo "Docker stopped!"
 
 ## build_dockerfiles: builds all dockerfile images
-build_dockerfiles: check_docker build_abuse_report build_recommendation build_link_preview build_video build_export build_auth build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
+build_dockerfiles: check_docker build_abuse_report build_recommendation build_link_preview build_video build_export build_activitypub build_auth build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
 	@echo "Building dockerfiles..."
 	docker build -f ${DOCKERFILES}/${ABUSE_REPORT_SRV}.dockerfile -t ${REPOSITORY}/${ABUSE_REPORT_SRV}:${ABUSE_REPORT_VERSION} .
 	docker build -f ${DOCKERFILES}/${RECOMMENDATION_SRV}.dockerfile -t ${REPOSITORY}/${RECOMMENDATION_SRV}:${RECOMMENDATION_VERSION} .
@@ -127,6 +131,7 @@ build_dockerfiles: check_docker build_abuse_report build_recommendation build_li
 	docker build -f ${DOCKERFILES}/${VIDEO_SRV}.dockerfile -t ${REPOSITORY}/${VIDEO_SRV}:${VIDEO_VERSION} .
 	docker build -f ${DOCKERFILES}/${VIDEO_WORKER}.dockerfile -t ${REPOSITORY}/${VIDEO_WORKER}:${VIDEO_VERSION} .
 	docker build -f ${DOCKERFILES}/${EXPORT_SRV}.dockerfile -t ${REPOSITORY}/${EXPORT_SRV}:${EXPORT_VERSION} .
+	docker build -f ${DOCKERFILES}/${ACTIVITYPUB_SRV}.dockerfile -t ${REPOSITORY}/${ACTIVITYPUB_SRV}:${ACTIVITYPUB_VERSION} .
 	docker build -f ${DOCKERFILES}/${EXPORT_WORKER}.dockerfile -t ${REPOSITORY}/${EXPORT_WORKER}:${EXPORT_VERSION} .
 	docker build -f ${DOCKERFILES}/${AUTH_SRV}.dockerfile -t ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION} .
 	docker build -f ${DOCKERFILES}/${GRAPH_SRV}.dockerfile -t ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION} .
@@ -156,6 +161,7 @@ push_dockerfiles: check_docker build_dockerfiles
 	docker push ${REPOSITORY}/${VIDEO_SRV}:${VIDEO_VERSION}
 	docker push ${REPOSITORY}/${VIDEO_WORKER}:${VIDEO_VERSION}
 	docker push ${REPOSITORY}/${EXPORT_SRV}:${EXPORT_VERSION}
+	docker push ${REPOSITORY}/${ACTIVITYPUB_SRV}:${ACTIVITYPUB_VERSION}
 	docker push ${REPOSITORY}/${EXPORT_WORKER}:${EXPORT_VERSION}
 	docker push ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION}
 	docker push ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION}
@@ -240,6 +246,12 @@ build_recommendation:
 	@echo "Building recommendation binary.."
 	cd ${RECOMMENDATION_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${RECOMMENDATION_BINARY} ./cmd/api
 	@echo "Recommendation binary built!"
+
+## build_activitypub: builds the activitypub binary as a linux executable
+build_activitypub:
+	@echo "Building activitypub binary.."
+	cd ${ACTIVITYPUB_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${ACTIVITYPUB_BINARY} ./cmd/api
+	@echo "Activitypub binary built!"
 
 ## build_export: builds the export service and its worker as linux executables
 build_export:
@@ -329,7 +341,7 @@ build_feed:
 
 ## up_build: stops docker-compose (if running), builds all projects and starts docker compose
 # up_build: build_auth build_broker build_listener build_logger build_mail
-up_build: build_abuse_report build_recommendation build_link_preview build_video build_export build_auth build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
+up_build: build_abuse_report build_recommendation build_link_preview build_video build_export build_activitypub build_auth build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
 	@echo "Stopping docker images (if running...)"
 	docker-compose down
 	@echo "Building (when required) and starting docker images..."
@@ -410,16 +422,24 @@ recommendation: build_recommendation
 	docker-compose start ${RECOMMENDATION_SRV}
 	@echo "${RECOMMENDATION_SRV} built and started!"
 
+# What activitypub-service is told while the lab is up.
+FEDI_LAB_ENV=PUBLIC_DOMAIN=anahita.test PUBLIC_WEB_URL=https://anahita.test PUBLIC_API_URL=https://api.anahita.test ACTIVITYPUB_CA_FILE=/fedi-lab-certs/ca.crt
+
 ## fedi_lab: starts the federation lab: https at anahita.test, api.anahita.test and gts.test, and a GoToSocial server to talk to. See docs/federation-lab.md
 fedi_lab:
 	@./scripts/fedi-lab-certs.sh
 	docker-compose --profile fedi-lab up -d fedi-lab-tls gotosocial
+	@# activitypub-service is started again as the lab's site: the names
+	@# other servers are told, and the lab's authority as the one it trusts.
+	${FEDI_LAB_ENV} docker-compose up -d --force-recreate ${ACTIVITYPUB_SRV}
 	@echo "The lab is up. Add to /etc/hosts:  127.0.0.1 anahita.test api.anahita.test gts.test"
 
 ## fedi_lab_down: stops the federation lab, keeping what its GoToSocial holds
 fedi_lab_down:
 	- docker-compose --profile fedi-lab stop fedi-lab-tls gotosocial
 	- docker-compose --profile fedi-lab rm -f fedi-lab-tls gotosocial
+	@# activitypub-service goes back to being this machine's own site.
+	- docker-compose up -d --force-recreate ${ACTIVITYPUB_SRV}
 
 ## fedi_lab_reset: stops the federation lab and empties its GoToSocial
 fedi_lab_reset: fedi_lab_down
@@ -432,6 +452,14 @@ web_shell: build_web_shell
 	- docker-compose --profile web rm -f ${WEB_SHELL_SRV}
 	docker-compose --profile web up --build -d ${WEB_SHELL_SRV}
 	@echo "${WEB_SHELL_SRV} built and started!"
+
+## activitypub: stops activitypub-service, removes docker image, builds service, and starts it
+activitypub: build_activitypub
+	@echo "Building ${ACTIVITYPUB_SRV} docker image..."
+	- docker-compose stop ${ACTIVITYPUB_SRV}
+	- docker-compose rm -f ${ACTIVITYPUB_SRV}
+	docker-compose up --build -d ${ACTIVITYPUB_SRV}
+	@echo "${ACTIVITYPUB_SRV} built and started!"
 
 ## export: stops export-service and its worker, removes their images, builds and starts them
 export: build_export
@@ -586,6 +614,8 @@ clean:
 	@cd ${VIDEO_SRV} && go clean
 	@cd ${EXPORT_SRV} && rm -f ${EXPORT_BINARY} ${EXPORT_WORKER_BINARY}
 	@cd ${EXPORT_SRV} && go clean
+	@cd ${ACTIVITYPUB_SRV} && rm -f ${ACTIVITYPUB_BINARY}
+	@cd ${ACTIVITYPUB_SRV} && go clean
 	@cd ${WEB_SHELL_SRV} && rm -f ${WEB_SHELL_BINARY}
 	@cd ${WEB_SHELL_SRV} && go clean
 	@cd ${HASHTAG_SRV} && rm -f ${HASHTAG_BINARY}
@@ -624,7 +654,7 @@ K8S_LOCAL=k8s/overlays/local
 # Always the Minikube cluster, whatever kubectl currently points at, so these
 # targets can never touch a real one.
 KUBECTL=kubectl --context minikube
-K8S_IMAGES=${ABUSE_REPORT_SRV} ${RECOMMENDATION_SRV} ${LINK_PREVIEW_SRV} ${VIDEO_SRV} ${VIDEO_WORKER} ${EXPORT_SRV} ${EXPORT_WORKER} ${AUTH_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
+K8S_IMAGES=${ABUSE_REPORT_SRV} ${RECOMMENDATION_SRV} ${LINK_PREVIEW_SRV} ${VIDEO_SRV} ${VIDEO_WORKER} ${EXPORT_SRV} ${EXPORT_WORKER} ${ACTIVITYPUB_SRV} ${AUTH_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
 
 ## k8s-start: starts a local Minikube cluster with the ingress controller and cert-manager
 k8s-start:
@@ -707,6 +737,7 @@ test:
 	@cd ${PHOTO_SRV} && go test ./...
 	@cd ${VIDEO_SRV} && go test ./...
 	@cd ${EXPORT_SRV} && go test ./...
+	@cd ${ACTIVITYPUB_SRV} && go test ./...
 	@cd ${SEARCH_SRV} && go test ./...
 	@cd ${SOCIALGRAPH_SRV} && go test ./...
 	@cd ${RECOMMENDATION_SRV} && go test ./...

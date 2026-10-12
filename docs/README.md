@@ -214,12 +214,23 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Settings](data-export.md#settings)
    - [Running it, and not running it](data-export.md#running-it-and-not-running-it)
    - [What is not built](data-export.md#what-is-not-built)
-20. [The federation lab](federation-lab.md) — trying federation on one machine: names, certificates, and another server to talk to
+20. [Federation](federation.md) — being found and followed from other servers: turning it on, who is on the fediverse, what they are called and what is told about them
+   - [What it is](federation.md#what-it-is)
+   - [Turning it on](federation.md#turning-it-on)
+   - [Who is on the fediverse](federation.md#who-is-on-the-fediverse)
+   - [What a person is called](federation.md#what-a-person-is-called)
+   - [What other servers are told](federation.md#what-other-servers-are-told)
+   - [Signing keys](federation.md#signing-keys)
+   - [The API](federation.md#the-api)
+   - [Turning it off](federation.md#turning-it-off)
+   - [Where the code is](federation.md#where-the-code-is)
+21. [The federation lab](federation-lab.md) — trying federation on one machine: names, certificates, and another server to talk to
    - [Why it is needed](federation-lab.md#why-it-is-needed)
    - [What is in it](federation-lab.md#what-is-in-it)
    - [Starting it](federation-lab.md#starting-it)
    - [Opening it in a browser](federation-lab.md#opening-it-in-a-browser)
    - [Somebody to talk to](federation-lab.md#somebody-to-talk-to)
+   - [Having GoToSocial look somebody up](federation-lab.md#having-gotosocial-look-somebody-up)
    - [Asking as another server would](federation-lab.md#asking-as-another-server-would)
    - [Stopping and emptying it](federation-lab.md#stopping-and-emptying-it)
    - [What it is not](federation-lab.md#what-it-is-not)
@@ -240,7 +251,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
-| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0, the groundwork, done 2026-10-12; phase 1 not started |
+| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0 done 2026-10-12; phase 1, ActivityPub, begun: people can be found and described |
 | [Link previews](plans/done/link-previews.md) | 10 | built 2026-10-11, with the web shell of its part B |
 | [Downloading what a post holds](plans/done/downloads.md) | 37 | built 2026-10-11 |
 | [Invitations](plans/done/actor-invitations.md) | 11 | done 2026-10-10 |

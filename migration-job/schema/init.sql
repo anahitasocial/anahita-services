@@ -1030,3 +1030,31 @@ CREATE TABLE IF NOT EXISTS data_exports (
     KEY `idx_data_exports_person` (`person_id`, `created_at`),
     KEY `idx_data_exports_status` (`status`, `updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ActivityPub: who has chosen to be on the fediverse, and the key each signs
+-- with. See migrations/20261027000001_activitypub.sql.
+CREATE TABLE IF NOT EXISTS activitypub_accounts (
+    `person_id` bigint unsigned NOT NULL,
+    `enabled` tinyint(1) NOT NULL DEFAULT 0,
+    -- When they last turned it on.
+    `enabled_at` datetime DEFAULT NULL,
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`person_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS actor_keys (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `node_id` bigint unsigned NOT NULL,
+    `algorithm` varchar(16) NOT NULL,
+    -- PEM.
+    `public_key` text NOT NULL,
+    `private_key_encrypted` text NOT NULL,
+    `created_at` datetime NOT NULL,
+    `revoked_at` datetime DEFAULT NULL,
+    `active_node_id` bigint unsigned GENERATED ALWAYS AS (IF(`revoked_at` IS NULL, `node_id`, NULL)) STORED,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_active_node_id` (`active_node_id`),
+    KEY `node_id` (`node_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+

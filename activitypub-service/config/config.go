@@ -1,0 +1,96 @@
+package config
+
+import (
+	"errors"
+	"os"
+	"strconv"
+	"strings"
+
+	"anahita-libs/constants"
+)
+
+type Config struct {
+	Env              string
+	DSN              string
+	GraphServiceAddr string
+	RedisAddr        string
+	RedisPassword    string
+	RedisDB          int
+	OAuthIssuer      string
+	OAuthJWKSURL     string
+	// How the private half of each person's signing key is kept: encrypted,
+	// by the same means auth-service keeps its secrets.
+	CryptBackend  string
+	CryptLocalKey string
+	AwsKmsKeyId   string
+}
+
+func NewConfig() *Config {
+	config := &Config{
+		Env:              getEnv("ENV", constants.ConfigEnvDev),
+		DSN:              os.Getenv("DSN"),
+		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
+		RedisAddr:        getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
+		RedisDB:          getIntEnv("REDIS_DB", 0),
+		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
+		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
+		CryptBackend:     getEnv("CRYPT_BACKEND", constants.CryptBackendLocal),
+		CryptLocalKey:    os.Getenv("CRYPT_LOCAL_KEY"),
+		AwsKmsKeyId:      os.Getenv("AWS_KMS_KEY_ID"),
+	}
+
+	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
+		config.OAuthJWKSURL = strings.TrimRight(config.OAuthIssuer, "/") + "/.well-known/jwks.json"
+	}
+
+	return config
+}
+
+func (config *Config) Validate() error {
+	var names []string
+	for name, value := range map[string]string{
+		"DSN":                config.DSN,
+		"GRAPH_SERVICE_ADDR": config.GraphServiceAddr,
+		"OAUTH_ISSUER":       config.OAuthIssuer,
+		"OAUTH_JWKS_URL":     config.OAuthJWKSURL,
+	} {
+		if value == "" {
+			names = append(names, name)
+		}
+	}
+	if len(names) > 0 {
+		return errors.New("missing: " + strings.Join(names, ", "))
+	}
+	return nil
+}
+
+func (config *Config) IsDev() bool     { return config.Env == constants.ConfigEnvDev }
+func (config *Config) IsStaging() bool { return config.Env == constants.ConfigEnvStaging }
+func (config *Config) IsProd() bool    { return config.Env == constants.ConfigEnvProd }
+
+func (config *Config) GetDSN() string              { return config.DSN }
+func (config *Config) GetGraphServiceAddr() string { return config.GraphServiceAddr }
+func (config *Config) GetRedisAddr() string        { return config.RedisAddr }
+func (config *Config) GetRedisPassword() string    { return config.RedisPassword }
+func (config *Config) GetRedisDB() int             { return config.RedisDB }
+func (config *Config) GetOAuthIssuer() string      { return config.OAuthIssuer }
+func (config *Config) GetOAuthJWKSURL() string     { return config.OAuthJWKSURL }
+func (config *Config) GetDomainName() string       { return os.Getenv("DOMAIN_NAME") }
+func (config *Config) GetCryptBackend() string     { return config.CryptBackend }
+func (config *Config) GetCryptLocalKey() string    { return config.CryptLocalKey }
+func (config *Config) GetAwsKmsKeyId() string      { return config.AwsKmsKeyId }
+
+func getEnv(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}
+
+func getIntEnv(key string, fallback int) int {
+	if value, err := strconv.Atoi(os.Getenv(key)); err == nil {
+		return value
+	}
+	return fallback
+}

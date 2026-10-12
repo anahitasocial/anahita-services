@@ -171,7 +171,7 @@ Read by auth-service.
 | `OAUTH_SEED_CLIENT_PATH` | First-party clients seeded at first boot. See [Seeding clients](oauth.md#seeding-clients) |
 | `OAUTH_KEY_LIFETIME_DAYS` | Optional, not in `docker-compose.yml`. Signing key rotation, default `90` |
 | `CRYPT_BACKEND` | Encryption of secrets at rest: `local` (default) or `kms` |
-| `CRYPT_LOCAL_KEY` | Key for `local`: exactly 32 characters. Keep it out of the database and its backups |
+| `CRYPT_LOCAL_KEY` | Key for `local`: exactly 32 characters. Keep it out of the database and its backups. activitypub-service keeps every person's signing key under it too, so it must be given the same value: see [Federation](federation.md#signing-keys) |
 | `AWS_KMS_KEY_ID` | Key for `kms` |
 | `CRYPT_KMS_REGION` | Region of that KMS key. Optional: defaults to the AWS region in the environment (`AWS_DEFAULT_REGION`) |
 | `MAX_DB_CONNECTIONS` | Optional database pool size |

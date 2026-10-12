@@ -43,6 +43,8 @@ secretGenerator:
 images:
   - name: anahita/abuse-report-service
     newTag: latest
+  - name: anahita/activitypub-service
+    newTag: latest
   - name: anahita/actor-service
     newTag: latest
   - name: anahita/auth-service

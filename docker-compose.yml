@@ -1159,6 +1159,58 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.27
 
+# activitypub-service - speaks to other servers of the fediverse: who is here
+# and chose to be found, and (as it is built) what they post. Optional: an
+# installation that leaves it out is on nobody's fediverse. See
+# docs/federation.md.
+  activitypub-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/activitypub-service.dockerfile
+    restart: always
+    ports:
+      - "8105:80"
+    depends_on:
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
+      # Only a site that is open to read federates.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
+      DSN: ${DSN}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
+      REDIS_PASSWORD: ""
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      # Where the installation is, as other servers are told. On a
+      # developer's machine these say nothing another server could reach,
+      # and nobody is on the fediverse; `make fedi_lab` gives them the
+      # lab's names. See docs/configuration.md, Site identity.
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:-}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+      # What the private half of each person's signing key is kept under:
+      # the same as auth-service's secrets.
+      CRYPT_BACKEND: ${CRYPT_BACKEND}
+      CRYPT_LOCAL_KEY: ${CRYPT_LOCAL_KEY}
+      # In the lab only: the one authority whose certificates are trusted.
+      # Empty anywhere else, which leaves the system's own.
+      SSL_CERT_FILE: ${ACTIVITYPUB_CA_FILE:-}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
+      - ./fedi-lab/certs:/fedi-lab-certs:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.44
+
 # The federation lab: https at three names on one machine, and another
 # server to talk to. Not started by `up`; `make fedi_lab` starts it. See
 # docs/federation-lab.md.

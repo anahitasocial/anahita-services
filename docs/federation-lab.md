@@ -10,6 +10,7 @@ each at a name of its own, speaking to each other over https.
 - [Starting it](#starting-it)
 - [Opening it in a browser](#opening-it-in-a-browser)
 - [Somebody to talk to](#somebody-to-talk-to)
+- [Having GoToSocial look somebody up](#having-gotosocial-look-somebody-up)
 - [Asking as another server would](#asking-as-another-server-would)
 - [Stopping and emptying it](#stopping-and-emptying-it)
 - [What it is not](#what-it-is-not)
@@ -33,6 +34,11 @@ real site. Nothing in the lab is reachable from outside your machine.
 | `https://api.anahita.test` | This installation's API, as other servers reach it | the gateway, `nginx` |
 | `https://anahita.test` | The web app's host, where a handle such as `ana@anahita.test` is looked up | `web-shell`, when it is running |
 | `https://gts.test` | [GoToSocial](https://gotosocial.org), a small server that speaks ActivityPub as Mastodon does | `gotosocial` |
+
+While the lab is up, `activitypub-service` is this installation's part in
+it: `make fedi_lab` starts it again as the site `anahita.test`, reached at
+`https://api.anahita.test`, trusting the lab's authority and nothing else.
+`make fedi_lab_down` puts it back as it was.
 
 `fedi-lab-tls` is the front door: an nginx that holds the certificate and is
 known on the Docker network by all three names, so each server reaches the
@@ -77,6 +83,28 @@ docker compose --profile fedi-lab exec gotosocial \
 
 She is then `@alice@gts.test`, and can sign in at `https://gts.test` with
 any Mastodon-compatible client.
+
+## Having GoToSocial look somebody up
+
+The real test of whether this installation is understood: ask the other
+server to find somebody here by their handle. `fedi-lab/gts-token.sh` signs
+a GoToSocial account in and prints a token of theirs:
+
+~~~sh
+run() { docker run --rm --network anahita-services_anahita-network \
+  -v "$PWD/fedi-lab:/lab:ro" "$@"; }
+
+TOKEN=$(run --entrypoint sh curlimages/curl /lab/gts-token.sh alice@gts.test '<her password>')
+
+run curlimages/curl -s --cacert /lab/certs/ca.crt -H "Authorization: Bearer $TOKEN" \
+  "https://gts.test/api/v2/search?q=@ana@anahita.test&resolve=true&type=accounts"
+~~~
+
+GoToSocial then asks `anahita.test` who that is, is sent on to the API,
+fetches the person's description and their pictures, and answers with the
+account as it understood it. Somebody who has not turned federation on is
+not found. Until the web app has the switch, it is turned on for a person
+with `PUT /activitypub/settings` ([Federation](federation.md#the-api)).
 
 ## Asking as another server would
 
@@ -123,4 +151,5 @@ and will refuse the same name with a different key.
 | The profile, its two containers and its volume | `docker-compose.yml`, `fedi-lab` |
 | The front door | `fedi-lab/nginx.conf` |
 | The certificates | `scripts/fedi-lab-certs.sh` → `fedi-lab/certs/` |
+| A token for a GoToSocial account | `fedi-lab/gts-token.sh` |
 | `fedi_lab`, `fedi_lab_down`, `fedi_lab_reset` | `Makefile` |

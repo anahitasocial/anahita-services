@@ -60,6 +60,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `export-service` | 8104 | — | A person's copy of their own data: asking for one and fetching it. Optional. See [Download your data](data-export.md) |
 | `export-worker` | — | — | Makes each archive asked for, and deletes the ones kept their time. Answers no requests |
 | `web-shell` | 8102 | — | Sends the web app, with each page's own title, description and picture written into `index.html`, so a shared link shows as itself. On the web app's host, not the API's. Optional. See [The web shell](web-shell.md) |
+| `activitypub-service` | 8105 | — | Speaks to other servers of the fediverse: who here chose to be found, and their description. The one service that reads what other servers send. Optional. See [Federation](federation.md) |
 | `abuse-report-service` | 8099 | — | Reports of people and posts, and the cases administrators decide. See [Abuse reports](abuse-reports.md) |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
 | `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is, and signs the addresses large files are sent to directly |
@@ -87,6 +88,7 @@ Kubernetes, where the Ingress sends everything to it
 | `/people/`, `/groups/`, `/events/` | `actor-service` |
 | `/photos/` | `photo-service` |
 | `/videos/` | `video-service` |
+| `/.well-known/webfinger`, `/.well-known/host-meta`, `/ap/`, `/activitypub/` | `activitypub-service` |
 | `/exports` | `export-service` |
 | `/avatars/`, `/covers/` | `identity-image-service` |
 | `/likes/` | `like-service` |
@@ -404,8 +406,9 @@ by servers this one may never hear from again.
 
 This is groundwork for federation
 ([plans/federation.md](plans/federation.md)). Nothing is sent to or kept
-from another server yet: no service calls any of this. To try what is built
-on it, see [The federation lab](federation-lab.md).
+from another server yet. What is built on it so far, finding and describing
+somebody here, is in [Federation](federation.md); to try it, see
+[The federation lab](federation-lab.md).
 
 ## Naming dates and times
 

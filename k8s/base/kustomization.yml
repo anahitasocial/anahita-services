@@ -21,6 +21,7 @@ resources:
   - jobs/sweeper-cronjob.yml
   - services/actor.yml
   - services/abuse-report.yml
+  - services/activitypub.yml
   - services/auth.yml
   - services/feed.yml
   - services/hashtag.yml
