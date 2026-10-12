@@ -193,11 +193,13 @@ Refusals when beginning an upload: `403 uploads_off`, `413 too_large`
 ## Settings
 
 Read by `video-service`, `video-worker` and, for the first three,
-`auth-service`, which tells the web app.
+`auth-service`, which tells the web app. Set them once, where every
+service reads its settings: `.env` for docker-compose, `config.env` on
+Kubernetes.
 
 | Variable | Value |
 | --- | --- |
-| `VIDEO_UPLOADS` | `on` where people may post videos. Anything else, and unset, is off: the web app offers no upload and `video-service` refuses one. Videos already posted go on being shown |
+| `VIDEO_UPLOADS` | `on` where people may post videos. Anything else, and unset, is off: no profile has the video feature (no composer, no Videos tab), and `video-service` refuses an upload. Videos already posted go on being shown in feeds and at their own addresses. Read by `graph-grpc-service` too, which is what leaves the feature off profiles |
 | `VIDEO_MAX_BYTES` | The largest file taken. 500 MB (`524288000`) unless said |
 | `VIDEO_MAX_SECONDS` | The longest video taken. `600`, ten minutes, unless said |
 | `VIDEO_RENDITIONS` | The sizes made, by height. `1080,720,360` unless said; see [Sizes](#sizes) |

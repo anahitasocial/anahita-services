@@ -1062,6 +1062,8 @@ services:
       mode: replicated
       replicas: 1
     environment:
+      # Whether profiles have video at all. See docs/videos.md.
+      VIDEO_UPLOADS: ${VIDEO_UPLOADS:-}
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
