@@ -54,6 +54,8 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `link-preview-service` | 8101 | — | Fetches the page a link points to and keeps its title and picture, for the card on a note. The only service that connects to addresses people type. Optional. See [Link previews](link-previews.md) |
 | `video-service` | 8103 | — | Videos: uploads sent straight to storage, and the posts made of them. Optional. See [Videos](videos.md) |
 | `video-worker` | — | — | Makes the sizes of each uploaded video with ffmpeg, then the post. Answers no requests |
+| `export-service` | 8104 | — | A person's copy of their own data: asking for one and fetching it. Optional. See [Download your data](data-export.md) |
+| `export-worker` | — | — | Makes each archive asked for, and deletes the ones kept their time. Answers no requests |
 | `web-shell` | 8102 | — | Sends the web app, with each page's own title, description and picture written into `index.html`, so a shared link shows as itself. On the web app's host, not the API's. Optional. See [The web shell](web-shell.md) |
 | `abuse-report-service` | 8099 | — | Reports of people and posts, and the cases administrators decide. See [Abuse reports](abuse-reports.md) |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
@@ -82,6 +84,7 @@ Kubernetes, where the Ingress sends everything to it
 | `/people/`, `/groups/` | `actor-service` |
 | `/photos/` | `photo-service` |
 | `/videos/` | `video-service` |
+| `/exports` | `export-service` |
 | `/avatars/`, `/covers/` | `identity-image-service` |
 | `/likes/` | `like-service` |
 | `/hashtags/` | `hashtag-service` |

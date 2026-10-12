@@ -13,6 +13,7 @@ use (
 	./like-service
 	./link-preview-service
 	./video-service
+	./export-service
 	./web-shell
 	./location-service
 	./mail-grpc-service

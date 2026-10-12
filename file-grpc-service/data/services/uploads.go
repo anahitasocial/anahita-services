@@ -39,6 +39,9 @@ const (
 	UploadsPrefix = "uploads/"
 	// WorkerPrefix is where a worker's files are put.
 	WorkerPrefix = "videos/"
+	// ExportsPrefix is where a person's copy of their own data is put: one
+	// archive each, made by the export worker.
+	ExportsPrefix = "exports/"
 
 	// How long a part's address can be written to. A part of a large file
 	// on a slow connection takes a while.
@@ -55,6 +58,9 @@ const (
 
 // WorkerTypes are what a worker may store: what it encodes.
 var WorkerTypes = []string{"video/mp4", "image/jpeg"}
+
+// ExportType is what an export is stored as.
+const ExportType = "application/zip"
 
 var (
 	ErrPathNotAllowed = errors.New("a file of this kind is not put there")
@@ -73,6 +79,13 @@ var (
 func readerRules(path string, input *s3.GetObjectInput) error {
 	if strings.HasPrefix(path, UploadsPrefix) {
 		return ErrPathNotAllowed
+	}
+	// A person's copy of their data is a file to keep, never one to show:
+	// it is sent as an archive to be saved, whatever is in it.
+	if strings.HasPrefix(path, ExportsPrefix) {
+		input.ResponseContentType = aws.String(ExportType)
+		input.ResponseContentDisposition = aws.String("attachment")
+		return nil
 	}
 	if !strings.HasPrefix(path, WorkerPrefix) {
 		return nil
@@ -274,10 +287,12 @@ func (s *Storage) Stat(path string) (exists bool, size int64, contentType string
 }
 
 // FetchURL is an address another service can read a file at, by the
-// endpoint the services reach the store by. For a worker reading an upload,
-// which is too big to hand over in a message.
+// endpoint the services reach the store by: for a worker reading an upload,
+// which is too big to hand over in a message, or gathering a person's
+// pictures into their copy of their data. Any file, since any may be
+// somebody's; the address is given only to a service, never to a browser.
 func (s *Storage) FetchURL(path string) (string, error) {
-	if !under(path, UploadsPrefix) && !under(path, WorkerPrefix) {
+	if path == "" || strings.HasPrefix(path, "/") || strings.Contains(path, "..") || strings.ContainsAny(path, "\\\x00") {
 		return "", ErrPathNotAllowed
 	}
 
@@ -294,15 +309,22 @@ func (s *Storage) FetchURL(path string) (string, error) {
 	return req.URL, nil
 }
 
-// StoreURL is an address a worker can write one of its files to, and only
-// under videos/ and as one of the types a worker makes. What a reader is
+// StoreURL is an address a worker can write one of its files to: under
+// videos/ as one of the types the video worker makes, or under exports/ as
+// an archive. What a reader is
 // sent it as does not rest on that: see readerRules.
 func (s *Storage) StoreURL(path, contentType string) (string, error) {
-	if !under(path, WorkerPrefix) {
+	switch {
+	case under(path, WorkerPrefix):
+		if !slices.Contains(WorkerTypes, contentType) {
+			return "", fmt.Errorf("%w: %s", ErrTypeNotAllowed, contentType)
+		}
+	case under(path, ExportsPrefix):
+		if contentType != ExportType {
+			return "", fmt.Errorf("%w: %s", ErrTypeNotAllowed, contentType)
+		}
+	default:
 		return "", ErrPathNotAllowed
-	}
-	if !slices.Contains(WorkerTypes, contentType) {
-		return "", fmt.Errorf("%w: %s", ErrTypeNotAllowed, contentType)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)

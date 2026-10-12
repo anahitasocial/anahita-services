@@ -858,6 +858,76 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.41
 
+# export-service - a person's copy of their own data: asking for one,
+# seeing how it is getting on, and fetching it. Optional: left out with its
+# worker, nobody can download their data.
+  export-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/export-service.dockerfile
+    restart: always
+    ports:
+      - "8104:80"
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
+      DSN: ${DSN}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
+      REDIS_PASSWORD: ""
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      # How many days between one export and the next, and how many an
+      # archive is kept. See docs/data-export.md.
+      EXPORT_EVERY_DAYS: ${EXPORT_EVERY_DAYS:-}
+      EXPORT_KEEP_DAYS: ${EXPORT_KEEP_DAYS:-}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.42
+
+# export-worker - makes each archive that is asked for, and deletes the
+# ones that have been kept their time. Answers no requests.
+  export-worker:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/export-worker.dockerfile
+    restart: always
+    depends_on:
+      - file-grpc-service
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      GRPC_TLS: ${GRPC_TLS:-on}
+      DSN: ${DSN}
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      EXPORT_KEEP_DAYS: ${EXPORT_KEEP_DAYS:-}
+      # For the links in an archive back to the site, and its heading.
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      SITE_NAME: ${SITE_NAME:-}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.43
+
 # web-shell - sends the web app, with each page's own title, description
 # and picture written into index.html, so a link to a profile or a post
 # shows as itself where it is shared. Not started by `up`: it needs the web

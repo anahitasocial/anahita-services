@@ -32,6 +32,8 @@ resources:
   - services/photo.yml
   - services/video.yml
   - services/video-worker.yml
+  - services/export.yml
+  - services/export-worker.yml
   - services/recommendation.yml
   - services/search.yml
   - services/socialgraph.yml

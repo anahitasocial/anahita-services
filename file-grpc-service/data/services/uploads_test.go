@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -47,8 +48,16 @@ func TestWhereLargeFilesMayGo(t *testing.T) {
 	if _, err := s.StoreURL("videos/5/x.html", "text/html"); !errors.Is(err, ErrTypeNotAllowed) {
 		t.Errorf("a worker's file that is a page: %v", err)
 	}
-	if _, err := s.FetchURL("avatars/5/x.jpg"); !errors.Is(err, ErrPathNotAllowed) {
-		t.Errorf("reading what is not a large file: %v", err)
+	for _, bad := range []string{"", "/etc/passwd", "photos/../../x", "a\\b"} {
+		if _, err := s.FetchURL(bad); !errors.Is(err, ErrPathNotAllowed) {
+			t.Errorf("reading %q: %v", bad, err)
+		}
+	}
+	if _, err := s.StoreURL("exports/5/x.zip", "text/html"); !errors.Is(err, ErrTypeNotAllowed) {
+		t.Errorf("an export that is a page: %v", err)
+	}
+	if _, err := s.StoreURL("avatars/5/x.zip", ExportType); !errors.Is(err, ErrPathNotAllowed) {
+		t.Errorf("an archive outside exports/: %v", err)
 	}
 	for _, numbers := range [][]int32{nil, {0}, {10001}, make([]int32, 101)} {
 		if _, err := s.UploadParts("uploads/x", "id", numbers); !errors.Is(err, ErrBadPart) {
@@ -186,6 +195,46 @@ func TestAFileLargerThanAllowedIsThrownAway(t *testing.T) {
 	// Throwing it away twice is not an error.
 	if err := storage.UploadAbort(path, id); err != nil {
 		t.Errorf("aborting what is gone: %v", err)
+	}
+}
+
+func TestAnExportIsOnlyEverAFileToKeep(t *testing.T) {
+	storage, _ := integrationStorage(t)
+
+	path := ExportsPrefix + "test/" + time.Now().Format("20060102-150405.000000000") + ".zip"
+	t.Cleanup(func() { storage.Delete(path) })
+
+	address, err := storage.StoreURL(path, ExportType)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Whatever is written there, a page included.
+	if status := put(t, address, []byte("<html><script>alert(1)</script></html>"), "text/html"); status != http.StatusOK {
+		t.Fatalf("the write answered %d", status)
+	}
+
+	// Asked for as something to show, or to keep under a name: sent as an
+	// archive to save either way.
+	shown, err := storage.Presign(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kept, err := storage.PresignDownload(path, "my-data.zip")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, address := range map[string]string{"shown": shown, "kept": kept} {
+		res, err := http.Get(address)
+		if err != nil {
+			t.Fatal(err)
+		}
+		res.Body.Close()
+		if kind := res.Header.Get("Content-Type"); kind != ExportType {
+			t.Errorf("%s: sent as %q", name, kind)
+		}
+		if how := res.Header.Get("Content-Disposition"); !strings.HasPrefix(how, "attachment") {
+			t.Errorf("%s: sent to be shown: %q", name, how)
+		}
 	}
 }
 
