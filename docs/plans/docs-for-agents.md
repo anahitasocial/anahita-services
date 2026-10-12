@@ -90,6 +90,16 @@ A small program in anahita-services, in Go like the rest, on the official SDK (`
 
 A list of the pages with a line on each, made from `docs/README.md` by a script and checked by a test. It is for an agent that meets the docs as a website. In a clone the index does the same job, so it waits for the docs to be hosted.
 
+### The model: what Material UI does (user, 2026-10-11)
+
+The idea came from Material UI, which gives its users an MCP server and recipes, and whose server anahita-web already uses (`.mcp.json`, `@mui/mcp`). How theirs works is worth copying where it fits:
+
+- **It is a small program people run themselves** (`npx @mui/mcp`), which reads the documentation from the project's own website. Nothing is installed on a server for each user, and it is always the current docs.
+- **It has two tools:** one that gives the index of a package's docs, and one that fetches a page by an address the first one returned. The agent is told to go by those addresses and not by memory.
+- **The index it reads is an `llms.txt`** on the docs site. So for readers without a clone, `llms.txt` and the docs being on the web are not an afterthought, as part 4 above has them: they are what the server stands on. When this is built, part 4 moves ahead of hosting anything.
+
+What ours adds to that shape is the API reference's route lookups and the recipes. Whether ours is a program people run that reads the public docs, as theirs is, or a server we host, is decided when the docs have an address; the first is less to run and is the likelier.
+
 ## How much the MCP server is worth, said plainly
 
 - **Somebody with both repositories cloned** gains little for prose: their agent reads the files. The gain is the route lookups, and one way into both repositories.
