@@ -381,6 +381,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: covers of people elsewhere; refused servers kept by super administrators, with a screen in Site settings | done 2026-10-12 |
 | Phase 1, ActivityPub: hashtags of posts from elsewhere; the sweep for what the bus lost; no notifications made for people elsewhere | done 2026-10-12 |
 | Phase 1, ActivityPub: a test against Mastodon itself with a real name | not started: needs a name other servers can reach |
+| Phase 1, ActivityPub: **to do**, the sweep also finds a lost edit of a note or a profile. Record what other servers were last sent (the note's and the person's `updated_at`, on `activitypub_objects` and `activitypub_accounts`: one migration), and have the sweep send an `Update` where the graph is newer | not started |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
