@@ -9,6 +9,17 @@ Most of the work of the last two weeks was done with an AI agent, and the next p
 1. Do the docs need a version written for agents?
 2. Can an MCP server be set up so that others can learn what was done?
 
+## Who this is for (user, 2026-10-11)
+
+People with some technical skill who set up an Anahita site for their school, newsroom, neighbourhood, company, non-profit or niche community, to join the fediverse and move away from platforms such as Meta's and X. They need to know how to **set it up, keep it running, make it their own, and build services and clients of their own** against it. An `anahita-mobile` app will follow once the web app has settled, and what is given to others to build clients with is what it will be built with.
+
+Most of them will never clone the repositories to change the code, and many will work with an agent.
+
+**What that changes in this plan:**
+- **The hosted server is part of this item, not a later extra.** These readers have no clone; a server that runs only from one is of no use to them. It is still built from a clone first, because that is how it is tested.
+- **`AGENTS.md` is for the few who change the code; the many need a way in by what they are doing.** The docs index gains four doors, each a short page of links in order: *Setting up a site*, *Keeping it running* (upgrades, backups, the sweeper, moving storage), *Making it your own* (settings, recipes, themes, languages, legal texts), and *Building on it* (the API reference, OAuth clients, the events on the bus, the contract a replaceable service keeps, such as recommendations). No page is rewritten; pages that are missing are found by trying to fill a door.
+- **Missing pages already known:** backing up and restoring; upgrading from one release to the next; writing a service of your own; writing a client. Each is a page to plan when its door is filled.
+
 ## The first question: no second version
 
 **What there is works for an agent as it is.** The pages are plain Markdown, one subject each, with an index that lists every section, and they say where the code is. That is what an agent needs, and it is the same thing a person needs. A second set written "for machines" would be a second set to keep true, and the check of 2026-10-11 showed what happens to pages nobody is made to keep true.
@@ -27,7 +38,7 @@ Most of the work of the last two weeks was done with an AI agent, and the next p
 - **No separate documentation for agents.** One set, for both.
 - **`AGENTS.md` at the root of each repository** holds the working agreements. It is the name most tools read; `CLAUDE.md` in each becomes one line that brings it in, so nothing is said twice.
 - **The MCP server only reads.** Docs, plans and the API reference. It has no way to the database, to a running site or to anything that changes something.
-- **It runs from a clone first,** and is hosted only once the docs themselves are public.
+- **It runs from a clone first, and is hosted as soon as the docs are public:** the people it is for have no clone.
 
 ## Design
 
@@ -95,7 +106,8 @@ A list of the pages with a line on each, made from `docs/README.md` by a script 
 | 3. Its route tools, once `docs/api/` exists | 1–2 h |
 | 3. Hosted | 2–3 h, when the docs are public |
 | 4. `llms.txt` and its check | 1 h, then |
-| **Total** | **about 12–16 h, 3–4 sessions** |
+| The four doors in the index, and the list of pages found missing | 2–3 h |
+| **Total** | **about 14–19 h, 4–5 sessions**, without the missing pages themselves |
 
 ## Verification
 
@@ -107,9 +119,8 @@ A list of the pages with a line on each, made from `docs/README.md` by a script 
 
 ## Open questions
 
-1. **Who are "others"?** People who will work on the code with a clone, or people outside it? It decides whether the hosted server is part of this or waits.
-2. **Are the docs to be public before anahita-services is?** The web app's README says the services come later in 2026.
-3. **How much of the working agreements belongs in the repository?** Some are how the project is built; a few are one person's way of working with an agent. A first draft will mark the ones in doubt.
+1. **Are the docs to be public before anahita-services is?** The web app's README says the services come later in 2026. The hosted server waits for whichever comes first.
+2. **How much of the working agreements belongs in the repository?** Some are how the project is built; a few are one person's way of working with an agent. A first draft will mark the ones in doubt.
 
 ## Dependencies
 

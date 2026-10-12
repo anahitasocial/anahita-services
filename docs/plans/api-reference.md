@@ -14,6 +14,10 @@ Nothing says what the API takes and sends. The pages under `docs/` explain how a
 - **No OpenAPI document, no generator, no annotations.**
 - **The wire is snake_case.** The web app turns answers to camelCase and bodies back as it sends them (`src/api`), so its own code is no guide to the wire.
 
+## Who reads it (user, 2026-10-11)
+
+People who run their own Anahita site and build a service or a client against it, and ourselves when `anahita-mobile` is written. For the mobile app this is not a convenience: it is the contract the app is built to, and a generated client for it is the likeliest first use. That makes phases A to C worth doing **before the mobile app is begun**.
+
 ## Decisions
 
 - **The reference is generated from the code, and a test fails when it is out of date.** The check of the docs on 2026-10-11 found plans listed as not started that were finished, make targets that no longer existed and a test target that had been broken for a week, in pages written with care. Three hundred routes written out by hand would not last a milestone.
@@ -73,7 +77,7 @@ One page for what is true of every route, which no generator can know:
 - **Annotations in comments (swaggo).** Nothing checks a comment against the code beside it, so it drifts exactly as hand-written pages do; and it writes OpenAPI 2.
 - **Writing the YAML by hand.** See Decisions.
 - **Reading the handlers' source to find what each binds and sends.** Works for the plain ones and guesses at the rest; a wrong reference is worse than none.
-- **Generating typed clients for the web app.** Possible once this exists. Not part of it.
+- **Generating typed clients for the web app.** Possible once this exists. Not part of it. For `anahita-mobile` it is likely the first thing done with the reference.
 
 ## Phases and estimate
 

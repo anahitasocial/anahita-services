@@ -97,7 +97,7 @@ A recipe is mostly the server's. For the web app it may suggest a name and descr
 
 ## Open questions
 
-1. **Are these the right seven,** and the right names? A club or association, a company's own staff, and a conference were considered and left for the asking.
+1. **Are these the right ones,** and the right names? The user's own list (2026-10-11) also has **a company, a non-profit and a niche community**, which are to be added: a company's own staff is close to `school` without the care for minors (members only, by invitation, no federation unless chosen); a non-profit is close to `council` (public, with supporters joining by approval); a niche community is `community` with federation on, since reaching the fediverse is why such a site is made. A conference was considered and left for the asking.
 2. **Should a recipe leave services out, or only turn them off?** Leaving them out costs less to run; turning them off is one setting to change later. The plan assumes out, with the line to put one back in the README.
 3. **Where do recipes live? Not decided; still being thought over (user, 2026-10-11).** Two places were raised:
    - **A repository of its own, `anahita-devops`,** for recipes and whatever else is about running a site and not about the code. For it: people who run a site and never build it clone only that; others can add a recipe without touching the services; it has its own pace of release. Against it: `k8s/base` is in anahita-services, so a recipe would point at a release of another repository, and a setting renamed there breaks a recipe here with nothing to say so until somebody builds it.
