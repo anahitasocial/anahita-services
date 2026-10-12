@@ -195,14 +195,17 @@ inside the bucket stay the same, so nothing in the database changes.
 The bucket is private. Nothing in it is read except through an address the
 file service signs for a few minutes.
 
+Everything is under `assets/v1/`, in a folder named for the service that
+looks after it.
+
 | Folder | What | Written by |
 | --- | --- | --- |
 | `assets/v1/identity-image-service/avatars/` and `…/covers/` | Avatars and covers | `identity-image-service` |
 | `assets/v1/photo-service/` | The images of photo posts | `photo-service` |
-| `videos/` | Each video's sizes and poster | `video-worker` |
-| `uploads/` | Videos as they were uploaded, until the worker has made them. Never read by a viewer | Browsers, through signed addresses |
-| `exports/` | People's copies of their own data, kept a week | `export-worker` |
-| `link-previews/` | The pictures of link cards | `link-preview-service` |
+| `assets/v1/video-service/videos/` | Each video's sizes and poster | `video-worker` |
+| `assets/v1/video-service/uploads/` | Videos as they were uploaded, until the worker has made them. Never read by a viewer | Browsers, through signed addresses |
+| `assets/v1/export-service/` | People's copies of their own data, kept a week | `export-worker` |
+| `assets/v1/link-preview-service/` | The pictures of link cards | `link-preview-service` |
 
 Two rules on the bucket itself are worth setting:
 
@@ -244,8 +247,7 @@ are in the bucket, so going back means deploying the services from before.
 The store copies the files itself, two dozen at a time: tens of thousands
 take minutes, and nothing is downloaded. Each step can be run again. An old
 file is deleted only when its copy is in place and the same size, and a
-file the script does not recognise is left and listed. Videos, exports and
-link previews are not under `assets/` and are not touched.
+file the script does not recognise is left and listed.
 
 The script's own [README](../scripts/s3-migration/README.md) has every
 option.

@@ -15,8 +15,8 @@ This script moves a bucket there from either of the two layouts before it:
 | `v0` | `assets/public/n<node id>/com_<component>/…` | The PHP application's. This is the file half of an upgrade from it; the database half is `migration-job/legacy/upgrade.sql` |
 | `v2` | `assets/v2/<service>/…`, with avatars under `avatar-service` and covers under `cover-service` | The one this platform used while it was being built, before its first release |
 
-Videos, exports and link previews are not under `assets/` and are not
-touched.
+It moves the pictures: avatars, covers and photos. Nothing else was stored
+before the first release but the odd test file.
 
 ## Three steps
 

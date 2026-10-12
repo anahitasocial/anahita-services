@@ -69,7 +69,7 @@ For each upload that is all there, one at a time:
 3. Makes each size, never larger than the video is: H.264 and AAC in an
    MP4 arranged so that it starts playing before all of it has arrived.
 4. Makes the poster, a JPEG of a frame one second in.
-5. Stores them under `videos/<profile id>/<upload id>/`.
+5. Stores them under `assets/v1/video-service/videos/<profile id>/<upload id>/`.
 6. Makes the post, as the person who uploaded it, and marks the upload
    `ready`.
 7. Deletes the upload.
@@ -249,8 +249,8 @@ Other stores have the same rule under their own name for it.
 
 | Where | What | Who writes | Who reads |
 | --- | --- | --- | --- |
-| `uploads/videos/<person>/<upload>/source` | What was uploaded, kept as `application/octet-stream` whatever it is | The browser, in parts | The worker. **Never a viewer**: no address is signed for one |
-| `videos/<profile>/<upload>/` | Each size and the poster | The worker | Viewers, as `video/mp4` or `image/jpeg` by its name, whatever it was stored as |
+| `assets/v1/video-service/uploads/<person>/<upload>/source` | What was uploaded, kept as `application/octet-stream` whatever it is | The browser, in parts | The worker. **Never a viewer**: no address is signed for one |
+| `assets/v1/video-service/videos/<profile>/<upload>/` | Each size and the poster | The worker | Viewers, as `video/mp4` or `image/jpeg` by its name, whatever it was stored as |
 
 A lifecycle rule on the bucket that aborts unfinished multipart uploads
 after a few days is worth having: the worker aborts the ones it knows of,

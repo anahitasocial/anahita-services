@@ -22,7 +22,7 @@ import (
 // The folder archives are kept under in storage, and what one is stored
 // as. The file service holds both: see its uploads.go.
 const (
-	StoragePrefix = "exports/"
+	StoragePrefix = "assets/v1/export-service/"
 	ArchiveType   = "application/zip"
 )
 

@@ -12,6 +12,10 @@ package entities
 //	assets/v1/identity-image-service/avatars/<kind>/<id>/<name>_<size>.<ext>
 //	assets/v1/identity-image-service/covers/<kind>/<id>/<name>_<size>.<ext>
 //	assets/v1/photo-service/photo/<owner id>/<name>_<size>.<ext>
+//
+// Everything else a service stores is beside them, in a folder of its own
+// service's name: assets/v1/video-service/, assets/v1/export-service/,
+// assets/v1/link-preview-service/.
 const (
 	AssetsPrefix = "assets/v1/"
 	// Avatars and covers: what a profile or a post is recognised by. Named

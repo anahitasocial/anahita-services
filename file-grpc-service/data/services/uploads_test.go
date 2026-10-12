@@ -14,16 +14,16 @@ import (
 
 func TestWhereLargeFilesMayGo(t *testing.T) {
 	for path, want := range map[string]bool{
-		"uploads/5/abc/source":       true,
-		"uploads/":                   false,
-		"uploads":                    false,
-		"avatars/5/x.jpg":            false,
-		"uploads/../avatars/5/x.jpg": false,
-		"uploads//x":                 false,
-		"uploads/a\\b":               false,
-		"/uploads/x":                 false,
-		"videos/uploads/x":           false,
-		"":                           false,
+		UploadsPrefix + "5/abc/source":       true,
+		UploadsPrefix:                        false,
+		"assets/v1/video-service/uploads":    false,
+		"assets/v1/identity-image-service/x": false,
+		UploadsPrefix + "../videos/5/x.mp4":  false,
+		UploadsPrefix + "/x":                 false,
+		UploadsPrefix + "a\\b":               false,
+		"/" + UploadsPrefix + "x":            false,
+		"other/" + UploadsPrefix + "x":       false,
+		"":                                   false,
 	} {
 		if got := under(path, UploadsPrefix); got != want {
 			t.Errorf("under(%q) = %v, want %v", path, got, want)
@@ -42,10 +42,10 @@ func TestWhereLargeFilesMayGo(t *testing.T) {
 	if _, err := s.UploadComplete("photos/x", "id", 0); !errors.Is(err, ErrPathNotAllowed) {
 		t.Errorf("completing outside uploads/: %v", err)
 	}
-	if _, err := s.StoreURL("uploads/5/x", "video/mp4"); !errors.Is(err, ErrPathNotAllowed) {
+	if _, err := s.StoreURL(UploadsPrefix+"5/x", "video/mp4"); !errors.Is(err, ErrPathNotAllowed) {
 		t.Errorf("a worker's file outside videos/: %v", err)
 	}
-	if _, err := s.StoreURL("videos/5/x.html", "text/html"); !errors.Is(err, ErrTypeNotAllowed) {
+	if _, err := s.StoreURL(WorkerPrefix+"5/x.html", "text/html"); !errors.Is(err, ErrTypeNotAllowed) {
 		t.Errorf("a worker's file that is a page: %v", err)
 	}
 	for _, bad := range []string{"", "/etc/passwd", "photos/../../x", "a\\b"} {
@@ -53,14 +53,14 @@ func TestWhereLargeFilesMayGo(t *testing.T) {
 			t.Errorf("reading %q: %v", bad, err)
 		}
 	}
-	if _, err := s.StoreURL("exports/5/x.zip", "text/html"); !errors.Is(err, ErrTypeNotAllowed) {
+	if _, err := s.StoreURL(ExportsPrefix+"5/x.zip", "text/html"); !errors.Is(err, ErrTypeNotAllowed) {
 		t.Errorf("an export that is a page: %v", err)
 	}
 	if _, err := s.StoreURL("avatars/5/x.zip", ExportType); !errors.Is(err, ErrPathNotAllowed) {
 		t.Errorf("an archive outside exports/: %v", err)
 	}
 	for _, numbers := range [][]int32{nil, {0}, {10001}, make([]int32, 101)} {
-		if _, err := s.UploadParts("uploads/x", "id", numbers); !errors.Is(err, ErrBadPart) {
+		if _, err := s.UploadParts(UploadsPrefix+"x", "id", numbers); !errors.Is(err, ErrBadPart) {
 			t.Errorf("parts %v: %v", numbers, err)
 		}
 	}

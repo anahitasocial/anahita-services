@@ -68,7 +68,7 @@ descriptions to 300.
 
 The picture is fetched by the same fetcher, decoded, made no wider than
 800 pixels and encoded again, then stored through `file-grpc-service` under
-`link-previews/`, named by the SHA-256 of its bytes. What is stored is
+`assets/v1/link-preview-service/`, named by the SHA-256 of its bytes. What is stored is
 always a picture this installation encoded itself.
 
 A reader's browser asks this installation for the picture, never the site

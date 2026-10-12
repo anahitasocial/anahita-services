@@ -26,22 +26,22 @@ import (
 //
 // What keeps that safe is where things may go and what they are stored as:
 //
-//   - A browser's upload goes under uploads/ and nowhere else, and is
+//   - A browser's upload goes under UploadsPrefix and nowhere else, and is
 //     stored as application/octet-stream whatever it is. Nothing under
-//     uploads/ is ever given to a reader: it is raw material for a worker.
-//   - A worker's files go under videos/, as video/mp4 or image/jpeg, which
+//     it is ever given to a reader: it is raw material for a worker.
+//   - A worker's files go under WorkerPrefix, as video/mp4 or image/jpeg, which
 //     it made itself by encoding. Those are what readers are sent, and they
 //     are sent as what their name says they are, whatever they were stored
 //     as: the type is part of the address a reader is given (readerRules).
 
 const (
 	// UploadsPrefix is where a browser's upload is put, and only there.
-	UploadsPrefix = "uploads/"
+	UploadsPrefix = "assets/v1/video-service/uploads/"
 	// WorkerPrefix is where a worker's files are put.
-	WorkerPrefix = "videos/"
+	WorkerPrefix = "assets/v1/video-service/videos/"
 	// ExportsPrefix is where a person's copy of their own data is put: one
 	// archive each, made by the export worker.
-	ExportsPrefix = "exports/"
+	ExportsPrefix = "assets/v1/export-service/"
 
 	// How long a part's address can be written to. A part of a large file
 	// on a slow connection takes a while.
@@ -310,8 +310,8 @@ func (s *Storage) FetchURL(path string) (string, error) {
 }
 
 // StoreURL is an address a worker can write one of its files to: under
-// videos/ as one of the types the video worker makes, or under exports/ as
-// an archive. What a reader is
+// WorkerPrefix as one of the types the video worker makes, or under
+// ExportsPrefix as an archive. What a reader is
 // sent it as does not rest on that: see readerRules.
 func (s *Storage) StoreURL(path, contentType string) (string, error) {
 	switch {

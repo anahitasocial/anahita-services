@@ -21,8 +21,8 @@ const (
 	// StoragePrefix is where a worker keeps what it makes; UploadsPrefix,
 	// where a browser's upload waits for it. The file service holds each
 	// to its place: see file-grpc-service's uploads.go.
-	StoragePrefix = "videos/"
-	UploadsPrefix = "uploads/videos/"
+	StoragePrefix = "assets/v1/video-service/videos/"
+	UploadsPrefix = "assets/v1/video-service/uploads/"
 
 	// Where a post's files are asked for, under the API: addresses that
 	// stay the same, each answered with a redirect to a signed one for

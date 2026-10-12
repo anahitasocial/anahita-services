@@ -165,7 +165,7 @@ func TestARequestBecomesAnArchiveInStorage(t *testing.T) {
 		t.Fatalf("worked %v %v", worked, err)
 	}
 
-	key := "exports/5/0b8f6a52-1f0e-4a7e-9a52-0a6f6f1f0e4a.zip"
+	key := "assets/v1/export-service/5/0b8f6a52-1f0e-4a7e-9a52-0a6f6f1f0e4a.zip"
 	if exports.export.Status != repositories.StatusReady || exports.export.PackageKey != key {
 		t.Fatalf("ended as %+v", exports.export)
 	}

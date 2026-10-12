@@ -26,7 +26,7 @@ they fetch it within a week.
 | `export-worker` | Makes each archive, stores it, and deletes the ones that have been kept their time. Answers no requests |
 | `data_exports` | One row for each request: the request, the work on it, and the record of it |
 | `graph-grpc-service` | `ListAuthored`, the list of everything one person wrote |
-| `file-grpc-service` | Keeps archives under `exports/`, and only ever sends one as a file to save |
+| `file-grpc-service` | Keeps archives under `assets/v1/export-service/`, and only ever sends one as a file to save |
 
 One module, `export-service`, with two programs and two images, as the
 video service is.
@@ -86,7 +86,7 @@ as text: the page is made with a template that escapes all of it.
    everything somebody posted.
 3. Pictures and videos are copied in from storage as they are, not
    compressed again.
-4. The file is stored under `exports/<person id>/<export id>.zip`, and the
+4. The file is stored under `assets/v1/export-service/<person id>/<export id>.zip`, and the
    request is marked `ready`.
 
 Between each page and each file the worker asks whether the request has
@@ -110,7 +110,7 @@ deleted from storage by the worker, the file first and the row marked
 
 It is fetched from an address signed for a few minutes, made afresh each
 time the export is read, which sends it as a file to save. `file-grpc-service`
-sends anything under `exports/` that way and no other, whatever is in it.
+sends anything under that folder that way and no other, whatever is in it.
 
 ## Endpoints
 
