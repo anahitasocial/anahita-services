@@ -17,6 +17,7 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 		Alias:              node.Alias,
 		Name:               node.Name,
 		Body:               node.Body,
+		Access:             node.Access,
 		CreatedAt:          createdAtOrNil(node),
 		IsLikedByViewer:    node.IsLikedByViewer,
 		IsSavedByViewer:    node.IsSavedByViewer,
@@ -56,6 +57,8 @@ type Parent struct {
 	Alias string `json:"alias,omitempty"`
 	Name  string `json:"name,omitempty"`
 	Body  string `json:"body,omitempty"`
+	// Who may see it. Said so that a repost can be shared as what it reposts.
+	Access string `json:"access,omitempty"`
 	// When it was written, so that a reposted post can be shown as itself.
 	CreatedAt       *time.Time       `json:"created_at,omitempty"`
 	Cover           map[string]Image `json:"cover_urls,omitempty"`
