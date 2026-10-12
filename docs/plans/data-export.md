@@ -144,7 +144,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | services built 2026-10-11; web app next |
+| Implementation | built 2026-10-11, services and web app |
 
 ## What was built
 
@@ -161,3 +161,5 @@ The services, 2026-10-11. The page that describes them is [Download your data](.
 - **The worker tidies up**, as the video worker does: no CronJob.
 - **Reads go through the graph's existing lists, as the person**, so who they follow is the list they see themselves.
 - **Not built:** the account's data from auth-service; a notification or email when it is ready; removal of archives when an account is purged (they go when their week is up); the Bluesky repository.
+
+The web app's part, a card in Settings › Account, was built the same day; it is described in anahita-web's `docs/architecture.md`.
