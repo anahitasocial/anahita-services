@@ -85,6 +85,22 @@ func (h *nodeHandler) ReadByAlias(ctx context.Context, req *graphpb.NodeReadByAl
 	}, nil
 }
 
+// ReadByUUID
+func (h *nodeHandler) ReadByUUID(ctx context.Context, req *graphpb.NodeReadByUUIDRequest) (*graphpb.NodeReadByUUIDResponse, error) {
+	if req.Uuid == "" {
+		return &graphpb.NodeReadByUUIDResponse{}, nil
+	}
+
+	node, err := h.env.Repos.Nodes.ReadByUUID(req.Uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphpb.NodeReadByUUIDResponse{
+		Node: nodeToGrpc(node),
+	}, nil
+}
+
 // Edit
 func (h *nodeHandler) Edit(ctx context.Context, req *graphpb.NodeEditRequest) (*graphpb.NodeEditResponse, error) {
 	log.Printf("Received Edit request: %v", req)

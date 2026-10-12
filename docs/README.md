@@ -36,6 +36,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [One service for every kind of actor](architecture.md#one-service-for-every-kind-of-actor)
    - [Naming images](architecture.md#naming-images)
    - [anahita-libs](architecture.md#anahita-libs)
+   - [What a node is called elsewhere](architecture.md#what-a-node-is-called-elsewhere)
    - [Naming dates and times](architecture.md#naming-dates-and-times)
 4. [OAuth scopes and clients](oauth.md)
    - [Scopes](oauth.md#scopes)
@@ -228,7 +229,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
-| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
+| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0 begun 2026-10-11 (UUIDs, public addresses) |
 | [Link previews](plans/done/link-previews.md) | 10 | built 2026-10-11, with the web shell of its part B |
 | [Downloading what a post holds](plans/done/downloads.md) | 37 | built 2026-10-11 |
 | [Invitations](plans/done/actor-invitations.md) | 11 | done 2026-10-10 |

@@ -12,6 +12,7 @@ How the services, the gateway and the shared library fit together.
 - [One service for every kind of actor](#one-service-for-every-kind-of-actor)
 - [Naming images](#naming-images)
 - [anahita-libs](#anahita-libs)
+- [What a node is called elsewhere](#what-a-node-is-called-elsewhere)
 - [Naming dates and times](#naming-dates-and-times)
 
 ## Components
@@ -338,9 +339,45 @@ The shared module every service imports:
 | `event` | RabbitMQ connect/publish/consume, event name constants |
 | `sessions` | Redis-backed sessions and cookies |
 | `crypt` | Encryption with pluggable local / AWS KMS backends |
+| `grpctls` | Mutual TLS for the calls between services |
+| `ratelimit` | A counter in Redis: so many of something in a window, for each person |
+| `policy` | The installation's settings on who may see what, which several services must agree on |
+| `site` | Where the installation is, as the internet sees it: its domain, and the addresses of its web app and API. See [What a node is called elsewhere](#what-a-node-is-called-elsewhere) |
+| `language` | The language a post is written in |
+| `feeds` | What a custom feed is made of, and the rules a definition keeps |
+| `linkpreviews` | What a link's preview is, and the copy of one a note keeps |
+| `videos` | What a video post is: its files and where they are |
 | `data`, `requests`, `responses`, `validators` | Request/response shapes and validation |
 | `middleware`, `cors` | HTTP middleware |
 | `geocoding`, `utils`, `cmd` | Supporting helpers |
+
+## What a node is called elsewhere
+
+Inside the installation a node is its number, and a person is also their
+username. Neither will do for another server. A number says how many came
+before, and means nothing anywhere else; a username can be changed. What
+another server is told a person or a post is called is kept there for good,
+by servers this one may never hear from again.
+
+- **Every node has a UUID,** `nodes.uuid`: random (version 4), unique, and
+  never changed. The database gives it when the row is added, so nothing that
+  adds a node can forget to, and the nodes there were before it were given
+  one each when the column was added.
+- **It is read with the node** (`Node.uuid` in `graphpb`, `UUID` on
+  `entities.AnahitaNode`), and a node is found by it with the graph's
+  `ReadByUUID`, which applies no access rule, as `Read` does not. It is not
+  in what the API sends a browser: the web app has no use for it.
+- **The addresses it goes into are made in one place,** `anahita-libs/site`,
+  from one reading of the settings (`PUBLIC_DOMAIN`, `PUBLIC_WEB_URL`,
+  `PUBLIC_API_URL`; see [Configuration](configuration.md#site-identity)). Two
+  services that disagreed about the host would make one person two.
+  `CanFederate` says whether other servers could reach those addresses at
+  all: names on the internet, over https. A site on a developer's machine is
+  neither.
+
+This is groundwork for federation
+([plans/federation.md](plans/federation.md)). Nothing is sent to another
+server yet.
 
 ## Naming dates and times
 

@@ -29,6 +29,10 @@ type GraphNodeGRPCInterface interface {
 	// ReadByAlias returns a single graph node by alias
 	ReadByAlias(req *GraphNodeReadByAlias) (*entities.AnahitaNode, error)
 
+	// ReadByUUID returns a single graph node, of any type, by its UUID.
+	// Not access-checked, as Read is not.
+	ReadByUUID(uuid string) (*entities.AnahitaNode, error)
+
 	// Edit edits a graph node
 	Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
 
@@ -187,6 +191,27 @@ func (srv *GraphNodeGRPC) ReadByAlias(req *GraphNodeReadByAlias) (*entities.Anah
 		Alias:    req.Alias,
 		NodeType: req.NodeType,
 	})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNode(resp.Node), nil
+}
+
+// ReadByUUID returns a single graph node, of any type, by its UUID
+func (srv *GraphNodeGRPC) ReadByUUID(uuid string) (*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	resp, err := client.ReadByUUID(context.Background(), &graphpb.NodeReadByUUIDRequest{Uuid: uuid})
 	if err != nil {
 		return nil, err
 	}

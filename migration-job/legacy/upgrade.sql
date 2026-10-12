@@ -579,6 +579,15 @@ ALTER TABLE nodes ADD COLUMN `show_reposts_on_profile` tinyint(1) NOT NULL DEFAU
 -- migrations/20261023000001_allow_download.sql.
 ALTER TABLE nodes ADD COLUMN `allow_download` tinyint(1) NOT NULL DEFAULT 0 AFTER `show_reposts_on_profile`;
 
+-- nodes.uuid. See migrations/20261025000001_node_uuid.sql for why it is done
+-- in three steps.
+ALTER TABLE nodes ADD COLUMN `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NULL AFTER `id`;
+UPDATE nodes
+SET `uuid` = (LOWER(CONCAT(HEX(RANDOM_BYTES(4)),'-',HEX(RANDOM_BYTES(2)),'-4',SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(CONV(SUBSTR(HEX(RANDOM_BYTES(1)),1,1),16,10) & 3 | 8),SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(RANDOM_BYTES(6)))))
+WHERE `uuid` IS NULL;
+ALTER TABLE nodes MODIFY COLUMN `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT (LOWER(CONCAT(HEX(RANDOM_BYTES(4)),'-',HEX(RANDOM_BYTES(2)),'-4',SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(CONV(SUBSTR(HEX(RANDOM_BYTES(1)),1,1),16,10) & 3 | 8),SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(RANDOM_BYTES(6)))));
+ALTER TABLE nodes ADD UNIQUE KEY `uq_uuid` (`uuid`);
+
 -- Comments become replies: notes that answer the post they were under. The
 -- same statements as migrations/20261011000001_comments_become_replies.sql,
 -- where the reasons are. They come after the conversion of types above,

@@ -84,7 +84,11 @@ func NewAnahitaNode() *AnahitaNode {
 }
 
 type AnahitaNode struct {
-	ID         int64
+	ID int64
+	// What the node is called when another server is told of it: random,
+	// given by the database when the node is added, and never changed.
+	// Read only; nothing sets it.
+	UUID       string
 	Type       string
 	Service    string
 	Name       string

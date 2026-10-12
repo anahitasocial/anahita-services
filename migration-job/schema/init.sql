@@ -5,6 +5,10 @@ CREATE TABLE nodes (
   -- every row carried a redundant unique index on `id` alongside the primary
   -- key, and every insert maintained both.
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  -- What the node is called when another server is told of it: random, so
+  -- it says nothing of how many there are, and never changed. The database
+  -- gives it, so nothing that adds a node can forget to.
+  `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT (LOWER(CONCAT(HEX(RANDOM_BYTES(4)),'-',HEX(RANDOM_BYTES(2)),'-4',SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(CONV(SUBSTR(HEX(RANDOM_BYTES(1)),1,1),16,10) & 3 | 8),SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(RANDOM_BYTES(6))))),
   -- 128 for the same reason as edges: an ASCII identifier from a fixed
   -- grammar, longest 42 characters. It also carries five composite indexes,
   -- so the width is paid for five times over.
@@ -149,6 +153,7 @@ CREATE TABLE nodes (
   ) STORED,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_unique_alias` (`unique_alias`),
+  UNIQUE KEY `uq_uuid` (`uuid`),
   KEY `person_type` (`person_type`),
   -- The sweeper's only query is "actors deleted before X", and it runs against
   -- a column that is NULL for practically every row.

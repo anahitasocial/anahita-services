@@ -361,4 +361,60 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| 0.1 Hosting layout | settled by item 10, 2026-10-11: see below |
+| 0.2 UUIDs on nodes | done 2026-10-11 |
+| 0.3 Public addresses | done 2026-10-11 |
+| 0.4 Stable media addresses | not started |
+| 0.5 Remote identity | not started |
+| 0.6 Content conversion | not started |
+| 0.7 Durable delivery queue | not started |
+| 0.8 Routing and the TLS lab | not started |
+| Phase 1 | not started |
+
+## What was built
+
+### Phase 0, begun 2026-10-11
+
+**0.1, the hosting layout.** Settled when the web shell was built (item 10),
+and not as this plan expected. The web app is on its own host, sent by
+`web-shell`, and the API on another (`api.DOMAIN_NAME`): page addresses and
+API addresses collide (`/people/ana` is both), so one front could not serve
+both. What follows for federation:
+
+- **A person's handle is on the web app's host,** `ana@example.org`, since
+  that is the name people know the site by.
+- **Everything another server fetches is on the API's host:** a person at
+  `https://api.example.org/ap/users/<uuid>`, their inbox, their posts.
+- **So the web app's host must answer `/.well-known/webfinger`** by sending
+  the asker on to the API. That is for 0.8, in `web-shell` and for whoever
+  hosts the web app some other way.
+
+**0.2, UUIDs.** `nodes.uuid`, unique, version 4 (migration
+`20261025000001_node_uuid.sql`, and the same in `schema/init.sql` and
+`legacy/upgrade.sql`). Read with every node, and a node is found by it
+(`ReadByUUID` in the graph and in `anahita-libs/data/services`).
+
+- **The database gives it, as the column's default,** and not the code that
+  adds a node. Nodes are added in more than one place, and by tests and the
+  upgrade from the PHP application; a default cannot be forgotten by any of
+  them. Version 4 and not MySQL's own `UUID()`, which is made of the time and
+  of the machine's network address.
+- **Added in three steps.** A default that differs each time cannot be given
+  to the rows already there by adding the column with it (MySQL error 1674),
+  so the column is added empty, filled, and then made required.
+- **Not sent to browsers.** The web app has no use for it.
+
+**0.3, public addresses.** `anahita-libs/site`: the domain of a handle, the
+web app's address and the API's, from `PUBLIC_DOMAIN`, `PUBLIC_WEB_URL` and
+`PUBLIC_API_URL`, each worked out from `DOMAIN_NAME` and `ENV` when it is not
+set, the way auth-service works out its own. `CanFederate` refuses addresses
+no other server could reach: this machine, a private network, anything not
+https.
+
+- **Different from the plan:** `PUBLIC_WEB_URL` existed already (the web
+  shell and the export worker go by it), so it is the third setting and not a
+  new one; and nothing has to be set on a site whose hosts are the usual ones.
+- **The services that have their own idea of these addresses were left as
+  they are** (auth-service's `FRONTEND_URL`, actor-service's `WEB_ORIGIN`).
+  They agree with this package wherever the usual hosts are used, and it
+  reads `FRONTEND_URL` too.

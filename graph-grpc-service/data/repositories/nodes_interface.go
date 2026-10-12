@@ -26,6 +26,9 @@ type NodesRepoInterface interface {
 	// ReadByAlias retrieves a single node based on the provided alias and viewer context.
 	ReadByAlias(req *requests.NodeReadByAliasRequest) (*entities.AnahitaNode, error)
 
+	// ReadByUUID retrieves a single node, of any type, by its UUID.
+	ReadByUUID(uuid string) (*entities.AnahitaNode, error)
+
 	// Edit updates an existing node based on the provided edit request and viewer context.
 	Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
 

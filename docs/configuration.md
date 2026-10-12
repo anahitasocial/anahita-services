@@ -99,11 +99,15 @@ and, for a server, require a client certificate.
 
 ## Site identity
 
-Read by auth-service, and mail-grpc-service for the branding.
+Read by auth-service, and mail-grpc-service for the branding. `PUBLIC_DOMAIN`
+and `PUBLIC_API_URL` are for whatever speaks to other servers
+(`anahita-libs/site`); nothing does yet, so today they change nothing.
 
 | Variable | Value |
 | --- | --- |
 | `DOMAIN_NAME` | The installation's domain. Public URLs are derived from it on staging and production |
+| `PUBLIC_DOMAIN` | Optional. The domain in a person's handle, `ana@example.org`, as other servers will know them. Left out, it is `DOMAIN_NAME` on a live site, `staging.DOMAIN_NAME` on a staging one, or the host of `PUBLIC_WEB_URL` when that is set. **Not to be changed once anybody here has been spoken of to another server:** they would become somebody else there |
+| `PUBLIC_API_URL` | Optional. The address other servers reach the API at. Left out, `https://api.DOMAIN_NAME` on a live site and `https://api.staging.DOMAIN_NAME` on a staging one. The same warning applies: the address of every person and post, as told to other servers, begins with it |
 | `SITE_NAME` | Name shown on auth pages and in email |
 | `ANAHITA_INSTANCE_NAME` | How this installation introduces itself to other servers, published as `nodeName` in NodeInfo. Optional — falls back to `SITE_NAME`, then `DOMAIN_NAME` |
 | `ANAHITA_INSTANCE_DESCRIPTION` | A sentence about this installation, published as `nodeDescription`. Optional, and left empty rather than generated when unset |

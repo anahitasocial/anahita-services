@@ -140,6 +140,9 @@ message Node {
     // see it may download it. On a person or a group: what their new posts
     // start with.
     bool allow_download = 92;
+    // What the node is called when another server is told of it. Given by
+    // the database when the node is added; never set or changed by a caller.
+    string uuid = 93;
 
     // Quote posts. quote_policy is who may quote a post, or on a person
     // their posts; quote_id is the post a note quotes; quote_detached says
@@ -196,6 +199,16 @@ message NodeReadByAliasRequest {
 }
 
 message NodeReadByAliasResponse {
+    Node node = 1;
+}
+
+// By the name a node goes by to other servers. Any type: what is asked for
+// by UUID was named by this installation in the first place.
+message NodeReadByUUIDRequest {
+    string uuid = 1;
+}
+
+message NodeReadByUUIDResponse {
     Node node = 1;
 }
 
@@ -358,6 +371,7 @@ service NodeService {
     rpc Browse(NodeBrowseRequest) returns (NodeBrowseResponse);
     rpc Read(NodeReadRequest) returns (NodeReadResponse);
     rpc ReadByAlias(NodeReadByAliasRequest) returns (NodeReadByAliasResponse);
+    rpc ReadByUUID(NodeReadByUUIDRequest) returns (NodeReadByUUIDResponse);
     rpc Edit(NodeEditRequest) returns (NodeEditResponse);
     rpc Add(NodeAddRequest) returns (NodeAddResponse);
     rpc Delete(NodeDeleteRequest) returns (NodeDeleteResponse);
