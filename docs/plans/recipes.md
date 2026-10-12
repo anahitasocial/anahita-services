@@ -1,0 +1,122 @@
+# Anahita Recipes: a starting configuration for each kind of site
+
+*Roadmap item 40, planned 2026-10-11 at the user's asking. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
+
+## Context
+
+Somebody setting up Anahita for a school and somebody setting it up for a newsroom want different sites, and today both are handed the same `config.env` with some sixty settings and one page that explains each. The settings that matter most are a handful, and they have to agree with one another: a school that closes reading to members but leaves registration open has not done what it meant to.
+
+A **recipe** is those choices made together, for one kind of site, with the reasons written beside them: a newsroom, a city council, a school, a university, a neighbourhood, a family or a group of friends.
+
+**What exists:**
+- `k8s/base` is every service; `k8s/overlays/{generic,aws,local}` say **where** a site runs (which cluster, which storage, which hostnames); `k8s/components/{mysql,redis,rabbitmq}` are parts an overlay may add.
+- What kind of site it is, is decided by settings already there: `REGISTRATION_MODE`, `INVITES_FROM`, `SITE_READ_ACCESS`, `MIN_CONTENT_ACCESS`, `VIDEO_UPLOADS` and its limits, the export's waiting time, and by **which optional services are run at all**: recommendations, link previews, video, the data export, the web shell and, when they are built, the two federation services.
+- The defaults for what people may do on a profile are files (`graph-grpc-defaults/actor_features/*.json`), as are the reasons for a report and the kinds of post in a feed.
+
+## Decisions
+
+- **A recipe says what kind of site; an overlay says where it runs.** The two are chosen separately and any recipe goes with any overlay.
+- **A recipe is a Kustomize component,** `k8s/recipes/<name>/`, added to an overlay in one line. Nothing new to install or learn.
+- **A recipe is a start, not a lock.** The overlay's own `config.env` is read after it, so whatever the operator sets wins.
+- **A recipe invents no setting.** It only chooses among the ones there are. Where a kind of site needs something no setting gives, that is written down as a gap, and becomes a feature to plan or not, on its own.
+- **How big a site is, is a third choice,** apart from what kind: `k8s/sizes/{small,medium,large}` set how many copies of each service run and what each may use. A recipe names the size it expects; the operator may take another.
+
+## Design
+
+### What a recipe is made of
+
+```
+k8s/recipes/school/
+  kustomization.yml      kind: Component
+  config.env             the settings it chooses, each with a line saying why
+  README.md              who it is for, what it decides, what to change first
+  patches/               services it leaves out, if any
+  defaults/              its own actor_features or report reasons, if any
+```
+
+And in an overlay:
+
+```yaml
+components:
+  - ../../components/mysql
+  - ../../recipes/school
+  - ../../sizes/small
+```
+
+### The first recipes
+
+Only settings that exist are named. "Federation" means the services of item 8, and is in a recipe from the day they exist.
+
+| Recipe | Who reads | Who joins | Optional services | Why |
+| --- | --- | --- | --- | --- |
+| **newsroom** | Anybody (`SITE_READ_ACCESS=public`) | Open, or by approval | Web shell, link previews, video, federation. Recommendations on | The point is to be read and passed on: a shared link has to show its own headline and picture, and posts should reach readers on Mastodon and Bluesky |
+| **council** (a city, a public body) | Anybody | By approval | Web shell, link previews, federation, the data export. Events to the fore | Public by duty. Residents should be able to take what they wrote away with them, and meetings are events |
+| **school** | Members only (`registered`), and nothing new may be public (`MIN_CONTENT_ACCESS=registered`) | By invitation, from administrators only | Link previews (pages are fetched by the server, so no outside site sees a pupil's browser). No federation: a members-only site does not federate. Downloads off by default. Recommendations off | Minors. Nothing is seen from outside, nobody arrives uninvited, and nothing leaves |
+| **university** | A preview to visitors (`preview`), the rest to members | By approval, or by invitation from any member | Video, events, the data export, recommendations. Federation is the operator's choice | Groups for courses and societies, public enough to be found, people who come and go each year |
+| **neighbourhood** | A preview to visitors | By approval; members may invite | Events, link previews. Small | Neighbours should find it and see that it is alive, and say who they are before reading what the street says |
+| **household** (family, friends, one person) | Members only | By invitation from any member | As little as will run: no recommendations, video on with small limits, the data export. The smallest size | A few people who know each other. The cost of running it is what matters |
+| **community** (the default; what `generic` is now) | Anybody | Closed until the operator chooses | Everything optional left to the operator | For whoever fits none of the others |
+
+Each recipe's `README.md` ends with **the three things to decide before the first person joins**: usually the registration mode, the terms and privacy policy, and whether to federate, since the last cannot be cleanly undone.
+
+### What recipes will show is missing
+
+Writing them will turn up settings that do not exist. Expected, to be confirmed while writing and listed in the plan as they are found, not built here:
+
+- who may create a group or an event at all (a school will want staff only);
+- a site-wide default for a new profile's own privacy;
+- turning the report reasons to a kind of site (a school's list is not a newsroom's): possible today by replacing the file, which a recipe can do;
+- terms and a privacy policy fitted to each kind. A recipe can carry a **starting text marked as such**; it is not legal advice and must say so.
+
+### The web app
+
+A recipe is mostly the server's. For the web app it may suggest a name and description and which legal texts to begin from (`docs/customising.md`). Themes are not part of a recipe.
+
+### Kept true
+
+- **Every recipe builds.** `make test` runs `kubectl kustomize` on each recipe with the generic overlay and its example secrets, which needs no cluster.
+- **Every setting a recipe names exists.** A check reads each recipe's `config.env` and fails on a name that `docs/configuration.md` does not have, and on a value that setting does not take.
+- **The table in the docs is made from the recipes,** not written beside them.
+
+## Estimate
+
+| Part | Time |
+| --- | --- |
+| The form: components, sizes, how an overlay takes one; `community` and `school` as the first two, since they are furthest apart | 4–5 h |
+| The other five, each with its README | 4–5 h |
+| The checks, and the table made from the files | 2 h |
+| `docs/recipes.md`; `deploying.md` begins with "choose a recipe" | 2 h |
+| **Total** | **about 12–14 h, 3–4 sessions** |
+
+## Verification
+
+- `kubectl kustomize` of `generic` with `recipes/school` gives a ConfigMap with reading closed to members, invitations from administrators, and no recommendation service among the Deployments.
+- The same overlay with `SITE_READ_ACCESS=preview` in its own `config.env` gives `preview`: the operator's word is last.
+- A recipe naming a setting that does not exist fails `make test`.
+- On a local cluster, `school` and `newsroom` each come up, and a visitor who is not signed in sees nothing on the one and the front page on the other.
+
+## Open questions
+
+1. **Are these the right seven,** and the right names? A club or association, a company's own staff, and a conference were considered and left for the asking.
+2. **Should a recipe leave services out, or only turn them off?** Leaving them out costs less to run; turning them off is one setting to change later. The plan assumes out, with the line to put one back in the README.
+3. **Do recipes ship in anahita-services, or in a repository of their own** that others can add to? One place to begin with; a repository of its own when somebody outside wants to contribute one.
+
+## Dependencies
+
+- **None hard:** every setting the first recipes use exists (items 9 and 13).
+- **Item 8 (federation):** each recipe gains its line on federating when the services exist.
+- **[docs-for-agents.md](docs-for-agents.md):** its MCP server lists and reads recipes, so that somebody can ask an agent "which recipe for a school of 300, and what do I change first?"
+
+## Documentation
+
+- **New services page `recipes.md`**: what a recipe is, the table, how to take one and how to write one.
+- **services `deploying.md`**: the first step becomes choosing a recipe and a size.
+- **services `configuration.md`**: each setting a recipe chooses says which recipes choose what.
+- **web `customising.md`**: what a recipe suggests for the web app.
+
+## Status
+
+| Item | State |
+| --- | --- |
+| Plan | written 2026-10-11 |
+| Implementation | not started; place in the order not decided |

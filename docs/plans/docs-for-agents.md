@@ -69,6 +69,7 @@ A small program in anahita-services, in Go like the rest, on the official SDK (`
 | `read_plan(item or name)` | A plan, with what was built |
 | `list_endpoints(service?)` | Routes and a line on each, from the API reference |
 | `read_endpoint(method, path)` | What one route takes, sends and refuses |
+| `list_recipes`, `read_recipe(name)` | The kinds of site there is a starting configuration for, and what one decides and why ([recipes.md](recipes.md)) |
 
 - **Search is by words, in the program.** No embeddings and no outside service: it works offline and sends nothing anywhere.
 - **From a clone:** `.mcp.json` in each repository starts it over stdio (`go run ./tools/docs-mcp`), given where the other repository is. Somebody working on the web app can then ask about the services without knowing their layout, which is the case the two repositories meet daily.
@@ -115,6 +116,7 @@ A list of the pages with a line on each, made from `docs/README.md` by a script 
 - **Part 1: none.** It can be done now.
 - **The route tools** need [api-reference.md](api-reference.md), phase A at least.
 - **Hosting** needs the docs to be public.
+- **The recipe tools** need [recipes.md](recipes.md).
 
 ## Documentation
 

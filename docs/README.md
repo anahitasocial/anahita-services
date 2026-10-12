@@ -247,6 +247,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
 | [The API reference, made from the code](plans/api-reference.md) | 38 | planned 2026-10-11; place in the order not decided |
 | [Documentation agents can use, and an MCP server](plans/docs-for-agents.md) | 39 | planned 2026-10-11; place in the order not decided |
+| [Anahita Recipes: a starting configuration for each kind of site](plans/recipes.md) | 40 | planned 2026-10-11; place in the order not decided |
 | [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b and 0c done 2026-10-03; the plan's "Not checked" list is still open |
 | [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in item 8 |
 | [Signup, registration modes, and agreements](plans/done/signup-and-onboarding.md) | — | done |
