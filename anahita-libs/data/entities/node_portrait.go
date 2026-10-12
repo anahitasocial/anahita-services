@@ -57,7 +57,7 @@ func (a *AnahitaNode) GetPortraitUrl(size string) (url string, err error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("assets/v2/%s/%s/%d/%s", a.Service, a.GetEntityName(), a.OwnerID, file), nil
+	return fmt.Sprintf("%s%s/%s/%d/%s", AssetsPrefix, a.Service, a.GetEntityName(), a.OwnerID, file), nil
 }
 
 // get Image Sizes

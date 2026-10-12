@@ -294,10 +294,13 @@ lined up. This is what each is, and what it is called where.
   ([plans/migration-baseline.md](plans/migration-baseline.md)).
 - **"Avatar"** stays, in the code and the API. It is the word Mastodon and
   Bluesky use for the same field.
-- **The stored addresses still say `avatar-service` and `cover-service`**
-  (`assets/v2/avatar-service/person/<id>/…`). Those are where every avatar
-  and cover already is. Like the type names of people and groups, they are
-  names now and not the names of anything running.
+- **Where they are stored** is named for the service that looks after
+  them: `assets/v1/identity-image-service/avatars/person/<id>/…` and
+  `…/covers/…`. `v1` is the layout of the first release. The PHP
+  application's (`assets/public`) is v0 in all but name, and while this
+  platform was being built its files were under `assets/v2`, with avatars
+  and covers in folders named `avatar-service` and `cover-service`.
+  `scripts/s3-migration` moves a bucket from either.
 
 Every uploaded image, of any of the three kinds, goes through one check
 (`images.Accept` in `anahita-libs/utils`): it is judged from its bytes and

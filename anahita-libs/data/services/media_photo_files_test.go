@@ -58,10 +58,10 @@ func TestAttachPhotoFilesAsksOnceAndOnlyAboutPhotos(t *testing.T) {
 	}
 
 	// Stored under the profile the post is on.
-	if got := first.Files[1].Portrait[entities.PortraitSizeMedium].Url; got != "assets/v2/photo-service/photo/1/b_medium.jpg" {
+	if got := first.Files[1].Portrait[entities.PortraitSizeMedium].Url; got != "assets/v1/photo-service/photo/1/b_medium.jpg" {
 		t.Errorf("second image of the first post is at %q", got)
 	}
-	if got := second.Files[0].Portrait[entities.PortraitSizeMedium].Url; got != "assets/v2/photo-service/photo/8/c_medium.png" {
+	if got := second.Files[0].Portrait[entities.PortraitSizeMedium].Url; got != "assets/v1/photo-service/photo/8/c_medium.png" {
 		t.Errorf("image of the post in the group is at %q", got)
 	}
 }
@@ -126,7 +126,7 @@ func TestBatchPresignPhotoFilesSignsEverySizeOfEveryImageAtOnce(t *testing.T) {
 	if len(files.asked) != 2*sizes {
 		t.Fatalf("signed %d paths, want %d", len(files.asked), 2*sizes)
 	}
-	if got := photo.Files[1].Portrait[entities.PortraitSizeSmall].Url; got != "https://media.example/assets/v2/photo-service/photo/1/b_small.jpg" {
+	if got := photo.Files[1].Portrait[entities.PortraitSizeSmall].Url; got != "https://media.example/assets/v1/photo-service/photo/1/b_small.jpg" {
 		t.Errorf("second image, small: %q", got)
 	}
 }

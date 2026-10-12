@@ -105,7 +105,7 @@ An image is never enlarged: one narrower than a size is stored at its own
 width under that size's name.
 
 Images are stored under the profile the post is on, not under the post:
-`assets/v2/photo-service/photo/<owner id>/<name>_<size>.<ext>`. That is what
+`assets/v1/photo-service/photo/<owner id>/<name>_<size>.<ext>`. That is what
 lets an image be stored before its post exists.
 
 Two tables, both owned by `graph-grpc-service`:

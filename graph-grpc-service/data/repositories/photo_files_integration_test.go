@@ -183,11 +183,11 @@ func TestPhotoFilesTheSweeperRemovesUnusedUploadsAndTheirImages(t *testing.T) {
 		deleted[path] = true
 	}
 	// Under the profile it was uploaded for, the group, not the uploader.
-	if !deleted["assets/v2/photo-service/photo/8/old_medium.jpg"] {
+	if !deleted["assets/v1/photo-service/photo/8/old_medium.jpg"] {
 		t.Errorf("the unused upload's images were not deleted: %v", files.deleted)
 	}
 	for path := range deleted {
-		if path == "assets/v2/photo-service/photo/8/new_medium.jpg" {
+		if path == "assets/v1/photo-service/photo/8/new_medium.jpg" {
 			t.Error("a recent upload's images were deleted")
 		}
 	}

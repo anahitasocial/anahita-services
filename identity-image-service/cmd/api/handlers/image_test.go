@@ -294,7 +294,7 @@ func TestAnAvatarIsStoredAtEverySizeAndTheSquareIsNotSqueezed(t *testing.T) {
 	// were first stored by. That name is in the address of every avatar
 	// there is.
 	for path := range w.stored {
-		if !strings.HasPrefix(path, "assets/v2/avatar-service/person/7/") {
+		if !strings.HasPrefix(path, "assets/v1/identity-image-service/avatars/person/7/") {
 			t.Errorf("stored at %s", path)
 		}
 	}

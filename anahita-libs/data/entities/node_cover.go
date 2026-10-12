@@ -43,7 +43,7 @@ func (a *AnahitaNode) GetCoverURL(size string) string {
 		id = a.OwnerID
 	}
 
-	return fmt.Sprintf("assets/v2/cover-service/%s/%d/%s", a.GetEntityName(), id, file)
+	return fmt.Sprintf("%scovers/%s/%d/%s", IdentityImagesPrefix, a.GetEntityName(), id, file)
 }
 
 // Get Cover Sizes
