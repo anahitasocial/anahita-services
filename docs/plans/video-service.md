@@ -103,7 +103,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | services built 2026-10-11; web app next |
+| Implementation | built 2026-10-11, services and web app |
 
 ## What was built
 
@@ -123,3 +123,5 @@ The services, 2026-10-11. The page that describes them is [Videos](../videos.md)
 - **How much was uploaded is asked of the store** when an upload is finished, and the worker checks again as it reads.
 - **The worker tidies up abandoned uploads itself**; the account sweeper is not involved.
 - **Not built:** a notification when a video is ready or has failed, and PeerTube embeds, which are the web app's.
+
+The web app's part was built the same day: a composer of its own that sends the file in parts and follows it until it is posted, and a player with a choice of size. It is described in anahita-web's `docs/architecture.md`, under Videos. Profiles have the video feature only where `VIDEO_UPLOADS=on`, which the graph service decides, so the web app hides nothing itself.

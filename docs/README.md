@@ -139,7 +139,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
-| [Video: video-service and a transcoding worker](plans/video-service.md) | 16 | services built 2026-10-11; the web app's part is next |
+| [Video: video-service and a transcoding worker](plans/video-service.md) | 16 | built 2026-10-11 |
 | [Creative Commons licences](plans/content-licences.md) | 19 | kept for later (2026-10-04); look again after items 16 and 17 |
 | [Download your data](plans/data-export.md) | 21 | not started |
 | [Post insights](plans/post-insights.md) | 22, set aside: a post's activity was built instead | not started |
