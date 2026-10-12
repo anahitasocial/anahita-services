@@ -112,6 +112,8 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [First deployment](deploying.md#first-deployment)
    - [Certificates between the services](deploying.md#certificates-between-the-services)
    - [Object storage](deploying.md#object-storage)
+     - [What is in the bucket](deploying.md#what-is-in-the-bucket)
+     - [Moving a bucket to the v1 layout](deploying.md#moving-a-bucket-to-the-v1-layout)
    - [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)
    - [On AWS](deploying.md#on-aws)
    - [Upgrading](deploying.md#upgrading)
