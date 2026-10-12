@@ -26,6 +26,9 @@ type FileTransfersInterface interface {
 	FetchURL(path string) (string, error)
 	// StoreURL is an address to write a worker's file to, as this type.
 	StoreURL(path, contentType string) (string, error)
+	// PresignDownload is an address a browser saves a file from, under
+	// this name, where Presign's is one it shows it from.
+	PresignDownload(path, name string) (string, error)
 }
 
 // NewFileTransfersGRPC is the file service's client, for large files.
@@ -123,6 +126,19 @@ func (srv *FilesGRPC) StoreURL(path, contentType string) (string, error) {
 	}
 
 	res, err := client.StoreURL(context.Background(), &filepb.TransferRequest{Path: path, ContentType: contentType})
+	if err != nil {
+		return "", err
+	}
+	return res.Url, nil
+}
+
+func (srv *FilesGRPC) PresignDownload(path, name string) (string, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return "", err
+	}
+
+	res, err := client.Presign(context.Background(), &filepb.PresignRequest{Path: path, DownloadName: name})
 	if err != nil {
 		return "", err
 	}

@@ -25,6 +25,7 @@ type Upload struct {
 	Language        string
 	ReplyAccess     string
 	QuotePolicy     string
+	AllowDownload   bool
 	Status          string
 	SourceKey       string
 	StorageUploadID string
@@ -51,6 +52,7 @@ const uploadColumns = `
     language,
     reply_access,
     quote_policy,
+    allow_download,
     status,
     source_key,
     storage_upload_id,
@@ -73,6 +75,7 @@ INSERT INTO video_uploads (
     language,
     reply_access,
     quote_policy,
+    allow_download,
     status,
     source_key,
     storage_upload_id,
@@ -80,7 +83,7 @@ INSERT INTO video_uploads (
     created_at,
     updated_at
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 const uploadRead = `
 SELECT` + uploadColumns + `
@@ -235,7 +238,7 @@ func (r *UploadsRepo) Add(upload *Upload) error {
 	_, err := r.db.ExecContext(ctx, uploadAdd,
 		upload.ID, upload.PersonID, upload.OwnerID, upload.Name, upload.Body,
 		upload.Access, upload.Language, upload.ReplyAccess, upload.QuotePolicy,
-		upload.Status, upload.SourceKey, upload.StorageUploadID, upload.DeclaredBytes,
+		upload.AllowDownload, upload.Status, upload.SourceKey, upload.StorageUploadID, upload.DeclaredBytes,
 		now, now)
 	return err
 }
@@ -248,7 +251,7 @@ func scanUpload(row scanner) (*Upload, error) {
 	u := &Upload{}
 	err := row.Scan(
 		&u.ID, &u.PersonID, &u.OwnerID, &u.Name, &u.Body, &u.Access, &u.Language,
-		&u.ReplyAccess, &u.QuotePolicy, &u.Status, &u.SourceKey, &u.StorageUploadID,
+		&u.ReplyAccess, &u.QuotePolicy, &u.AllowDownload, &u.Status, &u.SourceKey, &u.StorageUploadID,
 		&u.DeclaredBytes, &u.SizeBytes, &u.NodeID, &u.Error, &u.Attempts,
 		&u.CreatedAt, &u.UpdatedAt)
 	if err != nil {

@@ -300,6 +300,7 @@ func (w *Worker) post(upload *repositories.Upload, video *videos.Video) (*entiti
 	medium.Access = upload.Access
 	medium.Language = upload.Language
 	medium.QuotePolicy = upload.QuotePolicy
+	medium.AllowDownload = upload.AllowDownload
 	medium.Enabled = true
 	medium.CommentStatus = true
 	if upload.ReplyAccess != "" {

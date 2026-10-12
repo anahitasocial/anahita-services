@@ -128,6 +128,10 @@ type Node struct {
 	ReplyAccess string `protobuf:"bytes,84,opt,name=reply_access,json=replyAccess,proto3" json:"reply_access,omitempty"`
 	// Whether what an actor reposts is also among its profile's posts.
 	ShowRepostsOnProfile bool `protobuf:"varint,85,opt,name=show_reposts_on_profile,json=showRepostsOnProfile,proto3" json:"show_reposts_on_profile,omitempty"`
+	// On a post that holds a file, a photo or a video: whether whoever can
+	// see it may download it. On a person or a group: what their new posts
+	// start with.
+	AllowDownload bool `protobuf:"varint,92,opt,name=allow_download,json=allowDownload,proto3" json:"allow_download,omitempty"`
 	// Quote posts. quote_policy is who may quote a post, or on a person
 	// their posts; quote_id is the post a note quotes; quote_detached says
 	// that post's author took it out of the quote.
@@ -647,6 +651,13 @@ func (x *Node) GetReplyAccess() string {
 func (x *Node) GetShowRepostsOnProfile() bool {
 	if x != nil {
 		return x.ShowRepostsOnProfile
+	}
+	return false
+}
+
+func (x *Node) GetAllowDownload() bool {
+	if x != nil {
+		return x.AllowDownload
 	}
 	return false
 }
@@ -2641,7 +2652,7 @@ var File_proto_graphpb_node_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x99\x16\n" +
+	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc0\x16\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -2727,7 +2738,8 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x0favatar_filename\x18R \x01(\tR\x0eavatarFilename\x12\x17\n" +
 	"\aroot_id\x18S \x01(\x03R\x06rootId\x12!\n" +
 	"\freply_access\x18T \x01(\tR\vreplyAccess\x125\n" +
-	"\x17show_reposts_on_profile\x18U \x01(\bR\x14showRepostsOnProfile\x12!\n" +
+	"\x17show_reposts_on_profile\x18U \x01(\bR\x14showRepostsOnProfile\x12%\n" +
+	"\x0eallow_download\x18\\ \x01(\bR\rallowDownload\x12!\n" +
 	"\fquote_policy\x18V \x01(\tR\vquotePolicy\x12\x19\n" +
 	"\bquote_id\x18W \x01(\x03R\aquoteId\x12%\n" +
 	"\x0equote_detached\x18X \x01(\bR\rquoteDetached\x12+\n" +

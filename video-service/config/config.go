@@ -198,3 +198,9 @@ func Heights() []int {
 	}
 	return heights
 }
+
+// GetDomainName is the site's domain, which the session store is built
+// with. Only its counter is used here, to limit downloads.
+func (config *Config) GetDomainName() string {
+	return os.Getenv("DOMAIN_NAME")
+}

@@ -71,6 +71,9 @@ CREATE TABLE nodes (
   `allow_follow_request` tinyint(1) unsigned DEFAULT NULL,
   -- Whether what an actor reposts is also among its profile's posts.
   `show_reposts_on_profile` tinyint(1) NOT NULL DEFAULT 0,
+  -- On a post that holds a file, whether whoever can see it may download
+  -- it. On a person or a group, what their new posts start with.
+  `allow_download` tinyint(1) NOT NULL DEFAULT 0,
   `subscriber_count` int(11) unsigned DEFAULT NULL,
   `vote_up_count` int(11) unsigned DEFAULT NULL,
   `excerpt` text,
@@ -946,6 +949,8 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     `language` varchar(50) NOT NULL DEFAULT '',
     `reply_access` varchar(64) NOT NULL DEFAULT '',
     `quote_policy` varchar(16) NOT NULL DEFAULT '',
+    -- Whether the post may be downloaded, as chosen when the upload began.
+    `allow_download` tinyint(1) NOT NULL DEFAULT 0,
     -- 'uploading' while the browser sends it, 'processing' once it is all
     -- there and waiting for or with a worker, then 'ready', 'failed', or
     -- 'cancelled' for one given up on.

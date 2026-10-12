@@ -46,6 +46,9 @@ type StorageInterface interface {
 	Delete(path string) error
 	Exists(path string) (bool, error)
 	Presign(path string) (string, error)
+	// PresignDownload is Presign for a file to keep: the address makes a
+	// browser save it, under the name given, and not show it.
+	PresignDownload(path, name string) (string, error)
 	BatchPresign(paths []string) ([]string, error)
 
 	// Large files, sent to the store directly. See uploads.go.
@@ -297,6 +300,38 @@ func isNotFound(err error) bool {
 
 // Presign returns a URL a browser can open for a short while.
 func (s *Storage) Presign(path string) (string, error) {
+	return s.presign(path, "")
+}
+
+// PresignDownload returns a URL that makes a browser save the file, under
+// this name, and not show it.
+func (s *Storage) PresignDownload(path, name string) (string, error) {
+	name = DownloadName(name)
+	if name == "" {
+		return "", ErrPathNotAllowed
+	}
+	return s.presign(path, name)
+}
+
+// DownloadName makes a name safe to put in a header: letters, digits, dots,
+// dashes and underscores, and nothing else. The caller builds it from a
+// post's title, which is somebody's text.
+func DownloadName(name string) string {
+	var b strings.Builder
+	for _, r := range name {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9', r == '.', r == '-', r == '_':
+			b.WriteRune(r)
+		}
+	}
+	clean := strings.Trim(b.String(), ".")
+	if len(clean) > 120 {
+		clean = clean[len(clean)-120:]
+	}
+	return clean
+}
+
+func (s *Storage) presign(path, downloadName string) (string, error) {
 	ctx, cancel := requestContext()
 	defer cancel()
 
@@ -307,6 +342,11 @@ func (s *Storage) Presign(path string) (string, error) {
 	// Large files did not pass through admit; see uploads.go.
 	if err := readerRules(path, input); err != nil {
 		return "", err
+	}
+	// The store sends this header back with the file, because the address
+	// was signed asking it to.
+	if downloadName != "" {
+		input.ResponseContentDisposition = aws.String(`attachment; filename="` + downloadName + `"`)
 	}
 
 	req, err := s.presigner.PresignGetObject(ctx, input, s3.WithPresignExpires(presignExpiry))

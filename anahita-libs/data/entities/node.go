@@ -42,6 +42,9 @@ type AnahitaNodeAuthorized struct {
 	Quote *bool
 	// On a post: whether the viewer may pin it to the profile it is on.
 	Pin *bool
+	// On a post that holds a file: whether the viewer may download it. nil
+	// on a post that holds none, and when not worked out.
+	Download *bool
 	// Actors only: the composers the viewer may use on this profile. nil when
 	// not worked out; empty when none.
 	Composers []string
@@ -158,13 +161,17 @@ type AnahitaNode struct {
 	// Whether what an actor reposts is also among its profile's posts. Off
 	// unless it says otherwise: reposts are in the list of reposts.
 	ShowRepostsOnProfile bool
-	Mimetype             string
-	Language             string
-	Access               string
-	PermissionsRaw       string
-	Permissions          map[string]string
-	Features             []*AnahitaNodeFeature
-	FeaturesRaw          json.RawMessage
+	// On a post that holds a file: whether whoever can see it may download
+	// it. On a person or a group: what their new posts start with. Off
+	// unless somebody turned it on; nobody is taken to have agreed.
+	AllowDownload  bool
+	Mimetype       string
+	Language       string
+	Access         string
+	PermissionsRaw string
+	Permissions    map[string]string
+	Features       []*AnahitaNodeFeature
+	FeaturesRaw    json.RawMessage
 
 	// Parsed Fields
 	Mentions []string

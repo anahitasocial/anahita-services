@@ -575,6 +575,10 @@ ALTER TABLE nodes ADD COLUMN `quote_policy` varchar(16) DEFAULT NULL AFTER `repl
 -- migrations/20261013000001_nodes_show_reposts_on_profile.sql.
 ALTER TABLE nodes ADD COLUMN `show_reposts_on_profile` tinyint(1) NOT NULL DEFAULT 0 AFTER `allow_follow_request`;
 
+-- nodes.allow_download. See
+-- migrations/20261023000001_allow_download.sql.
+ALTER TABLE nodes ADD COLUMN `allow_download` tinyint(1) NOT NULL DEFAULT 0 AFTER `show_reposts_on_profile`;
+
 -- Comments become replies: notes that answer the post they were under. The
 -- same statements as migrations/20261011000001_comments_become_replies.sql,
 -- where the reasons are. They come after the conversion of types above,
@@ -1452,6 +1456,8 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     `language` varchar(50) NOT NULL DEFAULT '',
     `reply_access` varchar(64) NOT NULL DEFAULT '',
     `quote_policy` varchar(16) NOT NULL DEFAULT '',
+    -- Whether the post may be downloaded, as chosen when the upload began.
+    `allow_download` tinyint(1) NOT NULL DEFAULT 0,
     -- 'uploading' while the browser sends it, 'processing' once it is all
     -- there and waiting for or with a worker, then 'ready', 'failed', or
     -- 'cancelled' for one given up on.

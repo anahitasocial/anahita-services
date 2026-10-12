@@ -57,6 +57,26 @@ func TestWhereLargeFilesMayGo(t *testing.T) {
 	}
 }
 
+func TestANameForAFileToKeepHoldsNothingAHeaderCouldBeBrokenWith(t *testing.T) {
+	for name, want := range map[string]string{
+		"sunset-from-the-bridge.jpg": "sunset-from-the-bridge.jpg",
+		"a b\"c\r\nX-Evil: 1.jpg":    "abcX-Evil1.jpg",
+		"../../etc/passwd":           "etcpasswd",
+		"...":                        "",
+		"":                           "",
+		"café.mp4":                   "caf.mp4",
+	} {
+		if got := DownloadName(name); got != want {
+			t.Errorf("DownloadName(%q) = %q, want %q", name, got, want)
+		}
+	}
+
+	s := &Storage{config: config.Storage{Bucket: "b"}}
+	if _, err := s.PresignDownload("photos/x.jpg", "\"\r\n"); !errors.Is(err, ErrPathNotAllowed) {
+		t.Errorf("a download with no name left: %v", err)
+	}
+}
+
 func put(t *testing.T, url string, body []byte, contentType string) int {
 	t.Helper()
 
@@ -199,6 +219,23 @@ func TestAWorkerWritesItsOwnFiles(t *testing.T) {
 	res.Body.Close()
 	if got := res.Header.Get("Content-Type"); res.StatusCode != http.StatusOK || got != "video/mp4" {
 		t.Errorf("a reader was sent it as %q, status %d", got, res.StatusCode)
+	}
+
+	// To keep: sent as a file to save, under the name asked for.
+	keep, err := storage.PresignDownload(path, "sunset.mp4")
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err = http.Get(keep)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res.Body.Close()
+	if got := res.Header.Get("Content-Disposition"); got != `attachment; filename="sunset.mp4"` {
+		t.Errorf("a file to keep was sent as %q", got)
+	}
+	if _, err := storage.PresignDownload(UploadsPrefix+"5/abc/source", "source.mp4"); !errors.Is(err, ErrPathNotAllowed) {
+		t.Errorf("an upload was signed to be kept: %v", err)
 	}
 
 	// And is never given an upload.

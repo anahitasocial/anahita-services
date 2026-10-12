@@ -51,6 +51,9 @@ func (r *Routes) Init(e *echo.Echo) {
 	videos.PATCH("/:id/comment-status", r.handler.Video.EditCommentStatus, r.authorize)
 	videos.PATCH("/:id/reply-access", r.handler.Video.EditReplyAccess, r.authorize)
 	videos.PATCH("/:id/quote-policy", r.handler.Video.EditQuotePolicy, r.authorize)
+	// Whether it may be downloaded, and the download itself.
+	videos.PATCH("/:id/download", r.handler.Video.EditDownload, r.authorize)
+	videos.GET("/:id/download", r.handler.Video.Download, r.setViewer)
 	videos.PUT("/:id/pin", r.handler.Video.Pin, r.authorize)
 	videos.DELETE("/:id/pin", r.handler.Video.Unpin, r.authorize)
 }

@@ -522,8 +522,11 @@ func (x *ExistsResponse) GetExists() bool {
 }
 
 type PresignRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Path          string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Path  string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	// Given, the address is for keeping the file and not for showing it: a
+	// browser saves it, under this name.
+	DownloadName  string `protobuf:"bytes,2,opt,name=download_name,json=downloadName,proto3" json:"download_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -561,6 +564,13 @@ func (*PresignRequest) Descriptor() ([]byte, []int) {
 func (x *PresignRequest) GetPath() string {
 	if x != nil {
 		return x.Path
+	}
+	return ""
+}
+
+func (x *PresignRequest) GetDownloadName() string {
+	if x != nil {
+		return x.DownloadName
 	}
 	return ""
 }
@@ -1408,9 +1418,10 @@ const file_proto_filepb_file_proto_rawDesc = "" +
 	"\rExistsRequest\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\"(\n" +
 	"\x0eExistsResponse\x12\x16\n" +
-	"\x06exists\x18\x01 \x01(\bR\x06exists\"$\n" +
+	"\x06exists\x18\x01 \x01(\bR\x06exists\"I\n" +
 	"\x0ePresignRequest\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\tR\x04path\"#\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\x12#\n" +
+	"\rdownload_name\x18\x02 \x01(\tR\fdownloadName\"#\n" +
 	"\x0fPresignResponse\x12\x10\n" +
 	"\x03url\x18\x01 \x01(\tR\x03url\"+\n" +
 	"\x13BatchPresignRequest\x12\x14\n" +

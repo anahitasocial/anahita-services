@@ -83,7 +83,15 @@ func (h *fileHandler) Exists(ctx context.Context, req *filepb.ExistsRequest) (*f
 func (h *fileHandler) Presign(ctx context.Context, req *filepb.PresignRequest) (*filepb.PresignResponse, error) {
 	log.Printf("Received Presign request: %v", req.Path)
 
-	url, err := h.env.Services.Storage.Presign(req.Path)
+	var (
+		url string
+		err error
+	)
+	if req.DownloadName != "" {
+		url, err = h.env.Services.Storage.PresignDownload(req.Path, req.DownloadName)
+	} else {
+		url, err = h.env.Services.Storage.Presign(req.Path)
+	}
 	if err != nil {
 		return nil, err
 	}

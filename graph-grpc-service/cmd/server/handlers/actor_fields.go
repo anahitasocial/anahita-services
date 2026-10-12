@@ -44,6 +44,8 @@ func applyEditableActorFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.AllowFollowRequest = req.AllowFollowRequest
 	applyEventTimes(node, req)
 	node.ShowRepostsOnProfile = req.ShowRepostsOnProfile
+	// What this actor's new posts start with, about being downloaded.
+	node.AllowDownload = req.AllowDownload
 	// Who may quote this person's posts, when a post does not say.
 	node.QuotePolicy = req.QuotePolicy
 	node.FeaturesRaw = json.RawMessage(req.FeaturesRaw)

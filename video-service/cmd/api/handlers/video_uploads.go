@@ -42,6 +42,9 @@ type uploadStartRequest struct {
 	Language    string `json:"language" form:"language" validate:"omitempty,max=12"`
 	ReplyAccess string `json:"reply_access" form:"reply_access" validate:"omitempty,max=64"`
 	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"omitempty,max=16"`
+	// Whether whoever can see it may download it. Left out, the post
+	// starts with what the profile it is on says.
+	AllowDownload *bool `json:"allow_download" form:"allow_download"`
 	// What the browser says it is sending. The worker decides what it is.
 	Size        int64  `json:"size" form:"size" validate:"required,min=1"`
 	ContentType string `json:"content_type" form:"content_type" validate:"required,max=100"`
@@ -194,6 +197,7 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		Language:      language,
 		ReplyAccess:   replyAccess,
 		QuotePolicy:   quotePolicy,
+		AllowDownload: handlers.DefaultAllowDownload(req.AllowDownload, owner),
 		DeclaredBytes: req.Size,
 	}
 	upload.SourceKey = videos.SourceKey(viewer.ID, upload.ID)

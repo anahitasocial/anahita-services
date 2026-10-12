@@ -1,6 +1,7 @@
 package main
 
 import (
+	"anahita-libs/sessions"
 	"database/sql"
 	"time"
 
@@ -66,9 +67,10 @@ func main() {
 	}
 
 	hEnv := &handlers.Env{
-		Config: config,
-		Perms:  permissions.NewPermissions(),
-		Srv:    services.NewServices(config, db),
+		Config:  config,
+		Perms:   permissions.NewPermissions(),
+		Limiter: sessions.NewSession(config),
+		Srv:     services.NewServices(config, db),
 	}
 	h := handlers.NewHandlers(hEnv)
 

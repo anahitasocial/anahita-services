@@ -51,6 +51,9 @@ message ExistsResponse {
 
 message PresignRequest {
     string path = 1;
+    // Given, the address is for keeping the file and not for showing it: a
+    // browser saves it, under this name.
+    string download_name = 2;
 }
 
 message PresignResponse {

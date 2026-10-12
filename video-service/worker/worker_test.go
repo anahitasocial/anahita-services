@@ -114,6 +114,9 @@ func (s *store) StoreURL(path, contentType string) (string, error) {
 	return s.server.URL + "/" + path, nil
 }
 func (s *store) UploadStart(path string) (string, error) { return "", nil }
+func (s *store) PresignDownload(path, name string) (string, error) {
+	return s.server.URL + "/" + path, nil
+}
 func (s *store) UploadParts(path, id string, n []int32) ([]string, error) {
 	return nil, nil
 }
