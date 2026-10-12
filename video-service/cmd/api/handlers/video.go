@@ -147,10 +147,19 @@ func (h *videoHandler) Read(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
+// videoEditRequest changes what a video post says. As for any post, but
+// for its text: a video needs a title and may have nothing more said of it.
+type videoEditRequest struct {
+	ID       int64  `param:"id" validate:"required,numeric"`
+	Name     string `json:"name" form:"name" validate:"required,max=100"`
+	Body     string `json:"body" form:"body" validate:"omitempty,max=8000"`
+	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
+}
+
 // Edit updates a video
 func (h *videoHandler) Edit(c echo.Context) error {
 	var (
-		req    = requests.NewMediumRequest().Edit
+		req    = &videoEditRequest{}
 		viewer = getViewer(c)
 	)
 
