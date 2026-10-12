@@ -82,9 +82,14 @@ func TestABucketIsMovedInThreeSteps(t *testing.T) {
 
 	step := func(apply, deleteOld bool) *mover {
 		run := &mover{client: m.client, bucket: m.bucket, apply: apply, deleteOld: deleteOld}
-		for key, body := range old {
-			if m.has(t, key) {
-				run.move(ctx, key, int64(len(body)))
+		// The whole of it, as the program runs it: what is in place is read
+		// first, then this test's own files are moved.
+		if err := run.run(ctx, "assets/v2/avatar-service/person/"+who+"/"); err != nil {
+			t.Fatal(err)
+		}
+		for _, prefix := range []string{"assets/v2/cover-service/person/" + who + "/", "assets/v2/photo-service/photo/" + who + "/"} {
+			if err := run.list(ctx, prefix, func(o object) { run.move(ctx, o.key, o.size) }); err != nil {
+				t.Fatal(err)
 			}
 		}
 		return run

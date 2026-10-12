@@ -38,6 +38,10 @@ Between steps 2 and 3, deploy the services that read the v1 layout and
 look at the site. Until step 3 both layouts are in the bucket, so going
 back is a matter of deploying the services from before.
 
+The bucket is read once at the start, and files are copied two dozen at
+a time, so tens of thousands take minutes. Each step prints how many files
+went where; `-v` names every one.
+
 An old file is deleted only when its copy is in place and the same size.
 A file that is not a picture this knows is left where it is and listed.
 
@@ -53,7 +57,8 @@ STORAGE_BUCKET=my-bucket STORAGE_REGION=ca-central-1 go run . -from v2
 For a store other than AWS S3, also set `STORAGE_ENDPOINT`,
 `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY` and, usually,
 `STORAGE_PATH_STYLE=true`. On AWS the credentials come from the usual AWS
-environment or profile when those two are unset. The earlier names
+environment or profile when those two are unset: `AWS_PROFILE=name` picks
+a profile from `~/.aws/credentials`. The earlier names
 `AWS_FILES_S3_BUCKET` and `AWS_REGION` are read as well.
 
 To move a bucket from one store to another without changing its layout, use

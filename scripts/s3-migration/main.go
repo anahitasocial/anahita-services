@@ -12,7 +12,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -34,6 +36,7 @@ func main() {
 	from := flag.String("from", "", `the layout the bucket is in now: "v0" (the PHP application's, assets/public) or "v2" (assets/v2)`)
 	apply := flag.Bool("apply", false, "copy the files. Without it, only what would be copied is listed")
 	deleteOld := flag.Bool("delete-old", false, "delete each old file whose copy is in place. Only with -apply, and only after checking the site")
+	verbose := flag.Bool("v", false, "name every file as it goes, and not only count them")
 	flag.Parse()
 
 	prefix, ok := sources[*from]
@@ -73,7 +76,7 @@ func main() {
 		o.UsePathStyle = os.Getenv("STORAGE_PATH_STYLE") == "true"
 	})
 
-	m := &mover{client: client, bucket: bucket, apply: *apply, deleteOld: *deleteOld}
+	m := &mover{client: client, bucket: bucket, apply: *apply, deleteOld: *deleteOld, verbose: *verbose}
 	if err := m.run(ctx, prefix); err != nil {
 		log.Fatalf("stopped: %v", err)
 	}
@@ -102,18 +105,36 @@ var sources = map[string]string{
 	"v2": "assets/v2/",
 }
 
+// How many files are copied at once. The store does the copying; this is
+// how many requests are in flight.
+const workers = 24
+
 type mover struct {
 	client    *s3.Client
 	bucket    string
 	apply     bool
 	deleteOld bool
+	// Every file moved is named as it goes, and not only counted.
+	verbose bool
+
+	mu sync.Mutex
+	// What is already in the v1 layout, by key, with its size: read once,
+	// so that nothing has to be asked about each file.
+	there map[string]int64
+	// How many files of each folder there are to move, for the summary.
+	folders map[string]int
 
 	toCopy, inPlace, copied, failed, unknown, deleted int
 }
 
-func (m *mover) run(ctx context.Context, prefix string) error {
-	var token *string
+type object struct {
+	key  string
+	size int64
+}
 
+// list reads every file under a prefix.
+func (m *mover) list(ctx context.Context, prefix string, each func(object)) error {
+	var token *string
 	for {
 		page, err := m.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
 			Bucket:            aws.String(m.bucket),
@@ -123,16 +144,84 @@ func (m *mover) run(ctx context.Context, prefix string) error {
 		if err != nil {
 			return fmt.Errorf("listing %s: %w", prefix, err)
 		}
-
-		for _, object := range page.Contents {
-			m.move(ctx, aws.ToString(object.Key), aws.ToInt64(object.Size))
+		for _, entry := range page.Contents {
+			each(object{key: aws.ToString(entry.Key), size: aws.ToInt64(entry.Size)})
 		}
-
 		if !aws.ToBool(page.IsTruncated) {
 			return nil
 		}
 		token = page.NextContinuationToken
 	}
+}
+
+func (m *mover) run(ctx context.Context, prefix string) error {
+	// What is in place already, in one pass, and then what there is to move.
+	m.there = map[string]int64{}
+	m.folders = map[string]int{}
+	if err := m.list(ctx, assetsPrefix, func(o object) { m.there[o.key] = o.size }); err != nil {
+		return err
+	}
+
+	var old []object
+	if err := m.list(ctx, prefix, func(o object) { old = append(old, o) }); err != nil {
+		return err
+	}
+	fmt.Printf("%d files under %s, %d already under %s\n", len(old), prefix, len(m.there), assetsPrefix)
+
+	queue := make(chan object)
+	var wg sync.WaitGroup
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for o := range queue {
+				m.move(ctx, o.key, o.size)
+			}
+		}()
+	}
+	for i, o := range old {
+		queue <- o
+		if m.apply && (i+1)%2000 == 0 {
+			fmt.Printf("  %d of %d\n", i+1, len(old))
+		}
+	}
+	close(queue)
+	wg.Wait()
+
+	if len(m.folders) > 0 {
+		fmt.Println()
+		fmt.Println("To move, by where it goes:")
+		names := make([]string, 0, len(m.folders))
+		for name := range m.folders {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			fmt.Printf("  %7d  %s\n", m.folders[name], name)
+		}
+	}
+	return nil
+}
+
+func (m *mover) count(change func()) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	change()
+}
+
+func (m *mover) say(format string, args ...any) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	fmt.Printf(format, args...)
+}
+
+// folderOf is the part of a v1 key that says what kind of file it is.
+func folderOf(newKey string) string {
+	parts := strings.Split(strings.TrimPrefix(newKey, assetsPrefix), "/")
+	if len(parts) >= 2 && parts[0] == "identity-image-service" {
+		return assetsPrefix + parts[0] + "/" + parts[1] + "/"
+	}
+	return assetsPrefix + parts[0] + "/"
 }
 
 // move copies one file to its new place, unless it is there already, and
@@ -142,25 +231,28 @@ func (m *mover) move(ctx context.Context, oldKey string, size int64) {
 	if err != nil {
 		// A folder marker, or something that is not one of the pictures.
 		if !strings.HasSuffix(oldKey, "/") {
-			m.unknown++
-			fmt.Printf("left   %s (%v)\n", oldKey, err)
+			m.count(func() { m.unknown++ })
+			m.say("left   %s (%v)\n", oldKey, err)
 		}
 		return
 	}
 
-	there, err := m.sameSize(ctx, newKey, size)
-	if err != nil {
-		m.failed++
-		fmt.Printf("FAILED %s: %v\n", oldKey, err)
-		return
-	}
+	m.mu.Lock()
+	have, known := m.there[newKey]
+	m.mu.Unlock()
+	inPlace := known && have == size
 
 	switch {
-	case there:
-		m.inPlace++
+	case inPlace:
+		m.count(func() { m.inPlace++ })
 	case !m.apply:
-		m.toCopy++
-		fmt.Printf("would copy %s\n        to %s\n", oldKey, newKey)
+		m.count(func() {
+			m.toCopy++
+			m.folders[folderOf(newKey)]++
+		})
+		if m.verbose {
+			m.say("would copy %s\n        to %s\n", oldKey, newKey)
+		}
 		return
 	default:
 		// Copied by the store itself: the file does not pass through here.
@@ -170,32 +262,41 @@ func (m *mover) move(ctx context.Context, oldKey string, size int64) {
 			Key:        aws.String(newKey),
 		})
 		if err != nil {
-			m.failed++
-			fmt.Printf("FAILED %s: %v\n", oldKey, err)
+			m.count(func() { m.failed++ })
+			m.say("FAILED %s: %v\n", oldKey, err)
 			return
 		}
-		m.copied++
-		fmt.Printf("copied %s\n    to %s\n", oldKey, newKey)
+		m.count(func() {
+			m.copied++
+			m.folders[folderOf(newKey)]++
+		})
+		if m.verbose {
+			m.say("copied %s\n    to %s\n", oldKey, newKey)
+		}
 	}
 
 	if !m.deleteOld {
 		return
 	}
-	// Only once the copy is known to be there, whole.
-	if ok, err := m.sameSize(ctx, newKey, size); err != nil || !ok {
-		m.failed++
-		fmt.Printf("KEPT   %s: its copy could not be confirmed\n", oldKey)
-		return
+	// Only once the copy is known to be there, whole. One that was in
+	// place when the bucket was read is known already; one copied just now
+	// is asked after.
+	if !inPlace {
+		if ok, err := m.sameSize(ctx, newKey, size); err != nil || !ok {
+			m.count(func() { m.failed++ })
+			m.say("KEPT   %s: its copy could not be confirmed\n", oldKey)
+			return
+		}
 	}
 	if _, err := m.client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(m.bucket),
 		Key:    aws.String(oldKey),
 	}); err != nil {
-		m.failed++
-		fmt.Printf("FAILED deleting %s: %v\n", oldKey, err)
+		m.count(func() { m.failed++ })
+		m.say("FAILED deleting %s: %v\n", oldKey, err)
 		return
 	}
-	m.deleted++
+	m.count(func() { m.deleted++ })
 }
 
 // sameSize says whether a file is at a key and is this many bytes.
