@@ -124,7 +124,22 @@ func ToHTML(source string, links Links) Rendered {
 // that reports who opened it, a link that is not to the web are all gone
 // before anything is converted.
 func ToMarkdown(source string) string {
-	clean := policy.Sanitize(source)
+	return toMarkdown(policy.Sanitize(source))
+}
+
+// PostToMarkdown is ToMarkdown for a post, whose hashtags are this
+// installation's too.
+//
+// A hashtag arrives as a link to its page on the server it was written on.
+// In a post it is kept as the hashtag alone, as one written here is: it is
+// then a hashtag of this installation, found with every other post that
+// has it, and its link leads there and not away. What somebody says of
+// themselves is not given hashtags here, so there the link is left.
+func PostToMarkdown(source string) string {
+	return toMarkdown(unlinkHashtags(policy.Sanitize(source)))
+}
+
+func toMarkdown(clean string) string {
 
 	converted, err := htmltomarkdown.ConvertString(clean)
 	if err != nil {
@@ -132,7 +147,97 @@ func ToMarkdown(source string) string {
 		return strings.TrimSpace(html.UnescapeString(bluemonday.StrictPolicy().Sanitize(clean)))
 	}
 
+	// The converter guards an underscore, which in a hashtag is a letter
+	// like any other: #soil_2026, not #soil\_2026.
+	converted = guardedHashtag.ReplaceAllStringFunc(converted, func(tag string) string {
+		return strings.ReplaceAll(tag, `\_`, "_")
+	})
+
 	return strings.TrimSpace(converted)
+}
+
+var guardedHashtag = regexp.MustCompile(`(?:^|\s)#(?:\w|\\_)+`)
+
+// A hashtag as it is written, and nothing else: the same letters as
+// entities.HashtagRegexPattern, so that what is unlinked is what is then
+// found as a hashtag.
+var wholeHashtag = regexp.MustCompile(`^#[\w\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}]+$`)
+
+// unlinkHashtags puts the hashtag itself where there was a link around
+// one. A link is taken for a hashtag's by what it says, a hashtag and
+// nothing else, and by being marked as one (class "hashtag" or rel "tag"),
+// which is how every server that has them sends them: a link that merely
+// reads "#1" is left a link.
+func unlinkHashtags(source string) string {
+	root, err := html.Parse(strings.NewReader(source))
+	if err != nil {
+		return source
+	}
+	body := findBody(root)
+	if body == nil {
+		return source
+	}
+
+	var visit func(node *html.Node)
+	visit = func(node *html.Node) {
+		for child := node.FirstChild; child != nil; {
+			next := child.NextSibling
+			if child.Type == html.ElementNode && child.DataAtom == atom.A && marksHashtag(child) {
+				if text := textOf(child); wholeHashtag.MatchString(text) {
+					node.InsertBefore(&html.Node{Type: html.TextNode, Data: text}, child)
+					node.RemoveChild(child)
+					child = next
+					continue
+				}
+			}
+			visit(child)
+			child = next
+		}
+	}
+	visit(body)
+
+	var out bytes.Buffer
+	for node := body.FirstChild; node != nil; node = node.NextSibling {
+		_ = html.Render(&out, node)
+	}
+	return out.String()
+}
+
+func marksHashtag(link *html.Node) bool {
+	for _, attr := range link.Attr {
+		if attr.Key != "class" && attr.Key != "rel" {
+			continue
+		}
+		for _, word := range strings.Fields(attr.Val) {
+			if word == "hashtag" || word == "tag" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func textOf(node *html.Node) string {
+	if node.Type == html.TextNode {
+		return node.Data
+	}
+	var text strings.Builder
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		text.WriteString(textOf(child))
+	}
+	return text.String()
+}
+
+func findBody(node *html.Node) *html.Node {
+	if node.Type == html.ElementNode && node.DataAtom == atom.Body {
+		return node
+	}
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		if body := findBody(child); body != nil {
+			return body
+		}
+	}
+	return nil
 }
 
 // link makes links of the names in the text under a node, in place.

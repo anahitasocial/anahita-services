@@ -402,6 +402,20 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   and the avatar and cover, which it fetched through the addresses that
   stay.
 
+**Hashtags of posts from elsewhere.** `federation.PostToMarkdown`,
+`anahita-libs/event/remote.go`, hashtag-service.
+
+- **A note from another server is given its hashtags as any note is:** the
+  link around each is taken off on the way in, and hashtag-service, told by
+  an event of its own, makes the ones that are not here and ties the note
+  to them. Tried in the lab: `#gardening` did not exist, and after alice's
+  note was read again it did, with her note under it.
+- **Found on the way: no new hashtag had been made by anybody,** here or
+  elsewhere, since the graph began to ask who made each node:
+  hashtag-service named the author and not `created_by`, and the graph
+  refused. A post with a hashtag that already existed was tied to it; one
+  with a new hashtag was not. Fixed.
+
 **Pictures, and earlier posts.** `avatar.go`, `backfill.go`.
 
 - **An avatar is copied into this installation's storage,** re-made at its

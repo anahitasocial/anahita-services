@@ -12,6 +12,7 @@ import (
 	"anahita-libs/crypt"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/event"
 	an_mw "anahita-libs/middleware"
 	"anahita-libs/policy"
 	"anahita-libs/ratelimit"
@@ -36,6 +37,9 @@ type Env struct {
 	// Runs what need not hold up an answer: copying a picture, reading
 	// somebody's recent posts. Nil runs it at once, which tests want.
 	Later func(func())
+	// Says on the bus that a post from another server was kept, for the
+	// hashtag service to give it its hashtags. Nil says nothing, in tests.
+	Announce func(payload *event.EventPayload, name string) error
 	// In the federation lab: nothing is sent to a server that is not the
 	// lab's own. See Deliver.
 	Lab bool

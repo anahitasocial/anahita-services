@@ -22,6 +22,9 @@ func startEventListerner(h *handlers.Handlers, config *config.Config) error {
 	topics := []string{
 		"node.medium.*.*.*.v1",
 		"node.actor.*.*.*.v1",
+		// A post kept from another server: given its hashtags as any
+		// post is. See anahita-libs/event/remote.go.
+		event.RemoteMediaTopic,
 	}
 	if err = cosumer.Listen(topics, h.Hashtag.HandleEvents); err != nil {
 		return err

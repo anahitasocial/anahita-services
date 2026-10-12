@@ -22,6 +22,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/event"
 	"anahita-libs/federation"
 	"anahita-libs/ratelimit"
 
@@ -362,7 +363,7 @@ func (h *Handlers) keepNote(author *repositories.RemoteActor, note *ap.ReceivedN
 	node.URI = note.ID
 	node.OriginDomain = hostOf(note.ID)
 	node.OwnerID = author.NodeID
-	node.Body = cutRunes(federation.ToMarkdown(note.Content), receivedNoteMax)
+	node.Body = cutRunes(federation.PostToMarkdown(note.Content), receivedNoteMax)
 	node.Language = note.Language()
 	if published, err := time.Parse(time.RFC3339, note.Published); err == nil {
 		node.CreatedAt = published
@@ -372,8 +373,45 @@ func (h *Handlers) keepNote(author *repositories.RemoteActor, note *ap.ReceivedN
 		return nil
 	}
 
-	_, _, err = h.Nodes.UpsertRemote(node)
-	return err
+	saved, created, err := h.Nodes.UpsertRemote(node)
+	if err != nil {
+		return err
+	}
+	h.announceKept(saved, author.NodeID, created)
+	return nil
+}
+
+// announceKept says that a post from another server was kept or changed,
+// so that it is given its hashtags: the ones it names are made if they are
+// not there, as for a post written here, and it is found under them.
+//
+// Not waited for, and not tried again: a post whose hashtags were missed
+// is still kept and shown, and is given them the next time it changes.
+func (h *Handlers) announceKept(note *entities.AnahitaNode, authorID int64, created bool) {
+	if h.Announce == nil || note == nil || note.ID == 0 || authorID == 0 {
+		return
+	}
+
+	name := event.RemoteNoteEvent(created)
+	payload := &event.EventPayload{
+		Name:          name,
+		SourceService: "activitypub-service",
+		OwnerID:       authorID,
+		OwnerType:     constants.NodeActorActivityPubPersonEntityType,
+		SubjectID:     authorID,
+		SubjectType:   constants.NodeActorActivityPubPersonEntityType,
+		ObjectID:      note.ID,
+		ObjectType:    note.Type,
+		// Whoever wrote it is who a hashtag it is the first to use is
+		// put down to.
+		ViewerID: authorID,
+	}
+
+	h.later(func() {
+		if err := h.Announce(payload, name); err != nil {
+			log.Printf("saying that %s was kept: %v", note.URI, err)
+		}
+	})
 }
 
 // withdrawn is somebody elsewhere having taken a post away.

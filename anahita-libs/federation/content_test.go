@@ -162,6 +162,41 @@ func TestToMarkdown(t *testing.T) {
 	}
 }
 
+// In a post, a hashtag is this installation's as well.
+func TestPostToMarkdownKeepsHashtagsAsHashtags(t *testing.T) {
+	cases := map[string]struct{ source, want string }{
+		"a hashtag, as Mastodon sends one": {
+			`<p>Sowing <a href="https://mastodon.social/tags/seeds" class="mention hashtag" rel="tag">#<span>seeds</span></a></p>`,
+			"Sowing #seeds",
+		},
+		"hashtags alone": {
+			`<p><a href="https://gts.test/tags/gardening" class="mention hashtag" rel="tag">#<span>gardening</span></a> <a href="https://gts.test/tags/soil_2026" rel="tag">#soil_2026</a></p>`,
+			"#gardening #soil_2026",
+		},
+		// A hashtag here is Latin letters, digits and some emoji
+		// (entities.HashtagRegexPattern). One that would not be a hashtag
+		// here is left the link it came as.
+		"a hashtag that is not one here stays a link": {
+			`<p><a href="https://gts.test/tags/باغ" rel="tag">#باغ</a></p>`,
+			"[#باغ](https://gts.test/tags/%D8%A8%D8%A7%D8%BA)",
+		},
+		"a link that only reads like a hashtag stays a link": {
+			`<p>See <a href="https://example.com/issues/1">#1</a></p>`,
+			"See [#1](https://example.com/issues/1)",
+		},
+		"a link marked as a hashtag that says something else stays a link": {
+			`<p><a href="https://example.com/win" class="hashtag" rel="tag">click here</a></p>`,
+			"[click here](https://example.com/win)",
+		},
+	}
+
+	for name, c := range cases {
+		if got := PostToMarkdown(c.source); got != c.want {
+			t.Errorf("%s:\n got %q\nwant %q", name, got, c.want)
+		}
+	}
+}
+
 // What arrives is anybody's. None of this may be kept.
 func TestToMarkdownKeepsNothingThatRuns(t *testing.T) {
 	for name, source := range map[string]string{

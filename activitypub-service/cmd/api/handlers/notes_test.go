@@ -232,6 +232,15 @@ func TestAPostFromSomebodyFollowedIsKept(t *testing.T) {
 	if rec := w.fromAlice(body); rec.Code != http.StatusAccepted {
 		t.Fatalf("%d", rec.Code)
 	}
+	// What is said on the bus, for the hashtag service.
+	var said []string
+	w.h.Announce = func(payload *event.EventPayload, name string) error {
+		if payload.ObjectType != constants.NodeMediumNoteEntityType || payload.ObjectID == 0 || payload.ViewerID != alice.NodeID {
+			t.Errorf("said of %+v", payload)
+		}
+		said = append(said, name)
+		return nil
+	}
 	if found, _ := w.nodes.find(func(n *entities.AnahitaNode) bool { return n.URI == alicesNote }); found != nil {
 		t.Fatal("a post from somebody nobody follows was kept")
 	}
@@ -253,6 +262,12 @@ func TestAPostFromSomebodyFollowedIsKept(t *testing.T) {
 	kept, _ = w.nodes.find(func(n *entities.AnahitaNode) bool { return n.URI == alicesNote })
 	if kept == nil || kept.Body != "Bonsoir" {
 		t.Errorf("after her change: %+v", kept)
+	}
+
+	// Kept, then changed: said each time, by a name that nothing takes for
+	// a post written here. Not said of the one that was not kept.
+	if got := strings.Join(said, " "); got != "federation.medium.text-service.note.added.v1 federation.medium.text-service.note.edited.v1" {
+		t.Errorf("said on the bus: %q", got)
 	}
 
 	// Taken away there, it is taken away here.

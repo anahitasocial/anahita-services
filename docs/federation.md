@@ -424,6 +424,25 @@ written, in the language it says. Because it is an ordinary note on the
 profile of somebody followed, it is in the feed of whoever follows them
 with nothing changed in the feeds.
 
+**Its hashtags are this installation's.** A hashtag arrives as a link to
+its page on the server the note was written on. It is kept as the hashtag
+alone (`federation.PostToMarkdown`), and the note is then given its
+hashtags by hashtag-service exactly as a note written here is: one that is
+not here yet is made, and the note is found under it with every other post
+that has it. So `#gardening` in a note from elsewhere leads to this
+installation's own page for it, as it does on Mastodon. At most fifty to a
+post. A hashtag in letters this installation does not take for one (see
+`entities.HashtagRegexPattern`) is left the link it came as; so is one in
+what somebody says of themselves.
+
+hashtag-service is told by an event of its own,
+`federation.medium.text-service.note.added|edited.v1`
+(`anahita-libs/event/remote.go`), and not by the one a note written here
+is announced with. Everything that listens for those would take the note
+for one written here: whoever it names by `@name` would be told they were
+mentioned, though the name is somebody's on another server, and its
+author's followers would be notified as if by somebody here.
+
 Changed there, it is changed here; taken away there, it is taken away here,
 and only by its author: the graph removes a note from another server only
 in the name of whoever it belongs to
