@@ -89,6 +89,7 @@ We want local people to follow Mastodon and Bluesky accounts, those accounts to 
 
 - Edge-to-activity mapping (`federation_edges`) is split the same way: each service keeps its own ids.
 - `federation_domain_blocks` lives in activitypub-service but is read by both through the shared package. For AT it matches on the handle or PDS host.
+  - **For row 26:** the list is edited through `/activitypub/blocks` only, so the screen in Site settings says the service is absent on an installation that runs AT Protocol alone. When atproto-service is built, either it serves the same list at its own address or the list moves to an address neither protocol owns, and the screen asks whichever is there.
 
 **Hooks in existing services** (small, and part of phase 0):
 - **graph-grpc-service:** the `uuid` and `uri` columns, the two remote actor types, `UpsertRemoteActor` / `UpsertRemoteNote` / `ReadByURI` RPCs, and remote types included where person-like actors are expected (and excluded from local people browse and counts).
