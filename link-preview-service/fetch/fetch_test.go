@@ -65,7 +65,7 @@ func TestTheFetcherRefusesWhatIsNotPublic(t *testing.T) {
 	}))
 	defer server.Close()
 
-	fetcher := New("https://example.org")
+	fetcher := New()
 
 	for _, address := range []string{
 		server.URL,
@@ -90,7 +90,7 @@ func TestTheFetcherRefusesWhatIsNotPublic(t *testing.T) {
 // local is a fetcher let through to servers on this machine, for testing
 // what is read. Whether a connection may be made is tested above.
 func local() *Fetcher {
-	return newFetcher("https://example.org", func(ip net.IP, port string) bool {
+	return newFetcher(func(ip net.IP, port string) bool {
 		return ip != nil && ip.IsLoopback()
 	})
 }
@@ -104,7 +104,7 @@ func serve(t *testing.T, handler http.HandlerFunc) string {
 
 func TestAPageIsReadFromItsHead(t *testing.T) {
 	address := serve(t, func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasPrefix(r.Header.Get("User-Agent"), "AnahitaBot/1.0 (+https://example.org)") {
+		if r.Header.Get("User-Agent") != UserAgent {
 			t.Errorf("fetched as %q", r.Header.Get("User-Agent"))
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -176,7 +176,7 @@ func TestWhatIsNotAPageIsRefused(t *testing.T) {
 	address := serve(t, func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "http://169.254.169.254/latest/", http.StatusFound)
 	})
-	if _, _, err := New("").Page(address); !errors.Is(err, ErrNotAllowed) {
+	if _, _, err := New().Page(address); !errors.Is(err, ErrNotAllowed) {
 		t.Errorf("a redirect to the metadata address: %v", err)
 	}
 }

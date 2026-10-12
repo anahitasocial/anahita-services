@@ -47,6 +47,9 @@ The address comes from a person, so it is treated as hostile.
   gains nothing.
 - The same check runs again for every redirect. At most 3 are followed.
 - No proxy from the environment is used.
+- It says it is `Anahita/1.0` and no more. Naming the installation's address
+  as well, as a crawler usually does, gets the connection dropped by some
+  large sites' edges.
 - 5 seconds for the whole request.
 - At most 1 MB of a page is read, and only `text/html`.
 - At most 5 MB of a picture is read.

@@ -20,20 +20,24 @@ type Fetcher struct {
 	userAgent string
 }
 
-// New builds a fetcher that goes only to public addresses. `site` is the
-// installation's own address, said in the User-Agent so that whoever runs a
-// page being read can see who is reading it.
-func New(site string) *Fetcher {
-	return newFetcher(site, PublicAddress)
+// UserAgent is what the fetcher says it is: the software's name, and
+// nothing else.
+//
+// It said more once, "AnahitaBot/1.0 (+https://the.site)", so that whoever
+// runs a page could see which installation was reading it. Large sites'
+// edges drop that: tried against one news site in October 2026, a request
+// naming almost any address in the User-Agent, or calling itself a bot, had
+// its connection reset or left hanging, where the bare name was answered.
+// A preview that works matters more than the courtesy.
+const UserAgent = "Anahita/1.0"
+
+// New builds a fetcher that goes only to public addresses.
+func New() *Fetcher {
+	return newFetcher(PublicAddress)
 }
 
-func newFetcher(site string, allow Allow) *Fetcher {
-	agent := "AnahitaBot/1.0"
-	if site != "" {
-		agent += " (+" + site + ")"
-	}
-
-	return &Fetcher{client: newClient(allow), userAgent: agent}
+func newFetcher(allow Allow) *Fetcher {
+	return &Fetcher{client: newClient(allow), userAgent: UserAgent}
 }
 
 func (f *Fetcher) get(address, accept string) (*http.Response, error) {

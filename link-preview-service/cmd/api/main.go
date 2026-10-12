@@ -60,7 +60,7 @@ func main() {
 	hEnv := &handlers.Env{
 		Config:  config,
 		Srv:     services.NewServices(config),
-		Fetcher: fetch.New(config.GetOAuthIssuer()),
+		Fetcher: fetch.New(),
 		Store:   linkpreviews.NewStore(cache),
 		Limiter: sessions.NewSession(config),
 	}
