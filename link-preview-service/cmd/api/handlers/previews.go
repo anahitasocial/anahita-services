@@ -32,7 +32,7 @@ var previewLimit = ratelimit.Limit{Max: 30, Window: time.Minute}
 
 // Where a preview's picture is kept, and what its name looks like: the
 // hash of what is in it, and what kind of picture it is.
-const imageFolder = "link-previews/"
+const imageFolder = linkpreviews.StoragePrefix
 
 var imageName = regexp.MustCompile(`^[a-f0-9]{64}\.(jpg|png|gif|webp)$`)
 

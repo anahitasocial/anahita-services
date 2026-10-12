@@ -10,6 +10,9 @@ RECOMMENDATION_SRV=recommendation-service
 LINK_PREVIEW_BINARY=app-binary
 LINK_PREVIEW_VERSION=latest
 LINK_PREVIEW_SRV=link-preview-service
+WEB_SHELL_BINARY=app-binary
+WEB_SHELL_VERSION=latest
+WEB_SHELL_SRV=web-shell
 
 AUTH_BINARY=app-binary
 AUTH_VERSION=latest
@@ -226,6 +229,18 @@ build_link_preview:
 	cd ${LINK_PREVIEW_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${LINK_PREVIEW_BINARY} ./cmd/api
 	@echo "Link preview binary built!"
 
+## build_web_shell: builds the web shell binary as a linux executable. WEB_BUILD=<folder> copies the web app's build in beside it, for an image with the app baked in
+build_web_shell:
+	@echo "Building web shell binary.."
+	cd ${WEB_SHELL_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${WEB_SHELL_BINARY} ./cmd/api
+	@if [ -n "$(WEB_BUILD)" ]; then \
+		test -f "$(WEB_BUILD)/index.html" || { echo "no index.html in $(WEB_BUILD)"; exit 1; }; \
+		find ${WEB_SHELL_SRV}/web -mindepth 1 ! -name README.md -delete; \
+		cp -R "$(WEB_BUILD)"/. ${WEB_SHELL_SRV}/web/; \
+		echo "Copied the web app from $(WEB_BUILD)"; \
+	fi
+	@echo "Web shell binary built!"
+
 ## build_hashtag: builds the hashtag binary as a linux executable
 build_hashtag:
 	@echo "Building hashtag binary.."
@@ -363,6 +378,14 @@ recommendation: build_recommendation
 	docker-compose start ${RECOMMENDATION_SRV}
 	@echo "${RECOMMENDATION_SRV} built and started!"
 
+## web_shell: builds the web shell and starts it. Not started by `up`: it needs the web app's build, given as WEB_BUILD=<folder> or WEB_BUILD_PATH in .env
+web_shell: build_web_shell
+	@echo "Building ${WEB_SHELL_SRV} docker image..."
+	- docker-compose --profile web stop ${WEB_SHELL_SRV}
+	- docker-compose --profile web rm -f ${WEB_SHELL_SRV}
+	docker-compose --profile web up --build -d ${WEB_SHELL_SRV}
+	@echo "${WEB_SHELL_SRV} built and started!"
+
 ## link_preview: stops link-preview-service, removes docker image, builds service, and starts it
 link_preview: build_link_preview
 	@echo "Building ${LINK_PREVIEW_SRV} docker image..."
@@ -496,6 +519,8 @@ clean:
 	@cd ${RECOMMENDATION_SRV} && go clean
 	@cd ${LINK_PREVIEW_SRV} && rm -f ${LINK_PREVIEW_BINARY}
 	@cd ${LINK_PREVIEW_SRV} && go clean
+	@cd ${WEB_SHELL_SRV} && rm -f ${WEB_SHELL_BINARY}
+	@cd ${WEB_SHELL_SRV} && go clean
 	@cd ${HASHTAG_SRV} && rm -f ${HASHTAG_BINARY}
 	@cd ${HASHTAG_SRV} && go clean
 	@cd ${LOCATION_SRV} && rm -f ${LOCATION_BINARY}

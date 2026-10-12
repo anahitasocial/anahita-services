@@ -33,6 +33,8 @@ const (
 	StatusBlocked = "blocked"
 	// Where the service serves a preview's picture from, by its key.
 	ImagePath = "/link-previews/image/"
+	// The folder its pictures are kept under in storage.
+	StoragePrefix = "link-previews/"
 )
 
 // Preview is what was read off a page.

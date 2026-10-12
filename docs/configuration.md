@@ -24,6 +24,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 - [Mail](#mail)
 - [Abuse reports](#abuse-reports)
 - [Account cleanup](#account-cleanup)
+- [The web shell](#the-web-shell)
 
 ## Shared
 
@@ -314,3 +315,13 @@ entry in `.env`. The two directories default to `/app/defaults` and
 `/app/defaults/actor_features`, where the images keep their copies;
 docker-compose points them at the working tree so an edit shows without a
 rebuild.
+
+## The web shell
+
+Only for an installation that sends the web app through `web-shell`; see
+[The web shell](web-shell.md#settings).
+
+| Variable | Value |
+| --- | --- |
+| `PUBLIC_WEB_URL` | The address people reach the web app at, such as `https://www.example.org`. Left out, the host each request came to is used |
+| `WEB_BUILD_PATH` | docker-compose only: the folder with the web app's build in it. Defaults to `web-shell/web` |

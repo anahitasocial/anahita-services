@@ -134,7 +134,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
-| [Link previews](plans/link-previews.md) | 10 | part A built 2026-10-11; part B, the web shell, not started |
+| [Link previews](plans/link-previews.md) | 10 | built 2026-10-11, with the web shell of its part B |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
@@ -193,3 +193,12 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
    - [The card on a note](link-previews.md#the-card-on-a-note)
    - [Running it, and not running it](link-previews.md#running-it-and-not-running-it)
    - [What is not built](link-previews.md#what-is-not-built)
+17. [The web shell](web-shell.md) — sending the web app with each page's own title and picture, for links shared elsewhere
+   - [What it sends](web-shell.md#what-it-sends)
+   - [Which pages are described](web-shell.md#which-pages-are-described)
+   - [What is never described](web-shell.md#what-is-never-described)
+   - [Pictures](web-shell.md#pictures)
+   - [Running it](web-shell.md#running-it)
+   - [Settings](web-shell.md#settings)
+   - [Not running it](web-shell.md#not-running-it)
+   - [What is not built](web-shell.md#what-is-not-built)

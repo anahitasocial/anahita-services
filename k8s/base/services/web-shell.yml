@@ -1,0 +1,101 @@
+# web-shell: Sends the web app, with each page's own title, description and
+# picture written into index.html. Optional, and not in kustomization.yml:
+# its image has the web app's build baked in, which each installation makes
+# for itself (`make build_web_shell WEB_BUILD=<folder>`). Add this file to an
+# overlay's resources, and an Ingress rule sending the web app's host to the
+# web-shell Service. See docs/web-shell.md.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-shell
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-shell
+  template:
+    metadata:
+      labels:
+        app: web-shell
+    spec:
+      containers:
+        - name: web-shell
+          image: anahita/web-shell
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ENV
+            # Mutual TLS on the calls to the gRPC services. Unset means on,
+            # except with ENV=dev.
+            - name: GRPC_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRPC_TLS
+                  optional: true
+            # A site for members describes none of its pages to anybody else.
+            - name: SITE_READ_ACCESS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_READ_ACCESS
+                  optional: true
+            # The address people reach the web app at.
+            - name: PUBLIC_WEB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PUBLIC_WEB_URL
+                  optional: true
+            - name: FILE_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FILE_SERVICE_ADDR
+            - name: GRAPH_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRAPH_SERVICE_ADDR
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+          volumeMounts:
+            - name: grpc-tls
+              mountPath: /run/secrets/grpc
+              readOnly: true
+      volumes:
+        # The certificate this service presents when it calls a gRPC
+        # service, from k8s/base/grpc-tls.yml.
+        - name: grpc-tls
+          secret:
+            secretName: anahita-grpc-client
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-shell
+spec:
+  selector:
+    app: web-shell
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

@@ -81,3 +81,5 @@ Part A, 2026-10-11. The page that describes it is [Link previews](../link-previe
 - **text-service reads the store** and does not call the service. The composer has already asked for the preview by the time the note is posted, so it is there; the note is not held up by a fetch.
 - **The request field is `link_preview_url`**, a string, not `link_preview { url }`.
 - **Not built:** oEmbed, favicons, and the domain blocklist, which waits for federation.
+
+Part B, the web shell, was built the same day in this repository as `web-shell`: see [The web shell](../web-shell.md), and anahita-web's `docs/plans/open-graph.md` for how it differs from the plan.
