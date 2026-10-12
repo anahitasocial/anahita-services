@@ -9,6 +9,7 @@
 package fetch
 
 import (
+	"bytes"
 	"context"
 	"crypto/rsa"
 	"encoding/json"
@@ -98,6 +99,56 @@ func (c *Client) Object(ctx context.Context, address string, into any) (string, 
 // JSON fetches plain JSON, unsigned: a WebFinger answer.
 func (c *Client) JSON(ctx context.Context, address string, into any) (string, error) {
 	return c.get(ctx, address, "application/jrd+json, application/json", false, into)
+}
+
+// ErrRefused is the other server saying it will never take what was sent:
+// trying again would get the same answer.
+var ErrRefused = errors.New("the other server will not take it")
+
+// Post sends an activity to an inbox, signed by whoever it is sent for.
+//
+// Nothing is followed: an inbox that sends the post on elsewhere is not
+// written to. What was signed was signed for one address.
+func (c *Client) Post(ctx context.Context, inbox string, body []byte, signer Signer) error {
+	parsed, err := url.Parse(inbox)
+	if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.User != nil {
+		return fmt.Errorf("%w: %s", ErrNotAllowed, inbox)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, inbox, bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrNotAllowed, err)
+	}
+	req.Header.Set("Content-Type", "application/activity+json")
+	req.Header.Set("User-Agent", c.userAgent)
+
+	keyID, key, err := signer()
+	if err != nil {
+		return err
+	}
+	if err := httpsig.Sign(req, body, keyID, key, c.now()); err != nil {
+		return err
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 64<<10))
+
+	switch {
+	case resp.StatusCode >= 200 && resp.StatusCode < 300:
+		return nil
+	case resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusGone:
+		return ErrGone
+	// Wrong in a way that will be as wrong tomorrow. Not 401 or 403: a
+	// server that could not fetch our key this minute may the next.
+	case resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusUnprocessableEntity ||
+		resp.StatusCode == http.StatusMethodNotAllowed || resp.StatusCode == http.StatusRequestEntityTooLarge:
+		return fmt.Errorf("%w: status %d from %s", ErrRefused, resp.StatusCode, parsed.Host)
+	}
+	return fmt.Errorf("status %d from %s", resp.StatusCode, parsed.Host)
 }
 
 func (c *Client) get(ctx context.Context, address, accepts string, sign bool, into any) (string, error) {

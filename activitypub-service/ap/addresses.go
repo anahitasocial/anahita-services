@@ -25,6 +25,10 @@ func (a Addresses) Outbox(uuid string) string    { return a.Actor(uuid) + "/outb
 func (a Addresses) Followers(uuid string) string { return a.Actor(uuid) + "/followers" }
 func (a Addresses) Following(uuid string) string { return a.Actor(uuid) + "/following" }
 
+// Activity is the address of something this installation did: an Accept,
+// a Follow. Named by a UUID made for it.
+func (a Addresses) Activity(uuid string) string { return a.Site.API("/ap/activities/" + uuid) }
+
 // Key is the name of a person's signing key: their address, and which key.
 func (a Addresses) Key(uuid string) string { return a.Actor(uuid) + "#main-key" }
 

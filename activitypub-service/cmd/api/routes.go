@@ -32,7 +32,12 @@ func (r *Routes) Init(e *echo.Echo) {
 	e.GET("/.well-known/webfinger", r.handler.WebFinger, r.setViewer)
 	e.GET("/.well-known/host-meta", r.handler.HostMeta, r.setViewer)
 
+	// Where other servers send what somebody did: one for the whole
+	// installation, and one for each person. They are the same door.
+	e.POST("/inbox", r.handler.Inbox, r.setViewer)
+
 	ap := e.Group("ap")
+	ap.POST("/users/:uuid/inbox", r.handler.Inbox, r.setViewer)
 	ap.GET("/actor", r.handler.InstanceActor, r.setViewer)
 	ap.GET("/users/:uuid", r.handler.Actor, r.setViewer)
 	ap.GET("/users/:uuid/followers", r.handler.Followers, r.setViewer)

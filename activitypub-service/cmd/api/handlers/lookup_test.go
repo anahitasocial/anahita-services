@@ -39,6 +39,8 @@ func (f *fakeFetcher) JSON(_ context.Context, address string, into any) (string,
 
 func (f *fakeFetcher) Object(_ context.Context, address string, into any) (string, error) {
 	f.asked = append(f.asked, address)
+	// A key named as its owner's address with a fragment is its owner's.
+	address, _, _ = strings.Cut(address, "#")
 	if f.gone || address != aliceID {
 		return "", fetch.ErrGone
 	}
@@ -65,6 +67,14 @@ type fakeActors struct {
 func (f *fakeActors) Save(actor *repositories.RemoteActor) error {
 	f.kept[actor.NodeID] = actor
 	return nil
+}
+func (f *fakeActors) ReadByKeyID(keyID string) (*repositories.RemoteActor, error) {
+	for _, actor := range f.kept {
+		if actor.KeyID == keyID {
+			return actor, nil
+		}
+	}
+	return nil, nil
 }
 func (f *fakeActors) ReadByNode(id int64) (*repositories.RemoteActor, error) { return f.kept[id], nil }
 func (f *fakeActors) ReadByURI(uri string) (*repositories.RemoteActor, error) {

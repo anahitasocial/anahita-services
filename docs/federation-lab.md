@@ -11,6 +11,7 @@ each at a name of its own, speaking to each other over https.
 - [Opening it in a browser](#opening-it-in-a-browser)
 - [Somebody to talk to](#somebody-to-talk-to)
 - [Having GoToSocial look somebody up](#having-gotosocial-look-somebody-up)
+- [Following somebody here from GoToSocial](#following-somebody-here-from-gotosocial)
 - [Looking somebody on GoToSocial up from here](#looking-somebody-on-gotosocial-up-from-here)
 - [Asking as another server would](#asking-as-another-server-would)
 - [Stopping and emptying it](#stopping-and-emptying-it)
@@ -108,6 +109,25 @@ fetches the person's description and their pictures, and answers with the
 account as it understood it. Somebody who has not turned federation on is
 not found. Until the web app has the switch, it is turned on for a person
 with `PUT /activitypub/settings` ([Federation](federation.md#the-api)).
+
+## Following somebody here from GoToSocial
+
+With a token for alice and the id GoToSocial gave the person here when it
+looked them up (the `id` in the search's answer):
+
+~~~sh
+G() { run curlimages/curl -s --cacert /lab/certs/ca.crt -H "Authorization: Bearer $TOKEN" "$@"; }
+
+G -X POST "https://gts.test/api/v1/accounts/<id>/follow"            # "requested": true
+G "https://gts.test/api/v1/accounts/relationships?id[]=<id>"        # a few seconds on: "following": true
+G -X POST "https://gts.test/api/v1/accounts/<id>/unfollow"
+~~~
+
+Between the first and the second, GoToSocial sent a signed `Follow` to the
+inbox, this installation checked it, made the follow, and sent back a
+signed `Accept`, which GoToSocial checked in its turn. If it stays
+"requested", the reason is in `docker compose logs activitypub-service`
+(a message refused) or in `activitypub_deliveries` (an answer not taken).
 
 ## Looking somebody on GoToSocial up from here
 

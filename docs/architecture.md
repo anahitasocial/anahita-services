@@ -88,7 +88,7 @@ Kubernetes, where the Ingress sends everything to it
 | `/people/`, `/groups/`, `/events/` | `actor-service` |
 | `/photos/` | `photo-service` |
 | `/videos/` | `video-service` |
-| `/.well-known/webfinger`, `/.well-known/host-meta`, `/ap/`, `/activitypub/` | `activitypub-service` |
+| `/.well-known/webfinger`, `/.well-known/host-meta`, `/inbox`, `/ap/`, `/activitypub/` | `activitypub-service` |
 | `/exports` | `export-service` |
 | `/avatars/`, `/covers/` | `identity-image-service` |
 | `/likes/` | `like-service` |

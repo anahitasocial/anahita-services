@@ -30,6 +30,8 @@ type ActorsInterface interface {
 	ReadByNode(nodeID int64) (*RemoteActor, error)
 	// ReadByURI is what is kept of the person at an address, or nil.
 	ReadByURI(uri string) (*RemoteActor, error)
+	// ReadByKeyID is what is kept of whoever signs with a key, or nil.
+	ReadByKeyID(keyID string) (*RemoteActor, error)
 }
 
 type Actors struct {
@@ -76,6 +78,10 @@ func (repo *Actors) ReadByNode(nodeID int64) (*RemoteActor, error) {
 
 func (repo *Actors) ReadByURI(uri string) (*RemoteActor, error) {
 	return repo.read(readActor+"uri = ?", uri)
+}
+
+func (repo *Actors) ReadByKeyID(keyID string) (*RemoteActor, error) {
+	return repo.read(readActor+"key_id = ?", keyID)
 }
 
 func (repo *Actors) read(query string, arg any) (*RemoteActor, error) {

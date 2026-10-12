@@ -27,7 +27,14 @@ type Env struct {
 	Accounts repositories.AccountsInterface
 	Keys     repositories.KeysInterface
 	Actors   repositories.ActorsInterface
-	Crypt    crypt.Crypt
+	Follows  repositories.FollowsInterface
+	// The graph's own record of who follows whom, and who has blocked whom.
+	FollowEdges services.SocialgraphFollowGRPCInterface
+	Relations   services.SocialgraphGRPCInterface
+	// What is waiting to be sent to other servers, and what sends it.
+	Queue  Enqueuer
+	Poster Poster
+	Crypt  crypt.Crypt
 	// What reads from other servers. Signed as the installation.
 	Fetcher remote.Fetcher
 	// Counts lookups, so that nobody can have this service call the whole

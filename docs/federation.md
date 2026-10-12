@@ -5,8 +5,9 @@ and what an installation has to do for that to happen.
 
 **This is being built.** What is described here is what works today: a
 person can choose to be found, another server can find and describe them,
-and somebody on another server can be looked up from here. Following, and
-posts going out and coming in, are not built yet.
+somebody on another server can be looked up from here, and somebody on
+another server can follow somebody here. Following from here, and posts
+going out and coming in, are not built yet.
 
 ## Contents
 
@@ -16,6 +17,9 @@ posts going out and coming in, are not built yet.
 - [What a person is called](#what-a-person-is-called)
 - [What other servers are told](#what-other-servers-are-told)
 - [Looking somebody up on another server](#looking-somebody-up-on-another-server)
+- [Being followed from another server](#being-followed-from-another-server)
+- [The inbox](#the-inbox)
+- [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
 - [Signing keys and signed requests](#signing-keys-and-signed-requests)
 - [The API](#the-api)
 - [Turning it off](#turning-it-off)
@@ -130,6 +134,66 @@ only, decided at the moment of connecting, a megabyte at most.
 
 A lookup is limited to 30 in ten minutes for each person.
 
+## Being followed from another server
+
+Somebody on another server follows somebody here by sending a `Follow` to
+the inbox.
+
+| The person here | What happens |
+| --- | --- |
+| Lets anybody follow | They are followed at once: an ordinary follow in the graph, from the node kept for the person elsewhere. The other server is sent an `Accept` |
+| Approves their followers | A request to follow waits for them, like any other. **Nothing is sent back yet when they approve or refuse it:** that is not built, so on the other server the follow stays "requested" |
+| Has blocked whoever asks | Nothing is made, and the other server is sent a `Reject` |
+| Is not on the fediverse | Nothing, and nothing is said |
+
+Taking a follow back (`Undo` of the `Follow`) removes it, or the request.
+Only whoever followed can take their own follow back.
+
+What the other server calls each follow is kept in `activitypub_follows`,
+because accepting it or undoing it means quoting it back.
+
+A person followed from elsewhere is told as they are of any follower.
+**The web app does not yet know how to show somebody from another server,**
+so until it does such a notification has a name and no profile behind it.
+
+## The inbox
+
+`POST /inbox`, and `POST /ap/users/<uuid>/inbox` for each person: the same
+door. It is the one place in the installation where anybody on the internet
+may send anything, so nothing that arrives is acted on, or read for what it
+says, until it is known who sent it:
+
+1. **It must be signed,** and the signature must check against the key of
+   whoever it names, read from that person's own server (or kept from the
+   last time, and read again if the kept one no longer checks).
+2. **Whoever the message says did the thing must be whoever signed it.**
+   Nobody is believed about what somebody else did.
+3. **Only then is it read,** and only what this installation understands is
+   done: today `Follow`, and `Undo` of a `Follow`. Everything else is
+   answered `202` and ignored.
+
+A message of more than a megabyte is refused. What cannot be checked is
+answered `401`, and nothing is kept of whoever sent it.
+
+## What is sent, and when it does not arrive
+
+What is to be sent to another server is written to a table first
+(`activitypub_deliveries`) and sent from there, signed by the person it is
+sent for. If the other server is down it is tried again after 1, 4, 16, 64
+and 256 minutes and then every six hours, for two days; if the other server
+says the inbox is gone, or that what was sent is wrong, it is given up at
+once. What is given up is kept in the table with the reason.
+
+~~~sql
+SELECT target, attempts, last_error, created_at
+FROM activitypub_deliveries
+WHERE status = 'failed'
+ORDER BY created_at DESC;
+~~~
+
+The sending runs inside `activitypub-service`. Any number of copies of the
+service may run: a row is handed to one of them at a time.
+
 ## Signing keys and signed requests
 
 Whatever is sent in somebody's name is signed with a key of theirs, and the
@@ -239,8 +303,10 @@ it.
 | Reading from other servers | `fetch/`, over `anahita-libs/safehttp` |
 | Who somebody elsewhere is, and what is believed of it | `remote/` |
 | Looking somebody up | `cmd/api/handlers/lookup.go`, table `activitypub_actors` |
+| The inbox, and being followed | `cmd/api/handlers/inbox.go`, table `activitypub_follows` |
+| What is sent | `cmd/api/handlers/deliver.go`, `ap/activity.go`, table `activitypub_deliveries`, over `anahita-libs/federation` (`queue.go`) |
 | The installation's own actor | `cmd/api/handlers/instance.go` |
 | A person's choice | `cmd/api/handlers/settings.go`, table `activitypub_accounts` |
-| The gateway's routes | `nginx/nginx.conf`: `/.well-known/webfinger`, `/.well-known/host-meta`, `/ap/`, `/activitypub/` |
+| The gateway's routes | `nginx/nginx.conf`: `/.well-known/webfinger`, `/.well-known/host-meta`, `/inbox`, `/ap/`, `/activitypub/` |
 | `ACTIVITYPUB_LAB` | Lets the service fetch from private addresses. For [the lab](federation-lab.md) only; refused with `ENV=prod` |
 | What it shares with the Bluesky service to come | `anahita-libs/federation`, `anahita-libs/site` |

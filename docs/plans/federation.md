@@ -371,7 +371,8 @@ A phase is finished only when these pages match the code. anahita-services pages
 | 0.8 Routing and the TLS lab | done 2026-10-12; the gateway's routes to `activitypub-service` come with that service |
 | Phase 1, ActivityPub: the service, opting in, keys, discovery, a person's description | done 2026-10-12 |
 | Phase 1, ActivityPub: signing and checking requests, fetching, looking somebody up | done 2026-10-12 |
-| Phase 1, ActivityPub: the inbox, following, posts out and in, backfill, the blocklist, the web app | not started |
+| Phase 1, ActivityPub: the inbox, being followed from elsewhere, the delivery worker | done 2026-10-13 |
+| Phase 1, ActivityPub: following from here, answering held requests, posts out and in, backfill, the blocklist, the web app | not started |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -393,6 +394,35 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   page, when it joined, what it says of itself with the hashtags as links,
   and the avatar and cover, which it fetched through the addresses that
   stay.
+
+**The inbox, and being followed.** `POST /inbox` and each person's own;
+`Follow` and `Undo(Follow)`; the queue's table `activitypub_deliveries` and
+its worker; `activitypub_follows` (migration `20261029000001`).
+
+- **Tried in the lab:** alice on GoToSocial followed somebody here. It
+  showed "requested", this installation checked her signed `Follow`, made
+  the follow and sent a signed `Accept`, and within seconds GoToSocial
+  showed "following". She unfollowed, and the follow was gone here.
+- **The worker runs inside the service,** not as a process of its own with
+  a lock, as the plan had it. The queue hands a row to one worker at a
+  time, so any number of copies may run.
+- **A key may have an address of its own.** Mastodon names a key as its
+  owner's address with `#main-key`; GoToSocial gives it a path
+  (`…/users/alice/main-key`). Who signed is found from the key's own
+  address either way, and must be on the key's server.
+- **Still to do, found here:**
+  - **Answering a request that was held.** When somebody who approves their
+    followers accepts or refuses one from elsewhere, nothing is sent back.
+    It needs this service to listen for the graph's follow-request events,
+    which comes with sending posts.
+  - **A follower from elsewhere is subscribed to the person they follow,**
+    as every follower is (`edge.base.subscription.v1`), so
+    notification-service will make notifications for somebody who can never
+    read them. Harmless, and wasteful: to be stopped there.
+  - **The web app cannot show somebody from another server,** so the
+    notification that they followed has no profile behind it.
+  - **No limit yet on how much one server may send,** and no list of servers
+    that are refused. Both before any live site federates.
 
 **Signed requests, and looking somebody up.** `httpsig/` (signing and
 checking), `fetch/` (reading from other servers, guarded and signed),

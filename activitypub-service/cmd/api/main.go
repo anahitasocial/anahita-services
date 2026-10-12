@@ -18,6 +18,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/crypt"
 	"anahita-libs/data/services"
+	"anahita-libs/federation"
 	an_mw "anahita-libs/middleware"
 	"anahita-libs/sessions"
 	"anahita-libs/site"
@@ -74,13 +75,16 @@ func main() {
 	setViewer := an_mw.SetViewer(config, jwks)
 
 	env := &handlers.Env{
-		Site:     addresses,
-		Nodes:    services.NewGraphNodeGRPC(config),
-		Accounts: repositories.NewAccounts(db),
-		Keys:     repositories.NewKeys(db),
-		Actors:   repositories.NewActors(db),
-		Crypt:    secrets,
-		Limiter:  sessions.NewSession(config),
+		Site:        addresses,
+		Nodes:       services.NewGraphNodeGRPC(config),
+		Accounts:    repositories.NewAccounts(db),
+		Keys:        repositories.NewKeys(db),
+		Actors:      repositories.NewActors(db),
+		Follows:     repositories.NewFollows(db),
+		FollowEdges: services.NewSocialgraphFollowGRPC(config),
+		Relations:   services.NewSocialgraphGRPC(config),
+		Crypt:       secrets,
+		Limiter:     sessions.NewSession(config),
 	}
 	h := handlers.NewHandlers(env)
 
@@ -88,12 +92,21 @@ func main() {
 	// only to public addresses, except in the lab, where every server is
 	// at a private one.
 	userAgent := "Anahita/1.0 (+" + addresses.WebURL + ")"
+	client := fetch.New(userAgent, h.SignAsInstance)
 	if config.Lab {
 		log.Println("ACTIVITYPUB_LAB is on: private addresses are fetched from. For the federation lab only.")
-		env.Fetcher = fetch.NewWith(userAgent, h.SignAsInstance, fetch.LabAddresses)
-	} else {
-		env.Fetcher = fetch.New(userAgent, h.SignAsInstance)
+		client = fetch.NewWith(userAgent, h.SignAsInstance, fetch.LabAddresses)
 	}
+	env.Fetcher = client
+	env.Poster = client
+
+	// What is to be sent to other servers waits in a table, and is sent
+	// from there until it arrives or two days have passed.
+	queue, err := federation.NewQueue(db, "activitypub_deliveries")
+	if err != nil {
+		log.Fatalf("the queue of what is to be sent: %v", err)
+	}
+	env.Queue = queue
 
 	// `app-binary lookup @alice@example.net`: look somebody up as the
 	// installation, print who was found, and stop. See docs/federation.md.
@@ -109,6 +122,10 @@ func main() {
 		fmt.Println(string(out))
 		return
 	}
+
+	// Any number of copies of this service may run: a row of the queue is
+	// handed to one of them at a time.
+	go queue.Run(context.Background(), 5*time.Second, 10, h.Deliver)
 
 	e.GET("/ping", func(c echo.Context) error {
 		return c.String(http.StatusOK, "pong")

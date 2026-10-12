@@ -168,6 +168,46 @@ func read(w *wire, from string, isOurs func(string) bool) (*Actor, error) {
 	return actor, nil
 }
 
+// KeyOwner finds whose a key is, from the key's own address.
+//
+// A request names the key it was signed with, not who signed it. Most
+// servers name a key as their owner's address with a fragment
+// (…/users/alice#main-key), and fetching that fetches the owner. Some give
+// the key an address of its own (…/users/alice/main-key), which answers
+// with the key and says whose it is. Either way the owner must be on the
+// key's own server: a server cannot lend its users' names to another's key.
+func KeyOwner(ctx context.Context, fetcher Fetcher, keyID string) (string, error) {
+	key, err := httpsURL(keyID)
+	if err != nil {
+		return "", ErrNotTheirs
+	}
+
+	var found struct {
+		ID        string `json:"id"`
+		Owner     string `json:"owner"`
+		PublicKey struct {
+			Owner string `json:"owner"`
+		} `json:"publicKey"`
+	}
+	if _, err := fetcher.Object(ctx, keyID, &found); err != nil {
+		return "", err
+	}
+
+	owner := found.PublicKey.Owner
+	if owner == "" {
+		owner = found.Owner
+	}
+	if owner == "" {
+		owner = found.ID
+	}
+
+	parsed, err := httpsURL(owner)
+	if err != nil || !strings.EqualFold(parsed.Host, key.Host) {
+		return "", fmt.Errorf("%w: the key at %s is said to be %s's", ErrNotTheirs, keyID, owner)
+	}
+	return owner, nil
+}
+
 // jrd is a WebFinger answer.
 type jrd struct {
 	Subject string `json:"subject"`

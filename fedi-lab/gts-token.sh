@@ -2,7 +2,8 @@
 # Signs somebody in to the lab's GoToSocial and prints a token of theirs.
 #   token.sh <email> <password>
 G=https://gts.test; J=/tmp/jar; O="urn:ietf:wg:oauth:2.0:oob"
-c() { curl -s --cacert /certs/ca.crt -b $J -c $J "$@"; }
+# Run with this folder mounted at /lab, as docs/federation-lab.md shows.
+c() { curl -s --cacert "${LAB_CA:-/lab/certs/ca.crt}" -b $J -c $J "$@"; }
 app=$(c -X POST $G/api/v1/apps -d client_name=lab -d "redirect_uris=$O" -d "scopes=read write")
 id=$(echo "$app" | sed -n 's/.*"client_id":"\([^"]*\)".*/\1/p'); secret=$(echo "$app" | sed -n 's/.*"client_secret":"\([^"]*\)".*/\1/p')
 q="client_id=$id&redirect_uri=$O&response_type=code&scope=read+write"
