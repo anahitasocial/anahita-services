@@ -163,14 +163,7 @@ func (h *socialgraphBlockGrpcHandler) Delete(ctx context.Context, req *graphpb.S
 		return nil, err
 	}
 
-	edgeReq := requests.NewEdgeRequest().BatchDeleteByFilters
-	edgeReq.Types = []string{constants.EdgeFollowEntityType}
-	edgeReq.NodeAID = source.ID
-	edgeReq.NodeAType = source.Type
-	edgeReq.NodeBID = target.ID
-	edgeReq.NodeBType = target.Type
-
-	_, err = h.env.Repos.Edges.BatchDeleteByFilters(edgeReq)
+	_, err = h.env.Repos.Edges.BatchDeleteByFilters(unblockFilter(source, target))
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -194,4 +187,20 @@ func (h *socialgraphBlockGrpcHandler) Delete(ctx context.Context, req *graphpb.S
 	}()
 
 	return &graphpb.SocialgraphBlockDeleteResponse{}, nil
+}
+
+// unblockFilter names the one edge that unblocking removes: the block, from
+// whoever blocked to whoever was blocked.
+//
+// It named the follow edge between them until October 2026. Blocking had
+// already removed any follow, so there was nothing of that kind to delete:
+// unblocking answered that it was done and the block stayed.
+func unblockFilter(source, target *entities.AnahitaNode) *requests.EdgeBatchDeleteByFiltersRequest {
+	filter := requests.NewEdgeRequest().BatchDeleteByFilters
+	filter.Types = []string{constants.EdgeBlockEntityType}
+	filter.NodeAID = source.ID
+	filter.NodeAType = source.Type
+	filter.NodeBID = target.ID
+	filter.NodeBType = target.Type
+	return filter
 }

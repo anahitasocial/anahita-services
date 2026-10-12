@@ -25,6 +25,9 @@ func NewBlockHandler(env *Env) *blockHandler {
 }
 
 // Browse returns a list of blocked
+// The most blocked people sent at once.
+const blocksPageMax = 100
+
 func (h *blockHandler) Browse(c echo.Context) error {
 	var (
 		err      error
@@ -80,7 +83,18 @@ func (h *blockHandler) Browse(c echo.Context) error {
 	graphReq.NodeId = actor.ID
 	graphReq.EdgeTypes = []string{constants.EdgeBlockEntityType}
 	graphReq.Direction = constants.GraphQueryDirectionOutbound
-	graphReq.Limit = constants.MaxFetchSize
+	// A page of them, most lately blocked first, and only those whose name
+	// holds what was typed. It was every one of them at once, up to the
+	// most the graph gives, with what was asked about pages ignored: a list
+	// that stopped being whole, without saying so, past that many.
+	graphReq.Offset = req.Offset
+	graphReq.Limit = req.Limit
+	if graphReq.Limit == 0 || graphReq.Limit > blocksPageMax {
+		graphReq.Limit = blocksPageMax
+	}
+	graphReq.Search = req.Search
+	graphReq.Ordering = constants.OrderingConnected
+	graphReq.OrderingDir = req.Direction
 	graphReq.Viewer = viewer
 	graphReq.AccessCheck = true
 
