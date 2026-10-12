@@ -99,7 +99,10 @@ A recipe is mostly the server's. For the web app it may suggest a name and descr
 
 1. **Are these the right seven,** and the right names? A club or association, a company's own staff, and a conference were considered and left for the asking.
 2. **Should a recipe leave services out, or only turn them off?** Leaving them out costs less to run; turning them off is one setting to change later. The plan assumes out, with the line to put one back in the README.
-3. **Do recipes ship in anahita-services, or in a repository of their own** that others can add to? One place to begin with; a repository of its own when somebody outside wants to contribute one.
+3. **Where do recipes live? Not decided; still being thought over (user, 2026-10-11).** Two places were raised:
+   - **A repository of its own, `anahita-devops`,** for recipes and whatever else is about running a site and not about the code. For it: people who run a site and never build it clone only that; others can add a recipe without touching the services; it has its own pace of release. Against it: `k8s/base` is in anahita-services, so a recipe would point at a release of another repository, and a setting renamed there breaks a recipe here with nothing to say so until somebody builds it.
+   - **In anahita-services, beside `k8s/`,** as this plan is written. For it: the checks above run with every change to a setting. Against it: the services repository grows a part its developers seldom touch.
+   - Whichever is chosen, the form of a recipe is the same, so the choice can wait until the first two exist.
 
 ## Dependencies
 
@@ -119,4 +122,4 @@ A recipe is mostly the server's. For the web app it may suggest a name and descr
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11 |
-| Implementation | not started; place in the order not decided |
+| Implementation | not started. A sketch while the idea is talked through: where recipes live, and which ones, are open |
