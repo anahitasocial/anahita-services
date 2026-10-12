@@ -88,6 +88,8 @@ func (h *Handlers) Inbox(c echo.Context) error {
 		if inner := activity.Inner(); inner != nil && inner.Type == "Follow" {
 			err = h.unfollowed(from, inner)
 		}
+	case "Accept", "Reject":
+		err = h.answered(from, &activity, activity.Type == "Accept")
 	}
 	if err != nil {
 		// Ours to have done and not done. The sender tries again.
@@ -184,24 +186,10 @@ func (h *Handlers) followed(ctx context.Context, from *remote.Actor, activity *a
 	viewer.ID = follower.ID
 
 	already := relation != nil && relation.IsLeading
-	waiting := relation != nil && relation.HasRequested
 
 	switch {
 	case already:
 		// Asked again by somebody who follows already: told yes again.
-
-	case person.AllowFollowRequest:
-		// A profile that approves its followers: the request waits for the
-		// person here, like any other, and nothing is answered yet.
-		follow.State = repositories.FollowPending
-		if !waiting {
-			add := services.NewSocialgraphFollowRequest().Add
-			add.Source, add.Target, add.Viewer, add.IsFollowRequest = follower, person, viewer, true
-			if err := h.FollowEdges.Add(add); err != nil {
-				return err
-			}
-		}
-		return h.Follows.Save(follow)
 
 	default:
 		add := services.NewSocialgraphFollowRequest().Add
@@ -216,6 +204,68 @@ func (h *Handlers) followed(ctx context.Context, from *remote.Actor, activity *a
 	}
 	return h.send(ctx, person.ID, from.Inbox,
 		ap.NewAccept(h.addresses.Activity(newUUID()), actor, from.ID, activity.ID), "accept:"+activity.ID)
+}
+
+// answered is somebody elsewhere saying yes or no to a follow that
+// somebody here asked for.
+//
+// It is matched to a follow this installation is waiting on: from the
+// person who signed, of somebody here, and by what the follow was called
+// when it was sent. An answer to a question nobody asked does nothing, so
+// nobody can be made to follow somebody by being told they were accepted.
+func (h *Handlers) answered(from *remote.Actor, activity *ap.Activity, yes bool) error {
+	kept, err := h.Actors.ReadByURI(from.ID)
+	if err != nil || kept == nil {
+		return err
+	}
+
+	// What was answered: the Follow quoted whole, or only its address.
+	followID := activity.ObjectID()
+	var localUUID string
+	if inner := activity.Inner(); inner != nil {
+		if inner.Type != "" && inner.Type != "Follow" {
+			return nil
+		}
+		localUUID = h.addresses.UUIDOf(inner.ActorID())
+	}
+
+	var follow *repositories.Follow
+	if person := h.personByUUID(localUUID); person != nil {
+		follow, err = h.Follows.Read(person.ID, kept.NodeID, repositories.FollowOut)
+	} else if followID != "" {
+		follow, err = h.Follows.ReadByActivity(followID)
+	}
+	if err != nil || follow == nil || follow.Direction != repositories.FollowOut || follow.RemoteID != kept.NodeID {
+		return err
+	}
+	if followID != "" && followID != follow.ActivityID {
+		return nil
+	}
+
+	if yes {
+		follow.State = repositories.FollowAccepted
+		return h.Follows.Save(follow)
+	}
+
+	// Told no, or dropped later: the follow here is taken away.
+	follower, err := h.Nodes.Read(follow.LocalID)
+	if err != nil || follower == nil {
+		return err
+	}
+	followed, err := h.Nodes.Read(follow.RemoteID)
+	if err != nil || followed == nil {
+		return err
+	}
+	// Forgotten first, so that the follow's going is not taken for the
+	// person here unfollowing, and answered with an Undo.
+	if err := h.Follows.Delete(follow.LocalID, follow.RemoteID, repositories.FollowOut); err != nil {
+		return err
+	}
+	viewer := entities.NewViewer()
+	viewer.ID = follower.ID
+	remove := services.NewSocialgraphFollowRequest().Delete
+	remove.Source, remove.Target, remove.Viewer = follower, followed, viewer
+	return h.FollowEdges.Delete(remove)
 }
 
 // unfollowed is somebody elsewhere taking a follow back, or a request to.

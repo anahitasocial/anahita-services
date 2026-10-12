@@ -12,6 +12,7 @@ each at a name of its own, speaking to each other over https.
 - [Somebody to talk to](#somebody-to-talk-to)
 - [Having GoToSocial look somebody up](#having-gotosocial-look-somebody-up)
 - [Following somebody here from GoToSocial](#following-somebody-here-from-gotosocial)
+- [Following somebody on GoToSocial from here](#following-somebody-on-gotosocial-from-here)
 - [Looking somebody on GoToSocial up from here](#looking-somebody-on-gotosocial-up-from-here)
 - [Asking as another server would](#asking-as-another-server-would)
 - [Stopping and emptying it](#stopping-and-emptying-it)
@@ -128,6 +129,25 @@ inbox, this installation checked it, made the follow, and sent back a
 signed `Accept`, which GoToSocial checked in its turn. If it stays
 "requested", the reason is in `docker compose logs activitypub-service`
 (a message refused) or in `activitypub_deliveries` (an answer not taken).
+
+## Following somebody on GoToSocial from here
+
+Until the web app can show somebody from another server, the lab has a
+command that does what pressing Follow would. It is refused unless
+`ACTIVITYPUB_LAB` is on.
+
+~~~sh
+docker compose exec activitypub-service /app/app-binary lab-follow <username here> alice@gts.test
+
+G "https://gts.test/api/v1/follow_requests"                         # she approves her followers: the request is waiting
+G -X POST "https://gts.test/api/v1/follow_requests/<id>/authorize"  # she says yes
+
+docker compose exec activitypub-service /app/app-binary lab-unfollow <username here> alice@gts.test
+~~~
+
+The person here has to be on the fediverse. After her yes,
+`activitypub_follows` has the follow as `accepted`; after the unfollow it
+is gone, and GoToSocial no longer lists them among her followers.
 
 ## Looking somebody on GoToSocial up from here
 

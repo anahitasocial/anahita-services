@@ -372,7 +372,8 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: the service, opting in, keys, discovery, a person's description | done 2026-10-12 |
 | Phase 1, ActivityPub: signing and checking requests, fetching, looking somebody up | done 2026-10-12 |
 | Phase 1, ActivityPub: the inbox, being followed from elsewhere, the delivery worker | done 2026-10-13 |
-| Phase 1, ActivityPub: following from here, answering held requests, posts out and in, backfill, the blocklist, the web app | not started |
+| Phase 1, ActivityPub: following from here, and the other server's yes or no | done 2026-10-13 |
+| Phase 1, ActivityPub: posts out and in, profile changes, backfill, the blocklist and limits, the web app | not started |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -395,6 +396,27 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   and the avatar and cover, which it fetched through the addresses that
   stay.
 
+**Following from here.** `events.go` listens for `edge.follow.*` on the bus
+and sends `Follow` and `Undo`; the inbox takes `Accept` and `Reject`.
+
+- **Tried in the lab:** somebody here followed alice on GoToSocial, whose
+  account approves its followers. The request appeared for her there and
+  was pending here; she approved it and it was accepted here; unfollowed
+  from here, GoToSocial no longer listed the follower.
+- **The follow is made at once and settled afterwards,** where the plan had
+  a request to follow that became a follow on `Accept`. Following had to use
+  the existing button and the existing service unchanged, as the plan also
+  says, and those make a follow of a profile that is open to everybody, not
+  a request. So the follow is there from the start, recorded as pending, and
+  a `Reject` takes it away. The web app can say "requested" from the record.
+- **Nobody on the fediverse approves their followers,** where the plan held
+  a follow from elsewhere for anybody with `allow_follow_request`. That
+  setting is for a profile that is *not* open to everybody, which does not
+  federate; a public profile is followed by any stranger here, and a
+  stranger elsewhere is held to the same and no more. It also removes what
+  was listed below as still to do: answering a request that was held.
+- **Still to do:** the sweep for follows the bus lost.
+
 **The inbox, and being followed.** `POST /inbox` and each person's own;
 `Follow` and `Undo(Follow)`; the queue's table `activitypub_deliveries` and
 its worker; `activitypub_follows` (migration `20261029000001`).
@@ -411,10 +433,6 @@ its worker; `activitypub_follows` (migration `20261029000001`).
   (`…/users/alice/main-key`). Who signed is found from the key's own
   address either way, and must be on the key's server.
 - **Still to do, found here:**
-  - **Answering a request that was held.** When somebody who approves their
-    followers accepts or refuses one from elsewhere, nothing is sent back.
-    It needs this service to listen for the graph's follow-request events,
-    which comes with sending posts.
   - **A follower from elsewhere is subscribed to the person they follow,**
     as every follower is (`edge.base.subscription.v1`), so
     notification-service will make notifications for somebody who can never

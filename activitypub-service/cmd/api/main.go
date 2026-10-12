@@ -18,6 +18,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/crypt"
 	"anahita-libs/data/services"
+	"anahita-libs/event"
 	"anahita-libs/federation"
 	an_mw "anahita-libs/middleware"
 	"anahita-libs/sessions"
@@ -123,9 +124,45 @@ func main() {
 		return
 	}
 
+	// For the lab only: `app-binary lab-follow <username here> <handle
+	// elsewhere>` makes somebody here follow somebody on another server, as
+	// pressing Follow would. It is how following is tried before the web
+	// app can show somebody from another server.
+	if len(os.Args) == 4 && os.Args[1] == "lab-follow" {
+		if !config.Lab {
+			log.Fatal("lab-follow is for the federation lab: ACTIVITYPUB_LAB is not on")
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+		if err := h.LabFollow(ctx, os.Args[2], os.Args[3], true); err != nil {
+			fmt.Fprintln(os.Stderr, "not followed:", err)
+			os.Exit(1)
+		}
+		fmt.Println("followed here; the other server is asked by the running service")
+		return
+	}
+	if len(os.Args) == 4 && os.Args[1] == "lab-unfollow" {
+		if !config.Lab {
+			log.Fatal("lab-unfollow is for the federation lab: ACTIVITYPUB_LAB is not on")
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+		if err := h.LabFollow(ctx, os.Args[2], os.Args[3], false); err != nil {
+			fmt.Fprintln(os.Stderr, "not unfollowed:", err)
+			os.Exit(1)
+		}
+		fmt.Println("unfollowed here; the other server is told by the running service")
+		return
+	}
+
 	// Any number of copies of this service may run: a row of the queue is
 	// handed to one of them at a time.
 	go queue.Run(context.Background(), 5*time.Second, 10, h.Deliver)
+
+	// What happens here that another server has to be told. Without the
+	// bus the service still answers and is still followed; it is following
+	// from here that waits.
+	go listen(h, config)
 
 	e.GET("/ping", func(c echo.Context) error {
 		return c.String(http.StatusOK, "pong")
@@ -135,6 +172,24 @@ func main() {
 
 	if err := e.Start(fmt.Sprintf(":%v", webPort)); err != nil {
 		e.Logger.Fatal(err)
+	}
+}
+
+// listen hears what happens here, for as long as the bus is there, and
+// comes back to it when it is not.
+func listen(h *handlers.Handlers, config *config.Config) {
+	for {
+		conn, err := event.ConnectToAMQP(config)
+		if err == nil {
+			var consumer event.Consumer
+			if consumer, err = event.NewConsumer(conn); err == nil {
+				log.Println("listening for what happens here")
+				err = consumer.Listen(handlers.EventTopics, h.HandleEvent)
+			}
+			_ = conn.Close()
+		}
+		log.Printf("the bus is not there (%v): trying again in ten seconds", err)
+		time.Sleep(10 * time.Second)
 	}
 }
 

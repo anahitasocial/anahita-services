@@ -34,7 +34,10 @@ func NewActor(a Addresses, person *entities.AnahitaNode, publicKeyPEM string) *A
 			Owner:        a.Actor(uuid),
 			PublicKeyPem: publicKeyPEM,
 		},
-		ManuallyApprovesFollowers: person.AllowFollowRequest,
+		// Never: only a profile that is open to everybody is on the
+		// fediverse, and such a profile is followed by whoever chooses to,
+		// here as from elsewhere.
+		ManuallyApprovesFollowers: false,
 		Discoverable:              true,
 	}
 

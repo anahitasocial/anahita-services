@@ -5,9 +5,9 @@ and what an installation has to do for that to happen.
 
 **This is being built.** What is described here is what works today: a
 person can choose to be found, another server can find and describe them,
-somebody on another server can be looked up from here, and somebody on
-another server can follow somebody here. Following from here, and posts
-going out and coming in, are not built yet.
+somebody on another server can be looked up from here, and people follow
+each other across servers, either way round. Posts going out and coming in
+are not built yet, so a follow carries nothing so far.
 
 ## Contents
 
@@ -18,6 +18,7 @@ going out and coming in, are not built yet.
 - [What other servers are told](#what-other-servers-are-told)
 - [Looking somebody up on another server](#looking-somebody-up-on-another-server)
 - [Being followed from another server](#being-followed-from-another-server)
+- [Following somebody on another server](#following-somebody-on-another-server)
 - [The inbox](#the-inbox)
 - [What is sent, and when it does not arrive](#what-is-sent-and-when-it-does-not-arrive)
 - [Signing keys and signed requests](#signing-keys-and-signed-requests)
@@ -141,10 +142,15 @@ the inbox.
 
 | The person here | What happens |
 | --- | --- |
-| Lets anybody follow | They are followed at once: an ordinary follow in the graph, from the node kept for the person elsewhere. The other server is sent an `Accept` |
-| Approves their followers | A request to follow waits for them, like any other. **Nothing is sent back yet when they approve or refuse it:** that is not built, so on the other server the follow stays "requested" |
+| Is on the fediverse | They are followed at once: an ordinary follow in the graph, from the node kept for the person elsewhere. The other server is sent an `Accept` |
 | Has blocked whoever asks | Nothing is made, and the other server is sent a `Reject` |
 | Is not on the fediverse | Nothing, and nothing is said |
+
+**Nobody on the fediverse approves their followers.** Only a profile open
+to everybody is on it, and such a profile is followed by whoever chooses
+to, from here or from elsewhere. Letting people *ask* to follow is for a
+profile that is not open to everybody, and such a profile does not
+federate. So a person's description always says a follow does not wait.
 
 Taking a follow back (`Undo` of the `Follow`) removes it, or the request.
 Only whoever followed can take their own follow back.
@@ -155,6 +161,32 @@ because accepting it or undoing it means quoting it back.
 A person followed from elsewhere is told as they are of any follower.
 **The web app does not yet know how to show somebody from another server,**
 so until it does such a notification has a name and no profile behind it.
+
+## Following somebody on another server
+
+Somebody here follows a person kept from another server the way they follow
+anybody: the same button, the same request to `socialgraph-service`.
+Nothing there was changed. `activitypub-service` hears on the bus that it
+happened and asks the other server, with a signed `Follow`.
+
+| Then | What happens here |
+| --- | --- |
+| The other server says yes (`Accept`) | The follow stands. It is recorded as accepted |
+| It says no (`Reject`), then or later | The follow here is taken away |
+| It says nothing yet (the person there approves their followers) | The follow is there and recorded as pending. What that person posts will not arrive until they say yes |
+| The person here unfollows | The other server is sent an `Undo`, quoting the follow |
+
+- **Only somebody who is on the fediverse can follow across it.** The other
+  server has to be able to find out who is asking. A follow of somebody
+  elsewhere by a person who is not, is taken away again as soon as it is
+  heard of; the web app is not to offer it.
+- **An answer is matched to the question.** A yes or a no does something
+  only when it is from the person who was asked, about a follow this
+  installation is waiting on, by the name that follow was sent under. Nobody
+  can be made to follow somebody by being told they were accepted.
+- **The bus can lose a message.** A follow the other server was never asked
+  about stays as it is here and carries nothing. Unfollowing and following
+  again puts it right; a sweep that does so by itself is not written yet.
 
 ## The inbox
 
@@ -169,8 +201,9 @@ says, until it is known who sent it:
 2. **Whoever the message says did the thing must be whoever signed it.**
    Nobody is believed about what somebody else did.
 3. **Only then is it read,** and only what this installation understands is
-   done: today `Follow`, and `Undo` of a `Follow`. Everything else is
-   answered `202` and ignored.
+   done: today `Follow`, `Undo` of a `Follow`, and `Accept` or `Reject` of
+   a follow asked for from here. Everything else is answered `202` and
+   ignored.
 
 A message of more than a megabyte is refused. What cannot be checked is
 answered `401`, and nothing is kept of whoever sent it.
@@ -304,6 +337,7 @@ it.
 | Who somebody elsewhere is, and what is believed of it | `remote/` |
 | Looking somebody up | `cmd/api/handlers/lookup.go`, table `activitypub_actors` |
 | The inbox, and being followed | `cmd/api/handlers/inbox.go`, table `activitypub_follows` |
+| Following from here | `cmd/api/handlers/events.go`, listening for `edge.follow.*` on the bus (`AMQP_ADDR`) |
 | What is sent | `cmd/api/handlers/deliver.go`, `ap/activity.go`, table `activitypub_deliveries`, over `anahita-libs/federation` (`queue.go`) |
 | The installation's own actor | `cmd/api/handlers/instance.go` |
 | A person's choice | `cmd/api/handlers/settings.go`, table `activitypub_accounts` |

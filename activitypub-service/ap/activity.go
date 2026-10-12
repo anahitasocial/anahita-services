@@ -78,6 +78,22 @@ func NewAccept(id, actor, follower, followID string) *Sent {
 	}
 }
 
+// NewFollow asks to follow: `actor` here, of `object` elsewhere.
+func NewFollow(id, actor, object string) *Sent {
+	return &Sent{Context: contextActivityStreams, ID: id, Type: "Follow", Actor: actor, Object: object}
+}
+
+// NewUndoFollow takes a follow back, quoting the Follow that asked for it.
+func NewUndoFollow(id, actor, object, followID string) *Sent {
+	return &Sent{
+		Context: contextActivityStreams,
+		ID:      id,
+		Type:    "Undo",
+		Actor:   actor,
+		Object:  FollowRef{ID: followID, Type: "Follow", Actor: actor, Object: object},
+	}
+}
+
 // NewReject says no to one, the same way.
 func NewReject(id, actor, follower, followID string) *Sent {
 	sent := NewAccept(id, actor, follower, followID)

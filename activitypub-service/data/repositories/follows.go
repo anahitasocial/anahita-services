@@ -32,8 +32,14 @@ type FollowsInterface interface {
 	// Save keeps a follow, in place of what was kept for the same two
 	// people the same way round.
 	Save(follow *Follow) error
+	// Begin keeps a follow that is not kept yet, and says whether it did.
+	// Two copies of the service hear of the same follow; the one that is
+	// told yes here is the one that sends it.
+	Begin(follow *Follow) (bool, error)
 	// Read is the follow between two people one way round, or nil.
 	Read(localID, remoteID int64, direction string) (*Follow, error)
+	// ReadByActivity is the follow that was called this when it was sent.
+	ReadByActivity(activityID string) (*Follow, error)
 	// Delete forgets it.
 	Delete(localID, remoteID int64, direction string) error
 }
@@ -64,6 +70,24 @@ func (repo *Follows) Save(follow *Follow) error {
 	return err
 }
 
+const beginFollow = `
+INSERT IGNORE INTO activitypub_follows (local_id, remote_id, direction, activity_id, state, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?)`
+
+func (repo *Follows) Begin(follow *Follow) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	now := time.Now().UTC()
+	result, err := repo.db.ExecContext(ctx, beginFollow,
+		follow.LocalID, follow.RemoteID, follow.Direction, follow.ActivityID, follow.State, now, now)
+	if err != nil {
+		return false, err
+	}
+	added, err := result.RowsAffected()
+	return added == 1, err
+}
+
 const readFollow = `
 SELECT local_id, remote_id, direction, activity_id, state
 FROM activitypub_follows
@@ -77,6 +101,28 @@ func (repo *Follows) Read(localID, remoteID int64, direction string) (*Follow, e
 
 	follow := &Follow{}
 	err := repo.db.QueryRowContext(ctx, readFollow, localID, remoteID, direction).Scan(
+		&follow.LocalID, &follow.RemoteID, &follow.Direction, &follow.ActivityID, &follow.State)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return follow, nil
+}
+
+const readFollowByActivity = `
+SELECT local_id, remote_id, direction, activity_id, state
+FROM activitypub_follows
+WHERE activity_id = ?
+LIMIT 1`
+
+func (repo *Follows) ReadByActivity(activityID string) (*Follow, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	follow := &Follow{}
+	err := repo.db.QueryRowContext(ctx, readFollowByActivity, activityID).Scan(
 		&follow.LocalID, &follow.RemoteID, &follow.Direction, &follow.ActivityID, &follow.State)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil

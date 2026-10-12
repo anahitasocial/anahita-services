@@ -18,6 +18,7 @@ import (
 
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/event"
 	"anahita-libs/federation"
 
 	"github.com/labstack/echo/v4"
@@ -88,6 +89,22 @@ func followKey(l, r int64, d string) string { return string(rune(l)) + "|" + str
 func (f *fakeFollows) Save(follow *repositories.Follow) error {
 	f.kept[followKey(follow.LocalID, follow.RemoteID, follow.Direction)] = follow
 	return nil
+}
+func (f *fakeFollows) Begin(follow *repositories.Follow) (bool, error) {
+	key := followKey(follow.LocalID, follow.RemoteID, follow.Direction)
+	if f.kept[key] != nil {
+		return false, nil
+	}
+	f.kept[key] = follow
+	return true, nil
+}
+func (f *fakeFollows) ReadByActivity(id string) (*repositories.Follow, error) {
+	for _, follow := range f.kept {
+		if follow.ActivityID == id {
+			return follow, nil
+		}
+	}
+	return nil, nil
 }
 func (f *fakeFollows) Read(l, r int64, d string) (*repositories.Follow, error) {
 	return f.kept[followKey(l, r, d)], nil
@@ -270,20 +287,14 @@ type bodyReader struct{ *strings.Reader }
 func (*bodyReader) Close() error { return nil }
 
 func TestWhoIsFollowedDecidesWhatHappens(t *testing.T) {
-	// A profile that approves its followers: the request waits, and nothing
-	// is answered.
+	// Letting people ask to follow is for a profile that is not open to
+	// everybody. One that is, is followed at once, from elsewhere as from
+	// here.
 	w := newInboxWorld()
 	w.nodes.people[0].AllowFollowRequest = true
-	if rec := w.fromAlice(follow()); rec.Code != http.StatusAccepted {
-		t.Fatalf("%d", rec.Code)
-	}
-	if len(w.edges.log) != 1 || w.edges.log[0] != "add request alice@mastodon.example>ana" || len(w.queue.sent) != 0 {
-		t.Errorf("a profile that approves: edges %v, queued %d", w.edges.log, len(w.queue.sent))
-	}
-	for _, f := range w.follows.kept {
-		if f.State != repositories.FollowPending {
-			t.Errorf("recorded as %s", f.State)
-		}
+	w.fromAlice(follow())
+	if len(w.edges.log) != 1 || w.edges.log[0] != "add follow alice@mastodon.example>ana" || len(w.queue.sent) != 1 {
+		t.Errorf("a profile that lets people ask: edges %v, queued %d", w.edges.log, len(w.queue.sent))
 	}
 
 	// Somebody the person here has blocked is told no, and does not follow.
@@ -391,5 +402,122 @@ func TestWhatIsQueuedIsSentInTheNameItWasQueuedIn(t *testing.T) {
 	delivery.ActorID = 404
 	if err := w.h.Deliver(context.Background(), delivery); !errors.Is(err, federation.ErrPermanent) {
 		t.Errorf("nobody: %v", err)
+	}
+}
+
+// Following from here: heard on the bus, asked of the other server, and
+// settled by what it answers.
+func TestSomebodyHereFollowsSomebodyElsewhere(t *testing.T) {
+	w := newInboxWorld()
+
+	// Alice is known here, as anybody looked up is.
+	w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q=@alice@mastodon.example", "", anaID)
+	var alice *repositories.RemoteActor
+	for _, kept := range w.actors.kept {
+		alice = kept
+	}
+	if alice == nil {
+		t.Fatal("alice was not kept")
+	}
+
+	followed := &event.EventPayload{Name: "edge.follow.socialgraph.added.v1", ObjectID: anaID, TargetID: alice.NodeID}
+
+	// Heard twice, as every copy of the service hears it: asked once.
+	for i := 0; i < 2; i++ {
+		if err := w.h.HandleEvent(followed); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(w.queue.sent) != 1 {
+		t.Fatalf("queued %d", len(w.queue.sent))
+	}
+	sent := w.queue.sent[0]
+	asked, _ := sent.payload["id"].(string)
+	if sent.actorID != anaID || sent.target != aliceID+"/inbox" || sent.payload["type"] != "Follow" ||
+		sent.payload["actor"] != anaActor || sent.payload["object"] != aliceID || !strings.HasPrefix(asked, "https://api.example.org/ap/activities/") {
+		t.Errorf("sent %+v", sent)
+	}
+	waiting, _ := w.follows.Read(anaID, alice.NodeID, repositories.FollowOut)
+	if waiting == nil || waiting.State != repositories.FollowPending || waiting.ActivityID != asked {
+		t.Fatalf("recorded %+v", waiting)
+	}
+
+	// Told yes by somebody else, or about a follow nobody asked for: nothing.
+	accept := func(id string) string {
+		return `{"id":"https://mastodon.example/a/1","type":"Accept","actor":"` + aliceID + `","object":{"id":"` + id + `","type":"Follow","actor":"` + anaActor + `","object":"` + aliceID + `"}}`
+	}
+	w.fromAlice(accept("https://api.example.org/ap/activities/some-other"))
+	if waiting, _ = w.follows.Read(anaID, alice.NodeID, repositories.FollowOut); waiting.State != repositories.FollowPending {
+		t.Error("an answer to another question was taken")
+	}
+
+	// Told yes by her, to what was asked.
+	if rec := w.fromAlice(accept(asked)); rec.Code != http.StatusAccepted {
+		t.Fatalf("%d", rec.Code)
+	}
+	if waiting, _ = w.follows.Read(anaID, alice.NodeID, repositories.FollowOut); waiting.State != repositories.FollowAccepted {
+		t.Errorf("after her yes: %+v", waiting)
+	}
+
+	// Unfollowing tells her, quoting what was asked.
+	if err := w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.deleted.v1", ObjectID: anaID, TargetID: alice.NodeID}); err != nil {
+		t.Fatal(err)
+	}
+	last := w.queue.sent[len(w.queue.sent)-1]
+	quoted, _ := last.payload["object"].(map[string]any)
+	if last.payload["type"] != "Undo" || quoted["id"] != asked || quoted["type"] != "Follow" {
+		t.Errorf("sent %+v", last)
+	}
+	if kept, _ := w.follows.Read(anaID, alice.NodeID, repositories.FollowOut); kept != nil {
+		t.Error("the follow was still kept")
+	}
+}
+
+func TestToldNoTheFollowHereIsTakenAway(t *testing.T) {
+	w := newInboxWorld()
+	w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q=@alice@mastodon.example", "", anaID)
+	var alice *repositories.RemoteActor
+	for _, kept := range w.actors.kept {
+		alice = kept
+	}
+	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.added.v1", ObjectID: anaID, TargetID: alice.NodeID})
+	asked, _ := w.queue.sent[0].payload["id"].(string)
+
+	w.fromAlice(`{"id":"https://mastodon.example/a/2","type":"Reject","actor":"` + aliceID + `","object":"` + asked + `"}`)
+
+	if len(w.edges.log) != 1 || w.edges.log[0] != "delete follow ana>alice@mastodon.example" {
+		t.Errorf("edges %v", w.edges.log)
+	}
+	if kept, _ := w.follows.Read(anaID, alice.NodeID, repositories.FollowOut); kept != nil {
+		t.Error("the follow was still kept")
+	}
+
+	// Its going is then heard on the bus, and is not taken for an unfollow.
+	before := len(w.queue.sent)
+	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.deleted.v1", ObjectID: anaID, TargetID: alice.NodeID})
+	if len(w.queue.sent) != before {
+		t.Error("an Undo was sent for a follow that was refused")
+	}
+}
+
+func TestOnlySomebodyOnTheFediverseFollowsAcrossIt(t *testing.T) {
+	w := newInboxWorld()
+	w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q=@alice@mastodon.example", "", anaID)
+	var alice *repositories.RemoteActor
+	for _, kept := range w.actors.kept {
+		alice = kept
+	}
+
+	w.accounts.enabled[anaID] = false
+	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.added.v1", ObjectID: anaID, TargetID: alice.NodeID})
+	if len(w.queue.sent) != 0 || len(w.edges.log) != 1 || w.edges.log[0] != "delete follow ana>alice@mastodon.example" {
+		t.Errorf("queued %d, edges %v", len(w.queue.sent), w.edges.log)
+	}
+
+	// A follow between two people here is nothing to do with this.
+	w = newInboxWorld()
+	_ = w.h.HandleEvent(&event.EventPayload{Name: "edge.follow.socialgraph.added.v1", ObjectID: anaID, TargetID: anaID})
+	if len(w.queue.sent) != 0 || len(w.edges.log) != 0 {
+		t.Errorf("a follow here: queued %d, edges %v", len(w.queue.sent), w.edges.log)
 	}
 }

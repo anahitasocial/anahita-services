@@ -1187,6 +1187,8 @@ services:
       REDIS_TLS: ${REDIS_TLS:-}
       REDIS_PASSWORD: ""
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      # Where it hears that somebody here followed somebody elsewhere.
+      AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
