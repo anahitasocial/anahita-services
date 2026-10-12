@@ -11,10 +11,13 @@ use (
 	./hashtag-service
 	./identity-image-service
 	./like-service
+	./link-preview-service
+	./web-shell
 	./location-service
 	./mail-grpc-service
 	./notification-service
 	./photo-service
+	./recommendation-service
 	./scripts/s3-migration
 	./search-service
 	./socialgraph-service

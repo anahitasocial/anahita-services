@@ -131,6 +131,11 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		// When what it answers or reposts was written. Never NULL, so it
 		// scans like the row's own date; a row with no parent does not use it.
 		"COALESCE(parent.created_at, node.created_at, NOW()) AS parent_created_at",
+		// The card a reposted note carries is in its meta.
+		"COALESCE(parent.meta, '') AS parent_meta",
+		// Who may see what is reposted, for whether its link is worth sending
+		// beyond the site.
+		"COALESCE(parent.access, '') AS parent_access",
 	}...)
 
 	// Parent Owner fields
@@ -293,6 +298,8 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.Parent.RepostCount,
 		&item.Parent.QuoteCount,
 		&item.Parent.CreatedAt,
+		&item.Parent.Meta,
+		&item.Parent.Access,
 		// Parent Owner fields
 		&item.Parent.Owner.ID,
 		&item.Parent.Owner.Type,
@@ -438,6 +445,8 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.Parent.RepostCount,
 			&item.Parent.QuoteCount,
 			&item.Parent.CreatedAt,
+			&item.Parent.Meta,
+			&item.Parent.Access,
 			// Parent Owner fields
 			&item.Parent.Owner.ID,
 			&item.Parent.Owner.Type,

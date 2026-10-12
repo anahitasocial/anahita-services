@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"anahita-libs/data/entities"
+	"anahita-libs/feeds"
 	"anahita-libs/proto/graphpb"
 	"fmt"
 	"time"
@@ -161,12 +162,21 @@ func (repo *SearchRepo) getScopeQuery(query sq.SelectBuilder, scope string) sq.S
 	actorCondition := sq.Like{"node.type": constants.NodeActorPrefixEntityType + "%"}
 	mediumCondition := sq.Like{"node.type": constants.NodeMediumPrefixEntityType + "%"}
 
+	// A custom feed somebody has shared. One kept to its owner is not
+	// found, by anybody: its owner has it under their own feeds.
+	feedCondition := sq.And{
+		sq.Eq{"node.type": feeds.NodeType},
+		sq.NotEq{"node.access": constants.AnahitaAccessMyself},
+	}
+
 	switch scope {
 	case constants.SearchScopeActor:
 		return query.Where(actorCondition)
 	case constants.SearchScopeMedium:
 		return query.Where(mediumCondition)
+	case constants.SearchScopeFeed:
+		return query.Where(feedCondition)
 	default:
-		return query.Where(sq.Or{actorCondition, mediumCondition})
+		return query.Where(sq.Or{actorCondition, mediumCondition, feedCondition})
 	}
 }

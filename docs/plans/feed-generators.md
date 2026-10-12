@@ -154,6 +154,16 @@ than after it, since (A) is a special case of (C) and would be thrown away.
 - Feeds are **nodes**, **private ("Only me") by default**. The owner can make a feed public or followers-only, and others can follow and pin it.
 - **Chronological only** (newest first).
 
+### Confirmed and extended by the user: 2026-10-11
+
+- **The default feed is chronological:** posts from the actors the viewer follows, newest first. Many people are unhappy with algorithmic feeds, and the default is not one.
+- **A ranked feed, when one is built, is never the site's.** It is a feed somebody makes: they choose the parameters and the weight of each, save them with that feed, and call it what they like. That is their "For You", and they can have several.
+- **What this asks of the work now:** nothing ranked is built in item 14. The definition's reserved `order` key is where it goes later: beside `"newest"`, an order by weights, with the weights stored in the same definition, shown in the same plain-language summary and copied by "Copy this algorithm". The signals and weights of the recommendation service (item 3) are the natural ones to offer, so a ranked feed and suggested posts would be one mechanism and not two.
+
+### The name: custom feeds (user, 2026-10-11)
+
+The feature is called **custom feeds**, everywhere a person reads it: the menu, the editor, the buttons, the help. The user chose it over "your algorithm" as better for the people using it and for telling others about it, "algorithm" being a word many now dislike. So: "Create a custom feed", "Edit feed", "Copy this feed" where the sections below say "Your algorithm" and "Copy this algorithm". One ordered by weights, when there are such feeds, is a custom feed like any other, named by whoever made it: nobody is shown the words "ranked feed" or "algorithmic feed". The user asked for this in particular. "Algorithm" and "generator" stay as words for the code and for these plans.
+
 ### "Each feed is your own algorithm"
 - The definition below **is** the feed's algorithm, and the editor is where people build it. The web app presents it that way: a "Your algorithm" editor, not a settings form.
 - **Plain-language summary:** every feed shows a readable sentence generated from its definition, for example "Photos and notes from my groups tagged #garden or #seeds, without replies, newest first". Nothing about a feed is hidden, which is the point of choosing this over an opaque "For You".
@@ -241,6 +251,56 @@ than after it, since (A) is a special case of (C) and would be thrown away.
 | Web: home tabs + pinning, feed editor with live preview, feed page, hashtag follow, my feeds | 7–9 h |
 | Update `feed-generators.md` and `docs/permissions.md` | 1 h |
 | **Total** | **about 22–27 h, 5–7 sessions** |
+
+### What was built: 2026-10-11
+
+Row 19, on branch `m7-discovery` in both repos. What a feed is and how it is used is in `docs/feeds.md`; this is what was done and where it differs from the sections above.
+
+**Services**
+
+- **`anahita-libs/feeds`:** the definition (`Parse`, `Check`, the limits, the words for kinds of post and profile) and the cursor. Used by feed-service when a feed is saved and by graph-grpc-service before it builds a query.
+- **graph-grpc-service:** `FeedCustomService.Browse` (`proto/graphpb/feed_custom.proto`, `handlers/feed_custom.go`, `repositories/feed_custom.go`). Gated with `SetFeedAccessQuery`, `SetLifecycleQuery` and `SetArchiveQuery` for the reader, and paged by a cursor on `(created_at, id)`. `FilterVisible` judges a feed node by its own access and its owner's: before this a feed would have fallen among hashtags and places, which anybody may see.
+- **feed-service:** `handlers/custom_feed.go` and its routes: make, read, change, delete, copy, list mine, preview, items, and the feeds on the home page.
+- **No migration.** The definition is in the node's `meta`, and a feed on the home page is an edge with its place in `ordering`.
+- **Tests:** `anahita-libs/feeds` (what is tidied, every refusal, the cursor), and `feed_custom_integration_test.go` against a real database: 33 cases over who sees what, each source, filter and exclusion, paging while a post is written, two posts in one second, and a feed's own audience.
+
+**Web**
+
+- Home has tabs: Following, then the feeds kept there, with the open one in the address (`?feed=`).
+- "Custom feeds" in the left menu (`/feeds`): the viewer's feeds and the ones of other people's they keep, with adding to and removing from the home page and moving among its tabs.
+- The editor (`/feeds/new`, `/feeds/:id/edit`) with what the feed shows in a sentence and a live preview beside it.
+- A feed's own page (`/feeds/:id`): add to home, copy, edit, delete.
+- "Follow #tag" on a hashtag's page makes a feed of that hashtag and puts it on the home page.
+
+**Different from the plan above**
+
+- **`actor_types` is a filter, not a source.** As a source added to the others it could not say "the groups I follow", which is the feed most wanted. As a filter it does: `following` with `actor_types: ["group"]`.
+- **`members_of` was left out,** for the same reason: that feed is the line above.
+- **`with_images` was left out.** `media_types: ["photo"]` is the photo posts.
+- **Following a feed is keeping it on the home page.** One edge, `edge.feed.pin.v1`, and no follow edge to a feed: the follow rules are about actors, and a second way of holding on to a feed added nothing a person would notice.
+- **No feeds are made for a new account.** Following is the first tab already.
+- **No cache of a first page,** and the time allowed is the three seconds every query has, not two.
+- **Moving tabs is by arrows on the list page,** not by dragging.
+- **A feed is addressed by its id,** `/feeds/:id`, not by an alias.
+- **The hashtag shortcut is in the web app:** it makes the feed and pins it with the ordinary endpoints.
+- **Wording:** "custom feed", "Copy this feed". Nothing a person reads says "algorithm".
+
+**Added the same day, after the user tried it**
+
+- A feed is put on its maker's home page when it is made, and the web app lists the feeds on the home page under Home in the left menu, with "Custom feed" under them to make another. The separate "Custom feeds" entry in the menu went; the list page is reached from the end of the tabs on Home.
+- Tests for the endpoints (`feed-service/cmd/api/handlers/custom_feed_test.go`), which had none.
+
+- The editor became a dialog, at the user's asking, with phones in mind: it is the whole screen on one. It had a second step that previewed the feed, which the user took out the same day: saving opens the feed itself. `POST /feeds/preview` is still served and the web app no longer calls it. A person owns 10 feeds at most, not 20, the number the home page holds, so that every feed made is listed in the menu.
+
+- A feed has an icon, one of sixteen that follow what a feed can be made of, chosen in the editor and kept by name beside the definition (`feeds.Stored`). The form is in the page for a new feed and for changing one, both reached from the list of feeds ("Customize feeds" under Home): the user tried a dialog, and a dialog opened from Home, and took both out as more than was needed.
+
+- Discover: a list of the feeds people have shared (`GET /feeds/discover`), as a second tab on the page of feeds, at the user's asking, so that other people's feeds, which will be many, are not in one list with the viewer's own.
+
+- Shared feeds are found by the site's search, among the other results and under a Feeds tab of their own (`scope=feeds`). The user first had Discover moved into search as that tab, then asked for feeds to be results like any other, which meant the graph's search query learning about them. `GET /feeds/discover` is still served and no longer called.
+
+**Not tried**
+
+Nothing that needs somebody signed in was tried by me: making, changing, copying and pinning a feed, and every screen. The routes answer as they should without a session (404 for a feed that is not there, 401 for the ones that need signing in), the query is tested against a real database, and the web app builds and its tests pass.
 
 ### Verification
 - **Algorithm summary:** the summary sentence matches the definition for every combination in the validator's tests. "Copy this algorithm" creates a private feed with the same definition, owned by the copier.

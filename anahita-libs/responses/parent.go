@@ -17,6 +17,7 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 		Alias:              node.Alias,
 		Name:               node.Name,
 		Body:               node.Body,
+		Access:             node.Access,
 		CreatedAt:          createdAtOrNil(node),
 		IsLikedByViewer:    node.IsLikedByViewer,
 		IsSavedByViewer:    node.IsSavedByViewer,
@@ -32,6 +33,8 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 	}
 
 	dto.Files = NewPhotoFiles(node.Files)
+	// A reposted note is shown as itself, with the card it carries.
+	dto.LinkPreview = NewLinkPreview(node)
 
 	if node.Owner != nil {
 		dto.Owner = NewOwner(node.Owner)
@@ -54,11 +57,14 @@ type Parent struct {
 	Alias string `json:"alias,omitempty"`
 	Name  string `json:"name,omitempty"`
 	Body  string `json:"body,omitempty"`
+	// Who may see it. Said so that a repost can be shared as what it reposts.
+	Access string `json:"access,omitempty"`
 	// When it was written, so that a reposted post can be shown as itself.
 	CreatedAt       *time.Time       `json:"created_at,omitempty"`
 	Cover           map[string]Image `json:"cover_urls,omitempty"`
 	Portrait        map[string]Image `json:"portrait_urls,omitempty"`
 	Files           []*PhotoFile     `json:"files,omitempty"`
+	LinkPreview     *LinkPreview     `json:"link_preview,omitempty"`
 	Owner           *Owner           `json:"owner,omitempty"`
 	Author          *Author          `json:"author,omitempty"`
 	IsLikedByViewer bool             `json:"is_liked_by_viewer,omitempty"`

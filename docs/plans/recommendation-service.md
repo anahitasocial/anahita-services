@@ -110,6 +110,35 @@ That keeps the privacy rules in one place, so a replacement recommender gets the
 
 Steps 1–4 are the backend (about 3 sessions) and can ship and be tested with `curl` before any UI.
 
+## What was built: 2026-10-11
+
+Row 20, on branch `m7-discovery`. What the service does is in `docs/recommendations.md`; this is what was done and where it differs from the sections above.
+
+**Built**
+
+- **The service** (`recommendation-service`, with its dockerfile, compose entry, nginx location, Kubernetes manifest and Makefile targets), its two tables (migration `20261020000001_recommendations`, `schema/init.sql`, `legacy/upgrade.sql`), and the endpoints: suggestions, preferences, dismissals.
+- **Seven signals** in SQL, each ending in one clause that keeps it to profiles that may be suggested, and a ranking that reads nothing.
+- **Visibility asked of the graph:** `FilterVisible`, which item 4b built, on the best hundred and on what the reasons name.
+- **Tests:** the signals and the two stores against a real database (every exclusion in the list, each reason, groups, somebody who has just joined, activity switched off); the ranking; the endpoints over fakes.
+- **Web:** see the web app's `docs/architecture.md`.
+
+**Different from the plan above**
+
+- **Interests are taken from what somebody does,** the hashtags on what they wrote and liked, and not picked by hand. No `edge.actor.interest.v1`, no interests endpoints, no picker. `use_activity` switches it off.
+- **The answer carries the profiles,** as `actor`, and what the reasons name, as `related`, each gated by the graph. The plan had ids alone, with the web app reading the profiles; the installation has no way to read several profiles by id over HTTP, and the gate is the graph's either way.
+- **A dormant profile counts for a tenth, not nothing.** The development data is an installation brought over from an older one, where nobody has been active for a year: with the plan's rule nobody at all was suggested.
+- **A profile's making counts as activity,** so a group started yesterday is alive.
+- **Weights are constants,** not settings.
+- **No cache, and so nothing listens for follows and blocks.** The whole answer takes under a tenth of a second on the development data.
+- **No `nearby` and no `use_location`.**
+- **Onboarding is not changed.** `context=onboarding` is answered, and nothing asks it yet.
+- **`GET /recommendations/dismissals`** was added, for the list in settings.
+
+**Added the same day, at the user's asking**
+
+- **Events are suggested,** with a reason of their own: a group the viewer follows is hosting it.
+- **Each person can set their own weights,** from 0 to 10 for each reason, kept with their choices. The plan had weights as the installation's configuration; these are each person's, as the custom feeds plan says a ranked feed's would be.
+
 ## Verification
 - **Seed data:** an integration test DB in the style of `access_integration_test.go`, with people A–F.
   - A follows B and C; B and C follow D, so D should come first for A with the reason `followed_by_leaders [B, C]`.
@@ -144,4 +173,4 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Implementation | built 2026-10-11 |

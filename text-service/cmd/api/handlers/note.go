@@ -5,9 +5,11 @@ import (
 	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/linkpreviews"
 	"anahita-libs/responses"
 	"log"
 	"net/http"
+	"strings"
 	"text/constants"
 	"text/requests"
 
@@ -153,6 +155,9 @@ func (h *noteHandler) Edit(c echo.Context) error {
 		medium.Language = language
 	}
 	medium.ModifiedBy = viewer.ID
+	// Its preview follows the edit: the one kept now, or none.
+	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body, req.LinkPreviewRemove)
+
 	medium, err = h.Srv.MediaGRPC.Edit(medium, viewer)
 	if err != nil {
 		log.Println(err)
@@ -267,6 +272,9 @@ func (h *noteHandler) Add(c echo.Context) error {
 		medium.QuoteID = req.QuoteID
 	}
 
+	// The preview of a link in it, when its writer kept one.
+	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body, false)
+
 	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)
 	if err != nil {
 		log.Println(err)
@@ -284,4 +292,51 @@ func (h *noteHandler) Add(c echo.Context) error {
 	resp := mediaResp.MapMediumNode(medium)
 
 	return c.JSON(http.StatusCreated, resp)
+}
+
+// withLinkPreview puts the preview of a link into a note's meta, keeps the
+// one that is there, or takes it out.
+//
+// The browser says which link, and nothing else. The link has to be in the
+// note's own text, and the preview is the one link-preview-service read
+// and kept: what a card says of a page is what this installation found
+// there, so a card cannot be made to say something the page does not.
+//
+// A note that already has a card keeps it for as long as its link is still
+// in the note, whatever is sent: a card is as the page was when the note
+// was written, and correcting a word is no reason to lose it or to fetch
+// it again. With the link gone, so is the card; and `remove` is its writer
+// taking it off while the link stays.
+func (h *mediumHandler) withLinkPreview(meta []byte, address, body string, remove bool) []byte {
+	existing := linkpreviews.FromMeta(meta)
+
+	if remove {
+		if existing == nil {
+			return meta
+		}
+		return linkpreviews.IntoMeta(meta, nil)
+	}
+
+	if normal, ok := linkpreviews.Normalise(address); ok && h.Previews != nil && strings.Contains(body, strings.TrimSpace(address)) {
+		// The card it already has for this link is the one it keeps.
+		if existing != nil && existing.URL == normal {
+			return meta
+		}
+		if preview, kept := h.Previews.Get(normal); kept && preview.Usable() {
+			return linkpreviews.IntoMeta(meta, linkpreviews.NewSnapshot(preview))
+		}
+	}
+
+	// Nothing to put in and nothing there to take out: left as it was,
+	// which for most notes is no meta at all.
+	if existing == nil {
+		return meta
+	}
+	// Its address is kept tidied, with the host in lower case, where the
+	// note has it as it was typed.
+	if strings.Contains(strings.ToLower(body), strings.ToLower(existing.URL)) {
+		return meta
+	}
+
+	return linkpreviews.IntoMeta(meta, nil)
 }

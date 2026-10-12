@@ -26,9 +26,11 @@ resources:
   - services/hashtag.yml
   - services/identity-image.yml
   - services/like.yml
+  - services/link-preview.yml
   - services/location.yml
   - services/notification.yml
   - services/photo.yml
+  - services/recommendation.yml
   - services/search.yml
   - services/socialgraph.yml
   - services/text.yml

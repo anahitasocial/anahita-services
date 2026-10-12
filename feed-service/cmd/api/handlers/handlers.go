@@ -15,6 +15,7 @@ type Env struct {
 }
 
 type Handlers struct {
+	CustomFeed  *customFeedHandler
 	FeedActor   *feedActorHandler
 	FeedLeaders *feedLeadersHandler
 	Repost      *repostHandler
@@ -22,6 +23,7 @@ type Handlers struct {
 
 func NewHandlers(env *Env) *Handlers {
 	return &Handlers{
+		CustomFeed:  NewCustomFeedHandler(env),
 		FeedActor:   NewFeedActorHandler(env),
 		FeedLeaders: NewFeedLeadersHandler(env),
 		Repost:      NewRepostHandler(env),

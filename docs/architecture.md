@@ -50,6 +50,9 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `like-service` | 8095 | 50058 | Votes / likes |
 | `identity-image-service` | 8096 | — | The avatars and covers of profiles and posts; see [Naming images](#naming-images) |
 | `feed-service` | 8098 | 50059 | Feeds and reposts |
+| `recommendation-service` | 8100 | | Suggestions of who to follow. Optional |
+| `link-preview-service` | 8101 | — | Fetches the page a link points to and keeps its title and picture, for the card on a note. The only service that connects to addresses people type. Optional. See [Link previews](link-previews.md) |
+| `web-shell` | 8102 | — | Sends the web app, with each page's own title, description and picture written into `index.html`, so a shared link shows as itself. On the web app's host, not the API's. Optional. See [The web shell](web-shell.md) |
 | `abuse-report-service` | 8099 | — | Reports of people and posts, and the cases administrators decide. See [Abuse reports](abuse-reports.md) |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
 | `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is |
@@ -81,6 +84,8 @@ Kubernetes, where the Ingress sends everything to it
 | `/hashtags/` | `hashtag-service` |
 | `/locations/` | `location-service` |
 | `/feeds/`, `/reposts/` | `feed-service` |
+| `/recommendations/` | `recommendation-service` |
+| `/link-previews` | `link-preview-service` |
 | `/notifications/` | `notification-service` |
 | `/abuse-reports` | `abuse-report-service` |
 | `/socialgraph/` | `socialgraph-service` |
@@ -104,6 +109,17 @@ looked at what. A story service existed as a stub and was removed; so, after
 being built, was a row of "who posted lately" on the home page, which a new
 installation with few people on it has no use for yet. What may come later is
 in the web app's roadmap, under Kept for later.
+
+### Custom feeds
+
+A custom feed is a node of type `node.feed.feed-service.generator.v1`, owned
+by whoever made it, with what it shows as JSON in the node's `meta`. Keeping
+one on the home page is an edge, `edge.feed.pin.v1`. feed-service serves them
+(`POST /feeds/`, `GET /feeds/<id>/items` and the rest), and reads a feed's
+posts from the graph over `FeedCustomService.Browse`, which builds its query
+from the definition and gates it for whoever is reading. The definition and
+its rules are in `anahita-libs/feeds`, used on both sides. See
+[Custom feeds](feeds.md).
 
 ### Pinned posts
 

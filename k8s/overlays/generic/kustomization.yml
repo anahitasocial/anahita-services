@@ -59,6 +59,8 @@ images:
     newTag: latest
   - name: anahita/like-service
     newTag: latest
+  - name: anahita/link-preview-service
+    newTag: latest
   - name: anahita/location-service
     newTag: latest
   - name: anahita/mail-grpc-service
@@ -70,6 +72,8 @@ images:
   - name: anahita/notification-service
     newTag: latest
   - name: anahita/photo-service
+    newTag: latest
+  - name: anahita/recommendation-service
     newTag: latest
   - name: anahita/search-service
     newTag: latest

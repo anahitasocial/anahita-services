@@ -130,11 +130,12 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
-| [Recommendation service](plans/recommendation-service.md) | 3 | not started |
+| [Recommendation service](plans/recommendation-service.md) | 3 | built 2026-10-11 |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
-| [Link previews](plans/link-previews.md) | 10 | not started |
+| [Link previews](plans/link-previews.md) | 10 | built 2026-10-11, with the web shell of its part B |
+| [Downloading what a post holds](plans/downloads.md) | 37 | not started; with the video service |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
@@ -165,3 +166,40 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Language on posts](plans/done/content-language.md) | 20 | done 2026-10-05 in a smaller form: the author chooses, nothing is detected |
 | [Instance privacy and the composer audience picker](plans/done/instance-privacy.md) | 13 | done 2026-10-05 (the web parts not yet tried in a browser) |
 | [Cloud-neutral storage and deployment](plans/done/cloud-neutral.md) | 9 | done 2026-10-03 (non-AWS providers other than Garage untested) |
+14. [Custom feeds](feeds.md) — feeds people build: what one is made of, who sees it, and what they see in it
+   - [The home page](feeds.md#the-home-page)
+   - [A feed is a node](feeds.md#a-feed-is-a-node)
+   - [The definition](feeds.md#the-definition)
+   - [Limits](feeds.md#limits)
+   - [Who sees a feed, and what they see in it](feeds.md#who-sees-a-feed-and-what-they-see-in-it)
+   - [Reading a feed](feeds.md#reading-a-feed)
+   - [Keeping feeds on the home page](feeds.md#keeping-feeds-on-the-home-page)
+   - [Endpoints](feeds.md#endpoints)
+   - [What is not built](feeds.md#what-is-not-built)
+15. [Recommendations](recommendations.md) — suggestions of who to follow: the contract, the reasons, who is never suggested, and running without it
+   - [The contract](recommendations.md#the-contract)
+   - [Why somebody is suggested](recommendations.md#why-somebody-is-suggested)
+   - [Who is never suggested](recommendations.md#who-is-never-suggested)
+   - [What each person chooses](recommendations.md#what-each-person-chooses)
+   - [Not interested](recommendations.md#not-interested)
+   - [Running it, and not running it](recommendations.md#running-it-and-not-running-it)
+   - [What is not built](recommendations.md#what-is-not-built)
+16. [Link previews](link-previews.md) — the card a note carries for a link: fetching a page safely, the picture, and how long a preview is kept
+   - [Two halves](link-previews.md#two-halves)
+   - [Fetching a page safely](link-previews.md#fetching-a-page-safely)
+   - [What is read from the page](link-previews.md#what-is-read-from-the-page)
+   - [The picture](link-previews.md#the-picture)
+   - [How long a preview is kept](link-previews.md#how-long-a-preview-is-kept)
+   - [Endpoints](link-previews.md#endpoints)
+   - [The card on a note](link-previews.md#the-card-on-a-note)
+   - [Running it, and not running it](link-previews.md#running-it-and-not-running-it)
+   - [What is not built](link-previews.md#what-is-not-built)
+17. [The web shell](web-shell.md) — sending the web app with each page's own title and picture, for links shared elsewhere
+   - [What it sends](web-shell.md#what-it-sends)
+   - [Which pages are described](web-shell.md#which-pages-are-described)
+   - [What is never described](web-shell.md#what-is-never-described)
+   - [Pictures](web-shell.md#pictures)
+   - [Running it](web-shell.md#running-it)
+   - [Settings](web-shell.md#settings)
+   - [Not running it](web-shell.md#not-running-it)
+   - [What is not built](web-shell.md#what-is-not-built)

@@ -3,6 +3,7 @@ package repositories
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/feeds"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -132,7 +133,27 @@ func SetSearchAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.Selec
 	// A post is judged by its owner and its own audience. A reply has no
 	// audience of its own and is owned by its author, so it is judged by the
 	// post at the top of its thread and by nothing else.
-	sb = sb.Where(postOrReply(sq.And{ownerGate, nodeGate}, viewer))
+	// A custom feed is judged as a post is, by its own audience measured
+	// against its owner: "followers" is the people who follow whoever made
+	// it. The gate above measures a node's audience against the node
+	// itself, which is right for a profile and would hide every shared
+	// feed, a feed having no followers of its own.
+	//
+	// Blocks were dealt with above, for every row, and are not asked about
+	// again here.
+	isFeed := sq.Eq{"node.type": feeds.NodeType}
+	var feedGate sq.Sqlizer = sq.And{
+		accessGate("owner.access", viewer),
+		accessGate("node.access", viewer),
+	}
+	if vID != 0 {
+		feedGate = sq.Or{sq.Eq{"node.owner_id": vID}, feedGate}
+	}
+
+	sb = sb.Where(sq.Or{
+		sq.And{sq.NotEq{"node.type": feeds.NodeType}, postOrReply(sq.And{ownerGate, nodeGate}, viewer)},
+		sq.And{isFeed, feedGate},
+	})
 
 	return sb
 }

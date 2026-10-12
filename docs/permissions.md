@@ -29,6 +29,8 @@ change them, and what profile owners can change for themselves.
 - [Quotes](#quotes)
 - [Saved posts](#saved-posts)
 - [Pinned posts](#pinned-posts)
+- [Custom feeds](#custom-feeds)
+- [Suggestions](#suggestions)
 - [Reporting](#reporting)
 - [Removing accounts](#removing-accounts)
 - [The defaults](#the-defaults)
@@ -590,6 +592,40 @@ and so on), marked as pinned.
 `PUT` and `DELETE /{articles,notes,topics,photos}/<id>/pin`. The rule is
 `permissions.CanPin`, and a post says whether the viewer may in
 `authorized.pin`.
+
+## Custom feeds
+
+A custom feed is its maker's, and has an audience of its own. See
+[feeds.md](feeds.md) for what a feed is made of.
+
+- **Who may see a feed** is its `access`: `myself` unless its owner says
+  otherwise, or `followers`, `registered` or `public`. It is judged as a post
+  is, by its own access and its owner's, and a block either way hides it. One
+  that may not be seen is answered as if it were not there.
+- **What a reader sees in a feed** is decided for the reader, and never for
+  the feed's owner. Whatever a feed selects goes through the gate every feed
+  uses. A public feed built on a private group shows that group's posts to
+  its followers alone. A feed never widens what anybody may see.
+- **Whoever may see a feed** may read it, copy it, and keep it on their home
+  page. Its owner, and site administrators, may change and delete it.
+- **Making and changing one** needs somebody signed in, with the
+  `media:write` scope. A person owns 10 at most.
+- **No new public feed** on an installation that takes no new public content
+  (`MIN_CONTENT_ACCESS`). One that was public already may stay so.
+
+## Suggestions
+
+Suggestions of who to follow are made to somebody signed in, about that
+person, and to nobody else. See [recommendations.md](recommendations.md).
+
+- **Nobody is suggested whom the viewer may not see.** What is found is put
+  to the graph (`FilterVisible`) before any of it is sent, and so is what a
+  reason names.
+- **Nobody is suggested who asked not to be** (`discoverable`), nor anybody
+  on either side of a block with the viewer, nor an account that is
+  disabled, archived, deleted or unconfirmed.
+- **What somebody chose, and whom they turned down, is theirs alone.** Whoever
+  was turned down is not told.
 
 ## Reporting
 

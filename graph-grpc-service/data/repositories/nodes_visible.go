@@ -3,6 +3,7 @@ package repositories
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/feeds"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -78,12 +79,20 @@ func visibleQuery(ids []int64, viewer *entities.Viewer) sq.SelectBuilder {
 	isActor := sq.Like{"node.type": constants.NodeActorPrefixEntityType + "%"}
 	isMedium := sq.Like{"node.type": constants.NodeMediumPrefixEntityType + "%"}
 
+	// A custom feed belongs to whoever made it and has an audience of its
+	// own, "only me" unless they say otherwise. It is judged as a post is:
+	// by its own access and its owner's. Without this it fell among the
+	// tags below, and anybody could have read anybody's feed.
+	isFeed := sq.Eq{"node.type": feeds.NodeType}
+
 	return query.Where(sq.Or{
 		sq.And{isActor, actorAccessCondition(viewer)},
 		sq.And{isMedium, postAccessCondition(viewer)},
+		sq.And{isFeed, postAccessCondition(viewer)},
 		// Everything else is a tag, a hashtag or a place, and those have no
 		// audience: anybody may see one.
 		sq.And{sq.NotLike{"node.type": constants.NodeActorPrefixEntityType + "%"},
-			sq.NotLike{"node.type": constants.NodeMediumPrefixEntityType + "%"}},
+			sq.NotLike{"node.type": constants.NodeMediumPrefixEntityType + "%"},
+			sq.NotEq{"node.type": feeds.NodeType}},
 	})
 }

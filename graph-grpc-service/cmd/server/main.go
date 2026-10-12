@@ -105,6 +105,7 @@ func startGrpcServer(h *handlers.Handlers) error {
 	graphpb.RegisterActorAdminServiceServer(s, h.ActorAdmin)
 	graphpb.RegisterFeedLeadersServiceServer(s, h.FeedLeaders)
 	graphpb.RegisterFeedActorServiceServer(s, h.FeedActor)
+	graphpb.RegisterFeedCustomServiceServer(s, h.FeedCustom)
 	graphpb.RegisterEdgeServiceServer(s, h.Edge)
 	graphpb.RegisterGraphServiceServer(s, h.Graph)
 	graphpb.RegisterNodeServiceServer(s, h.Node)
