@@ -10,6 +10,10 @@ import (
 
 // NodesRepoInterface defines the methods for interacting with nodes in the database.
 type NodesRepoInterface interface {
+	// Authored returns what one person wrote, for their own copy of it.
+	// It applies no access rule: see the implementation.
+	Authored(personID, afterID int64, limit uint64) ([]*entities.AnahitaNode, error)
+
 	// Browse retrieves a list of nodes based on the provided browse request and viewer context.
 	Browse(req *requests.NodeBrowseRequest) ([]*entities.AnahitaNode, error)
 

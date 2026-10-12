@@ -171,6 +171,20 @@ message SavedListResponse {
     uint64 total = 2;
 }
 
+// Everything one person wrote, wherever it is: on their own profile, in a
+// group, under somebody else's post. For that person's own copy of their
+// data. Read in pages by id, lowest first: `after_id` is the last one of the
+// page before.
+message AuthoredListRequest {
+    int64 person_id = 1;
+    int64 after_id = 2;
+    uint64 limit = 3;
+}
+
+message AuthoredListResponse {
+    repeated Node nodes = 1;
+}
+
 // Pins a post to the profile it is on, or takes the pin off.
 message PinSetRequest {
     int64 node_id = 1;
@@ -259,6 +273,7 @@ service MediumService {
     rpc ListQuotes(QuotesListRequest) returns (QuotesListResponse) {}
     rpc SetSaved(SavedSetRequest) returns (SavedSetResponse) {}
     rpc ListSaved(SavedListRequest) returns (SavedListResponse) {}
+    rpc ListAuthored(AuthoredListRequest) returns (AuthoredListResponse) {}
 
     // The images of photo posts. A photo is a medium, and these are its
     // images, so they are kept by the service that keeps the post.
