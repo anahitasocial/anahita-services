@@ -1,0 +1,116 @@
+# The API reference: every request and answer, made from the code
+
+*Roadmap item 38, planned 2026-10-11. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
+
+## Context
+
+Nothing says what the API takes and sends. The pages under `docs/` explain how a feature works and show a shape here and there (seven of them have a JSON example), but somebody writing a client, a mobile app or a plugin has to read Go to learn a field's name.
+
+**What exists (counted 2026-10-11):**
+- **About 308 routes** in 20 services, each registered in a `routes.go` (`hashtags.GET("/:alias", r.handler.Hashtag.Read, r.setViewer)`).
+- **What a route takes is a struct,** bound and validated by its handler: `c.Bind(req)`, then `c.Validate(req)`. Its tags already say everything a reference needs: where a value comes from (`json`, `query`, `param`), and what it may be (`validate:"required,min=1"`, `oneof=asc desc`). 48 of them are shared in `anahita-libs/requests`; each service has its own beside its handlers.
+- **What a route sends is a struct about two times in three** (`anahita-libs/responses`, and each service's `responses`), with `json` tags and usually a comment on each field. **The third time it is a map written where it is sent** (99 of 313 `c.JSON` calls), mostly errors and small acknowledgements.
+- **Nothing connects a route to its two structs** except the body of its handler.
+- **No OpenAPI document, no generator, no annotations.**
+- **The wire is snake_case.** The web app turns answers to camelCase and bodies back as it sends them (`src/api`), so its own code is no guide to the wire.
+
+## Decisions
+
+- **The reference is generated from the code, and a test fails when it is out of date.** The check of the docs on 2026-10-11 found plans listed as not started that were finished, make targets that no longer existed and a test target that had been broken for a week, in pages written with care. Three hundred routes written out by hand would not last a milestone.
+- **OpenAPI 3.1 is the format.** It is what every tool reads: reference pages, client generators, test tools, and an agent asked to call the API.
+- **One file for each service, and one of them all together,** under `docs/api/`. Committed, so that a change to a shape shows in review as a change to the reference.
+- **The prose pages stay.** The reference says what a field is called and what it may hold; `permissions.md` says who may do what and why. Each links to the other and neither repeats it.
+
+## Design
+
+### Saying what a route is
+
+A route is described where it is registered, in a few lines beside it, by a small package `anahita-libs/apidoc`:
+
+```go
+hashtags.GET("/:alias", r.handler.Hashtag.Read, r.setViewer)
+r.doc.GET("/hashtags/:alias").
+    Summary("One hashtag").
+    Viewer(apidoc.Anyone).
+    Takes(requests.HashtagRead{}).
+    Sends(200, responses.Hashtag{}).
+    Refuses(404, "no such hashtag, or not one the viewer may see")
+```
+
+- **`Viewer`** is one of `Anyone` (read without signing in; the viewer still decides what is seen), `SignedIn`, `Admin`, `SuperAdmin`, with the OAuth scope where one is asked for (`docs/oauth.md`), and `StepUp` where the person must just have proved who they are.
+- **`Takes`** reads the struct by reflection: `param` tags become path parameters, `query` tags query parameters, `json` tags the body, and `validate` tags what each may be (`required`, `min`, `max`, `oneof` as an enum, `omitempty`).
+- **`Sends`** does the same for an answer. Field comments are read from the source (`go/packages`), so the comment a field already has is its description. No second wording to keep.
+- **Refusals** are listed by status with the reason in words. The one shape every refusal has is described once.
+
+### Three checks, in `make test`
+
+1. **Every route has a description and every description a route.** The test starts the service's router without its dependencies, reads `e.Routes()`, and compares. A route added without one fails.
+2. **The committed files are what the generator makes now.** `make api_docs` writes them; the test makes them again and compares.
+3. **Answers are what the reference says** (last phase): handler tests that already call a route check what came back against its schema, so a field renamed in a struct and missed in a hand-built map is caught.
+
+### Maps become structs
+
+An answer written as a map cannot be described. As each service is done, its maps become structs: one shared shape for a refusal (`{ "error": …, "code": … }`, as most already are), one for "done", and a struct of its own for anything else. Shapes on the wire do not change; where two routes say the same thing two ways, that is recorded and left for a later, deliberate change.
+
+### What is written by hand: `docs/api.md`
+
+One page for what is true of every route, which no generator can know:
+
+- the wire is snake_case; ids are numbers and, for people, also usernames; dates are RFC 3339 in UTC and their names end in `_at`;
+- how a list is paged (`limit`, `offset`, and the cursor the feeds use) and the envelope a list comes in;
+- the `authorized` object that says what the viewer may do with what was sent;
+- how to sign in as a client (a pointer to `oauth.md`), and what `401`, `403`, `404`, `409`, `422` and `429` mean here: above all that **`404` is also the answer for something the viewer may not see**;
+- what is optional: the services an installation may not run, and how a client tells (NodeInfo).
+
+### Reading it
+
+- **The files themselves,** for tools and agents.
+- **A page for people,** made from the combined file as static HTML at build time, with its script kept in the repository. Nothing fetched from somebody else's server when the page is opened (item 9's rule).
+- **Through the docs MCP server** ([docs-for-agents.md](docs-for-agents.md)): asking for one route's shapes without loading three hundred.
+
+## Considered and not chosen
+
+- **Annotations in comments (swaggo).** Nothing checks a comment against the code beside it, so it drifts exactly as hand-written pages do; and it writes OpenAPI 2.
+- **Writing the YAML by hand.** See Decisions.
+- **Reading the handlers' source to find what each binds and sends.** Works for the plain ones and guesses at the rest; a wrong reference is worse than none.
+- **Generating typed clients for the web app.** Possible once this exists. Not part of it.
+
+## Phases and estimate
+
+| Phase | Work | Time |
+| --- | --- | --- |
+| A | `anahita-libs/apidoc` and the generator; one small service through all of it (`hashtag-service`), with checks 1 and 2 | 5–6 h |
+| B | `docs/api.md`; the shared shapes (`anahita-libs/requests`, `responses`) described once | 2–3 h |
+| C | The other 19 services, in the order of the roadmap's milestones, maps to structs as each is done. Federation's services are described as they are built | 16–20 h |
+| D | The page for people; links from each prose page to its routes | 2–3 h |
+| E | Check 3, answers against the reference, in the handler tests there are | 3–4 h |
+| | **Total** | **about 28–36 h, 7–9 sessions** |
+
+A and B are worth having alone: they settle the form, and every service after is the same hour's work.
+
+## Verification
+
+- A route added to `routes.go` without a description fails `make test`, by name.
+- A field renamed in a response struct changes `docs/api/` in the same commit, or fails.
+- The combined file passes an OpenAPI 3.1 validator.
+- A client made from the file by a generator signs in on a dev stack, reads a profile and posts a note.
+- The page for people opens with the network off.
+
+## Dependencies
+
+- **None hard.** Better after item 27 (the clean schema) is decided, not necessarily done, since neither changes the wire.
+- **Federation (item 8):** `activitypub-service` and `atproto-service` should be described as they are written, which needs phase A first.
+- **[docs-for-agents.md](docs-for-agents.md)** reads these files for its route lookups.
+
+## Documentation
+
+- **New services page `api.md`**, and `docs/api/`.
+- **services `getting-started.md`**: `make api_docs`, and what the three checks mean when they fail.
+- **web `architecture.md`**, *Talking to the API*: a pointer to the reference, and that it describes the wire and not the camelCase the app sees.
+
+## Status
+
+| Item | State |
+| --- | --- |
+| Plan | written 2026-10-11 |
+| Implementation | not started; place in the order not decided |
