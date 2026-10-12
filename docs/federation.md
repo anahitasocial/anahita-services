@@ -515,7 +515,7 @@ Signed in, for the person themselves:
 
 | Request | Does |
 | --- | --- |
-| `GET /activitypub/settings` | Whether they are on the fediverse, whether they could be, and what they are or would be called |
+| `GET /activitypub/settings` | Whether they are on the fediverse, whether they could be, and what they are or would be called. An administrator may ask it of somebody else, with `?person_id=`, to read and not to change |
 | `PUT /activitypub/settings` `{ "enabled": true }` | Turns it on or off |
 | `GET /activitypub/lookup?q=@alice@mastodon.example` | Finds somebody on another server, by handle or by the address of their profile, and keeps them |
 
@@ -586,9 +586,17 @@ somebody is deleted removes them, their posts and their followers, and
 remembers that it did. In the lab, GoToSocial marked the account suspended
 and did not take the same person back when they turned federation on
 again. So turning it on again makes a person findable here, and whether
-any server they met before will know them is that server's choice. The web
-app asks before it is turned off, and says that making a profile private
-has the same effect.
+any server they met before will know them is that server's choice.
+
+This is what the fediverse itself does: a `Delete` of the person is how
+Mastodon and the rest say an account is gone, and there is no gentler
+message that means "stop showing them". Staying silent instead would leave
+a person's profile and posts on other servers, in public, for good.
+
+**So that nobody leaves by accident,** the web app asks before the switch
+is turned off, and the card where a profile's audience is chosen warns as
+soon as anything but "everybody" is picked by somebody who is on the
+fediverse, and asks once more before saving.
 
 **A profile changed.** When somebody on the fediverse changes their name,
 what they say of themselves or their pictures, their followers' servers are

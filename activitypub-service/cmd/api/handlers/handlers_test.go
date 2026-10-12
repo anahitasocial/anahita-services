@@ -463,6 +463,40 @@ func TestOnlyThePersonChoosesAndOnlyWhenTheyCould(t *testing.T) {
 	}
 }
 
+// Whether somebody is on the fediverse is theirs to know, and an
+// administrator's, who can change their profile in ways that end it.
+func TestWhoMayAskWhetherSomebodyIsOnTheFediverse(t *testing.T) {
+	w := newWorld()
+
+	e := func(viewer int64, personType, query string) *httptest.ResponseRecorder {
+		ec := echo.New()
+		rec := httptest.NewRecorder()
+		c := ec.NewContext(httptest.NewRequest(http.MethodGet, "/activitypub/settings"+query, nil), rec)
+		v := entities.NewViewer()
+		v.ID = viewer
+		v.PersonType = personType
+		c.Set(constants.ViewerContextKey, v)
+		_ = w.h.ReadSettings(c)
+		return rec
+	}
+
+	if rec := e(anaID, "registered", "?person_id=7"); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `"enabled":true`) {
+		t.Errorf("herself: %d %s", rec.Code, rec.Body.String())
+	}
+	if rec := e(99, "administrator", "?person_id=7"); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `"enabled":true`) {
+		t.Errorf("an administrator: %d %s", rec.Code, rec.Body.String())
+	}
+	if rec := e(99, "registered", "?person_id=7"); rec.Code != http.StatusForbidden {
+		t.Errorf("somebody else: %d", rec.Code)
+	}
+	if rec := e(99, "administrator", "?person_id=nobody"); rec.Code != http.StatusBadRequest {
+		t.Errorf("no number: %d", rec.Code)
+	}
+	if rec := e(99, "administrator", "?person_id=4040"); rec.Code != http.StatusNotFound {
+		t.Errorf("nobody: %d", rec.Code)
+	}
+}
+
 func TestHostMetaSaysWhereWebFingerIs(t *testing.T) {
 	w := newWorld()
 	rec := w.get(w.h.HostMeta, "/.well-known/host-meta")

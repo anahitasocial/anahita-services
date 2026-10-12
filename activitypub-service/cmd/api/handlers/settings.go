@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -33,8 +34,29 @@ type settingsRequest struct {
 }
 
 // ReadSettings says whether the viewer is on the fediverse and could be.
+//
+// An administrator may ask it of somebody else (?person_id=), to read and
+// not to change: they can change that person's profile in ways that take
+// them off the fediverse, and have to be able to see that it would.
 func (h *Handlers) ReadSettings(c echo.Context) error {
-	settings, err := h.settingsOf(getViewer(c).ID)
+	viewer := getViewer(c)
+
+	personID := viewer.ID
+	if asked := c.QueryParam("person_id"); asked != "" {
+		id, err := strconv.ParseInt(asked, 10, 64)
+		if err != nil || id <= 0 {
+			return refuse(c, http.StatusBadRequest, "person_unreadable")
+		}
+		if id != viewer.ID && !viewer.IsAdmin() {
+			return c.NoContent(http.StatusForbidden)
+		}
+		personID = id
+	}
+
+	settings, err := h.settingsOf(personID)
+	if settings == nil && err == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
 	if err != nil {
 		log.Println("activitypub settings:", err)
 		return refuse(c, http.StatusInternalServerError, "unavailable")

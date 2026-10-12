@@ -419,10 +419,15 @@ rewritten around a guide to setting it up.
   consequence of two rules that are both right (only public profiles
   federate; a person who leaves is removed elsewhere), and is the one thing
   in this phase a person can do by accident and not undo.
+- **A warning where a profile's audience is chosen** (user, 2026-10-13),
+  and a second asking before it is saved: the one choice on that card that
+  is confirmed. An administrator may read whether somebody else is on the
+  fediverse, so as to be warned too.
 - **Considered and not chosen: leaving quietly,** by simply not answering
   any more. Other servers would keep the profile and every post they were
   sent, in public, for good, which is the opposite of what somebody who
-  turns it off or makes their profile private is asking for.
+  turns it off or makes their profile private is asking for. The user
+  chose to keep to what the fediverse does (2026-10-13).
 - **A stranger's `Delete` of themselves is taken unchecked.** Checking
   would mean asking a server for the key of an account it has just
   removed, once for every account closed anywhere on a large server.
