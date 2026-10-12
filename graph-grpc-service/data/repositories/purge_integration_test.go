@@ -335,10 +335,10 @@ func TestPurgeRemovesEverythingTheActorOwnedOrWrote(t *testing.T) {
 		avatar = avatar || strings.Contains(path, "avatar")
 	}
 	for _, want := range []string{
-		"assets/v2/photo-service/photo/1/photo_medium.jpg",
-		"assets/v2/photo-service/photo/1/photo_original.jpg",
-		"assets/v2/photo-service/photo/1/second_medium.jpg",
-		"assets/v2/photo-service/photo/1/second_original.jpg",
+		"assets/v1/photo-service/photo/1/photo_medium.jpg",
+		"assets/v1/photo-service/photo/1/photo_original.jpg",
+		"assets/v1/photo-service/photo/1/second_medium.jpg",
+		"assets/v1/photo-service/photo/1/second_original.jpg",
 	} {
 		if !deleted[want] {
 			t.Errorf("%s was not deleted; deleted: %v", want, files.deleted)

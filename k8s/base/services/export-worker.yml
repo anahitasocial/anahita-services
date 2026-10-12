@@ -1,0 +1,86 @@
+# export-worker: Makes each archive that is asked for, and deletes the ones that have been kept their time. Answers no requests.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: export-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: export-worker
+  template:
+    metadata:
+      labels:
+        app: export-worker
+    spec:
+      containers:
+        - name: export-worker
+          image: anahita/export-worker
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ENV
+            # Mutual TLS on the calls to the gRPC services. Unset means on,
+            # except with ENV=dev.
+            - name: GRPC_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRPC_TLS
+                  optional: true
+            - name: FILE_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FILE_SERVICE_ADDR
+            - name: GRAPH_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRAPH_SERVICE_ADDR
+            - name: DSN
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: DSN
+            - name: EXPORT_KEEP_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: EXPORT_KEEP_DAYS
+                  optional: true
+            # For the links in an archive back to the site, and its heading.
+            - name: PUBLIC_WEB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PUBLIC_WEB_URL
+                  optional: true
+            - name: SITE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_NAME
+                  optional: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          volumeMounts:
+            - name: work
+              mountPath: /work
+            - name: grpc-tls
+              mountPath: /run/secrets/grpc
+              readOnly: true
+      volumes:
+        # Where an archive is made before it is stored: as much room as the
+        # largest one, which is every picture and video one person posted.
+        - name: work
+          emptyDir: {}
+        # The certificate this service presents when it calls a gRPC
+        # service, from k8s/base/grpc-tls.yml.
+        - name: grpc-tls
+          secret:
+            secretName: anahita-grpc-client

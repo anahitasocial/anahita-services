@@ -83,7 +83,15 @@ func (h *fileHandler) Exists(ctx context.Context, req *filepb.ExistsRequest) (*f
 func (h *fileHandler) Presign(ctx context.Context, req *filepb.PresignRequest) (*filepb.PresignResponse, error) {
 	log.Printf("Received Presign request: %v", req.Path)
 
-	url, err := h.env.Services.Storage.Presign(req.Path)
+	var (
+		url string
+		err error
+	)
+	if req.DownloadName != "" {
+		url, err = h.env.Services.Storage.PresignDownload(req.Path, req.DownloadName)
+	} else {
+		url, err = h.env.Services.Storage.Presign(req.Path)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -114,4 +122,81 @@ func (h *fileHandler) Ping(ctx context.Context, req *filepb.PingRequest) (*filep
 	return &filepb.PingResponse{
 		Message: "pong",
 	}, nil
+}
+
+// UploadStart begins a large file a browser sends in parts.
+func (h *fileHandler) UploadStart(ctx context.Context, req *filepb.UploadStartRequest) (*filepb.UploadStartResponse, error) {
+	log.Printf("Received UploadStart request: %v", req.Path)
+
+	id, err := h.env.Services.Storage.UploadStart(req.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	return &filepb.UploadStartResponse{UploadId: id}, nil
+}
+
+// UploadParts signs the addresses its parts are written to.
+func (h *fileHandler) UploadParts(ctx context.Context, req *filepb.UploadPartsRequest) (*filepb.UploadPartsResponse, error) {
+	urls, err := h.env.Services.Storage.UploadParts(req.Path, req.UploadId, req.PartNumbers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &filepb.UploadPartsResponse{Urls: urls}, nil
+}
+
+// UploadComplete makes one file of the parts.
+func (h *fileHandler) UploadComplete(ctx context.Context, req *filepb.UploadCompleteRequest) (*filepb.UploadCompleteResponse, error) {
+	log.Printf("Received UploadComplete request: %v", req.Path)
+
+	size, err := h.env.Services.Storage.UploadComplete(req.Path, req.UploadId, req.MaxSize)
+	if err != nil {
+		return nil, err
+	}
+
+	return &filepb.UploadCompleteResponse{Size: size}, nil
+}
+
+// UploadAbort throws an upload away.
+func (h *fileHandler) UploadAbort(ctx context.Context, req *filepb.UploadAbortRequest) (*filepb.UploadAbortResponse, error) {
+	log.Printf("Received UploadAbort request: %v", req.Path)
+
+	if err := h.env.Services.Storage.UploadAbort(req.Path, req.UploadId); err != nil {
+		return nil, err
+	}
+
+	return &filepb.UploadAbortResponse{}, nil
+}
+
+// Stat says whether a file is there and how big it is.
+func (h *fileHandler) Stat(ctx context.Context, req *filepb.StatRequest) (*filepb.StatResponse, error) {
+	exists, size, contentType, err := h.env.Services.Storage.Stat(req.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	return &filepb.StatResponse{Exists: exists, Size: size, ContentType: contentType}, nil
+}
+
+// FetchURL is an address another service reads a large file at.
+func (h *fileHandler) FetchURL(ctx context.Context, req *filepb.TransferRequest) (*filepb.TransferResponse, error) {
+	url, err := h.env.Services.Storage.FetchURL(req.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	return &filepb.TransferResponse{Url: url}, nil
+}
+
+// StoreURL is an address a worker writes one of its files to.
+func (h *fileHandler) StoreURL(ctx context.Context, req *filepb.TransferRequest) (*filepb.TransferResponse, error) {
+	log.Printf("Received StoreURL request: %v", req.Path)
+
+	url, err := h.env.Services.Storage.StoreURL(req.Path, req.ContentType)
+	if err != nil {
+		return nil, err
+	}
+
+	return &filepb.TransferResponse{Url: url}, nil
 }

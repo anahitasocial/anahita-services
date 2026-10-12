@@ -25,6 +25,8 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 - [Abuse reports](#abuse-reports)
 - [Account cleanup](#account-cleanup)
 - [The web shell](#the-web-shell)
+- [Video](#video)
+- [Download your data](#download-your-data)
 
 ## Shared
 
@@ -325,3 +327,30 @@ Only for an installation that sends the web app through `web-shell`; see
 | --- | --- |
 | `PUBLIC_WEB_URL` | The address people reach the web app at, such as `https://www.example.org`. Left out, the host each request came to is used |
 | `WEB_BUILD_PATH` | docker-compose only: the folder with the web app's build in it. Defaults to `web-shell/web` |
+
+## Video
+
+Only where videos may be posted. What each does, and how they go together,
+is in [Videos](videos.md#settings).
+
+| Variable | Value |
+| --- | --- |
+| `VIDEO_UPLOADS` | `on` to let people post videos. Off unless said |
+| `VIDEO_MAX_BYTES` | The largest file taken. 500 MB unless said |
+| `VIDEO_MAX_SECONDS` | The longest video taken. Ten minutes unless said |
+| `VIDEO_RENDITIONS` | The sizes made, by height: `1080,720,360` unless said, up to `2160` |
+| `VIDEO_DAILY_UPLOADS` | How many videos one person may send in a day. 20 unless said |
+
+The bucket needs a CORS rule letting the web app's address `PUT` to it:
+see [Videos](videos.md#storage).
+
+## Download your data
+
+Only where `export-service` and its worker run. See
+[Download your data](data-export.md#settings).
+
+| Variable | Value |
+| --- | --- |
+| `EXPORT_EVERY_DAYS` | Days between one export and the next. 7 unless said; 0 for no wait |
+| `EXPORT_KEEP_DAYS` | Days an archive is kept. 7 unless said |
+| `SITE_NAME` | The site's name, for the heading of an archive's page |

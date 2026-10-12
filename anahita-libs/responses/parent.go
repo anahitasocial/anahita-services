@@ -35,6 +35,7 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 	dto.Files = NewPhotoFiles(node.Files)
 	// A reposted note is shown as itself, with the card it carries.
 	dto.LinkPreview = NewLinkPreview(node)
+	dto.Video = NewVideo(node)
 
 	if node.Owner != nil {
 		dto.Owner = NewOwner(node.Owner)
@@ -60,14 +61,16 @@ type Parent struct {
 	// Who may see it. Said so that a repost can be shared as what it reposts.
 	Access string `json:"access,omitempty"`
 	// When it was written, so that a reposted post can be shown as itself.
-	CreatedAt       *time.Time       `json:"created_at,omitempty"`
-	Cover           map[string]Image `json:"cover_urls,omitempty"`
-	Portrait        map[string]Image `json:"portrait_urls,omitempty"`
-	Files           []*PhotoFile     `json:"files,omitempty"`
-	LinkPreview     *LinkPreview     `json:"link_preview,omitempty"`
-	Owner           *Owner           `json:"owner,omitempty"`
-	Author          *Author          `json:"author,omitempty"`
-	IsLikedByViewer bool             `json:"is_liked_by_viewer,omitempty"`
+	CreatedAt   *time.Time       `json:"created_at,omitempty"`
+	Cover       map[string]Image `json:"cover_urls,omitempty"`
+	Portrait    map[string]Image `json:"portrait_urls,omitempty"`
+	Files       []*PhotoFile     `json:"files,omitempty"`
+	LinkPreview *LinkPreview     `json:"link_preview,omitempty"`
+	// What a video post plays.
+	Video           *Video  `json:"video,omitempty"`
+	Owner           *Owner  `json:"owner,omitempty"`
+	Author          *Author `json:"author,omitempty"`
+	IsLikedByViewer bool    `json:"is_liked_by_viewer,omitempty"`
 	// Whether the viewer has saved it. Sent to them alone, like the rest
 	// of what is said here about the viewer.
 	IsSavedByViewer    bool            `json:"is_saved_by_viewer,omitempty"`

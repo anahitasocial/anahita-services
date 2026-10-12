@@ -1,0 +1,158 @@
+# video-service: Videos. A browser sends one straight to storage; this says where, keeps the upload until the worker has made a post of it, and sends viewers to its files. Optional: left out with video-worker, there are no video posts.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: video-service
+  template:
+    metadata:
+      labels:
+        app: video-service
+    spec:
+      containers:
+        - name: video-service
+          image: anahita/video-service
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ENV
+            # Mutual TLS on the calls to the gRPC services. Unset means on,
+            # except with ENV=dev.
+            - name: GRPC_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRPC_TLS
+                  optional: true
+            # What people who are not signed in may see, and whether anything
+            # new may be public. The same for every service.
+            - name: SITE_READ_ACCESS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_READ_ACCESS
+                  optional: true
+            - name: MIN_CONTENT_ACCESS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: MIN_CONTENT_ACCESS
+                  optional: true
+            - name: SECURE_COOKIE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: SECURE_COOKIE_KEY
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: REDIS_ADDR
+            - name: REDIS_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: REDIS_TLS
+                  optional: true
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: REDIS_PASSWORD
+                  optional: true
+            - name: FILE_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FILE_SERVICE_ADDR
+            - name: GRAPH_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRAPH_SERVICE_ADDR
+            - name: OAUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: OAUTH_ISSUER
+            - name: OAUTH_JWKS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: OAUTH_JWKS_URL
+            - name: DSN
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: DSN
+            # Whether videos may be posted, and the largest and longest taken.
+            - name: VIDEO_UPLOADS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: VIDEO_UPLOADS
+                  optional: true
+            - name: VIDEO_MAX_BYTES
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: VIDEO_MAX_BYTES
+                  optional: true
+            - name: VIDEO_MAX_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: VIDEO_MAX_SECONDS
+                  optional: true
+            - name: VIDEO_DAILY_UPLOADS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: VIDEO_DAILY_UPLOADS
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+          volumeMounts:
+            - name: grpc-tls
+              mountPath: /run/secrets/grpc
+              readOnly: true
+      volumes:
+        # The certificate this service presents when it calls a gRPC
+        # service, from k8s/base/grpc-tls.yml.
+        - name: grpc-tls
+          secret:
+            secretName: anahita-grpc-client
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: video-service
+spec:
+  selector:
+    app: video-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

@@ -3,6 +3,7 @@ package responses
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/videos"
 	"time"
 )
 
@@ -25,7 +26,9 @@ type MediumNodeItem struct {
 	// On a note that quotes a post: that post, or why it is not shown.
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
-	Quote       *QuoteEmbed  `json:"quote,omitempty"`
+	// What a video post plays.
+	Video *Video      `json:"video,omitempty"`
+	Quote *QuoteEmbed `json:"quote,omitempty"`
 	// The id of the post it quotes, whether or not it is shown.
 	QuoteID int64 `json:"quote_id,omitempty"`
 	// On a reply: removed, and kept as an empty placeholder because other
@@ -74,7 +77,9 @@ type MediumNode struct {
 	// On a note that quotes a post: that post, or why it is not shown.
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
-	Quote       *QuoteEmbed  `json:"quote,omitempty"`
+	// What a video post plays.
+	Video *Video      `json:"video,omitempty"`
+	Quote *QuoteEmbed `json:"quote,omitempty"`
 	// The id of the post it quotes, whether or not it is shown.
 	QuoteID int64 `json:"quote_id,omitempty"`
 	// On a reply read on its own: the post at the top of its thread.
@@ -82,7 +87,10 @@ type MediumNode struct {
 	// Who may quote this post, when its author has said: "anyone",
 	// "followers" or "nobody". Left out when they have not, and their own
 	// setting applies.
-	QuotePolicy   string `json:"quote_policy,omitempty"`
+	QuotePolicy string `json:"quote_policy,omitempty"`
+	// Whether whoever can see it may download what it holds. Sent on a post
+	// that holds a file, for whoever may change it.
+	AllowDownload *bool  `json:"allow_download,omitempty"`
 	Deleted       bool   `json:"deleted,omitempty"`
 	Hidden        bool   `json:"hidden,omitempty"`
 	Access        string `json:"access,omitempty"`
@@ -141,6 +149,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
 		LinkPreview:        NewLinkPreview(node),
+		Video:              NewVideo(node),
 		Quote:              NewQuoteEmbed(node),
 		QuoteID:            node.QuoteID,
 		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
@@ -199,10 +208,12 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
 		LinkPreview:        NewLinkPreview(node),
+		Video:              NewVideo(node),
 		Quote:              NewQuoteEmbed(node),
 		QuoteID:            node.QuoteID,
 		Root:               NewRoot(node.Root),
 		QuotePolicy:        node.QuotePolicy,
+		AllowDownload:      allowDownloadOf(node),
 		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
 		Hidden:             node.Hidden,
 		Access:             node.Access,
@@ -285,4 +296,14 @@ func replyAccess(node *entities.AnahitaNode) string {
 	}
 
 	return constants.EffectiveReplyAccess(node.ReplyAccess, node.CommentStatus)
+}
+
+// allowDownloadOf is a post's download switch, for a post that has one: a
+// note has nothing to download and says nothing about it.
+func allowDownloadOf(node *entities.AnahitaNode) *bool {
+	if node == nil || (node.Type != constants.NodeMediumPhotoEntityType && node.Type != videos.NodeType) {
+		return nil
+	}
+	allow := node.AllowDownload
+	return &allow
 }

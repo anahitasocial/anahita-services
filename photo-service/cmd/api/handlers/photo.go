@@ -222,6 +222,9 @@ type photoAddRequest struct {
 	Uploads []fileRef `json:"uploads" form:"-"`
 	// What the one image of a form post shows.
 	AltText string `json:"-" form:"alt_text"`
+	// Whether whoever can see it may download it. Left out, the post
+	// starts with what the profile it is on says.
+	AllowDownload *bool `json:"allow_download" form:"allow_download"`
 }
 
 // Add creates a new photo
@@ -262,6 +265,7 @@ func (h *photoHandler) Add(c echo.Context) error {
 	}
 	medium.Enabled = true
 	medium.CommentStatus = true
+	medium.AllowDownload = handlers.DefaultAllowDownload(req.AllowDownload, owner)
 
 	// Who may reply, when the author says. Not saying leaves it to the
 	// profile; a value that is not one is an error.

@@ -37,6 +37,9 @@ func applyEditableMediumFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.CommentStatus = req.CommentStatus
 	node.ReplyAccess = req.ReplyAccess
 	node.QuotePolicy = req.QuotePolicy
+	// Whether it may be downloaded. An edit of anything else carries what
+	// was read, and leaves it as it was.
+	node.AllowDownload = req.AllowDownload
 	node.CommentCount = req.CommentCount
 	// Kept as it is when the request carries none: the repository writes
 	// it only when it is set.

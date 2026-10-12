@@ -69,7 +69,7 @@ func TestParseRefuses(t *testing.T) {
 		"the whole site":     {`{}`, RefusedTooBroad},
 		"every photo":        {`{"filters":{"media_types":["photo"]}}`, RefusedTooBroad},
 		"every group's post": {`{"filters":{"actor_types":["group"]}}`, RefusedTooBroad},
-		"a kind of post":     {`{"sources":{"following":true},"filters":{"media_types":["video"]}}`, RefusedMediaType},
+		"a kind of post":     {`{"sources":{"following":true},"filters":{"media_types":["podcast"]}}`, RefusedMediaType},
 		"a kind of profile":  {`{"sources":{"following":true},"filters":{"actor_types":["website"]}}`, RefusedActorType},
 		"an order":           {`{"sources":{"following":true},"order":"top"}`, RefusedOrder},
 		"a language":         {`{"sources":{"following":true},"filters":{"language":"en'; --"}}`, RefusedLanguage},
@@ -112,7 +112,7 @@ func TestEntityTypes(t *testing.T) {
 	if err := def.Check(); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(def.MediaEntityTypes()); got != 4 {
+	if got := len(def.MediaEntityTypes()); got != 5 {
 		t.Errorf("no kind chosen is every kind, got %d", got)
 	}
 	if got := len(def.ActorEntityTypes()); got != 0 {

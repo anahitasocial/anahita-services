@@ -144,4 +144,22 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| Implementation | built 2026-10-11, services and web app |
+
+## What was built
+
+The services, 2026-10-11. The page that describes them is [Download your data](../data-export.md).
+
+- `export-service` and `export-worker`, one module with two programs. Migration `20261024000001_data_exports`.
+- `ListAuthored` in the graph: everything one person wrote, with no access rule, for their own copy.
+- `file-grpc-service` keeps archives under `exports/` and sends one only as a file to save; a worker can read any stored file.
+- The archive: a page to read, JSON, ActivityStreams files, and the media.
+
+**Different from the plan:**
+
+- **The archive is written to a file of the worker's own and then stored in one request**, not streamed through new gRPC calls into a multipart upload. Nothing is held in memory either way, and a single upload takes an archive of up to 5 GB, which is past what the worker's disk would be given.
+- **The worker tidies up**, as the video worker does: no CronJob.
+- **Reads go through the graph's existing lists, as the person**, so who they follow is the list they see themselves.
+- **Not built:** the account's data from auth-service; a notification or email when it is ready; removal of archives when an account is purged (they go when their week is up); the Bluesky repository.
+
+The web app's part, a card in Settings › Account, was built the same day; it is described in anahita-web's `docs/architecture.md`.

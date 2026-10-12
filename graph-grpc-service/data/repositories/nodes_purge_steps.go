@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"anahita-libs/videos"
 	"context"
 	"database/sql"
 	"time"
@@ -266,7 +267,11 @@ SELECT
   COALESCE(node.service, ''),
   COALESCE(node.owner_id, 0),
   COALESCE(node.filename, ''),
-  COALESCE(node.cover_filename, '')
+  COALESCE(node.cover_filename, ''),
+  CASE
+    WHEN node.type = ? THEN COALESCE(node.meta, '')
+    ELSE ''
+  END
 FROM purge_work work
 LEFT JOIN nodes node
   ON node.id = work.node_id
@@ -275,7 +280,8 @@ WHERE work.actor_id = ?
 ORDER BY work.node_id
 LIMIT ?`
 
-	rows, err := r.db.QueryContext(ctx, query, actorID, purgeTaskDelete, limit)
+	// A video post says where its files are in its meta, and only there.
+	rows, err := r.db.QueryContext(ctx, query, videos.NodeType, actorID, purgeTaskDelete, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -295,6 +301,7 @@ LIMIT ?`
 			&node.OwnerID,
 			&node.Filename,
 			&node.CoverFilename,
+			&node.Meta,
 		); err != nil {
 			return nil, err
 		}
@@ -304,7 +311,7 @@ LIMIT ?`
 		}
 		batch.Last = node.ID
 
-		if node.Filename != "" || node.CoverFilename != "" {
+		if node.Filename != "" || node.CoverFilename != "" || len(node.Meta) > 0 {
 			batch.Files = append(batch.Files, node)
 			withFiles[node.ID] = node
 		}

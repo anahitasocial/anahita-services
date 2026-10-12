@@ -19,14 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FileService_Read_FullMethodName         = "/file.FileService/Read"
-	FileService_Edit_FullMethodName         = "/file.FileService/Edit"
-	FileService_Add_FullMethodName          = "/file.FileService/Add"
-	FileService_Delete_FullMethodName       = "/file.FileService/Delete"
-	FileService_Exists_FullMethodName       = "/file.FileService/Exists"
-	FileService_Presign_FullMethodName      = "/file.FileService/Presign"
-	FileService_BatchPresign_FullMethodName = "/file.FileService/BatchPresign"
-	FileService_Ping_FullMethodName         = "/file.FileService/Ping"
+	FileService_Read_FullMethodName           = "/file.FileService/Read"
+	FileService_Edit_FullMethodName           = "/file.FileService/Edit"
+	FileService_Add_FullMethodName            = "/file.FileService/Add"
+	FileService_Delete_FullMethodName         = "/file.FileService/Delete"
+	FileService_Exists_FullMethodName         = "/file.FileService/Exists"
+	FileService_Presign_FullMethodName        = "/file.FileService/Presign"
+	FileService_BatchPresign_FullMethodName   = "/file.FileService/BatchPresign"
+	FileService_UploadStart_FullMethodName    = "/file.FileService/UploadStart"
+	FileService_UploadParts_FullMethodName    = "/file.FileService/UploadParts"
+	FileService_UploadComplete_FullMethodName = "/file.FileService/UploadComplete"
+	FileService_UploadAbort_FullMethodName    = "/file.FileService/UploadAbort"
+	FileService_Stat_FullMethodName           = "/file.FileService/Stat"
+	FileService_FetchURL_FullMethodName       = "/file.FileService/FetchURL"
+	FileService_StoreURL_FullMethodName       = "/file.FileService/StoreURL"
+	FileService_Ping_FullMethodName           = "/file.FileService/Ping"
 )
 
 // FileServiceClient is the client API for FileService service.
@@ -40,6 +47,13 @@ type FileServiceClient interface {
 	Exists(ctx context.Context, in *ExistsRequest, opts ...grpc.CallOption) (*ExistsResponse, error)
 	Presign(ctx context.Context, in *PresignRequest, opts ...grpc.CallOption) (*PresignResponse, error)
 	BatchPresign(ctx context.Context, in *BatchPresignRequest, opts ...grpc.CallOption) (*BatchPresignResponse, error)
+	UploadStart(ctx context.Context, in *UploadStartRequest, opts ...grpc.CallOption) (*UploadStartResponse, error)
+	UploadParts(ctx context.Context, in *UploadPartsRequest, opts ...grpc.CallOption) (*UploadPartsResponse, error)
+	UploadComplete(ctx context.Context, in *UploadCompleteRequest, opts ...grpc.CallOption) (*UploadCompleteResponse, error)
+	UploadAbort(ctx context.Context, in *UploadAbortRequest, opts ...grpc.CallOption) (*UploadAbortResponse, error)
+	Stat(ctx context.Context, in *StatRequest, opts ...grpc.CallOption) (*StatResponse, error)
+	FetchURL(ctx context.Context, in *TransferRequest, opts ...grpc.CallOption) (*TransferResponse, error)
+	StoreURL(ctx context.Context, in *TransferRequest, opts ...grpc.CallOption) (*TransferResponse, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 }
 
@@ -121,6 +135,76 @@ func (c *fileServiceClient) BatchPresign(ctx context.Context, in *BatchPresignRe
 	return out, nil
 }
 
+func (c *fileServiceClient) UploadStart(ctx context.Context, in *UploadStartRequest, opts ...grpc.CallOption) (*UploadStartResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UploadStartResponse)
+	err := c.cc.Invoke(ctx, FileService_UploadStart_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileServiceClient) UploadParts(ctx context.Context, in *UploadPartsRequest, opts ...grpc.CallOption) (*UploadPartsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UploadPartsResponse)
+	err := c.cc.Invoke(ctx, FileService_UploadParts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileServiceClient) UploadComplete(ctx context.Context, in *UploadCompleteRequest, opts ...grpc.CallOption) (*UploadCompleteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UploadCompleteResponse)
+	err := c.cc.Invoke(ctx, FileService_UploadComplete_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileServiceClient) UploadAbort(ctx context.Context, in *UploadAbortRequest, opts ...grpc.CallOption) (*UploadAbortResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UploadAbortResponse)
+	err := c.cc.Invoke(ctx, FileService_UploadAbort_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileServiceClient) Stat(ctx context.Context, in *StatRequest, opts ...grpc.CallOption) (*StatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StatResponse)
+	err := c.cc.Invoke(ctx, FileService_Stat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileServiceClient) FetchURL(ctx context.Context, in *TransferRequest, opts ...grpc.CallOption) (*TransferResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TransferResponse)
+	err := c.cc.Invoke(ctx, FileService_FetchURL_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileServiceClient) StoreURL(ctx context.Context, in *TransferRequest, opts ...grpc.CallOption) (*TransferResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TransferResponse)
+	err := c.cc.Invoke(ctx, FileService_StoreURL_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *fileServiceClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PingResponse)
@@ -142,6 +226,13 @@ type FileServiceServer interface {
 	Exists(context.Context, *ExistsRequest) (*ExistsResponse, error)
 	Presign(context.Context, *PresignRequest) (*PresignResponse, error)
 	BatchPresign(context.Context, *BatchPresignRequest) (*BatchPresignResponse, error)
+	UploadStart(context.Context, *UploadStartRequest) (*UploadStartResponse, error)
+	UploadParts(context.Context, *UploadPartsRequest) (*UploadPartsResponse, error)
+	UploadComplete(context.Context, *UploadCompleteRequest) (*UploadCompleteResponse, error)
+	UploadAbort(context.Context, *UploadAbortRequest) (*UploadAbortResponse, error)
+	Stat(context.Context, *StatRequest) (*StatResponse, error)
+	FetchURL(context.Context, *TransferRequest) (*TransferResponse, error)
+	StoreURL(context.Context, *TransferRequest) (*TransferResponse, error)
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	mustEmbedUnimplementedFileServiceServer()
 }
@@ -173,6 +264,27 @@ func (UnimplementedFileServiceServer) Presign(context.Context, *PresignRequest) 
 }
 func (UnimplementedFileServiceServer) BatchPresign(context.Context, *BatchPresignRequest) (*BatchPresignResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BatchPresign not implemented")
+}
+func (UnimplementedFileServiceServer) UploadStart(context.Context, *UploadStartRequest) (*UploadStartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadStart not implemented")
+}
+func (UnimplementedFileServiceServer) UploadParts(context.Context, *UploadPartsRequest) (*UploadPartsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadParts not implemented")
+}
+func (UnimplementedFileServiceServer) UploadComplete(context.Context, *UploadCompleteRequest) (*UploadCompleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadComplete not implemented")
+}
+func (UnimplementedFileServiceServer) UploadAbort(context.Context, *UploadAbortRequest) (*UploadAbortResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadAbort not implemented")
+}
+func (UnimplementedFileServiceServer) Stat(context.Context, *StatRequest) (*StatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Stat not implemented")
+}
+func (UnimplementedFileServiceServer) FetchURL(context.Context, *TransferRequest) (*TransferResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FetchURL not implemented")
+}
+func (UnimplementedFileServiceServer) StoreURL(context.Context, *TransferRequest) (*TransferResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StoreURL not implemented")
 }
 func (UnimplementedFileServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -324,6 +436,132 @@ func _FileService_BatchPresign_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FileService_UploadStart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadStartRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).UploadStart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_UploadStart_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).UploadStart(ctx, req.(*UploadStartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_UploadParts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadPartsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).UploadParts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_UploadParts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).UploadParts(ctx, req.(*UploadPartsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_UploadComplete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadCompleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).UploadComplete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_UploadComplete_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).UploadComplete(ctx, req.(*UploadCompleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_UploadAbort_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadAbortRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).UploadAbort(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_UploadAbort_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).UploadAbort(ctx, req.(*UploadAbortRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_Stat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).Stat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_Stat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).Stat(ctx, req.(*StatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_FetchURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransferRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).FetchURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_FetchURL_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).FetchURL(ctx, req.(*TransferRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_StoreURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransferRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).StoreURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_StoreURL_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).StoreURL(ctx, req.(*TransferRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FileService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PingRequest)
 	if err := dec(in); err != nil {
@@ -376,6 +614,34 @@ var FileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchPresign",
 			Handler:    _FileService_BatchPresign_Handler,
+		},
+		{
+			MethodName: "UploadStart",
+			Handler:    _FileService_UploadStart_Handler,
+		},
+		{
+			MethodName: "UploadParts",
+			Handler:    _FileService_UploadParts_Handler,
+		},
+		{
+			MethodName: "UploadComplete",
+			Handler:    _FileService_UploadComplete_Handler,
+		},
+		{
+			MethodName: "UploadAbort",
+			Handler:    _FileService_UploadAbort_Handler,
+		},
+		{
+			MethodName: "Stat",
+			Handler:    _FileService_Stat_Handler,
+		},
+		{
+			MethodName: "FetchURL",
+			Handler:    _FileService_FetchURL_Handler,
+		},
+		{
+			MethodName: "StoreURL",
+			Handler:    _FileService_StoreURL_Handler,
 		},
 		{
 			MethodName: "Ping",

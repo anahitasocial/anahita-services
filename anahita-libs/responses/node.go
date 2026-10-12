@@ -45,6 +45,8 @@ type NodeItem struct {
 
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
+	// What a video post plays.
+	Video *Video `json:"video,omitempty"`
 
 	// On a custom feed: its picture and what it shows. Left out on
 	// anything else.
@@ -110,6 +112,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		Event:                NewEvent(node),
 		Feed:                 NewFeedBrief(node),
 		LinkPreview:          NewLinkPreview(node),
+		Video:                NewVideo(node),
 		Authorized:           NewNodeAuthorized(node),
 		Author: func() *Author {
 			if node.Author != nil {

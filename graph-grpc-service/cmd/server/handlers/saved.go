@@ -127,3 +127,16 @@ func (h *mediumHandler) ListSaved(ctx context.Context, req *graphpb.SavedListReq
 		Total: total,
 	}, nil
 }
+
+// ListAuthored returns what one person wrote, a page at a time, for their
+// own copy of it. It asks nothing about who is asking: the services that
+// call it do so for the person themselves. See the repository.
+func (h *mediumHandler) ListAuthored(ctx context.Context, req *graphpb.AuthoredListRequest) (*graphpb.AuthoredListResponse, error) {
+	nodes, err := h.env.Repos.Nodes.Authored(req.GetPersonId(), req.GetAfterId(), req.GetLimit())
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &graphpb.AuthoredListResponse{Nodes: nodesToGrpc(nodes)}, nil
+}

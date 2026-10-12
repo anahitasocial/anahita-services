@@ -5,6 +5,7 @@ import (
 
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
+	"anahita-libs/videos"
 )
 
 func ApplyFeatures(node *graphpb.Node, loader *FeatureLoader, defaults []*entities.AnahitaNodeFeature) error {
@@ -17,6 +18,19 @@ func ApplyFeatures(node *graphpb.Node, loader *FeatureLoader, defaults []*entiti
 	}
 
 	merged := loader.Merge(defaults, overrides)
+
+	// Video is the installation's to switch on (VIDEO_UPLOADS). Where it is
+	// not, no profile has the feature: no composer, no tab, and nothing a
+	// profile's own settings can turn back on.
+	if !videos.UploadsOn() {
+		kept := merged[:0]
+		for _, feature := range merged {
+			if feature.Service != videos.Service {
+				kept = append(kept, feature)
+			}
+		}
+		merged = kept
+	}
 
 	// Convert to protobuf features
 	node.Features = make([]*graphpb.NodeFeature, len(merged))

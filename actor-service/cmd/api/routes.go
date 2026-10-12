@@ -63,6 +63,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	people.PATCH("/:id/access", r.handler.Person.EditAccess, r.authorize)
 	people.PATCH("/:id/reposts-on-profile", r.handler.Person.EditRepostsOnProfile, r.authorize)
 	people.PATCH("/:id/quote-policy", r.handler.Person.EditQuotePolicy, r.authorize)
+	// What their new photos and videos start with, about being downloaded.
+	people.PATCH("/:id/download-default", r.handler.Person.EditDownloadDefault, r.authorize)
 
 	// Edit features
 	people.PATCH("/:id/features", r.handler.Person.EditFeatures, r.authorize)
@@ -95,6 +97,7 @@ func (r *Routes) Init(e *echo.Echo) {
 
 	// group edit access
 	groups.PATCH("/:id/access", r.handler.Group.EditAccess, r.authorize)
+	groups.PATCH("/:id/download-default", r.handler.Group.EditDownloadDefault, r.authorize)
 
 	// group edit features
 	groups.PATCH("/:id/features", r.handler.Group.EditFeatures, r.authorize)

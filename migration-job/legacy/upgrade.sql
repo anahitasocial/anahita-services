@@ -575,6 +575,10 @@ ALTER TABLE nodes ADD COLUMN `quote_policy` varchar(16) DEFAULT NULL AFTER `repl
 -- migrations/20261013000001_nodes_show_reposts_on_profile.sql.
 ALTER TABLE nodes ADD COLUMN `show_reposts_on_profile` tinyint(1) NOT NULL DEFAULT 0 AFTER `allow_follow_request`;
 
+-- nodes.allow_download. See
+-- migrations/20261023000001_allow_download.sql.
+ALTER TABLE nodes ADD COLUMN `allow_download` tinyint(1) NOT NULL DEFAULT 0 AFTER `show_reposts_on_profile`;
+
 -- Comments become replies: notes that answer the post they were under. The
 -- same statements as migrations/20261011000001_comments_become_replies.sql,
 -- where the reasons are. They come after the conversion of types above,
@@ -1428,6 +1432,97 @@ CREATE TABLE IF NOT EXISTS recommendation_dismissals (
     `created_at` datetime NOT NULL,
     PRIMARY KEY (`person_id`, `actor_id`),
     KEY `idx_recommendation_dismissals_actor` (`actor_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- A video on its way to being a post: sent by a browser straight to
+-- storage, then made into the files that are shown. The row is the upload,
+-- the work waiting to be done on it, and afterwards the record of how it
+-- went; the post itself is a node, made only once there is something to
+-- show.
+--
+-- Owned by video-service and its worker. No foreign keys, like the rest of
+-- this schema.
+CREATE TABLE IF NOT EXISTS video_uploads (
+    -- Public, and unguessable: it is in the addresses the uploader asks.
+    `id` char(36) NOT NULL,
+    -- Who is posting it, and the profile it is posted on.
+    `person_id` bigint unsigned NOT NULL,
+    `owner_id` bigint unsigned NOT NULL,
+    -- The post as it will be made: said when the upload began, and settled
+    -- then, so that nothing has to be asked again when the video is ready.
+    `name` varchar(255) NOT NULL DEFAULT '',
+    `body` text,
+    `access` varchar(32) NOT NULL DEFAULT '',
+    `language` varchar(50) NOT NULL DEFAULT '',
+    `reply_access` varchar(64) NOT NULL DEFAULT '',
+    `quote_policy` varchar(16) NOT NULL DEFAULT '',
+    -- Whether the post may be downloaded, as chosen when the upload began.
+    `allow_download` tinyint(1) NOT NULL DEFAULT 0,
+    -- 'uploading' while the browser sends it, 'processing' once it is all
+    -- there and waiting for or with a worker, then 'ready', 'failed', or
+    -- 'cancelled' for one given up on.
+    `status` varchar(16) NOT NULL DEFAULT 'uploading',
+    -- Where the file sent is in storage, and the store's own name for the
+    -- upload while it is in parts.
+    `source_key` varchar(255) NOT NULL,
+    `storage_upload_id` varchar(255) NOT NULL DEFAULT '',
+    -- What the uploader said it was, and what arrived.
+    `declared_bytes` bigint unsigned NOT NULL DEFAULT 0,
+    `size_bytes` bigint unsigned NOT NULL DEFAULT 0,
+    -- The post, once there is one.
+    `node_id` bigint unsigned DEFAULT NULL,
+    -- Why it failed, in a word the uploader is shown the meaning of.
+    `error` varchar(64) NOT NULL DEFAULT '',
+    -- How many times a worker has taken it, and when one last did. A worker
+    -- that dies leaves it taken; it is taken again after a while.
+    `attempts` int NOT NULL DEFAULT 0,
+    `claimed_at` datetime DEFAULT NULL,
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_video_uploads_status` (`status`, `updated_at`),
+    KEY `idx_video_uploads_person` (`person_id`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- A person's copy of their own data: one archive of what they wrote and
+-- who they follow, made when they ask and kept a week for them to fetch.
+-- The row is the request, the work to be done on it, and the record of it.
+--
+-- Owned by export-service and its worker. No foreign keys, like the rest of
+-- this schema.
+CREATE TABLE IF NOT EXISTS data_exports (
+    -- Public, and unguessable: it is in the addresses its owner asks.
+    `id` char(36) NOT NULL,
+    `person_id` bigint unsigned NOT NULL,
+    -- 'pending' until a worker takes it, 'building' while one has it, then
+    -- 'ready', 'failed', 'cancelled' for one given up, or 'expired' once
+    -- its archive has been deleted.
+    `status` varchar(16) NOT NULL DEFAULT 'pending',
+    -- The person, while the export is being made, and NULL afterwards.
+    -- Unique, which is what makes "one at a time for each person" a rule of
+    -- the database and not of whichever request got there first. Any number
+    -- of finished exports store NULL and share the index.
+    `active_person_id` bigint unsigned GENERATED ALWAYS AS (IF(`status` IN ('pending', 'building'), `person_id`, NULL)) STORED,
+    -- Where the archive is in storage, and how big it is.
+    `package_key` varchar(255) NOT NULL DEFAULT '',
+    `size_bytes` bigint unsigned NOT NULL DEFAULT 0,
+    -- Why it failed, in a word.
+    `error` varchar(64) NOT NULL DEFAULT '',
+    -- How many times a worker has taken it, and when one last did.
+    `attempts` int NOT NULL DEFAULT 0,
+    `claimed_at` datetime DEFAULT NULL,
+    -- Where it was asked for from, kept as the record of the request.
+    `ip` varchar(64) NOT NULL DEFAULT '',
+    `user_agent` varchar(255) NOT NULL DEFAULT '',
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+    `ready_at` datetime DEFAULT NULL,
+    -- When the archive is deleted.
+    `expires_at` datetime DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_data_exports_active_person` (`active_person_id`),
+    KEY `idx_data_exports_person` (`person_id`, `created_at`),
+    KEY `idx_data_exports_status` (`status`, `updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------

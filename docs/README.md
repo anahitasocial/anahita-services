@@ -112,6 +112,8 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [First deployment](deploying.md#first-deployment)
    - [Certificates between the services](deploying.md#certificates-between-the-services)
    - [Object storage](deploying.md#object-storage)
+     - [What is in the bucket](deploying.md#what-is-in-the-bucket)
+     - [Moving a bucket to the v1 layout](deploying.md#moving-a-bucket-to-the-v1-layout)
    - [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)
    - [On AWS](deploying.md#on-aws)
    - [Upgrading](deploying.md#upgrading)
@@ -135,13 +137,13 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
 | [Link previews](plans/link-previews.md) | 10 | built 2026-10-11, with the web shell of its part B |
-| [Downloading what a post holds](plans/downloads.md) | 37 | not started; with the video service |
+| [Downloading what a post holds](plans/downloads.md) | 37 | built 2026-10-11 |
 | [Invitations](plans/actor-invitations.md) | 11 | not started |
 | [Events](plans/events.md) | 12 | not started |
 | [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
-| [Video service](plans/video-service.md) | 16 | not started |
+| [Video: video-service and a transcoding worker](plans/video-service.md) | 16 | built 2026-10-11 |
 | [Creative Commons licences](plans/content-licences.md) | 19 | kept for later (2026-10-04); look again after items 16 and 17 |
-| [Download your data](plans/data-export.md) | 21 | not started |
+| [Download your data](plans/data-export.md) | 21 | built 2026-10-11 |
 | [Post insights](plans/post-insights.md) | 22, set aside: a post's activity was built instead | not started |
 | [Profile tabs for replies and reposts](plans/done/profile-tabs-and-reposts.md) | 24 | done 2026-10-05 |
 | [Quote posts](plans/done/quote-posts.md) | 25 | done 2026-10-05 |
@@ -203,3 +205,27 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
    - [Settings](web-shell.md#settings)
    - [Not running it](web-shell.md#not-running-it)
    - [What is not built](web-shell.md#what-is-not-built)
+18. [Videos](videos.md) — a video sent straight to storage, the worker that makes a post of it, and how it is played
+   - [The parts](videos.md#the-parts)
+   - [Sending a video](videos.md#sending-a-video)
+   - [What the worker does](videos.md#what-the-worker-does)
+   - [What a file has to be](videos.md#what-a-file-has-to-be)
+   - [The post](videos.md#the-post)
+   - [Playing it](videos.md#playing-it)
+   - [Sizes](videos.md#sizes)
+   - [Endpoints](videos.md#endpoints)
+   - [Settings](videos.md#settings)
+   - [Storage](videos.md#storage)
+   - [Running it, and not running it](videos.md#running-it-and-not-running-it)
+   - [What is not built](videos.md#what-is-not-built)
+19. [Download your data](data-export.md) — a person's copy of everything they put here: asking for it, what is in it, and how long it is kept
+   - [The parts](data-export.md#the-parts)
+   - [Asking for one](data-export.md#asking-for-one)
+   - [What is in an archive](data-export.md#what-is-in-an-archive)
+   - [What is not](data-export.md#what-is-not)
+   - [How it is made](data-export.md#how-it-is-made)
+   - [Keeping and deleting](data-export.md#keeping-and-deleting)
+   - [Endpoints](data-export.md#endpoints)
+   - [Settings](data-export.md#settings)
+   - [Running it, and not running it](data-export.md#running-it-and-not-running-it)
+   - [What is not built](data-export.md#what-is-not-built)

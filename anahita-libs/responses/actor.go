@@ -49,6 +49,9 @@ type ActorNodeItem struct {
 	// "anyone", "followers" or "nobody"; left out when they have not said,
 	// which is anyone.
 	QuotePolicy string `json:"quote_policy,omitempty"`
+	// What this actor's new photos and videos start with: whether they may
+	// be downloaded.
+	AllowDownload bool `json:"allow_download"`
 	// Permanent, and set only once archived, so the settings page can show the
 	// state rather than offering an action that no longer applies.
 	ArchivedAt *time.Time `json:"archived_at,omitempty"`
@@ -154,6 +157,7 @@ func (r *ActorResponse) MapNodeItem(node *entities.AnahitaNode) *ActorNodeItem {
 		AllowFollowRequest:   node.AllowFollowRequest,
 		ShowRepostsOnProfile: node.ShowRepostsOnProfile,
 		QuotePolicy:          node.QuotePolicy,
+		AllowDownload:        node.AllowDownload,
 		ArchivedAt:           node.ArchivedAt,
 		FeaturedAt:           node.FeaturedAt,
 		CreatedAt:            node.CreatedAt,

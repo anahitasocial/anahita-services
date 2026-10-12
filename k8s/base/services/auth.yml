@@ -252,6 +252,26 @@ spec:
                   name: anahita-config
                   key: EVENTS_FROM
                   optional: true
+            # Video: whether it may be posted and the limits, published to the
+            # web app. video-service holds uploads to them.
+            - name: VIDEO_UPLOADS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: VIDEO_UPLOADS
+                  optional: true
+            - name: VIDEO_MAX_BYTES
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: VIDEO_MAX_BYTES
+                  optional: true
+            - name: VIDEO_MAX_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: VIDEO_MAX_SECONDS
+                  optional: true
             - name: INVITE_PENDING_MAX
               valueFrom:
                 configMapKeyRef:

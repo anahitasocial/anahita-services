@@ -154,3 +154,10 @@ type PersonEditQuotePolicyRequest struct {
 	ID          int64  `param:"id" validate:"required,numeric"`
 	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"required,max=16"`
 }
+
+// ActorEditDownloadDefaultRequest says what a person's or a group's new
+// photos and videos start with: whether they may be downloaded.
+type ActorEditDownloadDefaultRequest struct {
+	ID    int64 `param:"id" validate:"required,numeric"`
+	Allow bool  `json:"allow" form:"allow"`
+}

@@ -39,6 +39,15 @@
             "enabled": true,
             "add_permissions": [],
             "ordering": 4
+        },
+        {
+            "service": "video-service",
+            "node_types": [],
+            "composers": [],
+            "optional": true,
+            "enabled": true,
+            "add_permissions": [],
+            "ordering": 5
         }
     ],
     "common_permissions": {

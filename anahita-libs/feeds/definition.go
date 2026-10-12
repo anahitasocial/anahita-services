@@ -102,9 +102,10 @@ var mediaTypes = map[string]string{
 	"article": "node.medium.text-service.article.v1",
 	"topic":   "node.medium.text-service.topic.v1",
 	"photo":   constants.NodeMediumPhotoEntityType,
+	"video":   "node.medium.video-service.video.v1",
 }
 
-var mediaOrder = []string{"note", "article", "topic", "photo"}
+var mediaOrder = []string{"note", "article", "topic", "photo", "video"}
 
 var actorTypes = map[string]string{
 	"person": constants.NodeActorPersonEntityType,

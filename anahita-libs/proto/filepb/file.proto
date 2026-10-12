@@ -51,6 +51,9 @@ message ExistsResponse {
 
 message PresignRequest {
     string path = 1;
+    // Given, the address is for keeping the file and not for showing it: a
+    // browser saves it, under this name.
+    string download_name = 2;
 }
 
 message PresignResponse {
@@ -63,6 +66,65 @@ message BatchPresignRequest {
 
 message BatchPresignResponse {
     repeated string urls = 1;
+}
+
+// A large file sent straight to the store by a browser, in parts. See
+// file-grpc-service/data/services/uploads.go.
+message UploadStartRequest {
+    string path = 1;
+}
+
+message UploadStartResponse {
+    string upload_id = 1;
+}
+
+message UploadPartsRequest {
+    string path = 1;
+    string upload_id = 2;
+    repeated int32 part_numbers = 3;
+}
+
+message UploadPartsResponse {
+    repeated string urls = 1;
+}
+
+message UploadCompleteRequest {
+    string path = 1;
+    string upload_id = 2;
+    // The most the whole file may be. Past it the upload is thrown away.
+    int64 max_size = 3;
+}
+
+message UploadCompleteResponse {
+    int64 size = 1;
+}
+
+message UploadAbortRequest {
+    string path = 1;
+    string upload_id = 2;
+}
+
+message UploadAbortResponse {}
+
+message StatRequest {
+    string path = 1;
+}
+
+message StatResponse {
+    bool exists = 1;
+    int64 size = 2;
+    string content_type = 3;
+}
+
+// Addresses for another service to read or write a large file at, itself.
+message TransferRequest {
+    string path = 1;
+    // For a write: what the file is. Only what a worker makes is taken.
+    string content_type = 2;
+}
+
+message TransferResponse {
+    string url = 1;
 }
 
 message PingRequest {
@@ -81,5 +143,12 @@ service FileService {
     rpc Exists(ExistsRequest) returns (ExistsResponse) {}
     rpc Presign(PresignRequest) returns (PresignResponse) {}
     rpc BatchPresign(BatchPresignRequest) returns (BatchPresignResponse) {}
+    rpc UploadStart(UploadStartRequest) returns (UploadStartResponse) {}
+    rpc UploadParts(UploadPartsRequest) returns (UploadPartsResponse) {}
+    rpc UploadComplete(UploadCompleteRequest) returns (UploadCompleteResponse) {}
+    rpc UploadAbort(UploadAbortRequest) returns (UploadAbortResponse) {}
+    rpc Stat(StatRequest) returns (StatResponse) {}
+    rpc FetchURL(TransferRequest) returns (TransferResponse) {}
+    rpc StoreURL(TransferRequest) returns (TransferResponse) {}
     rpc Ping(PingRequest) returns (PingResponse) {}
 }

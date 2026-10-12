@@ -136,6 +136,11 @@ message Node {
     // Whether what an actor reposts is also among its profile's posts.
     bool show_reposts_on_profile = 85;
 
+    // On a post that holds a file, a photo or a video: whether whoever can
+    // see it may download it. On a person or a group: what their new posts
+    // start with.
+    bool allow_download = 92;
+
     // Quote posts. quote_policy is who may quote a post, or on a person
     // their posts; quote_id is the post a note quotes; quote_detached says
     // that post's author took it out of the quote.

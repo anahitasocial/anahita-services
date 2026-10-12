@@ -70,6 +70,14 @@ images:
     newTag: latest
   - name: anahita/photo-service
     newTag: latest
+  - name: anahita/video-service
+    newTag: latest
+  - name: anahita/video-worker
+    newTag: latest
+  - name: anahita/export-service
+    newTag: latest
+  - name: anahita/export-worker
+    newTag: latest
   - name: anahita/recommendation-service
     newTag: latest
   - name: anahita/search-service

@@ -1,24 +1,26 @@
+// Moves a bucket's pictures to the v1 layout: from the PHP application's
+// (assets/public, "v0") or from the one this platform used while it was
+// being built (assets/v2). See README.md.
 package main
 
 import (
 	"context"
+	"errors"
+	"flag"
 	"fmt"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
-	"regexp"
+	"sort"
 	"strings"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
-
-const newPathPrefix = "assets/v2/"
-
-// bucketName is read from the environment in main. It used to be one
-// installation's bucket, written here.
-var bucketName string
 
 // firstEnv returns the first of the named variables that is set.
 func firstEnv(keys ...string) string {
@@ -31,14 +33,28 @@ func firstEnv(keys ...string) string {
 }
 
 func main() {
-	ctx := context.TODO()
+	from := flag.String("from", "", `the layout the bucket is in now: "v0" (the PHP application's, assets/public) or "v2" (assets/v2)`)
+	apply := flag.Bool("apply", false, "copy the files. Without it, only what would be copied is listed")
+	deleteOld := flag.Bool("delete-old", false, "delete each old file whose copy is in place. Only with -apply, and only after checking the site")
+	verbose := flag.Bool("v", false, "name every file as it goes, and not only count them")
+	flag.Parse()
+
+	prefix, ok := sources[*from]
+	if !ok {
+		log.Fatal(`say which layout the bucket is in now: -from v0 or -from v2`)
+	}
+	if *deleteOld && !*apply {
+		log.Fatal("-delete-old changes the bucket, and so needs -apply as well")
+	}
 
 	// The same settings file-grpc-service reads, so the script follows the
 	// installation to whichever S3-compatible store it uses.
-	bucketName = firstEnv("STORAGE_BUCKET", "AWS_FILES_S3_BUCKET")
-	if bucketName == "" {
-		log.Fatal("set STORAGE_BUCKET to the bucket whose files should be migrated")
+	bucket := firstEnv("STORAGE_BUCKET", "AWS_FILES_S3_BUCKET")
+	if bucket == "" {
+		log.Fatal("set STORAGE_BUCKET to the bucket whose files should be moved")
 	}
+
+	ctx := context.Background()
 
 	var options []func(*config.LoadOptions) error
 	if region := firstEnv("STORAGE_REGION", "AWS_REGION", "AWS_DEFAULT_REGION"); region != "" {
@@ -53,152 +69,259 @@ func main() {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
-	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		if endpoint := os.Getenv("STORAGE_ENDPOINT"); endpoint != "" {
 			o.BaseEndpoint = aws.String(endpoint)
 		}
 		o.UsePathStyle = os.Getenv("STORAGE_PATH_STYLE") == "true"
 	})
 
-	// Start the copying process
-	if err := copyFiles(ctx, s3Client); err != nil {
-		log.Fatalf("error copying files: %v", err)
-	}
-}
-
-// Helper function to transform the old path into the new one based on the service type
-func transformPath(oldKey string) (string, error) {
-	// If the path ends with a trailing slash, it's likely a directory, so skip it
-	if strings.HasSuffix(oldKey, "/") {
-		return "", fmt.Errorf("skipping directory path: %s", oldKey)
+	m := &mover{client: client, bucket: bucket, apply: *apply, deleteOld: *deleteOld, verbose: *verbose}
+	if err := m.run(ctx, prefix); err != nil {
+		log.Fatalf("stopped: %v", err)
 	}
 
-	var newKey string
-
-	// Updated Regex patterns for matching paths based on different services
-	avatarRegex := regexp.MustCompile(`assets/public/n(\d+)/(com_people|com_groups|com_socialengine)/avatars/(original|large|medium|small|square)(.*)`)
-	coverRegex := regexp.MustCompile(`assets/public/n(\d+)/(com_people|com_groups|com_articles)(/com_articles)?/covers/(large|medium|original)(.*)`)
-	photoRegex := regexp.MustCompile(`assets/public/n(\d+)/com_photos/(.*)_(original|large|xlarge|xxlarge|medium|small|square|thumbnail)\.(.*)`)
-
-	if matches := avatarRegex.FindStringSubmatch(oldKey); len(matches) == 5 {
-		// Avatar path (com_people, com_groups, or com_socialengine)
-		nodeId := matches[1]
-		service := "avatar-service"
-		nodeType := "person"
-		if matches[2] == "com_groups" {
-			nodeType = "group"
-		} else if matches[2] == "com_socialengine" {
-			nodeType = "person" // Legacy path for person avatars
-		}
-		size := matches[3]
-		filename := matches[4]
-
-		// Extract the extension from the filename
-		extension := getFileExtension(filename)
-
-		// Format: <filename>_<size>.<extension>
-		newKey = fmt.Sprintf("%s%s/%s/%s/%s_%s.%s", newPathPrefix, service, nodeType, nodeId, strings.TrimSuffix(filename, "."+extension), size, extension)
-
-	} else if matches := coverRegex.FindStringSubmatch(oldKey); len(matches) == 6 {
-		// Cover path (com_people, com_groups, or com_articles), handling the com_articles/com_articles issue
-		nodeId := matches[1]
-		service := "cover-service"
-		nodeType := "person"
-		if matches[2] == "com_groups" {
-			nodeType = "group"
-		} else if matches[2] == "com_articles" {
-			nodeType = "article"
-		}
-		size := matches[4]
-		filename := matches[5]
-
-		// Extract the extension from the filename
-		extension := getFileExtension(filename)
-
-		// Format: <filename>_<size>.<extension>
-		newKey = fmt.Sprintf("%s%s/%s/%s/%s_%s.%s", newPathPrefix, service, nodeType, nodeId, strings.TrimSuffix(filename, "."+extension), size, extension)
-
-	} else if matches := photoRegex.FindStringSubmatch(oldKey); len(matches) == 5 {
-		// Photo path (com_photos)
-		nodeId := matches[1]
-		service := "photo-service"
-		nodeType := "photo"
-		filename := matches[2] // Extract filename before the underscore and size
-		size := matches[3]
-		extension := matches[4] // Extract the file extension
-
-		// Format: <filename>_<size>.<extension>
-		newKey = fmt.Sprintf("%s%s/%s/%s/%s_%s.%s", newPathPrefix, service, nodeType, nodeId, filename, size, extension)
-
+	fmt.Println()
+	if !*apply {
+		fmt.Printf("%d files would be copied, %d are already in place, %d are not pictures this knows.\n", m.toCopy, m.inPlace, m.unknown)
+		fmt.Println("Nothing was changed. Run again with -apply to copy them.")
+		return
+	}
+	fmt.Printf("%d copied, %d already in place, %d failed, %d not pictures this knows.\n", m.copied, m.inPlace, m.failed, m.unknown)
+	if *deleteOld {
+		fmt.Printf("%d old files deleted.\n", m.deleted)
 	} else {
-		return "", fmt.Errorf("unrecognized file path format: %s", oldKey)
+		fmt.Println("The old files are still there. When the site shows its pictures from the new places,")
+		fmt.Println("run again with -apply -delete-old to remove them.")
 	}
-
-	return newKey, nil
+	if m.failed > 0 {
+		os.Exit(1)
+	}
 }
 
-// Helper function to extract the file extension
-func getFileExtension(filename string) string {
-	parts := strings.Split(filename, ".")
-	if len(parts) > 1 {
-		return parts[len(parts)-1]
-	}
-	return ""
+// Where each layout keeps its files.
+var sources = map[string]string{
+	"v0": "assets/public/n",
+	"v2": "assets/v2/",
 }
 
-func copyFiles(ctx context.Context, s3Client *s3.Client) error {
-	var continuationToken *string
+// How many files are copied at once. The store does the copying; this is
+// how many requests are in flight.
+const workers = 24
 
+type mover struct {
+	client    *s3.Client
+	bucket    string
+	apply     bool
+	deleteOld bool
+	// Every file moved is named as it goes, and not only counted.
+	verbose bool
+
+	mu sync.Mutex
+	// What is already in the v1 layout, by key, with its size: read once,
+	// so that nothing has to be asked about each file.
+	there map[string]int64
+	// How many files of each folder there are to move, for the summary.
+	folders map[string]int
+
+	toCopy, inPlace, copied, failed, unknown, deleted int
+}
+
+type object struct {
+	key  string
+	size int64
+}
+
+// list reads every file under a prefix.
+func (m *mover) list(ctx context.Context, prefix string, each func(object)) error {
+	var token *string
 	for {
-		// List objects in the bucket for all services (avatars, covers, photos)
-		listInput := &s3.ListObjectsV2Input{
-			Bucket:            aws.String(bucketName),
-			Prefix:            aws.String("assets/public/n"), // Filter based on your file path
-			ContinuationToken: continuationToken,             // Used for pagination
-		}
-		listOutput, err := s3Client.ListObjectsV2(ctx, listInput)
+		page, err := m.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
+			Bucket:            aws.String(m.bucket),
+			Prefix:            aws.String(prefix),
+			ContinuationToken: token,
+		})
 		if err != nil {
-			return fmt.Errorf("failed to list objects: %w", err)
+			return fmt.Errorf("listing %s: %w", prefix, err)
 		}
-
-		// Iterate over each object
-		for _, object := range listOutput.Contents {
-			oldKey := *object.Key
-			newKey, err := transformPath(oldKey)
-			if err != nil {
-				log.Printf("Error transforming path for %s: %v\n", oldKey, err)
-				continue
-			}
-
-			// Skip empty or directory paths
-			if newKey == "" {
-				log.Printf("Skipping directory or invalid path: %s\n", oldKey)
-				continue
-			}
-
-			// Copy the object
-			copyInput := &s3.CopyObjectInput{
-				Bucket:     aws.String(bucketName),
-				CopySource: aws.String(fmt.Sprintf("%s/%s", bucketName, oldKey)),
-				Key:        aws.String(newKey),
-			}
-			_, err = s3Client.CopyObject(ctx, copyInput)
-			if err != nil {
-				log.Printf("Failed to copy object %s: %v\n", oldKey, err)
-				continue
-			}
-
-			fmt.Printf("Copied %s to %s\n", oldKey, newKey)
+		for _, entry := range page.Contents {
+			each(object{key: aws.ToString(entry.Key), size: aws.ToInt64(entry.Size)})
 		}
-
-		// If there are no more objects to fetch, exit the loop
-		if listOutput.IsTruncated != nil && !*listOutput.IsTruncated {
-			break
+		if !aws.ToBool(page.IsTruncated) {
+			return nil
 		}
+		token = page.NextContinuationToken
+	}
+}
 
-		// Update continuationToken for the next iteration
-		continuationToken = listOutput.NextContinuationToken
+func (m *mover) run(ctx context.Context, prefix string) error {
+	// What is in place already, in one pass, and then what there is to move.
+	m.there = map[string]int64{}
+	m.folders = map[string]int{}
+	if err := m.list(ctx, assetsPrefix, func(o object) { m.there[o.key] = o.size }); err != nil {
+		return err
 	}
 
+	var old []object
+	if err := m.list(ctx, prefix, func(o object) { old = append(old, o) }); err != nil {
+		return err
+	}
+	fmt.Printf("%d files under %s, %d already under %s\n", len(old), prefix, len(m.there), assetsPrefix)
+
+	queue := make(chan object)
+	var wg sync.WaitGroup
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for o := range queue {
+				m.move(ctx, o.key, o.size)
+			}
+		}()
+	}
+	for i, o := range old {
+		queue <- o
+		if m.apply && (i+1)%2000 == 0 {
+			fmt.Printf("  %d of %d\n", i+1, len(old))
+		}
+	}
+	close(queue)
+	wg.Wait()
+
+	if len(m.folders) > 0 {
+		fmt.Println()
+		fmt.Println("To move, by where it goes:")
+		names := make([]string, 0, len(m.folders))
+		for name := range m.folders {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			fmt.Printf("  %7d  %s\n", m.folders[name], name)
+		}
+	}
 	return nil
+}
+
+func (m *mover) count(change func()) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	change()
+}
+
+func (m *mover) say(format string, args ...any) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	fmt.Printf(format, args...)
+}
+
+// folderOf is the part of a v1 key that says what kind of file it is.
+func folderOf(newKey string) string {
+	parts := strings.Split(strings.TrimPrefix(newKey, assetsPrefix), "/")
+	if len(parts) >= 2 && parts[0] == "identity-image-service" {
+		return assetsPrefix + parts[0] + "/" + parts[1] + "/"
+	}
+	return assetsPrefix + parts[0] + "/"
+}
+
+// move copies one file to its new place, unless it is there already, and
+// deletes the old one when asked and the copy is certain.
+func (m *mover) move(ctx context.Context, oldKey string, size int64) {
+	newKey, err := NewKey(oldKey)
+	if err != nil {
+		// A folder marker, or something that is not one of the pictures.
+		if !strings.HasSuffix(oldKey, "/") {
+			m.count(func() { m.unknown++ })
+			m.say("left   %s (%v)\n", oldKey, err)
+		}
+		return
+	}
+
+	m.mu.Lock()
+	have, known := m.there[newKey]
+	m.mu.Unlock()
+	inPlace := known && have == size
+
+	switch {
+	case inPlace:
+		m.count(func() { m.inPlace++ })
+	case !m.apply:
+		m.count(func() {
+			m.toCopy++
+			m.folders[folderOf(newKey)]++
+		})
+		if m.verbose {
+			m.say("would copy %s\n        to %s\n", oldKey, newKey)
+		}
+		return
+	default:
+		// Copied by the store itself: the file does not pass through here.
+		_, err := m.client.CopyObject(ctx, &s3.CopyObjectInput{
+			Bucket:     aws.String(m.bucket),
+			CopySource: aws.String(m.bucket + "/" + escapeKey(oldKey)),
+			Key:        aws.String(newKey),
+		})
+		if err != nil {
+			m.count(func() { m.failed++ })
+			m.say("FAILED %s: %v\n", oldKey, err)
+			return
+		}
+		m.count(func() {
+			m.copied++
+			m.folders[folderOf(newKey)]++
+		})
+		if m.verbose {
+			m.say("copied %s\n    to %s\n", oldKey, newKey)
+		}
+	}
+
+	if !m.deleteOld {
+		return
+	}
+	// Only once the copy is known to be there, whole. One that was in
+	// place when the bucket was read is known already; one copied just now
+	// is asked after.
+	if !inPlace {
+		if ok, err := m.sameSize(ctx, newKey, size); err != nil || !ok {
+			m.count(func() { m.failed++ })
+			m.say("KEPT   %s: its copy could not be confirmed\n", oldKey)
+			return
+		}
+	}
+	if _, err := m.client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(m.bucket),
+		Key:    aws.String(oldKey),
+	}); err != nil {
+		m.count(func() { m.failed++ })
+		m.say("FAILED deleting %s: %v\n", oldKey, err)
+		return
+	}
+	m.count(func() { m.deleted++ })
+}
+
+// sameSize says whether a file is at a key and is this many bytes.
+func (m *mover) sameSize(ctx context.Context, key string, size int64) (bool, error) {
+	head, err := m.client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(m.bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		var responseErr interface{ HTTPStatusCode() int }
+		if errors.As(err, &responseErr) && responseErr.HTTPStatusCode() == http.StatusNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	return aws.ToInt64(head.ContentLength) == size, nil
+}
+
+// escapeKey writes a key as a copy source wants it: each part escaped, the
+// slashes between them left.
+func escapeKey(key string) string {
+	parts := strings.Split(key, "/")
+	for i, part := range parts {
+		// A plus is read as a space in a copy source unless it is written out.
+		parts[i] = strings.ReplaceAll(url.PathEscape(part), "+", "%2B")
+	}
+	return strings.Join(parts, "/")
 }

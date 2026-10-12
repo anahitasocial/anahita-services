@@ -90,6 +90,11 @@ func setFeedFlags(env *Env, nodes []*entities.AnahitaNode, viewer *entities.View
 		pin := permissions.CanPin(viewer, &withOwner, rels[post.OwnerID])
 		post.Authorized.Quote = &quote
 		post.Authorized.Pin = &pin
+		// Whether what it holds may be downloaded, said of a photo or a video.
+		if permissions.HoldsAFile(post) {
+			download := permissions.CanDownload(viewer, post)
+			post.Authorized.Download = &download
+		}
 
 		// Whether the viewer may edit and remove it, by the rule the
 		// services that serve posts enforce, so the feed can offer both

@@ -3,6 +3,7 @@ package handlers
 import (
 	an_constants "anahita-libs/constants"
 	"anahita-libs/policy"
+	"anahita-libs/videos"
 	"log"
 	"net/http"
 	"strings"
@@ -258,6 +259,14 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// How many images one photo post can hold, so a client need
 			// not carry the number itself.
 			"photoMaxFiles": an_constants.PhotoMaxFiles,
+
+			// Whether videos may be posted here (VIDEO_UPLOADS), and the
+			// largest and longest taken, so the web app offers the upload
+			// only where it will be accepted and can refuse a file that is
+			// too big before any of it is sent. video-service enforces them.
+			"videoUploads":    videos.UploadsOn(),
+			"videoMaxBytes":   videos.MaxBytes(),
+			"videoMaxSeconds": videos.MaxSeconds(),
 
 			"termsOfServiceUrl": h.Config.GetTosURL(),
 			"privacyPolicyUrl":  h.Config.GetPrivacyURL(),

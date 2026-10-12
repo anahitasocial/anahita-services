@@ -264,7 +264,7 @@ func TestAPictureIsReachedOnlyByItsOwnName(t *testing.T) {
 	}
 
 	status, location := image(name)
-	if status != http.StatusFound || !strings.Contains(location, "link-previews/"+name) {
+	if status != http.StatusFound || !strings.Contains(location, linkpreviews.StoragePrefix+name) {
 		t.Errorf("answered %d, to %q", status, location)
 	}
 

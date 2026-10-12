@@ -190,6 +190,68 @@ To move existing files from one store to another, copy the bucket with
 [rclone](https://rclone.org/): `rclone sync old:bucket new:bucket`. The paths
 inside the bucket stay the same, so nothing in the database changes.
 
+### What is in the bucket
+
+The bucket is private. Nothing in it is read except through an address the
+file service signs for a few minutes.
+
+Everything is under `assets/v1/`, in a folder named for the service that
+looks after it.
+
+| Folder | What | Written by |
+| --- | --- | --- |
+| `assets/v1/identity-image-service/avatars/` and `…/covers/` | Avatars and covers | `identity-image-service` |
+| `assets/v1/photo-service/` | The images of photo posts | `photo-service` |
+| `assets/v1/video-service/videos/` | Each video's sizes and poster | `video-worker` |
+| `assets/v1/video-service/uploads/` | Videos as they were uploaded, until the worker has made them. Never read by a viewer | Browsers, through signed addresses |
+| `assets/v1/export-service/` | People's copies of their own data, kept a week | `export-worker` |
+| `assets/v1/link-preview-service/` | The pictures of link cards | `link-preview-service` |
+
+Two rules on the bucket itself are worth setting:
+
+- **CORS**, letting the web app's address `PUT`, where videos are posted:
+  see [Videos](videos.md#storage).
+- **A lifecycle rule that aborts unfinished multipart uploads** after a few
+  days, which catches any upload the video worker could not abort itself.
+
+### Moving a bucket to the v1 layout
+
+Pictures are under `assets/v1/`. A bucket from before the first release has
+them somewhere else, and `scripts/s3-migration` moves them:
+
+| The bucket has | From | Run with |
+| --- | --- | --- |
+| `assets/public/n<id>/com_…/` | The PHP application, "v0". The file half of an upgrade from it; the database half is `migration-job/legacy/upgrade.sql` | `-from v0` |
+| `assets/v2/`, with `avatar-service` and `cover-service` folders | This platform while it was being built | `-from v2` |
+
+From `scripts/s3-migration`, with the same `STORAGE_*` settings the file
+service has, or `AWS_PROFILE` for a profile on AWS:
+
+~~~sh
+# 1. What would be copied. Changes nothing.
+STORAGE_BUCKET=my-bucket STORAGE_REGION=ca-central-1 go run . -from v2
+
+# 2. Copy. The old files stay.
+STORAGE_BUCKET=my-bucket STORAGE_REGION=ca-central-1 go run . -from v2 -apply
+
+# 3. Deploy the services, and look at the site: avatars, covers, photos.
+
+# 4. Remove the old files.
+STORAGE_BUCKET=my-bucket STORAGE_REGION=ca-central-1 go run . -from v2 -apply -delete-old
+~~~
+
+**Copy before deploying.** Services that read the v1 layout find no
+pictures in a bucket that has not been copied. Until step 4 both layouts
+are in the bucket, so going back means deploying the services from before.
+
+The store copies the files itself, two dozen at a time: tens of thousands
+take minutes, and nothing is downloaded. Each step can be run again. An old
+file is deleted only when its copy is in place and the same size, and a
+file the script does not recognise is left and listed.
+
+The script's own [README](../scripts/s3-migration/README.md) has every
+option.
+
 ## Database, Redis and RabbitMQ
 
 The `generic` overlay runs all three inside the cluster, from

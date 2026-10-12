@@ -29,6 +29,13 @@ func SetPostFlags(c echo.Context, actors services.ActorsGRPCInterface, post *ent
 		return
 	}
 
+	// Whether what it holds may be downloaded. Said only of a post that
+	// holds something, and needs nothing but the post itself.
+	if permissions.HoldsAFile(post) {
+		download := permissions.CanDownload(viewer, post)
+		post.Authorized.Download = &download
+	}
+
 	owner, err := requestOwner(c, actors, post.OwnerID, viewer)
 	if err != nil {
 		return

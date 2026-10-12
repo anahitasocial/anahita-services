@@ -43,7 +43,7 @@ func (a *AnahitaNode) GetAvatarUrl(size string) string {
 		return ""
 	}
 
-	return fmt.Sprintf("assets/v2/avatar-service/%s/%d/%s", a.GetEntityName(), a.ID, file)
+	return fmt.Sprintf("%savatars/%s/%d/%s", IdentityImagesPrefix, a.GetEntityName(), a.ID, file)
 }
 
 // Get Avatar Sizes
