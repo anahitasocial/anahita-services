@@ -143,6 +143,10 @@ message Node {
     // What the node is called when another server is told of it. Given by
     // the database when the node is added; never set or changed by a caller.
     string uuid = 93;
+    // What the node is called where it lives, and the server it came
+    // from, when that is another server. Empty on everything made here.
+    string uri = 94;
+    string origin_domain = 95;
 
     // Quote posts. quote_policy is who may quote a post, or on a person
     // their posts; quote_id is the post a note quotes; quote_detached says
@@ -210,6 +214,27 @@ message NodeReadByUUIDRequest {
 
 message NodeReadByUUIDResponse {
     Node node = 1;
+}
+
+// By what a node from another server is called there.
+message NodeReadByURIRequest {
+    string uri = 1;
+}
+
+message NodeReadByURIResponse {
+    Node node = 1;
+}
+
+// A person or a post from another server: kept if it is new, brought up to
+// date if it is known. See nodes_remote.go in the graph for what is
+// refused.
+message NodeUpsertRemoteRequest {
+    Node node = 1;
+}
+
+message NodeUpsertRemoteResponse {
+    Node node = 1;
+    bool created = 2;
 }
 
 message NodeEditRequest {
@@ -372,6 +397,8 @@ service NodeService {
     rpc Read(NodeReadRequest) returns (NodeReadResponse);
     rpc ReadByAlias(NodeReadByAliasRequest) returns (NodeReadByAliasResponse);
     rpc ReadByUUID(NodeReadByUUIDRequest) returns (NodeReadByUUIDResponse);
+    rpc ReadByURI(NodeReadByURIRequest) returns (NodeReadByURIResponse);
+    rpc UpsertRemote(NodeUpsertRemoteRequest) returns (NodeUpsertRemoteResponse);
     rpc Edit(NodeEditRequest) returns (NodeEditResponse);
     rpc Add(NodeAddRequest) returns (NodeAddResponse);
     rpc Delete(NodeDeleteRequest) returns (NodeDeleteResponse);

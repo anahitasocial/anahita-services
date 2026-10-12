@@ -49,6 +49,8 @@ func FilterValidStrings(ids []string) []string {
 func ProtoNodeToAnahitaNode(n *graphpb.Node) *entities.AnahitaNode {
 	node := entities.NewAnahitaNode()
 	node.ID = n.Id
+	node.URI = n.Uri
+	node.OriginDomain = n.OriginDomain
 	node.Type = n.Type
 	node.Service = n.Service
 	node.Name = n.Name

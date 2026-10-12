@@ -365,7 +365,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 | 0.2 UUIDs on nodes | done 2026-10-11 |
 | 0.3 Public addresses | done 2026-10-11 |
 | 0.4 Stable media addresses | not started |
-| 0.5 Remote identity | not started |
+| 0.5 Remote identity | the graph's part done 2026-10-11; the protocols' own tables come with each service |
 | 0.6 Content conversion | done 2026-10-11 |
 | 0.7 Durable delivery queue | not started |
 | 0.8 Routing and the TLS lab | not started |
@@ -418,6 +418,38 @@ https.
   they are** (auth-service's `FRONTEND_URL`, actor-service's `WEB_ORIGIN`).
   They agree with this package wherever the usual hosts are used, and it
   reads `FRONTEND_URL` too.
+
+**0.5, what comes from another server.** The graph's part.
+
+- **`nodes.uri` and `nodes.origin_domain`** (migration
+  `20261026000001_node_remote.sql`, and the same in the other two places).
+  A node with a `uri` came from elsewhere; one without was made here.
+- **Two types of person,** `node.actor.activitypub-service.person.v1` and
+  `node.actor.atproto-service.person.v1`. A note from elsewhere is an
+  ordinary note.
+- **`UpsertRemote` and `ReadByURI`** in the graph and in
+  `anahita-libs/data/services`. One call for a person or a note, not the two
+  the plan named: what differs between them is what is refused, and that is
+  decided in one place.
+- **What the graph refuses, whatever the caller sends** (`nodes_remote.go`,
+  each with a test): anything but a person of another server or a note; a
+  note on the profile of somebody here, or by them; an address that is one
+  of this installation's own, or not https or `at://`; a name that could be
+  a username here; and, for something already known, any change to what kind
+  of thing it is or whose it is. The services that will call this read the
+  internet, so none of it is left to them.
+- **Who is counted.** Everything that asks for people by their type leaves
+  people elsewhere out without being told. Two places asked for "an actor
+  that is not a person" or "any post", and were told: the site's count of
+  posts in NodeInfo, and the count of groups before making everything
+  private. Search finds people elsewhere who are kept here, which is meant.
+- **Not built here: `federation_actors`, `federation_edges`, `actor_keys`.**
+  The plan's own table of what each service owns gives them to
+  `activitypub-service` and `atproto-service`, so they are made with those.
+- **A name already held.** If somebody elsewhere takes a handle that another
+  kept person still has here, the second is refused
+  (`ErrRemoteAlias`). The protocol service has to bring the first up to date
+  and try again; noted for phase 1.
 
 **0.6, the text of a post.** `anahita-libs/federation`:
 

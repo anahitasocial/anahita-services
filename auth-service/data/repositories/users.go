@@ -685,10 +685,15 @@ func (repo *Users) CountInstanceUsage() (*InstanceUsage, error) {
 	// Posts are media nodes — notes, articles, photos. Counted separately
 	// because it narrows on a prefix rather than an exact type and cannot
 	// share the statement above.
+	//
+	// Only what was written here: a post kept from another server has a
+	// uri, and is that server's to count. People need no such line, since
+	// somebody on another server is not of the person type.
 	postQuery := `
 		SELECT COUNT(*)
 		FROM nodes
 		WHERE type LIKE CONCAT(?, '%')
+		  AND uri IS NULL
 		  AND deleted_at IS NULL`
 
 	if err := repo.db.QueryRowContext(

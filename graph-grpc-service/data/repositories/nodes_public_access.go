@@ -62,11 +62,12 @@ type publicAccessRepo struct {
 
 // The three kinds, as the rows of one statement. A person is told from a
 // group by its type; everything else that is not a tag is a post or part of
-// one.
+// one. Somebody kept from another server is an actor and not of the person
+// type, and is no group: they have a uri.
 const countPublicAccess = `
 SELECT
   COALESCE(SUM(type = ?), 0)                                   AS people,
-  COALESCE(SUM(type LIKE 'node.actor.%' AND type <> ?), 0)     AS ` + "`groups`" + `,
+  COALESCE(SUM(type LIKE 'node.actor.%' AND type <> ? AND uri IS NULL), 0) AS ` + "`groups`" + `,
   COALESCE(SUM(type NOT LIKE 'node.actor.%'), 0)               AS posts
 FROM nodes
 WHERE access = ?

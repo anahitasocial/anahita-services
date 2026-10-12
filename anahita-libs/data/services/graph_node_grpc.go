@@ -33,6 +33,15 @@ type GraphNodeGRPCInterface interface {
 	// Not access-checked, as Read is not.
 	ReadByUUID(uuid string) (*entities.AnahitaNode, error)
 
+	// ReadByURI returns the node kept for something on another server, by
+	// what it is called there. Not access-checked.
+	ReadByURI(uri string) (*entities.AnahitaNode, error)
+
+	// UpsertRemote keeps a person or a note from another server: added if
+	// its URI is new, brought up to date if it is known. It says whether it
+	// was new. The graph refuses anything else: see its nodes_remote.go.
+	UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaNode, bool, error)
+
 	// Edit edits a graph node
 	Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
 
@@ -220,6 +229,48 @@ func (srv *GraphNodeGRPC) ReadByUUID(uuid string) (*entities.AnahitaNode, error)
 	}
 
 	return grpcToGraphNode(resp.Node), nil
+}
+
+// ReadByURI returns the node kept for something on another server
+func (srv *GraphNodeGRPC) ReadByURI(uri string) (*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	resp, err := client.ReadByURI(context.Background(), &graphpb.NodeReadByURIRequest{Uri: uri})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNode(resp.Node), nil
+}
+
+// UpsertRemote keeps a person or a note from another server
+func (srv *GraphNodeGRPC) UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaNode, bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, false, err
+	}
+	if client == nil {
+		return nil, false, nil
+	}
+
+	resp, err := client.UpsertRemote(context.Background(), &graphpb.NodeUpsertRemoteRequest{Node: graphNodeToGrpc(node)})
+	if err != nil {
+		return nil, false, err
+	}
+	if resp == nil {
+		return nil, false, nil
+	}
+
+	return grpcToGraphNode(resp.Node), resp.Created, nil
 }
 
 // Edit edits a graph node

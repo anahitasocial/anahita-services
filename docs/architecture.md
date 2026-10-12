@@ -376,9 +376,20 @@ by servers this one may never hear from again.
   all: names on the internet, over https. A site on a developer's machine is
   neither.
 
+- **What came from another server is a node too,** so that feeds, follows
+  and blocks need nothing new. It has a `uri`, what it is called where it
+  lives, and an `origin_domain`; a node without a `uri` was made here. A
+  person elsewhere has a type of their own, one for each protocol
+  (`node.actor.activitypub-service.person.v1`,
+  `node.actor.atproto-service.person.v1`), so whatever lists people here
+  leaves them out; a post of theirs is an ordinary note. Such nodes are
+  written only by the graph's `UpsertRemote`, which refuses anything that is
+  not a person elsewhere or a note of theirs, and anything under one of this
+  installation's own addresses (`graph-grpc-service/data/repositories/nodes_remote.go`).
+
 This is groundwork for federation
-([plans/federation.md](plans/federation.md)). Nothing is sent to another
-server yet.
+([plans/federation.md](plans/federation.md)). Nothing is sent to or kept
+from another server yet: no service calls any of this.
 
 ## Naming dates and times
 

@@ -13,10 +13,20 @@ const (
 	NodeActorPersonEntityType = "node.actor.person-service.person.v1"
 	// An event: an actor people say they are going to. Served by
 	// actor-service, and named for it. See constants/events.go.
-	NodeActorEventEntityType   = "node.actor.actor-service.event.v1"
-	NodeBaseRepostType         = "node.base.repost-service.repost.v1"
-	NodeBaseHashtagEntityType  = "node.tag.hashtag-service.hashtag.v1"
-	NodeBaseLocationEntityType = "node.tag.location-service.location.v1"
+	NodeActorEventEntityType = "node.actor.actor-service.event.v1"
+	// A note: the kind of post that arrives from another server.
+	NodeMediumNoteEntityType = "node.medium.text-service.note.v1"
+	// Somebody on another server, one type for each protocol they are
+	// reached by. Types of their own, and not the person type with a flag:
+	// everything that asks for people by type (the people list, who a name
+	// in a post means, the count of members) then leaves them out without
+	// having been told to. Their names end as a person's does, so what asks
+	// whether a node is person-like still says yes.
+	NodeActorActivityPubPersonEntityType = "node.actor.activitypub-service.person.v1"
+	NodeActorATProtoPersonEntityType     = "node.actor.atproto-service.person.v1"
+	NodeBaseRepostType                   = "node.base.repost-service.repost.v1"
+	NodeBaseHashtagEntityType            = "node.tag.hashtag-service.hashtag.v1"
+	NodeBaseLocationEntityType           = "node.tag.location-service.location.v1"
 
 	// Edge Types
 	EdgeActorAdminEntityType = "edge.actor.admin.v1"

@@ -9,6 +9,12 @@ CREATE TABLE nodes (
   -- it says nothing of how many there are, and never changed. The database
   -- gives it, so nothing that adds a node can forget to.
   `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT (LOWER(CONCAT(HEX(RANDOM_BYTES(4)),'-',HEX(RANDOM_BYTES(2)),'-4',SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(CONV(SUBSTR(HEX(RANDOM_BYTES(1)),1,1),16,10) & 3 | 8),SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(RANDOM_BYTES(6))))),
+  -- What the node is called where it lives, when that is another server:
+  -- the address of an ActivityPub object, or an at:// URI. NULL on
+  -- everything made here, which is what "made here" means.
+  `uri` varchar(512) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  -- The server it came from, in lower case.
+  `origin_domain` varchar(255) DEFAULT NULL,
   -- 128 for the same reason as edges: an ASCII identifier from a fixed
   -- grammar, longest 42 characters. It also carries five composite indexes,
   -- so the width is paid for five times over.
@@ -154,6 +160,7 @@ CREATE TABLE nodes (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_unique_alias` (`unique_alias`),
   UNIQUE KEY `uq_uuid` (`uuid`),
+  UNIQUE KEY `uq_uri` (`uri`),
   KEY `person_type` (`person_type`),
   -- The sweeper's only query is "actors deleted before X", and it runs against
   -- a column that is NULL for practically every row.
@@ -602,6 +609,7 @@ CREATE INDEX idx_nodes_parent_id ON nodes (parent_id);
 
 CREATE INDEX idx_edges_lookup ON edges (node_a_id, node_b_id, type);
 CREATE INDEX idx_nodes_feed   ON nodes (owner_id, type, created_at);
+CREATE INDEX origin_domain    ON nodes (origin_domain);
 
 -- Fast lookups by type + direction
 CREATE INDEX idx_edges_type_nodea_nodeb  ON edges (type, node_a_id, node_b_id);

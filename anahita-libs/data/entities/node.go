@@ -88,19 +88,25 @@ type AnahitaNode struct {
 	// What the node is called when another server is told of it: random,
 	// given by the database when the node is added, and never changed.
 	// Read only; nothing sets it.
-	UUID       string
-	Type       string
-	Service    string
-	Name       string
-	Alias      string
-	Body       string
-	Excerpt    string
-	StartsAt   time.Time
-	EndsAt     time.Time
-	OwnerID    int64
-	OwnerType  string
-	ParentID   int64
-	ParentType string
+	UUID string
+	// What the node is called where it lives, when that is another server:
+	// the address of an ActivityPub object, or an at:// URI. Empty on
+	// everything made here.
+	URI string
+	// The server it came from, in lower case. Empty on everything made here.
+	OriginDomain string
+	Type         string
+	Service      string
+	Name         string
+	Alias        string
+	Body         string
+	Excerpt      string
+	StartsAt     time.Time
+	EndsAt       time.Time
+	OwnerID      int64
+	OwnerType    string
+	ParentID     int64
+	ParentType   string
 	// The post at the top of the thread this reply belongs to. 0 on
 	// anything that is not a reply. Who may see a reply, answer it, like it
 	// or remove it is decided by this post, never by the reply's own owner,

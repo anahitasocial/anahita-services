@@ -588,6 +588,14 @@ WHERE `uuid` IS NULL;
 ALTER TABLE nodes MODIFY COLUMN `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT (LOWER(CONCAT(HEX(RANDOM_BYTES(4)),'-',HEX(RANDOM_BYTES(2)),'-4',SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(CONV(SUBSTR(HEX(RANDOM_BYTES(1)),1,1),16,10) & 3 | 8),SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(RANDOM_BYTES(6)))));
 ALTER TABLE nodes ADD UNIQUE KEY `uq_uuid` (`uuid`);
 
+-- nodes.uri and nodes.origin_domain. See
+-- migrations/20261026000001_node_remote.sql.
+ALTER TABLE nodes
+    ADD COLUMN `uri` varchar(512) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER `uuid`,
+    ADD COLUMN `origin_domain` varchar(255) DEFAULT NULL AFTER `uri`,
+    ADD UNIQUE KEY `uq_uri` (`uri`),
+    ADD KEY `origin_domain` (`origin_domain`);
+
 -- Comments become replies: notes that answer the post they were under. The
 -- same statements as migrations/20261011000001_comments_become_replies.sql,
 -- where the reasons are. They come after the conversion of types above,

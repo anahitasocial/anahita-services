@@ -4,8 +4,13 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
 	"context"
+	"errors"
+	"graph/data/repositories"
 	"graph/requests"
 	"log"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type nodeHandler struct {
@@ -98,6 +103,43 @@ func (h *nodeHandler) ReadByUUID(ctx context.Context, req *graphpb.NodeReadByUUI
 
 	return &graphpb.NodeReadByUUIDResponse{
 		Node: nodeToGrpc(node),
+	}, nil
+}
+
+// ReadByURI
+func (h *nodeHandler) ReadByURI(ctx context.Context, req *graphpb.NodeReadByURIRequest) (*graphpb.NodeReadByURIResponse, error) {
+	node, err := h.env.Repos.Nodes.ReadByURI(req.Uri)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphpb.NodeReadByURIResponse{
+		Node: nodeToGrpc(node),
+	}, nil
+}
+
+// UpsertRemote
+func (h *nodeHandler) UpsertRemote(ctx context.Context, req *graphpb.NodeUpsertRemoteRequest) (*graphpb.NodeUpsertRemoteResponse, error) {
+	if req.Node == nil {
+		return nil, status.Error(codes.InvalidArgument, "nothing to keep")
+	}
+
+	node, created, err := h.env.Repos.Nodes.UpsertRemote(ProtoNodeToAnahitaNode(req.Node))
+	if err != nil {
+		for _, refused := range []error{
+			repositories.ErrRemoteURI, repositories.ErrRemoteDomain, repositories.ErrRemoteType,
+			repositories.ErrRemoteAlias, repositories.ErrRemoteOwner, repositories.ErrRemoteMismatch,
+		} {
+			if errors.Is(err, refused) {
+				return nil, status.Error(codes.InvalidArgument, err.Error())
+			}
+		}
+		return nil, err
+	}
+
+	return &graphpb.NodeUpsertRemoteResponse{
+		Node:    nodeToGrpc(node),
+		Created: created,
 	}, nil
 }
 

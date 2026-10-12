@@ -46,6 +46,8 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	// Basic fields
 	n.ID = m.Id
 	n.UUID = m.Uuid
+	n.URI = m.Uri
+	n.OriginDomain = m.OriginDomain
 	n.Type = m.Type
 	n.Service = m.Service
 	n.Enabled = m.Enabled
@@ -249,6 +251,8 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 
 	grpcNode := &graphpb.Node{
 		Id:                        node.ID,
+		Uri:                       node.URI,
+		OriginDomain:              node.OriginDomain,
 		Type:                      node.Type,
 		Service:                   node.Service,
 		Enabled:                   node.Enabled,

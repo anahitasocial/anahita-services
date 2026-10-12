@@ -23,6 +23,8 @@ const (
 	NodeService_Read_FullMethodName                    = "/graph.NodeService/Read"
 	NodeService_ReadByAlias_FullMethodName             = "/graph.NodeService/ReadByAlias"
 	NodeService_ReadByUUID_FullMethodName              = "/graph.NodeService/ReadByUUID"
+	NodeService_ReadByURI_FullMethodName               = "/graph.NodeService/ReadByURI"
+	NodeService_UpsertRemote_FullMethodName            = "/graph.NodeService/UpsertRemote"
 	NodeService_Edit_FullMethodName                    = "/graph.NodeService/Edit"
 	NodeService_Add_FullMethodName                     = "/graph.NodeService/Add"
 	NodeService_Delete_FullMethodName                  = "/graph.NodeService/Delete"
@@ -47,6 +49,8 @@ type NodeServiceClient interface {
 	Read(ctx context.Context, in *NodeReadRequest, opts ...grpc.CallOption) (*NodeReadResponse, error)
 	ReadByAlias(ctx context.Context, in *NodeReadByAliasRequest, opts ...grpc.CallOption) (*NodeReadByAliasResponse, error)
 	ReadByUUID(ctx context.Context, in *NodeReadByUUIDRequest, opts ...grpc.CallOption) (*NodeReadByUUIDResponse, error)
+	ReadByURI(ctx context.Context, in *NodeReadByURIRequest, opts ...grpc.CallOption) (*NodeReadByURIResponse, error)
+	UpsertRemote(ctx context.Context, in *NodeUpsertRemoteRequest, opts ...grpc.CallOption) (*NodeUpsertRemoteResponse, error)
 	Edit(ctx context.Context, in *NodeEditRequest, opts ...grpc.CallOption) (*NodeEditResponse, error)
 	Add(ctx context.Context, in *NodeAddRequest, opts ...grpc.CallOption) (*NodeAddResponse, error)
 	Delete(ctx context.Context, in *NodeDeleteRequest, opts ...grpc.CallOption) (*NodeDeleteResponse, error)
@@ -109,6 +113,26 @@ func (c *nodeServiceClient) ReadByUUID(ctx context.Context, in *NodeReadByUUIDRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(NodeReadByUUIDResponse)
 	err := c.cc.Invoke(ctx, NodeService_ReadByUUID_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) ReadByURI(ctx context.Context, in *NodeReadByURIRequest, opts ...grpc.CallOption) (*NodeReadByURIResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NodeReadByURIResponse)
+	err := c.cc.Invoke(ctx, NodeService_ReadByURI_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) UpsertRemote(ctx context.Context, in *NodeUpsertRemoteRequest, opts ...grpc.CallOption) (*NodeUpsertRemoteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NodeUpsertRemoteResponse)
+	err := c.cc.Invoke(ctx, NodeService_UpsertRemote_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -263,6 +287,8 @@ type NodeServiceServer interface {
 	Read(context.Context, *NodeReadRequest) (*NodeReadResponse, error)
 	ReadByAlias(context.Context, *NodeReadByAliasRequest) (*NodeReadByAliasResponse, error)
 	ReadByUUID(context.Context, *NodeReadByUUIDRequest) (*NodeReadByUUIDResponse, error)
+	ReadByURI(context.Context, *NodeReadByURIRequest) (*NodeReadByURIResponse, error)
+	UpsertRemote(context.Context, *NodeUpsertRemoteRequest) (*NodeUpsertRemoteResponse, error)
 	Edit(context.Context, *NodeEditRequest) (*NodeEditResponse, error)
 	Add(context.Context, *NodeAddRequest) (*NodeAddResponse, error)
 	Delete(context.Context, *NodeDeleteRequest) (*NodeDeleteResponse, error)
@@ -302,6 +328,12 @@ func (UnimplementedNodeServiceServer) ReadByAlias(context.Context, *NodeReadByAl
 }
 func (UnimplementedNodeServiceServer) ReadByUUID(context.Context, *NodeReadByUUIDRequest) (*NodeReadByUUIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadByUUID not implemented")
+}
+func (UnimplementedNodeServiceServer) ReadByURI(context.Context, *NodeReadByURIRequest) (*NodeReadByURIResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadByURI not implemented")
+}
+func (UnimplementedNodeServiceServer) UpsertRemote(context.Context, *NodeUpsertRemoteRequest) (*NodeUpsertRemoteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertRemote not implemented")
 }
 func (UnimplementedNodeServiceServer) Edit(context.Context, *NodeEditRequest) (*NodeEditResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Edit not implemented")
@@ -434,6 +466,42 @@ func _NodeService_ReadByUUID_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NodeServiceServer).ReadByUUID(ctx, req.(*NodeReadByUUIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_ReadByURI_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NodeReadByURIRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).ReadByURI(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_ReadByURI_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).ReadByURI(ctx, req.(*NodeReadByURIRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_UpsertRemote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NodeUpsertRemoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).UpsertRemote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_UpsertRemote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).UpsertRemote(ctx, req.(*NodeUpsertRemoteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -712,6 +780,14 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReadByUUID",
 			Handler:    _NodeService_ReadByUUID_Handler,
+		},
+		{
+			MethodName: "ReadByURI",
+			Handler:    _NodeService_ReadByURI_Handler,
+		},
+		{
+			MethodName: "UpsertRemote",
+			Handler:    _NodeService_UpsertRemote_Handler,
 		},
 		{
 			MethodName: "Edit",
