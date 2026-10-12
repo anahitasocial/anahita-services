@@ -15,7 +15,7 @@ Some people cannot use the web app, or a mobile app when there is one: a very sl
 
 ## Decisions
 
-- **Our own client, against Anahita's API.** Not a Mastodon-compatible API on the server: see *Considered* below.
+- **Our own client, against Anahita's API, and not a Mastodon-compatible API on the server** (user, 2026-10-12). See *Considered* below.
 - **After the API reference** ([api-reference.md](api-reference.md)). The client's calls and types are generated from it, which is most of what makes this small, and it is the first real test of that reference before `anahita-mobile` is built on it.
 - **One program, in Go,** with nothing to install beside it, for Linux, macOS and Windows.
 - **Text only unless asked.** Nothing is fetched that was not asked for: no pictures, no avatars, no previews.
@@ -61,7 +61,7 @@ Tokens are kept in the system's keychain where there is one, and otherwise in a 
 
 ## Considered and not chosen
 
-- **Offering Mastodon's client API on the server,** as GoToSocial and Pixelfed do, so that every existing Mastodon client works: command-line ones, and phone and desktop apps too. It would give Anahita apps before `anahita-mobile` exists. It is also much the larger piece of work (ten to fifteen sessions for a useful part, held loosely), and those clients would show only what Mastodon has a place for: no groups, no events, no articles, none of the audiences beyond Mastodon's four. **Not ruled out; a decision of its own,** to be taken when the mobile app is planned, since the two answer the same question.
+- **Offering Mastodon's client API on the server,** as GoToSocial and Pixelfed do, so that every existing Mastodon client works: command-line ones, and phone and desktop apps too. It would give Anahita apps before `anahita-mobile` exists. It is also much the larger piece of work (ten to fifteen sessions for a useful part, held loosely), and those clients would show only what Mastodon has a place for: no groups, no events, no articles, none of the audiences beyond Mastodon's four. **Decided against by the user on 2026-10-12:** Anahita's clients are built for Anahita, and show all of it.
 - **A full-screen terminal app** (as `tut` is for Mastodon). A later face on the same client code, if wanted. Plain commands come first: they work over the worst connections and with screen readers.
 
 ## Estimate
