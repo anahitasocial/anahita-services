@@ -128,6 +128,17 @@ func (f *fakeSent) DeleteAllOf(personID int64) error {
 	return nil
 }
 
+func (f *fakeSent) DeleteByName(did, kind, rkey string) error {
+	var left []*repositories.Sent
+	for _, row := range f.rows {
+		if !(row.DID == did && row.Kind == kind && row.RKey == rkey) {
+			left = append(left, row)
+		}
+	}
+	f.rows = left
+	return nil
+}
+
 func (f *fakeSent) IsOurs(did, kind, rkey string) (bool, error) {
 	for _, row := range f.rows {
 		if row.DID == did && row.Kind == kind && row.RKey == rkey {
@@ -146,6 +157,8 @@ type fakeWriter struct {
 	written  []string
 	records  map[string]any
 	uploaded []int
+	// Who the account follows already, on Bluesky.
+	following map[string]bool
 }
 
 func (f *fakeWriter) PDSOf(_ context.Context, _, did string) (string, error) { return anaPDS, nil }
@@ -191,6 +204,13 @@ func (f *fakeWriter) UploadBlob(_ context.Context, pds, token string, content []
 	blob := &bsky.OutBlob{Type: "blob", MimeType: mimeType, Size: int64(len(content))}
 	blob.Ref.Link = fmt.Sprintf("blob%d", len(f.uploaded))
 	return blob, nil
+}
+
+func (f *fakeWriter) Follows(_ context.Context, pds, token, did string) (bool, error) {
+	if token != f.access {
+		return false, bsky.ErrExpired
+	}
+	return f.following[did], nil
 }
 
 func (f *fakeWriter) RefOf(_ context.Context, uri string) (*bsky.Ref, *bsky.Ref, error) {
@@ -631,5 +651,53 @@ func TestTheCardOfALinkGoesWithItsPicture(t *testing.T) {
 	out, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+w.sent.rows[0].RKey])
 	if want := `"thumb":{"$type":"blob","ref":{"$link":"blob1"}`; !strings.Contains(string(out), want) {
 		t.Errorf("the card lacks %s:\n%s", want, out)
+	}
+}
+
+// THE RULE THIS GUARDS: a follow is written to Bluesky only when the
+// account does not follow already, and only what was written from here is
+// taken back from here.
+func TestAFollowIsToldToBluesky(t *testing.T) {
+	w, _ := writingWorld(t)
+	alice, _ := w.actors.ReadByDID(aliceDID)
+	w.bluesky.profiles["bob.bsky.social"] = &bsky.Profile{DID: bobDID, Handle: "bob.bsky.social"}
+	w.h.lookup(context.Background(), "bob.bsky.social")
+	bob, _ := w.actors.ReadByDID(bobDID)
+	follow := func(name string, target int64) {
+		w.heard(name, event.EventPayload{ObjectID: anaID, TargetID: target})
+	}
+
+	// Not connected: the follow is here and nowhere else.
+	follow("edge.follow.socialgraph.added.v1", alice.NodeID)
+	if len(w.queue.waiting) != 0 {
+		t.Fatal("a follow was written for somebody who connected nothing")
+	}
+
+	w.connect()
+	// Ana's account follows Bob already, from Bluesky itself.
+	w.writer.following = map[string]bool{bobDID: true}
+
+	follow("edge.follow.socialgraph.added.v1", alice.NodeID)
+	follow("edge.follow.socialgraph.added.v1", bob.NodeID)
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	if got := strings.Join(w.writer.written, ", "); got != "create app.bsky.graph.follow" {
+		t.Fatalf("written: %s", got)
+	}
+	out, _ := json.Marshal(w.writer.records["app.bsky.graph.follow/"+w.sent.rows[0].RKey])
+	if want := `"subject":"` + aliceDID + `"`; !strings.Contains(string(out), want) || len(w.sent.rows) != 1 {
+		t.Fatalf("the follow as written: %s, %d remembered", out, len(w.sent.rows))
+	}
+
+	// Unfollowed here: Alice's goes from Bluesky, and Bob's, which was
+	// made there, is left.
+	follow("edge.follow.socialgraph.deleted.v1", alice.NodeID)
+	follow("edge.follow.socialgraph.deleted.v1", bob.NodeID)
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	if got := strings.Join(w.writer.written, ", "); got != "create app.bsky.graph.follow, delete app.bsky.graph.follow" || len(w.writer.records) != 0 {
+		t.Errorf("written: %s", got)
 	}
 }

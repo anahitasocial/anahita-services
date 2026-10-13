@@ -126,6 +126,31 @@ func (c *Client) DeleteRecord(ctx context.Context, pds, accessJWT, did, collecti
 	}, nil)
 }
 
+// FollowCollection is the kind of record a follow is.
+const FollowCollection = "app.bsky.graph.follow"
+
+// OutFollow is a follow as it is written: of which account.
+type OutFollow struct {
+	Type      string `json:"$type"`
+	Subject   string `json:"subject"`
+	CreatedAt string `json:"createdAt"`
+}
+
+// Follows says whether an account follows another already, asked as the
+// account itself, of its own server.
+func (c *Client) Follows(ctx context.Context, pds, accessJWT, did string) (bool, error) {
+	var profile struct {
+		Viewer struct {
+			Following string `json:"following"`
+		} `json:"viewer"`
+	}
+	address := pds + "/xrpc/app.bsky.actor.getProfile?" + url.Values{"actor": {did}}.Encode()
+	if err := c.call(ctx, http.MethodGet, address, accessJWT, nil, &profile); err != nil {
+		return false, err
+	}
+	return profile.Viewer.Following != "", nil
+}
+
 // UploadBlob gives a file to an account's server, to be named in a record
 // written afterwards: a picture of a post, or of a link's card.
 func (c *Client) UploadBlob(ctx context.Context, pds, accessJWT string, content []byte, mimeType string) (*OutBlob, error) {

@@ -17,6 +17,8 @@ const (
 	SentPost   = "post"
 	SentLike   = "like"
 	SentRepost = "repost"
+	// A follow of somebody on Bluesky. LocalID is their node here.
+	SentFollow = "follow"
 )
 
 // Sent is one thing written.
@@ -40,6 +42,9 @@ type SentInterface interface {
 	Read(kind string, localID, personID int64) (*Sent, error)
 	Delete(id int64) error
 	DeleteAllOf(personID int64) error
+	// DeleteByName forgets one thing by the name it was to be written
+	// under.
+	DeleteByName(did, kind, rkey string) error
 	// IsOurs says whether a record Bluesky tells of is one written from
 	// here.
 	IsOurs(did, kind, rkey string) (bool, error)
@@ -113,6 +118,20 @@ func (repo *SentRecords) DeleteAllOf(personID int64) error {
 	defer cancel()
 
 	_, err := repo.db.ExecContext(ctx, deleteSentOf, personID)
+	return err
+}
+
+const deleteSentByName = `
+DELETE FROM atproto_sent
+WHERE did = ?
+  AND rkey = ?
+  AND kind = ?`
+
+func (repo *SentRecords) DeleteByName(did, kind, rkey string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	_, err := repo.db.ExecContext(ctx, deleteSentByName, did, rkey, kind)
 	return err
 }
 

@@ -898,7 +898,8 @@ who already has an account there can connect it, and from then on their
 public notes are posted there, and a like, a repost or a reply they give
 here to something from Bluesky is made there too, as that account: see [Answering on Bluesky](#answering-on-bluesky).
 For everybody else such things stay here, which the web app says under the
-reply being written. The account followed is not told that it is followed.
+reply being written, and their follow of somebody on Bluesky is kept here
+without that account being told.
 
 So it asks nothing of the installation but a way out to the internet: no
 public name, no certificate, nobody choosing to be found. It works on a
@@ -1065,6 +1066,14 @@ its own. The card says to use one and where to make it.
   are marked as such, and what is longer than three hundred letters is cut
   with a mark to say so. A reply that is changed here afterwards is not
   changed there: Bluesky has no changing a post.
+- **Following.** Somebody connected who follows an account on Bluesky from
+  here follows it there too, as their account: it is the only kind of
+  follow Bluesky has, so whoever is followed is told and sees them among
+  their followers. An account that follows them already is left as it is,
+  and nothing is written. Unfollowing here takes back only a follow that
+  was written from here: one made on Bluesky itself stays until it is
+  removed there. Whoever has not connected an account follows here and
+  nowhere else, and nobody is told.
 - **What is taken back.** Taking a like or a repost back here, or deleting
   the reply, removes it there.
 - **It arrives.** What is to be written waits in a table

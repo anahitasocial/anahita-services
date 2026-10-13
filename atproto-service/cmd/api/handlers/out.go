@@ -52,6 +52,7 @@ type Writer interface {
 	CreateRecord(ctx context.Context, pds, accessJWT, did, collection, rkey string, record any) error
 	DeleteRecord(ctx context.Context, pds, accessJWT, did, collection, rkey string) error
 	UploadBlob(ctx context.Context, pds, accessJWT string, content []byte, mimeType string) (*bsky.OutBlob, error)
+	Follows(ctx context.Context, pds, accessJWT, did string) (bool, error)
 	RefOf(ctx context.Context, uri string) (post, root *bsky.Ref, err error)
 }
 
@@ -76,6 +77,7 @@ var collections = map[string]string{
 	repositories.SentPost:   bsky.PostCollection,
 	repositories.SentLike:   "app.bsky.feed.like",
 	repositories.SentRepost: bsky.RepostCollection,
+	repositories.SentFollow: bsky.FollowCollection,
 }
 
 // onBluesky is the address on Bluesky of something here: what it came
@@ -145,6 +147,34 @@ func (h *Handlers) enqueue(ctx context.Context, personID int64, w *write) error 
 		return err
 	}
 	return h.Queue.Enqueue(ctx, personID, "bluesky", payload, fmt.Sprintf("%s:%s:%s", w.Op, w.Collection, w.RKey))
+}
+
+// A follow of somebody on Bluesky, by somebody here who connected their
+// account, is their account following that one: there is no other kind of
+// follow on Bluesky. Whoever is followed is told, and whoever follows is
+// among their followers.
+//
+// An account that follows them already is left as it is: nothing is
+// written, and nothing is remembered, so that unfollowing here later does
+// not take away a follow that was made on Bluesky. Only what this
+// installation wrote is taken back by it.
+
+// localFollowed is somebody here having followed somebody on Bluesky.
+func (h *Handlers) localFollowed(ctx context.Context, personID int64, kept *repositories.RemoteActor) error {
+	account := h.connected(personID)
+	if account == nil || kept == nil || account.DID == kept.DID {
+		return nil
+	}
+	return h.begin(ctx, account, repositories.SentFollow, kept.NodeID, kept.DID, 0)
+}
+
+// localUnfollowed is somebody here having stopped following somebody on
+// Bluesky.
+func (h *Handlers) localUnfollowed(ctx context.Context, personID int64, kept *repositories.RemoteActor) error {
+	if !h.canWrite() || kept == nil {
+		return nil
+	}
+	return h.takeBack(ctx, repositories.SentFollow, kept.NodeID, personID)
 }
 
 // localLiked is somebody here having liked something.
@@ -291,6 +321,19 @@ func (h *Handlers) Write(ctx context.Context, delivery federation.Delivery) erro
 		if w.Op == "delete" {
 			return h.Writer.DeleteRecord(ctx, account.PDS, token, account.DID, w.Collection, w.RKey)
 		}
+		// A follow the account has already is not made a second time,
+		// and is not this installation's to take back.
+		if w.Collection == bsky.FollowCollection {
+			already, err := h.Writer.Follows(ctx, account.PDS, token, w.Subject)
+			if err != nil {
+				return err
+			}
+			if already {
+				return h.forgetSent(account, repositories.SentFollow, w.RKey)
+			}
+			return h.Writer.CreateRecord(ctx, account.PDS, token, account.DID, w.Collection, w.RKey,
+				&bsky.OutFollow{Type: bsky.FollowCollection, Subject: w.Subject, CreatedAt: bsky.Stamp(h.now())})
+		}
 		// What is to be written, made now: a post's words as they are
 		// now, what it answers as Bluesky names it now, and its pictures
 		// given to the account's server first.
@@ -319,6 +362,11 @@ func (h *Handlers) Write(ctx context.Context, delivery federation.Delivery) erro
 		log.Printf("writing to Bluesky for %d (%s %s): %v", account.PersonID, w.Op, w.Collection, err)
 	}
 	return err
+}
+
+// forgetSent forgets something that turned out not to need writing.
+func (h *Handlers) forgetSent(account *repositories.Account, kind, rkey string) error {
+	return h.Sent.DeleteByName(account.DID, kind, rkey)
 }
 
 // kindOf is what kind of thing a collection holds, as it is remembered.

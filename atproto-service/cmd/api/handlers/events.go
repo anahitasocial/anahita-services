@@ -41,7 +41,7 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 	var err error
 	switch {
 	case strings.HasPrefix(payload.Name, "edge.follow."):
-		err = h.followChanged(payload.TargetID, added)
+		err = h.followChanged(ctx, payload.ObjectID, payload.TargetID, added)
 
 	// Somebody liked something, or took a like back: who is the subject,
 	// what the object.
@@ -70,7 +70,7 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 }
 
 // followChanged is somebody here having followed somebody, or stopped.
-func (h *Handlers) followChanged(targetID int64, followed bool) error {
+func (h *Handlers) followChanged(ctx context.Context, sourceID, targetID int64, followed bool) error {
 	target, err := h.Nodes.Read(targetID)
 	if err != nil || target == nil || target.Type != constants.NodeActorATProtoPersonEntityType {
 		return err
@@ -86,5 +86,10 @@ func (h *Handlers) followChanged(targetID int64, followed bool) error {
 	// Followed or no longer followed: whose posts are wanted may have
 	// changed either way.
 	h.changed()
-	return nil
+
+	// And Bluesky is told, for somebody who connected their account.
+	if followed {
+		return h.localFollowed(ctx, sourceID, kept)
+	}
+	return h.localUnfollowed(ctx, sourceID, kept)
 }
