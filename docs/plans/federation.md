@@ -504,8 +504,9 @@ notification-service's `event_node_reply.go`; migration `20261103000001`.
 - **Built as planned, and tried against mastodon.world:** a reply written
   here under a note that had gone out appeared there as a reply, and a
   reply written there appeared here under the note, counted, with its
-  writer told. Still to try: a reply from here to a note written on
-  Mastodon, and an edit and a deletion of a reply each way.
+  writer told. A reply from here to something written on Mastodon went to
+  that server's inbox, and a reply changed on either side was changed on
+  the other. Still to try: a reply taken away, each way.
 - **Somebody here named at the start of a reply from Mastodon** is kept as
   the name alone, so that it reads as a mention here and not as a link out
   to their own page.
