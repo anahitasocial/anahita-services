@@ -235,9 +235,15 @@ func CanHideReply(ctx *ReplyAccessContext) bool {
 }
 
 // CanLikeReply reports whether the viewer may like a reply: the rule for
-// liking the root.
+// liking the root, for a reply that was written here.
 func CanLikeReply(ctx *ReplyAccessContext) bool {
 	if !ctx.rootLoaded() {
+		return false
+	}
+
+	// A reply that came from another server is not liked from here yet,
+	// whatever thread it is in: its writer would never be told.
+	if ctx.Reply != nil && ctx.Reply.IsRemote() {
 		return false
 	}
 

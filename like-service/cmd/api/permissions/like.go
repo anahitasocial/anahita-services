@@ -97,6 +97,13 @@ func (p *LikePermissions) CanAdd(viewer *entities.Viewer, node *entities.Anahita
 		return false, errors.New(ErrInsufficientScope)
 	}
 
+	// Nothing from another server is liked from here yet, a reply under a
+	// post here included: whoever wrote it would never be told, so the like
+	// would be a lie to whoever made it.
+	if node != nil && node.IsRemote() {
+		return false, errors.New("what came from another server is not liked from here")
+	}
+
 	// A reply is liked under the rules of the post at the top of its thread.
 	post := node
 	if judgedByParent(node) {

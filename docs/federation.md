@@ -537,7 +537,7 @@ followed, and little else. The rules are the installation's own, in
 | Posting on their profile | Nobody |
 | Changing a post of theirs | Nobody. An administrator may remove it from this installation |
 | Replying to a post of theirs | Yes: see [Replies](#replies) |
-| Liking a post of theirs | Not yet: it would never reach them |
+| Liking a post or a reply of theirs, a reply under a post here included | Not yet: it would never reach them |
 | Reposting, saving a post of theirs | Yes; it stays here |
 
 ## The inbox

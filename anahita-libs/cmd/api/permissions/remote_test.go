@@ -65,6 +65,22 @@ func TestWhatCameFromAnotherServerIsNotActedOn(t *testing.T) {
 		t.Error("a post from another server may be replied to by a token that may not write posts")
 	}
 
+	// Nor is a reply of hers liked, under a post that was made here and
+	// may be.
+	here := entities.NewAnahitaNode()
+	here.ID, here.Type, here.Access, here.Enabled = 61, constants.NodeMediumNoteEntityType, "public", true
+	here.OwnerID, here.CreatedBy = 1, 1
+	here.Owner = entities.NewAnahitaNode()
+	here.Owner.ID, here.Owner.Type, here.Owner.Access, here.Owner.Enabled = 1, constants.NodeActorPersonEntityType, "public", true
+	thread := &ReplyAccessContext{Viewer: admin, Root: here, Reply: note, RootOwnerViewerRel: &entities.ActorRelation{}}
+	if CanLikeReply(thread) {
+		t.Error("a reply from another server may be liked")
+	}
+	thread.Reply = here
+	if !CanLikeReply(thread) {
+		t.Error("a reply written here may not be liked")
+	}
+
 	// The same of what was made here is still allowed, so the test is of
 	// the rule and not of an administrator who can do nothing.
 	alice.URI, note.URI = "", ""
