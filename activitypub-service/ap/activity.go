@@ -110,6 +110,39 @@ func NewUndoLike(id, actor, object, likeID string) *Sent {
 	}
 }
 
+// Announced is a repost, as it is sent: what Mastodon calls a boost.
+type Announced struct {
+	Context   any      `json:"@context,omitempty"`
+	ID        string   `json:"id"`
+	Type      string   `json:"type"`
+	Actor     string   `json:"actor"`
+	Published string   `json:"published,omitempty"`
+	To        []string `json:"to,omitempty"`
+	Cc        []string `json:"cc,omitempty"`
+	Object    string   `json:"object,omitempty"`
+}
+
+// NewAnnounce says somebody here reposted something: to everybody, with
+// their followers, and whoever wrote it when they are elsewhere, named as
+// who it is for.
+func NewAnnounce(id, actor, object, published string, cc ...string) *Announced {
+	return &Announced{
+		Context: contextActivityStreams, ID: id, Type: "Announce", Actor: actor,
+		Published: published, To: []string{Public}, Cc: cc, Object: object,
+	}
+}
+
+// NewUndoAnnounce takes a repost back, quoting the Announce by its name.
+func NewUndoAnnounce(id, actor, announceID string) *Sent {
+	return &Sent{
+		Context: contextActivityStreams,
+		ID:      id,
+		Type:    "Undo",
+		Actor:   actor,
+		Object:  Announced{ID: announceID, Type: "Announce", Actor: actor},
+	}
+}
+
 // NewReject says no to one, the same way.
 func NewReject(id, actor, follower, followID string) *Sent {
 	sent := NewAccept(id, actor, follower, followID)

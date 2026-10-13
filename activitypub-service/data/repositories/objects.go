@@ -15,7 +15,15 @@ type Object struct {
 	// For a reply: the inbox of whoever it answers, when they are on
 	// another server. They are told of it, and told when it is gone.
 	ReplyInbox string
+	// KindNote or KindRepost. Empty is a note.
+	Kind string
 }
+
+// What was sent: a post or a reply, or a repost of one.
+const (
+	KindNote   = "note"
+	KindRepost = "repost"
+)
 
 // ObjectsInterface is the posts that went out.
 type ObjectsInterface interface {
@@ -44,19 +52,26 @@ func NewObjects(db *sql.DB) *Objects {
 }
 
 const beginObject = `
-INSERT IGNORE INTO activitypub_objects (node_id, uuid, actor_id, reply_inbox, created_at)
-VALUES (?, ?, ?, ?, ?)`
+INSERT IGNORE INTO activitypub_objects (node_id, uuid, actor_id, kind, reply_inbox, created_at)
+VALUES (?, ?, ?, ?, ?, ?)`
 
 func (repo *Objects) Begin(object *Object) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	result, err := repo.db.ExecContext(ctx, beginObject, object.NodeID, object.UUID, object.ActorID, object.ReplyInbox, time.Now().UTC())
+	result, err := repo.db.ExecContext(ctx, beginObject, object.NodeID, object.UUID, object.ActorID, kindOf(object), object.ReplyInbox, time.Now().UTC())
 	if err != nil {
 		return false, err
 	}
 	added, err := result.RowsAffected()
 	return added == 1, err
+}
+
+func kindOf(object *Object) string {
+	if object.Kind == KindRepost {
+		return KindRepost
+	}
+	return KindNote
 }
 
 const toldObject = `
@@ -73,7 +88,7 @@ func (repo *Objects) Told(nodeID int64, updatedAt time.Time) error {
 }
 
 const readObject = `
-SELECT node_id, uuid, actor_id, reply_inbox
+SELECT node_id, uuid, actor_id, kind, reply_inbox
 FROM activitypub_objects
 WHERE node_id = ?`
 
@@ -82,7 +97,7 @@ func (repo *Objects) Read(nodeID int64) (*Object, error) {
 	defer cancel()
 
 	object := &Object{}
-	err := repo.db.QueryRowContext(ctx, readObject, nodeID).Scan(&object.NodeID, &object.UUID, &object.ActorID, &object.ReplyInbox)
+	err := repo.db.QueryRowContext(ctx, readObject, nodeID).Scan(&object.NodeID, &object.UUID, &object.ActorID, &object.Kind, &object.ReplyInbox)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

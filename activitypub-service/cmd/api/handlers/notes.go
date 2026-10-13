@@ -293,6 +293,11 @@ func (h *Handlers) removed(ctx context.Context, nodeID int64) error {
 	if err != nil || object == nil {
 		return err
 	}
+	// A repost is taken back by undoing it, not by saying it is gone.
+	if object.Kind == repositories.KindRepost {
+		return h.unreposted(ctx, object)
+	}
+
 	ended, err := h.Objects.End(nodeID)
 	if err != nil || !ended {
 		return err

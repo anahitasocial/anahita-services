@@ -544,6 +544,20 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   and the avatar and cover, which it fetched through the addresses that
   stay.
 
+**Likes and reposts, both ways (phase 2b).** `likes.go`, `reposts.go`;
+migration `20261104000001` (`activitypub_objects.kind`).
+
+- **Built as planned,** the third part included: a note boosted by
+  somebody followed from here, that nobody here had seen, is read from its
+  own server and kept with whoever wrote it. Tried by unit tests; against
+  Mastodon, still to try.
+- **The rule that nothing from elsewhere is liked is lifted.** A like by
+  somebody who is not on the fediverse stays here, as their reply does;
+  there is no word for it in the web app as there is for a reply.
+- **Not done:** the sweep does not find a like or a repost the bus lost,
+  and a repost from elsewhere that is taken back leaves the news of it
+  with the author here.
+
 **Replies, both ways (phase 2a).** `replies_in.go`, `notes.go`
 (`answers`), the graph's `nodes_remote.go`, `permissions/reply.go`,
 notification-service's `event_node_reply.go`; migration `20261103000001`.

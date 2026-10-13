@@ -39,6 +39,12 @@ func (h *eventHandler) eventFormatNodeRepostAdded(payload *event.EventPayload) e
 		return err
 	}
 
+	// Whoever wrote something from another server is told by their own
+	// server, which is sent the repost. Nothing is made for them here.
+	if recipient.IsRemote() {
+		return nil
+	}
+
 	// Create notification
 	n.Type = "repost_add"
 	n.Service = payload.SourceService

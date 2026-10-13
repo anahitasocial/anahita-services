@@ -50,6 +50,8 @@ type Env struct {
 	Blocks repositories.BlocksInterface
 	// Who likes what, in the graph, as like-service keeps it.
 	Likes services.LikesGRPCInterface
+	// Reposts, in the graph, as feed-service keeps them.
+	Reposts services.RepostGRPCInterface
 	// The graph's own record of who follows whom, and who has blocked whom.
 	FollowEdges services.SocialgraphFollowGRPCInterface
 	Relations   services.SocialgraphGRPCInterface

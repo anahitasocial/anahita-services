@@ -155,7 +155,8 @@ JOIN nodes AS note
   ON note.id = sent.node_id
 LEFT JOIN nodes AS root
        ON root.id = note.root_id
-WHERE note.enabled = 1
+WHERE sent.kind = 'note'
+  AND note.enabled = 1
   AND note.deleted_at IS NULL
   AND COALESCE(root.access, note.access) = ?
   AND note.updated_at > COALESCE(sent.told_updated_at, note.created_at) + INTERVAL 1 SECOND

@@ -8,7 +8,7 @@ person can choose to be found, people follow each other across servers
 either way round, their public notes travel with the follow, a person can
 leave again, a super administrator can refuse a server, and the web app has the
 switch, the lookup, and shows people and posts from other servers.
-Replies cross both ways. Likes, reposts and the pictures in posts do not
+Replies, likes and reposts cross both ways. The pictures in posts do not
 travel yet.
 
 ## Contents
@@ -32,6 +32,7 @@ travel yet.
 - [The API](#the-api)
 - [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
 - [Replies](#replies)
+- [Likes and reposts](#likes-and-reposts)
 - [Servers that are refused](#servers-that-are-refused)
 - [Where the code is](#where-the-code-is)
 
@@ -530,6 +531,33 @@ Written by somebody on the fediverse, the reply is sent; written by
 somebody who is not, it stays here, as a conversation among the people of
 this installation, and the web app says so before it is posted.
 
+## Likes and reposts
+
+Both are made here as they always were, through like-service and
+feed-service, and said on the bus. `activitypub-service` hears that and
+tells other servers; and what other servers send is kept through the same
+graph calls those services use, so a like or a repost from elsewhere is
+counted, shown and told to its author like any other.
+
+| | Going out | Coming in |
+| --- | --- | --- |
+| **A like** (`Like`) | Somebody on the fediverse likes a note or a reply that came from another server: its author's server is told. Taken back with an `Undo` | Of a note or a reply here that went out: kept as a like by the person kept for whoever sent it, and the author told. `Undo` takes it away |
+| **A repost** (`Announce`, Mastodon's boost) | Somebody on the fediverse reposts a note other servers can see, one from elsewhere or one here that went out: their followers' servers are told, and the note's author's when it is from elsewhere. Taken back with an `Undo` | Of a note here that went out, by anybody: kept as a repost and the author told. Of a note from elsewhere, only by somebody followed from here: the note is read from its own server and kept with whoever wrote it, if it is not here already, and the repost is on the reposter's profile and in the feeds of who follows them |
+
+- **By somebody who is not on the fediverse,** a like or a repost of
+  something from elsewhere stays here, as their reply does.
+- **Somebody the author has blocked** neither likes nor reposts what the
+  author wrote; a server that is refused is not listened to at all.
+- **A like is named from who liked and what** (`/ap/activities/like-…`), so
+  taking it back names it again with nothing kept. A repost that went out
+  is on record like a note (`activitypub_objects`, `kind` `repost`), with
+  where it went, because the repost is gone by the time its taking back is
+  heard of.
+- **Nobody elsewhere is notified here:** whoever wrote something from
+  another server is told by their own server.
+- **Not covered by the sweep:** a like or a repost whose word the bus lost
+  is not found again. Doing it again puts it right.
+
 ## What can be done with what came from elsewhere
 
 Somebody from another server, and what they post, are looked at here and
@@ -544,8 +572,9 @@ followed, and little else. The rules are the installation's own, in
 | Posting on their profile | Nobody |
 | Changing a post of theirs | Nobody. An administrator may remove it from this installation |
 | Replying to a post of theirs | Yes: see [Replies](#replies) |
-| Liking a post or a reply of theirs, a reply under a post here included | Not yet: it would never reach them |
-| Reposting, saving a post of theirs | Yes; it stays here |
+| Liking a post or a reply of theirs | Yes: see [Likes and reposts](#likes-and-reposts) |
+| Reposting a post of theirs | Yes, likewise |
+| Saving a post of theirs | Yes; it stays here |
 
 ## The inbox
 
@@ -808,6 +837,8 @@ that.
 | Reading from other servers | `fetch/`, over `anahita-libs/safehttp` |
 | Who somebody elsewhere is, and what is believed of it | `remote/` |
 | What the bus lost | `cmd/api/handlers/sweep.go`, `data/repositories/missed.go` |
+| Replies | `cmd/api/handlers/replies_in.go`, `notes.go` (`answers`) |
+| Likes and reposts | `cmd/api/handlers/likes.go`, `reposts.go` |
 | Looking somebody up | `cmd/api/handlers/lookup.go`, table `activitypub_actors` |
 | Their picture, and their earlier posts | `cmd/api/handlers/avatar.go`, `backfill.go` |
 | The inbox, and being followed | `cmd/api/handlers/inbox.go`, table `activitypub_follows` |

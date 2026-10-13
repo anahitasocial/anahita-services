@@ -32,6 +32,7 @@ import (
 var EventTopics = []string{
 	"edge.follow.*.*.v1",
 	"edge.voteup.*.*.v1",
+	"node.repost.*.*.*.v1",
 	"node.medium.*.*.*.v1",
 	"node.actor.*.*.*.v1",
 }
@@ -58,6 +59,13 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		err = h.localLiked(ctx, payload.SubjectID, payload.ObjectID)
 	case strings.HasPrefix(payload.Name, "edge.voteup.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
 		err = h.localUnliked(ctx, payload.SubjectID, payload.ObjectID)
+
+	// Something reposted, or a repost taken back. Its node is gone by the
+	// time the second is heard: what it was is in the record of what went.
+	case strings.HasPrefix(payload.Name, "node.repost.") && strings.HasSuffix(payload.Name, ".added.v1"):
+		err = h.reposted(ctx, payload.ObjectID)
+	case strings.HasPrefix(payload.Name, "node.repost.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
+		err = h.removed(ctx, payload.ObjectID)
 
 	// A person's profile edited, or their account disabled, archived,
 	// deleted, purged, or brought back. What decides is asked of the person
