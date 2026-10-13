@@ -22,6 +22,14 @@ const (
 	RemoteNoteDeleted = "federation.medium.text-service.note.deleted.v1"
 )
 
+// A repost by somebody on another server, of something here, having been
+// taken back there. The subject is who reposted, the object what was
+// reposted: the repost itself is gone by the time this is said.
+const (
+	RemoteRepostTopic   = "federation.repost.*.*.*.v1"
+	RemoteRepostDeleted = "federation.repost.repost.note.deleted.v1"
+)
+
 // RemoteNoteEvent is the name to say it by: kept for the first time, or
 // kept again because it was changed where it was written.
 func RemoteNoteEvent(created bool) string {

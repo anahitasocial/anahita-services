@@ -203,7 +203,31 @@ func (h *Handlers) unannounced(from *remote.Actor, inner *ap.Activity) error {
 	if err != nil || !has {
 		return err
 	}
-	return h.Reposts.Delete(&services.RepostDeleteRequest{ParentID: note.ID, AuthorID: kept.NodeID})
+	if err := h.Reposts.Delete(&services.RepostDeleteRequest{ParentID: note.ID, AuthorID: kept.NodeID}); err != nil {
+		return err
+	}
+
+	// The author here was told of the repost; the news of it goes with it.
+	if h.Announce == nil || note.IsRemote() {
+		return nil
+	}
+	payload := &event.EventPayload{
+		Name:          event.RemoteRepostDeleted,
+		SourceService: repostService,
+		SubjectID:     kept.NodeID,
+		SubjectType:   constants.NodeActorActivityPubPersonEntityType,
+		ObjectID:      note.ID,
+		ObjectType:    note.Type,
+		TargetID:      kept.NodeID,
+		TargetType:    constants.NodeActorActivityPubPersonEntityType,
+		ViewerID:      kept.NodeID,
+	}
+	h.later(func() {
+		if err := h.Announce(payload, event.RemoteRepostDeleted); err != nil {
+			log.Printf("saying that a repost of %d was taken back: %v", note.ID, err)
+		}
+	})
+	return nil
 }
 
 // keepRepost records a repost by somebody elsewhere, once, and says so on
