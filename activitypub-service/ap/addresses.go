@@ -35,8 +35,17 @@ func (a Addresses) Activity(uuid string) string { return a.Site.API("/ap/activit
 func (a Addresses) Note(uuid string) string       { return a.Site.API("/ap/notes/" + uuid) }
 func (a Addresses) NoteCreate(uuid string) string { return a.Note(uuid) + "/activity" }
 
-// NotePage is where a post is read, in the web app.
+// NotePage is where a note is read, in the web app.
 func (a Addresses) NotePage(id int64) string { return a.Site.Web(fmt.Sprintf("/notes/%d", id)) }
+
+// PhotoPage is where a photo post is read, in the web app.
+func (a Addresses) PhotoPage(id int64) string { return a.Site.Web(fmt.Sprintf("/photos/%d", id)) }
+
+// Picture is one of a photo post's pictures, as other servers fetch it:
+// by the post's UUID and where the picture comes in it, from 0.
+func (a Addresses) Picture(uuid string, position int) string {
+	return a.Site.API(fmt.Sprintf("/ap/notes/%s/pictures/%d", uuid, position))
+}
 
 // Key is the name of a person's signing key: their address, and which key.
 func (a Addresses) Key(uuid string) string { return a.Actor(uuid) + "#main-key" }

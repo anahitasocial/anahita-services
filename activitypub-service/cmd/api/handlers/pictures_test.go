@@ -109,3 +109,61 @@ func TestPicturesThatAreNotKept(t *testing.T) {
 		t.Errorf("what is not a picture: %+v, listed %v", kept, listed.kept)
 	}
 }
+
+// THE RULE THIS GUARDS: a photo post written here goes out as a note with
+// its pictures, each at an address of this installation's that gives the
+// picture only while the post is one that goes out.
+func TestAPhotoPostGoesOutWithItsPictures(t *testing.T) {
+	picturesWait = 0
+
+	w := notesWorld()
+	files := &fakeFiles{stored: map[string]int{}}
+	listed := &fakePhotoFiles{kept: map[int64][]*entities.PhotoFile{}}
+	w.h.Files, w.h.PhotoFiles = files, listed
+	w.note().Type = constants.NodeMediumPhotoEntityType
+	w.note().Service = "photo-service"
+	w.note().Body = "The beans #garden"
+
+	photoMade := made(noteID)
+	photoMade.ObjectType = constants.NodeMediumPhotoEntityType
+
+	// Heard of before its pictures are listed: not sent bare.
+	_ = w.h.HandleEvent(photoMade)
+	if len(w.queue.sent) != 0 {
+		t.Fatalf("a photo post went out without its pictures: %+v", w.queue.sent)
+	}
+
+	listed.kept[noteID] = []*entities.PhotoFile{
+		{Filename: "one.png", Mimetype: "image/png", Width: 800, Height: 600, AltText: "A row of beans"},
+		{Filename: "two.jpg", Mimetype: "image/jpeg", Width: 640, Height: 480},
+	}
+	_ = w.h.HandleEvent(photoMade)
+	if len(w.queue.sent) != 2 || w.queue.sent[0].payload["type"] != "Create" {
+		t.Fatalf("queued %+v", w.queue.sent)
+	}
+	object, _ := w.queue.sent[0].payload["object"].(map[string]any)
+	if object["type"] != "Note" || object["url"] != "https://example.org/photos/500" {
+		t.Errorf("sent as %v at %v", object["type"], object["url"])
+	}
+	attached, _ := object["attachment"].([]any)
+	if len(attached) != 2 {
+		t.Fatalf("attachments %v", object["attachment"])
+	}
+	first, _ := attached[0].(map[string]any)
+	if first["url"] != noteURL+"/pictures/0" || first["mediaType"] != "image/png" || first["name"] != "A row of beans" || first["width"] != float64(800) {
+		t.Errorf("the first picture: %v", first)
+	}
+
+	// The picture itself, for a server that asks: sent on to storage.
+	if rec := w.get(w.h.Picture, "/", "uuid", noteUUID, "position", "1"); rec.Code != 302 {
+		t.Errorf("a picture of a post that went out: %d", rec.Code)
+	}
+	// Not one there is not, and not once the post is closed.
+	if rec := w.get(w.h.Picture, "/", "uuid", noteUUID, "position", "2"); rec.Code != 404 {
+		t.Errorf("a picture there is not: %d", rec.Code)
+	}
+	w.note().Access = "followers"
+	if rec := w.get(w.h.Picture, "/", "uuid", noteUUID, "position", "0"); rec.Code != 404 {
+		t.Errorf("a picture of a post that was closed: %d", rec.Code)
+	}
+}

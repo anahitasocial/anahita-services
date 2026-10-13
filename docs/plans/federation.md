@@ -562,9 +562,12 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   its author said the picture shows; and a like of it from here was sent.
 - **A custom emoji is taken out of names and posts,** where it showed as
   the word between colons.
-- **Still to do in phase 3:** the pictures that stand for custom emoji;
-  pictures going out with a photo post written here; a picture behind a
-  warning; and removing from storage the pictures of somebody whose account
+- **A photo post written here goes out with its pictures,** as a note
+  with them attached, each fetched from an address of this installation's
+  that answers only while the post goes out. Tried by unit tests; against
+  Mastodon, still to try.
+- **Still to do in phase 3:** the pictures that stand for custom emoji; a
+  picture behind a warning; and removing from storage the pictures of somebody whose account
   is closed elsewhere, which today goes only for a post taken away one at a
   time.
 

@@ -25,6 +25,36 @@ type Note struct {
 	Tag          []Tag             `json:"tag,omitempty"`
 	// What it answers, by the address that has between servers.
 	InReplyTo string `json:"inReplyTo,omitempty"`
+	// The pictures of a photo post.
+	Attachment []SentPicture `json:"attachment,omitempty"`
+}
+
+// SentPicture is one picture of a post, as it is sent: where to fetch it,
+// what it is, how big, and what its author said it shows.
+type SentPicture struct {
+	Type      string `json:"type"`
+	MediaType string `json:"mediaType"`
+	URL       string `json:"url"`
+	Name      string `json:"name,omitempty"`
+	Width     int    `json:"width,omitempty"`
+	Height    int    `json:"height,omitempty"`
+}
+
+// WithPictures gives the note the pictures of the photo post it is, and
+// the page a photo post is read at.
+func (n *Note) WithPictures(a Addresses, post *entities.AnahitaNode, files []*entities.PhotoFile) *Note {
+	n.URL = a.PhotoPage(post.ID)
+	for position, file := range files {
+		n.Attachment = append(n.Attachment, SentPicture{
+			Type:      "Document",
+			MediaType: file.Mimetype,
+			URL:       a.Picture(post.UUID, position),
+			Name:      file.AltText,
+			Width:     file.Width,
+			Height:    file.Height,
+		})
+	}
+	return n
 }
 
 // Tag names somebody or a hashtag that a post mentions, beside its text.

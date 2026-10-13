@@ -8,9 +8,8 @@ person can choose to be found, people follow each other across servers
 either way round, their public notes travel with the follow, a person can
 leave again, a super administrator can refuse a server, and the web app has the
 switch, the lookup, and shows people and posts from other servers.
-Replies, likes and reposts cross both ways. Posts arrive with their
-pictures and with a card for the link in them; pictures are not sent out
-yet.
+Replies, likes and reposts cross both ways. Posts cross with their
+pictures, and arrive with a card for the link in them.
 
 ## Contents
 
@@ -385,7 +384,8 @@ happened and asks the other server, with a signed `Follow`.
 What is sent to another server cannot be called back, so what is sent is
 narrow, and is asked of the post as it is at that moment:
 
-- a **note**, written here, by somebody who is on the fediverse;
+- a **note or a photo post**, written here, by somebody who is on the
+  fediverse. A photo post is sent as a note with its pictures;
 - on **their own profile**: not in a group, not on somebody else's;
 - **open to everybody**: not to members, not to followers;
 - or **a reply**, by [the rule for replies](#replies);
@@ -407,7 +407,18 @@ A note that never went out is deleted at nobody. Which notes went out is
 kept in `activitypub_objects`: a deleted note's node is gone by the time
 anybody hears of it, and that table is what still knows what it was called.
 
-**Not sent:** articles, topics, photos and videos; anything in a group;
+**A photo post goes with its pictures.** Each is listed with the note at an
+address of this installation's, `/ap/notes/<uuid>/pictures/<n>`, with what
+its author said it shows and how big it is. A server that asks is sent on
+to the largest copy kept, at a signed address in storage good for a short
+while, and makes its own copy and its own smaller sizes. The address gives
+a picture only while its post is one that goes out, which is asked each
+time: a post closed to its followers stops giving its pictures to anybody.
+A photo post is heard of a moment before its pictures are listed, and is
+not sent without them: it is looked at again after two seconds, and failing
+that is found by the sweep.
+
+**Not sent:** articles, topics and videos; anything in a group;
 a quoted post (the note that quotes goes, without what it quotes);
 the card for a link. Somebody who starts following is sent what is posted
 from then on, and nothing from before.

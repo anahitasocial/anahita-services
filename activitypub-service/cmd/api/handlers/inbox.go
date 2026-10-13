@@ -418,14 +418,14 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 }
 
 // isPost says whether something is a post other servers can be spoken to
-// about: a note, or a photo post that came from another server, which is a
-// note there.
+// about: a note, or a photo post, which between servers is a note with
+// pictures.
 func isPost(node *entities.AnahitaNode) bool {
 	if node == nil {
 		return false
 	}
 	return node.Type == constants.NodeMediumNoteEntityType ||
-		(node.Type == constants.NodeMediumPhotoEntityType && node.IsRemote())
+		node.Type == constants.NodeMediumPhotoEntityType
 }
 
 // announceKept says that a post from another server was kept or changed,

@@ -109,7 +109,7 @@ LEFT JOIN nodes AS root
        ON root.id = note.root_id
 LEFT JOIN activitypub_objects AS sent
        ON sent.node_id = note.id
-WHERE note.type = ?
+WHERE note.type IN (?, ?)
   AND note.enabled = 1
   AND note.deleted_at IS NULL
   AND COALESCE(root.access, note.access) = ?
@@ -124,7 +124,7 @@ LIMIT ?`
 
 func (repo *Missed) NotesNotSent(since, olderThan time.Time, limit int) ([]int64, error) {
 	return repo.ids(notesNotSent,
-		constants.NodeMediumNoteEntityType, constants.AnahitaAccessPublic, since, olderThan, limit)
+		constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType, constants.AnahitaAccessPublic, since, olderThan, limit)
 }
 
 const notesGone = `

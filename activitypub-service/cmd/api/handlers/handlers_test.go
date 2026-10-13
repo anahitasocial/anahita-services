@@ -188,10 +188,15 @@ func (w *world) callAs(personType string, handler echo.HandlerFunc, method, body
 	}
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	// Every pair at once: set one at a time, each took the place of the
+	// one before, and a route with two parameters was given its last.
+	var names, values []string
 	for i := 0; i+1 < len(params); i += 2 {
-		c.SetParamNames(params[i])
-		c.SetParamValues(params[i+1])
+		names = append(names, params[i])
+		values = append(values, params[i+1])
 	}
+	c.SetParamNames(names...)
+	c.SetParamValues(values...)
 	v := entities.NewViewer()
 	v.ID = 2
 	v.PersonType = personType
@@ -208,10 +213,15 @@ func (w *world) call(handler echo.HandlerFunc, method, target, body string, view
 	}
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	// Every pair at once: set one at a time, each took the place of the
+	// one before, and a route with two parameters was given its last.
+	var names, values []string
 	for i := 0; i+1 < len(params); i += 2 {
-		c.SetParamNames(params[i])
-		c.SetParamValues(params[i+1])
+		names = append(names, params[i])
+		values = append(values, params[i+1])
 	}
+	c.SetParamNames(names...)
+	c.SetParamValues(values...)
 	if viewer > 0 {
 		v := entities.NewViewer()
 		v.ID = viewer

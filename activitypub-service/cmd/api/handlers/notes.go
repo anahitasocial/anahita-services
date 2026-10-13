@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"activitypub/ap"
 	"activitypub/data/repositories"
@@ -23,7 +25,8 @@ import (
 // WHAT GOES OUT CANNOT BE CALLED BACK, so the rule for what does is narrow
 // and is asked every time, of the post as it is now:
 //
-//   - a note, written here, by somebody who is on the fediverse;
+//   - a note or a photo post, written here, by somebody who is on the
+//     fediverse. A photo post is sent as a note with its pictures;
 //   - on their own profile, not in a group and not on somebody else's;
 //   - open to everybody: not to members, not to followers;
 //   - or a reply in a thread that is open to everybody, to something other
@@ -40,7 +43,10 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 	if note == nil || note.ID == 0 || note.UUID == "" || note.IsRemote() {
 		return nil, nil
 	}
-	if note.Type != constants.NodeMediumNoteEntityType || !note.Enabled || note.DeletedAt != nil || note.Hidden {
+	// A note, or a photo post, which other servers are sent as a note with
+	// its pictures.
+	isPhoto := note.Type == constants.NodeMediumPhotoEntityType
+	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto) || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil, nil
 	}
 	if note.CreatedBy <= 0 || note.OwnerID != note.CreatedBy {
@@ -136,6 +142,15 @@ func (h *Handlers) answers(reply *entities.AnahitaNode) *answer {
 	return &answer{ID: parent.URI, Actor: kept.URI, Handle: "@" + writer.Alias, Inbox: inbox}
 }
 
+// How long a photo post's pictures are waited for before it is left to the
+// sweep. A variable, so that tests do not wait.
+var picturesWait = 2 * time.Second
+
+func (h *Handlers) hasPictures(postID int64) bool {
+	files, err := h.PhotoFiles.BrowsePhotoFiles([]int64{postID})
+	return err == nil && len(files) > 0
+}
+
 // described is a note as other servers are sent it, a reply with what it
 // answers.
 func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answer) *ap.Note {
@@ -143,7 +158,61 @@ func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answ
 	if answering != nil {
 		sent.Answering(answering.ID, answering.Actor, answering.Handle)
 	}
+	// A photo post goes with its pictures, each at an address of this
+	// installation's that leads to it for as long as the post goes out.
+	if note.Type == constants.NodeMediumPhotoEntityType && h.PhotoFiles != nil {
+		if files, err := h.PhotoFiles.BrowsePhotoFiles([]int64{note.ID}); err == nil {
+			sent.WithPictures(h.addresses, note, files)
+		}
+	}
 	return sent
+}
+
+// Picture sends a server that asks for one of a photo post's pictures to
+// where it is: a signed address in storage, good for a short while. Only a
+// picture of a post that goes out, which is asked each time, so that a
+// post closed to its followers stops giving its pictures to anybody.
+func (h *Handlers) Picture(c echo.Context) error {
+	uuid := c.Param("uuid")
+	position, err := strconv.Atoi(c.Param("position"))
+	if !uuidShape.MatchString(uuid) || err != nil || position < 0 || position >= postPicturesMax {
+		return c.NoContent(http.StatusNotFound)
+	}
+	if ok, _ := h.siteFederates(); !ok || h.PhotoFiles == nil || h.Files == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	post, err := h.Nodes.ReadByUUID(uuid)
+	if err != nil || post == nil || post.Type != constants.NodeMediumPhotoEntityType {
+		return c.NoContent(http.StatusNotFound)
+	}
+	if author, _ := h.goesOut(post); author == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	files, err := h.PhotoFiles.BrowsePhotoFiles([]int64{post.ID})
+	if err != nil || position >= len(files) {
+		return c.NoContent(http.StatusNotFound)
+	}
+	sizes, err := post.PortraitsFor(files[position].Filename)
+	if err != nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+	// The largest copy kept: other servers make their own smaller ones.
+	stored, ok := sizes[entities.PortraitSizeOriginal]
+	if !ok || stored.Url == "" {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	request := services.NewFileRequest().Presign
+	request.Path = stored.Url
+	address, err := h.Files.Presign(request)
+	if err != nil || address == "" {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	c.Response().Header().Set("Cache-Control", "public, max-age=180")
+	return c.Redirect(http.StatusFound, address)
 }
 
 // toReaders queues something about a post for everybody it is for: its
@@ -252,6 +321,19 @@ func (h *Handlers) posted(ctx context.Context, nodeID int64) error {
 		// Not one that goes out. If it did before (it was open to
 		// everybody and is not now), it is taken back.
 		return h.removed(ctx, nodeID)
+	}
+
+	// A photo post is heard of the moment it is made, a moment before its
+	// pictures are listed. It is not sent without them: it is looked at
+	// once more, and failing that is left for the sweep, which finds a post
+	// that should have gone out and did not.
+	if note.Type == constants.NodeMediumPhotoEntityType && h.PhotoFiles != nil {
+		if !h.hasPictures(note.ID) {
+			time.Sleep(picturesWait)
+			if !h.hasPictures(note.ID) {
+				return nil
+			}
+		}
 	}
 
 	sent := h.described(note, author, answering)

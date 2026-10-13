@@ -37,6 +37,10 @@ func (f *fakeFiles) Add(req *services.FileAddRequest) (*entities.File, error) {
 	return &entities.File{}, nil
 }
 
+func (f *fakeFiles) Presign(req *services.FilePresignRequest) (string, error) {
+	return "https://storage.example/" + req.Path + "?signed", nil
+}
+
 func (f *fakeFiles) Delete(req *services.FileDeleteRequest) error {
 	delete(f.stored, req.Path)
 	f.deleted = append(f.deleted, req.Path)
