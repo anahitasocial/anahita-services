@@ -42,6 +42,8 @@ type SentInterface interface {
 	Read(kind string, localID, personID int64) (*Sent, error)
 	Delete(id int64) error
 	DeleteAllOf(personID int64) error
+	// ReadByName finds what was written under a name, or nil.
+	ReadByName(did, kind, rkey string) (*Sent, error)
 	// DeleteByName forgets one thing by the name it was to be written
 	// under.
 	DeleteByName(did, kind, rkey string) error
@@ -119,6 +121,26 @@ func (repo *SentRecords) DeleteAllOf(personID int64) error {
 
 	_, err := repo.db.ExecContext(ctx, deleteSentOf, personID)
 	return err
+}
+
+const readSentByName = `
+SELECT id, kind, person_id, local_id, did, rkey
+FROM atproto_sent
+WHERE did = ?
+  AND rkey = ?
+  AND kind = ?`
+
+func (repo *SentRecords) ReadByName(did, kind, rkey string) (*Sent, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	sent := &Sent{}
+	err := repo.db.QueryRowContext(ctx, readSentByName, did, rkey, kind).
+		Scan(&sent.ID, &sent.Kind, &sent.PersonID, &sent.LocalID, &sent.DID, &sent.RKey)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	return sent, err
 }
 
 const deleteSentByName = `

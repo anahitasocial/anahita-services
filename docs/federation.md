@@ -1074,6 +1074,16 @@ its own. The card says to use one and where to make it.
   was written from here: one made on Bluesky itself stays until it is
   removed there. Whoever has not connected an account follows here and
   nowhere else, and nobody is told.
+- **What comes back.** Each connected account is asked, once a minute,
+  what it was told of on Bluesky, as its own app would show it: who liked
+  or reposted something written from here, who answered it, and who
+  followed the account. Each is kept as the same thing from the fediverse
+  is: whoever did it becomes somebody of another server here, though
+  nobody here follows them, and their like, repost, reply or follow is
+  theirs. The person here is told as of anybody's. Somebody they have
+  blocked does none of it. What happened before the account was connected
+  is not gone back for, and what is taken back on Bluesky (a like
+  withdrawn, a reply deleted by somebody not followed) is not known here.
 - **What is taken back.** Taking a like or a repost back here, or deleting
   the reply, removes it there.
 - **It arrives.** What is to be written waits in a table
@@ -1106,10 +1116,8 @@ left out, `https://plc.directory`.
 
 ### What is not there yet
 
-A video made here does not go to Bluesky. What people
-on Bluesky do to what was written from here (their likes, reposts and
-replies to it) is not read, unless they are followed. Likes given on
-Bluesky are not read, nor how many a post has; replies
+A video made here does not go to Bluesky. Likes given on Bluesky to
+posts that came from there are not read, nor how many a post has; replies
 by people nobody here follows are not read; videos are not kept.
 The list of [servers that are refused](#servers-that-are-refused) is read
 by this service and still edited through `activitypub-service`, so an

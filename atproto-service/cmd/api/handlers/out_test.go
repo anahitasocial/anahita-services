@@ -14,6 +14,7 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/event"
 	"anahita-libs/federation"
 	"anahita-libs/linkpreviews"
@@ -48,6 +49,67 @@ func (f *fakeAccounts) WhoConnected(did string) (int64, error) {
 
 func (f *fakeAccounts) Shadowed() ([]string, error) { return nil, nil }
 
+func (f *fakeAccounts) Working() ([]*repositories.Account, error) {
+	var working []*repositories.Account
+	for _, known := range f.kept {
+		if known.BrokenAt == nil {
+			c := *known
+			working = append(working, &c)
+		}
+	}
+	return working, nil
+}
+
+func (f *fakeAccounts) SetNotified(id int64, at time.Time) error {
+	f.kept[id].NotifiedAt = at
+	return nil
+}
+
+// fakeGraph is likes, follows and who has blocked whom, as the graph
+// keeps them. Each of the three is asked through a stand-in of its own,
+// since two of them add by a method of the same name.
+type fakeGraph struct {
+	likes   map[string]bool
+	follows map[string]bool
+	blocked map[string]bool
+}
+
+type fakeLikes struct {
+	services.LikesGRPCInterface
+	*fakeGraph
+}
+
+func (f fakeLikes) IsLiked(source, target int64) (bool, error) {
+	return f.likes[fmt.Sprint(source, ">", target)], nil
+}
+
+func (f fakeLikes) Add(source, target *entities.AnahitaNode, _ *entities.Viewer) error {
+	f.likes[fmt.Sprint(source.ID, ">", target.ID)] = true
+	return nil
+}
+
+type fakeFollows struct {
+	services.SocialgraphFollowGRPCInterface
+	*fakeGraph
+}
+
+func (f fakeFollows) Add(req *services.SocialgraphFollowAddRequest) error {
+	f.follows[fmt.Sprint(req.Source.ID, ">", req.Target.ID)] = true
+	return nil
+}
+
+type fakeRelations struct {
+	services.SocialgraphGRPCInterface
+	*fakeGraph
+}
+
+func (f fakeRelations) Read(a, b int64) (*entities.ActorRelation, error) {
+	return &entities.ActorRelation{
+		IsBlocking: f.blocked[fmt.Sprint(a, ">", b)],
+		IsLeading:  f.follows[fmt.Sprint(b, ">", a)],
+	}, nil
+}
+
 func (f *fakeAccounts) Save(account *repositories.Account) error {
 	for id, known := range f.kept {
 		if known.DID == account.DID && id != account.PersonID {
@@ -65,8 +127,7 @@ func (f *fakeAccounts) SetRefresh(id int64, refresh string) error {
 }
 
 func (f *fakeAccounts) SetBroken(id int64) error {
-	now := f.kept[id].BrokenAt
-	if now == nil {
+	if f.kept[id].BrokenAt == nil {
 		at := time.Now()
 		f.kept[id].BrokenAt = &at
 	}
@@ -128,6 +189,16 @@ func (f *fakeSent) DeleteAllOf(personID int64) error {
 	return nil
 }
 
+func (f *fakeSent) ReadByName(did, kind, rkey string) (*repositories.Sent, error) {
+	for _, row := range f.rows {
+		if row.DID == did && row.Kind == kind && row.RKey == rkey {
+			c := *row
+			return &c, nil
+		}
+	}
+	return nil, nil
+}
+
 func (f *fakeSent) DeleteByName(did, kind, rkey string) error {
 	var left []*repositories.Sent
 	for _, row := range f.rows {
@@ -159,6 +230,8 @@ type fakeWriter struct {
 	uploaded []int
 	// Who the account follows already, on Bluesky.
 	following map[string]bool
+	// What the account was told of, newest first.
+	told []bsky.Notification
 }
 
 func (f *fakeWriter) PDSOf(_ context.Context, _, did string) (string, error) { return anaPDS, nil }
@@ -204,6 +277,13 @@ func (f *fakeWriter) UploadBlob(_ context.Context, pds, token string, content []
 	blob := &bsky.OutBlob{Type: "blob", MimeType: mimeType, Size: int64(len(content))}
 	blob.Ref.Link = fmt.Sprintf("blob%d", len(f.uploaded))
 	return blob, nil
+}
+
+func (f *fakeWriter) Notifications(_ context.Context, pds, token string, limit int) ([]bsky.Notification, error) {
+	if token != f.access {
+		return nil, bsky.ErrExpired
+	}
+	return f.told, nil
 }
 
 func (f *fakeWriter) Follows(_ context.Context, pds, token, did string) (bool, error) {
@@ -699,5 +779,91 @@ func TestAFollowIsToldToBluesky(t *testing.T) {
 	}
 	if got := strings.Join(w.writer.written, ", "); got != "create app.bsky.graph.follow, delete app.bsky.graph.follow" || len(w.writer.records) != 0 {
 		t.Errorf("written: %s", got)
+	}
+}
+
+// THE RULE THIS GUARDS: what somebody on Bluesky does to a post that went
+// out from here is kept here, whoever they are, and nothing they do to
+// anything else is.
+func TestWhatPeopleOnBlueskyDoToWhatWasWrittenFromHere(t *testing.T) {
+	w, _ := writingWorld(t)
+	graph := &fakeGraph{likes: map[string]bool{}, follows: map[string]bool{}, blocked: map[string]bool{}}
+	w.h.Likes, w.h.FollowEdges, w.h.Relations = fakeLikes{fakeGraph: graph}, fakeFollows{fakeGraph: graph}, fakeRelations{fakeGraph: graph}
+	w.connect()
+
+	// A note of Ana's that went to Bluesky.
+	w.nodes.kept = append(w.nodes.kept, &entities.AnahitaNode{
+		ID: 80, Type: constants.NodeMediumNoteEntityType, Service: "text-service", Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "Anahita to Bluesky",
+	})
+	w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 80})
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	mine := bsky.PostURI(anaDID, w.sent.rows[0].RKey)
+	w.said = nil
+
+	// Bob, whom nobody here follows, likes it, reposts it, answers it and
+	// follows Ana. He also likes something that never went out from here.
+	told := func(reason, subject, record, at string) bsky.Notification {
+		n := bsky.Notification{URI: "at://" + bobDID + "/app.bsky.feed.post/3l3bobreply", Reason: reason, ReasonSubject: subject, Record: json.RawMessage(record), IndexedAt: at}
+		n.Author.DID, n.Author.Handle, n.Author.DisplayName = bobDID, "bob.bsky.social", "Bob"
+		return n
+	}
+	now := time.Now().UTC()
+	at := func(seconds int) string {
+		return now.Add(time.Duration(seconds) * time.Second).Format(time.RFC3339Nano)
+	}
+	w.writer.told = []bsky.Notification{
+		told("like", "at://"+anaDID+"/app.bsky.feed.post/3l3elsewhere", `{}`, at(5)),
+		told("follow", "", `{}`, at(4)),
+		told("reply", "", `{"text":"Welcome","reply":{"root":{"uri":"`+mine+`"},"parent":{"uri":"`+mine+`"}}}`, at(3)),
+		told("repost", mine, `{}`, at(2)),
+		told("like", mine, `{}`, at(1)),
+		// Told of before the account was connected: not gone back for.
+		told("like", mine, `{}`, now.Add(-time.Hour).Format(time.RFC3339Nano)),
+	}
+	w.accounts.kept[anaID].NotifiedAt = now
+
+	w.h.CheckReactions()
+
+	bob := w.keptAt("at://" + bobDID)
+	if bob == nil {
+		t.Fatal("whoever did it was not kept")
+	}
+	if !graph.likes[fmt.Sprint(bob.ID, ">", 80)] || len(graph.likes) != 1 {
+		t.Errorf("likes %v", graph.likes)
+	}
+	if !w.reposts.made[fmt.Sprint(bob.ID, ">", 80)] {
+		t.Errorf("reposts %v", w.reposts.made)
+	}
+	if !graph.follows[fmt.Sprint(bob.ID, ">", anaID)] {
+		t.Errorf("follows %v", graph.follows)
+	}
+	reply := w.keptAt("at://" + bobDID + "/app.bsky.feed.post/3l3bobreply")
+	if reply == nil || reply.ParentID != 80 || reply.OwnerID != bob.ID || reply.Body != "Welcome" {
+		t.Errorf("the reply was kept as %+v", reply)
+	}
+	// Ana is told of the like and the repost as of anybody's.
+	if got := strings.Join(w.said, "|"); !strings.Contains(got, "edge.voteup.text.added.v1 80") || !strings.Contains(got, "node.repost.repost.note.added.v1") {
+		t.Errorf("said %q", got)
+	}
+
+	// Asked again, nothing is done twice.
+	before := len(w.nodes.kept)
+	w.said = nil
+	w.h.CheckReactions()
+	if len(w.nodes.kept) != before || len(w.said) != 0 {
+		t.Errorf("done again: %d kept, said %v", len(w.nodes.kept), w.said)
+	}
+
+	// Somebody Ana has blocked does none of it.
+	w.bluesky.profiles[aliceDID] = nil
+	graph.blocked[fmt.Sprint(anaID, ">", bob.ID)] = true
+	graph.likes = map[string]bool{}
+	w.accounts.kept[anaID].NotifiedAt = now
+	w.h.CheckReactions()
+	if len(graph.likes) != 0 {
+		t.Errorf("a like by somebody blocked was kept: %v", graph.likes)
 	}
 }

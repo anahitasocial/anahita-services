@@ -53,6 +53,7 @@ type Writer interface {
 	DeleteRecord(ctx context.Context, pds, accessJWT, did, collection, rkey string) error
 	UploadBlob(ctx context.Context, pds, accessJWT string, content []byte, mimeType string) (*bsky.OutBlob, error)
 	Follows(ctx context.Context, pds, accessJWT, did string) (bool, error)
+	Notifications(ctx context.Context, pds, accessJWT string, limit int) ([]bsky.Notification, error)
 	RefOf(ctx context.Context, uri string) (post, root *bsky.Ref, err error)
 }
 

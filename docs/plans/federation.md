@@ -1191,3 +1191,22 @@ that server stood in for.
 4. OAuth in place of app passwords, when the installation has a public
    address to be a client at.
 
+**Built after that, the same day, in the order agreed:** a person's own
+public notes and photo posts going out, with pictures and the card of a
+link (`uploadBlob`; a megabyte each, made smaller or written again as
+JPEG); a follow told to Bluesky, only when the account does not follow
+already, and only what was written from here taken back; and what people
+on Bluesky do to what was written from here read back once a minute
+(`listNotifications`; `atproto_accounts.notified_at`, migration
+`20261108000001`). A connected account is no longer also kept as somebody
+of another server. Fixed on the way: a like taken back before it reached
+Bluesky was written afterwards.
+
+**Tried against Bluesky itself by the user:** connecting, a note going
+out, a reply. **Not yet:** a photo post, a card's picture, a follow, and
+what comes back.
+
+**Still to do:** the person's own posts made on Bluesky coming in as
+theirs; videos either way; an import of the accounts already followed on
+Bluesky; OAuth in place of app passwords.
+

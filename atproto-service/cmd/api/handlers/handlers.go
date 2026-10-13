@@ -65,6 +65,12 @@ type Env struct {
 	// is left to be tried again: it is said to be made a moment before
 	// its pictures are listed.
 	PicturesWait time.Duration
+	// For keeping what people on Bluesky do to what was written from
+	// here: likes, follows, and who has blocked whom. Nil where that is
+	// not read.
+	Likes       services.LikesGRPCInterface
+	FollowEdges services.SocialgraphFollowGRPCInterface
+	Relations   services.SocialgraphGRPCInterface
 	// Reposts in the graph, and which post each one heard was of. Nil
 	// where reposts are not kept.
 	Reposts       services.RepostGRPCInterface

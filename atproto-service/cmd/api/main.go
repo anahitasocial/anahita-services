@@ -123,6 +123,9 @@ func main() {
 		env.Queue = queue
 		env.Directory = config.DirectoryURL
 		env.PicturesWait = 3 * time.Second
+		env.Likes = services.NewLikesGRPC(config)
+		env.FollowEdges = services.NewSocialgraphFollowGRPC(config)
+		env.Relations = services.NewSocialgraphGRPC(config)
 	} else {
 		log.Println("CRYPT_LOCAL_KEY is not set: Bluesky is read, and nothing is written to it")
 	}
@@ -175,6 +178,12 @@ func main() {
 	// a row is handed to one of them at a time.
 	if queue != nil {
 		go queue.Run(ctx, 2*time.Second, 10, h.Write)
+	}
+
+	// What people on Bluesky did to what was written from here, asked of
+	// each connected account now and then.
+	if queue != nil {
+		go h.RunReactions(ctx, time.Minute)
 	}
 
 	// What the bus lost is looked for now and then.

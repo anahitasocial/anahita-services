@@ -151,6 +151,39 @@ func (c *Client) Follows(ctx context.Context, pds, accessJWT, did string) (bool,
 	return profile.Viewer.Following != "", nil
 }
 
+// Notification is one thing somebody did to an account or to what it
+// posted, as the account is told of it.
+type Notification struct {
+	// The record of what they did: their like, their repost, their reply.
+	URI    string `json:"uri"`
+	Author struct {
+		DID         string `json:"did"`
+		Handle      string `json:"handle"`
+		DisplayName string `json:"displayName"`
+		Description string `json:"description"`
+		Avatar      string `json:"avatar"`
+	} `json:"author"`
+	// "like", "repost", "reply", "follow", and others that are left.
+	Reason string `json:"reason"`
+	// What it was done to, for a like or a repost.
+	ReasonSubject string          `json:"reasonSubject"`
+	Record        json.RawMessage `json:"record"`
+	IndexedAt     string          `json:"indexedAt"`
+}
+
+// Notifications reads what an account was lately told of, newest first,
+// asked as the account itself, of its own server.
+func (c *Client) Notifications(ctx context.Context, pds, accessJWT string, limit int) ([]Notification, error) {
+	var page struct {
+		Notifications []Notification `json:"notifications"`
+	}
+	address := pds + "/xrpc/app.bsky.notification.listNotifications?" + url.Values{"limit": {fmt.Sprint(limit)}}.Encode()
+	if err := c.call(ctx, http.MethodGet, address, accessJWT, nil, &page); err != nil {
+		return nil, err
+	}
+	return page.Notifications, nil
+}
+
 // UploadBlob gives a file to an account's server, to be named in a record
 // written afterwards: a picture of a post, or of a link's card.
 func (c *Client) UploadBlob(ctx context.Context, pds, accessJWT string, content []byte, mimeType string) (*OutBlob, error) {

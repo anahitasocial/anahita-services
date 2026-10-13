@@ -1225,6 +1225,10 @@ CREATE TABLE IF NOT EXISTS atproto_accounts (
     -- When the account's server last refused the token. NULL while it
     -- works.
     `broken_at` datetime DEFAULT NULL,
+    -- The time of the last thing somebody on Bluesky did to what was
+    -- written from here that was dealt with. See
+    -- migrations/20261108000001_atproto_notified.sql.
+    `notified_at` datetime(3) DEFAULT NULL,
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
     PRIMARY KEY (`person_id`),

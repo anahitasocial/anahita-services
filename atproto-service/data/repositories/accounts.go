@@ -20,6 +20,9 @@ type Account struct {
 	// When the account's server last refused the token: the account has
 	// to be connected again. Nil while it works.
 	BrokenAt *time.Time
+	// The time of the last thing somebody on Bluesky did to what was
+	// written from here that was dealt with.
+	NotifiedAt time.Time
 }
 
 type AccountsInterface interface {
@@ -29,6 +32,9 @@ type AccountsInterface interface {
 	// Shadowed is the Bluesky accounts that somebody here connected and
 	// that are also kept here as people of another server.
 	Shadowed() ([]string, error)
+	// Working is every account that is connected and can be read as.
+	Working() ([]*Account, error)
+	SetNotified(personID int64, at time.Time) error
 	// Save connects an account, or connects it again. ErrAccountTaken
 	// when it is somebody else's here.
 	Save(account *Account) error
@@ -48,22 +54,21 @@ func NewAccounts(db *sql.DB) *Accounts {
 	return &Accounts{db: db}
 }
 
-const readAccount = `
-SELECT person_id, did, handle, pds, refresh_token, broken_at
-FROM atproto_accounts
+const selectAccount = `
+SELECT person_id, did, handle, pds, refresh_token, broken_at, COALESCE(notified_at, created_at)
+FROM atproto_accounts`
+
+const readAccount = selectAccount + `
 WHERE person_id = ?`
 
-func (repo *Accounts) Read(personID int64) (*Account, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
-	defer cancel()
+const workingAccounts = selectAccount + `
+WHERE broken_at IS NULL
+ORDER BY person_id`
 
+func scanAccount(row interface{ Scan(...any) error }) (*Account, error) {
 	account := &Account{}
 	var broken sql.NullTime
-	err := repo.db.QueryRowContext(ctx, readAccount, personID).
-		Scan(&account.PersonID, &account.DID, &account.Handle, &account.PDS, &account.Refresh, &broken)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
+	err := row.Scan(&account.PersonID, &account.DID, &account.Handle, &account.PDS, &account.Refresh, &broken, &account.NotifiedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -71,6 +76,51 @@ func (repo *Accounts) Read(personID int64) (*Account, error) {
 		account.BrokenAt = &broken.Time
 	}
 	return account, nil
+}
+
+func (repo *Accounts) Working() ([]*Account, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	rows, err := repo.db.QueryContext(ctx, workingAccounts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var accounts []*Account
+	for rows.Next() {
+		account, err := scanAccount(rows)
+		if err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, account)
+	}
+	return accounts, rows.Err()
+}
+
+const setAccountNotified = `
+UPDATE atproto_accounts
+SET notified_at = ?
+WHERE person_id = ?`
+
+func (repo *Accounts) SetNotified(personID int64, at time.Time) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	_, err := repo.db.ExecContext(ctx, setAccountNotified, at.UTC(), personID)
+	return err
+}
+
+func (repo *Accounts) Read(personID int64) (*Account, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	account, err := scanAccount(repo.db.QueryRowContext(ctx, readAccount, personID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	return account, err
 }
 
 const whoseAccount = `
@@ -117,14 +167,15 @@ func (repo *Accounts) Shadowed() ([]string, error) {
 }
 
 const saveAccount = `
-INSERT INTO atproto_accounts (person_id, did, handle, pds, refresh_token, broken_at, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, NULL, ?, ?)
+INSERT INTO atproto_accounts (person_id, did, handle, pds, refresh_token, broken_at, notified_at, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, NULL, ?, ?, ?)
 ON DUPLICATE KEY UPDATE
     did = VALUES(did),
     handle = VALUES(handle),
     pds = VALUES(pds),
     refresh_token = VALUES(refresh_token),
     broken_at = NULL,
+    notified_at = VALUES(notified_at),
     updated_at = VALUES(updated_at)`
 
 func (repo *Accounts) Save(account *Account) error {
@@ -142,7 +193,7 @@ func (repo *Accounts) Save(account *Account) error {
 
 	now := time.Now().UTC()
 	_, err = repo.db.ExecContext(ctx, saveAccount,
-		account.PersonID, account.DID, account.Handle, account.PDS, account.Refresh, now, now)
+		account.PersonID, account.DID, account.Handle, account.PDS, account.Refresh, now, now, now)
 	return err
 }
 
