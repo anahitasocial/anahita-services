@@ -1117,6 +1117,7 @@ its own. The card says to use one and where to make it.
 | `GET /atproto/settings` | Whether the viewer has connected an account: `connected`, `handle`, `did`, `broken`. `404 bluesky_writing_off` where the installation does not write to Bluesky |
 | `PUT /atproto/settings` `{ "handle": "…", "app_password": "…" }` | Connects it. `404 bluesky_not_found`, `403 bluesky_denied` for a password that is not taken, `409 bluesky_taken` when somebody else here connected that account, `502 bluesky_failed`. Ten tries in ten minutes |
 | `DELETE /atproto/settings` | Disconnects |
+| `POST /atproto/settings/import-follows` | Follows here the accounts the viewer's Bluesky account follows already, up to 500, leaving out whoever is refused or blocked. Answered `202` at once and carried on with afterwards: each account is kept and has its recent posts read, which for a long list takes minutes. Nothing is written to Bluesky. Three times an hour |
 
 `ATPROTO_PLC_URL` is where the server that holds an account is looked up:
 left out, `https://plc.directory`.

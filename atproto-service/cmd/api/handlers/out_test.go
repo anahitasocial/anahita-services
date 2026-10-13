@@ -106,8 +106,9 @@ type fakeRelations struct {
 
 func (f fakeRelations) Read(a, b int64) (*entities.ActorRelation, error) {
 	return &entities.ActorRelation{
-		IsBlocking: f.blocked[fmt.Sprint(a, ">", b)],
-		IsLeading:  f.follows[fmt.Sprint(b, ">", a)],
+		IsBlocking:  f.blocked[fmt.Sprint(a, ">", b)],
+		IsLeading:   f.follows[fmt.Sprint(b, ">", a)],
+		IsFollowing: f.follows[fmt.Sprint(a, ">", b)],
 	}, nil
 }
 
@@ -974,5 +975,51 @@ func TestWhatIsPostedOnBlueskyWithOnesOwnAccount(t *testing.T) {
 	w.heard("node.medium.text-service.note.deleted.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: post.ID})
 	if len(mine()) != 0 || len(w.queue.waiting) != 0 {
 		t.Errorf("after it was deleted there: %d here, %d waiting", len(mine()), len(w.queue.waiting))
+	}
+}
+
+// THE RULE THIS GUARDS: following here whoever one follows on Bluesky
+// follows each of them once, here, and leaves out whoever is refused or
+// blocked.
+func TestFollowingHereWhoeverOneFollowsOnBluesky(t *testing.T) {
+	w, _ := writingWorld(t)
+	graph := &fakeGraph{likes: map[string]bool{}, follows: map[string]bool{}, blocked: map[string]bool{}}
+	w.h.FollowEdges, w.h.Relations = fakeFollows{fakeGraph: graph}, fakeRelations{fakeGraph: graph}
+	w.h.Blocks = fakeBlocks{"refused.example": true}
+	w.connect()
+	account := w.h.connected(anaID)
+
+	const carolDID = "did:plc:dddddddddddddddddddddddd"
+	alice, _ := w.actors.ReadByDID(aliceDID)
+	graph.follows[fmt.Sprint(anaID, ">", alice.NodeID)] = true
+	w.bluesky.following = map[string][]bsky.Profile{
+		anaDID + "|": {
+			{DID: aliceDID, Handle: "alice.bsky.social"},
+			{DID: bobDID, Handle: "bob.bsky.social", DisplayName: "Bob"},
+			{DID: "did:plc:eeeeeeeeeeeeeeeeeeeeeeee", Handle: "eve.refused.example"},
+			{DID: "not-a-did", Handle: "x.example"},
+		},
+		anaDID + "|next": {{DID: carolDID, Handle: "carol.bsky.social"}},
+	}
+
+	first, next, _ := w.bluesky.Following(context.Background(), anaDID, "")
+	w.h.importFollows(account, first, next)
+
+	bob, carol := w.keptAt("at://"+bobDID), w.keptAt("at://"+carolDID)
+	if bob == nil || carol == nil {
+		t.Fatal("the accounts followed there were not kept")
+	}
+	// Alice was followed already; the other two are now. Three in all.
+	if !graph.follows[fmt.Sprint(anaID, ">", bob.ID)] || !graph.follows[fmt.Sprint(anaID, ">", carol.ID)] || len(graph.follows) != 3 {
+		t.Errorf("follows %v", graph.follows)
+	}
+	if w.keptAt("at://did:plc:eeeeeeeeeeeeeeeeeeeeeeee") != nil {
+		t.Error("somebody on a refused server was kept")
+	}
+
+	// Asked again, nobody is followed twice.
+	w.h.importFollows(account, first, next)
+	if len(graph.follows) != 3 {
+		t.Errorf("follows after a second time: %v", graph.follows)
 	}
 }

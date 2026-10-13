@@ -36,6 +36,7 @@ type Bluesky interface {
 	Profile(ctx context.Context, actor string) (*bsky.Profile, error)
 	AuthorFeed(ctx context.Context, did string, limit int) ([]bsky.FeedItem, error)
 	PostAt(ctx context.Context, uri string) (*bsky.Post, error)
+	Following(ctx context.Context, did, cursor string) ([]bsky.Profile, string, error)
 }
 
 // Refused is the servers this installation will have nothing to do with.

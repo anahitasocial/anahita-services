@@ -81,6 +81,23 @@ func (c *Client) AuthorFeed(ctx context.Context, did string, limit int) ([]FeedI
 	return page.Feed, err
 }
 
+// Following reads a page of who an account follows, and where the next
+// page begins ("" when there is none).
+func (c *Client) Following(ctx context.Context, did, cursor string) ([]Profile, string, error) {
+	var page struct {
+		Follows []Profile `json:"follows"`
+		Cursor  string    `json:"cursor"`
+	}
+	query := url.Values{"actor": {did}, "limit": {"100"}}
+	if cursor != "" {
+		query.Set("cursor", cursor)
+	}
+	if err := c.xrpc(ctx, "app.bsky.graph.getFollows", query, &page); err != nil {
+		return nil, "", err
+	}
+	return page.Follows, page.Cursor, nil
+}
+
 // PostAt reads one post by its address, as its author wrote it. ErrNobody
 // when it is not there.
 func (c *Client) PostAt(ctx context.Context, uri string) (*Post, error) {

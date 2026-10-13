@@ -208,8 +208,10 @@ type fakeBluesky struct {
 	profiles map[string]*bsky.Profile
 	feeds    map[string][]bsky.FeedItem
 	posts    map[string]*bsky.Post
-	asked    []string
-	err      error
+	// Who an account follows, a page at a time: "did|" then "did|next".
+	following map[string][]bsky.Profile
+	asked     []string
+	err       error
 }
 
 func (f *fakeBluesky) Profile(_ context.Context, actor string) (*bsky.Profile, error) {
@@ -222,6 +224,18 @@ func (f *fakeBluesky) Profile(_ context.Context, actor string) (*bsky.Profile, e
 		return &c, nil
 	}
 	return nil, bsky.ErrNobody
+}
+
+func (f *fakeBluesky) Following(_ context.Context, did, cursor string) ([]bsky.Profile, string, error) {
+	if f.err != nil {
+		return nil, "", f.err
+	}
+	page := f.following[did+"|"+cursor]
+	next := ""
+	if _, more := f.following[did+"|next"]; more && cursor == "" {
+		next = "next"
+	}
+	return page, next, nil
 }
 
 func (f *fakeBluesky) AuthorFeed(_ context.Context, did string, limit int) ([]bsky.FeedItem, error) {
