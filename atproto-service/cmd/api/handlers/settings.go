@@ -182,6 +182,8 @@ func (h *Handlers) connect(ctx context.Context, personID int64, actor, password 
 	h.remember(personID, session.AccessJWT)
 	// They are one person here from now on.
 	h.later(func() { h.forgetShadow(profile.DID) })
+	// Their own posts on Bluesky are listened for from now on.
+	h.changed()
 	return account, ""
 }
 

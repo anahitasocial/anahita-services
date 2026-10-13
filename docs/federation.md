@@ -1100,8 +1100,15 @@ its own. The card says to use one and where to make it.
   connected is that person. It is not also kept as somebody of another
   server: what was kept of it before it was connected (its profile here,
   its posts, and the follows of it) is removed when it is connected, and
-  looking it up afterwards finds the person here. Their posts written on
-  Bluesky are therefore not read here.
+  looking it up afterwards finds the person here.
+- **What they post on Bluesky itself is theirs here.** A post made with
+  the connected account in Bluesky's own app is kept here as a post of
+  the person's own, on their profile, open to everybody as it is there,
+  with its pictures and the card of its link. It is a post like any they
+  wrote here: it is given its hashtags, and goes to the fediverse if they
+  are on it. It is not sent back to Bluesky; a like or an answer given to
+  it here reaches it there; deleted there, it goes from here. Only a post
+  that begins a thread, and only from when the account was connected.
 - **Disconnecting** forgets the token. What was written stays on Bluesky,
   and can then be removed only there.
 

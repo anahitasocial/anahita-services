@@ -65,6 +65,9 @@ type Env struct {
 	// is left to be tried again: it is said to be made a moment before
 	// its pictures are listed.
 	PicturesWait time.Duration
+	// Where a post of somebody's own, made on Bluesky with the account
+	// they connected, is made here as theirs. Nil where that is not done.
+	Media services.MediaGRPCInterface
 	// For keeping what people on Bluesky do to what was written from
 	// here: likes, follows, and who has blocked whom. Nil where that is
 	// not read.

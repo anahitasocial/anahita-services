@@ -251,6 +251,10 @@ func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 	if note.CreatedBy <= 0 {
 		return nil
 	}
+	// It came from their own account on Bluesky: it is there already.
+	if markedOwn(note.Meta) {
+		return nil
+	}
 	account := h.connected(note.CreatedBy)
 	if account == nil {
 		return nil

@@ -123,6 +123,7 @@ func main() {
 		env.Queue = queue
 		env.Directory = config.DirectoryURL
 		env.PicturesWait = 3 * time.Second
+		env.Media = services.NewMediaGRPC(config)
 		env.Likes = services.NewLikesGRPC(config)
 		env.FollowEdges = services.NewSocialgraphFollowGRPC(config)
 		env.Relations = services.NewSocialgraphGRPC(config)

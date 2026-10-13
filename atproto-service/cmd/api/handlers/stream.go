@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"slices"
 	"time"
 
 	"atproto/bsky"
@@ -18,13 +19,33 @@ import (
 
 // Wanted is whose posts are asked for: everybody on Bluesky that somebody
 // here follows.
+//
+// And the accounts people here connected: what they post on Bluesky
+// itself is theirs here too (own.go).
 func (h *Handlers) Wanted() ([]string, error) {
-	return h.Actors.Followed(bsky.MaxWanted)
+	wanted, err := h.Actors.Followed(bsky.MaxWanted)
+	if err != nil || !h.canWrite() {
+		return wanted, err
+	}
+	accounts, err := h.Accounts.Working()
+	if err != nil {
+		return nil, err
+	}
+	for _, account := range accounts {
+		if !slices.Contains(wanted, account.DID) {
+			wanted = append(wanted, account.DID)
+		}
+	}
+	return wanted, nil
 }
 
 // Heard deals with one thing heard.
 func (h *Handlers) Heard(ctx context.Context, heard *bsky.Event) {
 	if heard == nil || !bsky.ValidDID(heard.DID) {
+		return
+	}
+	// Somebody here, on Bluesky with their own account.
+	if h.heardOwn(ctx, heard) {
 		return
 	}
 	kept, err := h.Actors.ReadByDID(heard.DID)

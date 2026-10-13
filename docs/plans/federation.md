@@ -1210,3 +1210,10 @@ what comes back.
 theirs; videos either way; an import of the accounts already followed on
 Bluesky; OAuth in place of app passwords.
 
+**And the person's own posts made on Bluesky coming in as theirs**
+(`own.go`): the listener also asks for the connected accounts; a post of
+one is made here through the graph as the person's own, marked in its meta
+(`bluesky`) so that whoever hears it was made does not send it back, and
+remembered in `atproto_sent` like what is written from here. Not their
+replies yet, nor what they posted before connecting.
+

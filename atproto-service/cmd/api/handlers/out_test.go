@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -865,5 +866,113 @@ func TestWhatPeopleOnBlueskyDoToWhatWasWrittenFromHere(t *testing.T) {
 	w.h.CheckReactions()
 	if len(graph.likes) != 0 {
 		t.Errorf("a like by somebody blocked was kept: %v", graph.likes)
+	}
+}
+
+// fakeMedia makes and removes posts as the graph does for somebody here.
+type fakeMedia struct {
+	services.MediaGRPCInterface
+	nodes *fakeNodes
+}
+
+func (f *fakeMedia) Add(medium *entities.AnahitaNode, _ *entities.Viewer) (*entities.AnahitaNode, error) {
+	f.nodes.nextID++
+	made := *medium
+	made.ID = 1000 + f.nodes.nextID
+	f.nodes.kept = append(f.nodes.kept, &made)
+	c := made
+	return &c, nil
+}
+
+func (f *fakeMedia) Delete(id int64, _ *entities.Viewer) error {
+	var left []*entities.AnahitaNode
+	for _, node := range f.nodes.kept {
+		if node.ID != id {
+			left = append(left, node)
+		}
+	}
+	f.nodes.kept = left
+	return nil
+}
+
+// THE RULE THIS GUARDS: what somebody posts on Bluesky with the account
+// they connected is theirs here, once, and is not sent back there.
+func TestWhatIsPostedOnBlueskyWithOnesOwnAccount(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.h.Media = &fakeMedia{nodes: w.nodes}
+	w.nodes.kept[0].Enabled = true
+	for _, node := range w.nodes.kept {
+		if node.ID == anaID {
+			node.Enabled = true
+		}
+	}
+	w.connect()
+	ctx := context.Background()
+
+	if wanted, _ := w.h.Wanted(); !slices.Contains(wanted, anaDID) || !slices.Contains(wanted, aliceDID) {
+		t.Fatalf("listened for: %v", wanted)
+	}
+
+	heard := func(operation, rkey, record string) {
+		t.Helper()
+		w.h.Heard(ctx, &bsky.Event{DID: anaDID, Kind: "commit", Commit: &struct {
+			Operation  string          `json:"operation"`
+			Collection string          `json:"collection"`
+			RKey       string          `json:"rkey"`
+			Record     json.RawMessage `json:"record"`
+		}{operation, bsky.PostCollection, rkey, json.RawMessage(record)}})
+	}
+	mine := func() []*entities.AnahitaNode {
+		var posts []*entities.AnahitaNode
+		for _, node := range w.nodes.kept {
+			if node.CreatedBy == anaID && node.ID > 1000 {
+				posts = append(posts, node)
+			}
+		}
+		return posts
+	}
+
+	heard("create", "3l3own", `{"text":"Written on Bluesky #beans","langs":["en"]}`)
+	heard("create", "3l3own", `{"text":"Written on Bluesky #beans","langs":["en"]}`)
+	posts := mine()
+	if len(posts) != 1 {
+		t.Fatalf("%d posts kept", len(posts))
+	}
+	post := posts[0]
+	if post.Type != constants.NodeMediumNoteEntityType || post.OwnerID != anaID || post.Access != constants.AnahitaAccessPublic ||
+		post.Body != "Written on Bluesky #beans" || post.IsRemote() || !markedOwn(post.Meta) {
+		t.Fatalf("kept as %+v", post)
+	}
+	// Nothing of Ana is kept as somebody elsewhere.
+	if w.keptAt("at://"+anaDID) != nil {
+		t.Error("she was kept as somebody of another server")
+	}
+
+	// That it was made here is said on the bus, as for any post: it is
+	// not sent back to Bluesky.
+	w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: post.ID})
+	if len(w.queue.waiting) != 0 {
+		t.Fatal("a post from Bluesky was to be written to Bluesky")
+	}
+	// Liked here, the like reaches it there.
+	w.heard("edge.voteup.text.added.v1", event.EventPayload{SubjectID: anaID, ObjectID: post.ID})
+	if failed := w.drain(); len(failed) != 0 || len(w.writer.written) != 1 || w.writer.written[0] != "create app.bsky.feed.like" {
+		t.Errorf("a like of it: %v, %v", failed, w.writer.written)
+	}
+
+	// A reply of hers on Bluesky is not kept this way, nor what she wrote
+	// from here and Bluesky tells of.
+	heard("create", "3l3reply", `{"text":"An answer","reply":{"parent":{"uri":"at://x"}}}`)
+	if len(mine()) != 1 {
+		t.Errorf("%d posts kept after a reply", len(mine()))
+	}
+
+	// Deleted on Bluesky, it goes from here, and nothing is asked of
+	// Bluesky about it.
+	w.writer.written = nil
+	heard("delete", "3l3own", ``)
+	w.heard("node.medium.text-service.note.deleted.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: post.ID})
+	if len(mine()) != 0 || len(w.queue.waiting) != 0 {
+		t.Errorf("after it was deleted there: %d here, %d waiting", len(mine()), len(w.queue.waiting))
 	}
 }
