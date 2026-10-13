@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -78,6 +79,18 @@ func TestSetViewerRefusesAnonymousReadersOnAMembersOnlySite(t *testing.T) {
 // auth-service is the exception, and is held to a list: its open routes are
 // how anybody gets in, so they must stay open on a members-only site, and a
 // new one has to be added here on purpose.
+// betweenServices is the routes one service asks of another. They have no
+// viewer because nobody is behind them: they are not under an address the
+// gateway sends anybody to, they refuse a request that came through it,
+// and they give out nothing a member wrote. Each is held here by name, so
+// that a new one is added on purpose and not by leaving a middleware off.
+var betweenServices = map[string][]string{
+	// The card of a link in a post from another server, asked for by
+	// activitypub-service. A preview of a public page, never of anything
+	// on this installation.
+	"link-preview-service": {"GET /internal/link-previews"},
+}
+
 func TestEveryRouteNamesItsViewer(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join("..", "..", "*", "cmd", "api", "routes.go"))
 	if err != nil || len(files) < 10 {
@@ -98,6 +111,13 @@ func TestEveryRouteNamesItsViewer(t *testing.T) {
 
 	for service, routes := range open {
 		if service == "auth-service" {
+			continue
+		}
+		// What one service asks of another, and nobody outside is sent to.
+		routes = slices.DeleteFunc(routes, func(route string) bool {
+			return slices.Contains(betweenServices[service], route)
+		})
+		if len(routes) == 0 {
 			continue
 		}
 		t.Errorf("%s has routes with neither Authorize nor SetViewer, which a "+

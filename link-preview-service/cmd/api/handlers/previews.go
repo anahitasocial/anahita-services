@@ -121,6 +121,13 @@ var internalLimit = ratelimit.Limit{Max: 120, Window: time.Minute}
 // this is not under it. It answers with the preview as it is kept, the
 // key of its picture included, which Read does not give out.
 func (h *previewsHandler) ReadInternal(c echo.Context) error {
+	// Belt and braces: the gateway marks what it passes on with where it
+	// came from, and another service asking directly does not. Anything
+	// that came through the gateway is not for here.
+	if c.Request().Header.Get("X-Forwarded-For") != "" || c.Request().Header.Get("X-Real-IP") != "" {
+		return c.NoContent(http.StatusNotFound)
+	}
+
 	address, ok := linkpreviews.Normalise(c.QueryParam("url"))
 	if !ok {
 		return c.NoContent(http.StatusBadRequest)
