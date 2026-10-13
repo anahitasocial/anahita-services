@@ -31,8 +31,11 @@ type NodeItem struct {
 	IsLikedByViewer bool  `json:"is_liked_by_viewer,omitempty"`
 	// Whether the viewer has saved it. Sent to them alone, like the rest
 	// of what is said here about the viewer.
-	IsSavedByViewer    bool  `json:"is_saved_by_viewer,omitempty"`
-	RepostCount        int64 `json:"repost_count,omitempty"`
+	IsSavedByViewer bool  `json:"is_saved_by_viewer,omitempty"`
+	RepostCount     int64 `json:"repost_count,omitempty"`
+	// How many replies are under it. A post in a feed said nothing of
+	// this, so its interactions counted its replies as none.
+	CommentCount       int64 `json:"comment_count,omitempty"`
 	IsRepostedByViewer bool  `json:"is_reposted_by_viewer,omitempty"`
 	// Set by the subscribe and unsubscribe handlers, which answer with the
 	// node they acted on. The mapper had no field for it, so mapping their
@@ -109,6 +112,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		IsLikedByViewer:      node.IsLikedByViewer,
 		IsSavedByViewer:      node.IsSavedByViewer,
 		RepostCount:          node.RepostCount,
+		CommentCount:         node.CommentCount,
 		IsRepostedByViewer:   node.IsRepostedByViewer,
 		IsSubscribedByViewer: node.IsSubscribedByViewer,
 		IsLeadingViewer:      node.IsLeadingViewer,

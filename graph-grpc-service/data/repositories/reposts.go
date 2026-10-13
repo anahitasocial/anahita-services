@@ -80,10 +80,13 @@ func (repo *RepostsRepo) BrowseAuthors(req *graphpb.RepostBrowseAuthorsRequest) 
 	ctx, cancel := context.WithTimeout(context.Background(), constants.DBTimeout)
 	defer cancel()
 
+	// Who reposted a post, the latest first. This asked a table by a name
+	// it was not given, for a column there is not, and so answered nothing
+	// to anybody: the list of who reposted a post was always empty.
 	query := sq.Select("node.created_by").
-		From("nodes").
-		Where(sq.Eq{"parent_id": req.ParentId}).
-		Where(sq.Eq{"entity_type": repo.entityType})
+		From("nodes AS node").
+		Where(sq.Eq{"node.parent_id": req.ParentId}).
+		Where(sq.Eq{"node.type": repo.entityType})
 
 	// Sort & paginate
 	query = query.OrderBy("node.created_at DESC, node.id DESC").
