@@ -156,7 +156,7 @@ func (s *Stream) Run(ctx context.Context) error {
 	// Read beside the rest, so that a connection that has gone quiet is
 	// still pinged and still told who is wanted.
 	heard := make(chan *Event, 256)
-	failed := make(chan error, 1)
+	failed := make(chan error, 2)
 	go func() {
 		for {
 			_, raw, err := conn.Read(ctx)
@@ -196,8 +196,33 @@ func (s *Stream) Run(ctx context.Context) error {
 	over := time.NewTimer(turn)
 	defer over.Stop()
 
-	ping := time.NewTicker(pingEvery)
-	defer ping.Stop()
+	// The connection is asked now and then whether it is still there, from
+	// beside the loop: the answer is read by the reader above, which stops
+	// reading while it waits to hand over something heard, and the loop
+	// below must be free to take it. Asked from inside the loop, a busy
+	// moment looked like a dead connection.
+	go func() {
+		ticker := time.NewTicker(pingEvery)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				pingCtx, pinged := context.WithTimeout(ctx, Timeout)
+				err := conn.Ping(pingCtx)
+				pinged()
+				if err != nil && ctx.Err() == nil {
+					select {
+					case failed <- fmt.Errorf("the connection went quiet: %w", err):
+					default:
+					}
+					return
+				}
+			}
+		}
+	}()
+
 	keep := time.NewTicker(saveEvery)
 	defer keep.Stop()
 
@@ -229,14 +254,6 @@ func (s *Stream) Run(ctx context.Context) error {
 
 		case <-keep.C:
 			save()
-
-		case <-ping.C:
-			pingCtx, pinged := context.WithTimeout(ctx, Timeout)
-			err := conn.Ping(pingCtx)
-			pinged()
-			if err != nil {
-				return fmt.Errorf("the connection went quiet: %w", err)
-			}
 
 		case <-s.Changed:
 			wanted, err = s.wanted()

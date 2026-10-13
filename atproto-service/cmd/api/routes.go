@@ -25,5 +25,6 @@ func (r *Routes) Init(e *echo.Echo) {
 	atproto.PUT("/settings", r.handler.EditSettings)
 	atproto.DELETE("/settings", r.handler.DeleteSettings)
 	// Following here whoever they follow on Bluesky already.
+	atproto.GET("/settings/import-follows", r.handler.ImportPreview)
 	atproto.POST("/settings/import-follows", r.handler.ImportFollows)
 }

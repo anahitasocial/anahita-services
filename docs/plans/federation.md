@@ -1217,3 +1217,14 @@ one is made here through the graph as the person's own, marked in its meta
 remembered in `atproto_sent` like what is written from here. Not their
 replies yet, nor what they posted before connecting.
 
+**2026-10-13, after a day of the user's own use.** A follow, three likes
+and a repost made from here were each found among the records of the
+user's Bluesky account, written within two seconds of being made here. The
+listener had dropped its connection a number of times with "the connection
+went quiet": it asked the connection whether it was there from inside the
+loop that takes what is heard, and while it waited for the answer nothing
+was taken, so the reader that would have read the answer stood still. The
+asking is now done beside the loop. Following here whoever is followed on
+Bluesky now takes a number (25 unless said, 500 at most) and can be asked
+about first (`GET /atproto/settings/import-follows`).
+

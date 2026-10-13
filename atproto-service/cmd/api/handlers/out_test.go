@@ -1003,7 +1003,7 @@ func TestFollowingHereWhoeverOneFollowsOnBluesky(t *testing.T) {
 	}
 
 	first, next, _ := w.bluesky.Following(context.Background(), anaDID, "")
-	w.h.importFollows(account, first, next)
+	w.h.importFollows(account, first, next, importMost)
 
 	bob, carol := w.keptAt("at://"+bobDID), w.keptAt("at://"+carolDID)
 	if bob == nil || carol == nil {
@@ -1017,8 +1017,17 @@ func TestFollowingHereWhoeverOneFollowsOnBluesky(t *testing.T) {
 		t.Error("somebody on a refused server was kept")
 	}
 
+	// No more than was asked for: the first two of the list, and Carol,
+	// further down it, is left.
+	graph.follows = map[string]bool{}
+	w.h.importFollows(account, first, next, 2)
+	if len(graph.follows) != 2 || graph.follows[fmt.Sprint(anaID, ">", carol.ID)] {
+		t.Errorf("asked for the first two: %v", graph.follows)
+	}
+	graph.follows[fmt.Sprint(anaID, ">", carol.ID)] = true
+
 	// Asked again, nobody is followed twice.
-	w.h.importFollows(account, first, next)
+	w.h.importFollows(account, first, next, importMost)
 	if len(graph.follows) != 3 {
 		t.Errorf("follows after a second time: %v", graph.follows)
 	}

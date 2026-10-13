@@ -31,8 +31,10 @@ import (
 // and has its recent posts read, and a list of hundreds takes minutes.
 
 const (
-	// The most accounts followed in one go.
-	importMost = 500
+	// The most accounts followed in one go, and how many when no number
+	// is asked for.
+	importMost    = 500
+	importDefault = 25
 	// A pause between one and the next, so that the reading of each one's
 	// posts is spread out.
 	importPause = 300 * time.Millisecond
@@ -42,6 +44,41 @@ const (
 var importLimit = ratelimit.Limit{Max: 3, Window: time.Hour}
 
 const errImportNotConnected = "bluesky_not_connected"
+
+// ImportPreview says what following them here would do, before it is
+// done: how many accounts the viewer follows on Bluesky, and the most that
+// are followed here in one go. Whoever asks is shown this first, since
+// what it does is not undone in one step.
+func (h *Handlers) ImportPreview(c echo.Context) error {
+	viewer := getViewer(c)
+	if !h.canWrite() || h.FollowEdges == nil || h.Relations == nil {
+		return refuse(c, http.StatusNotFound, errConnectOff)
+	}
+	account := h.connected(viewer.ID)
+	if account == nil {
+		return refuse(c, http.StatusConflict, errImportNotConnected)
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request().Context(), 2*bsky.Timeout)
+	defer cancel()
+
+	profile, err := h.Bluesky.Profile(ctx, account.DID)
+	if err != nil {
+		log.Printf("how many %s follows on Bluesky: %v", account.Handle, err)
+		return refuse(c, http.StatusBadGateway, errConnectFailed)
+	}
+	return c.JSON(http.StatusOK, map[string]any{
+		"following":     profile.FollowsCount,
+		"most":          importMost,
+		"posts_of_each": backfillPosts,
+	})
+}
+
+type importRequest struct {
+	// How many accounts to follow here, beginning with the ones followed
+	// most lately.
+	Limit int `json:"limit"`
+}
 
 // ImportFollows follows here the accounts the viewer follows on Bluesky.
 func (h *Handlers) ImportFollows(c echo.Context) error {
@@ -57,6 +94,14 @@ func (h *Handlers) ImportFollows(c echo.Context) error {
 		return refuse(c, http.StatusTooManyRequests, errConnectLimit)
 	}
 
+	req := &importRequest{}
+	_ = c.Bind(req)
+	limit := req.Limit
+	if limit <= 0 {
+		limit = importDefault
+	}
+	limit = min(limit, importMost)
+
 	ctx, cancel := context.WithTimeout(c.Request().Context(), 3*bsky.Timeout)
 	defer cancel()
 
@@ -67,12 +112,13 @@ func (h *Handlers) ImportFollows(c echo.Context) error {
 		return refuse(c, http.StatusBadGateway, errConnectFailed)
 	}
 
-	h.later(func() { h.importFollows(account, first, next) })
-	return c.JSON(http.StatusAccepted, map[string]any{"started": true, "more": next != ""})
+	h.later(func() { h.importFollows(account, first, next, limit) })
+	return c.JSON(http.StatusAccepted, map[string]any{"started": true, "limit": limit})
 }
 
-// importFollows follows here each account of the list, page by page.
-func (h *Handlers) importFollows(account *repositories.Account, page []bsky.Profile, next string) {
+// importFollows follows here each account of the list, page by page, the
+// ones followed most lately first, and no more than `most` of them.
+func (h *Handlers) importFollows(account *repositories.Account, page []bsky.Profile, next string, most int) {
 	person, err := h.Nodes.Read(account.PersonID)
 	if err != nil || person == nil || person.ID == 0 {
 		return
@@ -81,8 +127,8 @@ func (h *Handlers) importFollows(account *repositories.Account, page []bsky.Prof
 	done, followed := 0, 0
 	for {
 		for i := range page {
-			if done >= importMost {
-				log.Printf("%s follows more than %d on Bluesky: the rest are left", account.Handle, importMost)
+			if done >= most {
+				log.Printf("%s now follows %d more accounts of Bluesky here, of the first %d followed there", account.Handle, followed, done)
 				return
 			}
 			done++

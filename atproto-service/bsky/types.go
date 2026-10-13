@@ -15,6 +15,8 @@ type Profile struct {
 	// Where its pictures are. Empty for none.
 	Avatar string `json:"avatar"`
 	Banner string `json:"banner"`
+	// How many accounts it follows.
+	FollowsCount int `json:"followsCount"`
 }
 
 // FeedItem is one thing in the list of what an account posted.
