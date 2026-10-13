@@ -51,7 +51,7 @@ func TestLiveReadingOfBluesky(t *testing.T) {
 	listening, stop := context.WithTimeout(ctx, 20*time.Second)
 	defer stop()
 	stream := &Stream{
-		URL:       "wss://jetstream2.us-east.bsky.network/subscribe",
+		URLs:      []string{"wss://jetstream1.us-east.bsky.network/subscribe"},
 		UserAgent: "Anahita/1.0 (a test)",
 		Wanted:    func() ([]string, error) { return wanted, nil },
 		Changed:   make(chan struct{}),

@@ -126,7 +126,7 @@ func main() {
 
 	// What is posted on Bluesky by whoever is followed from here.
 	go listenToBluesky(ctx, db, &bsky.Stream{
-		URL:       config.JetstreamURL,
+		URLs:      config.JetstreamURLs,
 		UserAgent: userAgent,
 		Wanted:    h.Wanted,
 		Changed:   changed,
@@ -213,6 +213,8 @@ func listenToBluesky(ctx context.Context, db *sql.DB, stream *bsky.Stream) {
 			stop()
 
 			switch {
+			case errors.Is(err, bsky.ErrTurnOver):
+				// Nothing wrong: on to the next Jetstream, at once.
 			case errors.Is(err, bsky.ErrNobodyWanted):
 				// Nobody to listen for: wait to be told that there is.
 				select {

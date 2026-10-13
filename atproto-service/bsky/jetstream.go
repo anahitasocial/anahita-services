@@ -22,6 +22,15 @@ import (
 // Each thing heard has a time; the time of the last one dealt with is
 // kept, and a connection that begins again asks for what came after it,
 // so that what was posted while nobody listened is still heard.
+//
+// Bluesky runs several Jetstreams, and one of them can fall behind or stop
+// passing things on while still answering: it was seen on 2026-10-13, when
+// one of the four had nothing of the last hour and the other three had all
+// of it. Such a one cannot be told from a quiet evening by listening to it.
+// So no one of them is relied on: each is listened to for a turn and then
+// the next, and each begins far enough back to hear again what the ones
+// before it were asked for. What one of them kept back is heard from the
+// next, some minutes late.
 
 const (
 	// The most accounts one connection may ask to hear of.
@@ -34,6 +43,12 @@ const (
 
 	pingEvery = 30 * time.Second
 	saveEvery = 5 * time.Second
+
+	// How long one Jetstream is listened to before the next.
+	DefaultTurn = 10 * time.Minute
+	// How many turns back a turn begins from, when nothing was heard in
+	// them: enough to go round every other Jetstream of four.
+	turnsBack = 3
 )
 
 // Event is one thing heard.
@@ -59,9 +74,15 @@ type Event struct {
 
 // Stream is one listener.
 type Stream struct {
-	// Where Jetstream is: "wss://jetstream2.us-east.bsky.network/subscribe".
-	URL       string
+	// Where the Jetstreams are, each like
+	// "wss://jetstream1.us-east.bsky.network/subscribe". They are listened
+	// to in turn.
+	URLs      []string
 	UserAgent string
+	// Turn is how long one of them is listened to. DefaultTurn when 0.
+	Turn time.Duration
+	// Which of them the next turn is with.
+	next int
 	// Wanted is the accounts to hear of, asked at the start and whenever
 	// Changed says so.
 	Wanted func() ([]string, error)
@@ -75,6 +96,10 @@ type Stream struct {
 	// came.
 	Handle func(ctx context.Context, event *Event)
 }
+
+// ErrTurnOver is one Jetstream's turn having ended, with nothing wrong:
+// the caller runs it again, at once, and the next one is listened to.
+var ErrTurnOver = errors.New("the next Jetstream's turn")
 
 // ErrNobodyWanted is there being nobody to listen for: no connection is
 // made, since one that names nobody is sent everybody.
@@ -91,7 +116,18 @@ func (s *Stream) Run(ctx context.Context) error {
 		return ErrNobodyWanted
 	}
 
-	address := s.URL + "?requireHello=true"
+	if len(s.URLs) == 0 {
+		return errors.New("no Jetstream to listen to")
+	}
+	turn := s.Turn
+	if turn <= 0 {
+		turn = DefaultTurn
+	}
+	from := s.URLs[s.next%len(s.URLs)]
+	s.next++
+	began := time.Now()
+
+	address := from + "?requireHello=true"
 	if cursor := s.Cursor(); cursor > 0 {
 		address += "&cursor=" + strconv.FormatInt(cursor-rewind.Microseconds(), 10)
 	}
@@ -141,7 +177,14 @@ func (s *Stream) Run(ctx context.Context) error {
 	}()
 
 	told := wanted
-	var latest, saved int64
+	// The place that is kept moves on with what is heard. When a whole
+	// turn ends it also moves, with nothing heard, to some turns before
+	// this one began: the next Jetstream then hears again everything the
+	// last few were asked for, in case one of them kept it back, and no
+	// more than that. Not before the turn ends: a connection that is lost
+	// early may not have been sent yet what it was asked for.
+	var latest int64
+	saved := s.Cursor()
 	save := func() {
 		if latest > saved {
 			s.Save(latest)
@@ -149,6 +192,9 @@ func (s *Stream) Run(ctx context.Context) error {
 		}
 	}
 	defer save()
+
+	over := time.NewTimer(turn)
+	defer over.Stop()
 
 	ping := time.NewTicker(pingEvery)
 	defer ping.Stop()
@@ -162,6 +208,18 @@ func (s *Stream) Run(ctx context.Context) error {
 
 		case err := <-failed:
 			return err
+
+		case <-over.C:
+			if floor := began.Add(-turnsBack * turn).UnixMicro(); floor > latest {
+				latest = floor
+			}
+			over.Reset(turn)
+			began = time.Now()
+			// Only with more than one is there a next to turn to.
+			if len(s.URLs) > 1 {
+				_ = conn.Close(websocket.StatusNormalClosure, "")
+				return ErrTurnOver
+			}
 
 		case event := <-heard:
 			s.Handle(ctx, event)

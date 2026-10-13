@@ -1132,3 +1132,14 @@ the list of refused servers were in `activitypub-service` and were moved to
 - `FEDERATION_PROTOCOLS` says nothing of this, rightly: NodeInfo's
   `protocols` is what the installation speaks, and it does not yet speak
   this one.
+
+**Put right the same day: a Jetstream that kept posts back.** The first
+post written on Bluesky to try this did not arrive. Bluesky had it; the one
+Jetstream the service listened to (`jetstream2.us-east`) did not pass it
+on, though it answered and stayed connected, and its three siblings each
+had the post. The listener now takes turns across all four, ten minutes
+each, and each turn begins three turns back when nothing was heard, so
+what one keeps back is heard from the next. The post arrived eight seconds
+after the service was started again with this. `ATPROTO_JETSTREAM_URL`
+takes several addresses, with commas between.
+

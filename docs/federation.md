@@ -914,7 +914,7 @@ ask, and offers nothing.
 | Variable | Value |
 | --- | --- |
 | `ATPROTO_APPVIEW_URL` | Optional. The reader that is asked who an account is and what it posted. Left out, Bluesky's own, `https://public.api.bsky.app`, which asks for no account |
-| `ATPROTO_JETSTREAM_URL` | Optional. Where posts are heard as they are written. Left out, `wss://jetstream2.us-east.bsky.network/subscribe`. Bluesky runs several; any may be named, or one the operator runs |
+| `ATPROTO_JETSTREAM_URL` | Optional. Where posts are heard as they are written: one address or several, with commas between. Left out, the four Bluesky runs (`wss://jetstream1.us-east.bsky.network/subscribe` and its three siblings). More than one is better than one: see [Hearing what is posted](#hearing-what-is-posted) |
 | `ATPROTO_CDN_URL` | Optional. Where pictures are fetched from, to be copied here. Left out, `https://cdn.bsky.app` |
 | `LINK_PREVIEW_URL` | Where `link-preview-service` is, for the card of a link in a post. Left out, such posts have no card |
 
@@ -1009,6 +1009,14 @@ made.
   again asks for what came after it. Jetstream keeps what was said for a
   limited time; a service that was down for longer than that loses what
   was posted in between.
+- **No one Jetstream is relied on.** One of them can fall behind, or stop
+  passing things on, while still answering: on 2026-10-13 one of Bluesky's
+  four had nothing of the last hour and the other three had all of it,
+  and that cannot be told from a quiet evening by listening. So each is
+  listened to for ten minutes and then the next, and each begins far
+  enough back to hear again what the last three were asked for. What one
+  of them kept back arrives from the next, some minutes late. With one
+  address only, there is no such cover.
 - **A follow that the bus lost** is found within a minute: the service
   asks the graph who is followed, and does not rely on having been told.
 

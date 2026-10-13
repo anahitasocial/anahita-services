@@ -14,8 +14,12 @@ const (
 	// The public reader of the network: who somebody is, and what they
 	// posted. It asks for no account.
 	defaultAppView = "https://public.api.bsky.app"
-	// Where what is posted is heard as it happens.
-	defaultJetstream = "wss://jetstream2.us-east.bsky.network/subscribe"
+	// Where what is posted is heard as it happens: every one Bluesky runs,
+	// listened to in turn, since any one of them can fall behind.
+	defaultJetstream = "wss://jetstream1.us-east.bsky.network/subscribe," +
+		"wss://jetstream2.us-west.bsky.network/subscribe," +
+		"wss://jetstream2.us-east.bsky.network/subscribe," +
+		"wss://jetstream1.us-west.bsky.network/subscribe"
 	// Where pictures are fetched from, to be copied here.
 	defaultCDN = "https://cdn.bsky.app"
 )
@@ -38,9 +42,10 @@ type Config struct {
 	OAuthIssuer    string
 	OAuthJWKSURL   string
 
-	AppViewURL   string
-	JetstreamURL string
-	CDNURL       string
+	AppViewURL string
+	// One or more, with commas between.
+	JetstreamURLs []string
+	CDNURL        string
 }
 
 func NewConfig() *Config {
@@ -58,7 +63,7 @@ func NewConfig() *Config {
 		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
 		AppViewURL:       strings.TrimRight(getEnv("ATPROTO_APPVIEW_URL", defaultAppView), "/"),
-		JetstreamURL:     getEnv("ATPROTO_JETSTREAM_URL", defaultJetstream),
+		JetstreamURLs:    list(getEnv("ATPROTO_JETSTREAM_URL", defaultJetstream)),
 		CDNURL:           strings.TrimRight(getEnv("ATPROTO_CDN_URL", defaultCDN), "/"),
 	}
 
@@ -92,8 +97,13 @@ func (config *Config) Validate() error {
 	if !strings.HasPrefix(config.AppViewURL, "https://") || !strings.HasPrefix(config.CDNURL, "https://") {
 		return errors.New("ATPROTO_APPVIEW_URL and ATPROTO_CDN_URL must be https addresses")
 	}
-	if !strings.HasPrefix(config.JetstreamURL, "wss://") {
-		return errors.New("ATPROTO_JETSTREAM_URL must be a wss address")
+	if len(config.JetstreamURLs) == 0 {
+		return errors.New("ATPROTO_JETSTREAM_URL names no address")
+	}
+	for _, address := range config.JetstreamURLs {
+		if !strings.HasPrefix(address, "wss://") {
+			return errors.New("ATPROTO_JETSTREAM_URL must be wss addresses, with commas between")
+		}
 	}
 	return nil
 }
@@ -113,6 +123,17 @@ func (config *Config) GetRedisDB() int             { return config.RedisDB }
 func (config *Config) GetOAuthIssuer() string      { return config.OAuthIssuer }
 func (config *Config) GetOAuthJWKSURL() string     { return config.OAuthJWKSURL }
 func (config *Config) GetDomainName() string       { return os.Getenv("DOMAIN_NAME") }
+
+// list is what was written with commas between, without what is empty.
+func list(value string) []string {
+	var items []string
+	for _, item := range strings.Split(value, ",") {
+		if item = strings.TrimSpace(item); item != "" {
+			items = append(items, item)
+		}
+	}
+	return items
+}
 
 func getEnv(key, fallback string) string {
 	if value := os.Getenv(key); value != "" {
