@@ -148,6 +148,15 @@ func CanReply(ctx *ReplyAccessContext) bool {
 		return false
 	}
 
+	// A thread that began on another server. Whoever can read it here may
+	// answer it here: who its author lets reply is theirs to say and their
+	// server's to hold to, and nothing of that is kept here. The answer
+	// reaches them when its writer is on the fediverse, and is otherwise
+	// a conversation among the people of this installation.
+	if ctx.Root.IsRemote() {
+		return true
+	}
+
 	if LooksAfterThread(ctx) {
 		return true
 	}

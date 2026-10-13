@@ -63,7 +63,9 @@ and answers:
 
 ## Why somebody is suggested
 
-Each reason adds to a score, up to a most. The score is then kept in full for a profile that was visited or posted on in the last 90 days, halved for one quiet for up to a year, and cut to a tenth for one quiet longer, so that the dormant come last and are still there when nobody else is.
+Each reason adds to a score, up to a most. The score is then kept in full for a profile that was visited or posted on in the last 90 days, halved for one quiet for up to a year, and cut to a tenth for one quiet longer, so that the dormant come last.
+
+**A person quiet for longer than the reader chose is not suggested at all,** whatever else speaks for them: somebody who has gone will not see that they were followed, and has nothing new to show. The choice is `active_within_days` in the preferences, one of 30, 90, 180, 365, 730, 1825 or 0 for no limit (`active_within_choices` in the answer lists them); it is a year for somebody who has not chosen, and `reset_weights` puts it back there. It is kept beside their weights, in the same column. A group that quiet is only put last, since it is still there to be joined and woken. On an installation brought over from an older one, where few people have been back, a year leaves few people to suggest: the reader slides it further back, to any time if need be.
 
 | Reason | Found when | Each | Most |
 | --- | --- | --- | --- |
@@ -85,6 +87,27 @@ The numbers are constants in `recommendation-service/constants`. They are the se
 ### Events
 
 An event is suggested while it is still to come or on, and has not been called off. For an event, `followed_by_leaders` is people the viewer follows who have answered it, and following already is having answered it. An event is not asked to have a picture or a description, and is not marked down for when it was last visited: one that is still to come is as alive as anything is. It is sent with its `event` block, as it is in search results.
+
+### People on other networks
+
+Somebody on Bluesky or on a server of the fediverse who is kept here is a
+person like any other to whoever is asking who to follow, and is suggested
+for the same reasons: people the viewer follows follow them, they follow
+the viewer, they post about what the viewer does. They are among the
+people, with their whole handle (`alice.bsky.social`,
+`@bob@mastodon.example`) to say where they are.
+
+- **Only the ones kept here.** This installation knows of nobody on those
+  networks but whoever somebody here looked up or follows, whoever they
+  reposted, and whoever did something to a post that went out from here.
+  It cannot suggest a good account that nobody here has met.
+- **Somebody on Bluesky is suggested to anybody.** Anybody here can follow
+  them.
+- **Somebody on the fediverse is suggested only to a person who is on the
+  fediverse themselves.** Anybody else's follow of them would be taken
+  away again, since the other server could not find out who was asking.
+- **How lately they were active** is what was kept of them here: the last
+  post of theirs that arrived.
 
 ## Who is never suggested
 

@@ -66,6 +66,16 @@ func (r *nodesRepo) ReadByAlias(req *requests.NodeReadByAliasRequest) (*entities
 	return FetchNode(r.db, query)
 }
 
+// ReadByUUID retrieves a single node by the name it goes by to other
+// servers. Of any type, as Read is: a UUID is only ever learned from this
+// installation, which gave it out as a person's or a post's.
+//
+// No access rule, as with Read. The caller decides who is asking.
+func (r *nodesRepo) ReadByUUID(uuid string) (*entities.AnahitaNode, error) {
+	query := GetBaseSelectQuery().Where(sq.Eq{"node.uuid": uuid})
+	return FetchNode(r.db, query)
+}
+
 // BatchRead retrieves multiple nodes based on the provided read request and viewer context.
 func (r *nodesRepo) BatchRead(req *requests.NodeBatchReadRequest) ([]*entities.AnahitaNode, error) {
 	query := GetBaseSelectQuery().Where(sq.Eq{"node.id": req.IDs})

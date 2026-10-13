@@ -9,7 +9,10 @@ How the services, the gateway and the shared library fit together.
 - [Components](#components)
 - [Services](#services)
 - [Routing](#routing)
+- [One service for every kind of actor](#one-service-for-every-kind-of-actor)
+- [Naming images](#naming-images)
 - [anahita-libs](#anahita-libs)
+- [What a node is called elsewhere](#what-a-node-is-called-elsewhere)
 - [Naming dates and times](#naming-dates-and-times)
 
 ## Components
@@ -39,7 +42,7 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | --- | --- | --- | --- |
 | `nginx` | 80 | — | Gateway, routing, CORS, token validation subrequest |
 | `auth-service` | 8081 | — | OAuth 2.0 / OIDC provider, server-rendered sign-in and sign-up, email verification, registration applications, the administration list of accounts, agreements, password, TOTP, WebAuthn, invites, clients, NodeInfo |
-| `actor-service` | 8082 | — | The profiles of people and of groups. One service for every kind of actor; see [below](#one-service-for-every-kind-of-actor) |
+| `actor-service` | 8082 | — | The profiles of people, of groups and of events. One service for every kind of actor; see [below](#one-service-for-every-kind-of-actor) |
 | `text-service` | 8084 | — | Text media: articles, notes, topics |
 | `photo-service` | 8085 | — | Photos |
 | `hashtag-service` | 8086 | — | Hashtags |
@@ -57,12 +60,14 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `export-service` | 8104 | — | A person's copy of their own data: asking for one and fetching it. Optional. See [Download your data](data-export.md) |
 | `export-worker` | — | — | Makes each archive asked for, and deletes the ones kept their time. Answers no requests |
 | `web-shell` | 8102 | — | Sends the web app, with each page's own title, description and picture written into `index.html`, so a shared link shows as itself. On the web app's host, not the API's. Optional. See [The web shell](web-shell.md) |
+| `atproto-service` | 8106 | — | Reads Bluesky: accounts there are looked up and followed from here, and their posts kept as they are written. Writes nothing to Bluesky. The one service that holds a connection open to the outside. Optional. See [Reading Bluesky](federation.md#reading-bluesky) |
+| `activitypub-service` | 8105 | — | Speaks to other servers of the fediverse: who here chose to be found, and their description. The one service that reads what other servers send. Optional. See [Federation](federation.md) |
 | `abuse-report-service` | 8099 | — | Reports of people and posts, and the cases administrators decide. See [Abuse reports](abuse-reports.md) |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
 | `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is, and signs the addresses large files are sent to directly |
 | `mail-grpc-service` | — | 50051 | Email delivery over SMTP |
 | `migration-job` | — | — | One-shot database migrations |
-| `account-sweeper` | — | — | Purges accounts past their 30-day deletion grace period, and finishes purges a super administrator asked for. Not started by `up`; run with `docker compose run --rm account-sweeper`. See [Account lifecycle](account-lifecycle.md) |
+| `account-sweeper` | — | — | What is done by the clock, hourly: purges accounts past their 30-day deletion grace period, and finishes purges a super administrator asked for; removes images uploaded for a post that was never made, and invitations nobody answered; reminds people of an event a day before, and archives one thirty days after it ended. Not started by `up`; run with `docker compose run --rm account-sweeper`. See [Account lifecycle](account-lifecycle.md) |
 
 Backing services in `docker-compose.yml`:
 
@@ -81,9 +86,11 @@ Kubernetes, where the Ingress sends everything to it
 | --- | --- |
 | `/oauth/`, `/auth`, `/signup`, `/signup-requests`, `/accounts`, `/agreements`, `/onboarding`, `/password`, `/email`, `/username`, `/reauth`, `/totp`, `/webauthn`, `/invites`, `/clients`, `/auth-logs/`, `/oauth-signing-keys`, `/.well-known/`, `/nodeinfo/`, `/static/` | `auth-service` |
 | `/articles/`, `/notes/`, `/topics/` | `text-service` |
-| `/people/`, `/groups/` | `actor-service` |
+| `/people/`, `/groups/`, `/events/` | `actor-service` |
 | `/photos/` | `photo-service` |
 | `/videos/` | `video-service` |
+| `/.well-known/webfinger`, `/.well-known/host-meta`, `/inbox`, `/ap/`, `/activitypub/` | `activitypub-service` |
+| `/atproto/` | `atproto-service` |
 | `/exports` | `export-service` |
 | `/avatars/`, `/covers/` | `identity-image-service` |
 | `/likes/` | `like-service` |
@@ -266,8 +273,24 @@ now one, `actor-service`.
   `graph-grpc-service` and owns no tables, so it is given no database
   credentials.
 - **A new kind of actor** is a handler and its routes in this service, not a
-  service of its own. Events are planned that way, and so is the Website
-  actor ([plans/website-actor.md](plans/website-actor.md)).
+  service of its own. The Website actor is planned that way
+  ([plans/website-actor.md](plans/website-actor.md)).
+- **An event is one.** Its type is `node.actor.actor-service.event.v1`, it
+  is served at `/events/` by the handler a group has, told a different kind,
+  and what only an event has is beside it: answering going or maybe, calling
+  it off, and its calendar file. Its start and end are on the node; its time
+  zone, how many may go, where to join online and when it was called off are
+  in the `events` table. A group hosts one through an
+  `edge.actor.host.v1` edge from the group to the event, and
+  `GET /groups/<id>/events/` lists them. Who may do what is in
+  [Permissions](permissions.md#events).
+- **An invitation is an edge,** `edge.actor.invite.v1`, from the person
+  invited to the group or event, so every kind of actor can have them. They
+  are made and answered through `socialgraph-service`
+  (`/socialgraph/<actor>/invites` and its `accept` and `decline`, and
+  `/socialgraph/invites/` for the ones waiting for the viewer), and each is
+  announced on the bus so that the notification for it can be answered where
+  it is read. The rules are in [Permissions](permissions.md#invitations).
 
 ## Naming images
 
@@ -320,9 +343,75 @@ The shared module every service imports:
 | `event` | RabbitMQ connect/publish/consume, event name constants |
 | `sessions` | Redis-backed sessions and cookies |
 | `crypt` | Encryption with pluggable local / AWS KMS backends |
+| `grpctls` | Mutual TLS for the calls between services |
+| `ratelimit` | A counter in Redis: so many of something in a window, for each person |
+| `safehttp` | An HTTP client for going where somebody else said to: public addresses only, decided at the moment of connecting. For link previews and for speaking to other servers |
+| `policy` | The installation's settings on who may see what, which several services must agree on |
+| `federation` | What the services that speak to other servers share: the text of a post there and back (Markdown to HTML that is safe to send, HTML that arrived to Markdown that is safe to keep), and the queue of what is to be sent |
+| `site` | Where the installation is, as the internet sees it: its domain, and the addresses of its web app and API. See [What a node is called elsewhere](#what-a-node-is-called-elsewhere) |
+| `language` | The language a post is written in |
+| `feeds` | What a custom feed is made of, and the rules a definition keeps |
+| `linkpreviews` | What a link's preview is, and the copy of one a note keeps |
+| `videos` | What a video post is: its files and where they are |
 | `data`, `requests`, `responses`, `validators` | Request/response shapes and validation |
 | `middleware`, `cors` | HTTP middleware |
 | `geocoding`, `utils`, `cmd` | Supporting helpers |
+
+## What a node is called elsewhere
+
+Inside the installation a node is its number, and a person is also their
+username. Neither will do for another server. A number says how many came
+before, and means nothing anywhere else; a username can be changed. What
+another server is told a person or a post is called is kept there for good,
+by servers this one may never hear from again.
+
+- **Every node has a UUID,** `nodes.uuid`: random (version 4), unique, and
+  never changed. The database gives it when the row is added, so nothing that
+  adds a node can forget to, and the nodes there were before it were given
+  one each when the column was added.
+- **It is read with the node** (`Node.uuid` in `graphpb`, `UUID` on
+  `entities.AnahitaNode`), and a node is found by it with the graph's
+  `ReadByUUID`, which applies no access rule, as `Read` does not. It is not
+  in what the API sends a browser: the web app has no use for it.
+- **The addresses it goes into are made in one place,** `anahita-libs/site`,
+  from one reading of the settings (`PUBLIC_DOMAIN`, `PUBLIC_WEB_URL`,
+  `PUBLIC_API_URL`; see [Configuration](configuration.md#site-identity)). Two
+  services that disagreed about the host would make one person two.
+  `CanFederate` says whether other servers could reach those addresses at
+  all: names on the internet, over https. A site on a developer's machine is
+  neither.
+
+- **What came from another server is a node too,** so that feeds, follows
+  and blocks need nothing new. It has a `uri`, what it is called where it
+  lives, and an `origin_domain`; a node without a `uri` was made here. A
+  person elsewhere has a type of their own, one for each protocol
+  (`node.actor.activitypub-service.person.v1`,
+  `node.actor.atproto-service.person.v1`), so whatever lists people here
+  leaves them out; a post of theirs is an ordinary note. Such nodes are
+  written only by the graph's `UpsertRemote`, which refuses anything that is
+  not a person elsewhere or a note of theirs, and anything under one of this
+  installation's own addresses (`graph-grpc-service/data/repositories/nodes_remote.go`).
+
+- **A public profile's pictures have an address that stays,**
+  `/avatars/<uuid>/<size>` and `/covers/<uuid>/<size>` on the API, which
+  sends whoever asks on to a freshly signed one. Another server keeps the
+  address of an avatar for weeks; the signed one lasts a quarter of an hour.
+  Only what somebody not signed in may see is answered for
+  (`identity-image-service/cmd/api/handlers/public.go`).
+- **What is to be sent to another server waits in a table** until it has
+  been sent, or tried for two days (`anahita-libs/federation`, `queue.go`).
+  The bus cannot promise that a message arrives, and another server may be
+  down for an afternoon. Each protocol's service has a table of its own and
+  any number of workers on it; a row is handed to one at a time.
+- **The web app's host answers what other servers ask it under
+  `/.well-known`** by sending them on to the API
+  ([The web shell](web-shell.md)).
+
+This is groundwork for federation
+([plans/federation.md](plans/federation.md)). Nothing is sent to or kept
+from another server yet. What is built on it so far, finding and describing
+somebody here, is in [Federation](federation.md); to try it, see
+[The federation lab](federation-lab.md).
 
 ## Naming dates and times
 

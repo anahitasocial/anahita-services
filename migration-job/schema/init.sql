@@ -5,6 +5,16 @@ CREATE TABLE nodes (
   -- every row carried a redundant unique index on `id` alongside the primary
   -- key, and every insert maintained both.
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  -- What the node is called when another server is told of it: random, so
+  -- it says nothing of how many there are, and never changed. The database
+  -- gives it, so nothing that adds a node can forget to.
+  `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT (LOWER(CONCAT(HEX(RANDOM_BYTES(4)),'-',HEX(RANDOM_BYTES(2)),'-4',SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(CONV(SUBSTR(HEX(RANDOM_BYTES(1)),1,1),16,10) & 3 | 8),SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(RANDOM_BYTES(6))))),
+  -- What the node is called where it lives, when that is another server:
+  -- the address of an ActivityPub object, or an at:// URI. NULL on
+  -- everything made here, which is what "made here" means.
+  `uri` varchar(512) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  -- The server it came from, in lower case.
+  `origin_domain` varchar(255) DEFAULT NULL,
   -- 128 for the same reason as edges: an ASCII identifier from a fixed
   -- grammar, longest 42 characters. It also carries five composite indexes,
   -- so the width is paid for five times over.
@@ -149,6 +159,8 @@ CREATE TABLE nodes (
   ) STORED,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_unique_alias` (`unique_alias`),
+  UNIQUE KEY `uq_uuid` (`uuid`),
+  UNIQUE KEY `uq_uri` (`uri`),
   KEY `person_type` (`person_type`),
   -- The sweeper's only query is "actors deleted before X", and it runs against
   -- a column that is NULL for practically every row.
@@ -597,6 +609,7 @@ CREATE INDEX idx_nodes_parent_id ON nodes (parent_id);
 
 CREATE INDEX idx_edges_lookup ON edges (node_a_id, node_b_id, type);
 CREATE INDEX idx_nodes_feed   ON nodes (owner_id, type, created_at);
+CREATE INDEX origin_domain    ON nodes (origin_domain);
 
 -- Fast lookups by type + direction
 CREATE INDEX idx_edges_type_nodea_nodeb  ON edges (type, node_a_id, node_b_id);
@@ -1017,3 +1030,255 @@ CREATE TABLE IF NOT EXISTS data_exports (
     KEY `idx_data_exports_person` (`person_id`, `created_at`),
     KEY `idx_data_exports_status` (`status`, `updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ActivityPub: who has chosen to be on the fediverse, and the key each signs
+-- with. See migrations/20261027000001_activitypub.sql.
+CREATE TABLE IF NOT EXISTS activitypub_accounts (
+    `person_id` bigint unsigned NOT NULL,
+    `enabled` tinyint(1) NOT NULL DEFAULT 0,
+    -- When they last turned it on.
+    `enabled_at` datetime DEFAULT NULL,
+    -- Their own updated_at when their followers' servers were last sent
+    -- their description. See migrations/20261102000001_activitypub_told.sql.
+    `told_updated_at` datetime DEFAULT NULL,
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`person_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS actor_keys (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `node_id` bigint unsigned NOT NULL,
+    `algorithm` varchar(16) NOT NULL,
+    -- PEM.
+    `public_key` text NOT NULL,
+    `private_key_encrypted` text NOT NULL,
+    `created_at` datetime NOT NULL,
+    `revoked_at` datetime DEFAULT NULL,
+    `active_node_id` bigint unsigned GENERATED ALWAYS AS (IF(`revoked_at` IS NULL, `node_id`, NULL)) STORED,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_active_node_id` (`active_node_id`),
+    KEY `node_id` (`node_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- What is known of the people on other servers. See
+-- migrations/20261028000001_activitypub_actors.sql.
+CREATE TABLE IF NOT EXISTS activitypub_actors (
+    `node_id` bigint unsigned NOT NULL,
+    -- Their address: the same as the node's uri.
+    `uri` varchar(512) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    `inbox` varchar(512) NOT NULL,
+    -- Where what is for anybody on their server is sent once. '' for none.
+    `shared_inbox` varchar(512) NOT NULL DEFAULT '',
+    -- The name of the key they sign with, and its public half, as PEM.
+    `key_id` varchar(512) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    `public_key` text NOT NULL,
+    -- Where their avatar is on their own server. '' for none.
+    `icon_url` varchar(512) NOT NULL DEFAULT '',
+    -- Where their cover is on their own server. '' for none.
+    `header_url` varchar(512) NOT NULL DEFAULT '',
+    -- Whether a follow of theirs waits to be approved.
+    `locked` tinyint(1) NOT NULL DEFAULT 0,
+    -- When they were last read from their server.
+    `fetched_at` datetime NOT NULL,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`node_id`),
+    UNIQUE KEY `uq_uri` (`uri`),
+    KEY `key_id` (`key_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- What is waiting to be sent to other servers, and who follows whom
+-- across them. See migrations/20261029000001_activitypub_follows.sql.
+CREATE TABLE IF NOT EXISTS activitypub_deliveries (
+    id bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- Said by whoever adds a row, to add it once however often they try:
+    -- the activity and the inbox it is for. NULL for no such promise.
+    dedupe_key varchar(191) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+    -- Who here it is sent for.
+    actor_id bigint unsigned NOT NULL,
+    -- Where it goes.
+    target varchar(512) NOT NULL,
+    payload mediumblob NOT NULL,
+    -- pending or failed. What was sent is removed. What a worker has taken
+    -- is pending still, with next_attempt_at put off: see Claim.
+    status varchar(16) NOT NULL DEFAULT 'pending',
+    attempts int unsigned NOT NULL DEFAULT 0,
+    next_attempt_at datetime NOT NULL,
+    -- When a worker last took it.
+    claimed_at datetime DEFAULT NULL,
+    last_error varchar(500) DEFAULT NULL,
+    created_at datetime NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_dedupe_key (dedupe_key),
+    KEY status_next_attempt_at (status, next_attempt_at),
+    KEY actor_id (actor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS activitypub_follows (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- The person here, and the person elsewhere.
+    `local_id` bigint unsigned NOT NULL,
+    `remote_id` bigint unsigned NOT NULL,
+    -- 'in': the person elsewhere follows the one here. 'out': the other way.
+    `direction` varchar(3) NOT NULL,
+    -- What the follow is called between servers: the address of the Follow
+    -- that asked for it.
+    `activity_id` varchar(512) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    -- 'pending' until it is accepted, then 'accepted'.
+    `state` varchar(16) NOT NULL DEFAULT 'pending',
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_pair` (`local_id`, `remote_id`, `direction`),
+    KEY `remote_id` (`remote_id`),
+    KEY `activity_id` (`activity_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Which posts made here other servers have been told of. See
+-- migrations/20261030000001_activitypub_objects.sql.
+CREATE TABLE IF NOT EXISTS activitypub_objects (
+    `node_id` bigint unsigned NOT NULL,
+    -- The post's UUID: what its address between servers is made of.
+    `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    -- Whose it is: the person here who wrote it.
+    `actor_id` bigint unsigned NOT NULL,
+    -- 'note' or 'repost'. See migrations/20261104000001_activitypub_object_kind.sql.
+    `kind` varchar(16) NOT NULL DEFAULT 'note',
+    -- For a reply: the inbox of whoever it answers, when they are on
+    -- another server. See migrations/20261103000001_activitypub_object_reply.sql.
+    `reply_inbox` varchar(512) NOT NULL DEFAULT '',
+    -- The post's own updated_at when other servers were last sent it.
+    `told_updated_at` datetime DEFAULT NULL,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`node_id`),
+    KEY `actor_id` (`actor_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- The servers this installation will have nothing to do with. See
+-- migrations/20261031000001_federation_domain_blocks.sql.
+CREATE TABLE IF NOT EXISTS federation_domain_blocks (
+    `domain` varchar(255) NOT NULL,
+    -- Why, for the administrators who come after. Never shown to anybody
+    -- else, and never sent to the server refused.
+    `reason` varchar(500) NOT NULL DEFAULT '',
+    `created_by` bigint unsigned NOT NULL,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`domain`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- What is kept for reading Bluesky: the people on it who are kept here, and
+-- how far the listener has got. See migrations/20261105000001_atproto.sql.
+CREATE TABLE IF NOT EXISTS atproto_actors (
+    `node_id` bigint unsigned NOT NULL,
+    -- Their lasting name: what does not change when their handle does.
+    `did` varchar(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    -- The handle they went by when last read.
+    `handle` varchar(255) NOT NULL,
+    -- Where their avatar and their banner were when last read. '' for none.
+    `avatar_url` varchar(512) NOT NULL DEFAULT '',
+    `banner_url` varchar(512) NOT NULL DEFAULT '',
+    -- When what they posted before they were followed was read. NULL when
+    -- it has not been.
+    `backfilled_at` datetime DEFAULT NULL,
+    -- When they were last read from Bluesky.
+    `fetched_at` datetime NOT NULL,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`node_id`),
+    UNIQUE KEY `uq_did` (`did`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS atproto_cursor (
+    -- Always 1: there is one listener, and one place it has got to.
+    `id` tinyint unsigned NOT NULL,
+    -- The time of the last thing dealt with, in microseconds.
+    `time_us` bigint unsigned NOT NULL,
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Which post each repost heard from Bluesky was of. See
+-- migrations/20261106000001_atproto_reposts.sql.
+CREATE TABLE IF NOT EXISTS atproto_reposts (
+    -- Who reposted: the node of somebody on Bluesky.
+    `actor_id` bigint unsigned NOT NULL,
+    -- The name of the repost among their records.
+    `rkey` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    -- What it was a repost of: the node of the post.
+    `parent_id` bigint unsigned NOT NULL,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`actor_id`, `rkey`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Writing to Bluesky as accounts people here connected. See
+-- migrations/20261107000001_atproto_accounts.sql.
+CREATE TABLE IF NOT EXISTS atproto_accounts (
+    -- Who here connected it.
+    `person_id` bigint unsigned NOT NULL,
+    -- The account's lasting name, the handle it went by when connected,
+    -- and the server that holds it.
+    `did` varchar(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    `handle` varchar(255) NOT NULL,
+    `pds` varchar(255) NOT NULL,
+    -- The token that gets the next short one, encrypted. The password it
+    -- was got with is not kept.
+    `refresh_token` text NOT NULL,
+    -- When the account's server last refused the token. NULL while it
+    -- works.
+    `broken_at` datetime DEFAULT NULL,
+    -- The time of the last thing somebody on Bluesky did to what was
+    -- written from here that was dealt with. See
+    -- migrations/20261108000001_atproto_notified.sql.
+    `notified_at` datetime(3) DEFAULT NULL,
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`person_id`),
+    UNIQUE KEY `uq_did` (`did`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS atproto_sent (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- 'post' (a reply), 'like' or 'repost'.
+    `kind` varchar(16) NOT NULL,
+    `person_id` bigint unsigned NOT NULL,
+    -- What it is here: the reply's node, the node that was liked, or the
+    -- repost's node.
+    `local_id` bigint unsigned NOT NULL,
+    -- The account it was written as, and the name it was written under.
+    `did` varchar(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    `rkey` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_kind_person_local` (`kind`, `person_id`, `local_id`),
+    KEY `kind_local` (`kind`, `local_id`),
+    KEY `did_rkey` (`did`, `rkey`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS atproto_writes (
+    id bigint unsigned NOT NULL AUTO_INCREMENT,
+    -- Said by whoever adds a row, to add it once however often they try:
+    -- what is written and under what name. NULL for no such promise.
+    dedupe_key varchar(191) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+    -- Who here it is sent for.
+    actor_id bigint unsigned NOT NULL,
+    -- Where it goes: always Bluesky.
+    target varchar(512) NOT NULL,
+    payload mediumblob NOT NULL,
+    -- pending or failed. What was sent is removed. What a worker has taken
+    -- is pending still, with next_attempt_at put off: see Claim.
+    status varchar(16) NOT NULL DEFAULT 'pending',
+    attempts int unsigned NOT NULL DEFAULT 0,
+    next_attempt_at datetime NOT NULL,
+    -- When a worker last took it.
+    claimed_at datetime DEFAULT NULL,
+    last_error varchar(500) DEFAULT NULL,
+    created_at datetime NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_dedupe_key (dedupe_key),
+    KEY status_next_attempt_at (status, next_attempt_at),
+    KEY actor_id (actor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+
+
+

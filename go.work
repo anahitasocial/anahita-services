@@ -2,8 +2,10 @@ go 1.25.0
 
 use (
 	./abuse-report-service
+	./activitypub-service
 	./actor-service
 	./anahita-libs
+	./atproto-service
 	./auth-service
 	./feed-service
 	./file-grpc-service

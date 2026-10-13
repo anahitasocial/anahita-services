@@ -24,6 +24,12 @@ func (r *Routes) Init(e *echo.Echo) {
 	previews.GET("", r.handler.Previews.Read, r.authorize)
 	previews.GET("/", r.handler.Previews.Read, r.authorize)
 
+	// For the other services of this installation, and not for anybody
+	// outside it: the gateway sends nothing here, since its address is not
+	// under /link-previews. activitypub-service asks it for the card of a
+	// link in a post that came from another server. See ReadInternal.
+	e.GET("/internal/link-previews", r.handler.Previews.ReadInternal)
+
 	// A preview's picture is read by whoever reads the note it is on, a
 	// visitor included where the installation lets visitors read.
 	previews.GET("/image/:name", r.handler.Previews.Image, r.setViewer)

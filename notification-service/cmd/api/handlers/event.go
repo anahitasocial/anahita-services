@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/event"
 	"log"
+	"notification/data/entities"
 	"strings"
 )
 
@@ -24,6 +25,35 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 	log.Println("Notification service event received", payload.Name)
 
 	// Medium node events
+	// A repost of something here, by somebody on another server, taken
+	// back there: the news of it goes. The payload names who reposted and
+	// what, since the repost itself is gone.
+	if strings.HasPrefix(payload.Name, "federation.repost.") {
+		if !strings.HasSuffix(payload.Name, ".deleted.v1") {
+			return nil
+		}
+		gone := entities.NewNotification()
+		gone.Type = "repost_add"
+		gone.Service = payload.SourceService
+		gone.Subject.ID = payload.SubjectID
+		gone.Object.ID = payload.ObjectID
+		gone.Target.ID = payload.TargetID
+		return h.Repos.Notifications.Delete(gone)
+	}
+
+	// A note kept from another server, or one that was and is gone. A
+	// change to it is news to nobody.
+	if strings.HasPrefix(payload.Name, "federation.medium.") {
+		if strings.HasSuffix(payload.Name, ".added.v1") {
+			return h.remoteNoteAdded(payload)
+		}
+		// Taken away where it was written: the news of it goes too.
+		if strings.HasSuffix(payload.Name, ".deleted.v1") {
+			return h.Repos.Notifications.DeleteOfReply(payload.ObjectID)
+		}
+		return nil
+	}
+
 	if strings.Contains(payload.Name, "node.medium.") {
 		if strings.Contains(payload.Name, ".edited.v1") {
 			err = h.eventFormatNodeMediumEdited(payload)

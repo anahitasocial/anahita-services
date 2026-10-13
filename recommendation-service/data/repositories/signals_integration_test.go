@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -395,6 +396,20 @@ func TestPreferencesAndDismissalsAreKept(t *testing.T) {
 		t.Errorf("weights read back %+v (%v)", again, err)
 	}
 
+	// How lately somebody must have been here is kept beside the weights,
+	// and is not taken for one of them.
+	if again.ActiveWithinDays != constants.ActiveWithinDefault {
+		t.Errorf("no limit chosen read as %d days", again.ActiveWithinDays)
+	}
+	again.ActiveWithinDays = 0
+	if err := repos.Preferences.Write(viewer, again); err != nil {
+		t.Fatal(err)
+	}
+	limited, err := repos.Preferences.Read(viewer)
+	if err != nil || limited.ActiveWithinDays != 0 || len(limited.Weights) != 2 {
+		t.Errorf("no limit read back %+v (%v)", limited, err)
+	}
+
 	// Turned down twice is once, and can be taken back.
 	for i := 0; i < 2; i++ {
 		if err := repos.Dismissals.Add(viewer, friendD); err != nil {
@@ -507,5 +522,63 @@ func TestSignalsFindEvents(t *testing.T) {
 	people, _ := NewSignals(db).Find(viewer, constants.KindPerson, true, false, time.Now())
 	if len(people[constants.ReasonHostedByLeader]) != 0 {
 		t.Errorf("people hosted by a group: %v", people[constants.ReasonHostedByLeader])
+	}
+}
+
+// THE RULE THIS GUARDS: somebody on another network who is kept here is
+// suggested like anybody else. Somebody on Bluesky to anybody; somebody on
+// the fediverse only to a person who is on the fediverse themselves, since
+// nobody else's follow of them would stand.
+func TestSignalsFindPeopleOnOtherNetworks(t *testing.T) {
+	db := testDB(t)
+	seed(t, db)
+
+	const (
+		onBluesky   = 501
+		onFediverse = 502
+	)
+	for _, stmt := range []string{
+		`INSERT INTO nodes (id,type,service,name,alias,access,body,enabled,uri,origin_domain,created_at,updated_at) VALUES
+		 (501,'node.actor.atproto-service.person.v1','atproto-service','Alice','alice.bsky.social','public','On Bluesky',1,'at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa','bsky.app',NOW(),NOW()),
+		 (502,'node.actor.activitypub-service.person.v1','activitypub-service','Bob','bob@mastodon.example','public','On Mastodon',1,'https://mastodon.example/users/bob','mastodon.example',NOW(),NOW())`,
+		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
+		 ('edge.actor.follow.v1',2,'node.actor.person-service.person.v1',501,'node.actor.atproto-service.person.v1',NOW()),
+		 ('edge.actor.follow.v1',3,'node.actor.person-service.person.v1',501,'node.actor.atproto-service.person.v1',NOW()),
+		 ('edge.actor.follow.v1',2,'node.actor.person-service.person.v1',502,'node.actor.activitypub-service.person.v1',NOW())`,
+		`DELETE FROM activitypub_accounts`,
+	} {
+		if _, err := db.Exec(stmt); err != nil {
+			t.Fatalf("%v\n%s", err, stmt)
+		}
+	}
+	signals := NewSignals(db)
+	leaders := func() string {
+		found, err := signals.Find(viewer, constants.KindPerson, true, false, time.Now())
+		if err != nil {
+			t.Fatal(err)
+		}
+		return fmt.Sprint(idsOf(found[constants.ReasonFollowedByLeaders]))
+	}
+
+	// Not on the fediverse: Alice, on Bluesky, and not Bob.
+	if got := leaders(); !strings.Contains(got, fmt.Sprint(onBluesky)) || strings.Contains(got, fmt.Sprint(onFediverse)) {
+		t.Errorf("to somebody not on the fediverse: %s", got)
+	}
+
+	// On the fediverse: both.
+	if _, err := db.Exec(`INSERT INTO activitypub_accounts (person_id, enabled, created_at, updated_at) VALUES (?, 1, NOW(), NOW())`, viewer); err != nil {
+		t.Fatal(err)
+	}
+	if got := leaders(); !strings.Contains(got, fmt.Sprint(onBluesky)) || !strings.Contains(got, fmt.Sprint(onFediverse)) {
+		t.Errorf("to somebody on the fediverse: %s", got)
+	}
+
+	// Neither is suggested as a group.
+	found, err := signals.Find(viewer, constants.KindGroup, true, false, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := fmt.Sprint(idsOf(found[constants.ReasonFollowedByLeaders])); strings.Contains(got, "50") {
+		t.Errorf("as groups: %s", got)
 	}
 }

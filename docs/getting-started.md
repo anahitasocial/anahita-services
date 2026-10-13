@@ -19,7 +19,7 @@ Running the whole stack locally with Docker Compose.
 - [GNU make](https://www.gnu.org/software/make/)
 - A recent [Docker](https://www.docker.com/products/docker-desktop)
 
-The web app is a separate repository, `anahita-react`, with its own README.
+The web app is a separate repository, `anahita-web`, with its own README.
 
 ## Configure
 
@@ -70,7 +70,7 @@ make down
 ~~~
 
 The API is then at `http://localhost:80`. The front end lives in a separate
-repository (`anahita-react`) and runs at `http://localhost:3000`, which is
+repository (`anahita-web`) and runs at `http://localhost:3000`, which is
 the origin nginx allows for CORS.
 
 Start with `make`, not with `docker-compose up` directly. The services talk
@@ -108,18 +108,60 @@ make auth
 which stops that service, removes its image, rebuilds the binary, and
 starts it again. Available service targets:
 
-`abuse_report`, `auth`, `avatar`, `cover`, `feed`, `file`, `graph`, `group`,
-`hashtag`, `like`, `location`, `mail`, `nginx`, `notification`, `person`,
-`photo`, `search`, `socialgraph`, `text`
+`abuse_report`, `activitypub`, `atproto`, `actor`, `auth`, `export`, `feed`, `file`, `graph`,
+`hashtag`, `identity_image`, `like`, `link_preview`, `location`, `mail`,
+`nginx`, `notification`, `photo`, `recommendation`, `search`, `socialgraph`,
+`text`, `video`, `web_shell`
 
 Each has a matching `build_*` target that only compiles the Linux binary,
 and `make migration` runs the migration job on its own.
+
+- **`video` and `export` each start two containers,** the service and its
+  worker. The video worker's image has ffmpeg in it, so nothing is installed
+  on your machine. Videos are off until `VIDEO_UPLOADS=on`: see
+  [Videos](videos.md).
+- **`web_shell` is not started by `make up`.** It sends the web app's build,
+  so it has to be given one: `make web_shell WEB_BUILD=<the build folder>`.
+  Developing the web app does not need it; see [The web shell](web-shell.md).
+- **`make fedi_lab` starts the federation lab,** which is not part of `make up`
+  either: see [The federation lab](federation-lab.md).
+- **After a change to `anahita-libs` or to a `.proto` file,** rebuild
+  everything with `make up_build`: every service is built with the library.
 
 ## Tests
 
 ~~~sh
 make test
 ~~~
+
+That runs every module's tests and the check of `legacy/upgrade.sql`. Tests
+that need a database or a store are skipped unless they are told where one
+is, so that nothing is ever run against the database you develop on. Give
+them a throwaway MySQL with the schema loaded, and take it away afterwards:
+
+~~~sh
+docker run -d --name anahita-test -e MYSQL_ALLOW_EMPTY_PASSWORD=1 \
+  -e MYSQL_DATABASE=fresh -p 13309:3306 mysql:9.6
+# once it answers:
+docker exec -i anahita-test mysql fresh < migration-job/schema/init.sql
+
+cd graph-grpc-service && \
+  ACCESS_TEST_DSN='root@tcp(127.0.0.1:13309)/fresh?parseTime=true' go test -p 1 ./...
+
+docker rm -fv anahita-test
+~~~
+
+| Variable | Tests it turns on |
+| --- | --- |
+| `ACCESS_TEST_DSN` | `graph-grpc-service`: who can see what, purging, relationships. Run with `-p 1`, and without `-v` |
+| `AUTH_TEST_DSN` | `auth-service`: codes |
+| `ABUSE_TEST_DSN` | `abuse-report-service`: cases |
+| `RECOMMENDATION_TEST_DSN` | `recommendation-service`: the signals |
+| `VIDEO_TEST_DSN` | `video-service`: uploads |
+| `EXPORT_TEST_DSN` | `export-service`: exports |
+| `ACTIVITYPUB_TEST_DSN` | `activitypub-service`: what the sweep finds that the bus lost |
+| `FEDERATION_TEST_DSN` | `anahita-libs/federation`: the queue of what is sent to other servers. It makes and drops a table of its own |
+| `STORAGE_TEST_ENDPOINT`, `STORAGE_TEST_PUBLIC_ENDPOINT`, `STORAGE_TEST_REGION`, `STORAGE_TEST_BUCKET`, `STORAGE_TEST_ACCESS_KEY`, `STORAGE_TEST_SECRET_KEY` | `file-grpc-service` and `scripts/s3-migration` against a real bucket: see [Tested stores](configuration.md#tested-stores) |
 
 ## Other targets
 

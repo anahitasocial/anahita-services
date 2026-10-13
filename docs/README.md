@@ -6,6 +6,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
 
 1. [Getting started](getting-started.md) — running the stack locally
    - [Requirements](getting-started.md#requirements)
+   - [Configure](getting-started.md#configure)
    - [Starting](getting-started.md#starting)
    - [First run](getting-started.md#first-run)
    - [Developing](getting-started.md#developing)
@@ -25,29 +26,53 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Mail](configuration.md#mail)
    - [Abuse reports](configuration.md#abuse-reports)
    - [Account cleanup](configuration.md#account-cleanup)
+   - [The web shell](configuration.md#the-web-shell)
+   - [Video](configuration.md#video)
+   - [Download your data](configuration.md#download-your-data)
 3. [Architecture](architecture.md) — services, routing and the shared library
    - [Components](architecture.md#components)
    - [Services](architecture.md#services)
    - [Routing](architecture.md#routing)
+   - [One service for every kind of actor](architecture.md#one-service-for-every-kind-of-actor)
+   - [Naming images](architecture.md#naming-images)
    - [anahita-libs](architecture.md#anahita-libs)
+   - [What a node is called elsewhere](architecture.md#what-a-node-is-called-elsewhere)
    - [Naming dates and times](architecture.md#naming-dates-and-times)
 4. [OAuth scopes and clients](oauth.md)
    - [Scopes](oauth.md#scopes)
    - [Seeding clients](oauth.md#seeding-clients)
 5. [Registration and agreements](registration.md) — how people join
+   - [Where it happens](registration.md#where-it-happens)
    - [Registration modes](registration.md#registration-modes)
+   - [What signup asks for](registration.md#what-signup-asks-for)
    - [Email verification](registration.md#email-verification)
    - [Invitations](registration.md#invitations)
    - [The approval queue](registration.md#the-approval-queue)
    - [Protection against bots](registration.md#protection-against-bots)
    - [Terms of Service and Privacy Policy](registration.md#terms-of-service-and-privacy-policy)
+   - [Onboarding](registration.md#onboarding)
    - [NodeInfo](registration.md#nodeinfo)
    - [The first super administrator](registration.md#the-first-super-administrator)
 6. [Permissions](permissions.md) — who can post, reply, like and add followers
+   - [Two separate settings](permissions.md#two-separate-settings)
    - [Access levels](permissions.md#access-levels)
+   - [A members-only installation](permissions.md#a-members-only-installation)
+   - [Who is always allowed](permissions.md#who-is-always-allowed)
    - [Seeing posts](permissions.md#seeing-posts)
+   - [Posting](permissions.md#posting)
    - [Choosing who can see a post](permissions.md#choosing-who-can-see-a-post)
    - [Replies](permissions.md#replies)
+   - [Likes](permissions.md#likes)
+   - [Following](permissions.md#following)
+   - [Invitations](permissions.md#invitations)
+   - [Events](permissions.md#events)
+   - [Reposts](permissions.md#reposts)
+   - [Quotes](permissions.md#quotes)
+   - [Saved posts](permissions.md#saved-posts)
+   - [Pinned posts](permissions.md#pinned-posts)
+   - [Downloading photos and videos](permissions.md#downloading-photos-and-videos)
+   - [Custom feeds](permissions.md#custom-feeds)
+   - [Suggestions](permissions.md#suggestions)
    - [Reporting](permissions.md#reporting)
    - [Removing accounts](permissions.md#removing-accounts)
    - [The defaults](permissions.md#the-defaults)
@@ -93,6 +118,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [What is stored](photos.md#what-is-stored)
    - [Reading](photos.md#reading)
    - [Changing a post's images](photos.md#changing-a-posts-images)
+   - [Downloading](photos.md#downloading)
    - [Removal](photos.md#removal)
    - [Limits](photos.md#limits)
    - [What is not built](photos.md#what-is-not-built)
@@ -116,9 +142,118 @@ Documentation for anahita-services, the Go microservices behind Anahita.
      - [Moving a bucket to the v1 layout](deploying.md#moving-a-bucket-to-the-v1-layout)
    - [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)
    - [On AWS](deploying.md#on-aws)
+   - [Joining the fediverse](deploying.md#joining-the-fediverse)
    - [Upgrading](deploying.md#upgrading)
    - [Running more than one copy of a service](deploying.md#running-more-than-one-copy-of-a-service)
    - [Trying it on your own machine](deploying.md#trying-it-on-your-own-machine)
+   - [One machine without Kubernetes](deploying.md#one-machine-without-kubernetes)
+
+14. [Custom feeds](feeds.md) — feeds people build: what one is made of, who sees it, and what they see in it
+   - [The home page](feeds.md#the-home-page)
+   - [A feed is a node](feeds.md#a-feed-is-a-node)
+   - [The definition](feeds.md#the-definition)
+   - [Limits](feeds.md#limits)
+   - [Who sees a feed, and what they see in it](feeds.md#who-sees-a-feed-and-what-they-see-in-it)
+   - [Reading a feed](feeds.md#reading-a-feed)
+   - [Keeping feeds on the home page](feeds.md#keeping-feeds-on-the-home-page)
+   - [In search](feeds.md#in-search)
+   - [Discover](feeds.md#discover)
+   - [Endpoints](feeds.md#endpoints)
+   - [Where the code is](feeds.md#where-the-code-is)
+   - [What is not built](feeds.md#what-is-not-built)
+15. [Recommendations](recommendations.md) — suggestions of who to follow: the contract, the reasons, who is never suggested, and running without it
+   - [The contract](recommendations.md#the-contract)
+   - [Why somebody is suggested](recommendations.md#why-somebody-is-suggested)
+   - [Who is never suggested](recommendations.md#who-is-never-suggested)
+   - [What each person chooses](recommendations.md#what-each-person-chooses)
+   - [Not interested](recommendations.md#not-interested)
+   - [Running it, and not running it](recommendations.md#running-it-and-not-running-it)
+   - [Where the code is](recommendations.md#where-the-code-is)
+   - [What is not built](recommendations.md#what-is-not-built)
+16. [Link previews](link-previews.md) — the card a note carries for a link: fetching a page safely, the picture, and how long a preview is kept
+   - [Two halves](link-previews.md#two-halves)
+   - [Fetching a page safely](link-previews.md#fetching-a-page-safely)
+   - [What is read from the page](link-previews.md#what-is-read-from-the-page)
+   - [The picture](link-previews.md#the-picture)
+   - [How long a preview is kept](link-previews.md#how-long-a-preview-is-kept)
+   - [Endpoints](link-previews.md#endpoints)
+   - [The card on a note](link-previews.md#the-card-on-a-note)
+   - [Running it, and not running it](link-previews.md#running-it-and-not-running-it)
+   - [What is not built](link-previews.md#what-is-not-built)
+17. [The web shell](web-shell.md) — sending the web app with each page's own title and picture, for links shared elsewhere
+   - [What it sends](web-shell.md#what-it-sends)
+   - [Which pages are described](web-shell.md#which-pages-are-described)
+   - [What is never described](web-shell.md#what-is-never-described)
+   - [Pictures](web-shell.md#pictures)
+   - [What other servers ask this host](web-shell.md#what-other-servers-ask-this-host)
+   - [Running it](web-shell.md#running-it)
+   - [Settings](web-shell.md#settings)
+   - [Not running it](web-shell.md#not-running-it)
+   - [What is not built](web-shell.md#what-is-not-built)
+18. [Videos](videos.md) — a video sent straight to storage, the worker that makes a post of it, and how it is played
+   - [The parts](videos.md#the-parts)
+   - [Sending a video](videos.md#sending-a-video)
+   - [What the worker does](videos.md#what-the-worker-does)
+   - [What a file has to be](videos.md#what-a-file-has-to-be)
+   - [The post](videos.md#the-post)
+   - [Playing it](videos.md#playing-it)
+   - [Sizes](videos.md#sizes)
+   - [Downloading](videos.md#downloading)
+   - [Endpoints](videos.md#endpoints)
+   - [Settings](videos.md#settings)
+   - [Storage](videos.md#storage)
+   - [Running it, and not running it](videos.md#running-it-and-not-running-it)
+   - [What is not built](videos.md#what-is-not-built)
+19. [Download your data](data-export.md) — a person's copy of everything they put here: asking for it, what is in it, and how long it is kept
+   - [The parts](data-export.md#the-parts)
+   - [Asking for one](data-export.md#asking-for-one)
+   - [What is in an archive](data-export.md#what-is-in-an-archive)
+   - [What is not](data-export.md#what-is-not)
+   - [How it is made](data-export.md#how-it-is-made)
+   - [Keeping and deleting](data-export.md#keeping-and-deleting)
+   - [Endpoints](data-export.md#endpoints)
+   - [Settings](data-export.md#settings)
+   - [Running it, and not running it](data-export.md#running-it-and-not-running-it)
+   - [What is not built](data-export.md#what-is-not-built)
+20. [Federation](federation.md) — being found and followed from other servers: turning it on, who is on the fediverse, what they are called and what is told about them
+   - [What it is](federation.md#what-it-is)
+   - [Setting it up](federation.md#setting-it-up)
+   - [Keeping it running](federation.md#keeping-it-running)
+   - [When something does not work](federation.md#when-something-does-not-work)
+   - [Who is on the fediverse](federation.md#who-is-on-the-fediverse)
+   - [What a person is called](federation.md#what-a-person-is-called)
+   - [What other servers are told](federation.md#what-other-servers-are-told)
+   - [Looking somebody up on another server](federation.md#looking-somebody-up-on-another-server)
+   - [Being followed from another server](federation.md#being-followed-from-another-server)
+   - [Following somebody on another server](federation.md#following-somebody-on-another-server)
+   - [Posts going out](federation.md#posts-going-out)
+   - [Posts coming in](federation.md#posts-coming-in)
+   - [What can be done with what came from elsewhere](federation.md#what-can-be-done-with-what-came-from-elsewhere)
+   - [The inbox](federation.md#the-inbox)
+   - [What is sent, and when it does not arrive](federation.md#what-is-sent-and-when-it-does-not-arrive)
+   - [Signing keys and signed requests](federation.md#signing-keys-and-signed-requests)
+   - [The API](federation.md#the-api)
+   - [Leaving, and what follows a person's changes](federation.md#leaving-and-what-follows-a-persons-changes)
+   - [Servers that are refused](federation.md#servers-that-are-refused)
+   - [Reading Bluesky](federation.md#reading-bluesky)
+   - [Where the code is](federation.md#where-the-code-is)
+21. [The federation lab](federation-lab.md) — trying federation on one machine: names, certificates, and another server to talk to
+   - [Why it is needed](federation-lab.md#why-it-is-needed)
+   - [What is in it](federation-lab.md#what-is-in-it)
+   - [Starting it](federation-lab.md#starting-it)
+   - [Opening it in a browser](federation-lab.md#opening-it-in-a-browser)
+   - [Somebody to talk to](federation-lab.md#somebody-to-talk-to)
+   - [Having GoToSocial look somebody up](federation-lab.md#having-gotosocial-look-somebody-up)
+   - [Turning the fediverse on and off for somebody](federation-lab.md#turning-the-fediverse-on-and-off-for-somebody)
+   - [Following somebody here from GoToSocial](federation-lab.md#following-somebody-here-from-gotosocial)
+   - [Following somebody on GoToSocial from here](federation-lab.md#following-somebody-on-gotosocial-from-here)
+   - [Posts, both ways](federation-lab.md#posts-both-ways)
+   - [Looking somebody on GoToSocial up from here](federation-lab.md#looking-somebody-on-gotosocial-up-from-here)
+   - [Asking as another server would](federation-lab.md#asking-as-another-server-would)
+   - [Stopping and emptying it](federation-lab.md#stopping-and-emptying-it)
+   - [Real servers, from the lab](federation-lab.md#real-servers-from-the-lab)
+   - [What it is not](federation-lab.md#what-it-is-not)
+   - [Where the code is](federation-lab.md#where-the-code-is)
 
 ## Plans
 
@@ -132,24 +267,32 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
-| [Recommendation service](plans/recommendation-service.md) | 3 | built 2026-10-11 |
+| [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
-| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | not started |
-| [Link previews](plans/link-previews.md) | 10 | built 2026-10-11, with the web shell of its part B |
-| [Downloading what a post holds](plans/downloads.md) | 37 | built 2026-10-11 |
-| [Invitations](plans/actor-invitations.md) | 11 | not started |
-| [Events](plans/events.md) | 12 | not started |
-| [Feed generators (custom feeds)](plans/feed-generators.md) | 14 | not started |
-| [Video: video-service and a transcoding worker](plans/video-service.md) | 16 | built 2026-10-11 |
+| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0 done 2026-10-12; phase 1, ActivityPub, mostly built 2026-10-13: see [Federation](federation.md). AT Protocol, part 1 (reading Bluesky) built 2026-10-12; part 2 (being on Bluesky) waits for a domain |
+| [Link previews](plans/done/link-previews.md) | 10 | built 2026-10-11, with the web shell of its part B |
+| [Downloading what a post holds](plans/done/downloads.md) | 37 | built 2026-10-11 |
+| [Invitations](plans/done/actor-invitations.md) | 11 | done 2026-10-10 |
+| [Events](plans/done/events.md) | 12 | done 2026-10-10 |
+| [Feed generators (custom feeds)](plans/done/feed-generators.md) | 14 | done 2026-10-11 |
+| [Video: video-service and a transcoding worker](plans/done/video-service.md) | 16 | built 2026-10-11 |
 | [Creative Commons licences](plans/content-licences.md) | 19 | kept for later (2026-10-04); look again after items 16 and 17 |
-| [Download your data](plans/data-export.md) | 21 | built 2026-10-11 |
+| [Download your data](plans/done/data-export.md) | 21 | built 2026-10-11 |
 | [Post insights](plans/post-insights.md) | 22, set aside: a post's activity was built instead | not started |
 | [Profile tabs for replies and reposts](plans/done/profile-tabs-and-reposts.md) | 24 | done 2026-10-05 |
 | [Quote posts](plans/done/quote-posts.md) | 25 | done 2026-10-05 |
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
+| [Collections](plans/collections.md) | 34 | shape decided 2026-10-06; kept for later, not to be built yet |
 | [The Website actor](plans/website-actor.md) | 30 | goal and name recorded 2026-10-05; scope open, not to be built yet |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
+| [The API reference, made from the code](plans/api-reference.md) | 38 | planned 2026-10-11; place in the order not decided |
+| [Documentation agents can use, and an MCP server](plans/docs-for-agents.md) | 39 | planned 2026-10-11; place in the order not decided |
+| [Anahita Recipes: a starting configuration for each kind of site](plans/recipes.md) | 40 | planned 2026-10-11; place in the order not decided |
+| [Animated images: GIF, APNG and animated WebP, through the video service](plans/animated-images.md) | 41 | planned 2026-10-12; place in the order not decided |
+| [A command-line client for Anahita](plans/cli-client.md) | 42 | recorded 2026-10-12 for later; waits for the API reference |
+| [Translating posts](plans/translation.md) | 43 | recorded 2026-10-12 for later: LibreTranslate and DeepL behind one interface |
+| [Hiding a reply from others, across servers](plans/hiding-replies-across-servers.md) | 44 | recorded 2026-10-12 for later: hidden everywhere, as far as other servers will; a block hides what the blocked person left, without asking |
 | [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b and 0c done 2026-10-03; the plan's "Not checked" list is still open |
 | [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in item 8 |
 | [Signup, registration modes, and agreements](plans/done/signup-and-onboarding.md) | — | done |
@@ -168,64 +311,3 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Language on posts](plans/done/content-language.md) | 20 | done 2026-10-05 in a smaller form: the author chooses, nothing is detected |
 | [Instance privacy and the composer audience picker](plans/done/instance-privacy.md) | 13 | done 2026-10-05 (the web parts not yet tried in a browser) |
 | [Cloud-neutral storage and deployment](plans/done/cloud-neutral.md) | 9 | done 2026-10-03 (non-AWS providers other than Garage untested) |
-14. [Custom feeds](feeds.md) — feeds people build: what one is made of, who sees it, and what they see in it
-   - [The home page](feeds.md#the-home-page)
-   - [A feed is a node](feeds.md#a-feed-is-a-node)
-   - [The definition](feeds.md#the-definition)
-   - [Limits](feeds.md#limits)
-   - [Who sees a feed, and what they see in it](feeds.md#who-sees-a-feed-and-what-they-see-in-it)
-   - [Reading a feed](feeds.md#reading-a-feed)
-   - [Keeping feeds on the home page](feeds.md#keeping-feeds-on-the-home-page)
-   - [Endpoints](feeds.md#endpoints)
-   - [What is not built](feeds.md#what-is-not-built)
-15. [Recommendations](recommendations.md) — suggestions of who to follow: the contract, the reasons, who is never suggested, and running without it
-   - [The contract](recommendations.md#the-contract)
-   - [Why somebody is suggested](recommendations.md#why-somebody-is-suggested)
-   - [Who is never suggested](recommendations.md#who-is-never-suggested)
-   - [What each person chooses](recommendations.md#what-each-person-chooses)
-   - [Not interested](recommendations.md#not-interested)
-   - [Running it, and not running it](recommendations.md#running-it-and-not-running-it)
-   - [What is not built](recommendations.md#what-is-not-built)
-16. [Link previews](link-previews.md) — the card a note carries for a link: fetching a page safely, the picture, and how long a preview is kept
-   - [Two halves](link-previews.md#two-halves)
-   - [Fetching a page safely](link-previews.md#fetching-a-page-safely)
-   - [What is read from the page](link-previews.md#what-is-read-from-the-page)
-   - [The picture](link-previews.md#the-picture)
-   - [How long a preview is kept](link-previews.md#how-long-a-preview-is-kept)
-   - [Endpoints](link-previews.md#endpoints)
-   - [The card on a note](link-previews.md#the-card-on-a-note)
-   - [Running it, and not running it](link-previews.md#running-it-and-not-running-it)
-   - [What is not built](link-previews.md#what-is-not-built)
-17. [The web shell](web-shell.md) — sending the web app with each page's own title and picture, for links shared elsewhere
-   - [What it sends](web-shell.md#what-it-sends)
-   - [Which pages are described](web-shell.md#which-pages-are-described)
-   - [What is never described](web-shell.md#what-is-never-described)
-   - [Pictures](web-shell.md#pictures)
-   - [Running it](web-shell.md#running-it)
-   - [Settings](web-shell.md#settings)
-   - [Not running it](web-shell.md#not-running-it)
-   - [What is not built](web-shell.md#what-is-not-built)
-18. [Videos](videos.md) — a video sent straight to storage, the worker that makes a post of it, and how it is played
-   - [The parts](videos.md#the-parts)
-   - [Sending a video](videos.md#sending-a-video)
-   - [What the worker does](videos.md#what-the-worker-does)
-   - [What a file has to be](videos.md#what-a-file-has-to-be)
-   - [The post](videos.md#the-post)
-   - [Playing it](videos.md#playing-it)
-   - [Sizes](videos.md#sizes)
-   - [Endpoints](videos.md#endpoints)
-   - [Settings](videos.md#settings)
-   - [Storage](videos.md#storage)
-   - [Running it, and not running it](videos.md#running-it-and-not-running-it)
-   - [What is not built](videos.md#what-is-not-built)
-19. [Download your data](data-export.md) — a person's copy of everything they put here: asking for it, what is in it, and how long it is kept
-   - [The parts](data-export.md#the-parts)
-   - [Asking for one](data-export.md#asking-for-one)
-   - [What is in an archive](data-export.md#what-is-in-an-archive)
-   - [What is not](data-export.md#what-is-not)
-   - [How it is made](data-export.md#how-it-is-made)
-   - [Keeping and deleting](data-export.md#keeping-and-deleting)
-   - [Endpoints](data-export.md#endpoints)
-   - [Settings](data-export.md#settings)
-   - [Running it, and not running it](data-export.md#running-it-and-not-running-it)
-   - [What is not built](data-export.md#what-is-not-built)

@@ -229,6 +229,10 @@ auth-service publishes [NodeInfo 2.1](https://nodeinfo.diaspora.software/) at
 `/.well-known/nodeinfo` and `/nodeinfo/2.1`. It is the standard other fediverse
 servers read, and the web app reads it too.
 
+- `protocols` — what the installation speaks to other servers: `activitypub`
+  when its operator says that service is running (`FEDERATION_PROTOCOLS`),
+  and nothing on a site that is not open to read. See
+  [Federation](federation.md#setting-it-up).
 - `openRegistrations` — true in `open` and `approval`. The web app shows its
   "Create account" button from this.
 - `metadata` — `nodeName`, `registrationMode`, `approvalRequired`,

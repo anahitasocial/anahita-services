@@ -8,6 +8,8 @@ import (
 	"time"
 
 	an_const "anahita-libs/constants"
+
+	"recommendation/constants"
 )
 
 // Preferences is what somebody has chosen about suggestions. Every choice is
@@ -24,7 +26,14 @@ type Preferences struct {
 	// How much each reason counts for when choosing for them, by the
 	// reason's name, where they have set it. Nil for the service's own.
 	Weights map[string]float64 `json:"-"`
+	// How lately somebody must have been here to be suggested to them, in
+	// days. Nothing is no limit.
+	ActiveWithinDays int `json:"active_within_days"`
 }
+
+// Where ActiveWithinDays is kept: beside the weights, in the same column,
+// as one more thing the ranking is tuned by. No reason has this name.
+const activeWithinKey = "active_within_days"
 
 // DefaultPreferences is what somebody has who has chosen nothing.
 func DefaultPreferences() *Preferences {
@@ -34,6 +43,8 @@ func DefaultPreferences() *Preferences {
 		SuggestEvents: true,
 		UseActivity:   true,
 		Discoverable:  true,
+
+		ActiveWithinDays: constants.ActiveWithinDefault,
 	}
 }
 
@@ -92,8 +103,18 @@ func (r *PreferencesRepo) Read(personID int64) (*Preferences, error) {
 	}
 
 	// Weights that cannot be read are no weights: the service's own.
+	prefs.ActiveWithinDays = constants.ActiveWithinDefault
 	if weights != "" {
 		_ = json.Unmarshal([]byte(weights), &prefs.Weights)
+	}
+	if days, set := prefs.Weights[activeWithinKey]; set {
+		delete(prefs.Weights, activeWithinKey)
+		if constants.IsActiveWithinChoice(int(days)) {
+			prefs.ActiveWithinDays = int(days)
+		}
+	}
+	if len(prefs.Weights) == 0 {
+		prefs.Weights = nil
 	}
 
 	return prefs, nil
@@ -103,9 +124,19 @@ func (r *PreferencesRepo) Write(personID int64, prefs *Preferences) error {
 	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
 	defer cancel()
 
+	// Only what was chosen is kept: somebody on the service's own has
+	// nothing here, and follows it when it changes.
+	tuned := map[string]float64{}
+	for reason, each := range prefs.Weights {
+		tuned[reason] = each
+	}
+	if prefs.ActiveWithinDays != constants.ActiveWithinDefault {
+		tuned[activeWithinKey] = float64(prefs.ActiveWithinDays)
+	}
+
 	weights := ""
-	if len(prefs.Weights) > 0 {
-		raw, err := json.Marshal(prefs.Weights)
+	if len(tuned) > 0 {
+		raw, err := json.Marshal(tuned)
 		if err != nil {
 			return err
 		}

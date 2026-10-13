@@ -17,6 +17,7 @@ is told apart by what they say they are.
 - [Which pages are described](#which-pages-are-described)
 - [What is never described](#what-is-never-described)
 - [Pictures](#pictures)
+- [What other servers ask this host](#what-other-servers-ask-this-host)
 - [Running it](#running-it)
 - [Settings](#settings)
 - [Not running it](#not-running-it)
@@ -93,6 +94,23 @@ The redirect is made by the same rules as the page: for what is not public
 it answers `404`. A picture is never easier to reach than the page it is
 the picture of.
 
+## What other servers ask this host
+
+Somebody here is known elsewhere as `ana@example.org`, so a server that
+wants to find her asks `example.org`, the web app's host, where she is. The
+shell knows nothing of people; the API does. So three addresses are answered
+with a redirect to the same path on the API, with whatever was asked:
+
+| Address | What it is for |
+| --- | --- |
+| `/.well-known/webfinger` | Finding somebody by their handle |
+| `/.well-known/host-meta` | The older way of asking where WebFinger is |
+| `/.well-known/nodeinfo` | What software this is and how many use it |
+
+The API's address is `PUBLIC_API_URL`, or `https://api.DOMAIN_NAME` when
+that is not set. Nothing answers WebFinger there yet: that comes with
+federation.
+
 ## Running it
 
 It needs the web app's build, the `build/` folder that `yarn build` makes
@@ -129,6 +147,7 @@ the web app's host to the `web-shell` Service in the Ingress.
 | Variable | Value |
 | --- | --- |
 | `PUBLIC_WEB_URL` | The address people reach the web app at, `https://www.example.org`. Written into `og:url`, the canonical link and the address of each picture. Left out, the host each request came to is used, with `https` when `X-Forwarded-Proto` says so |
+| `PUBLIC_API_URL`, `DOMAIN_NAME`, `ENV` | Where the API is, for what other servers ask this host. See [Site identity](configuration.md#site-identity) |
 | `WEB_BUILD_PATH` | docker-compose only: the folder mounted as the build. Defaults to `web-shell/web` |
 | `WEB_BUILD_DIR` | Where the build is inside the container. Defaults to `/app/web` |
 | `SITE_READ_ACCESS` | As for every service; see [Configuration](configuration.md#privacy-of-the-installation) |
@@ -138,6 +157,11 @@ the web app's host to the `web-shell` Service in the Ingress.
 The web app is a static site and can still be put on any static host, as
 anahita-web's `docs/deploying.md` describes. It works the same; links to it
 all show the site's own title and picture.
+
+**A site that federates and does not run the shell** has to have its host
+do what the shell does for other servers: redirect the three addresses
+[above](#what-other-servers-ask-this-host) to the same paths on the API.
+Without that, nobody here can be found by their handle.
 
 ## What is not built
 

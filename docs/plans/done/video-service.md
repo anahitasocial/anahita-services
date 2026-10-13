@@ -107,7 +107,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 
 ## What was built
 
-The services, 2026-10-11. The page that describes them is [Videos](../videos.md).
+The services, 2026-10-11. The page that describes them is [Videos](../../videos.md).
 
 - `file-grpc-service`: large files sent to the store in parts, and addresses for a worker to read and write at, each held to its place (`uploads/`, `videos/`).
 - `video-service` and `video-worker`, one module with two programs. Migration `20261022000001_video_uploads`.

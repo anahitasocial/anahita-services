@@ -115,7 +115,7 @@ Video adds an hour inside item 16: one more address, the same switch.
 
 ## What was built
 
-2026-10-11, for photos and videos. Described in [Photo posts](../photos.md#downloading), [Videos](../videos.md#downloading) and [Permissions](../permissions.md#downloading-photos-and-videos).
+2026-10-11, for photos and videos. Described in [Photo posts](../../photos.md#downloading), [Videos](../../videos.md#downloading) and [Permissions](../../permissions.md#downloading-photos-and-videos).
 
 - `nodes.allow_download` (migration `20261023000001_allow_download`): on a post, the switch; on a person or a group, what their new posts start with. One column for both, as `quote_policy` is.
 - `PATCH /photos|videos/:id/download`, `GET /photos|videos/:id/download`, `PATCH /people|groups/:id/download-default`.

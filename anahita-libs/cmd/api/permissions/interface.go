@@ -18,4 +18,6 @@ type MediumNodeInterface interface {
 	GetAuthor() *entities.AnahitaNode
 	GetService() string
 	GetEntityName() string
+	// IsRemote says whether it came from another server.
+	IsRemote() bool
 }

@@ -35,6 +35,9 @@ type NotificationInterface interface {
 	// Add a new notification
 	Add(notification *entities.Notification) (int64, error)
 
+	// DeleteOfReply removes the news of a reply that is gone.
+	DeleteOfReply(replyID int64) error
+
 	// Delete a notification
 	Delete(notification *entities.Notification) error
 }
@@ -237,6 +240,25 @@ func (repo *Notification) Add(item *entities.Notification) (int64, error) {
 	}
 
 	return id, nil
+}
+
+const deleteNotificationsOfReply = `
+DELETE FROM notifications
+WHERE comment_id = ?`
+
+// DeleteOfReply removes the news of a reply, for everybody who was told:
+// the reply is gone, and a notification that leads to nothing is noise.
+// The reply's id is in comment_id, whoever it was news to.
+func (repo *Notification) DeleteOfReply(replyID int64) error {
+	if replyID <= 0 {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	_, err := repo.db.ExecContext(ctx, deleteNotificationsOfReply, replyID)
+	return err
 }
 
 // Delete a notification

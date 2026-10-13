@@ -41,7 +41,7 @@ So: on Bluesky the domain becomes the handle. On Mastodon the handle can't chang
 
 **Checking**
 - **DNS:** look up the TXT record with Go's resolver, against two public resolvers, so a stale local cache doesn't decide.
-- **Link back:** fetch the page with the SSRF-safe fetcher from the link preview service ([link-previews.md](link-previews.md): no private addresses, a size cap, a timeout) and look for `<a>` or `<link>` with `rel="me"` whose `href` is the actor's canonical profile URL.
+- **Link back:** fetch the page with the SSRF-safe fetcher from the link preview service ([link-previews.md](done/link-previews.md): no private addresses, a size cap, a timeout) and look for `<a>` or `<link>` with `rel="me"` whose `href` is the actor's canonical profile URL.
 - **Re-checks:** the sweeper re-checks verified domains weekly. Three failures in a row mark the domain `lapsed`, clear `verified`, and notify the person. A lapsed domain can be verified again.
 - **Names that could mislead:** domains are stored in punycode and shown in Unicode only when every label is in one script, the usual defence against look-alike domains.
 - **Rate limit** on verification attempts (the shared limiter).
@@ -62,7 +62,7 @@ Starting and removing require step-up, since a verified domain is part of identi
 - **Bluesky (item 8, AT phase):** atproto-service sets the domain as the handle on the PDS, once the `_atproto` record resolves to the person's DID. If the domain lapses, the handle falls back to `alias.DOMAIN`.
 - **Mastodon and the rest of ActivityPub (item 8, ActivityPub phase):**
   - the actor JSON lists the website as a profile field (a `PropertyValue` attachment), which is how Mastodon shows profile links;
-  - the profile page's HTML carries `<link rel="me" href="https://domain/">`, and the person's site links back with `rel="me"`. Mastodon then shows the link as verified. This has to be in the HTML the server returns, so it comes from the web shell ([open-graph.md](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/open-graph.md), item 10), not from the React app;
+  - the profile page's HTML carries `<link rel="me" href="https://domain/">`, and the person's site links back with `rel="me"`. Mastodon then shows the link as verified. This has to be in the HTML the server returns, so it comes from the web shell ([open-graph.md](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/done/open-graph.md), item 10), not from the React app;
   - `alsoKnownAs` on the actor lists `https://domain/`;
   - **optional, for search by domain:** the settings page offers a ready-made WebFinger file for the person to host at `https://domain/.well-known/webfinger`, so `@me@domain` finds their account from any fediverse server. Their handle shown on Mastodon is still the Anahita one.
 - **Remote accounts:** for Bluesky accounts whose handle is a domain, and Mastodon accounts with verified links, show the same mark. Bluesky handles are verified by the network already; for Mastodon links we run our own link-back check, since Mastodon doesn't send its verdict.

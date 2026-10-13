@@ -89,6 +89,7 @@ We want local people to follow Mastodon and Bluesky accounts, those accounts to 
 
 - Edge-to-activity mapping (`federation_edges`) is split the same way: each service keeps its own ids.
 - `federation_domain_blocks` lives in activitypub-service but is read by both through the shared package. For AT it matches on the handle or PDS host.
+  - **For row 26:** the list is edited through `/activitypub/blocks` only, so the screen in Site settings says the service is absent on an installation that runs AT Protocol alone. When atproto-service is built, either it serves the same list at its own address or the list moves to an address neither protocol owns, and the screen asks whichever is there.
 
 **Hooks in existing services** (small, and part of phase 0):
 - **graph-grpc-service:** the `uuid` and `uri` columns, the two remote actor types, `UpsertRemoteActor` / `UpsertRemoteNote` / `ReadByURI` RPCs, and remote types included where person-like actors are expected (and excluded from local people browse and counts).
@@ -164,6 +165,30 @@ Written by hand with small JSON structs and an HTTP-signature library (`github.c
 | **Total** | **about 27–35 h, 7–9 sessions** |
 
 ## Phase 1 — AT Protocol (native: PDS + Jetstream)
+
+> **How it is to be built, settled on 2026-10-13 before starting.** In two
+> parts, because they need different things of the installation:
+>
+> 1. **Reading Bluesky.** Somebody here looks up a Bluesky account, follows
+>    it, and its posts arrive, with what it posted lately read at the first
+>    follow: steps 4 and 5 below. This needs nothing of the installation
+>    but a way out to the internet. No PDS, no name of its own: it can be
+>    built and tried on a developer's machine as it is. The follow is kept
+>    here and the account followed is not told, since telling it is a
+>    record written to a PDS, which is the second part.
+> 2. **Being on Bluesky.** People here have a Bluesky identity, their posts
+>    go out, their follows are told, and who follows them is known: steps 1
+>    to 3. This needs a PDS at a name of its own and a handle for each
+>    person under a domain the installation owns, with a wildcard DNS record
+>    for it. **It cannot be tried under the tunnel's name** used for
+>    ActivityPub on 2026-10-12: a name lent by a tunnel has no names under
+>    it. It waits for a domain.
+>
+> What was built for ActivityPub is used by both parts as it is: remote
+> people and their posts in the graph (`UpsertRemote` takes an `at://`
+> address already), pictures copied into storage, cards for links, the
+> event that gives a kept post its hashtags, and the rule that a post from
+> elsewhere is kept only when somebody here follows whoever wrote it.
 1. **Run the official PDS** (`ghcr.io/bluesky-social/pds`, SQLite, lightweight) at `pds.DOMAIN`, alongside the stack in compose and k8s.
 2. **Provisioning on opt-in:**
    - atproto-service creates the person's PDS account through the PDS admin API, then stores the DID and credentials encrypted with `crypt`.
@@ -231,7 +256,7 @@ Written by hand with small JSON structs and an HTTP-signature library (`github.c
 
 ## Later phases (what more we can build)
 - **Phase 2, interaction:**
-  - replies in and out (after item 7: `inReplyTo`, AT `reply {root, parent}`);
+  - replies in and out (after item 7: `inReplyTo`, AT `reply {root, parent}`). For ActivityPub this is [phase 2a](#phase-2a--replies-both-ways-activitypub-agreed-2026-10-12), begun;
   - likes (`Like`, `app.bsky.feed.like`);
   - reposts (`Announce`, `app.bsky.feed.repost`);
   - notifications for remote follows, likes, replies and mentions;
@@ -258,6 +283,144 @@ Written by hand with small JSON structs and an HTTP-signature library (`github.c
   - keeping an Anahita-held did:plc rotation key so people can take their Bluesky identity elsewhere;
   - eventually a Go PDS (indigo) instead of the TypeScript container;
   - exposing feed generators to Bluesky.
+
+## Phase 2a — replies, both ways (ActivityPub; agreed 2026-10-12)
+
+Asked for by the user once following and posting worked against Mastodon
+itself: the next thing anybody does is answer. It is done before AT
+Protocol, and it is the first part of phase 2; likes, reposts and mentions
+of people elsewhere are separate steps after it.
+
+A reply here is a note with a parent and a root (`parent_id`, `root_id`),
+its author's own, seen by whoever may see the root. That is the shape
+ActivityPub has (`inReplyTo`), so nothing about replies changes: what is
+added is which of them cross between servers, and how.
+
+### Which replies go out
+
+A reply written here is sent to other servers when all of this is so:
+
+- its author is on the fediverse;
+- the thread's root is open to everybody, and the reply is not hidden or
+  removed;
+- **what it answers is something other servers can see:** a note that came
+  from another server, or a note here that itself went out. So a thread of
+  one's own notes goes out whole, and a reply under a note that never went
+  out stays here.
+
+It is sent as a `Note` with `inReplyTo` set to what it answers, by the
+address that has between servers. It goes to its author's followers, and to
+whoever wrote what it answers when they are on another server: they are
+named beside the text as mentioned (a `Mention`), which is what has
+Mastodon tell them, without their name being written into the reply.
+
+Changed, it is sent again; removed or hidden, other servers are told to
+drop it; the sweep finds a reply the bus lost as it finds a note.
+
+### Which replies come in
+
+A note from another server that answers something is kept when what it
+answers is known here, and:
+
+- **under a thread that began here:** its author may reply by the thread's
+  own rule, as anybody here must. Who may reply is the root's choice
+  (anyone, nobody, the author's followers, the people the author follows,
+  the people mentioned), measured for somebody elsewhere by the follows
+  between them and the author, which are in the graph like any other. The
+  profile's rule for who may comment counts somebody elsewhere as a
+  registered reader: somebody who chose to be on the fediverse has chosen
+  to be answered from it. Somebody the author has blocked is refused, and
+  so is a server that is refused;
+- **under a thread that began elsewhere:** only when somebody here follows
+  its author, the rule every note from elsewhere is kept by.
+
+Whoever wrote it need not be known already: they are looked up and kept,
+as somebody who follows from elsewhere is. A reply whose parent is not
+known here is dropped, as now. Fetching the rest of a thread from its own
+server is not part of this.
+
+It is kept as a reply like any other: under its parent, counted, seen by
+whoever may see the root, never wider. Whoever it answers here is notified
+as for a reply written here. It can be hidden or removed here by whoever
+looks after the thread; that changes nothing on its own server.
+
+### Replying from here to something from elsewhere
+
+Today nobody may. With this, somebody here may reply to a note from another
+server that they can see.
+
+- **On the fediverse:** their reply goes to its author and their own
+  followers.
+- **Not on the fediverse:** their reply stays here, as a conversation among
+  the people of this installation about something from elsewhere. The web
+  app says so before it is posted, as it says of a note kept to followers.
+  (Decided for now; the other course is to refuse, which needs every
+  service that takes a reply to know who is on the fediverse.)
+
+Liking something from elsewhere stays refused until likes are sent.
+
+### What changes where
+
+| Where | What |
+| --- | --- |
+| graph-grpc-service | `UpsertRemote` takes a note with a parent: the parent must be a note that is there, and the reply is given its root and counted. `DeleteRemote` counts again |
+| anahita-libs | The rule that nobody replies to something from elsewhere is lifted; a reader from elsewhere can be measured by the reply rules |
+| activitypub-service | Out: `goesOut` for a reply, `inReplyTo`, the `Mention`, the parent's author's inbox. In: a note with `inReplyTo`, by the rules above; the event that says it was kept. The sweep's queries take replies in |
+| notification-service | Tells whoever was answered, from the event for a note kept from elsewhere |
+| anahita-web | Reply is offered on a note from elsewhere; the composer says when a reply will stay here |
+
+### How it is tried
+
+Unit tests for each rule, the graph against a real MySQL, and then against
+Mastodon itself through the tunnel: a thread of one's own notes, a reply
+from Mastodon to a note here, a reply from here to a note on Mastodon, and
+an edit and a deletion of each.
+
+## Phase 2b — likes and reposts, both ways (ActivityPub; agreed 2026-10-12)
+
+Asked for by the user after replies worked against Mastodon: "Do the likes
+and reposts work?" They did not cross. Done before AT Protocol, likes
+first.
+
+### Likes
+
+A like here is an edge from whoever likes to what is liked
+(`edge.base.voteup.v1`), made through like-service and said on the bus.
+Between servers it is a `Like`, taken back with an `Undo`.
+
+- **Going out.** Somebody on the fediverse likes a note or a reply that
+  came from another server: its author's server is sent a `Like`. Taken
+  back, it is sent an `Undo`. The `Like` is named from who liked and what,
+  so that taking it back can name it again without anything being kept.
+  A like by somebody who is not on the fediverse stays here, as their
+  reply does.
+- **Coming in.** A `Like` of a note or a reply here that went out is kept
+  as a like by the person kept for whoever sent it: counted, and its author
+  told, as for a like made here. Somebody the author has blocked is
+  ignored. `Undo` takes it away.
+- **The rule that nothing from elsewhere is liked is lifted.**
+
+### Reposts
+
+A repost here is a node of its own on the reposter's profile
+(`node.base.repost-service.repost.v1`). Between servers it is an
+`Announce`, what Mastodon calls a boost.
+
+- **Going out.** Somebody on the fediverse reposts a note that other
+  servers can see (one from elsewhere, or one here that went out): their
+  followers' servers, and the note's author's when it is from elsewhere,
+  are sent an `Announce`. Taken back, an `Undo`.
+- **Coming in, of something here.** Counted, and the author told.
+- **Coming in, of something from elsewhere,** by somebody followed from
+  here: the post and whoever wrote it are read from their own server and
+  kept, and the repost is shown on the reposter's profile and in the feeds
+  of who follows them. This is the part that reads from a third server,
+  and is done last.
+
+### How it is tried
+
+Unit tests, then against Mastodon through the tunnel: a favourite and a
+boost each way, and each taken back.
 
 ## Open: reading the fediverse from a private site (noted 2026-10-04)
 
@@ -361,4 +524,696 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Item | State |
 | --- | --- |
 | Plan | written 2026-09-28 |
-| Implementation | not started |
+| 0.1 Hosting layout | settled by item 10, 2026-10-11: see below |
+| 0.2 UUIDs on nodes | done 2026-10-11 |
+| 0.3 Public addresses | done 2026-10-11 |
+| 0.4 Stable media addresses | done 2026-10-12, for avatars and covers |
+| 0.5 Remote identity | the graph's part done 2026-10-11; the protocols' own tables come with each service |
+| 0.6 Content conversion | done 2026-10-11 |
+| 0.7 Durable delivery queue | done 2026-10-12 |
+| 0.8 Routing and the TLS lab | done 2026-10-12; the gateway's routes to `activitypub-service` come with that service |
+| Phase 1, ActivityPub: the service, opting in, keys, discovery, a person's description | done 2026-10-12 |
+| Phase 1, ActivityPub: signing and checking requests, fetching, looking somebody up | done 2026-10-12 |
+| Phase 1, ActivityPub: the inbox, being followed from elsewhere, the delivery worker | done 2026-10-13 |
+| Phase 1, ActivityPub: following from here, and the other server's yes or no | done 2026-10-13 |
+| Phase 1, ActivityPub: notes out and in, with their changes and deletions | done 2026-10-13 |
+| Phase 1, ActivityPub: the web app: the switch, people and posts from elsewhere, the lookup | done 2026-10-13 |
+| Phase 1, ActivityPub: leaving, profile changes, accounts closed elsewhere, refused servers, a limit on the inbox, NodeInfo | done 2026-10-13 |
+| Phase 1, ActivityPub: avatars of people elsewhere, their earlier posts | done 2026-10-13 |
+| Phase 1, ActivityPub: covers of people elsewhere; refused servers kept by super administrators, with a screen in Site settings | done 2026-10-12 |
+| Phase 1, ActivityPub: hashtags of posts from elsewhere; the sweep for what the bus lost; no notifications made for people elsewhere | done 2026-10-12 |
+| Phase 1, ActivityPub: a test against Mastodon itself with a real name | begun 2026-10-12, through a tunnel: following both ways, a note out and its deletion worked with mastodon.world (Mastodon 4.7.3). Replies arrived by themselves, through the same inbox a note does; a note's own edit going out was tried by a reply's |
+| Phase 1, ActivityPub: the sweep also finds a lost edit of a note or a profile, by what is on record of what other servers were last sent (`told_updated_at`, migration `20261102000001`) | done 2026-10-12 |
+| Phase 2a, ActivityPub: replies both ways | done 2026-10-12, and tried against mastodon.world: new, changed and taken away, each way |
+| Phase 2b, ActivityPub: likes and reposts both ways | done 2026-10-12, and tried with mastodon.world: a like and a repost each way, and each taken back |
+| Phase 3a, ActivityPub: cards, pictures and custom emoji of posts from elsewhere | done 2026-10-12, and tried with mastodon.world |
+| Phase 1, AT Protocol, part 1: reading Bluesky (look up, follow, posts arriving) | built 2026-10-12, and tried against Bluesky itself for looking up, reading recent posts and hearing new ones; following through the web app is still to be tried by a person |
+| Phase 1, AT Protocol, part 2: being on Bluesky (PDS, handles, posts and follows going out) | not started: needs a domain of the installation's own |
+
+## What was built
+
+### Phase 1, ActivityPub, begun 2026-10-12
+
+**The service, and being found.** `activitypub-service` (port 8105), with
+the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
+(migration `20261027000001_activitypub.sql`); the page `docs/federation.md`.
+
+- A person turns it on for themselves (`/activitypub/settings`), and only
+  when their profile is open to everybody on a site that is open to read and
+  can be reached. A key is made for them then.
+- WebFinger, host-meta, a person's description, and the lengths of their
+  followers and following.
+- **Tried in the lab against GoToSocial:** asked to find
+  `rastin@anahita.test`, it asked the web app's host, was sent on to the
+  API, fetched the description, and answered with the account, its name, its
+  page, when it joined, what it says of itself with the hashtags as links,
+  and the avatar and cover, which it fetched through the addresses that
+  stay.
+
+**Cards for links in posts from elsewhere (the first of phase 3).**
+`cards.go`; link-preview-service's `ReadInternal`.
+
+- **Asked for after a BBC News post arrived as its words alone.** A post
+  from another server with a link in it is given a card made by this
+  installation's own link-preview-service, asked at an address only the
+  other services reach. Tried on that post, read again from Flipboard with
+  the new `reread` command: it has its title, its description and its
+  picture.
+- **Pictures that come with a post.** `pictures.go`; the graph keeps a
+  photo post from another server. A post with pictures is a photo post
+  here, its pictures copied into storage at the sizes an upload is kept
+  at. One marked sensitive is kept without them. Tried with
+  mastodon.world: a post with a picture arrived as a photo post, with what
+  its author said the picture shows; and a like of it from here was sent.
+- **A custom emoji is taken out of names and posts,** where it showed as
+  the word between colons.
+- **A photo post written here goes out with its pictures,** as a note
+  with them attached, each fetched from an address of this installation's
+  that answers only while the post goes out. Tried by unit tests; against
+  Mastodon, still to try.
+- **Still to do in phase 3:** the pictures that stand for custom emoji; a
+  picture behind a warning; and removing from storage the pictures of somebody whose account
+  is closed elsewhere, which today goes only for a post taken away one at a
+  time.
+
+**Likes and reposts, both ways (phase 2b).** `likes.go`, `reposts.go`;
+migration `20261104000001` (`activitypub_objects.kind`).
+
+- **Built as planned,** the third part included: a note boosted by
+  somebody followed from here, that nobody here had seen, is read from its
+  own server and kept with whoever wrote it. Tried by unit tests; against
+  Mastodon, still to try.
+- **The rule that nothing from elsewhere is liked is lifted.** A like by
+  somebody who is not on the fediverse stays here, as their reply does;
+  there is no word for it in the web app as there is for a reply.
+- **Tried against the fediverse the same evening,** and by strangers before
+  by design: a boost of a note from here by an account on a Misskey server
+  was kept, counted and told; boosts from mastodon.world were kept and, taken
+  back, removed; and a BBC News post on Flipboard, boosted by somebody
+  followed from here, was read from its own server and kept with its
+  author. A repost made here went out and was taken back; a like made
+  here reached Mastodon; and favourites from Mastodon, of a note and of a
+  reply here, were kept and their author told.
+- **The news of a repost from elsewhere goes when it is taken back**
+  (`federation.repost.repost.note.deleted.v1`), which at first it did not.
+- **Seen in that trial, and for phase 3:** a post that is mostly a link and
+  a picture arrives as its text alone. Neither the picture nor a card for
+  the link is kept yet.
+- **Not done:** the sweep does not find a like or a repost the bus lost.
+
+**Replies, both ways (phase 2a).** `replies_in.go`, `notes.go`
+(`answers`), the graph's `nodes_remote.go`, `permissions/reply.go`,
+notification-service's `event_node_reply.go`; migration `20261103000001`.
+
+- **Built as planned, and tried against mastodon.world:** a reply written
+  here under a note that had gone out appeared there as a reply, and a
+  reply written there appeared here under the note, counted, with its
+  writer told. A reply from here to something written on Mastodon went to
+  that server's inbox, and a reply changed on either side was changed on
+  the other; taken away on either side, it went from the other, and the
+  news of it with it.
+- **A reply from elsewhere that people here answered is emptied and kept**
+  when it is taken away there, not removed: found by reading the code
+  after the tests, since removing it left their answers hanging from
+  nothing.
+- **Somebody here named at the start of a reply from Mastodon** is kept as
+  the name alone, so that it reads as a mention here and not as a link out
+  to their own page.
+- **Where a reply went beyond its author's followers is kept**
+  (`activitypub_objects.reply_inbox`), which the plan did not have: a
+  reply that is deleted is gone by the time anybody hears of it, and
+  whoever it answered has to be told as well.
+- **Nobody elsewhere is notified here.** Somebody here who answers a note
+  from another server made a notification for its author, who can never
+  read it; that is stopped.
+- **Hashtags are told to other servers at `/tags/<name>`,** which leads to
+  the web app's own page. Found against Mastodon: its website opened a
+  hashtag in a note from here as its own, and its phone app opened the
+  link in a browser. What Mastodon stored was whole, with every hashtag
+  registered; what differed from a note written on Mastodon was the shape
+  of the link's address, and the app is taken to go by that. To be
+  confirmed with a note sent after the change.
+
+**Mastodon itself, both ways.** The development machine, reached from the
+internet through a tunnel (Tailscale Funnel) under a name of its own, with
+the three `PUBLIC_` settings saying that one name for the site and the API
+alike.
+
+- **Everything the setup guide's checks ask for answered** from the
+  internet: the installation's own actor and key, a person found by their
+  handle, their description. One name for both the site and the API works.
+- **Somebody here followed an account on mastodon.world:** the signed
+  `Follow` was accepted within ten seconds, and the account's recent public
+  posts were read, 17 of the last 20 (the others were replies and boosts),
+  with their emoji and quotation marks whole.
+- **That account followed back:** the `Follow` arrived, was checked, and
+  was answered with an `Accept` that Mastodon took.
+- **A public note written here reached Mastodon's home feed.** One written
+  for followers only was not sent, and deleting it sent nothing.
+- **Still to try:** a post arriving from Mastodon by itself, and an edit
+  and a deletion going out.
+- **Found:** the composer does not say that a post kept to followers will
+  not be shared with the fediverse, which the plan asked for.
+- **To look at with a note that is left up:** the user's click on a hashtag
+  in a note of theirs, on Mastodon, went to this installation's address
+  and not to Mastodon's own page for the hashtag. What was sent has the
+  shape Mastodon's own notes have (a link marked as a hashtag, and the
+  hashtags listed beside the text). Whether Mastodon kept the hashtags can
+  be read from its public API while such a note is there. In this test the
+  address leads to the tunnel, which is the API and shows nothing; on a
+  live site it is the site's own page for the hashtag.
+
+**Hashtags of posts from elsewhere.** `federation.PostToMarkdown`,
+`anahita-libs/event/remote.go`, hashtag-service.
+
+- **A note from another server is given its hashtags as any note is:** the
+  link around each is taken off on the way in, and hashtag-service, told by
+  an event of its own, makes the ones that are not here and ties the note
+  to them. Tried in the lab: `#gardening` did not exist, and after alice's
+  note was read again it did, with her note under it.
+- **Found on the way: no new hashtag had been made by anybody,** here or
+  elsewhere, since the graph began to ask who made each node:
+  hashtag-service named the author and not `created_by`, and the graph
+  refused. A post with a hashtag that already existed was tied to it; one
+  with a new hashtag was not. Fixed.
+
+**Pictures, and earlier posts.** `avatar.go`, `backfill.go`.
+
+- **An avatar is copied into this installation's storage,** re-made at its
+  own sizes, and never shown from where it came from. Tried with a real
+  account: the avatar of `rastin@mastodon.world` was fetched, stored and
+  served through the API like anybody's.
+- **So is their cover** (`image` in their description, Mastodon's header),
+  by the same path: `activitypub_actors.header_url` says when it changes,
+  the graph keeps `cover_filename` for a remote person. Tried with the same
+  account: its header was stored and comes back in `cover_urls`.
+- **On a first follow, up to twenty recent public notes are read** from the
+  person's own server. Tried in the lab: two notes alice had posted before
+  anybody followed her arrived when she was followed.
+- **First contact with Mastodon itself,** by accident and to good effect:
+  the user looked up their own account on mastodon.world from the lab, and
+  it was found and understood. The lab reaches the internet, and Mastodon
+  answers for a public profile without being able to check who asks. So
+  **the lab now writes only to servers whose names end in `.test`**: what
+  it sent a real server could not be checked there, and would be tried for
+  two days.
+- **Found on the way:** the command-line lookup stopped before the picture
+  was copied, since that is done beside the answer; the commands now do all
+  of their own work before they stop.
+
+**Leaving, changes, and refusing servers.** `leaving.go`; the inbox's
+`Update` and `Delete` of a person; the graph's `DeleteRemoteActor`;
+`blocks.go` and table `federation_domain_blocks` (migration
+`20261031000001`); a limit of 600 a minute on the inbox;
+`FEDERATION_PROTOCOLS` for NodeInfo; and the page `docs/federation.md`
+rewritten around a guide to setting it up.
+
+- **Leaving sends a `Delete` of the person,** to every server with a
+  follower of theirs or somebody they follow, and undoes the follows here.
+  The same when somebody stops being eligible: profile made private,
+  disabled, archived, deleted.
+- **Tried in the lab, and what was learned:** with follows both ways round,
+  leaving removed them on both sides and GoToSocial marked the account
+  suspended. **Joining again was not accepted:** GoToSocial still answered
+  with the suspended, emptied account. So leaving is for good as far as a
+  server that was told goes. The web app now asks before it is turned off
+  and says that making a profile private does the same. This is the
+  consequence of two rules that are both right (only public profiles
+  federate; a person who leaves is removed elsewhere), and is the one thing
+  in this phase a person can do by accident and not undo.
+- **A warning where a profile's audience is chosen** (user, 2026-10-13),
+  and a second asking before it is saved: the one choice on that card that
+  is confirmed. An administrator may read whether somebody else is on the
+  fediverse, so as to be warned too.
+- **Considered and not chosen: leaving quietly,** by simply not answering
+  any more. Other servers would keep the profile and every post they were
+  sent, in public, for good, which is the opposite of what somebody who
+  turns it off or makes their profile private is asking for. The user
+  chose to keep to what the fediverse does (2026-10-13).
+- **A stranger's `Delete` of themselves is taken unchecked.** Checking
+  would mean asking a server for the key of an account it has just
+  removed, once for every account closed anywhere on a large server.
+- **Refusing a server does not remove what came from it.** Not in the plan
+  either way; removing people in bulk is a decision for an administrator to
+  take one at a time until there is a screen that shows what would go.
+- **Refused servers are the super administrators' to keep,** not every
+  administrator's: the three requests answer `403` to anybody else, and the
+  web app has the list in Site settings, under Fediverse.
+- **Still to do:** the limit is by address and fixed at 600 a minute.
+
+**The web app, and what may be done with what came from elsewhere.**
+
+- **Web:** the Fediverse card under Settings › Privacy; a remote person
+  opened at `/people/<handle>` by the same page as anybody, with their
+  whole handle, a notice that they are on another server and a link to
+  their page there; "View on <server>" on a remote post; the lookup card on
+  the search page. Tests for the helpers; the app builds.
+- **Services:** `GET /people/<handle>` in actor-service serves a remote
+  person, read-only; responses carry `uri` and `origin_domain`; and the
+  shared permissions refuse posting on a remote profile, changing a remote
+  post, and liking or replying to one, for everybody, administrators
+  included (`permissions/remote_test.go`). An administrator could do all of
+  these before this.
+- **Different from the plan:** the plan had the app choose a badge by the
+  person's type and show "Reply on <server>" links. The notice and the
+  "View on" link are what was built; a reply there is one click further.
+  Likes and replies are refused by the server, not merely hidden.
+- **Not tried in a browser by me.** The API was: a remote person's profile
+  and feed answer for a visitor, and nobody@nowhere is not found.
+
+**Notes, out and in.** `notes.go` and `ap/note.go`; the inbox's `Create`,
+`Update` and `Delete`; `/ap/notes/<uuid>` and the outbox; the graph's
+`DeleteRemote`; table `activitypub_objects` (migration `20261030000001`).
+
+- **Tried in the lab, all four ways:** a note posted here appeared in
+  alice's home timeline on GoToSocial, with its bold text and its hashtag
+  as a link, and went from it when deleted here; a note she posted was kept
+  here in her name, in French as she said, and went when she deleted it.
+- **Which notes went out is recorded,** which the plan did not have. A
+  deleted note's node is gone before anybody hears of the deletion, so
+  without a record there is nothing left to say what it was called; and the
+  record is what makes a note go out once though every copy of the service
+  hears of it.
+- **A note that stops being public is taken back,** with a `Delete`. Not in
+  the plan, and the only safe reading of "only public posts federate".
+- **The graph removes a note from elsewhere only for its author**
+  (`DeleteRemote`): the service passes on what it was sent, and is not
+  trusted with deleting nodes by number.
+- **The outbox says how many and not which.** The plan had it list recent
+  posts; nothing here reads another server's outbox yet either, so there is
+  no backfill in either direction. With the web app's part.
+- **Still to do, found here:**
+  - an account closed elsewhere (`Delete` of the person): their follows and
+    posts here stay until that is handled;
+  - what a note mentions is linked and listed, but the person mentioned is
+    not sent it unless they follow (phase 2, with replies).
+
+**Following from here.** `events.go` listens for `edge.follow.*` on the bus
+and sends `Follow` and `Undo`; the inbox takes `Accept` and `Reject`.
+
+- **Tried in the lab:** somebody here followed alice on GoToSocial, whose
+  account approves its followers. The request appeared for her there and
+  was pending here; she approved it and it was accepted here; unfollowed
+  from here, GoToSocial no longer listed the follower.
+- **The follow is made at once and settled afterwards,** where the plan had
+  a request to follow that became a follow on `Accept`. Following had to use
+  the existing button and the existing service unchanged, as the plan also
+  says, and those make a follow of a profile that is open to everybody, not
+  a request. So the follow is there from the start, recorded as pending, and
+  a `Reject` takes it away. The web app can say "requested" from the record.
+- **Nobody on the fediverse approves their followers,** where the plan held
+  a follow from elsewhere for anybody with `allow_follow_request`. That
+  setting is for a profile that is *not* open to everybody, which does not
+  federate; a public profile is followed by any stranger here, and a
+  stranger elsewhere is held to the same and no more. It also removes what
+  was listed below as still to do: answering a request that was held.
+- **The sweep for what the bus lost is written** (`sweep.go`, `missed.go`):
+  follows never asked about and follows that are over, notes never sent and
+  notes that are gone, and people who may no longer be on the fediverse.
+  Each is handed to what handles the event, which does its work once. Its
+  first run on the development data found a follow of somebody on a real
+  server that the lab should have taken away when it was made, and took it
+  away. A lost edit of a note or a profile is found since, by
+  `told_updated_at` on what was sent.
+
+**The inbox, and being followed.** `POST /inbox` and each person's own;
+`Follow` and `Undo(Follow)`; the queue's table `activitypub_deliveries` and
+its worker; `activitypub_follows` (migration `20261029000001`).
+
+- **Tried in the lab:** alice on GoToSocial followed somebody here. It
+  showed "requested", this installation checked her signed `Follow`, made
+  the follow and sent a signed `Accept`, and within seconds GoToSocial
+  showed "following". She unfollowed, and the follow was gone here.
+- **The worker runs inside the service,** not as a process of its own with
+  a lock, as the plan had it. The queue hands a row to one worker at a
+  time, so any number of copies may run.
+- **A key may have an address of its own.** Mastodon names a key as its
+  owner's address with `#main-key`; GoToSocial gives it a path
+  (`…/users/alice/main-key`). Who signed is found from the key's own
+  address either way, and must be on the key's server.
+- **Still to do, found here:**
+  - **A follower from elsewhere was subscribed to the person they follow,**
+    as every follower is (`edge.base.subscription.v1`), so
+    notification-service would have made notifications for somebody who can
+    never read them. Stopped there since: a follower from elsewhere is not
+    subscribed, and nothing is made for somebody elsewhere who is followed
+    from here. Somebody here is still told that they were followed, and
+    the web app can now show who by.
+  - **No limit yet on how much one server may send,** and no list of servers
+    that are refused. Both before any live site federates.
+
+**Signed requests, and looking somebody up.** `httpsig/` (signing and
+checking), `fetch/` (reading from other servers, guarded and signed),
+`remote/` (who somebody elsewhere is and what is believed of it), the
+installation's own actor at `/ap/actor`, `GET /activitypub/lookup`, and the
+table `activitypub_actors` (migration `20261028000001`).
+
+- **Tried in the lab against GoToSocial,** which answers nobody without a
+  signature it can check: `app-binary lookup @alice@gts.test` found her and
+  kept her. On the way GoToSocial fetched this installation's key and asked
+  WebFinger who it belongs to.
+- **Signatures are written here and not taken from the library the plan
+  named.** The scheme is a hundred lines and fixed; every line of it is
+  something an attacker will try, and each check has its own test.
+- **Found by trying, not by reading:**
+  - A server that is shown a key asks WebFinger for `name@<the host in the
+    key's address>`. Here that host is the API's and not the handle's, so
+    WebFinger answers for both and names the real one. Without this,
+    GoToSocial refused every signed request.
+  - The installation's own actor has to be found by WebFinger too, as
+    `example.org@example.org`.
+  - A proxy that does not pass on the `Host` it was asked for breaks every
+    signature. The lab's own front door did, for GoToSocial.
+- **The guarded HTTP client moved** from link-preview-service to
+  `anahita-libs/safehttp`, for both services.
+- **Avatars of people elsewhere are not shown yet.** Their address is kept
+  (`activitypub_actors.icon_url`); copying the picture into this
+  installation's storage, so that no reader's browser calls another server,
+  is still to do.
+- **A handle that somebody else kept here already has** falls back to
+  `name@<the server they are on>`; when that is taken too the lookup fails.
+  Rare, and to be looked at again with profile updates.
+
+**Different from the plan, or decided on the way:**
+- **Somebody who is not on the fediverse answers `404`, always,** and never
+  `410`. The plan had a purged person answer `410 Gone`. That would tell
+  anybody who asks that an address was once somebody's, and of every other
+  reason the plan itself says "404 or 410". Telling the servers that knew
+  somebody to forget them is done by sending them a `Delete`, which is for
+  the part that sends.
+- **`setViewer` is on every route other servers use,** though a server has
+  no token: it is what answers for a site that is for members only, and the
+  test that every route names its viewer holds this service to it like the
+  rest.
+- **A person's description is not served at their page's address** by
+  asking for it as JSON. Their page is on the web app's host, which the
+  shell serves; WebFinger gives the address directly, which is what servers
+  use. Left for when something needs it.
+- **Opening one's account to the fediverse again after turning it off** will
+  need care once turning it off sends a `Delete`: Mastodon treats a deleted
+  person as gone for good. To be decided with the part that sends.
+
+### Phase 0, begun 2026-10-11
+
+**0.1, the hosting layout.** Settled when the web shell was built (item 10),
+and not as this plan expected. The web app is on its own host, sent by
+`web-shell`, and the API on another (`api.DOMAIN_NAME`): page addresses and
+API addresses collide (`/people/ana` is both), so one front could not serve
+both. What follows for federation:
+
+- **A person's handle is on the web app's host,** `ana@example.org`, since
+  that is the name people know the site by.
+- **Everything another server fetches is on the API's host:** a person at
+  `https://api.example.org/ap/users/<uuid>`, their inbox, their posts.
+- **So the web app's host must answer `/.well-known/webfinger`** by sending
+  the asker on to the API. That is for 0.8, in `web-shell` and for whoever
+  hosts the web app some other way.
+
+**0.2, UUIDs.** `nodes.uuid`, unique, version 4 (migration
+`20261025000001_node_uuid.sql`, and the same in `schema/init.sql` and
+`legacy/upgrade.sql`). Read with every node, and a node is found by it
+(`ReadByUUID` in the graph and in `anahita-libs/data/services`).
+
+- **The database gives it, as the column's default,** and not the code that
+  adds a node. Nodes are added in more than one place, and by tests and the
+  upgrade from the PHP application; a default cannot be forgotten by any of
+  them. Version 4 and not MySQL's own `UUID()`, which is made of the time and
+  of the machine's network address.
+- **Added in three steps.** A default that differs each time cannot be given
+  to the rows already there by adding the column with it (MySQL error 1674),
+  so the column is added empty, filled, and then made required.
+- **Not sent to browsers.** The web app has no use for it.
+
+**0.3, public addresses.** `anahita-libs/site`: the domain of a handle, the
+web app's address and the API's, from `PUBLIC_DOMAIN`, `PUBLIC_WEB_URL` and
+`PUBLIC_API_URL`, each worked out from `DOMAIN_NAME` and `ENV` when it is not
+set, the way auth-service works out its own. `CanFederate` refuses addresses
+no other server could reach: this machine, a private network, anything not
+https.
+
+- **Different from the plan:** `PUBLIC_WEB_URL` existed already (the web
+  shell and the export worker go by it), so it is the third setting and not a
+  new one; and nothing has to be set on a site whose hosts are the usual ones.
+- **The services that have their own idea of these addresses were left as
+  they are** (auth-service's `FRONTEND_URL`, actor-service's `WEB_ORIGIN`).
+  They agree with this package wherever the usual hosts are used, and it
+  reads `FRONTEND_URL` too.
+
+**0.4, an address for a picture that does not change.**
+`GET /avatars/<uuid>/<size>` and `GET /covers/<uuid>/<size>`, in
+`identity-image-service`, answer with a redirect to a freshly signed
+address, kept for five minutes.
+
+- **Only for what anybody may see.** The node is asked about as somebody not
+  signed in and must say of itself that it is public; a members-only site
+  answers for nothing. Everything else is not found, with nothing said.
+- **By UUID and by the node, not by the file's key** as the plan had it
+  (`/media/<key>`). An address made of a key would have sent anybody on to
+  any file whose name they could work out, whoever it was meant for.
+- **Avatars and covers only.** They are what a person's description to
+  another server carries. A photo post's images get theirs when photos
+  federate (phase 3).
+- **Not built: letting another server's address for a picture pass through
+  unsigned.** A picture shown straight from another server tells that server
+  who looked. A remote person's avatar is to be copied into this
+  installation's storage, as a link preview's picture already is; that is
+  for phase 1, with the service that fetches them.
+
+**0.7, the queue of what is to be sent.** `anahita-libs/federation`
+(`queue.go`): `Enqueue`, `Claim`, `Done`, `Fail` and `Run`, over a table
+whose shape is `TableSQL`. Each protocol's service has a table of its own.
+
+- **A row is taken by putting off when it is next due,** and not by a state
+  of its own. A worker that stops leaves nothing to put right: its row is
+  simply due again ten minutes on. The first version marked a row as being
+  sent and reset the ones held too long, and eight workers on one table
+  deadlocked on it.
+- **Tried again after 1, 4, 16, 64 and 256 minutes, then every six hours,
+  for two days;** given up at once when the other server says the address is
+  gone (`Permanent`). What is given up is kept, with why.
+- **Added once** when given a key, so that whatever sweeps for what the bus
+  lost can add again what is already waiting.
+- Tested against MySQL with `FEDERATION_TEST_DSN`: eight workers, two
+  hundred rows, each sent once.
+
+**0.8, routing and the lab.**
+
+- **The web app's host sends on what other servers ask it.** `web-shell`
+  answers `/.well-known/webfinger`, `/.well-known/host-meta` and
+  `/.well-known/nodeinfo` with a redirect to the same path on the API
+  (`PUBLIC_API_URL`). Whoever hosts the web app some other way has to do the
+  same; that is in `docs/web-shell.md`.
+- **The lab** (`make fedi_lab`, `docs/federation-lab.md`): https at
+  `anahita.test`, `api.anahita.test` and `gts.test` on one machine, with a
+  GoToSocial to talk to. Tried: from inside the network, GoToSocial and this
+  installation's API each answer by name over https to a caller that trusts
+  only the lab's authority, and an account made on GoToSocial is found by
+  WebFinger.
+- **Not done here: the gateway's routes to `activitypub-service`** (`/ap/`,
+  `/inbox`, `/.well-known/webfinger` on the API). nginx will not start with
+  a route to a service that does not exist, so they are added with the
+  service, first thing in row 25.
+- **Nothing to fix in `k8s/99-ingress.yml`:** item 9 replaced it with the
+  overlays' own ingress, which has TLS from cert-manager.
+
+**0.5, what comes from another server.** The graph's part.
+
+- **`nodes.uri` and `nodes.origin_domain`** (migration
+  `20261026000001_node_remote.sql`, and the same in the other two places).
+  A node with a `uri` came from elsewhere; one without was made here.
+- **Two types of person,** `node.actor.activitypub-service.person.v1` and
+  `node.actor.atproto-service.person.v1`. A note from elsewhere is an
+  ordinary note.
+- **`UpsertRemote` and `ReadByURI`** in the graph and in
+  `anahita-libs/data/services`. One call for a person or a note, not the two
+  the plan named: what differs between them is what is refused, and that is
+  decided in one place.
+- **What the graph refuses, whatever the caller sends** (`nodes_remote.go`,
+  each with a test): anything but a person of another server or a note; a
+  note on the profile of somebody here, or by them; an address that is one
+  of this installation's own, or not https or `at://`; a name that could be
+  a username here; and, for something already known, any change to what kind
+  of thing it is or whose it is. The services that will call this read the
+  internet, so none of it is left to them.
+- **Who is counted.** Everything that asks for people by their type leaves
+  people elsewhere out without being told. Two places asked for "an actor
+  that is not a person" or "any post", and were told: the site's count of
+  posts in NodeInfo, and the count of groups before making everything
+  private. Search finds people elsewhere who are kept here, which is meant.
+- **Not built here: `federation_actors`, `federation_edges`, `actor_keys`.**
+  The plan's own table of what each service owns gives them to
+  `activitypub-service` and `atproto-service`, so they are made with those.
+- **A name already held.** If somebody elsewhere takes a handle that another
+  kept person still has here, the second is refused
+  (`ErrRemoteAlias`). The protocol service has to bring the first up to date
+  and try again; noted for phase 1.
+
+**0.6, the text of a post.** `anahita-libs/federation`:
+
+- **`ToHTML`**: a post's Markdown as the HTML other servers are sent
+  (goldmark, with the same GitHub flavour the web app reads), the people and
+  hashtags it names made into links marked up as Mastodon marks them, and
+  listed beside the text for the protocol to carry. Who a name is, is asked
+  of the caller; somebody who cannot be found is left as written.
+- **`ToMarkdown`**: the HTML of a post that arrived, as the Markdown a post
+  here is kept as (html-to-markdown).
+- **Both pass through one short list of what a post may be made of**
+  (bluemonday): paragraphs, emphasis, quotations, lists, code, headings and
+  links to the web. No pictures, which travel beside the text; nothing that
+  runs or styles. HTML typed into a post is not passed on as HTML.
+- **`entities.ParseMentions` understands `@user@host`.** This was a fault
+  already, with or without federation: `@alice@mastodon.social` was read as
+  `@alice`, so whoever is called alice here was told they had been
+  mentioned. Somebody named on another server is now nobody here, unless the
+  host is this installation's own. The web app's filter was made to agree:
+  it also made a link of the end of an email address.
+- **The libraries were added at versions that leave the rest of the module
+  alone** (html-to-markdown 2.3.3, goldmark 1.7.13, bluemonday 1.0.27). The
+  newest of each asked for a newer Go and newer `golang.org/x` modules than
+  the services are built with. `go mod tidy` is not run on `anahita-libs`:
+  it upgrades what it has no reason to.
+
+### Phase 1, AT Protocol, part 1: reading Bluesky, 2026-10-12
+
+**The service.** `atproto-service` (port 8106), with the gateway's route
+`/atproto/`, the compose entry, the Kubernetes manifest and the Makefile
+targets; tables `atproto_actors` and `atproto_cursor` (migration
+`20261105000001_atproto.sql`); the section "Reading Bluesky" in
+`docs/federation.md`.
+
+**What it does.** Looks an account up through Bluesky's public reader
+(`app.bsky.actor.getProfile`) and keeps it as
+`node.actor.atproto-service.person.v1`, with its avatar and banner copied
+here. When somebody here follows it, reads its twenty most recent posts
+(`app.bsky.feed.getAuthorFeed`), and from then on hears its posts from
+Jetstream. One copy of the service listens, holding a lock in the database;
+the time of the last thing dealt with is kept, so a listener that begins
+again asks for what it missed. Posts taken away, profiles changed and
+accounts closed are heard the same way.
+
+**What both protocols now share.** Keeping pictures, cards for links and
+the list of refused servers were in `activitypub-service` and were moved to
+`anahita-libs/federation`, where this service uses the same code.
+`actor-service` reads a handle with a dot in it as somebody on Bluesky.
+
+**Decided while building, to be overruled if wrong:**
+
+- **The follow is an edge in the graph and nothing more.** There is no
+  table of follows as ActivityPub has, since nobody is told and there is
+  nothing to wait for.
+- **Everybody on Bluesky is kept as coming from `bsky.app`,** whichever
+  server their account is on: it is where people read Bluesky, and where
+  "View on" leads.
+- **It runs on a site for members only.** The rule that such a site does
+  not federate is about what leaves, and nothing leaves here. An operator
+  who wants none of it leaves the service out.
+- **Refusing `bsky.app` refuses the whole of Bluesky;** refusing a name
+  refuses the handles under it.
+- **No part of this is somebody's choice to make in their settings:**
+  following an account on Bluesky tells nobody anything.
+
+**Left for later, each noticed while building:**
+
+- Replies, and reposts by the accounts followed, are not kept.
+- A video is not kept; a post that is only a video is not kept at all.
+- The listener's place moves only when something is heard. After days in
+  which nobody followed posts, a listener that begins again asks from far
+  back, and Jetstream takes a few minutes to play that through before
+  what is new arrives.
+- Posts are dealt with one at a time, in order. With a great many accounts
+  followed, a slow card for a link holds up the ones behind it; the
+  listener then falls behind and catches up, and loses nothing.
+- More than ten thousand accounts followed are more than one connection
+  may ask for: the rest are not heard.
+- The list of refused servers is edited through `activitypub-service`
+  only (see "For row 26" above); this service reads it.
+- What is stored of a closed account's posts' pictures is not removed, as
+  for ActivityPub.
+- `FEDERATION_PROTOCOLS` says nothing of this, rightly: NodeInfo's
+  `protocols` is what the installation speaks, and it does not yet speak
+  this one.
+
+**Put right the same day: a Jetstream that kept posts back.** The first
+post written on Bluesky to try this did not arrive. Bluesky had it; the one
+Jetstream the service listened to (`jetstream2.us-east`) did not pass it
+on, though it answered and stayed connected, and its three siblings each
+had the post. The listener now takes turns across all four, ten minutes
+each, and each turn begins three turns back when nothing was heard, so
+what one keeps back is heard from the next. The post arrived eight seconds
+after the service was started again with this. `ATPROTO_JETSTREAM_URL`
+takes several addresses, with commas between.
+
+**Added the same day, asked for by the user ("So, read only main posts?
+Nothing else?"): replies and reposts coming in.** A reply by somebody
+followed is kept under what it answers, when that is kept here; the first
+reading of somebody's posts takes their answers to themselves too
+(`posts_and_author_threads`). A repost by somebody followed is kept as
+their repost, with what was reposted read from Bluesky
+(`app.bsky.feed.getPosts`) together with whoever wrote it; table
+`atproto_reposts` (migration `20261106000001`) remembers which post each
+repost was of, for when it is taken back. Still not read: likes, counts,
+replies by people nobody here follows, videos.
+
+### AT Protocol, two ways by a connected account, 2026-10-12
+
+**Decided by the user on 2026-10-12, in place of waiting for a domain:**
+asked whose account somebody here should act as on Bluesky, they chose
+"link existing account": each person connects the Bluesky account they
+already have, and what they do here goes out as it. Running a PDS and
+giving everybody a handle under the installation's domain (part 2 as first
+planned) is not what is being built now; it remains the way for people
+who have no Bluesky account, if it is wanted later.
+
+**Built.** Connecting an account with a handle and an app password
+(`/atproto/settings`; the password exchanged for tokens at the account's
+own server and not kept, the long token kept encrypted); likes, reposts
+and replies to what came from Bluesky written there as the account, from a
+queue (`atproto_writes`), and taken back when they are taken back here;
+what was written remembered (`atproto_sent`) so that it is not kept again
+when Bluesky tells of it. Migration `20261107000001`. In the web app, a
+Bluesky card in a person's settings under Privacy, and the note under a
+reply that says it stays here is shown only to somebody who has not
+connected.
+
+**Not tried against Bluesky itself:** connecting needs the user's own app
+password. Everything up to the account's server is covered by tests with
+that server stood in for.
+
+**Next, in this order:**
+
+1. Reading what people on Bluesky do to what was written from here: their
+   replies, likes and reposts, by asking as the connected account
+   (`app.bsky.notification.listNotifications`), since Jetstream is only
+   asked about the accounts followed.
+2. A person's own public notes going to Bluesky, as their choice, with
+   pictures.
+3. Telling Bluesky of a follow, for somebody connected.
+4. OAuth in place of app passwords, when the installation has a public
+   address to be a client at.
+
+**Built after that, the same day, in the order agreed:** a person's own
+public notes and photo posts going out, with pictures and the card of a
+link (`uploadBlob`; a megabyte each, made smaller or written again as
+JPEG); a follow told to Bluesky, only when the account does not follow
+already, and only what was written from here taken back; and what people
+on Bluesky do to what was written from here read back once a minute
+(`listNotifications`; `atproto_accounts.notified_at`, migration
+`20261108000001`). A connected account is no longer also kept as somebody
+of another server. Fixed on the way: a like taken back before it reached
+Bluesky was written afterwards.
+
+**Tried against Bluesky itself by the user:** connecting, a note going
+out, a reply. **Not yet:** a photo post, a card's picture, a follow, and
+what comes back.
+
+**Still to do:** the person's own posts made on Bluesky coming in as
+theirs; videos either way; an import of the accounts already followed on
+Bluesky; OAuth in place of app passwords.
+
+**And the person's own posts made on Bluesky coming in as theirs**
+(`own.go`): the listener also asks for the connected accounts; a post of
+one is made here through the graph as the person's own, marked in its meta
+(`bluesky`) so that whoever hears it was made does not send it back, and
+remembered in `atproto_sent` like what is written from here. Not their
+replies yet, nor what they posted before connecting.
+

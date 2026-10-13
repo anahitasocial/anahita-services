@@ -829,4 +829,4 @@ Recorded so they are not lost. None block this work.
   plan. Nothing here blocks it: an event is a `node.actor.…` type, so it joins
   the actor alias namespace automatically, federates as an AP `Group` actor, and
   `nodes` already carries `start_date` / `end_date`.
-- **Feed generators / discovery** — `docs/plans/feed-generators.md`.
+- **Feed generators / discovery** — `docs/plans/done/feed-generators.md`.

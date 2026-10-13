@@ -124,6 +124,13 @@ spec:
                   name: anahita-config
                   key: SITE_NAME
                   optional: true
+            # What NodeInfo says the installation speaks to other servers.
+            - name: FEDERATION_PROTOCOLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FEDERATION_PROTOCOLS
+                  optional: true
             - name: ANAHITA_INSTANCE_NAME
               valueFrom:
                 configMapKeyRef:

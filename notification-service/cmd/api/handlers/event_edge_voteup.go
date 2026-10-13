@@ -22,6 +22,12 @@ func (h *eventHandler) eventFormatEdgeVoteupAdded(payload *event.EventPayload) e
 		return err
 	}
 
+	// Whoever wrote something from another server is told by their own
+	// server, which is sent the like. Nothing is made for them here.
+	if recipient.IsRemote() {
+		return nil
+	}
+
 	subject, err := h.Srv.ActorsGRPC.Read(payload.SubjectID, viewer)
 	if err != nil {
 		return err

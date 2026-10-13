@@ -33,6 +33,9 @@ sweeper-binary
 # development gRPC certificates, made by scripts/grpc-certs-init.sh
 grpc-certs/
 
+# the federation lab's certificates, made by scripts/fedi-lab-certs.sh
+fedi-lab/certs/
+
 # the web app's build, copied in by make build_web_shell
 web-shell/web/*
 !web-shell/web/README.md

@@ -103,15 +103,34 @@ const (
 
 // A profile quiet for three months counts for half, and one nobody has been
 // on or posted to for a year for a tenth: it comes after every profile that
-// is alive, and is still there when nothing else is. On an installation
-// brought over from an older one, or a small one in a slow season, leaving
-// the dormant out altogether left nobody to suggest.
+// is alive. That is as far as it goes for a group, which is still there
+// when nothing else is. A person quiet for longer than the reader chose
+// (ActiveWithinChoices) is left out altogether.
 const (
 	ActiveWithin  = 90 * 24 * time.Hour
 	DormantAfter  = 365 * 24 * time.Hour
 	QuietFactor   = 0.5
 	DormantFactor = 0.1
 )
+
+// How lately somebody must have been here, or posted, to be suggested: the
+// reader's to choose, in days, from these. Nothing is no limit, which on an
+// installation brought over from an older one may be the only way anybody
+// is suggested at all.
+var ActiveWithinChoices = []int{30, 90, 180, 365, 730, 1825, 0}
+
+// What it is for somebody who has not chosen: a year.
+const ActiveWithinDefault = 365
+
+// IsActiveWithinChoice says whether a number of days is one of them.
+func IsActiveWithinChoice(days int) bool {
+	for _, choice := range ActiveWithinChoices {
+		if choice == days {
+			return true
+		}
+	}
+	return false
+}
 
 // How many suggestions an answer holds, and how many of the best are put to
 // the graph to ask which of them the viewer may see.

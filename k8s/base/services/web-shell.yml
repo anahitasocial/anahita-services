@@ -52,6 +52,20 @@ spec:
                   name: anahita-config
                   key: PUBLIC_WEB_URL
                   optional: true
+            # Where the API is, for sending on what other servers ask this
+            # host under /.well-known. Worked out from DOMAIN_NAME and ENV
+            # when PUBLIC_API_URL is not said.
+            - name: DOMAIN_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: DOMAIN_NAME
+            - name: PUBLIC_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PUBLIC_API_URL
+                  optional: true
             - name: FILE_SERVICE_ADDR
               valueFrom:
                 configMapKeyRef:

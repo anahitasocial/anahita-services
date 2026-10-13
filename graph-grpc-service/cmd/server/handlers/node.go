@@ -4,8 +4,13 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
 	"context"
+	"errors"
+	"graph/data/repositories"
 	"graph/requests"
 	"log"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type nodeHandler struct {
@@ -83,6 +88,88 @@ func (h *nodeHandler) ReadByAlias(ctx context.Context, req *graphpb.NodeReadByAl
 	return &graphpb.NodeReadByAliasResponse{
 		Node: nodeToGrpc(node),
 	}, nil
+}
+
+// ReadByUUID
+func (h *nodeHandler) ReadByUUID(ctx context.Context, req *graphpb.NodeReadByUUIDRequest) (*graphpb.NodeReadByUUIDResponse, error) {
+	if req.Uuid == "" {
+		return &graphpb.NodeReadByUUIDResponse{}, nil
+	}
+
+	node, err := h.env.Repos.Nodes.ReadByUUID(req.Uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphpb.NodeReadByUUIDResponse{
+		Node: nodeToGrpc(node),
+	}, nil
+}
+
+// ReadByURI
+func (h *nodeHandler) ReadByURI(ctx context.Context, req *graphpb.NodeReadByURIRequest) (*graphpb.NodeReadByURIResponse, error) {
+	node, err := h.env.Repos.Nodes.ReadByURI(req.Uri)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphpb.NodeReadByURIResponse{
+		Node: nodeToGrpc(node),
+	}, nil
+}
+
+// UpsertRemote
+func (h *nodeHandler) UpsertRemote(ctx context.Context, req *graphpb.NodeUpsertRemoteRequest) (*graphpb.NodeUpsertRemoteResponse, error) {
+	if req.Node == nil {
+		return nil, status.Error(codes.InvalidArgument, "nothing to keep")
+	}
+
+	node, created, err := h.env.Repos.Nodes.UpsertRemote(ProtoNodeToAnahitaNode(req.Node))
+	if err != nil {
+		for _, refused := range []error{
+			repositories.ErrRemoteURI, repositories.ErrRemoteDomain, repositories.ErrRemoteType,
+			repositories.ErrRemoteAlias, repositories.ErrRemoteOwner, repositories.ErrRemoteMismatch,
+		} {
+			if errors.Is(err, refused) {
+				return nil, status.Error(codes.InvalidArgument, err.Error())
+			}
+		}
+		return nil, err
+	}
+
+	return &graphpb.NodeUpsertRemoteResponse{
+		Node:    nodeToGrpc(node),
+		Created: created,
+	}, nil
+}
+
+// DeleteRemote
+func (h *nodeHandler) DeleteRemote(ctx context.Context, req *graphpb.NodeDeleteRemoteRequest) (*graphpb.NodeDeleteRemoteResponse, error) {
+	deleted, err := h.env.Repos.Nodes.DeleteRemote(req.Uri, req.OwnerId)
+	if err != nil {
+		return nil, err
+	}
+	return &graphpb.NodeDeleteRemoteResponse{Deleted: deleted}, nil
+}
+
+// DeleteRemoteActor
+func (h *nodeHandler) DeleteRemoteActor(ctx context.Context, req *graphpb.NodeDeleteRemoteActorRequest) (*graphpb.NodeDeleteRemoteActorResponse, error) {
+	deleted, neighbours, err := h.env.Repos.Nodes.DeleteRemoteActor(req.Uri)
+	if err != nil {
+		return nil, err
+	}
+
+	// Whoever followed them, or was followed by them, has one fewer.
+	for _, id := range neighbours {
+		if err := h.env.Repos.SocialGraphCounts.UpdateLeaderCount(id); err != nil {
+			log.Printf("counting who %d follows failed: %v", id, err)
+		}
+		if err := h.env.Repos.SocialGraphCounts.UpdateFollowerCount(id); err != nil {
+			log.Printf("counting the followers of %d failed: %v", id, err)
+		}
+	}
+
+	return &graphpb.NodeDeleteRemoteActorResponse{Deleted: deleted}, nil
 }
 
 // Edit

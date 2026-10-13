@@ -27,8 +27,9 @@ import (
 // viewer either way, was not turned down by them, has not asked to be left
 // out of suggestions, and, for a person, has confirmed their email address.
 //
-// {{kind}} is one more condition that depends on the kind asked for.
-const eligibleCandidate = `c.type = ?
+// {{kind}} is one more condition that depends on the kind asked for, and
+// {{elsewhere}} is who else counts as that kind: see peopleElsewhere.
+const eligibleCandidate = `(c.type = ?{{elsewhere}})
   AND c.id <> ?
   AND c.enabled = 1
   AND c.deleted_at IS NULL
@@ -86,14 +87,43 @@ const eligibleEvent = `AND c.ends_at > NOW()
         AND called_off.cancelled_at IS NOT NULL
   )`
 
-// eligibleFor is the clause for one kind.
-func eligibleFor(kind string) string {
+// People on other networks are people too, to whoever is asking who to
+// follow: somebody on Bluesky, or on a server of the fediverse, who is
+// kept here because somebody here follows them or they did something
+// here. Only the ones kept here can be suggested; this installation knows
+// of nobody else.
+//
+// Somebody on Bluesky can be followed by anybody here. Somebody on the
+// fediverse can be followed only by a person who is on the fediverse
+// themselves, since the other server has to be able to find out who is
+// asking: to anybody else they are not suggested, as a follow of them
+// would be taken away again.
+const peopleElsewhere = `
+      OR c.type = '` + an_const.NodeActorATProtoPersonEntityType + `'
+      OR (
+          c.type = '` + an_const.NodeActorActivityPubPersonEntityType + `'
+          AND EXISTS (
+              SELECT 1
+              FROM activitypub_accounts AS me
+              WHERE me.person_id = {{viewer}}
+                AND me.enabled = 1
+          )
+      )
+  `
+
+// eligibleFor is the clause for one kind, for one viewer.
+func eligibleFor(kind string, viewerID int64) string {
 	extra := eligibleProfile
 	if kind == constants.KindEvent {
 		extra = eligibleEvent
 	}
+	elsewhere := ""
+	if kind == constants.KindPerson {
+		elsewhere = strings.Replace(peopleElsewhere, "{{viewer}}", strconv.FormatInt(viewerID, 10), 1)
+	}
 
-	return strings.Replace(eligibleCandidate, "{{kind}}", extra, 1)
+	clause := strings.Replace(eligibleCandidate, "{{kind}}", extra, 1)
+	return strings.Replace(clause, "{{elsewhere}}", elsewhere, 1)
 }
 
 func eligibleArgs(kindType string, viewerID int64) []any {
@@ -381,7 +411,7 @@ func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart b
 			continue
 		}
 
-		hits, err := r.hits(strings.ReplaceAll(each.query, "{{eligible}}", eligibleFor(kind)), each.args)
+		hits, err := r.hits(strings.ReplaceAll(each.query, "{{eligible}}", eligibleFor(kind, viewerID)), each.args)
 		if err != nil {
 			return nil, err
 		}

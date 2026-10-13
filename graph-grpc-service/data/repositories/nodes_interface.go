@@ -26,6 +26,25 @@ type NodesRepoInterface interface {
 	// ReadByAlias retrieves a single node based on the provided alias and viewer context.
 	ReadByAlias(req *requests.NodeReadByAliasRequest) (*entities.AnahitaNode, error)
 
+	// ReadByUUID retrieves a single node, of any type, by its UUID.
+	ReadByUUID(uuid string) (*entities.AnahitaNode, error)
+
+	// ReadByURI retrieves a single node by what it is called on the server
+	// it came from.
+	ReadByURI(uri string) (*entities.AnahitaNode, error)
+
+	// UpsertRemote keeps a person or a note from another server, and says
+	// whether it was new.
+	UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaNode, bool, error)
+
+	// DeleteRemote takes away a note that came from another server, for
+	// its author.
+	DeleteRemote(uri string, ownerID int64) (bool, error)
+
+	// DeleteRemoteActor takes away somebody from another server, with
+	// everything of theirs. It also says who here was connected to them.
+	DeleteRemoteActor(uri string) (bool, []int64, error)
+
 	// Edit updates an existing node based on the provided edit request and viewer context.
 	Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
 

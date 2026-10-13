@@ -49,7 +49,7 @@
    - Mastodon builds its own previews by fetching the link, which is where part B matters.
 9. **Moderation:** the domain blocklist from item 8 also blocks previews (`status=blocked`), and item 4b reports can target the note as usual.
 
-Part B (Open Graph through the web shell), the combined estimate, verification, decisions and dependencies are in anahita-web's `docs/plans/open-graph.md`.
+Part B (Open Graph through the web shell), the combined estimate, verification, decisions and dependencies are in anahita-web's `docs/plans/done/open-graph.md`.
 
 ## Documentation
 
@@ -57,7 +57,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 
 - **services `architecture.md`**: link-preview-service, its SSRF protections, and the preview snapshot on notes.
 - **services `configuration.md`**: preview cache TTLs and rate limit.
-- The web-shell documentation is listed in anahita-web's `docs/plans/open-graph.md`.
+- The web-shell documentation is listed in anahita-web's `docs/plans/done/open-graph.md`.
 
 ## Status
 
@@ -68,7 +68,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 
 ## What was built
 
-Part A, 2026-10-11. The page that describes it is [Link previews](../link-previews.md).
+Part A, 2026-10-11. The page that describes it is [Link previews](../../link-previews.md).
 
 - `link-preview-service` (port 8101, `/link-previews`), with the fetcher's rules as planned: http and https on 80 and 443, the address checked on the dialer and again on each redirect, 3 redirects, 5 seconds, 1 MB of `text/html`.
 - `anahita-libs/linkpreviews`: the preview, the store, and the card in a note's `meta`.
@@ -82,4 +82,4 @@ Part A, 2026-10-11. The page that describes it is [Link previews](../link-previe
 - **The request field is `link_preview_url`**, a string, not `link_preview { url }`.
 - **Not built:** oEmbed, favicons, and the domain blocklist, which waits for federation.
 
-Part B, the web shell, was built the same day in this repository as `web-shell`: see [The web shell](../web-shell.md), and anahita-web's `docs/plans/open-graph.md` for how it differs from the plan.
+Part B, the web shell, was built the same day in this repository as `web-shell`: see [The web shell](../../web-shell.md), and anahita-web's `docs/plans/done/open-graph.md` for how it differs from the plan.

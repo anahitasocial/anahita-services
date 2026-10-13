@@ -11,6 +11,9 @@ import (
 	"strings"
 )
 
+// The most hashtags one post is given.
+const maxHashtagsOfAPost = 50
+
 func (h *hashtagHandler) HandleEvents(payload *event.EventPayload) error {
 	log.Println("Hashtag event received", payload.Name)
 
@@ -38,6 +41,11 @@ func (h *hashtagHandler) updateHashtags(payload *event.EventPayload) error {
 	// log.Println("Updating hashtags for", node.ID)
 
 	aliases := CleanStringArray(node.Hashtags)
+	// A post may come from anybody, on any server, and each hashtag it is
+	// the first to use is made here. The first of them are enough.
+	if len(aliases) > maxHashtagsOfAPost {
+		aliases = aliases[:maxHashtagsOfAPost]
+	}
 	if len(aliases) == 0 {
 		// Delete all existing hashtag relations
 		currentHashtagIDs, err := h.getCurrentHashtagIDs(node)
@@ -88,6 +96,10 @@ func (h *hashtagHandler) updateHashtags(payload *event.EventPayload) error {
 			hashtag.Name = alias
 			hashtag.Alias = alias
 			hashtag.Author.ID = viewer.ID
+			// What the graph asks of every node but a person: who made
+			// it. Without it no new hashtag was made at all, whoever
+			// wrote the post.
+			hashtag.CreatedBy = viewer.ID
 			missing = append(missing, hashtag)
 		}
 	}

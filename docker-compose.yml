@@ -101,6 +101,10 @@ services:
       # Both optional: the name falls back through SITE_NAME to DOMAIN_NAME,
       # and an unwritten description is published empty rather than invented.
       ANAHITA_INSTANCE_NAME: ${ANAHITA_INSTANCE_NAME:-}
+      # What NodeInfo says the installation speaks to other servers:
+      # "activitypub" when activitypub-service is run for real. See
+      # docs/federation.md.
+      FEDERATION_PROTOCOLS: ${FEDERATION_PROTOCOLS:-}
       ANAHITA_INSTANCE_DESCRIPTION: ${ANAHITA_INSTANCE_DESCRIPTION:-}
       SYSTEM_EMAIL: ${SYSTEM_EMAIL}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL}
@@ -957,6 +961,10 @@ services:
       # The address people reach the web app at. Left out, the address each
       # request came to is used.
       PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      # Where the API is, for sending on what other servers ask this host
+      # under /.well-known. Worked out from DOMAIN_NAME when not said.
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
       # The web app's build: anahita-web's build/ folder.
@@ -1155,9 +1163,190 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.27
 
+# activitypub-service - speaks to other servers of the fediverse: who is here
+# and chose to be found, and (as it is built) what they post. Optional: an
+# installation that leaves it out is on nobody's fediverse. See
+# docs/federation.md.
+  activitypub-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/activitypub-service.dockerfile
+    restart: always
+    ports:
+      - "8105:80"
+    depends_on:
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
+      # Only a site that is open to read federates.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
+      DSN: ${DSN}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
+      REDIS_PASSWORD: ""
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      # Where the pictures of people on other servers are kept, once copied.
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      # Where it hears that somebody here followed somebody elsewhere.
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      # Where the installation is, as other servers are told. On a
+      # developer's machine these say nothing another server could reach,
+      # and nobody is on the fediverse; `make fedi_lab` gives them the
+      # lab's names. See docs/configuration.md, Site identity.
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:-}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+      # What the private half of each person's signing key is kept under:
+      # the same as auth-service's secrets.
+      CRYPT_BACKEND: ${CRYPT_BACKEND}
+      CRYPT_LOCAL_KEY: ${CRYPT_LOCAL_KEY}
+      # In the lab only: the one authority whose certificates are trusted,
+      # and leave to fetch from the private addresses its servers are at.
+      # Empty anywhere else, which leaves the system's own authorities and
+      # public addresses only.
+      SSL_CERT_FILE: ${ACTIVITYPUB_CA_FILE:-}
+      ACTIVITYPUB_LAB: ${ACTIVITYPUB_LAB:-}
+      # For the card of a link in a post from another server. Empty, and
+      # such posts have none.
+      LINK_PREVIEW_URL: ${LINK_PREVIEW_URL:-http://link-preview-service:80}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
+      - ./fedi-lab/certs:/fedi-lab-certs:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.44
+
+# atproto-service - reads Bluesky: somebody here looks up an account there
+# and follows it, and its posts are kept here as they are written. It writes
+# nothing to Bluesky. Optional: an installation that leaves it out follows
+# nobody there. See docs/federation.md.
+  atproto-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/atproto-service.dockerfile
+    restart: always
+    ports:
+      - "8106:80"
+    depends_on:
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
+      DSN: ${DSN}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
+      REDIS_PASSWORD: ""
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      # Where the pictures of people on Bluesky are kept, once copied.
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      # Where it hears that somebody here followed somebody on Bluesky.
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      # Who is asking, as Bluesky is told. Reading needs no name another
+      # server could reach.
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:-}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+      # Where Bluesky is read from. Empty for the network's own. See
+      # docs/configuration.md, Federation.
+      ATPROTO_APPVIEW_URL: ${ATPROTO_APPVIEW_URL:-}
+      ATPROTO_JETSTREAM_URL: ${ATPROTO_JETSTREAM_URL:-}
+      ATPROTO_CDN_URL: ${ATPROTO_CDN_URL:-}
+      ATPROTO_PLC_URL: ${ATPROTO_PLC_URL:-}
+      # What the token of each connected Bluesky account is kept under: the
+      # same as auth-service's secrets. Without it Bluesky is read and
+      # nothing is written to it.
+      CRYPT_BACKEND: ${CRYPT_BACKEND}
+      CRYPT_LOCAL_KEY: ${CRYPT_LOCAL_KEY}
+      # For the card of a link in a post from Bluesky. Empty, and such
+      # posts have none.
+      LINK_PREVIEW_URL: ${LINK_PREVIEW_URL:-http://link-preview-service:80}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.45
+
+# The federation lab: https at three names on one machine, and another
+# server to talk to. Not started by `up`; `make fedi_lab` starts it. See
+# docs/federation-lab.md.
+#
+# fedi-lab-tls is the front door. The network knows it by all three names,
+# so that the servers reach each other as they would on the internet.
+  fedi-lab-tls:
+    image: nginx:alpine
+    profiles: ["fedi-lab"]
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    volumes:
+      - ./fedi-lab/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./fedi-lab/certs:/certs:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.50
+        aliases:
+          - anahita.test
+          - api.anahita.test
+          - gts.test
+
+# GoToSocial: a small server that speaks ActivityPub, as Mastodon does. What
+# this installation follows, is followed by, and exchanges posts with, to
+# see that it is understood by something it did not write.
+  gotosocial:
+    image: docker.io/superseriousbusiness/gotosocial:latest
+    profiles: ["fedi-lab"]
+    restart: unless-stopped
+    user: "1000:1000"
+    environment:
+      GTS_HOST: gts.test
+      GTS_PROTOCOL: https
+      GTS_BIND_ADDRESS: 0.0.0.0
+      GTS_PORT: 8080
+      GTS_DB_TYPE: sqlite
+      GTS_DB_ADDRESS: /gotosocial/storage/sqlite.db
+      GTS_STORAGE_LOCAL_BASE_PATH: /gotosocial/storage
+      GTS_LETSENCRYPT_ENABLED: "false"
+      GTS_TRUSTED_PROXIES: 172.20.1.0/24
+      # It refuses, as it should, to fetch from a private address. In the
+      # lab every server is at one.
+      GTS_HTTP_CLIENT_ALLOW_IPS: 172.20.1.0/24
+      # It trusts the lab's authority and nothing else, which is all there
+      # is to reach here.
+      SSL_CERT_FILE: /certs/ca.crt
+      GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
+      TZ: UTC
+    volumes:
+      - fedi-lab-gotosocial:/gotosocial/storage
+      - ./fedi-lab/certs:/certs:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.51
+
 networks:
     anahita-network:
         driver: bridge
         ipam:
             config:
                 - subnet: 172.20.1.0/24
+
+volumes:
+    # What the lab's GoToSocial keeps. `make fedi_lab_reset` empties it.
+    fedi-lab-gotosocial:

@@ -50,7 +50,7 @@ The goal is the smallest event feature that's genuinely useful, not a ticketing 
     - nearby or suggested public events later, through item 3 (recommendations) or feed generators.
 
 ## Where it lives
-- **actor-service serves `/events` beside `/people` and `/groups`.** (When this was planned it was to be group-service; people and groups were merged into actor-service on 2026-10-05, see [done/actor-service.md](done/actor-service.md).) The type is `node.actor.actor-service.event.v1`: a new kind is named for the service it was born in.
+- **actor-service serves `/events` beside `/people` and `/groups`.** (When this was planned it was to be group-service; people and groups were merged into actor-service on 2026-10-05, see [done/actor-service.md](actor-service.md).) The type is `node.actor.actor-service.event.v1`: a new kind is named for the service it was born in.
 - Most handlers (CRUD, access, features, admins, archive, delete, purge) are shared and parameterised by type. Event-specific handlers are RSVP, cancel and ics.
 - A separate event-service would duplicate most of what actor-service already has for no benefit.
 - Add the type to `feed-defaults` `actor_entity_types` and to `graph-grpc-defaults/actor_features/event.json`, which layers on `default.json` and sets the `invite` feature (item 11) to `admins` by default.

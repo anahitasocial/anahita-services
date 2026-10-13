@@ -29,6 +29,27 @@ type GraphNodeGRPCInterface interface {
 	// ReadByAlias returns a single graph node by alias
 	ReadByAlias(req *GraphNodeReadByAlias) (*entities.AnahitaNode, error)
 
+	// ReadByUUID returns a single graph node, of any type, by its UUID.
+	// Not access-checked, as Read is not.
+	ReadByUUID(uuid string) (*entities.AnahitaNode, error)
+
+	// ReadByURI returns the node kept for something on another server, by
+	// what it is called there. Not access-checked.
+	ReadByURI(uri string) (*entities.AnahitaNode, error)
+
+	// UpsertRemote keeps a person or a note from another server: added if
+	// its URI is new, brought up to date if it is known. It says whether it
+	// was new. The graph refuses anything else: see its nodes_remote.go.
+	UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaNode, bool, error)
+
+	// DeleteRemote takes away a note that came from another server, in the
+	// name of whoever it belongs to. It says whether there was one.
+	DeleteRemote(uri string, ownerID int64) (bool, error)
+
+	// DeleteRemoteActor takes away somebody from another server, with what
+	// they posted and every follow that touches them.
+	DeleteRemoteActor(uri string) (bool, error)
+
 	// Edit edits a graph node
 	Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
 
@@ -195,6 +216,103 @@ func (srv *GraphNodeGRPC) ReadByAlias(req *GraphNodeReadByAlias) (*entities.Anah
 	}
 
 	return grpcToGraphNode(resp.Node), nil
+}
+
+// ReadByUUID returns a single graph node, of any type, by its UUID
+func (srv *GraphNodeGRPC) ReadByUUID(uuid string) (*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	resp, err := client.ReadByUUID(context.Background(), &graphpb.NodeReadByUUIDRequest{Uuid: uuid})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNode(resp.Node), nil
+}
+
+// ReadByURI returns the node kept for something on another server
+func (srv *GraphNodeGRPC) ReadByURI(uri string) (*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	resp, err := client.ReadByURI(context.Background(), &graphpb.NodeReadByURIRequest{Uri: uri})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	return grpcToGraphNode(resp.Node), nil
+}
+
+// UpsertRemote keeps a person or a note from another server
+func (srv *GraphNodeGRPC) UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaNode, bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, false, err
+	}
+	if client == nil {
+		return nil, false, nil
+	}
+
+	resp, err := client.UpsertRemote(context.Background(), &graphpb.NodeUpsertRemoteRequest{Node: graphNodeToGrpc(node)})
+	if err != nil {
+		return nil, false, err
+	}
+	if resp == nil {
+		return nil, false, nil
+	}
+
+	return grpcToGraphNode(resp.Node), resp.Created, nil
+}
+
+// DeleteRemote takes away a note that came from another server
+func (srv *GraphNodeGRPC) DeleteRemote(uri string, ownerID int64) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.DeleteRemote(context.Background(), &graphpb.NodeDeleteRemoteRequest{Uri: uri, OwnerId: ownerID})
+	if err != nil || resp == nil {
+		return false, err
+	}
+	return resp.Deleted, nil
+}
+
+// DeleteRemoteActor takes away somebody from another server
+func (srv *GraphNodeGRPC) DeleteRemoteActor(uri string) (bool, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, err
+	}
+	if client == nil {
+		return false, nil
+	}
+
+	resp, err := client.DeleteRemoteActor(context.Background(), &graphpb.NodeDeleteRemoteActorRequest{Uri: uri})
+	if err != nil || resp == nil {
+		return false, err
+	}
+	return resp.Deleted, nil
 }
 
 // Edit edits a graph node

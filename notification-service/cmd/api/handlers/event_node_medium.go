@@ -158,6 +158,13 @@ func (h *eventHandler) eventFormatNodeMediumDeleted(payload *event.EventPayload)
 		viewer = an_entities.NewViewer()
 	)
 
+	// If what went was a reply, the news of it goes with it, whoever was
+	// told. First, and whatever else here fails: the rest looks for
+	// notifications about a post, which a reply's are not.
+	if err := h.Repos.Notifications.DeleteOfReply(payload.ObjectID); err != nil {
+		log.Printf("removing the news of reply %d failed: %v", payload.ObjectID, err)
+	}
+
 	subject, err := h.Srv.ActorsGRPC.Read(payload.SubjectID, viewer)
 	if err != nil {
 		return err

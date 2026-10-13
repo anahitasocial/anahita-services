@@ -16,9 +16,11 @@ your own machine, use docker-compose instead: see
 - [Object storage](#object-storage)
 - [Database, Redis and RabbitMQ](#database-redis-and-rabbitmq)
 - [On AWS](#on-aws)
+- [Joining the fediverse](#joining-the-fediverse)
 - [Upgrading](#upgrading)
 - [Running more than one copy of a service](#running-more-than-one-copy-of-a-service)
 - [Trying it on your own machine](#trying-it-on-your-own-machine)
+- [One machine without Kubernetes](#one-machine-without-kubernetes)
 
 ## What you need
 
@@ -302,6 +304,12 @@ The key services are optional. To seal secrets and sign tokens with KMS, set
 account with a role that may use those keys, the same way.
 
 This overlay has been checked to build. It has not been run on EKS.
+
+## Joining the fediverse
+
+Being found and followed from Mastodon and the like is its own piece of
+setting up, with names that cannot be changed afterwards. It has a page of
+its own, in the order to do it: [Federation](federation.md#setting-it-up).
 
 ## Upgrading
 

@@ -1,0 +1,131 @@
+package handlers
+
+import (
+	"context"
+	"encoding/json"
+	"log"
+	"slices"
+	"time"
+
+	"atproto/bsky"
+	"atproto/data/repositories"
+)
+
+// What is heard from Bluesky as it happens.
+//
+// Only the accounts followed from here are asked for, and what is heard
+// is still held to that: whoever it is about must be somebody kept here,
+// and a post of theirs is kept only while somebody here follows them.
+
+// Wanted is whose posts are asked for: everybody on Bluesky that somebody
+// here follows.
+//
+// And the accounts people here connected: what they post on Bluesky
+// itself is theirs here too (own.go).
+func (h *Handlers) Wanted() ([]string, error) {
+	wanted, err := h.Actors.Followed(bsky.MaxWanted)
+	if err != nil || !h.canWrite() {
+		return wanted, err
+	}
+	accounts, err := h.Accounts.Working()
+	if err != nil {
+		return nil, err
+	}
+	for _, account := range accounts {
+		if !slices.Contains(wanted, account.DID) {
+			wanted = append(wanted, account.DID)
+		}
+	}
+	return wanted, nil
+}
+
+// Heard deals with one thing heard.
+func (h *Handlers) Heard(ctx context.Context, heard *bsky.Event) {
+	if heard == nil || !bsky.ValidDID(heard.DID) {
+		return
+	}
+	// Somebody here, on Bluesky with their own account.
+	if h.heardOwn(ctx, heard) {
+		return
+	}
+	kept, err := h.Actors.ReadByDID(heard.DID)
+	if err != nil || kept == nil {
+		return
+	}
+
+	switch heard.Kind {
+	case "commit":
+		if heard.Commit == nil {
+			return
+		}
+		switch heard.Commit.Collection {
+		case bsky.PostCollection:
+			if heard.Commit.Operation == "delete" {
+				err = h.removePost(kept, heard.Commit.RKey)
+				break
+			}
+			// A reply written from here, told of by Bluesky as everything
+			// the account does is: it is here already.
+			if h.ours(heard.DID, repositories.SentPost, heard.Commit.RKey) {
+				return
+			}
+			post := &bsky.Post{}
+			if json.Unmarshal(heard.Commit.Record, post) != nil {
+				return
+			}
+			err = h.keepPost(kept, heard.Commit.RKey, post)
+
+		case bsky.RepostCollection:
+			if heard.Commit.Operation == "delete" {
+				err = h.unreposted(kept, heard.Commit.RKey)
+				break
+			}
+			if h.ours(heard.DID, repositories.SentRepost, heard.Commit.RKey) {
+				return
+			}
+			err = h.reposted(ctx, kept, heard.Commit.RKey, heard.Commit.Record)
+
+		case bsky.ProfileCollection:
+			// What they say of themselves changed.
+			h.refreshSoon(heard.DID)
+		}
+
+	case "identity":
+		// The handle they go by changed.
+		h.refreshSoon(heard.DID)
+
+	case "account":
+		// Their account was closed. One that is only put away, or held
+		// back by the network, may come back, and is left as it is.
+		if heard.Account != nil && !heard.Account.Active && heard.Account.Status == "deleted" {
+			err = h.forget(kept)
+		}
+	}
+	if err != nil {
+		log.Printf("heard %s of %s: %v", heard.Kind, kept.Handle, err)
+	}
+}
+
+// ours says whether a record Bluesky tells of was written from here.
+func (h *Handlers) ours(did, kind, rkey string) bool {
+	if h.Sent == nil {
+		return false
+	}
+	ours, err := h.Sent.IsOurs(did, kind, rkey)
+	return err == nil && ours
+}
+
+// refreshSoon reads somebody again in a moment: the network's reader
+// hears of the change as this does, and is asked once it has.
+func (h *Handlers) refreshSoon(did string) {
+	h.later(func() {
+		if h.Settle > 0 {
+			time.Sleep(h.Settle)
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 2*bsky.Timeout)
+		defer cancel()
+		if err := h.refresh(ctx, did); err != nil {
+			log.Printf("%s changed and was not read again: %v", did, err)
+		}
+	})
+}

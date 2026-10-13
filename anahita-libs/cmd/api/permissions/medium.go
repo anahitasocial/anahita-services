@@ -114,6 +114,12 @@ func (m *MediumPermissions) CanEdit(ctx *MediumAccessContext) (bool, error) {
 		return false, errors.New(ErrMediumInsufficientScope)
 	}
 
+	// A post from another server is its author's to change, there. Nobody
+	// here changes it, an administrator included; one may remove it.
+	if ctx.Medium.IsRemote() {
+		return false, errors.New("a post from another server is not edited here")
+	}
+
 	if ctx.Viewer.IsAdmin() {
 		return true, nil
 	}
