@@ -165,6 +165,30 @@ Written by hand with small JSON structs and an HTTP-signature library (`github.c
 | **Total** | **about 27–35 h, 7–9 sessions** |
 
 ## Phase 1 — AT Protocol (native: PDS + Jetstream)
+
+> **How it is to be built, settled on 2026-10-13 before starting.** In two
+> parts, because they need different things of the installation:
+>
+> 1. **Reading Bluesky.** Somebody here looks up a Bluesky account, follows
+>    it, and its posts arrive, with what it posted lately read at the first
+>    follow: steps 4 and 5 below. This needs nothing of the installation
+>    but a way out to the internet. No PDS, no name of its own: it can be
+>    built and tried on a developer's machine as it is. The follow is kept
+>    here and the account followed is not told, since telling it is a
+>    record written to a PDS, which is the second part.
+> 2. **Being on Bluesky.** People here have a Bluesky identity, their posts
+>    go out, their follows are told, and who follows them is known: steps 1
+>    to 3. This needs a PDS at a name of its own and a handle for each
+>    person under a domain the installation owns, with a wildcard DNS record
+>    for it. **It cannot be tried under the tunnel's name** used for
+>    ActivityPub on 2026-10-12: a name lent by a tunnel has no names under
+>    it. It waits for a domain.
+>
+> What was built for ActivityPub is used by both parts as it is: remote
+> people and their posts in the graph (`UpsertRemote` takes an `at://`
+> address already), pictures copied into storage, cards for links, the
+> event that gives a kept post its hashtags, and the rule that a post from
+> elsewhere is kept only when somebody here follows whoever wrote it.
 1. **Run the official PDS** (`ghcr.io/bluesky-social/pds`, SQLite, lightweight) at `pds.DOMAIN`, alongside the stack in compose and k8s.
 2. **Provisioning on opt-in:**
    - atproto-service creates the person's PDS account through the PDS admin API, then stores the DID and credentials encrypted with `crypt`.
@@ -523,7 +547,8 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 2a, ActivityPub: replies both ways | done 2026-10-12, and tried against mastodon.world: new, changed and taken away, each way |
 | Phase 2b, ActivityPub: likes and reposts both ways | done 2026-10-12, and tried with mastodon.world: a like and a repost each way, and each taken back |
 | Phase 3a, ActivityPub: cards, pictures and custom emoji of posts from elsewhere | done 2026-10-12, and tried with mastodon.world |
-| Phase 1, AT Protocol | not started |
+| Phase 1, AT Protocol, part 1: reading Bluesky (look up, follow, posts arriving) | not started |
+| Phase 1, AT Protocol, part 2: being on Bluesky (PDS, handles, posts and follows going out) | not started: needs a domain of the installation's own |
 
 ## What was built
 
