@@ -232,7 +232,7 @@ Written by hand with small JSON structs and an HTTP-signature library (`github.c
 
 ## Later phases (what more we can build)
 - **Phase 2, interaction:**
-  - replies in and out (after item 7: `inReplyTo`, AT `reply {root, parent}`);
+  - replies in and out (after item 7: `inReplyTo`, AT `reply {root, parent}`). For ActivityPub this is [phase 2a](#phase-2a--replies-both-ways-activitypub-agreed-2026-10-12), begun;
   - likes (`Like`, `app.bsky.feed.like`);
   - reposts (`Announce`, `app.bsky.feed.repost`);
   - notifications for remote follows, likes, replies and mentions;
@@ -259,6 +259,98 @@ Written by hand with small JSON structs and an HTTP-signature library (`github.c
   - keeping an Anahita-held did:plc rotation key so people can take their Bluesky identity elsewhere;
   - eventually a Go PDS (indigo) instead of the TypeScript container;
   - exposing feed generators to Bluesky.
+
+## Phase 2a — replies, both ways (ActivityPub; agreed 2026-10-12)
+
+Asked for by the user once following and posting worked against Mastodon
+itself: the next thing anybody does is answer. It is done before AT
+Protocol, and it is the first part of phase 2; likes, reposts and mentions
+of people elsewhere are separate steps after it.
+
+A reply here is a note with a parent and a root (`parent_id`, `root_id`),
+its author's own, seen by whoever may see the root. That is the shape
+ActivityPub has (`inReplyTo`), so nothing about replies changes: what is
+added is which of them cross between servers, and how.
+
+### Which replies go out
+
+A reply written here is sent to other servers when all of this is so:
+
+- its author is on the fediverse;
+- the thread's root is open to everybody, and the reply is not hidden or
+  removed;
+- **what it answers is something other servers can see:** a note that came
+  from another server, or a note here that itself went out. So a thread of
+  one's own notes goes out whole, and a reply under a note that never went
+  out stays here.
+
+It is sent as a `Note` with `inReplyTo` set to what it answers, by the
+address that has between servers. It goes to its author's followers, and to
+whoever wrote what it answers when they are on another server: they are
+named beside the text as mentioned (a `Mention`), which is what has
+Mastodon tell them, without their name being written into the reply.
+
+Changed, it is sent again; removed or hidden, other servers are told to
+drop it; the sweep finds a reply the bus lost as it finds a note.
+
+### Which replies come in
+
+A note from another server that answers something is kept when what it
+answers is known here, and:
+
+- **under a thread that began here:** its author may reply by the thread's
+  own rule, as anybody here must. Who may reply is the root's choice
+  (anyone, nobody, the author's followers, the people the author follows,
+  the people mentioned), measured for somebody elsewhere by the follows
+  between them and the author, which are in the graph like any other. The
+  profile's rule for who may comment counts somebody elsewhere as a
+  registered reader: somebody who chose to be on the fediverse has chosen
+  to be answered from it. Somebody the author has blocked is refused, and
+  so is a server that is refused;
+- **under a thread that began elsewhere:** only when somebody here follows
+  its author, the rule every note from elsewhere is kept by.
+
+Whoever wrote it need not be known already: they are looked up and kept,
+as somebody who follows from elsewhere is. A reply whose parent is not
+known here is dropped, as now. Fetching the rest of a thread from its own
+server is not part of this.
+
+It is kept as a reply like any other: under its parent, counted, seen by
+whoever may see the root, never wider. Whoever it answers here is notified
+as for a reply written here. It can be hidden or removed here by whoever
+looks after the thread; that changes nothing on its own server.
+
+### Replying from here to something from elsewhere
+
+Today nobody may. With this, somebody here may reply to a note from another
+server that they can see.
+
+- **On the fediverse:** their reply goes to its author and their own
+  followers.
+- **Not on the fediverse:** their reply stays here, as a conversation among
+  the people of this installation about something from elsewhere. The web
+  app says so before it is posted, as it says of a note kept to followers.
+  (Decided for now; the other course is to refuse, which needs every
+  service that takes a reply to know who is on the fediverse.)
+
+Liking something from elsewhere stays refused until likes are sent.
+
+### What changes where
+
+| Where | What |
+| --- | --- |
+| graph-grpc-service | `UpsertRemote` takes a note with a parent: the parent must be a note that is there, and the reply is given its root and counted. `DeleteRemote` counts again |
+| anahita-libs | The rule that nobody replies to something from elsewhere is lifted; a reader from elsewhere can be measured by the reply rules |
+| activitypub-service | Out: `goesOut` for a reply, `inReplyTo`, the `Mention`, the parent's author's inbox. In: a note with `inReplyTo`, by the rules above; the event that says it was kept. The sweep's queries take replies in |
+| notification-service | Tells whoever was answered, from the event for a note kept from elsewhere |
+| anahita-web | Reply is offered on a note from elsewhere; the composer says when a reply will stay here |
+
+### How it is tried
+
+Unit tests for each rule, the graph against a real MySQL, and then against
+Mastodon itself through the tunnel: a thread of one's own notes, a reply
+from Mastodon to a note here, a reply from here to a note on Mastodon, and
+an edit and a deletion of each.
 
 ## Open: reading the fediverse from a private site (noted 2026-10-04)
 
@@ -380,8 +472,9 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: avatars of people elsewhere, their earlier posts | done 2026-10-13 |
 | Phase 1, ActivityPub: covers of people elsewhere; refused servers kept by super administrators, with a screen in Site settings | done 2026-10-12 |
 | Phase 1, ActivityPub: hashtags of posts from elsewhere; the sweep for what the bus lost; no notifications made for people elsewhere | done 2026-10-12 |
-| Phase 1, ActivityPub: a test against Mastodon itself with a real name | begun 2026-10-12, through a tunnel: following both ways and a note out worked with mastodon.world (Mastodon 4.7.3). Still to try: a post arriving from Mastodon by itself, and an edit and a deletion going out |
+| Phase 1, ActivityPub: a test against Mastodon itself with a real name | begun 2026-10-12, through a tunnel: following both ways, a note out and its deletion worked with mastodon.world (Mastodon 4.7.3). Still to try: a post arriving from Mastodon by itself, and an edit going out |
 | Phase 1, ActivityPub: the sweep also finds a lost edit of a note or a profile, by what is on record of what other servers were last sent (`told_updated_at`, migration `20261102000001`) | done 2026-10-12 |
+| Phase 2a, ActivityPub: replies both ways | begun 2026-10-12 |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
