@@ -554,9 +554,18 @@ migration `20261104000001` (`activitypub_objects.kind`).
 - **The rule that nothing from elsewhere is liked is lifted.** A like by
   somebody who is not on the fediverse stays here, as their reply does;
   there is no word for it in the web app as there is for a reply.
-- **Not done:** the sweep does not find a like or a repost the bus lost,
-  and a repost from elsewhere that is taken back leaves the news of it
-  with the author here.
+- **Tried against the fediverse the same evening,** and by strangers before
+  by design: a boost of a note from here by an account on a Misskey server
+  was kept, counted and told; boosts from mastodon.world were kept and, taken
+  back, removed; and a BBC News post on Flipboard, boosted by somebody
+  followed from here, was read from its own server and kept with its
+  author. Likes, and a repost going out, are still to try.
+- **The news of a repost from elsewhere goes when it is taken back**
+  (`federation.repost.repost.note.deleted.v1`), which at first it did not.
+- **Seen in that trial, and for phase 3:** a post that is mostly a link and
+  a picture arrives as its text alone. Neither the picture nor a card for
+  the link is kept yet.
+- **Not done:** the sweep does not find a like or a repost the bus lost.
 
 **Replies, both ways (phase 2a).** `replies_in.go`, `notes.go`
 (`answers`), the graph's `nodes_remote.go`, `permissions/reply.go`,

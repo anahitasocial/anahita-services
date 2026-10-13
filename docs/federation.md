@@ -553,6 +553,9 @@ counted, shown and told to its author like any other.
   is on record like a note (`activitypub_objects`, `kind` `repost`), with
   where it went, because the repost is gone by the time its taking back is
   heard of.
+- **Taken back elsewhere, the news of it goes here:** a repost of
+  something here that is undone on its own server is removed, and what its
+  author was told of it with it.
 - **Nobody elsewhere is notified here:** whoever wrote something from
   another server is told by their own server.
 - **Not covered by the sweep:** a like or a repost whose word the bus lost
