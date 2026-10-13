@@ -68,6 +68,18 @@ func TestASweepSendsThePostTheBusLost(t *testing.T) {
 	}
 }
 
+// Handed something that turns out not to go out, the sweep does nothing
+// and says nothing was done.
+func TestASweepDoesNotCountWhatNeedsNothing(t *testing.T) {
+	w := notesWorld()
+	w.note().Access = "followers"
+	w.h.Missed = &fakeMissed{notesNotSent: []int64{noteID}}
+
+	if swept := w.sweep(); swept.any() || len(w.queue.sent) != 0 {
+		t.Errorf("swept %+v, queued %d", swept, len(w.queue.sent))
+	}
+}
+
 func TestASweepTakesBackThePostThatIsGone(t *testing.T) {
 	w, _ := settledWorld()
 	w.h.Missed = &fakeMissed{notesGone: []int64{noteID}}

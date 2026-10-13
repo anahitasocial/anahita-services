@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -33,6 +34,10 @@ const (
 	sweepBatch = 200
 )
 
+// errNotOne is something the sweep was handed that turned out to need
+// nothing done.
+var errNotOne = errors.New("not one that goes out")
+
 // Swept is what one sweep found and put right, for the log.
 type Swept struct {
 	Follows, Unfollows, Notes, NotesGone, NotesEdited, PeopleEdited, Left int
@@ -63,7 +68,9 @@ func (h *Handlers) Sweep(ctx context.Context, now time.Time) Swept {
 				break
 			}
 			if err := do(pair); err != nil {
-				log.Printf("sweep: %s (%d > %d): %v", what, pair.LocalID, pair.RemoteID, err)
+				if !errors.Is(err, errNotOne) {
+					log.Printf("sweep: %s (%d > %d): %v", what, pair.LocalID, pair.RemoteID, err)
+				}
 				continue
 			}
 			done++
@@ -97,7 +104,16 @@ func (h *Handlers) Sweep(ctx context.Context, now time.Time) Swept {
 	// A post that should have gone out and did not.
 	notes, err := h.Missed.NotesNotSent(now.Add(-sweepNotesWindow), now.Add(-sweepGrace), sweepBatch)
 	swept.Notes = each("notes not sent", ids(notes), err, func(pair repositories.Pair) error {
-		return h.posted(ctx, pair.LocalID)
+		if err := h.posted(ctx, pair.LocalID); err != nil {
+			return err
+		}
+		// Looked at, and found not to be one that goes out: a reply under
+		// a note that stayed here, say. Nothing was put right, and it is
+		// not counted as if something had been.
+		if sent, err := h.Objects.Read(pair.LocalID); err != nil || sent == nil {
+			return errNotOne
+		}
+		return nil
 	})
 
 	// A post other servers have that is gone here, or closed.
