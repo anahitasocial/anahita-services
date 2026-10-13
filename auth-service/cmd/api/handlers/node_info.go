@@ -257,6 +257,14 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// can show a way in instead of a page of errors.
 			"readAccess": policy.SiteReadAccess(),
 
+			// The other networks people here can take part in:
+			// "activitypub" (Mastodon and the rest of the fediverse) and
+			// "atproto" (Bluesky). `protocols` above cannot say the second:
+			// the schema lists the names it may hold, and Bluesky's is not
+			// among them. The web app reads this to say on its front page
+			// what the installation is part of.
+			"networks": federationNetworks(),
+
 			// How many images one photo post can hold, so a client need
 			// not carry the number itself.
 			"photoMaxFiles": an_constants.PhotoMaxFiles,
@@ -314,4 +322,17 @@ func federationProtocols() []string {
 		}
 	}
 	return protocols
+}
+
+// federationNetworks is every network the operator says this installation
+// takes part in: what NodeInfo's `protocols` lists, and Bluesky, said as
+// "atproto" in the same setting.
+func federationNetworks() []string {
+	networks := federationProtocols()
+	for _, name := range strings.Split(os.Getenv("FEDERATION_PROTOCOLS"), ",") {
+		if strings.ToLower(strings.TrimSpace(name)) == "atproto" && !slices.Contains(networks, "atproto") {
+			networks = append(networks, "atproto")
+		}
+	}
+	return networks
 }
