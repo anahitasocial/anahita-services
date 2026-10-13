@@ -16,6 +16,10 @@ const (
 
 	remoteNoteAdded  = "federation.medium.text-service.note.added.v1"
 	remoteNoteEdited = "federation.medium.text-service.note.edited.v1"
+
+	// RemoteNoteDeleted says a note kept from another server is gone from
+	// here, because it was taken away where it was written.
+	RemoteNoteDeleted = "federation.medium.text-service.note.deleted.v1"
 )
 
 // RemoteNoteEvent is the name to say it by: kept for the first time, or

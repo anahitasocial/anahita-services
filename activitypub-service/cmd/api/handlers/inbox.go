@@ -442,9 +442,34 @@ func (h *Handlers) withdrawn(from *remote.Actor, activity *ap.Activity) error {
 	if gone == from.ID {
 		return h.forget(kept)
 	}
+	// What it was here, to say afterwards that it is gone.
+	was, _ := h.Nodes.ReadByURI(gone)
+
 	// The graph takes it away only if it is theirs.
-	_, err = h.Nodes.DeleteRemote(gone, kept.NodeID)
-	return err
+	deleted, err := h.Nodes.DeleteRemote(gone, kept.NodeID)
+	if err != nil || !deleted || was == nil || was.ID == 0 || h.Announce == nil {
+		return err
+	}
+
+	// Whoever was told of it, a reply to something of theirs, is not left
+	// with news that leads nowhere.
+	payload := &event.EventPayload{
+		Name:          event.RemoteNoteDeleted,
+		SourceService: "activitypub-service",
+		OwnerID:       kept.NodeID,
+		OwnerType:     constants.NodeActorActivityPubPersonEntityType,
+		SubjectID:     kept.NodeID,
+		SubjectType:   constants.NodeActorActivityPubPersonEntityType,
+		ObjectID:      was.ID,
+		ObjectType:    was.Type,
+		ViewerID:      kept.NodeID,
+	}
+	h.later(func() {
+		if err := h.Announce(payload, event.RemoteNoteDeleted); err != nil {
+			log.Printf("saying that %s is gone: %v", gone, err)
+		}
+	})
+	return nil
 }
 
 // forget removes somebody from another server and everything of theirs.

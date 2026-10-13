@@ -24,11 +24,15 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 	log.Println("Notification service event received", payload.Name)
 
 	// Medium node events
-	// A note kept from another server. Only its being kept: a change to
-	// it is news to nobody.
+	// A note kept from another server, or one that was and is gone. A
+	// change to it is news to nobody.
 	if strings.HasPrefix(payload.Name, "federation.medium.") {
 		if strings.HasSuffix(payload.Name, ".added.v1") {
 			return h.remoteNoteAdded(payload)
+		}
+		// Taken away where it was written: the news of it goes too.
+		if strings.HasSuffix(payload.Name, ".deleted.v1") {
+			return h.Repos.Notifications.DeleteOfReply(payload.ObjectID)
 		}
 		return nil
 	}

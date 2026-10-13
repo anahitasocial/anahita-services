@@ -60,6 +60,11 @@ func TestAReplyFromElsewhereIsKeptByTheThreadsRule(t *testing.T) {
 	if w.keptAt(alicesAnswer) != nil {
 		t.Error("her reply was still kept")
 	}
+	// And said to be gone, so that whoever was told of it is not left with
+	// news that leads nowhere.
+	if len(said) != 2 || said[1] != "federation.medium.text-service.note.deleted.v1" {
+		t.Errorf("said on the bus after it went: %v", said)
+	}
 
 	cases := map[string]func(w *inboxWorld){
 		"the thread is closed to replies":         func(w *inboxWorld) { w.note().CommentStatus = false },
