@@ -246,6 +246,9 @@ func (f *fakeBluesky) AuthorFeed(_ context.Context, did string, limit int) ([]bs
 }
 
 func (f *fakeBluesky) PostAt(_ context.Context, uri string) (*bsky.Post, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
 	if post := f.posts[uri]; post != nil {
 		return post, nil
 	}

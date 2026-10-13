@@ -1082,8 +1082,17 @@ its own. The card says to use one and where to make it.
   nobody here follows them, and their like, repost, reply or follow is
   theirs. The person here is told as of anybody's. Somebody they have
   blocked does none of it. What happened before the account was connected
-  is not gone back for, and what is taken back on Bluesky (a like
-  withdrawn, a reply deleted by somebody not followed) is not known here.
+  is not gone back for.
+- **What is taken back there.** An account is told when somebody likes,
+  reposts, answers or follows, and not when they think better of it. So
+  every five minutes, and once soon after the service starts, what is
+  kept here of such things is looked for on Bluesky again: who likes and
+  has reposted each post that went out from here, whether each answer is
+  still there, and whether each follower still follows. What is no longer
+  so is removed here, with the news of it. Nothing is removed on a doubt:
+  not when Bluesky could not be asked, not from a list too long to read to
+  its end (more than five hundred likes), and not what arrived in the last
+  three minutes.
 - **What is taken back.** Taking a like or a repost back here, or deleting
   the reply, removes it there.
 - **It arrives.** What is to be written waits in a table

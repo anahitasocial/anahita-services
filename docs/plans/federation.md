@@ -1228,3 +1228,13 @@ asking is now done beside the loop. Following here whoever is followed on
 Bluesky now takes a number (25 unless said, 500 at most) and can be asked
 about first (`GET /atproto/settings/import-follows`).
 
+**What is taken back on Bluesky, 2026-10-13.** The user had an account
+like and repost two posts that went out from here, and then undo both;
+they stayed here. An account is not told of an undoing. The service now
+asks Bluesky's reader, every five minutes, who likes and has reposted each
+such post (`getLikes`, `getRepostedBy`), whether each answer kept is still
+there (`getPosts`) and whether each follower still follows
+(`getRelationships`), and removes what is no longer so (`verify.go`,
+`data/repositories/kept.go`). No table was added: what is kept is read
+from the graph, and what is so now is read from Bluesky.
+

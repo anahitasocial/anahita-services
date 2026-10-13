@@ -127,6 +127,8 @@ func main() {
 		env.Likes = services.NewLikesGRPC(config)
 		env.FollowEdges = services.NewSocialgraphFollowGRPC(config)
 		env.Relations = services.NewSocialgraphGRPC(config)
+		env.Kept = repositories.NewKept(db)
+		env.Verify = client
 	} else {
 		log.Println("CRYPT_LOCAL_KEY is not set: Bluesky is read, and nothing is written to it")
 	}
@@ -185,6 +187,14 @@ func main() {
 	// each connected account now and then.
 	if queue != nil {
 		go h.RunReactions(ctx, time.Minute)
+		// And what they took back, which the account is not told of.
+		// Once soon after starting, for what was taken back while this
+		// was stopped, and then every few minutes.
+		go func() {
+			sleep(ctx, 30*time.Second)
+			h.VerifyReactions()
+			h.RunVerify(ctx, 5*time.Minute)
+		}()
 	}
 
 	// What the bus lost is looked for now and then.
