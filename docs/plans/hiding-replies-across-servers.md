@@ -41,6 +41,13 @@ is often wanted, and not always:
   blocker's profile: their replies under the blocker's posts, their likes,
   and anything else of theirs there. And the same **on a profile the
   blocker administers**, a group or an event, as the user said it.
+  - **Only there.** Said by the user next: "Unless the post belongs to
+    another profile, in that case when I block someone the reply remains.
+    It's up to the post owner and author to hide replies." A block reaches
+    the blocker's own posts and profiles and no further: under somebody
+    else's post, what the blocked person said stays for other readers, and
+    hiding it is for whoever that post belongs to. The blocker does not see
+    it themselves, as with anything from somebody they have blocked.
   - Hidden, not deleted: what they wrote is theirs, and comes back if the
     block is lifted.
   - To settle when it is built: whether a person's own block reaches the
