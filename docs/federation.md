@@ -516,7 +516,9 @@ event for a note kept from elsewhere). A reply to something not known here
 is dropped; the rest of a thread is not fetched from its server.
 
 Taken away where it was written, it is taken away here, the thread is
-counted again, and the news of it goes with it: the service says on the bus
+counted again (one that people here have answered is emptied and kept, as a
+reply here is when it is removed after being answered: what was said under
+it is theirs, and nothing sent from outside removes what was made here), and the news of it goes with it: the service says on the bus
 that it is gone (`federation.medium.text-service.note.deleted.v1`), and
 notification-service removes what it told anybody of the reply.
 

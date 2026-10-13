@@ -212,13 +212,42 @@ func TestWhatIsKeptFromAnotherServer(t *testing.T) {
 
 	// What cannot be answered: nothing, a person, a post that is disabled.
 	if _, err := db.Exec(`INSERT INTO nodes (id,type,service,body,access,enabled,owner_id,owner_type,created_by,created_at,updated_at) VALUES
-		(11,'node.medium.text-service.note.v1','text-service','Put away','public',0,1,'node.actor.person-service.person.v1',1,NOW(),NOW())`); err != nil {
+		(911,'node.medium.text-service.note.v1','text-service','Put away','public',0,1,'node.actor.person-service.person.v1',1,NOW(),NOW())`); err != nil {
 		t.Fatal(err)
 	}
-	for name, parent := range map[string]int64{"nothing there": 424242, "a person": 1, "a post that is disabled": 11} {
+	for name, parent := range map[string]int64{"nothing there": 424242, "a person": 1, "a post that is disabled": 911} {
 		if _, _, err := repo.UpsertRemote(answer("https://mastodon.example/users/alice/statuses/29", parent)); !errors.Is(err, ErrRemoteParent) {
 			t.Errorf("answering %s: %v", name, err)
 		}
+	}
+
+	// Somebody here answers her reply, and then she takes hers away: what
+	// she said goes, and what was said under it is still there, under the
+	// place where hers was.
+	if _, err := db.Exec(`INSERT INTO nodes (id,type,service,body,access,enabled,owner_id,owner_type,created_by,parent_id,root_id,created_at,updated_at) VALUES
+		(920,'node.medium.text-service.note.v1','text-service','Ana answers','',1,1,'node.actor.person-service.person.v1',1,?,10,NOW(),NOW())`, second.ID); err != nil {
+		t.Fatal(err)
+	}
+	if gone, err := repo.DeleteRemote(second.URI, saved.ID); err != nil || !gone {
+		t.Fatalf("her answered reply taken away: %v (%v)", gone, err)
+	}
+	var (
+		emptied  string
+		removed  bool
+		answerIs string
+	)
+	if err := db.QueryRow(`SELECT (SELECT body FROM nodes WHERE id = ?), (SELECT deleted_at IS NOT NULL FROM nodes WHERE id = ?), (SELECT body FROM nodes WHERE id = 920)`, second.ID, second.ID).Scan(&emptied, &removed, &answerIs); err != nil {
+		t.Fatal(err)
+	}
+	if emptied != "" || !removed || answerIs != "Ana answers" {
+		t.Errorf("after: hers %q (removed %v), Ana's %q", emptied, removed, answerIs)
+	}
+	// It cannot be answered again, and Ana's answer going lets it go too.
+	if _, _, err := repo.UpsertRemote(answer("https://mastodon.example/users/alice/statuses/30", second.ID)); !errors.Is(err, ErrRemoteParent) {
+		t.Errorf("answering what was taken away: %v", err)
+	}
+	if _, err := db.Exec(`DELETE FROM nodes WHERE id = 920`); err != nil {
+		t.Fatal(err)
 	}
 
 	// Taken away there, a reply is one fewer said here.

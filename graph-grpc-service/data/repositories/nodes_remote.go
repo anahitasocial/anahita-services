@@ -206,6 +206,28 @@ DELETE FROM edges
 WHERE node_a_id = ?
    OR node_b_id = ?`
 
+	// What hangs from it: answers to it, and, where it began a thread,
+	// everything said in that thread.
+	countUnderRemoteNote = `
+SELECT COUNT(*)
+FROM nodes
+WHERE parent_id = ?
+   OR root_id = ?`
+
+	// What it said goes; that it was there, whose it was and where in the
+	// thread it stood stay, as for a reply here that was removed after it
+	// was answered.
+	emptyRemoteNote = `
+UPDATE nodes
+SET body = '',
+    excerpt = NULL,
+    name = '',
+    meta = NULL,
+    deleted_at = UTC_TIMESTAMP(),
+    updated_at = UTC_TIMESTAMP()
+WHERE id = ?
+  AND uri IS NOT NULL`
+
 	// "uri IS NOT NULL" again, here where the row goes: never something
 	// that was made here, whatever the lines above found.
 	deleteRemoteNote = `
@@ -221,6 +243,12 @@ WHERE id = ?
 // for in the name of whoever it belongs to: the service that asks is passing
 // on what it was sent, and what it was sent may be a lie about whose a note
 // is. Whatever points at the note (a like, a save) goes with it.
+//
+// One that has been answered is emptied and kept, not removed: what people
+// here said under it is theirs, and is not taken away because somebody on
+// another server took away what they were answering. It is the same for a
+// note that began a thread: nothing sent from outside removes what was
+// made here.
 func (r *nodesRepo) DeleteRemote(uri string, ownerID int64) (bool, error) {
 	if uri == "" || ownerID <= 0 {
 		return false, nil
@@ -236,6 +264,22 @@ func (r *nodesRepo) DeleteRemote(uri string, ownerID int64) (bool, error) {
 	}
 	if err != nil {
 		return false, err
+	}
+
+	var under int
+	if err := r.db.QueryRowContext(ctx, countUnderRemoteNote, id, id).Scan(&under); err != nil {
+		return false, err
+	}
+	if under > 0 {
+		if _, err := r.db.ExecContext(ctx, emptyRemoteNote, id); err != nil {
+			return false, err
+		}
+		if rootID > 0 {
+			if err := NewRepliesRepo(r.db).Recount(rootID, parentID); err != nil {
+				return true, err
+			}
+		}
+		return true, nil
 	}
 
 	if _, err := r.db.ExecContext(ctx, deleteRemoteNoteEdges, id, id); err != nil {
