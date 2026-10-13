@@ -73,10 +73,12 @@ type wire struct {
 	PreferredUsername string          `json:"preferredUsername"`
 	Name              string          `json:"name"`
 	Summary           string          `json:"summary"`
-	URL               json.RawMessage `json:"url"`
-	Inbox             string          `json:"inbox"`
-	Outbox            string          `json:"outbox"`
-	Endpoints         struct {
+	// What is listed beside their name and their words: custom emoji.
+	Tag       json.RawMessage `json:"tag"`
+	URL       json.RawMessage `json:"url"`
+	Inbox     string          `json:"inbox"`
+	Outbox    string          `json:"outbox"`
+	Endpoints struct {
 		SharedInbox string `json:"sharedInbox"`
 	} `json:"endpoints"`
 	PublicKey struct {
@@ -150,8 +152,8 @@ func read(w *wire, from string, isOurs func(string) bool) (*Actor, error) {
 		Domain:       strings.ToLower(id.Host),
 		Username:     username,
 		Handle:       strings.ToLower(username) + "@" + strings.ToLower(id.Host),
-		Name:         cut(strings.TrimSpace(w.Name), nameMax),
-		Bio:          cut(federation.ToMarkdown(w.Summary), bioMax),
+		Name:         cut(strings.TrimSpace(federation.WithoutCustomEmoji(w.Name, w.Tag)), nameMax),
+		Bio:          cut(federation.WithoutCustomEmoji(federation.ToMarkdown(w.Summary), w.Tag), bioMax),
 		Inbox:        inbox.String(),
 		KeyID:        w.PublicKey.ID,
 		PublicKeyPEM: w.PublicKey.PublicKeyPem,

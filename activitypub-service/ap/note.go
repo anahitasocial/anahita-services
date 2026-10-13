@@ -176,6 +176,8 @@ type ReceivedNote struct {
 	To           json.RawMessage   `json:"to"`
 	Cc           json.RawMessage   `json:"cc"`
 	InReplyTo    json.RawMessage   `json:"inReplyTo"`
+	// What is listed beside the text. Read for its custom emoji.
+	Tag json.RawMessage `json:"tag"`
 }
 
 // Author is who a received post says wrote it.
