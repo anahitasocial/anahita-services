@@ -175,7 +175,7 @@ func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answ
 func (h *Handlers) Picture(c echo.Context) error {
 	uuid := c.Param("uuid")
 	position, err := strconv.Atoi(c.Param("position"))
-	if !uuidShape.MatchString(uuid) || err != nil || position < 0 || position >= postPicturesMax {
+	if !uuidShape.MatchString(uuid) || err != nil || position < 0 || position >= federation.PostPicturesMax {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if ok, _ := h.siteFederates(); !ok || h.PhotoFiles == nil || h.Files == nil {

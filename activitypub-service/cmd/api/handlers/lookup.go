@@ -248,7 +248,7 @@ func (h *Handlers) keep(actor *remote.Actor) (*entities.AnahitaNode, error) {
 	}
 	if actor.Header != "" && (before == nil || before.HeaderURL != actor.Header || saved.CoverFilename == "") {
 		id, header := saved.ID, actor.Header
-		h.later(func() { h.copyPicture(id, header, coverPicture) })
+		h.later(func() { h.copyCover(id, header) })
 	}
 	return saved, nil
 }
