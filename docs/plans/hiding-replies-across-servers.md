@@ -34,6 +34,12 @@ is often wanted, and not always:
   the same day: "Sometimes I just want to hide a comment but not
   necessarily block the author." There is no "hide and block" in one step,
   and hiding never blocks.
+- **Why a block hides, in the user's words:** on Threads "I have to first
+  hide a reply on my post and then block the person who replied, otherwise
+  others continue to see the reply, but I can't see the person and their
+  reply." A block alone leaves the reply up for everybody but the one
+  person who can no longer see it to take it down. Here one block does
+  both, on what is the blocker's.
 - **Blocking somebody hides what they have left, without asking.** Decided
   by the user the same day: "You don't even have to ask. When I block
   someone I don't want to see their replies either." So a block takes out
