@@ -23,6 +23,24 @@ That a reply hidden here stops being shown under the post wherever the post
 is read, as far as other servers can be brought to it. Hiding it here alone
 is what there is already.
 
+## How it is used
+
+The user's own habit, on Threads: hide a reply they do not like, then block
+whoever wrote it. "Generally they are bots or rude people." So hiding is
+the first of two steps of looking after one's own thread, and the second
+matters as much:
+
+- **Hide and block in one step,** from the reply's menu. And blocking
+  somebody can offer to hide what they have already said under the
+  blocker's posts, which a block alone leaves there for other readers.
+- **A block is not told to the other server yet.** Here it stops the
+  blocker seeing them and refuses what they send to the blocker's threads.
+  Mastodon and what speaks to it also send a `Block`, so that the blocked
+  person's server stops showing them the blocker's posts and stops them
+  answering. That is a settled part of ActivityPub, honoured widely, which
+  hiding is not: for a bot or somebody rude, a block other servers keep to
+  does more than a hide they ignore. It belongs with this item.
+
 ## What other servers can be asked
 
 - **Bluesky has it.** A post's author keeps a list of replies hidden under
