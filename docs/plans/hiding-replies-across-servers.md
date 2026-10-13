@@ -34,9 +34,22 @@ is often wanted, and not always:
   the same day: "Sometimes I just want to hide a comment but not
   necessarily block the author." There is no "hide and block" in one step,
   and hiding never blocks.
-- **Blocking somebody can offer to hide what they have already said** under
-  the blocker's posts, which a block alone leaves there for other readers.
-  Offered, and theirs to turn down.
+- **Blocking somebody hides what they have left, without asking.** Decided
+  by the user the same day: "You don't even have to ask. When I block
+  someone I don't want to see their replies either." So a block takes out
+  of sight, for every reader, what the blocked person has put on the
+  blocker's profile: their replies under the blocker's posts, their likes,
+  and anything else of theirs there. And the same **on a profile the
+  blocker administers**, a group or an event, as the user said it.
+  - Hidden, not deleted: what they wrote is theirs, and comes back if the
+    block is lifted.
+  - To settle when it is built: whether a person's own block reaches the
+    groups they administer, or whether that is the group blocking somebody,
+    done by one of its administrators. The second is how blocking by a
+    group would be told to other servers. (An open point of the plan's,
+    not something the user has said.)
+  - To look at first: what a block does today to what the blocked person
+    already left, for readers other than the blocker.
 - **A block is not told to the other server yet.** Here it stops the
   blocker seeing them and refuses what they send to the blocker's threads.
   Mastodon and what speaks to it also send a `Block`, so that the blocked
