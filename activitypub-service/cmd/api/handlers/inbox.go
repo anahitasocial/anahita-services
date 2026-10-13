@@ -123,7 +123,11 @@ func (h *Handlers) Inbox(c echo.Context) error {
 	case "Undo":
 		if inner := activity.Inner(); inner != nil && inner.Type == "Follow" {
 			err = h.unfollowed(from, inner)
+		} else if inner != nil && inner.Type == "Like" {
+			err = h.unliked(ctx, from, inner)
 		}
+	case "Like":
+		err = h.liked(ctx, from, &activity)
 	case "Accept", "Reject":
 		err = h.answered(from, &activity, activity.Type == "Accept")
 	case "Update":

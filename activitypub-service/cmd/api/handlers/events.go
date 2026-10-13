@@ -31,6 +31,7 @@ import (
 // EventTopics is what this service listens for.
 var EventTopics = []string{
 	"edge.follow.*.*.v1",
+	"edge.voteup.*.*.v1",
 	"node.medium.*.*.*.v1",
 	"node.actor.*.*.*.v1",
 }
@@ -50,6 +51,13 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		err = h.localFollowed(ctx, payload.ObjectID, payload.TargetID)
 	case strings.HasPrefix(payload.Name, "edge.follow.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
 		err = h.localUnfollowed(ctx, payload.ObjectID, payload.TargetID)
+
+	// Somebody liked something, or took a like back. The payload names
+	// who (the subject) and what (the object).
+	case strings.HasPrefix(payload.Name, "edge.voteup.") && strings.HasSuffix(payload.Name, ".added.v1"):
+		err = h.localLiked(ctx, payload.SubjectID, payload.ObjectID)
+	case strings.HasPrefix(payload.Name, "edge.voteup.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
+		err = h.localUnliked(ctx, payload.SubjectID, payload.ObjectID)
 
 	// A person's profile edited, or their account disabled, archived,
 	// deleted, purged, or brought back. What decides is asked of the person

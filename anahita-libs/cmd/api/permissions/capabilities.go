@@ -132,11 +132,9 @@ func CanLike(viewer *entities.Viewer, post *entities.AnahitaNode, rel *entities.
 	if viewer == nil || !viewer.Authenticated || !viewer.HasScope(constants.OAuthScopeLikesWrite) {
 		return false
 	}
-	// A post from another server is not liked from here yet: its author
-	// would never be told, so the like would be a lie to whoever made it.
-	if post != nil && post.IsRemote() {
-		return false
-	}
+	// A post from another server is liked as any post is. Its author is
+	// told when whoever likes it is on the fediverse; a like by somebody
+	// who is not stays here.
 
 	if viewer.IsAdmin() {
 		return true

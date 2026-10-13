@@ -91,6 +91,7 @@ func main() {
 		Blocks:      repositories.NewBlocks(db),
 		Missed:      repositories.NewMissed(db),
 		FollowEdges: services.NewSocialgraphFollowGRPC(config),
+		Likes:       services.NewLikesGRPC(config),
 		Relations:   services.NewSocialgraphGRPC(config),
 		Crypt:       secrets,
 		Limiter:     sessions.NewSession(config),

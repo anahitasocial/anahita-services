@@ -9,9 +9,9 @@ import (
 
 // THE RULE THIS GUARDS: what came from another server is not this
 // installation's to change. Nobody posts on such a profile or changes such
-// a post, a site administrator included, and nobody likes one: a like
-// would never reach whoever it was meant for. It may be answered, since an
-// answer is the answerer's own post and is sent to whoever it answers.
+// a post, a site administrator included. It may be answered and liked: an
+// answer is the answerer's own post, a like is the liker's own, and both
+// are sent to whoever they are for.
 func TestWhatCameFromAnotherServerIsNotActedOn(t *testing.T) {
 	admin := entities.NewViewer()
 	admin.ID = 1
@@ -46,8 +46,10 @@ func TestWhatCameFromAnotherServerIsNotActedOn(t *testing.T) {
 	if ok, _ := NewMediumPermissions().CanEdit(&MediumAccessContext{Viewer: admin, Medium: note, OwnerViewerRel: &entities.ActorRelation{}}); ok {
 		t.Error("an administrator may change a post from another server")
 	}
-	if CanLike(admin, note, nil) {
-		t.Error("a post from another server may be liked")
+	// It may be liked, as it may be answered: the like is told to its
+	// author when whoever likes is on the fediverse.
+	if !CanLike(admin, note, nil) {
+		t.Error("a post from another server may not be liked")
 	}
 	// It may be answered, by whoever is signed in and may write posts:
 	// who its author lets reply is its own server's to say.
@@ -63,22 +65,6 @@ func TestWhatCameFromAnotherServerIsNotActedOn(t *testing.T) {
 	reader.Scopes = nil
 	if CanReplyToPost(reader, note, &entities.ActorRelation{}) {
 		t.Error("a post from another server may be replied to by a token that may not write posts")
-	}
-
-	// Nor is a reply of hers liked, under a post that was made here and
-	// may be.
-	here := entities.NewAnahitaNode()
-	here.ID, here.Type, here.Access, here.Enabled = 61, constants.NodeMediumNoteEntityType, "public", true
-	here.OwnerID, here.CreatedBy = 1, 1
-	here.Owner = entities.NewAnahitaNode()
-	here.Owner.ID, here.Owner.Type, here.Owner.Access, here.Owner.Enabled = 1, constants.NodeActorPersonEntityType, "public", true
-	thread := &ReplyAccessContext{Viewer: admin, Root: here, Reply: note, RootOwnerViewerRel: &entities.ActorRelation{}}
-	if CanLikeReply(thread) {
-		t.Error("a reply from another server may be liked")
-	}
-	thread.Reply = here
-	if !CanLikeReply(thread) {
-		t.Error("a reply written here may not be liked")
 	}
 
 	// The same of what was made here is still allowed, so the test is of

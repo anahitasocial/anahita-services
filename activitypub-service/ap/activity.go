@@ -94,6 +94,22 @@ func NewUndoFollow(id, actor, object, followID string) *Sent {
 	}
 }
 
+// NewLike says somebody here likes something elsewhere.
+func NewLike(id, actor, object string) *Sent {
+	return &Sent{Context: contextActivityStreams, ID: id, Type: "Like", Actor: actor, Object: object}
+}
+
+// NewUndoLike takes a like back, quoting the Like that made it.
+func NewUndoLike(id, actor, object, likeID string) *Sent {
+	return &Sent{
+		Context: contextActivityStreams,
+		ID:      id,
+		Type:    "Undo",
+		Actor:   actor,
+		Object:  FollowRef{ID: likeID, Type: "Like", Actor: actor, Object: object},
+	}
+}
+
 // NewReject says no to one, the same way.
 func NewReject(id, actor, follower, followID string) *Sent {
 	sent := NewAccept(id, actor, follower, followID)
