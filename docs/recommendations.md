@@ -88,6 +88,27 @@ The numbers are constants in `recommendation-service/constants`. They are the se
 
 An event is suggested while it is still to come or on, and has not been called off. For an event, `followed_by_leaders` is people the viewer follows who have answered it, and following already is having answered it. An event is not asked to have a picture or a description, and is not marked down for when it was last visited: one that is still to come is as alive as anything is. It is sent with its `event` block, as it is in search results.
 
+### People on other networks
+
+Somebody on Bluesky or on a server of the fediverse who is kept here is a
+person like any other to whoever is asking who to follow, and is suggested
+for the same reasons: people the viewer follows follow them, they follow
+the viewer, they post about what the viewer does. They are among the
+people, with their whole handle (`alice.bsky.social`,
+`@bob@mastodon.example`) to say where they are.
+
+- **Only the ones kept here.** This installation knows of nobody on those
+  networks but whoever somebody here looked up or follows, whoever they
+  reposted, and whoever did something to a post that went out from here.
+  It cannot suggest a good account that nobody here has met.
+- **Somebody on Bluesky is suggested to anybody.** Anybody here can follow
+  them.
+- **Somebody on the fediverse is suggested only to a person who is on the
+  fediverse themselves.** Anybody else's follow of them would be taken
+  away again, since the other server could not find out who was asking.
+- **How lately they were active** is what was kept of them here: the last
+  post of theirs that arrived.
+
 ## Who is never suggested
 
 Whatever the reason, a profile is left out when it is:
