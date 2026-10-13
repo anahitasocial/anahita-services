@@ -380,7 +380,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: avatars of people elsewhere, their earlier posts | done 2026-10-13 |
 | Phase 1, ActivityPub: covers of people elsewhere; refused servers kept by super administrators, with a screen in Site settings | done 2026-10-12 |
 | Phase 1, ActivityPub: hashtags of posts from elsewhere; the sweep for what the bus lost; no notifications made for people elsewhere | done 2026-10-12 |
-| Phase 1, ActivityPub: a test against Mastodon itself with a real name | not started: needs a name other servers can reach |
+| Phase 1, ActivityPub: a test against Mastodon itself with a real name | begun 2026-10-12, through a tunnel: following both ways and a note out worked with mastodon.world (Mastodon 4.7.3). Still to try: a post arriving from Mastodon by itself, and an edit and a deletion going out |
 | Phase 1, ActivityPub: **to do**, the sweep also finds a lost edit of a note or a profile. Record what other servers were last sent (the note's and the person's `updated_at`, on `activitypub_objects` and `activitypub_accounts`: one migration), and have the sweep send an `Update` where the graph is newer | not started |
 | Phase 1, AT Protocol | not started |
 
@@ -403,6 +403,27 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   page, when it joined, what it says of itself with the hashtags as links,
   and the avatar and cover, which it fetched through the addresses that
   stay.
+
+**Mastodon itself, both ways.** The development machine, reached from the
+internet through a tunnel (Tailscale Funnel) under a name of its own, with
+the three `PUBLIC_` settings saying that one name for the site and the API
+alike.
+
+- **Everything the setup guide's checks ask for answered** from the
+  internet: the installation's own actor and key, a person found by their
+  handle, their description. One name for both the site and the API works.
+- **Somebody here followed an account on mastodon.world:** the signed
+  `Follow` was accepted within ten seconds, and the account's recent public
+  posts were read, 17 of the last 20 (the others were replies and boosts),
+  with their emoji and quotation marks whole.
+- **That account followed back:** the `Follow` arrived, was checked, and
+  was answered with an `Accept` that Mastodon took.
+- **A public note written here reached Mastodon's home feed.** One written
+  for followers only was not sent, and deleting it sent nothing.
+- **Still to try:** a post arriving from Mastodon by itself, and an edit
+  and a deletion going out.
+- **Found:** the composer does not say that a post kept to followers will
+  not be shared with the fediverse, which the plan asked for.
 
 **Hashtags of posts from elsewhere.** `federation.PostToMarkdown`,
 `anahita-libs/event/remote.go`, hashtag-service.
