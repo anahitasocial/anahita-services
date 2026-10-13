@@ -14,14 +14,18 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/federation"
+	"anahita-libs/linkpreviews"
 )
 
 // What somebody here does to something from Bluesky, done there too.
 //
-// Only for somebody who connected their Bluesky account (settings.go), and
-// only to what is on Bluesky: a like or a repost of a post that came from
-// there, and a reply under one, or under a reply that itself went there.
-// It is written as their account, to the server that holds it.
+// Only for somebody who connected their Bluesky account (settings.go). A
+// like or a repost of a post that came from Bluesky, and a reply under
+// one, or under a reply that itself went there. And a note of their own
+// that is open to everybody, on their own profile, which is posted there
+// as it is here: connecting an account is saying so, as being on the
+// fediverse is. All of it is written as their account, to the server that
+// holds it.
 //
 // What is to be written waits in a table and is tried until it is done,
 // as what goes to the fediverse does. Each thing is given its name before
@@ -187,8 +191,9 @@ func (h *Handlers) localReposted(ctx context.Context, repostID int64) error {
 	return h.begin(ctx, account, repositories.SentRepost, repost.ID, subject, 0)
 }
 
-// localPosted is somebody here having written something: a reply under
-// something that is on Bluesky goes there.
+// localPosted is somebody here having written something. A reply under
+// something that is on Bluesky goes there; so does a note of their own
+// that everybody may read.
 func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 	if !h.canWrite() {
 		return nil
@@ -200,13 +205,23 @@ func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 	if note.Type != constants.NodeMediumNoteEntityType || note.IsRemote() || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil
 	}
-	if note.ParentID <= 0 || note.CreatedBy <= 0 {
+	if note.CreatedBy <= 0 {
 		return nil
 	}
 	account := h.connected(note.CreatedBy)
 	if account == nil {
 		return nil
 	}
+
+	// A note that answers nothing: theirs, on their own profile, open to
+	// everybody.
+	if note.ParentID <= 0 && note.RootID <= 0 {
+		if note.OwnerID != note.CreatedBy || note.Access != constants.AnahitaAccessPublic {
+			return nil
+		}
+		return h.begin(ctx, account, repositories.SentPost, note.ID, "", note.ID)
+	}
+
 	parent, err := h.Nodes.Read(note.ParentID)
 	if err != nil {
 		return err
@@ -285,13 +300,21 @@ func (h *Handlers) Write(ctx context.Context, delivery federation.Delivery) erro
 // record makes what is written for a like, a repost or a reply. Nil, and
 // no error, when there is no longer anything to write.
 func (h *Handlers) record(ctx context.Context, w *write) (any, error) {
-	subject, root, err := h.Writer.RefOf(ctx, w.Subject)
-	if errors.Is(err, bsky.ErrNobody) {
-		// What it was of is gone from Bluesky.
-		return nil, federation.Permanent(err)
-	}
-	if err != nil {
-		return nil, err
+	var (
+		subject, root *bsky.Ref
+		err           error
+	)
+	if w.Subject != "" {
+		subject, root, err = h.Writer.RefOf(ctx, w.Subject)
+		if errors.Is(err, bsky.ErrNobody) {
+			// What it was of is gone from Bluesky.
+			return nil, federation.Permanent(err)
+		}
+		if err != nil {
+			return nil, err
+		}
+	} else if w.Collection != bsky.PostCollection {
+		return nil, federation.Permanent(errors.New("a like or a repost of nothing"))
 	}
 
 	if w.Collection != bsky.PostCollection {
@@ -310,7 +333,13 @@ func (h *Handlers) record(ctx context.Context, w *write) (any, error) {
 	if post.Text == "" {
 		return nil, nil
 	}
-	post.Reply = &bsky.OutReply{Root: *root, Parent: *subject}
+	if subject != nil {
+		post.Reply = &bsky.OutReply{Root: *root, Parent: *subject}
+	}
+	// The card of the link in it, as it was kept when the note was made.
+	if card := linkpreviews.FromMeta(note.Meta); card != nil {
+		post.WithCard(card.URL, card.Title, card.Description)
+	}
 	return post, nil
 }
 

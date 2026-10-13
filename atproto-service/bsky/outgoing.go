@@ -25,6 +25,30 @@ type OutPost struct {
 	CreatedAt string     `json:"createdAt"`
 	Langs     []string   `json:"langs,omitempty"`
 	Reply     *OutReply  `json:"reply,omitempty"`
+	Embed     *OutEmbed  `json:"embed,omitempty"`
+}
+
+// OutEmbed is the card of a link a post carries.
+type OutEmbed struct {
+	Type     string `json:"$type"`
+	External struct {
+		URI         string `json:"uri"`
+		Title       string `json:"title"`
+		Description string `json:"description"`
+	} `json:"external"`
+}
+
+// WithCard gives a post the card of a link: Bluesky draws none of its
+// own from an address in a post's words.
+func (p *OutPost) WithCard(address, title, description string) {
+	if !strings.HasPrefix(address, "https://") || title == "" {
+		return
+	}
+	embed := &OutEmbed{Type: "app.bsky.embed.external"}
+	embed.External.URI = address
+	embed.External.Title = string([]rune(title)[:min(len([]rune(title)), 300)])
+	embed.External.Description = string([]rune(description)[:min(len([]rune(description)), 1000)])
+	p.Embed = embed
 }
 
 // OutReply says what a post answers, and what began the thread.

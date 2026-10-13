@@ -894,12 +894,11 @@ feed of whoever follows it, like the posts of anybody else they follow.
 
 **Anybody reads; whoever connects their own Bluesky account also
 answers.** Nobody is given a name on Bluesky by this installation. Somebody
-who already has an account there can connect it, and from then on a like,
-a repost or a reply they give here to something from Bluesky is made there
-too, as that account: see [Answering on Bluesky](#answering-on-bluesky).
+who already has an account there can connect it, and from then on their
+public notes are posted there, and a like, a repost or a reply they give
+here to something from Bluesky is made there too, as that account: see [Answering on Bluesky](#answering-on-bluesky).
 For everybody else such things stay here, which the web app says under the
-reply being written. The account followed is not told that it is followed,
-and what is posted here that answers nothing does not go to Bluesky.
+reply being written. The account followed is not told that it is followed.
 
 So it asks nothing of the installation but a way out to the internet: no
 public name, no certificate, nobody choosing to be found. It works on a
@@ -1050,7 +1049,11 @@ its own. The card says to use one and where to make it.
   with no such key reads Bluesky and writes nothing: nobody is offered the
   card.
 - **What goes.** A like or a repost of a post that came from Bluesky; a
-  reply under one, or under a reply that itself went there. Words become
+  reply under one, or under a reply that itself went there; and a note of
+  the person's own that everybody may read, on their own profile, with
+  the card of the link in it. Connecting an account is saying that such
+  notes are posted there, as being on the fediverse is. A photo post does
+  not go yet, nor a note on somebody else's profile or a group's. Words become
   what Bluesky takes: Markdown's marks are taken out, links and hashtags
   are marked as such, and what is longer than three hundred letters is cut
   with a mark to say so. A reply that is changed here afterwards is not
@@ -1087,7 +1090,8 @@ left out, `https://plc.directory`.
 
 ### What is not there yet
 
-A post made here that answers nothing does not go to Bluesky. What people
+A photo post made here does not go to Bluesky, and a note that does goes
+without pictures. What people
 on Bluesky do to what was written from here (their likes, reposts and
 replies to it) is not read, unless they are followed. Likes given on
 Bluesky are not read, nor how many a post has; replies

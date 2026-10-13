@@ -15,6 +15,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/event"
 	"anahita-libs/federation"
+	"anahita-libs/linkpreviews"
 )
 
 const (
@@ -391,12 +392,14 @@ func TestWhatIsNotWritten(t *testing.T) {
 	w.nodes.kept = append(w.nodes.kept,
 		&entities.AnahitaNode{ID: 70, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: 9, CreatedBy: 9, Body: "Local"},
 		&entities.AnahitaNode{ID: 71, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID, ParentID: 70, Body: "Under a local note"},
-		// A note of Ana's that answers nothing.
-		&entities.AnahitaNode{ID: 72, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID, Body: "A note of my own"},
+		// Notes of Ana's that answer nothing: one for her followers only,
+		// and one on somebody else's profile.
+		&entities.AnahitaNode{ID: 72, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID, Access: "followers", Body: "For followers"},
+		&entities.AnahitaNode{ID: 73, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: 9, CreatedBy: anaID, Access: constants.AnahitaAccessPublic, Body: "On another profile"},
 	)
 	w.heard("edge.voteup.note.added.v1", event.EventPayload{SubjectID: anaID, ObjectID: 70})
 	note := event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType}
-	for _, id := range []int64{71, 72} {
+	for _, id := range []int64{71, 72, 73} {
 		note.ObjectID = id
 		w.heard("node.medium.text-service.note.added.v1", note)
 	}
@@ -488,5 +491,42 @@ func TestAConnectedAccountIsNotKeptAsSomebodyElsewhere(t *testing.T) {
 	}{"create", bsky.RepostCollection, "3l3rp", json.RawMessage(`{"subject":{"uri":"` + mine + `"}}`)}})
 	if w.keptAt("at://"+anaDID) != nil || w.keptAt(mine) != nil || len(w.reposts.made) != 0 {
 		t.Error("kept again by being reposted")
+	}
+}
+
+// THE RULE THIS GUARDS: of what somebody writes that answers nothing, only
+// a note everybody may read, on their own profile, is posted to Bluesky.
+func TestANoteOfOnesOwnGoesToBluesky(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.connect()
+
+	card := linkpreviews.IntoMeta(nil, &linkpreviews.Snapshot{URL: "https://example.com/story", Title: "The story", Description: "What it says"})
+	w.nodes.kept = append(w.nodes.kept, &entities.AnahitaNode{
+		ID: 80, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "Anahita to Bluesky #HelloWorld https://example.com/story", Meta: card,
+	})
+	note := event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 80}
+	w.heard("node.medium.text-service.note.added.v1", note)
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+
+	out, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+w.sent.rows[0].RKey])
+	for _, want := range []string{
+		`"text":"Anahita to Bluesky #HelloWorld https://example.com/story"`, `"tag":"HelloWorld"`,
+		`"embed":{"$type":"app.bsky.embed.external","external":{"uri":"https://example.com/story","title":"The story","description":"What it says"}}`,
+	} {
+		if !strings.Contains(string(out), want) {
+			t.Errorf("the note as written lacks %s:\n%s", want, out)
+		}
+	}
+	if strings.Contains(string(out), `"reply"`) {
+		t.Errorf("a note that answers nothing was written as a reply: %s", out)
+	}
+
+	// Deleted here, it goes from there.
+	w.heard("node.medium.text-service.note.deleted.v1", note)
+	if failed := w.drain(); len(failed) != 0 || len(w.writer.records) != 0 {
+		t.Errorf("after it was deleted: %v, %d there", failed, len(w.writer.records))
 	}
 }
