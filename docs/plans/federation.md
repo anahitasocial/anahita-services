@@ -521,7 +521,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: a test against Mastodon itself with a real name | begun 2026-10-12, through a tunnel: following both ways, a note out and its deletion worked with mastodon.world (Mastodon 4.7.3). Replies arrived by themselves, through the same inbox a note does; a note's own edit going out was tried by a reply's |
 | Phase 1, ActivityPub: the sweep also finds a lost edit of a note or a profile, by what is on record of what other servers were last sent (`told_updated_at`, migration `20261102000001`) | done 2026-10-12 |
 | Phase 2a, ActivityPub: replies both ways | done 2026-10-12, and tried against mastodon.world: new, changed and taken away, each way |
-| Phase 2b, ActivityPub: likes and reposts both ways | begun 2026-10-12 |
+| Phase 2b, ActivityPub: likes and reposts both ways | done 2026-10-12, and tried with mastodon.world: a like and a repost each way, and each taken back |
 | Phase 3a, ActivityPub: cards, pictures and custom emoji of posts from elsewhere | done 2026-10-12, and tried with mastodon.world |
 | Phase 1, AT Protocol | not started |
 
@@ -583,7 +583,9 @@ migration `20261104000001` (`activitypub_objects.kind`).
   was kept, counted and told; boosts from mastodon.world were kept and, taken
   back, removed; and a BBC News post on Flipboard, boosted by somebody
   followed from here, was read from its own server and kept with its
-  author. Likes, and a repost going out, are still to try.
+  author. A repost made here went out and was taken back; a like made
+  here reached Mastodon; and favourites from Mastodon, of a note and of a
+  reply here, were kept and their author told.
 - **The news of a repost from elsewhere goes when it is taken back**
   (`federation.repost.repost.note.deleted.v1`), which at first it did not.
 - **Seen in that trial, and for phase 3:** a post that is mostly a link and
