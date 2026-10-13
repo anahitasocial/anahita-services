@@ -104,7 +104,7 @@ func (h *Handlers) answers(reply *entities.AnahitaNode) *answer {
 			return nil
 		}
 	}
-	if !parent.Enabled || parent.DeletedAt != nil || parent.Type != constants.NodeMediumNoteEntityType {
+	if !parent.Enabled || parent.DeletedAt != nil || !isPost(parent) {
 		return nil
 	}
 

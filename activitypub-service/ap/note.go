@@ -178,6 +178,45 @@ type ReceivedNote struct {
 	InReplyTo    json.RawMessage   `json:"inReplyTo"`
 	// What is listed beside the text. Read for its custom emoji.
 	Tag json.RawMessage `json:"tag"`
+	// What came with it: pictures, and other things that are not kept.
+	Attachment json.RawMessage `json:"attachment"`
+	// Marked by its author as something not everybody wants to see.
+	Sensitive bool `json:"sensitive"`
+}
+
+// Attachment is something that came with a post.
+type Attachment struct {
+	Type      string `json:"type"`
+	MediaType string `json:"mediaType"`
+	URL       string `json:"url"`
+	// What it shows, for people who cannot see it.
+	Name string `json:"name"`
+}
+
+// Pictures is the pictures that came with a post, in the order they came:
+// what says it is an image, at an address on the web. One thing or a list
+// of them is read alike.
+func (n *ReceivedNote) Pictures() []Attachment {
+	if len(n.Attachment) == 0 {
+		return nil
+	}
+	var many []Attachment
+	if json.Unmarshal(n.Attachment, &many) != nil {
+		var one Attachment
+		if json.Unmarshal(n.Attachment, &one) != nil {
+			return nil
+		}
+		many = []Attachment{one}
+	}
+
+	var pictures []Attachment
+	for _, each := range many {
+		if !strings.HasPrefix(strings.ToLower(each.MediaType), "image/") || !strings.HasPrefix(each.URL, "https://") || len(each.URL) > 2000 {
+			continue
+		}
+		pictures = append(pictures, each)
+	}
+	return pictures
 }
 
 // Author is who a received post says wrote it.

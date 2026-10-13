@@ -114,6 +114,7 @@ func main() {
 	env.Pictures = client
 	env.Files = services.NewFilesGRPC(config)
 	env.Cards = handlers.NewCards(config.LinkPreviewURL)
+	env.PhotoFiles = services.NewMediaGRPC(config)
 	env.Announce = (&announcer{config: config}).Publish
 
 	// What is to be sent to other servers waits in a table, and is sent

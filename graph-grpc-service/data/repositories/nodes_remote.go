@@ -30,7 +30,8 @@ import (
 // reach what was made here. So what may be kept is narrow, and it is
 // narrowed here and not left to the caller:
 //
-//   - only a person of another server, or a note;
+//   - only a person of another server, or a post of theirs: a note, or a
+//     photo post, which is a note that came with pictures;
 //   - a note only on the profile of a person of another server, and by
 //     them: nothing arrives as written by somebody here, or on a profile
 //     here;
@@ -66,6 +67,24 @@ var (
 var remoteActorTypes = []string{
 	constants.NodeActorActivityPubPersonEntityType,
 	constants.NodeActorATProtoPersonEntityType,
+}
+
+// remotePostTypes is the kinds of post kept from another server: a note,
+// and a photo post, which is what a note with pictures is here.
+var remotePostTypes = []string{
+	constants.NodeMediumNoteEntityType,
+	constants.NodeMediumPhotoEntityType,
+}
+
+// IsRemotePostType says whether a type is one a post from another server
+// is kept as.
+func IsRemotePostType(nodeType string) bool {
+	for _, post := range remotePostTypes {
+		if nodeType == post {
+			return true
+		}
+	}
+	return false
 }
 
 // IsRemoteActorType says whether a type is a person of another server.
@@ -199,7 +218,7 @@ SELECT id, COALESCE(root_id, 0), COALESCE(parent_id, 0)
 FROM nodes
 WHERE uri = ?
   AND owner_id = ?
-  AND type = ?`
+  AND type IN (?, ?)`
 
 	deleteRemoteNoteEdges = `
 DELETE FROM edges
@@ -227,6 +246,10 @@ SET body = '',
     updated_at = UTC_TIMESTAMP()
 WHERE id = ?
   AND uri IS NOT NULL`
+
+	deleteRemoteNoteFiles = `
+DELETE FROM photo_files
+WHERE node_id = ?`
 
 	// "uri IS NOT NULL" again, here where the row goes: never something
 	// that was made here, whatever the lines above found.
@@ -258,7 +281,8 @@ func (r *nodesRepo) DeleteRemote(uri string, ownerID int64) (bool, error) {
 	defer cancel()
 
 	var id, rootID, parentID int64
-	err := r.db.QueryRowContext(ctx, readRemoteNote, uri, ownerID, constants.NodeMediumNoteEntityType).Scan(&id, &rootID, &parentID)
+	err := r.db.QueryRowContext(ctx, readRemoteNote, uri, ownerID,
+		constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType).Scan(&id, &rootID, &parentID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
@@ -283,6 +307,11 @@ func (r *nodesRepo) DeleteRemote(uri string, ownerID int64) (bool, error) {
 	}
 
 	if _, err := r.db.ExecContext(ctx, deleteRemoteNoteEdges, id, id); err != nil {
+		return false, err
+	}
+	// The list of its pictures, where it had any. The pictures themselves
+	// are in storage, and are removed by whoever asked for this.
+	if _, err := r.db.ExecContext(ctx, deleteRemoteNoteFiles, id); err != nil {
 		return false, err
 	}
 	result, err := r.db.ExecContext(ctx, deleteRemoteNote, id)
@@ -547,7 +576,7 @@ func (r *nodesRepo) validateRemote(node *entities.AnahitaNode) error {
 		}
 		node.OwnerID, node.OwnerType = 0, ""
 
-	case node.Type == constants.NodeMediumNoteEntityType:
+	case IsRemotePostType(node.Type):
 		if node.OwnerID <= 0 {
 			return ErrRemoteOwner
 		}

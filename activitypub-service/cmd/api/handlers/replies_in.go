@@ -114,7 +114,7 @@ func (h *Handlers) answeredHere(address string) *entities.AnahitaNode {
 		return nil
 	}
 
-	if found.Type != constants.NodeMediumNoteEntityType || !found.Enabled || found.DeletedAt != nil {
+	if !isPost(found) || !found.Enabled || found.DeletedAt != nil {
 		return nil
 	}
 	return found

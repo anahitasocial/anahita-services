@@ -9,7 +9,6 @@ import (
 	"activitypub/ap"
 	"activitypub/remote"
 
-	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/event"
 )
@@ -39,7 +38,7 @@ func (h *Handlers) likeID(liker, liked *entities.AnahitaNode) string {
 // fediverse, of a note kept from another server.
 func (h *Handlers) likedElsewhere(likerID, nodeID int64) (liker, liked *entities.AnahitaNode, inbox string, err error) {
 	liked, err = h.Nodes.Read(nodeID)
-	if err != nil || liked == nil || liked.ID == 0 || !liked.IsRemote() || liked.Type != constants.NodeMediumNoteEntityType {
+	if err != nil || liked == nil || liked.ID == 0 || !liked.IsRemote() || !isPost(liked) {
 		return nil, nil, "", err
 	}
 	liker, err = h.Nodes.Read(likerID)

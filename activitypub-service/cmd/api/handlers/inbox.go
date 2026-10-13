@@ -375,8 +375,18 @@ func (h *Handlers) keepNote(author *repositories.RemoteActor, note *ap.ReceivedN
 // store keeps a note that has been found to be one that is kept: on its
 // author's profile, and under what it answers when it answers something.
 func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) error {
+	// With pictures it is a photo post, which is what a post with pictures
+	// is here. What it was first kept as it stays, whatever came after.
+	pictures := h.picturesToKeep(note)
+	kind := constants.NodeMediumNoteEntityType
+	if known, err := h.Nodes.ReadByURI(note.ID); err == nil && known != nil && known.ID != 0 {
+		kind = known.Type
+	} else if len(pictures) > 0 {
+		kind = constants.NodeMediumPhotoEntityType
+	}
+
 	node := entities.NewAnahitaNode()
-	node.Type = constants.NodeMediumNoteEntityType
+	node.Type = kind
 	node.URI = note.ID
 	node.OriginDomain = hostOf(note.ID)
 	node.OwnerID = authorID
@@ -386,8 +396,8 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 	if published, err := time.Parse(time.RFC3339, note.Published); err == nil {
 		node.CreatedAt = published
 	}
-	if node.Body == "" {
-		// Nothing to show: a picture alone, which is not kept yet.
+	if node.Body == "" && kind != constants.NodeMediumPhotoEntityType {
+		// Nothing to show: no words, and no picture that is kept.
 		return nil
 	}
 	// The card of the link in it, read by this installation itself.
@@ -398,7 +408,24 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 		return err
 	}
 	h.announceKept(saved, authorID, created)
+
+	// Its pictures are fetched after it is kept, and not waited for: the
+	// server that sent it is answered now, and a picture takes a while.
+	if saved != nil && saved.Type == constants.NodeMediumPhotoEntityType && len(pictures) > 0 {
+		h.later(func() { h.copyPostPictures(saved, pictures) })
+	}
 	return nil
+}
+
+// isPost says whether something is a post other servers can be spoken to
+// about: a note, or a photo post that came from another server, which is a
+// note there.
+func isPost(node *entities.AnahitaNode) bool {
+	if node == nil {
+		return false
+	}
+	return node.Type == constants.NodeMediumNoteEntityType ||
+		(node.Type == constants.NodeMediumPhotoEntityType && node.IsRemote())
 }
 
 // announceKept says that a post from another server was kept or changed,
@@ -452,13 +479,24 @@ func (h *Handlers) withdrawn(from *remote.Actor, activity *ap.Activity) error {
 	if gone == from.ID {
 		return h.forget(kept)
 	}
-	// What it was here, to say afterwards that it is gone.
+	// What it was here, to say afterwards that it is gone, and what
+	// pictures of it are in storage.
 	was, _ := h.Nodes.ReadByURI(gone)
+	var pictures []*entities.PhotoFile
+	if was != nil && was.Type == constants.NodeMediumPhotoEntityType && h.PhotoFiles != nil {
+		pictures, _ = h.PhotoFiles.BrowsePhotoFiles([]int64{was.ID})
+	}
 
 	// The graph takes it away only if it is theirs.
 	deleted, err := h.Nodes.DeleteRemote(gone, kept.NodeID)
-	if err != nil || !deleted || was == nil || was.ID == 0 || h.Announce == nil {
+	if err != nil || !deleted || was == nil || was.ID == 0 {
 		return err
+	}
+	if len(pictures) > 0 {
+		h.later(func() { h.deletePostPictures(was, pictures) })
+	}
+	if h.Announce == nil {
+		return nil
 	}
 
 	// Whoever was told of it, a reply to something of theirs, is not left

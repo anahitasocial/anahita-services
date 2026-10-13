@@ -225,7 +225,7 @@ func TestWhatIsKeptFromAnotherServer(t *testing.T) {
 	// she said goes, and what was said under it is still there, under the
 	// place where hers was.
 	if _, err := db.Exec(`INSERT INTO nodes (id,type,service,body,access,enabled,owner_id,owner_type,created_by,parent_id,root_id,created_at,updated_at) VALUES
-		(920,'node.medium.text-service.note.v1','text-service','Ana answers','',1,1,'node.actor.person-service.person.v1',1,?,10,NOW(),NOW())`, second.ID); err != nil {
+		(100920,'node.medium.text-service.note.v1','text-service','Ana answers','',1,1,'node.actor.person-service.person.v1',1,?,10,NOW(),NOW())`, second.ID); err != nil {
 		t.Fatal(err)
 	}
 	if gone, err := repo.DeleteRemote(second.URI, saved.ID); err != nil || !gone {
@@ -236,7 +236,7 @@ func TestWhatIsKeptFromAnotherServer(t *testing.T) {
 		removed  bool
 		answerIs string
 	)
-	if err := db.QueryRow(`SELECT (SELECT body FROM nodes WHERE id = ?), (SELECT deleted_at IS NOT NULL FROM nodes WHERE id = ?), (SELECT body FROM nodes WHERE id = 920)`, second.ID, second.ID).Scan(&emptied, &removed, &answerIs); err != nil {
+	if err := db.QueryRow(`SELECT (SELECT body FROM nodes WHERE id = ?), (SELECT deleted_at IS NOT NULL FROM nodes WHERE id = ?), (SELECT body FROM nodes WHERE id = 100920)`, second.ID, second.ID).Scan(&emptied, &removed, &answerIs); err != nil {
 		t.Fatal(err)
 	}
 	if emptied != "" || !removed || answerIs != "Ana answers" {
@@ -246,7 +246,7 @@ func TestWhatIsKeptFromAnotherServer(t *testing.T) {
 	if _, _, err := repo.UpsertRemote(answer("https://mastodon.example/users/alice/statuses/30", second.ID)); !errors.Is(err, ErrRemoteParent) {
 		t.Errorf("answering what was taken away: %v", err)
 	}
-	if _, err := db.Exec(`DELETE FROM nodes WHERE id = 920`); err != nil {
+	if _, err := db.Exec(`DELETE FROM nodes WHERE id = 100920`); err != nil {
 		t.Fatal(err)
 	}
 
@@ -256,6 +256,34 @@ func TestWhatIsKeptFromAnotherServer(t *testing.T) {
 	}
 	if gone, err := repo.DeleteRemote(first.URI, saved.ID); err != nil || !gone || said(10) != 0 {
 		t.Errorf("her other reply taken away: %v (%v), counted %d", gone, err, said(10))
+	}
+
+	// A post of hers that came with pictures is a photo post here, and its
+	// list of pictures goes when it does.
+	withPictures := note()
+	withPictures.Type = constants.NodeMediumPhotoEntityType
+	withPictures.URI = "https://mastodon.example/users/alice/statuses/40"
+	withPictures.Body = ""
+	photo, created, err := repo.UpsertRemote(withPictures)
+	if err != nil || !created || photo.Type != constants.NodeMediumPhotoEntityType || photo.Service != "photo-service" || photo.OwnerID != saved.ID {
+		t.Fatalf("her photo post was kept as %+v (%v)", photo, err)
+	}
+	if _, err := db.Exec(`INSERT INTO photo_files (node_id, position, filename, mimetype) VALUES (?, 0, 'one.png', 'image/png'), (?, 1, 'two.png', 'image/png')`, photo.ID, photo.ID); err != nil {
+		t.Fatal(err)
+	}
+	if gone, err := repo.DeleteRemote(photo.URI, saved.ID); err != nil || !gone {
+		t.Fatalf("her photo post taken away: %v (%v)", gone, err)
+	}
+	var listed int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM photo_files WHERE node_id = ?`, photo.ID).Scan(&listed); err != nil || listed != 0 {
+		t.Errorf("its pictures are still listed: %d (%v)", listed, err)
+	}
+	// Nothing else is kept from another server: not an article, say.
+	article := note()
+	article.Type = "node.medium.text-service.article.v1"
+	article.URI = "https://mastodon.example/users/alice/statuses/41"
+	if _, _, err := repo.UpsertRemote(article); !errors.Is(err, ErrRemoteType) {
+		t.Errorf("an article from another server: %v", err)
 	}
 
 	// Taken away where it was written, it is taken away here: by its

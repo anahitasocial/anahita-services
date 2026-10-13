@@ -37,6 +37,9 @@ type Env struct {
 	// Runs what need not hold up an answer: copying a picture, reading
 	// somebody's recent posts. Nil runs it at once, which tests want.
 	Later func(func())
+	// Where a post's list of pictures is kept. Nil for none, in tests that
+	// are not of pictures.
+	PhotoFiles PhotoFiles
 	// The card for a link in a post from elsewhere. Nil for none: in tests,
 	// and where there is no link-preview-service.
 	Cards Cards

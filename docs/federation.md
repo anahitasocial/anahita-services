@@ -8,8 +8,9 @@ person can choose to be found, people follow each other across servers
 either way round, their public notes travel with the follow, a person can
 leave again, a super administrator can refuse a server, and the web app has the
 switch, the lookup, and shows people and posts from other servers.
-Replies, likes and reposts cross both ways. The pictures in posts do not
-travel yet.
+Replies, likes and reposts cross both ways. Posts arrive with their
+pictures and with a card for the link in them; pictures are not sent out
+yet.
 
 ## Contents
 
@@ -429,6 +430,29 @@ written, in the language it says. Because it is an ordinary note on the
 profile of somebody followed, it is in the feed of whoever follows them
 with nothing changed in the feeds.
 
+**With pictures, it is a photo post,** which is what a post with pictures
+is here: its words are the caption and up to four pictures are its images,
+each with what its author said it shows. So it is drawn, opened and stepped
+through like any photo post, and is in its author's photos. The pictures
+are copied into this installation's storage (`pictures.go`) and never shown
+from where they came from; each is checked to be a picture and nothing
+else, held to the limits an upload is held to, and written out again at
+this installation's own sizes. They are fetched after the post is kept and
+not waited for, so a post is there a moment before its pictures are.
+Told of again, its pictures are not fetched again; taken away where it was
+written, what is stored of it is removed.
+
+- **A post its author marked as sensitive is kept without its pictures.**
+  Nothing here puts a picture behind a warning yet.
+- **What a post was first kept as, it stays:** a note that later gains a
+  picture is still a note.
+- **Only pictures.** Video and sound that come with a post are not kept.
+
+**A custom emoji** in a post, or in somebody's name or what they say of
+themselves, is a word between colons with a picture listed beside it. The
+picture is not shown yet, so the word is taken out
+(`federation.WithoutCustomEmoji`): only a word that is listed as one.
+
 **A link in it is given a card,** as a link in a note written here is:
 what the page is called, what it says of itself and its picture, read by
 this installation and kept in its own storage. `activitypub-service` asks
@@ -479,7 +503,7 @@ their server keeps (`backfill.go`), each held to the same rule as a note
 that is sent. Only ever from their own server, and in no more than
 twenty-five requests whatever it answers.
 
-**Not kept:** pictures and other attachments in posts, boosts and polls.
+**Not kept:** video and sound that come with a post, and polls.
 
 ## Replies
 
@@ -861,6 +885,7 @@ that.
 | What the bus lost | `cmd/api/handlers/sweep.go`, `data/repositories/missed.go` |
 | Replies | `cmd/api/handlers/replies_in.go`, `notes.go` (`answers`) |
 | Likes and reposts | `cmd/api/handlers/likes.go`, `reposts.go` |
+| Pictures and cards of posts from elsewhere | `cmd/api/handlers/pictures.go`, `cards.go` |
 | Looking somebody up | `cmd/api/handlers/lookup.go`, table `activitypub_actors` |
 | Their picture, and their earlier posts | `cmd/api/handlers/avatar.go`, `backfill.go` |
 | The inbox, and being followed | `cmd/api/handlers/inbox.go`, table `activitypub_follows` |

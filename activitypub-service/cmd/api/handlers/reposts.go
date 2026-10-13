@@ -65,7 +65,7 @@ func (h *Handlers) reposted(ctx context.Context, repostID int64) error {
 	if err != nil || note == nil || note.ID == 0 {
 		return err
 	}
-	if note.Type != constants.NodeMediumNoteEntityType || !note.Enabled || note.DeletedAt != nil {
+	if !isPost(note) || !note.Enabled || note.DeletedAt != nil {
 		return nil
 	}
 
@@ -327,7 +327,7 @@ func (h *Handlers) RereadFromTheCommandLine(ctx context.Context, address string)
 	if err != nil {
 		return err
 	}
-	if kept == nil || kept.ID == 0 || !kept.IsRemote() || kept.Type != constants.NodeMediumNoteEntityType {
+	if kept == nil || kept.ID == 0 || !kept.IsRemote() || !isPost(kept) {
 		return fmt.Errorf("no post from another server is kept by that address")
 	}
 	if h.Blocks != nil && h.Blocks.IsBlocked(hostOf(address)) {
