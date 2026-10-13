@@ -750,11 +750,15 @@ func (h *personHandler) readPersonByAlias(c echo.Context, alias string) (*entiti
 }
 
 // personTypeOf says what kind of person a handle is: somebody here, or
-// somebody on another server, whose handle has their server in it
-// (alice@mastodon.example). A username here cannot contain an @.
+// somebody on another server. On the fediverse a handle has its server in
+// it (alice@mastodon.example); on Bluesky it is a name in the DNS
+// (alice.bsky.social). A username here can contain neither an @ nor a dot.
 func personTypeOf(alias string) string {
-	if strings.Contains(alias, "@") {
+	switch {
+	case strings.Contains(alias, "@"):
 		return constants.NodeActorActivityPubPersonEntityType
+	case strings.Contains(alias, "."):
+		return constants.NodeActorATProtoPersonEntityType
 	}
 	return constants.NodeActorPersonEntityType
 }

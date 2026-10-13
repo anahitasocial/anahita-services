@@ -5,6 +5,7 @@ use (
 	./activitypub-service
 	./actor-service
 	./anahita-libs
+	./atproto-service
 	./auth-service
 	./feed-service
 	./file-grpc-service

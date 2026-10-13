@@ -235,6 +235,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The API](federation.md#the-api)
    - [Leaving, and what follows a person's changes](federation.md#leaving-and-what-follows-a-persons-changes)
    - [Servers that are refused](federation.md#servers-that-are-refused)
+   - [Reading Bluesky](federation.md#reading-bluesky)
    - [Where the code is](federation.md#where-the-code-is)
 21. [The federation lab](federation-lab.md) — trying federation on one machine: names, certificates, and another server to talk to
    - [Why it is needed](federation-lab.md#why-it-is-needed)
@@ -269,7 +270,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
-| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0 done 2026-10-12; phase 1, ActivityPub, mostly built 2026-10-13: see [Federation](federation.md). AT Protocol not started |
+| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0 done 2026-10-12; phase 1, ActivityPub, mostly built 2026-10-13: see [Federation](federation.md). AT Protocol, part 1 (reading Bluesky) built 2026-10-12; part 2 (being on Bluesky) waits for a domain |
 | [Link previews](plans/done/link-previews.md) | 10 | built 2026-10-11, with the web shell of its part B |
 | [Downloading what a post holds](plans/done/downloads.md) | 37 | built 2026-10-11 |
 | [Invitations](plans/done/actor-invitations.md) | 11 | done 2026-10-10 |

@@ -18,6 +18,9 @@ VIDEO_WORKER=video-worker
 ACTIVITYPUB_BINARY=app-binary
 ACTIVITYPUB_VERSION=latest
 ACTIVITYPUB_SRV=activitypub-service
+ATPROTO_BINARY=app-binary
+ATPROTO_VERSION=latest
+ATPROTO_SRV=atproto-service
 
 EXPORT_BINARY=app-binary
 EXPORT_WORKER_BINARY=worker-binary
@@ -123,7 +126,7 @@ down:
 	@echo "Docker stopped!"
 
 ## build_dockerfiles: builds all dockerfile images
-build_dockerfiles: check_docker build_abuse_report build_recommendation build_link_preview build_video build_export build_activitypub build_auth build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
+build_dockerfiles: check_docker build_abuse_report build_recommendation build_link_preview build_video build_export build_activitypub build_atproto build_auth build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
 	@echo "Building dockerfiles..."
 	docker build -f ${DOCKERFILES}/${ABUSE_REPORT_SRV}.dockerfile -t ${REPOSITORY}/${ABUSE_REPORT_SRV}:${ABUSE_REPORT_VERSION} .
 	docker build -f ${DOCKERFILES}/${RECOMMENDATION_SRV}.dockerfile -t ${REPOSITORY}/${RECOMMENDATION_SRV}:${RECOMMENDATION_VERSION} .
@@ -132,6 +135,7 @@ build_dockerfiles: check_docker build_abuse_report build_recommendation build_li
 	docker build -f ${DOCKERFILES}/${VIDEO_WORKER}.dockerfile -t ${REPOSITORY}/${VIDEO_WORKER}:${VIDEO_VERSION} .
 	docker build -f ${DOCKERFILES}/${EXPORT_SRV}.dockerfile -t ${REPOSITORY}/${EXPORT_SRV}:${EXPORT_VERSION} .
 	docker build -f ${DOCKERFILES}/${ACTIVITYPUB_SRV}.dockerfile -t ${REPOSITORY}/${ACTIVITYPUB_SRV}:${ACTIVITYPUB_VERSION} .
+	docker build -f ${DOCKERFILES}/${ATPROTO_SRV}.dockerfile -t ${REPOSITORY}/${ATPROTO_SRV}:${ATPROTO_VERSION} .
 	docker build -f ${DOCKERFILES}/${EXPORT_WORKER}.dockerfile -t ${REPOSITORY}/${EXPORT_WORKER}:${EXPORT_VERSION} .
 	docker build -f ${DOCKERFILES}/${AUTH_SRV}.dockerfile -t ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION} .
 	docker build -f ${DOCKERFILES}/${GRAPH_SRV}.dockerfile -t ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION} .
@@ -162,6 +166,7 @@ push_dockerfiles: check_docker build_dockerfiles
 	docker push ${REPOSITORY}/${VIDEO_WORKER}:${VIDEO_VERSION}
 	docker push ${REPOSITORY}/${EXPORT_SRV}:${EXPORT_VERSION}
 	docker push ${REPOSITORY}/${ACTIVITYPUB_SRV}:${ACTIVITYPUB_VERSION}
+	docker push ${REPOSITORY}/${ATPROTO_SRV}:${ATPROTO_VERSION}
 	docker push ${REPOSITORY}/${EXPORT_WORKER}:${EXPORT_VERSION}
 	docker push ${REPOSITORY}/${AUTH_SRV}:${AUTH_VERSION}
 	docker push ${REPOSITORY}/${GRAPH_SRV}:${GRAPH_VERSION}
@@ -253,6 +258,12 @@ build_activitypub:
 	cd ${ACTIVITYPUB_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${ACTIVITYPUB_BINARY} ./cmd/api
 	@echo "Activitypub binary built!"
 
+## build_atproto: builds the atproto binary as a linux executable
+build_atproto:
+	@echo "Building atproto binary.."
+	cd ${ATPROTO_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${ATPROTO_BINARY} ./cmd/api
+	@echo "Atproto binary built!"
+
 ## build_export: builds the export service and its worker as linux executables
 build_export:
 	@echo "Building export binaries.."
@@ -341,7 +352,7 @@ build_feed:
 
 ## up_build: stops docker-compose (if running), builds all projects and starts docker compose
 # up_build: build_auth build_broker build_listener build_logger build_mail
-up_build: build_abuse_report build_recommendation build_link_preview build_video build_export build_activitypub build_auth build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
+up_build: build_abuse_report build_recommendation build_link_preview build_video build_export build_activitypub build_atproto build_auth build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
 	@echo "Stopping docker images (if running...)"
 	docker-compose down
 	@echo "Building (when required) and starting docker images..."
@@ -460,6 +471,14 @@ activitypub: build_activitypub
 	- docker-compose rm -f ${ACTIVITYPUB_SRV}
 	docker-compose up --build -d ${ACTIVITYPUB_SRV}
 	@echo "${ACTIVITYPUB_SRV} built and started!"
+
+## atproto: stops atproto-service, removes docker image, builds service, and starts it
+atproto: build_atproto
+	@echo "Building ${ATPROTO_SRV} docker image..."
+	- docker-compose stop ${ATPROTO_SRV}
+	- docker-compose rm -f ${ATPROTO_SRV}
+	docker-compose up --build -d ${ATPROTO_SRV}
+	@echo "${ATPROTO_SRV} built and started!"
 
 ## export: stops export-service and its worker, removes their images, builds and starts them
 export: build_export
@@ -616,6 +635,8 @@ clean:
 	@cd ${EXPORT_SRV} && go clean
 	@cd ${ACTIVITYPUB_SRV} && rm -f ${ACTIVITYPUB_BINARY}
 	@cd ${ACTIVITYPUB_SRV} && go clean
+	@cd ${ATPROTO_SRV} && rm -f ${ATPROTO_BINARY}
+	@cd ${ATPROTO_SRV} && go clean
 	@cd ${WEB_SHELL_SRV} && rm -f ${WEB_SHELL_BINARY}
 	@cd ${WEB_SHELL_SRV} && go clean
 	@cd ${HASHTAG_SRV} && rm -f ${HASHTAG_BINARY}
@@ -654,7 +675,7 @@ K8S_LOCAL=k8s/overlays/local
 # Always the Minikube cluster, whatever kubectl currently points at, so these
 # targets can never touch a real one.
 KUBECTL=kubectl --context minikube
-K8S_IMAGES=${ABUSE_REPORT_SRV} ${RECOMMENDATION_SRV} ${LINK_PREVIEW_SRV} ${VIDEO_SRV} ${VIDEO_WORKER} ${EXPORT_SRV} ${EXPORT_WORKER} ${ACTIVITYPUB_SRV} ${AUTH_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
+K8S_IMAGES=${ABUSE_REPORT_SRV} ${RECOMMENDATION_SRV} ${LINK_PREVIEW_SRV} ${VIDEO_SRV} ${VIDEO_WORKER} ${EXPORT_SRV} ${EXPORT_WORKER} ${ACTIVITYPUB_SRV} ${ATPROTO_SRV} ${AUTH_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
 
 ## k8s-start: starts a local Minikube cluster with the ingress controller and cert-manager
 k8s-start:
@@ -738,6 +759,7 @@ test:
 	@cd ${VIDEO_SRV} && go test ./...
 	@cd ${EXPORT_SRV} && go test ./...
 	@cd ${ACTIVITYPUB_SRV} && go test ./...
+	@cd ${ATPROTO_SRV} && go test ./...
 	@cd ${SEARCH_SRV} && go test ./...
 	@cd ${SOCIALGRAPH_SRV} && go test ./...
 	@cd ${RECOMMENDATION_SRV} && go test ./...

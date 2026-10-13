@@ -22,6 +22,7 @@ resources:
   - services/actor.yml
   - services/abuse-report.yml
   - services/activitypub.yml
+  - services/atproto.yml
   - services/auth.yml
   - services/feed.yml
   - services/hashtag.yml

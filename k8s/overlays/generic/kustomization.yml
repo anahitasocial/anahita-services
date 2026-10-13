@@ -45,6 +45,8 @@ images:
     newTag: latest
   - name: anahita/activitypub-service
     newTag: latest
+  - name: anahita/atproto-service
+    newTag: latest
   - name: anahita/actor-service
     newTag: latest
   - name: anahita/auth-service

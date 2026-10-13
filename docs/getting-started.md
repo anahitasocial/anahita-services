@@ -108,7 +108,7 @@ make auth
 which stops that service, removes its image, rebuilds the binary, and
 starts it again. Available service targets:
 
-`abuse_report`, `activitypub`, `actor`, `auth`, `export`, `feed`, `file`, `graph`,
+`abuse_report`, `activitypub`, `atproto`, `actor`, `auth`, `export`, `feed`, `file`, `graph`,
 `hashtag`, `identity_image`, `like`, `link_preview`, `location`, `mail`,
 `nginx`, `notification`, `photo`, `recommendation`, `search`, `socialgraph`,
 `text`, `video`, `web_shell`

@@ -1166,6 +1166,36 @@ CREATE TABLE IF NOT EXISTS federation_domain_blocks (
     PRIMARY KEY (`domain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- What is kept for reading Bluesky: the people on it who are kept here, and
+-- how far the listener has got. See migrations/20261105000001_atproto.sql.
+CREATE TABLE IF NOT EXISTS atproto_actors (
+    `node_id` bigint unsigned NOT NULL,
+    -- Their lasting name: what does not change when their handle does.
+    `did` varchar(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    -- The handle they went by when last read.
+    `handle` varchar(255) NOT NULL,
+    -- Where their avatar and their banner were when last read. '' for none.
+    `avatar_url` varchar(512) NOT NULL DEFAULT '',
+    `banner_url` varchar(512) NOT NULL DEFAULT '',
+    -- When what they posted before they were followed was read. NULL when
+    -- it has not been.
+    `backfilled_at` datetime DEFAULT NULL,
+    -- When they were last read from Bluesky.
+    `fetched_at` datetime NOT NULL,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`node_id`),
+    UNIQUE KEY `uq_did` (`did`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS atproto_cursor (
+    -- Always 1: there is one listener, and one place it has got to.
+    `id` tinyint unsigned NOT NULL,
+    -- The time of the last thing dealt with, in microseconds.
+    `time_us` bigint unsigned NOT NULL,
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 
 

@@ -1226,6 +1226,58 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.44
 
+# atproto-service - reads Bluesky: somebody here looks up an account there
+# and follows it, and its posts are kept here as they are written. It writes
+# nothing to Bluesky. Optional: an installation that leaves it out follows
+# nobody there. See docs/federation.md.
+  atproto-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/atproto-service.dockerfile
+    restart: always
+    ports:
+      - "8106:80"
+    depends_on:
+      - graph-grpc-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
+      DSN: ${DSN}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
+      REDIS_PASSWORD: ""
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      # Where the pictures of people on Bluesky are kept, once copied.
+      FILE_SERVICE_ADDR: "file-grpc-service:50051"
+      # Where it hears that somebody here followed somebody on Bluesky.
+      AMQP_ADDR: ${AMQP_ADDR}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      # Who is asking, as Bluesky is told. Reading needs no name another
+      # server could reach.
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:-}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+      # Where Bluesky is read from. Empty for the network's own. See
+      # docs/configuration.md, Federation.
+      ATPROTO_APPVIEW_URL: ${ATPROTO_APPVIEW_URL:-}
+      ATPROTO_JETSTREAM_URL: ${ATPROTO_JETSTREAM_URL:-}
+      ATPROTO_CDN_URL: ${ATPROTO_CDN_URL:-}
+      # For the card of a link in a post from Bluesky. Empty, and such
+      # posts have none.
+      LINK_PREVIEW_URL: ${LINK_PREVIEW_URL:-http://link-preview-service:80}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.45
+
 # The federation lab: https at three names on one machine, and another
 # server to talk to. Not started by `up`; `make fedi_lab` starts it. See
 # docs/federation-lab.md.

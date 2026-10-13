@@ -103,6 +103,8 @@ Read by auth-service, and mail-grpc-service for the branding. `PUBLIC_DOMAIN`
 and `PUBLIC_API_URL` are for what speaks to other servers
 (`anahita-libs/site`): `activitypub-service`, whose other settings and the
 order to do things in are in [Federation](federation.md#setting-it-up).
+`atproto-service`, which reads Bluesky, needs none of them: its own few
+settings are in [Reading Bluesky](federation.md#running-it).
 
 | Variable | Value |
 | --- | --- |

@@ -547,7 +547,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 2a, ActivityPub: replies both ways | done 2026-10-12, and tried against mastodon.world: new, changed and taken away, each way |
 | Phase 2b, ActivityPub: likes and reposts both ways | done 2026-10-12, and tried with mastodon.world: a like and a repost each way, and each taken back |
 | Phase 3a, ActivityPub: cards, pictures and custom emoji of posts from elsewhere | done 2026-10-12, and tried with mastodon.world |
-| Phase 1, AT Protocol, part 1: reading Bluesky (look up, follow, posts arriving) | not started |
+| Phase 1, AT Protocol, part 1: reading Bluesky (look up, follow, posts arriving) | built 2026-10-12, and tried against Bluesky itself for looking up, reading recent posts and hearing new ones; following through the web app is still to be tried by a person |
 | Phase 1, AT Protocol, part 2: being on Bluesky (PDS, handles, posts and follows going out) | not started: needs a domain of the installation's own |
 
 ## What was built
@@ -1072,3 +1072,63 @@ whose shape is `TableSQL`. Each protocol's service has a table of its own.
   newest of each asked for a newer Go and newer `golang.org/x` modules than
   the services are built with. `go mod tidy` is not run on `anahita-libs`:
   it upgrades what it has no reason to.
+
+### Phase 1, AT Protocol, part 1: reading Bluesky, 2026-10-12
+
+**The service.** `atproto-service` (port 8106), with the gateway's route
+`/atproto/`, the compose entry, the Kubernetes manifest and the Makefile
+targets; tables `atproto_actors` and `atproto_cursor` (migration
+`20261105000001_atproto.sql`); the section "Reading Bluesky" in
+`docs/federation.md`.
+
+**What it does.** Looks an account up through Bluesky's public reader
+(`app.bsky.actor.getProfile`) and keeps it as
+`node.actor.atproto-service.person.v1`, with its avatar and banner copied
+here. When somebody here follows it, reads its twenty most recent posts
+(`app.bsky.feed.getAuthorFeed`), and from then on hears its posts from
+Jetstream. One copy of the service listens, holding a lock in the database;
+the time of the last thing dealt with is kept, so a listener that begins
+again asks for what it missed. Posts taken away, profiles changed and
+accounts closed are heard the same way.
+
+**What both protocols now share.** Keeping pictures, cards for links and
+the list of refused servers were in `activitypub-service` and were moved to
+`anahita-libs/federation`, where this service uses the same code.
+`actor-service` reads a handle with a dot in it as somebody on Bluesky.
+
+**Decided while building, to be overruled if wrong:**
+
+- **The follow is an edge in the graph and nothing more.** There is no
+  table of follows as ActivityPub has, since nobody is told and there is
+  nothing to wait for.
+- **Everybody on Bluesky is kept as coming from `bsky.app`,** whichever
+  server their account is on: it is where people read Bluesky, and where
+  "View on" leads.
+- **It runs on a site for members only.** The rule that such a site does
+  not federate is about what leaves, and nothing leaves here. An operator
+  who wants none of it leaves the service out.
+- **Refusing `bsky.app` refuses the whole of Bluesky;** refusing a name
+  refuses the handles under it.
+- **No part of this is somebody's choice to make in their settings:**
+  following an account on Bluesky tells nobody anything.
+
+**Left for later, each noticed while building:**
+
+- Replies, and reposts by the accounts followed, are not kept.
+- A video is not kept; a post that is only a video is not kept at all.
+- The listener's place moves only when something is heard. After days in
+  which nobody followed posts, a listener that begins again asks from far
+  back, and Jetstream takes a few minutes to play that through before
+  what is new arrives.
+- Posts are dealt with one at a time, in order. With a great many accounts
+  followed, a slow card for a link holds up the ones behind it; the
+  listener then falls behind and catches up, and loses nothing.
+- More than ten thousand accounts followed are more than one connection
+  may ask for: the rest are not heard.
+- The list of refused servers is edited through `activitypub-service`
+  only (see "For row 26" above); this service reads it.
+- What is stored of a closed account's posts' pictures is not removed, as
+  for ActivityPub.
+- `FEDERATION_PROTOCOLS` says nothing of this, rightly: NodeInfo's
+  `protocols` is what the installation speaks, and it does not yet speak
+  this one.

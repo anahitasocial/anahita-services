@@ -11,6 +11,9 @@ switch, the lookup, and shows people and posts from other servers.
 Replies, likes and reposts cross both ways. Posts cross with their
 pictures, and arrive with a card for the link in them.
 
+Bluesky is read, not yet written to: somebody here can follow an account
+there and have its posts. See [Reading Bluesky](#reading-bluesky).
+
 ## Contents
 
 - [What it is](#what-it-is)
@@ -34,6 +37,7 @@ pictures, and arrive with a card for the link in them.
 - [Replies](#replies)
 - [Likes and reposts](#likes-and-reposts)
 - [Servers that are refused](#servers-that-are-refused)
+- [Reading Bluesky](#reading-bluesky)
 - [Where the code is](#where-the-code-is)
 
 ## What it is
@@ -44,7 +48,9 @@ ActivityPub, and somebody on any of them can follow somebody on any other.
 of its own because it is the one that reads what the internet sends it, and
 because an installation may not want it at all.
 
-Bluesky speaks a different protocol and will be a different service.
+Bluesky speaks a different protocol, and is a different service:
+`atproto-service`, which so far reads Bluesky and writes nothing to it. See
+[Reading Bluesky](#reading-bluesky).
 
 ## Setting it up
 
@@ -880,10 +886,147 @@ ten.
 the inbox, counted before anything is read, and answered `429` beyond
 that.
 
+## Reading Bluesky
+
+`atproto-service` lets somebody here look up an account on Bluesky and
+follow it. Its posts are then kept here as they are written, and are in the
+feed of whoever follows it, like the posts of anybody else they follow.
+
+**It reads, and does not write.** The account followed is not told. Nobody
+here has a name on Bluesky, nothing posted here goes there, and a reply or
+a like given here to a post from Bluesky stays here, which the web app says
+under the reply being written. Being on Bluesky needs a server of the
+installation's own at a name of its own, and is the second part of the
+work (`docs/plans/federation.md`).
+
+So it asks nothing of the installation but a way out to the internet: no
+public name, no certificate, nobody choosing to be found. It works on a
+developer's machine as it is, and on a site that is for members only,
+since nothing leaves.
+
+### Running it
+
+`make atproto`, or the `atproto-service` entry in `docker-compose.yml`; in
+Kubernetes, `k8s/base/services/atproto.yml`. An installation that leaves it
+out follows nobody on Bluesky: the web app's lookup finds no service to
+ask, and offers nothing.
+
+| Variable | Value |
+| --- | --- |
+| `ATPROTO_APPVIEW_URL` | Optional. The reader that is asked who an account is and what it posted. Left out, Bluesky's own, `https://public.api.bsky.app`, which asks for no account |
+| `ATPROTO_JETSTREAM_URL` | Optional. Where posts are heard as they are written. Left out, `wss://jetstream2.us-east.bsky.network/subscribe`. Bluesky runs several; any may be named, or one the operator runs |
+| `ATPROTO_CDN_URL` | Optional. Where pictures are fetched from, to be copied here. Left out, `https://cdn.bsky.app` |
+| `LINK_PREVIEW_URL` | Where `link-preview-service` is, for the card of a link in a post. Left out, such posts have no card |
+
+The rest is what every service has: the database, the graph and file
+services, the bus, and the settings for checking who is signed in.
+
+`app-binary lookup alice.bsky.social`, run in the service's container,
+looks somebody up with nobody signed in and prints who was found: the
+first thing to try when Bluesky seems not to be reached.
+
+### Looking somebody up
+
+`GET /atproto/lookup?q=`, signed in. `q` is a handle with or without its
+`@` (`alice.bsky.social`), the address of a profile
+(`https://bsky.app/profile/…`), or an account's lasting name
+(`did:plc:…`). The answer is the same as for somebody on the fediverse:
+the person, kept here, to be opened and followed. Thirty lookups in ten
+minutes for each person.
+
+In the web app it is the same box as for the fediverse, on the search
+page. How a handle is written says which network is asked:
+`@alice@mastodon.example` has its server after a second `@`, and
+`alice.bsky.social` is a name of its own.
+
+| Refused with | When |
+| --- | --- |
+| `400 lookup_unreadable` | What was typed is not a handle, a DID or the address of a profile |
+| `404 lookup_is_here` | The handle is this installation's own name, or one under it |
+| `404 lookup_not_found` | Nobody is there: never made, closed, taken down, or put away by its owner |
+| `404 lookup_refused` | The handle is under a name on the list of [servers that are refused](#servers-that-are-refused), or `bsky.app` is on it, which refuses the whole of Bluesky |
+| `502 lookup_failed` | Bluesky could not be reached or understood |
+| `429 too_many_lookups` | The limit |
+
+### Who they are here
+
+A node of type `node.actor.atproto-service.person.v1`, called by their
+handle, with what they say of themselves, their avatar and their banner.
+Both pictures are copied into this installation's storage, as for somebody
+on the fediverse. Their address between servers is `at://` and their DID,
+which does not change when their handle does; `origin_domain` is
+`bsky.app`, where "View on bsky.app" leads.
+
+A handle can pass from one account to another. Whoever has it now is
+called by it only once whoever had it is no longer kept by it; until then
+they are called by their DID, written so that it could be no handle
+(`did-plc-….invalid`). An account whose handle no longer leads to it is
+called the same way.
+
+Their profile is at `/people/alice.bsky.social`: a username here can have
+no dot in it, so a name with one is somebody on Bluesky.
+
+### Their posts
+
+A post is kept only when somebody here follows whoever wrote it, and never
+a reply, which would stand here without what it answers. Everything on
+Bluesky is open to everybody, so there is no asking who a post is for.
+
+It is kept the way a post from the fediverse is:
+
+- **Its words** become Markdown. Links stay links, a name leads to that
+  account's page on Bluesky, and a hashtag is a hashtag of this
+  installation, made if it is new.
+- **With pictures it is a photo post,** up to four, each with what its
+  author said it shows, copied into this installation's storage. What its
+  author marked as not to be shown plainly (nudity, graphic media) is kept
+  for its words, without its pictures.
+- **A link it carries is given a card** read by this installation itself,
+  whether or not the address is in its words.
+- **A post it quotes is led to,** with a line at its end; the quoted post
+  is not kept.
+- **A video is not kept.** A post with words and a video is kept for its
+  words; one that is only a video is not kept at all.
+
+When somebody is first followed, their twenty most recent posts are read,
+once, so that their profile here is not empty until they next post. A post
+taken away on Bluesky goes from here, with what was stored of it. An
+account that is closed goes too, with everything of theirs; one that is
+only put away for a while is left as it is.
+
+### Hearing what is posted
+
+One connection is held open to Jetstream, Bluesky's feed of everything
+done on the network, and told which accounts are wanted: those somebody
+here follows, ten thousand at most. With nobody followed, no connection is
+made.
+
+- **One copy listens.** Any number of copies of the service may run, and
+  one of them holds the turn (a lock in the database). When it stops,
+  another takes over within half a minute.
+- **Nothing is missed while nobody listens.** The time of the last thing
+  dealt with is kept (`atproto_cursor`), and a connection that begins
+  again asks for what came after it. Jetstream keeps what was said for a
+  limited time; a service that was down for longer than that loses what
+  was posted in between.
+- **A follow that the bus lost** is found within a minute: the service
+  asks the graph who is followed, and does not rely on having been told.
+
+### What is not there yet
+
+Nobody here is on Bluesky; replies, likes and reposts stay here; reposts
+and replies of the accounts followed are not kept; videos are not kept.
+The list of [servers that are refused](#servers-that-are-refused) is read
+by this service and still edited through `activitypub-service`, so an
+installation that runs this service alone cannot change it from the web
+app.
+
 ## Where the code is
 
 | What | Where |
 | --- | --- |
+| Reading Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `backfill.go`, `stream.go`, `events.go`), tables `atproto_actors` and `atproto_cursor` |
+| What both protocols share | `anahita-libs/federation/`: pictures (`pictures.go`), cards (`cards.go`), refused servers (`blocks.go`), a post's words (`content.go`) |
 | The service | `activitypub-service/` |
 | Who is on the fediverse | `cmd/api/handlers/handlers.go`: `siteFederates`, `mayFederate`, `federating` |
 | WebFinger and host-meta | `cmd/api/handlers/discovery.go` |
@@ -896,7 +1039,7 @@ that.
 | What the bus lost | `cmd/api/handlers/sweep.go`, `data/repositories/missed.go` |
 | Replies | `cmd/api/handlers/replies_in.go`, `notes.go` (`answers`) |
 | Likes and reposts | `cmd/api/handlers/likes.go`, `reposts.go` |
-| Pictures and cards of posts from elsewhere | `cmd/api/handlers/pictures.go`, `cards.go` |
+| Pictures and cards of posts from elsewhere | `cmd/api/handlers/pictures.go`, `cards.go`, over `anahita-libs/federation` |
 | Looking somebody up | `cmd/api/handlers/lookup.go`, table `activitypub_actors` |
 | Their picture, and their earlier posts | `cmd/api/handlers/avatar.go`, `backfill.go` |
 | The inbox, and being followed | `cmd/api/handlers/inbox.go`, table `activitypub_follows` |
