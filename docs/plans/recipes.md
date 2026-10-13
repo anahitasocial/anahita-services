@@ -66,6 +66,7 @@ Writing them will turn up settings that do not exist. Expected, to be confirmed 
 - ~~who may create a group or an event at all~~: there is one, `GROUPS_FROM` and `EVENTS_FROM`, found while writing this. A school's recipe sets both to administrators;
 - a site-wide default for a new profile's own privacy;
 - turning the report reasons to a kind of site (a school's list is not a newsroom's): possible today by replacing the file, which a recipe can do;
+- **hashtags to begin with (user, 2026-10-12).** A recipe could carry the hashtags a site of its kind is likely to use (a school's subjects and years, a newsroom's beats, a neighbourhood's streets and notices), put in when the site is first set up. A new site has none, so the "Interests" step planned for signup ([item 45](https://github.com/purplerat/anahita-web/blob/main/docs/plans/onboarding-recommendations.md)) would have nothing to offer until people had written. Needs a way to put hashtags in that is not somebody writing a post, which there is not today: a hashtag is made when a post names it, and belongs to whoever wrote that post;
 - terms and a privacy policy fitted to each kind. A recipe can carry a **starting text marked as such**; it is not legal advice and must say so.
 
 ### The web app
