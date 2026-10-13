@@ -96,6 +96,25 @@ func (p *Post) IsReply() bool {
 	return len(p.Reply) > 0 && string(p.Reply) != "null"
 }
 
+// Answers is the address of the post this one answers, or "".
+func (p *Post) Answers() string {
+	if !p.IsReply() {
+		return ""
+	}
+	var reply struct {
+		Parent struct {
+			URI string `json:"uri"`
+		} `json:"parent"`
+	}
+	if json.Unmarshal(p.Reply, &reply) != nil {
+		return ""
+	}
+	if _, _, ok := ParsePostURI(reply.Parent.URI); !ok {
+		return ""
+	}
+	return reply.Parent.URI
+}
+
 // What an author says of their own post that makes its pictures ones not
 // to be shown plainly.
 var sensitiveLabels = map[string]bool{

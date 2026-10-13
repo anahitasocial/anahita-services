@@ -1143,3 +1143,14 @@ what one keeps back is heard from the next. The post arrived eight seconds
 after the service was started again with this. `ATPROTO_JETSTREAM_URL`
 takes several addresses, with commas between.
 
+**Added the same day, asked for by the user ("So, read only main posts?
+Nothing else?"): replies and reposts coming in.** A reply by somebody
+followed is kept under what it answers, when that is kept here; the first
+reading of somebody's posts takes their answers to themselves too
+(`posts_and_author_threads`). A repost by somebody followed is kept as
+their repost, with what was reposted read from Bluesky
+(`app.bsky.feed.getPosts`) together with whoever wrote it; table
+`atproto_reposts` (migration `20261106000001`) remembers which post each
+repost was of, for when it is taken back. Still not read: likes, counts,
+replies by people nobody here follows, videos.
+

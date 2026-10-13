@@ -111,6 +111,16 @@ const PostCollection = "app.bsky.feed.post"
 // ProfileCollection is the record of what an account says of itself.
 const ProfileCollection = "app.bsky.actor.profile"
 
+// RepostCollection is the kind of record a repost is.
+const RepostCollection = "app.bsky.feed.repost"
+
+// Repost is a repost as whoever made it wrote it: which post.
+type Repost struct {
+	Subject struct {
+		URI string `json:"uri"`
+	} `json:"subject"`
+}
+
 // ActorURI is the address an account has between servers.
 func ActorURI(did string) string { return "at://" + did }
 

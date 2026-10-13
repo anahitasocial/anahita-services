@@ -207,6 +207,7 @@ func (f *fakeActors) UndoBackfill(id int64) error {
 type fakeBluesky struct {
 	profiles map[string]*bsky.Profile
 	feeds    map[string][]bsky.FeedItem
+	posts    map[string]*bsky.Post
 	asked    []string
 	err      error
 }
@@ -228,6 +229,47 @@ func (f *fakeBluesky) AuthorFeed(_ context.Context, did string, limit int) ([]bs
 		return nil, f.err
 	}
 	return f.feeds[did], nil
+}
+
+func (f *fakeBluesky) PostAt(_ context.Context, uri string) (*bsky.Post, error) {
+	if post := f.posts[uri]; post != nil {
+		return post, nil
+	}
+	return nil, bsky.ErrNobody
+}
+
+// fakeReposts keeps who reposted what, as the graph does, and which post
+// each repost heard was of.
+type fakeReposts struct {
+	services.RepostGRPCInterface
+	made  map[string]bool
+	names map[string]int64
+}
+
+func (f *fakeReposts) IsReposted(actorID, nodeID int64) (bool, error) {
+	return f.made[fmt.Sprint(actorID, ">", nodeID)], nil
+}
+
+func (f *fakeReposts) Add(req *services.RepostAddRequest) (*entities.AnahitaNode, error) {
+	f.made[fmt.Sprint(req.OwnerID, ">", req.ParentID)] = true
+	return &entities.AnahitaNode{ID: 9000 + req.ParentID}, nil
+}
+
+func (f *fakeReposts) Delete(req *services.RepostDeleteRequest) error {
+	delete(f.made, fmt.Sprint(req.AuthorID, ">", req.ParentID))
+	return nil
+}
+
+func (f *fakeReposts) Save(actorID int64, rkey string, parentID int64) error {
+	f.names[fmt.Sprint(actorID, "/", rkey)] = parentID
+	return nil
+}
+
+func (f *fakeReposts) Take(actorID int64, rkey string) (int64, error) {
+	key := fmt.Sprint(actorID, "/", rkey)
+	parentID := f.names[key]
+	delete(f.names, key)
+	return parentID, nil
 }
 
 type fakeBlocks map[string]bool
@@ -327,6 +369,7 @@ type world struct {
 	files    *fakeFiles
 	listed   *fakePhotoFiles
 	cards    *fakeCards
+	reposts  *fakeReposts
 	said     []string
 	changed  int
 }
@@ -340,8 +383,10 @@ func newWorld(t *testing.T) *world {
 		files:    &fakeFiles{stored: map[string]int{}},
 		listed:   &fakePhotoFiles{kept: map[int64][]*entities.PhotoFile{}},
 		cards:    &fakeCards{},
+		reposts:  &fakeReposts{made: map[string]bool{}, names: map[string]int64{}},
 		bluesky: &fakeBluesky{
 			feeds: map[string][]bsky.FeedItem{},
+			posts: map[string]*bsky.Post{},
 			profiles: map[string]*bsky.Profile{
 				"alice.bsky.social": {
 					DID: aliceDID, Handle: "alice.bsky.social", DisplayName: "Alice",
@@ -360,6 +405,7 @@ func newWorld(t *testing.T) *world {
 		Actors:  w.actors,
 		Bluesky: w.bluesky,
 		Blocks:  fakeBlocks{},
+		Reposts: w.reposts, RepostRecords: w.reposts,
 		Keeper:  &federation.Keeper{Nodes: w.nodes, Files: w.files, PhotoFiles: w.listed, Pictures: w.pictures},
 		Cards:   w.cards,
 		CDN:     "https://cdn.bsky.app",
@@ -771,5 +817,97 @@ func TestSomebodyHereFollowsSomebodyOnBluesky(t *testing.T) {
 	}
 	if wanted, _ := w.h.Wanted(); len(wanted) != 0 {
 		t.Errorf("wanted %v", wanted)
+	}
+}
+
+// THE RULE THIS GUARDS: a reply is kept only under something that is kept
+// here, by somebody followed from here.
+func TestAReplyIsKeptUnderWhatItAnswers(t *testing.T) {
+	w := newWorld(t)
+	alice := w.alice(true)
+
+	if err := w.h.keepPost(alice, "3l3first", aPost(t, `{"text":"A long thing, begun"}`)); err != nil {
+		t.Fatal(err)
+	}
+	first := w.keptAt(bsky.PostURI(aliceDID, "3l3first"))
+
+	answer := `{"text":"and gone on with","reply":{"root":{"uri":"` + first.URI + `"},"parent":{"uri":"` + first.URI + `"}}}`
+	if err := w.h.keepPost(alice, "3l3second", aPost(t, answer)); err != nil {
+		t.Fatal(err)
+	}
+	second := w.keptAt(bsky.PostURI(aliceDID, "3l3second"))
+	if second == nil || second.ParentID != first.ID || second.OwnerID != alice.NodeID {
+		t.Fatalf("kept as %+v", second)
+	}
+
+	// Under something that is not kept here, it is not kept.
+	stray := `{"text":"to somebody else","reply":{"parent":{"uri":"at://` + bobDID + `/app.bsky.feed.post/3l3bob"}}}`
+	if err := w.h.keepPost(alice, "3l3stray", aPost(t, stray)); err != nil || w.keptAt(bsky.PostURI(aliceDID, "3l3stray")) != nil {
+		t.Errorf("a reply to something not kept here was kept: %v", err)
+	}
+	// Nor by somebody nobody follows, under something that is.
+	w.bluesky.profiles["bob.bsky.social"] = &bsky.Profile{DID: bobDID, Handle: "bob.bsky.social"}
+	w.h.lookup(context.Background(), "bob.bsky.social")
+	bob, _ := w.actors.ReadByDID(bobDID)
+	if err := w.h.keepPost(bob, "3l3bobs", aPost(t, answer)); err != nil || w.keptAt(bsky.PostURI(bobDID, "3l3bobs")) != nil {
+		t.Errorf("a reply by somebody nobody follows was kept: %v", err)
+	}
+}
+
+// THE RULE THIS GUARDS: what somebody followed reposts is kept with
+// whoever wrote it, though nobody here follows them, and only for that.
+func TestWhatSomebodyFollowedReposts(t *testing.T) {
+	w := newWorld(t)
+	alice := w.alice(true)
+	ctx := context.Background()
+
+	bobs := bsky.PostURI(bobDID, "3l3bob")
+	w.bluesky.profiles[bobDID] = &bsky.Profile{DID: bobDID, Handle: "bob.bsky.social", DisplayName: "Bob"}
+	w.bluesky.posts[bobs] = aPost(t, `{"text":"Bob said this"}`)
+
+	heard := func(raw string) {
+		t.Helper()
+		e := &bsky.Event{}
+		if err := json.Unmarshal([]byte(raw), e); err != nil {
+			t.Fatal(err)
+		}
+		w.h.Heard(ctx, e)
+	}
+	repost := `{"did":"` + aliceDID + `","time_us":1,"kind":"commit","commit":{"operation":"create","collection":"app.bsky.feed.repost","rkey":"3l3rp","record":{"subject":{"uri":"` + bobs + `","cid":"c"}}}}`
+
+	heard(repost)
+	post := w.keptAt(bobs)
+	bob := w.keptAt("at://" + bobDID)
+	if post == nil || bob == nil || post.OwnerID != bob.ID || post.Body != "Bob said this" || bob.Alias != "bob.bsky.social" {
+		t.Fatalf("kept %+v by %+v", post, bob)
+	}
+	if !w.reposts.made[fmt.Sprint(alice.NodeID, ">", post.ID)] {
+		t.Fatal("no repost was made")
+	}
+
+	// Heard twice, it is one repost. A post of Bob's own is still not
+	// kept: nobody here follows him.
+	heard(repost)
+	if len(w.reposts.made) != 1 {
+		t.Errorf("%d reposts", len(w.reposts.made))
+	}
+	heard(`{"did":"` + bobDID + `","time_us":2,"kind":"commit","commit":{"operation":"create","collection":"app.bsky.feed.post","rkey":"3l3more","record":{"text":"More from Bob"}}}`)
+	if w.keptAt(bsky.PostURI(bobDID, "3l3more")) != nil {
+		t.Error("a post of somebody nobody follows was kept")
+	}
+
+	// Taken back, which says only the repost's name.
+	heard(`{"did":"` + aliceDID + `","time_us":3,"kind":"commit","commit":{"operation":"delete","collection":"app.bsky.feed.repost","rkey":"3l3rp"}}`)
+	if len(w.reposts.made) != 0 || len(w.reposts.names) != 0 {
+		t.Errorf("after it was taken back: %v", w.reposts.made)
+	}
+
+	// A reply, or something that is gone, is not fetched to be reposted.
+	w.bluesky.posts[bsky.PostURI(bobDID, "3l3reply")] = aPost(t, `{"text":"x","reply":{"parent":{"uri":"`+bobs+`"}}}`)
+	for _, rkey := range []string{"3l3reply", "3l3gone"} {
+		heard(`{"did":"` + aliceDID + `","time_us":4,"kind":"commit","commit":{"operation":"create","collection":"app.bsky.feed.repost","rkey":"r` + rkey + `","record":{"subject":{"uri":"` + bsky.PostURI(bobDID, rkey) + `"}}}}`)
+	}
+	if len(w.reposts.made) != 0 {
+		t.Errorf("reposted what is not kept: %v", w.reposts.made)
 	}
 }

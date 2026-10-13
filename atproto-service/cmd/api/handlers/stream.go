@@ -48,6 +48,13 @@ func (h *Handlers) Heard(ctx context.Context, heard *bsky.Event) {
 			}
 			err = h.keepPost(kept, heard.Commit.RKey, post)
 
+		case bsky.RepostCollection:
+			if heard.Commit.Operation == "delete" {
+				err = h.unreposted(kept, heard.Commit.RKey)
+				break
+			}
+			err = h.reposted(ctx, kept, heard.Commit.RKey, heard.Commit.Record)
+
 		case bsky.ProfileCollection:
 			// What they say of themselves changed.
 			h.refreshSoon(heard.DID)

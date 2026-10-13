@@ -34,6 +34,7 @@ import (
 type Bluesky interface {
 	Profile(ctx context.Context, actor string) (*bsky.Profile, error)
 	AuthorFeed(ctx context.Context, did string, limit int) ([]bsky.FeedItem, error)
+	PostAt(ctx context.Context, uri string) (*bsky.Post, error)
 }
 
 // Refused is the servers this installation will have nothing to do with.
@@ -48,6 +49,10 @@ type Env struct {
 	Actors  repositories.ActorsInterface
 	Bluesky Bluesky
 	Blocks  Refused
+	// Reposts in the graph, and which post each one heard was of. Nil
+	// where reposts are not kept.
+	Reposts       services.RepostGRPCInterface
+	RepostRecords repositories.RepostsInterface
 	// What copies pictures into this installation's storage.
 	Keeper *federation.Keeper
 	// What finds the card of a link. Nil for none.

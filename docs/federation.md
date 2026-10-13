@@ -968,9 +968,22 @@ no dot in it, so a name with one is somebody on Bluesky.
 
 ### Their posts
 
-A post is kept only when somebody here follows whoever wrote it, and never
-a reply, which would stand here without what it answers. Everything on
-Bluesky is open to everybody, so there is no asking who a post is for.
+A post is kept only when somebody here follows whoever wrote it.
+Everything on Bluesky is open to everybody, so there is no asking who a
+post is for.
+
+- **A reply is kept when what it answers is kept here,** and is put under
+  it: somebody followed saying a long thing in several posts, or answering
+  somebody else who is followed. A reply to something that is not kept
+  here is left, since it would stand without what it answers. Replies by
+  people nobody here follows are not heard at all.
+- **A repost by somebody followed is kept as their repost,** and is in
+  the feed as anybody's repost is. What was reposted is usually by
+  somebody nobody here follows: it is read from Bluesky, with whoever
+  wrote it, and kept for the repost's sake. It is the one way a post
+  arrives without its author being followed. A repost taken back goes
+  (`atproto_reposts` remembers which post each was of, since taking one
+  back says only its name).
 
 It is kept the way a post from the fediverse is:
 
@@ -989,7 +1002,7 @@ It is kept the way a post from the fediverse is:
   words; one that is only a video is not kept at all.
 
 When somebody is first followed, their twenty most recent posts are read,
-once, so that their profile here is not empty until they next post. A post
+with their answers to themselves, once, so that their profile here is not empty until they next post. A post
 taken away on Bluesky goes from here, with what was stored of it. An
 account that is closed goes too, with everything of theirs; one that is
 only put away for a while is left as it is.
@@ -1022,8 +1035,9 @@ made.
 
 ### What is not there yet
 
-Nobody here is on Bluesky; replies, likes and reposts stay here; reposts
-and replies of the accounts followed are not kept; videos are not kept.
+Nobody here is on Bluesky, so a reply, a like or a repost made here stays
+here. Likes given on Bluesky are not read, nor how many a post has; replies
+by people nobody here follows are not read; videos are not kept.
 The list of [servers that are refused](#servers-that-are-refused) is read
 by this service and still edited through `activitypub-service`, so an
 installation that runs this service alone cannot change it from the web
@@ -1033,7 +1047,7 @@ app.
 
 | What | Where |
 | --- | --- |
-| Reading Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `backfill.go`, `stream.go`, `events.go`), tables `atproto_actors` and `atproto_cursor` |
+| Reading Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `reposts.go`, `backfill.go`, `stream.go`, `events.go`), tables `atproto_actors`, `atproto_cursor` and `atproto_reposts` |
 | What both protocols share | `anahita-libs/federation/`: pictures (`pictures.go`), cards (`cards.go`), refused servers (`blocks.go`), a post's words (`content.go`) |
 | The service | `activitypub-service/` |
 | Who is on the fediverse | `cmd/api/handlers/handlers.go`: `siteFederates`, `mayFederate`, `federating` |

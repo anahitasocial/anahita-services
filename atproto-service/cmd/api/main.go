@@ -77,11 +77,13 @@ func main() {
 	changed := make(chan struct{}, 1)
 
 	env := &handlers.Env{
-		Site:    addresses,
-		Nodes:   nodes,
-		Actors:  repositories.NewActors(db),
-		Bluesky: client,
-		Blocks:  blocks,
+		Site:          addresses,
+		Nodes:         nodes,
+		Actors:        repositories.NewActors(db),
+		Bluesky:       client,
+		Blocks:        blocks,
+		Reposts:       services.NewRepostGRPC(config),
+		RepostRecords: repositories.NewReposts(db),
 		Keeper: &federation.Keeper{
 			Nodes:      nodes,
 			Files:      services.NewFilesGRPC(config),

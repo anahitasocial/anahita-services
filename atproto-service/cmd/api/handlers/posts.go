@@ -17,8 +17,12 @@ import (
 // A post is kept only when somebody here follows whoever wrote it: this
 // installation is not a copy of Bluesky, and what nobody here asked for is
 // not stored. Everything on Bluesky is open to everybody, so there is no
-// asking who a post is for. A reply is not kept: it would stand here
-// without what it answers.
+// asking who a post is for.
+//
+// A reply is kept when what it answers is kept here, and is put under it:
+// somebody followed saying a long thing in several posts, or answering
+// somebody else who is followed. One that answers something not kept
+// here is left: it would stand without what it answers.
 //
 // It is kept the way a post from the fediverse is. With pictures it is a
 // photo post, its pictures copied into this installation's storage; a
@@ -33,7 +37,7 @@ const postMax = 20000
 // kept. The same rule whether it was heard as it was written or read from
 // the list of what they have posted.
 func (h *Handlers) keepPost(author *repositories.RemoteActor, rkey string, post *bsky.Post) error {
-	if author == nil || post == nil || !bsky.ValidRkey(rkey) || post.IsReply() {
+	if author == nil || post == nil || !bsky.ValidRkey(rkey) {
 		return nil
 	}
 	if h.refused(author.Handle) {
@@ -44,6 +48,25 @@ func (h *Handlers) keepPost(author *repositories.RemoteActor, rkey string, post 
 		return err
 	}
 
+	// What it answers, when it answers something: a post from Bluesky
+	// that is kept here.
+	var parentID int64
+	if post.IsReply() {
+		parent, err := h.Nodes.ReadByURI(post.Answers())
+		if err != nil || parent == nil || parent.ID == 0 {
+			return err
+		}
+		parentID = parent.ID
+	}
+	_, err = h.storePost(author, rkey, post, parentID)
+	return err
+}
+
+// storePost keeps a post that has been found to be one that is kept: on
+// its author's profile, and under what it answers when it answers
+// something. It answers with the post as it is kept, or nil when there
+// was nothing of it to keep.
+func (h *Handlers) storePost(author *repositories.RemoteActor, rkey string, post *bsky.Post, parentID int64) (*entities.AnahitaNode, error) {
 	uri := bsky.PostURI(author.DID, rkey)
 
 	// What its author marked as not to be shown plainly is kept without
@@ -82,7 +105,7 @@ func (h *Handlers) keepPost(author *repositories.RemoteActor, rkey string, post 
 	body = cutRunes(body, postMax)
 	if body == "" && kind != constants.NodeMediumPhotoEntityType {
 		// Nothing to show: no words, and no picture that is kept.
-		return nil
+		return nil, nil
 	}
 
 	node := entities.NewAnahitaNode()
@@ -90,6 +113,7 @@ func (h *Handlers) keepPost(author *repositories.RemoteActor, rkey string, post 
 	node.URI = uri
 	node.OriginDomain = originDomain
 	node.OwnerID = author.NodeID
+	node.ParentID = parentID
 	node.Body = body
 	node.Language = post.Language()
 	node.CreatedAt = post.Created(h.now())
@@ -99,7 +123,7 @@ func (h *Handlers) keepPost(author *repositories.RemoteActor, rkey string, post 
 
 	saved, created, err := h.Nodes.UpsertRemote(node)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	h.announce(event.RemoteNoteEvent(created), saved, author.NodeID)
 
@@ -107,7 +131,7 @@ func (h *Handlers) keepPost(author *repositories.RemoteActor, rkey string, post 
 	if saved != nil && saved.Type == constants.NodeMediumPhotoEntityType && len(pictures) > 0 {
 		h.later(func() { h.Keeper.CopyPostPictures(saved, pictures) })
 	}
-	return nil
+	return saved, nil
 }
 
 // removePost is somebody on Bluesky having taken a post away.

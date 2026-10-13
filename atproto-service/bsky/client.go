@@ -67,7 +67,8 @@ func (c *Client) Profile(ctx context.Context, actor string) (*Profile, error) {
 }
 
 // AuthorFeed reads what an account posted lately, newest first: its own
-// posts, without its replies.
+// posts, and its answers to itself, which is how a long thing is said in
+// several posts.
 func (c *Client) AuthorFeed(ctx context.Context, did string, limit int) ([]FeedItem, error) {
 	var page struct {
 		Feed []FeedItem `json:"feed"`
@@ -75,9 +76,34 @@ func (c *Client) AuthorFeed(ctx context.Context, did string, limit int) ([]FeedI
 	err := c.xrpc(ctx, "app.bsky.feed.getAuthorFeed", url.Values{
 		"actor":  {did},
 		"limit":  {strconv.Itoa(limit)},
-		"filter": {"posts_no_replies"},
+		"filter": {"posts_and_author_threads"},
 	}, &page)
 	return page.Feed, err
+}
+
+// PostAt reads one post by its address, as its author wrote it. ErrNobody
+// when it is not there.
+func (c *Client) PostAt(ctx context.Context, uri string) (*Post, error) {
+	var page struct {
+		Posts []struct {
+			URI    string          `json:"uri"`
+			Record json.RawMessage `json:"record"`
+		} `json:"posts"`
+	}
+	if err := c.xrpc(ctx, "app.bsky.feed.getPosts", url.Values{"uris": {uri}}, &page); err != nil {
+		return nil, err
+	}
+	for _, each := range page.Posts {
+		if each.URI != uri {
+			continue
+		}
+		post := &Post{}
+		if err := json.Unmarshal(each.Record, post); err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrUnreadable, err)
+		}
+		return post, nil
+	}
+	return nil, ErrNobody
 }
 
 // What Bluesky says when it will not answer.
