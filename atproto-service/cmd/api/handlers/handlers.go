@@ -61,6 +61,10 @@ type Env struct {
 	Crypt     crypt.Crypt
 	Queue     Enqueuer
 	Directory string
+	// How long a photo post's pictures are waited for before writing it
+	// is left to be tried again: it is said to be made a moment before
+	// its pictures are listed.
+	PicturesWait time.Duration
 	// Reposts in the graph, and which post each one heard was of. Nil
 	// where reposts are not kept.
 	Reposts       services.RepostGRPCInterface

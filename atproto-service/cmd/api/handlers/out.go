@@ -1,29 +1,39 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
+	"image/color"
+	"image/draw"
+	_ "image/gif"
+	"image/jpeg"
+	_ "image/png"
 	"log"
 	"sync"
+	"time"
 
 	"atproto/bsky"
 	"atproto/data/repositories"
 
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/data/services"
 	"anahita-libs/federation"
 	"anahita-libs/linkpreviews"
+	images "anahita-libs/utils"
 )
 
 // What somebody here does to something from Bluesky, done there too.
 //
 // Only for somebody who connected their Bluesky account (settings.go). A
 // like or a repost of a post that came from Bluesky, and a reply under
-// one, or under a reply that itself went there. And a note of their own
-// that is open to everybody, on their own profile, which is posted there
-// as it is here: connecting an account is saying so, as being on the
+// one, or under a reply that itself went there. And a note or a photo
+// post of their own that is open to everybody, on their own profile,
+// which is posted there as it is here, pictures and all: connecting an account is saying so, as being on the
 // fediverse is. All of it is written as their account, to the server that
 // holds it.
 //
@@ -41,6 +51,7 @@ type Writer interface {
 	RefreshSession(ctx context.Context, pds, refreshJWT string) (*bsky.Session, error)
 	CreateRecord(ctx context.Context, pds, accessJWT, did, collection, rkey string, record any) error
 	DeleteRecord(ctx context.Context, pds, accessJWT, did, collection, rkey string) error
+	UploadBlob(ctx context.Context, pds, accessJWT string, content []byte, mimeType string) (*bsky.OutBlob, error)
 	RefOf(ctx context.Context, uri string) (post, root *bsky.Ref, err error)
 }
 
@@ -202,7 +213,8 @@ func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 	if err != nil || note == nil || note.ID == 0 {
 		return err
 	}
-	if note.Type != constants.NodeMediumNoteEntityType || note.IsRemote() || !note.Enabled || note.DeletedAt != nil || note.Hidden {
+	isPhoto := note.Type == constants.NodeMediumPhotoEntityType
+	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto) || note.IsRemote() || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil
 	}
 	if note.CreatedBy <= 0 {
@@ -263,31 +275,30 @@ func (h *Handlers) Write(ctx context.Context, delivery federation.Delivery) erro
 		return federation.Permanent(errors.New("no Bluesky account is connected"))
 	}
 
-	// What is to be written, made now: a reply's words as they are now,
-	// and what it answers as Bluesky names it now.
-	var record any
+	// Taken back while it waited: a like given and taken back before it
+	// could be written is not written afterwards. What waits is not
+	// always done in the order it was asked for, since what fails is
+	// tried again later.
 	if w.Op == "create" {
-		// Taken back while it waited: a like given and taken back before
-		// it could be written is not written afterwards. What waits is
-		// not always done in the order it was asked for, since what
-		// fails is tried again later.
 		if kind := kindOf(w.Collection); kind != "" {
 			if still, err := h.Sent.IsOurs(account.DID, kind, w.RKey); err != nil || !still {
 				return err
 			}
-		}
-		if record, err = h.record(ctx, w); err != nil {
-			log.Printf("writing to Bluesky for %d (%s): what to write: %v", account.PersonID, w.Collection, err)
-			return err
-		}
-		if record == nil {
-			return nil
 		}
 	}
 
 	do := func(token string) error {
 		if w.Op == "delete" {
 			return h.Writer.DeleteRecord(ctx, account.PDS, token, account.DID, w.Collection, w.RKey)
+		}
+		// What is to be written, made now: a post's words as they are
+		// now, what it answers as Bluesky names it now, and its pictures
+		// given to the account's server first.
+		record, err := h.record(ctx, w, func(content []byte, mimeType string) (*bsky.OutBlob, error) {
+			return h.Writer.UploadBlob(ctx, account.PDS, token, content, mimeType)
+		})
+		if err != nil || record == nil {
+			return err
 		}
 		return h.Writer.CreateRecord(ctx, account.PDS, token, account.DID, w.Collection, w.RKey, record)
 	}
@@ -322,7 +333,7 @@ func kindOf(collection string) string {
 
 // record makes what is written for a like, a repost or a reply. Nil, and
 // no error, when there is no longer anything to write.
-func (h *Handlers) record(ctx context.Context, w *write) (any, error) {
+func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, error) {
 	var (
 		subject, root *bsky.Ref
 		err           error
@@ -353,17 +364,148 @@ func (h *Handlers) record(ctx context.Context, w *write) (any, error) {
 		return nil, nil
 	}
 	post := bsky.NewOutPost(note.Body, note.Language, note.CreatedAt)
-	if post.Text == "" {
-		return nil, nil
-	}
 	if subject != nil {
 		post.Reply = &bsky.OutReply{Root: *root, Parent: *subject}
 	}
+	// Its pictures, when it is a photo post.
+	if note.Type == constants.NodeMediumPhotoEntityType {
+		if err := h.withPictures(post, note, upload); err != nil {
+			return nil, err
+		}
+	}
+	if post.Text == "" && post.Embed == nil {
+		return nil, nil
+	}
 	// The card of the link in it, as it was kept when the note was made.
-	if card := linkpreviews.FromMeta(note.Meta); card != nil {
-		post.WithCard(card.URL, card.Title, card.Description)
+	// A post has pictures or a card, not both.
+	if card := linkpreviews.FromMeta(note.Meta); card != nil && post.Embed == nil {
+		post.WithCard(card.URL, card.Title, card.Description, h.cardPicture(card.ImageKey, upload))
 	}
 	return post, nil
+}
+
+// uploader gives a file to the account's server.
+type uploader func(content []byte, mimeType string) (*bsky.OutBlob, error)
+
+// errPicturesNotThere is a photo post whose pictures are not listed yet:
+// it is said to be made a moment before they are, and is tried again.
+var errPicturesNotThere = errors.New("the post's pictures are not there yet")
+
+// withPictures gives a post the pictures of a photo post: read from this
+// installation's storage, made small enough for Bluesky to take, and
+// given to the account's server.
+func (h *Handlers) withPictures(post *bsky.OutPost, note *entities.AnahitaNode, upload uploader) error {
+	if h.Keeper == nil || h.Keeper.PhotoFiles == nil || h.Keeper.Files == nil {
+		return nil
+	}
+
+	var files []*entities.PhotoFile
+	for waited := time.Duration(0); ; waited += time.Second {
+		var err error
+		if files, err = h.Keeper.PhotoFiles.BrowsePhotoFiles([]int64{note.ID}); err != nil {
+			return err
+		}
+		if len(files) > 0 {
+			break
+		}
+		if waited >= h.PicturesWait {
+			return errPicturesNotThere
+		}
+		time.Sleep(time.Second)
+	}
+
+	for _, file := range files {
+		if len(post.Embed.GetImages()) >= bsky.ImagesMax {
+			break
+		}
+		sizes, err := note.PortraitsFor(file.Filename)
+		if err != nil {
+			continue
+		}
+		content, mimeType := h.stored(sizes[entities.PortraitSizeOriginal].Url)
+		if content == nil {
+			continue
+		}
+		blob, err := upload(content, mimeType)
+		if errors.Is(err, bsky.ErrExpired) || errors.Is(err, bsky.ErrDenied) {
+			return err
+		}
+		if err != nil {
+			log.Printf("a picture of post %d was not taken by Bluesky: %v", note.ID, err)
+			continue
+		}
+		post.AddImage(blob, file.AltText, file.Width, file.Height)
+	}
+	return nil
+}
+
+// cardPicture is the picture of a link's card, given to the account's
+// server, or nil: a card goes without one before a post goes late.
+func (h *Handlers) cardPicture(key string, upload uploader) *bsky.OutBlob {
+	if key == "" || h.Keeper == nil || h.Keeper.Files == nil {
+		return nil
+	}
+	content, mimeType := h.stored(linkpreviews.StoragePrefix + key)
+	if content == nil {
+		return nil
+	}
+	blob, err := upload(content, mimeType)
+	if err != nil {
+		return nil
+	}
+	return blob
+}
+
+// stored reads a picture from this installation's storage, made smaller
+// until it is one Bluesky takes. Nil when it is not there, or cannot be
+// made small enough.
+func (h *Handlers) stored(path string) ([]byte, string) {
+	if path == "" {
+		return nil, ""
+	}
+	read := services.NewFileRequest().Read
+	read.Path = path
+	file, err := h.Keeper.Files.Read(read)
+	if err != nil || file == nil || len(file.Content) == 0 {
+		return nil, ""
+	}
+
+	content := file.Content
+	for _, width := range []int{0, 2048, 1600, 1280, 1024, 800, 640} {
+		if width > 0 {
+			if content, err = images.FitImage(file.Content, width); err != nil {
+				return nil, ""
+			}
+		}
+		if len(content) <= bsky.BlobMax {
+			return content, file.Mimetype
+		}
+		// Still too heavy in the kind of file it is: a drawing or a
+		// picture of a screen, kept without loss. As a photograph is
+		// kept, it is a fraction of the weight.
+		if lighter := asJPEG(content); lighter != nil && len(lighter) <= bsky.BlobMax {
+			return lighter, "image/jpeg"
+		}
+	}
+	return nil, ""
+}
+
+// asJPEG writes a picture again as a JPEG, on white where it could be
+// seen through. Nil when it cannot be read.
+func asJPEG(content []byte) []byte {
+	decoded, _, err := image.Decode(bytes.NewReader(content))
+	if err != nil {
+		return nil
+	}
+	flat := image.NewRGBA(decoded.Bounds())
+	draw.Draw(flat, flat.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
+	draw.Draw(flat, flat.Bounds(), decoded, decoded.Bounds().Min, draw.Over)
+
+	var out bytes.Buffer
+	if err := jpeg.Encode(&out, flat, &jpeg.Options{Quality: 85}); err != nil {
+		return nil
+	}
+	return out.Bytes()
 }
 
 // The short tokens, one for each connected person, kept only in memory.

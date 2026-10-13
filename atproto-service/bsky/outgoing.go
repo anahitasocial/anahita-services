@@ -28,27 +28,92 @@ type OutPost struct {
 	Embed     *OutEmbed  `json:"embed,omitempty"`
 }
 
-// OutEmbed is the card of a link a post carries.
+// OutEmbed is what a post carries besides its words: the card of a link,
+// or its pictures.
 type OutEmbed struct {
-	Type     string `json:"$type"`
-	External struct {
-		URI         string `json:"uri"`
-		Title       string `json:"title"`
-		Description string `json:"description"`
-	} `json:"external"`
+	Type     string       `json:"$type"`
+	External *OutExternal `json:"external,omitempty"`
+	Images   []OutImage   `json:"images,omitempty"`
 }
 
+// OutExternal is the card of a link.
+type OutExternal struct {
+	URI         string   `json:"uri"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Thumb       *OutBlob `json:"thumb,omitempty"`
+}
+
+// OutImage is one picture of a post.
+type OutImage struct {
+	Alt         string   `json:"alt"`
+	Image       *OutBlob `json:"image"`
+	AspectRatio *struct {
+		Width  int `json:"width"`
+		Height int `json:"height"`
+	} `json:"aspectRatio,omitempty"`
+}
+
+// OutBlob names a file that was uploaded to the account's server, as that
+// server named it.
+type OutBlob struct {
+	Type string `json:"$type"`
+	Ref  struct {
+		Link string `json:"$link"`
+	} `json:"ref"`
+	MimeType string `json:"mimeType"`
+	Size     int64  `json:"size"`
+}
+
+// GetImages is the pictures a post carries so far.
+func (e *OutEmbed) GetImages() []OutImage {
+	if e == nil {
+		return nil
+	}
+	return e.Images
+}
+
+// BlobMax is the most a picture may weigh.
+const BlobMax = 1000000
+
+// ImagesMax is the most pictures a post may carry.
+const ImagesMax = 4
+
 // WithCard gives a post the card of a link: Bluesky draws none of its
-// own from an address in a post's words.
-func (p *OutPost) WithCard(address, title, description string) {
-	if !strings.HasPrefix(address, "https://") || title == "" {
+// own from an address in a post's words. `thumb` is its picture, uploaded,
+// or nil.
+func (p *OutPost) WithCard(address, title, description string, thumb *OutBlob) {
+	if !strings.HasPrefix(address, "https://") || title == "" || p.Embed != nil {
 		return
 	}
-	embed := &OutEmbed{Type: "app.bsky.embed.external"}
-	embed.External.URI = address
-	embed.External.Title = string([]rune(title)[:min(len([]rune(title)), 300)])
-	embed.External.Description = string([]rune(description)[:min(len([]rune(description)), 1000)])
-	p.Embed = embed
+	p.Embed = &OutEmbed{Type: "app.bsky.embed.external", External: &OutExternal{
+		URI:         address,
+		Title:       string([]rune(title)[:min(len([]rune(title)), 300)]),
+		Description: string([]rune(description)[:min(len([]rune(description)), 1000)]),
+		Thumb:       thumb,
+	}}
+}
+
+// AddImage gives a post a picture, uploaded, with what it shows and its
+// shape, which lets it be laid out before it has loaded.
+func (p *OutPost) AddImage(blob *OutBlob, alt string, width, height int) {
+	if blob == nil {
+		return
+	}
+	if p.Embed == nil || p.Embed.Type != "app.bsky.embed.images" {
+		p.Embed = &OutEmbed{Type: "app.bsky.embed.images"}
+	}
+	if len(p.Embed.Images) >= ImagesMax {
+		return
+	}
+	image := OutImage{Alt: string([]rune(alt)[:min(len([]rune(alt)), 2000)]), Image: blob}
+	if width > 0 && height > 0 {
+		image.AspectRatio = &struct {
+			Width  int `json:"width"`
+			Height int `json:"height"`
+		}{width, height}
+	}
+	p.Embed.Images = append(p.Embed.Images, image)
 }
 
 // OutReply says what a post answers, and what began the thread.

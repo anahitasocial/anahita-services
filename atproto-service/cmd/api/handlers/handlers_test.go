@@ -301,6 +301,16 @@ type fakeFiles struct {
 	services.FilesGRPCInterface
 	stored  map[string]int
 	deleted []string
+	// What can be read back, by where it is.
+	content map[string][]byte
+}
+
+func (f *fakeFiles) Read(req *services.FileReadRequest) (*entities.File, error) {
+	content, ok := f.content[req.Path]
+	if !ok {
+		return nil, errors.New("no such file")
+	}
+	return &entities.File{Content: content, Path: req.Path, Mimetype: "image/png", Size: int64(len(content))}, nil
 }
 
 func (f *fakeFiles) Add(req *services.FileAddRequest) (*entities.File, error) {
@@ -357,6 +367,26 @@ func aPicture(t *testing.T) []byte {
 	return out.Bytes()
 }
 
+// aHeavyPicture is a picture that weighs more than Bluesky takes: noise,
+// which does not press small.
+func aHeavyPicture(t *testing.T) []byte {
+	t.Helper()
+	img := image.NewRGBA(image.Rect(0, 0, 1500, 1000))
+	seed := uint32(1)
+	for i := range img.Pix {
+		seed = seed*1664525 + 1013904223
+		img.Pix[i] = uint8(seed >> 24)
+	}
+	var out bytes.Buffer
+	if err := png.Encode(&out, img); err != nil {
+		t.Fatal(err)
+	}
+	if out.Len() <= bsky.BlobMax {
+		t.Fatalf("the heavy picture weighs only %d", out.Len())
+	}
+	return out.Bytes()
+}
+
 // world is an installation that reads Bluesky, with everything it talks
 // to stood in for.
 type world struct {
@@ -380,7 +410,7 @@ func newWorld(t *testing.T) *world {
 		nodes:    &fakeNodes{},
 		actors:   &fakeActors{kept: map[string]*repositories.RemoteActor{}, followed: map[int64]bool{}},
 		pictures: &fakePictures{content: aPicture(t)},
-		files:    &fakeFiles{stored: map[string]int{}},
+		files:    &fakeFiles{stored: map[string]int{}, content: map[string][]byte{}},
 		listed:   &fakePhotoFiles{kept: map[int64][]*entities.PhotoFile{}},
 		cards:    &fakeCards{},
 		reposts:  &fakeReposts{made: map[string]bool{}, names: map[string]int64{}},

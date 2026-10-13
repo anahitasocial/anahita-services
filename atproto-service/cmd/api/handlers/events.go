@@ -55,7 +55,8 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 	case strings.HasPrefix(payload.Name, "node.repost.") && deleted:
 		err = h.localRemoved(ctx, payload.ObjectID)
 
-	case strings.HasPrefix(payload.Name, "node.medium.") && payload.ObjectType == constants.NodeMediumNoteEntityType:
+	case strings.HasPrefix(payload.Name, "node.medium.") &&
+		(payload.ObjectType == constants.NodeMediumNoteEntityType || payload.ObjectType == constants.NodeMediumPhotoEntityType):
 		if deleted {
 			err = h.localRemoved(ctx, payload.ObjectID)
 		} else {

@@ -126,6 +126,49 @@ func (c *Client) DeleteRecord(ctx context.Context, pds, accessJWT, did, collecti
 	}, nil)
 }
 
+// UploadBlob gives a file to an account's server, to be named in a record
+// written afterwards: a picture of a post, or of a link's card.
+func (c *Client) UploadBlob(ctx context.Context, pds, accessJWT string, content []byte, mimeType string) (*OutBlob, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, pds+"/xrpc/com.atproto.repo.uploadBlob", bytes.NewReader(content))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", mimeType)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", c.userAgent)
+	req.Header.Set("Authorization", "Bearer "+accessJWT)
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	raw, err := io.ReadAll(io.LimitReader(resp.Body, maxAnswer))
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		var refused xrpcError
+		_ = json.Unmarshal(raw, &refused)
+		switch {
+		case refused.Error == "ExpiredToken":
+			return nil, ErrExpired
+		case resp.StatusCode == http.StatusUnauthorized, refused.Error == "InvalidToken":
+			return nil, fmt.Errorf("%w: %s", ErrDenied, refused.Error)
+		}
+		return nil, fmt.Errorf("%w: status %d %s: %s", ErrUnreadable, resp.StatusCode, refused.Error, refused.Message)
+	}
+
+	var answer struct {
+		Blob *OutBlob `json:"blob"`
+	}
+	if err := json.Unmarshal(raw, &answer); err != nil || answer.Blob == nil || answer.Blob.Ref.Link == "" {
+		return nil, fmt.Errorf("%w: no file was named", ErrUnreadable)
+	}
+	return answer.Blob, nil
+}
+
 // RefOf reads what a post is named by now, and the post that began the
 // thread it is in (itself, when it began one). ErrNobody when the post is
 // not there.

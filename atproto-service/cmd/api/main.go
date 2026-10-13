@@ -122,6 +122,7 @@ func main() {
 		env.Crypt = secrets
 		env.Queue = queue
 		env.Directory = config.DirectoryURL
+		env.PicturesWait = 3 * time.Second
 	} else {
 		log.Println("CRYPT_LOCAL_KEY is not set: Bluesky is read, and nothing is written to it")
 	}

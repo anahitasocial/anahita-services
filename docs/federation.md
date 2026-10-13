@@ -1049,11 +1049,18 @@ its own. The card says to use one and where to make it.
   with no such key reads Bluesky and writes nothing: nobody is offered the
   card.
 - **What goes.** A like or a repost of a post that came from Bluesky; a
-  reply under one, or under a reply that itself went there; and a note of
-  the person's own that everybody may read, on their own profile, with
-  the card of the link in it. Connecting an account is saying that such
-  notes are posted there, as being on the fediverse is. A photo post does
-  not go yet, nor a note on somebody else's profile or a group's. Words become
+  reply under one, or under a reply that itself went there; and a note or
+  a photo post of the person's own that everybody may read, on their own
+  profile. Connecting an account is saying that such posts are posted
+  there, as being on the fediverse is. A post on somebody else's profile
+  or a group's does not go, nor a video.
+- **Pictures and cards.** A photo post goes with up to four pictures and
+  what each shows. A note goes with the card of the link in it, picture
+  and all: Bluesky draws no card of its own from an address in a post, so
+  the card is this installation's, as it was kept when the note was made.
+  Each picture is given to the account's server first. Bluesky takes a
+  megabyte for each: one that weighs more is made smaller, and written
+  again as a JPEG when that is not enough. Words become
   what Bluesky takes: Markdown's marks are taken out, links and hashtags
   are marked as such, and what is longer than three hundred letters is cut
   with a mark to say so. A reply that is changed here afterwards is not
@@ -1090,8 +1097,7 @@ left out, `https://plc.directory`.
 
 ### What is not there yet
 
-A photo post made here does not go to Bluesky, and a note that does goes
-without pictures. What people
+A video made here does not go to Bluesky. What people
 on Bluesky do to what was written from here (their likes, reposts and
 replies to it) is not read, unless they are followed. Likes given on
 Bluesky are not read, nor how many a post has; replies

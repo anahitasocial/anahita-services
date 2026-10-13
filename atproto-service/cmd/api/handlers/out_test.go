@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -140,10 +141,11 @@ func (f *fakeSent) IsOurs(did, kind, rkey string) (bool, error) {
 type fakeWriter struct {
 	password string
 	// The short tokens it takes, and the long one that gets the next.
-	access  string
-	refresh string
-	written []string
-	records map[string]any
+	access   string
+	refresh  string
+	written  []string
+	records  map[string]any
+	uploaded []int
 }
 
 func (f *fakeWriter) PDSOf(_ context.Context, _, did string) (string, error) { return anaPDS, nil }
@@ -179,6 +181,16 @@ func (f *fakeWriter) DeleteRecord(_ context.Context, pds, token, did, collection
 	f.written = append(f.written, "delete "+collection)
 	delete(f.records, collection+"/"+rkey)
 	return nil
+}
+
+func (f *fakeWriter) UploadBlob(_ context.Context, pds, token string, content []byte, mimeType string) (*bsky.OutBlob, error) {
+	if token != f.access {
+		return nil, bsky.ErrExpired
+	}
+	f.uploaded = append(f.uploaded, len(content))
+	blob := &bsky.OutBlob{Type: "blob", MimeType: mimeType, Size: int64(len(content))}
+	blob.Ref.Link = fmt.Sprintf("blob%d", len(f.uploaded))
+	return blob, nil
 }
 
 func (f *fakeWriter) RefOf(_ context.Context, uri string) (*bsky.Ref, *bsky.Ref, error) {
@@ -549,5 +561,75 @@ func TestALikeTakenBackBeforeItWasWritten(t *testing.T) {
 	}
 	if len(w.writer.records) != 0 {
 		t.Errorf("a like that was taken back was written: %v", w.writer.written)
+	}
+}
+
+// THE RULE THIS GUARDS: a photo post goes to Bluesky with its pictures,
+// each small enough for Bluesky to take and with what it shows.
+func TestAPhotoPostGoesWithItsPictures(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.connect()
+
+	photo := &entities.AnahitaNode{
+		ID: 90, Type: constants.NodeMediumPhotoEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "The beans",
+	}
+	w.nodes.kept = append(w.nodes.kept, photo)
+	post := event.EventPayload{ObjectType: constants.NodeMediumPhotoEntityType, ObjectID: 90}
+	w.heard("node.medium.photo-service.photo.added.v1", post)
+
+	// Said to be made before its pictures are listed: tried again, and
+	// nothing is written meanwhile.
+	waiting := w.queue.waiting[0]
+	if err := w.h.Write(context.Background(), waiting); !errors.Is(err, errPicturesNotThere) || len(w.writer.records) != 0 {
+		t.Fatalf("before its pictures were there: %v, %d written", err, len(w.writer.records))
+	}
+
+	// Its pictures: one as it is, and one too heavy for Bluesky, which is
+	// made smaller.
+	sizes, _ := photo.PortraitsFor("one.png")
+	w.files.content[sizes[entities.PortraitSizeOriginal].Url] = aPicture(t)
+	heavy, _ := photo.PortraitsFor("two.png")
+	w.files.content[heavy[entities.PortraitSizeOriginal].Url] = aHeavyPicture(t)
+	w.listed.kept[90] = []*entities.PhotoFile{
+		{Filename: "one.png", Mimetype: "image/png", Width: 600, Height: 400, AltText: "A row of beans"},
+		{Filename: "two.png", Mimetype: "image/png", Width: 3000, Height: 2000},
+		{Filename: "gone.png", Mimetype: "image/png"},
+	}
+	if err := w.h.Write(context.Background(), waiting); err != nil {
+		t.Fatal(err)
+	}
+
+	out, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+w.sent.rows[0].RKey])
+	for _, want := range []string{
+		`"text":"The beans"`, `"embed":{"$type":"app.bsky.embed.images","images":[{"alt":"A row of beans","image":{"$type":"blob","ref":{"$link":"blob1"}`,
+		`"aspectRatio":{"width":600,"height":400}`, `"$link":"blob2"`,
+	} {
+		if !strings.Contains(string(out), want) {
+			t.Errorf("the photo post as written lacks %s:\n%s", want, out)
+		}
+	}
+	if len(w.writer.uploaded) != 2 || w.writer.uploaded[1] > bsky.BlobMax {
+		t.Errorf("uploaded %v", w.writer.uploaded)
+	}
+}
+
+func TestTheCardOfALinkGoesWithItsPicture(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.connect()
+
+	w.files.content[linkpreviews.StoragePrefix+"card.jpg"] = aPicture(t)
+	card := linkpreviews.IntoMeta(nil, &linkpreviews.Snapshot{URL: "https://example.com/story", Title: "The story", ImageKey: "card.jpg"})
+	w.nodes.kept = append(w.nodes.kept, &entities.AnahitaNode{
+		ID: 95, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "Read this https://example.com/story", Meta: card,
+	})
+	w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 95})
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	out, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+w.sent.rows[0].RKey])
+	if want := `"thumb":{"$type":"blob","ref":{"$link":"blob1"}`; !strings.Contains(string(out), want) {
+		t.Errorf("the card lacks %s:\n%s", want, out)
 	}
 }
