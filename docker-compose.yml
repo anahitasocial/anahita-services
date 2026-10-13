@@ -1216,6 +1216,9 @@ services:
       # public addresses only.
       SSL_CERT_FILE: ${ACTIVITYPUB_CA_FILE:-}
       ACTIVITYPUB_LAB: ${ACTIVITYPUB_LAB:-}
+      # For the card of a link in a post from another server. Empty, and
+      # such posts have none.
+      LINK_PREVIEW_URL: ${LINK_PREVIEW_URL:-http://link-preview-service:80}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
       - ./fedi-lab/certs:/fedi-lab-certs:ro

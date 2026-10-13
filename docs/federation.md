@@ -97,6 +97,7 @@ already in `config.env` and `secrets.env`:
 | `DSN` | Its own tables |
 | `GRAPH_SERVICE_ADDR` | People, posts and follows are the graph's |
 | `FILE_SERVICE_ADDR` | The avatars of people on other servers are copied into this installation's storage |
+| `LINK_PREVIEW_URL` | Optional. Where link-preview-service is (`http://link-preview-service`), for the card of a link in a post from another server. Left out, such posts have none |
 | `AMQP_ADDR` | It hears there that somebody here followed, posted or changed their profile |
 | `REDIS_ADDR` | Limits on lookups and on what one address may send |
 | `SECURE_COOKIE_KEY`, `OAUTH_ISSUER` | Knowing who is signed in, for a person's own switch |
@@ -427,6 +428,24 @@ that runs, at most 20,000 characters, dated when its author says it was
 written, in the language it says. Because it is an ordinary note on the
 profile of somebody followed, it is in the feed of whoever follows them
 with nothing changed in the feeds.
+
+**A link in it is given a card,** as a link in a note written here is:
+what the page is called, what it says of itself and its picture, read by
+this installation and kept in its own storage. `activitypub-service` asks
+link-preview-service for it at an address the gateway sends nobody to
+(`GET /internal/link-previews`, `LINK_PREVIEW_URL`), and keeps the answer
+in the note's meta where a note keeps its card. Nothing the other server
+says of the link is used, and no reader is sent to another site for a
+picture. The card is of the first link that is to a page, not of somebody's
+name or a hashtag. A post is kept without one where the page says nothing
+of itself, or does not answer within six seconds.
+
+A post that was kept before something about keeping posts was put right
+can be read again from its own server:
+
+~~~sh
+docker compose exec activitypub-service /app/app-binary reread https://mastodon.example/users/alice/statuses/1
+~~~
 
 **Its hashtags are this installation's.** A hashtag arrives as a link to
 its page on the server the note was written on. It is kept as the hashtag

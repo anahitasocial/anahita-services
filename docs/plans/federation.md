@@ -544,6 +544,18 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   and the avatar and cover, which it fetched through the addresses that
   stay.
 
+**Cards for links in posts from elsewhere (the first of phase 3).**
+`cards.go`; link-preview-service's `ReadInternal`.
+
+- **Asked for after a BBC News post arrived as its words alone.** A post
+  from another server with a link in it is given a card made by this
+  installation's own link-preview-service, asked at an address only the
+  other services reach. Tried on that post, read again from Flipboard with
+  the new `reread` command: it has its title, its description and its
+  picture.
+- **Still to do in phase 3:** pictures attached to a post, and the pictures
+  that stand for custom emoji. Both are copied into storage as avatars are.
+
 **Likes and reposts, both ways (phase 2b).** `likes.go`, `reposts.go`;
 migration `20261104000001` (`activitypub_objects.kind`).
 

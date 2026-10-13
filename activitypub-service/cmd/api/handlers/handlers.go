@@ -37,6 +37,9 @@ type Env struct {
 	// Runs what need not hold up an answer: copying a picture, reading
 	// somebody's recent posts. Nil runs it at once, which tests want.
 	Later func(func())
+	// The card for a link in a post from elsewhere. Nil for none: in tests,
+	// and where there is no link-preview-service.
+	Cards Cards
 	// Finds what the bus lost. Nil for no sweep, in tests that are not of
 	// it.
 	Missed repositories.MissedInterface

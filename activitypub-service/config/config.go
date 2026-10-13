@@ -20,12 +20,15 @@ type Config struct {
 	SecureCookieKey string
 	// For the federation lab only: go to private addresses, where the
 	// lab's servers are.
-	Lab           bool
-	RedisAddr     string
-	RedisPassword string
-	RedisDB       int
-	OAuthIssuer   string
-	OAuthJWKSURL  string
+	Lab bool
+	// Where link-preview-service is, for the cards of links in posts from
+	// other servers. Empty for none.
+	LinkPreviewURL string
+	RedisAddr      string
+	RedisPassword  string
+	RedisDB        int
+	OAuthIssuer    string
+	OAuthJWKSURL   string
 	// How the private half of each person's signing key is kept: encrypted,
 	// by the same means auth-service keeps its secrets.
 	CryptBackend  string
@@ -42,6 +45,7 @@ func NewConfig() *Config {
 		AmqpAddr:         os.Getenv("AMQP_ADDR"),
 		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
 		Lab:              os.Getenv("ACTIVITYPUB_LAB") == "on",
+		LinkPreviewURL:   os.Getenv("LINK_PREVIEW_URL"),
 		RedisAddr:        getEnv("REDIS_ADDR", "localhost:6379"),
 		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
 		RedisDB:          getIntEnv("REDIS_DB", 0),

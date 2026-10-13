@@ -84,6 +84,10 @@ spec:
                 configMapKeyRef:
                   name: anahita-config
                   key: GRAPH_SERVICE_ADDR
+            # For the card of a link in a post from another server. Take it
+            # out where link-preview-service is not deployed.
+            - name: LINK_PREVIEW_URL
+              value: http://link-preview-service
             - name: OAUTH_ISSUER
               valueFrom:
                 configMapKeyRef:

@@ -113,6 +113,7 @@ func main() {
 	env.Lab = config.Lab
 	env.Pictures = client
 	env.Files = services.NewFilesGRPC(config)
+	env.Cards = handlers.NewCards(config.LinkPreviewURL)
 	env.Announce = (&announcer{config: config}).Publish
 
 	// What is to be sent to other servers waits in a table, and is sent
@@ -135,6 +136,21 @@ func main() {
 		}
 		out, _ := json.MarshalIndent(found, "", "  ")
 		fmt.Println(string(out))
+		return
+	}
+
+	// `app-binary reread https://mastodon.example/users/alice/statuses/1`:
+	// read a post that is kept here again from its own server, and keep
+	// what it says now. For a post that was kept before something about
+	// keeping posts was put right. See docs/federation.md.
+	if len(os.Args) == 3 && os.Args[1] == "reread" {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+		if err := h.RereadFromTheCommandLine(ctx, os.Args[2]); err != nil {
+			fmt.Fprintln(os.Stderr, "not read again:", err)
+			os.Exit(1)
+		}
+		fmt.Println("read again and kept")
 		return
 	}
 

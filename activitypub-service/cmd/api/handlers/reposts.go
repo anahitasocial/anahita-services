@@ -317,3 +317,29 @@ func (h *Handlers) fetchNote(ctx context.Context, address string) (*entities.Ana
 	}
 	return kept, nil
 }
+
+// RereadFromTheCommandLine reads a post that is kept here again from its
+// own server and keeps what it says now: its words, and the card of the
+// link in it. Only a post that is already kept, by the address it has
+// there; where it stands in a thread does not change.
+func (h *Handlers) RereadFromTheCommandLine(ctx context.Context, address string) error {
+	kept, err := h.Nodes.ReadByURI(address)
+	if err != nil {
+		return err
+	}
+	if kept == nil || kept.ID == 0 || !kept.IsRemote() || kept.Type != constants.NodeMediumNoteEntityType {
+		return fmt.Errorf("no post from another server is kept by that address")
+	}
+	if h.Blocks != nil && h.Blocks.IsBlocked(hostOf(address)) {
+		return fmt.Errorf("that server is refused")
+	}
+
+	var note ap.ReceivedNote
+	if _, err := h.Fetcher.Object(ctx, address, &note); err != nil {
+		return err
+	}
+	if note.Type != "Note" || note.ID != kept.URI {
+		return fmt.Errorf("what is at that address now is not that post")
+	}
+	return h.store(kept.OwnerID, &note, kept.ParentID)
+}

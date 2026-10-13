@@ -390,6 +390,8 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 		// Nothing to show: a picture alone, which is not kept yet.
 		return nil
 	}
+	// The card of the link in it, read by this installation itself.
+	node.Meta = h.withCard(node.Body)
 
 	saved, created, err := h.Nodes.UpsertRemote(node)
 	if err != nil {

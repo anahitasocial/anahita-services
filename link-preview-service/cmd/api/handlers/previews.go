@@ -106,6 +106,43 @@ func (h *previewsHandler) Read(c echo.Context) error {
 	return c.JSON(http.StatusOK, respond(preview))
 }
 
+// How many pages the other services may have read between them.
+var internalLimit = ratelimit.Limit{Max: 120, Window: time.Minute}
+
+// ReadInternal is Read for another service of this installation: the same
+// preview, kept the same way, without somebody signed in to ask for it.
+//
+// It is asked by activitypub-service when a post arrives from another
+// server with a link in it, so that the post has a card as one written
+// here does: this installation reads the page itself and keeps its own
+// copy of the picture, and no reader is sent to another site.
+//
+// It is not reachable from outside: the gateway routes /link-previews and
+// this is not under it. It answers with the preview as it is kept, the
+// key of its picture included, which Read does not give out.
+func (h *previewsHandler) ReadInternal(c echo.Context) error {
+	address, ok := linkpreviews.Normalise(c.QueryParam("url"))
+	if !ok {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	preview, kept := h.Store.Get(address)
+	if !kept {
+		if ratelimit.Exceeded(h.Limiter, "link_preview_internal", "services", internalLimit) {
+			return c.NoContent(http.StatusTooManyRequests)
+		}
+		preview = h.fetch(address)
+		if err := h.Store.Put(preview); err != nil {
+			log.Println("link preview: could not keep the preview:", err)
+		}
+	}
+
+	if !preview.Usable() {
+		return c.NoContent(http.StatusNoContent)
+	}
+	return c.JSON(http.StatusOK, preview)
+}
+
 // fetch reads a page and makes its preview. What went wrong, when
 // something did, is logged without the address: a link somebody was about
 // to post is theirs.
