@@ -129,6 +129,33 @@ spec:
                   name: anahita-config
                   key: ATPROTO_CDN_URL
                   optional: true
+            - name: ATPROTO_PLC_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ATPROTO_PLC_URL
+                  optional: true
+            # What the token of each connected Bluesky account is kept under:
+            # the same as auth-service's secrets. Without a key Bluesky is read
+            # and nothing is written to it.
+            - name: CRYPT_BACKEND
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: CRYPT_BACKEND
+                  optional: true
+            - name: CRYPT_LOCAL_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: CRYPT_LOCAL_KEY
+                  optional: true
+            - name: AWS_KMS_KEY_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: AWS_KMS_KEY_ID
+                  optional: true
             - name: DSN
               valueFrom:
                 secretKeyRef:

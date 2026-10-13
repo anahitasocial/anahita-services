@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"context"
+	"log"
 	"strings"
+	"time"
 
 	"anahita-libs/constants"
 	"anahita-libs/event"
@@ -22,15 +25,52 @@ import (
 // EventTopics is what this service listens for.
 var EventTopics = []string{
 	"edge.follow.*.*.v1",
+	"edge.voteup.*.*.v1",
+	"node.repost.*.*.*.v1",
+	"node.medium.*.*.*.v1",
 }
 
 // HandleEvent is told of something that happened here.
 func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
-	if !strings.HasPrefix(payload.Name, "edge.follow.") {
-		return nil
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
 
-	target, err := h.Nodes.Read(payload.TargetID)
+	added := strings.HasSuffix(payload.Name, ".added.v1")
+	deleted := strings.HasSuffix(payload.Name, ".deleted.v1")
+
+	var err error
+	switch {
+	case strings.HasPrefix(payload.Name, "edge.follow."):
+		err = h.followChanged(payload.TargetID, added)
+
+	// Somebody liked something, or took a like back: who is the subject,
+	// what the object.
+	case strings.HasPrefix(payload.Name, "edge.voteup.") && added:
+		err = h.localLiked(ctx, payload.SubjectID, payload.ObjectID)
+	case strings.HasPrefix(payload.Name, "edge.voteup.") && deleted:
+		err = h.localUnliked(ctx, payload.SubjectID, payload.ObjectID)
+
+	case strings.HasPrefix(payload.Name, "node.repost.") && added:
+		err = h.localReposted(ctx, payload.ObjectID)
+	case strings.HasPrefix(payload.Name, "node.repost.") && deleted:
+		err = h.localRemoved(ctx, payload.ObjectID)
+
+	case strings.HasPrefix(payload.Name, "node.medium.") && payload.ObjectType == constants.NodeMediumNoteEntityType:
+		if deleted {
+			err = h.localRemoved(ctx, payload.ObjectID)
+		} else {
+			err = h.localPosted(ctx, payload.ObjectID)
+		}
+	}
+	if err != nil {
+		log.Printf("event %s (%d): %v", payload.Name, payload.ObjectID, err)
+	}
+	return err
+}
+
+// followChanged is somebody here having followed somebody, or stopped.
+func (h *Handlers) followChanged(targetID int64, followed bool) error {
+	target, err := h.Nodes.Read(targetID)
 	if err != nil || target == nil || target.Type != constants.NodeActorATProtoPersonEntityType {
 		return err
 	}
@@ -39,7 +79,7 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		return err
 	}
 
-	if strings.HasSuffix(payload.Name, ".added.v1") {
+	if followed {
 		h.later(func() { h.backfill(kept) })
 	}
 	// Followed or no longer followed: whose posts are wanted may have

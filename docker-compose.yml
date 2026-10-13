@@ -1269,6 +1269,12 @@ services:
       ATPROTO_APPVIEW_URL: ${ATPROTO_APPVIEW_URL:-}
       ATPROTO_JETSTREAM_URL: ${ATPROTO_JETSTREAM_URL:-}
       ATPROTO_CDN_URL: ${ATPROTO_CDN_URL:-}
+      ATPROTO_PLC_URL: ${ATPROTO_PLC_URL:-}
+      # What the token of each connected Bluesky account is kept under: the
+      # same as auth-service's secrets. Without it Bluesky is read and
+      # nothing is written to it.
+      CRYPT_BACKEND: ${CRYPT_BACKEND}
+      CRYPT_LOCAL_KEY: ${CRYPT_LOCAL_KEY}
       # For the card of a link in a post from Bluesky. Empty, and such
       # posts have none.
       LINK_PREVIEW_URL: ${LINK_PREVIEW_URL:-http://link-preview-service:80}

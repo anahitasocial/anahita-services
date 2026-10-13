@@ -20,4 +20,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	atproto.Use(r.authorize)
 	// Finding somebody on Bluesky.
 	atproto.GET("/lookup", r.handler.Lookup)
+	// A person's own Bluesky account, connected or not.
+	atproto.GET("/settings", r.handler.ReadSettings)
+	atproto.PUT("/settings", r.handler.EditSettings)
+	atproto.DELETE("/settings", r.handler.DeleteSettings)
 }

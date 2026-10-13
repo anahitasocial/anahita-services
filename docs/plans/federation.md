@@ -1154,3 +1154,40 @@ their repost, with what was reposted read from Bluesky
 repost was of, for when it is taken back. Still not read: likes, counts,
 replies by people nobody here follows, videos.
 
+### AT Protocol, two ways by a connected account, 2026-10-12
+
+**Decided by the user on 2026-10-12, in place of waiting for a domain:**
+asked whose account somebody here should act as on Bluesky, they chose
+"link existing account": each person connects the Bluesky account they
+already have, and what they do here goes out as it. Running a PDS and
+giving everybody a handle under the installation's domain (part 2 as first
+planned) is not what is being built now; it remains the way for people
+who have no Bluesky account, if it is wanted later.
+
+**Built.** Connecting an account with a handle and an app password
+(`/atproto/settings`; the password exchanged for tokens at the account's
+own server and not kept, the long token kept encrypted); likes, reposts
+and replies to what came from Bluesky written there as the account, from a
+queue (`atproto_writes`), and taken back when they are taken back here;
+what was written remembered (`atproto_sent`) so that it is not kept again
+when Bluesky tells of it. Migration `20261107000001`. In the web app, a
+Bluesky card in a person's settings under Privacy, and the note under a
+reply that says it stays here is shown only to somebody who has not
+connected.
+
+**Not tried against Bluesky itself:** connecting needs the user's own app
+password. Everything up to the account's server is covered by tests with
+that server stood in for.
+
+**Next, in this order:**
+
+1. Reading what people on Bluesky do to what was written from here: their
+   replies, likes and reposts, by asking as the connected account
+   (`app.bsky.notification.listNotifications`), since Jetstream is only
+   asked about the accounts followed.
+2. A person's own public notes going to Bluesky, as their choice, with
+   pictures.
+3. Telling Bluesky of a follow, for somebody connected.
+4. OAuth in place of app passwords, when the installation has a public
+   address to be a client at.
+

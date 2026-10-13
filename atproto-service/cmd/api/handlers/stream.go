@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"atproto/bsky"
+	"atproto/data/repositories"
 )
 
 // What is heard from Bluesky as it happens.
@@ -42,6 +43,11 @@ func (h *Handlers) Heard(ctx context.Context, heard *bsky.Event) {
 				err = h.removePost(kept, heard.Commit.RKey)
 				break
 			}
+			// A reply written from here, told of by Bluesky as everything
+			// the account does is: it is here already.
+			if h.ours(heard.DID, repositories.SentPost, heard.Commit.RKey) {
+				return
+			}
 			post := &bsky.Post{}
 			if json.Unmarshal(heard.Commit.Record, post) != nil {
 				return
@@ -52,6 +58,9 @@ func (h *Handlers) Heard(ctx context.Context, heard *bsky.Event) {
 			if heard.Commit.Operation == "delete" {
 				err = h.unreposted(kept, heard.Commit.RKey)
 				break
+			}
+			if h.ours(heard.DID, repositories.SentRepost, heard.Commit.RKey) {
+				return
 			}
 			err = h.reposted(ctx, kept, heard.Commit.RKey, heard.Commit.Record)
 
@@ -74,6 +83,15 @@ func (h *Handlers) Heard(ctx context.Context, heard *bsky.Event) {
 	if err != nil {
 		log.Printf("heard %s of %s: %v", heard.Kind, kept.Handle, err)
 	}
+}
+
+// ours says whether a record Bluesky tells of was written from here.
+func (h *Handlers) ours(did, kind, rkey string) bool {
+	if h.Sent == nil {
+		return false
+	}
+	ours, err := h.Sent.IsOurs(did, kind, rkey)
+	return err == nil && ours
 }
 
 // refreshSoon reads somebody again in a moment: the network's reader

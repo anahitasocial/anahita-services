@@ -19,6 +19,7 @@ import (
 	"atproto/data/repositories"
 
 	"anahita-libs/constants"
+	"anahita-libs/crypt"
 	"anahita-libs/data/services"
 	"anahita-libs/event"
 	"anahita-libs/federation"
@@ -103,6 +104,28 @@ func main() {
 			}
 		},
 	}
+	// Writing to Bluesky, as accounts people here connected. It needs a
+	// key to keep their tokens under; without one the service reads
+	// Bluesky and writes nothing.
+	var queue *federation.Queue
+	if config.CanKeepSecrets() {
+		secrets, err := crypt.NewCrypt(config)
+		if err != nil {
+			log.Fatalf("the key that tokens are kept under: %v", err)
+		}
+		if queue, err = federation.NewQueue(db, "atproto_writes"); err != nil {
+			log.Fatalf("the queue of what is to be written: %v", err)
+		}
+		env.Accounts = repositories.NewAccounts(db)
+		env.Sent = repositories.NewSent(db)
+		env.Writer = client
+		env.Crypt = secrets
+		env.Queue = queue
+		env.Directory = config.DirectoryURL
+	} else {
+		log.Println("CRYPT_LOCAL_KEY is not set: Bluesky is read, and nothing is written to it")
+	}
+
 	h := handlers.NewHandlers(env)
 
 	// `app-binary lookup alice.bsky.social`: look somebody up, print who
@@ -146,6 +169,12 @@ func main() {
 		},
 		Handle: h.Heard,
 	})
+
+	// What waits to be written to Bluesky. Any number of copies may run:
+	// a row is handed to one of them at a time.
+	if queue != nil {
+		go queue.Run(ctx, 2*time.Second, 10, h.Write)
+	}
 
 	// What the bus lost is looked for now and then.
 	go h.RunCatchUp(ctx, time.Minute)

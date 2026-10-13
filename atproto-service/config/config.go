@@ -22,6 +22,8 @@ const (
 		"wss://jetstream1.us-west.bsky.network/subscribe"
 	// Where pictures are fetched from, to be copied here.
 	defaultCDN = "https://cdn.bsky.app"
+	// Where the server that holds an account is looked up.
+	defaultDirectory = "https://plc.directory"
 )
 
 type Config struct {
@@ -46,6 +48,13 @@ type Config struct {
 	// One or more, with commas between.
 	JetstreamURLs []string
 	CDNURL        string
+	DirectoryURL  string
+	// How the token of each connected account is kept: encrypted, by the
+	// same means auth-service keeps its secrets. Without a key, nobody
+	// connects an account and nothing is written to Bluesky.
+	CryptBackend  string
+	CryptLocalKey string
+	AwsKmsKeyId   string
 }
 
 func NewConfig() *Config {
@@ -65,6 +74,10 @@ func NewConfig() *Config {
 		AppViewURL:       strings.TrimRight(getEnv("ATPROTO_APPVIEW_URL", defaultAppView), "/"),
 		JetstreamURLs:    list(getEnv("ATPROTO_JETSTREAM_URL", defaultJetstream)),
 		CDNURL:           strings.TrimRight(getEnv("ATPROTO_CDN_URL", defaultCDN), "/"),
+		DirectoryURL:     strings.TrimRight(getEnv("ATPROTO_PLC_URL", defaultDirectory), "/"),
+		CryptBackend:     getEnv("CRYPT_BACKEND", constants.CryptBackendLocal),
+		CryptLocalKey:    os.Getenv("CRYPT_LOCAL_KEY"),
+		AwsKmsKeyId:      os.Getenv("AWS_KMS_KEY_ID"),
 	}
 
 	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
@@ -94,8 +107,8 @@ func (config *Config) Validate() error {
 	if len(names) > 0 {
 		return errors.New("missing: " + strings.Join(names, ", "))
 	}
-	if !strings.HasPrefix(config.AppViewURL, "https://") || !strings.HasPrefix(config.CDNURL, "https://") {
-		return errors.New("ATPROTO_APPVIEW_URL and ATPROTO_CDN_URL must be https addresses")
+	if !strings.HasPrefix(config.AppViewURL, "https://") || !strings.HasPrefix(config.CDNURL, "https://") || !strings.HasPrefix(config.DirectoryURL, "https://") {
+		return errors.New("ATPROTO_APPVIEW_URL, ATPROTO_CDN_URL and ATPROTO_PLC_URL must be https addresses")
 	}
 	if len(config.JetstreamURLs) == 0 {
 		return errors.New("ATPROTO_JETSTREAM_URL names no address")
@@ -123,6 +136,14 @@ func (config *Config) GetRedisDB() int             { return config.RedisDB }
 func (config *Config) GetOAuthIssuer() string      { return config.OAuthIssuer }
 func (config *Config) GetOAuthJWKSURL() string     { return config.OAuthJWKSURL }
 func (config *Config) GetDomainName() string       { return os.Getenv("DOMAIN_NAME") }
+func (config *Config) GetCryptBackend() string     { return config.CryptBackend }
+func (config *Config) GetCryptLocalKey() string    { return config.CryptLocalKey }
+func (config *Config) GetAwsKmsKeyId() string      { return config.AwsKmsKeyId }
+
+// CanKeepSecrets says whether there is a key to keep tokens under.
+func (config *Config) CanKeepSecrets() bool {
+	return config.CryptBackend != constants.CryptBackendLocal || config.CryptLocalKey != ""
+}
 
 // list is what was written with commas between, without what is empty.
 func list(value string) []string {

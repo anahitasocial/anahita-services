@@ -892,12 +892,14 @@ that.
 follow it. Its posts are then kept here as they are written, and are in the
 feed of whoever follows it, like the posts of anybody else they follow.
 
-**It reads, and does not write.** The account followed is not told. Nobody
-here has a name on Bluesky, nothing posted here goes there, and a reply or
-a like given here to a post from Bluesky stays here, which the web app says
-under the reply being written. Being on Bluesky needs a server of the
-installation's own at a name of its own, and is the second part of the
-work (`docs/plans/federation.md`).
+**Anybody reads; whoever connects their own Bluesky account also
+answers.** Nobody is given a name on Bluesky by this installation. Somebody
+who already has an account there can connect it, and from then on a like,
+a repost or a reply they give here to something from Bluesky is made there
+too, as that account: see [Answering on Bluesky](#answering-on-bluesky).
+For everybody else such things stay here, which the web app says under the
+reply being written. The account followed is not told that it is followed,
+and what is posted here that answers nothing does not go to Bluesky.
 
 So it asks nothing of the installation but a way out to the internet: no
 public name, no certificate, nobody choosing to be found. It works on a
@@ -1033,10 +1035,56 @@ made.
 - **A follow that the bus lost** is found within a minute: the service
   asks the graph who is followed, and does not rely on having been told.
 
+### Answering on Bluesky
+
+Somebody here who has a Bluesky account connects it in their settings,
+under Privacy, with their handle and **an app password**: a password
+Bluesky lets an account make for one app and take back without touching
+its own. The card says to use one and where to make it.
+
+- **What is kept.** The password is sent once to the server that holds
+  the account, found from the account's lasting name, and exchanged there
+  for two tokens. It is not kept. The longer-lived token is kept,
+  encrypted under the same key as auth-service's secrets
+  (`CRYPT_LOCAL_KEY`); the short one is held in memory. An installation
+  with no such key reads Bluesky and writes nothing: nobody is offered the
+  card.
+- **What goes.** A like or a repost of a post that came from Bluesky; a
+  reply under one, or under a reply that itself went there. Words become
+  what Bluesky takes: Markdown's marks are taken out, links and hashtags
+  are marked as such, and what is longer than three hundred letters is cut
+  with a mark to say so. A reply that is changed here afterwards is not
+  changed there: Bluesky has no changing a post.
+- **What is taken back.** Taking a like or a repost back here, or deleting
+  the reply, removes it there.
+- **It arrives.** What is to be written waits in a table
+  (`atproto_writes`) and is tried until it is done, for two days, as what
+  goes to the fediverse is.
+- **It is not kept twice.** Bluesky tells of everything an account does,
+  and whoever follows their own account here would be told of their own
+  reply. Each thing written is remembered by the name it was written
+  under (`atproto_sent`) and is known for this installation's own.
+- **When it stops working.** An app password that is removed on Bluesky
+  ends the connection. The first thing that cannot be written marks the
+  account as needing to be connected again, which the card then says.
+- **Disconnecting** forgets the token. What was written stays on Bluesky,
+  and can then be removed only there.
+
+| Request | Does |
+| --- | --- |
+| `GET /atproto/settings` | Whether the viewer has connected an account: `connected`, `handle`, `did`, `broken`. `404 bluesky_writing_off` where the installation does not write to Bluesky |
+| `PUT /atproto/settings` `{ "handle": "…", "app_password": "…" }` | Connects it. `404 bluesky_not_found`, `403 bluesky_denied` for a password that is not taken, `409 bluesky_taken` when somebody else here connected that account, `502 bluesky_failed`. Ten tries in ten minutes |
+| `DELETE /atproto/settings` | Disconnects |
+
+`ATPROTO_PLC_URL` is where the server that holds an account is looked up:
+left out, `https://plc.directory`.
+
 ### What is not there yet
 
-Nobody here is on Bluesky, so a reply, a like or a repost made here stays
-here. Likes given on Bluesky are not read, nor how many a post has; replies
+A post made here that answers nothing does not go to Bluesky. What people
+on Bluesky do to what was written from here (their likes, reposts and
+replies to it) is not read, unless they are followed. Likes given on
+Bluesky are not read, nor how many a post has; replies
 by people nobody here follows are not read; videos are not kept.
 The list of [servers that are refused](#servers-that-are-refused) is read
 by this service and still edited through `activitypub-service`, so an
@@ -1047,7 +1095,7 @@ app.
 
 | What | Where |
 | --- | --- |
-| Reading Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `reposts.go`, `backfill.go`, `stream.go`, `events.go`), tables `atproto_actors`, `atproto_cursor` and `atproto_reposts` |
+| Reading Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `reposts.go`, `backfill.go`, `stream.go`, `events.go`; writing: `settings.go`, `out.go`, `bsky/session.go`, `bsky/outgoing.go`), tables `atproto_actors`, `atproto_cursor`, `atproto_reposts`, `atproto_accounts`, `atproto_sent`, `atproto_writes` |
 | What both protocols share | `anahita-libs/federation/`: pictures (`pictures.go`), cards (`cards.go`), refused servers (`blocks.go`), a post's words (`content.go`) |
 | The service | `activitypub-service/` |
 | Who is on the fediverse | `cmd/api/handlers/handlers.go`: `siteFederates`, `mayFederate`, `federating` |

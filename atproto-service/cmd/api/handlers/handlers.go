@@ -7,6 +7,7 @@ import (
 	"atproto/bsky"
 	"atproto/data/repositories"
 
+	"anahita-libs/crypt"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/event"
@@ -49,6 +50,17 @@ type Env struct {
 	Actors  repositories.ActorsInterface
 	Bluesky Bluesky
 	Blocks  Refused
+	// For writing to Bluesky as an account somebody connected: who
+	// connected what, what was written, what does the writing, what the
+	// kept tokens are encrypted with, where what waits to be written is
+	// kept, and where an account's server is looked up. Without all of
+	// them nothing is written.
+	Accounts  repositories.AccountsInterface
+	Sent      repositories.SentInterface
+	Writer    Writer
+	Crypt     crypt.Crypt
+	Queue     Enqueuer
+	Directory string
 	// Reposts in the graph, and which post each one heard was of. Nil
 	// where reposts are not kept.
 	Reposts       services.RepostGRPCInterface
@@ -77,6 +89,7 @@ type Env struct {
 
 type Handlers struct {
 	*Env
+	tokens tokens
 }
 
 func NewHandlers(env *Env) *Handlers {
