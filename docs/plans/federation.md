@@ -472,9 +472,9 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: avatars of people elsewhere, their earlier posts | done 2026-10-13 |
 | Phase 1, ActivityPub: covers of people elsewhere; refused servers kept by super administrators, with a screen in Site settings | done 2026-10-12 |
 | Phase 1, ActivityPub: hashtags of posts from elsewhere; the sweep for what the bus lost; no notifications made for people elsewhere | done 2026-10-12 |
-| Phase 1, ActivityPub: a test against Mastodon itself with a real name | begun 2026-10-12, through a tunnel: following both ways, a note out and its deletion worked with mastodon.world (Mastodon 4.7.3). Still to try: a post arriving from Mastodon by itself, and an edit going out |
+| Phase 1, ActivityPub: a test against Mastodon itself with a real name | begun 2026-10-12, through a tunnel: following both ways, a note out and its deletion worked with mastodon.world (Mastodon 4.7.3). Replies arrived by themselves, through the same inbox a note does; a note's own edit going out was tried by a reply's |
 | Phase 1, ActivityPub: the sweep also finds a lost edit of a note or a profile, by what is on record of what other servers were last sent (`told_updated_at`, migration `20261102000001`) | done 2026-10-12 |
-| Phase 2a, ActivityPub: replies both ways | begun 2026-10-12 |
+| Phase 2a, ActivityPub: replies both ways | done 2026-10-12, and tried against mastodon.world: new, changed and taken away, each way |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -506,7 +506,12 @@ notification-service's `event_node_reply.go`; migration `20261103000001`.
   reply written there appeared here under the note, counted, with its
   writer told. A reply from here to something written on Mastodon went to
   that server's inbox, and a reply changed on either side was changed on
-  the other. Still to try: a reply taken away, each way.
+  the other; taken away on either side, it went from the other, and the
+  news of it with it.
+- **A reply from elsewhere that people here answered is emptied and kept**
+  when it is taken away there, not removed: found by reading the code
+  after the tests, since removing it left their answers hanging from
+  nothing.
 - **Somebody here named at the start of a reply from Mastodon** is kept as
   the name alone, so that it reads as a mention here and not as a link out
   to their own page.
