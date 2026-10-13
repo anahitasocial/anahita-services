@@ -352,6 +352,52 @@ Mastodon itself through the tunnel: a thread of one's own notes, a reply
 from Mastodon to a note here, a reply from here to a note on Mastodon, and
 an edit and a deletion of each.
 
+## Phase 2b — likes and reposts, both ways (ActivityPub; agreed 2026-10-12)
+
+Asked for by the user after replies worked against Mastodon: "Do the likes
+and reposts work?" They did not cross. Done before AT Protocol, likes
+first.
+
+### Likes
+
+A like here is an edge from whoever likes to what is liked
+(`edge.base.voteup.v1`), made through like-service and said on the bus.
+Between servers it is a `Like`, taken back with an `Undo`.
+
+- **Going out.** Somebody on the fediverse likes a note or a reply that
+  came from another server: its author's server is sent a `Like`. Taken
+  back, it is sent an `Undo`. The `Like` is named from who liked and what,
+  so that taking it back can name it again without anything being kept.
+  A like by somebody who is not on the fediverse stays here, as their
+  reply does.
+- **Coming in.** A `Like` of a note or a reply here that went out is kept
+  as a like by the person kept for whoever sent it: counted, and its author
+  told, as for a like made here. Somebody the author has blocked is
+  ignored. `Undo` takes it away.
+- **The rule that nothing from elsewhere is liked is lifted.**
+
+### Reposts
+
+A repost here is a node of its own on the reposter's profile
+(`node.base.repost-service.repost.v1`). Between servers it is an
+`Announce`, what Mastodon calls a boost.
+
+- **Going out.** Somebody on the fediverse reposts a note that other
+  servers can see (one from elsewhere, or one here that went out): their
+  followers' servers, and the note's author's when it is from elsewhere,
+  are sent an `Announce`. Taken back, an `Undo`.
+- **Coming in, of something here.** Counted, and the author told.
+- **Coming in, of something from elsewhere,** by somebody followed from
+  here: the post and whoever wrote it are read from their own server and
+  kept, and the repost is shown on the reposter's profile and in the feeds
+  of who follows them. This is the part that reads from a third server,
+  and is done last.
+
+### How it is tried
+
+Unit tests, then against Mastodon through the tunnel: a favourite and a
+boost each way, and each taken back.
+
 ## Open: reading the fediverse from a private site (noted 2026-10-04)
 
 A members-only or preview installation does not federate (see
@@ -475,6 +521,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: a test against Mastodon itself with a real name | begun 2026-10-12, through a tunnel: following both ways, a note out and its deletion worked with mastodon.world (Mastodon 4.7.3). Replies arrived by themselves, through the same inbox a note does; a note's own edit going out was tried by a reply's |
 | Phase 1, ActivityPub: the sweep also finds a lost edit of a note or a profile, by what is on record of what other servers were last sent (`told_updated_at`, migration `20261102000001`) | done 2026-10-12 |
 | Phase 2a, ActivityPub: replies both ways | done 2026-10-12, and tried against mastodon.world: new, changed and taken away, each way |
+| Phase 2b, ActivityPub: likes and reposts both ways | begun 2026-10-12 |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
