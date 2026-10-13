@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"log"
+	"regexp"
+	"strings"
 
 	"activitypub/ap"
 	"activitypub/remote"
@@ -163,4 +165,44 @@ func (h *Handlers) mayAnswer(author, root *entities.AnahitaNode) (bool, error) {
 		RootOwnerViewerRel:  ownerRel,
 		RootAuthorViewerRel: authorRel,
 	}), nil
+}
+
+// A link around somebody's name, as a post from another server has it:
+// [@ana@example.org](https://example.org/people/ana).
+var namedLink = regexp.MustCompile(`\[@([^\]\s]+)\]\((https?://[^)\s]+)\)`)
+
+// namedHere puts the name alone where a post from another server links to
+// somebody of this installation: "@ana", as it is written here, which the
+// web app shows as it shows any mention.
+//
+// Mastodon begins a reply with the name of whoever is answered, as a link
+// to their profile. Left as it came, a reply under Ana's note would begin
+// with her whole handle and a link out to her own page. Somebody on another
+// server keeps their link: there is no page for them here by that name.
+func (h *Handlers) namedHere(markdown string) string {
+	return namedLink.ReplaceAllStringFunc(markdown, func(link string) string {
+		parts := namedLink.FindStringSubmatch(link)
+		address := parts[2]
+		if !h.Site.IsOurs(address) {
+			return link
+		}
+
+		alias := h.addresses.AliasOf(address)
+		if alias == "" {
+			if person := h.personByUUID(h.addresses.UUIDOf(address)); person != nil {
+				alias = person.Alias
+			}
+		}
+		if alias == "" {
+			return link
+		}
+		// Only when the link says it is to that person: a link that reads
+		// as one name and leads to another is left to be seen for what it
+		// is.
+		written := strings.ToLower(strings.SplitN(parts[1], "@", 2)[0])
+		if written != strings.ToLower(alias) {
+			return link
+		}
+		return "@" + alias
+	})
 }

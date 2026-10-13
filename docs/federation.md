@@ -503,6 +503,11 @@ root is open to everybody, and:
 - **under a thread that began elsewhere**, somebody here follows its
   author, as for any note.
 
+Mastodon begins a reply with the name of whoever is answered, as a link to
+their profile. Where that is somebody of this installation the name alone
+is kept (`@ana`), which the web app shows as any mention; a link that reads
+as one name and leads to another is left as it came.
+
 It is kept under its parent like any reply, counted, and seen by whoever
 may see the root and nobody more: the graph gives it its root and takes no
 word from outside for which thread it is in. Whoever it answers here is

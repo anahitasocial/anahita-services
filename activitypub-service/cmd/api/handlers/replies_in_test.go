@@ -111,6 +111,24 @@ func TestAReplyFromElsewhereIsKeptByTheThreadsRule(t *testing.T) {
 	}
 }
 
+// Mastodon begins a reply with the name of whoever is answered, as a link.
+func TestSomebodyHereNamedInAPostFromElsewhere(t *testing.T) {
+	w := notesWorld()
+	for written, want := range map[string]string{
+		"[@ana@example.org](https://example.org/people/ana) Mine too.":                                "@ana Mine too.",
+		"[@ana](https://api.example.org/ap/users/" + anaUUID + ") Mine too.":                          "@ana Mine too.",
+		"[@bob@other.example](https://other.example/@bob) and [@ana](https://example.org/people/ana)": "[@bob@other.example](https://other.example/@bob) and @ana",
+		// Reads as one name and leads to another: left to be seen.
+		"[@alice](https://example.org/people/ana) hello":   "[@alice](https://example.org/people/ana) hello",
+		"[@ana](https://example.org/people/ana/settings)":  "[@ana](https://example.org/people/ana/settings)",
+		"[a page](https://example.org/people/ana) nothing": "[a page](https://example.org/people/ana) nothing",
+	} {
+		if got := w.h.namedHere(written); got != want {
+			t.Errorf("%q:\n got %q\nwant %q", written, got, want)
+		}
+	}
+}
+
 // Under a thread that began elsewhere, the rule every note from elsewhere
 // is kept by: somebody here follows whoever wrote it.
 func TestAReplyInAThreadFromElsewhere(t *testing.T) {

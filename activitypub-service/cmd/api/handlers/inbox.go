@@ -373,7 +373,7 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 	node.OriginDomain = hostOf(note.ID)
 	node.OwnerID = authorID
 	node.ParentID = parentID
-	node.Body = cutRunes(federation.PostToMarkdown(note.Content), receivedNoteMax)
+	node.Body = cutRunes(h.namedHere(federation.PostToMarkdown(note.Content)), receivedNoteMax)
 	node.Language = note.Language()
 	if published, err := time.Parse(time.RFC3339, note.Published); err == nil {
 		node.CreatedAt = published
