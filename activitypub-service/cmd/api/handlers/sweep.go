@@ -18,10 +18,9 @@ import (
 // same time, and a sweep that overlaps an event that was merely late does
 // no harm.
 //
-// What it does not find is a change the bus lost to something other
-// servers already have: a note edited, a profile edited. Nothing here
-// records what they were last sent, so there is nothing to compare with.
-// Their next change carries the one that was lost.
+// A change to something other servers already have, a note edited or a
+// profile edited, is found by what is recorded of what they were last sent
+// (told_updated_at): a change made later than that was never told.
 
 const (
 	// How long the bus is given before something is taken for lost.
@@ -36,11 +35,11 @@ const (
 
 // Swept is what one sweep found and put right, for the log.
 type Swept struct {
-	Follows, Unfollows, Notes, NotesGone, Left int
+	Follows, Unfollows, Notes, NotesGone, NotesEdited, PeopleEdited, Left int
 }
 
 func (s Swept) any() bool {
-	return s.Follows+s.Unfollows+s.Notes+s.NotesGone+s.Left > 0
+	return s.Follows+s.Unfollows+s.Notes+s.NotesGone+s.NotesEdited+s.PeopleEdited+s.Left > 0
 }
 
 // Sweep looks once for what was lost and puts it right.
@@ -107,6 +106,19 @@ func (h *Handlers) Sweep(ctx context.Context, now time.Time) Swept {
 		return h.posted(ctx, pair.LocalID)
 	})
 
+	// A post other servers have that was changed here, with nobody told.
+	notes, err = h.Missed.NotesEdited(now.Add(-sweepGrace), sweepBatch)
+	swept.NotesEdited = each("notes changed", ids(notes), err, func(pair repositories.Pair) error {
+		return h.posted(ctx, pair.LocalID)
+	})
+
+	// Somebody whose profile was changed, with their followers' servers
+	// not told.
+	edited, err := h.Missed.PeopleEdited(now.Add(-sweepGrace), sweepBatch)
+	swept.PeopleEdited = each("profiles changed", ids(edited), err, func(pair repositories.Pair) error {
+		return h.profileChanged(ctx, pair.LocalID)
+	})
+
 	// Somebody on the fediverse who may no longer be: their profile was
 	// closed, disabled or deleted, and the word of it was lost.
 	people, err := h.Missed.People(sweepBatch * 10)
@@ -141,8 +153,8 @@ func (h *Handlers) Sweep(ctx context.Context, now time.Time) Swept {
 	}
 
 	if swept.any() {
-		log.Printf("sweep: put right %d follows, %d unfollows, %d notes not sent, %d notes gone, %d people who left",
-			swept.Follows, swept.Unfollows, swept.Notes, swept.NotesGone, swept.Left)
+		log.Printf("sweep: put right %d follows, %d unfollows, %d notes not sent, %d notes gone, %d notes changed, %d profiles changed, %d people who left",
+			swept.Follows, swept.Unfollows, swept.Notes, swept.NotesGone, swept.NotesEdited, swept.PeopleEdited, swept.Left)
 	}
 	return swept
 }

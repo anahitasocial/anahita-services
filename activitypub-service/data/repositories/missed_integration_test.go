@@ -129,6 +129,54 @@ VALUES (?, ?, ?, ?, 'accepted', ?, ?)`, local, far, direction, fmt.Sprintf("a-%d
 		t.Errorf("notes gone: %v (%v)", back, err)
 	}
 
+	// Changed since other servers were last sent it. 101 was sent as it
+	// was made and changed an hour ago; 110 was changed and sent again
+	// since; 111 was touched in the second it was made, which is no
+	// change; 112 is changing this moment.
+	exec(`UPDATE nodes SET updated_at = ? WHERE id = 101`, hour(1))
+	for id, times := range map[int64][3]time.Time{
+		110: {hour(5), hour(2), hour(2)},
+		111: {hour(5), hour(5), {}},
+		112: {hour(5), now, {}},
+	} {
+		node(id, note, ana, ana, "public", 1, times[0], nil)
+		exec(`UPDATE nodes SET updated_at = ? WHERE id = ?`, times[1], id)
+		var told any
+		if !times[2].IsZero() {
+			told = times[2]
+		}
+		exec(`INSERT INTO activitypub_objects (node_id, uuid, actor_id, told_updated_at, created_at) VALUES (?, ?, ?, ?, ?)`,
+			id, fmt.Sprintf("u-%d", id), ana, told, now)
+	}
+	changedNotes, err := repo.NotesEdited(now.Add(-2*time.Minute), 50)
+	if err != nil || fmt.Sprint(changedNotes) != "[101]" {
+		t.Errorf("notes changed: %v (%v)", changedNotes, err)
+	}
+
+	// Ana joined ten hours ago. Her profile was last changed before that:
+	// nothing to tell. Changed since: found. Told of it: not found.
+	node(ana, person, 0, 0, "public", 1, hour(100), nil)
+	exec(`UPDATE nodes SET updated_at = ? WHERE id = ?`, hour(50), ana)
+	if found, err := repo.PeopleEdited(now.Add(-2*time.Minute), 50); err != nil || len(found) != 0 {
+		t.Errorf("a profile not changed since she joined: %v (%v)", found, err)
+	}
+	exec(`UPDATE nodes SET updated_at = ? WHERE id = ?`, hour(4), ana)
+	if found, err := repo.PeopleEdited(now.Add(-2*time.Minute), 50); err != nil || fmt.Sprint(found) != "[1]" {
+		t.Errorf("a profile changed: %v (%v)", found, err)
+	}
+	if err := NewAccounts(db).Told(ana, hour(4)); err != nil {
+		t.Fatal(err)
+	}
+	if found, err := repo.PeopleEdited(now.Add(-2*time.Minute), 50); err != nil || len(found) != 0 {
+		t.Errorf("a profile her followers were sent: %v (%v)", found, err)
+	}
+	if err := NewObjects(db).Told(101, hour(1)); err != nil {
+		t.Fatal(err)
+	}
+	if found, _ := repo.NotesEdited(now.Add(-2*time.Minute), 50); len(found) != 0 {
+		t.Errorf("a note they were sent: %v", found)
+	}
+
 	people, err := repo.People(50)
 	if err != nil || fmt.Sprint(people) != "[1]" {
 		t.Errorf("people: %v (%v)", people, err)

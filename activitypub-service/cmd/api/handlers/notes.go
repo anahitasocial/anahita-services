@@ -162,7 +162,10 @@ func (h *Handlers) posted(ctx context.Context, nodeID int64) error {
 		return err
 	}
 	if begun {
-		return h.toFollowers(ctx, author, ap.NewCreate(h.addresses, sent, note.UUID), "create:"+note.UUID)
+		if err := h.toFollowers(ctx, author, ap.NewCreate(h.addresses, sent, note.UUID), "create:"+note.UUID); err != nil {
+			return err
+		}
+		return h.Objects.Told(note.ID, note.UpdatedAt)
 	}
 
 	// Known already: this is a change to it. Only when it says it was
@@ -170,8 +173,13 @@ func (h *Handlers) posted(ctx context.Context, nodeID int64) error {
 	if sent.Updated == "" {
 		return nil
 	}
-	return h.toFollowers(ctx, author, ap.NewUpdate(h.addresses.Activity(newUUID()), sent),
-		fmt.Sprintf("update:%s:%s", note.UUID, sent.Updated))
+	if err := h.toFollowers(ctx, author, ap.NewUpdate(h.addresses.Activity(newUUID()), sent),
+		fmt.Sprintf("update:%s:%s", note.UUID, sent.Updated)); err != nil {
+		return err
+	}
+	// What other servers now have, so that the sweep can tell a change
+	// they were never sent from one they were.
+	return h.Objects.Told(note.ID, note.UpdatedAt)
 }
 
 // removed is a post having gone, or having stopped being one that goes out:

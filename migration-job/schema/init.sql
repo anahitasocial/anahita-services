@@ -1038,6 +1038,9 @@ CREATE TABLE IF NOT EXISTS activitypub_accounts (
     `enabled` tinyint(1) NOT NULL DEFAULT 0,
     -- When they last turned it on.
     `enabled_at` datetime DEFAULT NULL,
+    -- Their own updated_at when their followers' servers were last sent
+    -- their description. See migrations/20261102000001_activitypub_told.sql.
+    `told_updated_at` datetime DEFAULT NULL,
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
     PRIMARY KEY (`person_id`)
@@ -1139,6 +1142,8 @@ CREATE TABLE IF NOT EXISTS activitypub_objects (
     `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     -- Whose it is: the person here who wrote it.
     `actor_id` bigint unsigned NOT NULL,
+    -- The post's own updated_at when other servers were last sent it.
+    `told_updated_at` datetime DEFAULT NULL,
     `created_at` datetime NOT NULL,
     PRIMARY KEY (`node_id`),
     KEY `actor_id` (`actor_id`)

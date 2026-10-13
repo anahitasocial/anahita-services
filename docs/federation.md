@@ -530,6 +530,8 @@ differ:
 | A follow their server was asked about that is no longer in the graph | Their server is told it is over |
 | A public note by somebody on the fediverse, written in the last two days and since they joined, that was never sent | It is sent to their followers |
 | A note that was sent and is gone here, disabled, or no longer open to everybody | Servers that have it are told to drop it |
+| A note other servers have that was changed here since they were last sent it | They are sent the change |
+| Somebody whose profile was changed since their followers' servers were last sent it | They are sent it as it is now |
 | Somebody on the fediverse whose profile is no longer open to everybody, or is disabled or gone | They leave, as they would have |
 
 Each is handed to what would have handled the event, which decides again
@@ -540,11 +542,15 @@ Something is not taken for lost until two minutes have passed, and at most
 200 of each kind are put right in one sweep. A line in the log says what a
 sweep put right; one that found nothing says nothing.
 
-**What it does not find** is a lost change to something other servers
-already have: a note edited, a profile edited. Nothing records what they
-were last sent, so there is nothing to compare with. The next change to the
-same thing carries the one that was lost. A note that went unsent for more
-than two days is not sent late, since followers would be shown it as new.
+**A change is found by what is on record of what was last sent:**
+`activitypub_objects.told_updated_at` for a note and
+`activitypub_accounts.told_updated_at` for a person, each the thing's own
+`updated_at` when other servers were sent it. A change made later than that
+was never told. A row from before these were kept has none, and is compared
+with when the note was made, or when the person joined the fediverse.
+
+A note that went unsent for more than two days is not sent late, since
+followers would be shown it as new.
 
 ## Signing keys and signed requests
 

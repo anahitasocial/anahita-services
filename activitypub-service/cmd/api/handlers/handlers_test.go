@@ -67,7 +67,18 @@ func (f *fakeNodes) FilterVisible(ids []int64, viewer *entities.Viewer) ([]int64
 	return seen, nil
 }
 
-type fakeAccounts struct{ enabled map[int64]bool }
+type fakeAccounts struct {
+	enabled map[int64]bool
+	told    map[int64]time.Time
+}
+
+func (f *fakeAccounts) Told(id int64, at time.Time) error {
+	if f.told == nil {
+		f.told = map[int64]time.Time{}
+	}
+	f.told[id] = at
+	return nil
+}
 
 func (f *fakeAccounts) Read(id int64) (*repositories.Account, error) {
 	return &repositories.Account{PersonID: id, Enabled: f.enabled[id]}, nil

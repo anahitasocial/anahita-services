@@ -40,6 +40,12 @@ type MissedInterface interface {
 	// Notes other servers were sent that are gone, or are no longer open
 	// to everybody.
 	NotesGone(limit int) ([]int64, error)
+	// Notes other servers have that were changed here since they were last
+	// sent.
+	NotesEdited(olderThan time.Time, limit int) ([]int64, error)
+	// People on the fediverse whose profile was changed since their
+	// followers' servers were last sent it.
+	PeopleEdited(olderThan time.Time, limit int) ([]int64, error)
 	// Everybody who is on the fediverse.
 	People(limit int) ([]int64, error)
 }
@@ -129,6 +135,39 @@ LIMIT ?`
 
 func (repo *Missed) NotesGone(limit int) ([]int64, error) {
 	return repo.ids(notesGone, constants.AnahitaAccessPublic, limit)
+}
+
+// A second's grace: a post is written and then touched again within the
+// same moment by what gives it its hashtags, and that is not a change.
+const notesEdited = `
+SELECT sent.node_id
+FROM activitypub_objects AS sent
+JOIN nodes AS note
+  ON note.id = sent.node_id
+WHERE note.enabled = 1
+  AND note.access = ?
+  AND note.updated_at > COALESCE(sent.told_updated_at, note.created_at) + INTERVAL 1 SECOND
+  AND note.updated_at <= ?
+ORDER BY sent.node_id
+LIMIT ?`
+
+func (repo *Missed) NotesEdited(olderThan time.Time, limit int) ([]int64, error) {
+	return repo.ids(notesEdited, constants.AnahitaAccessPublic, olderThan, limit)
+}
+
+const peopleEdited = `
+SELECT account.person_id
+FROM activitypub_accounts AS account
+JOIN nodes AS person
+  ON person.id = account.person_id
+WHERE account.enabled = 1
+  AND person.updated_at > COALESCE(account.told_updated_at, account.enabled_at) + INTERVAL 1 SECOND
+  AND person.updated_at <= ?
+ORDER BY account.person_id
+LIMIT ?`
+
+func (repo *Missed) PeopleEdited(olderThan time.Time, limit int) ([]int64, error) {
+	return repo.ids(peopleEdited, olderThan, limit)
 }
 
 const peopleOnTheFediverse = `

@@ -25,6 +25,9 @@ type ObjectsInterface interface {
 	End(nodeID int64) (bool, error)
 	// EndAll forgets every post of a person's.
 	EndAll(actorID int64) error
+	// Told records what of a post other servers now have: the post's own
+	// updated_at when they were sent it.
+	Told(nodeID int64, updatedAt time.Time) error
 	// Count is how many of a person's posts went out.
 	Count(actorID int64) (int64, error)
 }
@@ -51,6 +54,19 @@ func (repo *Objects) Begin(object *Object) (bool, error) {
 	}
 	added, err := result.RowsAffected()
 	return added == 1, err
+}
+
+const toldObject = `
+UPDATE activitypub_objects
+SET told_updated_at = ?
+WHERE node_id = ?`
+
+func (repo *Objects) Told(nodeID int64, updatedAt time.Time) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	_, err := repo.db.ExecContext(ctx, toldObject, updatedAt.UTC(), nodeID)
+	return err
 }
 
 const readObject = `

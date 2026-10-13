@@ -381,7 +381,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: covers of people elsewhere; refused servers kept by super administrators, with a screen in Site settings | done 2026-10-12 |
 | Phase 1, ActivityPub: hashtags of posts from elsewhere; the sweep for what the bus lost; no notifications made for people elsewhere | done 2026-10-12 |
 | Phase 1, ActivityPub: a test against Mastodon itself with a real name | begun 2026-10-12, through a tunnel: following both ways and a note out worked with mastodon.world (Mastodon 4.7.3). Still to try: a post arriving from Mastodon by itself, and an edit and a deletion going out |
-| Phase 1, ActivityPub: **to do**, the sweep also finds a lost edit of a note or a profile. Record what other servers were last sent (the note's and the person's `updated_at`, on `activitypub_objects` and `activitypub_accounts`: one migration), and have the sweep send an `Update` where the graph is newer | not started |
+| Phase 1, ActivityPub: the sweep also finds a lost edit of a note or a profile, by what is on record of what other servers were last sent (`told_updated_at`, migration `20261102000001`) | done 2026-10-12 |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -575,8 +575,8 @@ and sends `Follow` and `Undo`; the inbox takes `Accept` and `Reject`.
   Each is handed to what handles the event, which does its work once. Its
   first run on the development data found a follow of somebody on a real
   server that the lab should have taken away when it was made, and took it
-  away. Not found by it: a lost edit of a note or a profile, since nothing
-  records what other servers were last sent.
+  away. A lost edit of a note or a profile is found since, by
+  `told_updated_at` on what was sent.
 
 **The inbox, and being followed.** `POST /inbox` and each person's own;
 `Follow` and `Undo(Follow)`; the queue's table `activitypub_deliveries` and

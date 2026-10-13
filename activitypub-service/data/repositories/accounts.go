@@ -24,6 +24,9 @@ type AccountsInterface interface {
 	Read(personID int64) (*Account, error)
 	// Set records a person's choice.
 	Set(personID int64, enabled bool) error
+	// Told records what of a person their followers' servers now have:
+	// the person's own updated_at when they were sent their description.
+	Told(personID int64, updatedAt time.Time) error
 }
 
 type Accounts struct {
@@ -54,6 +57,19 @@ func (repo *Accounts) Read(personID int64) (*Account, error) {
 	}
 	account.EnabledAt = enabledAt.Time
 	return account, nil
+}
+
+const toldAccount = `
+UPDATE activitypub_accounts
+SET told_updated_at = ?
+WHERE person_id = ?`
+
+func (repo *Accounts) Told(personID int64, updatedAt time.Time) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	_, err := repo.db.ExecContext(ctx, toldAccount, updatedAt.UTC(), personID)
+	return err
 }
 
 // One row a person. Choosing again changes it; when they first chose is

@@ -17,6 +17,7 @@ type fakeMissed struct {
 	notAsked, gone       []repositories.Pair
 	notesNotSent, people []int64
 	notesGone            []int64
+	notesEdited, edited  []int64
 }
 
 func (f *fakeMissed) FollowsNotAsked(time.Time, int) ([]repositories.Pair, error) {
@@ -28,6 +29,10 @@ func (f *fakeMissed) NotesNotSent(time.Time, time.Time, int) ([]int64, error) {
 }
 func (f *fakeMissed) NotesGone(int) ([]int64, error) { return f.notesGone, nil }
 func (f *fakeMissed) People(int) ([]int64, error)    { return f.people, nil }
+func (f *fakeMissed) NotesEdited(time.Time, int) ([]int64, error) {
+	return f.notesEdited, nil
+}
+func (f *fakeMissed) PeopleEdited(time.Time, int) ([]int64, error) { return f.edited, nil }
 
 func (w *inboxWorld) person(id int64) *entities.AnahitaNode {
 	for _, node := range w.nodes.people {
@@ -81,6 +86,40 @@ func TestASweepTakesBackThePostThatIsGone(t *testing.T) {
 	w.sweep()
 	if len(w.queue.sent) != 2 {
 		t.Errorf("a second sweep queued %d more", len(w.queue.sent)-2)
+	}
+}
+
+// A change to something other servers already have: found by what is on
+// record of what they were last sent.
+func TestASweepSendsTheChangeTheBusLost(t *testing.T) {
+	w, _ := settledWorld()
+
+	// When Ana's note went out, what went was put on record.
+	if at, ok := w.objects.told[noteID]; !ok || !at.Equal(w.note().UpdatedAt) {
+		t.Fatalf("on record as sent: %v %v", at, ok)
+	}
+
+	// She changes it, and nobody hears.
+	w.note().Body = "First beans, at last."
+	w.note().UpdatedAt = w.note().CreatedAt.Add(time.Hour)
+	w.h.Missed = &fakeMissed{notesEdited: []int64{noteID}}
+	if swept := w.sweep(); swept.NotesEdited != 1 || len(w.queue.sent) != 2 || w.queue.sent[0].payload["type"] != "Update" {
+		t.Fatalf("swept %+v, queued %+v", swept, w.queue.sent)
+	}
+	if at := w.objects.told[noteID]; !at.Equal(w.note().UpdatedAt) {
+		t.Errorf("on record after the change: %v", at)
+	}
+
+	// Her profile, likewise.
+	w.queue.sent = nil
+	w.person(anaID).Body = "Grows beans, and now peas."
+	w.person(anaID).UpdatedAt = time.Date(2026, 10, 2, 9, 0, 0, 0, time.UTC)
+	w.h.Missed = &fakeMissed{edited: []int64{anaID}}
+	if swept := w.sweep(); swept.PeopleEdited != 1 || len(w.queue.sent) == 0 || w.queue.sent[0].payload["type"] != "Update" {
+		t.Fatalf("swept %+v, queued %+v", swept, w.queue.sent)
+	}
+	if at := w.accounts.told[anaID]; !at.Equal(w.person(anaID).UpdatedAt) {
+		t.Errorf("her profile on record: %v", at)
 	}
 }
 

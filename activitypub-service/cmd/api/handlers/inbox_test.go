@@ -125,6 +125,16 @@ func (f *fakeFollows) IsFollowedFromHere(remoteID int64) (bool, error) {
 
 type fakeObjects struct {
 	kept map[int64]*repositories.Object
+	// The post's own updated_at when other servers were last sent it.
+	told map[int64]time.Time
+}
+
+func (f *fakeObjects) Told(id int64, at time.Time) error {
+	if f.told == nil {
+		f.told = map[int64]time.Time{}
+	}
+	f.told[id] = at
+	return nil
 }
 
 func (f *fakeObjects) Begin(object *repositories.Object) (bool, error) {

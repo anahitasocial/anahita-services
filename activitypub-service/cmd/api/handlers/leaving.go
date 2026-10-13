@@ -116,7 +116,10 @@ func (h *Handlers) profileChanged(ctx context.Context, personID int64) error {
 	}
 	described := ap.NewActor(h.addresses, person, publicKey)
 	changed := person.UpdatedAt.UTC().Format(time.RFC3339)
-	return h.toFollowers(ctx, person,
+	if err := h.toFollowers(ctx, person,
 		ap.NewUpdatePerson(h.addresses.Activity(newUUID()), described),
-		fmt.Sprintf("profile:%s:%s", person.UUID, changed))
+		fmt.Sprintf("profile:%s:%s", person.UUID, changed)); err != nil {
+		return err
+	}
+	return h.Accounts.Told(person.ID, person.UpdatedAt)
 }
