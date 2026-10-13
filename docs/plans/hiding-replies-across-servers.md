@@ -1,8 +1,9 @@
 # Hiding a reply from others, across servers (item 44)
 
 Raised by the user on 2026-10-12, on seeing "Hide" on a reply that had come
-from Mastodon. Planned, not built, and **what is wanted is still to be
-said**: this records what there is, and what could be meant.
+from Mastodon. Planned, not built. **What is wanted was said the same day: hidden
+everywhere, preferably,** wherever the post is read, and not only on this
+installation.
 
 ## What there is
 
@@ -16,11 +17,11 @@ For a reply that came from another server this hides it **here**. Nothing
 is said to any other server: on its own server, and on every other that has
 it, it is still under the post.
 
-## What "from others" could mean
+## What is wanted
 
-1. **Others here.** What there is. Nothing to build.
-2. **Others everywhere.** That the reply should stop being shown under the
-   post wherever the post is read. This is the one that needs a plan.
+That a reply hidden here stops being shown under the post wherever the post
+is read, as far as other servers can be brought to it. Hiding it here alone
+is what there is already.
 
 ## What other servers can be asked
 
@@ -35,7 +36,7 @@ it, it is still under the post.
   is hiding, and neither is honoured widely. To be looked at again when
   this is built: what is true of it will have moved.
 
-## Sketch, for when it is wanted
+## Sketch
 
 - Hiding stays what it is here.
 - With AT Protocol: it is written to, and read from, the thread's record.
