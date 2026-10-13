@@ -7,11 +7,11 @@ import (
 	"anahita-libs/data/entities"
 )
 
-// THE RULE THIS GUARDS: what came from another server is looked at here and
-// not acted on. Nobody posts on such a profile, changes such a post, or
-// likes or answers one, a site administrator included: the first two are
-// not this installation's to do, and the last two would never reach
-// whoever they were meant for.
+// THE RULE THIS GUARDS: what came from another server is not this
+// installation's to change. Nobody posts on such a profile or changes such
+// a post, a site administrator included, and nobody likes one: a like
+// would never reach whoever it was meant for. It may be answered, since an
+// answer is the answerer's own post and is sent to whoever it answers.
 func TestWhatCameFromAnotherServerIsNotActedOn(t *testing.T) {
 	admin := entities.NewViewer()
 	admin.ID = 1
@@ -49,8 +49,20 @@ func TestWhatCameFromAnotherServerIsNotActedOn(t *testing.T) {
 	if CanLike(admin, note, nil) {
 		t.Error("a post from another server may be liked")
 	}
-	if CanReplyToPost(admin, note, nil) {
-		t.Error("a post from another server may be replied to")
+	// It may be answered, by whoever is signed in and may write posts:
+	// who its author lets reply is its own server's to say.
+	reader := entities.NewViewer()
+	reader.ID, reader.Authenticated = 7, true
+	reader.Scopes = []string{constants.OAuthScopeMediaWrite}
+	if !CanReplyToPost(reader, note, &entities.ActorRelation{}) {
+		t.Error("a post from another server may not be replied to")
+	}
+	if CanReplyToPost(entities.NewViewer(), note, nil) {
+		t.Error("a post from another server may be replied to by somebody who is not signed in")
+	}
+	reader.Scopes = nil
+	if CanReplyToPost(reader, note, &entities.ActorRelation{}) {
+		t.Error("a post from another server may be replied to by a token that may not write posts")
 	}
 
 	// The same of what was made here is still allowed, so the test is of

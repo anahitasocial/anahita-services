@@ -42,8 +42,10 @@ var (
 	// Not a person's page: /people/add, and a person's settings and
 	// notifications, which are theirs alone.
 	personPath = regexp.MustCompile(`^/people/([^/]+)(?:/([^/]+))?(?:/.*)?$`)
-	tagPath    = regexp.MustCompile(`^/hashtags/([^/]+)/?$`)
-	imageName  = regexp.MustCompile(`^(person|group|event|post)-(\d+)$`)
+	// /tags/<name> is what other servers are given for a hashtag's page:
+	// see activitypub-service/ap/addresses.go. The web app sends it on.
+	tagPath   = regexp.MustCompile(`^/(?:hashtags|tags)/([^/]+)/?$`)
+	imageName = regexp.MustCompile(`^(person|group|event|post)-(\d+)$`)
 )
 
 // A group's type, which the shared constants do not name.

@@ -24,6 +24,15 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 	log.Println("Notification service event received", payload.Name)
 
 	// Medium node events
+	// A note kept from another server. Only its being kept: a change to
+	// it is news to nobody.
+	if strings.HasPrefix(payload.Name, "federation.medium.") {
+		if strings.HasSuffix(payload.Name, ".added.v1") {
+			return h.remoteNoteAdded(payload)
+		}
+		return nil
+	}
+
 	if strings.Contains(payload.Name, "node.medium.") {
 		if strings.Contains(payload.Name, ".edited.v1") {
 			err = h.eventFormatNodeMediumEdited(payload)

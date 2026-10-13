@@ -52,12 +52,30 @@ func (a Addresses) SharedInbox() string { return a.Site.API("/inbox") }
 // Profile is where a person is looked at, in the web app.
 func (a Addresses) Profile(alias string) string { return a.Site.Web("/people/" + alias) }
 
-// Hashtag is a hashtag's page in the web app.
-func (a Addresses) Hashtag(tag string) string { return a.Site.Web("/hashtags/" + tag) }
+// Hashtag is a hashtag's page in the web app, by the address it is given
+// to other servers: /tags/<name>, which leads to /hashtags/<name> there.
+//
+// Not the web app's own address for it, because of who reads this one.
+// Mastodon, and most of what speaks to it, has a hashtag's page at
+// /tags/<name>, and some of the apps people read with take a link for a
+// hashtag's by that shape: a link to /hashtags/<name> was opened in a
+// browser by Mastodon's own phone app, where one to /tags/<name> opens the
+// hashtag in the app.
+func (a Addresses) Hashtag(tag string) string { return a.Site.Web("/tags/" + tag) }
 
 // Avatar and Cover are a person's pictures, at addresses that stay.
 func (a Addresses) Avatar(uuid string) string { return a.Site.API("/avatars/" + uuid + "/large") }
 func (a Addresses) Cover(uuid string) string  { return a.Site.API("/covers/" + uuid + "/large") }
+
+// NoteUUIDOf is the UUID in the address of one of our own notes, or "" for
+// any other address.
+func (a Addresses) NoteUUIDOf(address string) string {
+	rest, ok := strings.CutPrefix(address, a.Site.API("/ap/notes/"))
+	if !ok || rest == "" || strings.ContainsAny(rest, "/?#") {
+		return ""
+	}
+	return rest
+}
 
 // UUIDOf is the UUID in one of our own actors' addresses, or "" for any
 // other address.

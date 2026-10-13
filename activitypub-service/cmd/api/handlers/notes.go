@@ -26,39 +26,138 @@ import (
 //   - a note, written here, by somebody who is on the fediverse;
 //   - on their own profile, not in a group and not on somebody else's;
 //   - open to everybody: not to members, not to followers;
-//   - not a reply. Replies are not sent yet;
+//   - or a reply in a thread that is open to everybody, to something other
+//     servers can see: see answers;
+//   - not hidden, and not removed;
 //   - and a visitor may see it, by the graph's own reckoning.
 //
 // A post that stops being all of these after it went out is taken back from
 // the servers that have it, as far as they will.
 
 // goesOut says whether a post is one that other servers are told of, and
-// who wrote it.
-func (h *Handlers) goesOut(note *entities.AnahitaNode) *entities.AnahitaNode {
+// who wrote it; and for a reply, what it answers.
+func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *answer) {
 	if note == nil || note.ID == 0 || note.UUID == "" || note.IsRemote() {
-		return nil
+		return nil, nil
 	}
-	if note.Type != constants.NodeMediumNoteEntityType || !note.Enabled {
-		return nil
-	}
-	if note.Access != constants.AnahitaAccessPublic {
-		return nil
-	}
-	if note.ParentID > 0 || note.RootID > 0 {
-		return nil
+	if note.Type != constants.NodeMediumNoteEntityType || !note.Enabled || note.DeletedAt != nil || note.Hidden {
+		return nil, nil
 	}
 	if note.CreatedBy <= 0 || note.OwnerID != note.CreatedBy {
-		return nil
+		return nil, nil
+	}
+
+	// A reply says nothing of its own about who may read it: its thread
+	// does. And it goes out only when what it answers is something other
+	// servers can see.
+	var answering *answer
+	if note.ParentID > 0 || note.RootID > 0 {
+		if answering = h.answers(note); answering == nil {
+			return nil, nil
+		}
+	} else if note.Access != constants.AnahitaAccessPublic {
+		return nil, nil
 	}
 
 	author, err := h.Nodes.Read(note.CreatedBy)
 	if err != nil || h.federating(author) == nil {
-		return nil
+		return nil, nil
 	}
 	if !libhandlers.MaySee(h.Nodes, note.ID, entities.NewViewer()) {
+		return nil, nil
+	}
+	return author, answering
+}
+
+// answer is what a reply answers, as it is known between servers.
+type answer struct {
+	// The address of what is answered.
+	ID string
+	// Whoever wrote it, when they are on another server: their address,
+	// what they are called, and where they are written to.
+	Actor  string
+	Handle string
+	Inbox  string
+}
+
+// answers finds what a reply answers, or nil when the reply is not one
+// that goes out: its thread is not open to everybody, or what it answers
+// is nothing other servers have.
+//
+// What other servers have is a note that came from one of them, or a note
+// here that itself went out. So a thread of somebody's own notes goes out
+// whole, each on the heels of the one before, and a reply under a note
+// that stayed here stays here too.
+func (h *Handlers) answers(reply *entities.AnahitaNode) *answer {
+	if reply.ParentID <= 0 || reply.RootID <= 0 {
 		return nil
 	}
-	return author
+
+	root, err := h.Nodes.Read(reply.RootID)
+	if err != nil || root == nil || root.ID == 0 || !root.Enabled || root.Access != constants.AnahitaAccessPublic {
+		return nil
+	}
+
+	parent := root
+	if reply.ParentID != reply.RootID {
+		if parent, err = h.Nodes.Read(reply.ParentID); err != nil || parent == nil || parent.ID == 0 {
+			return nil
+		}
+	}
+	if !parent.Enabled || parent.DeletedAt != nil || parent.Type != constants.NodeMediumNoteEntityType {
+		return nil
+	}
+
+	if !parent.IsRemote() {
+		sent, err := h.Objects.Read(parent.ID)
+		if err != nil || sent == nil {
+			return nil
+		}
+		return &answer{ID: h.addresses.Note(sent.UUID)}
+	}
+
+	// From another server: whoever wrote it is told.
+	if h.Blocks != nil && h.Blocks.IsBlocked(hostOf(parent.URI)) {
+		return nil
+	}
+	kept, err := h.Actors.ReadByNode(parent.OwnerID)
+	if err != nil || kept == nil {
+		return nil
+	}
+	writer, err := h.Nodes.Read(parent.OwnerID)
+	if err != nil || writer == nil || writer.Alias == "" {
+		return nil
+	}
+
+	inbox := kept.SharedInbox
+	if inbox == "" {
+		inbox = kept.Inbox
+	}
+	return &answer{ID: parent.URI, Actor: kept.URI, Handle: "@" + writer.Alias, Inbox: inbox}
+}
+
+// described is a note as other servers are sent it, a reply with what it
+// answers.
+func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answer) *ap.Note {
+	sent := ap.NewNote(h.addresses, note, author, h.links())
+	if answering != nil {
+		sent.Answering(answering.ID, answering.Actor, answering.Handle)
+	}
+	return sent
+}
+
+// toReaders queues something about a post for everybody it is for: its
+// author's followers and, for a reply, whoever it answers.
+func (h *Handlers) toReaders(ctx context.Context, author *entities.AnahitaNode, replyInbox string, activity any, what string) error {
+	if err := h.toFollowers(ctx, author, activity, what); err != nil {
+		return err
+	}
+	if replyInbox == "" {
+		return nil
+	}
+	// The same inbox twice is one row in the queue: a follower's server
+	// that is also the server of whoever is answered is sent it once.
+	return h.send(ctx, author.ID, replyInbox, activity, what)
 }
 
 // links says where the people and hashtags a post names are, for the links
@@ -99,13 +198,13 @@ func (h *Handlers) Note(c echo.Context) error {
 	if err != nil || note == nil {
 		return c.NoContent(http.StatusNotFound)
 	}
-	author := h.goesOut(note)
+	author, answering := h.goesOut(note)
 	if author == nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
 	c.Response().Header().Set("Cache-Control", "public, max-age=180")
-	return activityJSON(c, ap.NewNote(h.addresses, note, author, h.links()).WithContext())
+	return activityJSON(c, h.described(note, author, answering).WithContext())
 }
 
 // Outbox says how many posts a person has sent out, and not which. A server
@@ -148,21 +247,25 @@ func (h *Handlers) posted(ctx context.Context, nodeID int64) error {
 		return h.removed(ctx, nodeID)
 	}
 
-	author := h.goesOut(note)
+	author, answering := h.goesOut(note)
 	if author == nil {
 		// Not one that goes out. If it did before (it was open to
 		// everybody and is not now), it is taken back.
 		return h.removed(ctx, nodeID)
 	}
 
-	sent := ap.NewNote(h.addresses, note, author, h.links())
+	sent := h.described(note, author, answering)
+	replyInbox := ""
+	if answering != nil {
+		replyInbox = answering.Inbox
+	}
 
-	begun, err := h.Objects.Begin(&repositories.Object{NodeID: note.ID, UUID: note.UUID, ActorID: author.ID})
+	begun, err := h.Objects.Begin(&repositories.Object{NodeID: note.ID, UUID: note.UUID, ActorID: author.ID, ReplyInbox: replyInbox})
 	if err != nil {
 		return err
 	}
 	if begun {
-		if err := h.toFollowers(ctx, author, ap.NewCreate(h.addresses, sent, note.UUID), "create:"+note.UUID); err != nil {
+		if err := h.toReaders(ctx, author, replyInbox, ap.NewCreate(h.addresses, sent, note.UUID), "create:"+note.UUID); err != nil {
 			return err
 		}
 		return h.Objects.Told(note.ID, note.UpdatedAt)
@@ -173,7 +276,7 @@ func (h *Handlers) posted(ctx context.Context, nodeID int64) error {
 	if sent.Updated == "" {
 		return nil
 	}
-	if err := h.toFollowers(ctx, author, ap.NewUpdate(h.addresses.Activity(newUUID()), sent),
+	if err := h.toReaders(ctx, author, replyInbox, ap.NewUpdate(h.addresses.Activity(newUUID()), sent),
 		fmt.Sprintf("update:%s:%s", note.UUID, sent.Updated)); err != nil {
 		return err
 	}
@@ -199,7 +302,7 @@ func (h *Handlers) removed(ctx context.Context, nodeID int64) error {
 	if err != nil || author == nil || author.UUID == "" {
 		return err
 	}
-	return h.toFollowers(ctx, author,
+	return h.toReaders(ctx, author, object.ReplyInbox,
 		ap.NewDelete(h.addresses.Activity(newUUID()), h.addresses.Actor(author.UUID), h.addresses.Note(object.UUID)),
 		"delete:"+object.UUID)
 }

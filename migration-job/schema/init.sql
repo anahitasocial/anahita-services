@@ -1142,6 +1142,9 @@ CREATE TABLE IF NOT EXISTS activitypub_objects (
     `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     -- Whose it is: the person here who wrote it.
     `actor_id` bigint unsigned NOT NULL,
+    -- For a reply: the inbox of whoever it answers, when they are on
+    -- another server. See migrations/20261103000001_activitypub_object_reply.sql.
+    `reply_inbox` varchar(512) NOT NULL DEFAULT '',
     -- The post's own updated_at when other servers were last sent it.
     `told_updated_at` datetime DEFAULT NULL,
     `created_at` datetime NOT NULL,

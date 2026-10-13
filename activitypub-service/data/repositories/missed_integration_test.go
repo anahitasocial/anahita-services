@@ -121,11 +121,25 @@ VALUES (?, ?, ?, ?, 'accepted', ?, ?)`, local, far, direction, fmt.Sprintf("a-%d
 		t.Errorf("notes not sent: %v (%v)", notes, err)
 	}
 
+	// A reply says nothing of its own about who may read it: its thread
+	// does. One under a note open to everybody is looked at; one under a
+	// note for followers is not.
+	node(120, note, ana, ana, "", 1, hour(3), nil)
+	node(121, note, ana, ana, "", 1, hour(3), nil)
+	exec(`UPDATE nodes SET parent_id = 100, root_id = 100 WHERE id = 120`)
+	exec(`UPDATE nodes SET parent_id = 102, root_id = 102 WHERE id = 121`)
+	if notes, err := repo.NotesNotSent(now.Add(-48*time.Hour), now.Add(-2*time.Minute), 50); err != nil || fmt.Sprint(notes) != "[100 120]" {
+		t.Errorf("notes and replies not sent: %v (%v)", notes, err)
+	}
+	// Sent, a reply is not taken for gone because it has no audience of
+	// its own; it is when its thread is closed.
+	exec(`INSERT INTO activitypub_objects (node_id, uuid, actor_id, created_at) VALUES (120, 'u-120', ?, ?), (121, 'u-121', ?, ?)`, ana, now, ana, now)
+
 	// Sent, and since gone, closed or disabled.
 	exec(`INSERT INTO activitypub_objects (node_id, uuid, actor_id, created_at) VALUES (102, 'u-102', ?, ?), (109, 'u-109', ?, ?), (999, 'u-999', ?, ?)`,
 		ana, now, ana, now, ana, now)
 	back, err := repo.NotesGone(50)
-	if err != nil || fmt.Sprint(back) != "[102 109 999]" {
+	if err != nil || fmt.Sprint(back) != "[102 109 121 999]" {
 		t.Errorf("notes gone: %v (%v)", back, err)
 	}
 

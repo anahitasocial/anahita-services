@@ -131,10 +131,10 @@ func (h *Handlers) Inbox(c echo.Context) error {
 		if activity.ObjectID() == from.ID {
 			err = h.refreshed(ctx, from)
 		} else {
-			err = h.received(from, &activity)
+			err = h.received(ctx, from, &activity)
 		}
 	case "Create":
-		err = h.received(from, &activity)
+		err = h.received(ctx, from, &activity)
 	case "Delete":
 		err = h.withdrawn(from, &activity)
 	}
@@ -324,11 +324,14 @@ const receivedNoteMax = 20000
 // A post is kept only when somebody here follows whoever wrote it: this
 // installation is not a copy of the fediverse, and what nobody here asked
 // for is not stored. And only when it is the sender's own, open to
-// everybody, and not a reply: replies are not kept yet.
-func (h *Handlers) received(from *remote.Actor, activity *ap.Activity) error {
+// everybody. A reply is kept by rules of its own: see receivedReply.
+func (h *Handlers) received(ctx context.Context, from *remote.Actor, activity *ap.Activity) error {
 	note := activity.Note()
 	if note == nil {
 		return nil
+	}
+	if note.IsReply() {
+		return h.receivedReply(ctx, from, note)
 	}
 
 	kept, err := h.Actors.ReadByURI(from.ID)
@@ -358,11 +361,18 @@ func (h *Handlers) keepNote(author *repositories.RemoteActor, note *ap.ReceivedN
 		return err
 	}
 
+	return h.store(author.NodeID, note, 0)
+}
+
+// store keeps a note that has been found to be one that is kept: on its
+// author's profile, and under what it answers when it answers something.
+func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) error {
 	node := entities.NewAnahitaNode()
 	node.Type = constants.NodeMediumNoteEntityType
 	node.URI = note.ID
 	node.OriginDomain = hostOf(note.ID)
-	node.OwnerID = author.NodeID
+	node.OwnerID = authorID
+	node.ParentID = parentID
 	node.Body = cutRunes(federation.PostToMarkdown(note.Content), receivedNoteMax)
 	node.Language = note.Language()
 	if published, err := time.Parse(time.RFC3339, note.Published); err == nil {
@@ -377,7 +387,7 @@ func (h *Handlers) keepNote(author *repositories.RemoteActor, note *ap.ReceivedN
 	if err != nil {
 		return err
 	}
-	h.announceKept(saved, author.NodeID, created)
+	h.announceKept(saved, authorID, created)
 	return nil
 }
 

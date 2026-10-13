@@ -9,6 +9,29 @@ import (
 // NotificationTypeReplyAdd is somebody answering a post or a reply of yours.
 const NotificationTypeReplyAdd = "reply_add"
 
+// remoteNoteAdded is a note from another server having been kept here. It
+// is said on the bus by a name of its own (anahita-libs/event/remote.go),
+// so that nothing takes it for a post written here: its author's followers
+// are not told of it, and nobody it names is told they were mentioned.
+//
+// One thing about it is news to somebody here: when it answers something
+// of theirs. They are told as for a reply written here.
+func (h *eventHandler) remoteNoteAdded(payload *event.EventPayload) error {
+	reply, err := h.Srv.GraphNodeGRPC.Read(payload.ObjectID)
+	if err != nil {
+		return err
+	}
+	if reply == nil || reply.ID == 0 || reply.RootID <= 0 || !reply.IsRemote() {
+		return nil
+	}
+
+	subject, err := h.Srv.ActorsGRPC.Read(reply.OwnerID, an_entities.NewViewer())
+	if err != nil {
+		return err
+	}
+	return h.replyAdded(payload, subject, reply)
+}
+
 // replyAdded tells the people a reply answers that it was made: the author of
 // the post at the top of the thread, and the author of what was directly
 // answered when that is somebody else.
@@ -26,14 +49,22 @@ func (h *eventHandler) replyAdded(payload *event.EventPayload, subject *an_entit
 		return err
 	}
 
-	recipients := []int64{root.CreatedBy}
+	// Whoever wrote something that came from another server is told by
+	// their own server, which is sent the reply. A notification made for
+	// them here would be read by nobody.
+	var recipients []int64
+	if !root.IsRemote() {
+		recipients = append(recipients, root.CreatedBy)
+	}
 
 	if reply.ParentID != reply.RootID {
 		parent, err := h.Srv.GraphNodeGRPC.Read(reply.ParentID)
 		if err != nil {
 			return err
 		}
-		recipients = append(recipients, parent.CreatedBy)
+		if !parent.IsRemote() {
+			recipients = append(recipients, parent.CreatedBy)
+		}
 	}
 
 	told := map[int64]bool{}

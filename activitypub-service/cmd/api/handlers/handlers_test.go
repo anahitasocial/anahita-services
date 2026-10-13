@@ -47,6 +47,10 @@ func (f *fakeNodes) Read(id int64) (*entities.AnahitaNode, error) {
 	return f.find(func(n *entities.AnahitaNode) bool { return n.ID == id })
 }
 
+func (f *fakeNodes) ReadByURI(uri string) (*entities.AnahitaNode, error) {
+	return f.find(func(n *entities.AnahitaNode) bool { return uri != "" && n.URI == uri })
+}
+
 func (f *fakeNodes) ReadByUUID(uuid string) (*entities.AnahitaNode, error) {
 	return f.find(func(n *entities.AnahitaNode) bool { return n.UUID == uuid })
 }
@@ -369,7 +373,7 @@ func TestAPersonIsDescribedAsTheirPublicProfileIs(t *testing.T) {
 	}
 
 	// What they say of themselves is sent as HTML that is safe to show.
-	if !strings.Contains(actor.Summary, `href="https://example.org/hashtags/beans"`) || strings.Contains(actor.Summary, "<script") {
+	if !strings.Contains(actor.Summary, `href="https://example.org/tags/beans"`) || strings.Contains(actor.Summary, "<script") {
 		t.Errorf("summary %q", actor.Summary)
 	}
 

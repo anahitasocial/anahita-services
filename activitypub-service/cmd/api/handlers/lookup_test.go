@@ -126,6 +126,20 @@ func (f *fakeNodes) UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaN
 	}
 	saved := *node
 	saved.ID = int64(1000 + len(f.people))
+	// Open to everybody and enabled, as everything from elsewhere is kept;
+	// and a reply in the thread of what it answers, saying nothing of its
+	// own about who may read it.
+	saved.Access, saved.Enabled, saved.RootID = "public", true, 0
+	if saved.ParentID > 0 {
+		parent, _ := f.Read(saved.ParentID)
+		if parent == nil || !parent.Enabled {
+			return nil, false, errors.New("rpc error: a note from another server answers only a post that is here")
+		}
+		saved.Access, saved.RootID = "", parent.RootID
+		if saved.RootID == 0 {
+			saved.RootID = parent.ID
+		}
+	}
 	f.people = append(f.people, &saved)
 	copied := saved
 	return &copied, true, nil

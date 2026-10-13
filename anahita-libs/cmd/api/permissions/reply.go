@@ -138,12 +138,6 @@ func CanReply(ctx *ReplyAccessContext) bool {
 		return false
 	}
 
-	// A post from another server is not replied to from here yet: the
-	// reply would not reach whoever it answers.
-	if ctx.Root.IsRemote() {
-		return false
-	}
-
 	// A reply is a post. A token that may not write posts may not write
 	// this one.
 	if !ctx.Viewer.HasScope(constants.OAuthScopeMediaWrite) {
@@ -152,6 +146,15 @@ func CanReply(ctx *ReplyAccessContext) bool {
 
 	if !CanSeeThread(ctx) {
 		return false
+	}
+
+	// A thread that began on another server. Whoever can read it here may
+	// answer it here: who its author lets reply is theirs to say and their
+	// server's to hold to, and nothing of that is kept here. The answer
+	// reaches them when its writer is on the fediverse, and is otherwise
+	// a conversation among the people of this installation.
+	if ctx.Root.IsRemote() {
+		return true
 	}
 
 	if LooksAfterThread(ctx) {

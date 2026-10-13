@@ -96,7 +96,7 @@ func TestAPublicNoteGoesToFollowersOnce(t *testing.T) {
 	}
 
 	content, _ := object["content"].(string)
-	if !strings.Contains(content, "<strong>beans</strong>") || !strings.Contains(content, `href="https://example.org/hashtags/garden"`) || strings.Contains(content, "<script") {
+	if !strings.Contains(content, "<strong>beans</strong>") || !strings.Contains(content, `href="https://example.org/tags/garden"`) || strings.Contains(content, "<script") {
 		t.Errorf("content %q", content)
 	}
 	if byLanguage, _ := object["contentMap"].(map[string]any); byLanguage["en"] != content {
@@ -105,7 +105,7 @@ func TestAPublicNoteGoesToFollowersOnce(t *testing.T) {
 	// The hashtag is listed beside the text. Alice is not known here, so
 	// her name is left as written and she is not listed.
 	tags, _ := json.Marshal(object["tag"])
-	if string(tags) != `[{"href":"https://example.org/hashtags/garden","name":"#garden","type":"Hashtag"}]` {
+	if string(tags) != `[{"href":"https://example.org/tags/garden","name":"#garden","type":"Hashtag"}]` {
 		t.Errorf("tags %s", tags)
 	}
 
@@ -129,7 +129,7 @@ func TestWhatDoesNotGoOut(t *testing.T) {
 		"for followers":            func(w *inboxWorld) { w.note().Access = "followers" },
 		"for members":              func(w *inboxWorld) { w.note().Access = "registered" },
 		"for the author alone":     func(w *inboxWorld) { w.note().Access = "myself" },
-		"a reply":                  func(w *inboxWorld) { w.note().ParentID, w.note().RootID = 77, 77 },
+		"a reply to nothing known": func(w *inboxWorld) { w.note().ParentID, w.note().RootID = 77, 77 },
 		"in a group":               func(w *inboxWorld) { w.note().OwnerID = 900 },
 		"on somebody else's page":  func(w *inboxWorld) { w.note().CreatedBy = 901 },
 		"an article":               func(w *inboxWorld) { w.note().Type = "node.medium.text-service.article.v1" },

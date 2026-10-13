@@ -34,8 +34,10 @@ type MissedInterface interface {
 	// Follows the other server was asked about that are no longer in the
 	// graph.
 	FollowsGone(limit int) ([]Pair, error)
-	// Public notes of people on the fediverse, written since they joined
-	// it and since `since`, that other servers were never sent.
+	// Notes of people on the fediverse that are open to everybody, or are
+	// replies in a thread that is, written since they joined it and since
+	// `since`, that other servers were never sent. Whether each is one
+	// that goes out is for whoever is handed it to say.
 	NotesNotSent(since, olderThan time.Time, limit int) ([]int64, error)
 	// Notes other servers were sent that are gone, or are no longer open
 	// to everybody.
@@ -103,11 +105,14 @@ FROM nodes AS note
 JOIN activitypub_accounts AS account
   ON account.person_id = note.created_by
  AND account.enabled = 1
+LEFT JOIN nodes AS root
+       ON root.id = note.root_id
 LEFT JOIN activitypub_objects AS sent
        ON sent.node_id = note.id
 WHERE note.type = ?
   AND note.enabled = 1
-  AND note.access = ?
+  AND note.deleted_at IS NULL
+  AND COALESCE(root.access, note.access) = ?
   AND note.owner_id = note.created_by
   AND note.uri IS NULL
   AND note.created_at >= account.enabled_at
@@ -127,9 +132,13 @@ SELECT sent.node_id
 FROM activitypub_objects AS sent
 LEFT JOIN nodes AS note
        ON note.id = sent.node_id
+LEFT JOIN nodes AS root
+       ON root.id = note.root_id
 WHERE note.id IS NULL
    OR note.enabled = 0
-   OR note.access <> ?
+   OR note.deleted_at IS NOT NULL
+   OR (note.root_id IS NOT NULL AND root.id IS NULL)
+   OR COALESCE(root.access, note.access) <> ?
 ORDER BY sent.node_id
 LIMIT ?`
 
@@ -144,8 +153,11 @@ SELECT sent.node_id
 FROM activitypub_objects AS sent
 JOIN nodes AS note
   ON note.id = sent.node_id
+LEFT JOIN nodes AS root
+       ON root.id = note.root_id
 WHERE note.enabled = 1
-  AND note.access = ?
+  AND note.deleted_at IS NULL
+  AND COALESCE(root.access, note.access) = ?
   AND note.updated_at > COALESCE(sent.told_updated_at, note.created_at) + INTERVAL 1 SECOND
   AND note.updated_at <= ?
 ORDER BY sent.node_id

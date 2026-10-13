@@ -23,6 +23,8 @@ type Note struct {
 	To           []string          `json:"to"`
 	Cc           []string          `json:"cc"`
 	Tag          []Tag             `json:"tag,omitempty"`
+	// What it answers, by the address that has between servers.
+	InReplyTo string `json:"inReplyTo,omitempty"`
 }
 
 // Tag names somebody or a hashtag that a post mentions, beside its text.
@@ -70,6 +72,32 @@ func NewNote(a Addresses, note, author *entities.AnahitaNode, links federation.L
 	}
 
 	return sent
+}
+
+// Answering makes the note a reply: to what, and, when whoever wrote that
+// is on another server, to whom. They are named beside the text as
+// mentioned and as somebody it is for, which is what has their server tell
+// them. Their name is not written into the reply.
+func (n *Note) Answering(what, actor, handle string) *Note {
+	n.InReplyTo = what
+	if actor == "" {
+		return n
+	}
+
+	for _, already := range n.Cc {
+		if already == actor {
+			return n
+		}
+	}
+	n.Cc = append(n.Cc, actor)
+
+	for _, tag := range n.Tag {
+		if tag.Type == "Mention" && tag.Href == actor {
+			return n
+		}
+	}
+	n.Tag = append(n.Tag, Tag{Type: "Mention", Href: actor, Name: handle})
+	return n
 }
 
 // WithContext is the note as a document of its own, not inside an activity.
@@ -156,6 +184,15 @@ func (n *ReceivedNote) Author() string { return idOf(n.AttributedTo) }
 // IsReply says whether it answers another post.
 func (n *ReceivedNote) IsReply() bool {
 	return len(n.InReplyTo) > 0 && string(n.InReplyTo) != "null" && idOf(n.InReplyTo) != ""
+}
+
+// Answers is the address of what it answers, or "" when it answers
+// nothing.
+func (n *ReceivedNote) Answers() string {
+	if !n.IsReply() {
+		return ""
+	}
+	return idOf(n.InReplyTo)
 }
 
 // IsPublic says whether it is addressed to everybody. Only such a post is
