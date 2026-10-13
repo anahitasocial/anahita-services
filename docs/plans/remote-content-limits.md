@@ -88,5 +88,6 @@ their documentation; the words on a profile.
 
 ## Depends on
 
-Rows 25 and 26 (what there is to limit). Better after the migration
-baseline (row 27).
+Rows 25 and 26 (what there is to limit). The migration baseline (row 27)
+comes after this, not before: it is last in M10, so that it takes in the
+migrations of everything before it.
