@@ -180,6 +180,8 @@ func (h *Handlers) connect(ctx context.Context, personID int64, actor, password 
 		return nil, errConnectFailed
 	}
 	h.remember(personID, session.AccessJWT)
+	// They are one person here from now on.
+	h.later(func() { h.forgetShadow(profile.DID) })
 	return account, ""
 }
 

@@ -24,6 +24,11 @@ type Account struct {
 
 type AccountsInterface interface {
 	Read(personID int64) (*Account, error)
+	// WhoConnected is who here connected a Bluesky account, or 0.
+	WhoConnected(did string) (int64, error)
+	// Shadowed is the Bluesky accounts that somebody here connected and
+	// that are also kept here as people of another server.
+	Shadowed() ([]string, error)
 	// Save connects an account, or connects it again. ErrAccountTaken
 	// when it is somebody else's here.
 	Save(account *Account) error
@@ -72,6 +77,44 @@ const whoseAccount = `
 SELECT person_id
 FROM atproto_accounts
 WHERE did = ?`
+
+func (repo *Accounts) WhoConnected(did string) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	var owner int64
+	err := repo.db.QueryRowContext(ctx, whoseAccount, did).Scan(&owner)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, nil
+	}
+	return owner, err
+}
+
+const shadowedAccounts = `
+SELECT account.did
+FROM atproto_accounts AS account
+JOIN atproto_actors AS actor ON actor.did = account.did`
+
+func (repo *Accounts) Shadowed() ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	rows, err := repo.db.QueryContext(ctx, shadowedAccounts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var dids []string
+	for rows.Next() {
+		var did string
+		if err := rows.Scan(&did); err != nil {
+			return nil, err
+		}
+		dids = append(dids, did)
+	}
+	return dids, rows.Err()
+}
 
 const saveAccount = `
 INSERT INTO atproto_accounts (person_id, did, handle, pds, refresh_token, broken_at, created_at, updated_at)

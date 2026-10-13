@@ -1067,6 +1067,12 @@ its own. The card says to use one and where to make it.
 - **When it stops working.** An app password that is removed on Bluesky
   ends the connection. The first thing that cannot be written marks the
   account as needing to be connected again, which the card then says.
+- **One person, one profile.** A Bluesky account that somebody here
+  connected is that person. It is not also kept as somebody of another
+  server: what was kept of it before it was connected (its profile here,
+  its posts, and the follows of it) is removed when it is connected, and
+  looking it up afterwards finds the person here. Their posts written on
+  Bluesky are therefore not read here.
 - **Disconnecting** forgets the token. What was written stays on Bluesky,
   and can then be removed only there.
 

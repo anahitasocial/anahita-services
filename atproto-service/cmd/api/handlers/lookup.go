@@ -102,6 +102,12 @@ func (h *Handlers) lookup(ctx context.Context, query string) (*RemotePerson, str
 		return nil, code
 	}
 
+	// Somebody here connected that account: it is them, and they are who
+	// is found. They are not kept a second time as somebody elsewhere.
+	if person := h.connectedPerson(profile.DID); person != nil {
+		return &RemotePerson{ID: person.ID, Type: person.Type, Name: person.Name, Alias: person.Alias, Body: person.Body}, ""
+	}
+
 	node, err := h.keep(profile)
 	if err != nil {
 		log.Println("atproto lookup: keeping", profile.DID, ":", err)
@@ -117,6 +123,40 @@ func (h *Handlers) lookup(ctx context.Context, query string) (*RemotePerson, str
 		OriginDomain: node.OriginDomain,
 		URL:          bsky.ProfilePage(profile.DID),
 	}, ""
+}
+
+// connectedPerson is whoever here connected a Bluesky account, or nil.
+func (h *Handlers) connectedPerson(did string) *entities.AnahitaNode {
+	if h.Accounts == nil {
+		return nil
+	}
+	personID, err := h.Accounts.WhoConnected(did)
+	if err != nil || personID == 0 {
+		return nil
+	}
+	person, err := h.Nodes.Read(personID)
+	if err != nil || person == nil || person.ID == 0 {
+		return nil
+	}
+	return person
+}
+
+// One person is one profile. A Bluesky account that somebody here
+// connected is that person, and is not also kept as somebody of another
+// server, with a profile of its own to follow and posts beside theirs.
+// What was kept of it before it was connected is removed, and whoever
+// followed it here follows nobody by that.
+
+// forgetShadow removes what is kept of a Bluesky account as somebody
+// elsewhere, because somebody here connected it.
+func (h *Handlers) forgetShadow(did string) {
+	kept, err := h.Actors.ReadByDID(did)
+	if err != nil || kept == nil {
+		return
+	}
+	if err := h.forget(kept); err != nil {
+		log.Printf("what was kept of %s, now connected by somebody here, was not removed: %v", kept.Handle, err)
+	}
 }
 
 // isOurs says whether a handle is a name of this installation's own: the
@@ -171,9 +211,17 @@ func lastingAlias(did string) string {
 	return strings.NewReplacer(":", "-", "%", "-").Replace(strings.ToLower(did)) + ".invalid"
 }
 
+// errConnectedHere is an account that is not kept as somebody elsewhere,
+// because it is somebody here.
+var errConnectedHere = errors.New("that account is somebody here")
+
 // keep makes or brings up to date the node for somebody on Bluesky, and
 // what this service alone needs to know of them.
 func (h *Handlers) keep(profile *bsky.Profile) (*entities.AnahitaNode, error) {
+	if h.connectedPerson(profile.DID) != nil {
+		return nil, errConnectedHere
+	}
+
 	node := entities.NewAnahitaNode()
 	node.Type = constants.NodeActorATProtoPersonEntityType
 	node.URI = bsky.ActorURI(profile.DID)

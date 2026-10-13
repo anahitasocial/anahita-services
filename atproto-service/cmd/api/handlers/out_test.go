@@ -35,6 +35,17 @@ func (f *fakeAccounts) Read(id int64) (*repositories.Account, error) {
 	return nil, nil
 }
 
+func (f *fakeAccounts) WhoConnected(did string) (int64, error) {
+	for id, known := range f.kept {
+		if known.DID == did {
+			return id, nil
+		}
+	}
+	return 0, nil
+}
+
+func (f *fakeAccounts) Shadowed() ([]string, error) { return nil, nil }
+
 func (f *fakeAccounts) Save(account *repositories.Account) error {
 	for id, known := range f.kept {
 		if known.DID == account.DID && id != account.PersonID {
@@ -355,18 +366,8 @@ func TestALikeARepostAndAReplyGoToBluesky(t *testing.T) {
 
 	// THE RULE THIS GUARDS: when Bluesky tells of what was written from
 	// here, it is not kept a second time as something from elsewhere.
-	w.bluesky.profiles[anaDID] = w.bluesky.profiles["ana.example.org"]
-	ana, _ := w.h.lookup(context.Background(), "ana.example.org")
-	w.actors.followed[ana.ID] = true
-	before := len(w.nodes.kept)
-	w.h.Heard(context.Background(), &bsky.Event{DID: anaDID, Kind: "commit", Commit: &struct {
-		Operation  string          `json:"operation"`
-		Collection string          `json:"collection"`
-		RKey       string          `json:"rkey"`
-		Record     json.RawMessage `json:"record"`
-	}{"create", bsky.PostCollection, replied.RKey, json.RawMessage(`{"text":"Mine too","reply":{"parent":{"uri":"` + post.URI + `"}}}`)}})
-	if len(w.nodes.kept) != before {
-		t.Error("a reply written from here was kept again when Bluesky told of it")
+	if !w.h.ours(anaDID, repositories.SentPost, replied.RKey) || w.h.ours(anaDID, repositories.SentPost, "3l3other") || w.h.ours(aliceDID, repositories.SentPost, replied.RKey) {
+		t.Error("what was written from here is not known for it")
 	}
 
 	// Taken back: the like, the repost and the first reply.
@@ -438,5 +439,54 @@ func TestTokensThatRunOut(t *testing.T) {
 	w.connect()
 	if w.h.connected(anaID) == nil {
 		t.Error("connected again and still not written as")
+	}
+}
+
+// THE RULE THIS GUARDS: one person is one profile. A Bluesky account that
+// somebody here connected is not also kept as somebody of another server.
+func TestAConnectedAccountIsNotKeptAsSomebodyElsewhere(t *testing.T) {
+	w, _ := writingWorld(t)
+	ctx := context.Background()
+
+	// Before connecting, Ana looked her own account up, followed it, and
+	// a post of hers was kept.
+	w.bluesky.profiles[anaDID] = w.bluesky.profiles["ana.example.org"]
+	shadow, _ := w.h.lookup(ctx, "ana.example.org")
+	if shadow == nil || shadow.Type != constants.NodeActorATProtoPersonEntityType {
+		t.Fatalf("%+v", shadow)
+	}
+	w.actors.followed[shadow.ID] = true
+	kept, _ := w.actors.ReadByDID(anaDID)
+	if err := w.h.keepPost(kept, "3l3mine", aPost(t, `{"text":"Posted on Bluesky"}`)); err != nil {
+		t.Fatal(err)
+	}
+
+	w.connect()
+
+	if w.keptAt("at://"+anaDID) != nil || w.keptAt(bsky.PostURI(anaDID, "3l3mine")) != nil || len(w.actors.kept) != 1 {
+		t.Fatal("what was kept of the account as somebody elsewhere is still there")
+	}
+
+	// Looked up now, it is Ana who is found, and nothing is kept.
+	found, code := w.h.lookup(ctx, "ana.example.org")
+	if found == nil || found.ID != anaID || found.Type != constants.NodeActorPersonEntityType || found.Alias != "ana" {
+		t.Fatalf("%+v, %s", found, code)
+	}
+	if w.keptAt("at://"+anaDID) != nil {
+		t.Error("kept again by being looked up")
+	}
+
+	// Nor is it kept again for a post of hers that somebody followed
+	// reposts.
+	mine := bsky.PostURI(anaDID, "3l3mine")
+	w.bluesky.posts[mine] = aPost(t, `{"text":"Posted on Bluesky"}`)
+	w.h.Heard(ctx, &bsky.Event{DID: aliceDID, Kind: "commit", Commit: &struct {
+		Operation  string          `json:"operation"`
+		Collection string          `json:"collection"`
+		RKey       string          `json:"rkey"`
+		Record     json.RawMessage `json:"record"`
+	}{"create", bsky.RepostCollection, "3l3rp", json.RawMessage(`{"subject":{"uri":"` + mine + `"}}`)}})
+	if w.keptAt("at://"+anaDID) != nil || w.keptAt(mine) != nil || len(w.reposts.made) != 0 {
+		t.Error("kept again by being reposted")
 	}
 }

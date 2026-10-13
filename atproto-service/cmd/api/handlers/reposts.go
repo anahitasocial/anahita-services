@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 
 	"atproto/bsky"
@@ -116,6 +117,10 @@ func (h *Handlers) fetchPost(ctx context.Context, uri string) (*entities.Anahita
 		return nil, nil
 	}
 	if _, err := h.keep(profile); err != nil {
+		// Written by somebody here, on Bluesky: not kept as from elsewhere.
+		if errors.Is(err, errConnectedHere) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	author, err := h.Actors.ReadByDID(did)

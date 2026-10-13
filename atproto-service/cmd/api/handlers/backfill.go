@@ -94,6 +94,15 @@ func (h *Handlers) CatchUp() {
 	for _, kept := range waiting {
 		h.backfill(kept)
 	}
+	// And an account connected before this was looked for, or while the
+	// service was stopped.
+	if h.Accounts != nil {
+		if shadowed, err := h.Accounts.Shadowed(); err == nil {
+			for _, did := range shadowed {
+				h.forgetShadow(did)
+			}
+		}
+	}
 	h.changed()
 }
 
