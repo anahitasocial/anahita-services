@@ -267,7 +267,17 @@ func (h *Handlers) Write(ctx context.Context, delivery federation.Delivery) erro
 	// and what it answers as Bluesky names it now.
 	var record any
 	if w.Op == "create" {
+		// Taken back while it waited: a like given and taken back before
+		// it could be written is not written afterwards. What waits is
+		// not always done in the order it was asked for, since what
+		// fails is tried again later.
+		if kind := kindOf(w.Collection); kind != "" {
+			if still, err := h.Sent.IsOurs(account.DID, kind, w.RKey); err != nil || !still {
+				return err
+			}
+		}
 		if record, err = h.record(ctx, w); err != nil {
+			log.Printf("writing to Bluesky for %d (%s): what to write: %v", account.PersonID, w.Collection, err)
 			return err
 		}
 		if record == nil {
@@ -294,7 +304,20 @@ func (h *Handlers) Write(ctx context.Context, delivery federation.Delivery) erro
 		}
 		err = do(token)
 	}
+	if err != nil {
+		log.Printf("writing to Bluesky for %d (%s %s): %v", account.PersonID, w.Op, w.Collection, err)
+	}
 	return err
+}
+
+// kindOf is what kind of thing a collection holds, as it is remembered.
+func kindOf(collection string) string {
+	for kind, each := range collections {
+		if each == collection {
+			return kind
+		}
+	}
+	return ""
 }
 
 // record makes what is written for a like, a repost or a reply. Nil, and

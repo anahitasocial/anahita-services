@@ -530,3 +530,24 @@ func TestANoteOfOnesOwnGoesToBluesky(t *testing.T) {
 		t.Errorf("after it was deleted: %v, %d there", failed, len(w.writer.records))
 	}
 }
+
+// THE RULE THIS GUARDS: what is taken back before it could be written is
+// not written afterwards. What fails is tried again later, by when what
+// took it back may have been done already.
+func TestALikeTakenBackBeforeItWasWritten(t *testing.T) {
+	w, post := writingWorld(t)
+	w.connect()
+
+	w.heard("edge.voteup.note.added.v1", event.EventPayload{SubjectID: anaID, ObjectID: post.ID})
+	w.heard("edge.voteup.note.deleted.v1", event.EventPayload{SubjectID: anaID, ObjectID: post.ID})
+
+	// The taking back is done first, as when the like failed once and
+	// waits to be tried again.
+	w.queue.waiting[0], w.queue.waiting[1] = w.queue.waiting[1], w.queue.waiting[0]
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	if len(w.writer.records) != 0 {
+		t.Errorf("a like that was taken back was written: %v", w.writer.written)
+	}
+}
