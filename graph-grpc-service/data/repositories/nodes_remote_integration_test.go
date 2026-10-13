@@ -172,6 +172,63 @@ func TestWhatIsKeptFromAnotherServer(t *testing.T) {
 		t.Errorf("what was made here changed: %q, %q, %d", name, body, remote)
 	}
 
+	// A note of hers that answers Ana's: a reply in Ana's thread, seen by
+	// whoever may see Ana's note and saying nothing of its own about who.
+	answer := func(uri string, parent int64) *entities.AnahitaNode {
+		reply := note()
+		reply.URI = uri
+		reply.Body = "Mine are up too."
+		reply.ParentID = parent
+		// Whatever is sent for the thread it is in is not believed.
+		reply.RootID = 999
+		return reply
+	}
+	first, created, err := repo.UpsertRemote(answer("https://mastodon.example/users/alice/statuses/21", 10))
+	if err != nil || !created || first.ParentID != 10 || first.RootID != 10 || first.Access != "" || first.OwnerID != saved.ID {
+		t.Fatalf("her reply was kept as %+v (%v)", first, err)
+	}
+	// And one that answers her own reply: in the same thread, under hers.
+	second, _, err := repo.UpsertRemote(answer("https://mastodon.example/users/alice/statuses/22", first.ID))
+	if err != nil || second.ParentID != first.ID || second.RootID != 10 {
+		t.Fatalf("her reply to her reply was kept as %+v (%v)", second, err)
+	}
+	said := func(id int64) (count int) {
+		t.Helper()
+		if err := db.QueryRow(`SELECT COALESCE(comment_count, 0) FROM nodes WHERE id = ?`, id).Scan(&count); err != nil {
+			t.Fatal(err)
+		}
+		return count
+	}
+	if said(10) != 2 || said(first.ID) != 1 {
+		t.Errorf("counted %d under Ana's note and %d under the reply, want 2 and 1", said(10), said(first.ID))
+	}
+
+	// Sent again as an answer to something else, it stays where it is.
+	moved := answer(second.URI, 10)
+	moved.Body = "Mine are up too, at last."
+	if again, created, err := repo.UpsertRemote(moved); err != nil || created || again.ParentID != first.ID || again.Body != "Mine are up too, at last." {
+		t.Errorf("a reply sent again: %+v (created %v, %v)", again, created, err)
+	}
+
+	// What cannot be answered: nothing, a person, a post that is disabled.
+	if _, err := db.Exec(`INSERT INTO nodes (id,type,service,body,access,enabled,owner_id,owner_type,created_by,created_at,updated_at) VALUES
+		(11,'node.medium.text-service.note.v1','text-service','Put away','public',0,1,'node.actor.person-service.person.v1',1,NOW(),NOW())`); err != nil {
+		t.Fatal(err)
+	}
+	for name, parent := range map[string]int64{"nothing there": 424242, "a person": 1, "a post that is disabled": 11} {
+		if _, _, err := repo.UpsertRemote(answer("https://mastodon.example/users/alice/statuses/29", parent)); !errors.Is(err, ErrRemoteParent) {
+			t.Errorf("answering %s: %v", name, err)
+		}
+	}
+
+	// Taken away there, a reply is one fewer said here.
+	if gone, err := repo.DeleteRemote(second.URI, saved.ID); err != nil || !gone || said(10) != 1 || said(first.ID) != 0 {
+		t.Errorf("her reply taken away: %v (%v), counted %d and %d", gone, err, said(10), said(first.ID))
+	}
+	if gone, err := repo.DeleteRemote(first.URI, saved.ID); err != nil || !gone || said(10) != 0 {
+		t.Errorf("her other reply taken away: %v (%v), counted %d", gone, err, said(10))
+	}
+
 	// Taken away where it was written, it is taken away here: by its
 	// author, and nobody else, and never something that was made here.
 	if _, err := db.Exec(`INSERT INTO edges (type, node_a_id, node_a_type, node_b_id, node_b_type, created_by, modified_by, created_at, updated_at) VALUES ('edge.base.voteup.v1', 1, 'node.actor.person-service.person.v1', ?, 'node.medium.text-service.note.v1', 1, 1, NOW(), NOW())`, kept.ID); err != nil {

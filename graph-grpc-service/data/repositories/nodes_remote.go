@@ -34,6 +34,11 @@ import (
 //   - a note only on the profile of a person of another server, and by
 //     them: nothing arrives as written by somebody here, or on a profile
 //     here;
+//   - a note may answer another: a post that is here, enabled and not
+//     removed, whoever wrote it. It is then a reply like any other, in that
+//     post's thread and seen by whoever may see the thread's root, never by
+//     more. What it answers is settled when it is first kept and does not
+//     change;
 //   - only under an address that is not one of this installation's own;
 //   - a node that is known is brought up to date in its words and nothing
 //     else. What kind of thing it is, whose it is and what it is called
@@ -54,6 +59,7 @@ var (
 	ErrRemoteAlias    = errors.New("a person of another server is called by their name and their server's")
 	ErrRemoteOwner    = errors.New("a note from another server is kept on the profile of a person of another server")
 	ErrRemoteMismatch = errors.New("what is known by that address is something else")
+	ErrRemoteParent   = errors.New("a note from another server answers only a post that is here")
 )
 
 // remoteActorTypes is the kinds of person another server has.
@@ -89,6 +95,16 @@ SELECT id, type, COALESCE(owner_id, 0)
 FROM nodes
 WHERE uri = ?`
 
+// What a reply would be under: a post that is there to be answered, and
+// the thread it is in. A post that begins a thread has no root of its own.
+const readRemoteParent = `
+SELECT COALESCE(root_id, 0)
+FROM nodes
+WHERE id = ?
+  AND type LIKE 'node.medium.%'
+  AND enabled = 1
+  AND deleted_at IS NULL`
+
 const readRemoteOwner = `
 SELECT type, uri IS NOT NULL
 FROM nodes
@@ -111,6 +127,11 @@ func (r *nodesRepo) UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaN
 	}
 
 	if !known {
+		// What it answers, if anything. Asked only of a note that is new:
+		// one that is known stays where it was put.
+		if err := r.placeRemoteReply(ctx, node); err != nil {
+			return nil, false, err
+		}
 		id, err = r.addRemote(ctx, node)
 		// Two messages about one thing can arrive together. Whichever was
 		// second finds the first one's row and brings it up to date.
@@ -131,12 +152,50 @@ func (r *nodesRepo) UpsertRemote(node *entities.AnahitaNode) (*entities.AnahitaN
 	}
 
 	saved, err := r.Read(id)
-	return saved, !known, err
+	if err != nil {
+		return nil, false, err
+	}
+
+	// A new reply is one more thing said in its thread, and under what it
+	// answers.
+	if !known && saved != nil && saved.RootID > 0 {
+		if err := NewRepliesRepo(r.db).Recount(saved.RootID, saved.ParentID); err != nil {
+			return nil, false, err
+		}
+	}
+	return saved, !known, nil
+}
+
+// placeRemoteReply puts a note that answers something into that thing's
+// thread, or refuses it. A note that answers nothing is left as it is.
+func (r *nodesRepo) placeRemoteReply(ctx context.Context, node *entities.AnahitaNode) error {
+	node.RootID = 0
+	if IsRemoteActorType(node.Type) || node.ParentID <= 0 {
+		node.ParentID = 0
+		return nil
+	}
+
+	var root int64
+	err := r.db.QueryRowContext(ctx, readRemoteParent, node.ParentID).Scan(&root)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrRemoteParent
+	}
+	if err != nil {
+		return err
+	}
+
+	// Under a reply, it is in that reply's thread; under a post that begins
+	// one, that post is its root.
+	node.RootID = root
+	if root == 0 {
+		node.RootID = node.ParentID
+	}
+	return nil
 }
 
 const (
 	readRemoteNote = `
-SELECT id
+SELECT id, COALESCE(root_id, 0), COALESCE(parent_id, 0)
 FROM nodes
 WHERE uri = ?
   AND owner_id = ?
@@ -170,8 +229,8 @@ func (r *nodesRepo) DeleteRemote(uri string, ownerID int64) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	defer cancel()
 
-	var id int64
-	err := r.db.QueryRowContext(ctx, readRemoteNote, uri, ownerID, constants.NodeMediumNoteEntityType).Scan(&id)
+	var id, rootID, parentID int64
+	err := r.db.QueryRowContext(ctx, readRemoteNote, uri, ownerID, constants.NodeMediumNoteEntityType).Scan(&id, &rootID, &parentID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
@@ -187,7 +246,17 @@ func (r *nodesRepo) DeleteRemote(uri string, ownerID int64) (bool, error) {
 		return false, err
 	}
 	gone, err := result.RowsAffected()
-	return gone == 1, err
+	if err != nil || gone != 1 {
+		return false, err
+	}
+
+	// A reply that is gone is one fewer said in its thread.
+	if rootID > 0 {
+		if err := NewRepliesRepo(r.db).Recount(rootID, parentID); err != nil {
+			return true, err
+		}
+	}
+	return true, nil
 }
 
 const (
@@ -341,6 +410,13 @@ func (r *nodesRepo) addRemote(ctx context.Context, node *entities.AnahitaNode) (
 		columns["owner_type"] = node.OwnerType
 		columns["created_by"] = node.OwnerID
 		columns["modified_by"] = node.OwnerID
+	}
+	// A reply is seen by whoever may see the root of its thread, and says
+	// nothing of its own about who may: as a reply written here.
+	if node.RootID > 0 {
+		columns["parent_id"] = node.ParentID
+		columns["root_id"] = node.RootID
+		columns["access"] = ""
 	}
 
 	query, args, err := sq.Insert("nodes").SetMap(columns).ToSql()
