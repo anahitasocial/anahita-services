@@ -497,6 +497,29 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
   and the avatar and cover, which it fetched through the addresses that
   stay.
 
+**Replies, both ways (phase 2a).** `replies_in.go`, `notes.go`
+(`answers`), the graph's `nodes_remote.go`, `permissions/reply.go`,
+notification-service's `event_node_reply.go`; migration `20261103000001`.
+
+- **Built as planned,** and tried so far by unit tests and the graph's
+  against a real MySQL. Still to try against Mastodon through the tunnel:
+  a thread of one's own notes, a reply each way, and an edit and a
+  deletion of each.
+- **Where a reply went beyond its author's followers is kept**
+  (`activitypub_objects.reply_inbox`), which the plan did not have: a
+  reply that is deleted is gone by the time anybody hears of it, and
+  whoever it answered has to be told as well.
+- **Nobody elsewhere is notified here.** Somebody here who answers a note
+  from another server made a notification for its author, who can never
+  read it; that is stopped.
+- **Hashtags are told to other servers at `/tags/<name>`,** which leads to
+  the web app's own page. Found against Mastodon: its website opened a
+  hashtag in a note from here as its own, and its phone app opened the
+  link in a browser. What Mastodon stored was whole, with every hashtag
+  registered; what differed from a note written on Mastodon was the shape
+  of the link's address, and the app is taken to go by that. To be
+  confirmed with a note sent after the change.
+
 **Mastodon itself, both ways.** The development machine, reached from the
 internet through a tunnel (Tailscale Funnel) under a name of its own, with
 the three `PUBLIC_` settings saying that one name for the site and the API

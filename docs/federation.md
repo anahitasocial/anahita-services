@@ -8,7 +8,8 @@ person can choose to be found, people follow each other across servers
 either way round, their public notes travel with the follow, a person can
 leave again, a super administrator can refuse a server, and the web app has the
 switch, the lookup, and shows people and posts from other servers.
-Replies, likes, reposts and the pictures in posts do not travel yet.
+Replies cross both ways. Likes, reposts and the pictures in posts do not
+travel yet.
 
 ## Contents
 
@@ -30,6 +31,7 @@ Replies, likes, reposts and the pictures in posts do not travel yet.
 - [Signing keys and signed requests](#signing-keys-and-signed-requests)
 - [The API](#the-api)
 - [Leaving, and what follows a person's changes](#leaving-and-what-follows-a-persons-changes)
+- [Replies](#replies)
 - [Servers that are refused](#servers-that-are-refused)
 - [Where the code is](#where-the-code-is)
 
@@ -383,7 +385,7 @@ narrow, and is asked of the post as it is at that moment:
 - a **note**, written here, by somebody who is on the fediverse;
 - on **their own profile**: not in a group, not on somebody else's;
 - **open to everybody**: not to members, not to followers;
-- **not a reply**;
+- or **a reply**, by [the rule for replies](#replies);
 - and a visitor may see it, by the graph's own reckoning.
 
 Such a note goes to every server that has a follower of its author, once
@@ -403,7 +405,7 @@ kept in `activitypub_objects`: a deleted note's node is gone by the time
 anybody hears of it, and that table is what still knows what it was called.
 
 **Not sent:** articles, topics, photos and videos; anything in a group;
-replies; a quoted post (the note that quotes goes, without what it quotes);
+a quoted post (the note that quotes goes, without what it quotes);
 the card for a link. Somebody who starts following is sent what is posted
 from then on, and nothing from before.
 
@@ -415,7 +417,8 @@ A note from another server is kept when all of these are so:
   copy of the fediverse: what nobody here asked for is not stored;
 - it is **its sender's own**, at an address on their own server;
 - it is **addressed to everybody**;
-- it is **not a reply**, and has some text.
+- it has some text. A note that **answers another** is kept by
+  [the rule for replies](#replies).
 
 It is kept as an ordinary note, owned by the node kept for its author, with
 its address as its `uri`. Its HTML is kept as Markdown with nothing in it
@@ -456,8 +459,64 @@ their server keeps (`backfill.go`), each held to the same rule as a note
 that is sent. Only ever from their own server, and in no more than
 twenty-five requests whatever it answers.
 
-**Not kept:** pictures and other attachments in posts, replies, boosts and
-polls.
+**Not kept:** pictures and other attachments in posts, boosts and polls.
+
+## Replies
+
+A reply here is a note with a parent and a root, its author's own, seen by
+whoever may see the root. Between servers it is a `Note` with `inReplyTo`.
+Nothing about replies was changed for this: what is added is which of them
+cross, and how.
+
+### Going out
+
+A reply written here is sent when its author is on the fediverse, it is
+not hidden or removed, the root of its thread is open to everybody, and
+**what it answers is something other servers can see**: a note that came
+from another server, or a note here that itself went out. So a thread of
+somebody's own notes goes out whole, each after the one before, and a reply
+under a note that stayed here stays here.
+
+It is sent with `inReplyTo` set to what it answers, by the address that
+has between servers, to its author's followers and to whoever wrote what
+it answers when they are on another server. They are named beside the text
+as mentioned (a `Mention`) and as somebody it is for, which is what has
+their server tell them; their name is not written into the reply. Where it
+was sent beyond the followers is kept (`activitypub_objects.reply_inbox`),
+so that a change or a deletion goes there too, after the reply is gone.
+
+### Coming in
+
+A note from another server that answers something is kept when what it
+answers is known here (a note here that went out, or a note kept from
+elsewhere), it is its sender's own and addressed to everybody, the thread's
+root is open to everybody, and:
+
+- **under a thread that began here**, its author may reply by the thread's
+  own rule, the one `permissions.CanReply` holds everybody to: whoever the
+  root's author lets reply (anyone, nobody, their followers, the people
+  they follow, the people mentioned), measured by the follows between them
+  in the graph, and the profile's rule for who may comment, where somebody
+  elsewhere counts as a registered reader. Somebody the thread's owner or
+  author has blocked is refused. Whoever wrote the reply need not be known
+  already: they are looked up and kept;
+- **under a thread that began elsewhere**, somebody here follows its
+  author, as for any note.
+
+It is kept under its parent like any reply, counted, and seen by whoever
+may see the root and nobody more: the graph gives it its root and takes no
+word from outside for which thread it is in. Whoever it answers here is
+notified, as for a reply written here (notification-service hears the
+event for a note kept from elsewhere). A reply to something not known here
+is dropped; the rest of a thread is not fetched from its server.
+
+### Answering from here
+
+Somebody here may reply to a note from another server that they can see.
+Who its author lets reply is its own server's to say and to hold to.
+Written by somebody on the fediverse, the reply is sent; written by
+somebody who is not, it stays here, as a conversation among the people of
+this installation, and the web app says so before it is posted.
 
 ## What can be done with what came from elsewhere
 
@@ -472,7 +531,8 @@ followed, and little else. The rules are the installation's own, in
 | Changing their profile, their settings, their pictures | Nobody, an administrator included: every route that changes a person reads them as a person of this installation, and does not find them |
 | Posting on their profile | Nobody |
 | Changing a post of theirs | Nobody. An administrator may remove it from this installation |
-| Liking or replying to a post of theirs | Not yet: it would never reach them |
+| Replying to a post of theirs | Yes: see [Replies](#replies) |
+| Liking a post of theirs | Not yet: it would never reach them |
 | Reposting, saving a post of theirs | Yes; it stays here |
 
 ## The inbox
