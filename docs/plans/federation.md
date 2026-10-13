@@ -517,6 +517,14 @@ alike.
   and a deletion going out.
 - **Found:** the composer does not say that a post kept to followers will
   not be shared with the fediverse, which the plan asked for.
+- **To look at with a note that is left up:** the user's click on a hashtag
+  in a note of theirs, on Mastodon, went to this installation's address
+  and not to Mastodon's own page for the hashtag. What was sent has the
+  shape Mastodon's own notes have (a link marked as a hashtag, and the
+  hashtags listed beside the text). Whether Mastodon kept the hashtags can
+  be read from its public API while such a note is there. In this test the
+  address leads to the tunnel, which is the API and shows nothing; on a
+  live site it is the site's own page for the hashtag.
 
 **Hashtags of posts from elsewhere.** `federation.PostToMarkdown`,
 `anahita-libs/event/remote.go`, hashtag-service.
