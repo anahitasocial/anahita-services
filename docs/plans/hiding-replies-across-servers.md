@@ -28,11 +28,15 @@ is what there is already.
 The user's own habit, on Threads: hide a reply they do not like, then block
 whoever wrote it. "Generally they are bots or rude people." So hiding is
 the first of two steps of looking after one's own thread, and the second
-matters as much:
+is often wanted, and not always:
 
-- **Hide and block in one step,** from the reply's menu. And blocking
-  somebody can offer to hide what they have already said under the
-  blocker's posts, which a block alone leaves there for other readers.
+- **Hiding and blocking stay two separate actions.** Decided by the user
+  the same day: "Sometimes I just want to hide a comment but not
+  necessarily block the author." There is no "hide and block" in one step,
+  and hiding never blocks.
+- **Blocking somebody can offer to hide what they have already said** under
+  the blocker's posts, which a block alone leaves there for other readers.
+  Offered, and theirs to turn down.
 - **A block is not told to the other server yet.** Here it stops the
   blocker seeing them and refuses what they send to the blocker's threads.
   Mastodon and what speaks to it also send a `Block`, so that the blocked
