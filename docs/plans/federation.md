@@ -522,7 +522,7 @@ A phase is finished only when these pages match the code. anahita-services pages
 | Phase 1, ActivityPub: the sweep also finds a lost edit of a note or a profile, by what is on record of what other servers were last sent (`told_updated_at`, migration `20261102000001`) | done 2026-10-12 |
 | Phase 2a, ActivityPub: replies both ways | done 2026-10-12, and tried against mastodon.world: new, changed and taken away, each way |
 | Phase 2b, ActivityPub: likes and reposts both ways | begun 2026-10-12 |
-| Phase 3a, ActivityPub: cards, pictures and custom emoji of posts from elsewhere | built 2026-10-12; pictures still to try against Mastodon |
+| Phase 3a, ActivityPub: cards, pictures and custom emoji of posts from elsewhere | done 2026-10-12, and tried with mastodon.world |
 | Phase 1, AT Protocol | not started |
 
 ## What was built
@@ -557,9 +557,9 @@ the gateway's routes to it; tables `activitypub_accounts` and `actor_keys`
 - **Pictures that come with a post.** `pictures.go`; the graph keeps a
   photo post from another server. A post with pictures is a photo post
   here, its pictures copied into storage at the sizes an upload is kept
-  at. One marked sensitive is kept without them. Tried by unit tests and
-  the graph's against a real MySQL; a post with pictures from Mastodon is
-  still to try.
+  at. One marked sensitive is kept without them. Tried with
+  mastodon.world: a post with a picture arrived as a photo post, with what
+  its author said the picture shows; and a like of it from here was sent.
 - **A custom emoji is taken out of names and posts,** where it showed as
   the word between colons.
 - **Still to do in phase 3:** the pictures that stand for custom emoji;
