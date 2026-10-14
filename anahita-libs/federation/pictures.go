@@ -113,8 +113,24 @@ func (k *Keeper) CopyAvatar(nodeID int64, address string) {
 
 // CopyCover fetches the wide picture across the top of somebody's profile
 // and keeps it as their cover here.
+//
+// Servers give somebody who set no header a picture anyway: Mastodon a grey
+// pattern at `.../headers/original/missing.png`, NodeBB one at
+// `.../assets/images/cover-default.png`. It is no cover of theirs, and kept
+// it was drawn as one: such a profile is left with none.
 func (k *Keeper) CopyCover(nodeID int64, address string) {
+	if isPlaceholderCover(address) {
+		return
+	}
 	k.copyPicture(nodeID, address, coverPicture)
+}
+
+// isPlaceholderCover says whether a header is the one a server shows for
+// somebody who set none.
+func isPlaceholderCover(address string) bool {
+	lower := strings.ToLower(address)
+	return strings.HasSuffix(lower, "/headers/original/missing.png") ||
+		strings.HasSuffix(lower, "/assets/images/cover-default.png")
 }
 
 // copyPicture fetches one of somebody's pictures and keeps it here.
