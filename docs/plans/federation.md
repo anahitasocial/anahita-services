@@ -1217,3 +1217,24 @@ one is made here through the graph as the person's own, marked in its meta
 remembered in `atproto_sent` like what is written from here. Not their
 replies yet, nor what they posted before connecting.
 
+**2026-10-13, after a day of the user's own use.** A follow, three likes
+and a repost made from here were each found among the records of the
+user's Bluesky account, written within two seconds of being made here. The
+listener had dropped its connection a number of times with "the connection
+went quiet": it asked the connection whether it was there from inside the
+loop that takes what is heard, and while it waited for the answer nothing
+was taken, so the reader that would have read the answer stood still. The
+asking is now done beside the loop. Following here whoever is followed on
+Bluesky now takes a number (25 unless said, 500 at most) and can be asked
+about first (`GET /atproto/settings/import-follows`).
+
+**What is taken back on Bluesky, 2026-10-13.** The user had an account
+like and repost two posts that went out from here, and then undo both;
+they stayed here. An account is not told of an undoing. The service now
+asks Bluesky's reader, every five minutes, who likes and has reposted each
+such post (`getLikes`, `getRepostedBy`), whether each answer kept is still
+there (`getPosts`) and whether each follower still follows
+(`getRelationships`), and removes what is no longer so (`verify.go`,
+`data/repositories/kept.go`). No table was added: what is kept is read
+from the graph, and what is so now is read from Bluesky.
+

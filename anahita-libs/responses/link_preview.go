@@ -2,6 +2,7 @@ package responses
 
 import (
 	"anahita-libs/data/entities"
+	"anahita-libs/federation"
 	"anahita-libs/linkpreviews"
 )
 
@@ -40,4 +41,26 @@ func NewLinkPreview(node *entities.AnahitaNode) *LinkPreview {
 	}
 
 	return preview
+}
+
+// MediaRemoved is what a post from another server says of pictures that
+// are no longer stored here: how many there were, what each showed, and
+// whether they can still be had from where they came from.
+type MediaRemoved struct {
+	Count int      `json:"count"`
+	Alts  []string `json:"alts"`
+	Gone  bool     `json:"gone,omitempty"`
+}
+
+// NewMediaRemoved reads it from the post, or answers nil when the post's
+// pictures are all there.
+func NewMediaRemoved(node *entities.AnahitaNode) *MediaRemoved {
+	if node == nil {
+		return nil
+	}
+	removed := federation.MediaRemovedFrom(node.Meta)
+	if removed == nil {
+		return nil
+	}
+	return &MediaRemoved{Count: len(removed.Alts), Alts: removed.Alts, Gone: removed.Gone}
 }

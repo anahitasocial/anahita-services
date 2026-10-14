@@ -54,6 +54,9 @@ func (r *Routes) Init(e *echo.Echo) {
 	activitypub.PUT("/settings", r.handler.EditSettings)
 	// Finding somebody on another server.
 	activitypub.GET("/lookup", r.handler.Lookup)
+	// The pictures of a post from another server, copied here again after
+	// they were removed for its age.
+	activitypub.POST("/posts/:id/pictures", r.handler.RestorePictures)
 	// The servers this installation refuses. Super administrators only:
 	// the handlers check.
 	activitypub.GET("/blocks", r.handler.BrowseBlocks)

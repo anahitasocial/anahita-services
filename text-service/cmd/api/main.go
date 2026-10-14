@@ -64,11 +64,11 @@ func main() {
 	}
 	// Where link-preview-service keeps what it read. Without it notes are
 	// saved as they always were, with no preview card.
-	if cache, err := sessions.NewCache(config); err != nil {
-		log.Println("link previews: no cache, notes are saved without previews:", err)
-	} else {
-		hEnv.Previews = linkpreviews.NewStore(cache)
-	}
+	// Connected to when a note first needs it, and looked for again while
+	// it is away: the cache may still be starting when this does.
+	hEnv.Previews = linkpreviews.NewStoreWhenReady(func() (linkpreviews.Cache, error) {
+		return sessions.NewCache(config)
+	})
 	h := handlers.NewHandlers(hEnv)
 
 	// heartbeat

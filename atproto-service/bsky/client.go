@@ -98,6 +98,92 @@ func (c *Client) Following(ctx context.Context, did, cursor string) ([]Profile, 
 	return page.Follows, page.Cursor, nil
 }
 
+// How many pages of a list of who liked or reposted something are read.
+// A post with more than that is not checked: nobody can be said to be
+// missing from a list that was not read to its end.
+const whoPages = 5
+
+// who reads a list of accounts a page at a time, and says whether it was
+// read to its end.
+func (c *Client) who(ctx context.Context, method, uri string, dids func(raw json.RawMessage) []string, field string) (map[string]bool, bool, error) {
+	found := map[string]bool{}
+	cursor := ""
+	for page := 0; page < whoPages; page++ {
+		query := url.Values{"uri": {uri}, "limit": {"100"}}
+		if cursor != "" {
+			query.Set("cursor", cursor)
+		}
+		answer := map[string]json.RawMessage{}
+		if err := c.xrpc(ctx, method, query, &answer); err != nil {
+			return nil, false, err
+		}
+		for _, did := range dids(answer[field]) {
+			found[did] = true
+		}
+		cursor = ""
+		_ = json.Unmarshal(answer["cursor"], &cursor)
+		if cursor == "" {
+			return found, true, nil
+		}
+	}
+	return found, false, nil
+}
+
+// LikedBy is the accounts that like a post now, and whether that is all
+// of them.
+func (c *Client) LikedBy(ctx context.Context, uri string) (map[string]bool, bool, error) {
+	return c.who(ctx, "app.bsky.feed.getLikes", uri, func(raw json.RawMessage) []string {
+		var likes []struct {
+			Actor struct {
+				DID string `json:"did"`
+			} `json:"actor"`
+		}
+		_ = json.Unmarshal(raw, &likes)
+		dids := make([]string, 0, len(likes))
+		for _, like := range likes {
+			dids = append(dids, like.Actor.DID)
+		}
+		return dids
+	}, "likes")
+}
+
+// RepostedBy is the accounts that have a post reposted now, and whether
+// that is all of them.
+func (c *Client) RepostedBy(ctx context.Context, uri string) (map[string]bool, bool, error) {
+	return c.who(ctx, "app.bsky.feed.getRepostedBy", uri, func(raw json.RawMessage) []string {
+		var by []struct {
+			DID string `json:"did"`
+		}
+		_ = json.Unmarshal(raw, &by)
+		dids := make([]string, 0, len(by))
+		for _, each := range by {
+			dids = append(dids, each.DID)
+		}
+		return dids
+	}, "repostedBy")
+}
+
+// IsFollowing says whether one account follows another now.
+func (c *Client) IsFollowing(ctx context.Context, did, other string) (bool, error) {
+	var answer struct {
+		Relationships []struct {
+			DID       string `json:"did"`
+			Following string `json:"following"`
+		} `json:"relationships"`
+	}
+	err := c.xrpc(ctx, "app.bsky.graph.getRelationships", url.Values{"actor": {did}, "others": {other}}, &answer)
+	if err != nil {
+		return false, err
+	}
+	for _, each := range answer.Relationships {
+		if each.DID == other {
+			return each.Following != "", nil
+		}
+	}
+	// Told nothing of them: not a no.
+	return false, fmt.Errorf("%w: nothing said of %s", ErrUnreadable, other)
+}
+
 // PostAt reads one post by its address, as its author wrote it. ErrNobody
 // when it is not there.
 func (c *Client) PostAt(ctx context.Context, uri string) (*Post, error) {

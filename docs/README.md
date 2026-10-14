@@ -235,6 +235,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The API](federation.md#the-api)
    - [Leaving, and what follows a person's changes](federation.md#leaving-and-what-follows-a-persons-changes)
    - [Servers that are refused](federation.md#servers-that-are-refused)
+   - [Pictures that are removed](federation.md#pictures-that-are-removed)
    - [Reading Bluesky](federation.md#reading-bluesky)
    - [Where the code is](federation.md#where-the-code-is)
 21. [The federation lab](federation-lab.md) — trying federation on one machine: names, certificates, and another server to talk to

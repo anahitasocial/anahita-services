@@ -127,6 +127,8 @@ func main() {
 		env.Likes = services.NewLikesGRPC(config)
 		env.FollowEdges = services.NewSocialgraphFollowGRPC(config)
 		env.Relations = services.NewSocialgraphGRPC(config)
+		env.Kept = repositories.NewKept(db)
+		env.Verify = client
 	} else {
 		log.Println("CRYPT_LOCAL_KEY is not set: Bluesky is read, and nothing is written to it")
 	}
@@ -185,7 +187,42 @@ func main() {
 	// each connected account now and then.
 	if queue != nil {
 		go h.RunReactions(ctx, time.Minute)
+		// And what they took back, which the account is not told of.
+		// Once soon after starting, for what was taken back while this
+		// was stopped, and then every few minutes.
+		go func() {
+			sleep(ctx, 30*time.Second)
+			h.VerifyReactions()
+			h.RunVerify(ctx, 5*time.Minute)
+		}()
 	}
+
+	// The pictures of posts from Bluesky that have been left alone for a
+	// while are removed from storage, to be copied again when asked for.
+	// Any copy may do it: what one has removed the next does not find.
+	go handlers.RunPictureSweep(ctx, time.Hour, func() int {
+		return env.Keeper.RemoveOldPictures(db, constants.NodeActorATProtoPersonEntityType, time.Now(), 200)
+	})
+
+	// And what nobody here holds to goes altogether: the posts of
+	// somebody nobody follows any more, and then whoever nothing is left
+	// of. See anahita-libs/federation/retention.go for the rules.
+	go handlers.RunTidy(ctx, time.Hour, func() (int, int) {
+		rules, now := federation.RetentionFromEnv(), time.Now()
+		posts, err := federation.OldPosts(db, constants.NodeActorATProtoPersonEntityType, rules, now, 200)
+		if err != nil {
+			log.Println("looking for posts that are due to go:", err)
+		}
+		removed, _ := h.Tidy(posts, nil)
+		// After the posts, so that whoever has just been left with
+		// none is found in the same round.
+		people, err := federation.StalePeople(db, constants.NodeActorATProtoPersonEntityType, rules, now, 200)
+		if err != nil {
+			log.Println("looking for people of whom nothing is left:", err)
+		}
+		_, forgotten := h.Tidy(nil, people)
+		return removed, forgotten
+	})
 
 	// What the bus lost is looked for now and then.
 	go h.RunCatchUp(ctx, time.Minute)

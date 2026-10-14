@@ -75,6 +75,11 @@ type Env struct {
 	Likes       services.LikesGRPCInterface
 	FollowEdges services.SocialgraphFollowGRPCInterface
 	Relations   services.SocialgraphGRPCInterface
+	// What is kept here of what people on Bluesky did to somebody here,
+	// and what asks Bluesky whether each is still so: for finding what
+	// was taken back. Nil where that is not looked for.
+	Kept   repositories.KeptInterface
+	Verify Verified
 	// Reposts in the graph, and which post each one heard was of. Nil
 	// where reposts are not kept.
 	Reposts       services.RepostGRPCInterface

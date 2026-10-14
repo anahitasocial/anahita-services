@@ -12,9 +12,12 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"log"
 	"net/url"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 )
@@ -71,6 +74,69 @@ type Store struct {
 
 func NewStore(cache Cache) *Store {
 	return &Store{cache: cache}
+}
+
+// How long is waited before asking again for a cache that was not there.
+const reconnectAfter = 10 * time.Second
+
+// lateCache is a cache that may not be there yet when the service that
+// reads it starts: it is asked for when it is first needed, and again
+// later for as long as it is away.
+//
+// A service that looked once at the start, found the cache still starting
+// and gave up, saved every note without its card until it was started
+// again, and said so only once in a log nobody was reading.
+type lateCache struct {
+	connect func() (Cache, error)
+
+	mu      sync.Mutex
+	cache   Cache
+	triedAt time.Time
+}
+
+func (l *lateCache) get() (Cache, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if l.cache != nil {
+		return l.cache, nil
+	}
+	if time.Since(l.triedAt) < reconnectAfter {
+		return nil, errNoCache
+	}
+	l.triedAt = time.Now()
+
+	cache, err := l.connect()
+	if err != nil {
+		log.Println("link previews: the cache is not there yet:", err)
+		return nil, err
+	}
+	l.cache = cache
+	return cache, nil
+}
+
+var errNoCache = errors.New("the cache is not there")
+
+func (l *lateCache) Get(key string) (string, bool, error) {
+	cache, err := l.get()
+	if err != nil {
+		return "", false, err
+	}
+	return cache.Get(key)
+}
+
+func (l *lateCache) Set(key string, value string, ttl time.Duration) error {
+	cache, err := l.get()
+	if err != nil {
+		return err
+	}
+	return cache.Set(key, value, ttl)
+}
+
+// NewStoreWhenReady is a store whose cache is connected to when it is
+// first needed, and looked for again while it is away.
+func NewStoreWhenReady(connect func() (Cache, error)) *Store {
+	return &Store{cache: &lateCache{connect: connect}}
 }
 
 // Key is where the preview of an address is kept.

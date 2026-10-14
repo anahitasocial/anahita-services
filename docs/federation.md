@@ -37,6 +37,8 @@ there and have its posts. See [Reading Bluesky](#reading-bluesky).
 - [Replies](#replies)
 - [Likes and reposts](#likes-and-reposts)
 - [Servers that are refused](#servers-that-are-refused)
+- [Pictures that are removed](#pictures-that-are-removed)
+- [Posts and people that are removed](#posts-and-people-that-are-removed)
 - [Reading Bluesky](#reading-bluesky)
 - [Where the code is](#where-the-code-is)
 
@@ -886,6 +888,91 @@ ten.
 the inbox, counted before anything is read, and answered `429` beyond
 that.
 
+## Pictures that are removed
+
+A picture is nearly all of what a post from another server costs to keep:
+it is stored at every size a photo is. So the pictures of a post from
+elsewhere are removed from storage once the post has been left alone for
+`REMOTE_MEDIA_DAYS`, thirty unless said, and copied here again when
+somebody asks to see them. It is what Mastodon and GoToSocial do with what
+they hold of other servers, and it is on as the installation comes, since
+it loses nothing that is still there to be had. `0` keeps pictures for
+good.
+
+- **What stays.** The post, with its words, and what each picture showed.
+  It says in its meta (`media_removed`) how many pictures it had, and the
+  API sends that with the post: `media_removed: { count, alts, gone }`.
+- **"Left alone"** is by when the post was last written here: when it
+  arrived, when its author changed it, and when its pictures were last
+  copied again. Pictures that were asked for are kept as long again.
+- **Never** the pictures of a post somebody here liked, saved, answered,
+  reposted or quoted, nor of one an open report is about. And nothing
+  written here is ever looked at: only what has an address on another
+  server.
+- **Asked for again:** `POST /activitypub/posts/:id/pictures` or
+  `POST /atproto/posts/:id/pictures`, by anybody signed in who may see the
+  post, sixty times in ten minutes. The post is read again from where it
+  came from and its pictures are copied as they were the first time. In
+  the web app it is a button where the pictures were, and it is asked at
+  once on the post's own page.
+- **No longer to be had.** When the post was taken away where it was
+  written, or what it is read from says it has no pictures now, the answer
+  is `410 media_gone`, and the post says so from then on (`gone`), keeping
+  what its pictures showed.
+- **Each service looks after what came through it,** every hour, two
+  hundred posts at a time, oldest first: an installation that runs one of
+  the two is covered by that one.
+
+Avatars and covers of people elsewhere are small, one of each, and are
+kept while the person is. The picture of a link's card is the link
+preview service's own.
+
+## Posts and people that are removed
+
+The words of a post cost very little, and are kept far longer than its
+pictures. What goes is what nobody here has a reason to keep.
+
+| Setting | What goes | As it comes |
+| --- | --- | --- |
+| `REMOTE_UNFOLLOWED_DAYS` | The posts of somebody nobody here follows any more, once they have been left alone this many days | 30 |
+| `REMOTE_POSTS_DAYS` | Any post from elsewhere left alone this many days, whoever follows its author | Off |
+| `REMOTE_POSTS_KEPT` | All but the newest so many posts of one person elsewhere | Off |
+
+The first is on because it removes only what nobody is reading: somebody
+looked up once and never followed, or unfollowed a month ago. The other
+two are for an installation that has to hold its database to a size, and
+are off because **what they remove is not got back by asking**: a post
+that went is read again only if its author is followed anew, and then
+only their latest. `0` turns any of the three off.
+
+- **Never** a post somebody here liked or saved; one that anything stands
+  under or on, here or elsewhere (an answer, a repost, a quote); one in a
+  thread somebody here wrote in; one an open report is about.
+- **Never an answer.** Only a post that begins a thread is removed by a
+  rule. An answer from elsewhere is here because it is part of a
+  conversation somebody here is in.
+- **Never anything written here.** Only what has an address on another
+  server is looked at, and only what is owned by somebody of another
+  server. The operator's settings do not clip what the site's own people
+  wrote, at any age or number.
+- **"Left alone"** is as for pictures: by when the post was last written
+  here.
+- **It goes as if its author had taken it away:** with what is stored of
+  its pictures, and said on the bus, so that its hashtags and any news of
+  it go too.
+- **Then the person.** Somebody elsewhere of whom no post is left, whom
+  nobody here follows and who follows nobody here, whom nobody blocked,
+  whose nothing was liked and about whom no report is open, is removed
+  with their avatar and cover once they too have been left alone for
+  `REMOTE_UNFOLLOWED_DAYS`. Looked up again, they are read again. With
+  that setting at `0` nobody is removed.
+- **Each service looks after what came through it,** every hour, two
+  hundred posts and two hundred people at a time, the longest left alone
+  first.
+
+Not built: the same for videos, which are not brought in from elsewhere
+yet (`docs/plans/remote-content-limits.md`).
+
 ## Reading Bluesky
 
 `atproto-service` lets somebody here look up an account on Bluesky and
@@ -1082,8 +1169,17 @@ its own. The card says to use one and where to make it.
   nobody here follows them, and their like, repost, reply or follow is
   theirs. The person here is told as of anybody's. Somebody they have
   blocked does none of it. What happened before the account was connected
-  is not gone back for, and what is taken back on Bluesky (a like
-  withdrawn, a reply deleted by somebody not followed) is not known here.
+  is not gone back for.
+- **What is taken back there.** An account is told when somebody likes,
+  reposts, answers or follows, and not when they think better of it. So
+  every five minutes, and once soon after the service starts, what is
+  kept here of such things is looked for on Bluesky again: who likes and
+  has reposted each post that went out from here, whether each answer is
+  still there, and whether each follower still follows. What is no longer
+  so is removed here, with the news of it. Nothing is removed on a doubt:
+  not when Bluesky could not be asked, not from a list too long to read to
+  its end (more than five hundred likes), and not what arrived in the last
+  three minutes.
 - **What is taken back.** Taking a like or a repost back here, or deleting
   the reply, removes it there.
 - **It arrives.** What is to be written waits in a table
@@ -1117,7 +1213,8 @@ its own. The card says to use one and where to make it.
 | `GET /atproto/settings` | Whether the viewer has connected an account: `connected`, `handle`, `did`, `broken`. `404 bluesky_writing_off` where the installation does not write to Bluesky |
 | `PUT /atproto/settings` `{ "handle": "…", "app_password": "…" }` | Connects it. `404 bluesky_not_found`, `403 bluesky_denied` for a password that is not taken, `409 bluesky_taken` when somebody else here connected that account, `502 bluesky_failed`. Ten tries in ten minutes |
 | `DELETE /atproto/settings` | Disconnects |
-| `POST /atproto/settings/import-follows` | Follows here the accounts the viewer's Bluesky account follows already, up to 500, leaving out whoever is refused or blocked. Answered `202` at once and carried on with afterwards: each account is kept and has its recent posts read, which for a long list takes minutes. Nothing is written to Bluesky. Three times an hour |
+| `GET /atproto/settings/import-follows` | What that would do, before it is done: `following`, how many accounts the viewer follows on Bluesky; `most`, the most followed here in one go; `posts_of_each`, how many posts of each are read |
+| `POST /atproto/settings/import-follows` `{ "limit": 25 }` | Follows here the accounts the viewer's Bluesky account follows already, the ones followed most lately first: `limit` of them, 25 when none is said and 500 at most, leaving out whoever is refused or blocked. Answered `202` at once and carried on with afterwards: each account is kept and has its recent posts read, which for a long list takes minutes. Nothing is written to Bluesky. Three times an hour |
 
 `ATPROTO_PLC_URL` is where the server that holds an account is looked up:
 left out, `https://plc.directory`.
@@ -1137,7 +1234,7 @@ app.
 | What | Where |
 | --- | --- |
 | Reading Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `reposts.go`, `backfill.go`, `stream.go`, `events.go`; writing: `settings.go`, `out.go`, `bsky/session.go`, `bsky/outgoing.go`), tables `atproto_actors`, `atproto_cursor`, `atproto_reposts`, `atproto_accounts`, `atproto_sent`, `atproto_writes` |
-| What both protocols share | `anahita-libs/federation/`: pictures (`pictures.go`), cards (`cards.go`), refused servers (`blocks.go`), a post's words (`content.go`) |
+| What both protocols share | `anahita-libs/federation/`: pictures (`pictures.go`), removing and restoring them (`media.go`), cards (`cards.go`), refused servers (`blocks.go`), a post's words (`content.go`) |
 | The service | `activitypub-service/` |
 | Who is on the fediverse | `cmd/api/handlers/handlers.go`: `siteFederates`, `mayFederate`, `federating` |
 | WebFinger and host-meta | `cmd/api/handlers/discovery.go` |

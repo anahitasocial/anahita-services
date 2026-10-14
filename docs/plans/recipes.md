@@ -1,12 +1,12 @@
 # Anahita Recipes: a starting configuration for each kind of site
 
-*Roadmap item 40, planned 2026-10-11 at the user's asking. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
+*Roadmap item 40, planned 2026-10-11 at the user's asking. **Moved out of M10 on 2026-10-13, to be done for the public release:** recipes are for when the code is made public, to show people how to set Anahita up for their kind of organisation, and that is not yet. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
 ## Context
 
 Somebody setting up Anahita for a school and somebody setting it up for a newsroom want different sites, and today both are handed the same `config.env` with some sixty settings and one page that explains each. The settings that matter most are a handful, and they have to agree with one another: a school that closes reading to members but leaves registration open has not done what it meant to.
 
-A **recipe** is those choices made together, for one kind of site, with the reasons written beside them: a newsroom, a city council, a school, a university, a neighbourhood, a family or a group of friends.
+A **recipe** is those choices made together, for one kind of site, with the reasons written beside them: a newsroom, a city council, a public library, a school, a university, a research group, a neighbourhood, a family or a group of friends.
 
 **What exists:**
 - `k8s/base` is every service; `k8s/overlays/{generic,aws,local}` say **where** a site runs (which cluster, which storage, which hostnames); `k8s/components/{mysql,redis,rabbitmq}` are parts an overlay may add.
@@ -51,8 +51,10 @@ Only settings that exist are named. "Federation" means the services of item 8, a
 | --- | --- | --- | --- | --- |
 | **newsroom** | Anybody (`SITE_READ_ACCESS=public`) | Open, or by approval | Web shell, link previews, video, federation. Recommendations on | The point is to be read and passed on: a shared link has to show its own headline and picture, and posts should reach readers on Mastodon and Bluesky |
 | **council** (a city, a public body) | Anybody | By approval | Web shell, link previews, federation, the data export. Events to the fore | Public by duty. Residents should be able to take what they wrote away with them, and meetings are events |
+| **library** (a public library) | Anybody | By approval, or open | Web shell, link previews, federation, the data export. Events to the fore. Recommendations off | Public by duty, like a council, with programmes, readings and clubs as events and groups. A library does not say what its readers read: nothing here records who looked at what, and nothing is suggested from what somebody did unless the library turns that on |
 | **school** | Members only (`registered`), and nothing new may be public (`MIN_CONTENT_ACCESS=registered`) | By invitation, from administrators only | Link previews (pages are fetched by the server, so no outside site sees a pupil's browser). No federation: a members-only site does not federate. Downloads off by default. Recommendations off | Minors. Nothing is seen from outside, nobody arrives uninvited, and nothing leaves |
 | **university** | A preview to visitors (`preview`), the rest to members | By approval, or by invitation from any member | Video, events, the data export, recommendations. Federation is the operator's choice | Groups for courses and societies, public enough to be found, people who come and go each year |
+| **research** (a laboratory, a research or scientific group, a learned society) | Anybody, or a preview to visitors | By invitation from any member, or by approval | Federation, link previews, video (talks), events (seminars, meetings), the data export. Small or medium | The work is meant to be read and passed on, and the people it is for are already on Mastodon and Bluesky. Groups for projects, which may be closed while the site is open. People move between institutions and should take what they wrote with them |
 | **neighbourhood** | A preview to visitors | By approval; members may invite | Events, link previews. Small | Neighbours should find it and see that it is alive, and say who they are before reading what the street says |
 | **household** (family, friends, one person) | Members only | By invitation from any member | As little as will run: no recommendations, video on with small limits, the data export. The smallest size | A few people who know each other. The cost of running it is what matters |
 | **community** (the default; what `generic` is now) | Anybody | Closed until the operator chooses | Everything optional left to the operator | For whoever fits none of the others |
@@ -66,7 +68,8 @@ Writing them will turn up settings that do not exist. Expected, to be confirmed 
 - ~~who may create a group or an event at all~~: there is one, `GROUPS_FROM` and `EVENTS_FROM`, found while writing this. A school's recipe sets both to administrators;
 - a site-wide default for a new profile's own privacy;
 - turning the report reasons to a kind of site (a school's list is not a newsroom's): possible today by replacing the file, which a recipe can do;
-- **hashtags to begin with (user, 2026-10-12).** A recipe could carry the hashtags a site of its kind is likely to use (a school's subjects and years, a newsroom's beats, a neighbourhood's streets and notices), put in when the site is first set up. A new site has none, so the "Interests" step planned for signup ([item 45](https://github.com/purplerat/anahita-web/blob/main/docs/plans/onboarding-recommendations.md)) would have nothing to offer until people had written. Needs a way to put hashtags in that is not somebody writing a post, which there is not today: a hashtag is made when a post names it, and belongs to whoever wrote that post;
+- **hashtags to begin with (user, 2026-10-12).** A recipe could carry the hashtags a site of its kind is likely to use (a school's subjects and years, a newsroom's beats, a library's subjects and programmes, a research group's fields and methods, a neighbourhood's streets and notices), put in when the site is first set up. A new site has none, so the "Interests" step planned for signup ([item 45](https://github.com/purplerat/anahita-web/blob/main/docs/plans/onboarding-recommendations.md)) would have nothing to offer until people had written. Needs a way to put hashtags in that is not somebody writing a post, which there is not today: a hashtag is made when a post names it, and belongs to whoever wrote that post;
+- **a licence on what is posted (user's list, 2026-10-13: research groups).** A research group, and a library, would want to say that what is posted may be reused, and how. Creative Commons licences are planned and kept for later (item 19); the `research` recipe is the reason to look at it again;
 - terms and a privacy policy fitted to each kind. A recipe can carry a **starting text marked as such**; it is not legal advice and must say so.
 
 ### The web app
@@ -84,10 +87,10 @@ A recipe is mostly the server's. For the web app it may suggest a name and descr
 | Part | Time |
 | --- | --- |
 | The form: components, sizes, how an overlay takes one; `community` and `school` as the first two, since they are furthest apart | 4–5 h |
-| The other five, each with its README | 4–5 h |
+| The other seven, each with its README | 6–7 h |
 | The checks, and the table made from the files | 2 h |
 | `docs/recipes.md`; `deploying.md` begins with "choose a recipe" | 2 h |
-| **Total** | **about 12–14 h, 3–4 sessions** |
+| **Total** | **about 14–16 h, about 4 sessions** |
 
 ## Verification
 
@@ -122,5 +125,5 @@ A recipe is mostly the server's. For the web app it may suggest a name and descr
 
 | Item | State |
 | --- | --- |
-| Plan | written 2026-10-11 |
-| Implementation | not started. A sketch while the idea is talked through: where recipes live, and which ones, are open |
+| Plan | written 2026-10-11; `library` and `research` added 2026-10-13 |
+| Implementation | not started, and not before the public release (2026-10-13). A sketch while the idea is talked through: where recipes live, and which ones, are open |

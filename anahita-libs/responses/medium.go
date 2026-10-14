@@ -30,6 +30,9 @@ type MediumNodeItem struct {
 	// On a note that quotes a post: that post, or why it is not shown.
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
+	// On a photo post from another server whose pictures are no longer
+	// stored here.
+	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
 	// What a video post plays.
 	Video *Video      `json:"video,omitempty"`
 	Quote *QuoteEmbed `json:"quote,omitempty"`
@@ -85,6 +88,9 @@ type MediumNode struct {
 	// On a note that quotes a post: that post, or why it is not shown.
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
+	// On a photo post from another server whose pictures are no longer
+	// stored here.
+	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
 	// What a video post plays.
 	Video *Video      `json:"video,omitempty"`
 	Quote *QuoteEmbed `json:"quote,omitempty"`
@@ -159,6 +165,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
 		LinkPreview:        NewLinkPreview(node),
+		MediaRemoved:       NewMediaRemoved(node),
 		Video:              NewVideo(node),
 		Quote:              NewQuoteEmbed(node),
 		QuoteID:            node.QuoteID,
@@ -220,6 +227,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
 		LinkPreview:        NewLinkPreview(node),
+		MediaRemoved:       NewMediaRemoved(node),
 		Video:              NewVideo(node),
 		Quote:              NewQuoteEmbed(node),
 		QuoteID:            node.QuoteID,

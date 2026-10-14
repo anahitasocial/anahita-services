@@ -89,6 +89,11 @@ func (f fakeLikes) Add(source, target *entities.AnahitaNode, _ *entities.Viewer)
 	return nil
 }
 
+func (f fakeLikes) Delete(source, target *entities.AnahitaNode) error {
+	delete(f.likes, fmt.Sprint(source.ID, ">", target.ID))
+	return nil
+}
+
 type fakeFollows struct {
 	services.SocialgraphFollowGRPCInterface
 	*fakeGraph
@@ -96,6 +101,11 @@ type fakeFollows struct {
 
 func (f fakeFollows) Add(req *services.SocialgraphFollowAddRequest) error {
 	f.follows[fmt.Sprint(req.Source.ID, ">", req.Target.ID)] = true
+	return nil
+}
+
+func (f fakeFollows) Delete(req *services.SocialgraphFollowDeleteRequest) error {
+	delete(f.follows, fmt.Sprint(req.Source.ID, ">", req.Target.ID))
 	return nil
 }
 
@@ -1003,7 +1013,7 @@ func TestFollowingHereWhoeverOneFollowsOnBluesky(t *testing.T) {
 	}
 
 	first, next, _ := w.bluesky.Following(context.Background(), anaDID, "")
-	w.h.importFollows(account, first, next)
+	w.h.importFollows(account, first, next, importMost)
 
 	bob, carol := w.keptAt("at://"+bobDID), w.keptAt("at://"+carolDID)
 	if bob == nil || carol == nil {
@@ -1017,9 +1027,136 @@ func TestFollowingHereWhoeverOneFollowsOnBluesky(t *testing.T) {
 		t.Error("somebody on a refused server was kept")
 	}
 
+	// No more than was asked for: the first two of the list, and Carol,
+	// further down it, is left.
+	graph.follows = map[string]bool{}
+	w.h.importFollows(account, first, next, 2)
+	if len(graph.follows) != 2 || graph.follows[fmt.Sprint(anaID, ">", carol.ID)] {
+		t.Errorf("asked for the first two: %v", graph.follows)
+	}
+	graph.follows[fmt.Sprint(anaID, ">", carol.ID)] = true
+
 	// Asked again, nobody is followed twice.
-	w.h.importFollows(account, first, next)
+	w.h.importFollows(account, first, next, importMost)
 	if len(graph.follows) != 3 {
 		t.Errorf("follows after a second time: %v", graph.follows)
+	}
+}
+
+// fakeKept is what is kept here of what people on Bluesky did, and
+// fakeNow what Bluesky says is so now.
+type fakeKept struct {
+	likes, reposts []*repositories.KeptReaction
+	replies        []*repositories.KeptReply
+	follows        []*repositories.KeptFollow
+}
+
+func (f *fakeKept) Likes(int) ([]*repositories.KeptReaction, error)   { return f.likes, nil }
+func (f *fakeKept) Reposts(int) ([]*repositories.KeptReaction, error) { return f.reposts, nil }
+func (f *fakeKept) Replies(int) ([]*repositories.KeptReply, error)    { return f.replies, nil }
+func (f *fakeKept) Follows(int) ([]*repositories.KeptFollow, error)   { return f.follows, nil }
+
+type fakeNow struct {
+	likedBy, repostedBy map[string]bool
+	following           map[string]bool
+	// A list too long to be read to its end, and a reader that is away.
+	partial bool
+	err     error
+	asked   int
+}
+
+func (f *fakeNow) LikedBy(context.Context, string) (map[string]bool, bool, error) {
+	f.asked++
+	return f.likedBy, !f.partial, f.err
+}
+
+func (f *fakeNow) RepostedBy(context.Context, string) (map[string]bool, bool, error) {
+	f.asked++
+	return f.repostedBy, !f.partial, f.err
+}
+
+func (f *fakeNow) IsFollowing(_ context.Context, did, other string) (bool, error) {
+	return f.following[did], f.err
+}
+
+// THE RULE THIS GUARDS: what somebody on Bluesky took back is removed
+// here, and nothing is removed on a doubt.
+func TestWhatPeopleOnBlueskyTookBack(t *testing.T) {
+	w, _ := writingWorld(t)
+	graph := &fakeGraph{likes: map[string]bool{}, follows: map[string]bool{}, blocked: map[string]bool{}}
+	w.h.Likes, w.h.FollowEdges, w.h.Relations = fakeLikes{fakeGraph: graph}, fakeFollows{fakeGraph: graph}, fakeRelations{fakeGraph: graph}
+	w.connect()
+
+	// A note of Ana's that went out, which Alice liked, reposted, answered,
+	// and then followed Ana.
+	w.nodes.kept = append(w.nodes.kept, &entities.AnahitaNode{
+		ID: 80, Type: constants.NodeMediumNoteEntityType, Service: "text-service", Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "Anahita to Bluesky",
+	})
+	alice, _ := w.actors.ReadByDID(aliceDID)
+	answer := bsky.PostURI(aliceDID, "3l3answer")
+	w.nodes.kept = append(w.nodes.kept, &entities.AnahitaNode{
+		ID: 81, Type: constants.NodeMediumNoteEntityType, URI: answer, OwnerID: alice.NodeID, ParentID: 80, Body: "Welcome",
+	})
+	set := func() {
+		graph.likes[fmt.Sprint(alice.NodeID, ">", 80)] = true
+		graph.follows[fmt.Sprint(alice.NodeID, ">", anaID)] = true
+		w.reposts.made[fmt.Sprint(alice.NodeID, ">", 80)] = true
+	}
+	set()
+	reaction := &repositories.KeptReaction{ActorID: alice.NodeID, ActorDID: aliceDID, PostID: 80, PostDID: anaDID, PostRKey: "3l3mine"}
+	w.h.Kept = &fakeKept{
+		likes:   []*repositories.KeptReaction{reaction, reaction},
+		reposts: []*repositories.KeptReaction{reaction},
+		replies: []*repositories.KeptReply{{ActorID: alice.NodeID, URI: answer}},
+		follows: []*repositories.KeptFollow{{ActorID: alice.NodeID, ActorDID: aliceDID, PersonID: anaID, PersonDID: anaDID}},
+	}
+	all := func() string {
+		return fmt.Sprint(len(graph.likes), len(w.reposts.made), len(graph.follows), w.keptAt(answer) != nil)
+	}
+
+	// All of it is still so on Bluesky: nothing goes.
+	now := &fakeNow{
+		likedBy: map[string]bool{aliceDID: true}, repostedBy: map[string]bool{aliceDID: true},
+		following: map[string]bool{aliceDID: true},
+	}
+	w.bluesky.posts[answer] = aPost(t, `{"text":"Welcome"}`)
+	w.h.Verify = now
+	w.h.VerifyReactions()
+	if got := all(); got != "1 1 1 true" {
+		t.Fatalf("with nothing taken back: %s", got)
+	}
+	// Each post is asked about once, however many liked it.
+	if now.asked != 2 {
+		t.Errorf("asked %d times", now.asked)
+	}
+
+	// The reader is away, or the lists are too long to read to the end:
+	// nothing goes, though nobody is named in them.
+	now.likedBy, now.repostedBy, now.following = map[string]bool{}, map[string]bool{}, map[string]bool{}
+	delete(w.bluesky.posts, answer)
+	w.bluesky.err = errors.New("timeout")
+	now.err = errors.New("timeout")
+	w.h.VerifyReactions()
+	now.err, now.partial = nil, true
+	w.bluesky.err = nil
+	w.bluesky.posts[answer] = aPost(t, `{"text":"Welcome"}`)
+	now.following = map[string]bool{aliceDID: true}
+	w.h.VerifyReactions()
+	if got := all(); got != "1 1 1 true" {
+		t.Fatalf("on a doubt: %s", got)
+	}
+
+	// Taken back, all four.
+	now.partial = false
+	now.following = map[string]bool{}
+	delete(w.bluesky.posts, answer)
+	w.said = nil
+	w.h.VerifyReactions()
+	if got := all(); got != "0 0 0 false" {
+		t.Fatalf("after all of it was taken back: %s", got)
+	}
+	if got := strings.Join(w.said, "|"); !strings.Contains(got, "edge.voteup.text.deleted.v1 80") || !strings.Contains(got, event.RemoteRepostDeleted) {
+		t.Errorf("said %q", got)
 	}
 }
