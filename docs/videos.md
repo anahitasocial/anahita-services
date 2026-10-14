@@ -310,7 +310,8 @@ once; each needs processor and working space of its own.
 - Telling the uploader, by a notification, that a video is ready or has
   failed. The composer asks.
 - Changing size while playing (HLS), captions, and a choice of poster.
-- Video between networks: a video is neither sent to other servers or
-  Bluesky, nor brought in from them. Nor is a GIF made into one.
+- Videos from other networks: a video posted here goes to other servers
+  and Bluesky (see [Federation](federation.md)), but one posted there is not
+  brought in.
 - Animated WebP, until ffmpeg reads one; and keeping what is see-through in
   a GIF (WebM with transparency, or keeping the picture as it was).

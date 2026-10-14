@@ -489,8 +489,9 @@ happened and asks the other server, with a signed `Follow`.
 What is sent to another server cannot be called back, so what is sent is
 narrow, and is asked of the post as it is at that moment:
 
-- a **note or a photo post**, written here, by somebody who is on the
-  fediverse. A photo post is sent as a note with its pictures;
+- a **note, a photo post or a video post**, written here, by somebody who
+  is on the fediverse. A photo post is sent as a note with its pictures,
+  and a video post as a note with its video;
 - on **their own profile**: not in a group, not on somebody else's;
 - **open to everybody**: not to members, not to followers;
 - or **a reply**, by [the rule for replies](#replies);
@@ -523,7 +524,19 @@ A photo post is heard of a moment before its pictures are listed, and is
 not sent without them: it is looked at again after two seconds, and failing
 that is found by the sweep.
 
-**Not sent:** articles, topics and videos; anything in a group;
+**A video post goes with its video**, a GIF made into a clip included. Its
+title is the first line of the note, since a note has none of its own. The
+video is listed at `/ap/notes/<uuid>/video`, the largest size no taller
+than 720 and no heavier than 40 MB (`ap.VideoMax`, which Mastodon and
+GoToSocial take of a video from elsewhere unless told otherwise), with its
+poster as its `icon` at `/ap/notes/<uuid>/poster`. Both send a server that
+asks on to storage, as a picture's address does, and only while the post
+goes out. A video with no size that light goes as its words, linking to
+its page. Mastodon shows a video with no sound as a GIF, silently and on a
+loop, so a clip made of a GIF is one there too, with nothing said to make
+it so.
+
+**Not sent:** articles and topics; anything in a group;
 a quoted post (the note that quotes goes, without what it quotes);
 the card for a link. Somebody who starts following is sent what is posted
 from then on, and nothing from before.
@@ -1253,10 +1266,21 @@ its own. The card says to use one and where to make it.
   card.
 - **What goes.** A like or a repost of a post that came from Bluesky; a
   reply under one, or under a reply that itself went there; and a note or
-  a photo post of the person's own that everybody may read, on their own
-  profile. Connecting an account is saying that such posts are posted
-  there, as being on the fediverse is. A post on somebody else's profile
-  or a group's does not go, nor a video.
+  a photo or video post of the person's own that everybody may read, on
+  their own profile. Connecting an account is saying that such posts are
+  posted there, as being on the fediverse is. A post on somebody else's
+  profile or a group's does not go.
+- **Videos.** A video post goes with its video, a GIF made into a clip
+  included, and its title as its first line: the largest size no taller
+  than 720 and no heavier than 50 MB, read from storage at an address only
+  the services reach and given to the account's server
+  (`app.bsky.embed.video`), which Bluesky makes ready to play once the post
+  is written. That is the simpler of the two ways Bluesky's documents
+  describe; the other, through Bluesky's video service, has it ready
+  before the post appears. A video longer than three minutes or heavier
+  than that goes as a card that leads to its page here, with its poster;
+  so does one Bluesky would not take. An account Bluesky hosts must have
+  confirmed its email to post videos, and has a daily limit.
 - **Pictures and cards.** A photo post goes with up to four pictures and
   what each shows. A note goes with the card of the link in it, picture
   and all: Bluesky draws no card of its own from an address in a post, so
@@ -1336,7 +1360,7 @@ left out, `https://plc.directory`.
 
 ### What is not there yet
 
-A video made here does not go to Bluesky. Likes given on Bluesky to
+Likes given on Bluesky to
 posts that came from there are not read, nor how many a post has; replies
 by people nobody here follows are not read; videos are not kept.
 The list of [servers that are refused](#servers-that-are-refused) is read

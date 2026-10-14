@@ -13,6 +13,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/event"
+	"anahita-libs/videos"
 )
 
 // What happens here that another server has to be told.
@@ -73,10 +74,11 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 	case strings.HasPrefix(payload.Name, "node.actor.") && !strings.HasSuffix(payload.Name, ".added.v1"):
 		err = h.profileChanged(ctx, payload.ObjectID)
 
-	// A post made, changed or deleted. Notes and photo posts go out; the rest of what
-	// decides is asked of the post itself.
+	// A post made, changed or deleted. Notes, photo posts and video posts
+	// go out; the rest of what decides is asked of the post itself.
 	case strings.HasPrefix(payload.Name, "node.medium.") &&
-		(payload.ObjectType == constants.NodeMediumNoteEntityType || payload.ObjectType == constants.NodeMediumPhotoEntityType):
+		(payload.ObjectType == constants.NodeMediumNoteEntityType || payload.ObjectType == constants.NodeMediumPhotoEntityType ||
+			payload.ObjectType == videos.NodeType):
 		if strings.HasSuffix(payload.Name, ".deleted.v1") {
 			err = h.removed(ctx, payload.ObjectID)
 		} else {

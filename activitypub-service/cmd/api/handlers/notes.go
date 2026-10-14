@@ -17,7 +17,9 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/federation"
 
+	"anahita-libs/videos"
 	"github.com/labstack/echo/v4"
+	"html"
 )
 
 // Posts going out.
@@ -43,10 +45,12 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 	if note == nil || note.ID == 0 || note.UUID == "" || note.IsRemote() {
 		return nil, nil
 	}
-	// A note, or a photo post, which other servers are sent as a note with
-	// its pictures.
+	// A note, or a photo or video post, which other servers are sent as a
+	// note with its pictures or its video. A video post with no video yet
+	// is not one.
 	isPhoto := note.Type == constants.NodeMediumPhotoEntityType
-	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto) || !note.Enabled || note.DeletedAt != nil || note.Hidden {
+	isVideo := note.Type == videos.NodeType && videos.FromMeta(note.Meta) != nil
+	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo) || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil, nil
 	}
 	if note.CreatedBy <= 0 || note.OwnerID != note.CreatedBy {
@@ -165,7 +169,66 @@ func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answ
 			sent.WithPictures(h.addresses, note, files)
 		}
 	}
+	// A video post goes with its video, at a size other servers take, and
+	// its title above its words, since a note has no title of its own.
+	if note.Type == videos.NodeType {
+		if video := videos.FromMeta(note.Meta); video != nil {
+			sent.WithVideo(h.addresses, note, video, video.Shared(ap.VideoMax))
+		}
+		if title := strings.TrimSpace(note.Name); title != "" {
+			sent.Content = "<p>" + html.EscapeString(title) + "</p>" + sent.Content
+		}
+	}
 	return sent
+}
+
+// Video sends a server that asks for a video post's file to where it is,
+// and VideoPoster to its poster: signed addresses in storage, good for a
+// short while. Only of a post that goes out, asked each time, as a picture
+// is.
+func (h *Handlers) Video(c echo.Context) error {
+	return h.videoFile(c, func(video *videos.Video) string {
+		if file := video.Shared(ap.VideoMax); file != nil {
+			return file.Key
+		}
+		return ""
+	})
+}
+
+func (h *Handlers) VideoPoster(c echo.Context) error {
+	return h.videoFile(c, func(video *videos.Video) string {
+		return video.Poster
+	})
+}
+
+func (h *Handlers) videoFile(c echo.Context, keyOf func(*videos.Video) string) error {
+	uuid := c.Param("uuid")
+	if !uuidShape.MatchString(uuid) || h.Files == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+	if ok, _ := h.siteFederates(); !ok {
+		return c.NoContent(http.StatusNotFound)
+	}
+	post, err := h.Nodes.ReadByUUID(uuid)
+	if err != nil || post == nil || post.Type != videos.NodeType {
+		return c.NoContent(http.StatusNotFound)
+	}
+	if author, _ := h.goesOut(post); author == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+	key := keyOf(videos.FromMeta(post.Meta))
+	if key == "" {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	request := services.NewFileRequest().Presign
+	request.Path = key
+	address, err := h.Files.Presign(request)
+	if err != nil || address == "" {
+		return c.NoContent(http.StatusNotFound)
+	}
+	c.Response().Header().Set("Cache-Control", "public, max-age=180")
+	return c.Redirect(http.StatusFound, address)
 }
 
 // Picture sends a server that asks for one of a photo post's pictures to

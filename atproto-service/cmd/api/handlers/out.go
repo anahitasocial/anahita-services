@@ -26,6 +26,10 @@ import (
 	"anahita-libs/federation"
 	"anahita-libs/linkpreviews"
 	images "anahita-libs/utils"
+	"anahita-libs/videos"
+	"io"
+	"net/http"
+	"strings"
 )
 
 // What somebody here does to something from Bluesky, done there too.
@@ -252,7 +256,9 @@ func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 		return err
 	}
 	isPhoto := note.Type == constants.NodeMediumPhotoEntityType
-	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto) || note.IsRemote() || !note.Enabled || note.DeletedAt != nil || note.Hidden {
+	// A video post is written once it has its video.
+	isVideo := note.Type == videos.NodeType && videos.FromMeta(note.Meta) != nil
+	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo) || note.IsRemote() || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil
 	}
 	if note.CreatedBy <= 0 {
@@ -423,13 +429,27 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 		// Deleted before it was written.
 		return nil, nil
 	}
-	post := bsky.NewOutPost(note.Body, note.Language, note.CreatedAt)
+	words := note.Body
+	// A video post's title comes first, as its own line: a post on
+	// Bluesky has no title of its own.
+	if note.Type == videos.NodeType {
+		if title := strings.TrimSpace(note.Name); title != "" {
+			words = strings.TrimSpace(title + "\n\n" + words)
+		}
+	}
+	post := bsky.NewOutPost(words, note.Language, note.CreatedAt)
 	if subject != nil {
 		post.Reply = &bsky.OutReply{Root: *root, Parent: *subject}
 	}
 	// Its pictures, when it is a photo post.
 	if note.Type == constants.NodeMediumPhotoEntityType {
 		if err := h.withPictures(post, note, upload); err != nil {
+			return nil, err
+		}
+	}
+	// Its video, when it is a video post.
+	if note.Type == videos.NodeType {
+		if err := h.withVideo(ctx, post, note, upload); err != nil {
 			return nil, err
 		}
 	}
@@ -442,6 +462,81 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 		post.WithCard(card.URL, card.Title, card.Description, h.cardPicture(card.ImageKey, upload))
 	}
 	return post, nil
+}
+
+// withVideo gives a post the video of a video post: a size no taller than
+// 720 and no heavier than Bluesky is sent, read from this installation's
+// storage and given to the account's server; Bluesky makes it ready to
+// play once the post is written. A video too long or too heavy to send,
+// or one Bluesky would not take, goes as a card that leads to it, with
+// its poster.
+func (h *Handlers) withVideo(ctx context.Context, post *bsky.OutPost, note *entities.AnahitaNode, upload uploader) error {
+	video := videos.FromMeta(note.Meta)
+	if video == nil {
+		return nil
+	}
+	if file := video.Shared(bsky.VideoMax); file != nil && video.Duration <= bsky.VideoSecondsMax && h.Transfers != nil {
+		content, err := h.fetched(ctx, file.Key, bsky.VideoMax)
+		if err != nil {
+			// Storage may be back in a moment: tried again.
+			return err
+		}
+		blob, err := upload(content, videos.MimeVideo)
+		if errors.Is(err, bsky.ErrExpired) || errors.Is(err, bsky.ErrDenied) {
+			return err
+		}
+		if err == nil {
+			post.WithVideo(blob, file.Width, file.Height)
+			return nil
+		}
+		log.Printf("the video of post %d was not taken by Bluesky, and goes as a card: %v", note.ID, err)
+	}
+
+	title := strings.TrimSpace(note.Name)
+	if title == "" {
+		title = h.Site.Web(fmt.Sprintf("/videos/%d", note.ID))
+	}
+	var poster *bsky.OutBlob
+	if video.Poster != "" && h.Keeper != nil && h.Keeper.Files != nil {
+		if content, mimeType := h.stored(video.Poster); content != nil {
+			poster, _ = upload(content, mimeType)
+		}
+	}
+	post.WithCard(h.Site.Web(fmt.Sprintf("/videos/%d", note.ID)), title, "", poster)
+	return nil
+}
+
+// fetched reads a file from this installation's storage, whole, at an
+// address only the services reach. One heavier than max is refused.
+func (h *Handlers) fetched(ctx context.Context, key string, max int64) ([]byte, error) {
+	address, err := h.Transfers.FetchURL(key)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
+	if err != nil {
+		return nil, err
+	}
+	client := h.Fetch
+	if client == nil {
+		client = &http.Client{Timeout: bsky.VideoTimeout}
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("reading %s answered %d", key, res.StatusCode)
+	}
+	content, err := io.ReadAll(io.LimitReader(res.Body, max+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(content)) > max {
+		return nil, federation.Permanent(fmt.Errorf("%s is heavier than %d bytes", key, max))
+	}
+	return content, nil
 }
 
 // uploader gives a file to the account's server.

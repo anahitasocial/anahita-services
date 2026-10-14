@@ -17,6 +17,7 @@ import (
 	"anahita-libs/site"
 
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 // Reading Bluesky.
@@ -86,6 +87,11 @@ type Env struct {
 	RepostRecords repositories.RepostsInterface
 	// What copies pictures into this installation's storage.
 	Keeper *federation.Keeper
+	// Where a video post's file is read from, at an address only the
+	// services reach, to be sent to Bluesky; and what reads it. Without
+	// Transfers a video post goes as a card that leads to it.
+	Transfers services.FileTransfersInterface
+	Fetch     *http.Client
 	// What finds the card of a link. Nil for none.
 	Cards federation.Cards
 	// Announce says on the bus that a post was kept or is gone. Nil when
