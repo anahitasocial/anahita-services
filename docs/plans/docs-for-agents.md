@@ -33,9 +33,16 @@ Most of them will never clone the repositories to change the code, and many will
 | **What the API takes and sends** ([api-reference.md](api-reference.md)) | Today an agent reads handlers to learn a field's name, and guesses |
 | **Not every page says where its code is.** `feeds.md` and `recommendations.md` end with "Where the code is"; most do not | The first thing an agent does with a page is look for the files |
 
+### Added 2026-10-14: plain language, and keeping the docs true
+
+The user asked that the docs be "updated and descriptive for people to read and understand, otherwise they won't be useful", and asked whether plain language would make them worse for training AI; separate docs only if it had to, and hopefully not. It does not have to: plain language serves both, and a model reads clear, current text best, as a person does. So this item also takes on:
+
+- **A plain-language pass over both repositories' docs.** Much of the prose is roundabout ("somebody", "left alone", "as it comes", "what is due to go"). Rewritten in short, direct sentences, with one word for one thing throughout: "profile", not "actor", in what people read; "by default", not "as it comes". The facts, file paths, settings, endpoints and tables stay; only the way they are said changes.
+- **Keeping them true.** A sweep of both repositories on 2026-10-14 found about 57 statements the code no longer bore out (features "not built" that were, settings documented but never passed, services long merged) and one bug behind them. They were fixed; this item makes the sweep a habit: a short checklist in `AGENTS.md` (when a feature changes, grep the docs for it, and remove "not built yet" the day it is), and a check in `make test` that every link between pages and every heading anchor resolves.
+
 ## Decisions
 
-- **No separate documentation for agents.** One set, for both.
+- **No separate documentation for agents.** One set, for both, in plain language.
 - **`AGENTS.md` at the root of each repository** holds the working agreements. It is the name most tools read; `CLAUDE.md` in each becomes one line that brings it in, so nothing is said twice.
 - **The MCP server only reads.** Docs, plans and the API reference. It has no way to the database, to a running site or to anything that changes something.
 - **It runs from a clone first, and is hosted as soon as the docs are public:** the people it is for have no clone.
@@ -117,7 +124,9 @@ What ours adds to that shape is the API reference's route lookups and the recipe
 | 3. Hosted | 2–3 h, when the docs are public |
 | 4. `llms.txt` and its check | 1 h, then |
 | The four doors in the index, and the list of pages found missing | 2–3 h |
-| **Total** | **about 14–19 h, 4–5 sessions**, without the missing pages themselves |
+| The plain-language pass over both repositories' docs | 6–8 h |
+| The link and anchor check in `make test`, and the checklist | 1 h |
+| **Total** | **about 21–28 h, 6–7 sessions**, without the missing pages themselves |
 
 ## Verification
 
@@ -148,5 +157,5 @@ What ours adds to that shape is the API reference's route lookups and the recipe
 
 | Item | State |
 | --- | --- |
-| Plan | written 2026-10-11 |
+| Plan | written 2026-10-11; the plain-language pass and keeping the docs true added 2026-10-14 |
 | Implementation | not started; place in the order not decided |

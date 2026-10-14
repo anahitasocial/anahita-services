@@ -310,6 +310,8 @@ This overlay has been checked to build. It has not been run on EKS.
 Being found and followed from Mastodon and the like is its own piece of
 setting up, with names that cannot be changed afterwards. It has a page of
 its own, in the order to do it: [Federation](federation.md#setting-it-up).
+Reading Bluesky, and writing to it for people who connect their own
+account, needs much less: see [Bluesky](federation.md#bluesky).
 
 ## Upgrading
 
@@ -327,15 +329,20 @@ or `secrets.env` and applying again restarts the services that read them.
 Every Deployment starts with one replica. The services that only answer
 requests can be given more:
 
-avatar, cover, feed, group, like, location, photo, search,
-socialgraph, text, and the gateway.
+export, feed, identity-image, like, link-preview, location, photo,
+search, socialgraph, text, video, web-shell, and the gateway.
 
-These listen for events, and each copy receives every event, so two copies
-would do the work twice (two notifications, two emails). Keep them at one
-until the event bus has durable queues:
+The two workers, export-worker and video-worker, take their jobs from a
+table one at a time, so any number of copies share the work without doing
+it twice.
 
-abuse-report, auth, hashtag, notification, person, file-grpc, graph-grpc,
-mail-grpc.
+These listen for events on the bus, and each copy receives every event, so
+two copies would do the work twice (two notifications, two emails, two
+posts sent to another server). Keep them at one until the event bus has
+durable queues:
+
+abuse-report, activitypub, actor, atproto, auth, hashtag, notification,
+recommendation, file-grpc, graph-grpc, mail-grpc.
 
 ## Trying it on your own machine
 

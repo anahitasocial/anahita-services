@@ -22,18 +22,22 @@ const (
 )
 
 type SearchBrowseRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Offset        uint64                 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
-	Limit         uint64                 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
-	Ordering      string                 `protobuf:"bytes,3,opt,name=ordering,proto3" json:"ordering,omitempty"`
-	OrderingDir   string                 `protobuf:"bytes,4,opt,name=ordering_dir,json=orderingDir,proto3" json:"ordering_dir,omitempty"`
-	Keywords      string                 `protobuf:"bytes,5,opt,name=keywords,proto3" json:"keywords,omitempty"`
-	Scope         string                 `protobuf:"bytes,6,opt,name=scope,proto3" json:"scope,omitempty"`
-	CoordRadius   int32                  `protobuf:"varint,8,opt,name=coord_radius,json=coordRadius,proto3" json:"coord_radius,omitempty"`
-	CoordLng      float32                `protobuf:"fixed32,9,opt,name=coord_lng,json=coordLng,proto3" json:"coord_lng,omitempty"`
-	CoordLat      float32                `protobuf:"fixed32,10,opt,name=coord_lat,json=coordLat,proto3" json:"coord_lat,omitempty"`
-	Viewer        *Viewer                `protobuf:"bytes,11,opt,name=viewer,proto3" json:"viewer,omitempty"`
-	AccessCheck   bool                   `protobuf:"varint,12,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Offset      uint64                 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit       uint64                 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Ordering    string                 `protobuf:"bytes,3,opt,name=ordering,proto3" json:"ordering,omitempty"`
+	OrderingDir string                 `protobuf:"bytes,4,opt,name=ordering_dir,json=orderingDir,proto3" json:"ordering_dir,omitempty"`
+	Keywords    string                 `protobuf:"bytes,5,opt,name=keywords,proto3" json:"keywords,omitempty"`
+	Scope       string                 `protobuf:"bytes,6,opt,name=scope,proto3" json:"scope,omitempty"`
+	CoordRadius int32                  `protobuf:"varint,8,opt,name=coord_radius,json=coordRadius,proto3" json:"coord_radius,omitempty"`
+	CoordLng    float32                `protobuf:"fixed32,9,opt,name=coord_lng,json=coordLng,proto3" json:"coord_lng,omitempty"`
+	CoordLat    float32                `protobuf:"fixed32,10,opt,name=coord_lat,json=coordLat,proto3" json:"coord_lat,omitempty"`
+	Viewer      *Viewer                `protobuf:"bytes,11,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	AccessCheck bool                   `protobuf:"varint,12,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
+	// The searcher's own choices for "Most relevant": what they follow
+	// before anything else, and interest that fades within a month.
+	FollowedFirst bool `protobuf:"varint,13,opt,name=followed_first,json=followedFirst,proto3" json:"followed_first,omitempty"`
+	RecentFirst   bool `protobuf:"varint,14,opt,name=recent_first,json=recentFirst,proto3" json:"recent_first,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -141,6 +145,20 @@ func (x *SearchBrowseRequest) GetViewer() *Viewer {
 func (x *SearchBrowseRequest) GetAccessCheck() bool {
 	if x != nil {
 		return x.AccessCheck
+	}
+	return false
+}
+
+func (x *SearchBrowseRequest) GetFollowedFirst() bool {
+	if x != nil {
+		return x.FollowedFirst
+	}
+	return false
+}
+
+func (x *SearchBrowseRequest) GetRecentFirst() bool {
+	if x != nil {
+		return x.RecentFirst
 	}
 	return false
 }
@@ -329,7 +347,7 @@ var File_proto_graphpb_search_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_search_proto_rawDesc = "" +
 	"\n" +
-	"\x1aproto/graphpb/search.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\"\xe1\x02\n" +
+	"\x1aproto/graphpb/search.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\"\xab\x03\n" +
 	"\x13SearchBrowseRequest\x12\x16\n" +
 	"\x06offset\x18\x01 \x01(\x04R\x06offset\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x04R\x05limit\x12\x1a\n" +
@@ -342,7 +360,9 @@ const file_proto_graphpb_search_proto_rawDesc = "" +
 	"\tcoord_lat\x18\n" +
 	" \x01(\x02R\bcoordLat\x12%\n" +
 	"\x06viewer\x18\v \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
-	"\faccess_check\x18\f \x01(\bR\vaccessCheckJ\x04\b\a\x10\b\"9\n" +
+	"\faccess_check\x18\f \x01(\bR\vaccessCheck\x12%\n" +
+	"\x0efollowed_first\x18\r \x01(\bR\rfollowedFirst\x12!\n" +
+	"\frecent_first\x18\x0e \x01(\bR\vrecentFirstJ\x04\b\a\x10\b\"9\n" +
 	"\x14SearchBrowseResponse\x12!\n" +
 	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\"\xf3\x01\n" +
 	"\x12SearchCountRequest\x12\x1a\n" +

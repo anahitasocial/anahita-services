@@ -1,0 +1,21 @@
+{
+  "match": {
+    "handle": 100,
+    "name": 90,
+    "name_starts": 70,
+    "word_starts": 60,
+    "name_contains": 50,
+    "hashtag": 40,
+    "body_word": 20,
+    "body_contains": 10
+  },
+  "following": 15,
+  "useful": {
+    "scale": 5,
+    "like": 1,
+    "save": 2,
+    "reply": 2,
+    "follow": 1
+  },
+  "half_life_days": 365
+}

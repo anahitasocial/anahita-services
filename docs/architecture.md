@@ -60,12 +60,12 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `export-service` | 8104 | — | A person's copy of their own data: asking for one and fetching it. Optional. See [Download your data](data-export.md) |
 | `export-worker` | — | — | Makes each archive asked for, and deletes the ones kept their time. Answers no requests |
 | `web-shell` | 8102 | — | Sends the web app, with each page's own title, description and picture written into `index.html`, so a shared link shows as itself. On the web app's host, not the API's. Optional. See [The web shell](web-shell.md) |
-| `atproto-service` | 8106 | — | Reads Bluesky: accounts there are looked up and followed from here, and their posts kept as they are written. Writes nothing to Bluesky. The one service that holds a connection open to the outside. Optional. See [Reading Bluesky](federation.md#reading-bluesky) |
-| `activitypub-service` | 8105 | — | Speaks to other servers of the fediverse: who here chose to be found, and their description. The one service that reads what other servers send. Optional. See [Federation](federation.md) |
+| `atproto-service` | 8106 | — | Bluesky: accounts there are looked up and followed from here, and their posts kept as they are written; for whoever connects their own Bluesky account, their public posts, replies, likes, reposts and follows are written there as them. The one service that holds a connection open to the outside. Optional. See [Bluesky](federation.md#bluesky) |
+| `activitypub-service` | 8105 | — | Makes the installation a server of the fediverse: people who choose to be found, and their posts, replies, likes, reposts and follows both ways; also the list of servers the site refuses. The one service that reads what other servers send. Optional. See [Federation](federation.md) |
 | `abuse-report-service` | 8099 | — | Reports of people and posts, and the cases administrators decide. See [Abuse reports](abuse-reports.md) |
 | `graph-grpc-service` | — | 50054 | Node/edge graph: actors, media, edges, traversal, trending |
 | `file-grpc-service` | — | 50055 | File storage on any S3-compatible object store; checks what each upload really is, and signs the addresses large files are sent to directly |
-| `mail-grpc-service` | — | 50051 | Email delivery over SMTP |
+| `mail-grpc-service` | — | 50056 | Email delivery over SMTP (50051 inside its container) |
 | `migration-job` | — | — | One-shot database migrations |
 | `account-sweeper` | — | — | What is done by the clock, hourly: purges accounts past their 30-day deletion grace period, and finishes purges a super administrator asked for; removes images uploaded for a post that was never made, and invitations nobody answered; reminds people of an event a day before, and archives one thirty days after it ended. Not started by `up`; run with `docker compose run --rm account-sweeper`. See [Account lifecycle](account-lifecycle.md) |
 
@@ -74,6 +74,7 @@ Backing services in `docker-compose.yml`:
 - **MySQL** (3306) — all persistent data
 - **Redis** (6379) — sessions
 - **RabbitMQ** (5672) — the `anahita_events` exchange
+- **Garage** (3900) — object storage, S3-compatible, for local development
 
 ## Routing
 
@@ -85,7 +86,7 @@ Kubernetes, where the Ingress sends everything to it
 | Path prefix | Service |
 | --- | --- |
 | `/oauth/`, `/auth`, `/signup`, `/signup-requests`, `/accounts`, `/agreements`, `/onboarding`, `/password`, `/email`, `/username`, `/reauth`, `/totp`, `/webauthn`, `/invites`, `/clients`, `/auth-logs/`, `/oauth-signing-keys`, `/.well-known/`, `/nodeinfo/`, `/static/` | `auth-service` |
-| `/articles/`, `/notes/`, `/topics/` | `text-service` |
+| `/articles/`, `/notes/`, `/topics/`, `/bookmarks/` | `text-service` |
 | `/people/`, `/groups/`, `/events/` | `actor-service` |
 | `/photos/` | `photo-service` |
 | `/videos/` | `video-service` |
@@ -347,7 +348,7 @@ The shared module every service imports:
 | `ratelimit` | A counter in Redis: so many of something in a window, for each person |
 | `safehttp` | An HTTP client for going where somebody else said to: public addresses only, decided at the moment of connecting. For link previews and for speaking to other servers |
 | `policy` | The installation's settings on who may see what, which several services must agree on |
-| `federation` | What the services that speak to other servers share: the text of a post there and back (Markdown to HTML that is safe to send, HTML that arrived to Markdown that is safe to keep), and the queue of what is to be sent |
+| `federation` | What the services that speak to other servers share: the text of a post there and back (Markdown to HTML that is safe to send, HTML that arrived to Markdown that is safe to keep); the queue of what is to be sent; copying pictures, avatars and covers in, removing them after a while and copying them back when asked (`media.go`); the cards of links; the limits on what is kept from elsewhere (`retention.go`); custom emoji; and the servers the site refuses |
 | `site` | Where the installation is, as the internet sees it: its domain, and the addresses of its web app and API. See [What a node is called elsewhere](#what-a-node-is-called-elsewhere) |
 | `language` | The language a post is written in |
 | `feeds` | What a custom feed is made of, and the rules a definition keeps |
@@ -407,11 +408,8 @@ by servers this one may never hear from again.
   `/.well-known`** by sending them on to the API
   ([The web shell](web-shell.md)).
 
-This is groundwork for federation
-([plans/federation.md](plans/federation.md)). Nothing is sent to or kept
-from another server yet. What is built on it so far, finding and describing
-somebody here, is in [Federation](federation.md); to try it, see
-[The federation lab](federation-lab.md).
+Federation is built on this; see [Federation](federation.md), and to try
+it on one machine, [The federation lab](federation-lab.md).
 
 ## Naming dates and times
 

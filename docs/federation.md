@@ -1,7 +1,8 @@
 # Federation
 
-How people here are found and followed from other servers of the fediverse,
-and what an installation has to do for that to happen.
+How people here take part in the fediverse (ActivityPub: Mastodon and the
+servers like it) and in Bluesky (the AT Protocol), and what an installation
+has to do for that to happen.
 
 **This is being built.** What is described here is what works today: a
 person can choose to be found, people follow each other across servers
@@ -11,12 +12,13 @@ switch, the lookup, and shows people and posts from other servers.
 Replies, likes and reposts cross both ways. Posts cross with their
 pictures, and arrive with a card for the link in them.
 
-Bluesky is read, not yet written to: somebody here can follow an account
-there and have its posts. See [Reading Bluesky](#reading-bluesky).
+Bluesky is read for everybody, and written to for whoever connects the
+Bluesky account they already have. See [Bluesky](#bluesky).
 
 ## Contents
 
 - [What it is](#what-it-is)
+- [A server on one network, an app on the other](#a-server-on-one-network-an-app-on-the-other)
 - [Setting it up](#setting-it-up)
 - [Keeping it running](#keeping-it-running)
 - [When something does not work](#when-something-does-not-work)
@@ -39,7 +41,7 @@ there and have its posts. See [Reading Bluesky](#reading-bluesky).
 - [Servers that are refused](#servers-that-are-refused)
 - [Pictures that are removed](#pictures-that-are-removed)
 - [Posts and people that are removed](#posts-and-people-that-are-removed)
-- [Reading Bluesky](#reading-bluesky)
+- [Bluesky](#bluesky)
 - [Where the code is](#where-the-code-is)
 
 ## What it is
@@ -51,8 +53,102 @@ of its own because it is the one that reads what the internet sends it, and
 because an installation may not want it at all.
 
 Bluesky speaks a different protocol, and is a different service:
-`atproto-service`, which so far reads Bluesky and writes nothing to it. See
-[Reading Bluesky](#reading-bluesky).
+`atproto-service`, which reads Bluesky for everybody here, and writes to it
+for whoever connects the Bluesky account they already have. See
+[Bluesky](#bluesky).
+
+## A server on one network, an app on the other
+
+Anahita takes part in the two networks in two different ways, and what
+people own, and where, follows from that.
+
+| | ActivityPub (Mastodon and the fediverse) | AT Protocol (Bluesky) |
+| --- | --- | --- |
+| Anahita is | a server, as a Mastodon server is | an app, as a Bluesky client is, with a small reader of its own |
+| Somebody's identity there | `@name@your-site.example`, made by Anahita when they turn federation on | the Bluesky account they already have, which they connect |
+| Who holds the keys that sign for them | Anahita, encrypted | their own Bluesky server; Anahita keeps only a token to post as them, encrypted |
+| Needed to take part | turning it on in their settings | a Bluesky account of their own |
+| Where the original of what they post lives | here | here, with a copy of their public posts in their Bluesky repository |
+
+### On the fediverse: a server
+
+Anahita is an ActivityPub server in its own right. Somebody who turns
+federation on becomes `@name@your-site.example`: other servers find them by
+WebFinger, read their profile from Anahita at an address on the site's
+domain, and deliver follows, replies, likes and reposts to its inbox, each
+request signed and checked. Anahita delivers their public posts, replies,
+likes, reposts and follows to their followers' servers itself, signed with
+a key it made for them.
+
+Nobody needs an account anywhere else. The identity belongs to the site's
+domain, as on any fediverse server: if the site goes, or changes its
+domain, the identities go with it (moving an account to another server,
+ActivityPub's `Move`, is not built). Other servers keep copies of what they
+received, as they do of any federated post; deletions are sent to them, and
+no server can be made to honour one.
+
+### On Bluesky: an app
+
+On the AT Protocol each person's posts are records in their own repository,
+kept by their personal data server (PDS) and tied to their identity (a DID),
+which they can move from one server to another. Anahita is not a PDS. It
+hosts nobody's repository and gives nobody a Bluesky identity:
+
+- **Writing, as a client.** For somebody who connects their account,
+  Anahita signs in to their own PDS and writes their public notes and photo
+  posts there, and their replies, likes, reposts and follows, as Bluesky's
+  own app would. Their PDS signs the records and keeps them.
+- **Reading, as a small indexer.** It listens to Jetstream for the accounts
+  people here follow, reads profiles and posts from Bluesky's public
+  AppView, and keeps what it finds in its own database.
+
+Somebody with no Bluesky account is not on Bluesky through Anahita. Running
+a PDS beside Anahita, so that members get an identity under the site's
+domain, is written down for later (`docs/plans/atproto-server.md`).
+
+### Who owns what
+
+- **Everything posted here is kept here,** in the installation's database
+  and storage, run by whoever runs the site. That is the fediverse's sense
+  of owning: choosing one's host, or being it.
+- **A copy of a connected person's public posts goes to Bluesky.** Each
+  picture is uploaded, made small enough for Bluesky's limit of a megabyte,
+  to their PDS: Bluesky's own hosting for most people, or their own server
+  if they run one. Those copies are theirs in the AT Protocol's sense: in
+  their repository, under their identity, moving with it. From there
+  Bluesky's relay and its image and video services spread and cache them,
+  and anybody reading the public firehose may keep a copy.
+- **What a post names on Bluesky is a file, not a server.** A picture is
+  named by its content's hash and the account it belongs to; the original
+  is fetched from that account's PDS. Bluesky's app shows its own resized
+  copies from its image servers (`cdn.bsky.app`) and plays videos from its
+  video service, so most viewing comes from Bluesky's caches even when the
+  original is on somebody's own server.
+- **Deleting a post here deletes it from their Bluesky account,** and
+  Bluesky takes it out of its app. Copies others already took from the
+  public network cannot be called back, there or on the fediverse.
+- **Disconnecting stops new copies and takes nothing back.** What was
+  written to Bluesky stays there, and can no longer be removed from here.
+- **Only what is public goes out,** on either network: followers-only and
+  members-only posts, a site kept to its members, and anybody who did not
+  turn federation on or connect an account send nothing.
+- **What comes in is copied in,** pictures included, into the
+  installation's own storage, so that a reader's browser never asks another
+  server for them. Pictures from elsewhere are removed after a while unless
+  somebody here holds to the post (see
+  [Pictures that are removed](#pictures-that-are-removed)).
+- **Each person can take a copy of everything,** with
+  [Download your data](data-export.md), including an archive shaped as
+  ActivityPub has it. Their Bluesky repository is not in it: they can
+  export that from Bluesky itself.
+
+### Groups, events and the rest
+
+What only Anahita has (groups, events, articles and topics, followers-only
+posts, likes and follows between people here, custom feeds) stays here, on
+either network. An app built on the AT Protocol may keep such things as
+records of its own kinds in people's repositories; Anahita does not, since
+a repository is public and much of this is not.
 
 ## Setting it up
 
@@ -293,6 +389,8 @@ No more than the person's public profile already shows a visitor.
 | `/.well-known/host-meta` | Where WebFinger is, for servers that ask the older way |
 | `/ap/users/<uuid>` | Who they are: name, username, what they say of themselves as HTML that is safe to show, their avatar and cover at [addresses that stay](architecture.md#what-a-node-is-called-elsewhere), when they joined, whether a follow waits to be approved, and the public half of their signing key |
 | `/ap/users/<uuid>/followers`, `/following` | How many, and never who |
+| `/ap/users/<uuid>/outbox` | How many posts, and not the posts |
+| `/ap/notes/<uuid>` | One public post, as other servers read it |
 | `/ap/actor` | The installation itself, which signs what it asks of other servers in nobody's name. It has a key and nothing else: nobody follows it and it posts nothing |
 
 WebFinger answers for a handle on the API's host as well as on the handle's
@@ -357,9 +455,8 @@ Only whoever followed can take their own follow back.
 What the other server calls each follow is kept in `activitypub_follows`,
 because accepting it or undoing it means quoting it back.
 
-A person followed from elsewhere is told as they are of any follower.
-**The web app does not yet know how to show somebody from another server,**
-so until it does such a notification has a name and no profile behind it.
+A person followed from elsewhere is told as they are of any follower, and
+the notification leads to the follower's profile here.
 
 ## Following somebody on another server
 
@@ -655,9 +752,9 @@ says, until it is known who sent it:
    Nobody is believed about what somebody else did.
 3. **Only then is it read,** and only what this installation understands is
    done: `Follow` and its `Undo`; `Accept` or `Reject` of a follow asked
-   for from here; `Create`, `Update` and `Delete` of a note; `Update` and
-   `Delete` of the person themselves. Everything else is answered `202`
-   and ignored.
+   for from here; `Create`, `Update` and `Delete` of a note; `Like` and
+   `Announce` (a repost) and their `Undo`; `Update` and `Delete` of the
+   person themselves. Everything else is answered `202` and ignored.
 
 A message of more than a megabyte is refused. What cannot be checked is
 answered `401`, and nothing is kept of whoever sent it.
@@ -960,12 +1057,17 @@ only their latest. `0` turns any of the three off.
 - **It goes as if its author had taken it away:** with what is stored of
   its pictures, and said on the bus, so that its hashtags and any news of
   it go too.
-- **Then the person.** Somebody elsewhere of whom no post is left, whom
-  nobody here follows and who follows nobody here, whom nobody blocked,
-  whose nothing was liked and about whom no report is open, is removed
-  with their avatar and cover once they too have been left alone for
-  `REMOTE_UNFOLLOWED_DAYS`. Looked up again, they are read again. With
-  that setting at `0` nobody is removed.
+- **Then the person.** Somebody from elsewhere is removed, with their
+  avatar and cover, when all of these hold:
+  - no post of theirs is left here;
+  - nobody here follows them, and they follow nobody here;
+  - nobody here has blocked them, and nothing ties them to anything here
+    (no like, no mention);
+  - no open report is about them;
+  - they have been left alone for `REMOTE_UNFOLLOWED_DAYS`.
+
+  Looked up again, they are read again. With that setting at `0` nobody
+  is removed.
 - **Each service looks after what came through it,** every hour, two
   hundred posts and two hundred people at a time, the longest left alone
   first.
@@ -973,14 +1075,15 @@ only their latest. `0` turns any of the three off.
 Not built: the same for videos, which are not brought in from elsewhere
 yet (`docs/plans/remote-content-limits.md`).
 
-## Reading Bluesky
+## Bluesky
 
 `atproto-service` lets somebody here look up an account on Bluesky and
 follow it. Its posts are then kept here as they are written, and are in the
 feed of whoever follows it, like the posts of anybody else they follow.
 
-**Anybody reads; whoever connects their own Bluesky account also
-answers.** Nobody is given a name on Bluesky by this installation. Somebody
+**Everybody can read Bluesky; whoever connects their own Bluesky account
+can also post, reply, like, repost and follow there.** Nobody is given a
+name on Bluesky by this installation. Somebody
 who already has an account there can connect it, and from then on their
 public notes are posted there, and a like, a repost or a reply they give
 here to something from Bluesky is made there too, as that account: see [Answering on Bluesky](#answering-on-bluesky).
@@ -989,9 +1092,12 @@ reply being written, and their follow of somebody on Bluesky is kept here
 without that account being told.
 
 So it asks nothing of the installation but a way out to the internet: no
-public name, no certificate, nobody choosing to be found. It works on a
-developer's machine as it is, and on a site that is for members only,
-since nothing leaves.
+public name, no certificate. It works on a developer's machine as it is.
+**Only a site open to read writes to Bluesky** (`SITE_READ_ACCESS` left
+out or `public`), and only for somebody whose profile anybody may see. On
+a site kept to its members, or one that shows visitors a preview,
+connecting an account is not offered and nothing leaves; reading still
+works.
 
 ### Running it
 
@@ -1006,6 +1112,10 @@ ask, and offers nothing.
 | `ATPROTO_JETSTREAM_URL` | Optional. Where posts are heard as they are written: one address or several, with commas between. Left out, the four Bluesky runs (`wss://jetstream1.us-east.bsky.network/subscribe` and its three siblings). More than one is better than one: see [Hearing what is posted](#hearing-what-is-posted) |
 | `ATPROTO_CDN_URL` | Optional. Where pictures are fetched from, to be copied here. Left out, `https://cdn.bsky.app` |
 | `LINK_PREVIEW_URL` | Where `link-preview-service` is, for the card of a link in a post. Left out, such posts have no card |
+| `ATPROTO_PLC_URL` | Optional. The directory a DID is looked up in. Left out, Bluesky's, `https://plc.directory` |
+| `CRYPT_BACKEND`, `CRYPT_LOCAL_KEY` (or `AWS_KMS_KEY_ID`) | The same as auth-service's. The token of each connected account is kept encrypted under them; without them nobody can connect an account and nothing is written to Bluesky |
+| `SITE_READ_ACCESS` | The same as every service's. Anything but `public` (or left out) turns writing to Bluesky off |
+| `FEDERATION_PROTOCOLS` | Read by auth-service, not this service: add `atproto` (`activitypub,atproto`) so that NodeInfo says the site is on Bluesky and the web app's front page says so |
 
 The rest is what every service has: the database, the graph and file
 services, the bus, and the settings for checking who is signed in.
@@ -1046,11 +1156,11 @@ on the fediverse. Their address between servers is `at://` and their DID,
 which does not change when their handle does; `origin_domain` is
 `bsky.app`, where "View on bsky.app" leads.
 
-A handle can pass from one account to another. Whoever has it now is
-called by it only once whoever had it is no longer kept by it; until then
-they are called by their DID, written so that it could be no handle
-(`did-plc-….invalid`). An account whose handle no longer leads to it is
-called the same way.
+A handle can pass from one account to another. When it does, the new
+owner of the handle is shown here by their DID, written so it cannot be
+mistaken for a handle (`did-plc-….invalid`), until the old account is no
+longer kept here; then the new owner gets the handle. An account whose
+handle no longer leads to it is shown by its DID in the same way.
 
 Their profile is at `/people/alice.bsky.social`: a username here can have
 no dot in it, so a name with one is somebody on Bluesky.
@@ -1233,7 +1343,7 @@ app.
 
 | What | Where |
 | --- | --- |
-| Reading Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `reposts.go`, `backfill.go`, `stream.go`, `events.go`; writing: `settings.go`, `out.go`, `bsky/session.go`, `bsky/outgoing.go`), tables `atproto_actors`, `atproto_cursor`, `atproto_reposts`, `atproto_accounts`, `atproto_sent`, `atproto_writes` |
+| Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `reposts.go`, `backfill.go`, `stream.go`, `events.go`, `own.go` (one's own Bluesky posts brought in), `import.go` (importing follows), `reactions.go` and `verify.go` (what people on Bluesky do in return, and what they took back), `media.go` and `retention.go` (pictures and posts removed after a while); writing: `settings.go`, `out.go`, `bsky/session.go`, `bsky/outgoing.go`), tables `atproto_actors`, `atproto_cursor`, `atproto_reposts`, `atproto_accounts`, `atproto_sent`, `atproto_writes` |
 | What both protocols share | `anahita-libs/federation/`: pictures (`pictures.go`), removing and restoring them (`media.go`), cards (`cards.go`), refused servers (`blocks.go`), a post's words (`content.go`) |
 | The service | `activitypub-service/` |
 | Who is on the fediverse | `cmd/api/handlers/handlers.go`: `siteFederates`, `mayFederate`, `federating` |

@@ -19,10 +19,11 @@ stored, how it is chosen, and what uses it.
 - **Screen readers.** A French post on an English page is read with French
   pronunciation, because its text is marked with its language.
 - **Other fediverse servers.** Mastodon and Bluesky both file a post under its
-  language, and their users filter by it. Once this installation federates,
-  its posts arrive tagged.
+  language, and their users filter by it. Posts sent from here arrive
+  tagged with theirs.
+- **Custom feeds** can keep to posts in one language.
 - **Later:** a translate button, which needs to know what it is translating
-  from, and a language filter in custom feeds.
+  from.
 
 The author chooses. **Nothing guesses a language.** A post whose author did
 not say has none, and that is deliberate: other servers show an untagged post
@@ -79,9 +80,9 @@ shown in is a separate thing, chosen in the web app.
 - **A language button in the composer**, beside the audience button, showing
   the code (`EN`). It opens a list of about sixty languages, named in the
   language the app is being read in.
-- **Where it starts**, in order: the language this person last posted in, in
-  this browser; the posting language on their profile; the browser's language;
-  English.
+- **Where it starts**, in order: the posting language on their profile; the
+  browser's language, which is the computer's; English. A language chosen
+  for one post applies to that post only.
 - **Posts are marked with their language** where they are drawn, so a screen
   reader reads each in the right one.
 - **Profile settings** have "Language you post in". Left on "My browser's
@@ -98,8 +99,8 @@ language today:
   could only be guessed, and guessing is what the point above leaves out.
 - **Changing a post's language in the web app** after it is posted. The API
   accepts it; the edit form does not offer it yet.
-- **An index on the column.** Nothing filters by language yet. Custom feeds
-  will, and should add it then.
+- **An index on the column.** Custom feeds filter by language, without
+  one; it is worth adding when feeds that do grow slow.
 - **More than one language per post.** Bluesky allows three.
 
 They belong with federation, a translate button or custom feeds, whichever

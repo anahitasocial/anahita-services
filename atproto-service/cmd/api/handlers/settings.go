@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/policy"
 	"context"
 	"errors"
 	"fmt"
@@ -63,7 +64,14 @@ func settingsOf(account *repositories.Account) *Settings {
 }
 
 // canWrite says whether this installation writes to Bluesky at all.
+//
+// Only a site open to read writes anything to Bluesky: on one kept to its
+// members, or one that shows visitors a preview, nothing may leave, as for
+// the fediverse (docs/privacy.md). Connecting is not offered there either.
 func (h *Handlers) canWrite() bool {
+	if policy.SiteReadAccess() != policy.ReadPublic {
+		return false
+	}
 	return h.Accounts != nil && h.Sent != nil && h.Writer != nil && h.Crypt != nil && h.Queue != nil
 }
 

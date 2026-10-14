@@ -253,8 +253,8 @@ containers's requests go out as anybody's do.
   little differently. Before a release, federation is tried against real
   servers through a tunnel to a throwaway name of its own, never one that
   will later be a real site's.
-- **Not for Bluesky.** Reading from Bluesky needs nothing to be reachable;
-  writing to it needs a public address.
+- **Not for Bluesky.** Bluesky needs no lab: reading it and writing to it
+  for a connected account both work from a developer's machine.
 
 ## Where the code is
 

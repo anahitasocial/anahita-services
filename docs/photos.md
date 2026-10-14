@@ -25,8 +25,8 @@ Mastodon and Bluesky send them, as one post with attachments.
 
 Four is the limit because it is what a stock Mastodon server lets its users
 attach, so a post of four is shown whole there. Bluesky allows more. Whether
-to raise it is left until federation is built and what other servers do with a
-longer post can be seen; see [the federation plan](plans/federation.md).
+to raise it is left until what other servers do with a longer post has been
+seen.
 It is a constant (`constants.PhotoMaxFiles`), not a setting, and is published
 in NodeInfo as `metadata.photoMaxFiles` so that a client does not have to
 carry the number.
@@ -216,8 +216,8 @@ Videos work the same way, with `/videos/` in place of `/photos/`; see
 | Formats | JPEG, PNG |
 | A description | 1,500 characters |
 
-Bluesky takes images of up to 2 MB. The sizes stored here are well under that
-except, for some pictures, `original`; what is sent there should be `xxlarge`.
+Bluesky takes images of up to 1 MB. A picture sent there is made small enough
+before it goes.
 
 ## What is not built
 

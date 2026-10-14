@@ -24,6 +24,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 - [Mail](#mail)
 - [Abuse reports](#abuse-reports)
 - [Account cleanup](#account-cleanup)
+- [Federation](#federation)
 - [The web shell](#the-web-shell)
 - [Video](#video)
 - [Download your data](#download-your-data)
@@ -35,6 +36,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 | `ENV` | all | `dev`, `staging` or `prod`. Decides the default public URLs below, and in `dev` all mail goes to `DEVELOPER_EMAIL` |
 | `DSN` | services with a database | MySQL DSN, e.g. `root:root@(mysql:3306)/anahita?parseTime=true` |
 | `REDIS_ADDR`, `REDIS_PASSWORD` | HTTP services | Redis for sessions, e.g. `redis:6379` |
+| `REDIS_DB` | HTTP services | Optional. The Redis database number, `0` when left out. Useful when several installations share one Redis |
 | `REDIS_TLS` | HTTP services | `true` to connect to Redis over TLS, which most managed Redis and Valkey services require. The certificate is checked against the host in `REDIS_ADDR`. Default `false` |
 | `SECURE_COOKIE_KEY` | HTTP services | Key that signs session cookies. auth-service also derives from it the key that sign-in codes are hashed with, so changing it invalidates the codes outstanding at that moment |
 | `AMQP_ADDR` | publishers and consumers | RabbitMQ, e.g. `amqp://rabbitmq:5672` |
@@ -103,17 +105,13 @@ Read by auth-service, and mail-grpc-service for the branding. `PUBLIC_DOMAIN`
 and `PUBLIC_API_URL` are for what speaks to other servers
 (`anahita-libs/site`): `activitypub-service`, whose other settings and the
 order to do things in are in [Federation](federation.md#setting-it-up).
-`atproto-service`, which reads Bluesky, needs none of them: its own few
-settings are in [Reading Bluesky](federation.md#running-it).
+`atproto-service` reads and writes Bluesky and needs none of them; its
+settings are under [Federation](#federation).
 
 | Variable | Value |
 | --- | --- |
 | `DOMAIN_NAME` | The installation's domain. Public URLs are derived from it on staging and production |
 | `PUBLIC_DOMAIN` | Optional. The domain in a person's handle, `ana@example.org`, as other servers will know them. Left out, it is `DOMAIN_NAME` on a live site, `staging.DOMAIN_NAME` on a staging one, or the host of `PUBLIC_WEB_URL` when that is set. **Not to be changed once anybody here has been spoken of to another server:** they would become somebody else there |
-| `REMOTE_MEDIA_DAYS` | Optional, read by `activitypub-service` and `atproto-service`. How many days the pictures of a post from another server are kept in storage after the post was last touched; then they are removed, and copied again when somebody asks to see them. Thirty when left out; `0` keeps them for good. See [Pictures that are removed](federation.md#pictures-that-are-removed) |
-| `REMOTE_UNFOLLOWED_DAYS` | Optional, read by the same two. How many days the posts of somebody on another server are kept once nobody here follows them and the posts have been left alone; then they are removed, and after them the person, when nothing here refers to them. Thirty when left out; `0` keeps them for good. See [Posts and people that are removed](federation.md#posts-and-people-that-are-removed) |
-| `REMOTE_POSTS_DAYS` | Optional, read by the same two, and **off when left out**. Any post from another server that has been left alone this many days is removed, whoever wrote it and whoever follows them. What it removes is not got back by asking |
-| `REMOTE_POSTS_KEPT` | Optional, read by the same two, and **off when left out**. The most posts kept of one person on another server, the newest. What it removes is not got back by asking |
 | `FEDERATION_PROTOCOLS` | Optional, read by auth-service. The other networks the installation takes part in, with commas between: `activitypub` when `activitypub-service` is run for real, `atproto` when `atproto-service` is. NodeInfo's `protocols` claims the first; both are in `metadata.networks`, which the web app's front page reads to say that the site is part of the fediverse, with Mastodon and Bluesky. Left out, nothing is claimed. See [Federation](federation.md#setting-it-up) |
 | `PUBLIC_API_URL` | Optional. The address other servers reach the API at. Left out, `https://api.DOMAIN_NAME` on a live site and `https://api.staging.DOMAIN_NAME` on a staging one. The same warning applies: the address of every person and post, as told to other servers, begins with it |
 | `SITE_NAME` | Name shown on auth pages and in email |
@@ -179,7 +177,7 @@ Read by auth-service.
 | `OAUTH_SEED_CLIENT_PATH` | First-party clients seeded at first boot. See [Seeding clients](oauth.md#seeding-clients) |
 | `OAUTH_KEY_LIFETIME_DAYS` | Optional, not in `docker-compose.yml`. Signing key rotation, default `90` |
 | `CRYPT_BACKEND` | Encryption of secrets at rest: `local` (default) or `kms` |
-| `CRYPT_LOCAL_KEY` | Key for `local`: exactly 32 characters. Keep it out of the database and its backups. activitypub-service keeps every person's signing key under it too, so it must be given the same value: see [Federation](federation.md#signing-keys-and-signed-requests) |
+| `CRYPT_LOCAL_KEY` | Key for `local`: exactly 32 characters. Keep it out of the database and its backups. activitypub-service keeps every person's signing key under it too, and atproto-service the Bluesky tokens of connected accounts, so both must be given the same value: see [Federation](federation.md#signing-keys-and-signed-requests) |
 | `AWS_KMS_KEY_ID` | Key for `kms` |
 | `CRYPT_KMS_REGION` | Region of that KMS key. Optional: defaults to the AWS region in the environment (`AWS_DEFAULT_REGION`) |
 | `MAX_DB_CONNECTIONS` | Optional database pool size |
@@ -209,7 +207,7 @@ option to store files on the local disk.
 | --- | --- |
 | `STORAGE_ENDPOINT` | Where file-grpc-service reaches the store, e.g. `https://s3.gra.io.cloud.ovh.net` or `http://garage:3900`. **Leave empty for AWS S3**, whose address follows from the region |
 | `STORAGE_PUBLIC_ENDPOINT` | The address written into the links browsers load files from. Set it when it differs from `STORAGE_ENDPOINT`, which it does whenever the store is reached by an internal name. Defaults to `STORAGE_ENDPOINT` |
-| `STORAGE_REGION` | The region requests are signed for. A store without regions still expects one: use whatever it is configured with (Garage: `garage`) |
+| `STORAGE_REGION` | The region requests are signed for; `AWS_REGION` or `AWS_DEFAULT_REGION` is read when it is left out. A store without regions still expects one: use whatever it is configured with (Garage: `garage`) |
 | `STORAGE_BUCKET` | The bucket. It must exist and be private |
 | `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY` | Credentials. Leave both empty on AWS to use a role or profile |
 | `STORAGE_PATH_STYLE` | `true` to address files as `endpoint/bucket/key` rather than `bucket.endpoint/key`. Self-hosted stores usually need it. Default `false` |
@@ -324,11 +322,35 @@ Kubernetes manifests.
 
 Service addresses (`MAIL_SERVICE_ADDR`, `FILE_SERVICE_ADDR`,
 `GRAPH_SERVICE_ADDR`) and the defaults directories (`DEFAULTS_PATH`,
-`ACTOR_FEATURES_PATH`) are set in `docker-compose.yml` itself and need no
-entry in `.env`. The two directories default to `/app/defaults` and
-`/app/defaults/actor_features`, where the images keep their copies;
+`ACTOR_FEATURES_PATH`, `SEARCH_RANKING_PATH`) are set in
+`docker-compose.yml` itself and need no entry in `.env`. They default to
+`/app/defaults`, `/app/defaults/actor_features` and
+`/app/defaults/search_ranking.json`, where the images keep their copies;
 docker-compose points them at the working tree so an edit shows without a
-rebuild.
+rebuild. The last is the weights search orders "Most relevant" by; see
+[Search](search.md#tuning-it).
+
+## Federation
+
+Read by `activitypub-service` and `atproto-service`, the two services that
+speak to other networks. How to set either up, in order, is in
+[Federation](federation.md#setting-it-up) and, for Bluesky,
+[Running it](federation.md#running-it).
+
+| Variable | Value |
+| --- | --- |
+| `FEDERATION_PROTOCOLS` | Read by auth-service: the networks to announce in NodeInfo, `activitypub`, `atproto`, or both with a comma. Left out, none |
+| `ACTIVITYPUB_LAB` | Development only, for [the federation lab](federation-lab.md): lets activitypub-service reach the lab's private addresses. Never on a live site |
+| `ATPROTO_APPVIEW_URL`, `ATPROTO_JETSTREAM_URL`, `ATPROTO_CDN_URL`, `ATPROTO_PLC_URL` | Where atproto-service reads Bluesky from; all optional, Bluesky's own when left out. See [Running it](federation.md#running-it) |
+| `LINK_PREVIEW_URL` | Where `link-preview-service` is, for the card of a link in a post from elsewhere. Left out, such posts have no card |
+| `REMOTE_MEDIA_DAYS` | Optional, read by `activitypub-service` and `atproto-service`. How many days the pictures of a post from another server are kept in storage after the post was last touched; then they are removed, and copied again when somebody asks to see them. Thirty when left out; `0` keeps them for good. See [Pictures that are removed](federation.md#pictures-that-are-removed) |
+| `REMOTE_UNFOLLOWED_DAYS` | Optional, read by the same two. How many days the posts of somebody on another server are kept once nobody here follows them and the posts have been left alone; then they are removed, and after them the person, when nothing here refers to them. Thirty when left out; `0` keeps them for good. See [Posts and people that are removed](federation.md#posts-and-people-that-are-removed) |
+| `REMOTE_POSTS_DAYS` | Optional, read by the same two, and **off when left out**. Any post from another server that has been left alone this many days is removed, whoever wrote it and whoever follows them. What it removes is not got back by asking |
+| `REMOTE_POSTS_KEPT` | Optional, read by the same two, and **off when left out**. The most posts kept of one person on another server, the newest. What it removes is not got back by asking |
+
+Writing to Bluesky also needs `CRYPT_BACKEND` and `CRYPT_LOCAL_KEY` (or
+`AWS_KMS_KEY_ID`), the same as auth-service's, and a site open to read
+(`SITE_READ_ACCESS`).
 
 ## The web shell
 
@@ -338,7 +360,8 @@ Only for an installation that sends the web app through `web-shell`; see
 | Variable | Value |
 | --- | --- |
 | `PUBLIC_WEB_URL` | The address people reach the web app at, such as `https://www.example.org`. Left out, the host each request came to is used |
-| `WEB_BUILD_PATH` | docker-compose only: the folder with the web app's build in it. Defaults to `web-shell/web` |
+| `WEB_BUILD_PATH` | docker-compose only: the folder on the host with the web app's build in it. Defaults to `web-shell/web` |
+| `WEB_BUILD_DIR` | Where web-shell looks for the build inside its container. Defaults to `/app/web`; change it only with a build put elsewhere |
 
 ## Video
 

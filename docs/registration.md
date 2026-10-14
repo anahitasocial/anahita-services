@@ -136,8 +136,8 @@ decision, so it skips the queue. An invitation from someone who is not one
 (`INVITES_FROM=registered`) is a recommendation, so in `approval` mode it joins
 the queue like any other request.
 
-The administration screen for the queue is planned as part of the settings work
-in the web app.
+Administrators work through the queue in the web app's administration area,
+under Signup requests.
 
 ## Protection against bots
 
@@ -233,12 +233,18 @@ servers read, and the web app reads it too.
   when its operator says that service is running (`FEDERATION_PROTOCOLS`),
   and nothing on a site that is not open to read. See
   [Federation](federation.md#setting-it-up).
+- `metadata.networks` — the networks the site takes part in, from the same
+  setting: `activitypub`, `atproto`, or both. The web app's front page says
+  from it that the site is on Mastodon and Bluesky.
 - `openRegistrations` — true in `open` and `approval`. The web app shows its
   "Create account" button from this.
 - `metadata` — `nodeName`, `registrationMode`, `approvalRequired`,
   `invitationsAccepted`, `termsOfServiceUrl`, `privacyPolicyUrl`,
-  `supportEmail`, `supportPhone` and `supportWebsite`. Also `invitesFrom` and
-  `groupsFrom`, the least role that may invite or create a group, and
+  `supportEmail`, `supportPhone`, `supportWebsite` and `nodeDescription`.
+  Also `invitesFrom`, `groupsFrom` and `eventsFrom`, the least role that may
+  invite, create a group or create an event; `photoMaxFiles`, the most
+  pictures in one post; `videoUploads`, `videoMaxBytes` and
+  `videoMaxSeconds`, whether videos may be posted and how big; and
   `readAccess`, `public`, `preview` or `registered`: what somebody who is not
   signed in may read, and `minContentAccess`, the widest audience anything new may be
   given (see

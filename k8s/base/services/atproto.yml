@@ -1,4 +1,4 @@
-# atproto-service: Reads Bluesky: somebody here looks up an account there and follows it, and its posts are kept here. It writes nothing to Bluesky. Optional: an installation that leaves it out follows nobody there.
+# atproto-service: Bluesky. Somebody here looks up an account there and follows it, and its posts are kept here; whoever connects their own Bluesky account also posts, replies, likes, reposts and follows there. Optional: an installation that leaves it out follows nobody there.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,6 +20,14 @@ spec:
             - name: http
               containerPort: 80
           env:
+            # Only a site that is open to read writes anything to Bluesky,
+            # as only one that is federates. The same for every service.
+            - name: SITE_READ_ACCESS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_READ_ACCESS
+                  optional: true
             - name: ENV
               valueFrom:
                 configMapKeyRef:
@@ -110,7 +118,7 @@ spec:
                   key: PUBLIC_API_URL
                   optional: true
             # Where Bluesky is read from. Unset for the network's own. See
-            # docs/configuration.md, Federation.
+            # docs/configuration.md, Federation (and docs/federation.md).
             - name: ATPROTO_APPVIEW_URL
               valueFrom:
                 configMapKeyRef:

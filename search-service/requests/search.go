@@ -30,4 +30,8 @@ type SearchBrowseRequest struct {
 	CoordRadius int32   `query:"search_range" validate:"number,omitempty"`
 	CoordLng    float32 `query:"coord_lng" validate:"number,omitempty"`
 	CoordLat    float32 `query:"coord_lat" validate:"number,omitempty"`
+	// The searcher's own choices for "Most relevant": people and groups
+	// they follow first, and interest that fades within a month.
+	FollowedFirst bool `query:"followed_first"`
+	RecentFirst   bool `query:"recent_first"`
 }
