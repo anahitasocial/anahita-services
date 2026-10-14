@@ -14,7 +14,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-const earthRadius = 6371000 // km
+const earthRadius = 6371000 // metres: distances, and the radius asked for, are in metres
 
 type SearchRepoInterface interface {
 	// Count returns the number of Searchs
@@ -138,7 +138,9 @@ func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entitie
 
 	if req.CoordLat != 0.0 && req.CoordLng != 0.0 {
 		calculateDistance := repo.calculateDistance(req.CoordLat, req.CoordLng)
-		query = query.Where(fmt.Sprintf("%s <= %d", calculateDistance, req.CoordRadius*1000))
+		// In metres, as in Count. Multiplied again here, a search within
+		// 25 km listed what was 25,000 km away.
+		query = query.Where(fmt.Sprintf("%s <= %d", calculateDistance, req.CoordRadius))
 	}
 
 	if req.Ordering == "relevant" {
