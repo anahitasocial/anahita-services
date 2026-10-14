@@ -255,6 +255,10 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Real servers, from the lab](federation-lab.md#real-servers-from-the-lab)
    - [What it is not](federation-lab.md#what-it-is-not)
    - [Where the code is](federation-lab.md#where-the-code-is)
+22. [Search](search.md) — the order results come in, old and useful counting as much as new, and how an operator tunes it
+   - [Most relevant](search.md#most-relevant)
+   - [Old and useful counts as much as new](search.md#old-and-useful-counts-as-much-as-new)
+   - [Tuning it](search.md#tuning-it)
 
 ## Plans
 

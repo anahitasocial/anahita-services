@@ -1156,9 +1156,13 @@ services:
       # avatars, covers and photos. Without it the rows go and the objects stay.
       FILE_SERVICE_ADDR: "file-grpc-service:50051"
       ACTOR_FEATURES_PATH: /defaults/actor_features
+      # The weights search orders "Most relevant" by, read again when the
+      # file changes. See docs/search.md.
+      SEARCH_RANKING_PATH: /defaults/search_ranking.json
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
       - ./graph-grpc-defaults/actor_features:/defaults/actor_features:ro
+      - ./graph-grpc-defaults/search_ranking.json:/defaults/search_ranking.json:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.27

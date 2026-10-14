@@ -5,7 +5,11 @@ import (
 	"anahita-libs/feeds"
 	"anahita-libs/proto/graphpb"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
+
+	"graph/ranking"
 
 	"anahita-libs/constants"
 	"context"
@@ -29,6 +33,7 @@ func NewSearchRepo(db *sql.DB) SearchRepoInterface {
 	return &SearchRepo{
 		db:        db,
 		dbTimeout: constants.DBTimeout,
+		ranking:   ranking.FromEnv(),
 	}
 }
 
@@ -36,6 +41,8 @@ func NewSearchRepo(db *sql.DB) SearchRepoInterface {
 type SearchRepo struct {
 	db        *sql.DB
 	dbTimeout time.Duration
+	// The weights "Most relevant" is ordered by. See package ranking.
+	ranking *ranking.Source
 }
 
 // getBaseSelectQuery returns the base select query
@@ -61,8 +68,136 @@ func (repo *SearchRepo) calculateDistance(lat float32, lng float32) string {
 	)
 }
 
-func (repo *SearchRepo) GetRelevantSortQuery() string {
-	return "(COALESCE(node.comment_count,0) + COALESCE(node.vote_up_count,0) + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0)) DESC"
+// handleOf is what was searched for as a handle may be written, without
+// the `@` or `#` people put before one.
+func handleOf(keywords string) string {
+	return strings.ToLower(strings.TrimLeft(keywords, "@#"))
+}
+
+// wordsMatch is the condition that a node has what was searched for: in
+// its name, its handle or its body. The handle is matched without the `@`
+// somebody typed before it, so that `@bmann.ca` finds bmann.ca.
+func wordsMatch(keywords string) sq.Or {
+	return sq.Or{
+		sq.Like{"node.name": "%" + keywords + "%"},
+		sq.Like{"node.alias": "%" + handleOf(keywords) + "%"},
+		sq.Like{"node.body": "%" + keywords + "%"},
+	}
+}
+
+// How well a node matches, as points for where the words are. The first
+// that holds is the one counted.
+const relevantMatch = `(CASE
+    WHEN LOWER(node.alias) = ? THEN ?
+    WHEN LOWER(node.name) = ? THEN ?
+    WHEN node.name LIKE ? THEN ?
+    WHEN node.name LIKE ? THEN ?
+    WHEN node.name LIKE ? THEN ?
+    WHEN node.alias LIKE ? THEN ?
+    WHEN EXISTS (
+        SELECT 1
+        FROM edges AS tagged
+        JOIN nodes AS hashtag ON hashtag.id = tagged.node_a_id
+        WHERE tagged.node_b_id = node.id
+          AND tagged.type = ?
+          AND LOWER(hashtag.name) = ?
+    ) THEN ?
+    WHEN REGEXP_LIKE(COALESCE(node.body, ''), ?, 'i') THEN ?
+    ELSE ?
+END) DESC`
+
+// How useful people have found a node: its likes, saves, replies, reposts,
+// quotes and followers, each counted by when it happened (see interest),
+// on a logarithm so that a thousand comes first and not a hundred times
+// first. Then a bonus for what the searcher follows.
+const relevantStanding = `(
+    ? * LN(1
+        + ? * (
+            SELECT COALESCE(SUM(%[1]s), 0)
+            FROM edges AS liked
+            WHERE liked.node_b_id = node.id
+              AND liked.type = ?
+        )
+        + ? * (
+            SELECT COALESCE(SUM(%[2]s), 0)
+            FROM edges AS saved
+            WHERE saved.node_b_id = node.id
+              AND saved.type = ?
+        )
+        + ? * (
+            SELECT COALESCE(SUM(%[3]s), 0)
+            FROM nodes AS answer
+            WHERE answer.parent_id = node.id
+               OR answer.quote_id = node.id
+        )
+        + ? * (
+            SELECT COALESCE(SUM(%[4]s), 0)
+            FROM edges AS followed
+            WHERE followed.node_b_id = node.id
+              AND followed.type = ?
+        )
+    )
+    + %[5]s
+) DESC`
+
+// What the searcher follows, or what is on a profile they follow.
+const followedByViewer = `(CASE WHEN EXISTS (
+        SELECT 1
+        FROM edges AS mine
+        WHERE mine.type = ?
+          AND mine.node_a_id = ?
+          AND mine.node_b_id IN (node.id, node.owner_id)
+    ) THEN ? ELSE 0 END)`
+
+// interest is how much one sign of interest counts, by when it happened:
+// all of it with no half-life, half of it after each half-life.
+func interest(column string, halfLifeDays float64) string {
+	if halfLifeDays <= 0 {
+		return "1"
+	}
+	return fmt.Sprintf("POW(0.5, GREATEST(TIMESTAMPDIFF(HOUR, %s, UTC_TIMESTAMP()), 0) / %.4f)", column, halfLifeDays*24)
+}
+
+// orderByRelevance orders by how well each node matches, then by its
+// standing, as the operator's weights say.
+func orderByRelevance(query sq.SelectBuilder, keywords string, weights ranking.Weights, viewer *entities.Viewer) sq.SelectBuilder {
+	lower := strings.ToLower(keywords)
+	m := weights.Match
+
+	query = query.OrderByClause(relevantMatch,
+		handleOf(keywords), m.Handle,
+		lower, m.Name,
+		keywords+"%", m.NameStarts,
+		"% "+keywords+"%", m.WordStarts,
+		"%"+keywords+"%", m.NameContains,
+		// Inside the handle (`decafcoffeeclub`) is as good as inside the
+		// name.
+		"%"+handleOf(keywords)+"%", m.NameContains,
+		constants.EdgeTagHashtagType, strings.TrimLeft(lower, "#"), m.Hashtag,
+		`\b`+regexp.QuoteMeta(keywords)+`\b`, m.BodyWord,
+		m.BodyContains,
+	)
+
+	following := "0"
+	args := []any{
+		weights.Useful.Scale,
+		weights.Useful.Like, constants.EdgeBaseLikeEntityType,
+		weights.Useful.Save, constants.EdgeBaseBookmarkEntityType,
+		weights.Useful.Reply,
+		weights.Useful.Follow, constants.EdgeFollowEntityType,
+	}
+	if viewer != nil && viewer.ID > 0 {
+		following = followedByViewer
+		args = append(args, constants.EdgeFollowEntityType, viewer.ID, weights.Following)
+	}
+	standing := fmt.Sprintf(relevantStanding,
+		interest("liked.created_at", weights.HalfLifeDays),
+		interest("saved.created_at", weights.HalfLifeDays),
+		interest("answer.created_at", weights.HalfLifeDays),
+		interest("followed.created_at", weights.HalfLifeDays),
+		following,
+	)
+	return query.OrderByClause(standing, args...)
 }
 
 // Count returns the number of Searchs
@@ -91,11 +226,7 @@ func (repo *SearchRepo) Count(req *graphpb.SearchCountRequest, viewer *entities.
 	// search for "%" matches every row. Count and Browse must sanitise
 	// identically or the total describes a different set than the rows.
 	if keywords := sanitizeSearchString(req.Keywords); keywords != "" {
-		query = query.Where(sq.Or{
-			sq.Like{"node.name": "%" + keywords + "%"},
-			sq.Like{"node.alias": "%" + keywords + "%"},
-			sq.Like{"node.body": "%" + keywords + "%"},
-		})
+		query = query.Where(wordsMatch(keywords))
 	}
 
 	if req.CoordLat != 0.0 && req.CoordLng != 0.0 {
@@ -129,11 +260,7 @@ func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entitie
 	// search for "%" matches every row. Count and Browse must sanitise
 	// identically or the total describes a different set than the rows.
 	if keywords := sanitizeSearchString(req.Keywords); keywords != "" {
-		query = query.Where(sq.Or{
-			sq.Like{"node.name": "%" + keywords + "%"},
-			sq.Like{"node.alias": "%" + keywords + "%"},
-			sq.Like{"node.body": "%" + keywords + "%"},
-		})
+		query = query.Where(wordsMatch(keywords))
 	}
 
 	if req.CoordLat != 0.0 && req.CoordLng != 0.0 {
@@ -143,9 +270,9 @@ func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entitie
 		query = query.Where(fmt.Sprintf("%s <= %d", calculateDistance, req.CoordRadius))
 	}
 
-	if req.Ordering == "relevant" {
-		relevantSortQuery := repo.GetRelevantSortQuery()
-		query = query.OrderBy(relevantSortQuery)
+	keywords := sanitizeSearchString(req.Keywords)
+	if req.Ordering == "relevant" && keywords != "" {
+		query = orderByRelevance(query, keywords, repo.ranking.Weights(), viewer)
 	} else {
 		query = query.OrderBy("node.created_at DESC")
 	}
@@ -154,6 +281,10 @@ func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entitie
 		distanceCalculation := repo.calculateDistance(req.CoordLat, req.CoordLng)
 		query = query.OrderBy(fmt.Sprintf("%s ASC", distanceCalculation))
 	}
+
+	// Last, so that two of the same standing keep their places from one
+	// page to the next.
+	query = query.OrderBy("node.id DESC")
 
 	query = query.Limit(req.Limit).Offset(req.Offset)
 

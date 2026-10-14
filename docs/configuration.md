@@ -324,11 +324,13 @@ Kubernetes manifests.
 
 Service addresses (`MAIL_SERVICE_ADDR`, `FILE_SERVICE_ADDR`,
 `GRAPH_SERVICE_ADDR`) and the defaults directories (`DEFAULTS_PATH`,
-`ACTOR_FEATURES_PATH`) are set in `docker-compose.yml` itself and need no
-entry in `.env`. The two directories default to `/app/defaults` and
-`/app/defaults/actor_features`, where the images keep their copies;
+`ACTOR_FEATURES_PATH`, `SEARCH_RANKING_PATH`) are set in
+`docker-compose.yml` itself and need no entry in `.env`. They default to
+`/app/defaults`, `/app/defaults/actor_features` and
+`/app/defaults/search_ranking.json`, where the images keep their copies;
 docker-compose points them at the working tree so an edit shows without a
-rebuild.
+rebuild. The last is the weights search orders "Most relevant" by; see
+[Search](search.md#tuning-it).
 
 ## The web shell
 
