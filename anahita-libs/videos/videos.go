@@ -58,6 +58,9 @@ type Video struct {
 	Height     int         `json:"height"`
 	Poster     string      `json:"poster"`
 	Renditions []Rendition `json:"renditions"`
+	// Made of a GIF or an animated PNG: a silent clip played on a loop,
+	// with no controls, as the picture it was.
+	Loop bool `json:"loop,omitempty"`
 }
 
 // Folder is where one video's files are kept: under the profile it was

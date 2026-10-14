@@ -16,7 +16,7 @@ People post short loops constantly, and both networks Anahita is to federate wit
 ## Decisions
 
 - **In `video-service`, not in `photo-service` and not a service of its own** (user, 2026-10-12). The worker has ffmpeg already; an animation as MP4 is a fraction of its size as a GIF; and it is what Mastodon sends and expects.
-- **Three kinds are taken:** GIF, APNG and animated WebP. They are one case: an image file with more than one frame.
+- **Two kinds are taken:** GIF and APNG, one case: an image file with more than one frame. **Animated WebP was dropped on 2026-10-14:** ffmpeg 8.1, in the worker's image, reads the file but finds no picture in it. It is refused as not a video until ffmpeg reads one.
 - **A still picture is not taken here.** A PNG or WebP with one frame sent to the video service is refused with a reason the web app turns into "post it as a photo". The photo service is where a still goes.
 - **No GIFs from Tenor or Giphy.** Every reader's browser would call a third party. A pasted link to one shows as an ordinary link card.
 
@@ -36,9 +36,9 @@ People post short loops constantly, and both networks Anahita is to federate wit
 
 **Player (web).** A looping post plays muted, on a loop, inline, without the quality cog or the scrubber, and stops when it scrolls out of sight. It honours "reduce motion": then it waits to be pressed. A small "GIF" mark sits in its corner.
 
-**Composer (web).** Choosing a `.gif`, or a `.png` / `.webp` that is animated, in either the photo or the video composer sends it through the video upload. Whether a PNG is animated is read in the browser from the file's first chunks (`acTL`), so a still PNG goes to the photo service as now.
+**Composer (web).** An animation is posted from the **video composer**, which takes a GIF, an animated PNG or an animated WebP besides videos, and says so in its list of what it takes (user, 2026-10-14). The photo composer is left as it is: it takes JPEG and PNG pictures.
 
-**Where video is off** (`VIDEO_UPLOADS` not `on`): animations are not taken, and the composer says so. **To decide:** whether such a site should instead keep the first frame as a photo. The plan assumes not: a moving picture silently made still is worse than a clear no.
+**Where video is off** (`VIDEO_UPLOADS` not `on`): there is no video composer, so animations are not taken, and the API refuses them. Nothing is kept as a still photo of its first frame instead (user, 2026-10-14): a moving picture silently made still is worse than a clear no.
 
 **Federation.** To ActivityPub as a video attachment, marked as Mastodon marks a converted GIF, so it loops there too; to Bluesky as a video. Arriving ones are for phase 3, with the rest of media.
 
@@ -77,4 +77,4 @@ People post short loops constantly, and both networks Anahita is to federate wit
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-12 |
-| Implementation | not started; place in the order not decided |
+| Implementation | services done 2026-10-14 (the worker, limits, `loop`, NodeInfo; tested with real files in the worker's image); web in progress |

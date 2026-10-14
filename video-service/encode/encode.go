@@ -8,9 +8,9 @@
 //   - What it is is read from its first bytes, here, before ffmpeg is given
 //     it. ffmpeg will open a great many kinds of file, and some of them are
 //     lists of other files and addresses to fetch (playlists, scripts of
-//     filters). Only the two containers a video is uploaded in are let
-//     through, and ffmpeg is told which one it is being given, so it never
-//     guesses.
+//     filters). Only the two containers a video is uploaded in, and the two
+//     kinds of moving picture (GIF and animated PNG), are let through, and
+//     ffmpeg is told which one it is being given, so it never guesses.
 //   - ffmpeg may open files and nothing else: no addresses.
 //   - Nothing of the upload is kept. Every file made is encoded afresh,
 //     with no metadata copied across, so what was hidden in the upload
@@ -38,7 +38,27 @@ var (
 	ErrNotAVideo = errors.New("the file is not a video")
 	// ErrTooLong is a video longer than is allowed.
 	ErrTooLong = errors.New("the video is longer than is allowed")
+	// ErrStill is a GIF or a PNG of one picture that does not move: a
+	// photo, which is posted as one.
+	ErrStill = errors.New("the picture does not move")
 )
+
+// The two kinds of moving picture taken, by ffmpeg's names for them. An
+// animated WebP is not one: ffmpeg cannot yet read the frames of one.
+const (
+	GIF  = "gif"
+	APNG = "apng"
+)
+
+// AnimationHeight is the most an animation is made tall. It is made once,
+// at its own size up to this.
+const AnimationHeight = 720
+
+// IsAnimation says whether a container is one of the moving pictures, which
+// are made into one silent clip that plays on a loop.
+func IsAnimation(container string) bool {
+	return container == GIF || container == APNG
+}
 
 // Info is what a video is, as far as making its sizes needs to know.
 type Info struct {
@@ -48,6 +68,9 @@ type Info struct {
 	Height   int
 	Duration float64
 	HasAudio bool
+	// A GIF or an animated PNG, and how many pictures it has.
+	Animated bool
+	Frames   int
 }
 
 // Target is one size to make.
@@ -56,10 +79,19 @@ type Target struct {
 	Width  int
 }
 
+var pngSignature = []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n'}
+
 // Container says which of the kinds taken a file is, from its first
-// bytes: "mov" for MP4 and QuickTime, "matroska" for WebM. ffmpeg's own
-// names for them.
+// bytes: "mov" for MP4 and QuickTime, "matroska" for WebM, "gif" and
+// "apng" for the moving pictures. ffmpeg's own names for them. Whether a
+// PNG moves is not in its first bytes; ContainerOf looks further.
 func Container(head []byte) (string, error) {
+	if len(head) >= 6 && (string(head[:6]) == "GIF87a" || string(head[:6]) == "GIF89a") {
+		return GIF, nil
+	}
+	if len(head) >= 8 && bytes.Equal(head[:8], pngSignature) {
+		return APNG, nil
+	}
 	// ISO base media: a box length, then "ftyp".
 	if len(head) >= 12 && string(head[4:8]) == "ftyp" {
 		return "mov", nil
@@ -84,7 +116,49 @@ func ContainerOf(path string) (string, error) {
 	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) && !errors.Is(err, io.EOF) {
 		return "", err
 	}
-	return Container(head[:n])
+	container, err := Container(head[:n])
+	if err != nil || container != APNG {
+		return container, err
+	}
+
+	if _, err := file.Seek(int64(len(pngSignature)), io.SeekStart); err != nil {
+		return "", err
+	}
+	moves, err := PNGMoves(file)
+	if err != nil {
+		return "", err
+	}
+	if !moves {
+		return "", ErrStill
+	}
+	return APNG, nil
+}
+
+// PNGMoves reads the chunks of a PNG, from just after its signature, and
+// says whether it is an animated one: one that says how it moves (acTL)
+// before its picture begins (IDAT). ffmpeg's reader of animated PNGs will
+// not open a still one, so this is how a still one is told apart, to be
+// refused as a photo rather than as nothing at all.
+func PNGMoves(r io.Reader) (bool, error) {
+	header := make([]byte, 8)
+	// Far more chunks than come before the picture in any real file.
+	for i := 0; i < 64; i++ {
+		if _, err := io.ReadFull(r, header); err != nil {
+			return false, fmt.Errorf("%w: %v", ErrNotAVideo, err)
+		}
+		length := int64(header[0])<<24 | int64(header[1])<<16 | int64(header[2])<<8 | int64(header[3])
+		switch string(header[4:8]) {
+		case "acTL":
+			return true, nil
+		case "IDAT", "IEND":
+			return false, nil
+		}
+		// The chunk's data, and its checksum.
+		if _, err := io.CopyN(io.Discard, r, length+4); err != nil {
+			return false, fmt.Errorf("%w: %v", ErrNotAVideo, err)
+		}
+	}
+	return false, ErrNotAVideo
 }
 
 type probed struct {
@@ -105,6 +179,64 @@ type probed struct {
 	Format struct {
 		Duration string `json:"duration"`
 	} `json:"format"`
+	// Asked for of a moving picture only: one for each of its pictures.
+	Packets []struct {
+		PTS      string `json:"pts_time"`
+		Duration string `json:"duration_time"`
+	} `json:"packets"`
+}
+
+func seconds(value string) (float64, bool) {
+	n, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+	if err != nil || n <= 0 || math.IsNaN(n) || math.IsInf(n, 0) {
+		return 0, false
+	}
+	return n, true
+}
+
+// ParseAnimation reads what ffprobe said of a GIF or an animated PNG,
+// asked for with its pictures listed. One that has a single picture is a
+// still. An animated PNG gives no length of its own, so it is where its
+// last picture ends.
+func ParseAnimation(output []byte, maxSeconds int) (*Info, error) {
+	var p probed
+	if err := json.Unmarshal(output, &p); err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrNotAVideo, err)
+	}
+
+	info := &Info{Animated: true}
+	for _, stream := range p.Streams {
+		if stream.CodecType == "video" && stream.Width > 0 && stream.Height > 0 {
+			info.Width, info.Height = stream.Width, stream.Height
+			break
+		}
+	}
+	// A file is served by a name of its height, of two digits at least;
+	// and a picture less than ten pixels high is no picture to show.
+	if info.Width < 10 || info.Height < 10 {
+		return nil, ErrNotAVideo
+	}
+
+	info.Frames = len(p.Packets)
+	if info.Frames < 2 {
+		return nil, ErrStill
+	}
+
+	duration, ok := seconds(p.Format.Duration)
+	if !ok {
+		last := p.Packets[len(p.Packets)-1]
+		at, _ := seconds(last.PTS)
+		lasts, _ := seconds(last.Duration)
+		duration = at + lasts
+	}
+	if duration <= 0 {
+		return nil, ErrNotAVideo
+	}
+	info.Duration = duration
+	if maxSeconds > 0 && duration > float64(maxSeconds)+1 {
+		return nil, ErrTooLong
+	}
+	return info, nil
 }
 
 // ParseProbe reads what ffprobe said of a file.
@@ -146,8 +278,8 @@ func ParseProbe(output []byte, maxSeconds int) (*Info, error) {
 		return nil, ErrNotAVideo
 	}
 
-	duration, err := strconv.ParseFloat(strings.TrimSpace(p.Format.Duration), 64)
-	if err != nil || duration <= 0 || math.IsNaN(duration) || math.IsInf(duration, 0) {
+	duration, ok := seconds(p.Format.Duration)
+	if !ok {
 		return nil, ErrNotAVideo
 	}
 	info.Duration = duration
@@ -197,6 +329,18 @@ func Plan(info *Info, heights []int) []Target {
 	return targets
 }
 
+// PlanAnimation is the one size a moving picture is made in: its own, up to
+// AnimationHeight tall, in numbers that divide by two.
+func PlanAnimation(info *Info) []Target {
+	height := info.Height
+	width := info.Width
+	if height > AnimationHeight {
+		width = int(math.Round(float64(width) * float64(AnimationHeight) / float64(height)))
+		height = AnimationHeight
+	}
+	return []Target{{Height: even(height), Width: even(width)}}
+}
+
 // What every call to ffmpeg and ffprobe begins with: files only, and the
 // one kind of file it was found to be.
 func input(container, path string) []string {
@@ -226,11 +370,25 @@ func run(ctx context.Context, name string, args ...string) ([]byte, error) {
 	return out, nil
 }
 
-// Probe says what a file is, or that it is not a video.
-func Probe(ctx context.Context, path string, maxSeconds int) (*Info, string, error) {
+// Probe says what a file is, or that it is not a video. A moving picture
+// is held to its own limit of length, animationSeconds.
+func Probe(ctx context.Context, path string, maxSeconds, animationSeconds int) (*Info, string, error) {
 	container, err := ContainerOf(path)
 	if err != nil {
 		return nil, "", err
+	}
+
+	if IsAnimation(container) {
+		args := append([]string{"-v", "error", "-print_format", "json", "-select_streams", "v:0",
+			"-show_entries", "stream=codec_type,width,height:format=duration:packet=pts_time,duration_time"},
+			input(container, path)[:4]...)
+		args = append(args, path)
+		out, err := run(ctx, "ffprobe", args...)
+		if err != nil {
+			return nil, "", fmt.Errorf("%w: %v", ErrNotAVideo, err)
+		}
+		info, err := ParseAnimation(out, animationSeconds)
+		return info, container, err
 	}
 
 	args := append([]string{"-v", "error", "-print_format", "json", "-show_format", "-show_streams"},
@@ -247,11 +405,38 @@ func Probe(ctx context.Context, path string, maxSeconds int) (*Info, string, err
 	return info, container, err
 }
 
+// onWhite lays a picture that may be see-through on white, since an MP4
+// and a JPEG have nothing see-through: it is drawn over a copy of itself
+// filled white.
+const onWhite = "format=rgba,split[fg][bg0];[bg0]drawbox=x=0:y=0:w=iw:h=ih:color=white:t=fill[bg];[bg][fg]overlay=format=auto"
+
 // Encode makes one size of a video: H.264 and AAC in an MP4 a browser can
 // start playing before it has all of it.
+//
+// A moving picture is made once, as a clip with no sound, on white, every
+// picture kept for as long as it was shown (-fps_mode passthrough: a GIF's
+// pictures need not be evenly spaced). The clip is played on a loop.
 func Encode(ctx context.Context, container, in, out string, target Target, maxSeconds int) error {
 	args := []string{"-nostdin", "-hide_banner", "-loglevel", "error", "-y"}
 	args = append(args, input(container, in)...)
+	if IsAnimation(container) {
+		args = append(args,
+			"-map", "0:v:0",
+			// The height is made even as well: a GIF may be any size.
+			"-vf", fmt.Sprintf("%s,scale=-2:trunc(min(%d\\,ih)/2)*2:flags=bicubic,format=yuv420p", onWhite, target.Height),
+			"-fps_mode", "passthrough",
+			"-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-profile:v", "high",
+			"-an",
+			"-map_metadata", "-1", "-map_chapters", "-1", "-sn", "-dn",
+			"-movflags", "+faststart",
+		)
+		if maxSeconds > 0 {
+			args = append(args, "-t", strconv.Itoa(maxSeconds+1))
+		}
+		args = append(args, "-f", "mp4", out)
+		_, err := run(ctx, "ffmpeg", args...)
+		return err
+	}
 	args = append(args,
 		"-map", "0:v:0",
 		"-map", "0:a:0?",
@@ -274,11 +459,17 @@ func Encode(ctx context.Context, container, in, out string, target Target, maxSe
 }
 
 // Poster makes the still shown before a video plays: a frame from a second
-// in, or from the middle of one shorter than that.
+// in, or from the middle of one shorter than that. A moving picture's is
+// its first, on white, which is what it showed before it moved.
 func Poster(ctx context.Context, container, in, out string, info *Info) error {
 	at := 1.0
 	if info.Duration < 2 {
 		at = info.Duration / 2
+	}
+	scale := "scale='min(1280,iw)':-2"
+	if IsAnimation(container) {
+		at = 0
+		scale = onWhite + ",scale=min(1280\\,iw):-2"
 	}
 
 	args := []string{"-nostdin", "-hide_banner", "-loglevel", "error", "-y",
@@ -287,7 +478,7 @@ func Poster(ctx context.Context, container, in, out string, info *Info) error {
 	args = append(args,
 		"-map", "0:v:0",
 		"-frames:v", "1",
-		"-vf", "scale='min(1280,iw)':-2",
+		"-vf", scale,
 		"-map_metadata", "-1",
 		"-q:v", "3",
 		"-f", "image2", "-c:v", "mjpeg", out,

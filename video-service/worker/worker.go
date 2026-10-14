@@ -29,7 +29,7 @@ import (
 // Encoder is what is done to a file. ffmpeg in the worker; something
 // quicker in a test.
 type Encoder interface {
-	Probe(ctx context.Context, path string, maxSeconds int) (*encode.Info, string, error)
+	Probe(ctx context.Context, path string, maxSeconds, animationSeconds int) (*encode.Info, string, error)
 	Encode(ctx context.Context, container, in, out string, target encode.Target, maxSeconds int) error
 	Poster(ctx context.Context, container, in, out string, info *encode.Info) error
 }
@@ -37,8 +37,8 @@ type Encoder interface {
 // FFmpeg is the Encoder that runs ffmpeg.
 type FFmpeg struct{}
 
-func (FFmpeg) Probe(ctx context.Context, path string, maxSeconds int) (*encode.Info, string, error) {
-	return encode.Probe(ctx, path, maxSeconds)
+func (FFmpeg) Probe(ctx context.Context, path string, maxSeconds, animationSeconds int) (*encode.Info, string, error) {
+	return encode.Probe(ctx, path, maxSeconds, animationSeconds)
 }
 
 func (FFmpeg) Encode(ctx context.Context, container, in, out string, target encode.Target, maxSeconds int) error {
@@ -77,6 +77,10 @@ type Worker struct {
 	Heights    []int
 	MaxBytes   int64
 	MaxSeconds int
+	// The limits a moving picture (a GIF, an animated PNG) is held to,
+	// far below a video's.
+	AnimationMaxBytes   int64
+	AnimationMaxSeconds int
 	// How long all the work on one video may take.
 	Timeout time.Duration
 	Client  *http.Client
@@ -183,6 +187,8 @@ func (w *Worker) failed(upload *repositories.Upload, video *videos.Video, err er
 	switch {
 	case errors.Is(err, encode.ErrNotAVideo):
 		reason = constants.FailedNotAVideo
+	case errors.Is(err, encode.ErrStill):
+		reason = constants.FailedStill
 	case errors.Is(err, encode.ErrTooLong):
 		reason = constants.FailedTooLong
 	case errors.Is(err, errTooLarge):
@@ -213,12 +219,23 @@ func (w *Worker) make(ctx context.Context, upload *repositories.Upload, dir stri
 		return video, err
 	}
 
-	info, container, err := w.Encoder.Probe(ctx, source, w.MaxSeconds)
+	info, container, err := w.Encoder.Probe(ctx, source, w.MaxSeconds, w.AnimationMaxSeconds)
 	if err != nil {
 		return video, err
 	}
 
 	targets := encode.Plan(info, w.Heights)
+	limit := w.MaxSeconds
+	if info.Animated {
+		// Taken as large as a video may be, it is only now known to be a
+		// moving picture, held to less.
+		if stat, err := os.Stat(source); err == nil && w.AnimationMaxBytes > 0 && stat.Size() > w.AnimationMaxBytes {
+			return video, errTooLarge
+		}
+		targets = encode.PlanAnimation(info)
+		limit = w.AnimationMaxSeconds
+		video.Loop = true
+	}
 	if len(targets) == 0 {
 		return video, fmt.Errorf("no sizes to make")
 	}
@@ -228,7 +245,7 @@ func (w *Worker) make(ctx context.Context, upload *repositories.Upload, dir stri
 
 	for i, target := range targets {
 		out := filepath.Join(dir, fmt.Sprintf("%d.mp4", target.Height))
-		if err := w.Encoder.Encode(ctx, container, source, out, target, w.MaxSeconds); err != nil {
+		if err := w.Encoder.Encode(ctx, container, source, out, target, limit); err != nil {
 			return video, err
 		}
 

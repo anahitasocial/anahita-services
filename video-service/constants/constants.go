@@ -21,7 +21,12 @@ const (
 
 // What a browser may say it is sending. What it really is is decided by
 // the worker, which reads it; this only turns away what could never be one.
-var UploadTypes = []string{"video/mp4", "video/quicktime", "video/webm"}
+// A GIF or an animated PNG is posted here too, as a clip that loops.
+var UploadTypes = []string{"video/mp4", "video/quicktime", "video/webm", "image/gif", "image/png"}
+
+// AnimationTypes are those of UploadTypes that are moving pictures, held to
+// the smaller limits of one.
+var AnimationTypes = []string{"image/gif", "image/png"}
 
 // Why a video failed, as the uploader is told.
 const (
@@ -29,4 +34,6 @@ const (
 	FailedTooLong   = "too_long"
 	FailedTooLarge  = "too_large"
 	FailedEncoding  = "encoding"
+	// A GIF or a PNG that does not move: a photo, posted as one.
+	FailedStill = "still"
 )

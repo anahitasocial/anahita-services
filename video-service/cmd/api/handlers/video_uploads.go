@@ -131,13 +131,20 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 	}
 
 	contentType, _, _ := strings.Cut(req.ContentType, ";")
-	if !slices.Contains(constants.UploadTypes, strings.TrimSpace(strings.ToLower(contentType))) {
+	contentType = strings.TrimSpace(strings.ToLower(contentType))
+	if !slices.Contains(constants.UploadTypes, contentType) {
 		return refuseUpload(c, http.StatusUnsupportedMediaType, constants.FailedNotAVideo)
 	}
-	if req.Size > h.Config.VideoMaxBytes {
+	// A GIF or an animated PNG is held to less than a video. What it says
+	// it is is checked by the worker, which holds it to the same.
+	maxBytes := h.Config.VideoMaxBytes
+	if slices.Contains(constants.AnimationTypes, contentType) {
+		maxBytes = h.Config.AnimationMaxBytes
+	}
+	if req.Size > maxBytes {
 		return c.JSON(http.StatusRequestEntityTooLarge, map[string]any{
 			"error":     constants.FailedTooLarge,
-			"max_bytes": h.Config.VideoMaxBytes,
+			"max_bytes": maxBytes,
 		})
 	}
 
