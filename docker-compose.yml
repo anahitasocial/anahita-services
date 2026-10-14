@@ -1259,6 +1259,9 @@ services:
       mode: replicated
       replicas: 1
     environment:
+      # Only a site that is open to read writes anything to Bluesky, as
+      # only one that is federates. See docs/privacy.md.
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
       ENV: ${ENV}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}

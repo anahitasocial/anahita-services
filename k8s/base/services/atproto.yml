@@ -20,6 +20,14 @@ spec:
             - name: http
               containerPort: 80
           env:
+            # Only a site that is open to read writes anything to Bluesky,
+            # as only one that is federates. The same for every service.
+            - name: SITE_READ_ACCESS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_READ_ACCESS
+                  optional: true
             - name: ENV
               valueFrom:
                 configMapKeyRef:

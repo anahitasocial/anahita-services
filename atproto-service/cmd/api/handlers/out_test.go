@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/policy"
 	"context"
 	"encoding/json"
 	"errors"
@@ -1158,5 +1159,39 @@ func TestWhatPeopleOnBlueskyTookBack(t *testing.T) {
 	}
 	if got := strings.Join(w.said, "|"); !strings.Contains(got, "edge.voteup.text.deleted.v1 80") || !strings.Contains(got, event.RemoteRepostDeleted) {
 		t.Errorf("said %q", got)
+	}
+}
+
+// THE RULE THIS GUARDS: nothing leaves for Bluesky from a site kept to its
+// members, or for somebody whose profile not everybody may see, as for the
+// fediverse.
+func TestNothingIsWrittenFromWhatIsNotPublic(t *testing.T) {
+	w, post := writingWorld(t)
+	w.connect()
+
+	// Ana's profile is kept to her followers: her like stays here.
+	w.nodes.hidden = map[int64]bool{anaID: true}
+	w.heard("edge.voteup.note.added.v1", event.EventPayload{SubjectID: anaID, ObjectID: post.ID})
+	if len(w.queue.waiting) != 0 || len(w.sent.rows) != 0 {
+		t.Fatal("something was written for somebody whose profile is not public")
+	}
+
+	// Open again, but the site is kept to its members: still nothing, and
+	// connecting is not offered.
+	w.nodes.hidden = nil
+	restore := policy.SetReadAccessForTest(policy.ReadRegistered)
+	w.heard("edge.voteup.note.added.v1", event.EventPayload{SubjectID: anaID, ObjectID: post.ID})
+	if len(w.queue.waiting) != 0 || len(w.sent.rows) != 0 {
+		t.Fatal("something was written from a members-only site")
+	}
+	if w.h.canWrite() {
+		t.Error("connecting is offered on a members-only site")
+	}
+
+	// An open site and a public profile: the like goes.
+	restore()
+	w.heard("edge.voteup.note.added.v1", event.EventPayload{SubjectID: anaID, ObjectID: post.ID})
+	if len(w.sent.rows) != 1 {
+		t.Errorf("the like was not written: %d", len(w.sent.rows))
 	}
 }

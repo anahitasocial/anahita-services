@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	libhandlers "anahita-libs/cmd/api/handlers"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -116,6 +117,12 @@ func (h *Handlers) connected(personID int64) *repositories.Account {
 
 // begin remembers something about to be written and puts it in the queue.
 func (h *Handlers) begin(ctx context.Context, account *repositories.Account, kind string, localID int64, subject string, nodeID int64) error {
+	// Only for somebody whose profile anybody may see, as on the
+	// fediverse: a profile kept to followers or to members writes nothing
+	// to Bluesky, which is read by anybody.
+	if !libhandlers.MaySee(h.Nodes, account.PersonID, entities.NewViewer()) {
+		return nil
+	}
 	sent := &repositories.Sent{
 		Kind: kind, PersonID: account.PersonID, LocalID: localID, DID: account.DID, RKey: bsky.NewTID(),
 	}

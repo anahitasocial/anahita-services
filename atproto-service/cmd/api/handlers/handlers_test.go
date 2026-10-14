@@ -37,6 +37,19 @@ type fakeNodes struct {
 	services.GraphNodeGRPCInterface
 	kept   []*entities.AnahitaNode
 	nextID int64
+	// Who a visitor may not see: a profile kept to followers or members.
+	hidden map[int64]bool
+}
+
+// FilterVisible is every node but the hidden ones.
+func (f *fakeNodes) FilterVisible(ids []int64, viewer *entities.Viewer) ([]int64, error) {
+	var visible []int64
+	for _, id := range ids {
+		if !f.hidden[id] {
+			visible = append(visible, id)
+		}
+	}
+	return visible, nil
 }
 
 func (f *fakeNodes) find(match func(*entities.AnahitaNode) bool) *entities.AnahitaNode {
