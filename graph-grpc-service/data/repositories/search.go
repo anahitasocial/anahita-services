@@ -104,10 +104,14 @@ const relevantMatch = `(CASE
     ) THEN ?
     WHEN REGEXP_LIKE(COALESCE(node.body, ''), ?, 'i') THEN ?
     ELSE ?
-END) DESC`
+END)`
 
 // How useful people have found a node: its likes, saves, replies, reposts,
 // quotes and followers, each counted by when it happened (see interest),
+// each by a lookup an index answers (replies and quotes apart, since one
+// condition on either would read every node for every result; and the
+// index on quotes named, since while nearly no post quotes another the
+// database judges it not worth using and reads every node instead),
 // on a logarithm so that a thousand comes first and not a hundred times
 // first. Then a bonus for what the searcher follows.
 const relevantStanding = `(
@@ -125,10 +129,15 @@ const relevantStanding = `(
               AND saved.type = ?
         )
         + ? * (
-            SELECT COALESCE(SUM(%[3]s), 0)
-            FROM nodes AS answer
-            WHERE answer.parent_id = node.id
-               OR answer.quote_id = node.id
+            (
+                SELECT COALESCE(SUM(%[3]s), 0)
+                FROM nodes AS answer
+                WHERE answer.parent_id = node.id
+            ) + (
+                SELECT COALESCE(SUM(%[6]s), 0)
+                FROM nodes AS quoting FORCE INDEX (quote_id)
+                WHERE quoting.quote_id = node.id
+            )
         )
         + ? * (
             SELECT COALESCE(SUM(%[4]s), 0)
@@ -138,7 +147,7 @@ const relevantStanding = `(
         )
     )
     + %[5]s
-) DESC`
+)`
 
 // What the searcher follows, or what is on a profile they follow.
 const followedByViewer = `(CASE WHEN EXISTS (
@@ -158,13 +167,18 @@ func interest(column string, halfLifeDays float64) string {
 	return fmt.Sprintf("POW(0.5, GREATEST(TIMESTAMPDIFF(HOUR, %s, UTC_TIMESTAMP()), 0) / %.4f)", column, halfLifeDays*24)
 }
 
-// orderByRelevance orders by how well each node matches, then by its
-// standing, as the operator's weights say.
-func orderByRelevance(query sq.SelectBuilder, keywords string, weights ranking.Weights, viewer *entities.Viewer) sq.SelectBuilder {
+// relevance is the two scores a node is ranked by, as columns: how well
+// it matches, and its standing, as the operator's weights say.
+//
+// They are worked out once for each node, as columns, and the order is by
+// those columns. Ordered by the expressions themselves, the database ran
+// the lookups of the standing again and again as it sorted, and a broad
+// word took ten seconds.
+func relevance(keywords string, weights ranking.Weights, viewer *entities.Viewer) (match, standing sq.Sqlizer) {
 	lower := strings.ToLower(keywords)
 	m := weights.Match
 
-	query = query.OrderByClause(relevantMatch,
+	match = sq.Expr(relevantMatch+" AS match_points",
 		handleOf(keywords), m.Handle,
 		lower, m.Name,
 		keywords+"%", m.NameStarts,
@@ -190,14 +204,15 @@ func orderByRelevance(query sq.SelectBuilder, keywords string, weights ranking.W
 		following = followedByViewer
 		args = append(args, constants.EdgeFollowEntityType, viewer.ID, weights.Following)
 	}
-	standing := fmt.Sprintf(relevantStanding,
+	standing = sq.Expr(fmt.Sprintf(relevantStanding,
 		interest("liked.created_at", weights.HalfLifeDays),
 		interest("saved.created_at", weights.HalfLifeDays),
 		interest("answer.created_at", weights.HalfLifeDays),
 		interest("followed.created_at", weights.HalfLifeDays),
 		following,
-	)
-	return query.OrderByClause(standing, args...)
+		interest("quoting.created_at", weights.HalfLifeDays),
+	)+" AS standing", args...)
+	return match, standing
 }
 
 // Count returns the number of Searchs
@@ -248,9 +263,31 @@ func (repo *SearchRepo) Count(req *graphpb.SearchCountRequest, viewer *entities.
 	return count, nil
 }
 
-// Browse returns a list of Searchs
+// Browse returns a list of Searchs.
+//
+// Ordered by date, the database stops after the first page. Ordered by
+// relevance it must score every match before it knows the first page, and
+// building every match's whole row (the author, the owner, the parent and
+// what else is read with a node) only to sort them took longer than the
+// time a query is given. So relevance is two steps: the ids of the page,
+// ranked on the node and its owner alone, then the whole rows of those.
 func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
-	query := repo.getBaseSelectQuery(req)
+	keywords := sanitizeSearchString(req.Keywords)
+	if req.Ordering == "relevant" && keywords != "" {
+		return repo.browseByRelevance(req, keywords, viewer)
+	}
+
+	query := repo.filtered(repo.getBaseSelectQuery(req), req, viewer)
+	query = query.OrderBy("node.created_at DESC")
+	query = repo.nearestThenID(query, req)
+	query = query.Limit(req.Limit).Offset(req.Offset)
+
+	return FetchNodes(repo.db, query)
+}
+
+// filtered is what is found at all: the tab, what the viewer may see, the
+// words and the distance.
+func (repo *SearchRepo) filtered(query sq.SelectBuilder, req *graphpb.SearchBrowseRequest, viewer *entities.Viewer) sq.SelectBuilder {
 	query = repo.getScopeQuery(query, req.Scope)
 	query = SetSearchAccessQuery(query, viewer)
 	query = SetLifecycleQuery(query, viewer)
@@ -269,26 +306,95 @@ func (repo *SearchRepo) Browse(req *graphpb.SearchBrowseRequest, viewer *entitie
 		// 25 km listed what was 25,000 km away.
 		query = query.Where(fmt.Sprintf("%s <= %d", calculateDistance, req.CoordRadius))
 	}
+	return query
+}
 
-	keywords := sanitizeSearchString(req.Keywords)
-	if req.Ordering == "relevant" && keywords != "" {
-		query = orderByRelevance(query, keywords, repo.ranking.Weights(), viewer)
-	} else {
-		query = query.OrderBy("node.created_at DESC")
-	}
-
+// nearestThenID ends an order: the nearest first when a distance was
+// chosen, then the id, so that two of the same standing keep their places
+// from one page to the next.
+func (repo *SearchRepo) nearestThenID(query sq.SelectBuilder, req *graphpb.SearchBrowseRequest) sq.SelectBuilder {
 	if req.CoordLat != 0.0 && req.CoordLng != 0.0 {
 		distanceCalculation := repo.calculateDistance(req.CoordLat, req.CoordLng)
 		query = query.OrderBy(fmt.Sprintf("%s ASC", distanceCalculation))
 	}
+	return query.OrderBy("node.id DESC")
+}
 
-	// Last, so that two of the same standing keep their places from one
-	// page to the next.
-	query = query.OrderBy("node.id DESC")
+func (repo *SearchRepo) browseByRelevance(req *graphpb.SearchBrowseRequest, keywords string, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
+	// The page's ids. What may be seen is decided on the node and its
+	// owner, which is all this reads.
+	ranked := sq.Select("node.id").From("nodes AS node").
+		LeftJoin("nodes AS owner ON node.owner_id = owner.id")
+	if req.CoordLat != 0.0 && req.CoordLng != 0.0 {
+		ranked = ranked.Join(
+			fmt.Sprintf("edges AS location_edge ON location_edge.node_b_id = node.id AND location_edge.type = '%s'", constants.EdgeTagLocationType),
+		).Join(
+			"nodes AS location ON location_edge.node_a_id = location.id",
+		)
+	}
+	match, standing := relevance(keywords, repo.ranking.Weights(), viewer)
+	ranked = ranked.Column(match).Column(standing)
+	ranked = repo.filtered(ranked, req, viewer)
+	ranked = ranked.OrderBy("match_points DESC", "standing DESC")
+	ranked = repo.nearestThenID(ranked, req)
+	ranked = ranked.Limit(req.Limit).Offset(req.Offset)
 
-	query = query.Limit(req.Limit).Offset(req.Offset)
+	ids, err := repo.idsOf(ranked)
+	if err != nil || len(ids) == 0 {
+		return nil, err
+	}
 
-	return FetchNodes(repo.db, query)
+	// Their whole rows, put back in the order they were ranked in.
+	nodes, err := FetchNodes(repo.db, GetBaseSelectQuery().Where(sq.Eq{"node.id": ids}))
+	if err != nil {
+		return nil, err
+	}
+	byID := make(map[int64]*entities.AnahitaNode, len(nodes))
+	for _, node := range nodes {
+		byID[node.ID] = node
+	}
+	ordered := make([]*entities.AnahitaNode, 0, len(ids))
+	for _, id := range ids {
+		if node, ok := byID[id]; ok {
+			ordered = append(ordered, node)
+		}
+	}
+	return ordered, nil
+}
+
+// idsOf reads the first column of each row, the id; the scores after it
+// are only there to order by.
+func (repo *SearchRepo) idsOf(query sq.SelectBuilder) ([]int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	statement, args, err := query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := repo.db.QueryContext(ctx, statement, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []int64
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var id int64
+		rest := make([]any, len(columns)-1)
+		for i := range rest {
+			rest[i] = new(sql.RawBytes)
+		}
+		if err := rows.Scan(append([]any{&id}, rest...)...); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
 }
 
 func (repo *SearchRepo) getScopeQuery(query sq.SelectBuilder, scope string) sq.SelectBuilder {
