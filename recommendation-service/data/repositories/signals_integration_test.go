@@ -582,3 +582,63 @@ func TestSignalsFindPeopleOnOtherNetworks(t *testing.T) {
 		t.Errorf("as groups: %s", got)
 	}
 }
+
+// THE RULE THIS GUARDS: what somebody who has just joined picked in the
+// Interests step, followed as hashtag feeds, is what they are recommended
+// by, even before they have written or liked anything; and what they are
+// offered to pick is only what public posts carry.
+func TestInterestsPickedAreRecommendedBy(t *testing.T) {
+	db := testDB(t)
+	seed(t, db)
+	const newcomer = 30
+
+	// They follow #garden: a feed of theirs with that one hashtag, as the
+	// step makes, and spelt as a feed keeps it.
+	if _, err := db.Exec(`INSERT INTO nodes (id,type,service,name,access,enabled,owner_id,owner_type,created_by,meta,created_at,updated_at) VALUES
+		(300,'node.feed.feed-service.generator.v1','feed-service','#garden','myself',1,30,'node.actor.person-service.person.v1',30,
+		 '{"definition":{"filters":{"hashtags_any":["garden"]}},"icon":"tag"}',NOW(),NOW())`); err != nil {
+		t.Fatal(err)
+	}
+
+	signals := NewSignals(db)
+	// As for somebody who has just joined, who also asked that what they
+	// do not be used: a hashtag followed is a choice, and still counts.
+	found, err := signals.Find(newcomer, constants.KindPerson, false, true, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	shared := found[constants.ReasonSharedInterest]
+	if hit := hitFor(shared, gardenQ); hit == nil || len(hit.IDs) != 1 || hit.IDs[0] != tagGarden {
+		t.Errorf("Q, who posts about #garden in public, with the hashtag: %+v", shared)
+	}
+	if hitFor(shared, privateR) != nil {
+		t.Error("R posts about it for followers only, and was recommended for it")
+	}
+
+	// Offered: #garden is on two public posts; the third is for followers.
+	interests, err := signals.Interests(time.Now().Add(-24*time.Hour), 2, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(interests) != 1 || interests[0].Alias != "garden" || interests[0].Count != 2 {
+		t.Errorf("offered %+v", interests)
+	}
+	if more, _ := signals.Interests(time.Now().Add(-24*time.Hour), 3, 10); len(more) != 0 {
+		t.Errorf("offered with three posts needed: %+v", more)
+	}
+
+	// The same hashtag spelt with a capital, on another public post, is
+	// one interest, kept in the spelling used most.
+	if _, err := db.Exec(`INSERT INTO nodes (id,type,service,name,alias,access,body,enabled,created_at,updated_at) VALUES
+		(101,'node.tag.hashtag-service.hashtag.v1','hashtag-service','Garden','Garden','public','',1,NOW(),NOW())`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
+		('edge.tag.hashtag.v1',101,'node.tag.hashtag-service.hashtag.v1',203,'node.medium.text-service.note.v1',NOW())`); err != nil {
+		t.Fatal(err)
+	}
+	interests, _ = signals.Interests(time.Now().Add(-24*time.Hour), 2, 10)
+	if len(interests) != 1 || interests[0].Alias != "garden" || interests[0].Count != 3 {
+		t.Errorf("spellings put together: %+v", interests)
+	}
+}

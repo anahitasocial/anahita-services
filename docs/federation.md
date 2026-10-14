@@ -1024,6 +1024,11 @@ Avatars and covers of people elsewhere are small, one of each, and are
 kept while the person is. The picture of a link's card is the link
 preview service's own.
 
+A cover a server shows for somebody who set none (Mastodon's grey pattern
+at `.../headers/original/missing.png`, NodeBB's
+`.../assets/images/cover-default.png`) is not copied: such a profile has no
+cover here.
+
 ## Posts and people that are removed
 
 The words of a post cost very little, and are kept far longer than its

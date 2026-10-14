@@ -3,11 +3,13 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	an_const "anahita-libs/constants"
+	"anahita-libs/feeds"
 
 	"recommendation/constants"
 	"recommendation/scoring"
@@ -229,6 +231,66 @@ GROUP BY c.id
 ORDER BY 2 DESC, c.id
 LIMIT ?`
 
+// Their public posts carry hashtags the viewer follows: the hashtags of the
+// custom feeds the viewer owns, which is what following a hashtag makes,
+// and what the Interests step of signing up does with what is picked. A
+// choice the viewer made, so it is counted even when they asked that what
+// they do not be, and for somebody who has just joined.
+const signalFollowedHashtags = `
+SELECT c.id, COUNT(DISTINCT theirs.node_a_id), GROUP_CONCAT(DISTINCT theirs.node_a_id ORDER BY theirs.node_a_id)
+FROM edges AS theirs
+JOIN nodes AS hashtag ON hashtag.id = theirs.node_a_id
+JOIN nodes AS post ON post.id = theirs.node_b_id
+JOIN nodes AS c ON c.id = post.owner_id
+WHERE theirs.type = ?
+  AND post.created_at > ?
+  AND post.access = 'public'
+  AND post.deleted_at IS NULL
+  AND LOWER(hashtag.alias) IN (
+      SELECT LOWER(picked.tag)
+      FROM nodes AS feed,
+           JSON_TABLE(feed.meta, '$.definition.filters.hashtags_any[*]' COLUMNS (tag VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci PATH '$')) AS picked
+      WHERE feed.type = ?
+        AND feed.owner_id = ?
+        AND feed.deleted_at IS NULL
+  )
+  AND {{eligible}}
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
+LIMIT ?`
+
+// The hashtags on the most public posts lately: what somebody who has just
+// joined is offered to pick from. Only public posts, of profiles anybody
+// may see, so that a hashtag offered says nothing about what is kept from
+// view. Counted by posts, and by each spelling of a hashtag; spellings
+// that differ only in case are put together afterwards.
+const popularHashtags = `
+SELECT hashtag.id, hashtag.name, hashtag.alias, COUNT(DISTINCT post.id)
+FROM edges AS tagged
+JOIN nodes AS hashtag ON hashtag.id = tagged.node_a_id
+JOIN nodes AS post ON post.id = tagged.node_b_id
+LEFT JOIN nodes AS owner ON owner.id = post.owner_id
+WHERE tagged.type = ?
+  AND post.created_at > ?
+  AND post.access = 'public'
+  AND post.enabled = 1
+  AND post.deleted_at IS NULL
+  AND (owner.id IS NULL OR owner.access IS NULL OR owner.access = 'public')
+  AND hashtag.enabled = 1
+  AND hashtag.deleted_at IS NULL
+GROUP BY hashtag.id, hashtag.name, hashtag.alias
+ORDER BY 4 DESC, hashtag.id
+LIMIT ?`
+
+// Interest is a hashtag offered to pick, and on how many public posts it
+// was lately.
+type Interest struct {
+	ID    int64  `json:"id"`
+	Name  string `json:"name"`
+	Alias string `json:"alias"`
+	Count int    `json:"count"`
+}
+
 // The viewer has liked what is posted on their profile, lately.
 const signalYouEngaged = `
 SELECT c.id, COUNT(*), ''
@@ -282,6 +344,9 @@ type SignalsInterface interface {
 	// LastActive says when each of these profiles was last visited or
 	// posted on, or when it was made.
 	LastActive(ids []int64) (map[int64]time.Time, error)
+	// Interests is the hashtags on the most public posts since `since`, at
+	// most `limit`, each on at least `fewest` posts, the most used first.
+	Interests(since time.Time, fewest, limit int) ([]Interest, error)
 }
 
 type Signals struct {
@@ -379,6 +444,14 @@ func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart b
 			needsActivity: true,
 		},
 		{
+			reason: constants.ReasonSharedInterest,
+			query:  signalFollowedHashtags,
+			args: with([]any{
+				an_const.EdgeTagHashtagType, now.Add(-constants.InterestWindow),
+				feeds.NodeType, viewerID,
+			}, limit),
+		},
+		{
 			reason:        constants.ReasonYouEngaged,
 			query:         signalYouEngaged,
 			args:          with([]any{an_const.EdgeBaseLikeEntityType, viewerID, now.Add(-constants.EngagedWindow)}, limit),
@@ -416,7 +489,9 @@ func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart b
 			return nil, err
 		}
 		if len(hits) > 0 {
-			found[each.reason] = hits
+			// Two signals may give the same reason, as the hashtags somebody
+			// used and the ones they follow do: put together.
+			found[each.reason] = mergeHits(found[each.reason], hits)
 		}
 	}
 
@@ -508,4 +583,88 @@ func parseIDs(list string) []int64 {
 	}
 
 	return ids
+}
+
+// mergeHits puts two lists of hits for one reason together: a profile in
+// both counts once, with its count the larger and its ids from both.
+func mergeHits(a, b []scoring.Hit) []scoring.Hit {
+	if len(a) == 0 {
+		return b
+	}
+	at := make(map[int64]int, len(a))
+	merged := append([]scoring.Hit{}, a...)
+	for i, hit := range merged {
+		at[hit.ID] = i
+	}
+	for _, hit := range b {
+		i, ok := at[hit.ID]
+		if !ok {
+			at[hit.ID] = len(merged)
+			merged = append(merged, hit)
+			continue
+		}
+		if hit.Count > merged[i].Count {
+			merged[i].Count = hit.Count
+		}
+		seen := map[int64]bool{}
+		for _, id := range merged[i].IDs {
+			seen[id] = true
+		}
+		for _, id := range hit.IDs {
+			if !seen[id] {
+				merged[i].IDs = append(merged[i].IDs, id)
+				seen[id] = true
+			}
+		}
+	}
+	return merged
+}
+
+// Interests reads the hashtags most used lately on public posts.
+func (r *Signals) Interests(since time.Time, fewest, limit int) ([]Interest, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
+	defer cancel()
+
+	// More than asked for, since spellings are put together after.
+	rows, err := r.db.QueryContext(ctx, popularHashtags, an_const.EdgeTagHashtagType, since, limit*3)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var (
+		found []Interest
+		at    = map[string]int{}
+	)
+	for rows.Next() {
+		var each Interest
+		var count int64
+		if err := rows.Scan(&each.ID, &each.Name, &each.Alias, &count); err != nil {
+			return nil, err
+		}
+		each.Count = int(count)
+		key := strings.ToLower(each.Alias)
+		if i, ok := at[key]; ok {
+			// The spelling used most is the one kept; it came first.
+			found[i].Count += each.Count
+			continue
+		}
+		at[key] = len(found)
+		found = append(found, each)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Put together, a hashtag may have more posts than one before it.
+	sort.SliceStable(found, func(i, j int) bool {
+		return found[i].Count > found[j].Count
+	})
+	kept := make([]Interest, 0, limit)
+	for _, each := range found {
+		if each.Count >= fewest && len(kept) < limit {
+			kept = append(kept, each)
+		}
+	}
+	return kept, nil
 }

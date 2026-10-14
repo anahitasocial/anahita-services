@@ -25,6 +25,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	recommendations := e.Group("recommendations", r.authorize)
 
 	recommendations.GET("/actors", r.handler.Actors.Browse)
+	// The hashtags offered in the Interests step of signing up.
+	recommendations.GET("/interests", r.handler.Interests.Browse)
 
 	recommendations.GET("/preferences", r.handler.Preferences.Read)
 	recommendations.PUT("/preferences", r.handler.Preferences.Edit)

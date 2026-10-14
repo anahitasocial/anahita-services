@@ -25,7 +25,7 @@ func NewLocationRequest() *LocationRequest {
 		},
 		BrowseTrending: &LocationBrowseTrendingRequest{
 			Limit:      constants.RequestLimitDefault,
-			TimeWindow: constants.TimeWindowWeekly,
+			TimeWindow: "weekly",
 		},
 		BrowseOrderedByDegree: &LocationBrowseOrderedByDegreeRequest{
 			Offset: 0,
@@ -57,7 +57,10 @@ type LocationBrowseOrderedByDegreeRequest struct {
 
 type LocationBrowseTrendingRequest struct {
 	Limit      uint64 `query:"limit"`
-	TimeWindow string `query:"time_window" validate:"omitempty,oneof=daily weekly monthly all"`
+	// Asked for in lower case and told to the graph in upper case, as its
+	// constants are. "all" was accepted and never understood: the graph
+	// fell back to a day for anything it did not know.
+	TimeWindow string `query:"time_window" validate:"omitempty,oneof=daily weekly monthly yearly"`
 }
 
 type LocationReadRequest struct {
