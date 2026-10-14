@@ -21,6 +21,7 @@ type Handlers struct {
 	Actors      *actorsHandler
 	Preferences *preferencesHandler
 	Dismissals  *dismissalsHandler
+	Interests   *interestsHandler
 	Events      *eventsHandler
 }
 
@@ -29,6 +30,7 @@ func NewHandlers(env *Env) *Handlers {
 		Actors:      &actorsHandler{env},
 		Preferences: &preferencesHandler{env},
 		Dismissals:  &dismissalsHandler{env},
+		Interests:   &interestsHandler{env},
 		Events:      &eventsHandler{env},
 	}
 }

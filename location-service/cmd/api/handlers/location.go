@@ -12,6 +12,7 @@ import (
 	"location/responses"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gosimple/slug"
 	"github.com/labstack/echo/v4"
@@ -194,7 +195,7 @@ func (h *locationHandler) BrowseTrending(c echo.Context) error {
 	gReq.EdgeTypes = []string{an_constants.EdgeTagLocationType}
 	gReq.Direction = an_constants.GraphQueryDirectionOutbound
 	gReq.Limit = req.Limit
-	gReq.TimeWindow = req.TimeWindow
+	gReq.TimeWindow = strings.ToUpper(req.TimeWindow)
 	gReq.Viewer = viewer
 	gReq.AccessCheck = false
 	nodes, err := h.Srv.GraphGRPC.Trending(gReq)

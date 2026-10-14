@@ -23,6 +23,7 @@ Every path needs somebody signed in: a suggestion is made to a person, about tha
 | Endpoint | What |
 | --- | --- |
 | `GET /recommendations/actors?kind=&context=&limit=` | Who the viewer might follow, best first |
+| `GET /recommendations/interests?limit=` | Hashtags to offer somebody who has just joined, the most used first (see below). `limit` up to 40, 20 by default |
 | `GET /recommendations/preferences` | What the viewer has chosen about suggestions |
 | `PUT /recommendations/preferences` | Changes any of those choices. One not sent is left as it was |
 | `GET /recommendations/dismissals` | The profiles the viewer said they were not interested in |
@@ -74,13 +75,19 @@ Each reason adds to a score, up to a most. The score is then kept in full for a 
 | `inviter` | They invited the viewer, or the viewer invited them. People only | 3 | 3 |
 | `hosted_by_leader` | A group the viewer follows is hosting it. Events only. `ids` are those groups | 3 | 3 |
 | `you_engaged` | The viewer liked what is posted on their profile, in the last 90 days | 2 | 8 |
-| `shared_interest` | Their public posts of the last year carry hashtags the viewer has used or liked. `ids` are those hashtags | 2 | 8 |
+| `shared_interest` | Their public posts of the last year carry hashtags the viewer has used or liked, or follows. `ids` are those hashtags | 2 | 8 |
 | `featured` | The installation's administrators featured them | 0.5 | 0.5 |
 | `popular` | Many people followed them in the last 30 days | 0.5 | 0.5 |
 
 Two profiles that score the same are in the order of their ids, so an answer is the same each time it is asked for.
 
 `shared_interest` looks only at public posts. The hashtags come back as the reason, and a reason must not say what is in a post the viewer could not read.
+
+**Hashtags somebody follows** count toward `shared_interest` as well. Following a hashtag makes a custom feed of it, the viewer's own; the service reads the hashtags of the feeds the viewer owns. That is what the Interests step of signing up gives it: somebody who has just joined has written and liked nothing, and what they picked is the one thing to go by besides who invited them, what is popular and what is featured. Since following is a choice they made, it counts even when they turned `use_activity` off, and in `context=onboarding`.
+
+### Hashtags to offer
+
+`GET /recommendations/interests` lists the hashtags on the most public posts, for the Interests step of signing up. Only public posts of profiles anybody may see are counted, so a hashtag offered says nothing about what is kept from view; spellings that differ only in case count as one, under the spelling used most. A hashtag on fewer than two posts is not offered. It looks at the last three months first, then the last year, then all time, until it has found eight, so that a site that has been quiet lately still has something to offer. The web app leaves the step out when fewer than three come back, as on a site that has just been set up.
 
 The numbers are constants in `recommendation-service/constants`. They are the service's own judgement of what makes a good suggestion, and each person can set their own in its place: see [Each person's own weights](#each-persons-own-weights).
 
@@ -172,8 +179,7 @@ A profile somebody turns down is not suggested to them again. It is theirs alone
 
 ## What is not built
 
-- **Interests somebody picks.** What they are interested in is taken from the hashtags on what they wrote and liked. The plan had interests chosen by hand, in onboarding and in settings, as edges of their own.
-- **Suggestions in onboarding.** `context=onboarding` is answered; the web app's onboarding does not ask yet.
+- **Places somebody picks.** Only hashtags are offered in signing up and read from followed feeds; places followed as feeds are not used yet.
 - **Nearby.** Nothing uses where people are.
 - **A cache.** Each answer is worked out when it is asked for, which on the development data takes under a tenth of a second.
 - **Suggested posts.** The same contract would take a second path for them.

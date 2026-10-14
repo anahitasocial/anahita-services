@@ -43,6 +43,10 @@ func (s *fakeSignals) Find(viewerID int64, kind string, useActivity, onlyColdSta
 	return s.found, nil
 }
 
+func (s *fakeSignals) Interests(since time.Time, fewest, limit int) ([]repositories.Interest, error) {
+	return nil, nil
+}
+
 func (s *fakeSignals) LastActive(ids []int64) (map[int64]time.Time, error) {
 	active := map[int64]time.Time{}
 	for _, id := range ids {
