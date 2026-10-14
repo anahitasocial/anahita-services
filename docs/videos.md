@@ -272,4 +272,5 @@ once; each needs processor and working space of its own.
 - Telling the uploader, by a notification, that a video is ready or has
   failed. The composer asks.
 - Changing size while playing (HLS), captions, and a choice of poster.
-- Video in ActivityPub and AT Protocol, which comes with federation.
+- Video between networks: a video is neither sent to other servers or
+  Bluesky, nor brought in from them.

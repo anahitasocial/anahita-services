@@ -280,10 +280,16 @@ through `SetViewer`.
 
 ## Federation
 
-Not built yet. When it is:
-
-- Only `public` posts by people who have opted in are sent to other servers.
-- With `MIN_CONTENT_ACCESS=registered`, nothing new is sent.
+- Only `public` posts of people who chose to take part are sent to other
+  servers: on the fediverse, people who turned federation on; on Bluesky,
+  people who connected their own account. Only people whose profile
+  anybody may see take part at all.
+- With `MIN_CONTENT_ACCESS=registered`, nothing new is public, so nothing
+  new is sent.
 - With `SITE_READ_ACCESS` set to `preview` or `registered`, the installation
-  does not federate. On a preview site that would send out the whole of what
-  the preview holds back.
+  sends nothing to the fediverse or to Bluesky, and connecting a Bluesky
+  account is not offered. On a preview site, sending out would give away
+  the whole of what the preview holds back. Reading from elsewhere still
+  works.
+- What came from elsewhere is copied in, so a reader's browser never asks
+  another server for it. See [Federation](federation.md#who-owns-what).

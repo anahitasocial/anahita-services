@@ -19,10 +19,11 @@ stored, how it is chosen, and what uses it.
 - **Screen readers.** A French post on an English page is read with French
   pronunciation, because its text is marked with its language.
 - **Other fediverse servers.** Mastodon and Bluesky both file a post under its
-  language, and their users filter by it. Once this installation federates,
-  its posts arrive tagged.
+  language, and their users filter by it. Posts sent from here arrive
+  tagged with theirs.
+- **Custom feeds** can keep to posts in one language.
 - **Later:** a translate button, which needs to know what it is translating
-  from, and a language filter in custom feeds.
+  from.
 
 The author chooses. **Nothing guesses a language.** A post whose author did
 not say has none, and that is deliberate: other servers show an untagged post
@@ -98,8 +99,8 @@ language today:
   could only be guessed, and guessing is what the point above leaves out.
 - **Changing a post's language in the web app** after it is posted. The API
   accepts it; the edit form does not offer it yet.
-- **An index on the column.** Nothing filters by language yet. Custom feeds
-  will, and should add it then.
+- **An index on the column.** Custom feeds filter by language, without
+  one; it is worth adding when feeds that do grow slow.
 - **More than one language per post.** Bluesky allows three.
 
 They belong with federation, a translate button or custom feeds, whichever

@@ -17,7 +17,7 @@ how an operator tunes it.
 
 ## Two orders
 
-The search page offers two: **Most relevant**, as it comes, and **Most
+The search page offers two: **Most relevant**, the default, and **Most
 recent**, newest first. Most recent is only that. The rest of this page is
 about Most relevant.
 
@@ -29,7 +29,7 @@ the second puts level.
 
 1. **Where the words are.**
 
-   | Where | Points as they come |
+   | Where | Points by default |
    | --- | --- |
    | The handle exactly (`bmann.ca`, `rastin`), with or without the `@` typed before it | 100 |
    | The name exactly | 90 |
@@ -78,7 +78,7 @@ like, save, reply or follow is counted by when it happened, halved every
 - `half_life_days: 0` lets nothing fade: interest counts the same however
   old.
 
-As it comes it is 365 days. A newsroom may want a month; a library, a
+By default it is 365 days. A newsroom may want a month; a library, a
 school or a research group a year or more, or 0.
 
 ## Tuning it
@@ -103,10 +103,10 @@ Every number above is the operator's, in
   the working tree's copy there. On Kubernetes, mount a ConfigMap over that
   path to change it.
 - **It is read again when it changes,** without a restart.
-- **What it leaves out is as it comes,** so a file with only
+- **What it leaves out keeps its default,** so a file with only
   `{"half_life_days": 30}` changes that and nothing else.
 - **A file that cannot be read, or has a number below 0 or above 1000, is
-  not taken:** the weights stay as they come, and the service says so in
+  not taken:** the default weights are used, and the service says so in
   its log.
 
 ## Each person's choices
@@ -132,7 +132,8 @@ searcher may see; see [Permissions](permissions.md).
 ## Where the code is
 
 - `graph-grpc-service/data/repositories/search.go`: what is found
-  (`wordsMatch`) and the order (`orderByRelevance`).
+  (`wordsMatch`), the two scores (`relevance`), and the order, ranking the
+  page's ids before reading their rows (`browseByRelevance`).
 - `graph-grpc-service/ranking`: the weights, the file, and reading it again.
 - `graph-grpc-service/data/repositories/search_ranking_integration_test.go`:
   the order checked against MySQL, with searches as people make them.

@@ -3,8 +3,8 @@
 Raised by the user on 2026-10-13: "We may want to clip the imported content
 from the fediverse and limit them to the latest 100 from each outside
 profile. It should be a number set by the sys admin", and then: "for a
-small budget operation they could easily get overwhelmed". Planned, not
-built. Planned again the same day, after looking at what other projects
+small budget operation they could easily get overwhelmed". Built
+2026-10-13, apart from videos (see What was built). Planned again the same day, after looking at what other projects
 do: by age more than by number, and pictures and videos before words.
 
 ## Why

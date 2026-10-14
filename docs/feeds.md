@@ -21,7 +21,7 @@ A custom feed is a feed somebody builds: where its posts come from, what they ar
 
 The first tab of somebody's home page is always the feed of the people, groups and events they follow, newest first (`GET /feeds/leaders/`). It is not a custom feed and cannot be removed or reordered. Custom feeds are the tabs after it.
 
-Nothing on the site orders posts by anything but their date. A feed ordered by weights of its owner's choosing is planned as one more kind of custom feed, and would be named by whoever made it like any other. See the plan, `docs/plans/done/feed-generators.md`.
+Every feed orders its posts by date, newest first. (Search is the one place with another order, "Most relevant": see [Search](search.md).) A feed ordered by weights of its owner's choosing is planned as one more kind of custom feed, and would be named by whoever made it like any other. See the plan, `docs/plans/done/feed-generators.md`.
 
 ## A feed is a node
 
@@ -68,8 +68,8 @@ Nothing on the site orders posts by anything but their date. A feed ordered by w
 
 | Key | Keeps |
 | --- | --- |
-| `actor_types` | Posts on these kinds of profile: `person`, `group`, `event`. Empty for any |
-| `media_types` | These kinds of post: `note`, `article`, `topic`, `photo`. Empty for every kind |
+| `actor_types` | Posts on these kinds of profile: `person`, `group`, `event`. `person` includes people on the fediverse and on Bluesky. Empty for any |
+| `media_types` | These kinds of post: `note`, `article`, `topic`, `photo`, `video`. Empty for every kind |
 | `hashtags_any` | Posts carrying any of these hashtags |
 | `keywords_any` | Posts with any of these words in the title or the text, in any case |
 | `locations_any` | Posts tagged with any of these places, by id |
@@ -182,4 +182,4 @@ A feed is sent with its `icon`, `is_pinned` and `authorized` (`edit`, `delete`, 
 - **A cache of a public feed's first page.** Nothing is slow enough to need one yet.
 - **Feeds made for a new account.** The feed of people you follow is the first tab, and the rest are for each person to make.
 - **Emptying a feed's description.** A description can be changed and cannot be set back to nothing: the graph's node edit leaves an empty text as it was.
-- **Feeds across the fediverse.** A custom feed is a feature of the installation. Posts from followed remote accounts will appear in one as they will in any feed.
+- **Feeds across the fediverse.** A custom feed is a feature of the installation and is not sent to other servers. Posts from people followed on other servers appear in one like any others, and a feed can name such people among its profiles.

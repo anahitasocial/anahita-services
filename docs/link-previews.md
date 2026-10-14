@@ -128,5 +128,5 @@ still shown; only their pictures need the service.
 
 - oEmbed, and a favicon for a page with no picture.
 - Cards on anything but notes and replies, and for any link but the first.
-- Blocking previews of chosen domains: it comes with federation's domain
-  blocklist.
+- Blocking previews of chosen domains. The list of servers the site refuses
+  for federation is not consulted.

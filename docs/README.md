@@ -215,7 +215,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Settings](data-export.md#settings)
    - [Running it, and not running it](data-export.md#running-it-and-not-running-it)
    - [What is not built](data-export.md#what-is-not-built)
-20. [Federation](federation.md) — being found and followed from other servers: turning it on, who is on the fediverse, what they are called and what is told about them
+20. [Federation](federation.md) — taking part in the fediverse and in Bluesky: turning it on, who is on the fediverse, what they are called and what is told about them, reading Bluesky and writing to it as a connected account, and who owns what
    - [What it is](federation.md#what-it-is)
    - [A server on one network, an app on the other](federation.md#a-server-on-one-network-an-app-on-the-other)
    - [Setting it up](federation.md#setting-it-up)
@@ -236,8 +236,11 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The API](federation.md#the-api)
    - [Leaving, and what follows a person's changes](federation.md#leaving-and-what-follows-a-persons-changes)
    - [Servers that are refused](federation.md#servers-that-are-refused)
+   - [Replies](federation.md#replies)
+   - [Likes and reposts](federation.md#likes-and-reposts)
    - [Pictures that are removed](federation.md#pictures-that-are-removed)
-   - [Reading Bluesky](federation.md#reading-bluesky)
+   - [Posts and people that are removed](federation.md#posts-and-people-that-are-removed)
+   - [Bluesky](federation.md#bluesky)
    - [Where the code is](federation.md#where-the-code-is)
 21. [The federation lab](federation-lab.md) — trying federation on one machine: names, certificates, and another server to talk to
    - [Why it is needed](federation-lab.md#why-it-is-needed)
@@ -257,9 +260,14 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [What it is not](federation-lab.md#what-it-is-not)
    - [Where the code is](federation-lab.md#where-the-code-is)
 22. [Search](search.md) — the order results come in, old and useful counting as much as new, and how an operator tunes it
+   - [Two orders](search.md#two-orders)
    - [Most relevant](search.md#most-relevant)
    - [Old and useful counts as much as new](search.md#old-and-useful-counts-as-much-as-new)
    - [Tuning it](search.md#tuning-it)
+   - [Each person's choices](search.md#each-persons-choices)
+   - [What is found at all](search.md#what-is-found-at-all)
+   - [Where the code is](search.md#where-the-code-is)
+   - [What is not built](search.md#what-is-not-built)
 
 ## Plans
 
@@ -276,7 +284,9 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
-| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0 done 2026-10-12; phase 1, ActivityPub, mostly built 2026-10-13: see [Federation](federation.md). AT Protocol, part 1 (reading Bluesky) built 2026-10-12; part 2 (being on Bluesky) waits for a domain |
+| [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0 done 2026-10-12; phase 1, ActivityPub, mostly built 2026-10-13: see [Federation](federation.md). AT Protocol built 2026-10-13 as connected accounts: everybody reads Bluesky, and whoever connects their own account posts, replies, likes, reposts and follows there. Hosting Bluesky identities on a server of the site's own is [plans/atproto-server.md](plans/atproto-server.md), to be decided |
+| [Keeping what comes from other networks within bounds](plans/remote-content-limits.md) | 47 | built 2026-10-13 (`REMOTE_*`); videos wait until videos are brought in |
+| [Anahita as an AT Protocol server](plans/atproto-server.md) | 51 | recorded 2026-10-14; to be decided in the future |
 | [Link previews](plans/done/link-previews.md) | 10 | built 2026-10-11, with the web shell of its part B |
 | [Downloading what a post holds](plans/done/downloads.md) | 37 | built 2026-10-11 |
 | [Invitations](plans/done/actor-invitations.md) | 11 | done 2026-10-10 |

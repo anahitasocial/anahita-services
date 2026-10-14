@@ -108,8 +108,7 @@ with a redirect to the same path on the API, with whatever was asked:
 | `/.well-known/nodeinfo` | What software this is and how many use it |
 
 The API's address is `PUBLIC_API_URL`, or `https://api.DOMAIN_NAME` when
-that is not set. Nothing answers WebFinger there yet: that comes with
-federation.
+that is not set. activitypub-service answers WebFinger there.
 
 ## Running it
 
@@ -167,5 +166,4 @@ Without that, nobody here can be found by their handle.
 
 - A place's name on `/locations/<id>`, and a custom feed's on `/feeds/<id>`.
 - `og:image:width` and `height`.
-- The `alternate` link to a page's ActivityPub form, which comes with
-  federation.
+- The `alternate` link to a page's ActivityPub form.

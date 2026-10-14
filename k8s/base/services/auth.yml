@@ -234,6 +234,14 @@ spec:
                   optional: true
             - name: OAUTH_SEED_CLIENT_PATH
               value: /app/seed/oauth_seed_clients.json
+            # Days without activity that make an account dormant in the
+            # administration list. Unset for 730.
+            - name: ACCOUNT_DORMANT_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ACCOUNT_DORMANT_DAYS
+                  optional: true
             # Who gets in, and who may invite or create groups.
             - name: REGISTRATION_MODE
               valueFrom:

@@ -139,6 +139,9 @@ services:
       # be open to the internet — a closed one is noticed in a minute by the
       # operator, an open one when the spam arrives.
       REGISTRATION_MODE: ${REGISTRATION_MODE:-}
+      # Days without activity that make an account dormant in the
+      # administration list. Empty for 730. See docs/configuration.md.
+      ACCOUNT_DORMANT_DAYS: ${ACCOUNT_DORMANT_DAYS:-}
       # Who may issue an invitation: administrators (the default) or members.
       #
       # Under `members` an invitation becomes a recommendation rather than a
@@ -1242,10 +1245,11 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.44
 
-# atproto-service - reads Bluesky: somebody here looks up an account there
-# and follows it, and its posts are kept here as they are written. It writes
-# nothing to Bluesky. Optional: an installation that leaves it out follows
-# nobody there. See docs/federation.md.
+# atproto-service - Bluesky: somebody here looks up an account there and
+# follows it, and its posts are kept here as they are written; whoever
+# connects their own Bluesky account also posts, replies, likes, reposts and
+# follows there. Optional: an installation that leaves it out follows nobody
+# there. See docs/federation.md, Bluesky.
   atproto-service:
     build:
       context: .
@@ -1284,7 +1288,7 @@ services:
       PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
       PUBLIC_API_URL: ${PUBLIC_API_URL:-}
       # Where Bluesky is read from. Empty for the network's own. See
-      # docs/configuration.md, Federation.
+      # docs/configuration.md, Federation (and docs/federation.md).
       ATPROTO_APPVIEW_URL: ${ATPROTO_APPVIEW_URL:-}
       ATPROTO_JETSTREAM_URL: ${ATPROTO_JETSTREAM_URL:-}
       ATPROTO_CDN_URL: ${ATPROTO_CDN_URL:-}
