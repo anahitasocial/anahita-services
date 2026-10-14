@@ -79,9 +79,9 @@ shown in is a separate thing, chosen in the web app.
 - **A language button in the composer**, beside the audience button, showing
   the code (`EN`). It opens a list of about sixty languages, named in the
   language the app is being read in.
-- **Where it starts**, in order: the language this person last posted in, in
-  this browser; the posting language on their profile; the browser's language;
-  English.
+- **Where it starts**, in order: the posting language on their profile; the
+  browser's language, which is the computer's; English. A language chosen
+  for one post applies to that post only.
 - **Posts are marked with their language** where they are drawn, so a screen
   reader reads each in the right one.
 - **Profile settings** have "Language you post in". Left on "My browser's
