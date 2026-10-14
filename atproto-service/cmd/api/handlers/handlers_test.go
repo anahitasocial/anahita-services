@@ -958,3 +958,72 @@ func TestWhatSomebodyFollowedReposts(t *testing.T) {
 		t.Errorf("reposted what is not kept: %v", w.reposts.made)
 	}
 }
+
+// THE RULE THIS GUARDS: the pictures of a post that has been left alone
+// go from storage and the post says so, with what each showed; asked for,
+// they are copied again; and when they are no longer to be had, the post
+// says that instead.
+func TestPicturesAreRemovedAndCopiedAgain(t *testing.T) {
+	w := newWorld(t)
+	alice := w.alice(true)
+	uri := bsky.PostURI(aliceDID, "3l3photo")
+	record := `{"text":"The beans","embed":{"$type":"app.bsky.embed.images","images":[
+		{"alt":"A row of beans","image":{"ref":{"$link":"` + aCID + `"},"mimeType":"image/jpeg"}}]}}`
+	if err := w.h.keepPost(alice, "3l3photo", aPost(t, record)); err != nil {
+		t.Fatal(err)
+	}
+	post := w.keptAt(uri)
+	stored := len(w.files.stored)
+	if len(w.listed.kept[post.ID]) != 1 || stored == 0 {
+		t.Fatalf("kept with %d pictures listed and %d files", len(w.listed.kept[post.ID]), stored)
+	}
+	now := time.Date(2026, 11, 20, 0, 0, 0, 0, time.UTC)
+
+	had, err := w.h.Keeper.RemovePictures(post.ID, now)
+	if err != nil || !had {
+		t.Fatalf("removed: %v, %v", had, err)
+	}
+	post = w.keptAt(uri)
+	removed := federation.MediaRemovedFrom(post.Meta)
+	if removed == nil || len(removed.Alts) != 1 || removed.Alts[0] != "A row of beans" || removed.Gone {
+		t.Fatalf("the post says %+v", removed)
+	}
+	if len(w.listed.kept[post.ID]) != 0 || len(w.files.stored) >= stored || post.Body != "The beans" {
+		t.Errorf("after removing: %d listed, %d files, body %q", len(w.listed.kept[post.ID]), len(w.files.stored), post.Body)
+	}
+	// Asked to remove again, there is nothing to remove.
+	if had, _ := w.h.Keeper.RemovePictures(post.ID, now); had {
+		t.Error("removed twice")
+	}
+
+	// Bluesky is away: they are not copied, and are not said to be gone.
+	w.bluesky.err = errors.New("timeout")
+	if n, code := w.h.restorePictures(context.Background(), post, aliceDID); n != 0 || code != errMediaFailed {
+		t.Errorf("with Bluesky away: %d, %s", n, code)
+	}
+	w.bluesky.err = nil
+	if got := federation.MediaRemovedFrom(w.keptAt(uri).Meta); got == nil || got.Gone {
+		t.Fatalf("after Bluesky was away the post says %+v", got)
+	}
+
+	// Asked for: copied again, and the post says nothing more of it.
+	w.bluesky.posts[uri] = aPost(t, record)
+	n, code := w.h.restorePictures(context.Background(), w.keptAt(uri), aliceDID)
+	post = w.keptAt(uri)
+	if n != 1 || code != "" || federation.MediaRemovedFrom(post.Meta) != nil || len(w.listed.kept[post.ID]) != 1 {
+		t.Fatalf("copied again: %d, %q, the post says %+v", n, code, federation.MediaRemovedFrom(post.Meta))
+	}
+
+	// Removed once more, and taken away on Bluesky meanwhile: the post
+	// says they are no longer to be had, and keeps what they showed.
+	if _, err := w.h.Keeper.RemovePictures(post.ID, now); err != nil {
+		t.Fatal(err)
+	}
+	delete(w.bluesky.posts, uri)
+	if n, code := w.h.restorePictures(context.Background(), w.keptAt(uri), aliceDID); n != 0 || code != errMediaGone {
+		t.Errorf("when they are gone: %d, %s", n, code)
+	}
+	if got := federation.MediaRemovedFrom(w.keptAt(uri).Meta); got == nil || !got.Gone || got.Alts[0] != "A row of beans" {
+		t.Errorf("the post says %+v", got)
+	}
+}

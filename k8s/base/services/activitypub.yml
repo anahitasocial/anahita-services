@@ -143,6 +143,15 @@ spec:
                   name: anahita-config
                   key: AWS_KMS_KEY_ID
                   optional: true
+            # How many days the pictures of a post from elsewhere are kept
+            # after the post was last touched. Unset for thirty; 0 to keep
+            # them for good.
+            - name: REMOTE_MEDIA_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: REMOTE_MEDIA_DAYS
+                  optional: true
             - name: DSN
               valueFrom:
                 secretKeyRef:

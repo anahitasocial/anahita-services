@@ -174,6 +174,13 @@ func main() {
 	// then, having waited for all of their own work.
 	env.Later = func(work func()) { go work() }
 
+	// The pictures of posts from other servers that have been left alone
+	// for a while are removed from storage, to be copied again when asked
+	// for. Any copy may do it: what one has removed the next does not find.
+	go handlers.RunPictureSweep(context.Background(), time.Hour, func() int {
+		return h.PictureKeeper().RemoveOldPictures(db, constants.NodeActorActivityPubPersonEntityType, time.Now(), 200)
+	})
+
 	// What the bus lost is looked for now and then. See handlers/sweep.go.
 	go h.RunSweep(context.Background(), 5*time.Minute)
 

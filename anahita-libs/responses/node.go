@@ -52,6 +52,9 @@ type NodeItem struct {
 
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
+	// On a photo post from another server whose pictures are no longer
+	// stored here.
+	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
 	// What a video post plays.
 	Video *Video `json:"video,omitempty"`
 
@@ -122,6 +125,7 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		Event:                NewEvent(node),
 		Feed:                 NewFeedBrief(node),
 		LinkPreview:          NewLinkPreview(node),
+		MediaRemoved:         NewMediaRemoved(node),
 		Video:                NewVideo(node),
 		Authorized:           NewNodeAuthorized(node),
 		Author: func() *Author {

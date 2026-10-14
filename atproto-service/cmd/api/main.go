@@ -197,6 +197,13 @@ func main() {
 		}()
 	}
 
+	// The pictures of posts from Bluesky that have been left alone for a
+	// while are removed from storage, to be copied again when asked for.
+	// Any copy may do it: what one has removed the next does not find.
+	go handlers.RunPictureSweep(ctx, time.Hour, func() int {
+		return env.Keeper.RemoveOldPictures(db, constants.NodeActorATProtoPersonEntityType, time.Now(), 200)
+	})
+
 	// What the bus lost is looked for now and then.
 	go h.RunCatchUp(ctx, time.Minute)
 

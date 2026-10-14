@@ -37,6 +37,7 @@ there and have its posts. See [Reading Bluesky](#reading-bluesky).
 - [Replies](#replies)
 - [Likes and reposts](#likes-and-reposts)
 - [Servers that are refused](#servers-that-are-refused)
+- [Pictures that are removed](#pictures-that-are-removed)
 - [Reading Bluesky](#reading-bluesky)
 - [Where the code is](#where-the-code-is)
 
@@ -886,6 +887,49 @@ ten.
 the inbox, counted before anything is read, and answered `429` beyond
 that.
 
+## Pictures that are removed
+
+A picture is nearly all of what a post from another server costs to keep:
+it is stored at every size a photo is. So the pictures of a post from
+elsewhere are removed from storage once the post has been left alone for
+`REMOTE_MEDIA_DAYS`, thirty unless said, and copied here again when
+somebody asks to see them. It is what Mastodon and GoToSocial do with what
+they hold of other servers, and it is on as the installation comes, since
+it loses nothing that is still there to be had. `0` keeps pictures for
+good.
+
+- **What stays.** The post, with its words, and what each picture showed.
+  It says in its meta (`media_removed`) how many pictures it had, and the
+  API sends that with the post: `media_removed: { count, alts, gone }`.
+- **"Left alone"** is by when the post was last written here: when it
+  arrived, when its author changed it, and when its pictures were last
+  copied again. Pictures that were asked for are kept as long again.
+- **Never** the pictures of a post somebody here liked, saved, answered,
+  reposted or quoted, nor of one an open report is about. And nothing
+  written here is ever looked at: only what has an address on another
+  server.
+- **Asked for again:** `POST /activitypub/posts/:id/pictures` or
+  `POST /atproto/posts/:id/pictures`, by anybody signed in who may see the
+  post, sixty times in ten minutes. The post is read again from where it
+  came from and its pictures are copied as they were the first time. In
+  the web app it is a button where the pictures were, and it is asked at
+  once on the post's own page.
+- **No longer to be had.** When the post was taken away where it was
+  written, or what it is read from says it has no pictures now, the answer
+  is `410 media_gone`, and the post says so from then on (`gone`), keeping
+  what its pictures showed.
+- **Each service looks after what came through it,** every hour, two
+  hundred posts at a time, oldest first: an installation that runs one of
+  the two is covered by that one.
+
+Avatars and covers of people elsewhere are small, one of each, and are
+kept while the person is. The picture of a link's card is the link
+preview service's own.
+
+Not built yet, and in the plan (`docs/plans/remote-content-limits.md`):
+removing the posts of profiles nobody follows any more, and the settings
+that remove posts themselves by age or by number.
+
 ## Reading Bluesky
 
 `atproto-service` lets somebody here look up an account on Bluesky and
@@ -1147,7 +1191,7 @@ app.
 | What | Where |
 | --- | --- |
 | Reading Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `reposts.go`, `backfill.go`, `stream.go`, `events.go`; writing: `settings.go`, `out.go`, `bsky/session.go`, `bsky/outgoing.go`), tables `atproto_actors`, `atproto_cursor`, `atproto_reposts`, `atproto_accounts`, `atproto_sent`, `atproto_writes` |
-| What both protocols share | `anahita-libs/federation/`: pictures (`pictures.go`), cards (`cards.go`), refused servers (`blocks.go`), a post's words (`content.go`) |
+| What both protocols share | `anahita-libs/federation/`: pictures (`pictures.go`), removing and restoring them (`media.go`), cards (`cards.go`), refused servers (`blocks.go`), a post's words (`content.go`) |
 | The service | `activitypub-service/` |
 | Who is on the fediverse | `cmd/api/handlers/handlers.go`: `siteFederates`, `mayFederate`, `federating` |
 | WebFinger and host-meta | `cmd/api/handlers/discovery.go` |

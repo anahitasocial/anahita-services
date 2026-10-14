@@ -1216,6 +1216,10 @@ services:
       # public addresses only.
       SSL_CERT_FILE: ${ACTIVITYPUB_CA_FILE:-}
       ACTIVITYPUB_LAB: ${ACTIVITYPUB_LAB:-}
+      # How many days the pictures of a post from another server are kept
+      # after the post was last touched. Empty for thirty; 0 to keep them
+      # for good. See docs/federation.md, Pictures that are removed.
+      REMOTE_MEDIA_DAYS: ${REMOTE_MEDIA_DAYS:-}
       # For the card of a link in a post from another server. Empty, and
       # such posts have none.
       LINK_PREVIEW_URL: ${LINK_PREVIEW_URL:-http://link-preview-service:80}
@@ -1270,6 +1274,10 @@ services:
       ATPROTO_JETSTREAM_URL: ${ATPROTO_JETSTREAM_URL:-}
       ATPROTO_CDN_URL: ${ATPROTO_CDN_URL:-}
       ATPROTO_PLC_URL: ${ATPROTO_PLC_URL:-}
+      # How many days the pictures of a post from Bluesky are kept after
+      # the post was last touched. Empty for thirty; 0 to keep them for
+      # good. See docs/federation.md, Pictures that are removed.
+      REMOTE_MEDIA_DAYS: ${REMOTE_MEDIA_DAYS:-}
       # What the token of each connected Bluesky account is kept under: the
       # same as auth-service's secrets. Without it Bluesky is read and
       # nothing is written to it.

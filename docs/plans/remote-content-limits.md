@@ -178,3 +178,35 @@ bringing videos in.
 Rows 25 and 26 (what there is to limit). The migration baseline (row 27)
 comes after this, not before: it is last in M10, so that it takes in the
 migrations of everything before it.
+
+## What was built
+
+### Step 1, pictures: 2026-10-13
+
+Built as planned, with one thing simpler than planned: **where each file
+came from is not kept.** Copying a post's pictures again is reading the
+post again from where it came from, which both services already knew how
+to do, and which is right when a picture's address has changed. So there
+is no migration.
+
+- `anahita-libs/federation/media.go`: which posts are due
+  (`OldPicturePosts`), removing (`Keeper.RemovePictures`), copying again
+  (`Keeper.RestorePictures`), and what the post says of it in its meta
+  (`media_removed`).
+- Each service sweeps what came through it, every hour, and answers
+  `POST /…/posts/:id/pictures`.
+- `REMOTE_MEDIA_DAYS`, thirty unless said, `0` for never.
+- The API sends `media_removed` with a post; the web app draws a
+  placeholder with what the pictures showed and a button, and asks at
+  once on the post's own page (`components/RemovedPictures.jsx`).
+
+"Left alone" is by the post's `updated_at`, which is when it arrived, was
+changed, or had its pictures copied again; not by when it was written,
+which for a post read on a first follow can be years ago.
+
+Tried on the dev database by making one post from Bluesky look forty days
+untouched: its three pictures went from storage within the sweep, and the
+post said so.
+
+**Still to build:** steps 2 to 4.
+

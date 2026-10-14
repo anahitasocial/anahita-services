@@ -23,6 +23,10 @@ func (h *Handlers) keeper() *federation.Keeper {
 	return keeper
 }
 
+// PictureKeeper is what keeps and removes pictures, for what runs beside
+// the handlers.
+func (h *Handlers) PictureKeeper() *federation.Keeper { return h.keeper() }
+
 func (h *Handlers) copyAvatar(nodeID int64, address string) {
 	h.keeper().CopyAvatar(nodeID, address)
 }
