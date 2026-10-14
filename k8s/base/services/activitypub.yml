@@ -152,6 +152,29 @@ spec:
                   name: anahita-config
                   key: REMOTE_MEDIA_DAYS
                   optional: true
+            # How many days the posts of somebody nobody here follows any
+            # more are kept. Unset for thirty; 0 to keep them for good.
+            - name: REMOTE_UNFOLLOWED_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: REMOTE_UNFOLLOWED_DAYS
+                  optional: true
+            # Posts from elsewhere removed whoever wrote them, by age and
+            # by how many are kept of one person. Off unless set: what
+            # they remove is not got back by asking.
+            - name: REMOTE_POSTS_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: REMOTE_POSTS_DAYS
+                  optional: true
+            - name: REMOTE_POSTS_KEPT
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: REMOTE_POSTS_KEPT
+                  optional: true
             - name: DSN
               valueFrom:
                 secretKeyRef:

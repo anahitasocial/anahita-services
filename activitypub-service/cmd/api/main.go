@@ -181,6 +181,26 @@ func main() {
 		return h.PictureKeeper().RemoveOldPictures(db, constants.NodeActorActivityPubPersonEntityType, time.Now(), 200)
 	})
 
+	// And what nobody here holds to goes altogether: the posts of
+	// somebody nobody follows any more, and then whoever nothing is left
+	// of. See anahita-libs/federation/retention.go for the rules.
+	go handlers.RunTidy(context.Background(), time.Hour, func() (int, int) {
+		rules, now := federation.RetentionFromEnv(), time.Now()
+		posts, err := federation.OldPosts(db, constants.NodeActorActivityPubPersonEntityType, rules, now, 200)
+		if err != nil {
+			log.Println("looking for posts that are due to go:", err)
+		}
+		removed, _ := h.Tidy(posts, nil)
+		// After the posts, so that whoever has just been left with
+		// none is found in the same round.
+		people, err := federation.StalePeople(db, constants.NodeActorActivityPubPersonEntityType, rules, now, 200)
+		if err != nil {
+			log.Println("looking for people of whom nothing is left:", err)
+		}
+		_, forgotten := h.Tidy(nil, people)
+		return removed, forgotten
+	})
+
 	// What the bus lost is looked for now and then. See handlers/sweep.go.
 	go h.RunSweep(context.Background(), 5*time.Minute)
 

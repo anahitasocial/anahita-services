@@ -181,6 +181,37 @@ migrations of everything before it.
 
 ## What was built
 
+### Steps 2 and 3, posts and people: 2026-10-13
+
+- `anahita-libs/federation/retention.go`: which posts are due
+  (`OldPosts`, one query built from the rules that are set), which people
+  (`StalePeople`), and removing a post with its files
+  (`Keeper.RemovePost`).
+- Each service does a round every hour (`handlers/retention.go`,
+  `Tidy`): the posts go as they would have had their author taken them
+  away, said on the bus; then the people of whom nothing is left, by the
+  service's own way of forgetting somebody.
+- `REMOTE_UNFOLLOWED_DAYS`, thirty unless said; `REMOTE_POSTS_DAYS` and
+  `REMOTE_POSTS_KEPT`, off unless said.
+- **Not in the hourly sweeper of graph-grpc-service, as first written
+  above,** but in the two services: each knows what it keeps beside the
+  graph (keys, follows, cursors) and has to forget that too.
+- **An answer is never removed by a rule,** which the plan did not say.
+  An answer is kept only when it belongs to a conversation somebody here
+  can see, and removing the middle of one helps nobody.
+- A person is removed only when no edge at all touches them. That is
+  stricter than the plan's list (a like, a reply, a block) and simpler to
+  be sure of.
+- No migration, and nothing in the web app: a post that went is simply
+  not in a list any more.
+- Checked against MySQL with the schema of `schema/init.sql`
+  (`retention_integration_test.go`): each rule alone, each protection,
+  and that another kind of server's posts are not looked at. On the
+  development database the default rule found nothing due.
+
+Left: videos (step 4), with bringing videos in. The questions under "To
+decide when it is built" are still open; none was needed for this.
+
 ### Step 1, pictures: 2026-10-13
 
 Built as planned, with one thing simpler than planned: **where each file

@@ -1,7 +1,6 @@
 package federation
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"log"
@@ -155,27 +154,10 @@ LIMIT ?`
 // OldPicturePosts finds them: `ownerType` is the kind of person the posts
 // are of, so that each service looks after what came through it.
 func OldPicturePosts(db *sql.DB, ownerType string, before time.Time, limit int) ([]int64, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-
-	rows, err := db.QueryContext(ctx, oldPicturePosts,
+	return idsOf(db, oldPicturePosts,
 		constants.NodeMediumPhotoEntityType, ownerType, before.UTC(),
 		constants.EdgeBaseLikeEntityType, constants.EdgeBaseBookmarkEntityType,
 		limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var ids []int64
-	for rows.Next() {
-		var id int64
-		if err := rows.Scan(&id); err != nil {
-			return nil, err
-		}
-		ids = append(ids, id)
-	}
-	return ids, rows.Err()
 }
 
 // RemovePictures takes a post's pictures out of storage and has the post

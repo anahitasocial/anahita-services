@@ -38,6 +38,7 @@ there and have its posts. See [Reading Bluesky](#reading-bluesky).
 - [Likes and reposts](#likes-and-reposts)
 - [Servers that are refused](#servers-that-are-refused)
 - [Pictures that are removed](#pictures-that-are-removed)
+- [Posts and people that are removed](#posts-and-people-that-are-removed)
 - [Reading Bluesky](#reading-bluesky)
 - [Where the code is](#where-the-code-is)
 
@@ -926,9 +927,51 @@ Avatars and covers of people elsewhere are small, one of each, and are
 kept while the person is. The picture of a link's card is the link
 preview service's own.
 
-Not built yet, and in the plan (`docs/plans/remote-content-limits.md`):
-removing the posts of profiles nobody follows any more, and the settings
-that remove posts themselves by age or by number.
+## Posts and people that are removed
+
+The words of a post cost very little, and are kept far longer than its
+pictures. What goes is what nobody here has a reason to keep.
+
+| Setting | What goes | As it comes |
+| --- | --- | --- |
+| `REMOTE_UNFOLLOWED_DAYS` | The posts of somebody nobody here follows any more, once they have been left alone this many days | 30 |
+| `REMOTE_POSTS_DAYS` | Any post from elsewhere left alone this many days, whoever follows its author | Off |
+| `REMOTE_POSTS_KEPT` | All but the newest so many posts of one person elsewhere | Off |
+
+The first is on because it removes only what nobody is reading: somebody
+looked up once and never followed, or unfollowed a month ago. The other
+two are for an installation that has to hold its database to a size, and
+are off because **what they remove is not got back by asking**: a post
+that went is read again only if its author is followed anew, and then
+only their latest. `0` turns any of the three off.
+
+- **Never** a post somebody here liked or saved; one that anything stands
+  under or on, here or elsewhere (an answer, a repost, a quote); one in a
+  thread somebody here wrote in; one an open report is about.
+- **Never an answer.** Only a post that begins a thread is removed by a
+  rule. An answer from elsewhere is here because it is part of a
+  conversation somebody here is in.
+- **Never anything written here.** Only what has an address on another
+  server is looked at, and only what is owned by somebody of another
+  server. The operator's settings do not clip what the site's own people
+  wrote, at any age or number.
+- **"Left alone"** is as for pictures: by when the post was last written
+  here.
+- **It goes as if its author had taken it away:** with what is stored of
+  its pictures, and said on the bus, so that its hashtags and any news of
+  it go too.
+- **Then the person.** Somebody elsewhere of whom no post is left, whom
+  nobody here follows and who follows nobody here, whom nobody blocked,
+  whose nothing was liked and about whom no report is open, is removed
+  with their avatar and cover once they too have been left alone for
+  `REMOTE_UNFOLLOWED_DAYS`. Looked up again, they are read again. With
+  that setting at `0` nobody is removed.
+- **Each service looks after what came through it,** every hour, two
+  hundred posts and two hundred people at a time, the longest left alone
+  first.
+
+Not built: the same for videos, which are not brought in from elsewhere
+yet (`docs/plans/remote-content-limits.md`).
 
 ## Reading Bluesky
 
