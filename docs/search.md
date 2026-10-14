@@ -127,8 +127,11 @@ searcher may see; see [Permissions](permissions.md).
 - **A switch for each person,** such as "put people and groups I follow
   first". Planned; which switches is to be settled.
 - **An index of words.** Search matches with `LIKE '%…%'`, which reads every
-  row and knows nothing of words or languages. A MySQL `FULLTEXT` index is
-  planned, before the migration baseline.
+  row and knows nothing of words or languages. MySQL's `FULLTEXT` index with
+  the `ngram` parser was tried and put off: it missed posts that `LIKE`
+  finds (two-letter stopwords, text indexed before the index existed,
+  Japanese). Search is fast enough without it at today's sizes; a search
+  engine beside the database is the likelier answer when it is not.
 - **Ranking by citation,** as Google ranks the web, is to be decided in a
   few months, when there is more to rank. See the web app's
   `docs/plans/search-improvements.md`.
