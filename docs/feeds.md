@@ -138,7 +138,7 @@ A feed among search results is a node like the others, with a `feed` block: its 
 
 ## Discover
 
-The web app's search uses the above. This endpoint is still served and nothing in the web app calls it.
+The web app's search finds shared feeds by their words. This endpoint lists them without any: it is the **Feeds** tab of the web app's Recommendations page.
 
 
 `GET /feeds/discover` lists the feeds people have shared, newest first: public ones, ones for anyone signed in, and ones for the followers of somebody the viewer follows. Each is gated for the viewer by its own audience and its owner's, as a post is. A feed kept to its owner is in nobody's list, its owner's included; the viewer's own shared feeds are in theirs, as everybody else sees them.
