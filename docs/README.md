@@ -217,6 +217,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [What is not built](data-export.md#what-is-not-built)
 20. [Federation](federation.md) — being found and followed from other servers: turning it on, who is on the fediverse, what they are called and what is told about them
    - [What it is](federation.md#what-it-is)
+   - [A server on one network, an app on the other](federation.md#a-server-on-one-network-an-app-on-the-other)
    - [Setting it up](federation.md#setting-it-up)
    - [Keeping it running](federation.md#keeping-it-running)
    - [When something does not work](federation.md#when-something-does-not-work)

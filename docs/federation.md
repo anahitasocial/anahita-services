@@ -17,6 +17,7 @@ there and have its posts. See [Reading Bluesky](#reading-bluesky).
 ## Contents
 
 - [What it is](#what-it-is)
+- [A server on one network, an app on the other](#a-server-on-one-network-an-app-on-the-other)
 - [Setting it up](#setting-it-up)
 - [Keeping it running](#keeping-it-running)
 - [When something does not work](#when-something-does-not-work)
@@ -51,8 +52,101 @@ of its own because it is the one that reads what the internet sends it, and
 because an installation may not want it at all.
 
 Bluesky speaks a different protocol, and is a different service:
-`atproto-service`, which so far reads Bluesky and writes nothing to it. See
+`atproto-service`, which reads Bluesky for everybody here, and writes to it
+for whoever connects the Bluesky account they already have. See
 [Reading Bluesky](#reading-bluesky).
+
+## A server on one network, an app on the other
+
+Anahita takes part in the two networks in two different ways, and what
+people own, and where, follows from that.
+
+| | ActivityPub (Mastodon and the fediverse) | AT Protocol (Bluesky) |
+| --- | --- | --- |
+| Anahita is | a server, as a Mastodon server is | an app, as a Bluesky client is, with a small reader of its own |
+| Somebody's identity there | `@name@your-site.example`, made by Anahita when they turn federation on | the Bluesky account they already have, which they connect |
+| Who holds the keys that sign for them | Anahita, encrypted | their own Bluesky server; Anahita keeps only a token to post as them, encrypted |
+| Needed to take part | turning it on in their settings | a Bluesky account of their own |
+| Where the original of what they post lives | here | here, with a copy of their public posts in their Bluesky repository |
+
+### On the fediverse: a server
+
+Anahita is an ActivityPub server in its own right. Somebody who turns
+federation on becomes `@name@your-site.example`: other servers find them by
+WebFinger, read their profile from Anahita at an address on the site's
+domain, and deliver follows, replies, likes and reposts to its inbox, each
+request signed and checked. Anahita delivers their public posts, replies,
+likes, reposts and follows to their followers' servers itself, signed with
+a key it made for them.
+
+Nobody needs an account anywhere else. The identity belongs to the site's
+domain, as on any fediverse server: if the site goes, or changes its
+domain, the identities go with it (moving an account to another server,
+ActivityPub's `Move`, is not built). Other servers keep copies of what they
+received, as they do of any federated post; deletions are sent to them, and
+no server can be made to honour one.
+
+### On Bluesky: an app
+
+On the AT Protocol each person's posts are records in their own repository,
+kept by their personal data server (PDS) and tied to their identity (a DID),
+which they can move from one server to another. Anahita is not a PDS. It
+hosts nobody's repository and gives nobody a Bluesky identity:
+
+- **Writing, as a client.** For somebody who connects their account,
+  Anahita signs in to their own PDS and writes their public notes and photo
+  posts there, and their replies, likes, reposts and follows, as Bluesky's
+  own app would. Their PDS signs the records and keeps them.
+- **Reading, as a small indexer.** It listens to Jetstream for the accounts
+  people here follow, reads profiles and posts from Bluesky's public
+  AppView, and keeps what it finds in its own database.
+
+Somebody with no Bluesky account is not on Bluesky through Anahita. Running
+a PDS beside Anahita, so that members get an identity under the site's
+domain, is written down for later (`docs/plans/atproto-server.md`).
+
+### Who owns what
+
+- **Everything posted here is kept here,** in the installation's database
+  and storage, run by whoever runs the site. That is the fediverse's sense
+  of owning: choosing one's host, or being it.
+- **A copy of a connected person's public posts goes to Bluesky.** Each
+  picture is uploaded, made small enough for Bluesky's limit of a megabyte,
+  to their PDS: Bluesky's own hosting for most people, or their own server
+  if they run one. Those copies are theirs in the AT Protocol's sense: in
+  their repository, under their identity, moving with it. From there
+  Bluesky's relay and its image and video services spread and cache them,
+  and anybody reading the public firehose may keep a copy.
+- **What a post names on Bluesky is a file, not a server.** A picture is
+  named by its content's hash and the account it belongs to; the original
+  is fetched from that account's PDS. Bluesky's app shows its own resized
+  copies from its image servers (`cdn.bsky.app`) and plays videos from its
+  video service, so most viewing comes from Bluesky's caches even when the
+  original is on somebody's own server.
+- **Deleting a post here deletes it from their Bluesky account,** and
+  Bluesky takes it out of its app. Copies others already took from the
+  public network cannot be called back, there or on the fediverse.
+- **Disconnecting stops new copies and takes nothing back.** What was
+  written to Bluesky stays there, and can no longer be removed from here.
+- **Only what is public goes out,** on either network: followers-only and
+  members-only posts, a site kept to its members, and anybody who did not
+  turn federation on or connect an account send nothing.
+- **What comes in is copied in,** pictures included, into the
+  installation's own storage, so that a reader's browser never asks another
+  server for them. Pictures from elsewhere are removed after a while unless
+  somebody here holds to the post (see
+  [Pictures that are removed](#pictures-that-are-removed)).
+- **Each person can take a copy of everything,** with
+  [Download your data](data-export.md): an archive shaped as ActivityPub
+  has it, and, for a connected account, their Bluesky repository.
+
+### Groups, events and the rest
+
+What only Anahita has (groups, events, articles and topics, followers-only
+posts, likes and follows between people here, custom feeds) stays here, on
+either network. An app built on the AT Protocol may keep such things as
+records of its own kinds in people's repositories; Anahita does not, since
+a repository is public and much of this is not.
 
 ## Setting it up
 
