@@ -111,15 +111,17 @@ func (srv *SearchGRPC) Browse(req *SearchBrowseRequest, viewer *entities.Viewer)
 	}
 
 	resp, err := client.Browse(context.Background(), &graphpb.SearchBrowseRequest{
-		Offset:      req.Offset,
-		Limit:       req.Limit,
-		Ordering:    req.Ordering,
-		OrderingDir: req.OrderingDir,
-		Keywords:    req.Keywords,
-		Scope:       req.Scope,
-		CoordRadius: req.CoordRadius,
-		CoordLng:    req.CoordLng,
-		CoordLat:    req.CoordLat,
+		FollowedFirst: req.FollowedFirst,
+		RecentFirst:   req.RecentFirst,
+		Offset:        req.Offset,
+		Limit:         req.Limit,
+		Ordering:      req.Ordering,
+		OrderingDir:   req.OrderingDir,
+		Keywords:      req.Keywords,
+		Scope:         req.Scope,
+		CoordRadius:   req.CoordRadius,
+		CoordLng:      req.CoordLng,
+		CoordLat:      req.CoordLat,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,

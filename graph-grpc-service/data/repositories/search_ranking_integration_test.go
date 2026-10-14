@@ -185,3 +185,47 @@ func TestMostRelevantWithInterestThatNeverFades(t *testing.T) {
 	}
 	_ = search
 }
+
+// The searcher's own choices: what they follow before everything else,
+// and the newest first among results that match alike.
+func TestMostRelevantAsTheSearcherChooses(t *testing.T) {
+	seedRankingFixture(t)
+	db := accessTestDB(t)
+	repo := NewSearchRepo(db).(*SearchRepo)
+	repo.ranking = ranking.NewSource(filepath.Join(t.TempDir(), "none.json"))
+
+	search := func(followed, recent bool, viewer int64) []int64 {
+		t.Helper()
+		nodes, err := repo.Browse(&graphpb.SearchBrowseRequest{
+			Scope: constants.SearchScopeAll, Keywords: "coffee", Ordering: "relevant", Limit: 50,
+			FollowedFirst: followed, RecentFirst: recent,
+		}, feedViewer(viewer))
+		if err != nil {
+			t.Fatal(err)
+		}
+		ids := make([]int64, 0, len(nodes))
+		for _, node := range nodes {
+			ids = append(ids, node.ID)
+		}
+		return ids
+	}
+
+	// Bob's chat is on a profile Ana follows: first of all, before the
+	// profile whose handle is the word itself.
+	if got := search(true, false, 1); len(got) == 0 || got[0] != 26 {
+		t.Errorf("followed first, for Ana: %v", got)
+	}
+	// A visitor follows nobody: as it comes.
+	if got, want := search(true, false, 0), search(false, false, 0); fmt.Sprint(got) != fmt.Sprint(want) {
+		t.Errorf("followed first, for a visitor: %v, as it comes %v", got, want)
+	}
+	// Newest first among the posts that mention coffee in the same way:
+	// this morning's before the old guide, however liked the guide is.
+	if got := search(false, true, 0); !before(got, 23, 24) {
+		t.Errorf("recent first: %v", got)
+	}
+	// The match still comes before anything: the handle is first.
+	if got := search(false, true, 0); len(got) == 0 || got[0] != 10 {
+		t.Errorf("recent first keeps the match first: %v", got)
+	}
+}

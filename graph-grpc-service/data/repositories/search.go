@@ -334,8 +334,24 @@ func (repo *SearchRepo) browseByRelevance(req *graphpb.SearchBrowseRequest, keyw
 	}
 	match, standing := relevance(keywords, repo.ranking.Weights(), viewer)
 	ranked = ranked.Column(match).Column(standing)
+	// "People and groups I follow first": what they follow, or what is on
+	// a profile they follow, before everything else, however it matches.
+	followedFirst := req.FollowedFirst && viewer != nil && viewer.ID > 0
+	if followedFirst {
+		ranked = ranked.Column(sq.Expr(followedByViewer+" AS followed",
+			constants.EdgeFollowEntityType, viewer.ID, 1))
+	}
 	ranked = repo.filtered(ranked, req, viewer)
-	ranked = ranked.OrderBy("match_points DESC", "standing DESC")
+	if followedFirst {
+		ranked = ranked.OrderBy("followed DESC")
+	}
+	ranked = ranked.OrderBy("match_points DESC")
+	// "Prefer recent": among results that match alike, the newest first,
+	// and only then by standing.
+	if req.RecentFirst {
+		ranked = ranked.OrderBy("node.created_at DESC")
+	}
+	ranked = ranked.OrderBy("standing DESC")
 	ranked = repo.nearestThenID(ranked, req)
 	ranked = ranked.Limit(req.Limit).Offset(req.Offset)
 

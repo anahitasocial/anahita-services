@@ -21,6 +21,10 @@ message SearchBrowseRequest {
     float coord_lat = 10;
     Viewer viewer = 11;
     bool access_check = 12;
+    // The searcher's own choices for "Most relevant": what they follow
+    // before anything else, and interest that fades within a month.
+    bool followed_first = 13;
+    bool recent_first = 14;
 }
 
 message SearchBrowseResponse {

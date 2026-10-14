@@ -10,6 +10,7 @@ how an operator tunes it.
 - [Most relevant](#most-relevant)
 - [Old and useful counts as much as new](#old-and-useful-counts-as-much-as-new)
 - [Tuning it](#tuning-it)
+- [Each person's choices](#each-persons-choices)
 - [What is found at all](#what-is-found-at-all)
 - [Where the code is](#where-the-code-is)
 - [What is not built](#what-is-not-built)
@@ -108,6 +109,20 @@ Every number above is the operator's, in
   not taken:** the weights stay as they come, and the service says so in
   its log.
 
+## Each person's choices
+
+Two, off as they come, sent with a search as `followed_first=true` and
+`recent_first=true` and only with "Most relevant":
+
+- **People and groups I follow first:** what the searcher follows, or what
+  is on a profile they follow, before everything else, however it matches.
+  Nothing changes for a visitor, who follows nobody.
+- **Prefer recent:** among results that match alike, the newest first, and
+  only then by standing. The match still comes first: a profile called
+  *Coffee* is still above a post that mentions coffee.
+
+The web app keeps them in the searcher's browser, per person.
+
 ## What is found at all
 
 The order does not change what is found. A result has the words in its
@@ -124,8 +139,6 @@ searcher may see; see [Permissions](permissions.md).
 
 ## What is not built
 
-- **A switch for each person,** such as "put people and groups I follow
-  first". Planned; which switches is to be settled.
 - **An index of words.** Search matches with `LIKE '%…%'`, which reads every
   row and knows nothing of words or languages. MySQL's `FULLTEXT` index with
   the `ngram` parser was tried and put off: it missed posts that `LIKE`

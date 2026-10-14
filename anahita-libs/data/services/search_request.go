@@ -32,4 +32,7 @@ type SearchBrowseRequest struct {
 	CoordLng    float32 `query:"coord_lng" validate:"number,omitempty"`
 	CoordLat    float32 `query:"coord_lat" validate:"number,omitempty"`
 	AccessCheck bool    `query:"access_check" validate:"omitempty"`
+	// The searcher's own choices for "Most relevant".
+	FollowedFirst bool `query:"followed_first"`
+	RecentFirst   bool `query:"recent_first"`
 }
