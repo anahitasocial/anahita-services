@@ -276,6 +276,10 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			"videoUploads":    videos.UploadsOn(),
 			"videoMaxBytes":   videos.MaxBytes(),
 			"videoMaxSeconds": videos.MaxSeconds(),
+			// The same for a GIF or an animated PNG, which is posted as a
+			// video that loops, and held to far less.
+			"animationMaxBytes":   videos.AnimationMaxBytes(),
+			"animationMaxSeconds": videos.AnimationMaxSeconds(),
 
 			"termsOfServiceUrl": h.Config.GetTosURL(),
 			"privacyPolicyUrl":  h.Config.GetPrivacyURL(),

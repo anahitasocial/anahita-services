@@ -375,6 +375,8 @@ is in [Videos](videos.md#settings).
 | `VIDEO_MAX_SECONDS` | The longest video taken. Ten minutes unless said |
 | `VIDEO_RENDITIONS` | The sizes made, by height: `1080,720,360` unless said, up to `2160` |
 | `VIDEO_DAILY_UPLOADS` | How many videos one person may send in a day. 20 unless said |
+| `ANIMATION_MAX_BYTES` | The largest GIF or animated PNG taken, posted as a video that loops. 25 MB unless said |
+| `ANIMATION_MAX_SECONDS` | The longest one. 30 seconds unless said |
 
 The bucket needs a CORS rule letting the web app's address `PUT` to it:
 see [Videos](videos.md#storage).

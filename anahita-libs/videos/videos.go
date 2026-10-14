@@ -58,6 +58,9 @@ type Video struct {
 	Height     int         `json:"height"`
 	Poster     string      `json:"poster"`
 	Renditions []Rendition `json:"renditions"`
+	// Made of a GIF or an animated PNG: a silent clip played on a loop,
+	// with no controls, as the picture it was.
+	Loop bool `json:"loop,omitempty"`
 }
 
 // Folder is where one video's files are kept: under the profile it was
@@ -138,6 +141,35 @@ func (v *Video) Keys() []string {
 		keys = append(keys, v.Poster)
 	}
 	return keys
+}
+
+// SharedHeight is the tallest size of a video sent to another network:
+// others make their own smaller ones, and 1080p is heavy to send.
+const SharedHeight = 720
+
+// Shared is the size of a video sent to another network, which takes files
+// up to maxBytes: the largest no taller than SharedHeight and no heavier
+// than that, or failing it the smallest that is light enough. Nil when none
+// is, and the video is sent as a link to it instead.
+func (v *Video) Shared(maxBytes int64) *Rendition {
+	if v == nil {
+		return nil
+	}
+	var lightest *Rendition
+	for i := range v.Renditions {
+		r := &v.Renditions[i]
+		if maxBytes > 0 && r.Bytes > maxBytes {
+			continue
+		}
+		if r.Height <= SharedHeight {
+			// Largest first: the first that fits is the one.
+			return r
+		}
+		if lightest == nil || r.Height < lightest.Height {
+			lightest = r
+		}
+	}
+	return lightest
 }
 
 // Rendition finds a size by its height, or nil.

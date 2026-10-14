@@ -35,25 +35,30 @@ type Config struct {
 	// The largest video taken, in bytes, and the longest, in seconds.
 	VideoMaxBytes   int64
 	VideoMaxSeconds int
+	// A GIF's or an animated PNG's.
+	AnimationMaxBytes   int64
+	AnimationMaxSeconds int
 	// How many videos one person may send in a day.
 	VideoDailyUploads int
 }
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:               getEnv("ENV", constants.ConfigEnvDev),
-		SecureCookieKey:   os.Getenv("SECURE_COOKIE_KEY"),
-		RedisAddr:         getEnv("REDIS_ADDR", "localhost:6379"),
-		RedisPassword:     os.Getenv("REDIS_PASSWORD"),
-		RedisDB:           getIntEnv("REDIS_DB", 0),
-		FileServiceAddr:   os.Getenv("FILE_SERVICE_ADDR"),
-		GraphServiceAddr:  os.Getenv("GRAPH_SERVICE_ADDR"),
-		OAuthIssuer:       os.Getenv("OAUTH_ISSUER"),
-		OAuthJWKSURL:      os.Getenv("OAUTH_JWKS_URL"),
-		DSN:               os.Getenv("DSN"),
-		VideoMaxBytes:     videos.MaxBytes(),
-		VideoMaxSeconds:   videos.MaxSeconds(),
-		VideoDailyUploads: getIntEnv("VIDEO_DAILY_UPLOADS", 20),
+		Env:                 getEnv("ENV", constants.ConfigEnvDev),
+		SecureCookieKey:     os.Getenv("SECURE_COOKIE_KEY"),
+		RedisAddr:           getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisPassword:       os.Getenv("REDIS_PASSWORD"),
+		RedisDB:             getIntEnv("REDIS_DB", 0),
+		FileServiceAddr:     os.Getenv("FILE_SERVICE_ADDR"),
+		GraphServiceAddr:    os.Getenv("GRAPH_SERVICE_ADDR"),
+		OAuthIssuer:         os.Getenv("OAUTH_ISSUER"),
+		OAuthJWKSURL:        os.Getenv("OAUTH_JWKS_URL"),
+		DSN:                 os.Getenv("DSN"),
+		VideoMaxBytes:       videos.MaxBytes(),
+		VideoMaxSeconds:     videos.MaxSeconds(),
+		AnimationMaxBytes:   videos.AnimationMaxBytes(),
+		AnimationMaxSeconds: videos.AnimationMaxSeconds(),
+		VideoDailyUploads:   getIntEnv("VIDEO_DAILY_UPLOADS", 20),
 	}
 
 	// If JWKS URL is unset, derive it from the issuer — auth-service is

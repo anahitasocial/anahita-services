@@ -8,6 +8,7 @@ import (
 
 	"anahita-libs/constants"
 	"anahita-libs/event"
+	"anahita-libs/videos"
 )
 
 // What happens here that this service has to know of.
@@ -56,7 +57,8 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		err = h.localRemoved(ctx, payload.ObjectID)
 
 	case strings.HasPrefix(payload.Name, "node.medium.") &&
-		(payload.ObjectType == constants.NodeMediumNoteEntityType || payload.ObjectType == constants.NodeMediumPhotoEntityType):
+		(payload.ObjectType == constants.NodeMediumNoteEntityType || payload.ObjectType == constants.NodeMediumPhotoEntityType ||
+			payload.ObjectType == videos.NodeType):
 		if deleted {
 			err = h.localRemoved(ctx, payload.ObjectID)
 		} else {

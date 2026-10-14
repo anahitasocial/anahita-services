@@ -46,6 +46,9 @@ func (r *Routes) Init(e *echo.Echo) {
 	ap.GET("/notes/:uuid", r.handler.Note, r.setViewer)
 	// One of a photo post's pictures, for a server that was sent the post.
 	ap.GET("/notes/:uuid/pictures/:position", r.handler.Picture, r.setViewer)
+	// A video post's file, and its poster, for a server that was sent it.
+	ap.GET("/notes/:uuid/video", r.handler.Video, r.setViewer)
+	ap.GET("/notes/:uuid/poster", r.handler.VideoPoster, r.setViewer)
 
 	// A person's own choice to be on the fediverse.
 	activitypub := e.Group("activitypub")

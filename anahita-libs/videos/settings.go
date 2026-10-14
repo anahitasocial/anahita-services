@@ -15,13 +15,21 @@ import (
 //	                   and processor time, and are not run by default.
 //	VIDEO_MAX_BYTES    the largest file taken. 500 MB unless said.
 //	VIDEO_MAX_SECONDS  the longest video taken. Ten minutes unless said.
+//	ANIMATION_MAX_BYTES    the largest GIF or animated PNG taken. 25 MB
+//	                       unless said, and never more than a video.
+//	ANIMATION_MAX_SECONDS  the longest one. 30 seconds unless said, and
+//	                       never more than a video.
 const (
-	EnvUploads    = "VIDEO_UPLOADS"
-	EnvMaxBytes   = "VIDEO_MAX_BYTES"
-	EnvMaxSeconds = "VIDEO_MAX_SECONDS"
+	EnvUploads             = "VIDEO_UPLOADS"
+	EnvMaxBytes            = "VIDEO_MAX_BYTES"
+	EnvMaxSeconds          = "VIDEO_MAX_SECONDS"
+	EnvAnimationMaxBytes   = "ANIMATION_MAX_BYTES"
+	EnvAnimationMaxSeconds = "ANIMATION_MAX_SECONDS"
 
-	DefaultMaxBytes   = 500 * 1024 * 1024
-	DefaultMaxSeconds = 600
+	DefaultMaxBytes            = 500 * 1024 * 1024
+	DefaultMaxSeconds          = 600
+	DefaultAnimationMaxBytes   = 25 * 1024 * 1024
+	DefaultAnimationMaxSeconds = 30
 )
 
 func positive(key string, fallback int64) int64 {
@@ -43,4 +51,14 @@ func MaxBytes() int64 {
 
 func MaxSeconds() int {
 	return int(positive(EnvMaxSeconds, DefaultMaxSeconds))
+}
+
+// AnimationMaxBytes is the largest moving picture taken: a GIF of two
+// hundred megabytes is a mistake or an attack.
+func AnimationMaxBytes() int64 {
+	return min(positive(EnvAnimationMaxBytes, DefaultAnimationMaxBytes), MaxBytes())
+}
+
+func AnimationMaxSeconds() int {
+	return min(int(positive(EnvAnimationMaxSeconds, DefaultAnimationMaxSeconds)), MaxSeconds())
 }

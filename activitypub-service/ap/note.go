@@ -7,6 +7,7 @@ import (
 
 	"anahita-libs/data/entities"
 	"anahita-libs/federation"
+	"anahita-libs/videos"
 )
 
 // Note is a post, as it is sent to and read from another server.
@@ -25,7 +26,7 @@ type Note struct {
 	Tag          []Tag             `json:"tag,omitempty"`
 	// What it answers, by the address that has between servers.
 	InReplyTo string `json:"inReplyTo,omitempty"`
-	// The pictures of a photo post.
+	// The pictures of a photo post, or the video of a video post.
 	Attachment []SentPicture `json:"attachment,omitempty"`
 }
 
@@ -38,6 +39,42 @@ type SentPicture struct {
 	Name      string `json:"name,omitempty"`
 	Width     int    `json:"width,omitempty"`
 	Height    int    `json:"height,omitempty"`
+	// A video's poster, which Mastodon shows before it plays.
+	Icon *SentIcon `json:"icon,omitempty"`
+}
+
+// SentIcon is a still that stands for a video.
+type SentIcon struct {
+	Type      string `json:"type"`
+	MediaType string `json:"mediaType"`
+	URL       string `json:"url"`
+}
+
+// VideoMax is the heaviest video file sent to other servers: what Mastodon
+// and GoToSocial take of one from elsewhere unless told otherwise is 40 MB
+// and more. A post with no size that light goes as its words and a link.
+const VideoMax = 40 * 1024 * 1024
+
+// WithVideo gives the note the video of the video post it is, at the size
+// sent, and the page it is read at. A video with no sound, as a GIF posted
+// here is, is shown by Mastodon as a GIF: silently, on a loop.
+func (n *Note) WithVideo(a Addresses, post *entities.AnahitaNode, video *videos.Video, file *videos.Rendition) *Note {
+	n.URL = a.VideoPage(post.ID)
+	if file == nil {
+		return n
+	}
+	sent := SentPicture{
+		Type:      "Document",
+		MediaType: videos.MimeVideo,
+		URL:       a.Video(post.UUID),
+		Width:     file.Width,
+		Height:    file.Height,
+	}
+	if video.Poster != "" {
+		sent.Icon = &SentIcon{Type: "Image", MediaType: videos.MimePoster, URL: a.VideoPoster(post.UUID)}
+	}
+	n.Attachment = append(n.Attachment, sent)
+	return n
 }
 
 // WithPictures gives the note the pictures of the photo post it is, and

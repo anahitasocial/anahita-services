@@ -15,6 +15,7 @@ the files that are shown, and only then is there a post.
 - [The post](#the-post)
 - [Playing it](#playing-it)
 - [Sizes](#sizes)
+- [GIFs and animated PNGs](#gifs-and-animated-pngs)
 - [Downloading](#downloading)
 - [Endpoints](#endpoints)
 - [Settings](#settings)
@@ -82,7 +83,7 @@ the longest video allowed and the sizes made.
 
 | What went wrong | What happens |
 | --- | --- |
-| The file is not a video, or is too long, or too large | `failed`, for good, and the upload is deleted |
+| The file is not a video (`not_a_video`), or is too long (`too_long`), or too large (`too_large`), or is a GIF or PNG that does not move (`still`) | `failed`, for good, and the upload is deleted |
 | Anything else: storage, the network, ffmpeg itself | Tried again, up to 3 times, then `failed` as `encoding` |
 | The uploader gave it up meanwhile | What was made is deleted, and no post is made |
 
@@ -90,15 +91,18 @@ the longest video allowed and the sizes made.
 
 The file is a stranger's and nothing has looked at it.
 
-- **Its first bytes say what it is**, and only two kinds are taken: MP4 or
-  QuickTime (an `ftyp` box), and WebM or Matroska (EBML). This is read
+- **Its first bytes say what it is**, and only these kinds are taken: MP4
+  or QuickTime (an `ftyp` box), WebM or Matroska (EBML), and the two
+  moving pictures, GIF (`GIF87a` or `GIF89a`) and animated PNG (a PNG that
+  says how it moves, `acTL`, before its picture begins). This is read
   before ffmpeg is given the file. ffmpeg opens many kinds of file, and
   some of them are lists of other files to read and addresses to fetch.
 - **ffmpeg is told which kind it is given** (`-f`), so it never guesses,
   and may open files and nothing else (`-protocol_whitelist file`).
 - It must have a picture: sound alone, or a song with its cover, is not a
   video.
-- It must be no longer than `VIDEO_MAX_SECONDS`.
+- It must be no longer than `VIDEO_MAX_SECONDS`, or, for a GIF or an
+  animated PNG, `ANIMATION_MAX_SECONDS`.
 - ffmpeg is run with nothing of the worker's environment but `PATH`.
 
 **Nothing of the upload is kept.** Every file shown is encoded afresh with
@@ -158,6 +162,38 @@ after that, on a video left paused, follows the path again.
 said. Up to `2160` is taken, which is 4K. A video is never made larger
 than it is: one filmed at 720p has a 720p and a 360p file and no 1080p.
 One smaller than every size listed is made once, at its own size.
+
+## GIFs and animated PNGs
+
+A GIF or an animated PNG is posted from the video composer, as Mastodon
+does with a GIF: it becomes a short clip with no sound that plays on a
+loop. It is a video post in every other way: who may see it, replies,
+likes, downloading and deleting are the same.
+
+- **It is held to less than a video:** `ANIMATION_MAX_BYTES` (25 MB) and
+  `ANIMATION_MAX_SECONDS` (30), never more than a video's own limits.
+  Beginning an upload checks the size it says, and the worker checks what
+  the file really is and its real size again.
+- **A picture that does not move is refused** with the reason `still`,
+  which the web app turns into "post it as a photo". A GIF of one picture
+  is one; so is a PNG with no `acTL`, which the worker reads from the
+  file's chunks, since ffmpeg's reader of animated PNGs will not open it.
+  A picture less than ten pixels high or wide is refused as not a video.
+- **It is made once,** at its own size up to 720 high, in numbers that
+  divide by two: H.264 with no sound, each picture shown for as long as
+  it was (`-fps_mode passthrough`), and `+faststart`. A clip is a
+  fraction of the GIF's size: a two-second test GIF of 100 KB came to
+  16 KB.
+- **What was see-through is laid on white,** since an MP4 and a JPEG have
+  nothing see-through. That matters for stickers and not for the usual
+  clip.
+- **Its poster is its first picture,** on white.
+- **The post says it loops:** `"loop": true` in `video`, in its `meta` and
+  wherever it is sent. The web app plays it muted, on a loop, without
+  controls, and still where the reader asked for less motion.
+
+An **animated WebP is not taken**: ffmpeg 8.1, in the worker's image,
+reads the file but not its pictures. A WebP is refused as not a video.
 
 More and larger sizes cost in three places, and the settings go together:
 
@@ -220,10 +256,12 @@ Kubernetes.
 | `VIDEO_MAX_SECONDS` | The longest video taken. `600`, ten minutes, unless said |
 | `VIDEO_RENDITIONS` | The sizes made, by height. `1080,720,360` unless said; see [Sizes](#sizes) |
 | `VIDEO_DAILY_UPLOADS` | How many videos one person may send in 24 hours. `20` unless said |
+| `ANIMATION_MAX_BYTES` | The largest GIF or animated PNG taken. 25 MB (`26214400`) unless said, and never more than `VIDEO_MAX_BYTES` |
+| `ANIMATION_MAX_SECONDS` | The longest one. `30` unless said, and never more than `VIDEO_MAX_SECONDS` |
 | `VIDEO_WORK_DIR` | Worker only: where a video is kept while it is worked on. `/work` in the image. Needs room for the largest upload and everything made of it |
 
-NodeInfo's `metadata` has `videoUploads`, `videoMaxBytes` and
-`videoMaxSeconds`.
+NodeInfo's `metadata` has `videoUploads`, `videoMaxBytes`,
+`videoMaxSeconds`, `animationMaxBytes` and `animationMaxSeconds`.
 
 ## Storage
 
@@ -272,5 +310,8 @@ once; each needs processor and working space of its own.
 - Telling the uploader, by a notification, that a video is ready or has
   failed. The composer asks.
 - Changing size while playing (HLS), captions, and a choice of poster.
-- Video between networks: a video is neither sent to other servers or
-  Bluesky, nor brought in from them.
+- Videos from other networks: a video posted here goes to other servers
+  and Bluesky (see [Federation](federation.md)), but one posted there is not
+  brought in.
+- Animated WebP, until ffmpeg reads one; and keeping what is see-through in
+  a GIF (WebM with transparency, or keeping the picture as it was).

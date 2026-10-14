@@ -29,11 +29,21 @@ type OutPost struct {
 }
 
 // OutEmbed is what a post carries besides its words: the card of a link,
-// or its pictures.
+// its pictures, or its video.
 type OutEmbed struct {
 	Type     string       `json:"$type"`
 	External *OutExternal `json:"external,omitempty"`
 	Images   []OutImage   `json:"images,omitempty"`
+	// A video, and its shape.
+	Video       *OutBlob  `json:"video,omitempty"`
+	AspectRatio *OutRatio `json:"aspectRatio,omitempty"`
+}
+
+// OutRatio is the shape of a picture or a video, which lets it be laid out
+// before it has loaded.
+type OutRatio struct {
+	Width  int `json:"width"`
+	Height int `json:"height"`
 }
 
 // OutExternal is the card of a link.
@@ -78,6 +88,27 @@ const BlobMax = 1000000
 
 // ImagesMax is the most pictures a post may carry.
 const ImagesMax = 4
+
+// VideoMax and VideoSecondsMax are the heaviest and longest video sent to
+// Bluesky. Bluesky takes more weight, up to 100 MB; what is sent is read
+// whole and uploaded in one go, and a video heavier than this goes as a
+// card that leads to it instead.
+const (
+	VideoMax        = 50 * 1024 * 1024
+	VideoSecondsMax = 180
+)
+
+// WithVideo gives a post a video, uploaded, with its shape. A post carries
+// a video or pictures or a card, one of them.
+func (p *OutPost) WithVideo(blob *OutBlob, width, height int) {
+	if blob == nil || p.Embed != nil {
+		return
+	}
+	p.Embed = &OutEmbed{Type: "app.bsky.embed.video", Video: blob}
+	if width > 0 && height > 0 {
+		p.Embed.AspectRatio = &OutRatio{Width: width, Height: height}
+	}
+}
 
 // WithCard gives a post the card of a link: Bluesky draws none of its
 // own from an address in a post's words. `thumb` is its picture, uploaded,

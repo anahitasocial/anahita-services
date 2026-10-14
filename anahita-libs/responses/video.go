@@ -23,6 +23,8 @@ type Video struct {
 	Height   int          `json:"height"`
 	Poster   string       `json:"poster,omitempty"`
 	Files    []*VideoFile `json:"files"`
+	// A GIF or an animated PNG: played silently, on a loop.
+	Loop bool `json:"loop,omitempty"`
 }
 
 // NewVideo reads a post's video out of its meta, or nil when it is not a
@@ -42,6 +44,7 @@ func NewVideo(node *entities.AnahitaNode) *Video {
 		Width:    video.Width,
 		Height:   video.Height,
 		Files:    make([]*VideoFile, 0, len(video.Renditions)),
+		Loop:     video.Loop,
 	}
 	if video.Poster != "" {
 		out.Poster = videos.PosterPath(node.ID)

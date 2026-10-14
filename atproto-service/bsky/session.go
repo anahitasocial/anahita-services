@@ -196,7 +196,11 @@ func (c *Client) UploadBlob(ctx context.Context, pds, accessJWT string, content 
 	req.Header.Set("User-Agent", c.userAgent)
 	req.Header.Set("Authorization", "Bearer "+accessJWT)
 
-	resp, err := c.http.Do(req)
+	client := c.http
+	if strings.HasPrefix(mimeType, "video/") && c.slow != nil {
+		client = c.slow
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

@@ -45,16 +45,18 @@ func main() {
 	uploads.ClaimFor = worker.TimeoutFor(config.VideoMaxSeconds, heights) + 15*time.Minute
 
 	w := &worker.Worker{
-		Uploads:    uploads,
-		Transfers:  services.NewFileTransfersGRPC(config),
-		Files:      services.NewFilesGRPC(config),
-		Posts:      services.NewMediaGRPC(config),
-		Owners:     services.NewActorsGRPC(config),
-		Encoder:    worker.FFmpeg{},
-		Dir:        os.Getenv("VIDEO_WORK_DIR"),
-		Heights:    heights,
-		MaxBytes:   config.VideoMaxBytes,
-		MaxSeconds: config.VideoMaxSeconds,
+		Uploads:             uploads,
+		Transfers:           services.NewFileTransfersGRPC(config),
+		Files:               services.NewFilesGRPC(config),
+		Posts:               services.NewMediaGRPC(config),
+		Owners:              services.NewActorsGRPC(config),
+		Encoder:             worker.FFmpeg{},
+		Dir:                 os.Getenv("VIDEO_WORK_DIR"),
+		Heights:             heights,
+		MaxBytes:            config.VideoMaxBytes,
+		MaxSeconds:          config.VideoMaxSeconds,
+		AnimationMaxBytes:   config.AnimationMaxBytes,
+		AnimationMaxSeconds: config.AnimationMaxSeconds,
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

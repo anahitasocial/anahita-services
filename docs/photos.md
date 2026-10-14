@@ -213,7 +213,7 @@ Videos work the same way, with `/videos/` in place of `/photos/`; see
 | Images in a post | 4 |
 | One uploaded file | 10 MB, which is what the gateway lets one request carry (`client_max_body_size` in `nginx.conf`). The two services that take images, photo-service and identity-image-service, allow a request of 11M for it (`constants.ImageRequestBodyMaxSizeLimit`); until 2026-10-10 they used the general 2M, which refused anything larger before this limit was reached |
 | Pixels in one image | 50 million |
-| Formats | JPEG, PNG |
+| Formats | JPEG, PNG. An animated PNG is kept still, as its first picture; a GIF or an animated PNG that is to move is posted as a video, which loops (see [Videos](videos.md#gifs-and-animated-pngs)) |
 | A description | 1,500 characters |
 
 Bluesky takes images of up to 1 MB. A picture sent there is made small enough

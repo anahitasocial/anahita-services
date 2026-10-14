@@ -92,11 +92,12 @@ func main() {
 			Pictures:   client,
 			Refused:    blocks.IsBlocked,
 		},
-		Cards:    federation.NewCards(config.LinkPreviewURL),
-		Announce: (&announcer{config: config}).Publish,
-		Limiter:  sessions.NewSession(config),
-		CDN:      config.CDNURL,
-		Settle:   3 * time.Second,
+		Transfers: services.NewFileTransfersGRPC(config),
+		Cards:     federation.NewCards(config.LinkPreviewURL),
+		Announce:  (&announcer{config: config}).Publish,
+		Limiter:   sessions.NewSession(config),
+		CDN:       config.CDNURL,
+		Settle:    3 * time.Second,
 		Changed: func() {
 			select {
 			case changed <- struct{}{}:

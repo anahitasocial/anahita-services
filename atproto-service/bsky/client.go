@@ -42,7 +42,12 @@ type Client struct {
 	appView   string
 	userAgent string
 	http      *http.Client
+	// For uploading a video, which takes longer than Timeout.
+	slow *http.Client
 }
+
+// VideoTimeout is how long uploading a video may take.
+const VideoTimeout = 3 * time.Minute
 
 // NewClient asks the reader at `appView` ("https://public.api.bsky.app").
 func NewClient(appView, userAgent string) *Client {
@@ -50,6 +55,7 @@ func NewClient(appView, userAgent string) *Client {
 		appView:   appView,
 		userAgent: userAgent,
 		http:      safehttp.NewClient(safehttp.Options{Timeout: Timeout}),
+		slow:      safehttp.NewClient(safehttp.Options{Timeout: VideoTimeout}),
 	}
 }
 

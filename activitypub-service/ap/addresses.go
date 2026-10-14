@@ -41,6 +41,19 @@ func (a Addresses) NotePage(id int64) string { return a.Site.Web(fmt.Sprintf("/n
 // PhotoPage is where a photo post is read, in the web app.
 func (a Addresses) PhotoPage(id int64) string { return a.Site.Web(fmt.Sprintf("/photos/%d", id)) }
 
+// VideoPage is where a video post is read, in the web app.
+func (a Addresses) VideoPage(id int64) string { return a.Site.Web(fmt.Sprintf("/videos/%d", id)) }
+
+// Video and VideoPoster are a video post's file and the still shown before
+// it plays, as other servers fetch them, by the post's UUID.
+func (a Addresses) Video(uuid string) string {
+	return a.Site.API(fmt.Sprintf("/ap/notes/%s/video", uuid))
+}
+
+func (a Addresses) VideoPoster(uuid string) string {
+	return a.Site.API(fmt.Sprintf("/ap/notes/%s/poster", uuid))
+}
+
 // Picture is one of a photo post's pictures, as other servers fetch it:
 // by the post's UUID and where the picture comes in it, from 0.
 func (a Addresses) Picture(uuid string, position int) string {

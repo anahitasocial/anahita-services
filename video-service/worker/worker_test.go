@@ -144,18 +144,26 @@ func (s *store) keys() []string {
 type fakeEncoder struct {
 	info     *encode.Info
 	probeErr error
+	// "mov" unless said.
+	container string
+	// The limit of length each size was made with.
+	limits []int
 	// Called while the sizes are being made.
 	during func()
 }
 
-func (f *fakeEncoder) Probe(ctx context.Context, path string, max int) (*encode.Info, string, error) {
+func (f *fakeEncoder) Probe(ctx context.Context, path string, max, animationMax int) (*encode.Info, string, error) {
 	if f.probeErr != nil {
 		return nil, "", f.probeErr
+	}
+	if f.container != "" {
+		return f.info, f.container, nil
 	}
 	return f.info, "mov", nil
 }
 
 func (f *fakeEncoder) Encode(ctx context.Context, container, in, out string, target encode.Target, max int) error {
+	f.limits = append(f.limits, max)
 	if f.during != nil {
 		f.during()
 	}
@@ -231,7 +239,10 @@ func newFixture(t *testing.T) *fixture {
 		Heights:    []int{1080, 720, 360},
 		MaxBytes:   1 << 20,
 		MaxSeconds: 600,
-		Timeout:    time.Minute,
+		// What was uploaded is 17 bytes.
+		AnimationMaxBytes:   1 << 10,
+		AnimationMaxSeconds: 30,
+		Timeout:             time.Minute,
 	}
 	return f
 }
@@ -292,6 +303,7 @@ func TestWhatIsNotAVideoIsRefusedForGood(t *testing.T) {
 	for reason, probeErr := range map[string]error{
 		constants.FailedNotAVideo: encode.ErrNotAVideo,
 		constants.FailedTooLong:   encode.ErrTooLong,
+		constants.FailedStill:     encode.ErrStill,
 	} {
 		f := newFixture(t)
 		f.encoder.probeErr = probeErr
@@ -312,6 +324,47 @@ func TestWhatIsNotAVideoIsRefusedForGood(t *testing.T) {
 	f.worker.Once()
 	if f.uploads.upload.Error != constants.FailedTooLarge || len(f.store.keys()) != 0 {
 		t.Errorf("a file past the limit: %+v, kept %v", f.uploads.upload, f.store.keys())
+	}
+}
+
+func TestAGIFBecomesOneClipThatLoops(t *testing.T) {
+	f := newFixture(t)
+	f.encoder.container = encode.GIF
+	f.encoder.info = &encode.Info{Width: 480, Height: 270, Duration: 2.4, Animated: true, Frames: 24}
+
+	f.worker.Once()
+
+	if len(f.posts.added) != 1 {
+		t.Fatalf("posts made: %d, upload %+v", len(f.posts.added), f.uploads.upload)
+	}
+	video := videos.FromMeta(f.posts.added[0].Meta)
+	if video == nil || !video.Loop || len(video.Renditions) != 1 || video.Renditions[0].Height != 270 || video.Poster == "" {
+		t.Errorf("made %+v", video)
+	}
+	// Held to an animation's length, not a video's.
+	if len(f.encoder.limits) != 1 || f.encoder.limits[0] != 30 {
+		t.Errorf("made with limits %v", f.encoder.limits)
+	}
+
+	// A video is not one.
+	g := newFixture(t)
+	g.worker.Once()
+	if video := videos.FromMeta(g.posts.added[0].Meta); video.Loop || len(video.Renditions) != 3 {
+		t.Errorf("a video was made %+v", video)
+	}
+}
+
+func TestAGIFLargerThanAnAnimationMayBeIsRefused(t *testing.T) {
+	f := newFixture(t)
+	f.encoder.container = encode.GIF
+	f.encoder.info = &encode.Info{Width: 480, Height: 270, Duration: 2.4, Animated: true, Frames: 24}
+	// Within a video's limit, past an animation's.
+	f.worker.AnimationMaxBytes = 4
+
+	f.worker.Once()
+
+	if f.uploads.upload.Error != constants.FailedTooLarge || len(f.posts.added) != 0 || len(f.store.keys()) != 0 {
+		t.Errorf("ended as %+v, posts %d, kept %v", f.uploads.upload, len(f.posts.added), f.store.keys())
 	}
 }
 
