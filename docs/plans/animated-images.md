@@ -77,4 +77,4 @@ People post short loops constantly, and both networks Anahita is to federate wit
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-12 |
-| Implementation | services done 2026-10-14 (the worker, limits, `loop`, NodeInfo; tested with real files in the worker's image); web in progress |
+| Implementation | done 2026-10-14: the worker, limits, `loop` and NodeInfo, tested with real GIF and APNG files in the worker's image; the Video composer and the looping player in the web app. Federating it waits for video to federate |
