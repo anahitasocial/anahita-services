@@ -308,6 +308,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Animated images: GIF, APNG and animated WebP, through the video service](plans/animated-images.md) | 41 | done 2026-10-14: GIFs and animated PNGs (not WebP), and video posts going to other servers and Bluesky |
 | [A command-line client for Anahita](plans/cli-client.md) | 42 | recorded 2026-10-12 for later; waits for the API reference |
 | [Translating posts](plans/translation.md) | 43 | recorded 2026-10-12 for later: LibreTranslate and DeepL behind one interface |
+| [Replies of any kind: pictures, a GIF or a video](plans/replies-of-any-kind.md) | 53 | planned 2026-10-14; next in M10 |
 | [Hiding a reply from others, across servers](plans/hiding-replies-across-servers.md) | 44 | recorded 2026-10-12 for later: hidden everywhere, as far as other servers will; a block hides what the blocked person left, without asking |
 | [auth-service hardening](plans/auth-service-hardening.md) | 0b, 0c | 0b and 0c done 2026-10-03; the plan's "Not checked" list is still open |
 | [Actor profile management](plans/actor-profile-management.md) | — | partly done; the rest is in item 8 |
