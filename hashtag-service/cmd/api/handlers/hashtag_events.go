@@ -40,7 +40,12 @@ func (h *hashtagHandler) updateHashtags(payload *event.EventPayload) error {
 
 	// log.Println("Updating hashtags for", node.ID)
 
-	aliases := CleanStringArray(node.Hashtags)
+	// A hashtag is one whatever its capitals: #Anahita is #anahita. Its
+	// address (alias) is kept in lower case; its name, how it is shown, is
+	// how the first post to use it wrote it. Matched the other way, a post
+	// from elsewhere writing #Anahita made a second hashtag beside the one
+	// there was, since the database found it and this did not.
+	aliases, names := hashtagAliases(node.Hashtags)
 	// A post may come from anybody, on any server, and each hashtag it is
 	// the first to use is made here. The first of them are enough.
 	if len(aliases) > maxHashtagsOfAPost {
@@ -83,7 +88,7 @@ func (h *hashtagHandler) updateHashtags(payload *event.EventPayload) error {
 
 	existingHashtagMap := make(map[string]*entities.AnahitaNode)
 	for _, hashtag := range existingHashtags {
-		existingHashtagMap[hashtag.Alias] = hashtag
+		existingHashtagMap[strings.ToLower(hashtag.Alias)] = hashtag
 	}
 
 	// 2) Create missing hashtags
@@ -93,7 +98,7 @@ func (h *hashtagHandler) updateHashtags(payload *event.EventPayload) error {
 			hashtag := entities.NewAnahitaNode()
 			hashtag.Type = an_constants.NodeBaseHashtagEntityType
 			hashtag.Service = constants.HashtagService
-			hashtag.Name = alias
+			hashtag.Name = names[alias]
 			hashtag.Alias = alias
 			hashtag.Author.ID = viewer.ID
 			// What the graph asks of every node but a person: who made
@@ -112,7 +117,7 @@ func (h *hashtagHandler) updateHashtags(payload *event.EventPayload) error {
 		}
 
 		for _, hashtag := range created {
-			existingHashtagMap[hashtag.Alias] = hashtag
+			existingHashtagMap[strings.ToLower(hashtag.Alias)] = hashtag
 		}
 	}
 

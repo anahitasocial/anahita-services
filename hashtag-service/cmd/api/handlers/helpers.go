@@ -88,3 +88,20 @@ func CleanStringArray(input []string) []string {
 
 	return out
 }
+
+// hashtagAliases is the hashtags a post names, as addresses in lower case,
+// each once, in the order first named; and for each, how it was first
+// written, which is its name when it is new.
+func hashtagAliases(written []string) ([]string, map[string]string) {
+	names := map[string]string{}
+	var aliases []string
+	for _, each := range CleanStringArray(written) {
+		alias := strings.ToLower(each)
+		if _, seen := names[alias]; seen {
+			continue
+		}
+		names[alias] = each
+		aliases = append(aliases, alias)
+	}
+	return aliases, names
+}
