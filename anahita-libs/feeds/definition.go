@@ -107,10 +107,17 @@ var mediaTypes = map[string]string{
 
 var mediaOrder = []string{"note", "article", "topic", "photo", "video"}
 
-var actorTypes = map[string]string{
-	"person": constants.NodeActorPersonEntityType,
-	"group":  "node.actor.group-service.group.v1",
-	"event":  constants.NodeActorEventEntityType,
+// A person is somebody here or on another server: a feed kept to posts on
+// people's profiles has the posts of people followed on Mastodon and
+// Bluesky too.
+var actorTypes = map[string][]string{
+	"person": {
+		constants.NodeActorPersonEntityType,
+		constants.NodeActorActivityPubPersonEntityType,
+		constants.NodeActorATProtoPersonEntityType,
+	},
+	"group": {"node.actor.group-service.group.v1"},
+	"event": {constants.NodeActorEventEntityType},
 }
 
 // Why a definition was refused, as a word the web app has wording for.
@@ -285,7 +292,7 @@ func (d *Definition) MediaEntityTypes() []string {
 func (d *Definition) ActorEntityTypes() []string {
 	types := make([]string, 0, len(d.Filters.ActorTypes))
 	for _, kind := range d.Filters.ActorTypes {
-		types = append(types, actorTypes[kind])
+		types = append(types, actorTypes[kind]...)
 	}
 
 	return types

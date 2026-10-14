@@ -127,6 +127,12 @@ func TestEntityTypes(t *testing.T) {
 	if got := fmt.Sprint(def.ActorEntityTypes()); got != "[node.actor.actor-service.event.v1 node.actor.group-service.group.v1]" {
 		t.Errorf("actors %s", got)
 	}
+
+	// People are people here and on other servers alike.
+	def.Filters.ActorTypes = []string{"person"}
+	if got := fmt.Sprint(def.ActorEntityTypes()); got != "[node.actor.person-service.person.v1 node.actor.activitypub-service.person.v1 node.actor.atproto-service.person.v1]" {
+		t.Errorf("people %s", got)
+	}
 }
 
 func TestCursorGoesThereAndBack(t *testing.T) {
