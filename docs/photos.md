@@ -37,7 +37,12 @@ for people who cannot see it.
 ## Posting
 
 In two steps, so that no request carries more than one image however many the
-post has.
+post has. A **reply with pictures** is posted the same way, its images
+uploaded for the person replying (their own id as `owner_id`), then
+`POST /photos/:id/replies` with `{ body, language, uploads }`, where `:id` is
+what it answers. Words are optional. It is a photo post in the thread: owned
+by its author, with what it is open to, who may answer it and quoting all the
+thread's; its language, unless given, is that of what it answers.
 
 **1. Upload each image.** `POST /photos/:owner_id/uploads`, a form with the
 image in `file`. `owner_id` is the profile the post will be on. Whoever may

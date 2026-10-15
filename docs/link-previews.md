@@ -109,7 +109,7 @@ is another link's and has a preview in the store. With the link taken out
 of the note, the card goes too, and `link_preview_remove` takes it off
 while the link stays.
 
-A reply is a note: `POST /notes/:id/replies` takes `link_preview_url` the
+A reply with words alone is a note: `POST /notes/:id/replies` takes `link_preview_url` the
 same way, and a reply is edited like any note.
 
 Wherever the note is sent, it has `link_preview` with the same fields as

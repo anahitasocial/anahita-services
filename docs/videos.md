@@ -223,7 +223,7 @@ As for a photo, and by the same rules: see
 
 | Method and path | Who | What |
 | --- | --- | --- |
-| `POST /videos/:owner_id/uploads` | signed in, may post there | Begin an upload |
+| `POST /videos/:owner_id/uploads` | signed in, may post there | Begin an upload. With `parent_id`, a reply with a video or a GIF: `owner_id` is the uploader's own, no title is needed, and audience, reply rule and quoting are the thread's. The thread is asked before anything is sent, and the worker asks it again before making the reply; a thread closed meanwhile fails the upload as `closed` |
 | `POST /videos/uploads/:id/parts` | the uploader | Addresses for some of its parts |
 | `POST /videos/uploads/:id/complete` | the uploader | All sent: hand it to the worker |
 | `GET /videos/uploads/:id` | the uploader | How it is getting on |
@@ -240,7 +240,9 @@ As for a photo, and by the same rules: see
 An upload belongs to whoever began it. Anybody else is told there is none.
 
 Refusals when beginning an upload: `403 uploads_off`, `413 too_large`
-(with `max_bytes`), `415 not_a_video`, `429 too_many`.
+(with `max_bytes`), `415 not_a_video`, `429 too_many`; for a reply, `403` when
+the thread does not take the viewer's replies and `410` when what it answers
+was removed.
 
 ## Settings
 
