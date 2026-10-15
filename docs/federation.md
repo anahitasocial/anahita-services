@@ -1295,8 +1295,10 @@ its own. The card says to use one and where to make it.
   again as a JPEG when that is not enough. Words become
   what Bluesky takes: Markdown's marks are taken out, links and hashtags
   are marked as such, and what is longer than three hundred letters is cut
-  with a mark to say so. A reply that is changed here afterwards is not
-  changed there: Bluesky has no changing a post.
+  with a mark to say so. A post or a reply that is changed here afterwards
+  is not changed there: Bluesky has no changing a post, and taking it down
+  to post it again would lose its likes, reposts and replies. Mastodon and
+  other servers are sent the change.
 - **Following.** Somebody connected who follows an account on Bluesky from
   here follows it there too, as their account: it is the only kind of
   follow Bluesky has, so whoever is followed is told and sees them among
