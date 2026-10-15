@@ -148,4 +148,4 @@ searcher may see; see [Permissions](permissions.md).
   engine beside the database is the likelier answer when it is not.
 - **Ranking by citation,** as Google ranks the web, is to be decided in a
   few months, when there is more to rank. See the web app's
-  `docs/plans/search-improvements.md`.
+  `docs/plans/done/search-improvements.md`.
