@@ -77,4 +77,4 @@ Where a reply is still a note only:
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-14 |
-| Implementation | done 2026-10-14: photo and video replies in services and the web app; to be tried against Mastodon and Bluesky |
+| Implementation | done 2026-10-14: photo and video replies in services and the web app, tried by the user against Mastodon and Bluesky the same day and working |

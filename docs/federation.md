@@ -636,8 +636,13 @@ twenty-five requests whatever it answers.
 
 ## Replies
 
-A reply here is a note with a parent and a root, its author's own, seen by
-whoever may see the root. Between servers it is a `Note` with `inReplyTo`.
+A reply here is a post with a parent and a root, its author's own, seen by
+whoever may see the root: a note, or a photo or video post when it carries
+pictures or a GIF or a video. Between servers it is a `Note` with
+`inReplyTo`, with its pictures or its video attached as a photo or video
+post's are; to Bluesky, a reply with its embed. A reply of any kind may
+answer a note, a photo post or a video post (tried against Mastodon and
+Bluesky on 2026-10-14).
 Nothing about replies was changed for this: what is added is which of them
 cross, and how.
 
