@@ -90,8 +90,11 @@ func (h *Handlers) resolve(resource string) *entities.AnahitaNode {
 		if err != nil || !h.Site.IsOurs(resource) {
 			return nil
 		}
-		if alias, ok := strings.CutPrefix(strings.TrimSuffix(parsed.Path, "/"), "/people/"); ok && !strings.Contains(alias, "/") {
-			return h.personByAlias(alias)
+		path := strings.TrimSuffix(parsed.Path, "/")
+		for _, prefix := range []string{"/@", "/people/"} {
+			if alias, ok := strings.CutPrefix(path, prefix); ok && alias != "" && !strings.ContainsAny(alias, "/@") {
+				return h.personByAlias(alias)
+			}
 		}
 	}
 	return nil

@@ -142,9 +142,14 @@ func (s *Server) file(w http.ResponseWriter, r *http.Request, clean string) bool
 func (s *Server) page(w http.ResponseWriter, r *http.Request, clean string) {
 	tags := Tags{Type: "website"}
 	base := s.base(r)
+	address := clean
 
 	if subject := s.subject(clean); subject != nil {
 		tags = subject.Tags
+		if subject.Path != "" {
+			// A profile's own address, however it was reached.
+			address = subject.Path
+		}
 		if subject.ImageKey != "" {
 			tags.Image = base + ImagePath + subject.ImageName
 		}
@@ -154,7 +159,7 @@ func (s *Server) page(w http.ResponseWriter, r *http.Request, clean string) {
 		tags.ImageAlt = ""
 		tags.LargeImage = true
 	}
-	tags.URL = base + clean
+	tags.URL = base + address
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	// Never kept long: a new build has to be picked up at once, and what a

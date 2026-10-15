@@ -385,7 +385,7 @@ No more than the person's public profile already shows a visitor.
 
 | Address | Answers |
 | --- | --- |
-| `/.well-known/webfinger?resource=acct:ana@example.org` | Where the person is: their address, and their page. Also answered for their address and for their page's |
+| `/.well-known/webfinger?resource=acct:ana@example.org` | Where the person is: their address, and their page, `https://example.org/@ana`, which is also their `url`, the link Mastodon shows for their profile. Also answered for their address and for their page's, and for the older `/people/ana` |
 | `/.well-known/host-meta` | Where WebFinger is, for servers that ask the older way |
 | `/ap/users/<uuid>` | Who they are: name, username, what they say of themselves as HTML that is safe to show, their avatar and cover at [addresses that stay](architecture.md#what-a-node-is-called-elsewhere), when they joined, whether a follow waits to be approved, and the public half of their signing key |
 | `/ap/users/<uuid>/followers`, `/following` | How many, and never who |

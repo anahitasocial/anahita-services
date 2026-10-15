@@ -47,6 +47,7 @@ twice.
 
 | Page | Title | Description | Picture |
 | --- | --- | --- | --- |
+| `/@<alias>` and its tabs: a person, a group or an event at its alias | Its name | Its bio, or what it says of itself | Its avatar |
 | `/people/<alias>` and its tabs | The person's name | Their bio | Their avatar |
 | `/groups/<id>`, `/events/<id>` and their tabs | Its name | What it says of itself | Its avatar |
 | `/photos/<id>` | The photo's title | Its text | The photo |
@@ -56,7 +57,10 @@ twice.
 | Any other | The site's name | The site's | `/statics/media/ogimage.jpg` |
 
 Text is made plain, with Markdown and HTML taken out, and cut to 200
-characters.
+characters. A profile's address in its tags (`og:url`, the canonical link)
+is always its alias, `/@ana`, however its page was reached, so a link
+shared from an old `/people/ana` or `/groups/12-garden` is taken by the
+networks that read it as `/@ana` or `/@garden`.
 
 ## What is never described
 

@@ -71,17 +71,24 @@ func (a Addresses) InstanceKey() string { return a.Instance() + "#main-key" }
 // each of them.
 func (a Addresses) SharedInbox() string { return a.Site.API("/inbox") }
 
-// Profile is where a person is looked at, in the web app.
-func (a Addresses) Profile(alias string) string { return a.Site.Web("/people/" + alias) }
+// Profile is where a person is looked at, in the web app: at their alias,
+// /@ana, as they are known here (@ana@example.org).
+func (a Addresses) Profile(alias string) string { return a.Site.Web("/@" + alias) }
 
 // AliasOf is whose profile in the web app an address is, or "" for any
-// other address.
+// other address: /@ana, or the older /people/ana, which still leads there.
 func (a Addresses) AliasOf(address string) string {
-	rest, ok := strings.CutPrefix(address, a.Site.Web("/people/"))
-	if !ok || rest == "" || strings.ContainsAny(rest, "/?#@ ") {
-		return ""
+	for _, prefix := range []string{a.Site.Web("/@"), a.Site.Web("/people/")} {
+		rest, ok := strings.CutPrefix(strings.TrimSuffix(address, "/"), prefix)
+		if !ok {
+			continue
+		}
+		if rest == "" || strings.ContainsAny(rest, "/?#@ ") {
+			return ""
+		}
+		return rest
 	}
-	return rest
+	return ""
 }
 
 // Hashtag is a hashtag's page in the web app, by the address it is given

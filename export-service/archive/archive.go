@@ -148,7 +148,7 @@ func (b *Builder) urlOf(node *entities.AnahitaNode) string {
 	plural := kind + "s"
 	switch kind {
 	case "person":
-		return b.WebURL + "/people/" + node.Alias
+		return b.WebURL + "/@" + node.Alias
 	case "generator":
 		return fmt.Sprintf("%s/feeds/%d", b.WebURL, node.ID)
 	case "repost":

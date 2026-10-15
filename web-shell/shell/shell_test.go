@@ -42,6 +42,19 @@ func (f *fakeReader) Actor(id int64, nodeType string) (*entities.AnahitaNode, er
 	return nil, nil
 }
 
+func (f *fakeReader) ActorByAlias(alias, nodeType string) (*entities.AnahitaNode, error) {
+	if nodeType == constants.NodeActorPersonEntityType {
+		return f.Person(alias)
+	}
+	f.reads++
+	for _, node := range f.actors {
+		if node.Alias == alias && node.Type == nodeType {
+			return node, nil
+		}
+	}
+	return nil, errors.New("not found")
+}
+
 func (f *fakeReader) Medium(id int64) (*entities.AnahitaNode, error) {
 	f.reads++
 	if node := f.media[id]; node != nil {
@@ -159,11 +172,12 @@ func TestAPageSaysWhatItIsAbout(t *testing.T) {
 		`<meta property="og:title" content="Ana &#34;the grower&#34; &lt;b&gt;"/>`,
 		`<meta property="og:description" content="I grow beans and write about it."/>`,
 		`<meta property="og:type" content="profile"/>`,
-		`<meta property="og:url" content="https://www.example.org/people/ana"/>`,
+		// At her alias, however her page was reached.
+		`<meta property="og:url" content="https://www.example.org/@ana"/>`,
 		`<meta property="og:image" content="https://www.example.org/_shell/image/person-1"/>`,
 		`<meta property="og:site_name" content="The Allotment"/>`,
 		`<meta name="twitter:card" content="summary"/>`,
-		`<link rel="canonical" href="https://www.example.org/people/ana"/>`,
+		`<link rel="canonical" href="https://www.example.org/@ana"/>`,
 		`<script defer="defer" src="/static/js/main.abc.js"></script>`,
 		`<div id="root"></div>`,
 	} {
@@ -176,6 +190,18 @@ func TestAPageSaysWhatItIsAbout(t *testing.T) {
 		if strings.Count(page, once) != 1 {
 			t.Errorf("%s is there %d times", once, strings.Count(page, once))
 		}
+	}
+
+	// Her page at her alias says the same.
+	if page := get(s, "/@ana").Body.String(); !strings.Contains(page, `content="profile"`) || !strings.Contains(page, `href="https://www.example.org/@ana"`) {
+		t.Errorf("her page at /@ana:\n%s", page)
+	}
+	if page := get(s, "/@ana/photos").Body.String(); !strings.Contains(page, `content="profile"`) {
+		t.Errorf("a tab of her page at /@ana is not described as her profile")
+	}
+	// Nobody at an alias: what the site says of itself.
+	if page := get(s, "/@nobody").Body.String(); strings.Contains(page, `content="profile"`) {
+		t.Errorf("an alias nobody has was described as a profile")
 	}
 
 	// A person's other tabs are about the same person.

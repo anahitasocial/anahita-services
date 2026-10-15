@@ -17,6 +17,7 @@ import (
 type Reader interface {
 	Person(alias string) (*entities.AnahitaNode, error)
 	Actor(id int64, nodeType string) (*entities.AnahitaNode, error)
+	ActorByAlias(alias, nodeType string) (*entities.AnahitaNode, error)
 	Medium(id int64) (*entities.AnahitaNode, error)
 }
 
@@ -35,6 +36,9 @@ type Subject struct {
 	ImageKey string
 	// The name its picture is asked for by, under ImagePath.
 	ImageName string
+	// Its own address, when the page was reached by another: a profile is
+	// at its alias, /@ana, however it was reached.
+	Path string
 }
 
 var (
@@ -43,6 +47,9 @@ var (
 	// Not a person's page: /people/add, and a person's settings and
 	// notifications, which are theirs alone.
 	personPath = regexp.MustCompile(`^/people/([^/]+)(?:/([^/]+))?(?:/.*)?$`)
+	// A profile of any kind at its alias, and its tabs: /@ana, /@ana/photos,
+	// /@ana@mastodon.social.
+	handlePath = regexp.MustCompile(`^/@([^/]+)(?:/.*)?$`)
 	// /tags/<name> is what other servers are given for a hashtag's page:
 	// see activitypub-service/ap/addresses.go. The web app sends it on.
 	tagPath   = regexp.MustCompile(`^/(?:hashtags|tags)/([^/]+)/?$`)
@@ -81,6 +88,19 @@ func Resolve(reader Reader, path string) *Subject {
 			return nil
 		}
 		return actor(node, actorKinds[found[1]])
+	}
+
+	if found := handlePath.FindStringSubmatch(path); found != nil {
+		for _, each := range []struct{ kind, nodeType string }{
+			{"person", constants.NodeActorPersonEntityType},
+			{"group", groupType},
+			{"event", constants.NodeActorEventEntityType},
+		} {
+			if node, err := reader.ActorByAlias(found[1], each.nodeType); err == nil && node != nil {
+				return actor(node, each.kind)
+			}
+		}
+		return nil
 	}
 
 	if found := personPath.FindStringSubmatch(path); found != nil {
@@ -170,6 +190,9 @@ func actor(node *entities.AnahitaNode, kind string) *Subject {
 			ImageAlt:    node.Name,
 		},
 		ImageName: kind + "-" + strconv.FormatInt(node.ID, 10),
+	}
+	if node.Alias != "" {
+		subject.Path = "/@" + node.Alias
 	}
 	if subject.Tags.Title == "" {
 		subject.Tags.Title = node.Alias
