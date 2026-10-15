@@ -36,7 +36,7 @@ func TestEventICS(t *testing.T) {
 		"DTEND:20261106T020000Z\r\n",
 		// What means something to the format is escaped.
 		"SUMMARY:Picnic\\; bring food\\, drink\r\n",
-		"URL:https://example.org/events/42-picnic\r\n",
+		"URL:https://example.org/@picnic\r\n",
 		"STATUS:CONFIRMED\r\n",
 		"END:VCALENDAR\r\n",
 	} {
@@ -48,7 +48,7 @@ func TestEventICS(t *testing.T) {
 	// The description carries the line break as the format writes one, and
 	// the way back to the event. Unfolded first, as a calendar reads it.
 	unfolded := strings.ReplaceAll(got, "\r\n ", "")
-	if !strings.Contains(unfolded, "DESCRIPTION:By the lake.\\nRain or shine.\\n\\nhttps://example.org/events/42-picnic\r\n") {
+	if !strings.Contains(unfolded, "DESCRIPTION:By the lake.\\nRain or shine.\\n\\nhttps://example.org/@picnic\r\n") {
 		t.Errorf("the description is not as expected:\n%s", unfolded)
 	}
 
@@ -107,7 +107,7 @@ func TestICSFoldKeepsCharactersWhole(t *testing.T) {
 func TestEventLink(t *testing.T) {
 	event := icsEvent()
 
-	if got := eventLink("https://example.org", event); got != "https://example.org/events/42-picnic" {
+	if got := eventLink("https://example.org", event); got != "https://example.org/@picnic" {
 		t.Errorf("%q", got)
 	}
 	event.Alias = ""

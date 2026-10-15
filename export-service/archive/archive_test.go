@@ -272,7 +272,7 @@ func TestThePageShowsSomebodysWordsAsWords(t *testing.T) {
 		"For me alone",
 		`<img src="media/12/1.jpg"`,
 		`<video src="media/14/video.mp4"`,
-		`<a href="https://www.example.org/people/bob">Bob</a>`,
+		`<a href="https://www.example.org/@bob">Bob</a>`,
 		"Posts (6)", "Followers (2)", "Blocked (1)",
 	} {
 		if !strings.Contains(page, want) {
@@ -316,7 +316,7 @@ func TestTheSamePostsAreThereAsOtherSoftwareReadsThem(t *testing.T) {
 	if private == nil || len(private["to"].([]any)) != 0 {
 		t.Errorf("the private note is addressed to %v", private["to"])
 	}
-	repost := byID["https://www.example.org/people/ana#reposts/15"]
+	repost := byID["https://www.example.org/@ana#reposts/15"]
 	if repost == nil || repost["type"] != "Announce" || repost["object"] != "https://www.example.org/notes/80" {
 		t.Errorf("the repost: %v", repost)
 	}

@@ -258,6 +258,8 @@ func TestWebFingerFindsWhoChoseToBeFound(t *testing.T) {
 		// Asked of the API's host, as a server does that met her by her address.
 		"acct:ana@api.example.org",
 		"https://api.example.org/ap/users/" + anaUUID,
+		"https://example.org/@ana",
+		// The older address of her page, which still leads there.
 		"https://example.org/people/ana",
 	} {
 		rec := w.get(w.h.WebFinger, "/.well-known/webfinger?resource="+resource)
@@ -373,7 +375,7 @@ func TestAPersonIsDescribedAsTheirPublicProfileIs(t *testing.T) {
 	if actor.ID != base || actor.Type != "Person" || actor.PreferredUsername != "ana" || actor.Name != "Ana" ||
 		actor.Inbox != base+"/inbox" || actor.Outbox != base+"/outbox" ||
 		actor.Followers != base+"/followers" || actor.Following != base+"/following" ||
-		actor.URL != "https://example.org/people/ana" ||
+		actor.URL != "https://example.org/@ana" ||
 		actor.Endpoints.SharedInbox != "https://api.example.org/inbox" ||
 		actor.Published != "2020-05-01T00:00:00Z" {
 		t.Errorf("described as %+v", actor)

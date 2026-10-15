@@ -31,6 +31,9 @@ func (r *Routes) Init(e *echo.Echo) {
 	// people — Browse and Read are public but still identify the caller
 	// when a token is present, so the viewer drives access filtering.
 	// Everything else requires a valid OAuth access token.
+	// Which profile an alias is, of any kind: see handlers/handle.go.
+	e.GET("/actors/:alias", r.handler.Person.Handle, r.setViewer)
+
 	people := e.Group("people")
 	people.GET("/", r.handler.Person.Browse, r.setViewer)
 	people.GET("/:username", r.handler.Person.Read, r.setViewer)

@@ -143,7 +143,8 @@ func eventLink(origin string, event *entities.AnahitaNode) string {
 		return fmt.Sprintf("%s/events/%d", origin, event.ID)
 	}
 
-	return fmt.Sprintf("%s/events/%d-%s", origin, event.ID, event.Alias)
+	// At its alias, as every profile is.
+	return fmt.Sprintf("%s/@%s", origin, event.Alias)
 }
 
 // ICS sends an event as a calendar file, to anybody who can see the event.

@@ -14,9 +14,14 @@ type GraphReader struct {
 }
 
 func (g *GraphReader) Person(alias string) (*entities.AnahitaNode, error) {
+	return g.ActorByAlias(alias, constants.NodeActorPersonEntityType)
+}
+
+// ActorByAlias reads a profile of one kind by its alias.
+func (g *GraphReader) ActorByAlias(alias, nodeType string) (*entities.AnahitaNode, error) {
 	req := services.NewGraphNodeRequest().ReadByAlias
 	req.Alias = alias
-	req.NodeType = constants.NodeActorPersonEntityType
+	req.NodeType = nodeType
 
 	// The alias gives the id and nothing more: the lookup takes no viewer,
 	// so what it returns is not used.
@@ -25,7 +30,7 @@ func (g *GraphReader) Person(alias string) (*entities.AnahitaNode, error) {
 		return nil, err
 	}
 
-	return g.Actor(node.ID, constants.NodeActorPersonEntityType)
+	return g.Actor(node.ID, nodeType)
 }
 
 func (g *GraphReader) Actor(id int64, nodeType string) (*entities.AnahitaNode, error) {

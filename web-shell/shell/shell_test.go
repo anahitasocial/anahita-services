@@ -13,6 +13,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/policy"
+	"anahita-libs/videos"
 )
 
 const index = `<!doctype html><html lang="en"><head><meta charset="utf-8"/>
@@ -39,6 +40,19 @@ func (f *fakeReader) Actor(id int64, nodeType string) (*entities.AnahitaNode, er
 		return node, nil
 	}
 	return nil, nil
+}
+
+func (f *fakeReader) ActorByAlias(alias, nodeType string) (*entities.AnahitaNode, error) {
+	if nodeType == constants.NodeActorPersonEntityType {
+		return f.Person(alias)
+	}
+	f.reads++
+	for _, node := range f.actors {
+		if node.Alias == alias && node.Type == nodeType {
+			return node, nil
+		}
+	}
+	return nil, errors.New("not found")
 }
 
 func (f *fakeReader) Medium(id int64) (*entities.AnahitaNode, error) {
@@ -158,11 +172,12 @@ func TestAPageSaysWhatItIsAbout(t *testing.T) {
 		`<meta property="og:title" content="Ana &#34;the grower&#34; &lt;b&gt;"/>`,
 		`<meta property="og:description" content="I grow beans and write about it."/>`,
 		`<meta property="og:type" content="profile"/>`,
-		`<meta property="og:url" content="https://www.example.org/people/ana"/>`,
+		// At her alias, however her page was reached.
+		`<meta property="og:url" content="https://www.example.org/@ana"/>`,
 		`<meta property="og:image" content="https://www.example.org/_shell/image/person-1"/>`,
 		`<meta property="og:site_name" content="The Allotment"/>`,
 		`<meta name="twitter:card" content="summary"/>`,
-		`<link rel="canonical" href="https://www.example.org/people/ana"/>`,
+		`<link rel="canonical" href="https://www.example.org/@ana"/>`,
 		`<script defer="defer" src="/static/js/main.abc.js"></script>`,
 		`<div id="root"></div>`,
 	} {
@@ -175,6 +190,18 @@ func TestAPageSaysWhatItIsAbout(t *testing.T) {
 		if strings.Count(page, once) != 1 {
 			t.Errorf("%s is there %d times", once, strings.Count(page, once))
 		}
+	}
+
+	// Her page at her alias says the same.
+	if page := get(s, "/@ana").Body.String(); !strings.Contains(page, `content="profile"`) || !strings.Contains(page, `href="https://www.example.org/@ana"`) {
+		t.Errorf("her page at /@ana:\n%s", page)
+	}
+	if page := get(s, "/@ana/photos").Body.String(); !strings.Contains(page, `content="profile"`) {
+		t.Errorf("a tab of her page at /@ana is not described as her profile")
+	}
+	// Nobody at an alias: what the site says of itself.
+	if page := get(s, "/@nobody").Body.String(); strings.Contains(page, `content="profile"`) {
+		t.Errorf("an alias nobody has was described as a profile")
 	}
 
 	// A person's other tabs are about the same person.
@@ -353,5 +380,36 @@ func TestWhatOtherServersLookForIsSentOnToTheAPI(t *testing.T) {
 	s.APIURL = ""
 	if got := get(s, "/.well-known/webfinger?resource=acct:ana@example.org"); got.Code != http.StatusNotFound {
 		t.Errorf("with no API: %d", got.Code)
+	}
+}
+
+// A video post, a GIF made into one among them, is shown where it is shared
+// by its poster: its first picture.
+func TestAVideoPostIsShownByItsPoster(t *testing.T) {
+	s, reader := newServer(t)
+
+	clip := note(21, constants.AnahitaAccessPublic, reader.people["ana"])
+	clip.Type = videos.NodeType
+	clip.Name = "Beans growing"
+	clip.Meta, _ = videos.IntoMeta(nil, &videos.Video{
+		Loop: true, Width: 320, Height: 240, Poster: "assets/v1/video-service/videos/1/abc/poster.jpg",
+		Renditions: []videos.Rendition{{Height: 240, Width: 320, Key: "assets/v1/video-service/videos/1/abc/240.mp4"}},
+	})
+	reader.media[21] = clip
+
+	page := get(s, "/videos/21").Body.String()
+	for _, want := range []string{
+		`<meta property="og:title" content="Beans growing"/>`,
+		`<meta property="og:image" content="https://www.example.org/_shell/image/post-21"/>`,
+		`<meta name="twitter:card" content="summary_large_image"/>`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("missing %s in\n%s", want, page)
+		}
+	}
+
+	image := get(s, "/_shell/image/post-21")
+	if location := image.Header().Get("Location"); !strings.Contains(location, "abc/poster.jpg") {
+		t.Errorf("the picture leads to %q (%d)", location, image.Code)
 	}
 }
