@@ -26,6 +26,7 @@ import (
 // EventTopics is what this service listens for.
 var EventTopics = []string{
 	"edge.follow.*.*.v1",
+	"edge.block.*.*.v1",
 	"edge.voteup.*.*.v1",
 	"node.repost.*.*.*.v1",
 	"node.medium.*.*.*.v1",
@@ -43,6 +44,10 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 	switch {
 	case strings.HasPrefix(payload.Name, "edge.follow."):
 		err = h.followChanged(ctx, payload.ObjectID, payload.TargetID, added)
+
+	// Somebody blocked somebody, or unblocked them.
+	case strings.HasPrefix(payload.Name, "edge.block."):
+		err = h.blockChanged(ctx, payload.ObjectID, payload.TargetID, added)
 
 	// Somebody liked something, or took a like back: who is the subject,
 	// what the object.
@@ -69,6 +74,24 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		log.Printf("event %s (%d): %v", payload.Name, payload.ObjectID, err)
 	}
 	return err
+}
+
+// blockChanged is somebody here having blocked somebody, or unblocked
+// them. Only a block of somebody on Bluesky, by somebody who connected
+// their account, is written there.
+func (h *Handlers) blockChanged(ctx context.Context, sourceID, targetID int64, blocked bool) error {
+	target, err := h.Nodes.Read(targetID)
+	if err != nil || target == nil || target.Type != constants.NodeActorATProtoPersonEntityType {
+		return err
+	}
+	kept, err := h.Actors.ReadByNode(target.ID)
+	if err != nil || kept == nil {
+		return err
+	}
+	if blocked {
+		return h.localBlocked(ctx, sourceID, kept)
+	}
+	return h.localUnblocked(ctx, sourceID, kept)
 }
 
 // followChanged is somebody here having followed somebody, or stopped.

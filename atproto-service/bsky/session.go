@@ -129,6 +129,12 @@ func (c *Client) DeleteRecord(ctx context.Context, pds, accessJWT, did, collecti
 // FollowCollection is the kind of record a follow is.
 const FollowCollection = "app.bsky.graph.follow"
 
+// BlockCollection is the kind of record a block is: written to the
+// account's own repository, it blocks the account named in it on
+// Bluesky, as blocking in Bluesky's app does. Its record has the same
+// shape as a follow's.
+const BlockCollection = "app.bsky.graph.block"
+
 // OutFollow is a follow as it is written: of which account.
 type OutFollow struct {
 	Type      string `json:"$type"`

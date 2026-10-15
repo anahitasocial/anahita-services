@@ -1195,3 +1195,48 @@ func TestNothingIsWrittenFromWhatIsNotPublic(t *testing.T) {
 		t.Errorf("the like was not written: %d", len(w.sent.rows))
 	}
 }
+
+// THE RULE THIS GUARDS: blocking somebody on Bluesky here blocks them on
+// Bluesky too, for somebody who connected their account, and unblocking
+// takes back the block that was written from here.
+func TestABlockIsToldToBluesky(t *testing.T) {
+	w, _ := writingWorld(t)
+	alice, _ := w.actors.ReadByDID(aliceDID)
+	block := func(name string) {
+		w.heard(name, event.EventPayload{ObjectID: anaID, TargetID: alice.NodeID})
+	}
+
+	// Not connected: the block is here and nowhere else.
+	block("edge.block.socialgraph.added.v1")
+	if len(w.queue.waiting) != 0 {
+		t.Fatal("a block was written for somebody who connected nothing")
+	}
+
+	w.connect()
+	block("edge.block.socialgraph.added.v1")
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	if got := strings.Join(w.writer.written, ", "); got != "create app.bsky.graph.block" {
+		t.Fatalf("written: %s", got)
+	}
+	out, _ := json.Marshal(w.writer.records["app.bsky.graph.block/"+w.sent.rows[0].RKey])
+	if !strings.Contains(string(out), `"$type":"app.bsky.graph.block"`) || !strings.Contains(string(out), `"subject":"`+aliceDID+`"`) {
+		t.Errorf("the block as written: %s", out)
+	}
+
+	// Heard twice, written once.
+	block("edge.block.socialgraph.added.v1")
+	if len(w.queue.waiting) != 0 {
+		t.Errorf("a block was written twice")
+	}
+
+	// Unblocked: taken back there.
+	block("edge.block.socialgraph.deleted.v1")
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	if got := strings.Join(w.writer.written, ", "); got != "create app.bsky.graph.block, delete app.bsky.graph.block" {
+		t.Errorf("written: %s", got)
+	}
+}

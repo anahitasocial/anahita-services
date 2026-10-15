@@ -19,6 +19,8 @@ const (
 	SentRepost = "repost"
 	// A follow of somebody on Bluesky. LocalID is their node here.
 	SentFollow = "follow"
+	// A block of somebody on Bluesky. LocalID is their node here.
+	SentBlock = "block"
 )
 
 // Sent is one thing written.

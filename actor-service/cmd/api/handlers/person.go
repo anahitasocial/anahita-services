@@ -693,7 +693,18 @@ func (h *personHandler) onAfterFetched(c echo.Context, node *entities.Person) er
 	// Socialgraph relationships with the viewer
 	node.IsFollowingViewer = actorAccessCtx.ActorViewerRel.IsFollowing
 	node.IsLeadingViewer = actorAccessCtx.ActorViewerRel.IsLeading
-	node.IsBlockedByViewer = actorAccessCtx.ActorViewerRel.IsBlocking
+	// Whether the viewer has blocked them. The relationship above is theirs
+	// to the viewer, where blocking means that they block the viewer; it
+	// was read as this, and a block never showed on the profile of the
+	// person blocked. So the viewer's own to them is asked.
+	node.IsBlockedByViewer = false
+	if viewer != nil && viewer.ID > 0 && viewer.ID != node.ID {
+		if mine, err := h.Srv.SocialgraphGRPC.Read(viewer.ID, node.ID); err == nil && mine != nil {
+			node.IsBlockedByViewer = mine.IsBlocking
+		} else if err != nil {
+			log.Println("whether the viewer blocks them:", err)
+		}
+	}
 
 	// The composers the viewer may use on this profile, from the check the
 	// media services enforce, so the web app offers only ones that will work.

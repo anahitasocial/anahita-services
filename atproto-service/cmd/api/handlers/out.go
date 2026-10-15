@@ -84,6 +84,7 @@ var collections = map[string]string{
 	repositories.SentLike:   "app.bsky.feed.like",
 	repositories.SentRepost: bsky.RepostCollection,
 	repositories.SentFollow: bsky.FollowCollection,
+	repositories.SentBlock:  bsky.BlockCollection,
 }
 
 // onBluesky is the address on Bluesky of something here: what it came
@@ -187,6 +188,37 @@ func (h *Handlers) localUnfollowed(ctx context.Context, personID int64, kept *re
 		return nil
 	}
 	return h.takeBack(ctx, repositories.SentFollow, kept.NodeID, personID)
+}
+
+// localBlocked is somebody here having blocked somebody on Bluesky: their
+// connected account blocks them there too, so that what was stopped here
+// is stopped there. Written whatever the person's profile is open to: a
+// block keeps somebody away, and says nothing to anybody else.
+func (h *Handlers) localBlocked(ctx context.Context, personID int64, kept *repositories.RemoteActor) error {
+	account := h.connected(personID)
+	if account == nil || kept == nil || account.DID == kept.DID {
+		return nil
+	}
+	sent := &repositories.Sent{
+		Kind: repositories.SentBlock, PersonID: account.PersonID, LocalID: kept.NodeID, DID: account.DID, RKey: bsky.NewTID(),
+	}
+	begun, err := h.Sent.Begin(sent)
+	if err != nil || !begun {
+		return err
+	}
+	return h.enqueue(ctx, account.PersonID, &write{
+		Op: "create", Collection: bsky.BlockCollection, RKey: sent.RKey, Subject: kept.DID,
+	})
+}
+
+// localUnblocked is somebody here having unblocked somebody on Bluesky:
+// the block written from here is taken back there. One made in Bluesky's
+// own app is not this installation's to take back.
+func (h *Handlers) localUnblocked(ctx context.Context, personID int64, kept *repositories.RemoteActor) error {
+	if !h.canWrite() || kept == nil {
+		return nil
+	}
+	return h.takeBack(ctx, repositories.SentBlock, kept.NodeID, personID)
 }
 
 // localLiked is somebody here having liked something.
@@ -351,6 +383,10 @@ func (h *Handlers) Write(ctx context.Context, delivery federation.Delivery) erro
 			}
 			return h.Writer.CreateRecord(ctx, account.PDS, token, account.DID, w.Collection, w.RKey,
 				&bsky.OutFollow{Type: bsky.FollowCollection, Subject: w.Subject, CreatedAt: bsky.Stamp(h.now())})
+		}
+		if w.Collection == bsky.BlockCollection {
+			return h.Writer.CreateRecord(ctx, account.PDS, token, account.DID, w.Collection, w.RKey,
+				&bsky.OutFollow{Type: bsky.BlockCollection, Subject: w.Subject, CreatedAt: bsky.Stamp(h.now())})
 		}
 		// What is to be written, made now: a post's words as they are
 		// now, what it answers as Bluesky names it now, and its pictures

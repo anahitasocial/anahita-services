@@ -1307,6 +1307,12 @@ its own. The card says to use one and where to make it.
   was written from here: one made on Bluesky itself stays until it is
   removed there. Whoever has not connected an account follows here and
   nowhere else, and nobody is told.
+- **Blocking.** Somebody connected who blocks an account on Bluesky from
+  here blocks it on Bluesky too: a block (`app.bsky.graph.block`) is
+  written to their account, as Bluesky's own app writes one, and taken back
+  when they unblock it here. A block made in Bluesky's app is not this
+  installation's to take back. Written whatever their profile here is open
+  to: a block keeps somebody away and tells nobody else.
 - **What comes back.** Each connected account is asked, once a minute,
   what it was told of on Bluesky, as its own app would show it: who liked
   or reposted something written from here, who answered it, and who
