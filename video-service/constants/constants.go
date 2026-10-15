@@ -36,4 +36,7 @@ const (
 	FailedEncoding  = "encoding"
 	// A GIF or a PNG that does not move: a photo, posted as one.
 	FailedStill = "still"
+	// A reply whose thread closed to its author, or whose post went, while
+	// the video was being made.
+	FailedClosed = "closed"
 )

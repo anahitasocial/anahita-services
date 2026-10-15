@@ -59,6 +59,11 @@ type Owners interface {
 	Read(id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error)
 }
 
+// Replies says whether somebody may answer a post now.
+type Replies interface {
+	MayReplyTo(parentID int64, viewer *entities.Viewer) (bool, error)
+}
+
 type Remover interface {
 	Delete(req *services.FileDeleteRequest) error
 }
@@ -70,7 +75,9 @@ type Worker struct {
 	Files     Remover
 	Posts     Posts
 	Owners    Owners
-	Encoder   Encoder
+	// Asked before a reply is made. Nil where replies are not made.
+	Replies Replies
+	Encoder Encoder
 	// Where files are kept while they are worked on.
 	Dir string
 	// The sizes to make, by height, and the limits a video is held to.
@@ -189,6 +196,8 @@ func (w *Worker) failed(upload *repositories.Upload, video *videos.Video, err er
 		reason = constants.FailedNotAVideo
 	case errors.Is(err, encode.ErrStill):
 		reason = constants.FailedStill
+	case errors.Is(err, errClosed):
+		reason = constants.FailedClosed
 	case errors.Is(err, encode.ErrTooLong):
 		reason = constants.FailedTooLong
 	case errors.Is(err, errTooLarge):
@@ -208,6 +217,10 @@ func (w *Worker) failed(upload *repositories.Upload, video *videos.Video, err er
 }
 
 var errTooLarge = errors.New("the file is larger than is allowed")
+
+// errClosed is a reply that may no longer be made: its thread closed to its
+// author, or what it answers went, while the video was being made.
+var errClosed = errors.New("the thread is closed to this reply")
 
 // make fetches the upload and stores every file made of it. It returns
 // what was stored, as far as it got, for clearing up after a failure.
@@ -298,6 +311,8 @@ func (w *Worker) post(upload *repositories.Upload, video *videos.Video) (*entiti
 	viewer.Authenticated = true
 	viewer.Enabled = true
 	viewer.PersonType = an_const.PersonTypeRegistered
+	// Posting is what they asked for when they began the upload.
+	viewer.Scopes = []string{an_const.OAuthScopeMediaWrite}
 
 	owner, err := w.Owners.Read(upload.OwnerID, viewer)
 	if err != nil || owner == nil || owner.ID == 0 {
@@ -325,6 +340,23 @@ func (w *Worker) post(upload *repositories.Upload, video *videos.Video) (*entiti
 		medium.CommentStatus = upload.ReplyAccess != an_const.ReplyAccessNobody
 	}
 	medium.Mimetype = videos.MimeVideo
+
+	// A reply: made only if its thread still lets its author answer, and
+	// with no audience, rule for replies or rule for quoting of its own.
+	if upload.ParentID > 0 {
+		if w.Replies == nil {
+			return nil, nil, errClosed
+		}
+		may, err := w.Replies.MayReplyTo(upload.ParentID, viewer)
+		if err != nil {
+			return nil, nil, err
+		}
+		if !may {
+			return nil, nil, errClosed
+		}
+		medium.ParentID = upload.ParentID
+		medium.Access, medium.ReplyAccess, medium.QuotePolicy = "", "", ""
+	}
 
 	medium.Meta, err = videos.IntoMeta(nil, video)
 	if err != nil {

@@ -53,7 +53,7 @@ func (h *videoHandler) EditDownload(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	if ok, err := h.Perms.Media.CanEdit(mediumAccessCtx); !ok {
+	if ok, err := h.mayEdit(c, medium, viewer, mediumAccessCtx); !ok {
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
 	}

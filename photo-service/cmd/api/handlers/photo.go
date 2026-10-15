@@ -128,7 +128,7 @@ func (h *photoHandler) Read(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	if ok, err := h.Perms.Media.CanRead(mediumAccessCtx); !ok {
+	if ok, err := h.mayRead(c, medium, viewer, mediumAccessCtx); !ok {
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -174,7 +174,7 @@ func (h *photoHandler) Edit(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	if ok, err := h.Perms.Media.CanEdit(mediumAccessCtx); !ok {
+	if ok, err := h.mayEdit(c, medium, viewer, mediumAccessCtx); !ok {
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -402,7 +402,7 @@ func (h *photoHandler) Delete(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	if ok, err := h.Perms.Media.CanDelete(mediumAccessCtx); !ok {
+	if ok, err := h.mayDelete(c, medium, viewer, mediumAccessCtx); !ok {
 		log.Println(err)
 		return c.NoContent(http.StatusForbidden)
 	}
@@ -431,6 +431,17 @@ func (h *photoHandler) Delete(c echo.Context) error {
 // onAfterFetched is a callback function that is called after fetching a photo
 func (h *photoHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNode) error {
 	viewer := getViewer(c)
+
+	// A reply: what may be done with it is its thread's to say.
+	if item.RootID > 0 {
+		if item.Authorized == nil {
+			item.Authorized = &entities.AnahitaNodeAuthorized{}
+		}
+		if thread, err := handlers.Thread(c, h.readers(), item.RootID, viewer); err == nil {
+			handlers.SetReplyFlags(thread, item)
+		}
+		return nil
+	}
 
 	mediumAccessCtx, err := h.getMediumAccessContext(item, viewer)
 	if err != nil {

@@ -33,6 +33,8 @@ func (r *Routes) Init(e *echo.Echo) {
 	photos.GET("/:id", r.handler.Photo.Read, r.setViewer)
 	photos.PATCH("/:id", r.handler.Photo.Edit, r.authorize)
 	photos.POST("/:owner_id/", r.handler.Photo.Add, r.authorize)
+	// A reply with pictures to the post :id: see photo_reply.go.
+	photos.POST("/:id/replies", r.handler.Photo.AddReply, r.authorize)
 	photos.DELETE("/:id", r.handler.Photo.Delete, r.authorize)
 
 	// The images of a post. Each is uploaded in a request of its own, and a

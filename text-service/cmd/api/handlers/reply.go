@@ -22,114 +22,33 @@ import (
 // way it is for an ordinary note. Everything is decided by the post at the
 // top of its thread: see permissions/reply.go.
 //
-// The post at the top can be any kind of post, a photo included. Replies are
-// served under /notes/ whatever they answer, because a reply is a note.
+// The post at the top can be any kind of post, a photo included. A reply
+// made here is a note; a reply can also be a photo post or a video post,
+// made by those services (POST /photos/:id/replies, and a video upload with
+// a parent). Whatever its kind, its words are changed here, and its thread
+// is served here.
 
-// requestThreadsKey holds the threads read so far in this request, by root.
-const requestThreadsKey = "anahita.replies.threads"
+// readers are what a thread is read with.
+func (h *mediumHandler) readers() an_handlers.ThreadReaders {
+	return an_handlers.ThreadReaders{Media: h.Srv.MediaGRPC, Actors: h.Srv.ActorsGRPC, Socialgraph: h.Srv.SocialgraphGRPC}
+}
 
-// thread reads the post at the top of a thread as the viewer, with the
-// profile it is on and that profile's relationship to the viewer: what every
-// rule about a reply is judged against.
-//
-// Once per root per request. A thread is many replies with one root.
+// thread reads the post at the top of a thread, once per request: see
+// an_handlers.Thread.
 func (h *mediumHandler) thread(c echo.Context, rootID int64, viewer *entities.Viewer) (*permissions.ReplyAccessContext, error) {
-	threads, _ := c.Get(requestThreadsKey).(map[int64]*permissions.ReplyAccessContext)
-	if threads == nil {
-		threads = map[int64]*permissions.ReplyAccessContext{}
-		c.Set(requestThreadsKey, threads)
-	}
-
-	if ctx, ok := threads[rootID]; ok {
-		return ctx, nil
-	}
-
-	root, err := h.Srv.MediaGRPC.Read(rootID, viewer)
-	if err != nil {
-		return nil, err
-	}
-
-	// The owner as the actor read returns it: its access, and its
-	// permissions with the defaults merged in. A post carries only a
-	// summary of its owner, which has neither.
-	owner, err := h.Srv.ActorsGRPC.Read(root.OwnerID, viewer)
-	if err != nil {
-		return nil, err
-	}
-	root.Owner = owner
-
-	// The author's relationship as well as the profile's. They are the
-	// same actor for a post on its author's own profile and not for one in
-	// a group, and who the author lets reply is measured against the author.
-	actorIDs := []int64{root.OwnerID}
-	if authorID := root.GetAuthorID(); authorID > 0 && authorID != root.OwnerID {
-		actorIDs = append(actorIDs, authorID)
-	}
-
-	rels, err := h.Srv.SocialgraphGRPC.Browse(actorIDs, viewer.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx := &permissions.ReplyAccessContext{
-		Viewer:              viewer,
-		Root:                root,
-		RootOwnerViewerRel:  rels[root.OwnerID],
-		RootAuthorViewerRel: rels[root.GetAuthorID()],
-	}
-	threads[rootID] = ctx
-
-	return ctx, nil
+	return an_handlers.Thread(c, h.readers(), rootID, viewer)
 }
 
-// forReply is the thread's context with one reply in it.
 func forReply(thread *permissions.ReplyAccessContext, reply *entities.AnahitaNode) *permissions.ReplyAccessContext {
-	withReply := *thread
-	withReply.Reply = reply
-	return &withReply
+	return an_handlers.ForReply(thread, reply)
 }
 
-// setReplyFlags answers what the viewer may do with a reply, onto its
-// Authorized, from the rules for its thread.
 func setReplyFlags(thread *permissions.ReplyAccessContext, reply *entities.AnahitaNode) {
-	if reply.Authorized == nil {
-		reply.Authorized = &entities.AnahitaNodeAuthorized{}
-	}
-
-	ctx := forReply(thread, reply)
-
-	// A removed reply is a placeholder. Nothing can be done to it but
-	// answer what is under it.
-	removed := reply.DeletedAt != nil
-
-	reply.Authorized.Edit = !removed && permissions.CanEditReply(ctx)
-	reply.Authorized.Delete = !removed && permissions.CanDeleteReply(ctx)
-
-	hide := !removed && permissions.CanHideReply(ctx)
-	canReply := !removed && permissions.CanReply(ctx)
-	like := !removed && permissions.CanLikeReply(ctx)
-	reply.Authorized.Hide = &hide
-	reply.Authorized.Comment = &canReply
-	reply.Authorized.Like = &like
+	an_handlers.SetReplyFlags(thread, reply)
 }
 
-// blankRemoved takes out of a removed reply what was not already emptied
-// when it was removed: who wrote it. The placeholder says that something was
-// here, and nothing about what or whose.
 func blankRemoved(reply *entities.AnahitaNode) {
-	if reply.DeletedAt == nil {
-		return
-	}
-
-	reply.Body = ""
-	reply.Name = ""
-	// With its words went the card for a link in them.
-	reply.Meta = nil
-	reply.Author = nil
-	reply.Owner = nil
-	reply.Editor = nil
-	reply.LikesCount = 0
-	reply.IsLikedByViewer = false
+	an_handlers.BlankRemoved(reply)
 }
 
 // Thread returns everything said under a post: every reply at every depth,
@@ -370,25 +289,10 @@ func (h *mediumHandler) HideReply(c echo.Context) error {
 	})
 }
 
-// replyRuling answers a request about one reply by the rules for its thread:
-// which of read, edit and delete the viewer may do. Used by the routes a
-// reply shares with every other note, which would otherwise judge it by its
-// author's profile.
-//
-// Returns the thread, and 0 when the answer is yes, or the status to refuse
-// with.
+// replyRuling answers a request about one reply by the rules for its
+// thread: see an_handlers.ReplyRuling.
 func (h *mediumHandler) replyRuling(c echo.Context, reply *entities.AnahitaNode, viewer *entities.Viewer, may func(*permissions.ReplyAccessContext) bool) (*permissions.ReplyAccessContext, int) {
-	thread, err := h.thread(c, reply.RootID, viewer)
-	if err != nil {
-		log.Println(err)
-		return nil, http.StatusNotFound
-	}
-
-	if !may(forReply(thread, reply)) {
-		return thread, http.StatusForbidden
-	}
-
-	return thread, 0
+	return an_handlers.ReplyRuling(c, h.readers(), reply, viewer, may)
 }
 
 // threadResponse maps the replies of a thread in full.

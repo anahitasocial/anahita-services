@@ -1475,6 +1475,8 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     `quote_policy` varchar(16) NOT NULL DEFAULT '',
     -- Whether the post may be downloaded, as chosen when the upload began.
     `allow_download` tinyint(1) NOT NULL DEFAULT 0,
+    -- What the video answers, when it is a reply. NULL for a post.
+    `parent_id` bigint unsigned NULL DEFAULT NULL,
     -- 'uploading' while the browser sends it, 'processing' once it is all
     -- there and waiting for or with a worker, then 'ready', 'failed', or
     -- 'cancelled' for one given up on.

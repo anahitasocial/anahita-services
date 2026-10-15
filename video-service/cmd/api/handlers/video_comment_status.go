@@ -38,6 +38,11 @@ func (h *videoHandler) EditCommentStatus(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
+	// A reply has none of its own: its thread decides.
+	if medium.RootID > 0 {
+		return c.JSON(http.StatusUnprocessableEntity, map[string]string{"error": "reply_follows_its_thread"})
+	}
+
 	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
 	if err != nil {
 		log.Println(err)

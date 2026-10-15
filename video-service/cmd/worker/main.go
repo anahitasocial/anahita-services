@@ -17,6 +17,8 @@ import (
 	"video/data/repositories"
 	"video/worker"
 
+	"anahita-libs/cmd/api/handlers"
+	"anahita-libs/data/entities"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -45,11 +47,16 @@ func main() {
 	uploads.ClaimFor = worker.TimeoutFor(config.VideoMaxSeconds, heights) + 15*time.Minute
 
 	w := &worker.Worker{
-		Uploads:             uploads,
-		Transfers:           services.NewFileTransfersGRPC(config),
-		Files:               services.NewFilesGRPC(config),
-		Posts:               services.NewMediaGRPC(config),
-		Owners:              services.NewActorsGRPC(config),
+		Uploads:   uploads,
+		Transfers: services.NewFileTransfersGRPC(config),
+		Files:     services.NewFilesGRPC(config),
+		Posts:     services.NewMediaGRPC(config),
+		Owners:    services.NewActorsGRPC(config),
+		Replies: replies{handlers.ThreadReaders{
+			Media:       services.NewMediaGRPC(config),
+			Actors:      services.NewActorsGRPC(config),
+			Socialgraph: services.NewSocialgraphGRPC(config),
+		}},
 		Encoder:             worker.FFmpeg{},
 		Dir:                 os.Getenv("VIDEO_WORK_DIR"),
 		Heights:             heights,
@@ -87,4 +94,13 @@ func connectToDB(dsn string) (*sql.DB, error) {
 	}
 
 	return nil, lastErr
+}
+
+// replies asks the graph whether somebody may answer a post now.
+type replies struct {
+	readers handlers.ThreadReaders
+}
+
+func (r replies) MayReplyTo(parentID int64, viewer *entities.Viewer) (bool, error) {
+	return handlers.MayReplyTo(r.readers, parentID, viewer)
 }
