@@ -13,6 +13,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/policy"
+	"anahita-libs/videos"
 )
 
 const index = `<!doctype html><html lang="en"><head><meta charset="utf-8"/>
@@ -353,5 +354,36 @@ func TestWhatOtherServersLookForIsSentOnToTheAPI(t *testing.T) {
 	s.APIURL = ""
 	if got := get(s, "/.well-known/webfinger?resource=acct:ana@example.org"); got.Code != http.StatusNotFound {
 		t.Errorf("with no API: %d", got.Code)
+	}
+}
+
+// A video post, a GIF made into one among them, is shown where it is shared
+// by its poster: its first picture.
+func TestAVideoPostIsShownByItsPoster(t *testing.T) {
+	s, reader := newServer(t)
+
+	clip := note(21, constants.AnahitaAccessPublic, reader.people["ana"])
+	clip.Type = videos.NodeType
+	clip.Name = "Beans growing"
+	clip.Meta, _ = videos.IntoMeta(nil, &videos.Video{
+		Loop: true, Width: 320, Height: 240, Poster: "assets/v1/video-service/videos/1/abc/poster.jpg",
+		Renditions: []videos.Rendition{{Height: 240, Width: 320, Key: "assets/v1/video-service/videos/1/abc/240.mp4"}},
+	})
+	reader.media[21] = clip
+
+	page := get(s, "/videos/21").Body.String()
+	for _, want := range []string{
+		`<meta property="og:title" content="Beans growing"/>`,
+		`<meta property="og:image" content="https://www.example.org/_shell/image/post-21"/>`,
+		`<meta name="twitter:card" content="summary_large_image"/>`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("missing %s in\n%s", want, page)
+		}
+	}
+
+	image := get(s, "/_shell/image/post-21")
+	if location := image.Header().Get("Location"); !strings.Contains(location, "abc/poster.jpg") {
+		t.Errorf("the picture leads to %q (%d)", location, image.Code)
 	}
 }

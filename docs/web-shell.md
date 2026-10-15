@@ -84,6 +84,10 @@ that site's to forget.
 
 ## Pictures
 
+A post's picture is its photo, an article's cover, a video's poster (for a
+GIF made into a clip, its first picture), or the picture of the link card a
+note carries; failing those, the site's own.
+
 Stored pictures are read through signed addresses that stop working after a
 few minutes, and a crawler keeps a picture's address for days. So a page's
 picture is given as an address on the shell that does not change,

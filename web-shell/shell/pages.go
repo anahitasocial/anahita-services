@@ -9,6 +9,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/linkpreviews"
+	"anahita-libs/videos"
 )
 
 // Reader reads what a page is about, as somebody who is not signed in.
@@ -232,9 +233,12 @@ func post(reader Reader, id int64, kind string) *Subject {
 	}
 	subject.Tags.ImageAlt = subject.Tags.Title
 
-	// Its own picture: a photo, an article's cover, or the picture of the
-	// link a note carries a card for.
+	// Its own picture: a photo, an article's cover, a video's poster (its
+	// first picture, for a GIF), or the picture of the link a note carries
+	// a card for.
 	switch {
+	case node.Type == videos.NodeType && videos.FromMeta(node.Meta) != nil && videos.FromMeta(node.Meta).Poster != "":
+		subject.ImageKey = videos.FromMeta(node.Meta).Poster
 	case pathOf(node.Portrait, entities.PortraitSizeLarge) != "":
 		subject.ImageKey = pathOf(node.Portrait, entities.PortraitSizeLarge)
 	case pathOf(node.Cover, entities.CoverSizeLarge) != "":
