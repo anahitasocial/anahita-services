@@ -72,6 +72,10 @@ Where a reply is still a note only:
 
 - Notes as replies (item 7), photo posts with several pictures (item 17), the video service (item 16) and animated images (item 41): all done.
 
+## Later: articles and topics as responses
+
+An article or a topic can be a reply as well; nothing in the graph or the rules for threads stands in the way, only a way to post one (text-service's article and topic routes take no parent, and the reply box offers neither). Recorded with the user on 2026-10-14 for later: **a response to a post**, as on Medium. Somebody writes an article, or opens a topic, about a post somebody else made, from something like "Write a response" under it. It is in the post's thread like any reply, its own title and length kept, and it goes out as a reply too: to Mastodon as an `Article` answering the post, shown there with its title and a link; to Bluesky as a reply with the start of its text and a link.
+
 ## Status
 
 | Item | State |
