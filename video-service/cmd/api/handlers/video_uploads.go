@@ -35,8 +35,9 @@ import (
 
 // uploadStartRequest is a video about to be sent, and the post it will be.
 type uploadStartRequest struct {
-	OwnerID     int64  `param:"owner_id" validate:"required,numeric"`
-	Name        string `json:"name" form:"name" validate:"required,max=100"`
+	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
+	// Required of a post; a reply need not have one.
+	Name        string `json:"name" form:"name" validate:"omitempty,max=100"`
 	Body        string `json:"body" form:"body" validate:"omitempty,max=8000"`
 	Access      string `json:"access" form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
 	Language    string `json:"language" form:"language" validate:"omitempty,max=12"`
@@ -45,6 +46,10 @@ type uploadStartRequest struct {
 	// Whether whoever can see it may download it. Left out, the post
 	// starts with what the profile it is on says.
 	AllowDownload *bool `json:"allow_download" form:"allow_download"`
+	// What it answers, when it is a reply: then it is on its author's own
+	// profile, and what it is open to, who may answer it and quoting are
+	// its thread's, so those above are not read.
+	ParentID int64 `json:"parent_id" form:"parent_id" validate:"omitempty,min=1"`
 	// What the browser says it is sending. The worker decides what it is.
 	Size        int64  `json:"size" form:"size" validate:"required,min=1"`
 	ContentType string `json:"content_type" form:"content_type" validate:"required,max=100"`
@@ -64,6 +69,8 @@ type uploadResponse struct {
 	Error string `json:"error,omitempty"`
 	// The post, once it is one.
 	NodeID int64 `json:"node_id,omitempty"`
+	// What it answers, when it is a reply.
+	ParentID int64 `json:"parent_id,omitempty"`
 	// How it is to be sent, while it is being.
 	PartSize  int64     `json:"part_size,omitempty"`
 	PartCount int64     `json:"part_count,omitempty"`
@@ -79,6 +86,7 @@ func newUploadResponse(upload *repositories.Upload) *uploadResponse {
 		OwnerID:   upload.OwnerID,
 		Error:     upload.Error,
 		NodeID:    upload.NodeID,
+		ParentID:  upload.ParentID,
 		CreatedAt: upload.CreatedAt,
 	}
 	if upload.Status == videos.StatusUploading {
@@ -148,6 +156,35 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		})
 	}
 
+	// A reply: what it answers has to be there, and its thread open to
+	// the viewer, before any of it is sent. The worker asks again before
+	// the reply is made, since a thread can close meanwhile.
+	var parent *entities.AnahitaNode
+	if req.ParentID > 0 {
+		// On its author's own profile, as every reply is.
+		if req.OwnerID != viewer.ID {
+			return c.NoContent(http.StatusBadRequest)
+		}
+		var err error
+		if parent, err = h.Srv.MediaGRPC.Read(req.ParentID, viewer); err != nil || parent == nil {
+			log.Println(err)
+			return c.NoContent(http.StatusNotFound)
+		}
+		if parent.RootID > 0 && parent.DeletedAt != nil {
+			return c.NoContent(http.StatusGone)
+		}
+		thread, err := handlers.ThreadOf(c, h.readers(), parent, viewer)
+		if err != nil {
+			log.Println(err)
+			return c.NoContent(http.StatusNotFound)
+		}
+		if !permissions.CanReply(thread) {
+			return c.NoContent(http.StatusForbidden)
+		}
+	} else if strings.TrimSpace(req.Name) == "" {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	owner, err := h.Srv.ActorsGRPC.Read(req.OwnerID, viewer)
 	if err != nil || owner == nil {
 		log.Println(err)
@@ -168,20 +205,29 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 	if !valid {
 		return handlers.RefuseQuotePolicy(c)
 	}
-	medium.Access = handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
 
-	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	if ok, err := h.Perms.Media.CanAdd(mediumAccessCtx); !ok {
-		log.Println(err)
-		return c.NoContent(http.StatusForbidden)
-	}
-	if !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
-		log.Printf("refused: audience %q is not allowed on this profile", req.Access)
-		return handlers.RefuseAudience(c, mediumAccessCtx)
+	if parent != nil {
+		// Its thread's: none of its own.
+		medium.Access, replyAccess, quotePolicy = "", "", ""
+		if language == "" {
+			language = parent.Language
+		}
+	} else {
+		medium.Access = handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
+
+		mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
+		if err != nil {
+			log.Println(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if ok, err := h.Perms.Media.CanAdd(mediumAccessCtx); !ok {
+			log.Println(err)
+			return c.NoContent(http.StatusForbidden)
+		}
+		if !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
+			log.Printf("refused: audience %q is not allowed on this profile", req.Access)
+			return handlers.RefuseAudience(c, mediumAccessCtx)
+		}
 	}
 
 	// So many a day, counted from the uploads themselves.
@@ -206,6 +252,7 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		QuotePolicy:   quotePolicy,
 		AllowDownload: handlers.DefaultAllowDownload(req.AllowDownload, owner),
 		DeclaredBytes: req.Size,
+		ParentID:      req.ParentID,
 	}
 	upload.SourceKey = videos.SourceKey(viewer.ID, upload.ID)
 

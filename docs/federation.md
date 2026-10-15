@@ -636,8 +636,13 @@ twenty-five requests whatever it answers.
 
 ## Replies
 
-A reply here is a note with a parent and a root, its author's own, seen by
-whoever may see the root. Between servers it is a `Note` with `inReplyTo`.
+A reply here is a post with a parent and a root, its author's own, seen by
+whoever may see the root: a note, or a photo or video post when it carries
+pictures or a GIF or a video. Between servers it is a `Note` with
+`inReplyTo`, with its pictures or its video attached as a photo or video
+post's are; to Bluesky, a reply with its embed. A reply of any kind may
+answer a note, a photo post or a video post (tried against Mastodon and
+Bluesky on 2026-10-14).
 Nothing about replies was changed for this: what is added is which of them
 cross, and how.
 
@@ -1290,8 +1295,10 @@ its own. The card says to use one and where to make it.
   again as a JPEG when that is not enough. Words become
   what Bluesky takes: Markdown's marks are taken out, links and hashtags
   are marked as such, and what is longer than three hundred letters is cut
-  with a mark to say so. A reply that is changed here afterwards is not
-  changed there: Bluesky has no changing a post.
+  with a mark to say so. A post or a reply that is changed here afterwards
+  is not changed there: Bluesky has no changing a post, and taking it down
+  to post it again would lose its likes, reposts and replies. Mastodon and
+  other servers are sent the change.
 - **Following.** Somebody connected who follows an account on Bluesky from
   here follows it there too, as their account: it is the only kind of
   follow Bluesky has, so whoever is followed is told and sees them among

@@ -183,9 +183,16 @@ Default: `followers`.
 
 ## Replies
 
-A reply is a note that answers a post or another reply. It can be liked,
-reposted, tagged and searched like any note, and replies can be answered in
-turn, to any depth.
+A reply is a post that answers a post or another reply. Most are notes; a
+reply with pictures is a photo post, and one with a GIF or a video a video
+post (since 2026-10-14: "nodes are nodes"). It can be liked, reposted, tagged
+and searched like any post of its kind, and replies can be answered in turn,
+to any depth. Whatever its kind, every rule below applies to it the same way:
+text-service, photo-service and video-service each judge a post that is a
+reply by its thread, with the thread read by one shared loader
+(`anahita-libs/cmd/api/handlers/threads.go`), and each refuses a change to a
+reply's audience, reply rule or quote rule with `422
+reply_follows_its_thread`.
 
 Every kind of post is answered with replies: notes, photos, articles and
 topics. What used to be comments were turned into replies on 2026-10-05, each
@@ -295,7 +302,10 @@ of the group's administrators.
 | **Delete** | Its author, and whoever looks after the thread. The author can delete it even after losing sight of the root |
 | **Hide**, and show again | Whoever looks after the thread. Not its author, who can delete it |
 
-**Deleting** removes a reply for good. If it has been answered, an empty
+**Deleting** removes a reply for good, and is asked of the service of its
+kind (`DELETE /notes/:id`, `/photos/:id`, `/videos/:id`), so that a photo or
+video reply's files go with it. Its words are changed at `PATCH /notes/:id`
+whatever its kind. If it has been answered, an empty
 placeholder is left where it was, with no text and no name, so the replies
 under it still hang from something. Deleting a post removes its whole thread.
 

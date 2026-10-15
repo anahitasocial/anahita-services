@@ -27,6 +27,7 @@ import (
 	"anahita-libs/ratelimit"
 
 	"github.com/labstack/echo/v4"
+	"anahita-libs/videos"
 )
 
 type rsaKey = rsa.PrivateKey
@@ -418,14 +419,17 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 }
 
 // isPost says whether something is a post other servers can be spoken to
-// about: a note, or a photo post, which between servers is a note with
-// pictures.
+// about: a note, a photo post or a video post, which between servers are a
+// note with pictures or with a video. Video posts were left out of this
+// when they began to go out, so a reply under one, a repost of one and a
+// reply to one from elsewhere were all refused.
 func isPost(node *entities.AnahitaNode) bool {
 	if node == nil {
 		return false
 	}
 	return node.Type == constants.NodeMediumNoteEntityType ||
-		node.Type == constants.NodeMediumPhotoEntityType
+		node.Type == constants.NodeMediumPhotoEntityType ||
+		node.Type == videos.NodeType
 }
 
 // announceKept says that a post from another server was kept or changed,

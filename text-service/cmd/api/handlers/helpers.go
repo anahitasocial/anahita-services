@@ -39,6 +39,11 @@ func batchPresignPaths(env *Env, items []*entities.AnahitaNode) error {
 		}
 	}
 
+	// Every picture of a photo post among them: a photo reply in a
+	// thread, or the photo post a thread answers.
+	services.AttachPhotoFiles(env.Srv.MediaGRPC, items)
+	services.BatchPresignPhotoFiles(env.Srv.FilesGRPC, items)
+
 	if len(avatarNodes) > 0 {
 		services.BatchPresignAvatar(env.Srv.FilesGRPC, avatarNodes)
 	}

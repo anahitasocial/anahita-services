@@ -1,6 +1,7 @@
 package worker
 
 import (
+	an_const "anahita-libs/constants"
 	"context"
 	"errors"
 	"io"
@@ -429,5 +430,61 @@ func TestTheTimeAllowedGrowsWithLengthAndSize(t *testing.T) {
 	}
 	if got := TimeoutFor(3600, usual); got < 5*time.Hour {
 		t.Errorf("an hour of video: %v", got)
+	}
+}
+
+type fakeReplies struct {
+	may   bool
+	err   error
+	asked []int64
+}
+
+func (f *fakeReplies) MayReplyTo(parentID int64, viewer *entities.Viewer) (bool, error) {
+	f.asked = append(f.asked, parentID)
+	if viewer.ID != 5 || !viewer.HasScope(an_const.OAuthScopeMediaWrite) {
+		return false, errors.New("asked as somebody who could not post")
+	}
+	return f.may, f.err
+}
+
+// THE RULE THIS GUARDS: a video that answers a post is made a reply only if
+// its thread still lets its author answer when the video is ready, and then
+// with nothing of its own about who sees it, answers it or quotes it.
+func TestAVideoReplyIsMadeOnlyWhileItsThreadIsOpen(t *testing.T) {
+	f := newFixture(t)
+	f.uploads.upload.ParentID = 300
+	f.uploads.upload.OwnerID = 5
+	replies := &fakeReplies{may: true}
+	f.worker.Replies = replies
+
+	f.worker.Once()
+
+	if len(f.posts.added) != 1 {
+		t.Fatalf("posts %d, upload %+v", len(f.posts.added), f.uploads.upload)
+	}
+	reply := f.posts.added[0]
+	if reply.ParentID != 300 || reply.Access != "" || reply.ReplyAccess != "" || reply.QuotePolicy != "" || reply.OwnerID != 5 {
+		t.Errorf("made %+v", reply)
+	}
+	if len(replies.asked) != 1 || replies.asked[0] != 300 {
+		t.Errorf("asked %v", replies.asked)
+	}
+
+	// Closed meanwhile: refused for good, and nothing kept.
+	g := newFixture(t)
+	g.uploads.upload.ParentID = 300
+	g.worker.Replies = &fakeReplies{may: false}
+	g.worker.Once()
+	if g.uploads.upload.Status != videos.StatusFailed || g.uploads.upload.Error != constants.FailedClosed || len(g.posts.added) != 0 || len(g.store.keys()) != 0 {
+		t.Errorf("a closed thread: %+v, posts %d, kept %v", g.uploads.upload, len(g.posts.added), g.store.keys())
+	}
+
+	// The graph not answering may pass: tried again.
+	h := newFixture(t)
+	h.uploads.upload.ParentID = 300
+	h.worker.Replies = &fakeReplies{err: errors.New("unavailable")}
+	h.worker.Once()
+	if h.uploads.upload.Status == videos.StatusFailed || h.uploads.released != 1 {
+		t.Errorf("a passing trouble: %+v, let go %d", h.uploads.upload, h.uploads.released)
 	}
 }

@@ -153,3 +153,33 @@ func TestTheSizeOfAVideoSent(t *testing.T) {
 		t.Errorf("only tall sizes: %+v", got)
 	}
 }
+
+// THE RULE THIS GUARDS: a reply of any kind under a video post that went
+// out goes out too, answering it: a GIF post is something people answer
+// with pictures and GIFs of their own.
+func TestRepliesUnderAVideoPostGoOut(t *testing.T) {
+	w := notesWorld()
+	anasVideo(w, false)
+	w.h.Files = &fakeFiles{stored: map[string]int{}}
+
+	reply := anasReply(noteID, noteID)
+	reply.Type = videos.NodeType
+	reply.Body = ""
+	reply.Meta, _ = videos.IntoMeta(nil, &videos.Video{Loop: true, Width: 320, Height: 240,
+		Renditions: []videos.Rendition{{Height: 240, Width: 320, Key: videoFolder + "reply.mp4", Bytes: 1000}}})
+	w.nodes.people = append(w.nodes.people, reply)
+
+	_ = w.h.HandleEvent(videoMade(noteID))
+	w.queue.sent = nil
+	event := videoMade(replyID)
+	_ = w.h.HandleEvent(event)
+
+	if len(w.queue.sent) != 2 {
+		t.Fatalf("queued %d", len(w.queue.sent))
+	}
+	object, _ := w.queue.sent[0].payload["object"].(map[string]any)
+	attachments, _ := object["attachment"].([]any)
+	if object["inReplyTo"] != noteURL || len(attachments) != 1 {
+		t.Errorf("sent answering %v with %v", object["inReplyTo"], object["attachment"])
+	}
+}
