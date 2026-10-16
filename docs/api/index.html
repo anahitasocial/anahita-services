@@ -69,7 +69,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
 <li><a href="#search-service">Search</a> <span class="count">1</span></li>
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
-<li><a href="#text-service">Notes, articles and topics</a> <span class="count">40</span></li>
+<li><a href="#text-service">Notes, articles and topics</a> <span class="count">41</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
 <li><a href="#schemas">Shapes</a> <span class="count">139</span></li>
 </ul>
@@ -7628,6 +7628,31 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*noteHandler).Edit</code></p>
+</details>
+<details class="route" id="deleteNotesById" data-search="delete /notes/{id} delete a note a reply that others have answered is emptied and kept, so the thread holds together.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method delete">DELETE</span> <code class="path">/notes/{id}</code> <span class="summary">Delete a note</span></summary>
+<div class="description"><p>A reply that others have answered is emptied and kept, so the thread holds together.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The post&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>it is gone</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not delete it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such post</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).Delete</code></p>
 </details>
 <details class="route" id="patchNotesByIdAccess" data-search="patch /notes/{id}/access change who may see it who may call it: somebody signed in, with a token that carries `media:write`.">
 <summary><span class="method patch">PATCH</span> <code class="path">/notes/{id}/access</code> <span class="summary">Change who may see it</span></summary>

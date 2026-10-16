@@ -18434,6 +18434,52 @@
       }
     },
     "/notes/{id}": {
+      "delete": {
+        "description": "A reply that others have answered is emptied and kept, so the thread holds together.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "deleteNotesById",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "it is gone"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not delete it"
+          },
+          "404": {
+            "description": "there is no such post"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Delete a note",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Delete",
+        "x-viewer": "signed_in"
+      },
       "get": {
         "description": "A reply is read by whoever may read the post at the top of its thread.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getNotesById",
