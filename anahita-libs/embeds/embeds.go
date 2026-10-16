@@ -33,6 +33,14 @@ var kinds = map[string]string{
 	"videos":   "video",
 }
 
+// A link whose words are its own address, as some editors write an address
+// on a line of its own: [https://a.example/](https://a.example/).
+var selfLink = regexp.MustCompile(`^\[([^\]]+)\]\((\S+)\)$`)
+
+// Markdown's escapes, taken out of a link's words to compare them with its
+// address: \_ is _.
+var escaped = regexp.MustCompile(`\\([\\\x60*_{}\[\]()#+\-.!|~<>])`)
+
 // A post's address: /articles/12, or /articles/12-its-title.
 var postPath = regexp.MustCompile(`^/([a-z]+)/([0-9]+)(?:-[^/]*)?/?$`)
 
@@ -82,9 +90,16 @@ func Find(text string, ours func(string) bool) Found {
 }
 
 // alone says whether a line is an address and nothing else, as Markdown
-// writes one: bare, or in angle brackets.
+// writes one: bare, in angle brackets, or as a link whose words are the
+// address.
 func alone(line string) (string, bool) {
 	line = strings.TrimSpace(line)
+	if match := selfLink.FindStringSubmatch(line); match != nil {
+		if escaped.ReplaceAllString(match[1], "$1") != match[2] {
+			return "", false
+		}
+		line = match[2]
+	}
 	if strings.HasPrefix(line, "<") && strings.HasSuffix(line, ">") {
 		line = strings.TrimSpace(line[1 : len(line)-1])
 	}

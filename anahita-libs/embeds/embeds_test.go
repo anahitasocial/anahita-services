@@ -23,11 +23,14 @@ func TestFind(t *testing.T) {
 		"https://elsewhere.com/page",
 		"ftp://elsewhere.com/file",
 		"see https://elsewhere.com/other",
+		"[https://example.org/notes/7](https://example.org/notes/7)",
+		"[https://example.org/notes/a\\_b](https://example.org/notes/a_b)",
+		"[words](https://example.org/notes/8)",
 	}, "\n")
 
 	got := Find(text, ours)
 
-	wantPosts := []Post{{Kind: "photo", ID: 12}, {Kind: "article", ID: 40}}
+	wantPosts := []Post{{Kind: "photo", ID: 12}, {Kind: "article", ID: 40}, {Kind: "note", ID: 7}}
 	if !reflect.DeepEqual(got.Posts, wantPosts) {
 		t.Errorf("posts: got %v, want %v", got.Posts, wantPosts)
 	}

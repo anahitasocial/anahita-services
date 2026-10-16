@@ -14,7 +14,7 @@ import (
 // What an article or a topic shows within its text: an address on a line of
 // its own (package embeds). A post of this installation is drawn by the
 // reader's browser as it reads it, so nobody sees one they may not; what is
-// kept here is the edge to it. A page elsewhere is drawn by its card, kept
+// kept here is the edge to it, a citation. A page elsewhere is drawn by its card, kept
 // in the post's meta as a note keeps its one.
 
 // withEmbeddedPages keeps the cards of the pages a text embeds in its meta.
@@ -49,8 +49,8 @@ func (h *mediumHandler) withEmbeddedPages(meta []byte, body string) []byte {
 	return linkpreviews.SnapshotsIntoMeta(meta, cards)
 }
 
-// syncEmbeds writes the edges from a post to the posts of this installation
-// it embeds, and takes away those it no longer does.
+// syncEmbeds writes the citations from a post to the posts of this
+// installation it embeds, and takes away those it no longer does.
 //
 // After the post is saved, and never in the way of saving it: a post whose
 // edges could not be written is posted all the same, and they are put
@@ -92,7 +92,7 @@ func (h *mediumHandler) syncEmbeds(medium *entities.AnahitaNode) {
 
 	existing, err := h.Srv.GraphEdgeGRPC.BatchReadByFilters(&services.GraphEdgeBatchReadByFiltersRequest{
 		NodeAID: medium.ID,
-		Types:   []string{an_constants.EdgeMediumEmbedType},
+		Types:   []string{an_constants.EdgeMediumCitationType},
 	})
 	if err != nil {
 		log.Printf("embeds of %d: reading the edges: %v", medium.ID, err)
@@ -122,7 +122,7 @@ func (h *mediumHandler) syncEmbeds(medium *entities.AnahitaNode) {
 		}
 		have[post.ID] = true
 		missing = append(missing, &entities.AnahitaEdge{
-			Type:      an_constants.EdgeMediumEmbedType,
+			Type:      an_constants.EdgeMediumCitationType,
 			NodeAID:   medium.ID,
 			NodeAType: medium.Type,
 			NodeBID:   node.ID,

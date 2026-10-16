@@ -178,6 +178,26 @@ feeds and on profiles as a note, and gated as one. The rules are in
   `PATCH /people/<id>/quote-policy`, `DELETE /notes/<id>/quote`, and
   `GET /notes/<id>/quotes` for the notes that quote a post.
 
+### Embeds and citations
+
+An article or a topic shows what an address on a line of its own is to: a
+post here as itself, a page elsewhere by its card. An address inside a
+sentence stays a link. The text stays plain Markdown, so other servers are
+sent the link it is. How a line is read is `anahita-libs/embeds`, and the
+web app reads it the same way.
+
+- **A post here** is not copied into the article. The reader's browser asks
+  for it as for any post, so somebody who may not see it gets the link and
+  nothing more.
+- **A citation** is the edge from the article to each post here it shows
+  (`edge.medium.citation.v1`). text-service writes the citations when the
+  article or topic is added or edited, and takes away those whose line is
+  gone. A post that could not be read, or is not a post, is not cited.
+  Search and recommendations do not read citations yet.
+- **A page elsewhere** is shown by its card, kept in the post's `meta` under
+  `link_previews` and sent as `link_previews`: see
+  [Link previews](link-previews.md#cards-in-long-writing).
+
 ### Saved posts
 
 Somebody can save a post, of any kind, to find it again: `PUT` and
