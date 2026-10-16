@@ -130,6 +130,12 @@ func normalizePath(path string) string {
 	return path
 }
 
+// File is a file sent in a form, for a field of a struct that describes an
+// upload, tagged `form:"avatar"` with the field's name. Echo binds no file
+// into a struct, so such a struct is a description only; the handler reads
+// the file with c.FormFile by the same name.
+type File struct{}
+
 // Route is the description of one route.
 type Route struct {
 	Method string

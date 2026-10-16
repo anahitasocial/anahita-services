@@ -188,6 +188,44 @@
         ],
         "type": "object"
       },
+      "AnahitaNodeImage": {
+        "description": "AnahitaNodeImage is one size of a picture. It has no JSON tags, so its // fields are sent as Go names them.",
+        "properties": {
+          "Size": {
+            "$ref": "#/components/schemas/AnahitaNodeImageSize",
+            "description": "How big it is."
+          },
+          "Url": {
+            "description": "Where it is read from: good for a short while.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "Url",
+          "Size"
+        ],
+        "type": "object"
+      },
+      "AnahitaNodeImageSize": {
+        "description": "AnahitaNodeImageSize is how big a picture is.",
+        "properties": {
+          "Height": {
+            "description": "In pixels.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "Width": {
+            "description": "In pixels.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "Width",
+          "Height"
+        ],
+        "type": "object"
+      },
       "Author": {
         "description": "Author is who wrote something.",
         "properties": {
@@ -1396,6 +1434,344 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/avatars/{node_id}/": {
+      "delete": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "deleteAvatarsByNodeId",
+        "parameters": [
+          {
+            "description": "The id of the profile or the post.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "it has none now, whether or not it had one"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it cannot have one, or the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile or post, or the viewer may not see it"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove the avatar of a profile",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while. Note that its fields are named as Go names them (`Url`, `Size`), not in snake_case.\n\nWho may call it: somebody signed in.",
+        "operationId": "postAvatarsByNodeId",
+        "parameters": [
+          {
+            "description": "The id of the profile.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "avatar": {
+                    "description": "The picture: a JPEG or a PNG, of at most 10 MB.",
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "avatar"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/AnahitaNodeImage"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "`file_required` when no file was sent, `file_unreadable` when it cannot be read as a picture"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it cannot have one, or the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile or post, or the viewer may not see it"
+          },
+          "413": {
+            "description": "`file_too_large`: more than 10 MB, or too many pixels"
+          },
+          "415": {
+            "description": "`file_unsupported`: not a JPEG or a PNG"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the avatar of a profile",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/avatars/{uuid}/{size}": {
+      "get": {
+        "description": "For other servers, which keep the address of a picture for weeks: a redirect to a freshly signed address in storage. Only what anybody may see is answered for; anything else, on a site for members included, is not found, in the same words as what does not exist.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getAvatarsByUuidBySize",
+        "parameters": [
+          {
+            "description": "The node's UUID, which other servers are given.",
+            "in": "path",
+            "name": "uuid",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which size: for an avatar `small`, `medium`, `large` or `square`; for a cover `medium` or `large`.",
+            "in": "path",
+            "name": "size",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "the picture is at the address in Location"
+          },
+          "404": {
+            "description": "there is no such picture that anybody may see"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A public profile's avatar, at an address that does not change",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/covers/{node_id}/": {
+      "delete": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "deleteCoversByNodeId",
+        "parameters": [
+          {
+            "description": "The id of the profile or the post.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "it has none now, whether or not it had one"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it cannot have one, or the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile or post, or the viewer may not see it"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove the cover of a profile or a post",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while. Note that its fields are named as Go names them (`Url`, `Size`), not in snake_case.\n\nWho may call it: somebody signed in.",
+        "operationId": "postCoversByNodeId",
+        "parameters": [
+          {
+            "description": "The id of the profile or the post.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "cover": {
+                    "description": "The picture: a JPEG or a PNG, of at most 10 MB.",
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "cover"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/AnahitaNodeImage"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "`file_required` when no file was sent, `file_unreadable` when it cannot be read as a picture"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it cannot have one, or the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile or post, or the viewer may not see it"
+          },
+          "413": {
+            "description": "`file_too_large`: more than 10 MB, or too many pixels"
+          },
+          "415": {
+            "description": "`file_unsupported`: not a JPEG or a PNG"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the cover of a profile or a post",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/covers/{uuid}/{size}": {
+      "get": {
+        "description": "For other servers, which keep the address of a picture for weeks: a redirect to a freshly signed address in storage. Only what anybody may see is answered for; anything else, on a site for members included, is not found, in the same words as what does not exist.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getCoversByUuidBySize",
+        "parameters": [
+          {
+            "description": "The node's UUID, which other servers are given.",
+            "in": "path",
+            "name": "uuid",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which size: for an avatar `small`, `medium`, `large` or `square`; for a cover `medium` or `large`.",
+            "in": "path",
+            "name": "size",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "the picture is at the address in Location"
+          },
+          "404": {
+            "description": "there is no such picture that anybody may see"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A public profile's or post's cover, at an address that does not change",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
     "/hashtags/": {
       "get": {
         "description": "Who may call it: anyone, signed in or not.",
@@ -2478,6 +2854,10 @@
     {
       "description": "Hashtags",
       "name": "hashtag-service"
+    },
+    {
+      "description": "Avatars and covers",
+      "name": "identity-image-service"
     },
     {
       "description": "Likes",

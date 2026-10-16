@@ -31,6 +31,7 @@ func newSchemas(src *sources) *schemas {
 }
 
 var (
+	fileType      = reflect.TypeOf(File{})
 	timeType      = reflect.TypeOf(time.Time{})
 	rawType       = reflect.TypeOf(json.RawMessage{})
 	marshalerType = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
@@ -43,6 +44,8 @@ func (s *schemas) of(t reflect.Type) (map[string]any, error) {
 	}
 
 	switch {
+	case t == fileType:
+		return map[string]any{"type": "string", "format": "binary"}, nil
 	case t == timeType:
 		return map[string]any{"type": "string", "format": "date-time"}, nil
 	case t == rawType:
