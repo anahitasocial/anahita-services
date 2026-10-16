@@ -155,7 +155,7 @@ func eventLink(origin string, event *entities.AnahitaNode) string {
 // the event, as on the event's page.
 func (h *eventHandler) ICS(c echo.Context) error {
 	var (
-		req    = &eventIDRequest{}
+		req    = &EventIDRequest{}
 		viewer = getViewer(c)
 	)
 

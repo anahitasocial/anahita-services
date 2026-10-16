@@ -63,11 +63,7 @@ func (h *groupHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	type Response struct {
-		Data       []any                `json:"data"`
-		Pagination responses.Pagination `json:"pagination"`
-	}
-	resp := &Response{Data: []any{}}
+	resp := &responses.List[any]{Data: []any{}}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
@@ -588,10 +584,7 @@ func (h *groupHandler) SetEnabled(c echo.Context) error {
 	// second call reading nothing — the path id arrived and `enabled` was
 	// always nil, which this handler then reported as a malformed request. It
 	// refused every call, including its own correct ones.
-	var req struct {
-		ID      int64 `param:"id"      validate:"required,numeric"`
-		Enabled *bool `json:"enabled"  validate:"required"`
-	}
+	var req EnabledRequest
 
 	viewer := getViewer(c)
 
@@ -641,10 +634,7 @@ func (h *groupHandler) SetEnabled(c echo.Context) error {
 // 409: featuring a group that is disabled, archived or deleted
 func (h *groupHandler) SetFeatured(c echo.Context) error {
 	// One bind, for the reason SetEnabled gives.
-	var req struct {
-		ID       int64 `param:"id"       validate:"required,numeric"`
-		Featured *bool `json:"featured"  validate:"required"`
-	}
+	var req FeaturedRequest
 
 	viewer := getViewer(c)
 
@@ -736,19 +726,11 @@ func (h *groupHandler) DeletionCounts(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	type Response struct {
-		Posts       int64  `json:"posts"`
-		Replies     int64  `json:"replies"`
-		Followers   int64  `json:"followers"`
-		Admins      int64  `json:"admins"`
-		MemberSince string `json:"member_since,omitempty"`
-	}
-
 	// "Following" and "groups administered" are omitted rather than sent as
 	// zero: a group follows nobody and administers nothing, so the fields would
 	// be permanently zero and the dialog would have to know to hide them.
 	// Better that the shape says what a group has.
-	resp := &Response{
+	resp := &GroupDeletionCounts{
 		Posts:     counts.Posts,
 		Replies:   counts.Replies,
 		Followers: counts.Followers,

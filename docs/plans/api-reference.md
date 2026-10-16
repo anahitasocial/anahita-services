@@ -146,6 +146,9 @@ Each was found by describing a service, and put right on 2026-10-16 at the user'
 - **`PATCH /hashtags/:alias` answered 501** and is removed (above).
 - **`composed`** was taken by every post and read by nothing; it is gone from the requests and the web app.
 - **Approving a follow request answered `202 Accepted`**, though it is done before the answer; it answers `200`.
+- **A group's or an event's "let people ask to follow" was never saved:** its request read `allowFollowRequest`, and the web app sends `allow_follow_request`, as a person's request reads. It reads `allow_follow_request` now.
+- **Changing a profile's features took its id from the body**, though the path names it; the path is now the one source, and the web app no longer sends it twice.
+- **Refusals said why under two names**, `message` in some services and `description` in others; actor-service says `description` now, as `responses.Refusal` does.
 - **Handlers that answered 501 and were never routed** (a leader's `Add` and `Delete`, a hashtag's `Add`) are removed.
 - **A struct of a handler's own was the answer** in several services (an anonymous `Response`, or a map): replaced by `responses.List[T]`, `responses.Unpaged[T]` or a named type as each service was described, the wire unchanged.
 

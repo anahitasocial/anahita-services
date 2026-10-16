@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"log"
 	"net/http"
 
@@ -117,9 +118,7 @@ func (h *personHandler) PurgeBatch(c echo.Context) error {
 	// After the gate, so somebody who may not purge learns nothing about what
 	// a valid request looks like.
 	if !req.Confirmed() {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "confirmation_mismatch",
-		})
+		return c.JSON(http.StatusBadRequest, responses.Refusal{Error: "confirmation_mismatch"})
 	}
 
 	return h.requestPurge(c, viewer, req.IDs, false)

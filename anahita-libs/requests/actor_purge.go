@@ -12,8 +12,10 @@ const ActorPurgeBatchMax = 500
 // checked against the list, so a selection that changed after the dialog was
 // read does not go through on the old confirmation.
 type ActorPurgeBatchRequest struct {
-	IDs     []int64 `json:"ids" validate:"required,min=1,max=500,dive,gt=0"`
-	Confirm string  `json:"confirm" validate:"required,max=20"`
+	// The profiles: up to 500.
+	IDs []int64 `json:"ids" validate:"required,min=1,max=500,dive,gt=0"`
+	// `PURGE` and how many there are (`PURGE 12`), typed, to say it is meant.
+	Confirm string `json:"confirm" validate:"required,max=20"`
 }
 
 // Confirmed reports whether Confirm names the number of actors in IDs.
@@ -23,5 +25,6 @@ func (r *ActorPurgeBatchRequest) Confirmed() bool {
 
 // ActorPurgeBatchReadRequest asks how far a purge request has got.
 type ActorPurgeBatchReadRequest struct {
+	// What the purge request answered as `batch_id`.
 	BatchID string `param:"batch_id" validate:"required,uuid"`
 }

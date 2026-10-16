@@ -14,12 +14,14 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// handleResponse is which profile an alias is: where the web app reads it,
+// HandleResponse is which profile an alias is: where the web app reads it,
 // and by what.
-type handleResponse struct {
+type HandleResponse struct {
 	// "people", "groups" or "events": the profile's own address begins so.
-	Kind  string `json:"kind"`
-	ID    int64  `json:"id"`
+	Kind string `json:"kind"`
+	// Its id.
+	ID int64 `json:"id"`
+	// Its alias, as it is kept.
 	Alias string `json:"alias"`
 }
 
@@ -57,7 +59,7 @@ func (h *personHandler) Handle(c echo.Context) error {
 			log.Printf("handle %q: not for this viewer", alias)
 			return c.NoContent(http.StatusNotFound)
 		}
-		return c.JSON(http.StatusOK, handleResponse{Kind: each.kind, ID: node.ID, Alias: node.Alias})
+		return c.JSON(http.StatusOK, HandleResponse{Kind: each.kind, ID: node.ID, Alias: node.Alias})
 	}
 	return c.NoContent(http.StatusNotFound)
 }

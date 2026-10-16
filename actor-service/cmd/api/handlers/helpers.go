@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"net/http"
 	"strings"
 
@@ -68,9 +69,9 @@ func isLastSuperAdmin(err error) bool {
 // it conflicts with the state of the site. The body says how to proceed,
 // because a refusal that does not is a support ticket.
 func refuseLastSuperAdmin(c echo.Context, action string) error {
-	return c.JSON(http.StatusConflict, map[string]string{
-		"error": "last_super_administrator",
-		"message": "This is the only super administrator. Promote someone " +
+	return c.JSON(http.StatusConflict, responses.Refusal{
+		Error: "last_super_administrator",
+		Description: "This is the only super administrator. Promote someone " +
 			"else, or change this account to administrator, and then " + action + " it.",
 	})
 }
@@ -84,9 +85,9 @@ func refuseLastSuperAdmin(c echo.Context, action string) error {
 // would drop the profile anyway, and saying so beats a 200 for a feature that
 // never appears.
 func refuseNotFeaturable(c echo.Context) error {
-	return c.JSON(http.StatusConflict, map[string]string{
-		"error": "not_featurable",
-		"message": "A disabled, archived or deleted profile cannot be " +
+	return c.JSON(http.StatusConflict, responses.Refusal{
+		Error: "not_featurable",
+		Description: "A disabled, archived or deleted profile cannot be " +
 			"featured. Enable it first.",
 	})
 }

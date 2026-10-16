@@ -55,13 +55,9 @@ func (h *personHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	type Response struct {
-		// Each a person, or what is shown of one the viewer may only
-		// ask to follow (LimitedActor, marked restricted).
-		People     []any                   `json:"data"`
-		Pagination an_responses.Pagination `json:"pagination"`
-	}
-	resp := &Response{People: []any{}}
+	// Each a person, or what is shown of one the viewer may only ask to
+	// follow (LimitedActor, marked restricted).
+	resp := &an_responses.List[any]{Data: []any{}}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
@@ -111,7 +107,7 @@ func (h *personHandler) Browse(c echo.Context) error {
 
 	for _, person := range people {
 		if person.Restricted {
-			resp.People = append(resp.People, an_responses.NewLimitedActor(&person.AnahitaNode, person.IsFollowRequestedByViewer))
+			resp.Data = append(resp.Data, an_responses.NewLimitedActor(&person.AnahitaNode, person.IsFollowRequestedByViewer))
 			continue
 		}
 		if err := h.onAfterFetched(c, person); err != nil {
@@ -119,7 +115,7 @@ func (h *personHandler) Browse(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		personResp := &responses.PersonResponse{}
-		resp.People = append(resp.People, personResp.MapNodeItem(person))
+		resp.Data = append(resp.Data, personResp.MapNodeItem(person))
 	}
 
 	return c.JSON(http.StatusOK, resp)
@@ -486,10 +482,7 @@ func (h *personHandler) SetEnabled(c echo.Context) error {
 	// second call reading nothing — the path id arrived and `enabled` was
 	// always nil, which this handler then reported as a malformed request. It
 	// refused every call, including its own correct ones.
-	var req struct {
-		ID      int64 `param:"id"      validate:"required,numeric"`
-		Enabled *bool `json:"enabled"  validate:"required"`
-	}
+	var req EnabledRequest
 
 	viewer := getViewer(c)
 
@@ -543,10 +536,7 @@ func (h *personHandler) SetEnabled(c echo.Context) error {
 // 409: featuring a profile that is disabled, archived or deleted
 func (h *personHandler) SetFeatured(c echo.Context) error {
 	// One bind, for the reason SetEnabled gives.
-	var req struct {
-		ID       int64 `param:"id"       validate:"required,numeric"`
-		Featured *bool `json:"featured"  validate:"required"`
-	}
+	var req FeaturedRequest
 
 	viewer := getViewer(c)
 
@@ -642,16 +632,7 @@ func (h *personHandler) DeletionCounts(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	type Response struct {
-		Posts              int64  `json:"posts"`
-		Replies            int64  `json:"replies"`
-		Followers          int64  `json:"followers"`
-		Following          int64  `json:"following"`
-		GroupsAdministered int64  `json:"groups_administered"`
-		MemberSince        string `json:"member_since,omitempty"`
-	}
-
-	resp := &Response{
+	resp := &PersonDeletionCounts{
 		Posts:              counts.Posts,
 		Replies:            counts.Replies,
 		Followers:          counts.Followers,

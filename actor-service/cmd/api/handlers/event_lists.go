@@ -14,19 +14,26 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type eventMineRequest struct {
+// EventMineRequest asks for the viewer's own events.
+type EventMineRequest struct {
 	// upcoming, past, hosting or invited. Upcoming when left out.
 	Filter string `query:"filter" validate:"omitempty,oneof=upcoming past hosting invited"`
+	// How many to pass over.
 	Offset uint64 `query:"start"`
-	Limit  uint64 `query:"limit" validate:"omitempty,max=100"`
+	// The most to send: up to 100.
+	Limit uint64 `query:"limit" validate:"omitempty,max=100"`
 }
 
-type eventAttendeesRequest struct {
+// EventAttendeesRequest asks who is going to an event, or may.
+type EventAttendeesRequest struct {
+	// The event's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 	// going or maybe. Going when left out.
-	Rsvp   string `query:"rsvp" validate:"omitempty,oneof=going maybe"`
+	Rsvp string `query:"rsvp" validate:"omitempty,oneof=going maybe"`
+	// How many to pass over.
 	Offset uint64 `query:"start"`
-	Limit  uint64 `query:"limit" validate:"omitempty,max=100"`
+	// The most to send: up to 100.
+	Limit uint64 `query:"limit" validate:"omitempty,max=100"`
 }
 
 // Mine lists the events that are the viewer's: the ones they said going or
@@ -41,7 +48,7 @@ type eventAttendeesRequest struct {
 // name, picture and time, marked restricted, like the limited profile.
 func (h *eventHandler) Mine(c echo.Context) error {
 	var (
-		req    = &eventMineRequest{Limit: an_constants.RequestLimitDefault}
+		req    = &EventMineRequest{Limit: an_constants.RequestLimitDefault}
 		viewer = getViewer(c)
 	)
 
@@ -59,10 +66,7 @@ func (h *eventHandler) Mine(c echo.Context) error {
 		filter = an_constants.EventListUpcoming
 	}
 
-	resp := &struct {
-		Data       []any                `json:"data"`
-		Pagination responses.Pagination `json:"pagination"`
-	}{
+	resp := &responses.List[any]{
 		Data: []any{},
 		Pagination: responses.Pagination{
 			Limit:  req.Limit,
@@ -129,7 +133,7 @@ func (h *eventHandler) Mine(c echo.Context) error {
 // GET /events/:id/attendees/?rsvp=going|maybe
 func (h *eventHandler) Attendees(c echo.Context) error {
 	var (
-		req      = &eventAttendeesRequest{Limit: an_constants.RequestLimitDefault}
+		req      = &EventAttendeesRequest{Limit: an_constants.RequestLimitDefault}
 		graphReq = services.NewGraphRequest().BrowseConnectionNodes
 		viewer   = getViewer(c)
 	)
@@ -159,10 +163,7 @@ func (h *eventHandler) Attendees(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	resp := &struct {
-		Data       []*responses.ActorNodeItem `json:"data"`
-		Pagination responses.Pagination       `json:"pagination"`
-	}{
+	resp := &responses.List[*responses.ActorNodeItem]{
 		Data: []*responses.ActorNodeItem{},
 		Pagination: responses.Pagination{
 			Limit:  req.Limit,
@@ -206,13 +207,15 @@ func (h *eventHandler) Attendees(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-type eventHostedRequest struct {
+type EventHostedRequest struct {
 	// The group.
 	ID int64 `param:"id" validate:"required,numeric"`
 	// upcoming or past. Upcoming when left out.
 	Filter string `query:"filter" validate:"omitempty,oneof=upcoming past"`
+	// How many to pass over.
 	Offset uint64 `query:"start"`
-	Limit  uint64 `query:"limit" validate:"omitempty,max=100"`
+	// The most to send: up to 100.
+	Limit uint64 `query:"limit" validate:"omitempty,max=100"`
 }
 
 // HostedBy lists the events a group hosts, to anybody who can see the
@@ -223,7 +226,7 @@ type eventHostedRequest struct {
 // GET /groups/:id/events/?filter=upcoming|past
 func (h *eventHandler) HostedBy(c echo.Context) error {
 	var (
-		req    = &eventHostedRequest{Limit: an_constants.RequestLimitDefault}
+		req    = &EventHostedRequest{Limit: an_constants.RequestLimitDefault}
 		viewer = getViewer(c)
 	)
 
@@ -257,12 +260,9 @@ func (h *eventHandler) HostedBy(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	resp := &struct {
-		// Each an event, or what is shown of one the viewer may only
-		// answer as a follower of this group.
-		Data       []any                `json:"data"`
-		Pagination responses.Pagination `json:"pagination"`
-	}{
+	// Each an event, or what is shown of one the viewer may only answer as a
+	// follower of this group.
+	resp := &responses.List[any]{
 		Data: []any{},
 		Pagination: responses.Pagination{
 			Limit:  req.Limit,

@@ -48,12 +48,18 @@ func NewActorRequest() *ActorRequest {
 }
 
 type ActorBrowseRequest struct {
-	Offset    uint64 `query:"start"`
-	Limit     uint64 `query:"limit"`
-	Search    string `query:"q" validate:"max=100,omitempty,search_query"`
-	Ordering  string `query:"ordering" validate:"max=15,omitempty,oneof=created_at updated_at enabled"`
+	// How many to pass over.
+	Offset uint64 `query:"start"`
+	// The most to send.
+	Limit uint64 `query:"limit"`
+	// Words the name holds.
+	Search string `query:"q" validate:"max=100,omitempty,search_query"`
+	// What they are ordered by.
+	Ordering string `query:"ordering" validate:"max=15,omitempty,oneof=created_at updated_at enabled"`
+	// Which way the order runs.
 	Direction string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
-	Disabled  bool   `query:"disabled" validate:"omitempty"`
+	// Disabled ones as well, for whoever may see them.
+	Disabled bool `query:"disabled" validate:"omitempty"`
 	// Only the actors the installation features — what onboarding offers a
 	// new member to follow. Ordered most recently featured first unless the
 	// caller asks for an ordering; see the browse handlers.
@@ -78,6 +84,7 @@ func (r *ActorBrowseRequest) GraphOrdering(orderingGiven bool) string {
 }
 
 type ActorReadRequest struct {
+	// The profile's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 }
 
@@ -89,12 +96,18 @@ type ActorBatchReadRequest struct {
 }
 
 type ActorEditRequest struct {
-	ID   int64  `param:"id" validate:"required,numeric"`
+	// The profile's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Its name.
 	Name string `form:"name" validate:"required,max=100"`
+	// What it says of itself.
+	//
 	// Optional. A profile with no bio is ordinary, and requiring one made
 	// editing anything else on such a profile impossible.
-	Body       string `form:"body" validate:"omitempty,max=8000"`
-	Enabled    bool   `form:"enabled" validate:"omitempty"`
+	Body string `form:"body" validate:"omitempty,max=8000"`
+	// Whether it is enabled.
+	Enabled bool `form:"enabled" validate:"omitempty"`
+	// One link on the profile. A bare `example.com` is taken as https.
 	WebsiteURL string `form:"website_url" validate:"omitempty,http_url,max=255"`
 	// Normalised before validation so a bare "example.com" is accepted;
 	// http_url then enforces the scheme, which is what keeps a
@@ -102,34 +115,52 @@ type ActorEditRequest struct {
 }
 
 type ActorEditAccessRequest struct {
-	ID                 int64  `param:"id" validate:"required,numeric"`
-	Access             string `form:"access" validate:"required,oneof=public registered followers admins"`
-	AllowFollowRequest bool   `form:"allowFollowRequest" validate:"omitempty"`
+	// The profile's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Who may see it: `public`, `registered`, `followers` or `admins`.
+	Access string `form:"access" validate:"required,oneof=public registered followers admins"`
+	// Whether people it is not open to may ask to follow it.
+	AllowFollowRequest bool `form:"allow_follow_request" validate:"omitempty"`
 }
 
 type ActorEditAddPermission struct {
+	// What may be added: a kind of post.
 	Entity string `json:"entity" validate:"required,max=100,alphanumunicode"`
+	// Who may add it.
 	Access string `json:"access" validate:"required,actor_add_permission_access"`
 }
 
 type ActorFeatureRequest struct {
-	Service        string                   `json:"service" validate:"required"`
-	NodeTypes      []string                 `json:"node_types" validate:"required,dive,max=100,alphanumunicode"`
-	Composers      []string                 `json:"composers" validate:"required,dive,max=100,alphanumunicode"`
-	Optional       bool                     `json:"optional"`
-	Enabled        bool                     `json:"enabled"`
+	// The service it is.
+	Service string `json:"service" validate:"required"`
+	// The kinds of post it makes.
+	NodeTypes []string `json:"node_types" validate:"required,dive,max=100,alphanumunicode"`
+	// The composers it offers.
+	Composers []string `json:"composers" validate:"required,dive,max=100,alphanumunicode"`
+	// Whether it may be turned off.
+	Optional bool `json:"optional"`
+	// Whether it is on for this profile.
+	Enabled bool `json:"enabled"`
+	// Who may add what.
 	AddPermissions []ActorEditAddPermission `json:"add_permissions" validate:"dive"`
-	Ordering       int                      `json:"ordering" validate:"required,numeric"`
+	// Where it comes among the others.
+	Ordering int `json:"ordering" validate:"required,numeric"`
 }
 type ActorEditFeaturesRequest struct {
-	ID       int64                 `json:"id" validate:"required"`
+	// The profile's id.
+	ID int64 `param:"id" validate:"required"`
+	// Each feature as it is to be. An empty list goes back to the installation's defaults.
 	Features []ActorFeatureRequest `json:"features" validate:"required,dive"`
 }
 
 type ActorAddRequest struct {
-	Name       string `form:"name" validate:"required,max=100"`
-	Body       string `form:"body" validate:"omitempty,max=10000"`
-	Enabled    bool   `form:"enabled" validate:"omitempty"`
+	// Its name.
+	Name string `form:"name" validate:"required,max=100"`
+	// What it says of itself.
+	Body string `form:"body" validate:"omitempty,max=10000"`
+	// Whether it is enabled.
+	Enabled bool `form:"enabled" validate:"omitempty"`
+	// One link on the profile. A bare `example.com` is taken as https.
 	WebsiteURL string `form:"website_url" validate:"omitempty,http_url,max=255"`
 	// Normalised before validation so a bare "example.com" is accepted;
 	// http_url then enforces the scheme, which is what keeps a
@@ -137,6 +168,7 @@ type ActorAddRequest struct {
 }
 
 type ActorDeleteRequest struct {
+	// The profile's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 }
 
@@ -144,20 +176,27 @@ type ActorDeleteRequest struct {
 // also shown among the posts on their profile. People only: nothing else
 // reposts.
 type ActorEditRepostsOnProfileRequest struct {
-	ID   int64 `param:"id" validate:"required,numeric"`
-	Show bool  `json:"show_reposts_on_profile" form:"show_reposts_on_profile"`
+	// The person's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Whether what they repost is also among their profile's posts.
+	Show bool `json:"show_reposts_on_profile" form:"show_reposts_on_profile"`
 }
 
 // PersonEditQuotePolicyRequest says who may quote a person's posts, for the
 // posts that do not say themselves.
 type PersonEditQuotePolicyRequest struct {
-	ID          int64  `param:"id" validate:"required,numeric"`
+	// The person's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Who may quote their posts, when a post does not say: `anyone`,
+	// `followers` or `nobody`.
 	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"required,max=16"`
 }
 
 // ActorEditDownloadDefaultRequest says what a person's or a group's new
 // photos and videos start with: whether they may be downloaded.
 type ActorEditDownloadDefaultRequest struct {
-	ID    int64 `param:"id" validate:"required,numeric"`
-	Allow bool  `json:"allow" form:"allow"`
+	// The profile's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Whether its new photos and videos start out downloadable.
+	Allow bool `json:"allow" form:"allow"`
 }

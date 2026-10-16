@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"errors"
 	"log"
 	"net/http"
@@ -60,9 +61,7 @@ func (h *Env) clearStepUp(personID int64) {
 // with no exit. "step_up_required" is what breaks it.
 func stepUpRefusal(c echo.Context, err error) error {
 	if errors.Is(err, sessions.ErrStepUpRequired) {
-		return c.JSON(http.StatusForbidden, map[string]string{
-			"error": "step_up_required",
-		})
+		return c.JSON(http.StatusForbidden, responses.Refusal{Error: "step_up_required"})
 	}
 	return c.NoContent(http.StatusInternalServerError)
 }
