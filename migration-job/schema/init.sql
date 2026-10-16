@@ -937,6 +937,17 @@ CREATE TABLE IF NOT EXISTS recommendation_preferences (
     KEY `idx_recommendation_preferences_discoverable` (`discoverable`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- Each person's own weights for search's Most relevant.
+CREATE TABLE IF NOT EXISTS search_preferences (
+    `person_id` bigint unsigned NOT NULL,
+    -- How much each sign of use counts in their Most relevant, as JSON by
+    -- name: a step that multiplies the installation's own weight (graph
+    -- ranking.Adjustable, ranking.Steps). Only what they have set.
+    `weights` varchar(1000) NOT NULL DEFAULT '',
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`person_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- A suggestion somebody said they were not interested in: that profile is
 -- not suggested to them again. Theirs alone to see, and to take back.
 CREATE TABLE IF NOT EXISTS recommendation_dismissals (

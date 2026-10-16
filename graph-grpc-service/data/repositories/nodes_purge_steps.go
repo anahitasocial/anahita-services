@@ -528,7 +528,14 @@ DELETE FROM notifications
 WHERE target_id = ?
 LIMIT ?`
 
+	// Their own weights for search.
+	const deleteSearchPreferences = `
+DELETE FROM search_preferences
+WHERE person_id = ?
+LIMIT ?`
+
 	for _, query := range []string{
+		deleteSearchPreferences,
 		deleteEdgesFromActor,
 		deleteEdgesToActor,
 		deleteNotificationsToActor,

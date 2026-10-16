@@ -19,8 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SearchService_Browse_FullMethodName = "/graph.SearchService/Browse"
-	SearchService_Count_FullMethodName  = "/graph.SearchService/Count"
+	SearchService_Browse_FullMethodName          = "/graph.SearchService/Browse"
+	SearchService_Count_FullMethodName           = "/graph.SearchService/Count"
+	SearchService_ReadPreferences_FullMethodName = "/graph.SearchService/ReadPreferences"
+	SearchService_SavePreferences_FullMethodName = "/graph.SearchService/SavePreferences"
 )
 
 // SearchServiceClient is the client API for SearchService service.
@@ -29,6 +31,8 @@ const (
 type SearchServiceClient interface {
 	Browse(ctx context.Context, in *SearchBrowseRequest, opts ...grpc.CallOption) (*SearchBrowseResponse, error)
 	Count(ctx context.Context, in *SearchCountRequest, opts ...grpc.CallOption) (*SearchCountResponse, error)
+	ReadPreferences(ctx context.Context, in *SearchPreferencesReadRequest, opts ...grpc.CallOption) (*SearchPreferences, error)
+	SavePreferences(ctx context.Context, in *SearchPreferencesSaveRequest, opts ...grpc.CallOption) (*SearchPreferences, error)
 }
 
 type searchServiceClient struct {
@@ -59,12 +63,34 @@ func (c *searchServiceClient) Count(ctx context.Context, in *SearchCountRequest,
 	return out, nil
 }
 
+func (c *searchServiceClient) ReadPreferences(ctx context.Context, in *SearchPreferencesReadRequest, opts ...grpc.CallOption) (*SearchPreferences, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchPreferences)
+	err := c.cc.Invoke(ctx, SearchService_ReadPreferences_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *searchServiceClient) SavePreferences(ctx context.Context, in *SearchPreferencesSaveRequest, opts ...grpc.CallOption) (*SearchPreferences, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchPreferences)
+	err := c.cc.Invoke(ctx, SearchService_SavePreferences_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SearchServiceServer is the server API for SearchService service.
 // All implementations must embed UnimplementedSearchServiceServer
 // for forward compatibility.
 type SearchServiceServer interface {
 	Browse(context.Context, *SearchBrowseRequest) (*SearchBrowseResponse, error)
 	Count(context.Context, *SearchCountRequest) (*SearchCountResponse, error)
+	ReadPreferences(context.Context, *SearchPreferencesReadRequest) (*SearchPreferences, error)
+	SavePreferences(context.Context, *SearchPreferencesSaveRequest) (*SearchPreferences, error)
 	mustEmbedUnimplementedSearchServiceServer()
 }
 
@@ -80,6 +106,12 @@ func (UnimplementedSearchServiceServer) Browse(context.Context, *SearchBrowseReq
 }
 func (UnimplementedSearchServiceServer) Count(context.Context, *SearchCountRequest) (*SearchCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Count not implemented")
+}
+func (UnimplementedSearchServiceServer) ReadPreferences(context.Context, *SearchPreferencesReadRequest) (*SearchPreferences, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadPreferences not implemented")
+}
+func (UnimplementedSearchServiceServer) SavePreferences(context.Context, *SearchPreferencesSaveRequest) (*SearchPreferences, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SavePreferences not implemented")
 }
 func (UnimplementedSearchServiceServer) mustEmbedUnimplementedSearchServiceServer() {}
 func (UnimplementedSearchServiceServer) testEmbeddedByValue()                       {}
@@ -138,6 +170,42 @@ func _SearchService_Count_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SearchService_ReadPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchPreferencesReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SearchServiceServer).ReadPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SearchService_ReadPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SearchServiceServer).ReadPreferences(ctx, req.(*SearchPreferencesReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SearchService_SavePreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchPreferencesSaveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SearchServiceServer).SavePreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SearchService_SavePreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SearchServiceServer).SavePreferences(ctx, req.(*SearchPreferencesSaveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SearchService_ServiceDesc is the grpc.ServiceDesc for SearchService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +220,14 @@ var SearchService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Count",
 			Handler:    _SearchService_Count_Handler,
+		},
+		{
+			MethodName: "ReadPreferences",
+			Handler:    _SearchService_ReadPreferences_Handler,
+		},
+		{
+			MethodName: "SavePreferences",
+			Handler:    _SearchService_SavePreferences_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -26,6 +26,12 @@ type SearchRepoInterface interface {
 
 	// Browse returns a list of Searchs
 	Browse(req *graphpb.SearchBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
+
+	// ReadPreferences is somebody's own steps for Most relevant.
+	ReadPreferences(personID int64) (map[string]float64, error)
+
+	// SavePreferences keeps them, and answers with what was kept.
+	SavePreferences(personID int64, steps map[string]float64) (map[string]float64, error)
 }
 
 // NewSearchRepo creates a new Search repository
@@ -335,7 +341,15 @@ func (repo *SearchRepo) browseByRelevance(req *graphpb.SearchBrowseRequest, keyw
 			"nodes AS location ON location_edge.node_a_id = location.id",
 		)
 	}
-	match, standing := relevance(keywords, repo.ranking.Weights(), viewer)
+	// The installation's weights, as the searcher has leaned them, where
+	// they have (search_preferences.go).
+	weights := repo.ranking.Weights()
+	if viewer != nil && viewer.ID > 0 {
+		if steps, err := repo.ReadPreferences(viewer.ID); err == nil && len(steps) > 0 {
+			weights = weights.Adjusted(steps)
+		}
+	}
+	match, standing := relevance(keywords, weights, viewer)
 	ranked = ranked.Column(match).Column(standing)
 	// "People and groups I follow first": what they follow, or what is on
 	// a profile they follow, before everything else, however it matches.

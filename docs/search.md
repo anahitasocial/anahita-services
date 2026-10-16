@@ -127,14 +127,47 @@ Every number above is the operator's, in
 Two, off as they come, sent with a search as `followed_first=true` and
 `recent_first=true` and only with "Most relevant":
 
-- **People and groups I follow first:** what the searcher follows, or what
+- **Profiles I follow first:** what the searcher follows, or what
   is on a profile they follow, before everything else, however it matches.
   Nothing changes for a visitor, who follows nobody.
-- **Prefer recent:** among results that match alike, the newest first, and
+- **Newer results first:** among results that match alike, the newest first, and
   only then by standing. The match still comes first: a profile called
   *Coffee* is still above a post that mentions coffee.
 
 The web app keeps them in the searcher's browser, per person.
+
+### Their own weights
+
+Each person who is signed in can also change how much each sign counts for
+them, as they can for their suggestions (the "Adjust" chip by "Most
+relevant"). There are six: likes, saves, replies, followers, citations,
+and what they follow. Each is set to a step that multiplies the operator's
+weight:
+
+| Step | Multiplies by |
+|---|---|
+| Off | 0 |
+| Less | 0.5 |
+| As is | 1 |
+| More | 1.5 |
+| Much more | 2 |
+
+So with the default file, a citation set to Much more counts 6 for that
+person, and a like set to Off counts nothing. The match always comes
+first; the steps only change the order among results that match alike.
+
+- `GET /search/preferences` answers with the person's steps, which may be
+  set (`adjustable`) and to what (`options`). A name not in `steps` is As
+  is.
+- `PUT /search/preferences` with `{"steps": {"cite": 2, "like": 0}}`
+  replaces them all. A name that may not be set, or a value that is not a
+  step, is refused with 422 `invalid_weight`, and nothing changes.
+- They are kept on the server, in `search_preferences`, so they follow the
+  person to any device. Only steps other than As is are stored, and the
+  row is removed when the profile is purged.
+- The names and steps are `constants.SearchAdjustable` and
+  `constants.SearchSteps` in anahita-libs. The graph applies them with
+  `ranking.Weights.Adjusted`.
 
 ## What is found at all
 
@@ -147,7 +180,11 @@ searcher may see; see [Permissions](permissions.md).
 - `graph-grpc-service/data/repositories/search.go`: what is found
   (`wordsMatch`), the two scores (`relevance`), and the order, ranking the
   page's ids before reading their rows (`browseByRelevance`).
-- `graph-grpc-service/ranking`: the weights, the file, and reading it again.
+- `graph-grpc-service/ranking`: the weights, the file, reading it again, and
+  each person's steps (`Adjusted`).
+- `graph-grpc-service/data/repositories/search_preferences.go` and
+  `search-service/cmd/api/handlers/preferences.go`: each person's steps,
+  kept and given.
 - `graph-grpc-service/data/repositories/search_ranking_integration_test.go`:
   the order checked against MySQL, with searches as people make them.
 

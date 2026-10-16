@@ -343,6 +343,149 @@ func (x *SearchCountResponse) GetTotal() uint64 {
 	return 0
 }
 
+// Somebody's own steps for Most relevant: by name, a step that multiplies
+// the installation's own weight (graph ranking.Adjustable, ranking.Steps).
+// Only what they have set; the rest is as the installation has it.
+type SearchPreferences struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Steps         map[string]float64     `protobuf:"bytes,1,rep,name=steps,proto3" json:"steps,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchPreferences) Reset() {
+	*x = SearchPreferences{}
+	mi := &file_proto_graphpb_search_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchPreferences) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchPreferences) ProtoMessage() {}
+
+func (x *SearchPreferences) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_search_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchPreferences.ProtoReflect.Descriptor instead.
+func (*SearchPreferences) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_search_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SearchPreferences) GetSteps() map[string]float64 {
+	if x != nil {
+		return x.Steps
+	}
+	return nil
+}
+
+type SearchPreferencesReadRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Viewer        *Viewer                `protobuf:"bytes,1,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchPreferencesReadRequest) Reset() {
+	*x = SearchPreferencesReadRequest{}
+	mi := &file_proto_graphpb_search_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchPreferencesReadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchPreferencesReadRequest) ProtoMessage() {}
+
+func (x *SearchPreferencesReadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_search_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchPreferencesReadRequest.ProtoReflect.Descriptor instead.
+func (*SearchPreferencesReadRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_search_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SearchPreferencesReadRequest) GetViewer() *Viewer {
+	if x != nil {
+		return x.Viewer
+	}
+	return nil
+}
+
+type SearchPreferencesSaveRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Viewer        *Viewer                `protobuf:"bytes,1,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	Steps         map[string]float64     `protobuf:"bytes,2,rep,name=steps,proto3" json:"steps,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchPreferencesSaveRequest) Reset() {
+	*x = SearchPreferencesSaveRequest{}
+	mi := &file_proto_graphpb_search_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchPreferencesSaveRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchPreferencesSaveRequest) ProtoMessage() {}
+
+func (x *SearchPreferencesSaveRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_graphpb_search_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchPreferencesSaveRequest.ProtoReflect.Descriptor instead.
+func (*SearchPreferencesSaveRequest) Descriptor() ([]byte, []int) {
+	return file_proto_graphpb_search_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SearchPreferencesSaveRequest) GetViewer() *Viewer {
+	if x != nil {
+		return x.Viewer
+	}
+	return nil
+}
+
+func (x *SearchPreferencesSaveRequest) GetSteps() map[string]float64 {
+	if x != nil {
+		return x.Steps
+	}
+	return nil
+}
+
 var File_proto_graphpb_search_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_search_proto_rawDesc = "" +
@@ -375,10 +518,27 @@ const file_proto_graphpb_search_proto_rawDesc = "" +
 	"\x06viewer\x18\v \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
 	"\faccess_check\x18\f \x01(\bR\vaccessCheckJ\x04\b\a\x10\b\"+\n" +
 	"\x13SearchCountResponse\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\x04R\x05total2\x92\x01\n" +
+	"\x05total\x18\x01 \x01(\x04R\x05total\"\x88\x01\n" +
+	"\x11SearchPreferences\x129\n" +
+	"\x05steps\x18\x01 \x03(\v2#.graph.SearchPreferences.StepsEntryR\x05steps\x1a8\n" +
+	"\n" +
+	"StepsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01\"E\n" +
+	"\x1cSearchPreferencesReadRequest\x12%\n" +
+	"\x06viewer\x18\x01 \x01(\v2\r.graph.ViewerR\x06viewer\"\xc5\x01\n" +
+	"\x1cSearchPreferencesSaveRequest\x12%\n" +
+	"\x06viewer\x18\x01 \x01(\v2\r.graph.ViewerR\x06viewer\x12D\n" +
+	"\x05steps\x18\x02 \x03(\v2..graph.SearchPreferencesSaveRequest.StepsEntryR\x05steps\x1a8\n" +
+	"\n" +
+	"StepsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x012\xb6\x02\n" +
 	"\rSearchService\x12A\n" +
 	"\x06Browse\x12\x1a.graph.SearchBrowseRequest\x1a\x1b.graph.SearchBrowseResponse\x12>\n" +
-	"\x05Count\x12\x19.graph.SearchCountRequest\x1a\x1a.graph.SearchCountResponseB\n" +
+	"\x05Count\x12\x19.graph.SearchCountRequest\x1a\x1a.graph.SearchCountResponse\x12P\n" +
+	"\x0fReadPreferences\x12#.graph.SearchPreferencesReadRequest\x1a\x18.graph.SearchPreferences\x12P\n" +
+	"\x0fSavePreferences\x12#.graph.SearchPreferencesSaveRequest\x1a\x18.graph.SearchPreferencesB\n" +
 	"Z\b/graphpbb\x06proto3"
 
 var (
@@ -393,28 +553,41 @@ func file_proto_graphpb_search_proto_rawDescGZIP() []byte {
 	return file_proto_graphpb_search_proto_rawDescData
 }
 
-var file_proto_graphpb_search_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_graphpb_search_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_proto_graphpb_search_proto_goTypes = []any{
-	(*SearchBrowseRequest)(nil),  // 0: graph.SearchBrowseRequest
-	(*SearchBrowseResponse)(nil), // 1: graph.SearchBrowseResponse
-	(*SearchCountRequest)(nil),   // 2: graph.SearchCountRequest
-	(*SearchCountResponse)(nil),  // 3: graph.SearchCountResponse
-	(*Viewer)(nil),               // 4: graph.Viewer
-	(*Node)(nil),                 // 5: graph.Node
+	(*SearchBrowseRequest)(nil),          // 0: graph.SearchBrowseRequest
+	(*SearchBrowseResponse)(nil),         // 1: graph.SearchBrowseResponse
+	(*SearchCountRequest)(nil),           // 2: graph.SearchCountRequest
+	(*SearchCountResponse)(nil),          // 3: graph.SearchCountResponse
+	(*SearchPreferences)(nil),            // 4: graph.SearchPreferences
+	(*SearchPreferencesReadRequest)(nil), // 5: graph.SearchPreferencesReadRequest
+	(*SearchPreferencesSaveRequest)(nil), // 6: graph.SearchPreferencesSaveRequest
+	nil,                                  // 7: graph.SearchPreferences.StepsEntry
+	nil,                                  // 8: graph.SearchPreferencesSaveRequest.StepsEntry
+	(*Viewer)(nil),                       // 9: graph.Viewer
+	(*Node)(nil),                         // 10: graph.Node
 }
 var file_proto_graphpb_search_proto_depIdxs = []int32{
-	4, // 0: graph.SearchBrowseRequest.viewer:type_name -> graph.Viewer
-	5, // 1: graph.SearchBrowseResponse.nodes:type_name -> graph.Node
-	4, // 2: graph.SearchCountRequest.viewer:type_name -> graph.Viewer
-	0, // 3: graph.SearchService.Browse:input_type -> graph.SearchBrowseRequest
-	2, // 4: graph.SearchService.Count:input_type -> graph.SearchCountRequest
-	1, // 5: graph.SearchService.Browse:output_type -> graph.SearchBrowseResponse
-	3, // 6: graph.SearchService.Count:output_type -> graph.SearchCountResponse
-	5, // [5:7] is the sub-list for method output_type
-	3, // [3:5] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	9,  // 0: graph.SearchBrowseRequest.viewer:type_name -> graph.Viewer
+	10, // 1: graph.SearchBrowseResponse.nodes:type_name -> graph.Node
+	9,  // 2: graph.SearchCountRequest.viewer:type_name -> graph.Viewer
+	7,  // 3: graph.SearchPreferences.steps:type_name -> graph.SearchPreferences.StepsEntry
+	9,  // 4: graph.SearchPreferencesReadRequest.viewer:type_name -> graph.Viewer
+	9,  // 5: graph.SearchPreferencesSaveRequest.viewer:type_name -> graph.Viewer
+	8,  // 6: graph.SearchPreferencesSaveRequest.steps:type_name -> graph.SearchPreferencesSaveRequest.StepsEntry
+	0,  // 7: graph.SearchService.Browse:input_type -> graph.SearchBrowseRequest
+	2,  // 8: graph.SearchService.Count:input_type -> graph.SearchCountRequest
+	5,  // 9: graph.SearchService.ReadPreferences:input_type -> graph.SearchPreferencesReadRequest
+	6,  // 10: graph.SearchService.SavePreferences:input_type -> graph.SearchPreferencesSaveRequest
+	1,  // 11: graph.SearchService.Browse:output_type -> graph.SearchBrowseResponse
+	3,  // 12: graph.SearchService.Count:output_type -> graph.SearchCountResponse
+	4,  // 13: graph.SearchService.ReadPreferences:output_type -> graph.SearchPreferences
+	4,  // 14: graph.SearchService.SavePreferences:output_type -> graph.SearchPreferences
+	11, // [11:15] is the sub-list for method output_type
+	7,  // [7:11] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_proto_graphpb_search_proto_init() }
@@ -430,7 +603,7 @@ func file_proto_graphpb_search_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_graphpb_search_proto_rawDesc), len(file_proto_graphpb_search_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

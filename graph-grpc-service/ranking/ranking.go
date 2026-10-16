@@ -23,6 +23,7 @@
 package ranking
 
 import (
+	"anahita-libs/constants"
 	"encoding/json"
 	"log"
 	"os"
@@ -170,4 +171,49 @@ func (s *Source) Weights() Weights {
 	}
 	s.weights, s.modified = weights, info.ModTime()
 	return s.weights
+}
+
+// What somebody may adjust for themselves, and how far (the user,
+// 2026-10-16: as they adjust their recommendations). Each is a step that
+// multiplies the installation's own weight: Off, Less, As is, More, Much
+// more. So what the operator tunes still holds for everybody, and each
+// person leans it their way; what words match where is not theirs to move.
+var Adjustable = constants.SearchAdjustable
+
+// Steps is what each may be set to. 1 is as the installation has it.
+var Steps = constants.SearchSteps
+
+// IsStep says whether a value is one of Steps.
+func IsStep(value float64) bool {
+	for _, step := range Steps {
+		if value == step {
+			return true
+		}
+	}
+	return false
+}
+
+// Adjusted is the weights with somebody's own steps applied. A name or a
+// value that is not one is left as the installation has it.
+func (w Weights) Adjusted(steps map[string]float64) Weights {
+	for name, step := range steps {
+		if !IsStep(step) {
+			continue
+		}
+		switch name {
+		case "like":
+			w.Useful.Like *= step
+		case "save":
+			w.Useful.Save *= step
+		case "reply":
+			w.Useful.Reply *= step
+		case "follow":
+			w.Useful.Follow *= step
+		case "cite":
+			w.Useful.Cite *= step
+		case "following":
+			w.Following *= step
+		}
+	}
+	return w
 }

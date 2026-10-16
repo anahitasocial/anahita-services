@@ -47,7 +47,25 @@ message SearchCountResponse {
     uint64 total = 1;
 }
 
+// Somebody's own steps for Most relevant: by name, a step that multiplies
+// the installation's own weight (graph ranking.Adjustable, ranking.Steps).
+// Only what they have set; the rest is as the installation has it.
+message SearchPreferences {
+    map<string, double> steps = 1;
+}
+
+message SearchPreferencesReadRequest {
+    Viewer viewer = 1;
+}
+
+message SearchPreferencesSaveRequest {
+    Viewer viewer = 1;
+    map<string, double> steps = 2;
+}
+
 service SearchService {
     rpc Browse(SearchBrowseRequest) returns (SearchBrowseResponse);
     rpc Count(SearchCountRequest) returns (SearchCountResponse);
+    rpc ReadPreferences(SearchPreferencesReadRequest) returns (SearchPreferences);
+    rpc SavePreferences(SearchPreferencesSaveRequest) returns (SearchPreferences);
 }

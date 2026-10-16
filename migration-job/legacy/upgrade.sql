@@ -1457,6 +1457,18 @@ CREATE TABLE IF NOT EXISTS abuse_reports (
 --
 -- Owned by recommendation-service. No foreign keys, like the rest of this
 -- schema.
+-- Each person's own weights for search's Most relevant. See
+-- migrations/20261117000001_search_preferences.sql.
+CREATE TABLE IF NOT EXISTS search_preferences (
+    `person_id` bigint unsigned NOT NULL,
+    -- How much each sign of use counts in their Most relevant, as JSON by
+    -- name: a step that multiplies the installation's own weight (graph
+    -- ranking.Adjustable, ranking.Steps). Only what they have set.
+    `weights` varchar(1000) NOT NULL DEFAULT '',
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`person_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE IF NOT EXISTS recommendation_preferences (
     `person_id` bigint unsigned NOT NULL,
     -- Whether to be suggested people, and groups.

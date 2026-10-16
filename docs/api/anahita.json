@@ -5581,6 +5581,47 @@
         ],
         "type": "object"
       },
+      "search.PreferencesResponse": {
+        "description": "PreferencesResponse is the viewer's own steps for search's Most relevant: how much each sign that something was found useful counts for them, as a step that multiplies the installation's own weight.",
+        "properties": {
+          "adjustable": {
+            "description": "What may be set: `like`, `save`, `reply`, `follow`, `cite` and `following` (what the viewer follows coming first).",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "options": {
+            "description": "What each may be set to: 0 (off), 0.5, 1 (as is), 1.5 and 2.",
+            "items": {
+              "type": "number"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "steps": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "By name, what they have set; what is not here is 1, as the installation has it.",
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "steps",
+          "adjustable",
+          "options"
+        ],
+        "type": "object"
+      },
       "socialgraph.InviteAnswer": {
         "description": "InviteAnswer is the viewer's answer to an invitation.",
         "properties": {
@@ -26710,6 +26751,99 @@
         ],
         "x-handler": "search/cmd/api/handlers.(*searchHandler).Browse",
         "x-viewer": "anyone"
+      }
+    },
+    "/search/preferences": {
+      "get": {
+        "description": "How much each sign that something was found useful counts for the viewer: a step that multiplies the installation's own weight (search.md).\n\nWho may call it: somebody signed in.",
+        "operationId": "getSearchPreferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/search.PreferencesResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The viewer's weights for Most relevant",
+        "tags": [
+          "search-service"
+        ],
+        "x-handler": "search/cmd/api/handlers.(*preferencesHandler).Read",
+        "x-viewer": "signed_in"
+      },
+      "put": {
+        "description": "What is sent replaces what there was; a name left out is as the installation has it. Answers with them.\n\nWho may call it: somebody signed in.",
+        "operationId": "putSearchPreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "steps": {
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/search.PreferencesResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`invalid_weight`: a name that may not be set, or a value that is not a step; nothing is changed"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change the viewer's weights for Most relevant",
+        "tags": [
+          "search-service"
+        ],
+        "x-handler": "search/cmd/api/handlers.(*preferencesHandler).Edit",
+        "x-viewer": "signed_in"
       }
     },
     "/signup": {

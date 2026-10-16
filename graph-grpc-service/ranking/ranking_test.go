@@ -54,3 +54,13 @@ func TestTheFileIsReadAgainWhenItChanges(t *testing.T) {
 		t.Errorf("read again %v", got)
 	}
 }
+
+func TestAdjusted(t *testing.T) {
+	w := Default().Adjusted(map[string]float64{"cite": 2, "like": 0, "save": 3, "nonsense": 2})
+	if w.Useful.Cite != 6 || w.Useful.Like != 0 || w.Useful.Save != 2 {
+		t.Errorf("adjusted: cite %v like %v save %v", w.Useful.Cite, w.Useful.Like, w.Useful.Save)
+	}
+	if Default().Useful.Cite != 3 {
+		t.Error("the defaults were changed by adjusting a copy")
+	}
+}

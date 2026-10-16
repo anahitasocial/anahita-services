@@ -67,11 +67,11 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#notification-service">Notifications</a> <span class="count">6</span></li>
 <li><a href="#photo-service">Photo posts</a> <span class="count">16</span></li>
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
-<li><a href="#search-service">Search</a> <span class="count">1</span></li>
+<li><a href="#search-service">Search</a> <span class="count">3</span></li>
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">43</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">140</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">141</span></li>
 </ul>
 </nav>
 <main>
@@ -6668,6 +6668,45 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>search/cmd/api/handlers.(*searchHandler).Browse</code></p>
 </details>
+<details class="route" id="getSearchPreferences" data-search="get /search/preferences the viewer&#39;s weights for most relevant how much each sign that something was found useful counts for the viewer: a step that multiplies the installation&#39;s own weight (search.md).
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/search/preferences</code> <span class="summary">The viewer&#39;s weights for Most relevant</span></summary>
+<div class="description"><p>How much each sign that something was found useful counts for the viewer: a step that multiplies the installation&#39;s own weight (<a href="../search.md">search.md</a>).</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-search.PreferencesResponse">search.PreferencesResponse</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>search/cmd/api/handlers.(*preferencesHandler).Read</code></p>
+</details>
+<details class="route" id="putSearchPreferences" data-search="put /search/preferences change the viewer&#39;s weights for most relevant what is sent replaces what there was; a name left out is as the installation has it. answers with them.
+
+who may call it: somebody signed in.">
+<summary><span class="method put">PUT</span> <code class="path">/search/preferences</code> <span class="summary">Change the viewer&#39;s weights for Most relevant</span></summary>
+<div class="description"><p>What is sent replaces what there was; a name left out is as the installation has it. Answers with them.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>steps</code></td><td>map of number</td><td></td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-search.PreferencesResponse">search.PreferencesResponse</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">422</td><td><code>invalid_weight</code>: a name that may not be set, or a value that is not a step; nothing is changed<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>search/cmd/api/handlers.(*preferencesHandler).Edit</code></p>
+</details>
 </section>
 <section id="socialgraph-service" class="service">
 <h2>Following and blocking <code>socialgraph-service</code></h2>
@@ -10987,6 +11026,18 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>actor_id</code> <span class="required">always</span></td><td>integer</td><td>The profile&#39;s id.</td></tr>
 <tr><td><code>reasons</code> <span class="required">always</span></td><td>list of <a href="#schema-recommendation.Reason">recommendation.Reason</a> or null</td><td>Why, the one that counted most first.</td></tr>
 <tr><td><code>score</code> <span class="required">always</span></td><td>number</td><td>What it scored: higher is better.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-search.PreferencesResponse" data-search="search.preferencesresponse adjustable options steps">
+<h3>search.PreferencesResponse</h3>
+<p>The viewer&#39;s own steps for search&#39;s Most relevant: how much each sign that something was found useful counts for them, as a step that multiplies the installation&#39;s own weight.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>adjustable</code> <span class="required">always</span></td><td>list of string or null</td><td>What may be set: <code>like</code>, <code>save</code>, <code>reply</code>, <code>follow</code>, <code>cite</code> and <code>following</code> (what the viewer follows coming first).</td></tr>
+<tr><td><code>options</code> <span class="required">always</span></td><td>list of number or null</td><td>What each may be set to: 0 (off), 0.5, 1 (as is), 1.5 and 2.</td></tr>
+<tr><td><code>steps</code> <span class="required">always</span></td><td>map of number or null</td><td>By name, what they have set; what is not here is 1, as the installation has it.</td></tr>
 </tbody>
 </table>
 </div>

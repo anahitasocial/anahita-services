@@ -15,15 +15,18 @@ import (
 type Routes struct {
 	handler   *handlers.Handlers
 	setViewer echo.MiddlewareFunc
+	authorize echo.MiddlewareFunc
 }
 
 func NewRoutes(
 	handler *handlers.Handlers,
 	setViewer echo.MiddlewareFunc,
+	authorize echo.MiddlewareFunc,
 ) *Routes {
 	return &Routes{
 		handler:   handler,
 		setViewer: setViewer,
+		authorize: authorize,
 	}
 }
 
@@ -43,6 +46,21 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewSearchRequest().Browse).
 		Sends(http.StatusOK, responses.List[*responses.NodeItem]{})
+
+	// The viewer's own weights for Most relevant, as they have their own
+	// for recommendations.
+	search.GET("/preferences", r.handler.Preferences.Read, r.authorize).
+		Summary("The viewer's weights for Most relevant").
+		Describe("How much each sign that something was found useful counts for the viewer: a step that multiplies the installation's own weight (search.md).").
+		Viewer(apidoc.SignedIn).
+		Sends(http.StatusOK, handlers.PreferencesResponse{})
+	search.PUT("/preferences", r.handler.Preferences.Edit, r.authorize).
+		Summary("Change the viewer's weights for Most relevant").
+		Describe("What is sent replaces what there was; a name left out is as the installation has it. Answers with them.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.PreferencesRequest{}).
+		Sends(http.StatusOK, handlers.PreferencesResponse{}).
+		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, "`invalid_weight`: a name that may not be set, or a value that is not a step; nothing is changed")
 
 	return doc
 }
