@@ -376,6 +376,36 @@
         ],
         "type": "object"
       },
+      "auth.InviteList": {
+        "description": "InviteList is a page of the viewer's invitations, and how many of them are waiting.",
+        "properties": {
+          "data": {
+            "description": "The latest first.",
+            "items": {
+              "$ref": "#/components/schemas/auth.InviteItem"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination",
+            "description": "Where this page is among all of them."
+          },
+          "pending": {
+            "description": "How many are waiting: sent, and not yet accepted, expired or taken back. The most that may wait is the viewer's entitlement, in userinfo (`entitlements.invites.max_pending`); sending another at it is refused (`too_many_invitations`).",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "pagination",
+          "pending"
+        ],
+        "type": "object"
+      },
       "auth.JWKSet": {
         "description": "JWKSet is the keys a token's signature is checked with (RFC 7517).",
         "properties": {
@@ -2984,7 +3014,7 @@
     },
     "/invites": {
       "get": {
-        "description": "Their own only, administrators' too: an invitation carries somebody's address.\n\nWho may call it: somebody signed in, with a token that carries `actors:read`.",
+        "description": "Their own only, administrators' too: an invitation carries somebody's address. With how many are waiting; how many may is the viewer's entitlement, in userinfo.\n\nWho may call it: somebody signed in, with a token that carries `actors:read`.",
         "operationId": "getInvites",
         "parameters": [
           {
@@ -3033,27 +3063,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "properties": {
-                    "data": {
-                      "description": "What is on this page.",
-                      "items": {
-                        "$ref": "#/components/schemas/auth.InviteItem"
-                      },
-                      "type": [
-                        "array",
-                        "null"
-                      ]
-                    },
-                    "pagination": {
-                      "$ref": "#/components/schemas/Pagination",
-                      "description": "Where this page is among everything there is."
-                    }
-                  },
-                  "required": [
-                    "data",
-                    "pagination"
-                  ],
-                  "type": "object"
+                  "$ref": "#/components/schemas/auth.InviteList"
                 }
               }
             },
@@ -5155,7 +5165,7 @@
     },
     "/oauth/userinfo": {
       "get": {
-        "description": "The claims its scopes allow: `sub` always; with `profile`, `name`, `preferred_username`, `alias`, `avatar_urls`, `id`, `type`, `enabled`, `person_type`, `totp_enabled`, `last_visited_at` and the rest of what the web app reads of the viewer; with `email`, `email` and `email_verified`.\n\nWho may call it: somebody signed in, with a token that carries `openid`.",
+        "description": "The claims its scopes allow: `sub` always; with `profile`, `name`, `preferred_username`, `alias`, `avatar_urls`, `id`, `type`, `enabled`, `person_type`, `totp_enabled`, `last_visited_at` and the rest of what the web app reads of the viewer; with `email`, `email` and `email_verified`. With `profile`, also `entitlements`: what the person may do, and how much, where the installation sets a limit; `entitlements.invites.max_pending` is how many invitations may wait at once, and `invites` is null for somebody who may not invite.\n\nWho may call it: somebody signed in, with a token that carries `openid`.",
         "operationId": "getOauthUserinfo",
         "responses": {
           "200": {

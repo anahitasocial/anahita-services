@@ -41,3 +41,17 @@ func (r *InviteResponse) MapInviteItems(tokens []*entities.Token) []*InviteItem 
 	}
 	return inviteItems
 }
+
+// InviteList is a page of the viewer's invitations, and how many of them
+// are waiting.
+type InviteList struct {
+	// The latest first.
+	Data []*InviteItem `json:"data"`
+	// Where this page is among all of them.
+	Pagination responses.Pagination `json:"pagination"`
+	// How many are waiting: sent, and not yet accepted, expired or taken
+	// back. The most that may wait is the viewer's entitlement, in
+	// userinfo (`entitlements.invites.max_pending`); sending another at it
+	// is refused (`too_many_invitations`).
+	Pending int `json:"pending"`
+}

@@ -71,7 +71,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">41</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">139</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">140</span></li>
 </ul>
 </nav>
 <main>
@@ -3045,11 +3045,11 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>auth/cmd/api/handlers.(*emailChangeHandler).Confirm</code></p>
 </details>
-<details class="route" id="getInvites" data-search="get /invites the invitations the viewer has sent their own only, administrators&#39; too: an invitation carries somebody&#39;s address.
+<details class="route" id="getInvites" data-search="get /invites the invitations the viewer has sent their own only, administrators&#39; too: an invitation carries somebody&#39;s address. with how many are waiting; how many may is the viewer&#39;s entitlement, in userinfo.
 
 who may call it: somebody signed in, with a token that carries `actors:read`.">
 <summary><span class="method get">GET</span> <code class="path">/invites</code> <span class="summary">The invitations the viewer has sent</span></summary>
-<div class="description"><p>Their own only, administrators&#39; too: an invitation carries somebody&#39;s address.</p></div>
+<div class="description"><p>Their own only, administrators&#39; too: an invitation carries somebody&#39;s address. With how many are waiting; how many may is the viewer&#39;s entitlement, in userinfo.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>actors:read</code></p>
 <h4>Takes</h4>
 <table>
@@ -3064,7 +3064,7 @@ who may call it: somebody signed in, with a token that carries `actors:read`.">
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-auth.InviteItem">auth.InviteItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-auth.InviteList">auth.InviteList</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not invite</td></tr>
@@ -3718,11 +3718,11 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>auth/cmd/api/handlers.(*oauthHandler).AddToken</code></p>
 </details>
-<details class="route" id="getOauthUserinfo" data-search="get /oauth/userinfo who the token is for (openid connect) the claims its scopes allow: `sub` always; with `profile`, `name`, `preferred_username`, `alias`, `avatar_urls`, `id`, `type`, `enabled`, `person_type`, `totp_enabled`, `last_visited_at` and the rest of what the web app reads of the viewer; with `email`, `email` and `email_verified`.
+<details class="route" id="getOauthUserinfo" data-search="get /oauth/userinfo who the token is for (openid connect) the claims its scopes allow: `sub` always; with `profile`, `name`, `preferred_username`, `alias`, `avatar_urls`, `id`, `type`, `enabled`, `person_type`, `totp_enabled`, `last_visited_at` and the rest of what the web app reads of the viewer; with `email`, `email` and `email_verified`. with `profile`, also `entitlements`: what the person may do, and how much, where the installation sets a limit; `entitlements.invites.max_pending` is how many invitations may wait at once, and `invites` is null for somebody who may not invite.
 
 who may call it: somebody signed in, with a token that carries `openid`.">
 <summary><span class="method get">GET</span> <code class="path">/oauth/userinfo</code> <span class="summary">Who the token is for (OpenID Connect)</span></summary>
-<div class="description"><p>The claims its scopes allow: <code>sub</code> always; with <code>profile</code>, <code>name</code>, <code>preferred_username</code>, <code>alias</code>, <code>avatar_urls</code>, <code>id</code>, <code>type</code>, <code>enabled</code>, <code>person_type</code>, <code>totp_enabled</code>, <code>last_visited_at</code> and the rest of what the web app reads of the viewer; with <code>email</code>, <code>email</code> and <code>email_verified</code>.</p></div>
+<div class="description"><p>The claims its scopes allow: <code>sub</code> always; with <code>profile</code>, <code>name</code>, <code>preferred_username</code>, <code>alias</code>, <code>avatar_urls</code>, <code>id</code>, <code>type</code>, <code>enabled</code>, <code>person_type</code>, <code>totp_enabled</code>, <code>last_visited_at</code> and the rest of what the web app reads of the viewer; with <code>email</code>, <code>email</code> and <code>email_verified</code>. With <code>profile</code>, also <code>entitlements</code>: what the person may do, and how much, where the installation sets a limit; <code>entitlements.invites.max_pending</code> is how many invitations may wait at once, and <code>invites</code> is null for somebody who may not invite.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>openid</code></p>
 <h4>Answers</h4>
 <table class="answers">
@@ -10166,6 +10166,18 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id: what taking it back names.</td></tr>
 <tr><td><code>recipient_email</code> <span class="required">always</span></td><td>string</td><td>Who it was sent to.</td></tr>
 <tr><td><code>status</code> <span class="required">always</span></td><td>string</td><td><code>pending</code>, <code>used</code> or <code>expired</code>.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-auth.InviteList" data-search="auth.invitelist data pagination pending">
+<h3>auth.InviteList</h3>
+<p>A page of the viewer&#39;s invitations, and how many of them are waiting.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>data</code> <span class="required">always</span></td><td>list of <a href="#schema-auth.InviteItem">auth.InviteItem</a> or null</td><td>The latest first.</td></tr>
+<tr><td><code>pagination</code> <span class="required">always</span></td><td><a href="#schema-Pagination">Pagination</a></td><td>Where this page is among all of them.</td></tr>
+<tr><td><code>pending</code> <span class="required">always</span></td><td>integer</td><td>How many are waiting: sent, and not yet accepted, expired or taken back. The most that may wait is the viewer&#39;s entitlement, in userinfo (<code>entitlements.invites.max_pending</code>); sending another at it is refused (<code>too_many_invitations</code>).</td></tr>
 </tbody>
 </table>
 </div>

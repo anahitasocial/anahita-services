@@ -473,7 +473,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	oauthUser := api.Group("/oauth", r.authorize)
 	oauthUser.GET("/userinfo", h.OAuth.ReadUserInfo).
 		Summary("Who the token is for (OpenID Connect)").
-		Describe("The claims its scopes allow: `sub` always; with `profile`, `name`, `preferred_username`, `alias`, `avatar_urls`, `id`, `type`, `enabled`, `person_type`, `totp_enabled`, `last_visited_at` and the rest of what the web app reads of the viewer; with `email`, `email` and `email_verified`.").
+		Describe("The claims its scopes allow: `sub` always; with `profile`, `name`, `preferred_username`, `alias`, `avatar_urls`, `id`, `type`, `enabled`, `person_type`, `totp_enabled`, `last_visited_at` and the rest of what the web app reads of the viewer; with `email`, `email` and `email_verified`. With `profile`, also `entitlements`: what the person may do, and how much, where the installation sets a limit; `entitlements.invites.max_pending` is how many invitations may wait at once, and `invites` is null for somebody who may not invite.").
 		Viewer(apidoc.SignedIn).
 		Scope(libs_constants.OAuthScopeOpenID).
 		Sends(http.StatusOK, map[string]any{}).
@@ -710,11 +710,11 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	invitesAuth := api.Group("/invites", r.authorize)
 	invitesAuth.GET("", h.Invite.Browse).
 		Summary("The invitations the viewer has sent").
-		Describe("Their own only, administrators' too: an invitation carries somebody's address.").
+		Describe("Their own only, administrators' too: an invitation carries somebody's address. With how many are waiting; how many may is the viewer's entitlement, in userinfo.").
 		Viewer(apidoc.SignedIn).
 		Scope(libs_constants.OAuthScopeActorsRead).
 		Takes(libs_requests.NewBrowse()).
-		Sends(http.StatusOK, libs_responses.List[*responses.InviteItem]{}).
+		Sends(http.StatusOK, responses.InviteList{}).
 		Refuses(http.StatusForbidden, "the viewer may not invite")
 	invitesAuth.POST("", h.Invite.Add).
 		Summary("Invite somebody").

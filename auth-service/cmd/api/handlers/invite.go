@@ -53,7 +53,7 @@ func (h *inviteHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	resp := &libs_responses.List[*responses.InviteItem]{
+	resp := &responses.InviteList{
 		Data: []*responses.InviteItem{},
 		Pagination: libs_responses.Pagination{
 			Limit:  req.Limit,
@@ -89,6 +89,15 @@ func (h *inviteHandler) Browse(c echo.Context) error {
 
 	invitesResp := &responses.InviteResponse{}
 	resp.Data = invitesResp.MapInviteItems(invites)
+
+	// How many are waiting, by the same count Add checks against the
+	// viewer's entitlement (userinfo), so that a client can stop offering
+	// the form at the limit.
+	resp.Pending, err = h.Repos.Tokens.CountPendingFrom(constants.TokenTypeInvite, viewer.ID)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
 
 	return c.JSON(http.StatusOK, resp)
 }
