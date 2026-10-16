@@ -220,6 +220,15 @@ func TestSearchAppliesTheBlockPredicateOnce(t *testing.T) {
 		}
 	}
 
+	// The rule that keeps out what somebody left on the profile of whoever
+	// blocked them binds the same edge type, and is another rule: it is
+	// counted apart, once for the row and once for a reply's root.
+	leftByBlocked := strings.Count(sql, "owner_block.type = ?")
+	blockArgs -= leftByBlocked
+	if leftByBlocked == 0 {
+		t.Errorf("what a blocked person left on the blocker's profile is not kept out:\n%s", sql)
+	}
+
 	if blockArgs == 0 {
 		t.Fatalf("no block predicate at all — a blocked person's posts would "+
 			"show up in search:\n%s", sql)

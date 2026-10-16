@@ -105,12 +105,23 @@ func (repo *LikesRelRepo) UpdateLikeCount(targetID int64) error {
 		UPDATE nodes AS target
 		JOIN (
 			SELECT COUNT(*) AS count
-			FROM edges
-			WHERE type = ? AND node_b_id = ?
+			FROM edges AS liked
+			JOIN nodes AS post
+			  ON post.id = liked.node_b_id
+			WHERE liked.type = ?
+			  AND liked.node_b_id = ?
+			  -- Not the likes of somebody its owner or writer blocks.
+			  AND NOT EXISTS (
+			    SELECT 1
+			    FROM edges AS blocked
+			    WHERE blocked.type = ?
+			      AND blocked.node_b_id = liked.node_a_id
+			      AND blocked.node_a_id IN (post.owner_id, post.created_by)
+			  )
 		) AS sub
 		SET target.vote_up_count = sub.count
 		WHERE target.id = ?;
 	`
-	_, err := repo.db.ExecContext(ctx, sqlStr, repo.edgeType, targetID, targetID)
+	_, err := repo.db.ExecContext(ctx, sqlStr, repo.edgeType, targetID, constants.EdgeBlockEntityType, targetID)
 	return err
 }

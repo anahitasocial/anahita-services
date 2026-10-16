@@ -112,8 +112,8 @@ person's server, and no `Block` was sent.
    The sweep forgets follows left across a block (`Missed.FollowsBlocked`).
    Tests: `TestSomebodyHereBlocksSomebodyElsewhere`,
    `TestASweepForgetsAFollowAcrossABlock`. Incoming `Block` is still ignored.
-2. **A block hides, for every reader: built, NOT committed** (uncommitted in
-   graph-grpc-service; `git status` shows it):
+2. **A block hides, for every reader: done, committed.** In
+   graph-grpc-service:
    - `replies.go`: `HiddenIDs` also returns replies written by somebody the
      root's owner or writer blocks, so text-service drops them (and what is
      under them) for every reader; `recountThread` leaves them out;
@@ -126,17 +126,16 @@ person's server, and no `Block` was sent.
    - `access_medium.go`: `notLeftByBlocked` keeps out, for everybody, a post
      somebody left on a profile whose owner blocks them (feeds use the same
      rule).
-   - Tests: `access_test.go` counts the new rule apart; new
-     `block_reach_integration_test.go` passes against MySQL.
-   - **To settle before committing:** with ACCESS_TEST_DSN, the whole
-     repositories package has one failure,
-     `TestCountsAreOfWhatIsThereAndNotHidden` (replies_integration_test.go).
-     Its fixture has no block, so look at its message first: likely the
-     recount SQL or an argument count. Throwaway MySQL as in
-     access_integration_test.go's header, named `anahita-acl-test`, removed
-     afterwards with `docker rm -fv`.
+   - Tests: `access_test.go` counts the new rule apart;
+     `block_reach_integration_test.go`; and
+     `TestCountsAreOfWhatIsThereAndNotHidden`, whose fixture already had
+     Alice blocking Dave, now expects Dave's reply out of the count and
+     hides Bob's instead. The whole package passes with ACCESS_TEST_DSN.
+   - Described in `docs/permissions.md`.
    - Still open: whether a person's block also reaches the groups they
-     administer (only their own posts and profile now).
+     administer (only their own posts and profile now). And a blocked
+     person's reply still shows on their own profile's Replies tab, as on
+     Bluesky.
 3. **Bluesky: to do.** Hiding publishes no event today. Add one (graph
    `HideReply`), have atproto-service write the root post's threadgate
    (`app.bsky.feed.threadgate`, rkey = the post's, `hiddenReplies` built when
@@ -147,5 +146,6 @@ person's server, and no `Block` was sent.
 4. **Web: to do.** In the hide confirmation or the hidden badge, say that a
    reply from Mastodon or another ActivityPub server is hidden here and may
    still be seen there (`reply.uri` https, or the author's type).
-5. Docs when done: `federation.md` (ActivityPub part written), `permissions.md`
-   for what a block hides, the web `architecture.md` replies section.
+5. Docs when done: `federation.md` (ActivityPub part written; Bluesky part
+   to write), `permissions.md` (written), the web `architecture.md` replies
+   section.

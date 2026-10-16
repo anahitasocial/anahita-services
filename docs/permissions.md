@@ -107,6 +107,21 @@ Two people see a post without its own access being consulted:
 Nobody sees a post by, or on the profile of, somebody they have blocked or
 been blocked by.
 
+A block also takes out of sight, for **every** reader, what the blocked
+person has left on what is the blocker's:
+
+- their replies in a thread whose post the blocker owns or wrote, and what is
+  under those replies; the thread's reply count leaves them out;
+- their likes of the blocker's posts, in the list of who liked it and in the
+  count;
+- their posts on the blocker's profile.
+
+Only there. Under somebody else's post, what the blocked person wrote stays
+for other readers, and hiding it is for whoever that post belongs to. Nothing
+is deleted: it is still theirs, and comes back if the block is lifted. A block
+of somebody on another server is also told to that server (see
+[federation.md](federation.md)).
+
 A post's access is always one of the levels above. There is no way to share a
 post with named people only, and no private messaging: the private notes of
 the PHP version were removed, not carried over.

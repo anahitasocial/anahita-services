@@ -123,6 +123,8 @@ func (h *socialgraphBlockGrpcHandler) Add(ctx context.Context, req *graphpb.Soci
 		return nil, err
 	}
 
+	h.recountForBlock(source.ID, target.ID)
+
 	// publish a block event
 	go func() {
 		srvName := "socialgraph"
@@ -169,6 +171,8 @@ func (h *socialgraphBlockGrpcHandler) Delete(ctx context.Context, req *graphpb.S
 		return nil, err
 	}
 
+	h.recountForBlock(source.ID, target.ID)
+
 	// publish a block event
 	go func() {
 		srvName := "socialgraph"
@@ -203,4 +207,26 @@ func unblockFilter(source, target *entities.AnahitaNode) *requests.EdgeBatchDele
 	filter.NodeBID = target.ID
 	filter.NodeBType = target.Type
 	return filter
+}
+
+// recountForBlock counts again what a block, made or lifted, changes for
+// other readers: replies and likes the blocked person left on what is the
+// blocker's are out of sight while the block stands. A count that fails is
+// logged; it is put right the next time anything changes it.
+func (h *socialgraphBlockGrpcHandler) recountForBlock(blockerID, blockedID int64) {
+	roots, liked, err := h.env.Repos.Replies.TouchedByBlock(blockerID, blockedID)
+	if err != nil {
+		log.Println("recounting after a block:", err)
+		return
+	}
+	for _, root := range roots {
+		if err := h.env.Repos.Replies.Recount(root, 0); err != nil {
+			log.Println("recounting after a block:", err)
+		}
+	}
+	for _, post := range liked {
+		if err := h.env.Repos.LikesRel.UpdateLikeCount(post); err != nil {
+			log.Println("recounting after a block:", err)
+		}
+	}
 }

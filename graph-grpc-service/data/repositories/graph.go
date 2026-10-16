@@ -79,6 +79,7 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 	// which the count query had no alias for. The browse query does —
 	// GetBaseSelectQuery joins it — so only the count needed the join added.
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
+	query = setBlockedLikersQuery(query, req.EdgeTypes, req.Direction)
 
 	// Add ordering
 	if req.Ordering == constants.OrderingConnected {
@@ -165,6 +166,7 @@ func (r *graphRepo) CountNeighbours(req *graphpb.BrowseNeighboursRequest, viewer
 	// none, and the gate treats a NULL owner as passing.
 	query = query.LeftJoin("nodes AS owner ON owner.id = node.owner_id")
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
+	query = setBlockedLikersQuery(query, req.EdgeTypes, req.Direction)
 
 	countSql, countArgs, err := query.ToSql()
 	if err != nil {
@@ -427,4 +429,26 @@ func (r *graphRepo) Trending(req *graphpb.TrendingRequest, viewer *entities.View
 	query = query.Limit(req.Limit)
 
 	return FetchNodes(r.db, query)
+}
+
+// setBlockedLikersQuery leaves out, of the people who like something, those
+// its owner or its writer has blocked: a block takes out of sight, for every
+// reader, what the blocked person left on what is the blocker's. Their like
+// is kept, and comes back if the block is lifted.
+func setBlockedLikersQuery(query sq.SelectBuilder, edgeTypes []string, direction string) sq.SelectBuilder {
+	if len(edgeTypes) != 1 || edgeTypes[0] != constants.EdgeBaseLikeEntityType {
+		return query
+	}
+	if direction != "" && direction != constants.GraphQueryDirectionInbound {
+		return query
+	}
+	return query.Where(sq.Expr(`NOT EXISTS (
+  SELECT 1
+  FROM edges AS liker_block
+  JOIN nodes AS liked
+    ON liked.id = edge.node_b_id
+  WHERE liker_block.type = ?
+    AND liker_block.node_b_id = node.id
+    AND liker_block.node_a_id IN (liked.owner_id, liked.created_by)
+)`, constants.EdgeBlockEntityType))
 }
