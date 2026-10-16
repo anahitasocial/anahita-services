@@ -608,9 +608,11 @@ and so on), marked as pinned.
   post that had it gives it up. One is also exactly what Bluesky has, so a
   pin here will be a pin there with nothing left over.
 - **The pin is the profile's, not the post's.** It is set by whoever the
-  profile belongs to: a person on their own profile, a group's administrators
-  in the group, and site administrators. The author of a post in a group they
-  do not run can edit and remove their post, and cannot pin it.
+  profile belongs to: a person on their own profile, and a group's
+  administrators in the group. The author of a post in a group they do not
+  run can edit and remove their post, and cannot pin it. Nor can site
+  administrators: what they may do to somebody's posts is moderation, and
+  choosing what a profile leads with is not.
 - **Only a post at the top level.** A reply is read in its thread.
 - **It changes the order and nothing else.** A pinned post is seen by exactly
   the people who could see it anyway.
