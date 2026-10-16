@@ -918,8 +918,8 @@
       "notification.NotificationItem": {
         "description": "NotificationItem is something the viewer is told of.",
         "properties": {
-          "createdAt": {
-            "description": "When it was made. Named in camelCase, unlike the rest of the API.",
+          "created_at": {
+            "description": "When it was made.",
             "format": "date-time",
             "type": "string"
           },
@@ -928,8 +928,8 @@
             "format": "int64",
             "type": "integer"
           },
-          "isRead": {
-            "description": "Whether the viewer has read it. Named in camelCase, unlike the rest of the API.",
+          "is_read": {
+            "description": "Whether the viewer has read it.",
             "type": "boolean"
           },
           "meta": {
@@ -977,7 +977,7 @@
             "description": "What it tells of, as the event that made it is named.",
             "type": "string"
           },
-          "updatedAt": {
+          "updated_at": {
             "description": "When it last changed: when it was read, for one.",
             "format": "date-time",
             "type": "string"
@@ -990,10 +990,10 @@
           "subject",
           "object",
           "target",
-          "createdAt",
-          "updatedAt",
+          "created_at",
+          "updated_at",
           "meta",
-          "isRead"
+          "is_read"
         ],
         "type": "object"
       },
@@ -1280,7 +1280,7 @@
     },
     "/notifications/subscriptions/{target_id}": {
       "delete": {
-        "description": "Answers 201 with what they were told about, for now, though nothing is made.\n\nWho may call it: somebody signed in, with a token that carries `notifications:write`.",
+        "description": "Answers with what they were told about.\n\nWho may call it: somebody signed in, with a token that carries `notifications:write`.",
         "operationId": "deleteNotificationsSubscriptionsByTargetId",
         "parameters": [
           {
@@ -1295,7 +1295,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
@@ -1303,7 +1303,7 @@
                 }
               }
             },
-            "description": "Created"
+            "description": "OK"
           },
           "400": {
             "description": "the request is not well formed, or a value in it is not one it may be"

@@ -1112,6 +1112,9 @@
           },
           "403": {
             "description": "the viewer does not like it"
+          },
+          "404": {
+            "description": "there is no such post or reply"
           }
         },
         "security": [
@@ -1230,6 +1233,9 @@
           },
           "403": {
             "description": "the viewer may not see it"
+          },
+          "404": {
+            "description": "there is no such post or reply"
           }
         },
         "security": [
@@ -1277,6 +1283,9 @@
           },
           "403": {
             "description": "the viewer may not like it"
+          },
+          "404": {
+            "description": "there is no such post or reply"
           },
           "409": {
             "description": "the viewer likes it already"

@@ -43,7 +43,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.SignedIn).
 		Takes(requests.NewLikeRequest().Browse).
 		Sends(http.StatusOK, responses.List[*responses.ActorNodeItem]{}).
-		Refuses(http.StatusForbidden, "the viewer may not see it")
+		Refuses(http.StatusForbidden, "the viewer may not see it").
+		Refuses(http.StatusNotFound, "there is no such post or reply")
 	likes.POST("/:node_id/", r.handler.Like.Add).
 		Summary("Like it").
 		Describe("A reply is liked by the rules of the post at the top of its thread. Answers with what was liked.").
@@ -52,6 +53,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(requests.NewLikeRequest().Add).
 		Sends(http.StatusCreated, responses.MediumNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not like it").
+		Refuses(http.StatusNotFound, "there is no such post or reply").
 		Refuses(http.StatusConflict, "the viewer likes it already")
 	likes.DELETE("/:node_id/", r.handler.Like.Delete).
 		Summary("Stop liking it").
@@ -60,7 +62,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Scope(libs_constants.OAuthScopeLikesWrite).
 		Takes(requests.NewLikeRequest().Delete).
 		Sends(http.StatusOK, responses.MediumNode{}).
-		Refuses(http.StatusForbidden, "the viewer does not like it")
+		Refuses(http.StatusForbidden, "the viewer does not like it").
+		Refuses(http.StatusNotFound, "there is no such post or reply")
 
 	return doc
 }

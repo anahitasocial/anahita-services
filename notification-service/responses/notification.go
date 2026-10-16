@@ -66,15 +66,14 @@ type NotificationItem struct {
 	Object *Object `json:"object"`
 	// What it was done to.
 	Target *Target `json:"target"`
-	// When it was made. Named in camelCase, unlike the rest of the API.
-	CreatedAt time.Time `json:"createdAt"`
+	// When it was made.
+	CreatedAt time.Time `json:"created_at"`
 	// When it last changed: when it was read, for one.
-	UpdatedAt time.Time `json:"updatedAt"`
+	UpdatedAt time.Time `json:"updated_at"`
 	// More about it, as JSON in a string.
 	Meta string `json:"meta"`
-	// Whether the viewer has read it. Named in camelCase, unlike the rest of the
-	// API.
-	IsRead bool `json:"isRead"`
+	// Whether the viewer has read it.
+	IsRead bool `json:"is_read"`
 }
 
 // UnreadCount is how many notifications the viewer has not read.

@@ -6,7 +6,7 @@ import (
 	"identityimage/cmd/api/handlers"
 
 	"anahita-libs/apidoc"
-	"anahita-libs/data/entities"
+	"anahita-libs/responses"
 
 	"github.com/labstack/echo/v4"
 )
@@ -75,10 +75,10 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		group := api.Group(kind.group, r.authorize)
 		group.POST("/:node_id/", kind.set).
 			Summary("Set the "+kind.what+" of "+kind.on).
-			Describe("Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while. Note that its fields are named as Go names them (`Url`, `Size`), not in snake_case.").
+			Describe("Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while.").
 			Viewer(apidoc.SignedIn).
 			Takes(kind.upload).
-			Sends(http.StatusCreated, map[string]entities.AnahitaNodeImage{}).
+			Sends(http.StatusCreated, map[string]responses.Image{}).
 			Refuses(http.StatusBadRequest, "`file_required` when no file was sent, `file_unreadable` when it cannot be read as a picture").
 			Refuses(http.StatusForbidden, "it cannot have one, or the viewer may not change it").
 			Refuses(http.StatusNotFound, "there is no such profile or post, or the viewer may not see it").

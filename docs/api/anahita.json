@@ -188,44 +188,6 @@
         ],
         "type": "object"
       },
-      "AnahitaNodeImage": {
-        "description": "AnahitaNodeImage is one size of a picture. It has no JSON tags, so its fields are sent as Go names them.",
-        "properties": {
-          "Size": {
-            "$ref": "#/components/schemas/AnahitaNodeImageSize",
-            "description": "How big it is."
-          },
-          "Url": {
-            "description": "Where it is read from: good for a short while.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "Url",
-          "Size"
-        ],
-        "type": "object"
-      },
-      "AnahitaNodeImageSize": {
-        "description": "AnahitaNodeImageSize is how big a picture is.",
-        "properties": {
-          "Height": {
-            "description": "In pixels.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "Width": {
-            "description": "In pixels.",
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "Width",
-          "Height"
-        ],
-        "type": "object"
-      },
       "Author": {
         "description": "Author is who wrote something.",
         "properties": {
@@ -1791,8 +1753,8 @@
       "notification.NotificationItem": {
         "description": "NotificationItem is something the viewer is told of.",
         "properties": {
-          "createdAt": {
-            "description": "When it was made. Named in camelCase, unlike the rest of the API.",
+          "created_at": {
+            "description": "When it was made.",
             "format": "date-time",
             "type": "string"
           },
@@ -1801,8 +1763,8 @@
             "format": "int64",
             "type": "integer"
           },
-          "isRead": {
-            "description": "Whether the viewer has read it. Named in camelCase, unlike the rest of the API.",
+          "is_read": {
+            "description": "Whether the viewer has read it.",
             "type": "boolean"
           },
           "meta": {
@@ -1850,7 +1812,7 @@
             "description": "What it tells of, as the event that made it is named.",
             "type": "string"
           },
-          "updatedAt": {
+          "updated_at": {
             "description": "When it last changed: when it was read, for one.",
             "format": "date-time",
             "type": "string"
@@ -1863,10 +1825,10 @@
           "subject",
           "object",
           "target",
-          "createdAt",
-          "updatedAt",
+          "created_at",
+          "updated_at",
           "meta",
-          "isRead"
+          "is_read"
         ],
         "type": "object"
       },
@@ -2405,9 +2367,9 @@
             }
           },
           {
-            "description": "How many to pass over. Named `offset` here, where other lists say `start`.",
+            "description": "How many to pass over.",
             "in": "query",
-            "name": "offset",
+            "name": "start",
             "schema": {
               "format": "int64",
               "minimum": 0,
@@ -2843,7 +2805,7 @@
         "x-viewer": "signed_in"
       },
       "post": {
-        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while. Note that its fields are named as Go names them (`Url`, `Size`), not in snake_case.\n\nWho may call it: somebody signed in.",
+        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while.\n\nWho may call it: somebody signed in.",
         "operationId": "postAvatarsByNodeId",
         "parameters": [
           {
@@ -2883,7 +2845,7 @@
               "application/json": {
                 "schema": {
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/AnahitaNodeImage"
+                    "$ref": "#/components/schemas/Image"
                   },
                   "type": "object"
                 }
@@ -3012,7 +2974,7 @@
         "x-viewer": "signed_in"
       },
       "post": {
-        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while. Note that its fields are named as Go names them (`Url`, `Size`), not in snake_case.\n\nWho may call it: somebody signed in.",
+        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while.\n\nWho may call it: somebody signed in.",
         "operationId": "postCoversByNodeId",
         "parameters": [
           {
@@ -3052,7 +3014,7 @@
               "application/json": {
                 "schema": {
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/AnahitaNodeImage"
+                    "$ref": "#/components/schemas/Image"
                   },
                   "type": "object"
                 }
@@ -3675,6 +3637,9 @@
           },
           "403": {
             "description": "the viewer does not like it"
+          },
+          "404": {
+            "description": "there is no such post or reply"
           }
         },
         "security": [
@@ -3793,6 +3758,9 @@
           },
           "403": {
             "description": "the viewer may not see it"
+          },
+          "404": {
+            "description": "there is no such post or reply"
           }
         },
         "security": [
@@ -3840,6 +3808,9 @@
           },
           "403": {
             "description": "the viewer may not like it"
+          },
+          "404": {
+            "description": "there is no such post or reply"
           },
           "409": {
             "description": "the viewer likes it already"
@@ -4949,7 +4920,7 @@
     },
     "/notifications/subscriptions/{target_id}": {
       "delete": {
-        "description": "Answers 201 with what they were told about, for now, though nothing is made.\n\nWho may call it: somebody signed in, with a token that carries `notifications:write`.",
+        "description": "Answers with what they were told about.\n\nWho may call it: somebody signed in, with a token that carries `notifications:write`.",
         "operationId": "deleteNotificationsSubscriptionsByTargetId",
         "parameters": [
           {
@@ -4964,7 +4935,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
@@ -4972,7 +4943,7 @@
                 }
               }
             },
-            "description": "Created"
+            "description": "OK"
           },
           "400": {
             "description": "the request is not well formed, or a value in it is not one it may be"

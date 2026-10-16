@@ -1,41 +1,41 @@
 {
   "components": {
     "schemas": {
-      "AnahitaNodeImage": {
-        "description": "AnahitaNodeImage is one size of a picture. It has no JSON tags, so its fields are sent as Go names them.",
+      "Image": {
+        "description": "Image is one size of a picture.",
         "properties": {
-          "Size": {
-            "$ref": "#/components/schemas/AnahitaNodeImageSize",
+          "size": {
+            "$ref": "#/components/schemas/ImageSize",
             "description": "How big it is."
           },
-          "Url": {
-            "description": "Where it is read from: good for a short while.",
+          "url": {
+            "description": "Where it is read from.",
             "type": "string"
           }
         },
         "required": [
-          "Url",
-          "Size"
+          "url",
+          "size"
         ],
         "type": "object"
       },
-      "AnahitaNodeImageSize": {
-        "description": "AnahitaNodeImageSize is how big a picture is.",
+      "ImageSize": {
+        "description": "ImageSize is how big an image is.",
         "properties": {
-          "Height": {
+          "height": {
             "description": "In pixels.",
             "format": "int64",
             "type": "integer"
           },
-          "Width": {
+          "width": {
             "description": "In pixels.",
             "format": "int64",
             "type": "integer"
           }
         },
         "required": [
-          "Width",
-          "Height"
+          "width",
+          "height"
         ],
         "type": "object"
       }
@@ -105,7 +105,7 @@
         "x-viewer": "signed_in"
       },
       "post": {
-        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while. Note that its fields are named as Go names them (`Url`, `Size`), not in snake_case.\n\nWho may call it: somebody signed in.",
+        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while.\n\nWho may call it: somebody signed in.",
         "operationId": "postAvatarsByNodeId",
         "parameters": [
           {
@@ -145,7 +145,7 @@
               "application/json": {
                 "schema": {
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/AnahitaNodeImage"
+                    "$ref": "#/components/schemas/Image"
                   },
                   "type": "object"
                 }
@@ -274,7 +274,7 @@
         "x-viewer": "signed_in"
       },
       "post": {
-        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while. Note that its fields are named as Go names them (`Url`, `Size`), not in snake_case.\n\nWho may call it: somebody signed in.",
+        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while.\n\nWho may call it: somebody signed in.",
         "operationId": "postCoversByNodeId",
         "parameters": [
           {
@@ -314,7 +314,7 @@
               "application/json": {
                 "schema": {
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/AnahitaNodeImage"
+                    "$ref": "#/components/schemas/Image"
                   },
                   "type": "object"
                 }

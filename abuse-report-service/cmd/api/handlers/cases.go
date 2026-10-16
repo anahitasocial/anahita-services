@@ -68,7 +68,7 @@ func (h *casesHandler) Browse(c echo.Context) error {
 	}
 
 	limit, _ := strconv.ParseUint(c.QueryParam("limit"), 10, 64)
-	offset, _ := strconv.ParseUint(c.QueryParam("offset"), 10, 64)
+	offset, _ := strconv.ParseUint(c.QueryParam("start"), 10, 64)
 	if limit == 0 {
 		limit = constants.DefaultBrowseLimit
 	}

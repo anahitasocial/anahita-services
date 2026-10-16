@@ -19,9 +19,8 @@ type CasesBrowse struct {
 	Status string `query:"status" validate:"omitempty,oneof=open actioned dismissed"`
 	// Only cases with a report that gave this reason, by its key.
 	Reason string `query:"reason" validate:"max=64"`
-	// How many to pass over. Named `offset` here, where other lists say
-	// `start`.
-	Offset uint64 `query:"offset"`
+	// How many to pass over.
+	Offset uint64 `query:"start"`
 	// The most to send: 20 unless asked, 100 at most.
 	Limit uint64 `query:"limit"`
 	// The language to word the reasons in. Accept-Language when left out.

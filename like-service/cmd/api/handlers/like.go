@@ -8,6 +8,7 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/event"
 	"anahita-libs/responses"
+	"errors"
 	"feed/constants"
 	"fmt"
 	"like/requests"
@@ -51,6 +52,9 @@ func (h *likeHandler) Browse(c echo.Context) error {
 	node, err := h.readLikeTarget(req.NodeID, viewer)
 	if err != nil {
 		log.Println(err)
+		if errors.Is(err, errNoTarget) {
+			return c.NoContent(http.StatusNotFound)
+		}
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
@@ -121,6 +125,9 @@ func (h *likeHandler) Add(c echo.Context) error {
 	node, err := h.readLikeTarget(req.NodeID, viewer)
 	if err != nil {
 		log.Println(err)
+		if errors.Is(err, errNoTarget) {
+			return c.NoContent(http.StatusNotFound)
+		}
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
@@ -147,6 +154,9 @@ func (h *likeHandler) Add(c echo.Context) error {
 	node, err = h.readLikeTarget(req.NodeID, viewer)
 	if err != nil {
 		log.Println(err)
+		if errors.Is(err, errNoTarget) {
+			return c.NoContent(http.StatusNotFound)
+		}
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
@@ -202,6 +212,9 @@ func (h *likeHandler) Delete(c echo.Context) error {
 	node, err := h.readLikeTarget(req.NodeID, viewer)
 	if err != nil {
 		log.Println(err)
+		if errors.Is(err, errNoTarget) {
+			return c.NoContent(http.StatusNotFound)
+		}
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
@@ -224,6 +237,9 @@ func (h *likeHandler) Delete(c echo.Context) error {
 	node, err = h.readLikeTarget(req.NodeID, viewer)
 	if err != nil {
 		log.Println(err)
+		if errors.Is(err, errNoTarget) {
+			return c.NoContent(http.StatusNotFound)
+		}
 		return c.NoContent(http.StatusInternalServerError)
 	}
 

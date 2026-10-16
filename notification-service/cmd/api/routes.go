@@ -87,11 +87,11 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusNotFound, "there is no such post or profile")
 	notifications.DELETE("/subscriptions/:target_id", r.handler.Subscription.Delete, subscriptionWrite).
 		Summary("Stop being told about it").
-		Describe("Answers 201 with what they were told about, for now, though nothing is made.").
+		Describe("Answers with what they were told about.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(requests.NewSubscriptionRequest().Delete).
-		Sends(http.StatusCreated, libs_responses.NodeItem{}).
+		Sends(http.StatusOK, libs_responses.NodeItem{}).
 		Refuses(http.StatusForbidden, "the viewer may not see it").
 		Refuses(http.StatusNotFound, "there is no such post or profile, or the viewer was not told about it")
 

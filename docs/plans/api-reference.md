@@ -134,14 +134,15 @@ A and B are worth having alone: they settle the form, and every service after is
 - **Checked with Redocly's linter:** no errors of structure. It flags `/hashtags/` for its trailing slash, which is the route's real address, and the 501-only route for having no 2xx or 4xx answer.
 - **`PATCH /hashtags/:alias` answered 501 whoever asks.** Removed on 2026-10-16 at the user's word, with the unused `Add` beside it: nothing called it, and a hashtag is made from the words of posts, so changing one here would disagree with them. `NotBuilt` stays in apidoc for a route of the kind.
 
-### Found while describing, left as they are on the wire
+### Found while describing, and put right
 
-Describing a service changes no shape on the wire: what is odd is described as it is, and listed here to be put right deliberately, each with the web app at once.
+Each was found by describing a service, and put right on 2026-10-16 at the user's word ("clearly inconsistencies in the code"), with the web app where it had to change:
 
-- **Setting an avatar or a cover** answers with Go's field names (`Url`, `Size`, `Width`, `Height`): `entities.AnahitaNodeImage` has no JSON tags.
-- **A notification's own fields are camelCase** (`createdAt`, `updatedAt`, `isRead`), the only ones in the API that are.
-- **`DELETE /notifications/subscriptions/:target_id`** answers `201 Created` with the node, though nothing is made.
-- **Abuse cases page by `offset`**, where every other list takes `start`.
-- **Liking something that is not there** answers 500: the like service takes any failure to read what is liked for its own.
+- **Setting an avatar or a cover** answered with Go's field names (`Url`, `Size`, `Width`, `Height`); it answers with `url` and `size` as every other picture is sent (`responses.NewAvatar`). The web app reads it camel-cased, so it is unchanged.
+- **A notification's own fields were camelCase** (`createdAt`, `updatedAt`, `isRead`); they are `created_at`, `updated_at` and `is_read`. The web app reads them camel-cased, so it is unchanged.
+- **`DELETE /notifications/subscriptions/:target_id` answered `201 Created`**; it answers `200`.
+- **Abuse cases were paged by `offset`**; they take `start`, as every other list, and the web app's Reports list sends it.
+- **Liking, unliking or listing the likes of something that is not there answered 500**; it answers 404.
+- **`PATCH /hashtags/:alias` answered 501** and is removed (above).
 - **A struct of a handler's own was the answer** in several services (an anonymous `Response`, or a map): replaced by `responses.List[T]`, `responses.Unpaged[T]` or a named type as each service was described, the wire unchanged.
 
