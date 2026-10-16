@@ -1729,6 +1729,65 @@
         ],
         "type": "object"
       },
+      "location.LocationNodeItem": {
+        "description": "LocationNodeItem is a place posts can be tied to.",
+        "properties": {
+          "address": {
+            "description": "Its street address.",
+            "type": "string"
+          },
+          "alias": {
+            "description": "Its short name.",
+            "type": "string"
+          },
+          "authorized": {
+            "$ref": "#/components/schemas/NodeAuthorized",
+            "description": "What the viewer may do with it."
+          },
+          "city": {
+            "description": "Its city.",
+            "type": "string"
+          },
+          "country": {
+            "description": "Its country.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "latitude": {
+            "description": "Where it is: latitude, found from its address.",
+            "type": "number"
+          },
+          "longitude": {
+            "description": "Where it is: longitude.",
+            "type": "number"
+          },
+          "name": {
+            "description": "What it is called.",
+            "type": "string"
+          },
+          "postalcode": {
+            "description": "Its postal code.",
+            "type": "string"
+          },
+          "state_province": {
+            "description": "Its state or province.",
+            "type": "string"
+          },
+          "type": {
+            "description": "Always a place's type.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
       "notification.NotificationItem": {
         "description": "NotificationItem is something the viewer is told of.",
         "properties": {
@@ -3972,6 +4031,810 @@
         "x-viewer": "anyone"
       }
     },
+    "/locations/": {
+      "get": {
+        "description": "Found by words, near a point, or the places one post is tied to.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getLocations",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Words its name or address holds.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string",
+              "x-validate": "search_query"
+            }
+          },
+          {
+            "description": "The order they come in.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "recent",
+              "enum": [
+                "popular",
+                "trending",
+                "recent"
+              ],
+              "maxLength": 10,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only the places a post is tied to: the post's id.",
+            "in": "query",
+            "name": "source_id",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Only places near here: latitude.",
+            "in": "query",
+            "name": "nearby_latitude",
+            "schema": {
+              "type": "number",
+              "x-validate": "latitude"
+            }
+          },
+          {
+            "description": "Only places near here: longitude.",
+            "in": "query",
+            "name": "nearby_longitude",
+            "schema": {
+              "type": "number",
+              "x-validate": "longitude"
+            }
+          },
+          {
+            "description": "How near, in metres. The nearest come first.",
+            "in": "query",
+            "name": "nearby_radius",
+            "schema": {
+              "default": 20000,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/location.LocationNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Places",
+        "tags": [
+          "location-service"
+        ],
+        "x-viewer": "anyone"
+      },
+      "post": {
+        "description": "Its address is found on the map. Answers with the place.\n\nWho may call it: a site administrator, with a token that carries `taxonomy:write`.",
+        "operationId": "postLocations",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "address": {
+                    "description": "Its street address.",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "city": {
+                    "description": "Its city.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "country": {
+                    "description": "Its country.",
+                    "maxLength": 50,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "What it is called.",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "source_id": {
+                    "description": "A post to tie to it at once: the post's id.",
+                    "format": "int64",
+                    "type": "integer"
+                  },
+                  "state_province": {
+                    "description": "Its state or province.",
+                    "maxLength": 100,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "address",
+                  "city",
+                  "country"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/location.LocationNodeItem"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "not well formed, or the address could not be found on a map"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "taxonomy:write"
+            ]
+          }
+        ],
+        "summary": "Add a place",
+        "tags": [
+          "location-service"
+        ],
+        "x-viewer": "admin"
+      }
+    },
+    "/locations/_browse/ordered_by_degree": {
+      "get": {
+        "description": "Who may call it: anyone, signed in or not.",
+        "operationId": "getLocationsBrowseOrderedByDegree",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/location.LocationNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Places used most of all",
+        "tags": [
+          "location-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/locations/_browse/trending": {
+      "get": {
+        "description": "The places most posts were tied to in a window of time that ends now. Not paged.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getLocationsBrowseTrending",
+        "parameters": [
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Asked for in lower case and told to the graph in upper case, as its constants are. \"all\" was accepted and never understood: the graph fell back to a day for anything it did not know.",
+            "in": "query",
+            "name": "time_window",
+            "schema": {
+              "default": "weekly",
+              "enum": [
+                "daily",
+                "weekly",
+                "monthly",
+                "yearly"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/location.LocationNodeItem"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Places used most lately",
+        "tags": [
+          "location-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/locations/{id}": {
+      "delete": {
+        "description": "Who may call it: a site administrator, with a token that carries `taxonomy:write`.",
+        "operationId": "deleteLocationsById",
+        "parameters": [
+          {
+            "description": "The place's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "it is gone"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          },
+          "404": {
+            "description": "there is no such place"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "taxonomy:write"
+            ]
+          }
+        ],
+        "summary": "Delete a place",
+        "tags": [
+          "location-service"
+        ],
+        "x-viewer": "admin"
+      },
+      "get": {
+        "description": "Who may call it: anyone, signed in or not.",
+        "operationId": "getLocationsById",
+        "parameters": [
+          {
+            "description": "The place's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/location.LocationNodeItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "404": {
+            "description": "there is no such place"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One place",
+        "tags": [
+          "location-service"
+        ],
+        "x-viewer": "anyone"
+      },
+      "patch": {
+        "description": "A changed address is found on the map again. Answers with the place.\n\nWho may call it: a site administrator, with a token that carries `taxonomy:write`.",
+        "operationId": "patchLocationsById",
+        "parameters": [
+          {
+            "description": "The place's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "address": {
+                    "description": "Its street address.",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "city": {
+                    "description": "Its city.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "country": {
+                    "description": "Its country.",
+                    "maxLength": 50,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "What it is called.",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "state_province": {
+                    "description": "Its state or province.",
+                    "maxLength": 100,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "address",
+                  "city",
+                  "country"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/location.LocationNodeItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "not well formed, or the address could not be found on a map"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          },
+          "404": {
+            "description": "there is no such place"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "taxonomy:write"
+            ]
+          }
+        ],
+        "summary": "Change a place",
+        "tags": [
+          "location-service"
+        ],
+        "x-viewer": "admin"
+      }
+    },
+    "/locations/{id}/inbounds": {
+      "get": {
+        "description": "Those the viewer may see.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getLocationsByIdInbounds",
+        "parameters": [
+          {
+            "description": "What the posts are tied to: a hashtag's or a place's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The order they come in.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "recent",
+              "enum": [
+                "created_at",
+                "updated_at",
+                "recent",
+                "popular"
+              ],
+              "maxLength": 10,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/NodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "404": {
+            "description": "there is no such place"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The posts tied to a place",
+        "tags": [
+          "location-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/locations/{id}/inbounds/": {
+      "post": {
+        "description": "For the post's author, the owner of the profile it is on, and site administrators.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "postLocationsByIdInbounds",
+        "parameters": [
+          {
+            "description": "The id of the hashtag or the place.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "source_id": {
+                    "description": "The id of the post to tie to it.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "source_id"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "tied"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change the post"
+          },
+          "404": {
+            "description": "there is no such place or post"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Tie a post to a place",
+        "tags": [
+          "location-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/locations/{id}/inbounds/{source_id}": {
+      "delete": {
+        "description": "For the post's author, the owner of the profile it is on, and site administrators.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "deleteLocationsByIdInboundsBySourceId",
+        "parameters": [
+          {
+            "description": "The id of the hashtag or the place.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The id of the post to untie from it.",
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "untied"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change the post"
+          },
+          "404": {
+            "description": "there is no such place or post"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Untie a post from a place",
+        "tags": [
+          "location-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
     "/notifications/": {
       "get": {
         "description": "The latest first, each with who did what to what, as they are now.\n\nWho may call it: somebody signed in, with a token that carries `notifications:read`.",
@@ -4888,6 +5751,10 @@
     {
       "description": "Link previews",
       "name": "link-preview-service"
+    },
+    {
+      "description": "Places",
+      "name": "location-service"
     },
     {
       "description": "Notifications",

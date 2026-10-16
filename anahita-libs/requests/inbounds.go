@@ -40,11 +40,15 @@ type InboundBrowseRequest struct {
 }
 
 type InboundAddRequest struct {
+	// The id of the hashtag or the place.
 	TargetID int64 `param:"id" validate:"required,number"`
+	// The id of the post to tie to it.
 	SourceID int64 `form:"source_id" validate:"required,number"`
 }
 
 type InboundDeleteRequest struct {
+	// The id of the hashtag or the place.
 	TargetID int64 `param:"id" validate:"required,number"`
+	// The id of the post to untie from it.
 	SourceID int64 `param:"source_id" validate:"required,number"`
 }
