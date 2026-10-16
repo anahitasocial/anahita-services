@@ -149,8 +149,13 @@ person's server, and no `Block` was sent.
    Bluesky. Left for later: a reply hidden in Bluesky's own app hidden
    here (threadgate in Jetstream's `wantedCollections`, mapped to
    `HideReply` by the root's owner).
-4. **Web: to do.** In the hide confirmation or the hidden badge, say that a
-   reply from Mastodon or another ActivityPub server is hidden here and may
-   still be seen there (`reply.uri` https, or the author's type).
-5. Docs when done: `federation.md` (written), `permissions.md` (written), the
-   web `architecture.md` replies section.
+4. **Web: done, committed (web `dd9b22d`).** Asking to hide a reply from
+   the fediverse (`https` address, or an ActivityPub author:
+   `utils/federation.js#fromFediverse`) says it is hidden here only, naming
+   its server.
+5. Docs: `federation.md`, `permissions.md` and the web `architecture.md`
+   written.
+6. **Left open, for the user to decide or for later:** whether a person's
+   block also reaches the groups they administer; reading threadgates made
+   in Bluesky's app; an incoming ActivityPub `Block` (ignored). None of it
+   was tried against real servers or in a browser.
