@@ -23,7 +23,6 @@ type Permissions struct {
 	Signup          *SignupPermissions
 	SignupRequest   *SignupRequestPerm
 	Totp            *TotpPerm
-	Users           *UsersPermissions
 	WebAuthn        *WebAuthnPerm
 }
 
@@ -38,7 +37,6 @@ func NewPermissions(env *Env) *Permissions {
 		Signup:          NewSignupPermissions(env),
 		SignupRequest:   NewSignupRequestPerm(env),
 		Totp:            NewTotpPerm(env),
-		Users:           NewUsersPermissions(env),
 		WebAuthn:        NewWebAuthnPerm(env),
 	}
 }

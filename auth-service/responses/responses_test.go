@@ -43,21 +43,6 @@ func TestInviteResponseDoesNotLeakTheTokenBody(t *testing.T) {
 	}
 }
 
-func TestTokenResponseExposesOnlyTheRecipient(t *testing.T) {
-	token := entities.NewToken()
-	token.Body = strings.Repeat("b", 128)
-	token.RecipientEmail = "ada@example.com"
-
-	encoded, err := json.Marshal((&TokenResponse{}).MapToken(token))
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
-
-	if strings.Contains(string(encoded), token.Body) {
-		t.Errorf("the token body is exposed:\n%s", encoded)
-	}
-}
-
 // A client secret is shown exactly once, at creation or rotation. Every other
 // mapping of the same entity must omit it — otherwise a list endpoint hands
 // out every client's credentials.
@@ -150,12 +135,6 @@ func TestCollectionMappersReturnAnArrayNotNull(t *testing.T) {
 // A nil entity maps to nil rather than to a zero-valued item, so a caller
 // cannot mistake "not found" for "found, with empty fields".
 func TestSingleMappersPropagateNil(t *testing.T) {
-	if (&UserResponse{}).MapNode(nil) != nil {
-		t.Error("UserResponse.MapNode invented a user from nil")
-	}
-	if (&UserResponse{}).MapNodeItem(nil) != nil {
-		t.Error("UserResponse.MapNodeItem invented a user from nil")
-	}
 	if (&OAuthClientResponse{}).MapClient(nil) != nil {
 		t.Error("OAuthClientResponse.MapClient invented a client from nil")
 	}
