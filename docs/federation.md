@@ -747,7 +747,7 @@ followed, and little else. The rules are the installation's own, in
 | | Allowed? |
 | --- | --- |
 | Reading their profile, at `GET /people/<handle>` with the whole handle (`alice@mastodon.example`) | As for any public profile. It answers with `uri` and `origin_domain`, which nothing made here has |
-| Following and unfollowing them, blocking them | Yes, through the same routes as for anybody |
+| Following and unfollowing them, blocking them | Yes, through the same routes as for anybody. A block ends every follow between the two, both ways, so that nothing more is delivered to their server, and their server is sent a `Block` by somebody on the fediverse, which Mastodon and what speaks to it keep to: they stop seeing the blocker's posts and answering them. Unblocking sends `Undo` of it; the follows are not made again. The sweep forgets any follow left across a block |
 | Changing their profile, their settings, their pictures | Nobody, an administrator included: every route that changes a person reads them as a person of this installation, and does not find them |
 | Posting on their profile | Nobody |
 | Changing a post of theirs | Nobody. An administrator may remove it from this installation |

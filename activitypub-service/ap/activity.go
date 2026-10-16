@@ -94,6 +94,24 @@ func NewUndoFollow(id, actor, object, followID string) *Sent {
 	}
 }
 
+// NewBlock says somebody here blocks somebody elsewhere. Mastodon and what
+// speaks to it stop showing them the blocker's posts and stop them
+// answering, and end any follow between the two.
+func NewBlock(id, actor, object string) *Sent {
+	return &Sent{Context: contextActivityStreams, ID: id, Type: "Block", Actor: actor, Object: object}
+}
+
+// NewUndoBlock takes a block back, quoting the Block.
+func NewUndoBlock(id, actor, object, blockID string) *Sent {
+	return &Sent{
+		Context: contextActivityStreams,
+		ID:      id,
+		Type:    "Undo",
+		Actor:   actor,
+		Object:  FollowRef{ID: blockID, Type: "Block", Actor: actor, Object: object},
+	}
+}
+
 // NewLike says somebody here likes something elsewhere.
 func NewLike(id, actor, object string) *Sent {
 	return &Sent{Context: contextActivityStreams, ID: id, Type: "Like", Actor: actor, Object: object}

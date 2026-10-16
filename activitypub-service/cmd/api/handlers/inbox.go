@@ -26,8 +26,8 @@ import (
 	"anahita-libs/federation"
 	"anahita-libs/ratelimit"
 
-	"github.com/labstack/echo/v4"
 	"anahita-libs/videos"
+	"github.com/labstack/echo/v4"
 )
 
 type rsaKey = rsa.PrivateKey
