@@ -136,15 +136,17 @@ make test
 
 That runs every module's tests and the check of `legacy/upgrade.sql`. Among
 them are the API reference's checks: a route registered without a
-description fails by name, and so does a reference in `docs/api/` that is not
-what the code describes now. After changing a route, or a struct it takes or
-sends, run
+description fails by name, a reference in `docs/api/` that is not what the
+code describes now fails, and so does a handler test that gets an answer the
+reference does not describe: a status it does not list, or a field it does
+not name. After changing a route, or a struct it takes or sends, run
 
 ~~~sh
 make api_docs
 ~~~
 
 and commit what it writes with the change ([The API](api.md#describing-a-route)).
+To read the reference, open `docs/api/index.html` in a browser.
 
 Tests that need a database or a store are skipped unless they are told where
 one is, so that nothing is ever run against the database you develop on. Give

@@ -654,6 +654,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Mine",
         "x-viewer": "signed_in"
       }
     },
@@ -785,6 +786,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*blockHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -916,6 +918,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followRequestHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -1048,6 +1051,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followerHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -1079,8 +1083,7 @@
                       "type": "integer"
                     },
                     "minItems": 1,
-                    "type": "array",
-                    "x-validate": "dive,numeric"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -1140,6 +1143,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -1231,6 +1235,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -1304,6 +1309,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Accept",
         "x-viewer": "signed_in"
       }
     },
@@ -1377,6 +1383,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Decline",
         "x-viewer": "signed_in"
       }
     },
@@ -1432,6 +1439,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -1564,6 +1572,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*leaderHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -1695,6 +1704,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*mutualHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -1757,6 +1767,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*blockHandler).Delete",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -1817,6 +1828,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*blockHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -1879,6 +1891,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followRequestHandler).Delete",
         "x-viewer": "signed_in"
       },
       "patch": {
@@ -1939,6 +1952,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followRequestHandler).Edit",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -1999,6 +2013,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followRequestHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -2061,6 +2076,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followerHandler).Delete",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -2121,6 +2137,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followerHandler).Add",
         "x-viewer": "signed_in"
       }
     }

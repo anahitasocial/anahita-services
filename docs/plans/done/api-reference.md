@@ -70,7 +70,7 @@ One page for what is true of every route, which no generator can know:
 
 - **The files themselves,** for tools and agents.
 - **A page for people,** made from the combined file as static HTML at build time, with its script kept in the repository. Nothing fetched from somebody else's server when the page is opened (item 9's rule).
-- **Through the docs MCP server** ([docs-for-agents.md](docs-for-agents.md)): asking for one route's shapes without loading three hundred.
+- **Through the docs MCP server** ([docs-for-agents.md](../docs-for-agents.md)): asking for one route's shapes without loading three hundred.
 
 ## Considered and not chosen
 
@@ -104,7 +104,7 @@ A and B are worth having alone: they settle the form, and every service after is
 
 - **None hard.** Better after item 27 (the clean schema) is decided, not necessarily done, since neither changes the wire.
 - **Federation (item 8):** `activitypub-service` and `atproto-service` should be described as they are written, which needs phase A first.
-- **[docs-for-agents.md](docs-for-agents.md)** reads these files for its route lookups.
+- **[docs-for-agents.md](../docs-for-agents.md)** reads these files for its route lookups.
 
 ## Documentation
 
@@ -119,7 +119,19 @@ A and B are worth having alone: they settle the form, and every service after is
 | Plan | written 2026-10-11 |
 | Phases A and B | done 2026-10-15, before Pulse (row 38) at the user's word, so that Pulse's routes are described as they are written |
 | Phase C | done 2026-10-15: all 19 services with routes are described, 344 routes in all; export-service's routes moved from its `main.go` to a `routes.go`, where the members-only guard reads them |
-| Phases D and E | to do: the page for people, answers checked against the reference |
+| Phase D | done 2026-10-15: `docs/api/index.html`, and a link from each prose page to its routes |
+| Phase E | done 2026-10-15: the answers the handler tests get are checked against the reference, in every service that has handler tests |
+| Verification | 2026-10-15: the combined file lints clean (Redocly, `docs/api/redocly.yaml`); a client generated from it (openapi-typescript and openapi-fetch) type-checks, and on the dev stack reads NodeInfo, the people and a profile, and posts a note as `apiclientcheck`, an account signed up for it through the signup pages and signed in by the authorization code with PKCE, as `anahita-web` does |
+
+### What phases D and E did
+
+- **The page** is made by `apidoc.Page` from `anahita.json` and each service's file, as `docs/api/index.html`, and checked like the documents (`TestTheCombinedReference`, `make api_docs`). One file, its styles and its filter script in it, nothing fetched: it opens with the network off. A section for each service (`#hashtag-service`), each route by its `operationId` (`#getHashtagsByAlias`), each shape by `#schema-` and its name. A prose page named in a description is a link to it.
+- **Each prose page links to its routes** in the page, under its first paragraph.
+- **Each operation says which Go function answers it**, as `x-handler`, read when the route is registered.
+- **Check 3 is `apidoc.Conforms`**, for a test with a `*testing.T` and a route, and `apidoc.Answers`, which a package's helpers keep answers in by the handler they called (`answers.Handler(h.Read, rec)`), checked from `TestMain` once the tests have run. It fails on a status the route does not list, a body where it lists none, a field missing that is always there, a value of the wrong type or not one of its values, and a field the reference does not name. A 500 is not checked.
+- **What it found, and was put right:** `/.well-known/host-meta` sends an XML document the reference said was empty; refusing a server answered 400 with a body it did not describe; `POST /password/reset` also sends the browser back to the start (303), and takes no token after the emailed code, which the reference said it always did; feed-service's routes that write a feed need `media:write` and did not say so; link-preview-service, feed-service and recommendation-service answered a visitor 403 where every other route answers 401.
+- **apidoc read `dive` as the list's rule:** `grant_types` (`required,min=1,dive,oneof=…`) was a list whose values had to be one of three strings. The rules after `dive` are each item's now. The linter found it.
+- **The linter's other findings are the API as it is,** and `docs/api/redocly.yaml` says why each is off: addresses that end in a slash, echo's fixed segments before parameters, pages that answer 200 with the error on the page, and routes that only redirect.
 
 ### What phases A and B did, and how it differs from the design above
 

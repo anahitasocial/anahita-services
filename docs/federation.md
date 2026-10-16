@@ -4,6 +4,8 @@ How people here take part in the fediverse (ActivityPub: Mastodon and the
 servers like it) and in Bluesky (the AT Protocol), and what an installation
 has to do for that to happen.
 
+Its routes are in the API reference: [activitypub-service](api/index.html#activitypub-service) and [atproto-service](api/index.html#atproto-service).
+
 **This is being built.** What is described here is what works today: a
 person can choose to be found, people follow each other across servers
 either way round, their public notes travel with the follow, a person can

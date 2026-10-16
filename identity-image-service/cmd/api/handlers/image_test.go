@@ -281,6 +281,7 @@ func TestAnAvatarIsStoredAtEverySizeAndTheSquareIsNotSqueezed(t *testing.T) {
 	if err := handlerFor(w).SetAvatar(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(handlerFor(w).SetAvatar, rec)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("status = %d, body %s", rec.Code, rec.Body)
 	}
@@ -320,11 +321,12 @@ func TestAnAvatarIsStoredAtEverySizeAndTheSquareIsNotSqueezed(t *testing.T) {
 // A small picture is not blown up to fill a large size.
 func TestASmallPictureIsNotEnlarged(t *testing.T) {
 	w := newWorld(personType)
-	c, _ := request(t, http.MethodPost, ada, ada, "avatar", picture(t, 100, 80))
+	c, rec := request(t, http.MethodPost, ada, ada, "avatar", picture(t, 100, 80))
 
 	if err := handlerFor(w).SetAvatar(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(handlerFor(w).SetAvatar, rec)
 
 	if width, height := sizeOf(t, find(t, w.stored, "_large.")); width != 100 || height != 80 {
 		t.Errorf("a 100x80 picture was stored as %dx%d", width, height)
@@ -345,6 +347,7 @@ func TestReplacingRemovesTheOldImageAfterTheNewOneIsSaved(t *testing.T) {
 	if err := h.SetAvatar(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(h.SetAvatar, rec)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("status = %d", rec.Code)
 	}
@@ -383,6 +386,7 @@ func TestAFailedSaveLeavesNothingBehindAndKeepsTheOldImage(t *testing.T) {
 	if err := handlerFor(w).SetAvatar(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(handlerFor(w).SetAvatar, rec)
 
 	if rec.Code != http.StatusInternalServerError {
 		t.Errorf("status = %d", rec.Code)
@@ -407,6 +411,7 @@ func TestWhatIsNotAnImageIsRefusedAndNothingIsStored(t *testing.T) {
 	if err := handlerFor(w).SetAvatar(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(handlerFor(w).SetAvatar, rec)
 
 	if rec.Code != http.StatusUnsupportedMediaType || !strings.Contains(rec.Body.String(), errFileUnsupported) {
 		t.Errorf("status = %d, body %s", rec.Code, rec.Body)
@@ -425,6 +430,7 @@ func TestSomebodyElseCannotChangeAPersonsAvatar(t *testing.T) {
 	if err := h.SetAvatar(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(h.SetAvatar, rec)
 	if rec.Code != http.StatusForbidden {
 		t.Errorf("setting: status = %d", rec.Code)
 	}
@@ -433,6 +439,7 @@ func TestSomebodyElseCannotChangeAPersonsAvatar(t *testing.T) {
 	if err := h.RemoveAvatar(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(h.RemoveAvatar, rec)
 	if rec.Code != http.StatusForbidden {
 		t.Errorf("removing: status = %d", rec.Code)
 	}
@@ -452,6 +459,7 @@ func TestAPostCannotHaveAnAvatarButCanHaveACover(t *testing.T) {
 	if err := h.SetAvatar(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(h.SetAvatar, rec)
 	if rec.Code != http.StatusForbidden || len(w.stored) != 0 {
 		t.Errorf("an avatar on a post: status = %d, stored %v", rec.Code, keys(w.stored))
 	}
@@ -460,6 +468,7 @@ func TestAPostCannotHaveAnAvatarButCanHaveACover(t *testing.T) {
 	if err := h.SetCover(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(h.SetCover, rec)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("a cover on a post: status = %d, body %s", rec.Code, rec.Body)
 	}
@@ -483,6 +492,7 @@ func TestRemovingClearsTheNameAndThenDeletesTheImage(t *testing.T) {
 	if err := handlerFor(w).RemoveAvatar(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(handlerFor(w).RemoveAvatar, rec)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d", rec.Code)
@@ -509,6 +519,7 @@ func TestIfTheNameCannotBeClearedTheImageIsKept(t *testing.T) {
 	if err := handlerFor(w).RemoveAvatar(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(handlerFor(w).RemoveAvatar, rec)
 
 	if rec.Code != http.StatusInternalServerError {
 		t.Errorf("status = %d", rec.Code)
@@ -525,6 +536,7 @@ func TestRemovingWhatIsNotThereIsNotAFailure(t *testing.T) {
 	if err := handlerFor(w).RemoveCover(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(handlerFor(w).RemoveCover, rec)
 
 	if rec.Code != http.StatusOK || len(w.log) != 0 {
 		t.Errorf("status = %d, did %v", rec.Code, w.log)
@@ -538,6 +550,7 @@ func TestANodeThatIsNotThereIsNotFound(t *testing.T) {
 	if err := handlerFor(w).SetAvatar(c); err != nil {
 		t.Fatal(err)
 	}
+	answers.Handler(handlerFor(w).SetAvatar, rec)
 
 	if rec.Code != http.StatusNotFound {
 		t.Errorf("status = %d", rec.Code)

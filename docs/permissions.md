@@ -6,6 +6,8 @@ Who can post, reply, like and add followers on a profile, and who can edit or
 delete a reply. It covers the defaults an installation ships with, how to
 change them, and what profile owners can change for themselves.
 
+What each route answers when the viewer may not is in the [API reference](api/index.html).
+
 ## Contents
 
 - [Two separate settings](#two-separate-settings)

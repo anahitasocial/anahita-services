@@ -273,10 +273,33 @@ func withNull(schema map[string]any) map[string]any {
 
 // validated adds to a schema what a validate tag says a value may be, and
 // answers with the rules that say something JSON Schema cannot.
-func validated(schema map[string]any, kind reflect.Kind, tag string) (required bool, other []string) {
-	for _, rule := range strings.Split(tag, ",") {
+//
+// The rules after `dive` are each item's, for a list.
+func validated(schema map[string]any, t reflect.Type, tag string) (required bool, other []string) {
+	for t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+	kind := t.Kind()
+	rules := strings.Split(tag, ",")
+	for i, rule := range rules {
 		key, value, _ := strings.Cut(rule, "=")
 		switch key {
+		case "dive":
+			rest := strings.Join(rules[i+1:], ",")
+			items, ok := schema["items"].(map[string]any)
+			if !ok || (kind != reflect.Slice && kind != reflect.Array) {
+				return required, append(other, rules[i:]...)
+			}
+			each := map[string]any{}
+			for k, v := range items {
+				each[k] = v
+			}
+			_, unsaid := validated(each, t.Elem(), rest)
+			schema["items"] = each
+			if len(unsaid) > 0 {
+				other = append(other, "dive,"+strings.Join(unsaid, ","))
+			}
+			return required, other
 		case "", "omitempty":
 		case "required":
 			required = true

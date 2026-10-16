@@ -33,7 +33,7 @@ type DismissalRemoveRequest struct {
 func (h *dismissalsHandler) Browse(c echo.Context) error {
 	viewer := getViewer(c)
 	if !signedIn(viewer) {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	ids, err := h.Repos.Dismissals.List(viewer.ID)
@@ -48,7 +48,7 @@ func (h *dismissalsHandler) Browse(c echo.Context) error {
 func (h *dismissalsHandler) Add(c echo.Context) error {
 	viewer := getViewer(c)
 	if !signedIn(viewer) {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	req := &DismissalAddRequest{}
@@ -70,7 +70,7 @@ func (h *dismissalsHandler) Add(c echo.Context) error {
 func (h *dismissalsHandler) Delete(c echo.Context) error {
 	viewer := getViewer(c)
 	if !signedIn(viewer) {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	req := &DismissalRemoveRequest{}

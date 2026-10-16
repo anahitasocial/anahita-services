@@ -2,6 +2,8 @@
 
 recommendation-service suggests people, groups and events to follow. It uses no model: each suggestion is worked out from the graph as it stands, by rules written down here, and is sent with the reasons for it.
 
+Its routes are in the API reference: [recommendation-service](api/index.html#recommendation-service).
+
 It is optional. An installation that does not want suggestions leaves the service out, and the web app shows none. An installation that wants them chosen another way runs another service that answers the same paths.
 
 ## Contents

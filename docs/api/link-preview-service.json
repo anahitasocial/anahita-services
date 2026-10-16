@@ -140,6 +140,7 @@
         "tags": [
           "link-preview-service"
         ],
+        "x-handler": "linkpreview/cmd/api/handlers.(*previewsHandler).ReadInternal",
         "x-internal": true,
         "x-viewer": "anyone"
       }
@@ -193,6 +194,7 @@
         "tags": [
           "link-preview-service"
         ],
+        "x-handler": "linkpreview/cmd/api/handlers.(*previewsHandler).Read",
         "x-viewer": "signed_in"
       }
     },
@@ -245,6 +247,7 @@
         "tags": [
           "link-preview-service"
         ],
+        "x-handler": "linkpreview/cmd/api/handlers.(*previewsHandler).Read",
         "x-viewer": "signed_in"
       }
     },
@@ -281,6 +284,7 @@
         "tags": [
           "link-preview-service"
         ],
+        "x-handler": "linkpreview/cmd/api/handlers.(*previewsHandler).Image",
         "x-viewer": "anyone"
       }
     }

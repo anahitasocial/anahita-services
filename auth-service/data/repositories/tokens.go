@@ -144,31 +144,10 @@ func (repo *tokens) BrowseFrom(tokenType string, personID int64, req *requests.B
 
 	var results []*entities.Token
 	for rows.Next() {
-		token := entities.NewToken()
-		if err := rows.Scan(
-			&token.ID,
-			&token.RecipientEmail,
-			&token.NewEmail,
-			&token.Type,
-			&token.Body,
-			&token.StartedAt,
-			&token.ExpiredAfter,
-			&token.IsUsed,
-			&token.CreatedAt,
-			&token.CreatedBy,
-			&token.UpdatedAt,
-			&token.UpdatedBy,
-			&token.Creator.ID,
-			&token.Creator.Type,
-			&token.Creator.Name,
-			&token.Editor.ID,
-			&token.Editor.Type,
-			&token.Editor.Name,
-		); err != nil {
+		token, err := scanToken(rows)
+		if err != nil {
 			return nil, err
 		}
-
-		token.SetStatus()
 
 		results = append(results, token)
 	}

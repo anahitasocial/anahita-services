@@ -6,6 +6,8 @@ big to be sent to the API, and nothing somebody uploads is ever shown as it
 arrived, so a browser sends the file straight to storage, a worker makes
 the files that are shown, and only then is there a post.
 
+Its routes are in the API reference: [video-service](api/index.html#video-service).
+
 ## Contents
 
 - [The parts](#the-parts)

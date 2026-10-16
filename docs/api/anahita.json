@@ -3605,6 +3605,36 @@
         ],
         "type": "object"
       },
+      "auth.InviteList": {
+        "description": "InviteList is a page of the viewer's invitations, and how many of them are waiting.",
+        "properties": {
+          "data": {
+            "description": "The latest first.",
+            "items": {
+              "$ref": "#/components/schemas/auth.InviteItem"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination",
+            "description": "Where this page is among all of them."
+          },
+          "pending": {
+            "description": "How many are waiting: sent, and not yet accepted, expired or taken back. The most that may wait is the viewer's entitlement, in userinfo (`entitlements.invites.max_pending`); sending another at it is refused (`too_many_invitations`).",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "pagination",
+          "pending"
+        ],
+        "type": "object"
+      },
       "auth.JWKSet": {
         "description": "JWKSet is the keys a token's signature is checked with (RFC 7517).",
         "properties": {
@@ -5845,7 +5875,14 @@
         "operationId": "getWellKnownHostMeta",
         "responses": {
           "200": {
-            "description": "the XRD document, as `application/xrd+xml`"
+            "content": {
+              "application/xrd+xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "the XRD document"
           }
         },
         "security": [
@@ -5858,6 +5895,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).HostMeta",
         "x-viewer": "anyone"
       }
     },
@@ -5887,6 +5925,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).JWKS",
         "x-viewer": "anyone"
       }
     },
@@ -5916,6 +5955,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*nodeInfoHandler).Discovery",
         "x-viewer": "anyone"
       }
     },
@@ -5945,6 +5985,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).Discovery",
         "x-viewer": "anyone"
       }
     },
@@ -5990,6 +6031,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).WebFinger",
         "x-viewer": "anyone"
       }
     },
@@ -6070,6 +6112,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*reportsHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -6150,6 +6193,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*reportsHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -6261,6 +6305,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Browse",
         "x-viewer": "admin"
       }
     },
@@ -6297,6 +6342,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Summary",
         "x-viewer": "admin"
       }
     },
@@ -6359,6 +6405,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Read",
         "x-viewer": "admin"
       }
     },
@@ -6416,6 +6463,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Reopen",
         "x-viewer": "admin"
       }
     },
@@ -6513,6 +6561,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Resolve",
         "x-viewer": "admin"
       }
     },
@@ -6585,6 +6634,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*reasonsHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -6800,6 +6850,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*accountsHandler).Browse",
         "x-viewer": "super_admin"
       }
     },
@@ -6883,6 +6934,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*accountsHandler).MakeRegistered",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -6920,6 +6972,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*accountsHandler).PublicContent",
         "x-viewer": "super_admin"
       }
     },
@@ -7002,6 +7055,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).BrowseBlocks",
         "x-viewer": "super_admin"
       },
       "post": {
@@ -7039,7 +7093,14 @@
             "description": "Created"
           },
           "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`domain_required`: the request names no server; `domain_unreadable`: it is not a server's name; `domain_is_here`: it is this installation"
           },
           "401": {
             "description": "no token, or one that has expired"
@@ -7057,6 +7118,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).AddBlock",
         "x-viewer": "super_admin"
       }
     },
@@ -7098,6 +7160,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).DeleteBlock",
         "x-viewer": "super_admin"
       }
     },
@@ -7189,6 +7252,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Lookup",
         "x-viewer": "signed_in"
       }
     },
@@ -7272,6 +7336,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).RestorePictures",
         "x-viewer": "signed_in"
       }
     },
@@ -7330,6 +7395,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).ReadSettings",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -7398,6 +7464,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).EditSettings",
         "x-viewer": "signed_in"
       }
     },
@@ -7441,6 +7508,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Handle",
         "x-viewer": "anyone"
       }
     },
@@ -7544,6 +7612,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*agreementsHandler).EditPrivacy",
         "x-viewer": "signed_in"
       }
     },
@@ -7647,6 +7716,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*agreementsHandler).EditTos",
         "x-viewer": "signed_in"
       }
     },
@@ -7711,6 +7781,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*agreementsHandler).Read",
         "x-viewer": "signed_in"
       }
     },
@@ -7746,6 +7817,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).InstanceActor",
         "x-viewer": "anyone"
       }
     },
@@ -7789,6 +7861,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Note",
         "x-viewer": "anyone"
       }
     },
@@ -7835,6 +7908,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Picture",
         "x-viewer": "anyone"
       }
     },
@@ -7871,6 +7945,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).VideoPoster",
         "x-viewer": "anyone"
       }
     },
@@ -7907,6 +7982,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Video",
         "x-viewer": "anyone"
       }
     },
@@ -7953,6 +8029,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Actor",
         "x-viewer": "anyone"
       }
     },
@@ -7996,6 +8073,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Followers",
         "x-viewer": "anyone"
       }
     },
@@ -8039,6 +8117,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Following",
         "x-viewer": "anyone"
       }
     },
@@ -8101,6 +8180,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Inbox",
         "x-viewer": "anyone"
       }
     },
@@ -8147,6 +8227,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Outbox",
         "x-viewer": "anyone"
       }
     },
@@ -8194,6 +8275,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -8245,6 +8327,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -8371,6 +8454,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*articleHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -8482,6 +8566,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -8573,6 +8658,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditCommentStatus",
         "x-viewer": "signed_in"
       }
     },
@@ -8637,6 +8723,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Unpin",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -8699,6 +8786,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Pin",
         "x-viewer": "signed_in"
       }
     },
@@ -8820,6 +8908,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -8941,6 +9030,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditReplyAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -9067,6 +9157,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*articleHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -9268,6 +9359,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*articleHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -9349,6 +9441,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).Lookup",
         "x-viewer": "signed_in"
       }
     },
@@ -9435,6 +9528,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).RestorePictures",
         "x-viewer": "signed_in"
       }
     },
@@ -9476,6 +9570,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).DeleteSettings",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -9515,6 +9610,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).ReadSettings",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -9624,6 +9720,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).EditSettings",
         "x-viewer": "signed_in"
       }
     },
@@ -9685,6 +9782,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).ImportPreview",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -9774,6 +9872,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).ImportFollows",
         "x-viewer": "signed_in"
       }
     },
@@ -9831,6 +9930,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*authLogHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -9888,6 +9988,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*authLogHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -9930,6 +10031,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*isHandler).Email",
         "x-viewer": "anyone"
       }
     },
@@ -9972,6 +10074,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*isHandler).Totp",
         "x-viewer": "anyone"
       }
     },
@@ -10014,6 +10117,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*isHandler).Username",
         "x-viewer": "anyone"
       }
     },
@@ -10059,6 +10163,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).RemoveAvatar",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -10159,6 +10264,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).SetAvatar",
         "x-viewer": "signed_in"
       }
     },
@@ -10204,6 +10310,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).PublicAvatar",
         "x-viewer": "anyone"
       }
     },
@@ -10282,6 +10389,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Saved",
         "x-viewer": "signed_in"
       }
     },
@@ -10331,6 +10439,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Unsave",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -10378,6 +10487,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Save",
         "x-viewer": "signed_in"
       }
     },
@@ -10429,6 +10539,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).BrowseClients",
         "x-viewer": "super_admin"
       },
       "post": {
@@ -10459,17 +10570,16 @@
                   },
                   "grant_types": {
                     "description": "How it may get tokens: `authorization_code`, `refresh_token`, `client_credentials`.",
-                    "enum": [
-                      "authorization_code",
-                      "refresh_token",
-                      "client_credentials"
-                    ],
                     "items": {
+                      "enum": [
+                        "authorization_code",
+                        "refresh_token",
+                        "client_credentials"
+                      ],
                       "type": "string"
                     },
                     "minItems": 1,
-                    "type": "array",
-                    "x-validate": "dive"
+                    "type": "array"
                   },
                   "name": {
                     "description": "What people are shown it is called.",
@@ -10479,13 +10589,12 @@
                   },
                   "redirect_uris": {
                     "description": "Where people may be sent back to after signing in.",
-                    "format": "uri",
                     "items": {
+                      "format": "uri",
                       "type": "string"
                     },
                     "minItems": 1,
-                    "type": "array",
-                    "x-validate": "dive"
+                    "type": "array"
                   },
                   "scopes": {
                     "description": "What it may ask to do (oauth.md).",
@@ -10565,6 +10674,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddClient",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -10627,6 +10737,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).DeleteClient",
         "x-step-up": true,
         "x-viewer": "super_admin"
       },
@@ -10680,6 +10791,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadClient",
         "x-viewer": "super_admin"
       },
       "patch": {
@@ -10716,17 +10828,16 @@
                   },
                   "grant_types": {
                     "description": "How it may get tokens: `authorization_code`, `refresh_token`, `client_credentials`.",
-                    "enum": [
-                      "authorization_code",
-                      "refresh_token",
-                      "client_credentials"
-                    ],
                     "items": {
+                      "enum": [
+                        "authorization_code",
+                        "refresh_token",
+                        "client_credentials"
+                      ],
                       "type": "string"
                     },
                     "minItems": 1,
-                    "type": "array",
-                    "x-validate": "dive"
+                    "type": "array"
                   },
                   "name": {
                     "description": "What people are shown it is called.",
@@ -10736,13 +10847,12 @@
                   },
                   "redirect_uris": {
                     "description": "Where people may be sent back to after signing in.",
-                    "format": "uri",
                     "items": {
+                      "format": "uri",
                       "type": "string"
                     },
                     "minItems": 1,
-                    "type": "array",
-                    "x-validate": "dive"
+                    "type": "array"
                   },
                   "scopes": {
                     "description": "What it may ask to do (oauth.md).",
@@ -10824,6 +10934,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).EditClient",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -10893,6 +11004,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).RotateClientSecret",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -10939,6 +11051,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).RemoveCover",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -11039,6 +11152,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).SetCover",
         "x-viewer": "signed_in"
       }
     },
@@ -11084,6 +11198,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).PublicCover",
         "x-viewer": "anyone"
       }
     },
@@ -11146,6 +11261,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*emailChangeHandler).Edit",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -11206,6 +11322,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*emailChangeHandler).Confirm",
         "x-viewer": "signed_in"
       }
     },
@@ -11569,6 +11686,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -11659,6 +11777,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Mine",
         "x-viewer": "signed_in"
       }
     },
@@ -11711,6 +11830,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Delete",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -11760,6 +11880,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -12077,6 +12198,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -12184,6 +12306,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -12286,6 +12409,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -12371,6 +12495,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -12426,6 +12551,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -12481,6 +12607,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Archive",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -12586,6 +12713,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Attendees",
         "x-viewer": "anyone"
       }
     },
@@ -12638,6 +12766,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Cancel",
         "x-viewer": "signed_in"
       }
     },
@@ -12690,6 +12819,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeletionCounts",
         "x-viewer": "signed_in"
       }
     },
@@ -12757,6 +12887,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
         "x-viewer": "signed_in"
       }
     },
@@ -12786,8 +12917,7 @@
                     "items": {
                       "$ref": "#/components/schemas/ActorFeatureRequest"
                     },
-                    "type": "array",
-                    "x-validate": "dive"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -12832,6 +12962,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditFeatures",
         "x-viewer": "signed_in"
       }
     },
@@ -12875,6 +13006,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).ICS",
         "x-viewer": "anyone"
       }
     },
@@ -12951,6 +13083,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Purge",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -13004,6 +13137,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
         "x-viewer": "signed_in"
       }
     },
@@ -13049,6 +13183,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Unrsvp",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -13178,6 +13313,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Rsvp",
         "x-viewer": "signed_in"
       }
     },
@@ -13209,6 +13345,7 @@
         "tags": [
           "export-service"
         ],
+        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -13268,6 +13405,7 @@
         "tags": [
           "export-service"
         ],
+        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Add",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -13307,6 +13445,7 @@
         "tags": [
           "export-service"
         ],
+        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -13350,12 +13489,13 @@
         "tags": [
           "export-service"
         ],
+        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Read",
         "x-viewer": "signed_in"
       }
     },
     "/feeds/": {
       "post": {
-        "description": "Who may call it: somebody signed in.",
+        "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "postFeeds",
         "requestBody": {
           "content": {
@@ -13443,13 +13583,16 @@
         },
         "security": [
           {
-            "bearer": []
+            "bearer": [
+              "media:write"
+            ]
           }
         ],
         "summary": "Make a custom feed",
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -13564,6 +13707,7 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*feedActorHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -13628,6 +13772,7 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Discover",
         "x-viewer": "anyone"
       }
     },
@@ -13719,6 +13864,7 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*feedLeadersHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -13765,6 +13911,7 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Mine",
         "x-viewer": "signed_in"
       }
     },
@@ -13811,6 +13958,7 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Pinned",
         "x-viewer": "signed_in"
       }
     },
@@ -13827,12 +13975,11 @@
                     "description": "The feeds kept on the viewer's home page, in order: up to 10.",
                     "items": {
                       "format": "int64",
+                      "minimum": 1,
                       "type": "integer"
                     },
                     "maxItems": 10,
-                    "minItems": 1,
-                    "type": "array",
-                    "x-validate": "dive,numeric"
+                    "type": "array"
                   }
                 },
                 "type": "object"
@@ -13893,12 +14040,13 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).SetPins",
         "x-viewer": "signed_in"
       }
     },
     "/feeds/preview": {
       "post": {
-        "description": "The first page of what a feed of this definition would show, before it is made.\n\nWho may call it: somebody signed in.",
+        "description": "The first page of what a feed of this definition would show, before it is made.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "postFeedsPreview",
         "requestBody": {
           "content": {
@@ -13932,6 +14080,9 @@
           "401": {
             "description": "no token, or one that has expired"
           },
+          "403": {
+            "description": "the viewer may not do this"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -13945,19 +14096,22 @@
         },
         "security": [
           {
-            "bearer": []
+            "bearer": [
+              "media:write"
+            ]
           }
         ],
         "summary": "Try a definition",
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Preview",
         "x-viewer": "signed_in"
       }
     },
     "/feeds/{id}": {
       "delete": {
-        "description": "Who may call it: somebody signed in.",
+        "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "deleteFeedsById",
         "parameters": [
           {
@@ -13990,13 +14144,16 @@
         },
         "security": [
           {
-            "bearer": []
+            "bearer": [
+              "media:write"
+            ]
           }
         ],
         "summary": "Delete a custom feed",
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -14042,10 +14199,11 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
-        "description": "Who may call it: somebody signed in.",
+        "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "patchFeedsById",
         "parameters": [
           {
@@ -14138,19 +14296,22 @@
         },
         "security": [
           {
-            "bearer": []
+            "bearer": [
+              "media:write"
+            ]
           }
         ],
         "summary": "Change a custom feed",
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
     "/feeds/{id}/copy": {
       "post": {
-        "description": "A feed of the viewer's own with the same definition, to change.\n\nWho may call it: somebody signed in.",
+        "description": "A feed of the viewer's own with the same definition, to change.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "postFeedsByIdCopy",
         "parameters": [
           {
@@ -14227,13 +14388,16 @@
         },
         "security": [
           {
-            "bearer": []
+            "bearer": [
+              "media:write"
+            ]
           }
         ],
         "summary": "Copy a custom feed",
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Copy",
         "x-viewer": "signed_in"
       }
     },
@@ -14311,6 +14475,7 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Items",
         "x-viewer": "anyone"
       }
     },
@@ -14363,6 +14528,7 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Unpin",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -14413,6 +14579,7 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*customFeedHandler).Pin",
         "x-viewer": "signed_in"
       }
     },
@@ -14544,6 +14711,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -14643,6 +14811,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -14663,13 +14832,13 @@
                   "ids": {
                     "description": "The profiles: up to 500.",
                     "items": {
+                      "exclusiveMinimum": 0,
                       "format": "int64",
                       "type": "integer"
                     },
                     "maxItems": 500,
                     "minItems": 1,
-                    "type": "array",
-                    "x-validate": "dive,gt=0"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -14746,6 +14915,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).PurgeBatch",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -14799,6 +14969,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).PurgeProgress",
         "x-viewer": "super_admin"
       }
     },
@@ -14851,6 +15022,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Delete",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -14900,6 +15072,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -15015,6 +15188,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -15122,6 +15296,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -15224,6 +15399,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -15309,6 +15485,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -15364,6 +15541,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -15419,6 +15597,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Archive",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -15472,6 +15651,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeletionCounts",
         "x-viewer": "signed_in"
       }
     },
@@ -15562,6 +15742,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditDownloadDefault",
         "x-viewer": "signed_in"
       }
     },
@@ -15629,6 +15810,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
         "x-viewer": "signed_in"
       }
     },
@@ -15731,6 +15913,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).HostedBy",
         "x-viewer": "anyone"
       }
     },
@@ -15808,6 +15991,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetFeatured",
         "x-viewer": "signed_in"
       }
     },
@@ -15837,8 +16021,7 @@
                     "items": {
                       "$ref": "#/components/schemas/ActorFeatureRequest"
                     },
-                    "type": "array",
-                    "x-validate": "dive"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -15883,6 +16066,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditFeatures",
         "x-viewer": "signed_in"
       }
     },
@@ -15959,6 +16143,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Purge",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -16012,6 +16197,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
         "x-viewer": "signed_in"
       }
     },
@@ -16115,6 +16301,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -16190,6 +16377,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).BrowseOrderedByDegree",
         "x-viewer": "anyone"
       }
     },
@@ -16253,6 +16441,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).BrowseTrending",
         "x-viewer": "anyone"
       }
     },
@@ -16300,6 +16489,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).Delete",
         "x-viewer": "admin"
       },
       "get": {
@@ -16344,6 +16534,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).Read",
         "x-viewer": "anyone"
       }
     },
@@ -16462,6 +16653,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*inboundHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -16513,6 +16705,7 @@
         "tags": [
           "activitypub-service"
         ],
+        "x-handler": "activitypub/cmd/api/handlers.(*Handlers).Inbox",
         "x-viewer": "anyone"
       }
     },
@@ -16566,13 +16759,14 @@
         "tags": [
           "link-preview-service"
         ],
+        "x-handler": "linkpreview/cmd/api/handlers.(*previewsHandler).ReadInternal",
         "x-internal": true,
         "x-viewer": "anyone"
       }
     },
     "/invites": {
       "get": {
-        "description": "Their own only, administrators' too: an invitation carries somebody's address.\n\nWho may call it: somebody signed in, with a token that carries `actors:read`.",
+        "description": "Their own only, administrators' too: an invitation carries somebody's address. With how many are waiting; how many may is the viewer's entitlement, in userinfo.\n\nWho may call it: somebody signed in, with a token that carries `actors:read`.",
         "operationId": "getInvites",
         "parameters": [
           {
@@ -16621,27 +16815,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "properties": {
-                    "data": {
-                      "description": "What is on this page.",
-                      "items": {
-                        "$ref": "#/components/schemas/auth.InviteItem"
-                      },
-                      "type": [
-                        "array",
-                        "null"
-                      ]
-                    },
-                    "pagination": {
-                      "$ref": "#/components/schemas/Pagination",
-                      "description": "Where this page is among everything there is."
-                    }
-                  },
-                  "required": [
-                    "data",
-                    "pagination"
-                  ],
-                  "type": "object"
+                  "$ref": "#/components/schemas/auth.InviteList"
                 }
               }
             },
@@ -16668,6 +16842,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*inviteHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -16747,6 +16922,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*inviteHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -16786,6 +16962,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*inviteHandler).AcceptForm",
         "x-viewer": "anyone"
       },
       "post": {
@@ -16893,6 +17070,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*inviteHandler).Accept",
         "x-viewer": "anyone"
       }
     },
@@ -16947,6 +17125,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*inviteHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -17001,6 +17180,7 @@
         "tags": [
           "like-service"
         ],
+        "x-handler": "like/cmd/api/handlers.(*likeHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -17120,6 +17300,7 @@
         "tags": [
           "like-service"
         ],
+        "x-handler": "like/cmd/api/handlers.(*likeHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -17175,6 +17356,7 @@
         "tags": [
           "like-service"
         ],
+        "x-handler": "like/cmd/api/handlers.(*likeHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -17227,6 +17409,7 @@
         "tags": [
           "link-preview-service"
         ],
+        "x-handler": "linkpreview/cmd/api/handlers.(*previewsHandler).Read",
         "x-viewer": "signed_in"
       }
     },
@@ -17279,6 +17462,7 @@
         "tags": [
           "link-preview-service"
         ],
+        "x-handler": "linkpreview/cmd/api/handlers.(*previewsHandler).Read",
         "x-viewer": "signed_in"
       }
     },
@@ -17315,6 +17499,7 @@
         "tags": [
           "link-preview-service"
         ],
+        "x-handler": "linkpreview/cmd/api/handlers.(*previewsHandler).Image",
         "x-viewer": "anyone"
       }
     },
@@ -17467,6 +17652,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -17595,6 +17781,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).Add",
         "x-viewer": "admin"
       }
     },
@@ -17670,6 +17857,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).BrowseOrderedByDegree",
         "x-viewer": "anyone"
       }
     },
@@ -17733,6 +17921,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).BrowseTrending",
         "x-viewer": "anyone"
       }
     },
@@ -17780,6 +17969,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).Delete",
         "x-viewer": "admin"
       },
       "get": {
@@ -17825,6 +18015,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -17958,6 +18149,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).Edit",
         "x-viewer": "admin"
       }
     },
@@ -18076,6 +18268,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*inboundHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -18158,6 +18351,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*inboundHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -18215,6 +18409,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*inboundHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -18244,10 +18439,57 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*nodeInfoHandler).Read",
         "x-viewer": "anyone"
       }
     },
     "/notes/{id}": {
+      "delete": {
+        "description": "A reply that others have answered is emptied and kept, so the thread holds together.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "deleteNotesById",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "it is gone"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not delete it"
+          },
+          "404": {
+            "description": "there is no such post"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Delete a note",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Delete",
+        "x-viewer": "signed_in"
+      },
       "get": {
         "description": "A reply is read by whoever may read the post at the top of its thread.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getNotesById",
@@ -18297,6 +18539,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -18438,6 +18681,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -18549,6 +18793,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -18640,6 +18885,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditCommentStatus",
         "x-viewer": "signed_in"
       }
     },
@@ -18732,6 +18978,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).HideReply",
         "x-viewer": "signed_in"
       }
     },
@@ -18796,6 +19043,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Unpin",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -18858,6 +19106,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Pin",
         "x-viewer": "signed_in"
       }
     },
@@ -18922,6 +19171,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).DetachQuote",
         "x-viewer": "signed_in"
       }
     },
@@ -19043,6 +19293,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -19108,6 +19359,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Quotes",
         "x-viewer": "anyone"
       }
     },
@@ -19252,6 +19504,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).AddReply",
         "x-viewer": "signed_in"
       }
     },
@@ -19373,6 +19626,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditReplyAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -19436,6 +19690,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Thread",
         "x-viewer": "anyone"
       }
     },
@@ -19562,6 +19817,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -19778,6 +20034,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -19860,6 +20117,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*notificationHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -19937,6 +20195,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*subscriptionHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -19991,6 +20250,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*subscriptionHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -20027,6 +20287,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*notificationHandler).UnreadCount",
         "x-viewer": "signed_in"
       }
     },
@@ -20074,6 +20335,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*notificationHandler).Delete",
         "x-viewer": "signed_in"
       },
       "patch": {
@@ -20126,6 +20388,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*notificationHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -20184,6 +20447,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).BrowseSigningKeys",
         "x-viewer": "super_admin"
       }
     },
@@ -20244,6 +20508,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadSigningKey",
         "x-viewer": "super_admin"
       },
       "patch": {
@@ -20331,6 +20596,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).EditSigningKey",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -20448,6 +20714,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadAuthorize",
         "x-viewer": "anyone"
       }
     },
@@ -20480,6 +20747,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadConsent",
         "x-viewer": "anyone"
       },
       "post": {
@@ -20551,6 +20819,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddConsent",
         "x-viewer": "anyone"
       }
     },
@@ -20658,6 +20927,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddIntrospect",
         "x-viewer": "anyone"
       }
     },
@@ -20703,6 +20973,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadLogin",
         "x-viewer": "anyone"
       },
       "post": {
@@ -20792,6 +21063,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddCredentials",
         "x-viewer": "anyone"
       }
     },
@@ -20834,6 +21106,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadLoginCode",
         "x-viewer": "anyone"
       },
       "post": {
@@ -20899,6 +21172,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddLoginCode",
         "x-viewer": "anyone"
       }
     },
@@ -20931,6 +21205,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadLoginCodeMethod",
         "x-viewer": "anyone"
       },
       "post": {
@@ -20996,6 +21271,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddLoginCodeMethod",
         "x-viewer": "anyone"
       }
     },
@@ -21063,6 +21339,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddLoginCodeResend",
         "x-viewer": "anyone"
       }
     },
@@ -21095,6 +21372,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadLoginCodeVerify",
         "x-viewer": "anyone"
       },
       "post": {
@@ -21163,6 +21441,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddLoginCodeVerify",
         "x-viewer": "anyone"
       }
     },
@@ -21190,6 +21469,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddPasskeyLoginBegin",
         "x-viewer": "anyone"
       }
     },
@@ -21247,6 +21527,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddPasskeyLoginFinish",
         "x-viewer": "anyone"
       }
     },
@@ -21279,6 +21560,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadRestore",
         "x-viewer": "anyone"
       },
       "post": {
@@ -21309,6 +21591,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddRestore",
         "x-viewer": "anyone"
       }
     },
@@ -21341,6 +21624,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadTotp",
         "x-viewer": "anyone"
       },
       "post": {
@@ -21406,6 +21690,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddTotp",
         "x-viewer": "anyone"
       }
     },
@@ -21438,6 +21723,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadLogout",
         "x-viewer": "anyone"
       }
     },
@@ -21538,6 +21824,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddRevoke",
         "x-viewer": "anyone"
       }
     },
@@ -21692,6 +21979,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddSession",
         "x-viewer": "anyone"
       }
     },
@@ -21856,12 +22144,13 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).AddToken",
         "x-viewer": "anyone"
       }
     },
     "/oauth/userinfo": {
       "get": {
-        "description": "The claims its scopes allow: `sub` always; with `profile`, `name`, `preferred_username`, `alias`, `avatar_urls`, `id`, `type`, `enabled`, `person_type`, `totp_enabled`, `last_visited_at` and the rest of what the web app reads of the viewer; with `email`, `email` and `email_verified`.\n\nWho may call it: somebody signed in, with a token that carries `openid`.",
+        "description": "The claims its scopes allow: `sub` always; with `profile`, `name`, `preferred_username`, `alias`, `avatar_urls`, `id`, `type`, `enabled`, `person_type`, `totp_enabled`, `last_visited_at` and the rest of what the web app reads of the viewer; with `email`, `email` and `email_verified`. With `profile`, also `entitlements`: what the person may do, and how much, where the installation sets a limit; `entitlements.invites.max_pending` is how many invitations may wait at once, and `invites` is null for somebody who may not invite.\n\nWho may call it: somebody signed in, with a token that carries `openid`.",
         "operationId": "getOauthUserinfo",
         "responses": {
           "200": {
@@ -21907,6 +22196,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadUserInfo",
         "x-viewer": "signed_in"
       }
     },
@@ -21929,6 +22219,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*oauthHandler).ReadValidate",
         "x-viewer": "anyone"
       }
     },
@@ -21960,6 +22251,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*onboardingHandler).Read",
         "x-viewer": "signed_in"
       },
       "patch": {
@@ -21989,6 +22281,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*onboardingHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -22060,6 +22353,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*passwordHandler).Edit",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -22103,6 +22397,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*passwordHandler).ForgotForm",
         "x-viewer": "anyone"
       },
       "post": {
@@ -22176,6 +22471,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*passwordHandler).Forgot",
         "x-viewer": "anyone"
       }
     },
@@ -22221,6 +22517,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*passwordHandler).ResetForm",
         "x-viewer": "anyone"
       },
       "post": {
@@ -22238,14 +22535,13 @@
                     "type": "string"
                   },
                   "token": {
-                    "description": "From the link, or the page after the code.",
+                    "description": "From the link. None after the code: the session says whose it is.",
                     "maxLength": 128,
                     "minLength": 128,
                     "type": "string"
                   }
                 },
                 "required": [
-                  "token",
                   "password"
                 ],
                 "type": "object"
@@ -22261,14 +22557,13 @@
                     "type": "string"
                   },
                   "token": {
-                    "description": "From the link, or the page after the code.",
+                    "description": "From the link. None after the code: the session says whose it is.",
                     "maxLength": 128,
                     "minLength": 128,
                     "type": "string"
                   }
                 },
                 "required": [
-                  "token",
                   "password"
                 ],
                 "type": "object"
@@ -22288,6 +22583,9 @@
             },
             "description": "a page that says it was changed, or what was wrong"
           },
+          "303": {
+            "description": "back to the start, when the code ran out"
+          },
           "400": {
             "description": "the request is not well formed, or a value in it is not one it may be"
           }
@@ -22302,6 +22600,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*passwordHandler).Reset",
         "x-viewer": "anyone"
       }
     },
@@ -22334,6 +22633,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*passwordHandler).VerifyForm",
         "x-viewer": "anyone"
       },
       "post": {
@@ -22399,6 +22699,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*passwordHandler).Verify",
         "x-viewer": "anyone"
       }
     },
@@ -22530,6 +22831,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -22550,13 +22852,13 @@
                   "ids": {
                     "description": "The profiles: up to 500.",
                     "items": {
+                      "exclusiveMinimum": 0,
                       "format": "int64",
                       "type": "integer"
                     },
                     "maxItems": 500,
                     "minItems": 1,
-                    "type": "array",
-                    "x-validate": "dive,gt=0"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -22633,6 +22935,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).PurgeBatch",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -22686,6 +22989,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).PurgeProgress",
         "x-viewer": "super_admin"
       }
     },
@@ -22797,6 +23101,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -22852,6 +23157,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Archive",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -22905,6 +23211,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).DeletionCounts",
         "x-viewer": "signed_in"
       }
     },
@@ -22995,6 +23302,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditDownloadDefault",
         "x-viewer": "signed_in"
       }
     },
@@ -23072,6 +23380,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).SetEnabled",
         "x-viewer": "signed_in"
       }
     },
@@ -23149,6 +23458,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).SetFeatured",
         "x-viewer": "signed_in"
       }
     },
@@ -23178,8 +23488,7 @@
                     "items": {
                       "$ref": "#/components/schemas/PersonFeatureRequest"
                     },
-                    "type": "array",
-                    "x-validate": "dive"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -23224,6 +23533,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditFeatures",
         "x-viewer": "signed_in"
       }
     },
@@ -23300,6 +23610,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Purge",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -23410,6 +23721,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -23500,6 +23812,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditRepostsOnProfile",
         "x-viewer": "signed_in"
       }
     },
@@ -23552,6 +23865,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Delete",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -23601,6 +23915,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -23728,6 +24043,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -23775,6 +24091,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -23823,6 +24140,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -23942,6 +24260,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -24053,6 +24372,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -24144,6 +24464,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditCommentStatus",
         "x-viewer": "signed_in"
       }
     },
@@ -24196,6 +24517,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Download",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -24286,6 +24608,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditDownload",
         "x-viewer": "signed_in"
       }
     },
@@ -24369,6 +24692,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditFiles",
         "x-viewer": "signed_in"
       }
     },
@@ -24433,6 +24757,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Unpin",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -24495,6 +24820,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Pin",
         "x-viewer": "signed_in"
       }
     },
@@ -24616,6 +24942,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -24736,6 +25063,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).AddReply",
         "x-viewer": "signed_in"
       }
     },
@@ -24857,6 +25185,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditReplyAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -24980,6 +25309,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -25201,6 +25531,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -25302,6 +25633,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Upload",
         "x-viewer": "signed_in"
       }
     },
@@ -25334,6 +25666,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*reauthHandler).AddPasskeyBegin",
         "x-viewer": "signed_in"
       }
     },
@@ -25383,6 +25716,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*reauthHandler).AddPasskeyFinish",
         "x-viewer": "signed_in"
       }
     },
@@ -25441,6 +25775,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*reauthHandler).AddPassword",
         "x-viewer": "signed_in"
       }
     },
@@ -25513,6 +25848,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*actorsHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -25559,6 +25895,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*dismissalsHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -25605,6 +25942,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*dismissalsHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -25645,6 +25983,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*dismissalsHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -25707,6 +26046,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*interestsHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -25738,6 +26078,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*preferencesHandler).Read",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -25828,6 +26169,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*preferencesHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -25870,6 +26212,7 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*repostHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -25987,6 +26330,7 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*repostHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -26034,6 +26378,7 @@
         "tags": [
           "feed-service"
         ],
+        "x-handler": "feed/cmd/api/handlers.(*repostHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -26204,6 +26549,7 @@
         "tags": [
           "search-service"
         ],
+        "x-handler": "search/cmd/api/handlers.(*searchHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -26233,6 +26579,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*signupHandler).Form",
         "x-viewer": "anyone"
       },
       "post": {
@@ -26368,6 +26715,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*signupHandler).Add",
         "x-viewer": "anyone"
       }
     },
@@ -26450,6 +26798,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*signupRequestsHandler).Browse",
         "x-viewer": "admin"
       }
     },
@@ -26531,6 +26880,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*signupRequestsHandler).Approve",
         "x-viewer": "admin"
       }
     },
@@ -26612,6 +26962,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*signupRequestsHandler).Reject",
         "x-viewer": "admin"
       }
     },
@@ -26644,6 +26995,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*signupHandler).Confirm",
         "x-viewer": "anyone"
       },
       "post": {
@@ -26709,6 +27061,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*signupHandler).ConfirmCode",
         "x-viewer": "anyone"
       }
     },
@@ -26751,6 +27104,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*signupHandler).ResendForm",
         "x-viewer": "anyone"
       },
       "post": {
@@ -26826,6 +27180,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*signupHandler).Resend",
         "x-viewer": "anyone"
       }
     },
@@ -26904,6 +27259,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Mine",
         "x-viewer": "signed_in"
       }
     },
@@ -27035,6 +27391,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*blockHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -27166,6 +27523,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followRequestHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -27298,6 +27656,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followerHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -27329,8 +27688,7 @@
                       "type": "integer"
                     },
                     "minItems": 1,
-                    "type": "array",
-                    "x-validate": "dive,numeric"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -27390,6 +27748,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -27481,6 +27840,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -27554,6 +27914,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Accept",
         "x-viewer": "signed_in"
       }
     },
@@ -27627,6 +27988,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Decline",
         "x-viewer": "signed_in"
       }
     },
@@ -27682,6 +28044,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*inviteHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -27814,6 +28177,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*leaderHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -27945,6 +28309,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*mutualHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -28007,6 +28372,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*blockHandler).Delete",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -28067,6 +28433,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*blockHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -28129,6 +28496,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followRequestHandler).Delete",
         "x-viewer": "signed_in"
       },
       "patch": {
@@ -28189,6 +28557,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followRequestHandler).Edit",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -28249,6 +28618,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followRequestHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -28311,6 +28681,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followerHandler).Delete",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -28371,6 +28742,7 @@
         "tags": [
           "socialgraph-service"
         ],
+        "x-handler": "socialgraph/cmd/api/handlers.(*followerHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -28462,6 +28834,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -28513,6 +28886,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -28639,6 +29013,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*topicHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -28750,6 +29125,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -28841,6 +29217,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditCommentStatus",
         "x-viewer": "signed_in"
       }
     },
@@ -28905,6 +29282,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Unpin",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -28967,6 +29345,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Pin",
         "x-viewer": "signed_in"
       }
     },
@@ -29088,6 +29467,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -29209,6 +29589,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditReplyAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -29335,6 +29716,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*topicHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -29536,6 +29918,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*topicHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -29576,6 +29959,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*totpHandler).Read",
         "x-viewer": "signed_in"
       },
       "patch": {
@@ -29604,6 +29988,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*totpHandler).Edit",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -29680,6 +30065,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*totpHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -29710,6 +30096,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*totpHandler).IsExpired",
         "x-viewer": "signed_in"
       }
     },
@@ -29792,6 +30179,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*totpHandler).AddRecoveryCodes",
         "x-viewer": "signed_in"
       }
     },
@@ -29852,6 +30240,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*totpHandler).Verify",
         "x-viewer": "signed_in"
       }
     },
@@ -29906,6 +30295,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*totpHandler).Delete",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -29969,6 +30359,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*totpHandler).ReadForPerson",
         "x-viewer": "signed_in"
       }
     },
@@ -30041,6 +30432,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*usernameChangeHandler).Edit",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -30088,6 +30480,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadBrowse",
         "x-viewer": "signed_in"
       }
     },
@@ -30137,6 +30530,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadCancel",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -30181,6 +30575,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadRead",
         "x-viewer": "signed_in"
       }
     },
@@ -30247,6 +30642,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadComplete",
         "x-viewer": "signed_in"
       }
     },
@@ -30345,6 +30741,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadParts",
         "x-viewer": "signed_in"
       }
     },
@@ -30392,6 +30789,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -30440,6 +30838,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -30579,6 +30978,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -30690,6 +31090,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -30781,6 +31182,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).EditCommentStatus",
         "x-viewer": "signed_in"
       }
     },
@@ -30833,6 +31235,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Download",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -30923,6 +31326,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).EditDownload",
         "x-viewer": "signed_in"
       }
     },
@@ -30969,6 +31373,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).File",
         "x-viewer": "anyone"
       }
     },
@@ -31033,6 +31438,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Unpin",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -31095,6 +31501,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Pin",
         "x-viewer": "signed_in"
       }
     },
@@ -31216,6 +31623,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -31337,6 +31745,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).EditReplyAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -31460,6 +31869,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -31786,6 +32196,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadStart",
         "x-viewer": "signed_in"
       }
     },
@@ -31837,6 +32248,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*webAuthnHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -31881,6 +32293,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*webAuthnHandler).AddRegisterBegin",
         "x-viewer": "signed_in"
       }
     },
@@ -31951,6 +32364,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*webAuthnHandler).AddRegisterFinish",
         "x-viewer": "signed_in"
       }
     },
@@ -32021,6 +32435,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*webAuthnHandler).DeleteAll",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -32083,6 +32498,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*webAuthnHandler).ReadCountForPerson",
         "x-viewer": "signed_in"
       }
     },
@@ -32130,6 +32546,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*webAuthnHandler).Delete",
         "x-viewer": "signed_in"
       },
       "patch": {
@@ -32251,6 +32668,7 @@
         "tags": [
           "auth-service"
         ],
+        "x-handler": "auth/cmd/api/handlers.(*webAuthnHandler).Edit",
         "x-viewer": "signed_in"
       }
     }

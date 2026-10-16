@@ -134,6 +134,13 @@ func (h *videoHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
+	// Out of sight for every reader where the profile it is on has blocked
+	// its writer (docs/permissions.md): the graph's own judgement, which the
+	// lists use too. 404, as for anything the viewer may not see.
+	if !handlers.MaySee(h.Srv.GraphNodeGRPC, medium.ID, viewer) {
+		return c.NoContent(http.StatusNotFound)
+	}
+
 	if err = h.onAfterFetched(c, medium); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

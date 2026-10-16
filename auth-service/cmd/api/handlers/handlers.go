@@ -15,7 +15,6 @@ type Handlers struct {
 	Password       *passwordHandler
 	Reauth         *reauthHandler
 	Signup         *signupHandler
-	Token          *tokenHandler
 	Totp           *totpHandler
 	UsernameChange *usernameChangeHandler
 	TotpValidator  *totpValidatorHandler
@@ -38,7 +37,6 @@ func NewHandlers(env *Env) *Handlers {
 		Password:       newPasswordHandler(env),
 		Reauth:         newReauthHandler(env),
 		Signup:         newSignupHandler(env),
-		Token:          newTokenHandler(env),
 		Totp:           newTotpHandler(env),
 		UsernameChange: newUsernameChangeHandler(env),
 		TotpValidator:  newTotpValidatorHandler(env),

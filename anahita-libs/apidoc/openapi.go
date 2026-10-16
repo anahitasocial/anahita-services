@@ -244,6 +244,9 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 	if r.stepUp {
 		op["x-step-up"] = true
 	}
+	if r.handler != "" {
+		op["x-handler"] = r.handler
+	}
 
 	canBeMalformed := false
 	if r.takes.IsValid() {
@@ -383,7 +386,7 @@ func (r *Route) request(schemas *schemas, rename map[string]string) (params []an
 		if f.Tag.Get("validate") != "" {
 			checked = true
 		}
-		required, other := validated(schema, derefKind(f.Type), f.Tag.Get("validate"))
+		required, other := validated(schema, f.Type, f.Tag.Get("validate"))
 		if len(other) > 0 {
 			schema["x-validate"] = strings.Join(other, ",")
 		}

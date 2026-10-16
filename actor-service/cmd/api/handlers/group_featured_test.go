@@ -64,6 +64,7 @@ func setFeatured(t *testing.T, actors *fakeFeaturingActors, personType, body str
 	if err := h.SetFeatured(c); err != nil {
 		t.Fatalf("set featured: %v", err)
 	}
+	answers.Handler(h.SetFeatured, rec)
 	return rec
 }
 

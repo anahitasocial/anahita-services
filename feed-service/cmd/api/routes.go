@@ -7,6 +7,7 @@ import (
 	"feed/requests"
 
 	"anahita-libs/apidoc"
+	libs_constants "anahita-libs/constants"
 	"anahita-libs/responses"
 
 	"github.com/labstack/echo/v4"
@@ -65,6 +66,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	feeds.POST("/", custom.Add, r.authorize).
 		Summary("Make a custom feed").
 		Viewer(apidoc.SignedIn).
+		Scope(libs_constants.OAuthScopeMediaWrite).
 		Takes(&handlers.CustomFeedFields{}).
 		Sends(http.StatusCreated, handlers.CustomFeedResponse{}).
 		Refuses(http.StatusForbidden, "the viewer may not make one").
@@ -96,6 +98,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Summary("Try a definition").
 		Describe("The first page of what a feed of this definition would show, before it is made.").
 		Viewer(apidoc.SignedIn).
+		Scope(libs_constants.OAuthScopeMediaWrite).
 		Takes(&handlers.CustomFeedPreviewRequest{}).
 		Sends(http.StatusOK, handlers.CustomFeedPage{}).
 		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, definition)
@@ -109,6 +112,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	feeds.PATCH("/:id", custom.Edit, r.authorize).
 		Summary("Change a custom feed").
 		Viewer(apidoc.SignedIn).
+		Scope(libs_constants.OAuthScopeMediaWrite).
 		Takes(&handlers.CustomFeedEditRequest{}).
 		Sends(http.StatusOK, handlers.CustomFeedResponse{}).
 		Refuses(http.StatusForbidden, "it is not the viewer's").
@@ -117,6 +121,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	feeds.DELETE("/:id", custom.Delete, r.authorize).
 		Summary("Delete a custom feed").
 		Viewer(apidoc.SignedIn).
+		Scope(libs_constants.OAuthScopeMediaWrite).
 		Takes(&handlers.CustomFeedIDRequest{}).
 		SendsNothing(http.StatusNoContent, "it is gone").
 		Refuses(http.StatusForbidden, "it is not the viewer's").
@@ -133,6 +138,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Summary("Copy a custom feed").
 		Describe("A feed of the viewer's own with the same definition, to change.").
 		Viewer(apidoc.SignedIn).
+		Scope(libs_constants.OAuthScopeMediaWrite).
 		Takes(&handlers.CustomFeedCopyRequest{}).
 		Sends(http.StatusCreated, handlers.CustomFeedResponse{}).
 		Refuses(http.StatusForbidden, "the viewer may not copy it").

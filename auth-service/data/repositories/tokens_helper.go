@@ -73,7 +73,13 @@ func (repo *tokens) getOne(query sq.SelectBuilder) (*entities.Token, error) {
 		return nil, err
 	}
 
-	row := repo.db.QueryRowContext(ctx, q, args...)
+	return scanToken(repo.db.QueryRowContext(ctx, q, args...))
+}
+
+// scanToken reads one row of getBaseSelectQuery into a Token. The one list
+// of what a row holds, in the order the query selects it: every read goes
+// through it, so a column added to the query is read everywhere or nowhere.
+func scanToken(row rowScanner) (*entities.Token, error) {
 	token := entities.NewToken()
 	if err := row.Scan(
 		&token.ID,

@@ -49,6 +49,7 @@ func TestPasswordEditRequiresAStepUp(t *testing.T) {
 	if err := newPasswordHandler(te.Env).Edit(c); err != nil {
 		t.Fatalf("edit: %v", err)
 	}
+	answers.Handler(newPasswordHandler(te.Env).Edit, rec)
 
 	if rec.Code != http.StatusForbidden {
 		t.Errorf("status = %d, want 403", rec.Code)
@@ -68,6 +69,7 @@ func TestPasswordEditReportsAStoreFailureAsOurs(t *testing.T) {
 	if err := newPasswordHandler(te.Env).Edit(c); err != nil {
 		t.Fatalf("edit: %v", err)
 	}
+	answers.Handler(newPasswordHandler(te.Env).Edit, rec)
 
 	if rec.Code != http.StatusInternalServerError {
 		t.Errorf("status = %d, want 500", rec.Code)
@@ -92,6 +94,7 @@ func TestPasswordEditChangesThePasswordAndSpendsTheStepUp(t *testing.T) {
 	if err := newPasswordHandler(te.Env).Edit(c); err != nil {
 		t.Fatalf("edit: %v", err)
 	}
+	answers.Handler(newPasswordHandler(te.Env).Edit, rec)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body %s", rec.Code, rec.Body.String())
@@ -136,6 +139,7 @@ func TestPasswordEditRefusesTheCurrentPassword(t *testing.T) {
 	if err := newPasswordHandler(te.Env).Edit(c); err != nil {
 		t.Fatalf("edit: %v", err)
 	}
+	answers.Handler(newPasswordHandler(te.Env).Edit, rec)
 
 	if rec.Code != http.StatusConflict {
 		t.Errorf("status = %d, want 409", rec.Code)
@@ -158,6 +162,7 @@ func TestPasswordEditRejectsAnUnauthenticatedCaller(t *testing.T) {
 	if err := newPasswordHandler(te.Env).Edit(c); err != nil {
 		t.Fatalf("edit: %v", err)
 	}
+	answers.Handler(newPasswordHandler(te.Env).Edit, rec)
 
 	if rec.Code != http.StatusUnauthorized {
 		t.Errorf("status = %d, want 401", rec.Code)
@@ -183,6 +188,7 @@ func TestPasswordEditThrottles(t *testing.T) {
 		if err := h.Edit(c); err != nil {
 			t.Fatalf("attempt %d: %v", i+1, err)
 		}
+		answers.Handler(h.Edit, rec)
 		if rec.Code != http.StatusConflict {
 			t.Fatalf("attempt %d: status = %d, want 409", i+1, rec.Code)
 		}
@@ -192,6 +198,7 @@ func TestPasswordEditThrottles(t *testing.T) {
 	if err := h.Edit(c); err != nil {
 		t.Fatalf("sixth attempt: %v", err)
 	}
+	answers.Handler(h.Edit, rec)
 	if rec.Code != http.StatusTooManyRequests {
 		t.Errorf("status = %d, want 429", rec.Code)
 	}

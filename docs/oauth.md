@@ -4,6 +4,8 @@
 
 How scopes are defined and enforced, and how first-party clients are seeded.
 
+The OAuth routes are in the API reference: [auth-service](api/index.html#auth-service), from [`/oauth/authorize`](api/index.html#getOauthAuthorize) and [`/oauth/token`](api/index.html#postOauthToken) on.
+
 ## Contents
 
 - [Scopes](#scopes)

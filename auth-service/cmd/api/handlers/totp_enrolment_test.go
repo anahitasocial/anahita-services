@@ -78,6 +78,7 @@ func TestTotpCannotBeEnabledBeforeEnrolmentIsFinished(t *testing.T) {
 			if err := newTotpHandler(te.Env).Edit(ctx); err != nil {
 				t.Fatalf("handler: %v", err)
 			}
+			answers.Handler(newTotpHandler(te.Env).Edit, rec)
 
 			if rec.Code != http.StatusConflict {
 				t.Errorf("status = %d, want 409", rec.Code)
@@ -105,6 +106,7 @@ func TestTotpEnableDoesNotStampAVerification(t *testing.T) {
 	if err := newTotpHandler(te.Env).Edit(ctx); err != nil {
 		t.Fatalf("handler: %v", err)
 	}
+	answers.Handler(newTotpHandler(te.Env).Edit, rec)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", rec.Code)
@@ -130,6 +132,7 @@ func TestTotpEnrolmentCannotBeRestartedWhile2FAIsOn(t *testing.T) {
 	if err := newTotpHandler(te.Env).Add(ctx); err != nil {
 		t.Fatalf("handler: %v", err)
 	}
+	answers.Handler(newTotpHandler(te.Env).Add, rec)
 
 	if rec.Code != http.StatusConflict {
 		t.Errorf("status = %d, want 409", rec.Code)
@@ -164,6 +167,7 @@ func TestTotpRecoveryCodesStampTheVerification(t *testing.T) {
 		if err := newTotpHandler(te.Env).AddRecoveryCodes(ctx); err != nil {
 			t.Fatalf("handler: %v", err)
 		}
+		answers.Handler(newTotpHandler(te.Env).AddRecoveryCodes, rec)
 		if rec.Code != http.StatusForbidden {
 			t.Errorf("status = %d, want 403", rec.Code)
 		}
@@ -184,6 +188,7 @@ func TestTotpRecoveryCodesStampTheVerification(t *testing.T) {
 		if err := newTotpHandler(te.Env).AddRecoveryCodes(ctx); err != nil {
 			t.Fatalf("handler: %v", err)
 		}
+		answers.Handler(newTotpHandler(te.Env).AddRecoveryCodes, rec)
 		if rec.Code != http.StatusOK {
 			t.Fatalf("status = %d, want 200", rec.Code)
 		}

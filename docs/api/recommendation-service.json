@@ -1221,6 +1221,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*actorsHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -1267,6 +1268,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*dismissalsHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -1313,6 +1315,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*dismissalsHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -1353,6 +1356,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*dismissalsHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -1415,6 +1419,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*interestsHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -1446,6 +1451,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*preferencesHandler).Read",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -1536,6 +1542,7 @@
         "tags": [
           "recommendation-service"
         ],
+        "x-handler": "recommendation/cmd/api/handlers.(*preferencesHandler).Edit",
         "x-viewer": "signed_in"
       }
     }

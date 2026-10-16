@@ -25,6 +25,7 @@ package apidoc
 import (
 	"net/http"
 	"reflect"
+	"runtime"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -97,7 +98,7 @@ func (r *Router) add(method, path string, h echo.HandlerFunc, m []echo.Middlewar
 	} else {
 		r.echo.Add(method, path, h, m...)
 	}
-	route := &Route{Method: method, Path: normalizePath(r.prefix + path)}
+	route := &Route{Method: method, Path: normalizePath(r.prefix + path), handler: HandlerName(h)}
 	r.service.routes = append(r.service.routes, route)
 	return route
 }
@@ -136,6 +137,24 @@ func (r *Router) DELETE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFun
 	return r.add(http.MethodDelete, path, h, m)
 }
 
+// HandlerName is the name of the Go function a handler is, as the
+// reference gives it in `x-handler`: empty for a function literal, which
+// has no name a reader could look for.
+func HandlerName(h echo.HandlerFunc) string {
+	if h == nil {
+		return ""
+	}
+	fn := runtime.FuncForPC(reflect.ValueOf(h).Pointer())
+	if fn == nil {
+		return ""
+	}
+	name := strings.TrimSuffix(fn.Name(), "-fm")
+	if strings.Contains(name, ".func") {
+		return ""
+	}
+	return name
+}
+
 // normalizePath is a path as echo keeps it: beginning with a slash.
 func normalizePath(path string) string {
 	if !strings.HasPrefix(path, "/") {
@@ -165,10 +184,13 @@ type Route struct {
 	sends       []answer
 	refuses     []answer
 	notBuilt    string
-	internal    string
-	unbound     bool
-	media       string
-	body        reflect.Type
+	// The Go function that answers it, where it can be named:
+	// "hashtag/cmd/api/handlers.(*hashtagHandler).Read".
+	handler  string
+	internal string
+	unbound  bool
+	media    string
+	body     reflect.Type
 }
 
 type answer struct {

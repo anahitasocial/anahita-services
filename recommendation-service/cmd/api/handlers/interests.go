@@ -50,7 +50,7 @@ type InterestsRequest struct {
 // Browse lists them, the most used first.
 func (h *interestsHandler) Browse(c echo.Context) error {
 	if !signedIn(getViewer(c)) {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	req := &InterestsRequest{}

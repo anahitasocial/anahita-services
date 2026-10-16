@@ -4,9 +4,6 @@ import "anahita-libs/constants"
 
 type UserRequest struct {
 	Browse *UserBrowseRequest
-	Read   *UserReadRequest
-	Add    *UserAddRequest
-	Delete *UserDeleteRequest
 }
 
 func NewUserRequest() *UserRequest {
@@ -17,9 +14,6 @@ func NewUserRequest() *UserRequest {
 			Direction: "desc",
 			Ordering:  "id",
 		},
-		Read:   &UserReadRequest{},
-		Add:    &UserAddRequest{},
-		Delete: &UserDeleteRequest{},
 	}
 }
 
@@ -32,16 +26,4 @@ type UserBrowseRequest struct {
 	Direction   string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	Disabled    bool   `query:"disabled" validate:"omitempty"`
 	PersonTypes []string
-}
-
-type UserReadRequest struct {
-	ID       int64  `param:"id" validate:"required,numeric"`
-	Username string `param:"username" validate:"required,max=32,username"`
-}
-
-type UserAddRequest struct{}
-
-type UserDeleteRequest struct {
-	ID       int64  `param:"id"`
-	Username string `param:"username" validate:"required,min=3,max=64,username"`
 }

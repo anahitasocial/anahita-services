@@ -202,6 +202,7 @@ func (w *world) callAs(personType string, handler echo.HandlerFunc, method, body
 	v.PersonType = personType
 	c.Set(constants.ViewerContextKey, v)
 	_ = handler(c)
+	answers.Handler(handler, rec)
 	return rec
 }
 
@@ -228,6 +229,7 @@ func (w *world) call(handler echo.HandlerFunc, method, target, body string, view
 		c.Set(constants.ViewerContextKey, v)
 	}
 	_ = handler(c)
+	answers.Handler(handler, rec)
 	return rec
 }
 
@@ -504,6 +506,7 @@ func TestWhoMayAskWhetherSomebodyIsOnTheFediverse(t *testing.T) {
 		v.PersonType = personType
 		c.Set(constants.ViewerContextKey, v)
 		_ = w.h.ReadSettings(c)
+		answers.Handler(w.h.ReadSettings, rec)
 		return rec
 	}
 

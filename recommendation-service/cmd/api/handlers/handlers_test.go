@@ -214,6 +214,7 @@ func (f *fixture) call(handler echo.HandlerFunc, method, target string, viewer *
 	if err := handler(c); err != nil {
 		f.t.Fatalf("handler: %v", err)
 	}
+	answers.Handler(handler, rec)
 
 	answer := map[string]any{}
 	if rec.Body.Len() > 0 {
@@ -241,7 +242,7 @@ func TestNobodyIsSuggestedToAVisitor(t *testing.T) {
 		"preferences": f.handlers.Preferences.Read,
 		"dismissals":  f.handlers.Dismissals.Browse,
 	} {
-		if status, _ := f.call(handler, http.MethodGet, "/", person(0), ""); status != http.StatusForbidden {
+		if status, _ := f.call(handler, http.MethodGet, "/", person(0), ""); status != http.StatusUnauthorized {
 			t.Errorf("%s answered a visitor with %d", name, status)
 		}
 	}

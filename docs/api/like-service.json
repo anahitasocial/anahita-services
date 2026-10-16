@@ -1128,6 +1128,7 @@
         "tags": [
           "like-service"
         ],
+        "x-handler": "like/cmd/api/handlers.(*likeHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -1247,6 +1248,7 @@
         "tags": [
           "like-service"
         ],
+        "x-handler": "like/cmd/api/handlers.(*likeHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -1302,6 +1304,7 @@
         "tags": [
           "like-service"
         ],
+        "x-handler": "like/cmd/api/handlers.(*likeHandler).Add",
         "x-viewer": "signed_in"
       }
     }

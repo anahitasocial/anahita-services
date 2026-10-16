@@ -1063,6 +1063,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -1138,6 +1139,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).BrowseOrderedByDegree",
         "x-viewer": "anyone"
       }
     },
@@ -1201,6 +1203,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).BrowseTrending",
         "x-viewer": "anyone"
       }
     },
@@ -1248,6 +1251,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).Delete",
         "x-viewer": "admin"
       },
       "get": {
@@ -1292,6 +1296,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).Read",
         "x-viewer": "anyone"
       }
     },
@@ -1410,6 +1415,7 @@
         "tags": [
           "hashtag-service"
         ],
+        "x-handler": "hashtag/cmd/api/handlers.(*inboundHandler).Browse",
         "x-viewer": "anyone"
       }
     }

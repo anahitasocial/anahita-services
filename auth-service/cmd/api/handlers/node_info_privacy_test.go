@@ -42,6 +42,7 @@ func nodeInfoMetadata(t *testing.T) map[string]any {
 	if err := newNodeInfoHandler(te.Env).Read(c); err != nil {
 		t.Fatalf("nodeinfo: %v", err)
 	}
+	answers.Handler(newNodeInfoHandler(te.Env).Read, rec)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("nodeinfo answered %d: %s", rec.Code, rec.Body.String())
 	}
@@ -107,6 +108,7 @@ func TestPublicContentCountsAreForSuperAdministratorsOnly(t *testing.T) {
 		if err := newAccountsHandler(te.Env).PublicContent(c); err != nil {
 			t.Fatalf("public content: %v", err)
 		}
+		answers.Handler(newAccountsHandler(te.Env).PublicContent, rec)
 		if rec.Code != tc.want {
 			t.Errorf("%s: answered %d, want %d", tc.personType, rec.Code, tc.want)
 		}

@@ -19,8 +19,8 @@ type PasswordForgot struct {
 // confirm field unnecessary friction (and actively harmful for
 // password manager users who don't manually type either field).
 type PasswordReset struct {
-	// From the link, or the page after the code.
-	Token string `form:"token"    validate:"required,len=128"`
+	// From the link. None after the code: the session says whose it is.
+	Token string `form:"token"    validate:"omitempty,len=128"`
 	// The new password: at least 15 characters.
 	Password string `form:"password" validate:"required,min=15,max=150"`
 }

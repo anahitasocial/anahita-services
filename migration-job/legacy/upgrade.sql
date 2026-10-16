@@ -673,6 +673,18 @@ SET comment.type = 'node.medium.text-service.note.v1',
     comment.comment_count = 0
 WHERE comment.type = 'node.base.comment-service.comment.v1';
 
+-- Every post, reply, photo and video is switched on. Nothing in the services
+-- switches a post off; what the PHP site had switched off is real writing,
+-- which would otherwise be in no list and on no page (the user, 2026-10-16).
+-- A removed post stays removed. Before the count below, so that the replies
+-- switched on here are counted. migrations/20261111000001_enable_medium_nodes
+-- does the same for an installation already running.
+UPDATE nodes
+SET enabled = 1
+WHERE type LIKE 'node.medium.%'
+  AND enabled = 0
+  AND deleted_at IS NULL;
+
 -- Every post's count, from the replies there now are under it. The same
 -- count the graph keeps from here on: replies that are switched on, not
 -- removed, and not hidden from the thread.

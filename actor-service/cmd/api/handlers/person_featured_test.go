@@ -41,6 +41,7 @@ func TestPersonSetFeaturedIsForSuperAdministratorsOnly(t *testing.T) {
 			if err := NewPersonHandler(&Env{}).SetFeatured(c); err != nil {
 				t.Fatalf("set featured: %v", err)
 			}
+			answers.Handler(NewPersonHandler(&Env{}).SetFeatured, rec)
 
 			if rec.Code != http.StatusForbidden {
 				t.Errorf("status = %d, want 403", rec.Code)

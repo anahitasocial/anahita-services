@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/apidoc"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -27,6 +28,8 @@ func refusal(t *testing.T, answer func(c echo.Context) error) (int, map[string]a
 	if err := answer(c); err != nil {
 		t.Fatalf("answering: %v", err)
 	}
+	// As posting a note answers it.
+	apidoc.Conforms(t, "../../../../docs/api/text-service.json", "POST /notes/8/", rec)
 
 	var body map[string]any
 	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {

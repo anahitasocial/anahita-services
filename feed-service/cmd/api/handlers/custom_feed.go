@@ -698,7 +698,7 @@ func (h *customFeedHandler) Copy(c echo.Context) error {
 func (h *customFeedHandler) Mine(c echo.Context) error {
 	viewer := getViewer(c)
 	if !viewer.Authenticated || viewer.ID <= 0 {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	req := services.NewGraphNodeRequest().Browse
@@ -794,7 +794,7 @@ func (h *customFeedHandler) Discover(c echo.Context) error {
 func (h *customFeedHandler) Pinned(c echo.Context) error {
 	viewer := getViewer(c)
 	if !viewer.Authenticated || viewer.ID <= 0 {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	list, pinned, err := h.pinnedFeeds(viewer)
@@ -857,7 +857,7 @@ func (h *customFeedHandler) pinnedFeeds(viewer *entities.Viewer) ([]*entities.An
 func (h *customFeedHandler) SetPins(c echo.Context) error {
 	viewer := getViewer(c)
 	if !viewer.Authenticated || viewer.ID <= 0 {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	req := &CustomFeedPinsRequest{}
@@ -902,7 +902,7 @@ func (h *customFeedHandler) Unpin(c echo.Context) error {
 func (h *customFeedHandler) setPinned(c echo.Context, pin bool) error {
 	viewer := getViewer(c)
 	if !viewer.Authenticated || viewer.ID <= 0 {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	req := &CustomFeedIDRequest{}

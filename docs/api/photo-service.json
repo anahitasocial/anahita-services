@@ -1082,6 +1082,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -1130,6 +1131,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -1249,6 +1251,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -1360,6 +1363,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -1451,6 +1455,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditCommentStatus",
         "x-viewer": "signed_in"
       }
     },
@@ -1503,6 +1508,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Download",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -1593,6 +1599,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditDownload",
         "x-viewer": "signed_in"
       }
     },
@@ -1676,6 +1683,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditFiles",
         "x-viewer": "signed_in"
       }
     },
@@ -1740,6 +1748,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Unpin",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -1802,6 +1811,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Pin",
         "x-viewer": "signed_in"
       }
     },
@@ -1923,6 +1933,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -2043,6 +2054,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).AddReply",
         "x-viewer": "signed_in"
       }
     },
@@ -2164,6 +2176,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).EditReplyAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -2287,6 +2300,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -2508,6 +2522,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -2609,6 +2624,7 @@
         "tags": [
           "photo-service"
         ],
+        "x-handler": "photo/cmd/api/handlers.(*photoHandler).Upload",
         "x-viewer": "signed_in"
       }
     }

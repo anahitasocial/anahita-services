@@ -198,6 +198,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		With(edit("note", notesReq.Edit)).
 		Describe("A reply is changed by its author alone.").
 		Refuses(http.StatusGone, "a reply that was removed")
+	notes.DELETE("/:id", r.handler.Note.Delete, r.authorize).With(remove("note"))
 	notes.POST("/:owner_id/", r.handler.Note.Add, r.authorize).
 		With(add("note", notesReq.Add)).
 		Describe("With `quote_id`, a quote: the post is carried under the note's words, as its author's quote policy lets. With `link_preview_url`, the card of a link the writer was shown; what the card says is what this installation read, never what is sent.").

@@ -1127,6 +1127,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadBrowse",
         "x-viewer": "signed_in"
       }
     },
@@ -1176,6 +1177,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadCancel",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -1220,6 +1222,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadRead",
         "x-viewer": "signed_in"
       }
     },
@@ -1286,6 +1289,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadComplete",
         "x-viewer": "signed_in"
       }
     },
@@ -1384,6 +1388,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadParts",
         "x-viewer": "signed_in"
       }
     },
@@ -1431,6 +1436,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -1479,6 +1485,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -1618,6 +1625,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -1729,6 +1737,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -1820,6 +1829,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).EditCommentStatus",
         "x-viewer": "signed_in"
       }
     },
@@ -1872,6 +1882,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Download",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -1962,6 +1973,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).EditDownload",
         "x-viewer": "signed_in"
       }
     },
@@ -2008,6 +2020,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).File",
         "x-viewer": "anyone"
       }
     },
@@ -2072,6 +2085,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Unpin",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -2134,6 +2148,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Pin",
         "x-viewer": "signed_in"
       }
     },
@@ -2255,6 +2270,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -2376,6 +2392,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).EditReplyAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -2499,6 +2516,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -2825,6 +2843,7 @@
         "tags": [
           "video-service"
         ],
+        "x-handler": "video/cmd/api/handlers.(*videoHandler).UploadStart",
         "x-viewer": "signed_in"
       }
     }

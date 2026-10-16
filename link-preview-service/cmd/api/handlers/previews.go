@@ -77,7 +77,7 @@ func respond(preview *linkpreviews.Preview) *PreviewResponse {
 func (h *previewsHandler) Read(c echo.Context) error {
 	viewer := getViewer(c)
 	if viewer == nil || !viewer.Authenticated || viewer.ID <= 0 {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	req := &PreviewRequest{}

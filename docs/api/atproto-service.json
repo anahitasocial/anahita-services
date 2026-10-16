@@ -261,6 +261,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).Lookup",
         "x-viewer": "signed_in"
       }
     },
@@ -347,6 +348,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).RestorePictures",
         "x-viewer": "signed_in"
       }
     },
@@ -388,6 +390,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).DeleteSettings",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -427,6 +430,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).ReadSettings",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -536,6 +540,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).EditSettings",
         "x-viewer": "signed_in"
       }
     },
@@ -597,6 +602,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).ImportPreview",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -686,6 +692,7 @@
         "tags": [
           "atproto-service"
         ],
+        "x-handler": "atproto/cmd/api/handlers.(*Handlers).ImportFollows",
         "x-viewer": "signed_in"
       }
     }

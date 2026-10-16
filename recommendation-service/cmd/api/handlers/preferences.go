@@ -91,7 +91,7 @@ func respondPreferences(prefs *repositories.Preferences) *PreferencesResponse {
 func (h *preferencesHandler) Read(c echo.Context) error {
 	viewer := getViewer(c)
 	if !signedIn(viewer) {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	prefs, err := h.Repos.Preferences.Read(viewer.ID)
@@ -106,7 +106,7 @@ func (h *preferencesHandler) Read(c echo.Context) error {
 func (h *preferencesHandler) Edit(c echo.Context) error {
 	viewer := getViewer(c)
 	if !signedIn(viewer) {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	req := &PreferencesRequest{}

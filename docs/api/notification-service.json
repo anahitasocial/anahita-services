@@ -1213,6 +1213,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*notificationHandler).Browse",
         "x-viewer": "signed_in"
       }
     },
@@ -1290,6 +1291,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*subscriptionHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -1344,6 +1346,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*subscriptionHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -1380,6 +1383,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*notificationHandler).UnreadCount",
         "x-viewer": "signed_in"
       }
     },
@@ -1427,6 +1431,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*notificationHandler).Delete",
         "x-viewer": "signed_in"
       },
       "patch": {
@@ -1479,6 +1484,7 @@
         "tags": [
           "notification-service"
         ],
+        "x-handler": "notification/cmd/api/handlers.(*notificationHandler).Edit",
         "x-viewer": "signed_in"
       }
     }
