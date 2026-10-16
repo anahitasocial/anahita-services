@@ -381,23 +381,26 @@ func (r *Route) request(schemas *schemas, rename map[string]string) (params []an
 			param(f.Tag.Get("header"), "header")
 		case !hasBody:
 			// Nothing else is read from a request without a body.
-		case f.Tag.Get("form") != "":
-			name := f.Tag.Get("form")
-			formBody[name] = schema
-			if required {
-				formRequired = append(formRequired, name)
-			}
 		default:
-			name, _ := jsonName(f)
-			if name == "-" {
-				return nil
+			// A field may be sent as JSON, in a form, or either way: by
+			// its tags. One tagged "-" is not read that way; one with no
+			// tag is read from JSON by its Go name.
+			formTag, hasForm := f.Tag.Lookup("form")
+			jsonTag, _ := jsonName(f)
+			if hasForm && formTag != "-" {
+				formBody[formTag] = schema
+				if required {
+					formRequired = append(formRequired, formTag)
+				}
 			}
-			if name == "" {
-				name = f.Name
-			}
-			jsonBody[name] = schema
-			if required {
-				jsonRequired = append(jsonRequired, name)
+			if jsonTag != "-" && (jsonTag != "" || !hasForm) {
+				if jsonTag == "" {
+					jsonTag = f.Name
+				}
+				jsonBody[jsonTag] = schema
+				if required {
+					jsonRequired = append(jsonRequired, jsonTag)
+				}
 			}
 		}
 		return nil
