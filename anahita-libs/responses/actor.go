@@ -5,20 +5,33 @@ import (
 	"time"
 )
 
+// ActorNodeItem is a profile: a person, a group or an event.
 type ActorNodeItem struct {
+	// Its id.
 	ID int64 `json:"id"`
 	// What it is called on the server it came from, and that server, when it
 	// came from another. Left out of everything made here.
-	URI          string `json:"uri,omitempty"`
+	URI string `json:"uri,omitempty"`
+	// The server it came from, when it came from another.
 	OriginDomain string `json:"origin_domain,omitempty"`
-	Type         string `json:"type"`
-	Name         string `json:"name,omitempty"`
-	Alias        string `json:"alias,omitempty"`
-	Body         string `json:"body,omitempty"`
+	// What kind of profile it is: `node.actor.actor-service.person.v1`,
+	// `...group.v1` or `...event.v1`, or one of another server's.
+	Type string `json:"type"`
+	// Its name.
+	Name string `json:"name,omitempty"`
+	// Its handle (`ana`, or `ana@mastodon.social` for somebody on another
+	// server).
+	Alias string `json:"alias,omitempty"`
+	// Its description.
+	Body string `json:"body,omitempty"`
 	// One link on the profile. Rendered as an anchor, so the value is
 	// validated to http(s) on the way in — see requests/actor.go.
 	WebsiteURL string `json:"website_url,omitempty"`
-	Verified   bool   `json:"verified,omitempty"`
+	// A mark kept from earlier versions of Anahita. Nothing sets it yet.
+	Verified bool `json:"verified,omitempty"`
+	// Whether it is enabled: false when a site administrator has disabled it,
+	// or while it is being deleted.
+	//
 	// No omitempty. false is the zero value, so omitempty would drop the field
 	// exactly when it carries information — a client could not tell a disabled
 	// actor from one whose response simply did not mention it.
@@ -28,7 +41,8 @@ type ActorNodeItem struct {
 	// Enabled, and a client reading only that cannot tell an account on its way
 	// out from one an administrator disabled.
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
-	// Who may see this actor, and whether strangers may ask to follow.
+	// Who may see it: `public`, `registered`, `followers`, `leaders`,
+	// `mutuals`, `admins` or `myself` (permissions.md).
 	//
 	// Absent from the response entirely until now, which broke the settings
 	// card that edits them: it seeds its dropdown from actor.access, got
@@ -45,8 +59,9 @@ type ActorNodeItem struct {
 	// bind that to a bool, so the whole request was rejected with a 400
 	// before validation ran and no access change could be saved at all
 	// by anybody whose follow-request setting was off.
-	Access             string `json:"access"`
-	AllowFollowRequest bool   `json:"allow_follow_request"`
+	Access string `json:"access"`
+	// Whether people its profile is not open to may ask to follow it.
+	AllowFollowRequest bool `json:"allow_follow_request"`
 	// Whether what this actor reposts is also among its profile's posts.
 	ShowRepostsOnProfile bool `json:"show_reposts_on_profile"`
 	// On a person: who may quote their posts, when a post does not say.
@@ -61,19 +76,29 @@ type ActorNodeItem struct {
 	ArchivedAt *time.Time `json:"archived_at,omitempty"`
 	// Set only while the installation features this actor, so a super
 	// administrator's profile menu can show the toggle's state.
-	FeaturedAt        *time.Time `json:"featured_at,omitempty"`
-	CreatedAt         time.Time  `json:"created_at"`
-	FollowerCount     int64      `json:"follower_count,omitempty"`
-	LeaderCount       int64      `json:"leader_count,omitempty"`
-	IsLeadingViewer   bool       `json:"is_leading_viewer,omitempty"`
-	IsAdminedByViewer bool       `json:"is_admined_by_viewer,omitempty"`
-	IsFollowingViewer bool       `json:"is_following_viewer,omitempty"`
-	IsBlockedByViewer bool       `json:"is_blocked_by_viewer,omitempty"`
+	FeaturedAt *time.Time `json:"featured_at,omitempty"`
+	// When it was made.
+	CreatedAt time.Time `json:"created_at"`
+	// How many follow it.
+	FollowerCount int64 `json:"follower_count,omitempty"`
+	// How many it follows.
+	LeaderCount int64 `json:"leader_count,omitempty"`
+	// Whether the viewer follows it.
+	IsLeadingViewer bool `json:"is_leading_viewer,omitempty"`
+	// Whether the viewer is one of its administrators.
+	IsAdminedByViewer bool `json:"is_admined_by_viewer,omitempty"`
+	// Whether it follows the viewer.
+	IsFollowingViewer bool `json:"is_following_viewer,omitempty"`
+	// Whether the viewer has blocked it.
+	IsBlockedByViewer bool `json:"is_blocked_by_viewer,omitempty"`
 	// Whether the viewer has been invited to follow this actor and is yet
 	// to answer.
-	IsInvited bool             `json:"is_invited,omitempty"`
-	Avatar    map[string]Image `json:"avatar_urls,omitempty"`
-	Cover     map[string]Image `json:"cover_urls,omitempty"`
+	IsInvited bool `json:"is_invited,omitempty"`
+	// Its picture, in each size there is: `small`, `medium`, `large`,
+	// `square`.
+	Avatar map[string]Image `json:"avatar_urls,omitempty"`
+	// Its cover picture, in each size there is: `medium`, `large`.
+	Cover map[string]Image `json:"cover_urls,omitempty"`
 
 	// Author information
 	Author *Author `json:"author,omitempty"`

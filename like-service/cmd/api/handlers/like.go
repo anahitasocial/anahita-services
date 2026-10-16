@@ -59,11 +59,7 @@ func (h *likeHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	type Response struct {
-		Data       []*responses.ActorNodeItem `json:"data"`
-		Pagination responses.Pagination       `json:"pagination"`
-	}
-	resp := &Response{}
+	resp := &responses.List[*responses.ActorNodeItem]{}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

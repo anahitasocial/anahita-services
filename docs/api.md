@@ -163,8 +163,12 @@ hashtags.GET("/:alias", r.handler.Hashtag.Read, r.setViewer).
   binding is the default.
 - **`Sends`** is what the handler answers with. A list's answer is
   `responses.List[T]`, the one shape every list has.
-- **The comment on each field is its description,** read from the source, so
-  nothing is worded twice. A field with no comment has no description.
+- **The first paragraph of the comment on each field is its description,**
+  read from the source, so nothing is worded twice. As in Go's own
+  documentation, the first paragraph says what the field is, for whoever
+  calls the API; what follows it (why it is never left out, what broke
+  before) is for whoever works on the code, and stays out of the reference.
+  A field with no comment has no description.
 - `SendsNothing`, `Describe`, `Scope`, `StepUp` and `NotBuilt` say the rest.
   `400`, `401` and `403` are added where a route of its kind can answer them.
 

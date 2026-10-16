@@ -87,9 +87,9 @@ func (s *sources) read(pkgPath string) (map[string]*typeComments, error) {
 				tc := &typeComments{fields: map[string]string{}}
 				switch {
 				case ts.Doc != nil:
-					tc.doc = clean(ts.Doc.Text())
+					tc.doc = firstParagraph(ts.Doc.Text())
 				case len(gen.Specs) == 1 && gen.Doc != nil:
-					tc.doc = clean(gen.Doc.Text())
+					tc.doc = firstParagraph(gen.Doc.Text())
 				}
 				if st, ok := ts.Type.(*ast.StructType); ok {
 					for _, field := range st.Fields.List {
@@ -100,7 +100,7 @@ func (s *sources) read(pkgPath string) (map[string]*typeComments, error) {
 							text = field.Comment.Text()
 						}
 						for _, name := range field.Names {
-							tc.fields[name.Name] = clean(text)
+							tc.fields[name.Name] = firstParagraph(text)
 						}
 					}
 				}
@@ -119,16 +119,12 @@ func (s *sources) isOurs(pkgPath string) bool {
 	return err == nil && !pkg.Goroot
 }
 
-// clean is a comment as a description: its lines run together into
-// paragraphs, as they are read.
-func clean(text string) string {
-	text = strings.TrimSpace(text)
-	if text == "" {
-		return ""
-	}
-	var paragraphs []string
-	for _, paragraph := range strings.Split(text, "\n\n") {
-		paragraphs = append(paragraphs, strings.Join(strings.Fields(paragraph), " "))
-	}
-	return strings.Join(paragraphs, "\n\n")
+// firstParagraph is a comment as a description: its first paragraph, its
+// lines run together. As in Go's own documentation, the first paragraph says
+// what a thing is; what follows it is for whoever works on the code (why a
+// field is never left out, what broke before), and stays out of the
+// reference.
+func firstParagraph(text string) string {
+	paragraph, _, _ := strings.Cut(strings.TrimSpace(text), "\n\n")
+	return strings.Join(strings.Fields(paragraph), " ")
 }

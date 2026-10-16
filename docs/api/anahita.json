@@ -39,6 +39,155 @@
         ],
         "type": "object"
       },
+      "ActorNodeItem": {
+        "description": "ActorNodeItem is a profile: a person, a group or an event.",
+        "properties": {
+          "access": {
+            "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",
+            "type": "string"
+          },
+          "alias": {
+            "description": "Its handle (`ana`, or `ana@mastodon.social` for somebody on another server).",
+            "type": "string"
+          },
+          "allow_download": {
+            "description": "What this actor's new photos and videos start with: whether they may be downloaded.",
+            "type": "boolean"
+          },
+          "allow_follow_request": {
+            "description": "Whether people its profile is not open to may ask to follow it.",
+            "type": "boolean"
+          },
+          "archived_at": {
+            "description": "Permanent, and set only once archived, so the settings page can show the state rather than offering an action that no longer applies.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/components/schemas/Author",
+            "description": "Author information"
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
+            "type": "object"
+          },
+          "body": {
+            "description": "Its description.",
+            "type": "string"
+          },
+          "cover_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its cover picture, in each size there is: `medium`, `large`.",
+            "type": "object"
+          },
+          "created_at": {
+            "description": "When it was made.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "deleted_at": {
+            "description": "Present only while the actor is scheduled for deletion, so the settings page can offer Restore instead of the delete form. Deleting also clears Enabled, and a client reading only that cannot tell an account on its way out from one an administrator disabled.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "enabled": {
+            "description": "Whether it is enabled: false when a site administrator has disabled it, or while it is being deleted.",
+            "type": "boolean"
+          },
+          "event": {
+            "$ref": "#/components/schemas/Event",
+            "description": "On an event: when it is, how many may go and are going, and what the viewer answered. Left out on anything else."
+          },
+          "featured_at": {
+            "description": "Set only while the installation features this actor, so a super administrator's profile menu can show the toggle's state.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "follower_count": {
+            "description": "How many follow it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "is_admined_by_viewer": {
+            "description": "Whether the viewer is one of its administrators.",
+            "type": "boolean"
+          },
+          "is_blocked_by_viewer": {
+            "description": "Whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_following_viewer": {
+            "description": "Whether it follows the viewer.",
+            "type": "boolean"
+          },
+          "is_invited": {
+            "description": "Whether the viewer has been invited to follow this actor and is yet to answer.",
+            "type": "boolean"
+          },
+          "is_leading_viewer": {
+            "description": "Whether the viewer follows it.",
+            "type": "boolean"
+          },
+          "leader_count": {
+            "description": "How many it follows.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "Its name.",
+            "type": "string"
+          },
+          "origin_domain": {
+            "description": "The server it came from, when it came from another.",
+            "type": "string"
+          },
+          "quote_policy": {
+            "description": "On a person: who may quote their posts, when a post does not say. \"anyone\", \"followers\" or \"nobody\"; left out when they have not said, which is anyone.",
+            "type": "string"
+          },
+          "show_reposts_on_profile": {
+            "description": "Whether what this actor reposts is also among its profile's posts.",
+            "type": "boolean"
+          },
+          "type": {
+            "description": "What kind of profile it is: `node.actor.actor-service.person.v1`, `...group.v1` or `...event.v1`, or one of another server's.",
+            "type": "string"
+          },
+          "uri": {
+            "description": "What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.",
+            "type": "string"
+          },
+          "verified": {
+            "description": "A mark kept from earlier versions of Anahita. Nothing sets it yet.",
+            "type": "boolean"
+          },
+          "website_url": {
+            "description": "One link on the profile. Rendered as an anchor, so the value is validated to http(s) on the way in — see requests/actor.go.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "enabled",
+          "access",
+          "allow_follow_request",
+          "show_reposts_on_profile",
+          "allow_download",
+          "created_at"
+        ],
+        "type": "object"
+      },
       "Author": {
         "description": "Author is who wrote something.",
         "properties": {
@@ -335,6 +484,222 @@
         "required": [
           "count",
           "alts"
+        ],
+        "type": "object"
+      },
+      "MediumNode": {
+        "description": "MediumNode is a post or a reply, read on its own or answered with after a change.",
+        "properties": {
+          "access": {
+            "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",
+            "type": "string"
+          },
+          "alias": {
+            "description": "Its short name, where it has one.",
+            "type": "string"
+          },
+          "allow_download": {
+            "description": "Whether whoever can see it may download what it holds. Sent on a post that holds a file, for whoever may change it.",
+            "type": "boolean"
+          },
+          "author": {
+            "$ref": "#/components/schemas/Author",
+            "description": "Related Entities"
+          },
+          "authorized": {
+            "$ref": "#/components/schemas/NodeAuthorized",
+            "description": "Authorization Information"
+          },
+          "body": {
+            "description": "Its words, as Markdown.",
+            "type": "string"
+          },
+          "comment_count": {
+            "description": "How many replies are under it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "comment_status": {
+            "description": "Whether it takes replies at all.",
+            "type": "boolean"
+          },
+          "cover_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Media URLs",
+            "type": "object"
+          },
+          "created_at": {
+            "description": "When it was written.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "deleted": {
+            "description": "On a reply: removed, and kept as an empty placeholder because other replies hang from it. It carries no text and no author.",
+            "type": "boolean"
+          },
+          "editor": {
+            "$ref": "#/components/schemas/Editor",
+            "description": "Who changed it last."
+          },
+          "enabled": {
+            "description": "Whether it is shown: false when it has been disabled.",
+            "type": "boolean"
+          },
+          "excerpt": {
+            "description": "A shorter form of its words, where there is one.",
+            "type": "string"
+          },
+          "files": {
+            "description": "The images of a photo post, in order. The first is the one portrait_urls shows.",
+            "items": {
+              "$ref": "#/components/schemas/PhotoFile"
+            },
+            "type": "array"
+          },
+          "hidden": {
+            "description": "On a reply: hidden from its thread. Sent only to somebody who may show it again.",
+            "type": "boolean"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "is_liked_by_viewer": {
+            "description": "Whether the viewer likes it.",
+            "type": "boolean"
+          },
+          "is_reposted_by_viewer": {
+            "description": "Whether the viewer has reposted it.",
+            "type": "boolean"
+          },
+          "is_saved_by_viewer": {
+            "description": "Whether the viewer has saved it. Sent to them alone, like the rest of what is said here about the viewer.",
+            "type": "boolean"
+          },
+          "language": {
+            "description": "The language it is written in, as its author said (`en`, `fa`).",
+            "type": "string"
+          },
+          "likes_count": {
+            "description": "How many like it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "link_preview": {
+            "$ref": "#/components/schemas/LinkPreview",
+            "description": "On a note that carries one: the preview of a link in it."
+          },
+          "media_removed": {
+            "$ref": "#/components/schemas/MediaRemoved",
+            "description": "On a photo post from another server whose pictures are no longer stored here."
+          },
+          "mimetype": {
+            "description": "The kind of file it holds, where it holds one.",
+            "type": "string"
+          },
+          "name": {
+            "description": "Its title, where it has one.",
+            "type": "string"
+          },
+          "origin_domain": {
+            "description": "The server it came from, when it came from another.",
+            "type": "string"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/Owner",
+            "description": "The profile it is on."
+          },
+          "parent_id": {
+            "description": "As on MediumNodeItem.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "pinned": {
+            "description": "Whether it is pinned to the profile it is on, which it then leads.",
+            "type": "boolean"
+          },
+          "portrait_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "A photo post's first picture, in each size there is: `square`, `small`, `medium`, `large`, `original`.",
+            "type": "object"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/QuoteEmbed",
+            "description": "On a note that quotes a post: that post, or why it is not shown."
+          },
+          "quote_count": {
+            "description": "How many notes quote it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "quote_id": {
+            "description": "The id of the post it quotes, whether or not it is shown.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "quote_policy": {
+            "description": "Who may quote this post, when its author has said: \"anyone\", \"followers\" or \"nobody\". Left out when they have not, and their own setting applies.",
+            "type": "string"
+          },
+          "reply_access": {
+            "description": "Who may reply, as the author set it: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Not on a reply, which follows the post at the top of its thread.",
+            "type": "string"
+          },
+          "repost_count": {
+            "description": "How many have reposted it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "root": {
+            "$ref": "#/components/schemas/Parent",
+            "description": "On a reply read on its own: the post at the top of its thread."
+          },
+          "root_id": {
+            "description": "On a reply: the post at the top of its thread.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "type": {
+            "description": "What kind of post it is: `node.medium.text-service.note.v1` for a note, and so on.",
+            "type": "string"
+          },
+          "updated_at": {
+            "description": "When it was last changed.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "uri": {
+            "description": "What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.",
+            "type": "string"
+          },
+          "video": {
+            "$ref": "#/components/schemas/Video",
+            "description": "What a video post plays."
+          },
+          "view_count": {
+            "description": "How many times it has been read.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "view_count",
+          "likes_count",
+          "quote_count",
+          "repost_count",
+          "comment_count",
+          "comment_status",
+          "pinned",
+          "enabled",
+          "is_liked_by_viewer",
+          "is_reposted_by_viewer"
         ],
         "type": "object"
       },
@@ -1444,6 +1809,225 @@
         "x-viewer": "anyone"
       }
     },
+    "/likes/{node_id}/": {
+      "delete": {
+        "description": "Answers with what was liked.\n\nWho may call it: somebody signed in, with a token that carries `likes:write`.",
+        "operationId": "deleteLikesByNodeId",
+        "parameters": [
+          {
+            "description": "The post's or the reply's id.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer does not like it"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "likes:write"
+            ]
+          }
+        ],
+        "summary": "Stop liking it",
+        "tags": [
+          "like-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "The people who like a post or a reply that the viewer may see, each saying how they stand with the viewer. Somebody its owner or author has blocked is left out (permissions.md).\n\nWho may call it: somebody signed in.",
+        "operationId": "getLikesByNodeId",
+        "parameters": [
+          {
+            "description": "The post's or the reply's id.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The order they come in.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "recent",
+              "enum": [
+                "recent",
+                "oldest"
+              ],
+              "maxLength": 10,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "asc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/ActorNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not see it"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Who likes it",
+        "tags": [
+          "like-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "A reply is liked by the rules of the post at the top of its thread. Answers with what was liked.\n\nWho may call it: somebody signed in, with a token that carries `likes:write`.",
+        "operationId": "postLikesByNodeId",
+        "parameters": [
+          {
+            "description": "The post's or the reply's id.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not like it"
+          },
+          "409": {
+            "description": "the viewer likes it already"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "likes:write"
+            ]
+          }
+        ],
+        "summary": "Like it",
+        "tags": [
+          "like-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
     "/search/": {
       "get": {
         "description": "Posts, profiles and custom feeds whose words match, of those the viewer may see. Search applies a post's audience and its profile's, but not the exceptions that let a profile's owner and a post's author see their own (permissions.md), so it may not find one's own restricted posts. Each person, group and event found says how it stands with the viewer, and each event when it is.\n\nWho may call it: anyone, signed in or not.",
@@ -1631,6 +2215,10 @@
     {
       "description": "Hashtags",
       "name": "hashtag-service"
+    },
+    {
+      "description": "Likes",
+      "name": "like-service"
     },
     {
       "description": "Search",

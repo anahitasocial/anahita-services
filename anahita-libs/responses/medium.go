@@ -7,34 +7,46 @@ import (
 	"time"
 )
 
+// MediumNodeItem is a post or a reply in a list.
 type MediumNodeItem struct {
+	// Its id.
 	ID int64 `json:"id"`
 	// What it is called on the server it came from, and that server, when it
 	// came from another. Left out of everything made here.
-	URI          string    `json:"uri,omitempty"`
-	OriginDomain string    `json:"origin_domain,omitempty"`
-	Type         string    `json:"type"`
-	Name         string    `json:"name,omitempty"`
-	Alias        string    `json:"alias,omitempty"`
-	Body         string    `json:"body,omitempty"`
-	Excerpt      string    `json:"excerpt,omitempty"`
-	CreatedAt    time.Time `json:"created_at,omitempty"`
-	Mimetype     string    `json:"mimetype,omitempty"`
+	URI string `json:"uri,omitempty"`
+	// The server it came from, when it came from another.
+	OriginDomain string `json:"origin_domain,omitempty"`
+	// What kind of post it is: `node.medium.text-service.note.v1` for a note,
+	// and so on.
+	Type string `json:"type"`
+	// Its title, where it has one.
+	Name string `json:"name,omitempty"`
+	// Its short name, where it has one.
+	Alias string `json:"alias,omitempty"`
+	// Its words, as Markdown.
+	Body string `json:"body,omitempty"`
+	// A shorter form of its words, where there is one.
+	Excerpt string `json:"excerpt,omitempty"`
+	// When it was written.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// The kind of file it holds, where it holds one.
+	Mimetype string `json:"mimetype,omitempty"`
 	// The language the author said it is written in. Left out when they did
 	// not say.
 	Language string `json:"language,omitempty"`
 	// On a reply: the post or reply it answers, and the post at the top of
 	// its thread. Left out on anything that is not a reply.
 	ParentID int64 `json:"parent_id,omitempty"`
-	RootID   int64 `json:"root_id,omitempty"`
-	// On a note that quotes a post: that post, or why it is not shown.
+	// On a reply: the post at the top of its thread.
+	RootID int64 `json:"root_id,omitempty"`
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
 	// On a photo post from another server whose pictures are no longer
 	// stored here.
 	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
 	// What a video post plays.
-	Video *Video      `json:"video,omitempty"`
+	Video *Video `json:"video,omitempty"`
+	// On a note that quotes a post: that post, or why it is not shown.
 	Quote *QuoteEmbed `json:"quote,omitempty"`
 	// The id of the post it quotes, whether or not it is shown.
 	QuoteID int64 `json:"quote_id,omitempty"`
@@ -43,56 +55,82 @@ type MediumNodeItem struct {
 	Deleted bool `json:"deleted,omitempty"`
 	// On a reply: hidden from its thread. Sent only to somebody who may
 	// show it again.
-	Hidden          bool   `json:"hidden,omitempty"`
-	Access          string `json:"access,omitempty"`
-	LikesCount      int64  `json:"likes_count"`
-	QuoteCount      int64  `json:"quote_count"`
-	RepostCount     int64  `json:"repost_count"`
-	CommentCount    int64  `json:"comment_count"`
-	IsLikedByViewer bool   `json:"is_liked_by_viewer"`
+	Hidden bool `json:"hidden,omitempty"`
+	// Who may see it: `public`, `registered`, `followers`, `leaders`,
+	// `mutuals`, `admins` or `myself` (permissions.md).
+	Access string `json:"access,omitempty"`
+	// How many like it.
+	LikesCount int64 `json:"likes_count"`
+	// How many notes quote it.
+	QuoteCount int64 `json:"quote_count"`
+	// How many have reposted it.
+	RepostCount int64 `json:"repost_count"`
+	// How many replies are under it.
+	CommentCount int64 `json:"comment_count"`
+	// Whether the viewer likes it.
+	IsLikedByViewer bool `json:"is_liked_by_viewer"`
 	// Whether the viewer has saved it. Sent to them alone, like the rest
 	// of what is said here about the viewer.
-	IsSavedByViewer    bool `json:"is_saved_by_viewer,omitempty"`
+	IsSavedByViewer bool `json:"is_saved_by_viewer,omitempty"`
+	// Whether the viewer has reposted it.
 	IsRepostedByViewer bool `json:"is_reposted_by_viewer"`
 
 	// Related Entities
 	Author *Author `json:"author,omitempty"`
-	Owner  *Owner  `json:"owner,omitempty"`
+	// The profile it is on.
+	Owner *Owner `json:"owner,omitempty"`
 
 	// Media URLs
-	Cover    map[string]Image `json:"cover_urls,omitempty"`
+	Cover map[string]Image `json:"cover_urls,omitempty"`
+	// A photo post's first picture, in each size there is: `square`,
+	// `small`, `medium`, `large`, `original`.
 	Portrait map[string]Image `json:"portrait_urls,omitempty"`
 	// The images of a photo post, in order. The first is the one
 	// portrait_urls shows.
 	Files []*PhotoFile `json:"files,omitempty"`
 }
 
+// MediumNode is a post or a reply, read on its own or answered with after a
+// change.
 type MediumNode struct {
+	// Its id.
 	ID int64 `json:"id"`
 	// What it is called on the server it came from, and that server, when it
 	// came from another. Left out of everything made here.
-	URI          string    `json:"uri,omitempty"`
-	OriginDomain string    `json:"origin_domain,omitempty"`
-	Type         string    `json:"type"`
-	Name         string    `json:"name,omitempty"`
-	Alias        string    `json:"alias,omitempty"`
-	Body         string    `json:"body,omitempty"`
-	Excerpt      string    `json:"excerpt,omitempty"`
-	CreatedAt    time.Time `json:"created_at,omitempty"`
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
-	Mimetype     string    `json:"mimetype,omitempty"`
-	Language     string    `json:"language,omitempty"`
+	URI string `json:"uri,omitempty"`
+	// The server it came from, when it came from another.
+	OriginDomain string `json:"origin_domain,omitempty"`
+	// What kind of post it is: `node.medium.text-service.note.v1` for a note,
+	// and so on.
+	Type string `json:"type"`
+	// Its title, where it has one.
+	Name string `json:"name,omitempty"`
+	// Its short name, where it has one.
+	Alias string `json:"alias,omitempty"`
+	// Its words, as Markdown.
+	Body string `json:"body,omitempty"`
+	// A shorter form of its words, where there is one.
+	Excerpt string `json:"excerpt,omitempty"`
+	// When it was written.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// When it was last changed.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// The kind of file it holds, where it holds one.
+	Mimetype string `json:"mimetype,omitempty"`
+	// The language it is written in, as its author said (`en`, `fa`).
+	Language string `json:"language,omitempty"`
 	// As on MediumNodeItem.
 	ParentID int64 `json:"parent_id,omitempty"`
-	RootID   int64 `json:"root_id,omitempty"`
-	// On a note that quotes a post: that post, or why it is not shown.
+	// On a reply: the post at the top of its thread.
+	RootID int64 `json:"root_id,omitempty"`
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
 	// On a photo post from another server whose pictures are no longer
 	// stored here.
 	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
 	// What a video post plays.
-	Video *Video      `json:"video,omitempty"`
+	Video *Video `json:"video,omitempty"`
+	// On a note that quotes a post: that post, or why it is not shown.
 	Quote *QuoteEmbed `json:"quote,omitempty"`
 	// The id of the post it quotes, whether or not it is shown.
 	QuoteID int64 `json:"quote_id,omitempty"`
@@ -104,27 +142,43 @@ type MediumNode struct {
 	QuotePolicy string `json:"quote_policy,omitempty"`
 	// Whether whoever can see it may download what it holds. Sent on a post
 	// that holds a file, for whoever may change it.
-	AllowDownload *bool  `json:"allow_download,omitempty"`
-	Deleted       bool   `json:"deleted,omitempty"`
-	Hidden        bool   `json:"hidden,omitempty"`
-	Access        string `json:"access,omitempty"`
-	ViewCount     int64  `json:"view_count"`
-	LikesCount    int64  `json:"likes_count"`
-	QuoteCount    int64  `json:"quote_count"`
-	RepostCount   int64  `json:"repost_count"`
-	CommentCount  int64  `json:"comment_count"`
-	CommentStatus bool   `json:"comment_status"`
+	AllowDownload *bool `json:"allow_download,omitempty"`
+	// On a reply: removed, and kept as an empty placeholder because other
+	// replies hang from it. It carries no text and no author.
+	Deleted bool `json:"deleted,omitempty"`
+	// On a reply: hidden from its thread. Sent only to somebody who may
+	// show it again.
+	Hidden bool `json:"hidden,omitempty"`
+	// Who may see it: `public`, `registered`, `followers`, `leaders`,
+	// `mutuals`, `admins` or `myself` (permissions.md).
+	Access string `json:"access,omitempty"`
+	// How many times it has been read.
+	ViewCount int64 `json:"view_count"`
+	// How many like it.
+	LikesCount int64 `json:"likes_count"`
+	// How many notes quote it.
+	QuoteCount int64 `json:"quote_count"`
+	// How many have reposted it.
+	RepostCount int64 `json:"repost_count"`
+	// How many replies are under it.
+	CommentCount int64 `json:"comment_count"`
+	// Whether it takes replies at all.
+	CommentStatus bool `json:"comment_status"`
 	// Who may reply, as the author set it: "anyone", "nobody", or any of
 	// "followers", "following" and "mentioned" joined by commas. Not on a
 	// reply, which follows the post at the top of its thread.
 	ReplyAccess string `json:"reply_access,omitempty"`
-	Pinned      bool   `json:"pinned"`
-	Enabled     bool   `json:"enabled"`
+	// Whether it is pinned to the profile it is on, which it then leads.
+	Pinned bool `json:"pinned"`
+	// Whether it is shown: false when it has been disabled.
+	Enabled bool `json:"enabled"`
 
+	// Whether the viewer likes it.
 	IsLikedByViewer bool `json:"is_liked_by_viewer"`
 	// Whether the viewer has saved it. Sent to them alone, like the rest
 	// of what is said here about the viewer.
-	IsSavedByViewer    bool `json:"is_saved_by_viewer,omitempty"`
+	IsSavedByViewer bool `json:"is_saved_by_viewer,omitempty"`
+	// Whether the viewer has reposted it.
 	IsRepostedByViewer bool `json:"is_reposted_by_viewer"`
 
 	// Authorization Information
@@ -132,11 +186,15 @@ type MediumNode struct {
 
 	// Related Entities
 	Author *Author `json:"author,omitempty"`
+	// Who changed it last.
 	Editor *Editor `json:"editor,omitempty"`
-	Owner  *Owner  `json:"owner,omitempty"`
+	// The profile it is on.
+	Owner *Owner `json:"owner,omitempty"`
 
 	// Media URLs
-	Cover    map[string]Image `json:"cover_urls,omitempty"`
+	Cover map[string]Image `json:"cover_urls,omitempty"`
+	// A photo post's first picture, in each size there is: `square`,
+	// `small`, `medium`, `large`, `original`.
 	Portrait map[string]Image `json:"portrait_urls,omitempty"`
 	// The images of a photo post, in order. The first is the one
 	// portrait_urls shows.
