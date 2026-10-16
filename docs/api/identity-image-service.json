@@ -2,7 +2,7 @@
   "components": {
     "schemas": {
       "AnahitaNodeImage": {
-        "description": "AnahitaNodeImage is one size of a picture. It has no JSON tags, so its // fields are sent as Go names them.",
+        "description": "AnahitaNodeImage is one size of a picture. It has no JSON tags, so its fields are sent as Go names them.",
         "properties": {
           "Size": {
             "$ref": "#/components/schemas/AnahitaNodeImageSize",

@@ -60,16 +60,16 @@ type AnahitaNodeAuthorized struct {
 // AnahitaNodeImageSize is how big a picture is.
 type AnahitaNodeImageSize struct {
 	// In pixels.
-	Width  int
+	Width int
 	// In pixels.
 	Height int
 }
 
 // AnahitaNodeImage is one size of a picture. It has no JSON tags, so its
-// // fields are sent as Go names them.
+// fields are sent as Go names them.
 type AnahitaNodeImage struct {
 	// Where it is read from: good for a short while.
-	Url  string
+	Url string
 	// How big it is.
 	Size AnahitaNodeImageSize
 }
