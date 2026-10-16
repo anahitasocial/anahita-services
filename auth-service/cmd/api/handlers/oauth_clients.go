@@ -111,10 +111,7 @@ func (h *oauthHandler) AddClient(c echo.Context) error {
 	// where it surfaces as an opaque invalid_scope for real users — so
 	// name the offending scope while the operator is still looking at it.
 	if err := h.OAuth.ValidateScopes(strings.Join(req.Scopes, " ")); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error":       "invalid_scope",
-			"description": err.Error(),
-		})
+		return refuse(c, http.StatusBadRequest, "invalid_scope", err.Error())
 	}
 
 	client := entities.NewOAuthClient()
@@ -190,10 +187,7 @@ func (h *oauthHandler) EditClient(c echo.Context) error {
 	}
 
 	if err := h.OAuth.ValidateScopes(strings.Join(req.Scopes, " ")); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error":       "invalid_scope",
-			"description": err.Error(),
-		})
+		return refuse(c, http.StatusBadRequest, "invalid_scope", err.Error())
 	}
 
 	client.Name = req.Name
@@ -300,10 +294,7 @@ func (h *oauthHandler) RotateClientSecret(c echo.Context) error {
 	}
 
 	if !client.Confidential {
-		return c.JSON(http.StatusBadRequest, &responses.OAuthErrorResponse{
-			Error:       "invalid_request",
-			Description: "public clients have no secret to rotate",
-		})
+		return refuse(c, http.StatusBadRequest, "public_client", "public clients have no secret to rotate")
 	}
 
 	newSecret, err := generateRandomString(48)

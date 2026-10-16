@@ -14,6 +14,8 @@ import (
 	"auth/requests"
 	"auth/responses"
 
+	libs_responses "anahita-libs/responses"
+
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/labstack/echo/v4"
@@ -62,8 +64,8 @@ func (h *webAuthnHandler) Browse(c echo.Context) error {
 	}
 
 	webauthnResp := &responses.WebAuthnCredentialResponse{}
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": webauthnResp.MapCredentials(creds),
+	return c.JSON(http.StatusOK, libs_responses.Unpaged[*responses.WebAuthnCredentialItem]{
+		Data: webauthnResp.MapCredentials(creds),
 	})
 }
 
@@ -98,10 +100,8 @@ func (h *webAuthnHandler) AddRegisterBegin(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if count >= constants.WebAuthnMaxCredentialsPerPerson {
-		return c.JSON(http.StatusConflict, map[string]string{
-			"error":   "credential_limit_reached",
-			"message": "Remove a passkey before adding another.",
-		})
+		return refuse(c, http.StatusConflict, "credential_limit_reached",
+			"Remove a passkey before adding another.")
 	}
 
 	existing, err := h.Repos.WebAuthnCredentials.Browse(viewer.ID)
@@ -168,10 +168,8 @@ func (h *webAuthnHandler) AddRegisterFinish(c echo.Context) error {
 	pending, err := h.readPendingRegistration(c)
 	if err != nil || pending == nil {
 		log.Println("webauthn register finish: no pending ceremony:", err)
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error":   "ceremony_expired",
-			"message": "That took too long. Start again.",
-		})
+		return refuse(c, http.StatusBadRequest, "ceremony_expired",
+			"That took too long. Start again.")
 	}
 
 	// One-shot. Cleared before verification so a failed attempt can't
@@ -205,10 +203,8 @@ func (h *webAuthnHandler) AddRegisterFinish(c echo.Context) error {
 		// 400, with no detail — the error text names internal
 		// checks and tells an attacker which gate they tripped.
 		log.Println("webauthn register finish verify:", err)
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error":   "registration_failed",
-			"message": "That passkey couldn't be registered. Try again.",
-		})
+		return refuse(c, http.StatusBadRequest, "registration_failed",
+			"That passkey couldn't be registered. Try again.")
 	}
 
 	// The nickname is derived from the AAGUID and transports the
@@ -241,8 +237,8 @@ func (h *webAuthnHandler) AddRegisterFinish(c echo.Context) error {
 	log.Printf("webauthn: passkey registered (person=%d credential=%d)", user.ID, persisted.ID)
 
 	webAuthnResp := &responses.WebAuthnCredentialResponse{}
-	return c.JSON(http.StatusCreated, map[string]any{
-		"data": webAuthnResp.MapCredential(persisted),
+	return c.JSON(http.StatusCreated, libs_responses.Item[*responses.WebAuthnCredentialItem]{
+		Data: webAuthnResp.MapCredential(persisted),
 	})
 }
 
@@ -286,8 +282,8 @@ func (h *webAuthnHandler) Edit(c echo.Context) error {
 	}
 
 	webauthnResp := &responses.WebAuthnCredentialResponse{}
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": webauthnResp.MapCredential(persisted),
+	return c.JSON(http.StatusOK, libs_responses.Item[*responses.WebAuthnCredentialItem]{
+		Data: webauthnResp.MapCredential(persisted),
 	})
 }
 
@@ -400,11 +396,7 @@ func (h *webAuthnHandler) ReadCountForPerson(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": map[string]any{
-			"count": count,
-		},
-	})
+	return c.JSON(http.StatusOK, libs_responses.Item[PasskeyCount]{Data: PasskeyCount{Count: count}})
 }
 
 // DeleteAll handles DELETE /webauthn/credentials/person/:person_id
@@ -511,11 +503,7 @@ func (h *webAuthnHandler) DeleteAll(c echo.Context) error {
 		}()
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": map[string]any{
-			"revoked": revoked,
-		},
-	})
+	return c.JSON(http.StatusOK, libs_responses.Item[PasskeysRevoked]{Data: PasskeysRevoked{Revoked: revoked}})
 }
 
 // writePendingRegistration serializes ceremony state into the session.
@@ -548,4 +536,17 @@ func (h *webAuthnHandler) readPendingRegistration(c echo.Context) (*pendingWebAu
 	}
 
 	return &pending, nil
+}
+
+// PasskeyCount is how many passkeys somebody holds, and nothing else
+// about them.
+type PasskeyCount struct {
+	// How many.
+	Count int `json:"count"`
+}
+
+// PasskeysRevoked is how many passkeys were removed.
+type PasskeysRevoked struct {
+	// How many.
+	Revoked int64 `json:"revoked"`
 }

@@ -10,9 +10,12 @@ package responses
 // description. Clients should branch on ErrorCode and treat an unknown or
 // absent value as terminal.
 type OAuthErrorResponse struct {
-	Error       string `json:"error"`
+	// Why, as RFC 6749 names it: `invalid_client`, `invalid_grant` and so on.
+	Error string `json:"error"`
+	// The same in words.
 	Description string `json:"error_description,omitempty"`
-	ErrorCode   string `json:"error_code,omitempty"`
+	// For a refused refresh token, which it was: `refresh_expired`, `refresh_not_found` and `refresh_reuse` end the session; `refresh_raced` does not, since another request refreshed first.
+	ErrorCode string `json:"error_code,omitempty"`
 }
 
 // Machine-readable values for OAuthErrorResponse.ErrorCode.

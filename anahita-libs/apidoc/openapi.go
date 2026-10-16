@@ -131,14 +131,18 @@ func (r *Route) complete() error {
 // pathKey is a route's path as OpenAPI writes it ("/hashtags/{alias}"), and
 // what each of its parameters is called there.
 func pathKey(path string, names map[string][]string) (string, map[string]string) {
-	segments := strings.Split(path, "/")
+	segments := strings.Split(wildcard(path), "/")
 	var template []string
 	var params []string
 	for _, seg := range segments {
-		if strings.HasPrefix(seg, ":") {
+		switch {
+		case strings.HasPrefix(seg, ":"):
 			template = append(template, "{}")
 			params = append(params, seg[1:])
-		} else {
+		case seg == "*":
+			// The rest of the address: a file under a directory.
+			template = append(template, "{path}")
+		default:
 			template = append(template, seg)
 		}
 	}
@@ -152,13 +156,26 @@ func pathKey(path string, names map[string][]string) (string, map[string]string)
 	rename := map[string]string{}
 	i := 0
 	for n, seg := range segments {
-		if strings.HasPrefix(seg, ":") {
+		switch {
+		case strings.HasPrefix(seg, ":"):
 			rename[seg[1:]] = known[i]
 			segments[n] = "{" + known[i] + "}"
 			i++
+		case seg == "*":
+			segments[n] = "{path}"
 		}
 	}
 	return strings.Join(segments, "/"), rename
+}
+
+// wildcard is a path whose end is the rest of the address, "/static*" as
+// echo registers a directory of files, written as a segment of its own:
+// "/static/*".
+func wildcard(path string) string {
+	if strings.HasSuffix(path, "*") && !strings.HasSuffix(path, "/*") {
+		return strings.TrimSuffix(path, "*") + "/*"
+	}
+	return path
 }
 
 // operationID is a name for a route that a client generator can make a
@@ -166,8 +183,11 @@ func pathKey(path string, names map[string][]string) (string, map[string]string)
 func operationID(method, path string) string {
 	var b strings.Builder
 	b.WriteString(strings.ToLower(method))
-	for _, seg := range strings.Split(path, "/") {
+	for _, seg := range strings.Split(wildcard(path), "/") {
 		by := strings.HasPrefix(seg, ":")
+		if seg == "*" {
+			by, seg = true, "path"
+		}
 		seg = strings.TrimLeft(seg, ":_")
 		if seg == "" {
 			continue
@@ -250,6 +270,14 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 		}
 		op["requestBody"] = map[string]any{"required": true, "content": map[string]any{mediaType: map[string]any{"schema": schema}}}
 		canBeMalformed = true
+	}
+	if strings.HasSuffix(r.Path, "*") {
+		params, _ := op["parameters"].([]any)
+		op["parameters"] = append(params, map[string]any{
+			"name": "path", "in": "path", "required": true,
+			"description": "The rest of the address: the file's path under the directory.",
+			"schema":      map[string]any{"type": "string"},
+		})
 	}
 	if err := r.checkPathParams(op, rename); err != nil {
 		return nil, err
@@ -435,13 +463,29 @@ func (r *Route) request(schemas *schemas, rename map[string]string) (params []an
 		content["application/json"] = map[string]any{"schema": objectOf(jsonBody, jsonRequired)}
 	}
 	if len(formBody) > 0 {
-		content["multipart/form-data"] = map[string]any{"schema": objectOf(formBody, formRequired)}
+		form := map[string]any{"schema": objectOf(formBody, formRequired)}
+		content["multipart/form-data"] = form
+		// What a page's form posts, unless it sends a file: echo reads
+		// either.
+		if !sendsFile(formBody) {
+			content["application/x-www-form-urlencoded"] = form
+		}
 	}
 	if len(content) > 0 {
 		body = map[string]any{"content": content, "required": true}
 		checked = true
 	}
 	return params, body, checked, nil
+}
+
+// sendsFile is whether a form has a file in it.
+func sendsFile(props map[string]any) bool {
+	for _, p := range props {
+		if schema, ok := p.(map[string]any); ok && schema["format"] == "binary" {
+			return true
+		}
+	}
+	return false
 }
 
 func objectOf(props map[string]any, required []string) map[string]any {

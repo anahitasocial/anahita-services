@@ -1151,6 +1151,49 @@
         "operationId": "postLocations",
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "address": {
+                    "description": "Its street address.",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "city": {
+                    "description": "Its city.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "country": {
+                    "description": "Its country.",
+                    "maxLength": 50,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "What it is called.",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "source_id": {
+                    "description": "A post to tie to it at once: the post's id.",
+                    "format": "int64",
+                    "type": "integer"
+                  },
+                  "state_province": {
+                    "description": "Its state or province.",
+                    "maxLength": 100,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "address",
+                  "city",
+                  "country"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -1478,6 +1521,44 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "address": {
+                    "description": "Its street address.",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "city": {
+                    "description": "Its city.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "country": {
+                    "description": "Its country.",
+                    "maxLength": 50,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "What it is called.",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "state_province": {
+                    "description": "Its state or province.",
+                    "maxLength": 100,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "address",
+                  "city",
+                  "country"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -1693,6 +1774,21 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "source_id": {
+                    "description": "The id of the post to tie to it.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "source_id"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {

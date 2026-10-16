@@ -85,33 +85,21 @@ func (h *oauthHandler) AddConsent(c echo.Context) error {
 
 	req := requests.NewOAuthAuthorizeRequest().Callback
 	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, &responses.OAuthErrorResponse{
-			Error:       "invalid_request",
-			Description: "malformed consent submission",
-		})
+		return h.renderError(c, "Invalid Request", "The consent form could not be read.")
 	}
 	if err := c.Validate(req); err != nil {
-		return c.JSON(http.StatusBadRequest, &responses.OAuthErrorResponse{
-			Error:       "invalid_request",
-			Description: err.Error(),
-		})
+		return h.renderError(c, "Invalid Request", "The consent form could not be read.")
 	}
 
 	// CSRF check.
 	storedCSRF, err := h.Session.Read(c, sessionKeyOAuthCSRFToken)
 	if err != nil || storedCSRF == "" || storedCSRF != req.CSRFToken {
-		return c.JSON(http.StatusForbidden, &responses.OAuthErrorResponse{
-			Error:       "invalid_request",
-			Description: "invalid csrf token",
-		})
+		return h.renderError(c, "Page Expired", "This page expired. Go back to the application and try again.")
 	}
 
 	authReq, err := h.loadStoredAuthRequest(c)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, &responses.OAuthErrorResponse{
-			Error:       "invalid_request",
-			Description: "no pending authorization request",
-		})
+		return h.renderError(c, "Invalid Session", "No pending authorization request found.")
 	}
 
 	// One-shot session state — clear regardless of outcome.

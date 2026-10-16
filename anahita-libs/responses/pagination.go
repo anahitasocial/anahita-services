@@ -25,3 +25,9 @@ type List[T any] struct {
 	// Where this page is among everything there is.
 	Pagination Pagination `json:"pagination"`
 }
+
+// Item is one thing, in the envelope a list's things come in.
+type Item[T any] struct {
+	// What was asked for.
+	Data T `json:"data"`
+}

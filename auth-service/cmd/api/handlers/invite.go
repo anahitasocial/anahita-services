@@ -53,12 +53,7 @@ func (h *inviteHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	type Response struct {
-		Data       []*responses.InviteItem   `json:"data"`
-		Pagination libs_responses.Pagination `json:"pagination"`
-	}
-
-	resp := &Response{
+	resp := &libs_responses.List[*responses.InviteItem]{
 		Data: []*responses.InviteItem{},
 		Pagination: libs_responses.Pagination{
 			Limit:  req.Limit,
@@ -121,7 +116,7 @@ func (h *inviteHandler) Add(c echo.Context) error {
 	// lack a privilege they plainly have.
 	if !h.Config.AllowsInvitations() {
 		log.Println("invite add: refused, registration is closed")
-		return c.JSON(http.StatusForbidden,
+		return refuse(c, http.StatusForbidden, "invitations_closed",
 			"This site is locked down and is not issuing invitations.")
 	}
 
@@ -177,7 +172,7 @@ func (h *inviteHandler) Add(c echo.Context) error {
 		// Says the number and how a slot frees. "You have reached your limit"
 		// leaves somebody with nothing to do but wait for something they have
 		// not been told about.
-		return c.JSON(http.StatusConflict, fmt.Sprintf(
+		return refuse(c, http.StatusConflict, "too_many_invitations", fmt.Sprintf(
 			"You have %d invitations outstanding, which is the limit. "+
 				"One frees up when an invitation is accepted, expires, or you "+
 				"revoke it.", pending))
@@ -321,5 +316,6 @@ func (h *inviteHandler) Delete(c echo.Context) error {
 		}()
 	}
 
-	return c.JSON(http.StatusOK, token)
+	invitesResp := &responses.InviteResponse{}
+	return c.JSON(http.StatusOK, invitesResp.MapInviteItem(token))
 }

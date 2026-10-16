@@ -54,7 +54,7 @@ func newUsernameChangeHandler(env *Env) *usernameChangeHandler {
 //	200 — changed, with the stored handle
 //	204 — the requested handle is the one already held; nothing done
 //	400 — bad body, or the handle fails format validation
-//	403 — no recent step-up; the client re-authenticates and retries
+//	403 — `step_up_required`: no recent step-up; the client re-authenticates and retries
 //	409 — the handle is taken
 //	500 — database failure
 //
@@ -98,7 +98,7 @@ func (h *usernameChangeHandler) Edit(c echo.Context) error {
 
 	if err := h.requireStepUp(user.ID); err != nil {
 		log.Println("username change:", err)
-		return c.NoContent(reauthStatus(err))
+		return stepUpRequired(c, err)
 	}
 
 	// Asking for the handle you already hold is a no-op, not an error.
@@ -169,7 +169,11 @@ func (h *usernameChangeHandler) Edit(c echo.Context) error {
 	// The handle back, so the SPA can update the store and the profile
 	// URL it renders without a second round trip. Returns what was
 	// STORED rather than what was sent — they differ by the trim.
-	return c.JSON(http.StatusOK, map[string]string{
-		"username": user.Alias,
-	})
+	return c.JSON(http.StatusOK, &UsernameChanged{Username: user.Alias})
+}
+
+// UsernameChanged is the username as it was stored.
+type UsernameChanged struct {
+	// The new username.
+	Username string `json:"username"`
 }

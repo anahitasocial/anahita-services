@@ -57,7 +57,7 @@ is often wanted, and not always:
   - Hidden, not deleted: what they wrote is theirs, and comes back if the
     block is lifted.
   - **A person's block does not reach the groups they administer.**
-    Decided by the user on 2026-10-16: it "will really complicate things".
+    Decided by the user on 2026-10-15: it "will really complicate things".
     A group blocks somebody in its own right, done by one of its
     administrators; the services allow it already, and such a block hides
     what the blocked person left in the group as a person's does. The web

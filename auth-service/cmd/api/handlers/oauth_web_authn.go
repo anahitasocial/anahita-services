@@ -78,10 +78,8 @@ func (h *oauthHandler) AddPasskeyLoginFinish(c echo.Context) error {
 	pending, err := h.readPendingPasskeyLogin(c)
 	if err != nil || pending == nil {
 		log.Println("passkey login finish: no pending ceremony:", err)
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error":   "ceremony_expired",
-			"message": "That took too long. Try signing in again.",
-		})
+		return refuse(c, http.StatusBadRequest, "ceremony_expired",
+			"That took too long. Try signing in again.")
 	}
 
 	// One-shot: clear before verifying.
@@ -148,10 +146,8 @@ func (h *oauthHandler) AddPasskeyLoginFinish(c echo.Context) error {
 		// specific check that failed, which is useful in logs and a
 		// gift to anyone probing the endpoint.
 		log.Println("passkey login finish verify:", err)
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error":   "assertion_failed",
-			"message": "That passkey wasn't accepted. Try again, or sign in with your password.",
-		})
+		return refuse(c, http.StatusUnauthorized, "assertion_failed",
+			"That passkey wasn't accepted. Try again, or sign in with your password.")
 	}
 
 	if resolved == nil || resolvedCred == nil {
@@ -167,10 +163,8 @@ func (h *oauthHandler) AddPasskeyLoginFinish(c echo.Context) error {
 	// just because it took the other door.
 	if !user.Enabled {
 		log.Printf("passkey: rejected disabled person (person=%d)", user.ID)
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error":   "assertion_failed",
-			"message": "That passkey wasn't accepted. Try again, or sign in with your password.",
-		})
+		return refuse(c, http.StatusUnauthorized, "assertion_failed",
+			"That passkey wasn't accepted. Try again, or sign in with your password.")
 	}
 
 	// Fold the authenticator's post-assertion state back onto the row
@@ -215,7 +209,7 @@ func (h *oauthHandler) finalizePasskeyLogin(c echo.Context, user *entities.User)
 		log.Printf("passkey: no return_to, falling back to %s (person=%d)", target, user.ID)
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"redirect_to": target})
+	return c.JSON(http.StatusOK, &PasskeySignedIn{RedirectTo: target})
 }
 
 func (h *oauthHandler) writePendingPasskeyLogin(c echo.Context, pending pendingPasskeyLogin) error {
@@ -244,4 +238,11 @@ func (h *oauthHandler) readPendingPasskeyLogin(c echo.Context) (*pendingPasskeyL
 	}
 
 	return &pending, nil
+}
+
+// PasskeySignedIn is where the browser goes next, now that it is signed
+// in: back to the authorization that sent it to sign in, or to the app.
+type PasskeySignedIn struct {
+	// Where to send the browser.
+	RedirectTo string `json:"redirect_to"`
 }

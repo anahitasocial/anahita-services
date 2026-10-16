@@ -52,7 +52,7 @@ func newEmailChangeHandler(env *Env) *emailChangeHandler {
 //
 //	204 — confirmation sent to the current address
 //	400 — bad body or validation failure
-//	403 — no recent step-up; the client re-authenticates and retries
+//	403 — `step_up_required`: no recent step-up; the client re-authenticates and retries
 //	409 — the requested address is already in use
 //	500 — gRPC, token, or hashing failure
 //
@@ -91,7 +91,7 @@ func (h *emailChangeHandler) Edit(c echo.Context) error {
 
 	if err := h.requireStepUp(user.ID); err != nil {
 		log.Println("email change:", err)
-		return c.NoContent(reauthStatus(err))
+		return stepUpRequired(c, err)
 	}
 
 	// Asking to change to the address you already have is a no-op, not
@@ -191,7 +191,7 @@ func (h *emailChangeHandler) Confirm(c echo.Context) error {
 	token, remaining, err := h.verifyCode(pending.ID, constants.TokenTypeEmailChangeCode, code)
 	if err != nil {
 		if errors.Is(err, errCodeMismatch) {
-			return c.JSON(http.StatusUnprocessableEntity, map[string]int{"remaining": remaining})
+			return c.JSON(http.StatusUnprocessableEntity, &CodeMismatch{Remaining: remaining})
 		}
 		return c.NoContent(http.StatusGone)
 	}
@@ -258,4 +258,11 @@ func (h *emailChangeHandler) Confirm(c echo.Context) error {
 	}()
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// CodeMismatch refuses a wrong code, and says how many tries are left
+// before it stops working.
+type CodeMismatch struct {
+	// How many tries are left.
+	Remaining int `json:"remaining"`
 }

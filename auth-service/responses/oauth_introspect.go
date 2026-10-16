@@ -3,14 +3,22 @@ package responses
 import "auth/data/entities"
 
 type OAuthIntrospectItem struct {
-	Active   bool   `json:"active"`
-	Sub      string `json:"sub,omitempty"`
+	// Whether it is live. Nothing else is said of one that is not.
+	Active bool `json:"active"`
+	// Whose it is: the person's id, or the app's for its own.
+	Sub string `json:"sub,omitempty"`
+	// The app it was issued to.
 	ClientID string `json:"client_id,omitempty"`
-	Scope    string `json:"scope,omitempty"`
-	Exp      int64  `json:"exp,omitempty"`
-	Iat      int64  `json:"iat,omitempty"`
-	Iss      string `json:"iss,omitempty"`
-	Jti      string `json:"jti,omitempty"`
+	// What it may do, separated by spaces.
+	Scope string `json:"scope,omitempty"`
+	// When it expires, in seconds since 1970.
+	Exp int64 `json:"exp,omitempty"`
+	// When it was issued, likewise.
+	Iat int64 `json:"iat,omitempty"`
+	// Who issued it: this installation.
+	Iss string `json:"iss,omitempty"`
+	// Its own id.
+	Jti string `json:"jti,omitempty"`
 }
 
 type OAuthIntrospectResponse struct{}

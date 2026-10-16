@@ -249,7 +249,7 @@ func (h *oauthHandler) AddTotp(c echo.Context) error {
 		return c.Redirect(http.StatusFound, "/oauth/login?error=session_expired")
 	}
 
-	req := requests.NewOAuthLoginRequest().Login
+	req := &requests.OAuthLoginTotp{}
 	if err := c.Bind(req); err != nil {
 		log.Println("totp: form bind failed:", err)
 		return h.renderTotpError(c, state, "Invalid form submission.")

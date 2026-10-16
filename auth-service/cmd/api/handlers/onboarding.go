@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -25,6 +26,20 @@ type onboardingHandler struct {
 
 func newOnboardingHandler(env *Env) *onboardingHandler {
 	return &onboardingHandler{env}
+}
+
+// OnboardingState is what the walk-through needs that userinfo does not
+// carry.
+type OnboardingState struct {
+	// The username of whoever invited the viewer, to show first. Null when
+	// nobody did, or they can no longer be followed.
+	InvitedBy *string `json:"invited_by"`
+}
+
+// Onboarded says when the viewer went through the walk-through.
+type Onboarded struct {
+	// The first time: calling again does not move it.
+	OnboardedAt *time.Time `json:"onboarded_at"`
 }
 
 // Read returns what the flow needs about the viewer that userinfo does not
@@ -57,9 +72,7 @@ func (h *onboardingHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"invited_by": h.inviterAlias(user.InvitedBy),
-	})
+	return c.JSON(http.StatusOK, &OnboardingState{InvitedBy: h.inviterAlias(user.InvitedBy)})
 }
 
 // inviterAlias resolves an inviter to the handle the web app reads them by, or
@@ -68,7 +81,7 @@ func (h *onboardingHandler) Read(c echo.Context) error {
 // A failed lookup is nil, not an error. The inviter is a nicety at the top of
 // one step; a person whose inviter has since deleted their account must still
 // get through onboarding, and a 500 here would take the whole step with it.
-func (h *onboardingHandler) inviterAlias(id int64) any {
+func (h *onboardingHandler) inviterAlias(id int64) *string {
 	if id == 0 {
 		return nil
 	}
@@ -85,7 +98,7 @@ func (h *onboardingHandler) inviterAlias(id int64) any {
 		return nil
 	}
 
-	return inviter.Alias
+	return &inviter.Alias
 }
 
 // Edit records that the viewer has been through onboarding.
@@ -121,7 +134,5 @@ func (h *onboardingHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"onboarded_at": user.OnboardedAt,
-	})
+	return c.JSON(http.StatusOK, &Onboarded{OnboardedAt: user.OnboardedAt})
 }

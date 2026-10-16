@@ -7,6 +7,7 @@ package requests
 // Bind+Validate flow as every other handler instead of pulling
 // c.Param manually.
 type OAuthSigningKeyReadReq struct {
+	// The key's `kid`.
 	Kid string `param:"kid" validate:"required"`
 }
 
@@ -20,8 +21,10 @@ type OAuthSigningKeyReadReq struct {
 // "explicitly false". The validator's `required` tag against the
 // pointer ensures the client actually sent a value.
 type OAuthSigningKeyEditReq struct {
-	Kid    string `param:"kid" validate:"required"`
-	Active *bool  `json:"active" validate:"required"`
+	// The key's `kid`.
+	Kid string `param:"kid" validate:"required"`
+	// Whether to sign new tokens with it.
+	Active *bool `json:"active" validate:"required"`
 }
 
 // OAuthSigningKeyRequests groups the request shapes for the

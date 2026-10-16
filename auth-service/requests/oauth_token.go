@@ -15,26 +15,42 @@ func NewOAuthTokenRequest() *OAuthTokenRequest {
 }
 
 type OAuthTokenReq struct {
-	GrantType    string `form:"grant_type" validate:"required,oneof=authorization_code refresh_token client_credentials"`
-	ClientID     string `form:"client_id" validate:"omitempty"`
+	// `authorization_code`, `refresh_token` or `client_credentials`.
+	GrantType string `form:"grant_type" validate:"required,oneof=authorization_code refresh_token client_credentials"`
+	// The app's `client_id`, unless it is in an `Authorization: Basic` header.
+	ClientID string `form:"client_id" validate:"omitempty"`
+	// The app's secret, likewise; a public app has none.
 	ClientSecret string `form:"client_secret" validate:"omitempty"`
-	Code         string `form:"code" validate:"omitempty"`
-	RedirectURI  string `form:"redirect_uri" validate:"omitempty,url"`
+	// For `authorization_code`: what the app was sent back with.
+	Code string `form:"code" validate:"omitempty"`
+	// For `authorization_code`: the one the code was asked for with.
+	RedirectURI string `form:"redirect_uri" validate:"omitempty,url"`
+	// For `authorization_code` with PKCE: the secret the challenge was the hash of.
 	CodeVerifier string `form:"code_verifier" validate:"omitempty,min=43,max=128"`
+	// For `refresh_token`.
 	RefreshToken string `form:"refresh_token" validate:"omitempty"`
-	Scope        string `form:"scope" validate:"omitempty"`
+	// For `client_credentials`: what the app asks to do, separated by spaces.
+	Scope string `form:"scope" validate:"omitempty"`
 }
 
 type OAuthRevokeReq struct {
-	Token         string `form:"token" validate:"required"`
+	// The token.
+	Token string `form:"token" validate:"required"`
+	// `access_token` or `refresh_token`, to look for it as first.
 	TokenTypeHint string `form:"token_type_hint" validate:"omitempty,oneof=access_token refresh_token"`
-	ClientID      string `form:"client_id" validate:"omitempty"`
-	ClientSecret  string `form:"client_secret" validate:"omitempty"`
+	// The app's `client_id`, unless it is in an `Authorization: Basic` header.
+	ClientID string `form:"client_id" validate:"omitempty"`
+	// The app's secret, likewise; a public app has none.
+	ClientSecret string `form:"client_secret" validate:"omitempty"`
 }
 
 type OAuthIntrospectReq struct {
-	Token         string `form:"token" validate:"required"`
+	// The token.
+	Token string `form:"token" validate:"required"`
+	// `access_token` or `refresh_token`, to look for it as first.
 	TokenTypeHint string `form:"token_type_hint" validate:"omitempty,oneof=access_token refresh_token"`
-	ClientID      string `form:"client_id" validate:"omitempty"`
-	ClientSecret  string `form:"client_secret" validate:"omitempty"`
+	// The app's `client_id`, unless it is in an `Authorization: Basic` header.
+	ClientID string `form:"client_id" validate:"omitempty"`
+	// The app's secret, likewise; a public app has none.
+	ClientSecret string `form:"client_secret" validate:"omitempty"`
 }

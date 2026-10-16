@@ -164,8 +164,8 @@ func TestTotpRecoveryCodesStampTheVerification(t *testing.T) {
 		if err := newTotpHandler(te.Env).AddRecoveryCodes(ctx); err != nil {
 			t.Fatalf("handler: %v", err)
 		}
-		if rec.Code != http.StatusUnauthorized {
-			t.Errorf("status = %d, want 401", rec.Code)
+		if rec.Code != http.StatusForbidden {
+			t.Errorf("status = %d, want 403", rec.Code)
 		}
 		got := te.Users.byID[user.ID]
 		if got.CountRecoveryCodes() != 0 || !got.TotpLastVerifiedAt.IsZero() {

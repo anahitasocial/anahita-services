@@ -384,7 +384,7 @@ func (h *passwordHandler) applyReset(
 //
 //	200 — success, with the count of other sessions signed out
 //	400 — bad request body or validation failure
-//	403 — no recent step-up; the client re-authenticates and retries
+//	403 — `step_up_required`: no recent step-up; the client re-authenticates and retries
 //	409 — the new password is the current one
 //	429 — too many attempts
 //	500 — store, database, or hashing failure
@@ -422,7 +422,7 @@ func (h *passwordHandler) Edit(c echo.Context) error {
 
 	if err := h.requireStepUp(user.ID); err != nil {
 		log.Println("password change:", err)
-		return c.NoContent(reauthStatus(err))
+		return stepUpRequired(c, err)
 	}
 
 	// The new password has to actually be new. Below, this endpoint
@@ -510,7 +510,11 @@ func (h *passwordHandler) Edit(c echo.Context) error {
 	// A body rather than 204 so the UI can say how many sessions ended.
 	// "You have been signed out everywhere else" is only reassuring if
 	// the person can see it happened.
-	return c.JSON(http.StatusOK, map[string]int{
-		"revoked_sessions": revoked,
-	})
+	return c.JSON(http.StatusOK, &PasswordChanged{RevokedSessions: revoked})
+}
+
+// PasswordChanged says how many other sessions were signed out.
+type PasswordChanged struct {
+	// Every one but the one that changed it.
+	RevokedSessions int `json:"revoked_sessions"`
 }

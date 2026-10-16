@@ -52,7 +52,9 @@ is no guide to the names.
   reference marks as required only what is always there. A list with nothing
   in it may be `null`.
 - **Bodies** are JSON, except where a file is sent, which is
-  `multipart/form-data`.
+  `multipart/form-data`. auth-service's sign-in, sign-up and recovery
+  pages are HTML, and their forms post `application/x-www-form-urlencoded`;
+  its OAuth routes take forms, as RFC 6749 has them.
 
 ## Lists
 
@@ -73,7 +75,9 @@ and answers with what is on the page and where it is:
 ```
 
 `data` is `null` when the page is empty. A few lists are not paged and send an
-array alone (the hashtags used most lately, for one); the reference says which.
+array alone (the hashtags used most lately, for one), or `data` alone; the
+reference says which. A few answers of one thing come in the same envelope,
+`{ "data": { … } }`.
 
 **Custom feeds are paged by what came before**, since counting one would mean
 reading all of it: `GET /feeds/<id>/items` takes `cursor` instead of `start`,
@@ -125,8 +129,11 @@ when there is one: the viewer decides what is seen.
 | `429` | Too many requests of this kind lately; try again later |
 | `501` | Registered, and not built |
 
-Most refusals have no body. Some say why, as `{ "error": "<reason>" }`, and the
-reasons are listed with the route. What one route answers for something the
+Most refusals have no body. Some say why, as `{ "error": "<reason>" }`, often
+with `description`, the same in words, and the reasons are listed with the
+route. The OAuth routes (`/oauth/token`, `/oauth/revoke`, `/oauth/introspect`,
+`/oauth/userinfo`) answer as RFC 6749 has it: `error` and
+`error_description`. What one route answers for something the
 viewer may not see is not always what another does: each route's refusals are
 in the reference.
 
@@ -172,7 +179,10 @@ hashtags.GET("/:alias", r.handler.Hashtag.Read, r.setViewer).
 - `SendsNothing`, `Describe`, `Scope`, `StepUp`, `Internal` and `NotBuilt`
   say the rest. A handler that reads its values one by one is described
   with a struct it does not bind, marked `Unbound`, and an upload's file is
-  an `apidoc.File`.
+  an `apidoc.File`. `Media` is the type of a route's bodies where it is
+  not JSON (`application/activity+json`, `text/html`), `TakesBody` a body
+  that is one value and not the fields of a struct, and `Router.Static` a
+  directory of files.
   `400`, `401` and `403` are added where a route of its kind can answer them.
 
 **Register each route on a line of its own,** beginning with its group

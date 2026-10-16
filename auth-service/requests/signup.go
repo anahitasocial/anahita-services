@@ -28,8 +28,11 @@ type SignupAddRequest struct {
 	// form was rendered.
 	CSRFToken string `form:"csrf_token" validate:"required"`
 
-	Email    string `form:"email" validate:"required,email,min=3,max=64"`
+	// Their address: a code is mailed to it.
+	Email string `form:"email" validate:"required,email,min=3,max=64"`
+	// The username: letters, digits, `-` and `_`. It is the address of their profile.
 	Username string `form:"username" validate:"required,username,min=3,max=32"`
+	// At least 15 characters.
 	Password string `form:"password" validate:"required,min=15,max=150"`
 
 	// Collected in `approval` mode only, and required there.
@@ -53,6 +56,7 @@ type SignupAddRequest struct {
 // endpoint that reported a username available and a form that then refused it
 // would be worse than no check at all.
 type UsernameAvailability struct {
+	// The username.
 	Username string `query:"username" validate:"required,username,min=3,max=32"`
 }
 
@@ -61,6 +65,24 @@ type UsernameAvailability struct {
 // The version is the web app's — statics/legal/index.js — and is checked for
 // shape by the handler. The accepted flag is required to be true there.
 type AgreementAccept struct {
-	Version  string `form:"version" json:"version" validate:"required,max=20"`
-	Accepted bool   `form:"accepted" json:"accepted"`
+	// The version accepted: `1.0`.
+	Version string `form:"version" json:"version" validate:"required,max=20"`
+	// True.
+	Accepted bool `form:"accepted" json:"accepted"`
+}
+
+// SignupRequestBrowse is a page of the requests waiting for an answer.
+type SignupRequestBrowse struct {
+	// How many on a page: 50 unless said.
+	Limit uint64 `query:"limit" validate:"max=100"`
+	// How many to skip.
+	Offset uint64 `query:"start"`
+}
+
+// SignupRequestDecision answers one request.
+type SignupRequestDecision struct {
+	// The request's id.
+	ID int64 `param:"id" validate:"required,gt=0"`
+	// Why, for the record: the administrators see it, the person does not.
+	Note string `json:"note"`
 }

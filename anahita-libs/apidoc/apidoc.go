@@ -102,6 +102,20 @@ func (r *Router) add(method, path string, h echo.HandlerFunc, m []echo.Middlewar
 	return route
 }
 
+// Static serves the files under a directory at a prefix, as echo.Static
+// does, and describes the route it registers: `<prefix>*`, written in the
+// document as `<prefix>/{path}`.
+func (r *Router) Static(prefix, root string) *Route {
+	if r.group != nil {
+		r.group.Static(prefix, root)
+	} else {
+		r.echo.Static(prefix, root)
+	}
+	route := &Route{Method: http.MethodGet, Path: normalizePath(r.prefix + prefix + "*")}
+	r.service.routes = append(r.service.routes, route)
+	return route
+}
+
 func (r *Router) GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *Route {
 	return r.add(http.MethodGet, path, h, m)
 }

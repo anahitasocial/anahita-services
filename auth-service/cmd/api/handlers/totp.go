@@ -12,6 +12,7 @@ import (
 	"auth/requests"
 
 	"anahita-libs/constants"
+	libs_responses "anahita-libs/responses"
 	"auth/data/entities"
 
 	"github.com/labstack/echo/v4"
@@ -154,10 +155,10 @@ func (h *totpHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	// validate password
+	// 401 for a wrong password, as /reauth/password answers it.
 	if !user.CheckPassword(req.Password) {
 		log.Println("Invalid password")
-		return c.NoContent(http.StatusNotAcceptable)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	// Not while 2FA is on. This handler replaces the secret and clears
@@ -231,7 +232,7 @@ func (h *totpHandler) Add(c echo.Context) error {
 
 	png.Encode(&buf, img)
 
-	return c.Blob(http.StatusCreated, "image/x-png", buf.Bytes())
+	return c.Blob(http.StatusCreated, "image/png", buf.Bytes())
 }
 
 // Creates recovery codes for a person
@@ -242,11 +243,7 @@ func (h *totpHandler) AddRecoveryCodes(c echo.Context) error {
 		rc     = totpRecoveryCodes{}
 	)
 
-	type Request struct {
-		Passcode string `form:"passcode" validate:"min=6,max=8,alphanum,required"`
-	}
-
-	req := &Request{}
+	req := &requests.TotpRecoveryCodes{}
 	if err := c.Bind(req); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
@@ -274,9 +271,10 @@ func (h *totpHandler) AddRecoveryCodes(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	// first validating with totp before showing the recovering codes
+	// A wrong passcode is 403, as /totp/verify and /reauth/password answer
+	// it.
 	if !totp.Validate(req.Passcode, totpSecret) {
-		return c.NoContent(http.StatusUnauthorized)
+		return c.NoContent(http.StatusForbidden)
 	}
 
 	rCodes := rc.generateCodes(constants.TotpNumRecoveryCodes, constants.TotpRecoveryCodeLength)
@@ -339,11 +337,10 @@ func (h *totpHandler) AddRecoveryCodes(c echo.Context) error {
 //
 //	204 — disabled, or already off
 //	400 — bad person id
-//	403 — with a JSON body, the caller may not act on this account;
-//	      with an EMPTY body, no recent step-up. The client tells them apart
-//	      by the body: a bare 403 means re-authenticate and retry, and a
-//	      403 carrying `error` means stop. They share a status because the
-//	      step-up contract across /password, /email and /username is 403, and
+//	403 — `step_up_required`: no recent step-up, so re-authenticate and
+//	      retry; `forbidden`: the caller may not act on this account, so
+//	      stop. They share a status because the step-up contract across
+//	      /password, /email and /username is 403, and
 //	      the permission failure genuinely is a forbidden.
 //	404 — no such person
 //	500 — database failure
@@ -373,15 +370,11 @@ func (h *totpHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	// Before the step-up, so a self-service 403 can only ever mean
-	// "re-authenticate" — which is what lets the client act on it without
-	// inspecting the body first.
+	// Before the step-up, so that a caller who may not act on this account
+	// is not sent through a re-authentication to be refused after it.
 	if err := h.Perms.Totp.CanDelete(viewer, user); err != nil {
 		log.Println("totp delete permission:", err)
-		return c.JSON(http.StatusForbidden, map[string]string{
-			"error":       "forbidden",
-			"description": err.Error(),
-		})
+		return refuse(c, http.StatusForbidden, "forbidden", err.Error())
 	}
 
 	// Already off. Answered before the step-up so nobody is sent through a
@@ -393,7 +386,7 @@ func (h *totpHandler) Delete(c echo.Context) error {
 
 	if err := h.requireStepUp(viewer.ID); err != nil {
 		log.Println("totp delete:", err)
-		return c.NoContent(reauthStatus(err))
+		return stepUpRequired(c, err)
 	}
 
 	// The secret goes with the flag. Leaving it behind would let a later
@@ -510,12 +503,7 @@ func (h *totpHandler) ReadForPerson(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": map[string]any{
-			"enabled": user.TotpEnabled,
-			"expired": user.TotpEnabled && user.IsMfaExpired(),
-		},
-	})
+	return c.JSON(http.StatusOK, libs_responses.Item[TotpStatus]{Data: newTotpStatus(user)})
 }
 
 func (h *totpHandler) Read(c echo.Context) error {
@@ -533,12 +521,20 @@ func (h *totpHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": map[string]any{
-			"enabled": user.TotpEnabled,
-			"expired": user.TotpEnabled && user.IsMfaExpired(),
-		},
-	})
+	return c.JSON(http.StatusOK, libs_responses.Item[TotpStatus]{Data: newTotpStatus(user)})
+}
+
+// TotpStatus is whether somebody has two-factor authentication.
+type TotpStatus struct {
+	// Whether it is on.
+	Enabled bool `json:"enabled"`
+	// Whether its last passcode is too long ago, so that signing in asks for
+	// one. Always false when it is off.
+	Expired bool `json:"expired"`
+}
+
+func newTotpStatus(user *entities.User) TotpStatus {
+	return TotpStatus{Enabled: user.TotpEnabled, Expired: user.TotpEnabled && user.IsMfaExpired()}
 }
 
 // IsExpired

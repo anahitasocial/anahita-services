@@ -1557,6 +1557,105 @@
                 "type": "object"
               }
             },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who can see it. Anybody, unless it says otherwise.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers"
+                    ],
+                    "type": "string"
+                  },
+                  "address": {
+                    "description": "Where it is held, when it is somewhere: an address as it is typed, kept on the event and shown to whoever is going. Not a place on the map, which is public. Every part is optional.",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "body": {
+                    "description": "What it is about.",
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "capacity": {
+                    "description": "How many may be going. 0, or left out, for no limit.",
+                    "format": "int32",
+                    "maximum": 100000,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "city": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "country": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "ends_at": {
+                    "maxLength": 40,
+                    "type": "string"
+                  },
+                  "host_group_id": {
+                    "description": "A group hosting it, which whoever makes the event must administer. Left out for an event that is its maker's own.",
+                    "format": "int64",
+                    "type": "integer"
+                  },
+                  "name": {
+                    "description": "What it is called.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "online_url": {
+                    "description": "Where to join, when it is online.",
+                    "format": "uri",
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  "open_to_host_followers": {
+                    "description": "Whether everybody who follows the group hosting it may see that it is on and answer it. Means nothing on an event with no host.",
+                    "type": "boolean"
+                  },
+                  "postal_code": {
+                    "maxLength": 20,
+                    "type": "string"
+                  },
+                  "show_map": {
+                    "description": "Whether to show that address on a map. Off unless asked for: finding it means sending it to a mapping service, and an address may be somebody's home.",
+                    "type": "boolean"
+                  },
+                  "starts_at": {
+                    "description": "When, as RFC 3339 with an offset: 2026-11-05T19:00:00-05:00.",
+                    "maxLength": 40,
+                    "type": "string"
+                  },
+                  "state_province": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "timezone_name": {
+                    "description": "The zone those times were chosen in, as IANA names it.",
+                    "maxLength": 64,
+                    "type": "string"
+                  },
+                  "website_url": {
+                    "description": "One link.",
+                    "format": "uri",
+                    "maxLength": 255,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "starts_at",
+                  "ends_at",
+                  "timezone_name"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -2008,6 +2107,91 @@
                 "type": "object"
               }
             },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "address": {
+                    "description": "Where it is held, when it is somewhere: an address as it is typed, kept on the event and shown to whoever is going. Not a place on the map, which is public. Every part is optional.",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "body": {
+                    "description": "What it is about.",
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "capacity": {
+                    "description": "How many may be going. 0, or left out, for no limit.",
+                    "format": "int32",
+                    "maximum": 100000,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "city": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "country": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "ends_at": {
+                    "maxLength": 40,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "What it is called.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "online_url": {
+                    "description": "Where to join, when it is online.",
+                    "format": "uri",
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  "open_to_host_followers": {
+                    "description": "Whether everybody who follows the group hosting it may see that it is on and answer it. Means nothing on an event with no host.",
+                    "type": "boolean"
+                  },
+                  "postal_code": {
+                    "maxLength": 20,
+                    "type": "string"
+                  },
+                  "show_map": {
+                    "description": "Whether to show that address on a map. Off unless asked for: finding it means sending it to a mapping service, and an address may be somebody's home.",
+                    "type": "boolean"
+                  },
+                  "starts_at": {
+                    "description": "When, as RFC 3339 with an offset: 2026-11-05T19:00:00-05:00.",
+                    "maxLength": 40,
+                    "type": "string"
+                  },
+                  "state_province": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "timezone_name": {
+                    "description": "The zone those times were chosen in, as IANA names it.",
+                    "maxLength": 64,
+                    "type": "string"
+                  },
+                  "website_url": {
+                    "description": "One link.",
+                    "format": "uri",
+                    "maxLength": 255,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "starts_at",
+                  "ends_at",
+                  "timezone_name"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -2157,6 +2341,31 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see it: `public`, `registered`, `followers` or `admins`.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "admins"
+                    ],
+                    "type": "string"
+                  },
+                  "allow_follow_request": {
+                    "description": "Whether people it is not open to may ask to follow it.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "access"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -2339,6 +2548,21 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "admin_id": {
+                    "description": "The person to make an administrator.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "admin_id"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -3105,6 +3329,24 @@
                 "type": "object"
               }
             },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "rsvp": {
+                    "description": "`going` or `maybe`.",
+                    "enum": [
+                      "going",
+                      "maybe"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "rsvp"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -3317,6 +3559,37 @@
         "operationId": "postGroups",
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "What it says of itself.",
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "enabled": {
+                    "default": true,
+                    "description": "Whether it is enabled.",
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "description": "Its name.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "website_url": {
+                    "description": "One link on the profile. A bare `example.com` is taken as https.",
+                    "format": "uri",
+                    "maxLength": 255,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -3654,6 +3927,36 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "What it says of itself.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "enabled": {
+                    "description": "Whether it is enabled.",
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "description": "Its name.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "website_url": {
+                    "description": "One link on the profile. A bare `example.com` is taken as https.",
+                    "format": "uri",
+                    "maxLength": 255,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -3741,6 +4044,31 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see it: `public`, `registered`, `followers` or `admins`.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "admins"
+                    ],
+                    "type": "string"
+                  },
+                  "allow_follow_request": {
+                    "description": "Whether people it is not open to may ask to follow it.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "access"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -3923,6 +4251,21 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "admin_id": {
+                    "description": "The person to make an administrator.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "admin_id"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -4159,6 +4502,17 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "properties": {
+                  "allow": {
+                    "description": "Whether its new photos and videos start out downloadable.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "properties": {
                   "allow": {
@@ -4974,6 +5328,33 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see their profile: `public`, `registered`, `followers`, `leaders`, `mutuals` or `myself`.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "myself"
+                    ],
+                    "type": "string"
+                  },
+                  "allow_follow_request": {
+                    "description": "Whether people it is not open to may ask to follow them.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "access"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -5167,6 +5548,17 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "properties": {
+                  "allow": {
+                    "description": "Whether its new photos and videos start out downloadable.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "properties": {
                   "allow": {
@@ -5566,6 +5958,21 @@
                 "type": "object"
               }
             },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "quote_policy": {
+                    "description": "Who may quote their posts, when a post does not say: `anyone`, `followers` or `nobody`.",
+                    "maxLength": 16,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "quote_policy"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -5646,6 +6053,17 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "properties": {
+                  "show_reposts_on_profile": {
+                    "description": "Whether what they repost is also among their profile's posts.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "properties": {
                   "show_reposts_on_profile": {
@@ -5823,6 +6241,42 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "What they say of themselves.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language this person usually posts in, as a BCP 47 tag. It is what the composer starts on; each post can say otherwise.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Their name.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "person_pronouns": {
+                    "description": "Their pronouns, as free text: `she/her`, `iel`.",
+                    "maxLength": 50,
+                    "type": "string"
+                  },
+                  "website_url": {
+                    "description": "One link on the profile. A bare `example.com` is taken as https.",
+                    "format": "uri",
+                    "maxLength": 255,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {

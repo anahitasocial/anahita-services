@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	libs_responses "anahita-libs/responses"
+
 	"auth/data/entities"
 	"auth/requests"
 
@@ -44,9 +46,28 @@ func newAgreementsHandler(env *Env) *agreementsHandler {
 // expansion nobody asked for, arriving by accident because the column
 // happened to be adjacent.
 type consentItem struct {
-	Accepted   bool    `json:"accepted"`
-	Version    string  `json:"version"`
+	// Whether they have accepted it.
+	Accepted bool `json:"accepted"`
+	// Which version they accepted: `1.0`.
+	Version string `json:"version"`
+	// When. Null when they never have.
 	AcceptedAt *string `json:"accepted_at"`
+}
+
+// Agreements is what somebody has accepted of the two documents.
+type Agreements struct {
+	// The Terms of Service.
+	Tos consentItem `json:"tos"`
+	// The Privacy Policy.
+	Privacy consentItem `json:"privacy"`
+}
+
+// Accepted is an acceptance recorded.
+type Accepted struct {
+	// Always true.
+	Accepted bool `json:"accepted"`
+	// The version accepted.
+	Version string `json:"version"`
 }
 
 func mapConsent(c *entities.Consent) consentItem {
@@ -95,12 +116,10 @@ func (h *agreementsHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": map[string]any{
-			"tos":     mapConsent(&user.TermsOfService),
-			"privacy": mapConsent(&user.PrivacyPolicy),
-		},
-	})
+	return c.JSON(http.StatusOK, libs_responses.Item[Agreements]{Data: Agreements{
+		Tos:     mapConsent(&user.TermsOfService),
+		Privacy: mapConsent(&user.PrivacyPolicy),
+	}})
 }
 
 // EditTos records acceptance of the Terms of Service.
@@ -139,11 +158,11 @@ func (h *agreementsHandler) accept(
 
 	req := &requests.AgreementAccept{}
 	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, "Could not read the request.")
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	if err := c.Validate(req); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrAgreementVersionMalformed.Error())
+		return refuse(c, http.StatusBadRequest, "version_malformed", ErrAgreementVersionMalformed.Error())
 	}
 
 	// Accepted must be true. An endpoint that records `accepted: false` has a
@@ -151,7 +170,7 @@ func (h *agreementsHandler) accept(
 	// withdrawal would need to answer "what happens to the account now?" before
 	// it could be allowed. Refused rather than half-supported.
 	if !req.Accepted {
-		return c.JSON(http.StatusBadRequest,
+		return refuse(c, http.StatusBadRequest, "not_accepted",
 			"This endpoint records an acceptance. Withdrawing one is not supported.")
 	}
 
@@ -166,7 +185,7 @@ func (h *agreementsHandler) accept(
 
 	if err := acceptInto(c, consent, req.Version); err != nil {
 		if errors.Is(err, ErrAgreementVersionMalformed) {
-			return c.JSON(http.StatusBadRequest, err.Error())
+			return refuse(c, http.StatusBadRequest, "version_malformed", err.Error())
 		}
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -177,8 +196,5 @@ func (h *agreementsHandler) accept(
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"accepted": true,
-		"version":  consent.Version,
-	})
+	return c.JSON(http.StatusOK, &Accepted{Accepted: true, Version: consent.Version})
 }

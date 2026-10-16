@@ -13,6 +13,7 @@ import (
 
 	libs_constants "anahita-libs/constants"
 	libs_entities "anahita-libs/data/entities"
+	libs_responses "anahita-libs/responses"
 
 	"github.com/labstack/echo/v4"
 )
@@ -53,8 +54,8 @@ func (h *oauthHandler) BrowseSigningKeys(c echo.Context) error {
 		keys = []*entities.OAuthSigningKey{}
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": keys,
+	return c.JSON(http.StatusOK, libs_responses.Unpaged[*responses.OAuthSigningKeyItem]{
+		Data: responses.MapOAuthSigningKeys(keys),
 	})
 }
 
@@ -105,8 +106,7 @@ func (h *oauthHandler) ReadSigningKey(c echo.Context) error {
 		return permForbidden(c, permErr)
 	}
 
-	key.PrivateKey = ""
-	return c.JSON(http.StatusOK, key)
+	return c.JSON(http.StatusOK, responses.MapOAuthSigningKey(key))
 }
 
 // Edit handles PATCH /oauth-signing-keys/:kid
@@ -165,10 +165,8 @@ func (h *oauthHandler) EditSigningKey(c echo.Context) error {
 
 	if err := h.Repos.OAuthSigningKeys.SetActive(existing.ID, *req.Active); err != nil {
 		if errors.Is(err, repositories.ErrCannotDeactivateLastKey) {
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error":   "last_active_key",
-				"message": "cannot deactivate the last active signing key",
-			})
+			return refuse(c, http.StatusConflict, "last_active_key",
+				"cannot deactivate the last active signing key")
 		}
 		log.Println("oauth_signing_keys edit:", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -185,8 +183,7 @@ func (h *oauthHandler) EditSigningKey(c echo.Context) error {
 	// token signing down on its own.
 	h.clearStepUp(viewer.ID)
 
-	updated.PrivateKey = ""
-	return c.JSON(http.StatusOK, updated)
+	return c.JSON(http.StatusOK, responses.MapOAuthSigningKey(updated))
 }
 
 // viewerFrom pulls the authenticated viewer that setViewer middleware
@@ -206,26 +203,17 @@ func permForbidden(c echo.Context, err error) error {
 	}
 	switch err.Error() {
 	case permissions.ErrOAuthSigningKeyInsufficientScope:
-		return c.JSON(http.StatusForbidden, &responses.OAuthErrorResponse{
-			Error:       "insufficient_scope",
-			Description: err.Error(),
-		})
+		return refuse(c, http.StatusForbidden, "insufficient_scope", err.Error())
 	}
-	return c.JSON(http.StatusForbidden, &responses.OAuthErrorResponse{
-		Error:       "forbidden",
-		Description: err.Error(),
-	})
+	return refuse(c, http.StatusForbidden, "forbidden", err.Error())
 }
 
 // stepUpRequired answers a missing step-up proof.
 //
-// BODIED, unlike the bare 403 that the password, email and username
-// flows answer with. Those endpoints have exactly one reason to refuse
-// with 403 — no live proof — so the status alone is unambiguous and
-// their callers open the dialog on it.
-//
-// These endpoints do not have that luxury. A viewer who is not a super
-// admin, or whose token lacks oauth:write, is refused with the same
+// BODIED, `step_up_required`, wherever a step-up is asked for, every
+// other service's included (actor-service, export-service). Some
+// endpoints have other reasons to refuse with 403: a viewer who is not a
+// super admin, or whose token lacks oauth:write, is refused with the same
 // status by permForbidden above. A client that treated every 403 here
 // as "prove yourself" would open a passkey prompt at an administrator
 // who can never satisfy it, and retry forever on success.
@@ -239,10 +227,7 @@ func stepUpRequired(c echo.Context, err error) error {
 		return c.NoContent(status)
 	}
 
-	return c.JSON(status, &responses.OAuthErrorResponse{
-		Error:       "step_up_required",
-		Description: "re-authenticate to continue",
-	})
+	return refuse(c, status, "step_up_required", "re-authenticate to continue")
 }
 
 // isNotFoundLikeErr — same defensive pattern as the seeders. The repo

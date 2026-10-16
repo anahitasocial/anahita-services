@@ -29,28 +29,43 @@ func newAccountsHandler(env *Env) *accountsHandler {
 	}
 }
 
-type accountResponse struct {
-	ID         int64  `json:"id"`
-	Kind       string `json:"kind"`
-	Alias      string `json:"alias"`
-	Name       string `json:"name"`
+type AccountItem struct {
+	// The profile's id.
+	ID int64 `json:"id"`
+	// `person` or `group`.
+	Kind string `json:"kind"`
+	// The username.
+	Alias string `json:"alias"`
+	// The name shown.
+	Name string `json:"name"`
+	// People only: `registered`, `administrator` or `super-administrator`.
 	PersonType string `json:"person_type,omitempty"`
-	State      string `json:"state"`
-	Tier       string `json:"tier"`
+	// `active`, `disabled`, `archived` or `deleted` (on its way to being destroyed).
+	State string `json:"state"`
+	// `empty`: nothing written, following nobody and followed by nobody; `dormant`: not active for as long as the installation calls dormant (`ACCOUNT_DORMANT_DAYS`); `active` otherwise.
+	Tier string `json:"tier"`
 
-	CreatedAt    time.Time `json:"created_at"`
+	// When it was made.
+	CreatedAt time.Time `json:"created_at"`
+	// When it last did anything.
 	LastActiveAt time.Time `json:"last_active_at"`
 
-	// People only. Pointers, so that a group carries neither rather than
-	// carrying "false".
+	// People only: whether they confirmed their address.
+	//
+	// Pointers, so that a group carries neither rather than carrying
+	// "false".
 	EmailVerified *bool `json:"email_verified,omitempty"`
-	Onboarded     *bool `json:"onboarded,omitempty"`
+	// People only: whether they went through the walk-through after signing up.
+	Onboarded *bool `json:"onboarded,omitempty"`
 
-	ContentCount  int64 `json:"content_count"`
+	// How many posts it has written.
+	ContentCount int64 `json:"content_count"`
+	// How many follow it.
 	FollowerCount int64 `json:"follower_count"`
-	LeaderCount   int64 `json:"leader_count"`
+	// How many it follows.
+	LeaderCount int64 `json:"leader_count"`
 
-	// Groups only.
+	// Groups only: how many administrators it has.
 	AdminCount *int64 `json:"admin_count,omitempty"`
 }
 
@@ -136,13 +151,13 @@ func (h *accountsHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	items := make([]accountResponse, 0, len(found))
+	items := make([]AccountItem, 0, len(found))
 	for _, account := range found {
 		items = append(items, mapAccount(filter.Kind, account))
 	}
 
 	type Response struct {
-		Data       []accountResponse         `json:"data"`
+		Data       []AccountItem             `json:"data"`
 		Pagination libs_responses.Pagination `json:"pagination"`
 	}
 
@@ -156,8 +171,8 @@ func (h *accountsHandler) Browse(c echo.Context) error {
 	})
 }
 
-func mapAccount(kind string, account *repositories.Account) accountResponse {
-	item := accountResponse{
+func mapAccount(kind string, account *repositories.Account) AccountItem {
+	item := AccountItem{
 		ID:            account.ID,
 		Kind:          kind,
 		Alias:         account.Alias,

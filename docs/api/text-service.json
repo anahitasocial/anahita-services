@@ -1193,6 +1193,37 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "Its words, as Markdown.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "excerpt": {
+                    "description": "A shorter form of its words.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its title.",
+                    "maxLength": 100,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "body"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -1290,6 +1321,27 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md). The widest an installation allows when left out.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -1380,6 +1432,17 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "status": {
+                    "description": "Whether it takes replies.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -1601,6 +1664,21 @@
                 "type": "object"
               }
             },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "quote_policy": {
+                    "description": "Who may quote it: `anyone`, `followers` or `nobody`.",
+                    "maxLength": 16,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "quote_policy"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -1693,6 +1771,21 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "properties": {
+                  "reply_access": {
+                    "description": "Who may reply: `anyone`, `nobody`, or any of `followers`, `following` and `mentioned` joined by commas.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reply_access"
+                ],
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "properties": {
                   "reply_access": {
@@ -1936,6 +2029,61 @@
                     "type": "string"
                   }
                 },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see it, as for changing it. The widest the installation allows when left out.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  },
+                  "body": {
+                    "description": "Its words, as Markdown.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "excerpt": {
+                    "description": "A shorter form of its words.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its title.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "quote_policy": {
+                    "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "reply_access": {
+                    "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "body"
+                ],
                 "type": "object"
               }
             },
@@ -2311,6 +2459,35 @@
                 "type": "object"
               }
             },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "Its words, as Markdown.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "link_preview_remove": {
+                    "description": "The writer took the card off: the note is saved without one, though its link is still there.",
+                    "type": "boolean"
+                  },
+                  "link_preview_url": {
+                    "description": "As on NoteAddRequest. Left out, the note keeps the preview it has for as long as that link is still in it.",
+                    "maxLength": 2000,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "body"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -2409,6 +2586,27 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md). The widest an installation allows when left out.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -2499,6 +2697,17 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "status": {
+                    "description": "Whether it takes replies.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -2580,6 +2789,17 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "properties": {
+                  "hidden": {
+                    "description": "Hide it, or show it again.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "properties": {
                   "hidden": {
@@ -2865,6 +3085,21 @@
                 "type": "object"
               }
             },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "quote_policy": {
+                    "description": "Who may quote it: `anyone`, `followers` or `nobody`.",
+                    "maxLength": 16,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "quote_policy"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -3046,6 +3281,31 @@
                 "type": "object"
               }
             },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "Its words, as Markdown.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language it is written in, as a BCP 47 tag.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "link_preview_url": {
+                    "description": "The link in it to show a card for, as on a note. See NoteAddRequest.",
+                    "maxLength": 2000,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "body"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -3141,6 +3401,21 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "properties": {
+                  "reply_access": {
+                    "description": "Who may reply: `anyone`, `nobody`, or any of `followers`, `following` and `mentioned` joined by commas.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reply_access"
+                ],
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "properties": {
                   "reply_access": {
@@ -3460,6 +3735,60 @@
                 "type": "object"
               }
             },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see it (permissions.md). The widest the installation allows when left out.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  },
+                  "body": {
+                    "description": "Its words, as Markdown.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "link_preview_url": {
+                    "description": "The link whose preview the note carries: one its writer was shown a preview of while writing. Only the address is taken. What the card says is what this installation read off the page, and never what is sent here.",
+                    "maxLength": 2000,
+                    "type": "string"
+                  },
+                  "quote_id": {
+                    "description": "The post this note quotes: it is carried under the note's own words. Checked against that post's policy. See permissions.CanQuote.",
+                    "format": "int64",
+                    "type": "integer"
+                  },
+                  "quote_policy": {
+                    "description": "As on requests.MediumAddRequest.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "reply_access": {
+                    "description": "As on requests.MediumAddRequest.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "body"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -3693,6 +4022,37 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "Its words, as Markdown.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "excerpt": {
+                    "description": "A shorter form of its words.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its title.",
+                    "maxLength": 100,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "body"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -3790,6 +4150,27 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md). The widest an installation allows when left out.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -3880,6 +4261,17 @@
         ],
         "requestBody": {
           "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "status": {
+                    "description": "Whether it takes replies.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -4101,6 +4493,21 @@
                 "type": "object"
               }
             },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "quote_policy": {
+                    "description": "Who may quote it: `anyone`, `followers` or `nobody`.",
+                    "maxLength": 16,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "quote_policy"
+                ],
+                "type": "object"
+              }
+            },
             "multipart/form-data": {
               "schema": {
                 "properties": {
@@ -4193,6 +4600,21 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "properties": {
+                  "reply_access": {
+                    "description": "Who may reply: `anyone`, `nobody`, or any of `followers`, `following` and `mentioned` joined by commas.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reply_access"
+                ],
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "properties": {
                   "reply_access": {
@@ -4436,6 +4858,61 @@
                     "type": "string"
                   }
                 },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see it, as for changing it. The widest the installation allows when left out.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  },
+                  "body": {
+                    "description": "Its words, as Markdown.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "excerpt": {
+                    "description": "A shorter form of its words.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its title.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "quote_policy": {
+                    "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "reply_access": {
+                    "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "body"
+                ],
                 "type": "object"
               }
             },
