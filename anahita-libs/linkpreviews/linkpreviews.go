@@ -43,16 +43,21 @@ const (
 // Preview is what was read off a page.
 type Preview struct {
 	// The address as it was asked for, and where it led.
-	URL         string `json:"url"`
-	FinalURL    string `json:"final_url,omitempty"`
-	Title       string `json:"title,omitempty"`
+	URL string `json:"url"`
+	// Where the address led, after any redirects.
+	FinalURL string `json:"final_url,omitempty"`
+	// What the page is called.
+	Title string `json:"title,omitempty"`
+	// What the page says of itself.
 	Description string `json:"description,omitempty"`
-	SiteName    string `json:"site_name,omitempty"`
+	// The site it is on, as it calls itself.
+	SiteName string `json:"site_name,omitempty"`
 	// The picture, as a key in this installation's own storage. Never the
 	// page's own address for it: nobody reading a note is sent to another
 	// site for a picture.
 	ImageKey string `json:"image_key,omitempty"`
-	Status   string `json:"status"`
+	// How reading the page went: `ok`, `failed`, or `blocked` when the address may not be read.
+	Status string `json:"status"`
 }
 
 // Usable reports whether there is something to show: the page was read and

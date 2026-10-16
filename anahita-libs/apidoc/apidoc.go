@@ -145,6 +145,7 @@ type Route struct {
 	sends       []answer
 	refuses     []answer
 	notBuilt    string
+	internal    string
 }
 
 type answer struct {
@@ -212,6 +213,13 @@ func (r *Route) SendsNothing(status int, meaning string) *Route {
 // Refuses is a refusal: its status, and why, in words.
 func (r *Route) Refuses(status int, reason string) *Route {
 	r.refuses = append(r.refuses, answer{status: status, reason: reason})
+	return r
+}
+
+// Internal marks a route for the other services of the installation, which
+// the gateway does not send anybody outside to, with what asks it.
+func (r *Route) Internal(why string) *Route {
+	r.internal = why
 	return r
 }
 

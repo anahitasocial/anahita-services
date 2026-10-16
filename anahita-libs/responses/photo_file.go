@@ -14,7 +14,8 @@ type PhotoFile struct {
 	AltText string `json:"alt_text"`
 	// Of the image as uploaded. Left out for an image stored before these
 	// were recorded.
-	Width  int `json:"width,omitempty"`
+	Width int `json:"width,omitempty"`
+	// Of the image as uploaded, in pixels.
 	Height int `json:"height,omitempty"`
 	// Each stored size, as portrait_urls is for the first image.
 	Urls map[string]Image `json:"urls,omitempty"`

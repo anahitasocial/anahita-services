@@ -794,6 +794,7 @@
             "type": "string"
           },
           "height": {
+            "description": "Of the image as uploaded, in pixels.",
             "format": "int64",
             "type": "integer"
           },

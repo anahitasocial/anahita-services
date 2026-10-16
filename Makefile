@@ -737,6 +737,7 @@ api_docs:
 	@cd ${HASHTAG_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
 	@cd ${SEARCH_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
 	@cd ${LIKE_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
+	@cd ${LINK_PREVIEW_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
 	@cd anahita-libs && APIDOC_UPDATE=1 go test ./apidoc/ -run TestTheCombinedReference -count=1
 
 ## test: runs the unit tests across the whole workspace. anahita-libs

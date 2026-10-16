@@ -36,23 +36,29 @@ const imageFolder = linkpreviews.StoragePrefix
 
 var imageName = regexp.MustCompile(`^[a-f0-9]{64}\.(jpg|png|gif|webp)$`)
 
-type previewRequest struct {
+// PreviewRequest asks for the preview of a link.
+type PreviewRequest struct {
+	// The link: an http or https address.
 	URL string `query:"url" validate:"required,max=2000"`
 }
 
-// previewResponse is a preview as it is sent.
-type previewResponse struct {
-	URL         string `json:"url"`
-	Title       string `json:"title"`
+// PreviewResponse is a preview as it is sent: what the page says of itself.
+type PreviewResponse struct {
+	// The link, as it was made plain before it was read.
+	URL string `json:"url"`
+	// What the page is called.
+	Title string `json:"title"`
+	// What the page says of itself.
 	Description string `json:"description,omitempty"`
-	SiteName    string `json:"site_name,omitempty"`
+	// The site it is on, as it calls itself.
+	SiteName string `json:"site_name,omitempty"`
 	// Where the picture is read from, on this installation.
 	Image string `json:"image,omitempty"`
 }
 
-func respond(preview *linkpreviews.Preview) *previewResponse {
+func respond(preview *linkpreviews.Preview) *PreviewResponse {
 	snapshot := linkpreviews.NewSnapshot(preview)
-	resp := &previewResponse{
+	resp := &PreviewResponse{
 		URL:         snapshot.URL,
 		Title:       snapshot.Title,
 		Description: snapshot.Description,
@@ -74,7 +80,7 @@ func (h *previewsHandler) Read(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &previewRequest{}
+	req := &PreviewRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -211,13 +217,24 @@ func errorKind(err error) string {
 	return fmt.Sprintf("%T", err)
 }
 
+// ImageRequest names a preview's picture.
+type ImageRequest struct {
+	// The picture's name, as a preview's `image` gives it: the hash of the
+	// picture and its kind (`<64 hex>.jpg`).
+	Name string `param:"name"`
+}
+
 // Image sends whoever asks to a preview's picture: a redirect to a signed
 // address in storage, good for a short while.
 //
 // The name is the hash of the picture, which nobody can guess, and names
 // nothing else: a name that is not that shape is not looked for.
 func (h *previewsHandler) Image(c echo.Context) error {
-	name := c.Param("name")
+	req := &ImageRequest{}
+	if err := c.Bind(req); err != nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+	name := req.Name
 	if !imageName.MatchString(name) {
 		return c.NoContent(http.StatusNotFound)
 	}

@@ -1,0 +1,306 @@
+{
+  "components": {
+    "schemas": {
+      "Preview": {
+        "description": "Preview is what was read off a page.",
+        "properties": {
+          "description": {
+            "description": "What the page says of itself.",
+            "type": "string"
+          },
+          "final_url": {
+            "description": "Where the address led, after any redirects.",
+            "type": "string"
+          },
+          "image_key": {
+            "description": "The picture, as a key in this installation's own storage. Never the page's own address for it: nobody reading a note is sent to another site for a picture.",
+            "type": "string"
+          },
+          "site_name": {
+            "description": "The site it is on, as it calls itself.",
+            "type": "string"
+          },
+          "status": {
+            "description": "How reading the page went: `ok`, `failed`, or `blocked` when the address may not be read.",
+            "type": "string"
+          },
+          "title": {
+            "description": "What the page is called.",
+            "type": "string"
+          },
+          "url": {
+            "description": "The address as it was asked for, and where it led.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "status"
+        ],
+        "type": "object"
+      },
+      "linkpreview.PreviewResponse": {
+        "description": "PreviewResponse is a preview as it is sent: what the page says of itself.",
+        "properties": {
+          "description": {
+            "description": "What the page says of itself.",
+            "type": "string"
+          },
+          "image": {
+            "description": "Where the picture is read from, on this installation.",
+            "type": "string"
+          },
+          "site_name": {
+            "description": "The site it is on, as it calls itself.",
+            "type": "string"
+          },
+          "title": {
+            "description": "What the page is called.",
+            "type": "string"
+          },
+          "url": {
+            "description": "The link, as it was made plain before it was read.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "title"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "bearerFormat": "JWT",
+        "description": "An access token from auth-service (docs/oauth.md).",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "The card of a link: what a page says of itself, read by this installation, with its picture kept here. Optional: an installation may not run it (link-previews.md).",
+    "license": {
+      "identifier": "Apache-2.0",
+      "name": "Apache 2.0"
+    },
+    "title": "Link previews",
+    "version": "dev"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/internal/link-previews": {
+      "get": {
+        "description": "**Inside the installation only:** activitypub-service asks it for the card of a link in a post that came from another server. The gateway sends nobody from outside here.\n\nThe preview as it is kept, the key of its picture included, which the public route does not give out. A request that came through the gateway is answered 404.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getInternalLinkPreviews",
+        "parameters": [
+          {
+            "description": "The link: an http or https address.",
+            "in": "query",
+            "name": "url",
+            "required": true,
+            "schema": {
+              "maxLength": 2000,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Preview"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "204": {
+            "description": "there is nothing to show"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "404": {
+            "description": "it came through the gateway"
+          },
+          "429": {
+            "description": "the services have asked for too many lately"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The preview of a link, for another service",
+        "tags": [
+          "link-preview-service"
+        ],
+        "x-internal": true,
+        "x-viewer": "anyone"
+      }
+    },
+    "/link-previews": {
+      "get": {
+        "description": "Read from the page by this installation when no fresh preview is kept, so that nobody's browser asks the other site. For the composer, while a post is written.\n\nWho may call it: somebody signed in.",
+        "operationId": "getLinkPreviews",
+        "parameters": [
+          {
+            "description": "The link: an http or https address.",
+            "in": "query",
+            "name": "url",
+            "required": true,
+            "schema": {
+              "maxLength": 2000,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/linkpreview.PreviewResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "204": {
+            "description": "there is nothing to show: the page could not be read, is not a page, or says nothing of itself"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "429": {
+            "description": "the viewer has asked for too many lately"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The preview of a link",
+        "tags": [
+          "link-preview-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/link-previews/": {
+      "get": {
+        "description": "Read from the page by this installation when no fresh preview is kept, so that nobody's browser asks the other site. For the composer, while a post is written.\n\nWho may call it: somebody signed in.",
+        "operationId": "getLinkPreviews2",
+        "parameters": [
+          {
+            "description": "The link: an http or https address.",
+            "in": "query",
+            "name": "url",
+            "required": true,
+            "schema": {
+              "maxLength": 2000,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/linkpreview.PreviewResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "204": {
+            "description": "there is nothing to show: the page could not be read, is not a page, or says nothing of itself"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "429": {
+            "description": "the viewer has asked for too many lately"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The preview of a link",
+        "tags": [
+          "link-preview-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/link-previews/image/{name}": {
+      "get": {
+        "description": "A redirect to the picture in storage, at an address good for a short while.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getLinkPreviewsImageByName",
+        "parameters": [
+          {
+            "description": "The picture's name, as a preview's `image` gives it: the hash of the picture and its kind (`<64 hex>.jpg`).",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "the picture is at the address in Location"
+          },
+          "404": {
+            "description": "there is no such picture"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A preview's picture",
+        "tags": [
+          "link-preview-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "An installation's API",
+      "url": "https://{host}",
+      "variables": {
+        "host": {
+          "default": "api.example.org",
+          "description": "Where the installation's API is"
+        }
+      }
+    }
+  ],
+  "tags": [
+    {
+      "description": "Link previews",
+      "name": "link-preview-service"
+    }
+  ]
+}

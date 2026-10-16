@@ -36,9 +36,11 @@ func (s *Service) Document(dir string) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%s %s: %w", route.Method, route.Path, err)
 		}
+		// A handler registered twice, with and without a slash at the end,
+		// is two routes of one name: the second is numbered.
 		id := operationID(route.Method, route.Path)
-		if operationIDs[id] {
-			return nil, fmt.Errorf("%s %s: another route is also %s", route.Method, route.Path, id)
+		for n := 2; operationIDs[id]; n++ {
+			id = fmt.Sprintf("%s%d", operationID(route.Method, route.Path), n)
 		}
 		operationIDs[id] = true
 		op["operationId"] = id
@@ -204,6 +206,10 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 	if r.notBuilt != "" {
 		description = "**Not built:** " + r.notBuilt + "\n\n" + description
 	}
+	if r.internal != "" {
+		description = "**Inside the installation only:** " + r.internal + " The gateway sends nobody from outside here.\n\n" + description
+		op["x-internal"] = true
+	}
 	op["description"] = description
 	op["x-viewer"] = string(r.access)
 
@@ -219,9 +225,9 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 		op["x-step-up"] = true
 	}
 
-	takesSomething := false
+	canBeMalformed := false
 	if r.takes.IsValid() {
-		params, body, err := r.request(schemas, rename)
+		params, body, checked, err := r.request(schemas, rename)
 		if err != nil {
 			return nil, err
 		}
@@ -231,7 +237,7 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 		if body != nil {
 			op["requestBody"] = body
 		}
-		takesSomething = len(params) > 0 || body != nil
+		canBeMalformed = checked
 	}
 	if err := r.checkPathParams(op, rename); err != nil {
 		return nil, err
@@ -269,7 +275,7 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 		reasons[a.status] = append(reasons[a.status], a.reason)
 	}
 	// What every route of its kind refuses, unless it says otherwise.
-	if _, said := reasons[http.StatusBadRequest]; !said && takesSomething {
+	if _, said := reasons[http.StatusBadRequest]; !said && canBeMalformed {
 		reasons[http.StatusBadRequest] = []string{"the request is not well formed, or a value in it is not one it may be"}
 	}
 	if _, said := reasons[http.StatusUnauthorized]; !said && r.access != Anyone {
@@ -295,8 +301,10 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 }
 
 // request is what a route takes, read from the struct its handler binds:
-// its path, query and header values, and its body.
-func (r *Route) request(schemas *schemas, rename map[string]string) ([]any, map[string]any, error) {
+// its path, query and header values, and its body. `checked` says whether
+// binding or validating it can refuse a request: a value with a rule, one in
+// the query or the body, or one in the path that is not plain text.
+func (r *Route) request(schemas *schemas, rename map[string]string) (params []any, body map[string]any, checked bool, err error) {
 	v := r.takes
 	for v.Kind() == reflect.Pointer {
 		if v.IsNil() {
@@ -306,23 +314,25 @@ func (r *Route) request(schemas *schemas, rename map[string]string) ([]any, map[
 		v = v.Elem()
 	}
 	if v.Kind() != reflect.Struct {
-		return nil, nil, fmt.Errorf("takes a %s, not a struct", v.Type())
+		return nil, nil, false, fmt.Errorf("takes a %s, not a struct", v.Type())
 	}
 
-	var params []any
 	jsonBody := map[string]any{}
 	var jsonRequired []string
 	formBody := map[string]any{}
 	var formRequired []string
 	hasBody := r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodPatch
 
-	err := r.eachField(schemas, v, func(f reflect.StructField, value reflect.Value, comment string) error {
+	err = r.eachField(schemas, v, func(f reflect.StructField, value reflect.Value, comment string) error {
 		schema, err := schemas.of(f.Type)
 		if err != nil {
 			return err
 		}
 		if comment != "" {
 			schema = withDescription(schema, comment)
+		}
+		if f.Tag.Get("validate") != "" {
+			checked = true
 		}
 		required, other := validated(schema, derefKind(f.Type), f.Tag.Get("validate"))
 		if len(other) > 0 {
@@ -350,6 +360,9 @@ func (r *Route) request(schemas *schemas, rename map[string]string) ([]any, map[
 			// A field for a value that is not in this route's path: the
 			// struct is shared with routes that have it.
 			if as, ok := rename[name]; ok {
+				if derefKind(f.Type) != reflect.String {
+					checked = true
+				}
 				// Called by another route's name for the same place: said,
 				// so that "alias" holding an id does not mislead.
 				if as != name {
@@ -362,6 +375,7 @@ func (r *Route) request(schemas *schemas, rename map[string]string) ([]any, map[
 				param(as, "path")
 			}
 		case f.Tag.Get("query") != "":
+			checked = true
 			param(f.Tag.Get("query"), "query")
 		case f.Tag.Get("header") != "":
 			param(f.Tag.Get("header"), "header")
@@ -389,10 +403,9 @@ func (r *Route) request(schemas *schemas, rename map[string]string) ([]any, map[
 		return nil
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, false, err
 	}
 
-	var body map[string]any
 	content := map[string]any{}
 	if len(jsonBody) > 0 {
 		content["application/json"] = map[string]any{"schema": objectOf(jsonBody, jsonRequired)}
@@ -402,8 +415,9 @@ func (r *Route) request(schemas *schemas, rename map[string]string) ([]any, map[
 	}
 	if len(content) > 0 {
 		body = map[string]any{"content": content, "required": true}
+		checked = true
 	}
-	return params, body, nil
+	return params, body, checked, nil
 }
 
 func objectOf(props map[string]any, required []string) map[string]any {
