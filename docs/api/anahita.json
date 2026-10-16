@@ -1412,6 +1412,204 @@
           "title"
         ],
         "type": "object"
+      },
+      "notification.NotificationItem": {
+        "description": "NotificationItem is something the viewer is told of.",
+        "properties": {
+          "createdAt": {
+            "description": "When it was made. Named in camelCase, unlike the rest of the API.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "isRead": {
+            "description": "Whether the viewer has read it. Named in camelCase, unlike the rest of the API.",
+            "type": "boolean"
+          },
+          "meta": {
+            "description": "More about it, as JSON in a string.",
+            "type": "string"
+          },
+          "object": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/notification.Object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What was done."
+          },
+          "service": {
+            "description": "The service that told it.",
+            "type": "string"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/notification.Subject"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Who did it."
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/notification.Target"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What it was done to."
+          },
+          "type": {
+            "description": "What it tells of, as the event that made it is named.",
+            "type": "string"
+          },
+          "updatedAt": {
+            "description": "When it last changed: when it was read, for one.",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "service",
+          "subject",
+          "object",
+          "target",
+          "createdAt",
+          "updatedAt",
+          "meta",
+          "isRead"
+        ],
+        "type": "object"
+      },
+      "notification.Object": {
+        "description": "Object is what was done: a post, a reply, a like.",
+        "properties": {
+          "alias": {
+            "description": "Its handle, or its short name.",
+            "type": "string"
+          },
+          "body": {
+            "description": "Its words, as Markdown.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "Its name, or its title.",
+            "type": "string"
+          },
+          "portrait_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "A photo post's first picture, in each size there is.",
+            "type": "object"
+          },
+          "service": {
+            "description": "The service it belongs to.",
+            "type": "string"
+          },
+          "type": {
+            "description": "What kind of thing it is.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "notification.Subject": {
+        "description": "Subject is who did what a notification tells of.",
+        "properties": {
+          "alias": {
+            "description": "Its handle, or its short name.",
+            "type": "string"
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Their picture, in each size there is.",
+            "type": "object"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "Its name, or its title.",
+            "type": "string"
+          },
+          "type": {
+            "description": "What kind of thing it is.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "notification.Target": {
+        "description": "Target is what it was done to: the viewer's post, or the viewer.",
+        "properties": {
+          "alias": {
+            "description": "Its handle, or its short name.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "Its name, or its title.",
+            "type": "string"
+          },
+          "type": {
+            "description": "What kind of thing it is.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "notification.UnreadCount": {
+        "description": "UnreadCount is how many notifications the viewer has not read.",
+        "properties": {
+          "count": {
+            "description": "How many.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -2667,6 +2865,339 @@
         "x-viewer": "anyone"
       }
     },
+    "/notifications/": {
+      "get": {
+        "description": "The latest first, each with who did what to what, as they are now.\n\nWho may call it: somebody signed in, with a token that carries `notifications:read`.",
+        "operationId": "getNotifications",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/notification.NotificationItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "notifications:read"
+            ]
+          }
+        ],
+        "summary": "The viewer's notifications",
+        "tags": [
+          "notification-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/notifications/subscriptions": {
+      "post": {
+        "description": "The viewer is notified of what happens to it from now on. Answers with what they are told about.\n\nWho may call it: somebody signed in, with a token that carries `notifications:write`.",
+        "operationId": "postNotificationsSubscriptions",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "target_id": {
+                    "description": "The id of the post or the profile to be told about.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "target_id"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeItem"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not see it"
+          },
+          "404": {
+            "description": "there is no such post or profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "notifications:write"
+            ]
+          }
+        ],
+        "summary": "Be told about a post or a profile",
+        "tags": [
+          "notification-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/notifications/subscriptions/{target_id}": {
+      "delete": {
+        "description": "Answers 201 with what they were told about, for now, though nothing is made.\n\nWho may call it: somebody signed in, with a token that carries `notifications:write`.",
+        "operationId": "deleteNotificationsSubscriptionsByTargetId",
+        "parameters": [
+          {
+            "description": "The id of the post or the profile.",
+            "in": "path",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeItem"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not see it"
+          },
+          "404": {
+            "description": "there is no such post or profile, or the viewer was not told about it"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "notifications:write"
+            ]
+          }
+        ],
+        "summary": "Stop being told about it",
+        "tags": [
+          "notification-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/notifications/unread-count": {
+      "get": {
+        "description": "Who may call it: somebody signed in, with a token that carries `notifications:read`.",
+        "operationId": "getNotificationsUnreadCount",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/notification.UnreadCount"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "notifications:read"
+            ]
+          }
+        ],
+        "summary": "How many are unread",
+        "tags": [
+          "notification-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/notifications/{id}": {
+      "delete": {
+        "description": "Who may call it: somebody signed in, with a token that carries `notifications:write`.",
+        "operationId": "deleteNotificationsById",
+        "parameters": [
+          {
+            "description": "The notification's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "it is gone"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it is somebody else's"
+          },
+          "404": {
+            "description": "there is no such notification"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "notifications:write"
+            ]
+          }
+        ],
+        "summary": "Delete one",
+        "tags": [
+          "notification-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "patch": {
+        "description": "It takes nothing else: the one thing that changes is that it is read. Answers with it.\n\nWho may call it: somebody signed in, with a token that carries `notifications:write`.",
+        "operationId": "patchNotificationsById",
+        "parameters": [
+          {
+            "description": "The notification's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/notification.NotificationItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it is somebody else's"
+          },
+          "404": {
+            "description": "there is no such notification"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "notifications:write"
+            ]
+          }
+        ],
+        "summary": "Mark one as read",
+        "tags": [
+          "notification-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
     "/search/": {
       "get": {
         "description": "Posts, profiles and custom feeds whose words match, of those the viewer may see. Search applies a post's audience and its profile's, but not the exceptions that let a profile's owner and a post's author see their own (permissions.md), so it may not find one's own restricted posts. Each person, group and event found says how it stands with the viewer, and each event when it is.\n\nWho may call it: anyone, signed in or not.",
@@ -2866,6 +3397,10 @@
     {
       "description": "Link previews",
       "name": "link-preview-service"
+    },
+    {
+      "description": "Notifications",
+      "name": "notification-service"
     },
     {
       "description": "Search",
