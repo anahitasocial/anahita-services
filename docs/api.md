@@ -169,7 +169,10 @@ hashtags.GET("/:alias", r.handler.Hashtag.Read, r.setViewer).
   calls the API; what follows it (why it is never left out, what broke
   before) is for whoever works on the code, and stays out of the reference.
   A field with no comment has no description.
-- `SendsNothing`, `Describe`, `Scope`, `StepUp` and `NotBuilt` say the rest.
+- `SendsNothing`, `Describe`, `Scope`, `StepUp`, `Internal` and `NotBuilt`
+  say the rest. A handler that reads its values one by one is described
+  with a struct it does not bind, marked `Unbound`, and an upload's file is
+  an `apidoc.File`.
   `400`, `401` and `403` are added where a route of its kind can answer them.
 
 A named struct of anahita-libs is described once and named as it is

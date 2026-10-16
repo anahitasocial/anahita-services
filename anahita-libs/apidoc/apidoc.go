@@ -152,6 +152,7 @@ type Route struct {
 	refuses     []answer
 	notBuilt    string
 	internal    string
+	unbound     bool
 }
 
 type answer struct {
@@ -219,6 +220,14 @@ func (r *Route) SendsNothing(status int, meaning string) *Route {
 // Refuses is a refusal: its status, and why, in words.
 func (r *Route) Refuses(status int, reason string) *Route {
 	r.refuses = append(r.refuses, answer{status: status, reason: reason})
+	return r
+}
+
+// Unbound says the struct given to Takes describes the request and is not
+// bound: the handler reads each value itself, and refuses what it does not
+// take as it says, so no 400 is assumed.
+func (r *Route) Unbound() *Route {
+	r.unbound = true
 	return r
 }
 

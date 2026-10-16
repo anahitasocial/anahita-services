@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func bindPhotoAdd(t *testing.T, req *http.Request) *photoAddRequest {
+func bindPhotoAdd(t *testing.T, req *http.Request) *PhotoAddRequest {
 	t.Helper()
 
 	e := echo.New()
@@ -21,7 +21,7 @@ func bindPhotoAdd(t *testing.T, req *http.Request) *photoAddRequest {
 	c.SetParamNames("owner_id")
 	c.SetParamValues("8")
 
-	bound := &photoAddRequest{MediumAddRequest: *requests.NewMediumRequest().Add}
+	bound := &PhotoAddRequest{MediumAddRequest: *requests.NewMediumRequest().Add}
 	if err := c.Bind(bound); err != nil {
 		t.Fatalf("bind: %v", err)
 	}
@@ -37,7 +37,6 @@ func TestAPhotoPostSentAsJSONNamesItsUploads(t *testing.T) {
 		"body": "at the lagoon",
 		"access": "followers",
 		"language": "en",
-		"composed": true,
 		"uploads": [
 			{"upload_id": 31, "alt_text": "a heron standing"},
 			{"upload_id": 30}
@@ -50,9 +49,6 @@ func TestAPhotoPostSentAsJSONNamesItsUploads(t *testing.T) {
 	if bound.OwnerID != 8 || bound.Name != "Herons" || bound.Body != "at the lagoon" ||
 		bound.Access != "followers" || bound.Language != "en" {
 		t.Errorf("the shared fields did not arrive: %+v", bound.MediumAddRequest)
-	}
-	if !bound.Composed {
-		t.Error("composed did not arrive")
 	}
 	if len(bound.Uploads) != 2 || bound.Uploads[0].UploadID != 31 ||
 		bound.Uploads[0].AltText != "a heron standing" || bound.Uploads[1].UploadID != 30 {
@@ -115,7 +111,7 @@ func TestTheImagesOfAnEditArriveInOrder(t *testing.T) {
 	c.SetParamNames("id")
 	c.SetParamValues("40")
 
-	bound := &photoFilesRequest{}
+	bound := &PhotoFilesRequest{}
 	if err := c.Bind(bound); err != nil {
 		t.Fatalf("bind: %v", err)
 	}

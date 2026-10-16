@@ -237,7 +237,7 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 		if body != nil {
 			op["requestBody"] = body
 		}
-		canBeMalformed = checked
+		canBeMalformed = checked && !r.unbound
 	}
 	if err := r.checkPathParams(op, rename); err != nil {
 		return nil, err
@@ -274,14 +274,20 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 	for _, a := range r.refuses {
 		reasons[a.status] = append(reasons[a.status], a.reason)
 	}
-	// What every route of its kind refuses, unless it says otherwise.
-	if _, said := reasons[http.StatusBadRequest]; !said && canBeMalformed {
+	// What every route of its kind refuses, unless it says otherwise: in
+	// a refusal of its own, or in an answer with a body on that status.
+	said := func(status int) bool {
+		_, refused := reasons[status]
+		_, sent := responses[strconv.Itoa(status)]
+		return refused || sent
+	}
+	if !said(http.StatusBadRequest) && canBeMalformed {
 		reasons[http.StatusBadRequest] = []string{"the request is not well formed, or a value in it is not one it may be"}
 	}
-	if _, said := reasons[http.StatusUnauthorized]; !said && r.access != Anyone {
+	if !said(http.StatusUnauthorized) && r.access != Anyone {
 		reasons[http.StatusUnauthorized] = []string{"no token, or one that has expired"}
 	}
-	if _, said := reasons[http.StatusForbidden]; !said && (r.access == Admin || r.access == SuperAdmin || r.scope != "") {
+	if !said(http.StatusForbidden) && (r.access == Admin || r.access == SuperAdmin || r.scope != "") {
 		reasons[http.StatusForbidden] = []string{"the viewer may not do this"}
 	}
 	statuses := make([]int, 0, len(reasons))

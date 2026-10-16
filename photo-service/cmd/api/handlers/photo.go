@@ -210,16 +210,16 @@ func (h *photoHandler) Edit(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// photoAddRequest is a new photo post.
+// PhotoAddRequest is a new photo post.
 //
 // Sent one of two ways. As JSON, naming the images that were uploaded for it:
 // the way to make a post with several. Or as a form carrying one image in
 // "file", which is how a photo was posted before it could hold more, and
 // still works.
-type photoAddRequest struct {
+type PhotoAddRequest struct {
 	requests.MediumAddRequest
 	// The images, in order, each an upload made for this profile.
-	Uploads []fileRef `json:"uploads" form:"-"`
+	Uploads []FileRef `json:"uploads" form:"-"`
 	// What the one image of a form post shows.
 	AltText string `json:"-" form:"alt_text"`
 	// Whether whoever can see it may download it. Left out, the post
@@ -230,7 +230,7 @@ type photoAddRequest struct {
 // Add creates a new photo
 func (h *photoHandler) Add(c echo.Context) error {
 	var (
-		req    = &photoAddRequest{MediumAddRequest: *requests.NewMediumRequest().Add}
+		req    = &PhotoAddRequest{MediumAddRequest: *requests.NewMediumRequest().Add}
 		viewer = getViewer(c)
 	)
 
@@ -326,7 +326,7 @@ func (h *photoHandler) Add(c echo.Context) error {
 		}
 
 		uploads = []*entities.PhotoUpload{upload}
-		wanted = []fileRef{{UploadID: upload.ID, AltText: req.AltText}}
+		wanted = []FileRef{{UploadID: upload.ID, AltText: req.AltText}}
 	}
 
 	plan, refused := planFiles(nil, uploads, wanted, viewer.ID, owner.ID)
