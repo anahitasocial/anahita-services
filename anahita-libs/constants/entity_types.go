@@ -37,6 +37,11 @@ const (
 	// thread. An edge and not a flag on the reply: the reply is its
 	// author's, and "hidden" is a fact about the thread.
 	EdgeMediumHiddenReplyType = "edge.medium.hidden-reply.v1"
+	// From a post to a post of this installation it shows within its
+	// text: an address on a line of its own in an article or a topic.
+	// Written by text-service as the post is saved; for search and
+	// recommendations to tell which posts belong together.
+	EdgeMediumEmbedType = "edge.medium.embed.v1"
 	// From a person to a post they have saved, to find again. Private:
 	// nobody but that person is ever told it is there, the post's author
 	// included, and nothing is counted from it.

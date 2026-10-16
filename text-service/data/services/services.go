@@ -12,6 +12,7 @@ func NewServices(config *config.Config) *Services {
 		MediaGRPC:       services.NewMediaGRPC(config),
 		SocialgraphGRPC: services.NewSocialgraphGRPC(config),
 		GraphNodeGRPC:   services.NewGraphNodeGRPC(config),
+		GraphEdgeGRPC:   services.NewGraphEdgeGRPC(config),
 	}
 }
 
@@ -23,4 +24,7 @@ type Services struct {
 	// Reads a post as it is, whoever is asking: for the one question of who
 	// wrote a quoted post, when its author takes it out of a quote.
 	GraphNodeGRPC services.GraphNodeGRPCInterface
+	// The edges from an article or a topic to the posts it shows within
+	// its text (handlers/embeds.go).
+	GraphEdgeGRPC services.GraphEdgeGRPCInterface
 }

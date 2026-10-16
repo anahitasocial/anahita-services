@@ -136,12 +136,14 @@ func (h *topicHandler) Edit(c echo.Context) error {
 	} else if language != "" {
 		medium.Language = language
 	}
+	medium.Meta = h.withEmbeddedPages(medium.Meta, medium.Body)
 	medium.ModifiedBy = viewer.ID
 	medium, err = h.Srv.MediaGRPC.Edit(medium, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
+	h.syncEmbeds(medium)
 
 	if err = h.onAfterFetched(c, medium); err != nil {
 		log.Println(err)
@@ -240,11 +242,13 @@ func (h *topicHandler) Add(c echo.Context) error {
 		return an_handlers.RefuseAudience(c, mediumAccessCtx)
 	}
 
+	medium.Meta = h.withEmbeddedPages(medium.Meta, medium.Body)
 	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	h.syncEmbeds(medium)
 
 	if err = h.onAfterFetched(c, medium); err != nil {
 		log.Println(err)

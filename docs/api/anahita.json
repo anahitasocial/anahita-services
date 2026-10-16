@@ -990,6 +990,13 @@
             "$ref": "#/components/schemas/LinkPreview",
             "description": "On a note that carries one: the preview of a link in it."
           },
+          "link_previews": {
+            "description": "The cards of the pages it shows within its text, an article's or a topic's: an address on a line of its own each.",
+            "items": {
+              "$ref": "#/components/schemas/LinkPreview"
+            },
+            "type": "array"
+          },
           "media_removed": {
             "$ref": "#/components/schemas/MediaRemoved",
             "description": "On a photo post from another server whose pictures are no longer stored here."
@@ -1185,6 +1192,13 @@
           "link_preview": {
             "$ref": "#/components/schemas/LinkPreview",
             "description": "On a note that carries one: the preview of a link in it."
+          },
+          "link_previews": {
+            "description": "The cards of the pages it shows within its text, an article's or a topic's: an address on a line of its own each.",
+            "items": {
+              "$ref": "#/components/schemas/LinkPreview"
+            },
+            "type": "array"
           },
           "media_removed": {
             "$ref": "#/components/schemas/MediaRemoved",

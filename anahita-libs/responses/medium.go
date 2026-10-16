@@ -41,6 +41,9 @@ type MediumNodeItem struct {
 	RootID int64 `json:"root_id,omitempty"`
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
+	// The cards of the pages it shows within its text, an article's or a
+	// topic's: an address on a line of its own each.
+	LinkPreviews []*LinkPreview `json:"link_previews,omitempty"`
 	// On a photo post from another server whose pictures are no longer
 	// stored here.
 	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
@@ -125,6 +128,9 @@ type MediumNode struct {
 	RootID int64 `json:"root_id,omitempty"`
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
+	// The cards of the pages it shows within its text, an article's or a
+	// topic's: an address on a line of its own each.
+	LinkPreviews []*LinkPreview `json:"link_previews,omitempty"`
 	// On a photo post from another server whose pictures are no longer
 	// stored here.
 	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
@@ -224,6 +230,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
 		LinkPreview:        NewLinkPreview(node),
+		LinkPreviews:       NewLinkPreviews(node),
 		MediaRemoved:       NewMediaRemoved(node),
 		Video:              NewVideo(node),
 		Quote:              NewQuoteEmbed(node),
@@ -287,6 +294,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
 		LinkPreview:        NewLinkPreview(node),
+		LinkPreviews:       NewLinkPreviews(node),
 		MediaRemoved:       NewMediaRemoved(node),
 		Video:              NewVideo(node),
 		Quote:              NewQuoteEmbed(node),
