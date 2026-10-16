@@ -1,6 +1,41 @@
 {
   "components": {
     "schemas": {
+      "PicturesRestored": {
+        "description": "PicturesRestored says the pictures of a post from another server are here again.",
+        "properties": {
+          "restored": {
+            "description": "How many were copied.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "restored"
+        ],
+        "type": "object"
+      },
+      "Refusal": {
+        "description": "Refusal is why a request was refused, where the answer says: most refusals have no body, and some send this.",
+        "properties": {
+          "description": {
+            "description": "The same in words, for whoever is building a client.",
+            "type": "string"
+          },
+          "error": {
+            "description": "Why, as a code a client can tell apart: `language_invalid`, `quote_not_allowed` and so on. Each route lists its own.",
+            "type": "string"
+          },
+          "reason": {
+            "description": "What lies behind it, where one code has several causes: why a post may not be quoted, for one.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
       "atproto.ImportPreview": {
         "description": "ImportPreview is what following here whoever the viewer follows on Bluesky would do, before it is done.",
         "properties": {
@@ -43,20 +78,6 @@
         "required": [
           "started",
           "limit"
-        ],
-        "type": "object"
-      },
-      "atproto.PicturesRestored": {
-        "description": "PicturesRestored says the pictures of a post are here again.",
-        "properties": {
-          "restored": {
-            "description": "How many were copied.",
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "restored"
         ],
         "type": "object"
       },
@@ -188,18 +209,46 @@
             "description": "OK"
           },
           "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`lookup_unreadable`: not something that names an account"
           },
           "401": {
             "description": "no token, or one that has expired"
           },
           "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`lookup_not_found`, there is nobody by that name; `lookup_is_here`, it is somebody of this installation; `lookup_refused`, Bluesky or their name is refused here"
           },
           "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`too_many_lookups`"
           },
           "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`lookup_failed`: Bluesky could not be asked"
           }
         },
@@ -236,7 +285,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/atproto.PicturesRestored"
+                  "$ref": "#/components/schemas/PicturesRestored"
                 }
               }
             },
@@ -249,15 +298,43 @@
             "description": "no token, or one that has expired"
           },
           "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`media_not_removed`: there is no such post the viewer may see, or its pictures are here"
           },
           "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`media_gone`: they are not on Bluesky any more"
           },
           "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`too_many_requests`"
           },
           "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`media_failed`: Bluesky could not be asked"
           }
         },
@@ -292,6 +369,13 @@
             "description": "no token, or one that has expired"
           },
           "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_writing_off`: this installation does not write to Bluesky"
           }
         },
@@ -324,6 +408,13 @@
             "description": "no token, or one that has expired"
           },
           "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_writing_off`: this installation does not write to Bluesky"
           }
         },
@@ -373,24 +464,66 @@
             "description": "OK"
           },
           "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_unreadable`"
           },
           "401": {
             "description": "no token, or one that has expired"
           },
           "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_denied`: the password is not taken"
           },
           "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_writing_off`: this installation does not write to Bluesky; `bluesky_not_found`, there is no such account; `lookup_refused`, Bluesky is refused here"
           },
           "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_taken`: somebody else here connected that account"
           },
           "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`too_many_tries`"
           },
           "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_failed`"
           }
         },
@@ -425,12 +558,33 @@
             "description": "no token, or one that has expired"
           },
           "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_writing_off`: this installation does not write to Bluesky"
           },
           "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_not_connected`"
           },
           "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_failed`"
           }
         },
@@ -483,15 +637,43 @@
             "description": "no token, or one that has expired"
           },
           "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_writing_off`: this installation does not write to Bluesky"
           },
           "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_not_connected`"
           },
           "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`too_many_tries`"
           },
           "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`bluesky_failed`"
           }
         },

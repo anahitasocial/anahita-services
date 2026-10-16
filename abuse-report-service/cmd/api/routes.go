@@ -51,7 +51,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 			Takes(&requests.ReportAdd{}).
 			SendsNothing(http.StatusCreated, "reported").
 			SendsNothing(http.StatusOK, "the viewer had reported it already; their report was updated").
-			Refuses(http.StatusBadRequest, "not well formed; or `own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words").
+			Sends(http.StatusBadRequest, libs_responses.Refusal{}, "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; or not well formed, without a body").
 			Refuses(http.StatusNotFound, "there is no such thing that the viewer can see").
 			Refuses(http.StatusTooManyRequests, "too many reports in the last hour")
 	}
@@ -86,7 +86,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(&requests.CaseResolve{}).
 		SendsNothing(http.StatusNoContent, "decided").
 		Refuses(http.StatusNotFound, "there is no such case").
-		Refuses(http.StatusConflict, "`already_decided`")
+		Sends(http.StatusConflict, libs_responses.Refusal{}, "`already_decided`")
 	reports.POST("/cases/:id/reopen", r.handler.Cases.Reopen).
 		Summary("Reopen a case").
 		Viewer(apidoc.Admin).
@@ -94,7 +94,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(&requests.CaseReopen{}).
 		SendsNothing(http.StatusNoContent, "open again").
 		Refuses(http.StatusNotFound, "there is no such case").
-		Refuses(http.StatusConflict, "`already_open`; or `newer_case_open`, a later case about the same thing is open")
+		Sends(http.StatusConflict, libs_responses.Refusal{}, "`already_open`; or `newer_case_open`, a later case about the same thing is open")
 
 	return doc
 }

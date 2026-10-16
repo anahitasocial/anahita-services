@@ -239,6 +239,18 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 		}
 		canBeMalformed = checked && !r.unbound
 	}
+	mediaType := "application/json"
+	if r.media != "" {
+		mediaType = r.media
+	}
+	if r.body != nil {
+		schema, err := schemas.of(r.body)
+		if err != nil {
+			return nil, err
+		}
+		op["requestBody"] = map[string]any{"required": true, "content": map[string]any{mediaType: map[string]any{"schema": schema}}}
+		canBeMalformed = true
+	}
 	if err := r.checkPathParams(op, rename); err != nil {
 		return nil, err
 	}
@@ -263,7 +275,7 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 			if err != nil {
 				return nil, err
 			}
-			resp["content"] = map[string]any{"application/json": map[string]any{"schema": schema}}
+			resp["content"] = map[string]any{mediaType: map[string]any{"schema": schema}}
 		}
 		responses[code] = resp
 	}

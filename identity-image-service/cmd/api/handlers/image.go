@@ -49,7 +49,7 @@ const (
 )
 
 func refuse(c echo.Context, status int, code string) error {
-	return c.JSON(status, map[string]string{"error": code})
+	return c.JSON(status, responses.Refusal{Error: code})
 }
 
 // refuseImage answers for a file images.Accept would not take.

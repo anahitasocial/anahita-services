@@ -153,6 +153,8 @@ type Route struct {
 	notBuilt    string
 	internal    string
 	unbound     bool
+	media       string
+	body        reflect.Type
 }
 
 type answer struct {
@@ -230,6 +232,20 @@ func (r *Route) SendsNothing(status int, meaning string) *Route {
 // Refuses is a refusal: its status, and why, in words.
 func (r *Route) Refuses(status int, reason string) *Route {
 	r.refuses = append(r.refuses, answer{status: status, reason: reason})
+	return r
+}
+
+// Media is the type of the route's bodies, taken and sent, where it is not
+// application/json: what other servers speak, `application/activity+json`.
+func (r *Route) Media(mediaType string) *Route {
+	r.media = mediaType
+	return r
+}
+
+// TakesBody is a request whose whole body is one value, not the fields of
+// a struct: what another server sends to an inbox.
+func (r *Route) TakesBody(body any) *Route {
+	r.body = reflect.TypeOf(body)
 	return r
 }
 

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"net/http"
 
 	"activitypub/ap"
@@ -87,7 +88,7 @@ func getViewer(c echo.Context) *entities.Viewer {
 }
 
 func refuse(c echo.Context, status int, code string) error {
-	return c.JSON(status, map[string]string{"error": code})
+	return c.JSON(status, responses.Refusal{Error: code})
 }
 
 // Why a site, or a person on it, cannot be on the fediverse.

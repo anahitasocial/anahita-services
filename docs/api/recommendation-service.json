@@ -812,6 +812,27 @@
         },
         "type": "object"
       },
+      "Refusal": {
+        "description": "Refusal is why a request was refused, where the answer says: most refusals have no body, and some send this.",
+        "properties": {
+          "description": {
+            "description": "The same in words, for whoever is building a client.",
+            "type": "string"
+          },
+          "error": {
+            "description": "Why, as a code a client can tell apart: `language_invalid`, `quote_not_allowed` and so on. Each route lists its own.",
+            "type": "string"
+          },
+          "reason": {
+            "description": "What lies behind it, where one code has several causes: why a post may not be quoted, for one.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
       "Video": {
         "description": "Video is what a video post plays: its sizes, largest first, and the still shown before it does.",
         "properties": {
@@ -1496,6 +1517,13 @@
             "description": "no token, or one that has expired"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`invalid_weight`: a reason there is not, or a weight out of range; nothing is changed"
           }
         },

@@ -982,7 +982,7 @@ removed one by one, as any post or person is.
 
 | Request | Does |
 | --- | --- |
-| `GET /activitypub/blocks?q=&limit=&offset=` | A page of the list, by name, with `pagination.total`. `q` narrows it to the names and reasons it is found in; `limit` is 50 unless asked, 200 at most |
+| `GET /activitypub/blocks?q=&limit=&start=` | A page of the list, by name, with `pagination.total`. `q` narrows it to the names and reasons it is found in; `limit` is 50 unless asked, 200 at most |
 | `POST /activitypub/blocks` `{ "domain": "spam.example", "reason": "…" }` | Refuses a server, or changes why. The domain may be typed as a name, an address or a handle |
 | `DELETE /activitypub/blocks/spam.example` | Stops refusing it |
 

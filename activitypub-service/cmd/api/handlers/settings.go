@@ -19,17 +19,23 @@ import (
 // Settings is what a person is shown about being on the fediverse.
 type Settings struct {
 	// Whether they could be, and why not when they could not.
-	Available bool   `json:"available"`
-	Reason    string `json:"reason,omitempty"`
+	Available bool `json:"available"`
+	// Why not: `site_private`, `site_unreachable` or `profile_not_public`.
+	Reason string `json:"reason,omitempty"`
 	// Whether they are.
 	Enabled bool `json:"enabled"`
 	// What they are, or would be, called from other servers, and where
 	// those servers find them.
 	Handle string `json:"handle,omitempty"`
-	Actor  string `json:"actor,omitempty"`
+	// Where those servers find them.
+	Actor string `json:"actor,omitempty"`
 }
 
-type settingsRequest struct {
+// SettingsRequest turns being on the fediverse on or off.
+type SettingsRequest struct {
+	// Whether the viewer is on the fediverse from now on. Leaving tells the
+	// servers that knew them, and some of those do not take them back
+	// (federation.md).
 	Enabled *bool `json:"enabled" validate:"required"`
 }
 
@@ -68,7 +74,7 @@ func (h *Handlers) ReadSettings(c echo.Context) error {
 func (h *Handlers) EditSettings(c echo.Context) error {
 	viewer := getViewer(c)
 
-	req := &settingsRequest{}
+	req := &SettingsRequest{}
 	if err := c.Bind(req); err != nil || req.Enabled == nil {
 		return refuse(c, http.StatusBadRequest, "enabled_required")
 	}

@@ -14,9 +14,13 @@ import (
 
 // DomainBlock is a server this installation will have nothing to do with.
 type DomainBlock struct {
-	Domain    string    `json:"domain"`
-	Reason    string    `json:"reason"`
-	CreatedBy int64     `json:"created_by"`
+	// The server's name.
+	Domain string `json:"domain"`
+	// Why it is refused.
+	Reason string `json:"reason"`
+	// The super administrator who refused it.
+	CreatedBy int64 `json:"created_by"`
+	// When.
 	CreatedAt time.Time `json:"created_at"`
 }
 

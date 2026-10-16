@@ -36,9 +36,3 @@ type ImportStarted struct {
 	// How many will be followed.
 	Limit int `json:"limit"`
 }
-
-// PicturesRestored says the pictures of a post are here again.
-type PicturesRestored struct {
-	// How many were copied.
-	Restored int `json:"restored"`
-}

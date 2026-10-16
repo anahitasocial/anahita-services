@@ -21,3 +21,10 @@ type AudienceRefusal struct {
 	// The audiences it may be given, widest first.
 	Allowed []string `json:"allowed"`
 }
+
+// PicturesRestored says the pictures of a post from another server are
+// here again.
+type PicturesRestored struct {
+	// How many were copied.
+	Restored int `json:"restored"`
+}

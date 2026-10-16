@@ -66,11 +66,11 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 				Viewer(apidoc.SignedIn).
 				Takes(upload).
 				Sends(http.StatusCreated, map[string]responses.Image{}).
-				Refuses(http.StatusBadRequest, "`file_required` when no file was sent, `file_unreadable` when it cannot be read as a picture").
+				Sends(http.StatusBadRequest, responses.Refusal{}, "`file_required` when no file was sent, `file_unreadable` when it cannot be read as a picture").
 				Refuses(http.StatusForbidden, "it cannot have one, or the viewer may not change it").
 				Refuses(http.StatusNotFound, "there is no such profile or post, or the viewer may not see it").
-				Refuses(http.StatusRequestEntityTooLarge, "`file_too_large`: more than 10 MB, or too many pixels").
-				Refuses(http.StatusUnsupportedMediaType, "`file_unsupported`: not a JPEG or a PNG")
+				Sends(http.StatusRequestEntityTooLarge, responses.Refusal{}, "`file_too_large`: more than 10 MB, or too many pixels").
+				Sends(http.StatusUnsupportedMediaType, responses.Refusal{}, "`file_unsupported`: not a JPEG or a PNG")
 		}
 	}
 	remove := func(what, on string) func(*apidoc.Route) {

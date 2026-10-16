@@ -141,7 +141,7 @@ Each was found by describing a service, and put right on 2026-10-16 at the user'
 - **Setting an avatar or a cover** answered with Go's field names (`Url`, `Size`, `Width`, `Height`); it answers with `url` and `size` as every other picture is sent (`responses.NewAvatar`). The web app reads it camel-cased, so it is unchanged.
 - **A notification's own fields were camelCase** (`createdAt`, `updatedAt`, `isRead`); they are `created_at`, `updated_at` and `is_read`. The web app reads them camel-cased, so it is unchanged.
 - **`DELETE /notifications/subscriptions/:target_id` answered `201 Created`**; it answers `200`.
-- **Abuse cases were paged by `offset`**; they take `start`, as every other list, and the web app's Reports list sends it.
+- **Abuse cases and refused servers were paged by `offset`**; they take `start`, as every other list, and the web app sends it.
 - **Liking, unliking or listing the likes of something that is not there answered 500**; it answers 404.
 - **`PATCH /hashtags/:alias` answered 501** and is removed (above).
 - **`composed`** was taken by every post and read by nothing; it is gone from the requests and the web app.

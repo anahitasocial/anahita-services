@@ -57,7 +57,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.PreferencesRequest{}).
 		Sends(http.StatusOK, handlers.PreferencesResponse{}).
-		Refuses(http.StatusUnprocessableEntity, "`invalid_weight`: a reason there is not, or a weight out of range; nothing is changed")
+		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, "`invalid_weight`: a reason there is not, or a weight out of range; nothing is changed")
 
 	recommendations.GET("/dismissals", r.handler.Dismissals.Browse).
 		Summary("Whom the viewer is not interested in").

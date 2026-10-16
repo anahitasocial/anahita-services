@@ -34,12 +34,16 @@ var lookupLimit = ratelimit.Limit{Max: 30, Window: 10 * time.Minute}
 
 // RemotePerson is somebody on another server, as the web app is told.
 type RemotePerson struct {
-	ID   int64  `json:"id"`
+	// Their id here.
+	ID int64 `json:"id"`
+	// Always the type of a person on the fediverse.
 	Type string `json:"type"`
+	// Their name.
 	Name string `json:"name"`
 	// Their handle: alice@mastodon.example.
 	Alias string `json:"alias"`
-	Body  string `json:"body"`
+	// What they say of themselves.
+	Body string `json:"body"`
 	// Their address between servers, and the server it is on.
 	URI          string `json:"uri"`
 	OriginDomain string `json:"origin_domain"`

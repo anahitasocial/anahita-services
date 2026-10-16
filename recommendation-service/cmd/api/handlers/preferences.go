@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"log"
 	"net/http"
 
@@ -120,7 +121,7 @@ func (h *preferencesHandler) Edit(c echo.Context) error {
 	}
 
 	if !apply(prefs, req) {
-		return c.JSON(http.StatusUnprocessableEntity, map[string]string{"error": "invalid_weight"})
+		return c.JSON(http.StatusUnprocessableEntity, responses.Refusal{Error: "invalid_weight"})
 	}
 
 	if err := h.Repos.Preferences.Write(viewer.ID, prefs); err != nil {

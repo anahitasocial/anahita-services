@@ -261,7 +261,7 @@ func (h *casesHandler) Resolve(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if !closed {
-		return c.JSON(http.StatusConflict, map[string]string{"error": "already_decided"})
+		return c.JSON(http.StatusConflict, libs_responses.Refusal{Error: "already_decided"})
 	}
 
 	log.Printf("abuse case %d: %s (%s) by %d", item.ID, req.Status, req.Action, viewer.ID)
@@ -288,14 +288,14 @@ func (h *casesHandler) Reopen(c echo.Context) error {
 
 	reopened, err := h.Repos.Cases.Reopen(item.ID)
 	if errors.Is(err, repositories.ErrOpenCaseExists) {
-		return c.JSON(http.StatusConflict, map[string]string{"error": "newer_case_open"})
+		return c.JSON(http.StatusConflict, libs_responses.Refusal{Error: "newer_case_open"})
 	}
 	if err != nil {
 		log.Println("abuse case reopen:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if !reopened {
-		return c.JSON(http.StatusConflict, map[string]string{"error": "already_open"})
+		return c.JSON(http.StatusConflict, libs_responses.Refusal{Error: "already_open"})
 	}
 
 	log.Printf("abuse case %d: reopened by %d", item.ID, viewer.ID)
