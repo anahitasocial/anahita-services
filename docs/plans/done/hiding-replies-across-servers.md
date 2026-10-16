@@ -1,14 +1,14 @@
 # Hiding a reply from others, across servers (item 44)
 
 Raised by the user on 2026-10-12, on seeing "Hide" on a reply that had come
-from Mastodon. Begun 2026-10-15: see *Progress* at the end. **What is wanted was said the same day: hidden
+from Mastodon. Begun and finished 2026-10-15: see *Progress* at the end. **What is wanted was said the same day: hidden
 everywhere, preferably,** wherever the post is read, and not only on this
 installation.
 
 ## What there is
 
 Whoever looks after a thread here can hide a reply under their post
-([notes-as-replies.md](done/notes-as-replies.md)): it is no longer shown in
+([notes-as-replies.md](notes-as-replies.md)): it is no longer shown in
 the thread to anybody but its writer and whoever hid it, who can show it
 again. It is an edge from the post to the reply, not a mark on the reply,
 because the reply is its writer's.
@@ -45,8 +45,8 @@ is often wanted, and not always:
   someone I don't want to see their replies either." So a block takes out
   of sight, for every reader, what the blocked person has put on the
   blocker's profile: their replies under the blocker's posts, their likes,
-  and anything else of theirs there. And the same **on a profile the
-  blocker administers**, a group or an event, as the user said it.
+  and anything else of theirs there. (The user first said the same of
+  profiles the blocker administers; see the decision on groups below.)
   - **Only there.** Said by the user next: "Unless the post belongs to
     another profile, in that case when I block someone the reply remains.
     It's up to the post owner and author to hide replies." A block reaches
@@ -56,11 +56,15 @@ is often wanted, and not always:
     it themselves, as with anything from somebody they have blocked.
   - Hidden, not deleted: what they wrote is theirs, and comes back if the
     block is lifted.
-  - To settle when it is built: whether a person's own block reaches the
-    groups they administer, or whether that is the group blocking somebody,
-    done by one of its administrators. The second is how blocking by a
-    group would be told to other servers. (An open point of the plan's,
-    not something the user has said.)
+  - **A person's block does not reach the groups they administer.**
+    Decided by the user on 2026-10-16: it "will really complicate things".
+    A group blocks somebody in its own right, done by one of its
+    administrators; the services allow it already, and such a block hides
+    what the blocked person left in the group as a person's does. The web
+    app has no way to do it yet: item 55
+    ([group-blocks.md](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/group-blocks.md)).
+    Groups are not on ActivityPub for now (the user, the same day), so a
+    group's block is told to no other server.
   - To look at first: what a block does today to what the blocked person
     already left, for readers other than the blocker.
 - **A block is not told to the other server yet.** Here it stops the
@@ -75,7 +79,7 @@ is often wanted, and not always:
 
 - **Bluesky has it.** A post's author keeps a list of replies hidden under
   it, as a record everybody's app reads, and apps tuck those replies away.
-  With AT Protocol ([federation.md](federation.md), row 26) hiding a reply
+  With AT Protocol ([federation.md](../federation.md), row 26) hiding a reply
   here can write that record, and a reply hidden there can be hidden here.
 - **ActivityPub has no agreed way.** Mastodon has no "hide reply". The
   nearest things are a post's author *approving* replies before they count
@@ -155,7 +159,6 @@ person's server, and no `Block` was sent.
    its server.
 5. Docs: `federation.md`, `permissions.md` and the web `architecture.md`
    written.
-6. **Left open, for the user to decide or for later:** whether a person's
-   block also reaches the groups they administer; reading threadgates made
-   in Bluesky's app; an incoming ActivityPub `Block` (ignored). None of it
-   was tried against real servers or in a browser.
+6. **Left for later:** reading threadgates made in Bluesky's app; an
+   incoming ActivityPub `Block` (ignored). Blocking by a group is item 55.
+   None of it was tried against real servers or in a browser.
