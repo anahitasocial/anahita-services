@@ -87,10 +87,14 @@ func setFeedFlags(env *Env, nodes []*entities.AnahitaNode, viewer *entities.View
 		quote := permissions.CanQuotePost(viewer, &withOwner, rels[post.OwnerID])
 		post.Authorized.Comment = &comment
 		post.Authorized.Like = &like
-		pin := permissions.CanPin(viewer, &withOwner, rels[post.OwnerID])
+		// Changing the profile (pinning to it, blocking from it) is offered
+		// in a feed to whoever runs it; a site administrator does it from
+		// the post's own page.
+		runsProfile := permissions.RunsProfile(viewer, post.OwnerID, rels[post.OwnerID])
+		pin := runsProfile && permissions.CanPin(viewer, &withOwner, rels[post.OwnerID])
 		post.Authorized.Quote = &quote
 		post.Authorized.Pin = &pin
-		blockFromOwner := permissions.CanBlockFromOwner(viewer, owner, post.GetAuthorID(), rels[post.OwnerID])
+		blockFromOwner := runsProfile && permissions.CanBlockFromOwner(viewer, owner, post.GetAuthorID(), rels[post.OwnerID])
 		post.Authorized.BlockFromOwner = &blockFromOwner
 		// Whether what it holds may be downloaded, said of a photo or a video.
 		if permissions.HoldsAFile(post) {
@@ -241,7 +245,8 @@ func setReplyFeedFlags(env *Env, replies []*entities.AnahitaNode, viewer *entiti
 		reply.Authorized.Hide = &hide
 		reply.Authorized.Comment = &canReply
 		reply.Authorized.Like = &like
-		blockFromOwner := permissions.CanBlockFromOwner(viewer, withOwner.Owner, reply.GetAuthorID(), rels[root.OwnerID])
+		blockFromOwner := permissions.RunsProfile(viewer, root.OwnerID, rels[root.OwnerID]) &&
+			permissions.CanBlockFromOwner(viewer, withOwner.Owner, reply.GetAuthorID(), rels[root.OwnerID])
 		reply.Authorized.BlockFromOwner = &blockFromOwner
 	}
 }

@@ -9,10 +9,11 @@ import (
 // an event, whoever wrote something in it: the group blocking them, not the
 // viewer.
 //
-// It is for the group's administrators, who look after what is in it. A
-// person's own block does not reach the groups they administer (decided
-// 2026-10-16); the group blocks in its own right. Not offered to site
-// administrators here, who have their own ways of acting against somebody.
+// It is for the group's administrators, who look after what is in it, and
+// for site administrators, as the block itself is. A person's own block does
+// not reach the groups they administer (decided 2026-10-16); the group blocks
+// in its own right. Feeds and lists offer it only to whoever runs the group
+// (RunsProfile); a site administrator blocks from the post's own page.
 //
 // `owner` is the group or event the post is on, or the one at the top of a
 // reply's thread; `authorID` is who wrote it. rel is the owner's
@@ -31,5 +32,5 @@ func CanBlockFromOwner(viewer *entities.Viewer, owner *entities.AnahitaNode, aut
 	if authorID <= 0 || authorID == viewer.ID || authorID == owner.GetID() {
 		return false
 	}
-	return relationOrEmpty(rel).HasAdmin
+	return viewer.IsAdmin() || relationOrEmpty(rel).HasAdmin
 }

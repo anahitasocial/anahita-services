@@ -25,8 +25,7 @@ func TestWhoPinsAPost(t *testing.T) {
 	}{
 		{"an administrator of the group", replyViewer(bystanderID, constants.PersonTypeRegistered), admin, true},
 		{"the profile itself", replyViewer(ownerID, constants.PersonTypeRegistered), nobody, true},
-		// Moderates, and does not decide what a profile leads with.
-		{"a site administrator", replyViewer(bystanderID, constants.PersonTypeAdmin), nobody, false},
+		{"a site administrator", replyViewer(bystanderID, constants.PersonTypeAdmin), nobody, true},
 		// Wrote it, and does not run the place it is in.
 		{"the post's author", replyViewer(authorID, constants.PersonTypeRegistered), member, false},
 		{"a follower of the group", replyViewer(bystanderID, constants.PersonTypeRegistered), member, false},
@@ -40,6 +39,14 @@ func TestWhoPinsAPost(t *testing.T) {
 				t.Errorf("CanPin = %v, want %v", got, c.want)
 			}
 		})
+	}
+
+	// In feeds and lists: the profile and its administrators, not a site
+	// administrator.
+	if !RunsProfile(replyViewer(bystanderID, constants.PersonTypeRegistered), ownerID, admin) ||
+		!RunsProfile(replyViewer(ownerID, constants.PersonTypeRegistered), ownerID, nobody) ||
+		RunsProfile(replyViewer(bystanderID, constants.PersonTypeAdmin), ownerID, nobody) {
+		t.Error("RunsProfile is not whoever runs the profile")
 	}
 
 	// Never a reply, whoever asks.

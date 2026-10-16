@@ -33,8 +33,7 @@ func TestWhoBlocksFromAGroup(t *testing.T) {
 	}{
 		{"an administrator of the group", may(bystanderID, constants.PersonTypeRegistered), group, authorID, admin, true},
 		{"somebody who does not run it", may(bystanderID, constants.PersonTypeRegistered), group, authorID, nobody, false},
-		// Their own block, from the profile, is how they block.
-		{"a site administrator", may(bystanderID, constants.PersonTypeAdmin), group, authorID, nobody, false},
+		{"a site administrator", may(bystanderID, constants.PersonTypeAdmin), group, authorID, nobody, true},
 		{"an administrator, of what they wrote themselves", may(authorID, constants.PersonTypeRegistered), group, authorID, admin, false},
 		{"what the group itself posted", may(bystanderID, constants.PersonTypeRegistered), group, ownerID, admin, false},
 		// A person blocks as themselves, not as their profile.

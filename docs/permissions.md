@@ -135,8 +135,10 @@ told to no other server: groups are not on the fediverse.
 | `GET /socialgraph/<group>/blocks/` | The same |
 
 Posts and replies in a group carry `authorized.block_from_owner`, true for the
-group's administrators on what somebody else wrote there, so that the web app
-offers "Block from <group>" only to them (`permissions.CanBlockFromOwner`).
+group's administrators and for site administrators on what somebody else wrote
+there (`permissions.CanBlockFromOwner`). In feeds and lists it is true for the
+group's administrators only; a site administrator blocks from the post's own
+page.
 
 A post's access is always one of the levels above. There is no way to share a
 post with named people only, and no private messaging: the private notes of
@@ -625,10 +627,12 @@ and so on), marked as pinned.
   pin here will be a pin there with nothing left over.
 - **The pin is the profile's, not the post's.** It is set by whoever the
   profile belongs to: a person on their own profile, and a group's
-  administrators in the group. The author of a post in a group they do not
-  run can edit and remove their post, and cannot pin it. Nor can site
-  administrators: what they may do to somebody's posts is moderation, and
-  choosing what a profile leads with is not.
+  administrators in the group; and site administrators, who may change any
+  post. The author of a post in a group they do not run can edit and remove
+  their post, and cannot pin it.
+- **Offered in feeds to whoever runs the profile.** Feeds and lists offer Pin
+  to the profile and its administrators only; a site administrator pins from
+  the post's own page (`permissions.RunsProfile`).
 - **Only a post at the top level.** A reply is read in its thread.
 - **It changes the order and nothing else.** A pinned post is seen by exactly
   the people who could see it anyway.
