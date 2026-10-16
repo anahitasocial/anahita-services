@@ -198,6 +198,27 @@ web app reads it the same way.
   `link_previews` and sent as `link_previews`: see
   [Link previews](link-previews.md#cards-in-long-writing).
 
+### The media library
+
+A photo or video post can be in its author's media library only
+(`nodes.library_only`): put up from inside the article editor, to be shown
+in an article. It is read by its address with the access any post has, so
+the access gates do not know of it; the listings leave it out, each by
+`listedQuery` (graph-grpc-service `data/repositories/listed.go`): feeds, a
+profile's lists, search, a hashtag's and a place's posts. It cannot be
+pinned. Nothing announces it: the graph publishes no event for it, so no
+notification, hashtag or mention is made of it, and neither federation
+service sends it, its sweeper included.
+
+- **Made** with `library_only: true` on `POST /photos/<own id>/` or when a
+  video's upload begins (`video_uploads.library_only`, carried to the post
+  by the worker). Only on one's own profile; never a reply. Set once.
+- **Listed** by `GET /photos/<id>/?library=1` and `/videos/<id>/?library=1`:
+  all of the viewer's own photos or videos on their own profile, these
+  with them. Nobody else's.
+- A post saved before it was in a library, or quoted, is still found
+  where it was: those lists are the viewer's own doing.
+
 ### Saved posts
 
 Somebody can save a post, of any kind, to find it again: `PUT` and
