@@ -291,7 +291,7 @@ const (
 	// The limits an uploaded photo is held to (photo-service/constants).
 	postPictureMaxBytes  = 10 << 20
 	postPictureMaxPixels = 50_000_000
-	postPictureMaxWidth  = 2560
+	postPictureMaxSide   = 2048
 	postPictureMaxStored = 4<<20 - 64<<10
 )
 
@@ -365,6 +365,11 @@ func (k *Keeper) copyPostPicture(ctx context.Context, post *entities.AnahitaNode
 		log.Printf("a picture of %s is not one that is kept: %v", post.URI, err)
 		return nil, nil
 	}
+	// Kept as a photo made here is (photo-service storeImage).
+	content, mimeType, err = images.AsPhoto(content, mimeType)
+	if err != nil {
+		return nil, nil
+	}
 
 	filename, err := images.GenerateUniqueFilename(mimeType)
 	if err != nil {
@@ -375,7 +380,7 @@ func (k *Keeper) copyPostPicture(ctx context.Context, post *entities.AnahitaNode
 		return nil, nil
 	}
 
-	largest, err := images.FitImage(content, postPictureMaxWidth)
+	largest, err := images.FitLongest(content, postPictureMaxSide)
 	if err != nil {
 		return nil, nil
 	}
@@ -393,7 +398,7 @@ func (k *Keeper) copyPostPicture(ctx context.Context, post *entities.AnahitaNode
 		case entities.PortraitSizeOriginal:
 			resized = largest
 		default:
-			resized, err = images.FitImage(largest, size.Size.Width)
+			resized, err = images.FitLongest(largest, size.Size.Width)
 		}
 		if err == nil && len(resized) > postPictureMaxStored {
 			err = images.ErrTooLarge

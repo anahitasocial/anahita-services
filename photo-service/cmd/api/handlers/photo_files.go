@@ -62,6 +62,12 @@ func (h *photoHandler) storeImage(c echo.Context, owner *entities.AnahitaNode, v
 	if err != nil {
 		return nil, refusalFor(err), err
 	}
+	// A PNG with nothing see-through, a screenshot as often as not, kept as
+	// a JPEG: a fifth of the size, and what every network takes.
+	content, mimeType, err = images.AsPhoto(content, mimeType)
+	if err != nil {
+		return nil, errFileUnreadable, err
+	}
 
 	filename, err := images.GenerateUniqueFilename(mimeType)
 	if err != nil {
@@ -73,11 +79,11 @@ func (h *photoHandler) storeImage(c echo.Context, owner *entities.AnahitaNode, v
 		return nil, "", err
 	}
 
-	// The picture at the size it was taken, up to a width that keeps it
-	// within what one message to storage carries. Every other size is made
+	// The picture at the size it was taken, its longest side up to
+	// OriginalMaxSide. Every other size is made
 	// from this and not from what arrived, so a photo of tens of megapixels
 	// is opened once, not once for each size.
-	largest, err := images.FitImage(content, photo.OriginalMaxWidth)
+	largest, err := images.FitLongest(content, photo.OriginalMaxSide)
 	if err != nil {
 		return nil, errFileUnreadable, err
 	}
@@ -102,7 +108,8 @@ func (h *photoHandler) storeImage(c echo.Context, owner *entities.AnahitaNode, v
 			// photo's own page and the zoom show.
 			resized = largest
 		default:
-			resized, err = images.FitImage(largest, portrait.Size.Width)
+			// Size.Width is the longest side (entities.GetPortraits).
+			resized, err = images.FitLongest(largest, portrait.Size.Width)
 		}
 		if err != nil {
 			return nil, errFileUnreadable, err
