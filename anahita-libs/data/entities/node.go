@@ -42,6 +42,9 @@ type AnahitaNodeAuthorized struct {
 	Quote *bool
 	// On a post: whether the viewer may pin it to the profile it is on.
 	Pin *bool
+	// On a post or a reply in a group or an event: whether the viewer may
+	// block its writer from there, as the group. nil when not worked out.
+	BlockFromOwner *bool
 	// On a post that holds a file: whether the viewer may download it. nil
 	// on a post that holds none, and when not worked out.
 	Download *bool
@@ -54,13 +57,20 @@ type AnahitaNodeAuthorized struct {
 	Audiences []string
 }
 
+// AnahitaNodeImageSize is how big a picture is.
 type AnahitaNodeImageSize struct {
-	Width  int
+	// In pixels.
+	Width int
+	// In pixels.
 	Height int
 }
 
+// AnahitaNodeImage is one size of a picture. It has no JSON tags, so its
+// fields are sent as Go names them.
 type AnahitaNodeImage struct {
-	Url  string
+	// Where it is read from: good for a short while.
+	Url string
+	// How big it is.
 	Size AnahitaNodeImageSize
 }
 

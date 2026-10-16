@@ -107,6 +107,39 @@ Two people see a post without its own access being consulted:
 Nobody sees a post by, or on the profile of, somebody they have blocked or
 been blocked by.
 
+A block also takes out of sight, for **every** reader, what the blocked
+person has left on what is the blocker's:
+
+- their replies in a thread whose post the blocker owns or wrote, and what is
+  under those replies; the thread's reply count leaves them out;
+- their likes of the blocker's posts, in the list of who liked it and in the
+  count;
+- their posts on the blocker's profile.
+
+Only there. Under somebody else's post, what the blocked person wrote stays
+for other readers, and hiding it is for whoever that post belongs to. Nothing
+is deleted: it is still theirs, and comes back if the block is lifted. A block
+of somebody on another server is also told to that server (see
+[federation.md](federation.md)).
+
+A person's block does not reach the groups and events they administer. A group
+or an event blocks somebody in its own right, done by one of its
+administrators from the menu on what that person wrote in it, and lifted from
+its settings (Privacy, Blocked). Its block hides what the blocked person left
+in it, for every reader, as a person's does, and keeps them out of it. It is
+told to no other server: groups are not on the fediverse.
+
+| Request | Allowed to |
+| --- | --- |
+| `POST` and `DELETE /socialgraph/<person>/blocks/<group>` | The group's administrators, and site administrators |
+| `GET /socialgraph/<group>/blocks/` | The same |
+
+Posts and replies in a group carry `authorized.block_from_owner`, true for the
+group's administrators and for site administrators on what somebody else wrote
+there (`permissions.CanBlockFromOwner`). In feeds and lists it is true for the
+group's administrators only; a site administrator blocks from the post's own
+page.
+
 A post's access is always one of the levels above. There is no way to share a
 post with named people only, and no private messaging: the private notes of
 the PHP version were removed, not carried over.
@@ -593,9 +626,13 @@ and so on), marked as pinned.
   post that had it gives it up. One is also exactly what Bluesky has, so a
   pin here will be a pin there with nothing left over.
 - **The pin is the profile's, not the post's.** It is set by whoever the
-  profile belongs to: a person on their own profile, a group's administrators
-  in the group, and site administrators. The author of a post in a group they
-  do not run can edit and remove their post, and cannot pin it.
+  profile belongs to: a person on their own profile, and a group's
+  administrators in the group; and site administrators, who may change any
+  post. The author of a post in a group they do not run can edit and remove
+  their post, and cannot pin it.
+- **Offered in feeds to whoever runs the profile.** Feeds and lists offer Pin
+  to the profile and its administrators only; a site administrator pins from
+  the post's own page (`permissions.RunsProfile`).
 - **Only a post at the top level.** A reply is read in its thread.
 - **It changes the order and nothing else.** A pinned post is seen by exactly
   the people who could see it anyway.

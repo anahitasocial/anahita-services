@@ -11,6 +11,48 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// OpenIDConfiguration is the OpenID Connect discovery document (OpenID
+// Connect Discovery 1.0, section 3): where each endpoint is, and what the
+// installation supports.
+type OpenIDConfiguration struct {
+	// Who issues the tokens: the `iss` in each.
+	Issuer string `json:"issuer"`
+	// `/oauth/authorize`.
+	AuthorizationEndpoint string `json:"authorization_endpoint"`
+	// `/oauth/token`.
+	TokenEndpoint string `json:"token_endpoint"`
+	// `/oauth/userinfo`.
+	UserinfoEndpoint string `json:"userinfo_endpoint"`
+	// `/.well-known/jwks.json`.
+	JWKSURI string `json:"jwks_uri"`
+	// `/oauth/revoke`.
+	RevocationEndpoint string `json:"revocation_endpoint"`
+	// `/oauth/introspect`.
+	IntrospectionEndpoint string `json:"introspection_endpoint"`
+	// `code`.
+	ResponseTypesSupported []string `json:"response_types_supported"`
+	// `authorization_code`, `refresh_token` and `client_credentials`.
+	GrantTypesSupported []string `json:"grant_types_supported"`
+	// `public`.
+	SubjectTypesSupported []string `json:"subject_types_supported"`
+	// `RS256`.
+	IDTokenSigningAlgValuesSupported []string `json:"id_token_signing_alg_values_supported"`
+	// Every scope there is (oauth.md).
+	ScopesSupported []string `json:"scopes_supported"`
+	// `client_secret_basic` and `client_secret_post`.
+	TokenEndpointAuthMethodsSupported []string `json:"token_endpoint_auth_methods_supported"`
+	// What a token or userinfo may say.
+	ClaimsSupported []string `json:"claims_supported"`
+	// `S256` and `plain`.
+	CodeChallengeMethodsSupported []string `json:"code_challenge_methods_supported"`
+}
+
+// JWKSet is the keys a token's signature is checked with (RFC 7517).
+type JWKSet struct {
+	// Each a JSON Web Key: `kid`, `kty`, `alg`, `use`, `n` and `e`.
+	Keys []map[string]any `json:"keys"`
+}
+
 // Discovery handles GET /.well-known/openid-configuration
 //
 // Returns the OIDC discovery document with all supported endpoints,
@@ -19,41 +61,41 @@ import (
 func (h *oauthHandler) Discovery(c echo.Context) error {
 	issuer := h.Config.GetOAuthIssuer()
 
-	discovery := map[string]any{
-		"issuer":                 issuer,
-		"authorization_endpoint": issuer + "/oauth/authorize",
-		"token_endpoint":         issuer + "/oauth/token",
-		"userinfo_endpoint":      issuer + "/oauth/userinfo",
-		"jwks_uri":               issuer + "/.well-known/jwks.json",
-		"revocation_endpoint":    issuer + "/oauth/revoke",
-		"introspection_endpoint": issuer + "/oauth/introspect",
+	discovery := &OpenIDConfiguration{
+		Issuer:                issuer,
+		AuthorizationEndpoint: issuer + "/oauth/authorize",
+		TokenEndpoint:         issuer + "/oauth/token",
+		UserinfoEndpoint:      issuer + "/oauth/userinfo",
+		JWKSURI:               issuer + "/.well-known/jwks.json",
+		RevocationEndpoint:    issuer + "/oauth/revoke",
+		IntrospectionEndpoint: issuer + "/oauth/introspect",
 
-		"response_types_supported": []string{
+		ResponseTypesSupported: []string{
 			"code",
 		},
 
-		"grant_types_supported": []string{
+		GrantTypesSupported: []string{
 			"authorization_code",
 			"refresh_token",
 			"client_credentials",
 		},
 
-		"subject_types_supported": []string{
+		SubjectTypesSupported: []string{
 			"public",
 		},
 
-		"id_token_signing_alg_values_supported": []string{
+		IDTokenSigningAlgValuesSupported: []string{
 			"RS256",
 		},
 
-		"scopes_supported": supportedScopes(),
+		ScopesSupported: supportedScopes(),
 
-		"token_endpoint_auth_methods_supported": []string{
+		TokenEndpointAuthMethodsSupported: []string{
 			"client_secret_basic",
 			"client_secret_post",
 		},
 
-		"claims_supported": []string{
+		ClaimsSupported: []string{
 			// Standard OIDC / OAuth claims
 			libs_constants.JWTClaimSub,
 			libs_constants.JWTClaimIss,
@@ -73,7 +115,7 @@ func (h *oauthHandler) Discovery(c echo.Context) error {
 			libs_constants.JWTClaimPersonPK,
 		},
 
-		"code_challenge_methods_supported": []string{
+		CodeChallengeMethodsSupported: []string{
 			"S256",
 			"plain",
 		},
@@ -105,9 +147,7 @@ func (h *oauthHandler) JWKS(c echo.Context) error {
 		jwks = append(jwks, jwk)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"keys": jwks,
-	})
+	return c.JSON(http.StatusOK, &JWKSet{Keys: jwks})
 }
 
 // supportedScopes returns the full list of scopes advertised in the

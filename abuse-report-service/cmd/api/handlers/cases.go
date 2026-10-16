@@ -68,7 +68,7 @@ func (h *casesHandler) Browse(c echo.Context) error {
 	}
 
 	limit, _ := strconv.ParseUint(c.QueryParam("limit"), 10, 64)
-	offset, _ := strconv.ParseUint(c.QueryParam("offset"), 10, 64)
+	offset, _ := strconv.ParseUint(c.QueryParam("start"), 10, 64)
 	if limit == 0 {
 		limit = constants.DefaultBrowseLimit
 	}
@@ -102,9 +102,9 @@ func (h *casesHandler) Browse(c echo.Context) error {
 		items = append(items, mapper.Case(item, counts))
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": items,
-		"pagination": libs_responses.Pagination{
+	return c.JSON(http.StatusOK, libs_responses.List[responses.Case]{
+		Data: items,
+		Pagination: libs_responses.Pagination{
 			Limit:  limit,
 			Offset: offset,
 			Total:  total,
@@ -127,7 +127,7 @@ func (h *casesHandler) Summary(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, map[string]uint64{"open": open})
+	return c.JSON(http.StatusOK, responses.CaseSummary{Open: open})
 }
 
 func (h *casesHandler) readCase(c echo.Context) (*entities.Case, int) {
@@ -261,7 +261,7 @@ func (h *casesHandler) Resolve(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if !closed {
-		return c.JSON(http.StatusConflict, map[string]string{"error": "already_decided"})
+		return c.JSON(http.StatusConflict, libs_responses.Refusal{Error: "already_decided"})
 	}
 
 	log.Printf("abuse case %d: %s (%s) by %d", item.ID, req.Status, req.Action, viewer.ID)
@@ -288,14 +288,14 @@ func (h *casesHandler) Reopen(c echo.Context) error {
 
 	reopened, err := h.Repos.Cases.Reopen(item.ID)
 	if errors.Is(err, repositories.ErrOpenCaseExists) {
-		return c.JSON(http.StatusConflict, map[string]string{"error": "newer_case_open"})
+		return c.JSON(http.StatusConflict, libs_responses.Refusal{Error: "newer_case_open"})
 	}
 	if err != nil {
 		log.Println("abuse case reopen:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if !reopened {
-		return c.JSON(http.StatusConflict, map[string]string{"error": "already_open"})
+		return c.JSON(http.StatusConflict, libs_responses.Refusal{Error: "already_open"})
 	}
 
 	log.Printf("abuse case %d: reopened by %d", item.ID, viewer.ID)

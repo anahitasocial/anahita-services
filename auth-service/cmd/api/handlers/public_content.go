@@ -16,11 +16,17 @@ import (
 // stops anything new being public and leaves alone what already is; these two
 // routes are how a super administrator brings the rest into line, once.
 
-type publicContentResponse struct {
+// PublicContent is how much is public: on the installation, or
+// changed by making it registered-only.
+type PublicContent struct {
+	// People whose profiles anybody may see.
 	People int64 `json:"people"`
+	// Groups anybody may see.
 	Groups int64 `json:"groups"`
-	Posts  int64 `json:"posts"`
-	Total  int64 `json:"total"`
+	// Posts anybody may see.
+	Posts int64 `json:"posts"`
+	// The three together: the number to confirm.
+	Total int64 `json:"total"`
 
 	// Whether new public content is still allowed here. While it is, the
 	// conversion is refused: it would be undone by the next public post.
@@ -47,7 +53,7 @@ func (h *accountsHandler) PublicContent(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, &publicContentResponse{
+	return c.JSON(http.StatusOK, &PublicContent{
 		People:        counts.People,
 		Groups:        counts.Groups,
 		Posts:         counts.Posts,
@@ -56,7 +62,16 @@ func (h *accountsHandler) PublicContent(c echo.Context) error {
 	})
 }
 
-type makeRegisteredRequest struct {
+// ConfirmationMismatch refuses a confirmation that names another number
+// than there is now.
+type ConfirmationMismatch struct {
+	// Always `confirmation_mismatch`.
+	Error string `json:"error"`
+	// How much is public now: what to confirm instead.
+	Total int64 `json:"total"`
+}
+
+type MakeRegisteredRequest struct {
 	// The number of things that will change, typed out: "CONVERT 8675".
 	Confirm string `json:"confirm" validate:"required,max=30"`
 }
@@ -86,14 +101,12 @@ func (h *accountsHandler) MakeRegistered(c echo.Context) error {
 	// mistake on an open site would have hidden the whole of it from
 	// visitors.
 	if policy.AllowsPublic() {
-		return c.JSON(http.StatusConflict, map[string]string{
-			"error": "public_content_allowed",
-			"message": "This installation still allows public content. Set " +
-				policy.EnvMinContentAccess + "=registered first.",
-		})
+		return refuse(c, http.StatusConflict, "public_content_allowed",
+			"This installation still allows public content. Set "+
+				policy.EnvMinContentAccess+"=registered first.")
 	}
 
-	req := &makeRegisteredRequest{}
+	req := &MakeRegisteredRequest{}
 	if err := c.Bind(req); err != nil {
 		log.Println("make registered:", err)
 		return c.NoContent(http.StatusBadRequest)
@@ -118,9 +131,9 @@ func (h *accountsHandler) MakeRegistered(c echo.Context) error {
 	// changed since, the person confirmed a different number.
 	total := counts.People + counts.Groups + counts.Posts
 	if req.Confirm != fmt.Sprintf("CONVERT %d", total) {
-		return c.JSON(http.StatusBadRequest, map[string]any{
-			"error": "confirmation_mismatch",
-			"total": total,
+		return c.JSON(http.StatusBadRequest, &ConfirmationMismatch{
+			Error: "confirmation_mismatch",
+			Total: total,
 		})
 	}
 
@@ -136,7 +149,7 @@ func (h *accountsHandler) MakeRegistered(c echo.Context) error {
 	log.Printf("make registered: %d people, %d groups and %d posts (by person=%d)",
 		changed.People, changed.Groups, changed.Posts, viewer.ID)
 
-	return c.JSON(http.StatusOK, &publicContentResponse{
+	return c.JSON(http.StatusOK, &PublicContent{
 		People: changed.People,
 		Groups: changed.Groups,
 		Posts:  changed.Posts,

@@ -4,6 +4,7 @@ package requests
 // creates an invite. The recipient's email is the only field needed;
 // the inviter is derived from the authenticated viewer.
 type InviteAdd struct {
+	// Who to invite.
 	Email string `json:"email" validate:"required,email,min=10,max=100"`
 }
 
@@ -21,6 +22,7 @@ type InviteAdd struct {
 // change more than once. The form shows them and links them, so nobody can say
 // they were never told — it just does not ask for a tick here.
 type InviteAccept struct {
+	// From the link.
 	Token string `form:"token"      validate:"required,len=128"`
 
 	// The username, chosen rather than derived.
@@ -43,7 +45,8 @@ type InviteAccept struct {
 	// minute later with a better editor, and a required field here would
 	// mostly produce names typed to get past it. Empty falls back to the
 	// username, as it does for a self-serve signup.
-	Name     string `form:"name" validate:"omitempty,max=100"`
+	Name string `form:"name" validate:"omitempty,max=100"`
+	// At least 15 characters.
 	Password string `form:"password"   validate:"required,min=15,max=150"`
 }
 
@@ -58,5 +61,6 @@ type InviteAccept struct {
 // path first and the body last, and for the one request that sends
 // both they are the same number.
 type InviteDelete struct {
+	// The invitation's id.
 	TokenID int64 `param:"id" json:"token_id" validate:"required"`
 }

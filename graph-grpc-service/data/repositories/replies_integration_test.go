@@ -353,10 +353,10 @@ func TestCountsAreOfWhatIsThereAndNotHidden(t *testing.T) {
 	if err := repo.Recount(rootPublic, replyRemoved); err != nil {
 		t.Fatal(err)
 	}
-	// Three: Bob's, Dave's, and Bob's answer to the removed reply. Not the
-	// removed reply itself.
-	if got := commentCount(t, db, rootPublic); got != 3 {
-		t.Errorf("the public note counts %d replies, want 3", got)
+	// Two: Bob's, and Bob's answer to the removed reply. Not the removed
+	// reply itself, and not Dave's: Alice, whose note it is, blocks him.
+	if got := commentCount(t, db, rootPublic); got != 2 {
+		t.Errorf("the public note counts %d replies, want 2", got)
 	}
 	// The removed reply still has the one answer under it.
 	if got := commentCount(t, db, replyRemoved); got != 1 {
@@ -365,15 +365,15 @@ func TestCountsAreOfWhatIsThereAndNotHidden(t *testing.T) {
 
 	// Hiding one takes it out of the count; showing it puts it back; and
 	// hiding it twice is hiding it once.
-	dave := &entities.AnahitaNode{}
-	dave.ID = replyByDave
-	dave.Type = noteType
+	bob := &entities.AnahitaNode{}
+	bob.ID = replyByBob
+	bob.Type = noteType
 
 	for _, step := range []struct {
 		hidden bool
 		want   int
-	}{{true, 2}, {true, 2}, {false, 3}} {
-		if err := repo.SetHidden(rootPublic, dave, step.hidden, replyAlice); err != nil {
+	}{{true, 1}, {true, 1}, {false, 2}} {
+		if err := repo.SetHidden(rootPublic, bob, step.hidden, replyAlice); err != nil {
 			t.Fatal(err)
 		}
 		if err := repo.Recount(rootPublic, 0); err != nil {
@@ -384,11 +384,13 @@ func TestCountsAreOfWhatIsThereAndNotHidden(t *testing.T) {
 		}
 	}
 
-	if err := repo.SetHidden(rootPublic, dave, true, replyAlice); err != nil {
+	// What is hidden is what was hidden and what the blocked person wrote.
+	if err := repo.SetHidden(rootPublic, bob, true, replyAlice); err != nil {
 		t.Fatal(err)
 	}
 	hidden, err := repo.HiddenIDs(rootPublic)
-	if err != nil || len(hidden) != 1 || hidden[0] != replyByDave {
+	sort.Slice(hidden, func(i, j int) bool { return hidden[i] < hidden[j] })
+	if err != nil || len(hidden) != 2 || hidden[0] != replyByBob || hidden[1] != replyByDave {
 		t.Errorf("hidden replies: %v, %v", hidden, err)
 	}
 

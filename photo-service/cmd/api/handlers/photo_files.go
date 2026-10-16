@@ -19,10 +19,7 @@ import (
 // refuseFiles answers a request whose images were refused, saying why and
 // how many a post can hold.
 func refuseFiles(c echo.Context, code string) error {
-	return c.JSON(refusalStatus(code), map[string]any{
-		"error": code,
-		"max":   constants.PhotoMaxFiles,
-	})
+	return c.JSON(refusalStatus(code), FilesRefusal{Error: code, Max: constants.PhotoMaxFiles})
 }
 
 // placeholderPhoto is a photo on this profile that does not exist yet: what
@@ -212,18 +209,20 @@ func (h *photoHandler) Upload(c echo.Context) error {
 	preview.SetFilePortraits()
 	services.BatchPresignPhotoFiles(h.Srv.FilesGRPC, []*entities.AnahitaNode{preview})
 
-	return c.JSON(http.StatusCreated, map[string]any{
-		"upload_id": upload.ID,
-		"width":     upload.Width,
-		"height":    upload.Height,
-		"urls":      responses.NewPortrait(preview.Files[0].Portrait),
+	return c.JSON(http.StatusCreated, Uploaded{
+		UploadID: upload.ID,
+		Width:    upload.Width,
+		Height:   upload.Height,
+		URLs:     responses.NewPortrait(preview.Files[0].Portrait),
 	})
 }
 
-// photoFilesRequest is the whole list of images a post is to have.
-type photoFilesRequest struct {
-	ID    int64     `param:"id" validate:"required,numeric"`
-	Files []fileRef `json:"files"`
+// PhotoFilesRequest is the whole list of images a post is to have.
+type PhotoFilesRequest struct {
+	// The post's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Every image it is to have, in order. One left out is removed.
+	Files []FileRef `json:"files"`
 }
 
 // EditFiles changes a post's images: their order, their descriptions, and
@@ -234,7 +233,7 @@ type photoFilesRequest struct {
 // no order of separate changes to get wrong.
 func (h *photoHandler) EditFiles(c echo.Context) error {
 	var (
-		req    = &photoFilesRequest{}
+		req    = &PhotoFilesRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -314,7 +313,7 @@ func (h *photoHandler) EditFiles(c echo.Context) error {
 }
 
 // uploadIDs are the uploads a list of images names.
-func uploadIDs(refs []fileRef) []int64 {
+func uploadIDs(refs []FileRef) []int64 {
 	var ids []int64
 	for _, ref := range refs {
 		if ref.UploadID > 0 {

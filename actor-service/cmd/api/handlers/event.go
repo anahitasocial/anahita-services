@@ -52,11 +52,14 @@ const eventService = "actor-service"
 // The longest an event may run.
 const eventLongest = 366 * 24 * time.Hour
 
-// eventFields is what is given when an event is made or changed, beside
+// EventFields is what is given when an event is made or changed, beside
 // the name and description every actor has.
-type eventFields struct {
-	Name       string `form:"name" json:"name" validate:"required,max=100"`
-	Body       string `form:"body" json:"body" validate:"omitempty,max=10000"`
+type EventFields struct {
+	// What it is called.
+	Name string `form:"name" json:"name" validate:"required,max=100"`
+	// What it is about.
+	Body string `form:"body" json:"body" validate:"omitempty,max=10000"`
+	// One link.
 	WebsiteURL string `form:"website_url" json:"website_url" validate:"omitempty,http_url,max=255"`
 	// When, as RFC 3339 with an offset: 2026-11-05T19:00:00-05:00.
 	StartsAt string `form:"starts_at" json:"starts_at" validate:"required,max=40"`
@@ -84,8 +87,8 @@ type eventFields struct {
 	OpenToHostFollowers bool `form:"open_to_host_followers" json:"open_to_host_followers"`
 }
 
-type eventAddRequest struct {
-	eventFields
+type EventAddRequest struct {
+	EventFields
 	// Who can see it. Anybody, unless it says otherwise.
 	Access string `form:"access" json:"access" validate:"omitempty,oneof=public registered followers"`
 	// A group hosting it, which whoever makes the event must administer.
@@ -93,24 +96,31 @@ type eventAddRequest struct {
 	HostGroupID int64 `form:"host_group_id" json:"host_group_id" validate:"omitempty,numeric"`
 }
 
-type eventEditRequest struct {
+// EventEditRequest changes an event.
+type EventEditRequest struct {
+	// The event's id.
 	ID int64 `param:"id" validate:"required,numeric"`
-	eventFields
+	EventFields
 }
 
-type eventIDRequest struct {
+// EventIDRequest names an event.
+type EventIDRequest struct {
+	// The event's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 }
 
-type eventRsvpRequest struct {
-	ID   int64  `param:"id" validate:"required,numeric"`
+// EventRsvpRequest answers an event.
+type EventRsvpRequest struct {
+	// The event's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// `going` or `maybe`.
 	Rsvp string `form:"rsvp" json:"rsvp" validate:"required,oneof=going maybe"`
 }
 
 // refuseEvent answers a request that cannot be done with the reason, as a
 // word the web app has wording for.
 func refuseEvent(c echo.Context, status int, reason string) error {
-	return c.JSON(status, map[string]string{"error": reason})
+	return c.JSON(status, responses.Refusal{Error: reason})
 }
 
 // How long an address may take to be found on a map. Saving the event does
@@ -125,7 +135,7 @@ const eventGeocodeTimeout = 6 * time.Second
 // again only when it has changed, and what was found before is kept
 // otherwise. With the box unticked, or no address, there is no point on a
 // map. An address that cannot be found is kept all the same, without one.
-func (h *eventHandler) setEventPlace(actor *entities.AnahitaNode, fields *eventFields) {
+func (h *eventHandler) setEventPlace(actor *entities.AnahitaNode, fields *EventFields) {
 	before := responses.NewEventAddress(actor).OneLine()
 	hadPoint := actor.GeoLatitude != 0 || actor.GeoLongitude != 0
 
@@ -170,7 +180,7 @@ func (h *eventHandler) findOnMap(address string) (float64, float64) {
 
 // eventTimes reads when an event is, and says why not when it cannot be:
 // "invalid_time", "ends_before_start", "too_long", "invalid_timezone".
-func eventTimes(fields *eventFields) (time.Time, time.Time, string) {
+func eventTimes(fields *EventFields) (time.Time, time.Time, string) {
 	if _, err := time.LoadLocation(fields.TimezoneName); err != nil || fields.TimezoneName == "Local" {
 		return time.Time{}, time.Time{}, "invalid_timezone"
 	}
@@ -199,7 +209,7 @@ func eventTimes(fields *eventFields) (time.Time, time.Time, string) {
 // POST /events/
 func (h *eventHandler) Add(c echo.Context) error {
 	var (
-		req    = &eventAddRequest{}
+		req    = &EventAddRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -216,7 +226,7 @@ func (h *eventHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	startsAt, endsAt, reason := eventTimes(&req.eventFields)
+	startsAt, endsAt, reason := eventTimes(&req.EventFields)
 	if reason != "" {
 		return refuseEvent(c, http.StatusBadRequest, reason)
 	}
@@ -245,7 +255,7 @@ func (h *eventHandler) Add(c echo.Context) error {
 	actor.Enabled = true
 	actor.StartsAt = startsAt
 	actor.EndsAt = endsAt
-	h.setEventPlace(actor, &req.eventFields)
+	h.setEventPlace(actor, &req.EventFields)
 
 	// An event for a group is its administrators' to make, whoever the
 	// installation lets make an event of their own: hostGroup has checked
@@ -287,7 +297,7 @@ func (h *eventHandler) Add(c echo.Context) error {
 // PATCH /events/:id
 func (h *eventHandler) Edit(c echo.Context) error {
 	var (
-		req    = &eventEditRequest{}
+		req    = &EventEditRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -304,7 +314,7 @@ func (h *eventHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	startsAt, endsAt, reason := eventTimes(&req.eventFields)
+	startsAt, endsAt, reason := eventTimes(&req.EventFields)
 	if reason != "" {
 		return refuseEvent(c, http.StatusBadRequest, reason)
 	}
@@ -336,7 +346,7 @@ func (h *eventHandler) Edit(c echo.Context) error {
 	actor.WebsiteURL = req.WebsiteURL
 	actor.StartsAt = startsAt
 	actor.EndsAt = endsAt
-	h.setEventPlace(actor, &req.eventFields)
+	h.setEventPlace(actor, &req.EventFields)
 	actor.ModifiedBy = viewer.ID
 	if _, err = h.Srv.ActorsGRPC.Edit(actor, viewer); err != nil {
 		log.Println(err)
@@ -371,7 +381,7 @@ func (h *eventHandler) Edit(c echo.Context) error {
 // "event_closed" when it is over or was called off.
 func (h *eventHandler) Rsvp(c echo.Context) error {
 	var (
-		req    = &eventRsvpRequest{}
+		req    = &EventRsvpRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -439,7 +449,7 @@ func (h *eventHandler) Rsvp(c echo.Context) error {
 // DELETE /events/:id/rsvp
 func (h *eventHandler) Unrsvp(c echo.Context) error {
 	var (
-		req    = &eventIDRequest{}
+		req    = &EventIDRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -475,7 +485,7 @@ func (h *eventHandler) Unrsvp(c echo.Context) error {
 // POST /events/:id/cancel
 func (h *eventHandler) Cancel(c echo.Context) error {
 	var (
-		req    = &eventIDRequest{}
+		req    = &EventIDRequest{}
 		viewer = getViewer(c)
 	)
 

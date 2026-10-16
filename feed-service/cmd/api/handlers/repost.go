@@ -58,11 +58,7 @@ func (h *repostHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	type Response struct {
-		Reposters  []*responses.ActorNodeItem `json:"data"`
-		Pagination responses.Pagination       `json:"pagination"`
-	}
-	resp := &Response{}
+	resp := &responses.List[*responses.ActorNodeItem]{}
 
 	gReq.ParentID = node.ID
 	gReq.Viewer = viewer
@@ -80,7 +76,7 @@ func (h *repostHandler) Browse(c echo.Context) error {
 	an_handlers.SetViewerRelations(h.Srv.SocialgraphGRPC, reposters, viewer)
 
 	actorResp := &responses.ActorResponse{}
-	resp.Reposters = actorResp.MapNodeItems(reposters)
+	resp.Data = actorResp.MapNodeItems(reposters)
 
 	return c.JSON(http.StatusOK, resp)
 }

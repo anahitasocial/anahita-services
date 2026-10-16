@@ -20,14 +20,18 @@ func NewNotificationRequest() *NotificationRequest {
 }
 
 type NotificationBrowseRequest struct {
+	// How many to pass over.
 	Offset uint64 `query:"start"`
-	Limit  uint64 `query:"limit"`
+	// The most to send.
+	Limit uint64 `query:"limit"`
 }
 
 type NotificationEditRequest struct {
+	// The notification's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 }
 
 type NotificationDeleteRequest struct {
+	// The notification's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 }

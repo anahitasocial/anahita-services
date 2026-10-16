@@ -1,0 +1,339 @@
+{
+  "components": {
+    "schemas": {
+      "Refusal": {
+        "description": "Refusal is why a request was refused, where the answer says: most refusals have no body, and some send this.",
+        "properties": {
+          "description": {
+            "description": "The same in words, for whoever is building a client.",
+            "type": "string"
+          },
+          "error": {
+            "description": "Why, as a code a client can tell apart: `language_invalid`, `quote_not_allowed` and so on. Each route lists its own.",
+            "type": "string"
+          },
+          "reason": {
+            "description": "What lies behind it, where one code has several causes: why a post may not be quoted, for one.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "export.ExportItem": {
+        "description": "ExportItem is an export as its owner is told of it.",
+        "properties": {
+          "created_at": {
+            "description": "When it was asked for.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "download_url": {
+            "description": "Where the archive is fetched from, while it is ready: an address good for a few minutes, made afresh each time this is read.",
+            "type": "string"
+          },
+          "error": {
+            "description": "Why it failed, when it did.",
+            "type": "string"
+          },
+          "expires_at": {
+            "description": "When the archive will be deleted.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id: a UUID.",
+            "type": "string"
+          },
+          "ready_at": {
+            "description": "When it was ready.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "size_bytes": {
+            "description": "How big the archive is, once it is ready.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "status": {
+            "description": "`pending`, `building`, `ready`, `failed`, `cancelled` or `expired`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "export.ExportList": {
+        "description": "ExportList is the viewer's exports, and when they may ask again.",
+        "properties": {
+          "data": {
+            "description": "The latest first.",
+            "items": {
+              "$ref": "#/components/schemas/export.ExportItem"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "every_days": {
+            "description": "How many days must pass between two exports. 0 for no wait.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "keep_days": {
+            "description": "How many days an archive is kept once it is ready.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "next_at": {
+            "description": "When they may next ask, while they must wait.",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "every_days",
+          "keep_days"
+        ],
+        "type": "object"
+      },
+      "export.TooSoon": {
+        "description": "TooSoon refuses an export asked for before it is time, and says when.",
+        "properties": {
+          "error": {
+            "description": "Always `too_soon`.",
+            "type": "string"
+          },
+          "next_at": {
+            "description": "When they may ask.",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "next_at"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "bearerFormat": "JWT",
+        "description": "An access token from auth-service (docs/oauth.md).",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "A person's copy of their own data: asking for one, seeing how it is getting on, fetching it and giving it up (data-export.md). Optional: an installation may not run it.",
+    "license": {
+      "identifier": "Apache-2.0",
+      "name": "Apache 2.0"
+    },
+    "title": "Data exports",
+    "version": "dev"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/exports": {
+      "get": {
+        "description": "And how often they may ask, how long an archive is kept, and when they may next ask.\n\nWho may call it: somebody signed in.",
+        "operationId": "getExports",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/export.ExportList"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The viewer's exports",
+        "tags": [
+          "export-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "Everything they wrote, as a zip archive made in the background: `GET /exports/:id` says when it is ready, with where to fetch it. One at a time, and one a week unless the installation says otherwise (`EXPORT_EVERY_DAYS`).\n\nWho may call it: somebody signed in, who has just proved who they are again.",
+        "operationId": "postExports",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/export.ExportItem"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`step_up_required`: the viewer must prove who they are again first (`/reauth`)"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`active`: one is being made"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/export.TooSoon"
+                }
+              }
+            },
+            "description": "`too_soon`: it is not yet time to ask again, and it says when"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ask for a copy of the viewer's data",
+        "tags": [
+          "export-service"
+        ],
+        "x-step-up": true,
+        "x-viewer": "signed_in"
+      }
+    },
+    "/exports/{id}": {
+      "delete": {
+        "description": "Stops it being made, or deletes its archive once it is.\n\nWho may call it: somebody signed in.",
+        "operationId": "deleteExportsById",
+        "parameters": [
+          {
+            "description": "The export's id: a UUID.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "given up, or it was over already"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "the viewer has no such export"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Give an export up",
+        "tags": [
+          "export-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "Once it is ready, with an address to fetch it from, good for a few minutes and made afresh each time this is read.\n\nWho may call it: somebody signed in.",
+        "operationId": "getExportsById",
+        "parameters": [
+          {
+            "description": "The export's id: a UUID.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/export.ExportItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "the viewer has no such export"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "How an export is getting on",
+        "tags": [
+          "export-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "An installation's API",
+      "url": "https://{host}",
+      "variables": {
+        "host": {
+          "default": "api.example.org",
+          "description": "Where the installation's API is"
+        }
+      }
+    }
+  ],
+  "tags": [
+    {
+      "description": "Data exports",
+      "name": "export-service"
+    }
+  ]
+}

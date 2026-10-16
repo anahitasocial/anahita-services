@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"context"
 	"time"
 
@@ -126,7 +127,7 @@ func getViewer(c echo.Context) *entities.Viewer {
 }
 
 func refuse(c echo.Context, status int, code string) error {
-	return c.JSON(status, map[string]string{"error": code})
+	return c.JSON(status, responses.Refusal{Error: code})
 }
 
 // What everybody on Bluesky is kept as coming from: the site people read

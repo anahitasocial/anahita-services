@@ -1,0 +1,483 @@
+{
+  "components": {
+    "schemas": {
+      "Image": {
+        "description": "Image is one size of a picture.",
+        "properties": {
+          "size": {
+            "$ref": "#/components/schemas/ImageSize",
+            "description": "How big it is."
+          },
+          "url": {
+            "description": "Where it is read from.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "size"
+        ],
+        "type": "object"
+      },
+      "ImageSize": {
+        "description": "ImageSize is how big an image is.",
+        "properties": {
+          "height": {
+            "description": "In pixels.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "width": {
+            "description": "In pixels.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "width",
+          "height"
+        ],
+        "type": "object"
+      },
+      "Refusal": {
+        "description": "Refusal is why a request was refused, where the answer says: most refusals have no body, and some send this.",
+        "properties": {
+          "description": {
+            "description": "The same in words, for whoever is building a client.",
+            "type": "string"
+          },
+          "error": {
+            "description": "Why, as a code a client can tell apart: `language_invalid`, `quote_not_allowed` and so on. Each route lists its own.",
+            "type": "string"
+          },
+          "reason": {
+            "description": "What lies behind it, where one code has several causes: why a post may not be quoted, for one.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "bearerFormat": "JWT",
+        "description": "An access token from auth-service (docs/oauth.md).",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "The picture that stands for a profile, and the wide picture across the top of a profile or a post.",
+    "license": {
+      "identifier": "Apache-2.0",
+      "name": "Apache 2.0"
+    },
+    "title": "Avatars and covers",
+    "version": "dev"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/avatars/{node_id}/": {
+      "delete": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "deleteAvatarsByNodeId",
+        "parameters": [
+          {
+            "description": "The id of the profile or the post.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "it has none now, whether or not it had one"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it cannot have one, or the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile or post, or the viewer may not see it"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove the avatar of a profile",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while.\n\nWho may call it: somebody signed in.",
+        "operationId": "postAvatarsByNodeId",
+        "parameters": [
+          {
+            "description": "The id of the profile.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "avatar": {
+                    "description": "The picture: a JPEG or a PNG, of at most 10 MB.",
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "avatar"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/Image"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`file_required` when no file was sent, `file_unreadable` when it cannot be read as a picture"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it cannot have one, or the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile or post, or the viewer may not see it"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`file_too_large`: more than 10 MB, or too many pixels"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`file_unsupported`: not a JPEG or a PNG"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the avatar of a profile",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/avatars/{uuid}/{size}": {
+      "get": {
+        "description": "For other servers, which keep the address of a picture for weeks: a redirect to a freshly signed address in storage. Only what anybody may see is answered for; anything else, on a site for members included, is not found, in the same words as what does not exist.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getAvatarsByUuidBySize",
+        "parameters": [
+          {
+            "description": "The node's UUID, which other servers are given.",
+            "in": "path",
+            "name": "uuid",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which size: for an avatar `small`, `medium`, `large` or `square`; for a cover `medium` or `large`.",
+            "in": "path",
+            "name": "size",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "the picture is at the address in Location"
+          },
+          "404": {
+            "description": "there is no such picture that anybody may see"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A public profile's avatar, at an address that does not change",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/covers/{node_id}/": {
+      "delete": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "deleteCoversByNodeId",
+        "parameters": [
+          {
+            "description": "The id of the profile or the post.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "it has none now, whether or not it had one"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it cannot have one, or the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile or post, or the viewer may not see it"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove the cover of a profile or a post",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "Replaces any there was, which is removed from storage. Answers with each size of the new one, at addresses good for a short while.\n\nWho may call it: somebody signed in.",
+        "operationId": "postCoversByNodeId",
+        "parameters": [
+          {
+            "description": "The id of the profile or the post.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "cover": {
+                    "description": "The picture: a JPEG or a PNG, of at most 10 MB.",
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "cover"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/Image"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`file_required` when no file was sent, `file_unreadable` when it cannot be read as a picture"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it cannot have one, or the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile or post, or the viewer may not see it"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`file_too_large`: more than 10 MB, or too many pixels"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`file_unsupported`: not a JPEG or a PNG"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the cover of a profile or a post",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/covers/{uuid}/{size}": {
+      "get": {
+        "description": "For other servers, which keep the address of a picture for weeks: a redirect to a freshly signed address in storage. Only what anybody may see is answered for; anything else, on a site for members included, is not found, in the same words as what does not exist.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getCoversByUuidBySize",
+        "parameters": [
+          {
+            "description": "The node's UUID, which other servers are given.",
+            "in": "path",
+            "name": "uuid",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which size: for an avatar `small`, `medium`, `large` or `square`; for a cover `medium` or `large`.",
+            "in": "path",
+            "name": "size",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "the picture is at the address in Location"
+          },
+          "404": {
+            "description": "there is no such picture that anybody may see"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A public profile's or post's cover, at an address that does not change",
+        "tags": [
+          "identity-image-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "An installation's API",
+      "url": "https://{host}",
+      "variables": {
+        "host": {
+          "default": "api.example.org",
+          "description": "Where the installation's API is"
+        }
+      }
+    }
+  ],
+  "tags": [
+    {
+      "description": "Avatars and covers",
+      "name": "identity-image-service"
+    }
+  ]
+}

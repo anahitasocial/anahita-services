@@ -689,3 +689,51 @@ func TestOnlySomebodyOnTheFediverseFollowsAcrossIt(t *testing.T) {
 		t.Errorf("a follow here: queued %d, edges %v", len(w.queue.sent), w.edges.log)
 	}
 }
+
+// THE RULE THIS GUARDS: blocking somebody elsewhere ends every follow
+// between the two, so that nothing more goes to their server, and tells
+// their server, which keeps to it; unblocking takes the Block back.
+func TestSomebodyHereBlocksSomebodyElsewhere(t *testing.T) {
+	w := newInboxWorld()
+	w.call(w.h.Lookup, http.MethodGet, "/activitypub/lookup?q=@alice@mastodon.example", "", anaID)
+	var alice *repositories.RemoteActor
+	for _, kept := range w.actors.kept {
+		alice = kept
+	}
+	if alice == nil {
+		t.Fatal("alice was not kept")
+	}
+
+	// She follows Ana, and Ana her.
+	_ = w.follows.Save(&repositories.Follow{LocalID: anaID, RemoteID: alice.NodeID, Direction: repositories.FollowIn, ActivityID: "https://mastodon.example/f/1"})
+	_ = w.follows.Save(&repositories.Follow{LocalID: anaID, RemoteID: alice.NodeID, Direction: repositories.FollowOut, ActivityID: "https://api.example.org/ap/activities/f2"})
+
+	blocked := &event.EventPayload{Name: "edge.block.socialgraph.added.v1", ObjectID: anaID, TargetID: alice.NodeID}
+	if err := w.h.HandleEvent(blocked); err != nil {
+		t.Fatal(err)
+	}
+	for _, direction := range []string{repositories.FollowIn, repositories.FollowOut} {
+		if kept, _ := w.follows.Read(anaID, alice.NodeID, direction); kept != nil {
+			t.Errorf("the follow %s was kept", direction)
+		}
+	}
+	if len(w.queue.sent) != 1 {
+		t.Fatalf("queued %d", len(w.queue.sent))
+	}
+	block := w.queue.sent[0]
+	blockID, _ := block.payload["id"].(string)
+	if block.target != aliceID+"/inbox" || block.payload["type"] != "Block" || block.payload["actor"] != anaActor ||
+		block.payload["object"] != aliceID || !strings.HasPrefix(blockID, "https://api.example.org/ap/activities/block-") {
+		t.Errorf("sent %+v", block)
+	}
+
+	// Unblocked: the Block is quoted back.
+	if err := w.h.HandleEvent(&event.EventPayload{Name: "edge.block.socialgraph.deleted.v1", ObjectID: anaID, TargetID: alice.NodeID}); err != nil {
+		t.Fatal(err)
+	}
+	last := w.queue.sent[len(w.queue.sent)-1]
+	quoted, _ := last.payload["object"].(map[string]any)
+	if last.payload["type"] != "Undo" || quoted["type"] != "Block" || quoted["id"] != blockID || quoted["object"] != aliceID {
+		t.Errorf("sent %+v", last)
+	}
+}

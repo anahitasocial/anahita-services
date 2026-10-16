@@ -157,11 +157,12 @@ func mediumAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
 	nodeGate := accessGate("node.access", viewer)
 
 	if viewer.ID == 0 {
-		return sq.And{notBlocked, ownerGate, nodeGate}
+		return sq.And{notBlocked, notLeftByBlocked(), ownerGate, nodeGate}
 	}
 
 	return sq.And{
 		notBlocked,
+		notLeftByBlocked(),
 		sq.Or{
 			sq.Eq{"node.owner_id": viewer.ID},
 			sq.And{
@@ -291,3 +292,19 @@ func accessGate(column string, viewer *entities.Viewer) sq.Sqlizer {
 // 		viewerID, constants.EdgeActorAdminEntityType, viewerID,
 // 	)
 // }
+
+// notLeftByBlocked keeps out a post somebody left on a profile whose owner
+// has since blocked them, for every reader: a block takes out of sight what
+// the blocked person left on what is the blocker's. The post stays theirs,
+// and comes back if the block is lifted. A post on its writer's own profile
+// is untouched.
+func notLeftByBlocked() sq.Sqlizer {
+	return sq.Expr(`NOT EXISTS (
+  SELECT 1
+  FROM edges AS owner_block
+  WHERE owner_block.type = ?
+    AND owner_block.node_a_id = node.owner_id
+    AND owner_block.node_b_id = node.created_by
+    AND node.owner_id <> node.created_by
+)`, constants.EdgeBlockEntityType)
+}

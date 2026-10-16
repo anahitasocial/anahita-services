@@ -60,6 +60,7 @@ type Writer interface {
 	Follows(ctx context.Context, pds, accessJWT, did string) (bool, error)
 	Notifications(ctx context.Context, pds, accessJWT string, limit int) ([]bsky.Notification, error)
 	RefOf(ctx context.Context, uri string) (post, root *bsky.Ref, err error)
+	GetRecord(ctx context.Context, pds, did, collection, rkey string) (map[string]any, error)
 }
 
 // Enqueuer is the table of what waits to be written.
@@ -69,7 +70,7 @@ type Enqueuer interface {
 
 // write is one thing waiting to be written.
 type write struct {
-	// "create" or "delete".
+	// "create" or "delete", or "gate" for a post's threadgate (hidden.go).
 	Op         string `json:"op"`
 	Collection string `json:"collection"`
 	RKey       string `json:"rkey"`
@@ -77,6 +78,8 @@ type write struct {
 	Subject string `json:"subject,omitempty"`
 	// For a reply: the node that holds its words.
 	NodeID int64 `json:"node_id,omitempty"`
+	// For a threadgate: the reply hidden or shown under the post.
+	ReplyID int64 `json:"reply_id,omitempty"`
 }
 
 var collections = map[string]string{
@@ -159,7 +162,11 @@ func (h *Handlers) enqueue(ctx context.Context, personID int64, w *write) error 
 	if err != nil {
 		return err
 	}
-	return h.Queue.Enqueue(ctx, personID, "bluesky", payload, fmt.Sprintf("%s:%s:%s", w.Op, w.Collection, w.RKey))
+	key := fmt.Sprintf("%s:%s:%s", w.Op, w.Collection, w.RKey)
+	if w.ReplyID > 0 {
+		key += fmt.Sprintf(":%d", w.ReplyID)
+	}
+	return h.Queue.Enqueue(ctx, personID, "bluesky", payload, key)
 }
 
 // A follow of somebody on Bluesky, by somebody here who connected their
@@ -332,6 +339,15 @@ func (h *Handlers) localRemoved(ctx context.Context, nodeID int64) error {
 	if !h.canWrite() {
 		return nil
 	}
+	// A post's threadgate, if it has one, goes with it. A reply has none,
+	// and removing what is not there is nothing.
+	if sent, err := h.Sent.Read(repositories.SentPost, nodeID, 0); err != nil {
+		return err
+	} else if sent != nil {
+		if err := h.enqueue(ctx, sent.PersonID, &write{Op: "delete", Collection: bsky.ThreadgateCollection, RKey: sent.RKey}); err != nil {
+			return err
+		}
+	}
 	for _, kind := range []string{repositories.SentPost, repositories.SentRepost} {
 		if err := h.takeBack(ctx, kind, nodeID, 0); err != nil {
 			return err
@@ -370,6 +386,9 @@ func (h *Handlers) Write(ctx context.Context, delivery federation.Delivery) erro
 	do := func(token string) error {
 		if w.Op == "delete" {
 			return h.Writer.DeleteRecord(ctx, account.PDS, token, account.DID, w.Collection, w.RKey)
+		}
+		if w.Op == "gate" {
+			return h.writeGate(ctx, account, token, w)
 		}
 		// A follow the account has already is not made a second time,
 		// and is not this installation's to take back.

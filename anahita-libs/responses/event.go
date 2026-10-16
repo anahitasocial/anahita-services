@@ -8,8 +8,10 @@ import (
 
 // Event is what only an event has, on the actor it is.
 type Event struct {
+	// When it begins, in UTC.
 	StartsAt time.Time `json:"starts_at"`
-	EndsAt   time.Time `json:"ends_at"`
+	// When it ends, in UTC.
+	EndsAt time.Time `json:"ends_at"`
 	// The zone the times were given in, as IANA names it. The times
 	// themselves are UTC.
 	TimezoneName string `json:"timezone_name"`
@@ -17,17 +19,21 @@ type Event struct {
 	Capacity uint32 `json:"capacity"`
 	// Where to join online. Sent only to whoever is going and whoever
 	// looks after the event; HasOnlineURL says there is one all the same.
-	OnlineURL    string `json:"online_url,omitempty"`
-	HasOnlineURL bool   `json:"has_online_url"`
+	OnlineURL string `json:"online_url,omitempty"`
+	// Whether it has an address to join online, said to everybody.
+	HasOnlineURL bool `json:"has_online_url"`
 	// Where it is held, when it is somewhere. Sent to the same people as
 	// the address to join online, and for the same reason: it may be
 	// somebody's home. HasAddress says there is one all the same.
-	Address    *EventAddress `json:"address,omitempty"`
-	HasAddress bool          `json:"has_address"`
+	Address *EventAddress `json:"address,omitempty"`
+	// Whether it has an address, said to everybody.
+	HasAddress bool `json:"has_address"`
 	// Set when it was called off.
 	CancelledAt *time.Time `json:"cancelled_at,omitempty"`
-	GoingCount  uint64     `json:"going_count"`
-	MaybeCount  uint64     `json:"maybe_count"`
+	// How many are going.
+	GoingCount uint64 `json:"going_count"`
+	// How many may go.
+	MaybeCount uint64 `json:"maybe_count"`
 	// Every place is taken. Maybe is still open.
 	IsFull bool `json:"is_full"`
 	// What the viewer has answered: going, maybe, or left out.

@@ -34,7 +34,7 @@ func TestSetEventPlaceLooksUpOnlyWhenAsked(t *testing.T) {
 	geocoder := &fakeGeocoder{}
 	actor := &entities.AnahitaNode{}
 
-	placeHandler(geocoder).setEventPlace(actor, &eventFields{Address: " 1 Main St ", City: "Vancouver"})
+	placeHandler(geocoder).setEventPlace(actor, &EventFields{Address: " 1 Main St ", City: "Vancouver"})
 
 	if len(geocoder.asked) != 0 {
 		t.Fatalf("looked up %v without being asked", geocoder.asked)
@@ -43,7 +43,7 @@ func TestSetEventPlaceLooksUpOnlyWhenAsked(t *testing.T) {
 		t.Fatalf("got %q at %v,%v", actor.GeoAddress, actor.GeoLatitude, actor.GeoLongitude)
 	}
 
-	placeHandler(geocoder).setEventPlace(actor, &eventFields{Address: "1 Main St", City: "Vancouver", ShowMap: true})
+	placeHandler(geocoder).setEventPlace(actor, &EventFields{Address: "1 Main St", City: "Vancouver", ShowMap: true})
 
 	if len(geocoder.asked) != 1 || geocoder.asked[0] != "1 Main St, Vancouver" {
 		t.Fatalf("asked %v", geocoder.asked)
@@ -63,23 +63,23 @@ func TestSetEventPlaceKeepsChangesAndClears(t *testing.T) {
 	actor.GeoAddress = "1 Main St"
 	actor.GeoLatitude, actor.GeoLongitude = 1, 2
 
-	handler.setEventPlace(actor, &eventFields{Address: "1 Main St", ShowMap: true})
+	handler.setEventPlace(actor, &EventFields{Address: "1 Main St", ShowMap: true})
 	if len(geocoder.asked) != 0 || actor.GeoLatitude != 1 {
 		t.Fatalf("asked %v, latitude %v", geocoder.asked, actor.GeoLatitude)
 	}
 
-	handler.setEventPlace(actor, &eventFields{Address: "2 Main St", ShowMap: true})
+	handler.setEventPlace(actor, &EventFields{Address: "2 Main St", ShowMap: true})
 	if len(geocoder.asked) != 1 || actor.GeoLatitude != 49.28 {
 		t.Fatalf("asked %v, latitude %v", geocoder.asked, actor.GeoLatitude)
 	}
 
-	handler.setEventPlace(actor, &eventFields{Address: "2 Main St"})
+	handler.setEventPlace(actor, &EventFields{Address: "2 Main St"})
 	if actor.GeoLatitude != 0 || actor.GeoLongitude != 0 || actor.GeoAddress != "2 Main St" {
 		t.Fatalf("got %q at %v,%v", actor.GeoAddress, actor.GeoLatitude, actor.GeoLongitude)
 	}
 
 	actor.GeoLatitude, actor.GeoLongitude = 1, 2
-	handler.setEventPlace(actor, &eventFields{ShowMap: true})
+	handler.setEventPlace(actor, &EventFields{ShowMap: true})
 	if actor.GeoLatitude != 0 || actor.GeoLongitude != 0 {
 		t.Fatalf("a point left with no address: %v,%v", actor.GeoLatitude, actor.GeoLongitude)
 	}
@@ -95,7 +95,7 @@ func TestSetEventPlaceWithoutAnAnswer(t *testing.T) {
 		actor.GeoLatitude, actor.GeoLongitude = 1, 2
 		actor.GeoAddress = "old"
 
-		handler.setEventPlace(actor, &eventFields{Address: "Nowhere", ShowMap: true})
+		handler.setEventPlace(actor, &EventFields{Address: "Nowhere", ShowMap: true})
 
 		if actor.GeoAddress != "Nowhere" || actor.GeoLatitude != 0 || actor.GeoLongitude != 0 {
 			t.Fatalf("%s: got %q at %v,%v", name, actor.GeoAddress, actor.GeoLatitude, actor.GeoLongitude)

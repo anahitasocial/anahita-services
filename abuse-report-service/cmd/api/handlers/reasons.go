@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	libs_responses "anahita-libs/responses"
 	"net/http"
 
 	"abusereport/responses"
@@ -31,7 +32,7 @@ func (h *reasonsHandler) Browse(c echo.Context) error {
 		list = catalogue.For(nodeType)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": responses.MapReasons(list, language(c)),
+	return c.JSON(http.StatusOK, libs_responses.Unpaged[responses.Reason]{
+		Data: responses.MapReasons(list, language(c)),
 	})
 }

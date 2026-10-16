@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"context"
 	"errors"
 	"fmt"
@@ -93,7 +94,7 @@ func (h *Handlers) RestorePictures(c echo.Context) error {
 	if restored == 0 {
 		return gone()
 	}
-	return c.JSON(http.StatusOK, map[string]int{"restored": restored})
+	return c.JSON(http.StatusOK, responses.PicturesRestored{Restored: restored})
 }
 
 // RunPictureSweep removes, now and then, the pictures that are due to go,

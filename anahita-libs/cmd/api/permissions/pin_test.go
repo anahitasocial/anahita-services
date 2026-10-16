@@ -41,6 +41,14 @@ func TestWhoPinsAPost(t *testing.T) {
 		})
 	}
 
+	// In feeds and lists: the profile and its administrators, not a site
+	// administrator.
+	if !RunsProfile(replyViewer(bystanderID, constants.PersonTypeRegistered), ownerID, admin) ||
+		!RunsProfile(replyViewer(ownerID, constants.PersonTypeRegistered), ownerID, nobody) ||
+		RunsProfile(replyViewer(bystanderID, constants.PersonTypeAdmin), ownerID, nobody) {
+		t.Error("RunsProfile is not whoever runs the profile")
+	}
+
 	// Never a reply, whoever asks.
 	reply := postOn(ownerWith(ownerID, "public"), "")
 	reply.RootID = 99

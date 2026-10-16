@@ -11,7 +11,9 @@ import (
 // where one is listed among other things, as in search results: its picture
 // and what it shows.
 type FeedBrief struct {
-	Icon       string          `json:"icon"`
+	// The name of the icon its owner chose for it.
+	Icon string `json:"icon"`
+	// What it shows, as its owner set it (feeds.md).
 	Definition json.RawMessage `json:"definition"`
 }
 

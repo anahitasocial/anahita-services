@@ -95,49 +95,75 @@ func newNodeInfoHandler(env *Env) *nodeInfoHandler {
 	return &nodeInfoHandler{env}
 }
 
+// nodeInfoLink is where one version of the document is.
 type nodeInfoLink struct {
-	Rel  string `json:"rel"`
+	// The version's schema: `http://nodeinfo.diaspora.software/ns/schema/2.1`.
+	Rel string `json:"rel"`
+	// Where it is.
 	Href string `json:"href"`
 }
 
-type nodeInfoLinks struct {
+// NodeInfoLinks is where the NodeInfo document is, for each version there is.
+type NodeInfoLinks struct {
+	// One: 2.1.
 	Links []nodeInfoLink `json:"links"`
 }
 
+// nodeInfoSoftware is what the installation runs.
 type nodeInfoSoftware struct {
-	Name       string `json:"name"`
-	Version    string `json:"version"`
+	// `anahita`.
+	Name string `json:"name"`
+	// Its version.
+	Version string `json:"version"`
+	// Where its code is.
 	Repository string `json:"repository,omitempty"`
 }
 
+// nodeInfoServices is what the installation bridges to and from: nothing.
 type nodeInfoServices struct {
 	// Both are required by the schema and both are empty: this installation
 	// does not bridge to or from anything. They are `[]string{}` rather than
 	// nil because the schema says array, and a JSON null there makes strict
 	// consumers reject the whole document.
-	Inbound  []string `json:"inbound"`
+	Inbound []string `json:"inbound"`
+	// Empty.
 	Outbound []string `json:"outbound"`
 }
 
+// nodeInfoUsers is how many people have accounts.
 type nodeInfoUsers struct {
-	Total          int `json:"total"`
-	ActiveMonth    int `json:"activeMonth"`
+	// All of them.
+	Total int `json:"total"`
+	// Those active in the last month.
+	ActiveMonth int `json:"activeMonth"`
+	// Those active in the last six months.
 	ActiveHalfyear int `json:"activeHalfyear"`
 }
 
+// nodeInfoUsage is how much the installation is used.
 type nodeInfoUsage struct {
-	Users      nodeInfoUsers `json:"users"`
-	LocalPosts int           `json:"localPosts"`
+	// People.
+	Users nodeInfoUsers `json:"users"`
+	// Posts written here.
+	LocalPosts int `json:"localPosts"`
 }
 
-type nodeInfoDocument struct {
-	Version           string           `json:"version"`
-	Software          nodeInfoSoftware `json:"software"`
-	Protocols         []string         `json:"protocols"`
-	Services          nodeInfoServices `json:"services"`
-	OpenRegistrations bool             `json:"openRegistrations"`
-	Usage             nodeInfoUsage    `json:"usage"`
-	Metadata          map[string]any   `json:"metadata"`
+// NodeInfoDocument is what the installation is (NodeInfo 2.1).
+type NodeInfoDocument struct {
+	// `2.1`.
+	Version string `json:"version"`
+	// What it runs.
+	Software nodeInfoSoftware `json:"software"`
+	// What it speaks with other servers: `activitypub`, when it federates.
+	Protocols []string `json:"protocols"`
+	// What it bridges to: nothing.
+	Services nodeInfoServices `json:"services"`
+	// Whether anybody may sign up without being invited or approved.
+	OpenRegistrations bool `json:"openRegistrations"`
+	// How much it is used.
+	Usage nodeInfoUsage `json:"usage"`
+	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
+	Metadata map[string]any `json:"metadata"`
 }
 
 // Discovery returns the link document.
@@ -146,7 +172,7 @@ type nodeInfoDocument struct {
 func (h *nodeInfoHandler) Discovery(c echo.Context) error {
 	base := strings.TrimRight(h.Config.GetAuthURL(), "/")
 
-	return c.JSON(http.StatusOK, nodeInfoLinks{
+	return c.JSON(http.StatusOK, NodeInfoLinks{
 		Links: []nodeInfoLink{
 			{Rel: nodeInfoSchema21, Href: base + "/nodeinfo/2.1"},
 		},
@@ -167,7 +193,7 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 		usage = &repositories.InstanceUsage{}
 	}
 
-	return c.JSON(http.StatusOK, nodeInfoDocument{
+	return c.JSON(http.StatusOK, NodeInfoDocument{
 		Version: "2.1",
 		Software: nodeInfoSoftware{
 			Name:       softwareName,

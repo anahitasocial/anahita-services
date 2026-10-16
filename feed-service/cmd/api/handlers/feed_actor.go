@@ -53,14 +53,10 @@ func (h *feedActorHandler) Browse(c echo.Context) error {
 	// one is sent a profile's posts and not what its owner said under
 	// other people's.
 	if req.Filter == constants.FeedFilterReplies && policy.PreviewOnly() && viewer.ID == 0 {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "members_only"})
+		return c.JSON(http.StatusUnauthorized, responses.Refusal{Error: "members_only"})
 	}
 
-	type Response struct {
-		Data       []*responses.NodeItem `json:"data"`
-		Pagination responses.Pagination  `json:"pagination"`
-	}
-	resp := &Response{}
+	resp := &responses.List[*responses.NodeItem]{}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

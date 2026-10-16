@@ -44,19 +44,25 @@ func NewMediumRequest() *MediumRequest {
 		Add: &MediumAddRequest{
 			// What a post gets when the client does not say: public, or
 			// registered where the installation allows nothing public.
-			Access:   policy.MinContentAccess(),
-			Composed: false,
+			Access: policy.MinContentAccess(),
 		},
 		Delete: &MediumDeleteRequest{},
 	}
 }
 
 type MediumBrowseRequest struct {
-	Offset    uint64 `query:"start"`
-	Limit     uint64 `query:"limit"`
-	Ordering  string `query:"ordering" validate:"max=15,omitempty,oneof=updated_at created_at enabled"`
+	// How many to pass over.
+	Offset uint64 `query:"start"`
+	// The most to send.
+	Limit uint64 `query:"limit"`
+	// What they are ordered by.
+	Ordering string `query:"ordering" validate:"max=15,omitempty,oneof=updated_at created_at enabled"`
+	// Which way the order runs.
 	Direction string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
-	Disabled  bool   `query:"disabled" validate:"omitempty"`
+	// Disabled posts as well, for whoever may see them.
+	Disabled bool `query:"disabled" validate:"omitempty"`
+	// The profile whose posts are listed.
+	//
 	// OwnerID is the profile whose posts are listed, and is required. There is
 	// no list of every post on the site: with the owner optional, and readable
 	// from ?oid= as well as the path, leaving it out returned exactly that.
@@ -65,13 +71,18 @@ type MediumBrowseRequest struct {
 }
 
 type MediumReadRequest struct {
+	// The post's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 }
 
 type MediumEditRequest struct {
-	ID      int64  `param:"id" validate:"required,numeric"`
-	Name    string `form:"name" validate:"required,max=100"`
-	Body    string `form:"body" validate:"required,max=8000"`
+	// The post's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Its title.
+	Name string `form:"name" validate:"required,max=100"`
+	// Its words, as Markdown.
+	Body string `form:"body" validate:"required,max=8000"`
+	// A shorter form of its words.
 	Excerpt string `form:"excerpt" validate:"omitempty,max=500"`
 	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
 	// by the author; left out, the post has none. See package language.
@@ -79,7 +90,11 @@ type MediumEditRequest struct {
 }
 
 type MediumEditAccessRequest struct {
-	ID     int64  `param:"id" validate:"required,numeric"`
+	// The post's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Who may see it: `public`, `registered`, `followers`, `leaders`,
+	// `mutuals`, `admins` or `myself` (permissions.md). The widest an
+	// installation allows when left out.
 	Access string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
 }
 
@@ -87,17 +102,24 @@ type MediumEditAccessRequest struct {
 // binds from "1"/"0" as well as "true"/"false", which is what the web client
 // sends.
 type MediumEditCommentStatusRequest struct {
-	ID     int64 `param:"id" validate:"required,numeric"`
-	Status bool  `form:"status" validate:"omitempty"`
+	// The post's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Whether it takes replies.
+	Status bool `form:"status" validate:"omitempty"`
 }
 
 type MediumAddRequest struct {
-	OwnerID  int64  `param:"owner_id" validate:"required,numeric"`
-	Name     string `form:"name" validate:"required,max=100"`
-	Body     string `form:"body" validate:"required,max=8000"`
-	Excerpt  string `form:"excerpt" validate:"omitempty,max=500"`
-	Access   string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
-	Composed bool   `form:"composed" validate:"omitempty"`
+	// The profile it is posted on.
+	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
+	// Its title.
+	Name string `form:"name" validate:"required,max=100"`
+	// Its words, as Markdown.
+	Body string `form:"body" validate:"required,max=8000"`
+	// A shorter form of its words.
+	Excerpt string `form:"excerpt" validate:"omitempty,max=500"`
+	// Who may see it, as for changing it. The widest the installation allows
+	// when left out.
+	Access string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
 	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
 	// by the author; left out, the post has none. See package language.
 	Language string `form:"language" validate:"omitempty,max=12"`
@@ -112,16 +134,22 @@ type MediumAddRequest struct {
 
 // MediumEditQuotePolicyRequest changes who may quote a post.
 type MediumEditQuotePolicyRequest struct {
-	ID          int64  `param:"id" validate:"required,numeric"`
+	// The post's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Who may quote it: `anyone`, `followers` or `nobody`.
 	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"required,max=16"`
 }
 
 // MediumEditReplyAccessRequest changes who may reply to a post.
 type MediumEditReplyAccessRequest struct {
-	ID          int64  `param:"id" validate:"required,numeric"`
+	// The post's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Who may reply: `anyone`, `nobody`, or any of `followers`, `following`
+	// and `mentioned` joined by commas.
 	ReplyAccess string `json:"reply_access" form:"reply_access" validate:"required,max=64"`
 }
 
 type MediumDeleteRequest struct {
+	// The post's id.
 	ID int64 `param:"id"`
 }

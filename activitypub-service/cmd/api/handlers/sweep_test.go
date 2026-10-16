@@ -15,6 +15,7 @@ import (
 // sweep that puts something right must not put it right again.
 type fakeMissed struct {
 	notAsked, gone       []repositories.Pair
+	blocked              []repositories.Pair
 	notesNotSent, people []int64
 	notesGone            []int64
 	notesEdited, edited  []int64
@@ -23,7 +24,8 @@ type fakeMissed struct {
 func (f *fakeMissed) FollowsNotAsked(time.Time, int) ([]repositories.Pair, error) {
 	return f.notAsked, nil
 }
-func (f *fakeMissed) FollowsGone(int) ([]repositories.Pair, error) { return f.gone, nil }
+func (f *fakeMissed) FollowsGone(int) ([]repositories.Pair, error)    { return f.gone, nil }
+func (f *fakeMissed) FollowsBlocked(int) ([]repositories.Pair, error) { return f.blocked, nil }
 func (f *fakeMissed) NotesNotSent(time.Time, time.Time, int) ([]int64, error) {
 	return f.notesNotSent, nil
 }
@@ -200,5 +202,24 @@ func TestASweepHasSomebodyLeaveWhoMayNoLongerBeThere(t *testing.T) {
 	}
 	if !told {
 		t.Errorf("other servers were not told to forget her: %+v", w.queue.sent)
+	}
+}
+
+// A follow left across a block is forgotten both ways, and the Block is
+// not sent again.
+func TestASweepForgetsAFollowAcrossABlock(t *testing.T) {
+	w := newInboxWorld()
+	missed := &fakeMissed{blocked: []repositories.Pair{{LocalID: anaID, RemoteID: 900}}}
+	w.h.Missed = missed
+	_ = w.follows.Save(&repositories.Follow{LocalID: anaID, RemoteID: 900, Direction: repositories.FollowIn, ActivityID: "https://mastodon.example/f/9"})
+
+	if swept := w.sweep(); swept.Blocked != 1 {
+		t.Errorf("swept %+v", swept)
+	}
+	if kept, _ := w.follows.Read(anaID, 900, repositories.FollowIn); kept != nil {
+		t.Error("the follow across the block was kept")
+	}
+	if len(w.queue.sent) != 0 {
+		t.Errorf("sent %+v", w.queue.sent)
 	}
 }

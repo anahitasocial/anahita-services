@@ -13,8 +13,10 @@ func NewOAuthAuthorizeRequest() *OAuthAuthorizeRequest {
 }
 
 type OAuthAuthorizeReq struct {
+	// `code`.
 	ResponseType string `query:"response_type" validate:"required,oneof=code"`
-	ClientID     string `query:"client_id" validate:"required"`
+	// The app's `client_id`.
+	ClientID string `query:"client_id" validate:"required"`
 
 	// RedirectURI uses the `uri` tag, not `url`. The `url` tag in
 	// go-playground/validator rejects any URI whose scheme isn't
@@ -32,14 +34,21 @@ type OAuthAuthorizeReq struct {
 	// the actual gate.
 	RedirectURI string `query:"redirect_uri" validate:"required,uri"`
 
-	Scope               string `query:"scope" validate:"required"`
-	State               string `query:"state" validate:"required"`
-	CodeChallenge       string `query:"code_challenge" validate:"omitempty,min=43,max=128"`
+	// What the app asks to do, separated by spaces (oauth.md).
+	Scope string `query:"scope" validate:"required"`
+	// Anything; it comes back unchanged with the code, for the app to check.
+	State string `query:"state" validate:"required"`
+	// PKCE (RFC 7636): the hash of a secret only the app knows, given again with the code.
+	CodeChallenge string `query:"code_challenge" validate:"omitempty,min=43,max=128"`
+	// `S256` or `plain`.
 	CodeChallengeMethod string `query:"code_challenge_method" validate:"omitempty,oneof=S256 plain"`
-	Nonce               string `query:"nonce" validate:"omitempty"`
+	// Anything; it is put in the ID token (OpenID Connect).
+	Nonce string `query:"nonce" validate:"omitempty"`
 }
 
 type OAuthAuthorizeCallbackReq struct {
-	Approved  bool   `form:"approved"`
+	// Whether the person allows it.
+	Approved bool `form:"approved"`
+	// The token the page was given, which proves the form is this site's.
 	CSRFToken string `form:"csrf_token" validate:"required"`
 }

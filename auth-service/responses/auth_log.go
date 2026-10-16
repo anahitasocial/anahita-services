@@ -6,16 +6,26 @@ import (
 )
 
 type AuthLogItem struct {
-	ID        int64     `json:"id"`
+	// The session's id: what signing it out names.
+	ID int64 `json:"id"`
+	// When it began.
 	CreatedAt time.Time `json:"created_at"`
-	Device    string    `json:"device"`
-	OS        string    `json:"os"`
-	Name      string    `json:"name"`
-	City      string    `json:"city"`
-	Country   string    `json:"country"`
-	ClientID  string    `json:"client_id"`
-	IsActive  bool      `json:"is_active"`
-	IsViewer  bool      `json:"is_viewer"`
+	// The kind of device: `desktop`, `mobile`, `tablet` or `bot`.
+	Device string `json:"device"`
+	// Its operating system.
+	OS string `json:"os"`
+	// The app, or the browser.
+	Name string `json:"name"`
+	// Roughly where it began, from its address. Empty when not known.
+	City string `json:"city"`
+	// The country, likewise.
+	Country string `json:"country"`
+	// The app it signed in to.
+	ClientID string `json:"client_id"`
+	// Whether it is still signed in.
+	IsActive bool `json:"is_active"`
+	// Whether it is the session asking.
+	IsViewer bool `json:"is_viewer"`
 }
 
 type AuthLogResponse struct{}

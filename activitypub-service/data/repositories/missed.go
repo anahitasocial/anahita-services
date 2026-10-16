@@ -35,6 +35,10 @@ type MissedInterface interface {
 	// Follows the other server was asked about that are no longer in the
 	// graph.
 	FollowsGone(limit int) ([]Pair, error)
+	// Follows kept between two people one of whom blocks the other: a
+	// block ends them, and these were left from before that was so, or
+	// from a block whose news was lost.
+	FollowsBlocked(limit int) ([]Pair, error)
 	// Notes of people on the fediverse that are open to everybody, or are
 	// replies in a thread that is, written since they joined it and since
 	// `since`, that other servers were never sent. Whether each is one
@@ -98,6 +102,22 @@ LIMIT ?`
 
 func (repo *Missed) FollowsGone(limit int) ([]Pair, error) {
 	return repo.pairs(followsGone, constants.EdgeFollowEntityType, limit)
+}
+
+const followsBlocked = `
+SELECT DISTINCT kept.local_id, kept.remote_id
+FROM activitypub_follows AS kept
+JOIN edges AS block
+  ON block.type = ?
+ AND (
+      (block.node_a_id = kept.local_id AND block.node_b_id = kept.remote_id)
+   OR (block.node_a_id = kept.remote_id AND block.node_b_id = kept.local_id)
+     )
+ORDER BY kept.local_id, kept.remote_id
+LIMIT ?`
+
+func (repo *Missed) FollowsBlocked(limit int) ([]Pair, error) {
+	return repo.pairs(followsBlocked, constants.EdgeBlockEntityType, limit)
 }
 
 const notesNotSent = `

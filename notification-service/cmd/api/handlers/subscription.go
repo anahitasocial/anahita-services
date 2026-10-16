@@ -195,7 +195,7 @@ func (h *subscriptionHandler) Delete(c echo.Context) error {
 
 	nodeResp := &responses.NodeResponse{}
 
-	return c.JSON(http.StatusCreated, nodeResp.MapNodeItem(target))
+	return c.JSON(http.StatusOK, nodeResp.MapNodeItem(target))
 }
 
 // onAfterFetched is called after fetching a note

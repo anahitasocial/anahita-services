@@ -11,6 +11,7 @@ package requests
 // ceremony is two round trips that cannot be folded into this body at
 // all.
 type EmailChangeEdit struct {
+	// The new address.
 	Email string `json:"email" validate:"required,email,min=10,max=100"`
 }
 
@@ -24,5 +25,6 @@ type EmailChangeEdit struct {
 // cannot reach. Asking them to type it while looking at it costs one
 // field and removes the lockout.
 type EmailChangeConfirm struct {
+	// The six digits mailed to the old address.
 	Code string `json:"code"`
 }

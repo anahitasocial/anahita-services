@@ -5,19 +5,32 @@ import (
 	"anahita-libs/responses"
 )
 
+// LocationNodeItem is a place posts can be tied to.
 type LocationNodeItem struct {
-	ID               int64                     `json:"id"`
-	Type             string                    `json:"type"`
-	Name             string                    `json:"name,omitempty"`
-	Alias            string                    `json:"alias,omitempty"`
-	GeoLatitude      float64                   `json:"latitude,omitempty"`
-	GeoLongitude     float64                   `json:"longitude,omitempty"`
-	GeoAddress       string                    `json:"address,omitempty"`
-	GeoCity          string                    `json:"city,omitempty"`
-	GeoStateProvince string                    `json:"state_province,omitempty"`
-	GeoCountry       string                    `json:"country,omitempty"`
-	GeoPostalcode    string                    `json:"postalcode,omitempty"`
-	Authorized       *responses.NodeAuthorized `json:"authorized,omitempty"`
+	// Its id.
+	ID int64 `json:"id"`
+	// Always a place's type.
+	Type string `json:"type"`
+	// What it is called.
+	Name string `json:"name,omitempty"`
+	// Its short name.
+	Alias string `json:"alias,omitempty"`
+	// Where it is: latitude, found from its address.
+	GeoLatitude float64 `json:"latitude,omitempty"`
+	// Where it is: longitude.
+	GeoLongitude float64 `json:"longitude,omitempty"`
+	// Its street address.
+	GeoAddress string `json:"address,omitempty"`
+	// Its city.
+	GeoCity string `json:"city,omitempty"`
+	// Its state or province.
+	GeoStateProvince string `json:"state_province,omitempty"`
+	// Its country.
+	GeoCountry string `json:"country,omitempty"`
+	// Its postal code.
+	GeoPostalcode string `json:"postalcode,omitempty"`
+	// What the viewer may do with it.
+	Authorized *responses.NodeAuthorized `json:"authorized,omitempty"`
 }
 
 type LocationNode struct {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"log"
 	"net/http"
 
@@ -20,14 +21,19 @@ type preferencesHandler struct {
 	*Env
 }
 
-// preferencesRequest takes each choice as it is, or leaves it alone when it
+// PreferencesRequest takes each choice as it is, or leaves it alone when it
 // is not sent: a pointer tells "no" from "not said".
-type preferencesRequest struct {
+type PreferencesRequest struct {
+	// To be suggested people.
 	SuggestPeople *bool `json:"suggest_people"`
+	// To be suggested groups.
 	SuggestGroups *bool `json:"suggest_groups"`
+	// To be suggested events.
 	SuggestEvents *bool `json:"suggest_events"`
-	UseActivity   *bool `json:"use_activity"`
-	Discoverable  *bool `json:"discoverable"`
+	// That what they liked and wrote may be used to choose for them.
+	UseActivity *bool `json:"use_activity"`
+	// That they may be suggested to other people.
+	Discoverable *bool `json:"discoverable"`
 	// How much each reason counts for, by its name: 0, which turns the
 	// reason off, to constants.MaxWeight. The ones sent are set and the
 	// others left.
@@ -40,24 +46,28 @@ type preferencesRequest struct {
 	ActiveWithinDays *int `json:"active_within_days"`
 }
 
-// preferencesResponse is somebody's choices as they are sent: with the
+// PreferencesResponse is somebody's choices as they are sent: with the
 // weights they are ranked by, each reason there, and the service's own to
 // go back to.
-type preferencesResponse struct {
+type PreferencesResponse struct {
 	*repositories.Preferences
-	Weights        map[string]float64 `json:"weights"`
+	// What each reason counts for, for the viewer, by its name.
+	Weights map[string]float64 `json:"weights"`
+	// The service's own weights.
 	DefaultWeights map[string]float64 `json:"default_weights"`
-	MaxWeight      float64            `json:"max_weight"`
+	// The most a weight may be.
+	MaxWeight float64 `json:"max_weight"`
 	// The reasons, in the order to list them.
 	Reasons []string `json:"reasons"`
 	// What active_within_days may be, nearest first, and what it is for
 	// somebody who has not chosen.
 	ActiveWithinChoices []int `json:"active_within_choices"`
-	ActiveWithinDefault int   `json:"active_within_default"`
+	// What active_within_days is for somebody who has not chosen.
+	ActiveWithinDefault int `json:"active_within_default"`
 }
 
-func respondPreferences(prefs *repositories.Preferences) *preferencesResponse {
-	resp := &preferencesResponse{
+func respondPreferences(prefs *repositories.Preferences) *PreferencesResponse {
+	resp := &PreferencesResponse{
 		Preferences:    prefs,
 		Weights:        map[string]float64{},
 		DefaultWeights: map[string]float64{},
@@ -99,7 +109,7 @@ func (h *preferencesHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &preferencesRequest{}
+	req := &PreferencesRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -111,7 +121,7 @@ func (h *preferencesHandler) Edit(c echo.Context) error {
 	}
 
 	if !apply(prefs, req) {
-		return c.JSON(http.StatusUnprocessableEntity, map[string]string{"error": "invalid_weight"})
+		return c.JSON(http.StatusUnprocessableEntity, responses.Refusal{Error: "invalid_weight"})
 	}
 
 	if err := h.Repos.Preferences.Write(viewer.ID, prefs); err != nil {
@@ -125,7 +135,7 @@ func (h *preferencesHandler) Edit(c echo.Context) error {
 // apply puts what was sent onto somebody's choices. False, with nothing
 // changed that matters, for a weight that is not one: a reason there is
 // not, or a number out of range.
-func apply(prefs *repositories.Preferences, req *preferencesRequest) bool {
+func apply(prefs *repositories.Preferences, req *PreferencesRequest) bool {
 	if req.SuggestPeople != nil {
 		prefs.SuggestPeople = *req.SuggestPeople
 	}

@@ -38,6 +38,11 @@ type RepliesRepoInterface interface {
 	// Recount puts right the reply counts on a thread's root and on one
 	// reply in it. Either may be 0 for "none".
 	Recount(rootID int64, parentID int64) error
+
+	// TouchedByBlock is what a block of `blocked` by `blocker` changes the
+	// counts of: the blocker's threads the blocked person has replied in,
+	// and the blocker's posts they have liked.
+	TouchedByBlock(blockerID, blockedID int64) (roots []int64, liked []int64, err error)
 }
 
 func NewRepliesRepo(db *sql.DB) RepliesRepoInterface {
@@ -69,17 +74,33 @@ func (r *repliesRepo) Thread(rootID int64, viewer *entities.Viewer) ([]*entities
 	return FetchNodes(r.db, query)
 }
 
+// What is hidden in a thread: what whoever looks after it hid, and what
+// somebody wrote whom its post's owner or writer has blocked. A block takes
+// out of sight, for every reader, what the blocked person left on what is
+// the blocker's, and gives it back if it is lifted.
 const selectHiddenReplies = `
 SELECT node_b_id
 FROM edges
 WHERE type = ?
-  AND node_a_id = ?`
+  AND node_a_id = ?
+UNION
+SELECT reply.id
+FROM nodes AS reply
+JOIN nodes AS root
+  ON root.id = reply.root_id
+JOIN edges AS blocked
+  ON blocked.type = ?
+ AND blocked.node_b_id = reply.created_by
+ AND blocked.node_a_id IN (root.owner_id, root.created_by)
+WHERE reply.root_id = ?`
 
 func (r *repliesRepo) HiddenIDs(rootID int64) ([]int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), purgeStatementTimeout)
 	defer cancel()
 
-	rows, err := r.db.QueryContext(ctx, selectHiddenReplies, constants.EdgeMediumHiddenReplyType, rootID)
+	rows, err := r.db.QueryContext(ctx, selectHiddenReplies,
+		constants.EdgeMediumHiddenReplyType, rootID,
+		constants.EdgeBlockEntityType, rootID)
 	if err != nil {
 		return nil, err
 	}
@@ -216,6 +237,15 @@ SET root.comment_count = (
           AND hidden.node_a_id = reply.root_id
           AND hidden.node_b_id = reply.id
       )
+      AND NOT EXISTS (
+        SELECT 1
+        FROM edges blocked
+        JOIN nodes thread_root
+          ON thread_root.id = reply.root_id
+        WHERE blocked.type = ?
+          AND blocked.node_b_id = reply.created_by
+          AND blocked.node_a_id IN (thread_root.owner_id, thread_root.created_by)
+      )
   ) said
 )
 WHERE root.id = ?`
@@ -237,6 +267,52 @@ SET parent.comment_count = (
 WHERE parent.id = ?
   AND parent.root_id IS NOT NULL`
 
+const selectRootsRepliedByBlocked = `
+SELECT DISTINCT reply.root_id
+FROM nodes AS reply
+JOIN nodes AS root
+  ON root.id = reply.root_id
+WHERE reply.created_by = ?
+  AND (root.owner_id = ? OR root.created_by = ?)`
+
+const selectPostsLikedByBlocked = `
+SELECT DISTINCT liked.node_b_id
+FROM edges AS liked
+JOIN nodes AS post
+  ON post.id = liked.node_b_id
+WHERE liked.type = ?
+  AND liked.node_a_id = ?
+  AND (post.owner_id = ? OR post.created_by = ?)`
+
+func (r *repliesRepo) TouchedByBlock(blockerID, blockedID int64) ([]int64, []int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), purgeStatementTimeout)
+	defer cancel()
+
+	read := func(query string, args ...any) ([]int64, error) {
+		rows, err := r.db.QueryContext(ctx, query, args...)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		var ids []int64
+		for rows.Next() {
+			var id int64
+			if err := rows.Scan(&id); err != nil {
+				return nil, err
+			}
+			ids = append(ids, id)
+		}
+		return ids, rows.Err()
+	}
+
+	roots, err := read(selectRootsRepliedByBlocked, blockedID, blockerID, blockerID)
+	if err != nil {
+		return nil, nil, err
+	}
+	liked, err := read(selectPostsLikedByBlocked, constants.EdgeBaseLikeEntityType, blockedID, blockerID, blockerID)
+	return roots, liked, err
+}
+
 func (r *repliesRepo) Recount(rootID int64, parentID int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), purgeStatementTimeout)
 	defer cancel()
@@ -244,6 +320,7 @@ func (r *repliesRepo) Recount(rootID int64, parentID int64) error {
 	if rootID > 0 {
 		if _, err := r.db.ExecContext(ctx, recountThread,
 			rootID, constants.EdgeMediumHiddenReplyType,
+			constants.EdgeBlockEntityType,
 			rootID,
 		); err != nil {
 			return err

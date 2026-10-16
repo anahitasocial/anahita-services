@@ -747,7 +747,7 @@ followed, and little else. The rules are the installation's own, in
 | | Allowed? |
 | --- | --- |
 | Reading their profile, at `GET /people/<handle>` with the whole handle (`alice@mastodon.example`) | As for any public profile. It answers with `uri` and `origin_domain`, which nothing made here has |
-| Following and unfollowing them, blocking them | Yes, through the same routes as for anybody |
+| Following and unfollowing them, blocking them | Yes, through the same routes as for anybody. A block ends every follow between the two, both ways, so that nothing more is delivered to their server, and their server is sent a `Block` by somebody on the fediverse, which Mastodon and what speaks to it keep to: they stop seeing the blocker's posts and answering them. Unblocking sends `Undo` of it; the follows are not made again. The sweep forgets any follow left across a block |
 | Changing their profile, their settings, their pictures | Nobody, an administrator included: every route that changes a person reads them as a person of this installation, and does not find them |
 | Posting on their profile | Nobody |
 | Changing a post of theirs | Nobody. An administrator may remove it from this installation |
@@ -982,7 +982,7 @@ removed one by one, as any post or person is.
 
 | Request | Does |
 | --- | --- |
-| `GET /activitypub/blocks?q=&limit=&offset=` | A page of the list, by name, with `pagination.total`. `q` narrows it to the names and reasons it is found in; `limit` is 50 unless asked, 200 at most |
+| `GET /activitypub/blocks?q=&limit=&start=` | A page of the list, by name, with `pagination.total`. `q` narrows it to the names and reasons it is found in; `limit` is 50 unless asked, 200 at most |
 | `POST /activitypub/blocks` `{ "domain": "spam.example", "reason": "…" }` | Refuses a server, or changes why. The domain may be typed as a name, an address or a handle |
 | `DELETE /activitypub/blocks/spam.example` | Stops refusing it |
 
@@ -1313,6 +1313,18 @@ its own. The card says to use one and where to make it.
   when they unblock it here. A block made in Bluesky's app is not this
   installation's to take back. Written whatever their profile here is open
   to: a block keeps somebody away and tells nobody else.
+- **Hiding a reply.** Somebody connected who hides a reply from Bluesky
+  under a post of theirs that went there, or a reply of somebody's here
+  that went there, hides it on Bluesky too: it is added to the post's
+  threadgate (`app.bsky.feed.threadgate`, named as the post is), the list
+  of hidden replies every Bluesky app reads and tucks away. Shown again
+  here, it is taken out. Only that reply is changed: replies hidden in
+  Bluesky's own app, and who may reply when that was set there, are left
+  as they are. Whether it is hidden is read when the threadgate is
+  written, so hiding and showing again quickly writes what is so at the
+  end. A threadgate holds 300 hidden replies; past that the oldest go.
+  Deleting the post here removes its threadgate with it. A reply hidden in
+  Bluesky's own app is not hidden here yet.
 - **What comes back.** Each connected account is asked, once a minute,
   what it was told of on Bluesky, as its own app would show it: who liked
   or reposted something written from here, who answered it, and who
@@ -1375,7 +1387,8 @@ left out, `https://plc.directory`.
 
 Likes given on Bluesky to
 posts that came from there are not read, nor how many a post has; replies
-by people nobody here follows are not read; videos are not kept.
+by people nobody here follows are not read; videos are not kept; a reply
+hidden in Bluesky's app is not hidden here.
 The list of [servers that are refused](#servers-that-are-refused) is read
 by this service and still edited through `activitypub-service`, so an
 installation that runs this service alone cannot change it from the web
@@ -1385,7 +1398,7 @@ app.
 
 | What | Where |
 | --- | --- |
-| Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `reposts.go`, `backfill.go`, `stream.go`, `events.go`, `own.go` (one's own Bluesky posts brought in), `import.go` (importing follows), `reactions.go` and `verify.go` (what people on Bluesky do in return, and what they took back), `media.go` and `retention.go` (pictures and posts removed after a while); writing: `settings.go`, `out.go`, `bsky/session.go`, `bsky/outgoing.go`), tables `atproto_actors`, `atproto_cursor`, `atproto_reposts`, `atproto_accounts`, `atproto_sent`, `atproto_writes` |
+| Bluesky | `atproto-service/`: `bsky/` (the reader, a post's words, Jetstream), `cmd/api/handlers/` (`lookup.go`, `posts.go`, `reposts.go`, `backfill.go`, `stream.go`, `events.go`, `own.go` (one's own Bluesky posts brought in), `import.go` (importing follows), `reactions.go` and `verify.go` (what people on Bluesky do in return, and what they took back), `media.go` and `retention.go` (pictures and posts removed after a while); writing: `settings.go`, `out.go`, `hidden.go` (hidden replies, by threadgate), `bsky/session.go`, `bsky/outgoing.go`), tables `atproto_actors`, `atproto_cursor`, `atproto_reposts`, `atproto_accounts`, `atproto_sent`, `atproto_writes` |
 | What both protocols share | `anahita-libs/federation/`: pictures (`pictures.go`), removing and restoring them (`media.go`), cards (`cards.go`), refused servers (`blocks.go`), a post's words (`content.go`) |
 | The service | `activitypub-service/` |
 | Who is on the fediverse | `cmd/api/handlers/handlers.go`: `siteFederates`, `mayFederate`, `federating` |

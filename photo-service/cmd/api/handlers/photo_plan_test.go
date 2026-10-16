@@ -34,7 +34,7 @@ func names(files []*entities.PhotoFile) string {
 func TestANewPostTakesItsUploadsInTheOrderGiven(t *testing.T) {
 	plan, refused := planFiles(nil,
 		[]*entities.PhotoUpload{upload(1, "a.jpg"), upload(2, "b.jpg"), upload(3, "c.jpg")},
-		[]fileRef{{UploadID: 3, AltText: "third"}, {UploadID: 1}, {UploadID: 2}},
+		[]FileRef{{UploadID: 3, AltText: "third"}, {UploadID: 1}, {UploadID: 2}},
 		testViewer, testOwner,
 	)
 	if refused != "" {
@@ -62,10 +62,10 @@ func TestAPostNeedsAnImageAndHoldsNoMoreThanTheLimit(t *testing.T) {
 	}
 
 	var uploads []*entities.PhotoUpload
-	var wanted []fileRef
+	var wanted []FileRef
 	for i := int64(1); i <= constants.PhotoMaxFiles+1; i++ {
 		uploads = append(uploads, upload(i, strings.Repeat("x", int(i))+".jpg"))
-		wanted = append(wanted, fileRef{UploadID: i})
+		wanted = append(wanted, FileRef{UploadID: i})
 	}
 
 	if _, refused := planFiles(nil, uploads, wanted, testViewer, testOwner); refused != errTooManyFiles {
@@ -80,7 +80,7 @@ func TestSomebodyElsesUploadIsRefused(t *testing.T) {
 	theirs := upload(1, "a.jpg")
 	theirs.CreatedBy = 99
 
-	if _, refused := planFiles(nil, []*entities.PhotoUpload{theirs}, []fileRef{{UploadID: 1}}, testViewer, testOwner); refused != errUploadNotYours {
+	if _, refused := planFiles(nil, []*entities.PhotoUpload{theirs}, []FileRef{{UploadID: 1}}, testViewer, testOwner); refused != errUploadNotYours {
 		t.Errorf("another person's upload: %q", refused)
 	}
 }
@@ -91,16 +91,16 @@ func TestAnUploadForAnotherProfileIsRefused(t *testing.T) {
 	elsewhere := upload(1, "a.jpg")
 	elsewhere.OwnerID = 50
 
-	if _, refused := planFiles(nil, []*entities.PhotoUpload{elsewhere}, []fileRef{{UploadID: 1}}, testViewer, testOwner); refused != errUploadNotYours {
+	if _, refused := planFiles(nil, []*entities.PhotoUpload{elsewhere}, []FileRef{{UploadID: 1}}, testViewer, testOwner); refused != errUploadNotYours {
 		t.Errorf("an upload for another profile: %q", refused)
 	}
 }
 
 func TestAnUploadThatIsGoneIsNotFound(t *testing.T) {
-	if _, refused := planFiles(nil, nil, []fileRef{{UploadID: 5}}, testViewer, testOwner); refused != errFileNotFound {
+	if _, refused := planFiles(nil, nil, []FileRef{{UploadID: 5}}, testViewer, testOwner); refused != errFileNotFound {
 		t.Errorf("a missing upload: %q", refused)
 	}
-	if _, refused := planFiles(nil, nil, []fileRef{{}}, testViewer, testOwner); refused != errFileNotFound {
+	if _, refused := planFiles(nil, nil, []FileRef{{}}, testViewer, testOwner); refused != errFileNotFound {
 		t.Errorf("an entry naming nothing: %q", refused)
 	}
 }
@@ -114,7 +114,7 @@ func TestEditingReordersRemovesAddsAndDescribes(t *testing.T) {
 
 	plan, refused := planFiles(existing,
 		[]*entities.PhotoUpload{upload(9, "new.jpg")},
-		[]fileRef{{ID: "c.jpg", AltText: "now first"}, {UploadID: 9}, {ID: "a.jpg"}},
+		[]FileRef{{ID: "c.jpg", AltText: "now first"}, {UploadID: 9}, {ID: "a.jpg"}},
 		testViewer, testOwner,
 	)
 	if refused != "" {
@@ -146,7 +146,7 @@ func TestEditingReordersRemovesAddsAndDescribes(t *testing.T) {
 func TestAnImageOfAnotherPostIsNotFound(t *testing.T) {
 	existing := []*entities.PhotoFile{existingFile(0, "a.jpg", "")}
 
-	if _, refused := planFiles(existing, nil, []fileRef{{ID: "other.jpg"}}, testViewer, testOwner); refused != errFileNotFound {
+	if _, refused := planFiles(existing, nil, []FileRef{{ID: "other.jpg"}}, testViewer, testOwner); refused != errFileNotFound {
 		t.Errorf("an image the post does not have: %q", refused)
 	}
 }
@@ -154,10 +154,10 @@ func TestAnImageOfAnotherPostIsNotFound(t *testing.T) {
 func TestNoImageTwice(t *testing.T) {
 	existing := []*entities.PhotoFile{existingFile(0, "a.jpg", "")}
 
-	if _, refused := planFiles(existing, nil, []fileRef{{ID: "a.jpg"}, {ID: "a.jpg"}}, testViewer, testOwner); refused != errFileRepeated {
+	if _, refused := planFiles(existing, nil, []FileRef{{ID: "a.jpg"}, {ID: "a.jpg"}}, testViewer, testOwner); refused != errFileRepeated {
 		t.Errorf("the same image twice: %q", refused)
 	}
-	if _, refused := planFiles(nil, []*entities.PhotoUpload{upload(1, "a.jpg")}, []fileRef{{UploadID: 1}, {UploadID: 1}}, testViewer, testOwner); refused != errFileRepeated {
+	if _, refused := planFiles(nil, []*entities.PhotoUpload{upload(1, "a.jpg")}, []FileRef{{UploadID: 1}, {UploadID: 1}}, testViewer, testOwner); refused != errFileRepeated {
 		t.Errorf("the same upload twice: %q", refused)
 	}
 }
@@ -168,10 +168,10 @@ func TestADescriptionIsLimitedInCharacters(t *testing.T) {
 	uploads := []*entities.PhotoUpload{upload(1, "a.jpg")}
 
 	atLimit := strings.Repeat("ب", constants.PhotoAltTextMaxLength)
-	if _, refused := planFiles(nil, uploads, []fileRef{{UploadID: 1, AltText: atLimit}}, testViewer, testOwner); refused != "" {
+	if _, refused := planFiles(nil, uploads, []FileRef{{UploadID: 1, AltText: atLimit}}, testViewer, testOwner); refused != "" {
 		t.Errorf("a description at the limit was refused: %q", refused)
 	}
-	if _, refused := planFiles(nil, uploads, []fileRef{{UploadID: 1, AltText: atLimit + "ب"}}, testViewer, testOwner); refused != errAltTextTooLong {
+	if _, refused := planFiles(nil, uploads, []FileRef{{UploadID: 1, AltText: atLimit + "ب"}}, testViewer, testOwner); refused != errAltTextTooLong {
 		t.Errorf("a description over the limit: %q", refused)
 	}
 }

@@ -12,10 +12,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// editDownloadRequest says whether a post may be downloaded.
-type editDownloadRequest struct {
-	ID    int64 `param:"id" validate:"required,numeric"`
-	Allow bool  `json:"allow" form:"allow"`
+// EditDownloadRequest says whether a post may be downloaded.
+type EditDownloadRequest struct {
+	// The post's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Whether whoever can see it may download it.
+	Allow bool `json:"allow" form:"allow"`
 }
 
 // EditDownload says whether whoever can see a photo may download it.
@@ -27,7 +29,7 @@ type editDownloadRequest struct {
 // author, and the admins of the group it is on.
 func (h *photoHandler) EditDownload(c echo.Context) error {
 	var (
-		req    = &editDownloadRequest{}
+		req    = &EditDownloadRequest{}
 		viewer = getViewer(c)
 	)
 

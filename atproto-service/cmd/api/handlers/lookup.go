@@ -34,12 +34,16 @@ var lookupLimit = ratelimit.Limit{Max: 30, Window: 10 * time.Minute}
 // RemotePerson is somebody on Bluesky, as the web app is told. The same
 // shape as somebody found on the fediverse.
 type RemotePerson struct {
-	ID   int64  `json:"id"`
+	// Their id here.
+	ID int64 `json:"id"`
+	// Always a Bluesky person's type.
 	Type string `json:"type"`
+	// Their name.
 	Name string `json:"name"`
 	// Their handle: alice.bsky.social.
 	Alias string `json:"alias"`
-	Body  string `json:"body"`
+	// What they say of themselves.
+	Body string `json:"body"`
 	// Their address between servers, and where they are kept as from.
 	URI          string `json:"uri"`
 	OriginDomain string `json:"origin_domain"`

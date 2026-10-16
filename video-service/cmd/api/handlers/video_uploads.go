@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"errors"
 	"log"
 	"net/http"
@@ -33,15 +34,22 @@ import (
 // ready, by the worker. Until then there is no post: nothing to hide from
 // feeds, and nothing left behind by an upload that is never finished.
 
-// uploadStartRequest is a video about to be sent, and the post it will be.
-type uploadStartRequest struct {
+// UploadStartRequest is a video about to be sent, and the post it will be.
+type UploadStartRequest struct {
+	// The profile the post will be on.
 	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
-	// Required of a post; a reply need not have one.
-	Name        string `json:"name" form:"name" validate:"omitempty,max=100"`
-	Body        string `json:"body" form:"body" validate:"omitempty,max=8000"`
-	Access      string `json:"access" form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
-	Language    string `json:"language" form:"language" validate:"omitempty,max=12"`
+	// Its title: required of a post; a reply need not have one.
+	Name string `json:"name" form:"name" validate:"omitempty,max=100"`
+	// Its words, as Markdown.
+	Body string `json:"body" form:"body" validate:"omitempty,max=8000"`
+	// Who may see it (permissions.md).
+	Access string `json:"access" form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
+	// The language it is written in, as a BCP 47 tag.
+	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
+	// Who may reply: `anyone`, `nobody`, or any of `followers`, `following`
+	// and `mentioned` joined by commas.
 	ReplyAccess string `json:"reply_access" form:"reply_access" validate:"omitempty,max=64"`
+	// Who may quote it: `anyone`, `followers` or `nobody`.
 	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"omitempty,max=16"`
 	// Whether whoever can see it may download it. Left out, the post
 	// starts with what the profile it is on says.
@@ -50,36 +58,53 @@ type uploadStartRequest struct {
 	// profile, and what it is open to, who may answer it and quoting are
 	// its thread's, so those above are not read.
 	ParentID int64 `json:"parent_id" form:"parent_id" validate:"omitempty,min=1"`
+	// How large the file is, in bytes.
+	//
 	// What the browser says it is sending. The worker decides what it is.
-	Size        int64  `json:"size" form:"size" validate:"required,min=1"`
+	Size int64 `json:"size" form:"size" validate:"required,min=1"`
+	// What kind of file it is: `video/mp4`, `video/quicktime`, `video/webm`,
+	// `image/gif` or `image/png`.
 	ContentType string `json:"content_type" form:"content_type" validate:"required,max=100"`
 }
 
-type uploadPartsRequest struct {
+// UploadPartsRequest asks where to send some parts of an upload.
+type UploadPartsRequest struct {
+	// The upload's id. Read by the handler from the path itself.
+	ID string `param:"id"`
+	// Which parts to send, from 1: a few at a time, as they are needed.
 	Numbers []int32 `json:"numbers" validate:"required,min=1,max=100"`
 }
 
-// uploadResponse is an upload as its uploader is told of it.
-type uploadResponse struct {
-	ID      string `json:"id"`
-	Status  string `json:"status"`
-	Name    string `json:"name"`
-	OwnerID int64  `json:"owner_id"`
+// UploadResponse is an upload as its uploader is told of it.
+type UploadResponse struct {
+	// Its id.
+	ID string `json:"id"`
+	// `uploading`, `processing`, `ready`, `failed` or `cancelled`.
+	Status string `json:"status"`
+	// The post's title.
+	Name string `json:"name"`
+	// The profile the post will be on.
+	OwnerID int64 `json:"owner_id"`
 	// Why it failed.
 	Error string `json:"error,omitempty"`
 	// The post, once it is one.
 	NodeID int64 `json:"node_id,omitempty"`
 	// What it answers, when it is a reply.
 	ParentID int64 `json:"parent_id,omitempty"`
+	// How large each part is, in bytes, while it is being sent.
+	//
 	// How it is to be sent, while it is being.
-	PartSize  int64     `json:"part_size,omitempty"`
-	PartCount int64     `json:"part_count,omitempty"`
-	Size      int64     `json:"size,omitempty"`
+	PartSize int64 `json:"part_size,omitempty"`
+	// How many parts to send it in.
+	PartCount int64 `json:"part_count,omitempty"`
+	// How large it said it is, in bytes.
+	Size int64 `json:"size,omitempty"`
+	// When it was begun.
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func newUploadResponse(upload *repositories.Upload) *uploadResponse {
-	resp := &uploadResponse{
+func newUploadResponse(upload *repositories.Upload) *UploadResponse {
+	resp := &UploadResponse{
 		ID:        upload.ID,
 		Status:    upload.Status,
 		Name:      upload.Name,
@@ -98,7 +123,7 @@ func newUploadResponse(upload *repositories.Upload) *uploadResponse {
 }
 
 func refuseUpload(c echo.Context, status int, code string) error {
-	return c.JSON(status, map[string]any{"error": code})
+	return c.JSON(status, responses.Refusal{Error: code})
 }
 
 // placeholderVideo is a video on this profile that does not exist yet:
@@ -119,7 +144,7 @@ func placeholderVideo(owner *entities.AnahitaNode, viewer *entities.Viewer) *ent
 // as it is when any post is made, and the upload is begun in storage.
 func (h *videoHandler) UploadStart(c echo.Context) error {
 	var (
-		req    = &uploadStartRequest{}
+		req    = &UploadStartRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -150,9 +175,9 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		maxBytes = h.Config.AnimationMaxBytes
 	}
 	if req.Size > maxBytes {
-		return c.JSON(http.StatusRequestEntityTooLarge, map[string]any{
-			"error":     constants.FailedTooLarge,
-			"max_bytes": maxBytes,
+		return c.JSON(http.StatusRequestEntityTooLarge, UploadTooLarge{
+			Error:    constants.FailedTooLarge,
+			MaxBytes: maxBytes,
 		})
 	}
 
@@ -304,7 +329,7 @@ func (h *videoHandler) UploadParts(c echo.Context) error {
 		return refuseUpload(c, http.StatusConflict, "not_uploading")
 	}
 
-	req := &uploadPartsRequest{}
+	req := &UploadPartsRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -325,11 +350,11 @@ func (h *videoHandler) UploadParts(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	parts := make([]map[string]any, 0, len(urls))
+	parts := make([]UploadPart, 0, len(urls))
 	for i, url := range urls {
-		parts = append(parts, map[string]any{"number": req.Numbers[i], "url": url})
+		parts = append(parts, UploadPart{Number: req.Numbers[i], URL: url})
 	}
-	return c.JSON(http.StatusOK, map[string]any{"data": parts})
+	return c.JSON(http.StatusOK, responses.Unpaged[UploadPart]{Data: parts})
 }
 
 // UploadComplete makes one file of what was sent and hands it to the
@@ -391,11 +416,11 @@ func (h *videoHandler) UploadBrowse(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	data := make([]*uploadResponse, 0, len(uploads))
+	data := make([]*UploadResponse, 0, len(uploads))
 	for _, upload := range uploads {
 		data = append(data, newUploadResponse(upload))
 	}
-	return c.JSON(http.StatusOK, map[string]any{"data": data})
+	return c.JSON(http.StatusOK, responses.Unpaged[*UploadResponse]{Data: data})
 }
 
 // UploadCancel gives an upload up: one still being sent, one waiting for

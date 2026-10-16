@@ -72,10 +72,7 @@ func (h *mediumHandler) Thread(c echo.Context) error {
 	// A thread hangs from a post. Asked for under a reply, the answer is
 	// the thread that reply is in.
 	if thread.Root.RootID > 0 {
-		return c.JSON(http.StatusConflict, map[string]any{
-			"error":   "not_a_root",
-			"root_id": thread.Root.RootID,
-		})
+		return c.JSON(http.StatusConflict, NotARoot{Error: "not_a_root", RootID: thread.Root.RootID})
 	}
 
 	if !permissions.CanSeeThread(thread) {
@@ -110,29 +107,28 @@ func (h *mediumHandler) Thread(c echo.Context) error {
 
 	canReply := permissions.CanReply(thread)
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": threadResponse(replies),
-		// For whoever looks after the thread: how many of the replies sent
-		// are hidden from everybody else.
-		"hidden_count": hidden,
-		// Whether the viewer may reply here at all, for a thread with
-		// nothing in it yet.
-		"can_reply": canReply,
-		// Who the post's author lets reply, for saying why not.
-		"reply_access": permissions.RepliesLimitedTo(thread.Root),
-		// True when the thread is longer than is sent at once.
-		"truncated": total >= replyThreadLimit,
+	return c.JSON(http.StatusOK, Thread{
+		Data:        threadResponse(replies),
+		HiddenCount: hidden,
+		CanReply:    canReply,
+		ReplyAccess: permissions.RepliesLimitedTo(thread.Root),
+		Truncated:   total >= replyThreadLimit,
 	})
 }
 
 // As many as the graph reads a thread with.
 const replyThreadLimit = 500
 
-// replyAddRequest is a new reply: what it says, and the language it says it
+// ReplyAddRequest is a new reply: what it says, and the language it says it
 // in. Where it goes is in the address; who may see it is the thread's to
 // say, so there is no audience to send.
-type replyAddRequest struct {
-	Body     string `json:"body" form:"body" validate:"required,max=8000"`
+type ReplyAddRequest struct {
+	// The id of the post or the reply it answers. Read by the handler from
+	// the path itself.
+	ParentID int64 `param:"id"`
+	// Its words, as Markdown.
+	Body string `json:"body" form:"body" validate:"required,max=8000"`
+	// The language it is written in, as a BCP 47 tag.
 	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
 	// The link in it to show a card for, as on a note. See NoteAddRequest.
 	LinkPreviewURL string `json:"link_preview_url" form:"link_preview_url" validate:"omitempty,max=2000"`
@@ -143,7 +139,7 @@ type replyAddRequest struct {
 // POST /notes/:id/replies, where :id is what is being answered.
 func (h *mediumHandler) AddReply(c echo.Context) error {
 	var (
-		req    = &replyAddRequest{}
+		req    = &ReplyAddRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -229,8 +225,11 @@ func (h *mediumHandler) AddReply(c echo.Context) error {
 	return c.JSON(http.StatusCreated, mediaResp.MapMediumNode(reply))
 }
 
-// replyHideRequest hides a reply from its thread, or shows it again.
-type replyHideRequest struct {
+// ReplyHideRequest hides a reply from its thread, or shows it again.
+type ReplyHideRequest struct {
+	// The reply's id. Read by the handler from the path itself.
+	ID int64 `param:"id"`
+	// Hide it, or show it again.
 	Hidden bool `json:"hidden" form:"hidden"`
 }
 
@@ -243,7 +242,7 @@ type replyHideRequest struct {
 // PATCH /notes/:id/hidden
 func (h *mediumHandler) HideReply(c echo.Context) error {
 	var (
-		req    = &replyHideRequest{}
+		req    = &ReplyHideRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -283,10 +282,7 @@ func (h *mediumHandler) HideReply(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"id":     reply.ID,
-		"hidden": req.Hidden,
-	})
+	return c.JSON(http.StatusOK, HiddenAnswer{ID: reply.ID, Hidden: req.Hidden})
 }
 
 // replyRuling answers a request about one reply by the rules for its

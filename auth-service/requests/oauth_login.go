@@ -10,35 +10,48 @@ func NewOAuthLoginRequest() *OAuthLoginRequest {
 	}
 }
 
-// OAuthLoginReq is the form posted by the auth-service login page.
-// Identifier is always an email in anahita (no usernames).
-// TotpPasscode is conditionally required by the handler if the person
-// has TOTP enabled.
 // OAuthLoginCode is the first step of signing in with a code: who is asking.
 // An email address or a username.
 type OAuthLoginCode struct {
+	// An email address or a username.
 	Identifier string `form:"identifier"`
-	CSRFToken  string `form:"csrf_token"`
+	// The token the page was given, which proves the form is this site's.
+	CSRFToken string `form:"csrf_token"`
 }
 
 // OAuthLoginCodeMethod is where the code should go. Only "email" exists; an
 // unknown value is read as email.
 type OAuthLoginCodeMethod struct {
-	Channel   string `form:"channel"`
+	// `email`.
+	Channel string `form:"channel"`
+	// The token the page was given, which proves the form is this site's.
 	CSRFToken string `form:"csrf_token"`
 }
 
 // OAuthLoginCodeVerify is the six digits. Resend is set by the "send a new
 // code" button on the same page.
 type OAuthLoginCodeVerify struct {
-	Code      string `form:"code"`
+	// The six digits that were sent.
+	Code string `form:"code"`
+	// The token the page was given, which proves the form is this site's.
 	CSRFToken string `form:"csrf_token"`
 }
 
+// OAuthLoginReq is the form posted by the auth-service login page.
 type OAuthLoginReq struct {
-	Identifier   string `form:"identifier" validate:"required,email,max=128"`
-	Password     string `form:"password" validate:"required,min=8,max=72"`
-	TotpPasscode string `form:"totp_passcode" validate:"omitempty,len=6"`
-	ReturnTo     string `form:"return_to"`
-	CSRFToken    string `form:"csrf_token"`
+	// The email address.
+	Identifier string `form:"identifier" validate:"required,email,max=128"`
+	// The password.
+	Password string `form:"password" validate:"required,min=8,max=72"`
+	// The token the page was given, which proves it was this site's page.
+	CSRFToken string `form:"csrf_token"`
+}
+
+// OAuthLoginTotp is the second step of signing in, for somebody with
+// two-factor authentication: the passcode.
+type OAuthLoginTotp struct {
+	// The six digits the authenticator shows now.
+	TotpPasscode string `form:"totp_passcode"`
+	// The token the page was given, which proves the form is this site's.
+	CSRFToken string `form:"csrf_token"`
 }

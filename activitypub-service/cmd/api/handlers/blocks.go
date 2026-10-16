@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"anahita-libs/federation"
+	"anahita-libs/responses"
 	"log"
 	"net/http"
 	"regexp"
@@ -26,8 +28,10 @@ import (
 // them and people here; nothing more arrives and nothing more is sent.
 // Removing them is done one by one, as any post or person is removed.
 
-type blockRequest struct {
+type BlockRequest struct {
+	// The server's name, or an address or a handle on it.
 	Domain string `json:"domain"`
+	// Why it is refused.
 	Reason string `json:"reason"`
 }
 
@@ -51,7 +55,7 @@ func (h *Handlers) BrowseBlocks(c echo.Context) error {
 	if limit < 1 || limit > blocksPageMax {
 		limit = blocksPage
 	}
-	offset, _ := strconv.Atoi(c.QueryParam("offset"))
+	offset, _ := strconv.Atoi(c.QueryParam("start"))
 	if offset < 0 {
 		offset = 0
 	}
@@ -61,12 +65,12 @@ func (h *Handlers) BrowseBlocks(c echo.Context) error {
 		log.Println("activitypub blocks:", err)
 		return refuse(c, http.StatusInternalServerError, "unavailable")
 	}
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": blocks,
-		"pagination": map[string]int{
-			"total":  total,
-			"limit":  limit,
-			"offset": offset,
+	return c.JSON(http.StatusOK, responses.List[*federation.DomainBlock]{
+		Data: blocks,
+		Pagination: responses.Pagination{
+			Total:  uint64(total),
+			Limit:  uint64(limit),
+			Offset: uint64(offset),
 		},
 	})
 }
@@ -78,7 +82,7 @@ func (h *Handlers) AddBlock(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &blockRequest{}
+	req := &BlockRequest{}
 	if err := c.Bind(req); err != nil {
 		return refuse(c, http.StatusBadRequest, "domain_required")
 	}

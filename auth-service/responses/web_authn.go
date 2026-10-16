@@ -14,13 +14,20 @@ import (
 // either, and shipping key material to a browser is a habit worth not
 // forming.
 type WebAuthnCredentialItem struct {
-	ID           int64      `json:"id"`
-	Nickname     string     `json:"nickname"`
-	Transports   []string   `json:"transports"`
-	Synced       bool       `json:"synced"`
-	CloneWarning bool       `json:"clone_warning"`
-	LastUsedAt   *time.Time `json:"last_used_at"`
-	CreatedAt    time.Time  `json:"created_at"`
+	// Its id: what renaming or removing it names.
+	ID int64 `json:"id"`
+	// What it is called: the device, unless its owner renamed it.
+	Nickname string `json:"nickname"`
+	// How the browser reaches it: `internal`, `usb`, `nfc`, `ble`, `hybrid`.
+	Transports []string `json:"transports"`
+	// Whether it is kept in sync across devices, so that losing one loses nothing.
+	Synced bool `json:"synced"`
+	// Whether it looked copied when last used: worth removing.
+	CloneWarning bool `json:"clone_warning"`
+	// When it was last used. Null when never.
+	LastUsedAt *time.Time `json:"last_used_at"`
+	// When it was added.
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type WebAuthnCredentialResponse struct{}

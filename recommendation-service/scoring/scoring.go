@@ -22,9 +22,15 @@ type Hit struct {
 
 // Reason is why a profile is suggested, as it is sent.
 type Reason struct {
-	Type  string  `json:"type"`
-	Count int     `json:"count"`
-	IDs   []int64 `json:"ids,omitempty"`
+	// Which reason: `follows_you`, `followed_by_leaders`, `inviter`,
+	// `hosted_by_leader`, `shared_interest`, `you_engaged`, `popular` or
+	// `featured` (recommendations.md).
+	Type string `json:"type"`
+	// How strongly.
+	Count int `json:"count"`
+	// Up to three of what it was found through: the people or the hashtags,
+	// named in the answer's `related`.
+	IDs []int64 `json:"ids,omitempty"`
 
 	weight float64
 }

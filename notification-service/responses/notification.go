@@ -7,43 +7,79 @@ import (
 	"time"
 )
 
+// Subject is who did what a notification tells of.
 type Subject struct {
-	ID     int64                      `json:"id"`
-	Type   string                     `json:"type,omitempty"`
-	Alias  string                     `json:"alias,omitempty"`
-	Name   string                     `json:"name,omitempty"`
+	// Its id.
+	ID int64 `json:"id"`
+	// What kind of thing it is.
+	Type string `json:"type,omitempty"`
+	// Its handle, or its short name.
+	Alias string `json:"alias,omitempty"`
+	// Its name, or its title.
+	Name string `json:"name,omitempty"`
+	// Their picture, in each size there is.
 	Avatar map[string]responses.Image `json:"avatar_urls,omitempty"`
 }
 
+// Object is what was done: a post, a reply, a like.
 type Object struct {
-	ID       int64                      `json:"id"`
-	Type     string                     `json:"type"`
-	Service  string                     `json:"service,omitempty"`
-	Name     string                     `json:"name,omitempty"`
-	Alias    string                     `json:"alias,omitempty"`
-	Body     string                     `json:"body,omitempty"`
+	// Its id.
+	ID int64 `json:"id"`
+	// What kind of thing it is.
+	Type string `json:"type"`
+	// The service it belongs to.
+	Service string `json:"service,omitempty"`
+	// Its name, or its title.
+	Name string `json:"name,omitempty"`
+	// Its handle, or its short name.
+	Alias string `json:"alias,omitempty"`
+	// Its words, as Markdown.
+	Body string `json:"body,omitempty"`
+	// A photo post's first picture, in each size there is.
 	Portrait map[string]responses.Image `json:"portrait_urls,omitempty"`
 }
 
+// Target is what it was done to: the viewer's post, or the viewer.
 type Target struct {
-	ID    int64  `json:"id"`
-	Type  string `json:"type,omitempty"`
+	// Its id.
+	ID int64 `json:"id"`
+	// What kind of thing it is.
+	Type string `json:"type,omitempty"`
+	// Its handle, or its short name.
 	Alias string `json:"alias,omitempty"`
-	Name  string `json:"name,omitempty"`
+	// Its name, or its title.
+	Name string `json:"name,omitempty"`
 }
 
+// NotificationItem is something the viewer is told of.
 type NotificationItem struct {
-	ID          int64     `json:"id"`
-	Type        string    `json:"type"`
-	Service     string    `json:"service"`
-	RecipientID int64     `json:"-"`
-	Subject     *Subject  `json:"subject"`
-	Object      *Object   `json:"object"`
-	Target      *Target   `json:"target"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	Meta        string    `json:"meta"`
-	IsRead      bool      `json:"isRead"`
+	// Its id.
+	ID int64 `json:"id"`
+	// What it tells of, as the event that made it is named.
+	Type string `json:"type"`
+	// The service that told it.
+	Service     string `json:"service"`
+	RecipientID int64  `json:"-"`
+	// Who did it.
+	Subject *Subject `json:"subject"`
+	// What was done.
+	Object *Object `json:"object"`
+	// What it was done to.
+	Target *Target `json:"target"`
+	// When it was made.
+	CreatedAt time.Time `json:"created_at"`
+	// When it last changed: when it was read, for one.
+	UpdatedAt time.Time `json:"updated_at"`
+	// More about it, as JSON in a string.
+	Meta string `json:"meta"`
+	// Whether the viewer has read it.
+	IsRead bool `json:"is_read"`
+}
+
+// UnreadCount is how many notifications the viewer has not read.
+type UnreadCount struct {
+	// How many.
+	Count uint64 `json:"count"`
 }
 
 type NotificationResponse struct{}

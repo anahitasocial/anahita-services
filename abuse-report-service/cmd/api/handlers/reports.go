@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"log"
 	"net/http"
 	"strconv"
@@ -78,15 +79,15 @@ func (h *reportsHandler) Add(c echo.Context) error {
 	// Reporting yourself, or something you wrote, is not a report.
 	owner := responsibleFor(node)
 	if owner == viewer.ID {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "own_content"})
+		return c.JSON(http.StatusBadRequest, responses.Refusal{Error: "own_content"})
 	}
 
 	reason, ok := h.Reasons.Catalogue().Find(req.ReasonKey)
 	if !ok || !reason.Applies(node.Type) {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "reason_not_applicable"})
+		return c.JSON(http.StatusBadRequest, responses.Refusal{Error: "reason_not_applicable"})
 	}
 	if reason.RequiresDetails && req.Details == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "details_required"})
+		return c.JSON(http.StatusBadRequest, responses.Refusal{Error: "details_required"})
 	}
 
 	_, created, err := h.Repos.Cases.AddReport(

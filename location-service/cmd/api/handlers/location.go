@@ -54,11 +54,7 @@ func (h *locationHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	type Response struct {
-		Data       []*responses.LocationNodeItem `json:"data"`
-		Pagination an_responses.Pagination       `json:"pagination"`
-	}
-	resp := &Response{}
+	resp := &an_responses.List[*responses.LocationNodeItem]{}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
@@ -138,11 +134,7 @@ func (h *locationHandler) BrowseOrderedByDegree(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	type Response struct {
-		Data       []*responses.LocationNodeItem `json:"data"`
-		Pagination an_responses.Pagination       `json:"pagination"`
-	}
-	resp := &Response{}
+	resp := &an_responses.List[*responses.LocationNodeItem]{}
 
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset

@@ -26,6 +26,12 @@ const (
 	oauthRefreshLockWait      = 200 * time.Millisecond
 )
 
+// SessionStarted says the app's session holds its tokens now.
+type SessionStarted struct {
+	// Always `authenticated`.
+	Status string `json:"status"`
+}
+
 type storedOAuthTokens struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
@@ -103,9 +109,7 @@ func (h *oauthHandler) AddSession(c echo.Context) error {
 
 	h.recordAuthLogAfterIssuance(c, viewer, client.ClientID, tokenPair.RefreshToken)
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"status": "authenticated",
-	})
+	return c.JSON(http.StatusOK, &SessionStarted{Status: "authenticated"})
 }
 
 // ReadValidate handles GET /oauth/validate

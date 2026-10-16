@@ -10,11 +10,14 @@ type WebAuthnCredentialReadReq struct {
 // mutable field — everything else is either cryptographic material or
 // authenticator-reported state.
 type WebAuthnCredentialEditReq struct {
-	ID       int64  `param:"id" validate:"required"`
+	// The passkey's id.
+	ID int64 `param:"id" validate:"required"`
+	// What to call it.
 	Nickname string `json:"nickname" form:"nickname" validate:"required,min=1,max=64"`
 }
 
 type WebAuthnCredentialDeleteReq struct {
+	// The passkey's id.
 	ID int64 `param:"id" validate:"required"`
 }
 
@@ -27,6 +30,7 @@ type WebAuthnCredentialDeleteReq struct {
 // layer decides whether the viewer may act on that user; this only
 // says who is meant.
 type WebAuthnCredentialUserReq struct {
+	// The person's id.
 	UserID int64 `param:"user_id" validate:"required"`
 }
 

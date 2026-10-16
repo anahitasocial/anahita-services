@@ -46,11 +46,7 @@ func (h *notificationHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	type Response struct {
-		Data       []*responses.NotificationItem `json:"data"`
-		Pagination an_responses.Pagination       `json:"pagination"`
-	}
-	resp := &Response{}
+	resp := &an_responses.List[*responses.NotificationItem]{}
 
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
@@ -120,11 +116,7 @@ func (h *notificationHandler) UnreadCount(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, struct {
-		Count uint64 `json:"count"`
-	}{
-		Count: count,
-	})
+	return c.JSON(http.StatusOK, responses.UnreadCount{Count: count})
 }
 
 // Edit updates a notification

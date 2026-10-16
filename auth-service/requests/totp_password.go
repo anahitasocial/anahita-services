@@ -1,6 +1,8 @@
 package requests
 
+// TotpPassword begins setting up two-factor authentication: the password,
+// to prove who is asking.
 type TotpPassword struct {
-	Token    string `form:"token"    validate:"omitempty,len=128"`
+	// The viewer's password.
 	Password string `form:"password" validate:"min=15,max=150,required"`
 }

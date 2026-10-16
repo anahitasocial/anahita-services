@@ -15,6 +15,7 @@ import (
 
 	auth_constants "auth/constants"
 	"auth/data/entities"
+	auth_requests "auth/requests"
 
 	"github.com/labstack/echo/v4"
 )
@@ -33,23 +34,33 @@ func newSignupRequestsHandler(env *Env) *signupRequestsHandler {
 	return &signupRequestsHandler{env}
 }
 
-// signupRequestResponse is what an administrator sees.
+// SignupRequestItem is what an administrator sees.
 //
 // NO PASSWORD HASH, and no token. The hash is in the row because approval
 // needs it, and it leaves the building for nobody — a queue that serialises
 // credentials is a far worse thing to leak than a list of people who would
 // like to join.
-type signupRequestResponse struct {
-	ID         int64  `json:"id"`
-	Username   string `json:"username"`
-	Email      string `json:"email"`
-	Name       string `json:"name"`
-	Body       string `json:"body"`
+type SignupRequestItem struct {
+	// The request's id: what answering it names.
+	ID int64 `json:"id"`
+	// The username asked for.
+	Username string `json:"username"`
+	// Their address, confirmed.
+	Email string `json:"email"`
+	// Their name.
+	Name string `json:"name"`
+	// What they say of themselves.
+	Body string `json:"body"`
+	// Their website.
 	WebsiteURL string `json:"website_url"`
-	Status     string `json:"status"`
-	InvitedBy  int64  `json:"invited_by,omitempty"`
-	CreatedIP  string `json:"created_ip"`
-	CreatedAt  string `json:"created_at"`
+	// `pending`.
+	Status string `json:"status"`
+	// Who invited them, when somebody did: a person's id.
+	InvitedBy int64 `json:"invited_by,omitempty"`
+	// The address they asked from.
+	CreatedIP string `json:"created_ip"`
+	// When they asked.
+	CreatedAt string `json:"created_at"`
 
 	// UsernameTaken says whether the name they asked for is still free.
 	//
@@ -62,13 +73,13 @@ type signupRequestResponse struct {
 
 func (h *signupRequestsHandler) mapSignupRequest(
 	sr *entities.SignupRequest,
-) signupRequestResponse {
+) SignupRequestItem {
 	taken, err := h.Repos.Users.IsUsername(sr.Username)
 	if err != nil {
 		log.Println("signup requests: username check failed:", err)
 	}
 
-	return signupRequestResponse{
+	return SignupRequestItem{
 		ID:            sr.ID,
 		Username:      sr.Username,
 		Email:         sr.Email,
@@ -102,8 +113,14 @@ func (h *signupRequestsHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	limit, _ := strconv.ParseUint(c.QueryParam("limit"), 10, 64)
-	offset, _ := strconv.ParseUint(c.QueryParam("offset"), 10, 64)
+	req := &auth_requests.SignupRequestBrowse{}
+	if err := c.Bind(req); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	if err := c.Validate(req); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	limit, offset := req.Limit, req.Offset
 
 	requests, err := h.Repos.SignupRequests.BrowsePending(limit, offset)
 	if err != nil {
@@ -116,17 +133,12 @@ func (h *signupRequestsHandler) Browse(c echo.Context) error {
 		log.Println("signup requests browse: count failed:", err)
 	}
 
-	items := make([]signupRequestResponse, 0, len(requests))
+	items := make([]SignupRequestItem, 0, len(requests))
 	for _, sr := range requests {
 		items = append(items, h.mapSignupRequest(sr))
 	}
 
-	type Response struct {
-		Data       []signupRequestResponse   `json:"data"`
-		Pagination libs_responses.Pagination `json:"pagination"`
-	}
-
-	return c.JSON(http.StatusOK, &Response{
+	return c.JSON(http.StatusOK, &libs_responses.List[SignupRequestItem]{
 		Data: items,
 		Pagination: libs_responses.Pagination{
 			Limit:  limit,
@@ -134,6 +146,14 @@ func (h *signupRequestsHandler) Browse(c echo.Context) error {
 			Total:  uint64(total),
 		},
 	})
+}
+
+// SignupDecided is the answer given to a request.
+type SignupDecided struct {
+	// `approved` or `rejected`.
+	Status string `json:"status"`
+	// The account made, when it was approved.
+	PersonID int64 `json:"person_id,omitempty"`
 }
 
 type decisionBody struct {
@@ -169,12 +189,10 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 		log.Println("signup requests approve: username check failed:", err)
 		return c.NoContent(http.StatusInternalServerError)
 	} else if taken {
-		return c.JSON(http.StatusConflict, map[string]string{
-			"error": "username_taken",
-			"message": "The username on this request has been taken since " +
-				"it was submitted. Ask them to choose another, or " +
-				"reject it.",
-		})
+		return refuse(c, http.StatusConflict, "username_taken",
+			"The username on this request has been taken since "+
+				"it was submitted. Ask them to choose another, or "+
+				"reject it.")
 	}
 
 	// The account, through the same path signup uses: the actor first, then
@@ -198,10 +216,8 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 	if err != nil {
 		log.Println("signup requests approve: could not create the actor:", err)
 		if isDuplicateHandle(err) {
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error":   "username_taken",
-				"message": "That username was taken moments ago. Please try again.",
-			})
+			return refuse(c, http.StatusConflict, "username_taken",
+				"That username was taken moments ago. Please try again.")
 		}
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -272,9 +288,9 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 		}
 	}()
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"status":    entities.SignupRequestStatusApproved,
-		"person_id": created.ID,
+	return c.JSON(http.StatusOK, &SignupDecided{
+		Status:   entities.SignupRequestStatusApproved,
+		PersonID: created.ID,
 	})
 }
 
@@ -302,10 +318,8 @@ func (h *signupRequestsHandler) Reject(c echo.Context) error {
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// Somebody else decided it between the read and the write.
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error":   "already_decided",
-				"message": "Another administrator has already answered this request.",
-			})
+			return refuse(c, http.StatusConflict, "already_decided",
+				"Another administrator has already answered this request.")
 		}
 		log.Println("signup requests reject:", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -318,9 +332,7 @@ func (h *signupRequestsHandler) Reject(c echo.Context) error {
 		}
 	}()
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"status": entities.SignupRequestStatusRejected,
-	})
+	return c.JSON(http.StatusOK, &SignupDecided{Status: entities.SignupRequestStatusRejected})
 }
 
 // readPendingSignupRequest loads the request named in the path, or writes the
@@ -343,10 +355,8 @@ func (h *signupRequestsHandler) readPendingSignupRequest(
 	}
 
 	if sr.IsDecided() {
-		return nil, c.JSON(http.StatusConflict, map[string]string{
-			"error":   "already_decided",
-			"message": "This request has already been answered.",
-		})
+		return nil, refuse(c, http.StatusConflict, "already_decided",
+			"This request has already been answered.")
 	}
 
 	// An unverified request is not in the queue and must not be decidable from
@@ -354,10 +364,8 @@ func (h *signupRequestsHandler) readPendingSignupRequest(
 	// shown they can receive mail at, which is the whole thing verification is
 	// for.
 	if !sr.IsEmailVerified() {
-		return nil, c.JSON(http.StatusConflict, map[string]string{
-			"error":   "not_verified",
-			"message": "This person has not confirmed their email address yet.",
-		})
+		return nil, refuse(c, http.StatusConflict, "not_verified",
+			"This person has not confirmed their email address yet.")
 	}
 
 	return sr, nil

@@ -64,10 +64,7 @@ func (h *adminHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	type Response struct {
-		Data []*responses.ActorNodeItem `json:"data"`
-	}
-	resp := &Response{}
+	resp := &responses.Unpaged[*responses.ActorNodeItem]{}
 
 	admins, err := h.Srv.ActorAdminsGRPC.Browse(actor.ID)
 	if err != nil {

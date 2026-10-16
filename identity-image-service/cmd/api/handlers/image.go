@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/responses"
 	images "anahita-libs/utils"
 	"errors"
 	"identityimage/constants"
@@ -48,7 +49,7 @@ const (
 )
 
 func refuse(c echo.Context, status int, code string) error {
-	return c.JSON(status, map[string]string{"error": code})
+	return c.JSON(status, responses.Refusal{Error: code})
 }
 
 // refuseImage answers for a file images.Accept would not take.
@@ -203,7 +204,9 @@ func (h *imageHandler) set(c echo.Context, k kind) error {
 
 	h.deleteStored(paths(previous))
 
-	return c.JSON(http.StatusCreated, k.presigned(h.Srv.FilesGRPC, node))
+	// As every other answer sends a picture: `url` and `size`, in each
+	// size there is.
+	return c.JSON(http.StatusCreated, responses.NewAvatar(k.presigned(h.Srv.FilesGRPC, node)))
 }
 
 // remove takes an image of this kind off a node.

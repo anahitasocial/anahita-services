@@ -1,9 +1,16 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
+
 	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 )
+
+// errNoTarget is there being no such node to like, or to read the likes
+// of: answered 404, as a read that fails is elsewhere, and not 500.
+var errNoTarget = errors.New("no such node")
 
 // readLikeTarget reads the node being liked together with the actor whose
 // permissions decide it: the post's owner, or, for a reply, the post at the
@@ -22,7 +29,7 @@ import (
 func (h *likeHandler) readLikeTarget(id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
 	node, err := h.Srv.GraphNodeGRPC.Read(id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errNoTarget, err)
 	}
 
 	owned := node

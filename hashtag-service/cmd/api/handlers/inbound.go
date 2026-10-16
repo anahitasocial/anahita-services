@@ -52,11 +52,7 @@ func (h *inboundHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	type Response struct {
-		Data       []*responses.NodeItem `json:"data"`
-		Pagination responses.Pagination  `json:"pagination"`
-	}
-	resp := &Response{}
+	resp := &responses.List[*responses.NodeItem]{}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

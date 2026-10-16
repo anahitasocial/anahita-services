@@ -13,10 +13,13 @@ func NewAuthLogRequest() *AuthLogRequest {
 }
 
 type AuthLogBrowseRequest struct {
+	// The person's id.
 	ID int64 `param:"id" validate:"required"`
 }
 
 type AuthLogDeleteRequest struct {
+	// The person's id.
 	UserID int64 `param:"uid" validate:"required"`
-	ID     int64 `param:"id" validate:"required"`
+	// The session's id.
+	ID int64 `param:"id" validate:"required"`
 }

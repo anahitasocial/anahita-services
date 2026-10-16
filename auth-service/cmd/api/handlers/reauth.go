@@ -268,10 +268,8 @@ func (h *reauthHandler) AddPasskeyFinish(c echo.Context) error {
 	pending, err := h.readPendingReauthPasskey(c)
 	if err != nil || pending == nil {
 		log.Println("reauth passkey finish: no pending ceremony:", err)
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error":   "ceremony_expired",
-			"message": "That took too long. Try again.",
-		})
+		return refuse(c, http.StatusBadRequest, "ceremony_expired",
+			"That took too long. Try again.")
 	}
 
 	// One-shot: cleared before verification, so a failed assertion
@@ -313,10 +311,8 @@ func (h *reauthHandler) AddPasskeyFinish(c echo.Context) error {
 		// specific check that failed — useful in the log, a gift to
 		// anyone probing the endpoint.
 		log.Println("reauth passkey finish verify:", err)
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error":   "assertion_failed",
-			"message": "That passkey wasn't accepted. Try again, or use your password.",
-		})
+		return refuse(c, http.StatusUnauthorized, "assertion_failed",
+			"That passkey wasn't accepted. Try again, or use your password.")
 	}
 
 	// Fold the authenticator's post-assertion state back onto the row.

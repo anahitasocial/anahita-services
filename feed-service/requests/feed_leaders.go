@@ -18,8 +18,12 @@ func NewFeedLeadersRequest() *FeedLeadersRequest {
 }
 
 type FeedLeadersBrowseRequest struct {
-	IncludeReposts bool   `query:"include_reposts"`
-	IncludeLiked   bool   `query:"include_liked"`
-	Offset         uint64 `query:"start"`
-	Limit          uint64 `query:"limit"`
+	// Reposts by the profiles the viewer follows as well.
+	IncludeReposts bool `query:"include_reposts"`
+	// What they liked as well.
+	IncludeLiked bool `query:"include_liked"`
+	// How many to pass over.
+	Offset uint64 `query:"start"`
+	// The most to send.
+	Limit uint64 `query:"limit"`
 }

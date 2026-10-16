@@ -4,7 +4,9 @@ package requests
 // form. Only an email is required; the response is identical whether or
 // not the email matches a real account (enumeration protection).
 type PasswordForgot struct {
-	Email     string `form:"email" validate:"required,email"`
+	// The account's address.
+	Email string `form:"email" validate:"required,email"`
+	// The token the page was given, which proves the form is this site's.
 	CSRFToken string `form:"csrf_token"`
 }
 
@@ -17,7 +19,9 @@ type PasswordForgot struct {
 // confirm field unnecessary friction (and actively harmful for
 // password manager users who don't manually type either field).
 type PasswordReset struct {
-	Token    string `form:"token"    validate:"required,len=128"`
+	// From the link, or the page after the code.
+	Token string `form:"token"    validate:"required,len=128"`
+	// The new password: at least 15 characters.
 	Password string `form:"password" validate:"required,min=15,max=150"`
 }
 
@@ -38,5 +42,6 @@ type PasswordReset struct {
 // No confirm field — the SPA form has a show/hide toggle on the new-
 // password field, same reasoning as PasswordReset above.
 type PasswordEdit struct {
+	// The new password: at least 15 characters.
 	Password string `json:"password" validate:"required,min=15,max=150"`
 }

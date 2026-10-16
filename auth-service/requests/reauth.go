@@ -19,6 +19,8 @@ package requests
 // legitimate older password that predates the current policy — which
 // would lock exactly the people this endpoint exists to let through.
 type ReauthPassword struct {
+	// The viewer's password.
 	Password string `json:"password" validate:"required,max=150"`
+	// The passcode, when they have two-factor authentication.
 	Passcode string `json:"passcode" validate:"omitempty,max=64"`
 }

@@ -1,0 +1,1435 @@
+{
+  "components": {
+    "schemas": {
+      "ActorBrief": {
+        "description": "ActorBrief is an actor named beside something else: who invited, who was invited, what they were invited to. Enough to show a picture and a name and to lead to the profile, and nothing of the profile itself.",
+        "properties": {
+          "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
+            "type": "string"
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
+            "type": "object"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "A profile's name, or a post's title where it has one.",
+            "type": "string"
+          },
+          "type": {
+            "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
+            "type": "string"
+          },
+          "verified": {
+            "description": "A mark kept from earlier versions of Anahita. Nothing sets it yet.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "Author": {
+        "description": "Author is who wrote something.",
+        "properties": {
+          "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
+            "type": "string"
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
+            "type": "object"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "A profile's name, or a post's title where it has one.",
+            "type": "string"
+          },
+          "type": {
+            "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "Editor": {
+        "description": "Editor is who changed something last.",
+        "properties": {
+          "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
+            "type": "string"
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
+            "type": "object"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "A profile's name, or a post's title where it has one.",
+            "type": "string"
+          },
+          "type": {
+            "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "Event": {
+        "description": "Event is what only an event has, on the actor it is.",
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/EventAddress",
+            "description": "Where it is held, when it is somewhere. Sent to the same people as the address to join online, and for the same reason: it may be somebody's home. HasAddress says there is one all the same."
+          },
+          "cancelled_at": {
+            "description": "Set when it was called off.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "capacity": {
+            "description": "How many may be going. 0 for no limit.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "ends_at": {
+            "description": "When it ends, in UTC.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "going_count": {
+            "description": "How many are going.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "has_address": {
+            "description": "Whether it has an address, said to everybody.",
+            "type": "boolean"
+          },
+          "has_online_url": {
+            "description": "Whether it has an address to join online, said to everybody.",
+            "type": "boolean"
+          },
+          "host": {
+            "$ref": "#/components/schemas/ActorBrief",
+            "description": "The group hosting it, when there is one the viewer may see."
+          },
+          "is_full": {
+            "description": "Every place is taken. Maybe is still open.",
+            "type": "boolean"
+          },
+          "maybe_count": {
+            "description": "How many may go.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "online_url": {
+            "description": "Where to join online. Sent only to whoever is going and whoever looks after the event; HasOnlineURL says there is one all the same.",
+            "type": "string"
+          },
+          "open_to_host_followers": {
+            "description": "Whether everybody who follows the host may see that it is on and answer it.",
+            "type": "boolean"
+          },
+          "starts_at": {
+            "description": "When it begins, in UTC.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "state": {
+            "description": "upcoming, happening, past or cancelled, as of when it was sent.",
+            "type": "string"
+          },
+          "timezone_name": {
+            "description": "The zone the times were given in, as IANA names it. The times themselves are UTC.",
+            "type": "string"
+          },
+          "viewer_rsvp": {
+            "description": "What the viewer has answered: going, maybe, or left out.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "starts_at",
+          "ends_at",
+          "timezone_name",
+          "capacity",
+          "has_online_url",
+          "has_address",
+          "going_count",
+          "maybe_count",
+          "is_full",
+          "state"
+        ],
+        "type": "object"
+      },
+      "EventAddress": {
+        "description": "EventAddress is where an event is held, as it was typed: the node's own address fields. It is not a place on the site's map. Nobody else can find it, tag it or search for it.",
+        "properties": {
+          "city": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "latitude": {
+            "description": "Where that is on a map, when whoever made the event asked for one and the address was found. Left out otherwise.",
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "state_province": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "FeedBrief": {
+        "description": "FeedBrief is what a custom feed is beyond its name and its owner, for where one is listed among other things, as in search results: its picture and what it shows.",
+        "properties": {
+          "definition": {
+            "description": "What it shows, as its owner set it (feeds.md)."
+          },
+          "icon": {
+            "description": "The name of the icon its owner chose for it.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "icon",
+          "definition"
+        ],
+        "type": "object"
+      },
+      "Image": {
+        "description": "Image is one size of a picture.",
+        "properties": {
+          "size": {
+            "$ref": "#/components/schemas/ImageSize",
+            "description": "How big it is."
+          },
+          "url": {
+            "description": "Where it is read from.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "size"
+        ],
+        "type": "object"
+      },
+      "ImageSize": {
+        "description": "ImageSize is how big an image is.",
+        "properties": {
+          "height": {
+            "description": "In pixels.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "width": {
+            "description": "In pixels.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "width",
+          "height"
+        ],
+        "type": "object"
+      },
+      "LinkPreview": {
+        "description": "LinkPreview is the card a note carries for a link in it: what the page was called and was about when the note was written.",
+        "properties": {
+          "description": {
+            "description": "What the page says of itself.",
+            "type": "string"
+          },
+          "image": {
+            "description": "Where its picture is read from, on this installation: a path under the API. Never the other site's own address for it.",
+            "type": "string"
+          },
+          "site_name": {
+            "description": "The site it is on, as it calls itself.",
+            "type": "string"
+          },
+          "title": {
+            "description": "What the page is called.",
+            "type": "string"
+          },
+          "url": {
+            "description": "The link.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "title"
+        ],
+        "type": "object"
+      },
+      "MediaRemoved": {
+        "description": "MediaRemoved is what a post from another server says of pictures that are no longer stored here: how many there were, what each showed, and whether they can still be had from where they came from.",
+        "properties": {
+          "alts": {
+            "description": "What each showed, as its author said; \"\" where nothing was said.",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "count": {
+            "description": "How many pictures there were.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "gone": {
+            "description": "They are not where they came from any more either: the post was taken away there, or its server is gone.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "count",
+          "alts"
+        ],
+        "type": "object"
+      },
+      "NodeAuthorized": {
+        "description": "NodeAuthorized is what the viewer may do with what it is sent with, as the server's own rules answer. edit, delete and administration are always there. The rest are left out when not worked out for this answer, so that a client can tell \"no\" from \"not answered here\" (see entities.AnahitaNodeAuthorized); composers is left out when empty too, since every person and group answer works it out.",
+        "properties": {
+          "add_follower": {
+            "description": "On a profile: whether the viewer may add a follower to it.",
+            "type": "boolean"
+          },
+          "administration": {
+            "description": "Whether the viewer may look after it: on a profile, its settings.",
+            "type": "boolean"
+          },
+          "audiences": {
+            "description": "On a person or group: who a new post there may be shown to. On a post: who it may be changed to be shown to, for somebody who may edit it. Widest first; left out otherwise.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "block_from_owner": {
+            "description": "On a post or a reply in a group or an event: whether the viewer may block its writer from there, as the group.",
+            "type": "boolean"
+          },
+          "comment": {
+            "description": "Whether the viewer may reply to it.",
+            "type": "boolean"
+          },
+          "composers": {
+            "description": "On a profile: the kinds of post the viewer may make on it.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "delete": {
+            "description": "Whether the viewer may delete it.",
+            "type": "boolean"
+          },
+          "download": {
+            "description": "On a post that holds a file: whether the viewer may download it.",
+            "type": "boolean"
+          },
+          "edit": {
+            "description": "Whether the viewer may change it.",
+            "type": "boolean"
+          },
+          "hide": {
+            "description": "On a reply: whether the viewer may hide it from its thread.",
+            "type": "boolean"
+          },
+          "invite": {
+            "description": "Whether the viewer may invite people to follow this actor.",
+            "type": "boolean"
+          },
+          "like": {
+            "description": "Whether the viewer may like it.",
+            "type": "boolean"
+          },
+          "pin": {
+            "description": "On a post: whether the viewer may pin it to the profile it is on.",
+            "type": "boolean"
+          },
+          "quote": {
+            "description": "On a post: whether the viewer may quote it.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "edit",
+          "delete",
+          "administration"
+        ],
+        "type": "object"
+      },
+      "NodeItem": {
+        "description": "NodeItem is a post, a reply, a profile or anything else there is, as a list or a read sends it: what it is not is left out.",
+        "properties": {
+          "access": {
+            "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",
+            "type": "string"
+          },
+          "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/components/schemas/Author",
+            "description": "Related Entities"
+          },
+          "authorized": {
+            "$ref": "#/components/schemas/NodeAuthorized",
+            "description": "What the viewer may do with the item. feed-service fills in comment and like, which the feed's buttons read; nothing else here computes it."
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Media URLs",
+            "type": "object"
+          },
+          "body": {
+            "description": "Its words: a post's text, as Markdown, or a profile's description.",
+            "type": "string"
+          },
+          "comment_count": {
+            "description": "How many replies are under it. A post in a feed said nothing of this, so its interactions counted its replies as none.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "cover_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "A profile's cover picture, in each size there is: `medium`, `large`.",
+            "type": "object"
+          },
+          "created_at": {
+            "description": "When it was made.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "editor": {
+            "$ref": "#/components/schemas/Editor",
+            "description": "Who changed it last."
+          },
+          "event": {
+            "$ref": "#/components/schemas/Event",
+            "description": "On an event: when it is and how many are going. Left out on anything else, and where whoever sent the node did not attach it."
+          },
+          "feed": {
+            "$ref": "#/components/schemas/FeedBrief",
+            "description": "On a custom feed: its picture and what it shows. Left out on anything else."
+          },
+          "files": {
+            "description": "The images of a photo post, in order. The first is the one portrait_urls shows.",
+            "items": {
+              "$ref": "#/components/schemas/PhotoFile"
+            },
+            "type": "array"
+          },
+          "follower_count": {
+            "description": "How many follow it, on a profile.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "is_admined_by_viewer": {
+            "description": "On a profile: whether the viewer is one of its administrators.",
+            "type": "boolean"
+          },
+          "is_blocked_by_viewer": {
+            "description": "On a profile: whether the viewer has blocked it.",
+            "type": "boolean"
+          },
+          "is_following_viewer": {
+            "description": "On a profile: whether it follows the viewer.",
+            "type": "boolean"
+          },
+          "is_leading_viewer": {
+            "description": "On a profile: whether the viewer follows it.",
+            "type": "boolean"
+          },
+          "is_liked_by_viewer": {
+            "description": "Whether the viewer likes it.",
+            "type": "boolean"
+          },
+          "is_reposted_by_viewer": {
+            "description": "Whether the viewer has reposted it.",
+            "type": "boolean"
+          },
+          "is_saved_by_viewer": {
+            "description": "Whether the viewer has saved it. Sent to them alone, like the rest of what is said here about the viewer.",
+            "type": "boolean"
+          },
+          "is_subscribed_by_viewer": {
+            "description": "Set by the subscribe and unsubscribe handlers, which answer with the node they acted on. The mapper had no field for it, so mapping their response would have silently dropped the one thing it reports.",
+            "type": "boolean"
+          },
+          "language": {
+            "description": "The language it is written in, as its author said (`en`, `fa`).",
+            "type": "string"
+          },
+          "likes_count": {
+            "description": "How many like it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "link_preview": {
+            "$ref": "#/components/schemas/LinkPreview",
+            "description": "On a note that carries one: the preview of a link in it."
+          },
+          "media_removed": {
+            "$ref": "#/components/schemas/MediaRemoved",
+            "description": "On a photo post from another server whose pictures are no longer stored here."
+          },
+          "mimetype": {
+            "description": "The kind of file it holds, where it holds one.",
+            "type": "string"
+          },
+          "name": {
+            "description": "A profile's name, or a post's title where it has one.",
+            "type": "string"
+          },
+          "origin_domain": {
+            "description": "The server it came from, when it came from another.",
+            "type": "string"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/Owner",
+            "description": "The profile it is on."
+          },
+          "parent": {
+            "$ref": "#/components/schemas/Parent",
+            "description": "What it answers, on a reply; what it reposts, on a repost."
+          },
+          "pinned": {
+            "description": "Pinned to the profile it is on, which it then leads.",
+            "type": "boolean"
+          },
+          "portrait_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "A photo post's first picture, in each size there is: `square`, `small`, `medium`, `large`, `original`.",
+            "type": "object"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/QuoteEmbed",
+            "description": "On a note that quotes a post: that post, or why it is not shown."
+          },
+          "quote_count": {
+            "description": "How many notes quote it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "quote_id": {
+            "description": "The id of the post it quotes, on a note that quotes one.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "repost_count": {
+            "description": "How many have reposted it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "root": {
+            "$ref": "#/components/schemas/Parent",
+            "description": "On a reply: the post at the top of its thread, with the profile the thread is on."
+          },
+          "root_id": {
+            "description": "Set on a reply: the post at the top of its thread. Its parent, what it directly answers, is sent whole as `parent`.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "type": {
+            "description": "What kind of thing it is: `node.medium.text-service.note.v1` for a note, `node.actor.actor-service.person.v1` for a person, and so on.",
+            "type": "string"
+          },
+          "uri": {
+            "description": "What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.",
+            "type": "string"
+          },
+          "verified": {
+            "description": "A mark kept from earlier versions of Anahita. Nothing sets it yet.",
+            "type": "boolean"
+          },
+          "video": {
+            "$ref": "#/components/schemas/Video",
+            "description": "What a video post plays."
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "Owner": {
+        "description": "Owner is the profile something is on.",
+        "properties": {
+          "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
+            "type": "string"
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
+            "type": "object"
+          },
+          "body": {
+            "description": "Its description.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "is_following_viewer": {
+            "description": "Whether the owner follows the viewer.",
+            "type": "boolean"
+          },
+          "is_leading_viewer": {
+            "description": "Whether the viewer follows the owner: with is_following_viewer, what the Follow item in a post's menu says (Unfollow, Follow, Follow back).",
+            "type": "boolean"
+          },
+          "name": {
+            "description": "A profile's name, or a post's title where it has one.",
+            "type": "string"
+          },
+          "type": {
+            "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "Pagination": {
+        "description": "Pagination is where a page is among everything there is to list.",
+        "properties": {
+          "limit": {
+            "description": "The most a page holds: what was asked for as `limit`.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "offset": {
+            "description": "How many come before this page: what was asked for as `start`.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "total": {
+            "description": "How many there are in all.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "offset",
+          "limit",
+          "total"
+        ],
+        "type": "object"
+      },
+      "Parent": {
+        "description": "Parent is a post another one hangs from: what a reply answers, what a repost reposts, or the post at the top of a thread.",
+        "properties": {
+          "access": {
+            "description": "Who may see it. Said so that a repost can be shared as what it reposts.",
+            "type": "string"
+          },
+          "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/components/schemas/Author",
+            "description": "Who wrote it."
+          },
+          "authorized": {
+            "$ref": "#/components/schemas/NodeAuthorized",
+            "description": "What the viewer may do with it."
+          },
+          "body": {
+            "description": "Its words, as Markdown.",
+            "type": "string"
+          },
+          "cover_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "A profile's cover picture, in each size there is.",
+            "type": "object"
+          },
+          "created_at": {
+            "description": "When it was written, so that a reposted post can be shown as itself.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "files": {
+            "description": "The pictures of a photo post, in order.",
+            "items": {
+              "$ref": "#/components/schemas/PhotoFile"
+            },
+            "type": "array"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "is_liked_by_viewer": {
+            "description": "Whether the viewer likes it.",
+            "type": "boolean"
+          },
+          "is_reposted_by_viewer": {
+            "description": "Whether the viewer has reposted it.",
+            "type": "boolean"
+          },
+          "is_saved_by_viewer": {
+            "description": "Whether the viewer has saved it. Sent to them alone, like the rest of what is said here about the viewer.",
+            "type": "boolean"
+          },
+          "link_preview": {
+            "$ref": "#/components/schemas/LinkPreview",
+            "description": "The preview of a link in it."
+          },
+          "name": {
+            "description": "A profile's name, or a post's title where it has one.",
+            "type": "string"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/Owner",
+            "description": "The profile it is on."
+          },
+          "portrait_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "A photo post's first picture, in each size there is.",
+            "type": "object"
+          },
+          "type": {
+            "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
+            "type": "string"
+          },
+          "video": {
+            "$ref": "#/components/schemas/Video",
+            "description": "What a video post plays."
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "PhotoFile": {
+        "description": "PhotoFile is one image of a photo post.",
+        "properties": {
+          "alt_text": {
+            "description": "What the image shows, for people who cannot see it. Always sent, empty when there is none, so a client can tell \"none\" from \"not told\".",
+            "type": "string"
+          },
+          "height": {
+            "description": "Of the image as uploaded, in pixels.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "description": "What an edit names the image by. The stored name, which is already in every address below.",
+            "type": "string"
+          },
+          "position": {
+            "description": "Where it comes among the post's pictures, from 0.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "description": "Each stored size, as portrait_urls is for the first image.",
+            "type": "object"
+          },
+          "width": {
+            "description": "Of the image as uploaded. Left out for an image stored before these were recorded.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "alt_text"
+        ],
+        "type": "object"
+      },
+      "QuoteEmbed": {
+        "description": "QuoteEmbed is what a note that quotes a post carries about it: the post, when this viewer may see it, or why it is not shown.",
+        "properties": {
+          "post": {
+            "$ref": "#/components/schemas/Parent",
+            "description": "The quoted post, with its author, the profile it is on and its date."
+          },
+          "state": {
+            "description": "\"unavailable\" when the viewer may not see the quoted post or it is gone; \"detached\" when its author took it out of this quote. Left out when the post is there.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Video": {
+        "description": "Video is what a video post plays: its sizes, largest first, and the still shown before it does.",
+        "properties": {
+          "duration": {
+            "description": "How long it plays, in seconds.",
+            "type": "number"
+          },
+          "files": {
+            "description": "Each size it can be played in, the largest first.",
+            "items": {
+              "$ref": "#/components/schemas/VideoFile"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "height": {
+            "description": "In pixels.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "loop": {
+            "description": "A GIF or an animated PNG: played silently, on a loop.",
+            "type": "boolean"
+          },
+          "poster": {
+            "description": "The picture shown before it plays: a path under the API.",
+            "type": "string"
+          },
+          "width": {
+            "description": "In pixels: its shape, which a player can be laid out by before it loads.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "duration",
+          "width",
+          "height",
+          "files"
+        ],
+        "type": "object"
+      },
+      "VideoFile": {
+        "description": "VideoFile is one size of a video.",
+        "properties": {
+          "height": {
+            "description": "In pixels.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "type": {
+            "description": "The kind of file: `video/mp4`.",
+            "type": "string"
+          },
+          "url": {
+            "description": "Where it is read from: a path under the API, the same for as long as the post is there, answered for whoever may see the post.",
+            "type": "string"
+          },
+          "width": {
+            "description": "In pixels.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "height",
+          "width",
+          "url",
+          "type"
+        ],
+        "type": "object"
+      },
+      "hashtag.HashtagNodeItem": {
+        "description": "HashtagNodeItem is a hashtag.",
+        "properties": {
+          "alias": {
+            "description": "What it is found by: `/hashtags/<alias>`.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "The hashtag as it is shown, without its #.",
+            "type": "string"
+          },
+          "type": {
+            "description": "Always `node.tag.hashtag-service.hashtag.v1`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "bearerFormat": "JWT",
+        "description": "An access token from auth-service (docs/oauth.md).",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "The hashtags written in posts, and the posts each one is in.",
+    "license": {
+      "identifier": "Apache-2.0",
+      "name": "Apache 2.0"
+    },
+    "title": "Hashtags",
+    "version": "dev"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/hashtags/": {
+      "get": {
+        "description": "Who may call it: anyone, signed in or not.",
+        "operationId": "getHashtags",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The order: in the most posts first, or the latest first.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "recent",
+              "enum": [
+                "popular",
+                "recent"
+              ],
+              "maxLength": 10,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Hashtags",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/hashtags/_browse/ordered_by_degree": {
+      "get": {
+        "description": "Every hashtag, the ones in the most posts first.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getHashtagsBrowseOrderedByDegree",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Hashtags used most of all",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/hashtags/_browse/trending": {
+      "get": {
+        "description": "The hashtags most used in a window of time that ends now. Not paged: the most there are, up to `limit`.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getHashtagsBrowseTrending",
+        "parameters": [
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Asked for in lower case and told to the graph in upper case, as its constants are. \"all\" was accepted and never understood: the graph fell back to a day for anything it did not know.",
+            "in": "query",
+            "name": "time_window",
+            "schema": {
+              "default": "weekly",
+              "enum": [
+                "daily",
+                "weekly",
+                "monthly",
+                "yearly"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Hashtags used most lately",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/hashtags/{alias}": {
+      "delete": {
+        "description": "The posts it was in stay, their words unchanged.\n\nWho may call it: a site administrator, with a token that carries `taxonomy:write`.",
+        "operationId": "deleteHashtagsById",
+        "parameters": [
+          {
+            "description": "Here, the `id`. The hashtag's id.",
+            "in": "path",
+            "name": "alias",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "the hashtag is gone"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          },
+          "404": {
+            "description": "there is no such hashtag"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "taxonomy:write"
+            ]
+          }
+        ],
+        "summary": "Delete a hashtag",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-viewer": "admin"
+      },
+      "get": {
+        "description": "Who may call it: anyone, signed in or not.",
+        "operationId": "getHashtagsByAlias",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alias",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "x-validate": "hashtag"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "404": {
+            "description": "there is no such hashtag"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One hashtag",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/hashtags/{id}/inbounds": {
+      "get": {
+        "description": "Those the viewer may see, the latest first unless asked otherwise.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getHashtagsByIdInbounds",
+        "parameters": [
+          {
+            "description": "What the posts are tied to: a hashtag's or a place's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The order they come in.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "recent",
+              "enum": [
+                "created_at",
+                "updated_at",
+                "recent",
+                "popular"
+              ],
+              "maxLength": 10,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/NodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "404": {
+            "description": "there is no such hashtag"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The posts a hashtag is in",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "An installation's API",
+      "url": "https://{host}",
+      "variables": {
+        "host": {
+          "default": "api.example.org",
+          "description": "Where the installation's API is"
+        }
+      }
+    }
+  ],
+  "tags": [
+    {
+      "description": "Hashtags",
+      "name": "hashtag-service"
+    }
+  ]
+}

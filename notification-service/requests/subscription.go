@@ -13,9 +13,11 @@ func NewSubscriptionRequest() *SubscriptionRequest {
 }
 
 type SubscriptionAddRequest struct {
+	// The id of the post or the profile to be told about.
 	TargetID int64 `form:"target_id" validate:"required"`
 }
 
 type SubscriptionDeleteRequest struct {
+	// The id of the post or the profile.
 	TargetID int64 `param:"target_id" validate:"required"`
 }

@@ -4,10 +4,15 @@ import (
 	"anahita-libs/data/entities"
 )
 
+// HashtagNodeItem is a hashtag.
 type HashtagNodeItem struct {
-	ID    int64  `json:"id"`
-	Type  string `json:"type"`
-	Name  string `json:"name,omitempty"`
+	// Its id.
+	ID int64 `json:"id"`
+	// Always `node.tag.hashtag-service.hashtag.v1`.
+	Type string `json:"type"`
+	// The hashtag as it is shown, without its #.
+	Name string `json:"name,omitempty"`
+	// What it is found by: `/hashtags/<alias>`.
 	Alias string `json:"alias,omitempty"`
 }
 

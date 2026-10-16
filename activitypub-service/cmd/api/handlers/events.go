@@ -14,6 +14,9 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/event"
 	"anahita-libs/videos"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
 )
 
 // What happens here that another server has to be told.
@@ -32,6 +35,7 @@ import (
 // EventTopics is what this service listens for.
 var EventTopics = []string{
 	"edge.follow.*.*.v1",
+	"edge.block.*.*.v1",
 	"edge.voteup.*.*.v1",
 	"node.repost.*.*.*.v1",
 	"node.medium.*.*.*.v1",
@@ -53,6 +57,12 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		err = h.localFollowed(ctx, payload.ObjectID, payload.TargetID)
 	case strings.HasPrefix(payload.Name, "edge.follow.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
 		err = h.localUnfollowed(ctx, payload.ObjectID, payload.TargetID)
+
+	// Somebody here blocked somebody elsewhere, or unblocked them.
+	case strings.HasPrefix(payload.Name, "edge.block.") && strings.HasSuffix(payload.Name, ".added.v1"):
+		err = h.localBlocked(ctx, payload.ObjectID, payload.TargetID)
+	case strings.HasPrefix(payload.Name, "edge.block.") && strings.HasSuffix(payload.Name, ".deleted.v1"):
+		err = h.localUnblocked(ctx, payload.ObjectID, payload.TargetID)
 
 	// Somebody liked something, or took a like back. The payload names
 	// who (the subject) and what (the object).
@@ -190,4 +200,48 @@ func (h *Handlers) localUnfollowed(ctx context.Context, sourceID, targetID int64
 	actor := h.addresses.Actor(source.UUID)
 	return h.send(ctx, source.ID, kept.Inbox,
 		ap.NewUndoFollow(h.addresses.Activity(newUUID()), actor, kept.URI, follow.ActivityID), "undo:"+follow.ActivityID)
+}
+
+// blockID is the name of the Block somebody here sends somebody elsewhere:
+// the same for the same two, so that the Undo of it quotes it without its
+// being kept anywhere.
+func (h *Handlers) blockID(sourceUUID string, targetID int64) string {
+	sum := sha256.Sum256([]byte(fmt.Sprintf("block\n%s\n%d", sourceUUID, targetID)))
+	return h.addresses.Activity("block-" + hex.EncodeToString(sum[:16]))
+}
+
+// localBlocked is somebody here having blocked somebody elsewhere. Any
+// follow between the two is forgotten, both ways, so that nothing more is
+// delivered to the blocked person's server: the graph ends the follows
+// themselves without saying so. And for somebody on the fediverse, the
+// other server is sent a Block, which Mastodon and what speaks to it keep
+// to: the blocked person stops seeing their posts and answering them.
+func (h *Handlers) localBlocked(ctx context.Context, sourceID, targetID int64) error {
+	source, target, kept, err := h.across(sourceID, targetID)
+	if err != nil || source == nil {
+		return err
+	}
+	for _, direction := range []string{repositories.FollowIn, repositories.FollowOut} {
+		if err := h.Follows.Delete(source.ID, target.ID, direction); err != nil {
+			return err
+		}
+	}
+	if h.federating(source) == nil {
+		return nil
+	}
+	id := h.blockID(source.UUID, target.ID)
+	return h.send(ctx, source.ID, kept.Inbox, ap.NewBlock(id, h.addresses.Actor(source.UUID), kept.URI), "block:"+id)
+}
+
+// localUnblocked is somebody here having unblocked somebody elsewhere: the
+// Block is taken back. Follows ended by it are not made again.
+func (h *Handlers) localUnblocked(ctx context.Context, sourceID, targetID int64) error {
+	source, target, kept, err := h.across(sourceID, targetID)
+	if err != nil || source == nil || h.federating(source) == nil {
+		return err
+	}
+	id := h.blockID(source.UUID, target.ID)
+	actor := h.addresses.Actor(source.UUID)
+	return h.send(ctx, source.ID, kept.Inbox,
+		ap.NewUndoBlock(h.addresses.Activity(newUUID()), actor, kept.URI, id), "unblock:"+newUUID())
 }

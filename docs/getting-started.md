@@ -134,9 +134,20 @@ and `make migration` runs the migration job on its own.
 make test
 ~~~
 
-That runs every module's tests and the check of `legacy/upgrade.sql`. Tests
-that need a database or a store are skipped unless they are told where one
-is, so that nothing is ever run against the database you develop on. Give
+That runs every module's tests and the check of `legacy/upgrade.sql`. Among
+them are the API reference's checks: a route registered without a
+description fails by name, and so does a reference in `docs/api/` that is not
+what the code describes now. After changing a route, or a struct it takes or
+sends, run
+
+~~~sh
+make api_docs
+~~~
+
+and commit what it writes with the change ([The API](api.md#describing-a-route)).
+
+Tests that need a database or a store are skipped unless they are told where
+one is, so that nothing is ever run against the database you develop on. Give
 them a throwaway MySQL with the schema loaded, and take it away afterwards:
 
 ~~~sh

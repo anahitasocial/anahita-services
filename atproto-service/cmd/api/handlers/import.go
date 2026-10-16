@@ -67,14 +67,14 @@ func (h *Handlers) ImportPreview(c echo.Context) error {
 		log.Printf("how many %s follows on Bluesky: %v", account.Handle, err)
 		return refuse(c, http.StatusBadGateway, errConnectFailed)
 	}
-	return c.JSON(http.StatusOK, map[string]any{
-		"following":     profile.FollowsCount,
-		"most":          importMost,
-		"posts_of_each": backfillPosts,
+	return c.JSON(http.StatusOK, ImportPreview{
+		Following:   profile.FollowsCount,
+		Most:        importMost,
+		PostsOfEach: backfillPosts,
 	})
 }
 
-type importRequest struct {
+type ImportRequest struct {
 	// How many accounts to follow here, beginning with the ones followed
 	// most lately.
 	Limit int `json:"limit"`
@@ -94,7 +94,7 @@ func (h *Handlers) ImportFollows(c echo.Context) error {
 		return refuse(c, http.StatusTooManyRequests, errConnectLimit)
 	}
 
-	req := &importRequest{}
+	req := &ImportRequest{}
 	_ = c.Bind(req)
 	limit := req.Limit
 	if limit <= 0 {
@@ -113,7 +113,7 @@ func (h *Handlers) ImportFollows(c echo.Context) error {
 	}
 
 	h.later(func() { h.importFollows(account, first, next, limit) })
-	return c.JSON(http.StatusAccepted, map[string]any{"started": true, "limit": limit})
+	return c.JSON(http.StatusAccepted, ImportStarted{Started: true, Limit: limit})
 }
 
 // importFollows follows here each account of the list, page by page, the

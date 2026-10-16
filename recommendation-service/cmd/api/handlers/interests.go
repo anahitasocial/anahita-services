@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"log"
 	"net/http"
 	"time"
@@ -40,7 +41,9 @@ type interestsHandler struct {
 	*Env
 }
 
-type interestsRequest struct {
+// InterestsRequest asks for the hashtags offered when signing up.
+type InterestsRequest struct {
+	// The most to send: 20 unless asked, 40 at most.
 	Limit int `query:"limit" validate:"omitempty,min=1,max=40"`
 }
 
@@ -50,7 +53,7 @@ func (h *interestsHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &interestsRequest{}
+	req := &InterestsRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -84,5 +87,5 @@ func (h *interestsHandler) Browse(c echo.Context) error {
 	if found == nil {
 		found = []repositories.Interest{}
 	}
-	return c.JSON(http.StatusOK, map[string]any{"data": found})
+	return c.JSON(http.StatusOK, responses.Unpaged[repositories.Interest]{Data: found})
 }

@@ -14,9 +14,13 @@ package requests
 // today (auth-service's tokens repo) hardcodes its ORDER BY and never reads
 // the field.
 type Browse struct {
-	Offset   uint64 `query:"offset"   json:"offset"`
-	Limit    uint64 `query:"limit"    json:"limit"   validate:"omitempty,max=100"`
+	// How many to skip.
+	Offset uint64 `query:"start"    json:"offset"`
+	// How many on a page.
+	Limit uint64 `query:"limit"    json:"limit"   validate:"omitempty,max=100"`
+	// Words to look for, where a list looks.
 	Keywords string `query:"q"        json:"keywords" validate:"omitempty,max=100"`
+	// What to sort by, where a list sorts.
 	Ordering string `query:"ordering" json:"ordering" validate:"omitempty,max=32"`
 }
 
@@ -30,5 +34,6 @@ func NewBrowse() *Browse {
 }
 
 type EmailRequest struct {
+	// The address.
 	Email string `query:"email" form:"email" validate:"min=10,max=100,email,required"`
 }

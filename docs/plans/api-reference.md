@@ -117,4 +117,48 @@ A and B are worth having alone: they settle the form, and every service after is
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11 |
-| Implementation | not started; place in the order not decided |
+| Phases A and B | done 2026-10-15, before Pulse (row 38) at the user's word, so that Pulse's routes are described as they are written |
+| Phase C | done 2026-10-15: all 19 services with routes are described, 344 routes in all; export-service's routes moved from its `main.go` to a `routes.go`, where the members-only guard reads them |
+| Phases D and E | to do: the page for people, answers checked against the reference |
+
+### What phases A and B did, and how it differs from the design above
+
+- **`anahita-libs/apidoc` registers the route as well as describing it.** `doc.On(e)` gives a Router whose `GET`, `POST` and the rest register with echo and keep the description, so a path is written once (`hashtags.GET("/:alias", …).Summary(…).Viewer(…).Takes(…).Sends(…)`). Check 1 still compares echo's routes with the descriptions, which catches a route registered past it.
+- **JSON, not YAML:** `docs/api/<service>.json` and `docs/api/anahita.json`. anahita-libs has no YAML library and `go mod tidy` is not run there; OpenAPI 3.1 reads JSON as well.
+- **The checks are tests:** `cmd/api/apidoc_test.go` beside a service's routes (checks 1 and 2), and `TestTheCombinedReference` in anahita-libs for `anahita.json`. `make api_docs` runs them with `APIDOC_UPDATE=1`, which writes instead of comparing. A service is added to the target when it is described.
+- **Field comments are read with `go/build` and `go/parser`** (no `go/packages`, which is not a dependency), skipping `_test.go`.
+- **A list's answer is `responses.List[T]`**, replacing the anonymous `Response` structs handlers declared; the wire is the same. A generic or unnamed struct is written out where it is used; a named one of anahita-libs is a component by its name (`NodeItem`), one of a service by its module (`hashtag.HashtagNodeItem`).
+- **One name for one place in a path:** echo allows `/hashtags/:alias` and `/hashtags/:id` side by side, OpenAPI does not. The first route's name is used, and the other's parameter says "Here, the `id`."
+- **400, 401 and 403 are added** where a route of its kind can answer them, unless it lists its own.
+- **`docs/api.md` corrects the plan on 404:** reading a post the viewer may not see answers `403`, and a removed one `410`; it is not always `404`. Refusals are listed per route.
+- **The shared shapes are described once:** the fields of `anahita-libs/responses` used by the reference carry comments now (109 had none; what is left are self-evident address parts).
+- **Checked with Redocly's linter:** no errors of structure. It flags `/hashtags/` for its trailing slash, which is the route's real address, and the 501-only route for having no 2xx or 4xx answer.
+- **`PATCH /hashtags/:alias` answered 501 whoever asks.** Removed on 2026-10-15 at the user's word, with the unused `Add` beside it: nothing called it, and a hashtag is made from the words of posts, so changing one here would disagree with them. `NotBuilt` stays in apidoc for a route of the kind.
+
+### Found while describing, and put right
+
+Each was found by describing a service, and put right on 2026-10-15 at the user's word ("clearly inconsistencies in the code"), with the web app where it had to change:
+
+- **Setting an avatar or a cover** answered with Go's field names (`Url`, `Size`, `Width`, `Height`); it answers with `url` and `size` as every other picture is sent (`responses.NewAvatar`). The web app reads it camel-cased, so it is unchanged.
+- **A notification's own fields were camelCase** (`createdAt`, `updatedAt`, `isRead`); they are `created_at`, `updated_at` and `is_read`. The web app reads them camel-cased, so it is unchanged.
+- **`DELETE /notifications/subscriptions/:target_id` answered `201 Created`**; it answers `200`.
+- **Abuse cases and refused servers were paged by `offset`**; they take `start`, as every other list, and the web app sends it.
+- **Liking, unliking or listing the likes of something that is not there answered 500**; it answers 404.
+- **`PATCH /hashtags/:alias` answered 501** and is removed (above).
+- **`composed`** was taken by every post and read by nothing; it is gone from the requests and the web app.
+- **Approving a follow request answered `202 Accepted`**, though it is done before the answer; it answers `200`.
+- **A group's or an event's "let people ask to follow" was never saved:** its request read `allowFollowRequest`, and the web app sends `allow_follow_request`, as a person's request reads. It reads `allow_follow_request` now.
+- **Changing a profile's features took its id from the body**, though the path names it; the path is now the one source, and the web app no longer sends it twice.
+- **Refusals said why under two names**, `message` in some services and `description` in others; actor-service says `description` now, as `responses.Refusal` does.
+- **Handlers that answered 501 and were never routed** (a leader's `Add` and `Delete`, a hashtag's `Add`) are removed.
+- **auth-service said why in four ways:** a bare JSON string (agreements, invitations), `message`, `description`, and `error_description` on routes that are not OAuth's. Each says `error` and `description` now, as `responses.Refusal` does; only `/oauth/token`, `/revoke`, `/introspect` and `/userinfo` keep RFC 6749's `error_description`. The web app read `description` on the OAuth-client and signing-key screens and found nothing, and read an invitation's refusal as a string; it reads `description` now, and says the server's words when somebody has too many invitations waiting.
+- **A missing step-up was a bare 403** when changing a password, an email address or a username, and when turning two-factor authentication off; it says `step_up_required` there too, as everywhere else. The TOTP screen tells the two 403s apart by it.
+- **The accounts list, the invitations and the signup requests were paged by `offset`**; they take `start`, and the web app sends it.
+- **Signing keys were answered as stored**, in camelCase (`keyId`, `expiresAt`); they are `key_id`, `expires_at` and `created_at` now (`responses.OAuthSigningKeyItem`). The web app reads them camel-cased, so it is unchanged.
+- **Taking an invitation back answered the stored row** (`startedAt`, `isUsed`, the recipient as `email`); it answers the invitation, as sending one does. An invitation's id was a string, every other id a number; it is a number now.
+- **A wrong password answered `406`** when setting up two-factor authentication, and **a wrong passcode `401`** when getting recovery codes; they answer `401` and `403`, as `/reauth` and `/totp/verify` do. The QR code is `image/png`, not `image/x-png`. Setting up took a `token` it never read; it is gone.
+- **The consent page's form answered JSON** to the browser when it could not go on; it shows the error page, as the other pages do.
+- **The passcode step of signing in read the whole sign-in form**, password and all, for its two fields; it reads `OAuthLoginTotp`.
+- **export-service's refusals were maps** and its list a map; they are `responses.Refusal`, `TooSoon` and `ExportList`, the wire unchanged.
+- **A struct of a handler's own was the answer** in several services (an anonymous `Response`, or a map): replaced by `responses.List[T]`, `responses.Unpaged[T]` or a named type as each service was described, the wire unchanged.
+

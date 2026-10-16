@@ -45,7 +45,7 @@ func (h *videoHandler) setPinned(c echo.Context, pinned bool) error {
 
 	// A reply is read in its thread. It is not pinned.
 	if medium.RootID > 0 {
-		return c.JSON(http.StatusUnprocessableEntity, map[string]string{"error": "reply_cannot_be_pinned"})
+		return c.JSON(http.StatusUnprocessableEntity, responses.Refusal{Error: "reply_cannot_be_pinned"})
 	}
 
 	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)

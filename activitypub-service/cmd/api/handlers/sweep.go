@@ -40,11 +40,11 @@ var errNotOne = errors.New("not one that goes out")
 
 // Swept is what one sweep found and put right, for the log.
 type Swept struct {
-	Follows, Unfollows, Notes, NotesGone, NotesEdited, PeopleEdited, Left int
+	Follows, Unfollows, Blocked, Notes, NotesGone, NotesEdited, PeopleEdited, Left int
 }
 
 func (s Swept) any() bool {
-	return s.Follows+s.Unfollows+s.Notes+s.NotesGone+s.NotesEdited+s.PeopleEdited+s.Left > 0
+	return s.Follows+s.Unfollows+s.Blocked+s.Notes+s.NotesGone+s.NotesEdited+s.PeopleEdited+s.Left > 0
 }
 
 // Sweep looks once for what was lost and puts it right.
@@ -99,6 +99,19 @@ func (h *Handlers) Sweep(ctx context.Context, now time.Time) Swept {
 	found, err = h.Missed.FollowsGone(sweepBatch)
 	swept.Unfollows = each("follows gone", found, err, func(pair repositories.Pair) error {
 		return h.localUnfollowed(ctx, pair.LocalID, pair.RemoteID)
+	})
+
+	// A follow between somebody here and somebody elsewhere one of whom
+	// blocks the other: forgotten, both ways, so that nothing more is
+	// delivered. The Block itself was sent when it was made.
+	found, err = h.Missed.FollowsBlocked(sweepBatch)
+	swept.Blocked = each("follows across a block", found, err, func(pair repositories.Pair) error {
+		for _, direction := range []string{repositories.FollowIn, repositories.FollowOut} {
+			if err := h.Follows.Delete(pair.LocalID, pair.RemoteID, direction); err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 
 	// A post that should have gone out and did not.
@@ -169,8 +182,8 @@ func (h *Handlers) Sweep(ctx context.Context, now time.Time) Swept {
 	}
 
 	if swept.any() {
-		log.Printf("sweep: put right %d follows, %d unfollows, %d notes not sent, %d notes gone, %d notes changed, %d profiles changed, %d people who left",
-			swept.Follows, swept.Unfollows, swept.Notes, swept.NotesGone, swept.NotesEdited, swept.PeopleEdited, swept.Left)
+		log.Printf("sweep: put right %d follows, %d unfollows, %d follows across a block, %d notes not sent, %d notes gone, %d notes changed, %d profiles changed, %d people who left",
+			swept.Follows, swept.Unfollows, swept.Blocked, swept.Notes, swept.NotesGone, swept.NotesEdited, swept.PeopleEdited, swept.Left)
 	}
 	return swept
 }

@@ -8,12 +8,15 @@ import (
 	"unicode/utf8"
 )
 
-// fileRef names one image a post is to have: one it has already, by its id,
+// FileRef names one image a post is to have: one it has already, by its id,
 // or one that was uploaded for it, by the upload's id.
-type fileRef struct {
-	ID       string `json:"id"`
-	UploadID int64  `json:"upload_id"`
-	AltText  string `json:"alt_text"`
+type FileRef struct {
+	// An image the post has already, by its id.
+	ID string `json:"id"`
+	// An image uploaded for it, by the upload's id.
+	UploadID int64 `json:"upload_id"`
+	// What it shows, for people who cannot see it.
+	AltText string `json:"alt_text"`
 }
 
 // Why a list of images was refused. Sent to the client as "error".
@@ -57,7 +60,7 @@ type filePlan struct {
 func planFiles(
 	existing []*entities.PhotoFile,
 	uploads []*entities.PhotoUpload,
-	wanted []fileRef,
+	wanted []FileRef,
 	viewerID int64,
 	ownerID int64,
 ) (*filePlan, string) {

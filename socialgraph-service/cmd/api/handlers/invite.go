@@ -25,35 +25,65 @@ func NewInviteHandler(env *Env) *inviteHandler {
 	return &inviteHandler{env}
 }
 
-type inviteAddRequest struct {
-	ActorID   int64   `param:"actor_id" validate:"required,numeric"`
+type InviteAddRequest struct {
+	// The group's or the event's id.
+	ActorID int64 `param:"actor_id" validate:"required,numeric"`
+	// Who to invite: people who follow the viewer.
 	PersonIDs []int64 `json:"person_ids" validate:"required,min=1,dive,required,numeric"`
 }
 
-type inviteActorRequest struct {
-	ActorID int64  `param:"actor_id" validate:"required,numeric"`
-	Offset  uint64 `query:"start"`
-	Limit   uint64 `query:"limit" validate:"omitempty,max=100"`
+type InviteActorRequest struct {
+	// The group's or the event's id.
+	ActorID int64 `param:"actor_id" validate:"required,numeric"`
+	// How many to pass over.
+	Offset uint64 `query:"start"`
+	// The most to send.
+	Limit uint64 `query:"limit" validate:"omitempty,max=100"`
 }
 
-type invitePersonRequest struct {
-	ActorID  int64 `param:"actor_id" validate:"required,numeric"`
+type InvitePersonRequest struct {
+	// The group's or the event's id.
+	ActorID int64 `param:"actor_id" validate:"required,numeric"`
+	// The person invited.
 	PersonID int64 `param:"person_id" validate:"required,numeric"`
 }
 
-type inviteMineRequest struct {
+type InviteMineRequest struct {
+	// How many to pass over.
 	Offset uint64 `query:"start"`
-	Limit  uint64 `query:"limit" validate:"omitempty,max=100"`
+	// The most to send.
+	Limit uint64 `query:"limit" validate:"omitempty,max=100"`
 }
 
-// inviteItem is one invitation as it is sent: who, to what, by whom, and
+// InviteResult is what became of one person invited.
+type InviteResult struct {
+	// Who.
+	PersonID int64 `json:"person_id"`
+	// `invited`; or why not: `already_follower`, `not_follower`, `blocked`,
+	// `cooldown`, `pending`, `requested`, `unavailable`, `full` or
+	// `closed`.
+	Result string `json:"result"`
+}
+
+// InviteAnswer is the viewer's answer to an invitation.
+type InviteAnswer struct {
+	// Whether they accepted it: they follow now.
+	Accepted bool `json:"accepted"`
+}
+
+// InviteItem is one invitation as it is sent: who, to what, by whom, and
 // until when.
-type inviteItem struct {
-	Actor     *responses.ActorBrief `json:"actor"`
-	Person    *responses.ActorBrief `json:"person"`
-	Inviter   *responses.ActorBrief `json:"inviter"`
-	CreatedAt time.Time             `json:"created_at"`
-	EndsAt    time.Time             `json:"ends_at"`
+type InviteItem struct {
+	// What they are invited to follow.
+	Actor *responses.ActorBrief `json:"actor"`
+	// Who is invited.
+	Person *responses.ActorBrief `json:"person"`
+	// Who invited them.
+	Inviter *responses.ActorBrief `json:"inviter"`
+	// When.
+	CreatedAt time.Time `json:"created_at"`
+	// When it lapses, unanswered.
+	EndsAt time.Time `json:"ends_at"`
 }
 
 // Add invites people to follow an actor.
@@ -64,7 +94,7 @@ type inviteItem struct {
 // Somebody who cannot be invited does not stop the others.
 func (h *inviteHandler) Add(c echo.Context) error {
 	var (
-		req    = &inviteAddRequest{}
+		req    = &InviteAddRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -102,13 +132,7 @@ func (h *inviteHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusTooManyRequests)
 	}
 
-	type result struct {
-		PersonID int64  `json:"person_id"`
-		Result   string `json:"result"`
-	}
-	resp := struct {
-		Data []result `json:"data"`
-	}{Data: []result{}}
+	resp := responses.Unpaged[InviteResult]{Data: []InviteResult{}}
 
 	seen := map[int64]bool{}
 	for _, id := range req.PersonIDs {
@@ -116,7 +140,7 @@ func (h *inviteHandler) Add(c echo.Context) error {
 			continue
 		}
 		seen[id] = true
-		resp.Data = append(resp.Data, result{PersonID: id, Result: results[id]})
+		resp.Data = append(resp.Data, InviteResult{PersonID: id, Result: results[id]})
 	}
 
 	return c.JSON(http.StatusOK, resp)
@@ -128,7 +152,7 @@ func (h *inviteHandler) Add(c echo.Context) error {
 // GET /socialgraph/:actor_id/invites/
 func (h *inviteHandler) Browse(c echo.Context) error {
 	var (
-		req    = &inviteActorRequest{Limit: constants.RequestLimitDefault}
+		req    = &InviteActorRequest{Limit: constants.RequestLimitDefault}
 		viewer = getViewer(c)
 	)
 
@@ -168,7 +192,7 @@ func (h *inviteHandler) Browse(c echo.Context) error {
 // GET /socialgraph/invites/
 func (h *inviteHandler) Mine(c echo.Context) error {
 	var (
-		req    = &inviteMineRequest{Limit: constants.RequestLimitDefault}
+		req    = &InviteMineRequest{Limit: constants.RequestLimitDefault}
 		viewer = getViewer(c)
 	)
 
@@ -213,7 +237,7 @@ func (h *inviteHandler) Decline(c echo.Context) error {
 
 func (h *inviteHandler) answer(c echo.Context, accept bool) error {
 	var (
-		req    = &inviteActorRequest{}
+		req    = &InviteActorRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -239,7 +263,7 @@ func (h *inviteHandler) answer(c echo.Context, accept bool) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	return c.JSON(http.StatusOK, map[string]bool{"accepted": accept})
+	return c.JSON(http.StatusOK, InviteAnswer{Accepted: accept})
 }
 
 // Delete takes an invitation back: whoever made it, or whoever looks after
@@ -248,7 +272,7 @@ func (h *inviteHandler) answer(c echo.Context, accept bool) error {
 // DELETE /socialgraph/:actor_id/invites/:person_id
 func (h *inviteHandler) Delete(c echo.Context) error {
 	var (
-		req    = &invitePersonRequest{}
+		req    = &InvitePersonRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -314,11 +338,8 @@ func (h *inviteHandler) actorAndRelation(actorID int64, viewer *entities.Viewer)
 // cannot see yet, which is the point of having been invited to it, and
 // that much of it they are shown.
 func (h *inviteHandler) list(invites []*services.Invite, total uint64, limit uint64, offset uint64, viewer *entities.Viewer) any {
-	resp := struct {
-		Data       []*inviteItem        `json:"data"`
-		Pagination responses.Pagination `json:"pagination"`
-	}{
-		Data: []*inviteItem{},
+	resp := responses.List[*InviteItem]{
+		Data: []*InviteItem{},
 		Pagination: responses.Pagination{
 			Limit:  limit,
 			Offset: offset,
@@ -355,7 +376,7 @@ func (h *inviteHandler) list(invites []*services.Invite, total uint64, limit uin
 	onAfterActorFetched(h.Env, nodes)
 
 	for _, invite := range invites {
-		resp.Data = append(resp.Data, &inviteItem{
+		resp.Data = append(resp.Data, &InviteItem{
 			Actor:     responses.NewActorBrief(known[invite.ActorID]),
 			Person:    responses.NewActorBrief(known[invite.InviteeID]),
 			Inviter:   responses.NewActorBrief(known[invite.InviterID]),

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"net/http"
 
 	"anahita-libs/constants"
@@ -25,9 +26,9 @@ func RequestReplyAccess(raw string) (string, bool) {
 // RefuseReplyAccess answers a request whose value for who may reply is not
 // one: 400, saying which field.
 func RefuseReplyAccess(c echo.Context) error {
-	return c.JSON(http.StatusBadRequest, map[string]string{
-		"error":       ErrReplyAccessInvalid,
-		"description": "reply_access must be \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas",
+	return c.JSON(http.StatusBadRequest, responses.Refusal{
+		Error:       ErrReplyAccessInvalid,
+		Description: "reply_access must be \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas",
 	})
 }
 

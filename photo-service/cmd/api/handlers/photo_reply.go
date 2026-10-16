@@ -28,17 +28,23 @@ import (
 // The pictures are uploaded first, for the person replying, through
 // POST /photos/:owner_id/uploads with their own id, as a photo post's are.
 
-// photoReplyRequest is a reply with pictures to the post :id.
-type photoReplyRequest struct {
-	Body     string    `json:"body" form:"body" validate:"omitempty,max=8000"`
-	Language string    `json:"language" form:"language" validate:"omitempty,max=12"`
-	Uploads  []fileRef `json:"uploads" form:"-"`
+// PhotoReplyRequest is a reply with pictures to the post :id.
+type PhotoReplyRequest struct {
+	// The id of the post or the reply it answers. Read by the handler from
+	// the path itself.
+	ParentID int64 `param:"id"`
+	// Its words, as Markdown. A reply with pictures need not have any.
+	Body string `json:"body" form:"body" validate:"omitempty,max=8000"`
+	// The language it is written in, as a BCP 47 tag.
+	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
+	// Its pictures, each uploaded first for the person replying.
+	Uploads []FileRef `json:"uploads" form:"-"`
 }
 
 // AddReply answers a post or a reply with pictures.
 func (h *photoHandler) AddReply(c echo.Context) error {
 	var (
-		req    = &photoReplyRequest{}
+		req    = &PhotoReplyRequest{}
 		viewer = getViewer(c)
 	)
 
