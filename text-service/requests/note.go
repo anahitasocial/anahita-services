@@ -45,7 +45,9 @@ func NewNoteRequest() *NoteRequest {
 }
 
 type NoteEditRequest struct {
-	ID   int64  `param:"id" validate:"required,numeric"`
+	// The note's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Its words, as Markdown.
 	Body string `form:"body" validate:"required,max=8000"`
 	// As on NoteAddRequest. Left out, the note keeps the preview it has for
 	// as long as that link is still in it.
@@ -64,9 +66,13 @@ type NoteEditAccessRequest struct {
 }
 
 type NoteAddRequest struct {
-	OwnerID int64  `param:"owner_id" validate:"required,numeric"`
-	Body    string `form:"body" validate:"required,max=8000"`
-	Access  string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
+	// The profile it is posted on.
+	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
+	// Its words, as Markdown.
+	Body string `form:"body" validate:"required,max=8000"`
+	// Who may see it (permissions.md). The widest the installation allows
+	// when left out.
+	Access string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
 	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
 	// by the author; left out, the post has none. See package language.
 	Language string `form:"language" validate:"omitempty,max=12"`

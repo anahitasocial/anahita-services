@@ -108,7 +108,7 @@ func (h *noteHandler) DetachQuote(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if note.QuoteID <= 0 {
-		return c.JSON(http.StatusUnprocessableEntity, map[string]string{"error": "not_a_quote"})
+		return c.JSON(http.StatusUnprocessableEntity, responses.Refusal{Error: "not_a_quote"})
 	}
 
 	// The quoted post itself, not as the viewer: who wrote it is all that is
@@ -174,7 +174,5 @@ func (h *mediumHandler) Quotes(c echo.Context) error {
 
 	batchPresignPaths(h.Env, quotes)
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": threadResponse(quotes),
-	})
+	return c.JSON(http.StatusOK, responses.Unpaged[*responses.MediumNode]{Data: threadResponse(quotes)})
 }

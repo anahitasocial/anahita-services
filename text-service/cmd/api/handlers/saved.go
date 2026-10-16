@@ -19,9 +19,11 @@ import (
 // post. Served under /bookmarks/, for posts of any kind, a photo included,
 // as replies are served under /notes/ whatever they answer.
 
-type savedBrowseRequest struct {
+type SavedBrowseRequest struct {
+	// How many to pass over.
 	Offset uint64 `query:"start"`
-	Limit  uint64 `query:"limit" validate:"omitempty,max=100"`
+	// The most to send: up to 100.
+	Limit uint64 `query:"limit" validate:"omitempty,max=100"`
 }
 
 // Saved returns what the viewer saved, most recently saved first.
@@ -33,7 +35,7 @@ type savedBrowseRequest struct {
 // saving a post does not keep it open. It comes back if it is opened again.
 func (h *mediumHandler) Saved(c echo.Context) error {
 	var (
-		req    = &savedBrowseRequest{Limit: constants.RequestLimitDefault}
+		req    = &SavedBrowseRequest{Limit: constants.RequestLimitDefault}
 		viewer = getViewer(c)
 	)
 
@@ -47,11 +49,7 @@ func (h *mediumHandler) Saved(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	type Response struct {
-		Data       []*responses.MediumNodeItem `json:"data"`
-		Pagination responses.Pagination        `json:"pagination"`
-	}
-	resp := &Response{Data: []*responses.MediumNodeItem{}}
+	resp := &responses.List[*responses.MediumNodeItem]{Data: []*responses.MediumNodeItem{}}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
@@ -111,8 +109,5 @@ func (h *mediumHandler) setSaved(c echo.Context, saved bool) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"id":                 id,
-		"is_saved_by_viewer": saved,
-	})
+	return c.JSON(http.StatusOK, SavedAnswer{ID: id, IsSavedByViewer: saved})
 }

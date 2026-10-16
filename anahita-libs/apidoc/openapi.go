@@ -309,8 +309,11 @@ func (r *Route) operation(schemas *schemas, rename map[string]string) (map[strin
 	sort.Ints(statuses)
 	for _, status := range statuses {
 		code := strconv.Itoa(status)
-		if _, taken := responses[code]; taken {
-			return nil, fmt.Errorf("both sends and refuses %d", status)
+		// Sent with a body for some reasons and refused without one for
+		// others: one answer, with every reason.
+		if sent, taken := responses[code].(map[string]any); taken {
+			sent["description"] = sent["description"].(string) + "; or, without a body: " + strings.Join(reasons[status], "; ")
+			continue
 		}
 		responses[code] = map[string]any{"description": strings.Join(reasons[status], "; ")}
 	}

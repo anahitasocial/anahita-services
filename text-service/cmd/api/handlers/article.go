@@ -52,11 +52,7 @@ func (h *articleHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	type Response struct {
-		Data       []*responses.MediumNodeItem `json:"data"`
-		Pagination responses.Pagination        `json:"pagination"`
-	}
-	resp := &Response{}
+	resp := &responses.List[*responses.MediumNodeItem]{}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 
