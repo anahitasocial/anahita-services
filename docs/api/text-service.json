@@ -284,6 +284,10 @@
             "description": "The language it is written in, as its author said (`en`, `fa`).",
             "type": "string"
           },
+          "library_only": {
+            "description": "That it is in its author's media library only: put up to be shown in an article, and listed nowhere else.",
+            "type": "boolean"
+          },
           "likes_count": {
             "description": "How many like it.",
             "format": "int64",
@@ -1968,6 +1972,14 @@
               "format": "int64",
               "minimum": 1,
               "type": "integer"
+            }
+          },
+          {
+            "description": "The viewer's own media library instead: all their photo or video posts on their own profile, with those they put up from inside the article editor, which no other list holds. The owner is then the viewer, whatever the path says.",
+            "in": "query",
+            "name": "library",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -3726,6 +3738,14 @@
               "minimum": 1,
               "type": "integer"
             }
+          },
+          {
+            "description": "The viewer's own media library instead: all their photo or video posts on their own profile, with those they put up from inside the article editor, which no other list holds. The owner is then the viewer, whatever the path says.",
+            "in": "query",
+            "name": "library",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -4872,6 +4892,14 @@
               "format": "int64",
               "minimum": 1,
               "type": "integer"
+            }
+          },
+          {
+            "description": "The viewer's own media library instead: all their photo or video posts on their own profile, with those they put up from inside the article editor, which no other list holds. The owner is then the viewer, whatever the path says.",
+            "in": "query",
+            "name": "library",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],

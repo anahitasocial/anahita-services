@@ -65,6 +65,15 @@ func (h *photoHandler) Browse(c echo.Context) error {
 	gReq.Direction = req.Direction
 	gReq.Disabled = req.Disabled
 	gReq.OwnerID = req.OwnerID
+	// The viewer's own media library: all their own, with what they put up
+	// from inside the article editor, which no other list holds.
+	if req.Library {
+		if viewer.ID <= 0 {
+			return c.NoContent(http.StatusForbidden)
+		}
+		gReq.OwnerID = viewer.ID
+		gReq.Library = true
+	}
 	if err := c.Validate(gReq); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
@@ -251,6 +260,10 @@ type PhotoAddRequest struct {
 	// Whether whoever can see it may download it. Left out, the post
 	// starts with what the profile it is on says.
 	AllowDownload *bool `json:"allow_download" form:"allow_download"`
+	// In the author's media library only: put up from inside the article
+	// editor to be shown in an article, and listed and announced nowhere.
+	// Only on the author's own profile.
+	LibraryOnly bool `json:"library_only" form:"library_only"`
 }
 
 // NewPhotoAddRequest is a photo post as the handler starts it: open to as
@@ -311,6 +324,11 @@ func (h *photoHandler) Add(c echo.Context) error {
 	medium.Enabled = true
 	medium.CommentStatus = true
 	medium.AllowDownload = handlers.DefaultAllowDownload(req.AllowDownload, owner)
+	// A library is one's own: on one's own profile and nowhere else.
+	if req.LibraryOnly && owner.ID != viewer.ID {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	medium.LibraryOnly = req.LibraryOnly
 
 	// Who may reply, when the author says. Not saying leaves it to the
 	// profile; a value that is not one is an error.

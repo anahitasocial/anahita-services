@@ -10,6 +10,9 @@ import (
 
 // SetSearchAccessQuery returns the access query for media repository
 func SetSearchAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.SelectBuilder {
+	// Nothing that is in a media library only, for anybody (listed.go).
+	sb = listedQuery(sb)
+
 	if viewer.IsAdmin() {
 		return sb
 	}

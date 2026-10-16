@@ -566,6 +566,10 @@
             "description": "The language it is written in, as its author said (`en`, `fa`).",
             "type": "string"
           },
+          "library_only": {
+            "description": "That it is in its author's media library only: put up to be shown in an article, and listed nowhere else.",
+            "type": "boolean"
+          },
           "likes_count": {
             "description": "How many like it.",
             "format": "int64",

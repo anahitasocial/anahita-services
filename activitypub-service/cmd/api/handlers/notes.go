@@ -53,6 +53,11 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo) || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil, nil
 	}
+	// In its author's media library only: shown within an article here,
+	// and announced to nobody.
+	if note.LibraryOnly {
+		return nil, nil
+	}
 	if note.CreatedBy <= 0 || note.OwnerID != note.CreatedBy {
 		return nil, nil
 	}

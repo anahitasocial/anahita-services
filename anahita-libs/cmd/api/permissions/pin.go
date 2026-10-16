@@ -18,7 +18,8 @@ import (
 // Feeds and lists offer it only to whoever runs the profile (RunsProfile);
 // a site administrator pins from the post's own page.
 //
-// Only a post at the top level. A reply is read in its thread.
+// Only a post at the top level. A reply is read in its thread, and a post
+// in a media library only is listed nowhere.
 //
 // rel is the relationship of the post's owner to the viewer.
 func CanPin(viewer *entities.Viewer, post *entities.AnahitaNode, rel *entities.ActorRelation) bool {
@@ -31,6 +32,12 @@ func CanPin(viewer *entities.Viewer, post *entities.AnahitaNode, rel *entities.A
 	}
 
 	if post.GetID() <= 0 || !post.IsMedium() || post.RootID > 0 || post.DeletedAt != nil {
+		return false
+	}
+
+	// A post in its author's media library only is shown within an
+	// article; pinned, it would be at the top of the profile it is kept off.
+	if post.LibraryOnly {
 		return false
 	}
 

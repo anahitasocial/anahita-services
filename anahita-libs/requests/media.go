@@ -68,6 +68,11 @@ type MediumBrowseRequest struct {
 	// from ?oid= as well as the path, leaving it out returned exactly that.
 	// Discovery is the job of feeds, search, hashtags and profiles.
 	OwnerID int64 `param:"owner_id" validate:"required,min=1"`
+	// The viewer's own media library instead: all their photo or video posts
+	// on their own profile, with those they put up from inside the article
+	// editor, which no other list holds. The owner is then the viewer,
+	// whatever the path says.
+	Library bool `query:"library" validate:"omitempty"`
 }
 
 type MediumReadRequest struct {

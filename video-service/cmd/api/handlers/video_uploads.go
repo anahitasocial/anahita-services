@@ -54,6 +54,10 @@ type UploadStartRequest struct {
 	// Whether whoever can see it may download it. Left out, the post
 	// starts with what the profile it is on says.
 	AllowDownload *bool `json:"allow_download" form:"allow_download"`
+	// In the author's media library only: put up from inside the article
+	// editor to be shown in an article, and listed and announced nowhere.
+	// Only on the author's own profile, and never a reply.
+	LibraryOnly bool `json:"library_only" form:"library_only"`
 	// What it answers, when it is a reply: then it is on its author's own
 	// profile, and what it is open to, who may answer it and quoting are
 	// its thread's, so those above are not read.
@@ -259,6 +263,12 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	// A library is one's own: on one's own profile, and a post, not a
+	// reply.
+	if req.LibraryOnly && (owner.ID != viewer.ID || req.ParentID > 0) {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	if sent >= h.Config.VideoDailyUploads {
 		return refuseUpload(c, http.StatusTooManyRequests, "too_many")
 	}
@@ -274,6 +284,7 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		ReplyAccess:   replyAccess,
 		QuotePolicy:   quotePolicy,
 		AllowDownload: handlers.DefaultAllowDownload(req.AllowDownload, owner),
+		LibraryOnly:   req.LibraryOnly,
 		DeclaredBytes: req.Size,
 		ParentID:      req.ParentID,
 	}

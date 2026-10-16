@@ -43,6 +43,7 @@ func (h *mediumHandler) Count(ctx context.Context, req *graphpb.MediumCountReque
 	rReq.Search = req.Search
 	rReq.AccessCheck = req.AccessCheck
 	rReq.TopLevelOnly = !req.IncludeReplies
+	rReq.Library = req.Library
 
 	total, err := h.env.Repos.Nodes.Count(rReq)
 	if err != nil {
@@ -79,6 +80,7 @@ func (h *mediumHandler) Browse(ctx context.Context, req *graphpb.MediumBrowseReq
 	rReq.OrderingDir = req.Direction
 	rReq.AccessCheck = req.AccessCheck
 	rReq.TopLevelOnly = !req.IncludeReplies
+	rReq.Library = req.Library
 	rReq.Viewer = viewer
 
 	nodes, err := h.env.Repos.Nodes.Browse(rReq)
@@ -244,8 +246,14 @@ func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest
 	}
 	node.IsRepostedByViewer = isRepostedMap[node.ID]
 
-	// publish event
+	// publish event. Not for a post in its author's media library only:
+	// what listens is what announces a post, to other servers, to the
+	// owner's subscribers, to a hashtag or a mention, and such a post is
+	// announced to nobody (repositories/listed.go).
 	go func() {
+		if node.LibraryOnly {
+			return
+		}
 		entityName := strings.Split(node.Type, ".")[3]
 		srvName := strings.Split(node.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatNodeMediumEdited, srvName, entityName)
@@ -320,8 +328,11 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 		}
 	}
 
-	// publish event
+	// publish event, as on an edit: not for a post in a media library only.
 	go func() {
+		if node.LibraryOnly {
+			return
+		}
 		entityName := strings.Split(node.Type, ".")[3]
 		srvName := strings.Split(node.Service, "-")[0]
 		routing_key := fmt.Sprintf(event.EventFormatNodeMediumAdded, srvName, entityName)

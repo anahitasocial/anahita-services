@@ -79,6 +79,8 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 	// which the count query had no alias for. The browse query does —
 	// GetBaseSelectQuery joins it — so only the count needed the join added.
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
+	// A hashtag's or a place's posts are a listing (listed.go).
+	query = listedQuery(query)
 	query = setBlockedLikersQuery(query, req.EdgeTypes, req.Direction)
 
 	// Add ordering
@@ -166,6 +168,8 @@ func (r *graphRepo) CountNeighbours(req *graphpb.BrowseNeighboursRequest, viewer
 	// none, and the gate treats a NULL owner as passing.
 	query = query.LeftJoin("nodes AS owner ON owner.id = node.owner_id")
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
+	// A hashtag's or a place's posts are a listing (listed.go).
+	query = listedQuery(query)
 	query = setBlockedLikersQuery(query, req.EdgeTypes, req.Direction)
 
 	countSql, countArgs, err := query.ToSql()

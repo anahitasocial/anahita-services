@@ -300,6 +300,10 @@ func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo) || note.IsRemote() || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil
 	}
+	// In its author's media library only: announced to nobody.
+	if note.LibraryOnly {
+		return nil
+	}
 	if note.CreatedBy <= 0 {
 		return nil
 	}

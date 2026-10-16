@@ -64,6 +64,9 @@ func newMediumFromRequest(req *graphpb.Node) *entities.AnahitaNode {
 	node.CreatedBy = req.CreatedBy
 	// What it quotes, which is said once and never changed.
 	node.QuoteID = req.QuoteId
+	// In its author's media library only, which is said once too: a post
+	// once announced cannot be taken back into the library.
+	node.LibraryOnly = req.LibraryOnly
 
 	return node
 }

@@ -131,6 +131,7 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.AllowFollowRequest = m.AllowFollowRequest
 	n.ShowRepostsOnProfile = m.ShowRepostsOnProfile
 	n.AllowDownload = m.AllowDownload
+	n.LibraryOnly = m.LibraryOnly
 	n.CreatedBy = m.CreatedBy
 	n.ModifiedBy = m.ModifiedBy
 	n.Mimetype = m.Mimetype
@@ -293,6 +294,7 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		AllowFollowRequest:        node.AllowFollowRequest,
 		ShowRepostsOnProfile:      node.ShowRepostsOnProfile,
 		AllowDownload:             node.AllowDownload,
+		LibraryOnly:               node.LibraryOnly,
 		StartsAt:                  timestamppb.New(node.StartsAt),
 		EndsAt:                    timestamppb.New(node.EndsAt),
 		OwnerType:                 node.OwnerType,

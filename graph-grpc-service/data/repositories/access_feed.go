@@ -27,6 +27,10 @@ import (
 //
 // The query must alias the row `node` and its owner `owner`.
 func SetFeedAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer) sq.SelectBuilder {
+	// Nothing that is in a media library only, for anybody: a feed is a
+	// listing (listed.go).
+	sb = listedQuery(sb)
+
 	if viewer.IsAdmin() {
 		return sb
 	}

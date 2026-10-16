@@ -184,7 +184,11 @@ type AnahitaNode struct {
 	// On a post that holds a file: whether whoever can see it may download
 	// it. On a person or a group: what their new posts start with. Off
 	// unless somebody turned it on; nobody is taken to have agreed.
-	AllowDownload  bool
+	AllowDownload bool
+	// A photo or video post in its author's media library only: read by
+	// its address with the access any post has, listed nowhere but the
+	// library, and announced to nobody. Set when it is made.
+	LibraryOnly    bool
 	Mimetype       string
 	Language       string
 	Access         string

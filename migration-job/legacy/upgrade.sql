@@ -579,6 +579,10 @@ ALTER TABLE nodes ADD COLUMN `show_reposts_on_profile` tinyint(1) NOT NULL DEFAU
 -- migrations/20261023000001_allow_download.sql.
 ALTER TABLE nodes ADD COLUMN `allow_download` tinyint(1) NOT NULL DEFAULT 0 AFTER `show_reposts_on_profile`;
 
+-- nodes.library_only. See
+-- migrations/20261112000001_library_only.sql.
+ALTER TABLE nodes ADD COLUMN `library_only` tinyint(1) NOT NULL DEFAULT 0 AFTER `allow_download`;
+
 -- nodes.uuid. See migrations/20261025000001_node_uuid.sql for why it is done
 -- in three steps.
 ALTER TABLE nodes ADD COLUMN `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NULL AFTER `id`;
@@ -1487,6 +1491,8 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     `quote_policy` varchar(16) NOT NULL DEFAULT '',
     -- Whether the post may be downloaded, as chosen when the upload began.
     `allow_download` tinyint(1) NOT NULL DEFAULT 0,
+    -- Whether its post is to be in the media library only.
+    `library_only` tinyint(1) NOT NULL DEFAULT 0,
     -- What the video answers, when it is a reply. NULL for a post.
     `parent_id` bigint unsigned NULL DEFAULT NULL,
     -- 'uploading' while the browser sends it, 'processing' once it is all

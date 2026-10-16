@@ -260,6 +260,10 @@
             "description": "The language it is written in, as its author said (`en`, `fa`).",
             "type": "string"
           },
+          "library_only": {
+            "description": "That it is in its author's media library only: put up to be shown in an article, and listed nowhere else.",
+            "type": "boolean"
+          },
           "likes_count": {
             "description": "How many like it.",
             "format": "int64",
@@ -2249,6 +2253,14 @@
               "minimum": 1,
               "type": "integer"
             }
+          },
+          {
+            "description": "The viewer's own media library instead: all their photo or video posts on their own profile, with those they put up from inside the article editor, which no other list holds. The owner is then the viewer, whatever the path says.",
+            "in": "query",
+            "name": "library",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -2323,6 +2335,10 @@
                     "description": "Whether whoever can see it may download it. Left out, the post starts with what the profile it is on says.",
                     "type": "boolean"
                   },
+                  "library_only": {
+                    "description": "In the author's media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author's own profile.",
+                    "type": "boolean"
+                  },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",
                     "maxLength": 16,
@@ -2379,6 +2395,10 @@
                     "maxLength": 12,
                     "type": "string"
                   },
+                  "library_only": {
+                    "description": "In the author's media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author's own profile.",
+                    "type": "boolean"
+                  },
                   "name": {
                     "description": "Its title, if it has one.",
                     "maxLength": 100,
@@ -2432,6 +2452,10 @@
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\".",
                     "maxLength": 12,
                     "type": "string"
+                  },
+                  "library_only": {
+                    "description": "In the author's media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author's own profile.",
+                    "type": "boolean"
                   },
                   "name": {
                     "description": "Its title, if it has one.",

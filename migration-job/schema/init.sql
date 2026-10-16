@@ -84,6 +84,9 @@ CREATE TABLE nodes (
   -- On a post that holds a file, whether whoever can see it may download
   -- it. On a person or a group, what their new posts start with.
   `allow_download` tinyint(1) NOT NULL DEFAULT 0,
+  -- On a photo or video post, that it is in its author's media library
+  -- only: read by its address, listed nowhere, announced to nobody.
+  `library_only` tinyint(1) NOT NULL DEFAULT 0,
   `subscriber_count` int(11) unsigned DEFAULT NULL,
   `vote_up_count` int(11) unsigned DEFAULT NULL,
   `excerpt` text,
@@ -964,6 +967,8 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     `quote_policy` varchar(16) NOT NULL DEFAULT '',
     -- Whether the post may be downloaded, as chosen when the upload began.
     `allow_download` tinyint(1) NOT NULL DEFAULT 0,
+    -- Whether its post is to be in the media library only.
+    `library_only` tinyint(1) NOT NULL DEFAULT 0,
     -- What the video answers, when it is a reply. NULL for a post.
     `parent_id` bigint unsigned NULL DEFAULT NULL,
     -- 'uploading' while the browser sends it, 'processing' once it is all

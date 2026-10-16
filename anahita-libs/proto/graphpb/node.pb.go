@@ -139,6 +139,9 @@ type Node struct {
 	// from, when that is another server. Empty on everything made here.
 	Uri          string `protobuf:"bytes,94,opt,name=uri,proto3" json:"uri,omitempty"`
 	OriginDomain string `protobuf:"bytes,95,opt,name=origin_domain,json=originDomain,proto3" json:"origin_domain,omitempty"`
+	// A photo or video post in its author's media library only: read by its
+	// address, listed nowhere, announced to nobody. Set when it is made.
+	LibraryOnly bool `protobuf:"varint,96,opt,name=library_only,json=libraryOnly,proto3" json:"library_only,omitempty"`
 	// Quote posts. quote_policy is who may quote a post, or on a person
 	// their posts; quote_id is the post a note quotes; quote_detached says
 	// that post's author took it out of the quote.
@@ -688,6 +691,13 @@ func (x *Node) GetOriginDomain() string {
 		return x.OriginDomain
 	}
 	return ""
+}
+
+func (x *Node) GetLibraryOnly() bool {
+	if x != nil {
+		return x.LibraryOnly
+	}
+	return false
 }
 
 func (x *Node) GetQuotePolicy() string {
@@ -3147,7 +3157,7 @@ var File_proto_graphpb_node_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8b\x17\n" +
+	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xae\x17\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -3238,6 +3248,7 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x04uuid\x18] \x01(\tR\x04uuid\x12\x10\n" +
 	"\x03uri\x18^ \x01(\tR\x03uri\x12#\n" +
 	"\rorigin_domain\x18_ \x01(\tR\foriginDomain\x12!\n" +
+	"\flibrary_only\x18` \x01(\bR\vlibraryOnly\x12!\n" +
 	"\fquote_policy\x18V \x01(\tR\vquotePolicy\x12\x19\n" +
 	"\bquote_id\x18W \x01(\x03R\aquoteId\x12%\n" +
 	"\x0equote_detached\x18X \x01(\bR\rquoteDetached\x12+\n" +

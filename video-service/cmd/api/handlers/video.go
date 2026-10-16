@@ -66,6 +66,15 @@ func (h *videoHandler) Browse(c echo.Context) error {
 	gReq.Direction = req.Direction
 	gReq.Disabled = req.Disabled
 	gReq.OwnerID = req.OwnerID
+	// The viewer's own media library: all their own, with what they put up
+	// from inside the article editor, which no other list holds.
+	if req.Library {
+		if viewer.ID <= 0 {
+			return c.NoContent(http.StatusForbidden)
+		}
+		gReq.OwnerID = viewer.ID
+		gReq.Library = true
+	}
 	if err := c.Validate(gReq); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)

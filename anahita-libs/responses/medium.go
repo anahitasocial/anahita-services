@@ -149,6 +149,9 @@ type MediumNode struct {
 	// Whether whoever can see it may download what it holds. Sent on a post
 	// that holds a file, for whoever may change it.
 	AllowDownload *bool `json:"allow_download,omitempty"`
+	// That it is in its author's media library only: put up to be shown in
+	// an article, and listed nowhere else.
+	LibraryOnly bool `json:"library_only,omitempty"`
 	// On a reply: removed, and kept as an empty placeholder because other
 	// replies hang from it. It carries no text and no author.
 	Deleted bool `json:"deleted,omitempty"`
@@ -302,6 +305,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		Root:               NewRoot(node.Root),
 		QuotePolicy:        node.QuotePolicy,
 		AllowDownload:      allowDownloadOf(node),
+		LibraryOnly:        node.LibraryOnly,
 		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
 		Hidden:             node.Hidden,
 		Access:             node.Access,
