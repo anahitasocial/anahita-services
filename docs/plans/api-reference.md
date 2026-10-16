@@ -117,4 +117,19 @@ A and B are worth having alone: they settle the form, and every service after is
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11 |
-| Implementation | not started; place in the order not decided |
+| Phases A and B | done 2026-10-16, before Pulse (row 38) at the user's word, so that Pulse's routes are described as they are written |
+| Phases C to E | to do: the other 19 services, the page for people, answers checked against the reference |
+
+### What phases A and B did, and how it differs from the design above
+
+- **`anahita-libs/apidoc` registers the route as well as describing it.** `doc.On(e)` gives a Router whose `GET`, `POST` and the rest register with echo and keep the description, so a path is written once (`hashtags.GET("/:alias", …).Summary(…).Viewer(…).Takes(…).Sends(…)`). Check 1 still compares echo's routes with the descriptions, which catches a route registered past it.
+- **JSON, not YAML:** `docs/api/<service>.json` and `docs/api/anahita.json`. anahita-libs has no YAML library and `go mod tidy` is not run there; OpenAPI 3.1 reads JSON as well.
+- **The checks are tests:** `cmd/api/apidoc_test.go` beside a service's routes (checks 1 and 2), and `TestTheCombinedReference` in anahita-libs for `anahita.json`. `make api_docs` runs them with `APIDOC_UPDATE=1`, which writes instead of comparing. A service is added to the target when it is described.
+- **Field comments are read with `go/build` and `go/parser`** (no `go/packages`, which is not a dependency), skipping `_test.go`.
+- **A list's answer is `responses.List[T]`**, replacing the anonymous `Response` structs handlers declared; the wire is the same. A generic or unnamed struct is written out where it is used; a named one of anahita-libs is a component by its name (`NodeItem`), one of a service by its module (`hashtag.HashtagNodeItem`).
+- **One name for one place in a path:** echo allows `/hashtags/:alias` and `/hashtags/:id` side by side, OpenAPI does not. The first route's name is used, and the other's parameter says "Here, the `id`."
+- **400, 401 and 403 are added** where a route of its kind can answer them, unless it lists its own.
+- **`docs/api.md` corrects the plan on 404:** reading a post the viewer may not see answers `403`, and a removed one `410`; it is not always `404`. Refusals are listed per route.
+- **The shared shapes are described once:** the fields of `anahita-libs/responses` used by the reference carry comments now (109 had none; what is left are self-evident address parts).
+- **Checked with Redocly's linter:** no errors of structure. It flags `/hashtags/` for its trailing slash, which is the route's real address, and the 501-only route for having no 2xx or 4xx answer.
+- **`PATCH /hashtags/:alias` answers 501 whoever asks** and is described as not built (`NotBuilt`). It could be removed instead.

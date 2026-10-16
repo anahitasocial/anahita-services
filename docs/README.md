@@ -38,6 +38,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [anahita-libs](architecture.md#anahita-libs)
    - [What a node is called elsewhere](architecture.md#what-a-node-is-called-elsewhere)
    - [Naming dates and times](architecture.md#naming-dates-and-times)
+   - [The API](api.md) — what is true of every route, and the reference made from the code ([`api/`](api/))
 4. [OAuth scopes and clients](oauth.md)
    - [Scopes](oauth.md#scopes)
    - [Seeding clients](oauth.md#seeding-clients)

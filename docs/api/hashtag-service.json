@@ -5,25 +5,31 @@
         "description": "ActorBrief is an actor named beside something else: who invited, who was invited, what they were invited to. Enough to show a picture and a name and to lead to the profile, and nothing of the profile itself.",
         "properties": {
           "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
             "type": "string"
           },
           "avatar_urls": {
             "additionalProperties": {
               "$ref": "#/components/schemas/Image"
             },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
             "type": "object"
           },
           "id": {
+            "description": "Its id.",
             "format": "int64",
             "type": "integer"
           },
           "name": {
+            "description": "A profile's name, or a post's title where it has one.",
             "type": "string"
           },
           "type": {
+            "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
             "type": "string"
           },
           "verified": {
+            "description": "A mark kept from earlier versions of Anahita. Nothing sets it yet.",
             "type": "boolean"
           }
         },
@@ -34,24 +40,30 @@
         "type": "object"
       },
       "Author": {
+        "description": "Author is who wrote something.",
         "properties": {
           "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
             "type": "string"
           },
           "avatar_urls": {
             "additionalProperties": {
               "$ref": "#/components/schemas/Image"
             },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
             "type": "object"
           },
           "id": {
+            "description": "Its id.",
             "format": "int64",
             "type": "integer"
           },
           "name": {
+            "description": "A profile's name, or a post's title where it has one.",
             "type": "string"
           },
           "type": {
+            "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
             "type": "string"
           }
         },
@@ -61,24 +73,30 @@
         "type": "object"
       },
       "Editor": {
+        "description": "Editor is who changed something last.",
         "properties": {
           "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
             "type": "string"
           },
           "avatar_urls": {
             "additionalProperties": {
               "$ref": "#/components/schemas/Image"
             },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
             "type": "object"
           },
           "id": {
+            "description": "Its id.",
             "format": "int64",
             "type": "integer"
           },
           "name": {
+            "description": "A profile's name, or a post's title where it has one.",
             "type": "string"
           },
           "type": {
+            "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
             "type": "string"
           }
         },
@@ -106,18 +124,22 @@
             "type": "integer"
           },
           "ends_at": {
+            "description": "When it ends, in UTC.",
             "format": "date-time",
             "type": "string"
           },
           "going_count": {
+            "description": "How many are going.",
             "format": "int64",
             "minimum": 0,
             "type": "integer"
           },
           "has_address": {
+            "description": "Whether it has an address, said to everybody.",
             "type": "boolean"
           },
           "has_online_url": {
+            "description": "Whether it has an address to join online, said to everybody.",
             "type": "boolean"
           },
           "host": {
@@ -129,6 +151,7 @@
             "type": "boolean"
           },
           "maybe_count": {
+            "description": "How many may go.",
             "format": "int64",
             "minimum": 0,
             "type": "integer"
@@ -142,6 +165,7 @@
             "type": "boolean"
           },
           "starts_at": {
+            "description": "When it begins, in UTC.",
             "format": "date-time",
             "type": "string"
           },
@@ -203,8 +227,11 @@
       "FeedBrief": {
         "description": "FeedBrief is what a custom feed is beyond its name and its owner, for where one is listed among other things, as in search results: its picture and what it shows.",
         "properties": {
-          "definition": {},
+          "definition": {
+            "description": "What it shows, as its owner set it (feeds.md)."
+          },
           "icon": {
+            "description": "The name of the icon its owner chose for it.",
             "type": "string"
           }
         },
@@ -215,11 +242,14 @@
         "type": "object"
       },
       "Image": {
+        "description": "Image is one size of a picture.",
         "properties": {
           "size": {
-            "$ref": "#/components/schemas/ImageSize"
+            "$ref": "#/components/schemas/ImageSize",
+            "description": "How big it is."
           },
           "url": {
+            "description": "Where it is read from.",
             "type": "string"
           }
         },
@@ -230,12 +260,15 @@
         "type": "object"
       },
       "ImageSize": {
+        "description": "ImageSize is how big an image is.",
         "properties": {
           "height": {
+            "description": "In pixels.",
             "format": "int64",
             "type": "integer"
           },
           "width": {
+            "description": "In pixels.",
             "format": "int64",
             "type": "integer"
           }
@@ -250,6 +283,7 @@
         "description": "LinkPreview is the card a note carries for a link in it: what the page was called and was about when the note was written.",
         "properties": {
           "description": {
+            "description": "What the page says of itself.",
             "type": "string"
           },
           "image": {
@@ -257,12 +291,15 @@
             "type": "string"
           },
           "site_name": {
+            "description": "The site it is on, as it calls itself.",
             "type": "string"
           },
           "title": {
+            "description": "What the page is called.",
             "type": "string"
           },
           "url": {
+            "description": "The link.",
             "type": "string"
           }
         },
@@ -276,6 +313,7 @@
         "description": "MediaRemoved is what a post from another server says of pictures that are no longer stored here: how many there were, what each showed, and whether they can still be had from where they came from.",
         "properties": {
           "alts": {
+            "description": "What each showed, as its author said; \"\" where nothing was said.",
             "items": {
               "type": "string"
             },
@@ -285,10 +323,12 @@
             ]
           },
           "count": {
+            "description": "How many pictures there were.",
             "format": "int64",
             "type": "integer"
           },
           "gone": {
+            "description": "They are not where they came from any more either: the post was taken away there, or its server is gone.",
             "type": "boolean"
           }
         },
@@ -299,11 +339,14 @@
         "type": "object"
       },
       "NodeAuthorized": {
+        "description": "NodeAuthorized is what the viewer may do with what it is sent with, as the server's own rules answer. edit, delete and administration are always there. The rest are left out when not worked out for this answer, so that a client can tell \"no\" from \"not answered here\" (see entities.AnahitaNodeAuthorized); composers is left out when empty too, since every person and group answer works it out.",
         "properties": {
           "add_follower": {
+            "description": "On a profile: whether the viewer may add a follower to it.",
             "type": "boolean"
           },
           "administration": {
+            "description": "Whether the viewer may look after it: on a profile, its settings.",
             "type": "boolean"
           },
           "audiences": {
@@ -318,16 +361,18 @@
             "type": "boolean"
           },
           "comment": {
-            "description": "Left out when not worked out for this response, so the web app can tell \"no\" from \"not answered here\" and keep its fallback for the latter. See entities.AnahitaNodeAuthorized.\n\nComposers is left out when empty too: every person and group response works it out, so there a missing list means none.",
+            "description": "Whether the viewer may reply to it.",
             "type": "boolean"
           },
           "composers": {
+            "description": "On a profile: the kinds of post the viewer may make on it.",
             "items": {
               "type": "string"
             },
             "type": "array"
           },
           "delete": {
+            "description": "Whether the viewer may delete it.",
             "type": "boolean"
           },
           "download": {
@@ -335,6 +380,7 @@
             "type": "boolean"
           },
           "edit": {
+            "description": "Whether the viewer may change it.",
             "type": "boolean"
           },
           "hide": {
@@ -346,6 +392,7 @@
             "type": "boolean"
           },
           "like": {
+            "description": "Whether the viewer may like it.",
             "type": "boolean"
           },
           "pin": {
@@ -365,11 +412,14 @@
         "type": "object"
       },
       "NodeItem": {
+        "description": "NodeItem is a post, a reply, a profile or anything else there is, as a list or a read sends it: what it is not is left out.",
         "properties": {
           "access": {
+            "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md).",
             "type": "string"
           },
           "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
             "type": "string"
           },
           "author": {
@@ -388,6 +438,7 @@
             "type": "object"
           },
           "body": {
+            "description": "Its words: a post's text, as Markdown, or a profile's description.",
             "type": "string"
           },
           "comment_count": {
@@ -399,14 +450,17 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/Image"
             },
+            "description": "A profile's cover picture, in each size there is: `medium`, `large`.",
             "type": "object"
           },
           "created_at": {
+            "description": "When it was made.",
             "format": "date-time",
             "type": "string"
           },
           "editor": {
-            "$ref": "#/components/schemas/Editor"
+            "$ref": "#/components/schemas/Editor",
+            "description": "Who changed it last."
           },
           "event": {
             "$ref": "#/components/schemas/Event",
@@ -424,29 +478,37 @@
             "type": "array"
           },
           "follower_count": {
+            "description": "How many follow it, on a profile.",
             "format": "int64",
             "type": "integer"
           },
           "id": {
+            "description": "Its id.",
             "format": "int64",
             "type": "integer"
           },
           "is_admined_by_viewer": {
+            "description": "On a profile: whether the viewer is one of its administrators.",
             "type": "boolean"
           },
           "is_blocked_by_viewer": {
+            "description": "On a profile: whether the viewer has blocked it.",
             "type": "boolean"
           },
           "is_following_viewer": {
+            "description": "On a profile: whether it follows the viewer.",
             "type": "boolean"
           },
           "is_leading_viewer": {
+            "description": "On a profile: whether the viewer follows it.",
             "type": "boolean"
           },
           "is_liked_by_viewer": {
+            "description": "Whether the viewer likes it.",
             "type": "boolean"
           },
           "is_reposted_by_viewer": {
+            "description": "Whether the viewer has reposted it.",
             "type": "boolean"
           },
           "is_saved_by_viewer": {
@@ -458,9 +520,11 @@
             "type": "boolean"
           },
           "language": {
+            "description": "The language it is written in, as its author said (`en`, `fa`).",
             "type": "string"
           },
           "likes_count": {
+            "description": "How many like it.",
             "format": "int64",
             "type": "integer"
           },
@@ -473,19 +537,24 @@
             "description": "On a photo post from another server whose pictures are no longer stored here."
           },
           "mimetype": {
+            "description": "The kind of file it holds, where it holds one.",
             "type": "string"
           },
           "name": {
+            "description": "A profile's name, or a post's title where it has one.",
             "type": "string"
           },
           "origin_domain": {
+            "description": "The server it came from, when it came from another.",
             "type": "string"
           },
           "owner": {
-            "$ref": "#/components/schemas/Owner"
+            "$ref": "#/components/schemas/Owner",
+            "description": "The profile it is on."
           },
           "parent": {
-            "$ref": "#/components/schemas/Parent"
+            "$ref": "#/components/schemas/Parent",
+            "description": "What it answers, on a reply; what it reposts, on a repost."
           },
           "pinned": {
             "description": "Pinned to the profile it is on, which it then leads.",
@@ -495,6 +564,7 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/Image"
             },
+            "description": "A photo post's first picture, in each size there is: `square`, `small`, `medium`, `large`, `original`.",
             "type": "object"
           },
           "quote": {
@@ -502,14 +572,17 @@
             "description": "On a note that quotes a post: that post, or why it is not shown."
           },
           "quote_count": {
+            "description": "How many notes quote it.",
             "format": "int64",
             "type": "integer"
           },
           "quote_id": {
+            "description": "The id of the post it quotes, on a note that quotes one.",
             "format": "int64",
             "type": "integer"
           },
           "repost_count": {
+            "description": "How many have reposted it.",
             "format": "int64",
             "type": "integer"
           },
@@ -523,6 +596,7 @@
             "type": "integer"
           },
           "type": {
+            "description": "What kind of thing it is: `node.medium.text-service.note.v1` for a note, `node.actor.actor-service.person.v1` for a person, and so on.",
             "type": "string"
           },
           "uri": {
@@ -530,6 +604,7 @@
             "type": "string"
           },
           "verified": {
+            "description": "A mark kept from earlier versions of Anahita. Nothing sets it yet.",
             "type": "boolean"
           },
           "video": {
@@ -544,34 +619,42 @@
         "type": "object"
       },
       "Owner": {
+        "description": "Owner is the profile something is on.",
         "properties": {
           "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
             "type": "string"
           },
           "avatar_urls": {
             "additionalProperties": {
               "$ref": "#/components/schemas/Image"
             },
+            "description": "Its picture, in each size there is: `small`, `medium`, `large`, `square`.",
             "type": "object"
           },
           "body": {
+            "description": "Its description.",
             "type": "string"
           },
           "id": {
+            "description": "Its id.",
             "format": "int64",
             "type": "integer"
           },
           "is_following_viewer": {
+            "description": "Whether the owner follows the viewer.",
             "type": "boolean"
           },
           "is_leading_viewer": {
-            "description": "Whether the viewer follows the owner, and the owner the viewer. For the Follow item in a post's menu: Unfollow, Follow, or Follow back.",
+            "description": "Whether the viewer follows the owner: with is_following_viewer, what the Follow item in a post's menu says (Unfollow, Follow, Follow back).",
             "type": "boolean"
           },
           "name": {
+            "description": "A profile's name, or a post's title where it has one.",
             "type": "string"
           },
           "type": {
+            "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
             "type": "string"
           }
         },
@@ -611,27 +694,33 @@
         "type": "object"
       },
       "Parent": {
+        "description": "Parent is a post another one hangs from: what a reply answers, what a repost reposts, or the post at the top of a thread.",
         "properties": {
           "access": {
             "description": "Who may see it. Said so that a repost can be shared as what it reposts.",
             "type": "string"
           },
           "alias": {
+            "description": "A profile's handle (`ana`, or `ana@mastodon.social` for somebody on another server), or a hashtag's name.",
             "type": "string"
           },
           "author": {
-            "$ref": "#/components/schemas/Author"
+            "$ref": "#/components/schemas/Author",
+            "description": "Who wrote it."
           },
           "authorized": {
-            "$ref": "#/components/schemas/NodeAuthorized"
+            "$ref": "#/components/schemas/NodeAuthorized",
+            "description": "What the viewer may do with it."
           },
           "body": {
+            "description": "Its words, as Markdown.",
             "type": "string"
           },
           "cover_urls": {
             "additionalProperties": {
               "$ref": "#/components/schemas/Image"
             },
+            "description": "A profile's cover picture, in each size there is.",
             "type": "object"
           },
           "created_at": {
@@ -640,19 +729,23 @@
             "type": "string"
           },
           "files": {
+            "description": "The pictures of a photo post, in order.",
             "items": {
               "$ref": "#/components/schemas/PhotoFile"
             },
             "type": "array"
           },
           "id": {
+            "description": "Its id.",
             "format": "int64",
             "type": "integer"
           },
           "is_liked_by_viewer": {
+            "description": "Whether the viewer likes it.",
             "type": "boolean"
           },
           "is_reposted_by_viewer": {
+            "description": "Whether the viewer has reposted it.",
             "type": "boolean"
           },
           "is_saved_by_viewer": {
@@ -660,21 +753,26 @@
             "type": "boolean"
           },
           "link_preview": {
-            "$ref": "#/components/schemas/LinkPreview"
+            "$ref": "#/components/schemas/LinkPreview",
+            "description": "The preview of a link in it."
           },
           "name": {
+            "description": "A profile's name, or a post's title where it has one.",
             "type": "string"
           },
           "owner": {
-            "$ref": "#/components/schemas/Owner"
+            "$ref": "#/components/schemas/Owner",
+            "description": "The profile it is on."
           },
           "portrait_urls": {
             "additionalProperties": {
               "$ref": "#/components/schemas/Image"
             },
+            "description": "A photo post's first picture, in each size there is.",
             "type": "object"
           },
           "type": {
+            "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
             "type": "string"
           },
           "video": {
@@ -704,6 +802,7 @@
             "type": "string"
           },
           "position": {
+            "description": "Where it comes among the post's pictures, from 0.",
             "format": "int64",
             "type": "integer"
           },
@@ -745,9 +844,11 @@
         "description": "Video is what a video post plays: its sizes, largest first, and the still shown before it does.",
         "properties": {
           "duration": {
+            "description": "How long it plays, in seconds.",
             "type": "number"
           },
           "files": {
+            "description": "Each size it can be played in, the largest first.",
             "items": {
               "$ref": "#/components/schemas/VideoFile"
             },
@@ -757,6 +858,7 @@
             ]
           },
           "height": {
+            "description": "In pixels.",
             "format": "int64",
             "type": "integer"
           },
@@ -765,9 +867,11 @@
             "type": "boolean"
           },
           "poster": {
+            "description": "The picture shown before it plays: a path under the API.",
             "type": "string"
           },
           "width": {
+            "description": "In pixels: its shape, which a player can be laid out by before it loads.",
             "format": "int64",
             "type": "integer"
           }
@@ -784,10 +888,12 @@
         "description": "VideoFile is one size of a video.",
         "properties": {
           "height": {
+            "description": "In pixels.",
             "format": "int64",
             "type": "integer"
           },
           "type": {
+            "description": "The kind of file: `video/mp4`.",
             "type": "string"
           },
           "url": {
@@ -795,6 +901,7 @@
             "type": "string"
           },
           "width": {
+            "description": "In pixels.",
             "format": "int64",
             "type": "integer"
           }
@@ -808,18 +915,23 @@
         "type": "object"
       },
       "hashtag.HashtagNodeItem": {
+        "description": "HashtagNodeItem is a hashtag.",
         "properties": {
           "alias": {
+            "description": "What it is found by: `/hashtags/<alias>`.",
             "type": "string"
           },
           "id": {
+            "description": "Its id.",
             "format": "int64",
             "type": "integer"
           },
           "name": {
+            "description": "The hashtag as it is shown, without its #.",
             "type": "string"
           },
           "type": {
+            "description": "Always `node.tag.hashtag-service.hashtag.v1`.",
             "type": "string"
           }
         },

@@ -25,19 +25,25 @@ func NewNodeAuthorized(node *entities.AnahitaNode) *NodeAuthorized {
 	}
 }
 
+// NodeAuthorized is what the viewer may do with what it is sent with, as the
+// server's own rules answer. edit, delete and administration are always
+// there. The rest are left out when not worked out for this answer, so that
+// a client can tell "no" from "not answered here" (see
+// entities.AnahitaNodeAuthorized); composers is left out when empty too,
+// since every person and group answer works it out.
 type NodeAuthorized struct {
-	Edit           bool `json:"edit"`
-	Delete         bool `json:"delete"`
+	// Whether the viewer may change it.
+	Edit bool `json:"edit"`
+	// Whether the viewer may delete it.
+	Delete bool `json:"delete"`
+	// Whether the viewer may look after it: on a profile, its settings.
 	Administration bool `json:"administration"`
 
-	// Left out when not worked out for this response, so the web app can
-	// tell "no" from "not answered here" and keep its fallback for the
-	// latter. See entities.AnahitaNodeAuthorized.
-	//
-	// Composers is left out when empty too: every person and group response
-	// works it out, so there a missing list means none.
-	Comment     *bool `json:"comment,omitempty"`
-	Like        *bool `json:"like,omitempty"`
+	// Whether the viewer may reply to it.
+	Comment *bool `json:"comment,omitempty"`
+	// Whether the viewer may like it.
+	Like *bool `json:"like,omitempty"`
+	// On a profile: whether the viewer may add a follower to it.
 	AddFollower *bool `json:"add_follower,omitempty"`
 	// Whether the viewer may invite people to follow this actor.
 	Invite *bool `json:"invite,omitempty"`
@@ -51,7 +57,8 @@ type NodeAuthorized struct {
 	// block its writer from there, as the group.
 	BlockFromOwner *bool `json:"block_from_owner,omitempty"`
 	// On a post that holds a file: whether the viewer may download it.
-	Download  *bool    `json:"download,omitempty"`
+	Download *bool `json:"download,omitempty"`
+	// On a profile: the kinds of post the viewer may make on it.
 	Composers []string `json:"composers,omitempty"`
 	// On a person or group: who a new post there may be shown to. On a
 	// post: who it may be changed to be shown to, for somebody who may edit

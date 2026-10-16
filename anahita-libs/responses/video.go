@@ -7,22 +7,30 @@ import (
 
 // VideoFile is one size of a video.
 type VideoFile struct {
+	// In pixels.
 	Height int `json:"height"`
-	Width  int `json:"width"`
+	// In pixels.
+	Width int `json:"width"`
 	// Where it is read from: a path under the API, the same for as long as
 	// the post is there, answered for whoever may see the post.
-	URL  string `json:"url"`
+	URL string `json:"url"`
+	// The kind of file: `video/mp4`.
 	Type string `json:"type"`
 }
 
 // Video is what a video post plays: its sizes, largest first, and the
 // still shown before it does.
 type Video struct {
-	Duration float64      `json:"duration"`
-	Width    int          `json:"width"`
-	Height   int          `json:"height"`
-	Poster   string       `json:"poster,omitempty"`
-	Files    []*VideoFile `json:"files"`
+	// How long it plays, in seconds.
+	Duration float64 `json:"duration"`
+	// In pixels: its shape, which a player can be laid out by before it loads.
+	Width int `json:"width"`
+	// In pixels.
+	Height int `json:"height"`
+	// The picture shown before it plays: a path under the API.
+	Poster string `json:"poster,omitempty"`
+	// Each size it can be played in, the largest first.
+	Files []*VideoFile `json:"files"`
 	// A GIF or an animated PNG: played silently, on a loop.
 	Loop bool `json:"loop,omitempty"`
 }

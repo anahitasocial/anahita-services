@@ -9,10 +9,14 @@ import (
 // LinkPreview is the card a note carries for a link in it: what the page
 // was called and was about when the note was written.
 type LinkPreview struct {
-	URL         string `json:"url"`
-	Title       string `json:"title"`
+	// The link.
+	URL string `json:"url"`
+	// What the page is called.
+	Title string `json:"title"`
+	// What the page says of itself.
 	Description string `json:"description,omitempty"`
-	SiteName    string `json:"site_name,omitempty"`
+	// The site it is on, as it calls itself.
+	SiteName string `json:"site_name,omitempty"`
 	// Where its picture is read from, on this installation: a path under
 	// the API. Never the other site's own address for it.
 	Image string `json:"image,omitempty"`
@@ -47,9 +51,13 @@ func NewLinkPreview(node *entities.AnahitaNode) *LinkPreview {
 // are no longer stored here: how many there were, what each showed, and
 // whether they can still be had from where they came from.
 type MediaRemoved struct {
-	Count int      `json:"count"`
-	Alts  []string `json:"alts"`
-	Gone  bool     `json:"gone,omitempty"`
+	// How many pictures there were.
+	Count int `json:"count"`
+	// What each showed, as its author said; "" where nothing was said.
+	Alts []string `json:"alts"`
+	// They are not where they came from any more either: the post was
+	// taken away there, or its server is gone.
+	Gone bool `json:"gone,omitempty"`
 }
 
 // NewMediaRemoved reads it from the post, or answers nil when the post's

@@ -6,8 +6,9 @@ import "anahita-libs/data/entities"
 type PhotoFile struct {
 	// What an edit names the image by. The stored name, which is already in
 	// every address below.
-	ID       string `json:"id"`
-	Position int    `json:"position"`
+	ID string `json:"id"`
+	// Where it comes among the post's pictures, from 0.
+	Position int `json:"position"`
 	// What the image shows, for people who cannot see it. Always sent, empty
 	// when there is none, so a client can tell "none" from "not told".
 	AltText string `json:"alt_text"`
