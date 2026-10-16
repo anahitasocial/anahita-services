@@ -118,7 +118,7 @@ A and B are worth having alone: they settle the form, and every service after is
 | --- | --- |
 | Plan | written 2026-10-11 |
 | Phases A and B | done 2026-10-15, before Pulse (row 38) at the user's word, so that Pulse's routes are described as they are written |
-| Phase C | 18 of the 19 services described on 2026-10-15 (auth-service last, 94 routes); export-service, whose four routes are registered in its `main.go`, to do |
+| Phase C | done 2026-10-15: all 19 services with routes are described, 344 routes in all; export-service's routes moved from its `main.go` to a `routes.go`, where the members-only guard reads them |
 | Phases D and E | to do: the page for people, answers checked against the reference |
 
 ### What phases A and B did, and how it differs from the design above
@@ -159,5 +159,6 @@ Each was found by describing a service, and put right on 2026-10-15 at the user'
 - **A wrong password answered `406`** when setting up two-factor authentication, and **a wrong passcode `401`** when getting recovery codes; they answer `401` and `403`, as `/reauth` and `/totp/verify` do. The QR code is `image/png`, not `image/x-png`. Setting up took a `token` it never read; it is gone.
 - **The consent page's form answered JSON** to the browser when it could not go on; it shows the error page, as the other pages do.
 - **The passcode step of signing in read the whole sign-in form**, password and all, for its two fields; it reads `OAuthLoginTotp`.
+- **export-service's refusals were maps** and its list a map; they are `responses.Refusal`, `TooSoon` and `ExportList`, the wire unchanged.
 - **A struct of a handler's own was the answer** in several services (an anonymous `Response`, or a map): replaced by `responses.List[T]`, `responses.Unpaged[T]` or a named type as each service was described, the wire unchanged.
 

@@ -91,7 +91,7 @@ func (p *proofs) Del(keys ...string) error {
 type fixture struct {
 	t       *testing.T
 	echo    *echo.Echo
-	handler *exportsHandler
+	handler *ExportsHandler
 	exports *fakeExports
 	files   *fakeFiles
 	proofs  *proofs

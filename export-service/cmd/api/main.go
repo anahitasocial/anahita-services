@@ -66,13 +66,7 @@ func main() {
 		return c.String(http.StatusOK, "pong")
 	})
 
-	// Every route is the viewer's own: there is nothing here for a visitor.
-	exports := e.Group("exports")
-	exports.Use(authorize)
-	exports.GET("", h.Browse)
-	exports.POST("", h.Add)
-	exports.GET("/:id", h.Read)
-	exports.DELETE("/:id", h.Delete)
+	NewRoutes(h, authorize).Init(e)
 
 	if err := e.Start(fmt.Sprintf(":%v", webPort)); err != nil {
 		e.Logger.Fatal(err)

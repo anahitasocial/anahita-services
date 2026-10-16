@@ -11,6 +11,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	an_mw "anahita-libs/middleware"
+	libs_responses "anahita-libs/responses"
 	"anahita-libs/sessions"
 
 	"export/config"
@@ -30,30 +31,64 @@ type Env struct {
 	Session sessions.KeyValueInterface
 }
 
-type exportsHandler struct {
+type ExportsHandler struct {
 	*Env
 }
 
-func NewExportsHandler(env *Env) *exportsHandler {
-	return &exportsHandler{env}
+func NewExportsHandler(env *Env) *ExportsHandler {
+	return &ExportsHandler{env}
 }
 
-// exportResponse is an export as its owner is told of it.
-type exportResponse struct {
-	ID        string     `json:"id"`
-	Status    string     `json:"status"`
-	SizeBytes int64      `json:"size_bytes,omitempty"`
-	Error     string     `json:"error,omitempty"`
-	CreatedAt time.Time  `json:"created_at"`
-	ReadyAt   *time.Time `json:"ready_at,omitempty"`
+// ExportItem is an export as its owner is told of it.
+type ExportItem struct {
+	// Its id: a UUID.
+	ID string `json:"id"`
+	// `pending`, `building`, `ready`, `failed`, `cancelled` or `expired`.
+	Status string `json:"status"`
+	// How big the archive is, once it is ready.
+	SizeBytes int64 `json:"size_bytes,omitempty"`
+	// Why it failed, when it did.
+	Error string `json:"error,omitempty"`
+	// When it was asked for.
+	CreatedAt time.Time `json:"created_at"`
+	// When it was ready.
+	ReadyAt *time.Time `json:"ready_at,omitempty"`
+	// When the archive will be deleted.
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 	// Where the archive is fetched from, while it is ready: an address
 	// good for a few minutes, made afresh each time this is read.
 	DownloadURL string `json:"download_url,omitempty"`
 }
 
-func (h *exportsHandler) respond(export *repositories.Export) *exportResponse {
-	resp := &exportResponse{
+// ExportList is the viewer's exports, and when they may ask again.
+type ExportList struct {
+	// The latest first.
+	Data []*ExportItem `json:"data"`
+	// How many days must pass between two exports. 0 for no wait.
+	EveryDays int `json:"every_days"`
+	// How many days an archive is kept once it is ready.
+	KeepDays int `json:"keep_days"`
+	// When they may next ask, while they must wait.
+	NextAt *time.Time `json:"next_at,omitempty"`
+}
+
+// TooSoon refuses an export asked for before it is time, and says when.
+type TooSoon struct {
+	// Always `too_soon`.
+	Error string `json:"error"`
+	// When they may ask.
+	NextAt time.Time `json:"next_at"`
+}
+
+// ExportRequest names one of the viewer's exports. The handler reads it
+// with c.Param; this describes it, for the API reference.
+type ExportRequest struct {
+	// The export's id: a UUID.
+	ID string `param:"id"`
+}
+
+func (h *ExportsHandler) respond(export *repositories.Export) *ExportItem {
+	resp := &ExportItem{
 		ID:        export.ID,
 		Status:    export.Status,
 		SizeBytes: export.SizeBytes,
@@ -80,7 +115,7 @@ func getViewer(c echo.Context) *entities.Viewer {
 
 // nextAllowed is when this person may next ask, or the zero time when they
 // may now.
-func (h *exportsHandler) nextAllowed(personID int64) (time.Time, error) {
+func (h *ExportsHandler) nextAllowed(personID int64) (time.Time, error) {
 	if h.Config.EveryDays <= 0 {
 		return time.Time{}, nil
 	}
@@ -104,7 +139,7 @@ func (h *exportsHandler) nextAllowed(personID int64) (time.Time, error) {
 // everything a person wrote, including what only they may see, and a
 // session left open on a shared computer must not be enough to take it.
 // One at a time, and one a week unless the installation says otherwise.
-func (h *exportsHandler) Add(c echo.Context) error {
+func (h *ExportsHandler) Add(c echo.Context) error {
 	viewer := getViewer(c)
 
 	if h.Session == nil {
@@ -113,7 +148,7 @@ func (h *exportsHandler) Add(c echo.Context) error {
 	}
 	if err := sessions.RequireStepUp(h.Session, viewer.ID); err != nil {
 		if errors.Is(err, sessions.ErrStepUpRequired) {
-			return c.JSON(http.StatusForbidden, map[string]string{"error": "step_up_required"})
+			return c.JSON(http.StatusForbidden, libs_responses.Refusal{Error: "step_up_required"})
 		}
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -127,7 +162,7 @@ func (h *exportsHandler) Add(c echo.Context) error {
 	if !next.IsZero() {
 		// Not counted against the proof: asking again when it is time
 		// should not need another.
-		return c.JSON(http.StatusTooManyRequests, map[string]any{"error": "too_soon", "next_at": next})
+		return c.JSON(http.StatusTooManyRequests, &TooSoon{Error: "too_soon", NextAt: next})
 	}
 
 	userAgent := c.Request().UserAgent()
@@ -142,7 +177,7 @@ func (h *exportsHandler) Add(c echo.Context) error {
 	}
 	if err := h.Exports.Add(export); err != nil {
 		if errors.Is(err, repositories.ErrActive) {
-			return c.JSON(http.StatusConflict, map[string]string{"error": "active"})
+			return c.JSON(http.StatusConflict, libs_responses.Refusal{Error: "active"})
 		}
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -160,7 +195,7 @@ func (h *exportsHandler) Add(c echo.Context) error {
 // may next ask for one.
 //
 // GET /exports
-func (h *exportsHandler) Browse(c echo.Context) error {
+func (h *ExportsHandler) Browse(c echo.Context) error {
 	viewer := getViewer(c)
 
 	exports, err := h.Exports.OfPerson(viewer.ID)
@@ -169,25 +204,25 @@ func (h *exportsHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	data := make([]*exportResponse, 0, len(exports))
+	data := make([]*ExportItem, 0, len(exports))
 	for _, export := range exports {
 		data = append(data, h.respond(export))
 	}
 
-	resp := map[string]any{
-		"data":       data,
-		"every_days": h.Config.EveryDays,
-		"keep_days":  h.Config.KeepDays,
+	resp := &ExportList{
+		Data:      data,
+		EveryDays: h.Config.EveryDays,
+		KeepDays:  h.Config.KeepDays,
 	}
 	if next, err := h.nextAllowed(viewer.ID); err == nil && !next.IsZero() {
-		resp["next_at"] = next
+		resp.NextAt = &next
 	}
 	return c.JSON(http.StatusOK, resp)
 }
 
 // own reads the export in the address, for whoever asked for it. Anybody
 // else is told there is none.
-func (h *exportsHandler) own(c echo.Context) (*repositories.Export, int) {
+func (h *ExportsHandler) own(c echo.Context) (*repositories.Export, int) {
 	viewer := getViewer(c)
 
 	id := c.Param("id")
@@ -208,7 +243,7 @@ func (h *exportsHandler) own(c echo.Context) (*repositories.Export, int) {
 // Read says how one export is getting on.
 //
 // GET /exports/:id
-func (h *exportsHandler) Read(c echo.Context) error {
+func (h *ExportsHandler) Read(c echo.Context) error {
 	export, refused := h.own(c)
 	if refused != 0 {
 		return c.NoContent(refused)
@@ -220,7 +255,7 @@ func (h *exportsHandler) Read(c echo.Context) error {
 // once it is.
 //
 // DELETE /exports/:id
-func (h *exportsHandler) Delete(c echo.Context) error {
+func (h *ExportsHandler) Delete(c echo.Context) error {
 	export, refused := h.own(c)
 	if refused != 0 {
 		return c.NoContent(refused)
