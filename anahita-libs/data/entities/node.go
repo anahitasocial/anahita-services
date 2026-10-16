@@ -110,7 +110,6 @@ type AnahitaNode struct {
 	Name         string
 	Alias        string
 	Body         string
-	Excerpt      string
 	StartsAt     time.Time
 	EndsAt       time.Time
 	OwnerID      int64
@@ -184,7 +183,15 @@ type AnahitaNode struct {
 	// On a post that holds a file: whether whoever can see it may download
 	// it. On a person or a group: what their new posts start with. Off
 	// unless somebody turned it on; nobody is taken to have agreed.
-	AllowDownload  bool
+	AllowDownload bool
+	// A photo or video post in its author's media library only: read by
+	// its address with the access any post has, listed nowhere but the
+	// library, and announced to nobody. Set when it is made.
+	LibraryOnly bool
+	// An article or a topic still being written: seen by its author alone,
+	// listed nowhere but their drafts, announced to nobody. Only ever
+	// cleared, by publishing it.
+	Draft          bool
 	Mimetype       string
 	Language       string
 	Access         string
@@ -290,4 +297,10 @@ type AnahitaNode struct {
 	//
 	// A pointer for the same reason as the two above.
 	FeaturedAt *time.Time
+}
+
+// IsDraft says whether it is a draft, an article or a topic still being
+// written, which its author alone may read.
+func (a *AnahitaNode) IsDraft() bool {
+	return a != nil && a.Draft
 }

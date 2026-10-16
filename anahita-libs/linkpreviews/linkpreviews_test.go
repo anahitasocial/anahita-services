@@ -134,3 +134,29 @@ func TestASnapshotIsKeptInANotesMetaBesideWhatIsThere(t *testing.T) {
 		t.Errorf("a snapshot could not be put into meta that was unreadable")
 	}
 }
+
+func TestSnapshotsMeta(t *testing.T) {
+	meta := IntoMeta(nil, &Snapshot{URL: "https://a.example/", Title: "A"})
+	cards := []*Snapshot{
+		{URL: "https://b.example/", Title: "B"},
+		{URL: "https://c.example/", Title: "C", ImageKey: "k"},
+	}
+
+	meta = SnapshotsIntoMeta(meta, cards)
+	got := SnapshotsFromMeta(meta)
+	if len(got) != 2 || got[0].URL != "https://b.example/" || got[1].ImageKey != "k" {
+		t.Fatalf("got %+v", got)
+	}
+	// A note's own card is left where it was.
+	if one := FromMeta(meta); one == nil || one.URL != "https://a.example/" {
+		t.Fatalf("the note's card went: %+v", one)
+	}
+
+	meta = SnapshotsIntoMeta(meta, nil)
+	if got := SnapshotsFromMeta(meta); len(got) != 0 {
+		t.Fatalf("got %+v after taking them out", got)
+	}
+	if SnapshotsIntoMeta(nil, nil) != nil {
+		t.Fatal("no cards and no meta should stay no meta")
+	}
+}

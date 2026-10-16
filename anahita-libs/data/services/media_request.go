@@ -31,4 +31,9 @@ type MediaGRPCBrowseRequest struct {
 	OwnerID int64 `validate:"required,min=1"`
 	// Replies are left out of a list of posts unless this is set.
 	IncludeReplies bool `validate:"omitempty"`
+	// The viewer's own media library: everything of theirs of the kind
+	// asked for, with what is in the library only.
+	Library bool `validate:"omitempty"`
+	// The viewer's own drafts on this profile.
+	Drafts bool `validate:"omitempty"`
 }

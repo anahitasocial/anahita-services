@@ -46,6 +46,8 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 		query = query.Where("node.root_id IS NULL")
 	}
 
+	query = listedAsAsked(query, req.Library, req.Drafts, req.Viewer)
+
 	req.Search = sanitizeSearchString(req.Search)
 	if req.Search != "" {
 		likePattern := "%" + req.Search + "%"
@@ -163,6 +165,8 @@ func (r *nodesRepo) Count(req *requests.NodeCountRequest) (uint64, error) {
 	if req.TopLevelOnly {
 		query = query.Where("node.root_id IS NULL")
 	}
+
+	query = listedAsAsked(query, req.Library, req.Drafts, req.Viewer)
 
 	req.Search = sanitizeSearchString(req.Search)
 	if req.Search != "" {

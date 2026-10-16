@@ -55,7 +55,6 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.Name = m.Name
 	n.Alias = m.Alias
 	n.Body = m.Body
-	n.Excerpt = m.Excerpt
 	n.CoverFilename = m.CoverFilename
 	n.Filename = m.Filename
 	n.AvatarFilename = m.AvatarFilename
@@ -131,6 +130,8 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.AllowFollowRequest = m.AllowFollowRequest
 	n.ShowRepostsOnProfile = m.ShowRepostsOnProfile
 	n.AllowDownload = m.AllowDownload
+	n.LibraryOnly = m.LibraryOnly
+	n.Draft = m.Draft
 	n.CreatedBy = m.CreatedBy
 	n.ModifiedBy = m.ModifiedBy
 	n.Mimetype = m.Mimetype
@@ -260,7 +261,6 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Name:                      node.Name,
 		Alias:                     node.Alias,
 		Body:                      node.Body,
-		Excerpt:                   node.Excerpt,
 		Filename:                  node.Filename,
 		AvatarFilename:            node.AvatarFilename,
 		RootId:                    node.RootID,
@@ -293,6 +293,8 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		AllowFollowRequest:        node.AllowFollowRequest,
 		ShowRepostsOnProfile:      node.ShowRepostsOnProfile,
 		AllowDownload:             node.AllowDownload,
+		LibraryOnly:               node.LibraryOnly,
+		Draft:                     node.Draft,
 		StartsAt:                  timestamppb.New(node.StartsAt),
 		EndsAt:                    timestamppb.New(node.EndsAt),
 		OwnerType:                 node.OwnerType,

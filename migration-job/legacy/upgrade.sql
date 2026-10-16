@@ -579,6 +579,17 @@ ALTER TABLE nodes ADD COLUMN `show_reposts_on_profile` tinyint(1) NOT NULL DEFAU
 -- migrations/20261023000001_allow_download.sql.
 ALTER TABLE nodes ADD COLUMN `allow_download` tinyint(1) NOT NULL DEFAULT 0 AFTER `show_reposts_on_profile`;
 
+-- nodes.library_only. See
+-- migrations/20261112000001_library_only.sql.
+ALTER TABLE nodes ADD COLUMN `library_only` tinyint(1) NOT NULL DEFAULT 0 AFTER `allow_download`;
+
+-- nodes.draft. See migrations/20261115000001_drafts.sql.
+ALTER TABLE nodes ADD COLUMN `draft` tinyint(1) NOT NULL DEFAULT 0 AFTER `library_only`;
+
+-- nodes.excerpt, dropped with what is in it. See
+-- migrations/20261113000001_drop_excerpt.sql.
+ALTER TABLE nodes DROP COLUMN `excerpt`;
+
 -- nodes.uuid. See migrations/20261025000001_node_uuid.sql for why it is done
 -- in three steps.
 ALTER TABLE nodes ADD COLUMN `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NULL AFTER `id`;
@@ -684,6 +695,13 @@ SET enabled = 1
 WHERE type LIKE 'node.medium.%'
   AND enabled = 0
   AND deleted_at IS NULL;
+
+-- Every line break of what was written stored as \n, as the graph writes it
+-- from now on. migrations/20261114000001_body_newlines does the same for an
+-- installation already running.
+UPDATE nodes
+SET body = REPLACE(REPLACE(body, CONCAT(CHAR(13), CHAR(10)), CHAR(10)), CHAR(13), CHAR(10))
+WHERE body LIKE CONCAT('%', CHAR(13), '%');
 
 -- Every post's count, from the replies there now are under it. The same
 -- count the graph keeps from here on: replies that are switched on, not
@@ -1487,6 +1505,8 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     `quote_policy` varchar(16) NOT NULL DEFAULT '',
     -- Whether the post may be downloaded, as chosen when the upload began.
     `allow_download` tinyint(1) NOT NULL DEFAULT 0,
+    -- Whether its post is to be in the media library only.
+    `library_only` tinyint(1) NOT NULL DEFAULT 0,
     -- What the video answers, when it is a reply. NULL for a post.
     `parent_id` bigint unsigned NULL DEFAULT NULL,
     -- 'uploading' while the browser sends it, 'processing' once it is all

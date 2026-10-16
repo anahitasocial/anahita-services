@@ -322,3 +322,72 @@ func Clip(text string, most int) string {
 
 	return strings.TrimSpace(string(runes[:most-1])) + "…"
 }
+
+// The key a post's meta keeps the cards of the pages it embeds under: an
+// article or a topic, where an address on a line of its own is shown by
+// its card (package embeds). A note's one card is apart, under metaKey.
+const embedsMetaKey = "link_previews"
+
+// SnapshotsFromMeta reads the cards of the pages a post embeds, in the
+// order they come in it.
+func SnapshotsFromMeta(meta []byte) []*Snapshot {
+	if len(meta) == 0 {
+		return nil
+	}
+
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(meta, &fields); err != nil {
+		return nil
+	}
+	raw, ok := fields[embedsMetaKey]
+	if !ok {
+		return nil
+	}
+
+	var all []*Snapshot
+	if err := json.Unmarshal(raw, &all); err != nil {
+		return nil
+	}
+
+	kept := []*Snapshot{}
+	for _, snapshot := range all {
+		if snapshot != nil && snapshot.URL != "" && snapshot.Title != "" {
+			kept = append(kept, snapshot)
+		}
+	}
+
+	return kept
+}
+
+// SnapshotsIntoMeta puts the cards of the pages a post embeds into its
+// meta, beside whatever else is there, or takes them out when there are
+// none.
+func SnapshotsIntoMeta(meta []byte, snapshots []*Snapshot) []byte {
+	fields := map[string]json.RawMessage{}
+	if len(meta) > 0 {
+		_ = json.Unmarshal(meta, &fields)
+		if fields == nil {
+			fields = map[string]json.RawMessage{}
+		}
+	}
+
+	if len(snapshots) == 0 {
+		if _, ok := fields[embedsMetaKey]; !ok {
+			return meta
+		}
+		delete(fields, embedsMetaKey)
+	} else {
+		raw, err := json.Marshal(snapshots)
+		if err != nil {
+			return meta
+		}
+		fields[embedsMetaKey] = raw
+	}
+
+	out, err := json.Marshal(fields)
+	if err != nil {
+		return meta
+	}
+
+	return out
+}

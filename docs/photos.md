@@ -51,7 +51,7 @@ image in `file`. `owner_id` is the profile the post will be on. Whoever may
 not post there may not upload there. The answer:
 
 ```json
-{ "upload_id": 31, "width": 2560, "height": 1707, "urls": { "small": { "url": "…" }, "…": {} } }
+{ "upload_id": 31, "width": 2048, "height": 1365, "urls": { "small": { "url": "…" }, "…": {} } }
 ```
 
 **2. Make the post from the uploads.** `POST /photos/:owner_id/` as JSON:
@@ -102,14 +102,22 @@ and written out again at each size, so nothing a file carries besides its
 picture reaches storage. What a file is, is decided from its bytes, not its
 name.
 
+Each size is measured by the picture's longest side, its height when it
+stands up and its width when it lies down, as Bluesky and Pixelfed measure
+them:
+
 | Size | |
 | --- | --- |
-| `original` | The picture at its own size, up to 2,560 pixels wide |
-| `xxlarge`, `xlarge`, `large`, `medium`, `small` | 1,920, 1,600, 1,280, 960 and 640 pixels wide |
+| `original` | The picture at its own size, up to 2,048 pixels on its longest side |
+| `xxlarge`, `xlarge`, `large`, `medium`, `small` | 2,048, 1,920, 1,440, 1,080 and 640 pixels on the longest side |
 | `square` | The middle of the picture, 640 pixels square |
 
-An image is never enlarged: one narrower than a size is stored at its own
-width under that size's name.
+An image is never enlarged: one smaller than a size is stored at its own
+size under that size's name. A JPEG is written at quality 85. A PNG with
+nothing see-through in it, a screenshot as often as not, is kept as a JPEG;
+one that is see-through somewhere stays a PNG. Pictures copied from posts
+on other servers are kept the same way. Photos kept before 2026-10-16 were
+measured by their width, up to 2,560, and their files are as they were.
 
 Images are stored under the profile the post is on, not under the post:
 `assets/v1/photo-service/photo/<owner id>/<name>_<size>.<ext>`. That is what
@@ -132,7 +140,7 @@ A photo post carries its images as `files`, in order:
 ```json
 "files": [
   { "id": "9f2c….jpg", "position": 0, "alt_text": "A heron standing in shallow water",
-    "width": 2560, "height": 1707, "urls": { "medium": { "url": "…" }, "…": {} } }
+    "width": 2048, "height": 1365, "urls": { "medium": { "url": "…" }, "…": {} } }
 ]
 ```
 

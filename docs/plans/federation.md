@@ -263,7 +263,28 @@ Written by hand with small JSON structs and an HTTP-signature library (`github.c
   - mentions of remote people (`@user@host`) and Create delivery to the people mentioned.
 - **Phase 3, richer content:**
   - photos and attachments both ways (AT blobs, AP `Document` / `Image`);
-  - articles as AP `Article` (and long-form on AT);
+  - **articles and topics**, designed with the user on 2026-10-16 (who likes
+    how the fediverse handles long writing):
+    - **An article goes as an ActivityPub `Article`:** its title as `name`,
+      its excerpt as `summary`, its cover as `image` (the public
+      `/covers/<uuid>/large`), its text as HTML in `content` by the same
+      `federation.ToHTML` notes use, and its Markdown as `source`
+      (`text/markdown`). Mastodon shows an Article as its title, its summary
+      and a link to it here, by design; Akkoma, Misskey, Hubzilla and others
+      show it whole.
+    - **A topic goes as a `Note`** whose text begins with its title, in
+      bold: it is there to be talked about, and a Note is what Mastodon lets
+      people read and answer in place. A topic in a group can go as a
+      `Page`, as Lemmy shows one, once groups federate (phase 4).
+    - **What a post embeds** (an address on a line of its own) stays the link
+      it is in `content`; the servers draw their own cards for links. The
+      pictures of a cited photo post are not sent as attachments at first:
+      apart from their place in the text they read oddly, and the link leads
+      to them.
+    - **On Bluesky,** where a post is 300 characters: the title and the
+      excerpt, with a card that links to the article and carries its cover
+      (`WithCard`). An edit is sent to the fediverse as an `Update`, as a
+      note's is; Bluesky only adds and deletes, so its card stays as it was.
   - hashtags federated as `Hashtag` tags and AT facets;
   - quote posts;
   - custom emojis.

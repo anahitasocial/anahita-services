@@ -300,6 +300,10 @@ func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo) || note.IsRemote() || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil
 	}
+	// In its author's media library only: announced to nobody.
+	if note.LibraryOnly {
+		return nil
+	}
 	if note.CreatedBy <= 0 {
 		return nil
 	}
@@ -316,7 +320,10 @@ func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 	// everybody.
 	if note.ParentID <= 0 && note.RootID <= 0 {
 		if note.OwnerID != note.CreatedBy || note.Access != constants.AnahitaAccessPublic {
-			return nil
+			// Not one that goes out. If it went before, open to everybody
+			// and not now, it is taken back, as the fediverse takes it back
+			// (the user, 2026-10-16); one never sent has nothing to take.
+			return h.localRemoved(ctx, note.ID)
 		}
 		return h.begin(ctx, account, repositories.SentPost, note.ID, "", note.ID)
 	}

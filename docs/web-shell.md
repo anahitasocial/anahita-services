@@ -51,7 +51,7 @@ twice.
 | `/people/<alias>` and its tabs | The person's name | Their bio | Their avatar |
 | `/groups/<id>`, `/events/<id>` and their tabs | Its name | What it says of itself | Its avatar |
 | `/photos/<id>` | The photo's title | Its text | The photo |
-| `/articles/<id>`, `/topics/<id>` | Its title | Its excerpt, or the start of its text | Its cover |
+| `/articles/<id>`, `/topics/<id>` | Its title | The start of its text | Its cover |
 | `/notes/<id>` | Its writer's name | The start of the note | The picture of the link it carries a card for |
 | `/hashtags/<tag>` | `#tag` | The site's | The site's |
 | Any other | The site's name | The site's | `/statics/media/ogimage.jpg` |

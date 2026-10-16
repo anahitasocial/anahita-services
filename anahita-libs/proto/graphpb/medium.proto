@@ -19,6 +19,10 @@ message MediumCountRequest {
     bool access_check = 5;
     // As on a browse.
     bool include_replies = 6;
+    // As on a browse.
+    bool library = 7;
+    // As on a browse.
+    bool drafts = 8;
 }
 
 message MediumCountResponse {
@@ -40,6 +44,13 @@ message MediumBrowseRequest {
     // Replies are left out of a list of posts unless this is set: a list of
     // somebody's notes is not to be filled with their answers to others.
     bool include_replies = 10;
+
+    // The viewer's own media library: everything of theirs of the kind asked
+    // for, with what is in the library only, which no other list holds.
+    bool library = 11;
+
+    // The viewer's own drafts, which no other list holds, and none else.
+    bool drafts = 12;
 }
 
 message MediumBrowseResponse {

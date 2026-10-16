@@ -93,20 +93,25 @@ func (a *AnahitaNode) GetPortraits() (map[string]AnahitaNodeImage, error) {
 		var width, height int = 0, 0
 		switch size {
 
+		// The longest side of each, a photo standing up measured by its
+		// height (images.FitLongest): 1080 for a feed, as most networks
+		// show one, up to 2048 for the whole of it, Bluesky's 2000 near
+		// enough (the user, 2026-10-16). Photos kept before were measured
+		// by their width; their files are as they were.
 		case PortraitSizeXXLarge:
-			width = 80 * 24 // 1920
+			width = 2048
 			height = 0
 		case PortraitSizeXLarge:
-			width = 80 * 20 // 1600
+			width = 1920
 			height = 0
 		case PortraitSizeLarge:
-			width = 80 * 16 // 1280
+			width = 1440
 			height = 0
 		case PortraitSizeMedium:
-			width = 80 * 12 // 960
+			width = 1080
 			height = 0
 		case PortraitSizeSmall:
-			width = 80 * 8 // 640
+			width = 640
 			height = 0
 		case PortraitSizeSquare:
 			width = 80 * 8  // 640

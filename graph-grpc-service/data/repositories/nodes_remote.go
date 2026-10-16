@@ -239,7 +239,6 @@ WHERE parent_id = ?
 	emptyRemoteNote = `
 UPDATE nodes
 SET body = '',
-    excerpt = NULL,
     name = '',
     meta = NULL,
     deleted_at = UTC_TIMESTAMP(),
@@ -461,7 +460,7 @@ func (r *nodesRepo) addRemote(ctx context.Context, node *entities.AnahitaNode) (
 		"origin_domain": node.OriginDomain,
 		"name":          node.Name,
 		"alias":         node.Alias,
-		"body":          node.Body,
+		"body":          newlines(node.Body),
 		"meta":          node.Meta,
 		"language":      node.Language,
 		"website_url":   node.WebsiteURL,
@@ -511,7 +510,7 @@ func (r *nodesRepo) addRemote(ctx context.Context, node *entities.AnahitaNode) (
 func (r *nodesRepo) editRemote(ctx context.Context, id int64, node *entities.AnahitaNode) error {
 	columns := map[string]any{
 		"name":        node.Name,
-		"body":        node.Body,
+		"body":        newlines(node.Body),
 		"meta":        node.Meta,
 		"language":    node.Language,
 		"website_url": node.WebsiteURL,

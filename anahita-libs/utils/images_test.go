@@ -186,3 +186,53 @@ func TestAcceptRefusesABrokenImage(t *testing.T) {
 		t.Errorf("a cut-off PNG: %v", err)
 	}
 }
+
+func TestFitLongest(t *testing.T) {
+	for _, c := range []struct {
+		w, h, side, wantW, wantH int
+	}{
+		{3000, 2000, 2048, 2048, 1365},
+		{2000, 3000, 2048, 1365, 2048},
+		{800, 600, 2048, 800, 600},
+	} {
+		img := image.NewRGBA(image.Rect(0, 0, c.w, c.h))
+		var buf bytes.Buffer
+		if err := jpeg.Encode(&buf, img, nil); err != nil {
+			t.Fatal(err)
+		}
+		out, err := FitLongest(buf.Bytes(), c.side)
+		if err != nil {
+			t.Fatal(err)
+		}
+		w, h, err := Dimensions(out)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if w != c.wantW || h != c.wantH {
+			t.Errorf("%dx%d fitted to %d: got %dx%d, want %dx%d", c.w, c.h, c.side, w, h, c.wantW, c.wantH)
+		}
+	}
+}
+
+func TestAsPhoto(t *testing.T) {
+	opaque := image.NewNRGBA(image.Rect(0, 0, 10, 10))
+	for i := range opaque.Pix {
+		opaque.Pix[i] = 255
+	}
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, opaque); err != nil {
+		t.Fatal(err)
+	}
+	if _, kind, err := AsPhoto(buf.Bytes(), "image/png"); err != nil || kind != "image/jpeg" {
+		t.Errorf("an opaque PNG: got %q, %v; want image/jpeg", kind, err)
+	}
+
+	clear := image.NewNRGBA(image.Rect(0, 0, 10, 10))
+	buf.Reset()
+	if err := png.Encode(&buf, clear); err != nil {
+		t.Fatal(err)
+	}
+	if _, kind, err := AsPhoto(buf.Bytes(), "image/png"); err != nil || kind != "image/png" {
+		t.Errorf("a see-through PNG: got %q, %v; want image/png", kind, err)
+	}
+}

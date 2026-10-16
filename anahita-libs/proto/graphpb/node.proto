@@ -16,7 +16,9 @@ message Node {
     string name = 6;
     string alias = 7;
     string body = 8;
-    string excerpt = 9;
+    // 9 was an article's excerpt, dropped on 2026-10-16.
+    reserved 9;
+    reserved "excerpt";
     string filename = 10;
     string cover_filename = 11;
     string meta = 13;
@@ -147,6 +149,12 @@ message Node {
     // from, when that is another server. Empty on everything made here.
     string uri = 94;
     string origin_domain = 95;
+    // A photo or video post in its author's media library only: read by its
+    // address, listed nowhere, announced to nobody. Set when it is made.
+    bool library_only = 96;
+    // An article or a topic still being written: seen by its author alone,
+    // listed nowhere, announced to nobody. Only ever cleared, by publishing.
+    bool draft = 97;
 
     // Quote posts. quote_policy is who may quote a post, or on a person
     // their posts; quote_id is the post a note quotes; quote_detached says

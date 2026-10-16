@@ -66,6 +66,15 @@ func (h *videoHandler) Browse(c echo.Context) error {
 	gReq.Direction = req.Direction
 	gReq.Disabled = req.Disabled
 	gReq.OwnerID = req.OwnerID
+	// The viewer's own media library: all their own, with what they put up
+	// from inside the article editor, which no other list holds.
+	if req.Library {
+		if viewer.ID <= 0 {
+			return c.NoContent(http.StatusForbidden)
+		}
+		gReq.OwnerID = viewer.ID
+		gReq.Library = true
+	}
 	if err := c.Validate(gReq); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
@@ -154,13 +163,13 @@ func (h *videoHandler) Read(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// VideoEditRequest changes what a video post says. As for any post, but
-// for its text: a video needs a title and may have nothing more said of it.
+// VideoEditRequest changes what a video post says: its title and its
+// words, both optional, since the video is the post.
 type VideoEditRequest struct {
 	// The post's id.
 	ID int64 `param:"id" validate:"required,numeric"`
-	// Its title.
-	Name string `json:"name" form:"name" validate:"required,max=100"`
+	// Its title, if it has one.
+	Name string `json:"name" form:"name" validate:"omitempty,max=100"`
 	// Its words, as Markdown.
 	Body string `json:"body" form:"body" validate:"omitempty,max=8000"`
 	// The language it is written in, as a BCP 47 tag.

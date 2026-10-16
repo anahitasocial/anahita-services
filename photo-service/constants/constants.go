@@ -19,7 +19,8 @@ const (
 	// message, and a message holds 4 MB.
 	MaxStoredSize = 4*1024*1024 - 64*1024
 
-	// The widest the "original" size is stored. A photo is never enlarged
-	// to this; one that is wider is brought down to it.
-	OriginalMaxWidth = 2560
+	// The longest side the "original" size is stored at, a photo standing
+	// up measured by its height: what Bluesky keeps, near enough, and well
+	// within what Mastodon does. A photo is never enlarged to this.
+	OriginalMaxSide = 2048
 )

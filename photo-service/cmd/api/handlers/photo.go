@@ -65,6 +65,15 @@ func (h *photoHandler) Browse(c echo.Context) error {
 	gReq.Direction = req.Direction
 	gReq.Disabled = req.Disabled
 	gReq.OwnerID = req.OwnerID
+	// The viewer's own media library: all their own, with what they put up
+	// from inside the article editor, which no other list holds.
+	if req.Library {
+		if viewer.ID <= 0 {
+			return c.NoContent(http.StatusForbidden)
+		}
+		gReq.OwnerID = viewer.ID
+		gReq.Library = true
+	}
 	if err := c.Validate(gReq); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
@@ -156,7 +165,7 @@ func (h *photoHandler) Read(c echo.Context) error {
 // Edit updates a photo
 func (h *photoHandler) Edit(c echo.Context) error {
 	var (
-		req    = requests.NewMediumRequest().Edit
+		req    = &PhotoEditRequest{}
 		viewer = getViewer(c)
 	)
 
@@ -223,8 +232,27 @@ func (h *photoHandler) Edit(c echo.Context) error {
 // the way to make a post with several. Or as a form carrying one image in
 // "file", which is how a photo was posted before it could hold more, and
 // still works.
+//
+// The title and the words are both optional, as for a reply with pictures:
+// the pictures are the post.
 type PhotoAddRequest struct {
-	requests.MediumAddRequest
+	// The profile it is posted on.
+	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
+	// Its title, if it has one.
+	Name string `form:"name" validate:"omitempty,max=100"`
+	// Its words, as Markdown, if it has any.
+	Body string `form:"body" validate:"omitempty,max=8000"`
+	// Who may see it (permissions.md). The widest the installation allows
+	// when left out.
+	Access string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
+	// The language it is written in, as a BCP 47 tag: "en", "fr-CA".
+	Language string `form:"language" validate:"omitempty,max=12"`
+	// Who may reply: "anyone", "nobody", or any of "followers", "following"
+	// and "mentioned" joined by commas. Left out, anyone the profile lets.
+	ReplyAccess string `json:"reply_access" form:"reply_access" validate:"omitempty,max=64"`
+	// Who may quote it: "anyone", "followers" or "nobody". Left out, the
+	// author's own setting applies.
+	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"omitempty,max=16"`
 	// The images, in order, each an upload made for this profile.
 	Uploads []FileRef `json:"uploads" form:"-"`
 	// What the one image of a form post shows.
@@ -232,12 +260,35 @@ type PhotoAddRequest struct {
 	// Whether whoever can see it may download it. Left out, the post
 	// starts with what the profile it is on says.
 	AllowDownload *bool `json:"allow_download" form:"allow_download"`
+	// In the author's media library only: put up from inside the article
+	// editor to be shown in an article, and listed and announced nowhere.
+	// Only on the author's own profile.
+	LibraryOnly bool `json:"library_only" form:"library_only"`
+}
+
+// NewPhotoAddRequest is a photo post as the handler starts it: open to as
+// many as the installation lets, as any post.
+func NewPhotoAddRequest() *PhotoAddRequest {
+	return &PhotoAddRequest{Access: requests.NewMediumRequest().Add.Access}
+}
+
+// PhotoEditRequest changes what a photo post says. The title and the words
+// are both optional, as when it is posted.
+type PhotoEditRequest struct {
+	// The post's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Its title, if it has one.
+	Name string `form:"name" validate:"omitempty,max=100"`
+	// Its words, as Markdown, if it has any.
+	Body string `form:"body" validate:"omitempty,max=8000"`
+	// The language it is written in, as a BCP 47 tag.
+	Language string `form:"language" validate:"omitempty,max=12"`
 }
 
 // Add creates a new photo
 func (h *photoHandler) Add(c echo.Context) error {
 	var (
-		req    = &PhotoAddRequest{MediumAddRequest: *requests.NewMediumRequest().Add}
+		req    = NewPhotoAddRequest()
 		viewer = getViewer(c)
 	)
 
@@ -273,6 +324,11 @@ func (h *photoHandler) Add(c echo.Context) error {
 	medium.Enabled = true
 	medium.CommentStatus = true
 	medium.AllowDownload = handlers.DefaultAllowDownload(req.AllowDownload, owner)
+	// A library is one's own: on one's own profile and nowhere else.
+	if req.LibraryOnly && owner.ID != viewer.ID {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	medium.LibraryOnly = req.LibraryOnly
 
 	// Who may reply, when the author says. Not saying leaves it to the
 	// profile; a value that is not one is an error.

@@ -69,6 +69,13 @@ type NodeBrowseRequest struct {
 	// list of somebody's posts wants, so that it is not filled with their
 	// answers to other people.
 	TopLevelOnly bool
+	// The viewer's own media library: everything of theirs, with what is in
+	// the library only, which every other list leaves out
+	// (repositories/listed.go).
+	Library bool
+	// The viewer's own drafts: only those, which every other list leaves
+	// out.
+	Drafts bool
 }
 
 type NodeBrowseMutualConnectionsRequest struct {
@@ -117,6 +124,13 @@ type NodeCountRequest struct {
 	// list of somebody's posts wants, so that it is not filled with their
 	// answers to other people.
 	TopLevelOnly bool
+	// The viewer's own media library: everything of theirs, with what is in
+	// the library only, which every other list leaves out
+	// (repositories/listed.go).
+	Library bool
+	// The viewer's own drafts: only those, which every other list leaves
+	// out.
+	Drafts bool
 }
 
 type NodeCountConnectionsRequest struct{}

@@ -28,10 +28,9 @@ func NewMediumRequest() *MediumRequest {
 			ID: 0,
 		},
 		Edit: &MediumEditRequest{
-			ID:      0,
-			Name:    "",
-			Body:    "",
-			Excerpt: "",
+			ID:   0,
+			Name: "",
+			Body: "",
 		},
 		EditAccess: &MediumEditAccessRequest{
 			ID:     0,
@@ -68,6 +67,14 @@ type MediumBrowseRequest struct {
 	// from ?oid= as well as the path, leaving it out returned exactly that.
 	// Discovery is the job of feeds, search, hashtags and profiles.
 	OwnerID int64 `param:"owner_id" validate:"required,min=1"`
+	// The viewer's own media library instead: all their photo or video posts
+	// on their own profile, with those they put up from inside the article
+	// editor, which no other list holds. The owner is then the viewer,
+	// whatever the path says.
+	Library bool `query:"library" validate:"omitempty"`
+	// The viewer's own drafts on this profile instead, articles or topics
+	// still being written, which no other list holds.
+	Drafts bool `query:"drafts" validate:"omitempty"`
 }
 
 type MediumReadRequest struct {
@@ -82,8 +89,6 @@ type MediumEditRequest struct {
 	Name string `form:"name" validate:"required,max=100"`
 	// Its words, as Markdown.
 	Body string `form:"body" validate:"required,max=8000"`
-	// A shorter form of its words.
-	Excerpt string `form:"excerpt" validate:"omitempty,max=500"`
 	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
 	// by the author; left out, the post has none. See package language.
 	Language string `form:"language" validate:"omitempty,max=12"`
@@ -115,8 +120,6 @@ type MediumAddRequest struct {
 	Name string `form:"name" validate:"required,max=100"`
 	// Its words, as Markdown.
 	Body string `form:"body" validate:"required,max=8000"`
-	// A shorter form of its words.
-	Excerpt string `form:"excerpt" validate:"omitempty,max=500"`
 	// Who may see it, as for changing it. The widest the installation allows
 	// when left out.
 	Access string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
@@ -130,6 +133,10 @@ type MediumAddRequest struct {
 	// Who may quote it: "anyone", "followers" or "nobody". Left out, the
 	// author's own setting applies. See constants.EffectiveQuotePolicy.
 	QuotePolicy string `json:"quote_policy" form:"quote_policy" validate:"omitempty,max=16"`
+	// Begun as a draft: an article or a topic, seen by its author alone
+	// until it is published (POST /<kind>/<id>/publish). Not read of
+	// anything else.
+	Draft bool `form:"draft" json:"draft"`
 }
 
 // MediumEditQuotePolicyRequest changes who may quote a post.
@@ -152,4 +159,15 @@ type MediumEditReplyAccessRequest struct {
 type MediumDeleteRequest struct {
 	// The post's id.
 	ID int64 `param:"id"`
+}
+
+// MediumPublishRequest publishes a draft: an article or a topic still being
+// written becomes a post from now, seen by whoever its audience says, and is
+// announced as one made now.
+type MediumPublishRequest struct {
+	// The draft's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Who may see it once it is published. Left out, the audience it was
+	// saved with.
+	Access string `json:"access" form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
 }

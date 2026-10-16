@@ -196,7 +196,6 @@ func (r *repliesRepo) HasReplies(id int64) (bool, error) {
 const tombstoneReply = `
 UPDATE nodes
 SET body = '',
-    excerpt = NULL,
     name = '',
     meta = NULL,
     deleted_at = UTC_TIMESTAMP(),

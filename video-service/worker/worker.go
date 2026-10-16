@@ -333,6 +333,8 @@ func (w *Worker) post(upload *repositories.Upload, video *videos.Video) (*entiti
 	medium.Language = upload.Language
 	medium.QuotePolicy = upload.QuotePolicy
 	medium.AllowDownload = upload.AllowDownload
+	// In its author's media library only, as chosen when it was sent.
+	medium.LibraryOnly = upload.LibraryOnly
 	medium.Enabled = true
 	medium.CommentStatus = true
 	if upload.ReplyAccess != "" {

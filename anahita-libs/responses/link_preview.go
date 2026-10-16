@@ -47,6 +47,30 @@ func NewLinkPreview(node *entities.AnahitaNode) *LinkPreview {
 	return preview
 }
 
+// NewLinkPreviews reads the cards of the pages an article or a topic
+// embeds, an address on a line of its own each, in the order they come.
+func NewLinkPreviews(node *entities.AnahitaNode) []*LinkPreview {
+	if node == nil {
+		return nil
+	}
+
+	var cards []*LinkPreview
+	for _, snapshot := range linkpreviews.SnapshotsFromMeta(node.Meta) {
+		card := &LinkPreview{
+			URL:         snapshot.URL,
+			Title:       snapshot.Title,
+			Description: snapshot.Description,
+			SiteName:    snapshot.SiteName,
+		}
+		if snapshot.ImageKey != "" {
+			card.Image = linkpreviews.ImagePath + snapshot.ImageKey
+		}
+		cards = append(cards, card)
+	}
+
+	return cards
+}
+
 // MediaRemoved is what a post from another server says of pictures that
 // are no longer stored here: how many there were, what each showed, and
 // whether they can still be had from where they came from.

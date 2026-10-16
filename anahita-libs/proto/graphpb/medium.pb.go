@@ -74,8 +74,12 @@ type MediumCountRequest struct {
 	AccessCheck bool                   `protobuf:"varint,5,opt,name=access_check,json=accessCheck,proto3" json:"access_check,omitempty"`
 	// As on a browse.
 	IncludeReplies bool `protobuf:"varint,6,opt,name=include_replies,json=includeReplies,proto3" json:"include_replies,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// As on a browse.
+	Library bool `protobuf:"varint,7,opt,name=library,proto3" json:"library,omitempty"`
+	// As on a browse.
+	Drafts        bool `protobuf:"varint,8,opt,name=drafts,proto3" json:"drafts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MediumCountRequest) Reset() {
@@ -150,6 +154,20 @@ func (x *MediumCountRequest) GetIncludeReplies() bool {
 	return false
 }
 
+func (x *MediumCountRequest) GetLibrary() bool {
+	if x != nil {
+		return x.Library
+	}
+	return false
+}
+
+func (x *MediumCountRequest) GetDrafts() bool {
+	if x != nil {
+		return x.Drafts
+	}
+	return false
+}
+
 type MediumCountResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Total         uint64                 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
@@ -208,8 +226,13 @@ type MediumBrowseRequest struct {
 	// Replies are left out of a list of posts unless this is set: a list of
 	// somebody's notes is not to be filled with their answers to others.
 	IncludeReplies bool `protobuf:"varint,10,opt,name=include_replies,json=includeReplies,proto3" json:"include_replies,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// The viewer's own media library: everything of theirs of the kind asked
+	// for, with what is in the library only, which no other list holds.
+	Library bool `protobuf:"varint,11,opt,name=library,proto3" json:"library,omitempty"`
+	// The viewer's own drafts, which no other list holds, and none else.
+	Drafts        bool `protobuf:"varint,12,opt,name=drafts,proto3" json:"drafts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MediumBrowseRequest) Reset() {
@@ -308,6 +331,20 @@ func (x *MediumBrowseRequest) GetViewer() *Viewer {
 func (x *MediumBrowseRequest) GetIncludeReplies() bool {
 	if x != nil {
 		return x.IncludeReplies
+	}
+	return false
+}
+
+func (x *MediumBrowseRequest) GetLibrary() bool {
+	if x != nil {
+		return x.Library
+	}
+	return false
+}
+
+func (x *MediumBrowseRequest) GetDrafts() bool {
+	if x != nil {
+		return x.Drafts
 	}
 	return false
 }
@@ -2349,16 +2386,18 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\n" +
 	"\x1aproto/graphpb/medium.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x18proto/graphpb/node.proto\".\n" +
 	"\x05Media\x12%\n" +
-	"\amediums\x18\x01 \x03(\v2\v.graph.NodeR\amediums\"\xd0\x01\n" +
+	"\amediums\x18\x01 \x03(\v2\v.graph.NodeR\amediums\"\x82\x02\n" +
 	"\x12MediumCountRequest\x12\x14\n" +
 	"\x05types\x18\x01 \x03(\tR\x05types\x12\x19\n" +
 	"\bowner_id\x18\x02 \x01(\x03R\aownerId\x12\x16\n" +
 	"\x06search\x18\x03 \x01(\tR\x06search\x12%\n" +
 	"\x06viewer\x18\x04 \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
 	"\faccess_check\x18\x05 \x01(\bR\vaccessCheck\x12'\n" +
-	"\x0finclude_replies\x18\x06 \x01(\bR\x0eincludeReplies\"+\n" +
+	"\x0finclude_replies\x18\x06 \x01(\bR\x0eincludeReplies\x12\x18\n" +
+	"\alibrary\x18\a \x01(\bR\alibrary\x12\x16\n" +
+	"\x06drafts\x18\b \x01(\bR\x06drafts\"+\n" +
 	"\x13MediumCountResponse\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\x04R\x05total\"\xb9\x02\n" +
+	"\x05total\x18\x01 \x01(\x04R\x05total\"\xeb\x02\n" +
 	"\x13MediumBrowseRequest\x12\x14\n" +
 	"\x05types\x18\x01 \x03(\tR\x05types\x12\x19\n" +
 	"\bowner_id\x18\x02 \x01(\x03R\aownerId\x12\x1a\n" +
@@ -2370,7 +2409,9 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\faccess_check\x18\b \x01(\bR\vaccessCheck\x12%\n" +
 	"\x06viewer\x18\t \x01(\v2\r.graph.ViewerR\x06viewer\x12'\n" +
 	"\x0finclude_replies\x18\n" +
-	" \x01(\bR\x0eincludeReplies\"9\n" +
+	" \x01(\bR\x0eincludeReplies\x12\x18\n" +
+	"\alibrary\x18\v \x01(\bR\alibrary\x12\x16\n" +
+	"\x06drafts\x18\f \x01(\bR\x06drafts\"9\n" +
 	"\x14MediumBrowseResponse\x12!\n" +
 	"\x05media\x18\x01 \x03(\v2\v.graph.NodeR\x05media\"J\n" +
 	"\x11MediumReadRequest\x12\x0e\n" +

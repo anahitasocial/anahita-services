@@ -25,8 +25,6 @@ type MediumNodeItem struct {
 	Alias string `json:"alias,omitempty"`
 	// Its words, as Markdown.
 	Body string `json:"body,omitempty"`
-	// A shorter form of its words, where there is one.
-	Excerpt string `json:"excerpt,omitempty"`
 	// When it was written.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// The kind of file it holds, where it holds one.
@@ -41,6 +39,9 @@ type MediumNodeItem struct {
 	RootID int64 `json:"root_id,omitempty"`
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
+	// The cards of the pages it shows within its text, an article's or a
+	// topic's: an address on a line of its own each.
+	LinkPreviews []*LinkPreview `json:"link_previews,omitempty"`
 	// On a photo post from another server whose pictures are no longer
 	// stored here.
 	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
@@ -109,8 +110,6 @@ type MediumNode struct {
 	Alias string `json:"alias,omitempty"`
 	// Its words, as Markdown.
 	Body string `json:"body,omitempty"`
-	// A shorter form of its words, where there is one.
-	Excerpt string `json:"excerpt,omitempty"`
 	// When it was written.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// When it was last changed.
@@ -125,6 +124,9 @@ type MediumNode struct {
 	RootID int64 `json:"root_id,omitempty"`
 	// On a note that carries one: the preview of a link in it.
 	LinkPreview *LinkPreview `json:"link_preview,omitempty"`
+	// The cards of the pages it shows within its text, an article's or a
+	// topic's: an address on a line of its own each.
+	LinkPreviews []*LinkPreview `json:"link_previews,omitempty"`
 	// On a photo post from another server whose pictures are no longer
 	// stored here.
 	MediaRemoved *MediaRemoved `json:"media_removed,omitempty"`
@@ -143,6 +145,12 @@ type MediumNode struct {
 	// Whether whoever can see it may download what it holds. Sent on a post
 	// that holds a file, for whoever may change it.
 	AllowDownload *bool `json:"allow_download,omitempty"`
+	// That it is in its author's media library only: put up to be shown in
+	// an article, and listed nowhere else.
+	LibraryOnly bool `json:"library_only,omitempty"`
+	// That it is a draft, an article or a topic still being written, seen
+	// by its author alone.
+	Draft bool `json:"draft,omitempty"`
 	// On a reply: removed, and kept as an empty placeholder because other
 	// replies hang from it. It carries no text and no author.
 	Deleted bool `json:"deleted,omitempty"`
@@ -223,6 +231,7 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
 		LinkPreview:        NewLinkPreview(node),
+		LinkPreviews:       NewLinkPreviews(node),
 		MediaRemoved:       NewMediaRemoved(node),
 		Video:              NewVideo(node),
 		Quote:              NewQuoteEmbed(node),
@@ -285,6 +294,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		ParentID:           replyParent(node),
 		RootID:             node.RootID,
 		LinkPreview:        NewLinkPreview(node),
+		LinkPreviews:       NewLinkPreviews(node),
 		MediaRemoved:       NewMediaRemoved(node),
 		Video:              NewVideo(node),
 		Quote:              NewQuoteEmbed(node),
@@ -292,6 +302,8 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		Root:               NewRoot(node.Root),
 		QuotePolicy:        node.QuotePolicy,
 		AllowDownload:      allowDownloadOf(node),
+		LibraryOnly:        node.LibraryOnly,
+		Draft:              node.Draft,
 		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
 		Hidden:             node.Hidden,
 		Access:             node.Access,

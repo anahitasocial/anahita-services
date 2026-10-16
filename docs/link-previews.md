@@ -16,6 +16,7 @@ Its routes are in the API reference: [link-preview-service](api/index.html#link-
 - [How long a preview is kept](#how-long-a-preview-is-kept)
 - [Endpoints](#endpoints)
 - [The card on a note](#the-card-on-a-note)
+- [Cards in long writing](#cards-in-long-writing)
 - [Running it, and not running it](#running-it-and-not-running-it)
 - [What is not built](#what-is-not-built)
 
@@ -117,6 +118,19 @@ same way, and a reply is edited like any note.
 Wherever the note is sent, it has `link_preview` with the same fields as
 above. A repost carries the card of the note it reposts.
 
+## Cards in long writing
+
+An article or a topic can show several pages, each an address on a line of
+its own (see [Embeds and citations](architecture.md#embeds-and-citations)).
+The composer asks for a preview of each while it is written. When the post
+is added or edited, text-service copies the previews it finds in the store
+into the post's `meta` under `link_previews`, in the order the pages come,
+at most 10. A card already kept for a page still in the text stays as it
+was. A page with no preview in the store is shown as a link.
+
+Wherever the article or topic is sent, it has `link_previews`: a list with
+the same fields as a note's card.
+
 ## Running it, and not running it
 
 `make link_preview` builds and starts it. It needs Redis and
@@ -129,6 +143,6 @@ still shown; only their pictures need the service.
 ## What is not built
 
 - oEmbed, and a favicon for a page with no picture.
-- Cards on anything but notes and replies, and for any link but the first.
+- Cards on photo and video posts, and for any link in a note but the first.
 - Blocking previews of chosen domains. The list of servers the site refuses
   for federation is not consulted.

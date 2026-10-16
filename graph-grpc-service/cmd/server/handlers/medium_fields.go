@@ -29,7 +29,6 @@ func applyEditableMediumFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.Name = req.Name
 	node.Alias = req.Alias
 	node.Body = req.Body
-	node.Excerpt = req.Excerpt
 	node.Filename = req.Filename
 	node.CoverFilename = req.CoverFilename
 	node.Meta = json.RawMessage(req.Meta)
@@ -44,6 +43,9 @@ func applyEditableMediumFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	// Kept as it is when the request carries none: the repository writes
 	// it only when it is set.
 	node.Language = req.Language
+	// A draft is only ever published by an edit, never made one again: a
+	// post that was announced cannot be taken back into being written.
+	node.Draft = node.Draft && req.Draft
 }
 
 // newMediumFromRequest builds a new post: what an edit may change, and what
@@ -64,6 +66,11 @@ func newMediumFromRequest(req *graphpb.Node) *entities.AnahitaNode {
 	node.CreatedBy = req.CreatedBy
 	// What it quotes, which is said once and never changed.
 	node.QuoteID = req.QuoteId
+	// In its author's media library only, which is said once too: a post
+	// once announced cannot be taken back into the library.
+	node.LibraryOnly = req.LibraryOnly
+	// Whether it is begun as a draft.
+	node.Draft = req.Draft
 
 	return node
 }

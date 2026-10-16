@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"anahita-libs/validators"
 	"bytes"
+	"github.com/go-playground/validator/v10"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -21,7 +23,7 @@ func bindPhotoAdd(t *testing.T, req *http.Request) *PhotoAddRequest {
 	c.SetParamNames("owner_id")
 	c.SetParamValues("8")
 
-	bound := &PhotoAddRequest{MediumAddRequest: *requests.NewMediumRequest().Add}
+	bound := NewPhotoAddRequest()
 	if err := c.Bind(bound); err != nil {
 		t.Fatalf("bind: %v", err)
 	}
@@ -48,7 +50,7 @@ func TestAPhotoPostSentAsJSONNamesItsUploads(t *testing.T) {
 
 	if bound.OwnerID != 8 || bound.Name != "Herons" || bound.Body != "at the lagoon" ||
 		bound.Access != "followers" || bound.Language != "en" {
-		t.Errorf("the shared fields did not arrive: %+v", bound.MediumAddRequest)
+		t.Errorf("the shared fields did not arrive: %+v", bound)
 	}
 	if len(bound.Uploads) != 2 || bound.Uploads[0].UploadID != 31 ||
 		bound.Uploads[0].AltText != "a heron standing" || bound.Uploads[1].UploadID != 30 {
@@ -81,7 +83,7 @@ func TestAPhotoPostSentAsAFormCarriesOneImage(t *testing.T) {
 	bound := bindPhotoAdd(t, req)
 
 	if bound.OwnerID != 8 || bound.Name != "Heron" || bound.Access != "public" || bound.AltText != "a heron" {
-		t.Errorf("the form's fields did not arrive: %+v, alt %q", bound.MediumAddRequest, bound.AltText)
+		t.Errorf("the form's fields did not arrive: %+v, alt %q", bound, bound.AltText)
 	}
 	if len(bound.Uploads) != 0 {
 		t.Errorf("a form post named uploads: %+v", bound.Uploads)
@@ -119,5 +121,24 @@ func TestTheImagesOfAnEditArriveInOrder(t *testing.T) {
 	if bound.ID != 40 || len(bound.Files) != 3 || bound.Files[0].ID != "b.jpg" ||
 		bound.Files[0].AltText != "second, now first" || bound.Files[1].UploadID != 9 {
 		t.Errorf("bound = %+v", bound)
+	}
+}
+
+// A photo post needs no title and no words, as a reply with pictures does:
+// the one box people post from has no title, and pictures can be the whole
+// of what somebody says.
+func TestAPhotoPostNeedsNoTitleOrWords(t *testing.T) {
+	check := validators.NewRequestValidator(validator.New())
+
+	add := NewPhotoAddRequest()
+	add.OwnerID = 8
+	add.Uploads = []FileRef{{UploadID: 31}}
+	if err := check.Validate(add); err != nil {
+		t.Errorf("a post of pictures alone was refused: %v", err)
+	}
+
+	edit := &PhotoEditRequest{ID: 40}
+	if err := check.Validate(edit); err != nil {
+		t.Errorf("taking the title and words off was refused: %v", err)
 	}
 }

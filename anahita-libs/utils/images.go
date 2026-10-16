@@ -43,6 +43,13 @@ func GenerateUniqueFilename(contentType string) (string, error) {
 	return "", fmt.Errorf("unsupported content type: %s", contentType)
 }
 
+// JPEGQuality is how every JPEG is written: 85, the usual balance of size
+// and detail for photographs, as most networks keep them. Go's own default
+// is 75, which showed. (The user, 2026-10-16.)
+const JPEGQuality = 85
+
+var jpegOptions = &jpeg.Options{Quality: JPEGQuality}
+
 // ResizeImage resizes the image based on the provided width and height
 func ResizeImage(input []byte, width, height int) ([]byte, error) {
 	// Detect image format
@@ -79,7 +86,7 @@ func ResizeImage(input []byte, width, height int) ([]byte, error) {
 
 	// Encode the resized image back to the original format
 	if contentType == "image/jpeg" {
-		err = jpeg.Encode(&buf, resizedImage, nil)
+		err = jpeg.Encode(&buf, resizedImage, jpegOptions)
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode jpeg: %w", err)
 		}
@@ -157,7 +164,7 @@ func CorrectOrientation(input []byte) ([]byte, error) {
 	var output bytes.Buffer
 	switch contentType {
 	case "image/jpeg":
-		err = jpeg.Encode(&output, img, nil)
+		err = jpeg.Encode(&output, img, jpegOptions)
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode jpeg: %w", err)
 		}
@@ -199,7 +206,7 @@ func encodeImage(img image.Image, contentType string) ([]byte, error) {
 
 	switch contentType {
 	case "image/jpeg":
-		if err := jpeg.Encode(&buf, img, nil); err != nil {
+		if err := jpeg.Encode(&buf, img, jpegOptions); err != nil {
 			return nil, fmt.Errorf("failed to encode jpeg: %w", err)
 		}
 	case "image/png":
@@ -231,6 +238,50 @@ func FitImage(input []byte, maxWidth int) ([]byte, error) {
 	}
 
 	return encodeImage(img, contentType)
+}
+
+// FitLongest writes the image out again with its longest side no longer
+// than maxSide, keeping its shape: a photo standing up is measured by its
+// height, one lying down by its width, as Bluesky and Pixelfed measure
+// them. Never enlarged.
+func FitLongest(input []byte, maxSide int) ([]byte, error) {
+	img, contentType, err := decodeImage(input)
+	if err != nil {
+		return nil, err
+	}
+
+	bounds := img.Bounds()
+	if maxSide > 0 && (bounds.Dx() > maxSide || bounds.Dy() > maxSide) {
+		if bounds.Dx() >= bounds.Dy() {
+			img = imaging.Resize(img, maxSide, 0, imaging.Lanczos)
+		} else {
+			img = imaging.Resize(img, 0, maxSide, imaging.Lanczos)
+		}
+	}
+
+	return encodeImage(img, contentType)
+}
+
+// AsPhoto is a picture as a photo is kept: a PNG with nothing see-through
+// in it written as a JPEG, which is a fifth of its size or less and what
+// every network takes; a PNG that is see-through somewhere, and a JPEG,
+// as they are. Says what it is now.
+func AsPhoto(input []byte, contentType string) ([]byte, string, error) {
+	if contentType != "image/png" {
+		return input, contentType, nil
+	}
+	img, err := png.Decode(bytes.NewReader(input))
+	if err != nil {
+		return nil, "", fmt.Errorf("%w: %v", ErrUnreadable, err)
+	}
+	if opaque, ok := img.(interface{ Opaque() bool }); !ok || !opaque.Opaque() {
+		return input, contentType, nil
+	}
+	var buf bytes.Buffer
+	if err := jpeg.Encode(&buf, img, jpegOptions); err != nil {
+		return nil, "", fmt.Errorf("failed to encode jpeg: %w", err)
+	}
+	return buf.Bytes(), "image/jpeg", nil
 }
 
 // SquareImage writes out the middle of the image as a square of this side.

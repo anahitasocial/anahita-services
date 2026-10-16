@@ -11,7 +11,7 @@ import (
 // What an edit may change on a post. A field the services send and expect
 // to be saved belongs here.
 var editableMediumFields = []string{
-	"Enabled", "Access", "Name", "Alias", "Body", "Excerpt",
+	"Enabled", "Access", "Name", "Alias", "Body",
 	"Filename", "CoverFilename", "Meta", "ModifiedBy", "CommentStatus",
 	"CommentCount", "Language", "ReplyAccess", "QuotePolicy", "AllowDownload",
 }
@@ -19,6 +19,7 @@ var editableMediumFields = []string{
 // Set when a post is made and never by an edit.
 var createOnlyMediumFields = []string{
 	"OwnerID", "OwnerType", "Type", "Service", "Mimetype", "CreatedBy", "QuoteID",
+	"LibraryOnly", "Draft",
 }
 
 func fullMediumRequest() *graphpb.Node {
@@ -34,7 +35,6 @@ func fullMediumRequest() *graphpb.Node {
 		Name:          "A title",
 		Alias:         "a-title",
 		Body:          "متن",
-		Excerpt:       "An excerpt",
 		Filename:      "a.jpg",
 		Mimetype:      "image/jpeg",
 		CoverFilename: "cover.jpg",
@@ -48,6 +48,8 @@ func fullMediumRequest() *graphpb.Node {
 		QuotePolicy:   "followers",
 		AllowDownload: true,
 		QuoteId:       77,
+		LibraryOnly:   true,
+		Draft:         true,
 	}
 }
 

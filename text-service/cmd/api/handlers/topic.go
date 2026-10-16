@@ -63,6 +63,13 @@ func (h *topicHandler) Browse(c echo.Context) error {
 	gReq.Direction = req.Direction
 	gReq.Disabled = req.Disabled
 	gReq.OwnerID = req.OwnerID
+	// The viewer's own drafts on this profile, which no other list holds.
+	if req.Drafts {
+		if viewer.ID <= 0 {
+			return c.NoContent(http.StatusForbidden)
+		}
+		gReq.Drafts = true
+	}
 	if err := c.Validate(gReq); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
@@ -136,12 +143,14 @@ func (h *topicHandler) Edit(c echo.Context) error {
 	} else if language != "" {
 		medium.Language = language
 	}
+	medium.Meta = h.withEmbeddedPages(medium.Meta, medium.Body)
 	medium.ModifiedBy = viewer.ID
 	medium, err = h.Srv.MediaGRPC.Edit(medium, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusNotFound)
 	}
+	h.syncEmbeds(medium)
 
 	if err = h.onAfterFetched(c, medium); err != nil {
 		log.Println(err)
@@ -240,11 +249,16 @@ func (h *topicHandler) Add(c echo.Context) error {
 		return an_handlers.RefuseAudience(c, mediumAccessCtx)
 	}
 
+	medium.Meta = h.withEmbeddedPages(medium.Meta, medium.Body)
+	// Begun as a draft when it is asked to be: seen by its author alone,
+	// and announced when it is published.
+	medium.Draft = req.Draft
 	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	h.syncEmbeds(medium)
 
 	if err = h.onAfterFetched(c, medium); err != nil {
 		log.Println(err)

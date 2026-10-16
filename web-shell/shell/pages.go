@@ -251,9 +251,6 @@ func post(reader Reader, id int64, kind string) *Subject {
 		// description.
 		subject.Tags.Title = author
 	}
-	if node.Excerpt != "" {
-		subject.Tags.Description = Plain(node.Excerpt, maxDescription)
-	}
 	subject.Tags.ImageAlt = subject.Tags.Title
 
 	// Its own picture: a photo, an article's cover, a video's poster (its

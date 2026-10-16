@@ -131,6 +131,7 @@ LEFT JOIN nodes AS root
 LEFT JOIN activitypub_objects AS sent
        ON sent.node_id = note.id
 WHERE note.type IN (?, ?, ?)
+  AND note.library_only = 0
   AND note.enabled = 1
   AND note.deleted_at IS NULL
   AND COALESCE(root.access, note.access) = ?
