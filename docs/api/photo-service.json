@@ -842,6 +842,27 @@
         },
         "type": "object"
       },
+      "Refusal": {
+        "description": "Refusal is why a request was refused, where the answer says: most refusals have no body, and some send this.",
+        "properties": {
+          "description": {
+            "description": "The same in words, for whoever is building a client.",
+            "type": "string"
+          },
+          "error": {
+            "description": "Why, as a code a client can tell apart: `language_invalid`, `quote_not_allowed` and so on. Each route lists its own.",
+            "type": "string"
+          },
+          "reason": {
+            "description": "What lies behind it, where one code has several causes: why a post may not be quoted, for one.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
       "Video": {
         "description": "Video is what a video post plays: its sizes, largest first, and the still shown before it does.",
         "properties": {
@@ -1266,6 +1287,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
           }
         },
@@ -1339,6 +1367,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
           }
         },
@@ -1610,6 +1645,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_cannot_be_pinned`"
           }
         },
@@ -1665,6 +1707,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_cannot_be_pinned`"
           }
         },
@@ -1745,7 +1794,14 @@
             "description": "OK"
           },
           "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`quote_policy_invalid`, or not well formed"
           },
           "401": {
             "description": "no token, or one that has expired"
@@ -1757,6 +1813,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
           }
         },
@@ -1940,7 +2003,14 @@
             "description": "OK"
           },
           "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`reply_access_invalid`, or not well formed"
           },
           "401": {
             "description": "no token, or one that has expired"
@@ -1952,6 +2022,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
           }
         },

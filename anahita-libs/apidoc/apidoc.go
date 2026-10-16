@@ -162,6 +162,15 @@ type answer struct {
 	body   reflect.Type
 }
 
+// With gives a route a description shared with others: two routes for one
+// handler, or the same action on each kind of thing. The route is still
+// registered on a line of its own, which the members-only guard
+// (anahita-libs/middleware) reads.
+func (r *Route) With(describe func(*Route)) *Route {
+	describe(r)
+	return r
+}
+
 // Summary is what the route does, in a few words: "One hashtag".
 func (r *Route) Summary(text string) *Route {
 	r.summary = text
@@ -201,9 +210,10 @@ func (r *Route) Takes(request any) *Route {
 }
 
 // Sends is an answer with a body: what the handler answers with on
-// `status`. A nil body is an answer with nothing in it.
-func (r *Route) Sends(status int, body any) *Route {
-	a := answer{status: status}
+// `status`, and why, when it is not plain. A nil body is an answer with
+// nothing in it.
+func (r *Route) Sends(status int, body any, why ...string) *Route {
+	a := answer{status: status, reason: strings.Join(why, "; ")}
 	if body != nil {
 		a.body = reflect.TypeOf(body)
 	}

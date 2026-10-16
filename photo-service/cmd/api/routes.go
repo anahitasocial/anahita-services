@@ -133,7 +133,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, responses.MediumNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not change it, or it may not be shown to them").
 		Refuses(http.StatusNotFound, "there is no such post").
-		Refuses(http.StatusUnprocessableEntity, reply)
+		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, reply)
 
 	// photo comment status
 	photos.PATCH("/:id/comment-status", r.handler.Photo.EditCommentStatus, r.authorize).
@@ -144,25 +144,27 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, responses.MediumNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such post").
-		Refuses(http.StatusUnprocessableEntity, reply)
+		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, reply)
 	photos.PATCH("/:id/reply-access", r.handler.Photo.EditReplyAccess, r.authorize).
 		Summary("Change who may reply").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(&requests.MediumEditReplyAccessRequest{}).
 		Sends(http.StatusOK, responses.MediumNode{}).
+		Sends(http.StatusBadRequest, responses.Refusal{}, "`reply_access_invalid`, or not well formed").
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such post").
-		Refuses(http.StatusUnprocessableEntity, reply)
+		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, reply)
 	photos.PATCH("/:id/quote-policy", r.handler.Photo.EditQuotePolicy, r.authorize).
 		Summary("Change who may quote it").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
 		Takes(&requests.MediumEditQuotePolicyRequest{}).
 		Sends(http.StatusOK, responses.MediumNode{}).
+		Sends(http.StatusBadRequest, responses.Refusal{}, "`quote_policy_invalid`, or not well formed").
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such post").
-		Refuses(http.StatusUnprocessableEntity, reply)
+		Sends(http.StatusUnprocessableEntity, responses.Refusal{}, reply)
 	// Whether it may be downloaded, and the download itself.
 	photos.PATCH("/:id/download", r.handler.Photo.EditDownload, r.authorize).
 		Summary("Change whether it may be downloaded").
@@ -182,30 +184,22 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusForbidden, "it may not be downloaded").
 		Refuses(http.StatusNotFound, "there is no such post or image that the viewer may see").
 		Refuses(http.StatusTooManyRequests, "too many downloads lately")
-	for _, pin := range []struct {
-		method string
-		h      echo.HandlerFunc
-		what   string
-		done   string
-	}{
-		{http.MethodPut, r.handler.Photo.Pin, "Pin it to the profile it is on", "pinned"},
-		{http.MethodDelete, r.handler.Photo.Unpin, "Take its pin off", "unpinned"},
-	} {
-		register := photos.PUT
-		if pin.method == http.MethodDelete {
-			register = photos.DELETE
+	pin := func(what string) func(*apidoc.Route) {
+		return func(route *apidoc.Route) {
+			route.
+				Summary(what).
+				Describe("A profile has one pin: pinning another post moves it. For the profile and its administrators, and site administrators (permissions.md). Answers with the post.").
+				Viewer(apidoc.SignedIn).
+				Scope(write).
+				Takes(media.Read).
+				Sends(http.StatusOK, responses.MediumNode{}).
+				Refuses(http.StatusForbidden, "the viewer may not pin it").
+				Refuses(http.StatusNotFound, "there is no such post").
+				Sends(http.StatusUnprocessableEntity, responses.Refusal{}, "`reply_cannot_be_pinned`")
 		}
-		register("/:id/pin", pin.h, r.authorize).
-			Summary(pin.what).
-			Describe("A profile has one pin: pinning another post moves it. For the profile and its administrators, and site administrators (permissions.md). Answers with the post.").
-			Viewer(apidoc.SignedIn).
-			Scope(write).
-			Takes(media.Read).
-			Sends(http.StatusOK, responses.MediumNode{}).
-			Refuses(http.StatusForbidden, "the viewer may not pin it").
-			Refuses(http.StatusNotFound, "there is no such post").
-			Refuses(http.StatusUnprocessableEntity, "`reply_cannot_be_pinned`")
 	}
+	photos.PUT("/:id/pin", r.handler.Photo.Pin, r.authorize).With(pin("Pin it to the profile it is on"))
+	photos.DELETE("/:id/pin", r.handler.Photo.Unpin, r.authorize).With(pin("Take its pin off"))
 
 	return doc
 }

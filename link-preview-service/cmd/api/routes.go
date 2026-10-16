@@ -31,8 +31,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 
 	// Asking for a preview makes this service fetch a page: somebody
 	// signed in only.
-	for _, path := range []string{"", "/"} {
-		previews.GET(path, r.handler.Previews.Read, r.authorize).
+	read := func(route *apidoc.Route) {
+		route.
 			Summary("The preview of a link").
 			Describe("Read from the page by this installation when no fresh preview is kept, so that nobody's browser asks the other site. For the composer, while a post is written.").
 			Viewer(apidoc.SignedIn).
@@ -41,6 +41,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 			SendsNothing(http.StatusNoContent, "there is nothing to show: the page could not be read, is not a page, or says nothing of itself").
 			Refuses(http.StatusTooManyRequests, "the viewer has asked for too many lately")
 	}
+	previews.GET("", r.handler.Previews.Read, r.authorize).With(read)
+	previews.GET("/", r.handler.Previews.Read, r.authorize).With(read)
 
 	// For the other services of this installation, and not for anybody
 	// outside it: the gateway sends nothing here, since its address is not

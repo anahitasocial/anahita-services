@@ -42,8 +42,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Scope(report).
 		Takes(&requests.ReasonsBrowse{}).
 		Sends(http.StatusOK, libs_responses.Unpaged[responses.Reason]{})
-	for _, path := range []string{"", "/"} {
-		reports.POST(path, r.handler.Reports.Add).
+	add := func(route *apidoc.Route) {
+		route.
 			Summary("Report something").
 			Describe("Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.").
 			Viewer(apidoc.SignedIn).
@@ -55,6 +55,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 			Refuses(http.StatusNotFound, "there is no such thing that the viewer can see").
 			Refuses(http.StatusTooManyRequests, "too many reports in the last hour")
 	}
+	reports.POST("", r.handler.Reports.Add).With(add)
+	reports.POST("/", r.handler.Reports.Add).With(add)
 
 	// "summary" before ":id", so it is not read as a case's id.
 	reports.GET("/cases", r.handler.Cases.Browse).

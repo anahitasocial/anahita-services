@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"net/http"
 
 	"anahita-libs/constants"
@@ -27,9 +28,9 @@ func RequestQuotePolicy(raw string) (string, bool) {
 // RefuseQuotePolicy answers a request whose value for who may quote is not
 // one: 400, saying which field.
 func RefuseQuotePolicy(c echo.Context) error {
-	return c.JSON(http.StatusBadRequest, map[string]string{
-		"error":       ErrQuotePolicyInvalid,
-		"description": "quote_policy must be \"anyone\", \"followers\" or \"nobody\"",
+	return c.JSON(http.StatusBadRequest, responses.Refusal{
+		Error:       ErrQuotePolicyInvalid,
+		Description: "quote_policy must be \"anyone\", \"followers\" or \"nobody\"",
 	})
 }
 
@@ -37,9 +38,9 @@ func RefuseQuotePolicy(c echo.Context) error {
 // why, so the app can say "this person does not allow quotes" and not just
 // "no".
 func RefuseQuote(c echo.Context, reason string) error {
-	return c.JSON(http.StatusForbidden, map[string]string{
-		"error":  ErrQuoteNotAllowed,
-		"reason": reason,
+	return c.JSON(http.StatusForbidden, responses.Refusal{
+		Error:  ErrQuoteNotAllowed,
+		Reason: reason,
 	})
 }
 

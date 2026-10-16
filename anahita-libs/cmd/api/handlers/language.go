@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"net/http"
 
 	"anahita-libs/language"
@@ -29,8 +30,8 @@ func RequestLanguage(raw string) (string, bool) {
 // RefuseLanguage answers a request whose language is not a tag: 400, saying
 // which field.
 func RefuseLanguage(c echo.Context) error {
-	return c.JSON(http.StatusBadRequest, map[string]string{
-		"error":       ErrLanguageInvalid,
-		"description": "language must be a tag such as \"en\" or \"fr-CA\"",
+	return c.JSON(http.StatusBadRequest, responses.Refusal{
+		Error:       ErrLanguageInvalid,
+		Description: "language must be a tag such as \"en\" or \"fr-CA\"",
 	})
 }

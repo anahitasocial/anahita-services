@@ -175,6 +175,13 @@ hashtags.GET("/:alias", r.handler.Hashtag.Read, r.setViewer).
   an `apidoc.File`.
   `400`, `401` and `403` are added where a route of its kind can answer them.
 
+**Register each route on a line of its own,** beginning with its group
+(`hashtags.GET("/:alias", …)`): the members-only guard in
+anahita-libs/middleware reads the routes files as text, and checks that each
+route says who may call it. A route registered in a loop is not seen. Two
+routes that share a description take it with `With`:
+`previews.GET("/", h, r.authorize).With(readPreview)`.
+
 A named struct of anahita-libs is described once and named as it is
 (`NodeItem`); one of a service is named with its module
 (`hashtag.HashtagNodeItem`).

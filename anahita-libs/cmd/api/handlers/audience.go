@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"net/http"
 
 	"anahita-libs/cmd/api/permissions"
@@ -18,15 +19,15 @@ import (
 // the same way: 422, with the levels it may have. Today the only reason is an
 // installation that allows nothing new to be public.
 func RefuseAccess(c echo.Context, allowed []string) error {
-	return c.JSON(http.StatusUnprocessableEntity, map[string]any{
-		"error":   permissions.ErrAudienceNotAllowed,
-		"allowed": allowed,
+	return c.JSON(http.StatusUnprocessableEntity, responses.AudienceRefusal{
+		Error:   permissions.ErrAudienceNotAllowed,
+		Allowed: allowed,
 	})
 }
 
 func RefuseAudience(c echo.Context, ctx *permissions.MediumAccessContext) error {
-	return c.JSON(http.StatusUnprocessableEntity, map[string]any{
-		"error":   permissions.ErrAudienceNotAllowed,
-		"allowed": permissions.MediumAudiences(ctx),
+	return c.JSON(http.StatusUnprocessableEntity, responses.AudienceRefusal{
+		Error:   permissions.ErrAudienceNotAllowed,
+		Allowed: permissions.MediumAudiences(ctx),
 	})
 }

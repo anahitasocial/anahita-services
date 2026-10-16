@@ -188,6 +188,30 @@
         ],
         "type": "object"
       },
+      "AudienceRefusal": {
+        "description": "AudienceRefusal refuses an audience a post may not be given, and says which it may.",
+        "properties": {
+          "allowed": {
+            "description": "The audiences it may be given, widest first.",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "error": {
+            "description": "Always `access_not_allowed`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "allowed"
+        ],
+        "type": "object"
+      },
       "Author": {
         "description": "Author is who wrote something.",
         "properties": {
@@ -1410,6 +1434,27 @@
         },
         "type": "object"
       },
+      "Refusal": {
+        "description": "Refusal is why a request was refused, where the answer says: most refusals have no body, and some send this.",
+        "properties": {
+          "description": {
+            "description": "The same in words, for whoever is building a client.",
+            "type": "string"
+          },
+          "error": {
+            "description": "Why, as a code a client can tell apart: `language_invalid`, `quote_not_allowed` and so on. Each route lists its own.",
+            "type": "string"
+          },
+          "reason": {
+            "description": "What lies behind it, where one code has several causes: why a post may not be quoted, for one.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
       "Video": {
         "description": "Video is what a video post plays: its sizes, largest first, and the still shown before it does.",
         "properties": {
@@ -2555,6 +2600,108 @@
           "score",
           "reasons",
           "actor"
+        ],
+        "type": "object"
+      },
+      "video.UploadPart": {
+        "description": "UploadPart is where one part of an upload is sent.",
+        "properties": {
+          "number": {
+            "description": "Which part, from 1.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "url": {
+            "description": "Where it is sent, with PUT: good for an hour.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "url"
+        ],
+        "type": "object"
+      },
+      "video.UploadResponse": {
+        "description": "UploadResponse is an upload as its uploader is told of it.",
+        "properties": {
+          "created_at": {
+            "description": "When it was begun.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "error": {
+            "description": "Why it failed.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "type": "string"
+          },
+          "name": {
+            "description": "The post's title.",
+            "type": "string"
+          },
+          "node_id": {
+            "description": "The post, once it is one.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "owner_id": {
+            "description": "The profile the post will be on.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "parent_id": {
+            "description": "What it answers, when it is a reply.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "part_count": {
+            "description": "How many parts to send it in.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "part_size": {
+            "description": "How large each part is, in bytes, while it is being sent.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "size": {
+            "description": "How large it said it is, in bytes.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "status": {
+            "description": "`uploading`, `processing`, `ready`, `failed` or `cancelled`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "name",
+          "owner_id",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "video.UploadTooLarge": {
+        "description": "UploadTooLarge refuses a video, a GIF or an animated PNG larger than the installation takes, and says how large it may be.",
+        "properties": {
+          "error": {
+            "description": "Always `too_large`.",
+            "type": "string"
+          },
+          "max_bytes": {
+            "description": "The most it may be, in bytes.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "error",
+          "max_bytes"
         ],
         "type": "object"
       }
@@ -6087,6 +6234,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
           }
         },
@@ -6160,6 +6314,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
           }
         },
@@ -6431,6 +6592,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_cannot_be_pinned`"
           }
         },
@@ -6486,6 +6654,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_cannot_be_pinned`"
           }
         },
@@ -6566,7 +6741,14 @@
             "description": "OK"
           },
           "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`quote_policy_invalid`, or not well formed"
           },
           "401": {
             "description": "no token, or one that has expired"
@@ -6578,6 +6760,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
           }
         },
@@ -6761,7 +6950,14 @@
             "description": "OK"
           },
           "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`reply_access_invalid`, or not well formed"
           },
           "401": {
             "description": "no token, or one that has expired"
@@ -6773,6 +6969,13 @@
             "description": "there is no such post"
           },
           "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
             "description": "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
           }
         },
@@ -7721,6 +7924,1582 @@
         ],
         "x-viewer": "anyone"
       }
+    },
+    "/videos/uploads": {
+      "get": {
+        "description": "Those being sent or waiting for the worker, and those that failed in the last day, the latest first.\n\nWho may call it: somebody signed in.",
+        "operationId": "getVideosUploads",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/video.UploadResponse"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The viewer's uploads",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/videos/uploads/{id}": {
+      "delete": {
+        "description": "One being sent, waiting for the worker, or failed.\n\nWho may call it: somebody signed in.",
+        "operationId": "deleteVideosUploadsById",
+        "parameters": [
+          {
+            "description": "The upload's id, as its start answered.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "given up"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "there is no such upload of the viewer's"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`finished`: it is a post already"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Give an upload up",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "Asked again until it is `ready`, when `node_id` is the post, or `failed`, when `error` says why.\n\nWho may call it: somebody signed in.",
+        "operationId": "getVideosUploadsById",
+        "parameters": [
+          {
+            "description": "The upload's id, as its start answered.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/video.UploadResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "there is no such upload of the viewer's"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One upload",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/videos/uploads/{id}/complete": {
+      "post": {
+        "description": "The worker then makes the post. Said twice, the answer is how it stands.\n\nWho may call it: somebody signed in.",
+        "operationId": "postVideosUploadsByIdComplete",
+        "parameters": [
+          {
+            "description": "The upload's id, as its start answered.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/video.UploadResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "there is no such upload of the viewer's"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`nothing_sent`"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`too_large`: what was sent is larger than it may be"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Say every part is sent",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/videos/uploads/{id}/parts": {
+      "post": {
+        "description": "Signed addresses, good for an hour, each part sent to its own with PUT.\n\nWho may call it: somebody signed in.",
+        "operationId": "postVideosUploadsByIdParts",
+        "parameters": [
+          {
+            "description": "The upload's id. Read by the handler from the path itself.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "numbers": {
+                    "description": "Which parts to send, from 1: a few at a time, as they are needed.",
+                    "items": {
+                      "format": "int32",
+                      "type": "integer"
+                    },
+                    "maxItems": 100,
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "numbers"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/video.UploadPart"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "there is no such upload of the viewer's"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`not_uploading`: it is not being sent any more"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Where to send some parts",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/videos/{id}": {
+      "delete": {
+        "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "deleteVideosById",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "it is gone"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not delete it"
+          },
+          "404": {
+            "description": "there is no such post"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Delete a video post",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "Who may call it: anyone, signed in or not.",
+        "operationId": "getVideosById",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "403": {
+            "description": "the viewer may not see it"
+          },
+          "404": {
+            "description": "there is no such post"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One video post",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "anyone"
+      },
+      "patch": {
+        "description": "A video needs a title, and may have nothing more said of it.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "patchVideosById",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "Its words, as Markdown.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language it is written in, as a BCP 47 tag.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its title.",
+                    "maxLength": 100,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "Its words, as Markdown.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language it is written in, as a BCP 47 tag.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its title.",
+                    "maxLength": 100,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`language_invalid`; or not well formed, without a body"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such post"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Change a video post's words",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/videos/{id}/access": {
+      "patch": {
+        "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "patchVideosByIdAccess",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "default": "public",
+                    "description": "Who may see it: `public`, `registered`, `followers`, `leaders`, `mutuals`, `admins` or `myself` (permissions.md). The widest an installation allows when left out.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such post"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudienceRefusal"
+                }
+              }
+            },
+            "description": "`access_not_allowed`, with the audiences it may have; or `reply_follows_its_thread`: a reply has no setting of its own; its thread decides, without them"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Change who may see it",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/videos/{id}/comment-status": {
+      "patch": {
+        "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "patchVideosByIdCommentStatus",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "status": {
+                    "description": "Whether it takes replies.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such post"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Open or close replies",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/videos/{id}/download": {
+      "get": {
+        "description": "A redirect to one size of it, named to be saved. For whoever may see the post, when it may be downloaded.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getVideosByIdDownload",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Which size, by its height: `720`. The largest when left out.",
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "the file is at the address in Location"
+          },
+          "403": {
+            "description": "it may not be downloaded"
+          },
+          "404": {
+            "description": "there is no such post or size that the viewer may see"
+          },
+          "429": {
+            "description": "too many downloads lately"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download it",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "anyone"
+      },
+      "patch": {
+        "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "patchVideosByIdDownload",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "allow": {
+                    "description": "Whether whoever can see it may download it.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "allow": {
+                    "description": "Whether whoever can see it may download it.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such post"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Change whether it may be downloaded",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/videos/{id}/files/{name}": {
+      "get": {
+        "description": "A redirect to it in storage, at an address good for a short while. Who may see the post is asked each time; nothing in between keeps it.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getVideosByIdFilesByName",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Which file: one size of the video, by its height (`720.mp4`), or `poster.jpg`.",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "the file is at the address in Location"
+          },
+          "404": {
+            "description": "there is no such post or file that the viewer may see"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A file of a video post",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/videos/{id}/pin": {
+      "delete": {
+        "description": "A profile has one pin: pinning another post moves it. For the profile and its administrators, and site administrators (permissions.md). Answers with the post.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "deleteVideosByIdPin",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not pin it"
+          },
+          "404": {
+            "description": "there is no such post"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`reply_cannot_be_pinned`"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Take its pin off",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "put": {
+        "description": "A profile has one pin: pinning another post moves it. For the profile and its administrators, and site administrators (permissions.md). Answers with the post.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "putVideosByIdPin",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not pin it"
+          },
+          "404": {
+            "description": "there is no such post"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`reply_cannot_be_pinned`"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Pin it to the profile it is on",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/videos/{id}/quote-policy": {
+      "patch": {
+        "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "patchVideosByIdQuotePolicy",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "quote_policy": {
+                    "description": "Who may quote it: `anyone`, `followers` or `nobody`.",
+                    "maxLength": 16,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "quote_policy"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "quote_policy": {
+                    "description": "Who may quote it: `anyone`, `followers` or `nobody`.",
+                    "maxLength": 16,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "quote_policy"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`quote_policy_invalid`, or not well formed"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such post"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Change who may quote it",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/videos/{id}/reply-access": {
+      "patch": {
+        "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "patchVideosByIdReplyAccess",
+        "parameters": [
+          {
+            "description": "The post's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "reply_access": {
+                    "description": "Who may reply: `anyone`, `nobody`, or any of `followers`, `following` and `mentioned` joined by commas.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reply_access"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "reply_access": {
+                    "description": "Who may reply: `anyone`, `nobody`, or any of `followers`, `following` and `mentioned` joined by commas.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reply_access"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`reply_access_invalid`, or not well formed"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such post"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`reply_follows_its_thread`: a reply has no setting of its own; its thread decides"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Change who may reply",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/videos/{owner_id}/": {
+      "get": {
+        "description": "Those the viewer may see.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getVideosByOwnerId",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "What they are ordered by.",
+            "in": "query",
+            "name": "ordering",
+            "schema": {
+              "default": "created_at",
+              "enum": [
+                "updated_at",
+                "created_at",
+                "enabled"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Disabled posts as well, for whoever may see them.",
+            "in": "query",
+            "name": "disabled",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "The profile whose posts are listed.",
+            "in": "path",
+            "name": "owner_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/MediumNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A profile's video posts",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/videos/{owner_id}/uploads": {
+      "post": {
+        "description": "Everything about the post is settled here, as when any post is made, and the file is then sent straight to storage in parts (`POST /videos/uploads/{id}/parts`). With `parent_id`, a reply with a video, on its author's own profile.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "postVideosByOwnerIdUploads",
+        "parameters": [
+          {
+            "description": "The profile the post will be on.",
+            "in": "path",
+            "name": "owner_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who may see it (permissions.md).",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  },
+                  "allow_download": {
+                    "description": "Whether whoever can see it may download it. Left out, the post starts with what the profile it is on says.",
+                    "type": "boolean"
+                  },
+                  "body": {
+                    "description": "Its words, as Markdown.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "content_type": {
+                    "description": "What kind of file it is: `video/mp4`, `video/quicktime`, `video/webm`, `image/gif` or `image/png`.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language it is written in, as a BCP 47 tag.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its title: required of a post; a reply need not have one.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "parent_id": {
+                    "description": "What it answers, when it is a reply: then it is on its author's own profile, and what it is open to, who may answer it and quoting are its thread's, so those above are not read.",
+                    "format": "int64",
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "quote_policy": {
+                    "description": "Who may quote it: `anyone`, `followers` or `nobody`.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "reply_access": {
+                    "description": "Who may reply: `anyone`, `nobody`, or any of `followers`, `following` and `mentioned` joined by commas.",
+                    "maxLength": 64,
+                    "type": "string"
+                  },
+                  "size": {
+                    "description": "How large the file is, in bytes.",
+                    "format": "int64",
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "size",
+                  "content_type"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who may see it (permissions.md).",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  },
+                  "allow_download": {
+                    "description": "Whether whoever can see it may download it. Left out, the post starts with what the profile it is on says.",
+                    "type": "boolean"
+                  },
+                  "body": {
+                    "description": "Its words, as Markdown.",
+                    "maxLength": 8000,
+                    "type": "string"
+                  },
+                  "content_type": {
+                    "description": "What kind of file it is: `video/mp4`, `video/quicktime`, `video/webm`, `image/gif` or `image/png`.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The language it is written in, as a BCP 47 tag.",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its title: required of a post; a reply need not have one.",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "parent_id": {
+                    "description": "What it answers, when it is a reply: then it is on its author's own profile, and what it is open to, who may answer it and quoting are its thread's, so those above are not read.",
+                    "format": "int64",
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "quote_policy": {
+                    "description": "Who may quote it: `anyone`, `followers` or `nobody`.",
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "reply_access": {
+                    "description": "Who may reply: `anyone`, `nobody`, or any of `followers`, `following` and `mentioned` joined by commas.",
+                    "maxLength": 64,
+                    "type": "string"
+                  },
+                  "size": {
+                    "description": "How large the file is, in bytes.",
+                    "format": "int64",
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "size",
+                  "content_type"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/video.UploadResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`language_invalid`, `reply_access_invalid` or `quote_policy_invalid`; or not well formed, without a body"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`uploads_off`: this installation takes no video; or the viewer may not post or reply here, without a body"
+          },
+          "404": {
+            "description": "there is no such profile, or nothing it answers that the viewer may see"
+          },
+          "410": {
+            "description": "it answers a reply that was removed"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/video.UploadTooLarge"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`not_a_video`"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudienceRefusal"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`too_many`: as many as may be begun in a day"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Begin a video post",
+        "tags": [
+          "video-service"
+        ],
+        "x-viewer": "signed_in"
+      }
     }
   },
   "servers": [
@@ -7779,6 +9558,10 @@
     {
       "description": "Search",
       "name": "search-service"
+    },
+    {
+      "description": "Video posts",
+      "name": "video-service"
     }
   ]
 }

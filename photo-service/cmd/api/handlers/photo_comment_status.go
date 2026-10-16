@@ -39,7 +39,7 @@ func (h *photoHandler) EditCommentStatus(c echo.Context) error {
 
 	// A reply has none of its own: its thread decides.
 	if medium.RootID > 0 {
-		return c.JSON(http.StatusUnprocessableEntity, map[string]string{"error": "reply_follows_its_thread"})
+		return c.JSON(http.StatusUnprocessableEntity, responses.Refusal{Error: "reply_follows_its_thread"})
 	}
 
 	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)

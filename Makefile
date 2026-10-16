@@ -745,6 +745,7 @@ api_docs:
 	@cd ${LOCATION_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
 	@cd ${ATPROTO_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
 	@cd ${PHOTO_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
+	@cd ${VIDEO_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
 	@cd anahita-libs && APIDOC_UPDATE=1 go test ./apidoc/ -run TestTheCombinedReference -count=1
 
 ## test: runs the unit tests across the whole workspace. anahita-libs
