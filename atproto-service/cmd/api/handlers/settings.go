@@ -37,9 +37,11 @@ var connectLimit = ratelimit.Limit{Max: 10, Window: 10 * time.Minute}
 // Settings is somebody's connection to Bluesky, as the web app is told.
 type Settings struct {
 	// Whether an account is connected.
-	Connected bool   `json:"connected"`
-	Handle    string `json:"handle"`
-	DID       string `json:"did"`
+	Connected bool `json:"connected"`
+	// Its handle.
+	Handle string `json:"handle"`
+	// Its lasting name on Bluesky.
+	DID string `json:"did"`
 	// The account's server no longer takes what was kept: it has to be
 	// connected again.
 	Broken bool `json:"broken"`
@@ -87,8 +89,12 @@ func (h *Handlers) ReadSettings(c echo.Context) error {
 	return c.JSON(http.StatusOK, settingsOf(account))
 }
 
-type connectRequest struct {
-	Handle      string `json:"handle"`
+// ConnectRequest connects the viewer's Bluesky account.
+type ConnectRequest struct {
+	// The Bluesky handle: alice.bsky.social.
+	Handle string `json:"handle"`
+	// An app password made in Bluesky's settings, never the account's own
+	// password. Not kept: it is exchanged for a token, kept encrypted.
 	AppPassword string `json:"app_password"`
 }
 
@@ -99,7 +105,7 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 		return refuse(c, http.StatusNotFound, errConnectOff)
 	}
 
-	req := &connectRequest{}
+	req := &ConnectRequest{}
 	if err := c.Bind(req); err != nil {
 		return refuse(c, http.StatusBadRequest, errConnectUnreadable)
 	}

@@ -65,7 +65,7 @@ func (h *Handlers) RestorePictures(c echo.Context) error {
 	restored, code := h.restorePictures(ctx, post, did)
 	switch code {
 	case "":
-		return c.JSON(http.StatusOK, map[string]int{"restored": restored})
+		return c.JSON(http.StatusOK, PicturesRestored{Restored: restored})
 	case errMediaGone:
 		return refuse(c, http.StatusGone, code)
 	}

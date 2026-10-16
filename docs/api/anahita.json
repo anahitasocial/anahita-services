@@ -1634,6 +1634,146 @@
         ],
         "type": "object"
       },
+      "atproto.ImportPreview": {
+        "description": "ImportPreview is what following here whoever the viewer follows on Bluesky would do, before it is done.",
+        "properties": {
+          "following": {
+            "description": "How many accounts the viewer follows on Bluesky.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "most": {
+            "description": "The most followed here in one go.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "posts_of_each": {
+            "description": "How many of each one's latest posts are read.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "following",
+          "most",
+          "posts_of_each"
+        ],
+        "type": "object"
+      },
+      "atproto.ImportStarted": {
+        "description": "ImportStarted says following them here has begun: it carries on after the answer, and for a long list takes minutes.",
+        "properties": {
+          "limit": {
+            "description": "How many will be followed.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "started": {
+            "description": "Always true.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "started",
+          "limit"
+        ],
+        "type": "object"
+      },
+      "atproto.PicturesRestored": {
+        "description": "PicturesRestored says the pictures of a post are here again.",
+        "properties": {
+          "restored": {
+            "description": "How many were copied.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "restored"
+        ],
+        "type": "object"
+      },
+      "atproto.RemotePerson": {
+        "description": "RemotePerson is somebody on Bluesky, as the web app is told. The same shape as somebody found on the fediverse.",
+        "properties": {
+          "alias": {
+            "description": "Their handle: alice.bsky.social.",
+            "type": "string"
+          },
+          "body": {
+            "description": "What they say of themselves.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Their id here.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "locked": {
+            "description": "Nobody on Bluesky approves who follows them.",
+            "type": "boolean"
+          },
+          "name": {
+            "description": "Their name.",
+            "type": "string"
+          },
+          "origin_domain": {
+            "type": "string"
+          },
+          "type": {
+            "description": "Always a Bluesky person's type.",
+            "type": "string"
+          },
+          "uri": {
+            "description": "Their address between servers, and where they are kept as from.",
+            "type": "string"
+          },
+          "url": {
+            "description": "Their page on Bluesky.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "name",
+          "alias",
+          "body",
+          "uri",
+          "origin_domain",
+          "url",
+          "locked"
+        ],
+        "type": "object"
+      },
+      "atproto.Settings": {
+        "description": "Settings is somebody's connection to Bluesky, as the web app is told.",
+        "properties": {
+          "broken": {
+            "description": "The account's server no longer takes what was kept: it has to be connected again.",
+            "type": "boolean"
+          },
+          "connected": {
+            "description": "Whether an account is connected.",
+            "type": "boolean"
+          },
+          "did": {
+            "description": "Its lasting name on Bluesky.",
+            "type": "string"
+          },
+          "handle": {
+            "description": "Its handle.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connected",
+          "handle",
+          "did",
+          "broken"
+        ],
+        "type": "object"
+      },
       "hashtag.HashtagNodeItem": {
         "description": "HashtagNodeItem is a hashtag.",
         "properties": {
@@ -2756,6 +2896,351 @@
         "summary": "What a thing may be reported for",
         "tags": [
           "abuse-report-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/atproto/lookup": {
+      "get": {
+        "description": "They are kept here, so that they can be followed as anybody is. Thirty lookups in ten minutes.\n\nWho may call it: somebody signed in.",
+        "operationId": "getAtprotoLookup",
+        "parameters": [
+          {
+            "description": "What was typed: a handle with or without its @ (alice.bsky.social), a DID, or the address of their profile page.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/atproto.RemotePerson"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "`lookup_unreadable`: not something that names an account"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "`lookup_not_found`, there is nobody by that name; `lookup_is_here`, it is somebody of this installation; `lookup_refused`, Bluesky or their name is refused here"
+          },
+          "429": {
+            "description": "`too_many_lookups`"
+          },
+          "502": {
+            "description": "`lookup_failed`: Bluesky could not be asked"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Find somebody on Bluesky",
+        "tags": [
+          "atproto-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/atproto/posts/{id}/pictures": {
+      "post": {
+        "description": "The pictures of a post from Bluesky that has been left alone a while are removed from storage, and the post says so (`media_removed`). Asked here, they are read again from Bluesky and copied as they were. For anybody signed in who may see the post.\n\nWho may call it: somebody signed in.",
+        "operationId": "postAtprotoPostsByIdPictures",
+        "parameters": [
+          {
+            "description": "The post's id here.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/atproto.PicturesRestored"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "`media_not_removed`: there is no such post the viewer may see, or its pictures are here"
+          },
+          "410": {
+            "description": "`media_gone`: they are not on Bluesky any more"
+          },
+          "429": {
+            "description": "`too_many_requests`"
+          },
+          "502": {
+            "description": "`media_failed`: Bluesky could not be asked"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Copy a post's pictures here again",
+        "tags": [
+          "atproto-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/atproto/settings": {
+      "delete": {
+        "description": "The token is forgotten. What was written stays on Bluesky.\n\nWho may call it: somebody signed in.",
+        "operationId": "deleteAtprotoSettings",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/atproto.Settings"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "`bluesky_writing_off`: this installation does not write to Bluesky"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Disconnect it",
+        "tags": [
+          "atproto-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "getAtprotoSettings",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/atproto.Settings"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "`bluesky_writing_off`: this installation does not write to Bluesky"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The viewer's Bluesky account",
+        "tags": [
+          "atproto-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "put": {
+        "description": "With an app password, which is exchanged for a token and not kept. Ten tries in ten minutes.\n\nWho may call it: somebody signed in.",
+        "operationId": "putAtprotoSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "app_password": {
+                    "description": "An app password made in Bluesky's settings, never the account's own password. Not kept: it is exchanged for a token, kept encrypted.",
+                    "type": "string"
+                  },
+                  "handle": {
+                    "description": "The Bluesky handle: alice.bsky.social.",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/atproto.Settings"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "`bluesky_unreadable`"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "`bluesky_denied`: the password is not taken"
+          },
+          "404": {
+            "description": "`bluesky_writing_off`: this installation does not write to Bluesky; `bluesky_not_found`, there is no such account; `lookup_refused`, Bluesky is refused here"
+          },
+          "409": {
+            "description": "`bluesky_taken`: somebody else here connected that account"
+          },
+          "429": {
+            "description": "`too_many_tries`"
+          },
+          "502": {
+            "description": "`bluesky_failed`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Connect the viewer's Bluesky account",
+        "tags": [
+          "atproto-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/atproto/settings/import-follows": {
+      "get": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "getAtprotoSettingsImportFollows",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/atproto.ImportPreview"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "`bluesky_writing_off`: this installation does not write to Bluesky"
+          },
+          "409": {
+            "description": "`bluesky_not_connected`"
+          },
+          "502": {
+            "description": "`bluesky_failed`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What following here whoever the viewer follows on Bluesky would do",
+        "tags": [
+          "atproto-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "The ones followed most lately first, leaving out whoever is refused or blocked. Answered at once and carried on with afterwards. Nothing is written to Bluesky. Three times an hour.\n\nWho may call it: somebody signed in.",
+        "operationId": "postAtprotoSettingsImportFollows",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "limit": {
+                    "description": "How many accounts to follow here, beginning with the ones followed most lately.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/atproto.ImportStarted"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "`bluesky_writing_off`: this installation does not write to Bluesky"
+          },
+          "409": {
+            "description": "`bluesky_not_connected`"
+          },
+          "429": {
+            "description": "`too_many_tries`"
+          },
+          "502": {
+            "description": "`bluesky_failed`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Follow here whoever the viewer follows on Bluesky",
+        "tags": [
+          "atproto-service"
         ],
         "x-viewer": "signed_in"
       }
@@ -5674,6 +6159,10 @@
     {
       "description": "Abuse reports",
       "name": "abuse-report-service"
+    },
+    {
+      "description": "Bluesky",
+      "name": "atproto-service"
     },
     {
       "description": "Hashtags",
