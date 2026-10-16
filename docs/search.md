@@ -52,13 +52,24 @@ the second puts level.
    ```
    standing = scale × ln(1 + like × likes + save × saves
                            + reply × (replies, reposts and quotes)
-                           + follow × followers)
+                           + follow × followers
+                           + cite × citers)
             + following, when the searcher follows it or the profile it is on
    ```
 
    The logarithm keeps one post liked a thousand times from burying
    everything: it comes first, not a hundred times first. Each like, save,
    reply or follow counts by when it happened (below).
+
+   **Citers** are the people who show it within an article or a topic of
+   their own, a post or a profile, each once however many of their posts
+   do, and never its own author: `nodes.citation_count`, kept in step by the
+   graph (`repositories/citations.go`). Only a published post anybody may
+   read counts as citing. A citation counts as it stands, not halved with
+   time: citing is deliberate and lasting, and useful knowledge stays
+   useful. `cite` starts at 3, above a like (1) and a save (2), since citing
+   takes effort; it is a starting value, to be tuned once there are
+   citations to look at.
 
 3. **Its id,** the newest first, so that results level on everything keep
    their places from one page to the next.
@@ -95,7 +106,7 @@ Every number above is the operator's, in
     "name_contains": 50, "hashtag": 40, "body_word": 20, "body_contains": 10
   },
   "following": 15,
-  "useful": { "scale": 5, "like": 1, "save": 2, "reply": 2, "follow": 1 },
+  "useful": { "scale": 5, "like": 1, "save": 2, "reply": 2, "follow": 1, "cite": 3 },
   "half_life_days": 365
 }
 ```
@@ -148,6 +159,8 @@ searcher may see; see [Permissions](permissions.md).
   finds (two-letter stopwords, text indexed before the index existed,
   Japanese). Search is fast enough without it at today's sizes; a search
   engine beside the database is the likelier answer when it is not.
-- **Ranking by citation,** as Google ranks the web, is to be decided in a
-  few months, when there is more to rank. See the web app's
+- **Ranking by the citers' own standing,** as Google ranks the web, where
+  a citation from what is itself much cited counts for more. Citations
+  count today each as one (above); weighing them by who cites is for when
+  there are enough to tune it against. See the web app's
   `docs/plans/done/search-improvements.md`.

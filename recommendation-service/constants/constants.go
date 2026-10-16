@@ -30,14 +30,19 @@ const (
 
 // Why a profile is suggested, as the answer names it.
 const (
-	ReasonFollowsYou         = "follows_you"
-	ReasonFollowedByLeaders  = "followed_by_leaders"
-	ReasonInviter            = "inviter"
-	ReasonHostedByLeader     = "hosted_by_leader"
-	ReasonSharedInterest     = "shared_interest"
-	ReasonYouEngaged         = "you_engaged"
-	ReasonPopular            = "popular"
-	ReasonFeatured           = "featured"
+	ReasonFollowsYou        = "follows_you"
+	ReasonFollowedByLeaders = "followed_by_leaders"
+	ReasonInviter           = "inviter"
+	ReasonHostedByLeader    = "hosted_by_leader"
+	ReasonSharedInterest    = "shared_interest"
+	ReasonYouEngaged        = "you_engaged"
+	ReasonPopular           = "popular"
+	ReasonFeatured          = "featured"
+	// Others have cited them: their profile, or posts of theirs, shown
+	// within an article or a topic (the user, 2026-10-16).
+	ReasonCited = "cited"
+	// People the viewer follows have cited them.
+	ReasonCitedByLeaders     = "cited_by_leaders"
 	MaxIDsInAReason          = 3
 	MaxCandidatesFromASignal = 200
 )
@@ -57,6 +62,8 @@ var Weights = map[string]Weight{
 	ReasonSharedInterest:    {Each: 2, Most: 8},
 	ReasonYouEngaged:        {Each: 2, Most: 8},
 	ReasonPopular:           {Each: 0.5, Most: 0.5},
+	ReasonCited:             {Each: 1, Most: 4},
+	ReasonCitedByLeaders:    {Each: 3, Most: 9},
 	ReasonFeatured:          {Each: 0.5, Most: 0.5},
 }
 
@@ -86,10 +93,12 @@ func WeightsFor(own map[string]float64) map[string]Weight {
 var ReasonOrder = []string{
 	ReasonFollowsYou,
 	ReasonFollowedByLeaders,
+	ReasonCitedByLeaders,
 	ReasonInviter,
 	ReasonHostedByLeader,
 	ReasonYouEngaged,
 	ReasonSharedInterest,
+	ReasonCited,
 	ReasonFeatured,
 	ReasonPopular,
 }

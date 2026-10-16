@@ -55,6 +55,13 @@ type Useful struct {
 	Save   float64 `json:"save"`
 	Reply  float64 `json:"reply"`
 	Follow float64 `json:"follow"`
+	// Cite is each person who cites it, a post or a profile: shown it
+	// within an article or a topic of their own (nodes.citation_count).
+	// More than a like or a save, since citing takes deliberate effort; a
+	// starting value, to be tuned once there are citations to look at (the
+	// user, 2026-10-16). Counted as it stands, not halved with time: a
+	// citation is lasting, and useful knowledge stays useful.
+	Cite float64 `json:"cite"`
 }
 
 // Weights is the whole of it.
@@ -79,7 +86,7 @@ func Default() Weights {
 			NameContains: 50, Hashtag: 40, BodyWord: 20, BodyContains: 10,
 		},
 		Following:    15,
-		Useful:       Useful{Scale: 5, Like: 1, Save: 2, Reply: 2, Follow: 1},
+		Useful:       Useful{Scale: 5, Like: 1, Save: 2, Reply: 2, Follow: 1, Cite: 3},
 		HalfLifeDays: 365,
 	}
 }
@@ -94,7 +101,7 @@ func (w Weights) valid() bool {
 		w.Match.Handle, w.Match.Name, w.Match.NameStarts, w.Match.WordStarts,
 		w.Match.NameContains, w.Match.Hashtag, w.Match.BodyWord, w.Match.BodyContains,
 		w.Following, w.Useful.Scale, w.Useful.Like, w.Useful.Save, w.Useful.Reply,
-		w.Useful.Follow, w.HalfLifeDays,
+		w.Useful.Follow, w.Useful.Cite, w.HalfLifeDays,
 	}
 	for _, value := range values {
 		if value < 0 || value > most {

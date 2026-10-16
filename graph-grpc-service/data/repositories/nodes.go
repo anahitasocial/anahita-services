@@ -114,7 +114,7 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 
 	if req.Ordering != "" && req.NearbyLatitude == 0 && req.NearbyLongitude == 0 {
 		if req.Ordering == constants.OrderingPopular {
-			query = query.OrderBy("(COALESCE(node.repost_count,0) + COALESCE(node.comment_count,0) + COALESCE(node.vote_up_count,0) + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0)) DESC")
+			query = query.OrderBy("(COALESCE(node.repost_count,0) + COALESCE(node.comment_count,0) + COALESCE(node.vote_up_count,0) + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0) + COALESCE(node.citation_count,0)) DESC")
 		} else if req.Ordering == constants.OrderingRecent {
 			query = query.OrderBy("node.created_at DESC")
 		} else if column := safeOrderColumn(req.Ordering); column != "" {

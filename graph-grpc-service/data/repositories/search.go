@@ -112,8 +112,9 @@ END)`
 // condition on either would read every node for every result; and the
 // index on quotes named, since while nearly no post quotes another the
 // database judges it not worth using and reads every node instead),
-// on a logarithm so that a thousand comes first and not a hundred times
-// first. Then a bonus for what the searcher follows.
+// and the people who cite it, as kept on it (nodes.citation_count, not
+// halved with time), on a logarithm so that a thousand comes first and not
+// a hundred times first. Then a bonus for what the searcher follows.
 const relevantStanding = `(
     ? * LN(1
         + ? * (
@@ -145,6 +146,7 @@ const relevantStanding = `(
             WHERE followed.node_b_id = node.id
               AND followed.type = ?
         )
+        + ? * COALESCE(node.citation_count, 0)
     )
     + %[5]s
 )`
@@ -199,6 +201,7 @@ func relevance(keywords string, weights ranking.Weights, viewer *entities.Viewer
 		weights.Useful.Save, constants.EdgeBaseBookmarkEntityType,
 		weights.Useful.Reply,
 		weights.Useful.Follow, constants.EdgeFollowEntityType,
+		weights.Useful.Cite,
 	}
 	if viewer != nil && viewer.ID > 0 {
 		following = followedByViewer

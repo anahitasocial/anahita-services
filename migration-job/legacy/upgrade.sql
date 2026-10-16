@@ -586,6 +586,10 @@ ALTER TABLE nodes ADD COLUMN `library_only` tinyint(1) NOT NULL DEFAULT 0 AFTER 
 -- nodes.draft. See migrations/20261115000001_drafts.sql.
 ALTER TABLE nodes ADD COLUMN `draft` tinyint(1) NOT NULL DEFAULT 0 AFTER `library_only`;
 
+-- nodes.citation_count. See migrations/20261116000001_citation_count.sql.
+-- Nothing on the PHP site cited anything, so every count starts at 0.
+ALTER TABLE nodes ADD COLUMN `citation_count` int(11) unsigned NOT NULL DEFAULT 0 AFTER `quote_count`;
+
 -- nodes.excerpt, dropped with what is in it. See
 -- migrations/20261113000001_drop_excerpt.sql.
 ALTER TABLE nodes DROP COLUMN `excerpt`;

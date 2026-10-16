@@ -9285,7 +9285,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized body comment_count comment_status cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language library_only likes_count link_preview link_previews media_removed mimetype name origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id type updated_at uri video view_count">
+<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized body citation_count comment_count comment_status cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language library_only likes_count link_preview link_previews media_removed mimetype name origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id type updated_at uri video view_count">
 <h3>MediumNode</h3>
 <p>A post or a reply, read on its own or answered with after a change.</p>
 <table>
@@ -9297,6 +9297,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>author</code></td><td><a href="#schema-Author">Author</a></td><td>Related Entities</td></tr>
 <tr><td><code>authorized</code></td><td><a href="#schema-NodeAuthorized">NodeAuthorized</a></td><td>Authorization Information</td></tr>
 <tr><td><code>body</code></td><td>string</td><td>Its words, as Markdown.</td></tr>
+<tr><td><code>citation_count</code> <span class="required">always</span></td><td>integer</td><td>How many people cite it, each once, never its author.</td></tr>
 <tr><td><code>comment_count</code> <span class="required">always</span></td><td>integer</td><td>How many replies are under it.</td></tr>
 <tr><td><code>comment_status</code> <span class="required">always</span></td><td>boolean</td><td>Whether it takes replies at all.</td></tr>
 <tr><td><code>cover_urls</code></td><td>map of <a href="#schema-Image">Image</a></td><td>Media URLs</td></tr>
@@ -10972,7 +10973,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tbody>
 <tr><td><code>count</code> <span class="required">always</span></td><td>integer</td><td>How strongly.</td></tr>
 <tr><td><code>ids</code></td><td>list of integer</td><td>Up to three of what it was found through: the people or the hashtags, named in the answer&#39;s <code>related</code>.</td></tr>
-<tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>Which reason: <code>follows_you</code>, <code>followed_by_leaders</code>, <code>inviter</code>, <code>hosted_by_leader</code>, <code>shared_interest</code>, <code>you_engaged</code>, <code>popular</code> or <code>featured</code> (<a href="../recommendations.md">recommendations.md</a>).</td></tr>
+<tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>Which reason: <code>follows_you</code>, <code>followed_by_leaders</code>, <code>cited_by_leaders</code>, <code>inviter</code>, <code>hosted_by_leader</code>, <code>shared_interest</code>, <code>you_engaged</code>, <code>cited</code>, <code>popular</code> or <code>featured</code> (<a href="../recommendations.md">recommendations.md</a>).</td></tr>
 </tbody>
 </table>
 </div>

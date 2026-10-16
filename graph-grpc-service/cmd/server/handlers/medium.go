@@ -246,6 +246,10 @@ func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest
 		}
 	}
 
+	// What it cites counts it as a citer, or no more, as its audience and
+	// whether it is published say.
+	h.recountCitedBy(node.ID)
+
 	node.IsSubscribedByViewer, err = h.env.Repos.SubscriptionsRel.IsSubscribedToOne(viewer.ID, node.ID)
 	if err != nil {
 		return nil, err
@@ -428,6 +432,9 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 		}
 	}
 
+	// And one citer fewer, perhaps, of what it cited.
+	h.recountCitedBy(node.ID)
+
 	// The list of a photo post's images goes with the post. The stored images
 	// themselves are removed by the service that asked for this.
 	if err := h.env.Repos.PhotoFiles.DeleteForNodes([]int64{node.ID}); err != nil {
@@ -455,4 +462,24 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 	}()
 
 	return &graphpb.MediumDeleteResponse{}, nil
+}
+
+// recountCitedBy puts right the citation counts of what a post cites, after
+// a change to the post: published, its audience changed, taken down. Never
+// in the way of the change itself.
+func (h *mediumHandler) recountCitedBy(citingID int64) {
+	if h.env.Repos.Citations == nil {
+		return
+	}
+	cited, err := h.env.Repos.Citations.CitedBy(citingID)
+	if err != nil {
+		log.Printf("reading what %d cites failed: %v", citingID, err)
+		return
+	}
+	if len(cited) == 0 {
+		return
+	}
+	if err := h.env.Repos.Citations.Recount(cited); err != nil {
+		log.Printf("counting the citations of what %d cites failed: %v", citingID, err)
+	}
 }

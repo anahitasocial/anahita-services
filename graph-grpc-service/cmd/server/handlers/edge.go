@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/proto/graphpb"
 	"context"
@@ -278,6 +279,7 @@ func (h *edgeHandler) BatchAdd(ctx context.Context, req *graphpb.EdgeBatchAddReq
 	if err != nil {
 		return nil, err
 	}
+	h.recountCitations(edges)
 
 	return &graphpb.EdgeBatchAddResponse{
 		Edges: edgesToGrpc(result),
@@ -288,10 +290,15 @@ func (h *edgeHandler) BatchAdd(ctx context.Context, req *graphpb.EdgeBatchAddReq
 func (h *edgeHandler) BatchDelete(ctx context.Context, req *graphpb.EdgeBatchDeleteRequest) (*graphpb.EdgeBatchDeleteResponse, error) {
 	log.Printf("Received BatchDelete request: %v", req)
 
+	// What they ran to, before they go: a citation taken away changes a
+	// count.
+	going, _ := h.env.Repos.Edges.BatchRead(req.Ids)
+
 	deletedCount, err := h.env.Repos.Edges.BatchDelete(req.Ids)
 	if err != nil {
 		return nil, err
 	}
+	h.recountCitations(going)
 
 	return &graphpb.EdgeBatchDeleteResponse{
 		DeletedCount: deletedCount,
@@ -317,4 +324,25 @@ func (h *edgeHandler) BatchDeleteByFilters(ctx context.Context, req *graphpb.Edg
 	return &graphpb.EdgeBatchDeleteByFiltersResponse{
 		DeletedCount: deletedCount,
 	}, nil
+}
+
+// recountCitations puts right the citation counts of what these edges run
+// to, where any of them is a citation (repositories/citations.go). Never in
+// the way of the edges themselves.
+func (h *edgeHandler) recountCitations(edges []*entities.AnahitaEdge) {
+	if h.env.Repos.Citations == nil {
+		return
+	}
+	cited := []int64{}
+	for _, edge := range edges {
+		if edge != nil && edge.Type == constants.EdgeMediumCitationType {
+			cited = append(cited, edge.NodeBID)
+		}
+	}
+	if len(cited) == 0 {
+		return
+	}
+	if err := h.env.Repos.Citations.Recount(cited); err != nil {
+		log.Printf("counting citations of %v failed: %v", cited, err)
+	}
 }

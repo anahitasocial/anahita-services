@@ -26,6 +26,9 @@ func TestFind(t *testing.T) {
 		"[https://example.org/notes/7](https://example.org/notes/7)",
 		"[https://example.org/notes/a\\_b](https://example.org/notes/a_b)",
 		"[words](https://example.org/notes/8)",
+		"https://example.org/@anahita-project",
+		"https://example.org/@ana/photos",
+		"https://example.org/@anahita-project",
 	}, "\n")
 
 	got := Find(text, ours)
@@ -33,6 +36,9 @@ func TestFind(t *testing.T) {
 	wantPosts := []Post{{Kind: "photo", ID: 12}, {Kind: "article", ID: 40}, {Kind: "note", ID: 7}}
 	if !reflect.DeepEqual(got.Posts, wantPosts) {
 		t.Errorf("posts: got %v, want %v", got.Posts, wantPosts)
+	}
+	if want := []string{"anahita-project", "ana"}; !reflect.DeepEqual(got.Profiles, want) {
+		t.Errorf("profiles: got %v, want %v", got.Profiles, want)
 	}
 	wantPages := []string{"https://elsewhere.com/page"}
 	if !reflect.DeepEqual(got.Pages, wantPages) {

@@ -15,7 +15,8 @@
     "like": 1,
     "save": 2,
     "reply": 2,
-    "follow": 1
+    "follow": 1,
+    "cite": 3
   },
   "half_life_days": 365
 }

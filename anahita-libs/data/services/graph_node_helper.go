@@ -132,6 +132,7 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.AllowDownload = m.AllowDownload
 	n.LibraryOnly = m.LibraryOnly
 	n.Draft = m.Draft
+	n.CitationCount = m.CitationCount
 	n.CreatedBy = m.CreatedBy
 	n.ModifiedBy = m.ModifiedBy
 	n.Mimetype = m.Mimetype
@@ -295,6 +296,7 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		AllowDownload:             node.AllowDownload,
 		LibraryOnly:               node.LibraryOnly,
 		Draft:                     node.Draft,
+		CitationCount:             node.CitationCount,
 		StartsAt:                  timestamppb.New(node.StartsAt),
 		EndsAt:                    timestamppb.New(node.EndsAt),
 		OwnerType:                 node.OwnerType,

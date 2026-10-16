@@ -17,6 +17,16 @@ import (
 // kept here is the edge to it, a citation. A page elsewhere is drawn by its card, kept
 // in the post's meta as a note keeps its one.
 
+// The kinds a profile embedded by its alias may be: a person here or on
+// another server, a group, an event.
+var profileTypes = []string{
+	an_constants.NodeActorPersonEntityType,
+	"node.actor.group-service.group.v1",
+	an_constants.NodeActorEventEntityType,
+	an_constants.NodeActorActivityPubPersonEntityType,
+	an_constants.NodeActorATProtoPersonEntityType,
+}
+
 // withEmbeddedPages keeps the cards of the pages a text embeds in its meta.
 //
 // A card already kept for a page still in the text stays as it is, as a
@@ -92,6 +102,36 @@ func (h *mediumHandler) syncEmbeds(medium *entities.AnahitaNode) {
 		}
 	}
 
+	// The profiles it embeds, a person, a group or an event, cited as a
+	// post is (the user, 2026-10-16). Itself it does not cite.
+	cited := []int64{}
+	for _, post := range found.Posts {
+		cited = append(cited, post.ID)
+	}
+	// The graph reads aliases of one kind at a time; a profile may be any
+	// of these.
+	for _, kind := range profileTypes {
+		if len(found.Profiles) == 0 {
+			break
+		}
+		read := services.NewGraphNodeRequest().BatchReadByAliases
+		read.Aliases = found.Profiles
+		read.NodeType = kind
+		read.Viewer = entities.NewViewer()
+		read.AccessCheck = false
+		actors, err := h.Srv.GraphNodeGRPC.BatchReadByAliases(read)
+		if err != nil {
+			log.Printf("embeds of %d: reading the profiles: %v", medium.ID, err)
+			return
+		}
+		for _, actor := range actors {
+			if actor != nil && actor.ID > 0 && strings.HasPrefix(actor.Type, "node.actor.") {
+				wanted[actor.ID] = actor
+				cited = append(cited, actor.ID)
+			}
+		}
+	}
+
 	existing, err := h.Srv.GraphEdgeGRPC.BatchReadByFilters(&services.GraphEdgeBatchReadByFiltersRequest{
 		NodeAID: medium.ID,
 		Types:   []string{an_constants.EdgeMediumCitationType},
@@ -117,12 +157,12 @@ func (h *mediumHandler) syncEmbeds(medium *entities.AnahitaNode) {
 	}
 
 	missing := []*entities.AnahitaEdge{}
-	for _, post := range found.Posts {
-		node, ok := wanted[post.ID]
-		if !ok || have[post.ID] {
+	for _, id := range cited {
+		node, ok := wanted[id]
+		if !ok || have[id] {
 			continue
 		}
-		have[post.ID] = true
+		have[id] = true
 		missing = append(missing, &entities.AnahitaEdge{
 			Type:      an_constants.EdgeMediumCitationType,
 			NodeAID:   medium.ID,

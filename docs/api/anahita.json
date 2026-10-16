@@ -912,6 +912,11 @@
             "description": "Its words, as Markdown.",
             "type": "string"
           },
+          "citation_count": {
+            "description": "How many people cite it, each once, never its author.",
+            "format": "int64",
+            "type": "integer"
+          },
           "comment_count": {
             "description": "How many replies are under it.",
             "format": "int64",
@@ -1099,6 +1104,7 @@
         "required": [
           "id",
           "type",
+          "citation_count",
           "view_count",
           "likes_count",
           "quote_count",
@@ -5523,7 +5529,7 @@
             "type": "array"
           },
           "type": {
-            "description": "Which reason: `follows_you`, `followed_by_leaders`, `inviter`, `hosted_by_leader`, `shared_interest`, `you_engaged`, `popular` or `featured` (recommendations.md).",
+            "description": "Which reason: `follows_you`, `followed_by_leaders`, `cited_by_leaders`, `inviter`, `hosted_by_leader`, `shared_interest`, `you_engaged`, `cited`, `popular` or `featured` (recommendations.md).",
             "type": "string"
           }
         },

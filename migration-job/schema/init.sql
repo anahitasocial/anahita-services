@@ -37,6 +37,8 @@ CREATE TABLE nodes (
   `comment_count` int(11) unsigned DEFAULT NULL,
   `repost_count` int(11) unsigned NOT NULL DEFAULT 0,
   `quote_count` int(11) unsigned NOT NULL DEFAULT 0,
+  -- How many people cite it, each once, never itself (repositories/citations.go).
+  `citation_count` int(11) unsigned NOT NULL DEFAULT 0,
   `enabled` tinyint(1) NOT NULL DEFAULT 0,
   `verified` tinyint(1) NOT NULL DEFAULT 0,
   `pinned` tinyint(1) NOT NULL DEFAULT 0,

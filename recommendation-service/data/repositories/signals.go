@@ -321,6 +321,61 @@ GROUP BY c.id
 ORDER BY 2 DESC, c.id
 LIMIT ?`
 
+// Others have cited them in the last year: their profile, or a public post
+// of theirs or on their profile, shown within a published public article or
+// topic. Each citer once, never themselves, and not the viewer, who knows
+// whom they cited. Those named are the citers.
+const signalCited = `
+SELECT c.id, COUNT(DISTINCT citing.created_by),
+       GROUP_CONCAT(DISTINCT citing.created_by ORDER BY citing.created_by)
+FROM edges AS cite
+JOIN nodes AS target ON target.id = cite.node_b_id
+JOIN nodes AS citing ON citing.id = cite.node_a_id
+JOIN nodes AS c ON c.id IN (target.id, target.owner_id, target.created_by)
+WHERE cite.type = ?
+  AND cite.created_at > ?
+  AND (target.id = c.id OR target.access = 'public')
+  AND citing.enabled = 1
+  AND citing.deleted_at IS NULL
+  AND citing.draft = 0
+  AND citing.access = 'public'
+  AND citing.created_by <> c.id
+  AND citing.owner_id <> c.id
+  AND citing.created_by <> ?
+  AND {{eligible}}
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
+LIMIT ?`
+
+// The same, by people the viewer follows only.
+const signalCitedByLeaders = `
+SELECT c.id, COUNT(DISTINCT citing.created_by),
+       GROUP_CONCAT(DISTINCT citing.created_by ORDER BY citing.created_by)
+FROM edges AS cite
+JOIN nodes AS target ON target.id = cite.node_b_id
+JOIN nodes AS citing ON citing.id = cite.node_a_id
+JOIN nodes AS c ON c.id IN (target.id, target.owner_id, target.created_by)
+WHERE cite.type = ?
+  AND cite.created_at > ?
+  AND citing.created_by IN (
+    SELECT leads.node_b_id
+    FROM edges AS leads
+    WHERE leads.type = ?
+      AND leads.node_a_id = ?
+  )
+  AND (target.id = c.id OR target.access = 'public')
+  AND citing.enabled = 1
+  AND citing.deleted_at IS NULL
+  AND citing.draft = 0
+  AND citing.access = 'public'
+  AND citing.created_by <> c.id
+  AND citing.owner_id <> c.id
+  AND citing.created_by <> ?
+  AND {{eligible}}
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
+LIMIT ?`
+
 // The installation's administrators have featured them.
 const signalFeatured = `
 SELECT c.id, 1, ''
@@ -466,6 +521,21 @@ func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart b
 			reason: constants.ReasonPopular,
 			query:  signalPopular,
 			args:   with([]any{an_const.EdgeFollowEntityType, now.Add(-constants.PopularWindow)}, limit),
+		},
+		{
+			reason: constants.ReasonCited,
+			query:  signalCited,
+			args:   with([]any{an_const.EdgeMediumCitationType, now.Add(-constants.InterestWindow), viewerID}, limit),
+		},
+		{
+			reason: constants.ReasonCitedByLeaders,
+			query:  signalCitedByLeaders,
+			args: with([]any{
+				an_const.EdgeMediumCitationType, now.Add(-constants.InterestWindow),
+				an_const.EdgeFollowEntityType, viewerID,
+				viewerID,
+			}, limit),
+			needsFollows: true,
 		},
 		{
 			reason: constants.ReasonFeatured,

@@ -151,6 +151,8 @@ type MediumNode struct {
 	// That it is a draft, an article or a topic still being written, seen
 	// by its author alone.
 	Draft bool `json:"draft,omitempty"`
+	// How many people cite it, each once, never its author.
+	CitationCount int64 `json:"citation_count"`
 	// On a reply: removed, and kept as an empty placeholder because other
 	// replies hang from it. It carries no text and no author.
 	Deleted bool `json:"deleted,omitempty"`
@@ -304,6 +306,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		AllowDownload:      allowDownloadOf(node),
 		LibraryOnly:        node.LibraryOnly,
 		Draft:              node.Draft,
+		CitationCount:      node.CitationCount,
 		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
 		Hidden:             node.Hidden,
 		Access:             node.Access,
