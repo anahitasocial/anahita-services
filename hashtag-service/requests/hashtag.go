@@ -7,8 +7,6 @@ type HashtagRequest struct {
 	BrowseTrending        *HashtagBrowseTrendingRequest
 	BrowseOrderedByDegree *HashtagBrowseOrderedByDegreeRequest
 	Read                  *HashtagReadRequest
-	Edit                  *HashtagEditRequest
-	Add                   *HashtagAddRequest
 	Delete                *HashtagDeleteRequest
 }
 
@@ -29,8 +27,6 @@ func NewHashtagRequest() *HashtagRequest {
 			Limit:  constants.RequestLimitDefault,
 		},
 		Read:   &HashtagReadRequest{},
-		Edit:   &HashtagEditRequest{},
-		Add:    &HashtagAddRequest{},
 		Delete: &HashtagDeleteRequest{},
 	}
 }
@@ -65,12 +61,6 @@ type HashtagBrowseTrendingRequest struct {
 type HashtagReadRequest struct {
 	Alias string `param:"alias" validate:"required,hashtag"`
 }
-
-type HashtagEditRequest struct {
-	Alias string `param:"alias" validate:"required,hashtag"`
-}
-
-type HashtagAddRequest struct{}
 
 type HashtagDeleteRequest struct {
 	// The hashtag's id.

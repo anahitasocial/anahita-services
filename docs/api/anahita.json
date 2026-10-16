@@ -3466,38 +3466,6 @@
           "hashtag-service"
         ],
         "x-viewer": "anyone"
-      },
-      "patch": {
-        "description": "**Not built:** a hashtag cannot be changed yet; it answers 501 whoever asks\n\nWho may call it: a site administrator, with a token that carries `taxonomy:write`.",
-        "operationId": "patchHashtagsByAlias",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "alias",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "x-validate": "hashtag"
-            }
-          }
-        ],
-        "responses": {
-          "501": {
-            "description": "a hashtag cannot be changed yet; it answers 501 whoever asks"
-          }
-        },
-        "security": [
-          {
-            "bearer": [
-              "taxonomy:write"
-            ]
-          }
-        ],
-        "summary": "Change a hashtag",
-        "tags": [
-          "hashtag-service"
-        ],
-        "x-viewer": "admin"
       }
     },
     "/hashtags/{id}/inbounds": {

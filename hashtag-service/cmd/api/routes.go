@@ -78,12 +78,6 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusNotFound, "there is no such hashtag")
 
 	// admin — requires a valid OAuth access token.
-	hashtags.PATCH("/:alias", r.handler.Hashtag.Edit, r.authorize).
-		Summary("Change a hashtag").
-		Viewer(apidoc.Admin).
-		Scope(libs_constants.OAuthScopeTaxonomyWrite).
-		Takes(requests.NewHashtagRequest().Edit).
-		NotBuilt("a hashtag cannot be changed yet; it answers 501 whoever asks")
 	hashtags.DELETE("/:id", r.handler.Hashtag.Delete, r.authorize).
 		Summary("Delete a hashtag").
 		Describe("The posts it was in stay, their words unchanged.").

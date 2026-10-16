@@ -221,16 +221,6 @@ func (h *hashtagHandler) Read(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// Add creates a new hashtag
-func (h *hashtagHandler) Add(c echo.Context) error {
-	return c.NoContent(http.StatusNotImplemented)
-}
-
-// Edit updates a hashtag
-func (h *hashtagHandler) Edit(c echo.Context) error {
-	return c.NoContent(http.StatusNotImplemented)
-}
-
 // Delete removes a hashtag
 func (h *hashtagHandler) Delete(c echo.Context) error {
 	var (
