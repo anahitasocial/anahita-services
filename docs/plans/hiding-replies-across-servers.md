@@ -1,7 +1,7 @@
 # Hiding a reply from others, across servers (item 44)
 
 Raised by the user on 2026-10-12, on seeing "Hide" on a reply that had come
-from Mastodon. Planned, not built. **What is wanted was said the same day: hidden
+from Mastodon. Begun 2026-10-15: see *Progress* at the end. **What is wanted was said the same day: hidden
 everywhere, preferably,** wherever the post is read, and not only on this
 installation.
 
@@ -96,3 +96,56 @@ is often wanted, and not always:
 
 Replies across servers (row 25b). AT Protocol (row 26) for the half that
 can be done properly.
+
+## Progress (2026-10-15, for whoever picks this up next)
+
+Looked at first, as the plan asked: a block hid the blocked person's things
+from the two people involved only. Every other reader still saw their
+replies under the blocker's posts, their likes (and they were counted), and
+their posts on the blocker's profile. And on ActivityPub a block ended no
+follow, so the blocker's posts went on being delivered to the blocked
+person's server, and no `Block` was sent.
+
+1. **ActivityPub: done, committed (services `9fec5e6`).** A block ends every
+   follow between the two both ways (`activitypub_follows`), sends `Block`
+   (an id made from the two, `blockID`), and unblocking sends `Undo` of it.
+   The sweep forgets follows left across a block (`Missed.FollowsBlocked`).
+   Tests: `TestSomebodyHereBlocksSomebodyElsewhere`,
+   `TestASweepForgetsAFollowAcrossABlock`. Incoming `Block` is still ignored.
+2. **A block hides, for every reader: built, NOT committed** (uncommitted in
+   graph-grpc-service; `git status` shows it):
+   - `replies.go`: `HiddenIDs` also returns replies written by somebody the
+     root's owner or writer blocks, so text-service drops them (and what is
+     under them) for every reader; `recountThread` leaves them out;
+     `TouchedByBlock` finds what to count again.
+   - `socialgraph_block.go`: `recountForBlock` after a block is made or
+     lifted (threads and like counts).
+   - `graph.go`: `setBlockedLikersQuery` leaves blocked likers out of a
+     post's likers; `like_rel.go` `UpdateLikeCount` leaves them out of the
+     count.
+   - `access_medium.go`: `notLeftByBlocked` keeps out, for everybody, a post
+     somebody left on a profile whose owner blocks them (feeds use the same
+     rule).
+   - Tests: `access_test.go` counts the new rule apart; new
+     `block_reach_integration_test.go` passes against MySQL.
+   - **To settle before committing:** with ACCESS_TEST_DSN, the whole
+     repositories package has one failure,
+     `TestCountsAreOfWhatIsThereAndNotHidden` (replies_integration_test.go).
+     Its fixture has no block, so look at its message first: likely the
+     recount SQL or an argument count. Throwaway MySQL as in
+     access_integration_test.go's header, named `anahita-acl-test`, removed
+     afterwards with `docker rm -fv`.
+   - Still open: whether a person's block also reaches the groups they
+     administer (only their own posts and profile now).
+3. **Bluesky: to do.** Hiding publishes no event today. Add one (graph
+   `HideReply`), have atproto-service write the root post's threadgate
+   (`app.bsky.feed.threadgate`, rkey = the post's, `hiddenReplies` built when
+   the write is sent; `CreateRecord` is already putRecord), for a root that
+   went to Bluesky and a reply that is there. Reading threadgates made in
+   Bluesky's app needs the collection added to Jetstream's
+   `wantedCollections`.
+4. **Web: to do.** In the hide confirmation or the hidden badge, say that a
+   reply from Mastodon or another ActivityPub server is hidden here and may
+   still be seen there (`reply.uri` https, or the author's type).
+5. Docs when done: `federation.md` (ActivityPub part written), `permissions.md`
+   for what a block hides, the web `architecture.md` replies section.
