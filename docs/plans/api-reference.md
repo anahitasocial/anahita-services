@@ -133,3 +133,16 @@ A and B are worth having alone: they settle the form, and every service after is
 - **The shared shapes are described once:** the fields of `anahita-libs/responses` used by the reference carry comments now (109 had none; what is left are self-evident address parts).
 - **Checked with Redocly's linter:** no errors of structure. It flags `/hashtags/` for its trailing slash, which is the route's real address, and the 501-only route for having no 2xx or 4xx answer.
 - **`PATCH /hashtags/:alias` answers 501 whoever asks** and is described as not built (`NotBuilt`). It could be removed instead.
+
+### Found while describing, left as they are on the wire
+
+Describing a service changes no shape on the wire: what is odd is described as it is, and listed here to be put right deliberately, each with the web app at once.
+
+- **`PATCH /hashtags/:alias`** answers 501 whoever asks. It could be removed.
+- **Setting an avatar or a cover** answers with Go's field names (`Url`, `Size`, `Width`, `Height`): `entities.AnahitaNodeImage` has no JSON tags.
+- **A notification's own fields are camelCase** (`createdAt`, `updatedAt`, `isRead`), the only ones in the API that are.
+- **`DELETE /notifications/subscriptions/:target_id`** answers `201 Created` with the node, though nothing is made.
+- **Abuse cases page by `offset`**, where every other list takes `start`.
+- **Liking something that is not there** answers 500: the like service takes any failure to read what is liked for its own.
+- **A struct of a handler's own was the answer** in several services (an anonymous `Response`, or a map): replaced by `responses.List[T]`, `responses.Unpaged[T]` or a named type as each service was described, the wire unchanged.
+
