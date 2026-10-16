@@ -1443,6 +1443,176 @@
         ],
         "x-viewer": "anyone"
       }
+    },
+    "/search/": {
+      "get": {
+        "description": "Posts, profiles and custom feeds whose words match, of those the viewer may see. Search applies a post's audience and its profile's, but not the exceptions that let a profile's owner and a post's author see their own (permissions.md), so it may not find one's own restricted posts. Each person, group and event found says how it stands with the viewer, and each event when it is.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getSearch",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The order: the most relevant first, or the latest.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "recent",
+              "enum": [
+                "relevant",
+                "recent"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "The words looked for.",
+            "in": "query",
+            "name": "term",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "type": "string",
+              "x-validate": "search_query"
+            }
+          },
+          {
+            "description": "What is looked among: everything, posts, profiles, or custom feeds.",
+            "in": "query",
+            "name": "scope",
+            "schema": {
+              "default": "all",
+              "enum": [
+                "all",
+                "media",
+                "actors",
+                "feeds"
+              ],
+              "maxLength": 20,
+              "type": "string"
+            }
+          },
+          {
+            "description": "How far from coord_lat and coord_lng, in metres, when both are given.",
+            "in": "query",
+            "name": "search_range",
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Where to search near: longitude.",
+            "in": "query",
+            "name": "coord_lng",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "Where to search near: latitude.",
+            "in": "query",
+            "name": "coord_lat",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "The searcher's own choices for \"Most relevant\": people and groups they follow first, and interest that fades within a month.",
+            "in": "query",
+            "name": "followed_first",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "recent_first",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/NodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search",
+        "tags": [
+          "search-service"
+        ],
+        "x-viewer": "anyone"
+      }
     }
   },
   "servers": [
@@ -1461,6 +1631,10 @@
     {
       "description": "Hashtags",
       "name": "hashtag-service"
+    },
+    {
+      "description": "Search",
+      "name": "search-service"
     }
   ]
 }
