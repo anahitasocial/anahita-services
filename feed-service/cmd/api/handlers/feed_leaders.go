@@ -50,11 +50,7 @@ func (h *feedLeadersHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	type Response struct {
-		Data       []*responses.NodeItem `json:"data"`
-		Pagination responses.Pagination  `json:"pagination"`
-	}
-	resp := &Response{}
+	resp := &responses.List[*responses.NodeItem]{}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
 

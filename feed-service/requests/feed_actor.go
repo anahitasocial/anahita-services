@@ -16,10 +16,13 @@ func NewFeedActorRequest() *FeedActorRequest {
 }
 
 type FeedActorBrowseRequest struct {
+	// The profile's id.
 	ActorID int64 `param:"actor_id" validate:"required,number"`
 	// Which of the profile's lists: posts (the default), replies or
 	// reposts.
 	Filter string `query:"filter" validate:"omitempty,oneof=posts replies reposts"`
+	// How many to pass over.
 	Offset uint64 `query:"start"`
-	Limit  uint64 `query:"limit"`
+	// The most to send.
+	Limit uint64 `query:"limit"`
 }

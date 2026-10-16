@@ -2048,6 +2048,215 @@
         ],
         "type": "object"
       },
+      "feed.CustomFeedAuthorized": {
+        "properties": {
+          "copy": {
+            "type": "boolean"
+          },
+          "delete": {
+            "description": "Whether the viewer may delete it.",
+            "type": "boolean"
+          },
+          "edit": {
+            "description": "Whether the viewer may change it.",
+            "type": "boolean"
+          },
+          "pin": {
+            "description": "Keep it on the home page, and make a copy to change.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "edit",
+          "delete",
+          "pin",
+          "copy"
+        ],
+        "type": "object"
+      },
+      "feed.CustomFeedPage": {
+        "description": "CustomFeedPage is a page of a custom feed's posts.",
+        "properties": {
+          "data": {
+            "description": "Its posts, the latest first.",
+            "items": {
+              "$ref": "#/components/schemas/NodeItem"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/feed.CustomFeedPagination",
+            "description": "Where the page is."
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ],
+        "type": "object"
+      },
+      "feed.CustomFeedPagination": {
+        "description": "A feed is paged by what came before, and has no total: counting it would be reading all of it.",
+        "properties": {
+          "has_more": {
+            "description": "Whether there is a next page.",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "The most a page holds.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "next_cursor": {
+            "description": "What to ask for as `cursor` for the next page.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "limit",
+          "next_cursor",
+          "has_more"
+        ],
+        "type": "object"
+      },
+      "feed.CustomFeedResponse": {
+        "description": "CustomFeedResponse is a feed as it is sent.",
+        "properties": {
+          "access": {
+            "description": "Who may see it.",
+            "type": "string"
+          },
+          "authorized": {
+            "$ref": "#/components/schemas/feed.CustomFeedAuthorized",
+            "description": "What the viewer may do with it."
+          },
+          "body": {
+            "description": "What it is for, in its owner's words.",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "When it was made.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "definition": {
+            "description": "What it shows (feeds.md)."
+          },
+          "icon": {
+            "description": "The name of its picture.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "is_pinned": {
+            "description": "Whether the viewer keeps it on their home page.",
+            "type": "boolean"
+          },
+          "name": {
+            "description": "What it is called.",
+            "type": "string"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "Whose it is."
+          },
+          "references": {
+            "description": "The profiles and places its definition names, the ones the viewer may see, for the editor to show by name. Sent with a single feed.",
+            "items": {
+              "$ref": "#/components/schemas/NodeItem"
+            },
+            "type": "array"
+          },
+          "type": {
+            "description": "Always a custom feed's type.",
+            "type": "string"
+          },
+          "updated_at": {
+            "description": "When it last changed.",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "name",
+          "body",
+          "access",
+          "icon",
+          "definition",
+          "is_pinned",
+          "authorized",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "feed.DiscoverPage": {
+        "description": "DiscoverPage is a page of the feeds people have shared.",
+        "properties": {
+          "data": {
+            "description": "The feeds.",
+            "items": {
+              "$ref": "#/components/schemas/feed.CustomFeedResponse"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/feed.DiscoverPagination",
+            "description": "Where the page is."
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ],
+        "type": "object"
+      },
+      "feed.DiscoverPagination": {
+        "description": "DiscoverPagination is where a page of shared feeds is: by how many came before it, and with no total.",
+        "properties": {
+          "has_more": {
+            "description": "Whether there is a next page.",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "The most a page holds.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "next_start": {
+            "description": "What to ask for as `start` for the next page.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "start": {
+            "description": "How many came before this page.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "limit",
+          "start",
+          "next_start",
+          "has_more"
+        ],
+        "type": "object"
+      },
       "hashtag.HashtagNodeItem": {
         "description": "HashtagNodeItem is a hashtag.",
         "properties": {
@@ -4125,6 +4334,1069 @@
           "identity-image-service"
         ],
         "x-viewer": "anyone"
+      }
+    },
+    "/feeds/": {
+      "post": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "postFeeds",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who may see it: `myself`, `followers`, `registered` or `public`.",
+                    "enum": [
+                      "myself",
+                      "followers",
+                      "registered",
+                      "public"
+                    ],
+                    "type": "string"
+                  },
+                  "body": {
+                    "description": "What it is for, in its owner's words.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "definition": {
+                    "description": "What it shows, as anahita-libs/feeds reads it."
+                  },
+                  "icon": {
+                    "description": "Its picture, by name: one of feeds.Icons. The default when left out.",
+                    "maxLength": 20,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "What it is called.",
+                    "maxLength": 100,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/feed.CustomFeedResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not make one"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`too_many_feeds`"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language` or `unknown_order`; `invalid` for a field"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Make a custom feed",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/feeds/actor/{actor_id}/": {
+      "get": {
+        "description": "The ones the viewer may see, its pin first among its posts.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getFeedsActorByActorId",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Which of the profile's lists: posts (the default), replies or reposts.",
+            "in": "query",
+            "name": "filter",
+            "schema": {
+              "enum": [
+                "posts",
+                "replies",
+                "reposts"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/NodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`members_only`: replies are not part of a preview"
+          },
+          "403": {
+            "description": "the viewer may not see the profile"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A profile's posts, replies or reposts",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/feeds/discover": {
+      "get": {
+        "description": "The ones the viewer may see, the newest first. Paged by how many came before, with no total.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getFeedsDiscover",
+        "parameters": [
+          {
+            "description": "Part of a name, to find a feed by.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: up to 40.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "maximum": 40,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/feed.DiscoverPage"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Feeds people have shared",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/feeds/leaders/": {
+      "get": {
+        "description": "Posts from the profiles the viewer follows, the latest first. In order of time, not ranked: a ranked feed is a custom feed the viewer makes.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getFeedsLeaders",
+        "parameters": [
+          {
+            "description": "Reposts by the profiles the viewer follows as well.",
+            "in": "query",
+            "name": "include_reposts",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "What they liked as well.",
+            "in": "query",
+            "name": "include_liked",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/NodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The home feed",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/feeds/mine": {
+      "get": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "getFeedsMine",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/feed.CustomFeedResponse"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The viewer's custom feeds",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/feeds/pinned": {
+      "get": {
+        "description": "Theirs and other people's they keep there, in order.\n\nWho may call it: somebody signed in.",
+        "operationId": "getFeedsPinned",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/feed.CustomFeedResponse"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The feeds on the viewer's home page",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/feeds/pins": {
+      "put": {
+        "description": "The whole list, in order. Answers with it.\n\nWho may call it: somebody signed in.",
+        "operationId": "putFeedsPins",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "ids": {
+                    "description": "The feeds kept on the viewer's home page, in order: up to 10.",
+                    "items": {
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 10,
+                    "minItems": 1,
+                    "type": "array",
+                    "x-validate": "dive,numeric"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/feed.CustomFeedResponse"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`too_many_pins`; or `feed_not_found`, one the viewer may not see"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the feeds on the viewer's home page",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/feeds/preview": {
+      "post": {
+        "description": "The first page of what a feed of this definition would show, before it is made.\n\nWho may call it: somebody signed in.",
+        "operationId": "postFeedsPreview",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "definition": {
+                    "description": "What it would show, as feeds.md describes it."
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/feed.CustomFeedPage"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language` or `unknown_order`; `invalid` for a field"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Try a definition",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/feeds/{id}": {
+      "delete": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "deleteFeedsById",
+        "parameters": [
+          {
+            "description": "The feed's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "it is gone"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it is not the viewer's"
+          },
+          "404": {
+            "description": "there is no such feed"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a custom feed",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "With the profiles and places its definition names, the ones the viewer may see, in `references`.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getFeedsById",
+        "parameters": [
+          {
+            "description": "The feed's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/feed.CustomFeedResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "404": {
+            "description": "there is no such feed that the viewer may see"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One custom feed",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "anyone"
+      },
+      "patch": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "patchFeedsById",
+        "parameters": [
+          {
+            "description": "The feed's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who may see it: `myself`, `followers`, `registered` or `public`.",
+                    "enum": [
+                      "myself",
+                      "followers",
+                      "registered",
+                      "public"
+                    ],
+                    "type": "string"
+                  },
+                  "body": {
+                    "description": "What it is for, in its owner's words.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "definition": {
+                    "description": "What it shows, as anahita-libs/feeds reads it."
+                  },
+                  "icon": {
+                    "description": "Its picture, by name: one of feeds.Icons. The default when left out.",
+                    "maxLength": 20,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "What it is called.",
+                    "maxLength": 100,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/feed.CustomFeedResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "it is not the viewer's"
+          },
+          "404": {
+            "description": "there is no such feed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language` or `unknown_order`; `invalid` for a field"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a custom feed",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/feeds/{id}/copy": {
+      "post": {
+        "description": "A feed of the viewer's own with the same definition, to change.\n\nWho may call it: somebody signed in.",
+        "operationId": "postFeedsByIdCopy",
+        "parameters": [
+          {
+            "description": "The id of the feed copied.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "name": {
+                    "description": "What to call the copy, in the copier's own language. \"Copy of\" and the feed's name when left out.",
+                    "maxLength": 100,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/feed.CustomFeedResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not copy it"
+          },
+          "404": {
+            "description": "there is no such feed that the viewer may see"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`too_many_feeds`"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`malformed`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Copy a custom feed",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/feeds/{id}/items": {
+      "get": {
+        "description": "What it shows, as the viewer may see it, the latest first. Paged by what came before: the next page is asked for with the `next_cursor` of this one.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getFeedsByIdItems",
+        "parameters": [
+          {
+            "description": "The feed's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Where the page begins: the `next_cursor` of the page before. The latest when left out.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "description": "The most to send: up to 40.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "maximum": 40,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/feed.CustomFeedPage"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "404": {
+            "description": "there is no such feed that the viewer may see"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`malformed`: the cursor is not one"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A page of a custom feed",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/feeds/{id}/pin": {
+      "delete": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "deleteFeedsByIdPin",
+        "parameters": [
+          {
+            "description": "The feed's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "done"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "there is no such feed that the viewer may see"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`too_many_pins`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Take it off the viewer's home page",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "put": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "putFeedsByIdPin",
+        "parameters": [
+          {
+            "description": "The feed's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "done"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "there is no such feed that the viewer may see"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`too_many_pins`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Keep a feed on the viewer's home page",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
       }
     },
     "/hashtags/": {
@@ -7906,6 +9178,212 @@
         "x-viewer": "signed_in"
       }
     },
+    "/reposts/{parent_id}/": {
+      "delete": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "deleteRepostsByParentId",
+        "parameters": [
+          {
+            "description": "The id of the post reposted.",
+            "in": "path",
+            "name": "parent_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "undone"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not undo this repost"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Undo a repost",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "getRepostsByParentId",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "What they are ordered by.",
+            "in": "query",
+            "name": "ordering",
+            "schema": {
+              "default": "created_at",
+              "enum": [
+                "updated_at",
+                "created_at",
+                "enabled"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "The id of the post reposted.",
+            "in": "path",
+            "name": "parent_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/ActorNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not see it"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Who reposted a post",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "Answers with the repost.\n\nWho may call it: somebody signed in.",
+        "operationId": "postRepostsByParentId",
+        "parameters": [
+          {
+            "description": "The id of the post to repost.",
+            "in": "path",
+            "name": "parent_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeItem"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not repost it"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Repost a post",
+        "tags": [
+          "feed-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
     "/search/": {
       "get": {
         "description": "Posts, profiles and custom feeds whose words match, of those the viewer may see. Search applies a post's audience and its profile's, but not the exceptions that let a profile's owner and a post's author see their own (permissions.md), so it may not find one's own restricted posts. Each person, group and event found says how it stands with the viewer, and each event when it is.\n\nWho may call it: anyone, signed in or not.",
@@ -11218,6 +12696,10 @@
     {
       "description": "Bluesky",
       "name": "atproto-service"
+    },
+    {
+      "description": "Feeds",
+      "name": "feed-service"
     },
     {
       "description": "Hashtags",

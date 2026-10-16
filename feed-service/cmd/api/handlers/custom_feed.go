@@ -46,10 +46,13 @@ var customFeedAccess = []string{
 	constants.AnahitaAccessPublic,
 }
 
-type customFeedFields struct {
+// CustomFeedFields is what makes a custom feed.
+type CustomFeedFields struct {
+	// What it is called.
 	Name string `json:"name" validate:"required,max=100"`
 	// What it is for, in its owner's words.
-	Body   string `json:"body" validate:"omitempty,max=500"`
+	Body string `json:"body" validate:"omitempty,max=500"`
+	// Who may see it: `myself`, `followers`, `registered` or `public`.
 	Access string `json:"access" validate:"omitempty,oneof=myself followers registered public"`
 	// Its picture, by name: one of feeds.Icons. The default when left out.
 	Icon string `json:"icon" validate:"omitempty,max=20"`
@@ -57,86 +60,137 @@ type customFeedFields struct {
 	Definition json.RawMessage `json:"definition"`
 }
 
-type customFeedEditRequest struct {
+type CustomFeedEditRequest struct {
+	// The feed's id.
 	ID int64 `param:"id" validate:"required,numeric"`
-	customFeedFields
+	CustomFeedFields
 }
 
-type customFeedIDRequest struct {
+type CustomFeedIDRequest struct {
+	// The feed's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 }
 
-type customFeedCopyRequest struct {
+type CustomFeedCopyRequest struct {
+	// The id of the feed copied.
 	ID int64 `param:"id" validate:"required,numeric"`
 	// What to call the copy, in the copier's own language. "Copy of" and
 	// the feed's name when left out.
 	Name string `json:"name" validate:"omitempty,max=100"`
 }
 
-type customFeedItemsRequest struct {
-	ID     int64  `param:"id" validate:"required,numeric"`
+type CustomFeedItemsRequest struct {
+	// The feed's id.
+	ID int64 `param:"id" validate:"required,numeric"`
+	// Where the page begins: the `next_cursor` of the page before. The
+	// latest when left out.
 	Cursor string `query:"cursor" validate:"omitempty,max=100"`
-	Limit  uint64 `query:"limit" validate:"omitempty,numeric,max=40"`
+	// The most to send: up to 40.
+	Limit uint64 `query:"limit" validate:"omitempty,numeric,max=40"`
 }
 
-type customFeedDiscoverRequest struct {
+type CustomFeedDiscoverRequest struct {
 	// Part of a name, to find a feed by.
 	Search string `query:"q" validate:"omitempty,max=100"`
-	Start  uint64 `query:"start" validate:"omitempty,numeric"`
-	Limit  uint64 `query:"limit" validate:"omitempty,numeric,max=40"`
+	// How many to pass over.
+	Start uint64 `query:"start" validate:"omitempty,numeric"`
+	// The most to send: up to 40.
+	Limit uint64 `query:"limit" validate:"omitempty,numeric,max=40"`
 }
 
-type customFeedPreviewRequest struct {
+type CustomFeedPreviewRequest struct {
+	// What it would show, as feeds.md describes it.
 	Definition json.RawMessage `json:"definition"`
 }
 
-type customFeedPinsRequest struct {
+type CustomFeedPinsRequest struct {
+	// The feeds kept on the viewer's home page, in order: up to 10.
 	IDs []int64 `json:"ids" validate:"max=10,dive,numeric,min=1"`
 }
 
-// customFeedResponse is a feed as it is sent.
-type customFeedResponse struct {
-	ID         int64               `json:"id"`
-	Type       string              `json:"type"`
-	Name       string              `json:"name"`
-	Body       string              `json:"body"`
-	Access     string              `json:"access"`
-	Icon       string              `json:"icon"`
-	Definition json.RawMessage     `json:"definition"`
-	Owner      *responses.NodeItem `json:"owner,omitempty"`
+// CustomFeedResponse is a feed as it is sent.
+type CustomFeedResponse struct {
+	// Its id.
+	ID int64 `json:"id"`
+	// Always a custom feed's type.
+	Type string `json:"type"`
+	// What it is called.
+	Name string `json:"name"`
+	// What it is for, in its owner's words.
+	Body string `json:"body"`
+	// Who may see it.
+	Access string `json:"access"`
+	// The name of its picture.
+	Icon string `json:"icon"`
+	// What it shows (feeds.md).
+	Definition json.RawMessage `json:"definition"`
+	// Whose it is.
+	Owner *responses.NodeItem `json:"owner,omitempty"`
 	// Whether the viewer keeps it on their home page.
 	IsPinned bool `json:"is_pinned"`
 	// The profiles and places its definition names, the ones the viewer may
 	// see, for the editor to show by name. Sent with a single feed.
 	References []*responses.NodeItem `json:"references,omitempty"`
-	Authorized customFeedAuthorized  `json:"authorized"`
-	CreatedAt  time.Time             `json:"created_at"`
-	UpdatedAt  time.Time             `json:"updated_at"`
+	// What the viewer may do with it.
+	Authorized CustomFeedAuthorized `json:"authorized"`
+	// When it was made.
+	CreatedAt time.Time `json:"created_at"`
+	// When it last changed.
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type customFeedAuthorized struct {
-	Edit   bool `json:"edit"`
+type CustomFeedAuthorized struct {
+	// Whether the viewer may change it.
+	Edit bool `json:"edit"`
+	// Whether the viewer may delete it.
 	Delete bool `json:"delete"`
 	// Keep it on the home page, and make a copy to change.
 	Pin  bool `json:"pin"`
 	Copy bool `json:"copy"`
 }
 
-type customFeedPage struct {
-	Data       []*responses.NodeItem `json:"data"`
-	Pagination customFeedPagination  `json:"pagination"`
+// CustomFeedPage is a page of a custom feed's posts.
+type CustomFeedPage struct {
+	// Its posts, the latest first.
+	Data []*responses.NodeItem `json:"data"`
+	// Where the page is.
+	Pagination CustomFeedPagination `json:"pagination"`
 }
 
 // A feed is paged by what came before, and has no total: counting it would
 // be reading all of it.
-type customFeedPagination struct {
-	Limit      uint64 `json:"limit"`
+type CustomFeedPagination struct {
+	// The most a page holds.
+	Limit uint64 `json:"limit"`
+	// What to ask for as `cursor` for the next page.
 	NextCursor string `json:"next_cursor"`
-	HasMore    bool   `json:"has_more"`
+	// Whether there is a next page.
+	HasMore bool `json:"has_more"`
+}
+
+// DiscoverPage is a page of the feeds people have shared.
+type DiscoverPage struct {
+	// The feeds.
+	Data []*CustomFeedResponse `json:"data"`
+	// Where the page is.
+	Pagination DiscoverPagination `json:"pagination"`
+}
+
+// DiscoverPagination is where a page of shared feeds is: by how many came
+// before it, and with no total.
+type DiscoverPagination struct {
+	// The most a page holds.
+	Limit uint64 `json:"limit"`
+	// How many came before this page.
+	Start uint64 `json:"start"`
+	// What to ask for as `start` for the next page.
+	NextStart uint64 `json:"next_start"`
+	// Whether there is a next page.
+	HasMore bool `json:"has_more"`
 }
 
 func refuseFeed(c echo.Context, status int, reason string) error {
-	return c.JSON(status, map[string]string{"error": reason})
+	return c.JSON(status, responses.Refusal{Error: reason})
 }
 
 // mayWrite reports whether the viewer may make and change feeds of their own.
@@ -184,7 +238,7 @@ func definitionOf(feed *entities.AnahitaNode) (*feeds.Definition, error) {
 	return stored.Definition, nil
 }
 
-func (h *customFeedHandler) respond(feed *entities.AnahitaNode, viewer *entities.Viewer, pinned map[int64]bool) *customFeedResponse {
+func (h *customFeedHandler) respond(feed *entities.AnahitaNode, viewer *entities.Viewer, pinned map[int64]bool) *CustomFeedResponse {
 	own := ownsFeed(viewer, feed) || viewer.IsAdmin()
 	signedIn := viewer.Authenticated && viewer.ID > 0
 
@@ -197,7 +251,7 @@ func (h *customFeedHandler) respond(feed *entities.AnahitaNode, viewer *entities
 
 	nodeResp := &responses.NodeResponse{}
 
-	return &customFeedResponse{
+	return &CustomFeedResponse{
 		ID:         feed.ID,
 		Type:       feed.Type,
 		Name:       feed.Name,
@@ -207,7 +261,7 @@ func (h *customFeedHandler) respond(feed *entities.AnahitaNode, viewer *entities
 		Definition: definition,
 		Owner:      nodeResp.MapNodeItem(feed.Owner),
 		IsPinned:   pinned[feed.ID],
-		Authorized: customFeedAuthorized{
+		Authorized: CustomFeedAuthorized{
 			Edit:   own,
 			Delete: own,
 			Pin:    signedIn,
@@ -218,7 +272,7 @@ func (h *customFeedHandler) respond(feed *entities.AnahitaNode, viewer *entities
 	}
 }
 
-func (h *customFeedHandler) respondMany(list []*entities.AnahitaNode, viewer *entities.Viewer, pinned map[int64]bool) []*customFeedResponse {
+func (h *customFeedHandler) respondMany(list []*entities.AnahitaNode, viewer *entities.Viewer, pinned map[int64]bool) []*CustomFeedResponse {
 	owners := make([]entities.AnahitaNodeAvatarInterface, 0, len(list))
 	for _, feed := range list {
 		if feed.Owner != nil {
@@ -229,7 +283,7 @@ func (h *customFeedHandler) respondMany(list []*entities.AnahitaNode, viewer *en
 		services.BatchPresignAvatar(h.Srv.FilesGRPC, owners)
 	}
 
-	out := make([]*customFeedResponse, 0, len(list))
+	out := make([]*CustomFeedResponse, 0, len(list))
 	for _, feed := range list {
 		out = append(out, h.respond(feed, viewer, pinned))
 	}
@@ -323,7 +377,7 @@ func (h *customFeedHandler) ownedCount(personID int64) (uint64, error) {
 
 // checkFields reads the definition out of what was sent and settles the
 // audience. The reason is empty when all is well.
-func checkFields(fields *customFeedFields, current string) (*feeds.Definition, string) {
+func checkFields(fields *CustomFeedFields, current string) (*feeds.Definition, string) {
 	fields.Name = strings.TrimSpace(fields.Name)
 	fields.Body = strings.TrimSpace(fields.Body)
 	if fields.Name == "" {
@@ -360,7 +414,7 @@ func (h *customFeedHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	fields := &customFeedFields{}
+	fields := &CustomFeedFields{}
 	if err := c.Bind(fields); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -451,7 +505,7 @@ func (h *customFeedHandler) create(viewer *entities.Viewer, name, body, access s
 func (h *customFeedHandler) Read(c echo.Context) error {
 	viewer := getViewer(c)
 
-	req := &customFeedIDRequest{}
+	req := &CustomFeedIDRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -525,7 +579,7 @@ func (h *customFeedHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &customFeedEditRequest{}
+	req := &CustomFeedEditRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -541,7 +595,7 @@ func (h *customFeedHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	def, reason := checkFields(&req.customFeedFields, feed.Access)
+	def, reason := checkFields(&req.CustomFeedFields, feed.Access)
 	if reason != "" {
 		return refuseFeed(c, http.StatusUnprocessableEntity, reason)
 	}
@@ -569,7 +623,7 @@ func (h *customFeedHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &customFeedIDRequest{}
+	req := &CustomFeedIDRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -602,7 +656,7 @@ func (h *customFeedHandler) Copy(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &customFeedCopyRequest{}
+	req := &CustomFeedCopyRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -664,7 +718,7 @@ func (h *customFeedHandler) Mine(c echo.Context) error {
 		log.Println(err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{"data": h.respondMany(list, viewer, pinned)})
+	return c.JSON(http.StatusOK, responses.Unpaged[*CustomFeedResponse]{Data: h.respondMany(list, viewer, pinned)})
 }
 
 // Discover lists the feeds people have shared, the ones the viewer may see,
@@ -681,7 +735,7 @@ func (h *customFeedHandler) Mine(c echo.Context) error {
 func (h *customFeedHandler) Discover(c echo.Context) error {
 	viewer := getViewer(c)
 
-	req := &customFeedDiscoverRequest{}
+	req := &CustomFeedDiscoverRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -724,13 +778,13 @@ func (h *customFeedHandler) Discover(c echo.Context) error {
 		log.Println(err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": h.respondMany(shared, viewer, pinned),
-		"pagination": map[string]any{
-			"limit":      req.Limit,
-			"start":      req.Start,
-			"next_start": req.Start + uint64(len(found)),
-			"has_more":   hasMore,
+	return c.JSON(http.StatusOK, DiscoverPage{
+		Data: h.respondMany(shared, viewer, pinned),
+		Pagination: DiscoverPagination{
+			Limit:     req.Limit,
+			Start:     req.Start,
+			NextStart: req.Start + uint64(len(found)),
+			HasMore:   hasMore,
 		},
 	})
 }
@@ -749,7 +803,7 @@ func (h *customFeedHandler) Pinned(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{"data": h.respondMany(list, viewer, pinned)})
+	return c.JSON(http.StatusOK, responses.Unpaged[*CustomFeedResponse]{Data: h.respondMany(list, viewer, pinned)})
 }
 
 func (h *customFeedHandler) pinnedFeeds(viewer *entities.Viewer) ([]*entities.AnahitaNode, map[int64]bool, error) {
@@ -806,7 +860,7 @@ func (h *customFeedHandler) SetPins(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &customFeedPinsRequest{}
+	req := &CustomFeedPinsRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -851,7 +905,7 @@ func (h *customFeedHandler) setPinned(c echo.Context, pin bool) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &customFeedIDRequest{}
+	req := &CustomFeedIDRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -906,7 +960,7 @@ func (h *customFeedHandler) setPinned(c echo.Context, pin bool) error {
 func (h *customFeedHandler) Items(c echo.Context) error {
 	viewer := getViewer(c)
 
-	req := &customFeedItemsRequest{}
+	req := &CustomFeedItemsRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -942,7 +996,7 @@ func (h *customFeedHandler) Preview(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &customFeedPreviewRequest{}
+	req := &CustomFeedPreviewRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -964,7 +1018,7 @@ func (h *customFeedHandler) page(c echo.Context, def *feeds.Definition, ownerID 
 		limit = feeds.PageSize
 	}
 
-	resp := &customFeedPage{Data: []*responses.NodeItem{}}
+	resp := &CustomFeedPage{Data: []*responses.NodeItem{}}
 	resp.Pagination.Limit = limit
 
 	// One more than the page, to know whether there is another.
