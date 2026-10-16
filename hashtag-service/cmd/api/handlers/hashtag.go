@@ -47,11 +47,7 @@ func (h *hashtagHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	type Response struct {
-		Data       []*responses.HashtagNodeItem `json:"data"`
-		Pagination an_responses.Pagination      `json:"pagination"`
-	}
-	resp := &Response{}
+	resp := &an_responses.List[*responses.HashtagNodeItem]{}
 
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
@@ -110,11 +106,7 @@ func (h *hashtagHandler) BrowseOrderedByDegree(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	type Response struct {
-		Data       []*responses.HashtagNodeItem `json:"data"`
-		Pagination an_responses.Pagination      `json:"pagination"`
-	}
-	resp := &Response{}
+	resp := &an_responses.List[*responses.HashtagNodeItem]{}
 
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Offset = req.Offset
