@@ -68,10 +68,7 @@ func (h *blockHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	resp := &struct {
-		Data       []*responses.ActorNodeItem `json:"data"`
-		Pagination responses.Pagination       `json:"pagination"`
-	}{
+	resp := &responses.List[*responses.ActorNodeItem]{
 		Data: []*responses.ActorNodeItem{},
 		Pagination: responses.Pagination{
 			Limit:  req.Limit,

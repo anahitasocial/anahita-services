@@ -67,10 +67,7 @@ func (h *followRequestHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	resp := &struct {
-		Data       []*responses.ActorNodeItem `json:"data"`
-		Pagination responses.Pagination       `json:"pagination"`
-	}{
+	resp := &responses.List[*responses.ActorNodeItem]{
 		Data: []*responses.ActorNodeItem{},
 		Pagination: responses.Pagination{
 			Limit:  req.Limit,
@@ -164,7 +161,7 @@ func (h *followRequestHandler) Edit(c echo.Context) error {
 
 	actorResp := &responses.ActorResponse{}
 
-	return c.JSON(http.StatusAccepted, actorResp.MapNodeItem(target))
+	return c.JSON(http.StatusOK, actorResp.MapNodeItem(target))
 }
 
 // Add adds a follower to an actor

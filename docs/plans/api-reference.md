@@ -144,5 +144,8 @@ Each was found by describing a service, and put right on 2026-10-16 at the user'
 - **Abuse cases were paged by `offset`**; they take `start`, as every other list, and the web app's Reports list sends it.
 - **Liking, unliking or listing the likes of something that is not there answered 500**; it answers 404.
 - **`PATCH /hashtags/:alias` answered 501** and is removed (above).
+- **`composed`** was taken by every post and read by nothing; it is gone from the requests and the web app.
+- **Approving a follow request answered `202 Accepted`**, though it is done before the answer; it answers `200`.
+- **Handlers that answered 501 and were never routed** (a leader's `Add` and `Delete`, a hashtag's `Add`) are removed.
 - **A struct of a handler's own was the answer** in several services (an anonymous `Response`, or a map): replaced by `responses.List[T]`, `responses.Unpaged[T]` or a named type as each service was described, the wire unchanged.
 

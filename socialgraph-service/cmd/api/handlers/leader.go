@@ -65,10 +65,7 @@ func (h *leaderHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	resp := &struct {
-		Data       []*responses.ActorNodeItem `json:"data"`
-		Pagination responses.Pagination       `json:"pagination"`
-	}{
+	resp := &responses.List[*responses.ActorNodeItem]{
 		Pagination: responses.Pagination{
 			Limit:  req.Limit,
 			Offset: req.Offset,
@@ -122,14 +119,4 @@ func (h *leaderHandler) Browse(c echo.Context) error {
 	resp.Data = actorResp.MapNodeItems(leaders)
 
 	return c.JSON(http.StatusOK, resp)
-}
-
-// Add adds a leader to an actor
-func (h *leaderHandler) Add(c echo.Context) error {
-	return c.NoContent(http.StatusNotImplemented)
-}
-
-// Delete a leader from an actor
-func (h *leaderHandler) Delete(c echo.Context) error {
-	return c.NoContent(http.StatusNotImplemented)
 }

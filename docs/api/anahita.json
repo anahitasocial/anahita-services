@@ -452,6 +452,69 @@
         ],
         "type": "object"
       },
+      "LimitedActor": {
+        "description": "LimitedActor is what somebody is shown of a profile they may not see, when that profile lets people ask to follow it: enough to know whose it is and to ask.",
+        "properties": {
+          "alias": {
+            "type": "string"
+          },
+          "allow_follow_request": {
+            "description": "Whether it lets people ask to follow it. False for one shown only because the viewer was invited.",
+            "type": "boolean"
+          },
+          "avatar_urls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Image"
+            },
+            "type": "object"
+          },
+          "body": {
+            "description": "And what it is, for the same reason. Only with Event.",
+            "type": "string"
+          },
+          "event": {
+            "$ref": "#/components/schemas/Event",
+            "description": "On an event the viewer was invited to: when it is, so they can decide. Never where to join it online."
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "is_follow_requested_by_viewer": {
+            "description": "Whether the viewer has asked already and is waiting.",
+            "type": "boolean"
+          },
+          "is_invited": {
+            "description": "Whether the viewer has been invited to follow it and is yet to answer.",
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "restricted": {
+            "description": "Always true. What tells a client this is not the profile itself.",
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "via_host": {
+            "description": "An event that lets in the followers of the group hosting it, shown to one of them. They can answer it as it stands, going or maybe.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "restricted",
+          "allow_follow_request",
+          "is_follow_requested_by_viewer"
+        ],
+        "type": "object"
+      },
       "LinkPreview": {
         "description": "LinkPreview is the card a note carries for a link in it: what the page was called and was about when the note was written.",
         "properties": {
@@ -2600,6 +2663,94 @@
           "score",
           "reasons",
           "actor"
+        ],
+        "type": "object"
+      },
+      "socialgraph.InviteAnswer": {
+        "description": "InviteAnswer is the viewer's answer to an invitation.",
+        "properties": {
+          "accepted": {
+            "description": "Whether they accepted it: they follow now.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "accepted"
+        ],
+        "type": "object"
+      },
+      "socialgraph.InviteItem": {
+        "description": "InviteItem is one invitation as it is sent: who, to what, by whom, and until when.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActorBrief"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What they are invited to follow."
+          },
+          "created_at": {
+            "description": "When.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "ends_at": {
+            "description": "When it lapses, unanswered.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "inviter": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActorBrief"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Who invited them."
+          },
+          "person": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActorBrief"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Who is invited."
+          }
+        },
+        "required": [
+          "actor",
+          "person",
+          "inviter",
+          "created_at",
+          "ends_at"
+        ],
+        "type": "object"
+      },
+      "socialgraph.InviteResult": {
+        "description": "InviteResult is what became of one person invited.",
+        "properties": {
+          "person_id": {
+            "description": "Who.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "result": {
+            "description": "`invited`; or why not: `already_follower`, `not_follower`, `blocked`, `cooldown`, `pending`, `requested`, `unavailable`, `full` or `closed`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "person_id",
+          "result"
         ],
         "type": "object"
       },
@@ -7925,6 +8076,1551 @@
         "x-viewer": "anyone"
       }
     },
+    "/socialgraph/invites/": {
+      "get": {
+        "description": "To follow a group or an event.\n\nWho may call it: somebody signed in.",
+        "operationId": "getSocialgraphInvites",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/socialgraph.InviteItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The viewer's invitations",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{actor_id}/blocks/": {
+      "get": {
+        "description": "A person's own, for them; a group's or an event's, for whoever looks after it, and site administrators.\n\nWho may call it: somebody signed in.",
+        "operationId": "getSocialgraphByActorIdBlocks",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "What they are ordered by.",
+            "in": "query",
+            "name": "ordering",
+            "schema": {
+              "default": "updated_at",
+              "enum": [
+                "created_at",
+                "updated_at"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only those whose name has these words.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string",
+              "x-validate": "name_search_query"
+            }
+          },
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/ActorNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not see them"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Whom a profile has blocked",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{actor_id}/follow-requests/": {
+      "get": {
+        "description": "For whoever looks after it.\n\nWho may call it: somebody signed in.",
+        "operationId": "getSocialgraphByActorIdFollowRequests",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "What they are ordered by.",
+            "in": "query",
+            "name": "ordering",
+            "schema": {
+              "default": "updated_at",
+              "enum": [
+                "created_at",
+                "updated_at"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only those whose name has these words.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string",
+              "x-validate": "name_search_query"
+            }
+          },
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/ActorNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer does not look after it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Who asks to follow a profile",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{actor_id}/followers/": {
+      "get": {
+        "description": "Those the viewer may see, each saying how they stand with the viewer. On an installation in preview, only for somebody signed in.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getSocialgraphByActorIdFollowers",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "What they are ordered by.",
+            "in": "query",
+            "name": "ordering",
+            "schema": {
+              "default": "updated_at",
+              "enum": [
+                "created_at",
+                "updated_at"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only those whose name has these words.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string",
+              "x-validate": "name_search_query"
+            }
+          },
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/ActorNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "the installation is in preview and the viewer is not signed in"
+          },
+          "403": {
+            "description": "the viewer may not see who follows it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Who follows a profile",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/socialgraph/{actor_id}/invites": {
+      "post": {
+        "description": "People who follow the viewer. Each is told, and chooses. Answers with what became of each, in the order they were named: somebody who cannot be invited does not stop the others.\n\nWho may call it: somebody signed in.",
+        "operationId": "postSocialgraphByActorIdInvites",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "person_ids": {
+                    "description": "Who to invite: people who follow the viewer.",
+                    "items": {
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "minItems": 1,
+                    "type": "array",
+                    "x-validate": "dive,numeric"
+                  }
+                },
+                "required": [
+                  "person_ids"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/socialgraph.InviteResult"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not invite people to it"
+          },
+          "429": {
+            "description": "too many invitations lately"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Invite people to follow a group or an event",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{actor_id}/invites/": {
+      "get": {
+        "description": "For whoever looks after it.\n\nWho may call it: somebody signed in.",
+        "operationId": "getSocialgraphByActorIdInvites",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/socialgraph.InviteItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer does not look after it"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Who is invited to follow a group or an event",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{actor_id}/invites/accept": {
+      "post": {
+        "description": "The viewer follows it from now on.\n\nWho may call it: somebody signed in.",
+        "operationId": "postSocialgraphByActorIdInvitesAccept",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/socialgraph.InviteAnswer"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not follow it"
+          },
+          "404": {
+            "description": "the viewer has no invitation to it"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Accept an invitation",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{actor_id}/invites/decline": {
+      "post": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "postSocialgraphByActorIdInvitesDecline",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/socialgraph.InviteAnswer"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "the viewer has no invitation to it"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Turn an invitation down",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{actor_id}/invites/{person_id}": {
+      "delete": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "deleteSocialgraphByActorIdInvitesByPersonId",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The person invited.",
+            "in": "path",
+            "name": "person_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "taken back"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer does not look after it"
+          },
+          "404": {
+            "description": "there is no such invitation"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Take an invitation back",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{actor_id}/leaders/": {
+      "get": {
+        "description": "As who follows it.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getSocialgraphByActorIdLeaders",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "What they are ordered by.",
+            "in": "query",
+            "name": "ordering",
+            "schema": {
+              "default": "updated_at",
+              "enum": [
+                "created_at",
+                "updated_at"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only those whose name has these words.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string",
+              "x-validate": "name_search_query"
+            }
+          },
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/ActorNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "the installation is in preview and the viewer is not signed in"
+          },
+          "403": {
+            "description": "the viewer may not see whom it follows"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Whom a profile follows",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "anyone"
+      }
+    },
+    "/socialgraph/{actor_id}/mutuals/": {
+      "get": {
+        "description": "The people the viewer follows who also follow the profile.\n\nWho may call it: somebody signed in.",
+        "operationId": "getSocialgraphByActorIdMutuals",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "What they are ordered by.",
+            "in": "query",
+            "name": "ordering",
+            "schema": {
+              "default": "updated_at",
+              "enum": [
+                "created_at",
+                "updated_at"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only those whose name has these words.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string",
+              "x-validate": "name_search_query"
+            }
+          },
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/ActorNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not see its followers"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Followers in common",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{target_id}/blocks/{source_id}": {
+      "delete": {
+        "description": "Answers with whoever was blocked.\n\nWho may call it: somebody signed in.",
+        "operationId": "deleteSocialgraphByTargetIdBlocksBySourceId",
+        "parameters": [
+          {
+            "description": "The id of the profile followed, asked or blocked.",
+            "in": "path",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The id of whoever follows, asks or blocks: the viewer, or a group they run.",
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNodeItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not lift this block"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unblock somebody",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "`source_id` blocks `target_id`: the viewer, or a group or an event they look after (permissions.md, what a block hides). Answers with whoever is blocked.\n\nWho may call it: somebody signed in.",
+        "operationId": "postSocialgraphByTargetIdBlocksBySourceId",
+        "parameters": [
+          {
+            "description": "The id of the profile followed, asked or blocked.",
+            "in": "path",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The id of whoever follows, asks or blocks: the viewer, or a group they run.",
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNodeItem"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not make this block, or there is one either way already"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Block somebody",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{target_id}/follow-requests/{source_id}": {
+      "delete": {
+        "description": "By whoever asked, who is answered with what a stranger is shown of the profile; or by whoever looks after the profile, answered with it.\n\nWho may call it: somebody signed in.",
+        "operationId": "deleteSocialgraphByTargetIdFollowRequestsBySourceId",
+        "parameters": [
+          {
+            "description": "The id of the profile followed, asked or blocked.",
+            "in": "path",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The id of whoever follows, asks or blocks: the viewer, or a group they run.",
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNodeItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such profile or request"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Withdraw a request, or turn one down",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "patch": {
+        "description": "The request becomes a follow. Answers with the profile followed.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchSocialgraphByTargetIdFollowRequestsBySourceId",
+        "parameters": [
+          {
+            "description": "The id of the profile followed, asked or blocked.",
+            "in": "path",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The id of whoever follows, asks or blocks: the viewer, or a group they run.",
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNodeItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer does not look after the profile"
+          },
+          "404": {
+            "description": "there is no such profile or request"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Let somebody who asked follow",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "For a profile that lets people ask. Answers with what a stranger is shown of it.\n\nWho may call it: somebody signed in.",
+        "operationId": "postSocialgraphByTargetIdFollowRequestsBySourceId",
+        "parameters": [
+          {
+            "description": "The id of the profile followed, asked or blocked.",
+            "in": "path",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The id of whoever follows, asks or blocks: the viewer, or a group they run.",
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitedActor"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not ask: the profile does not let people ask, or has blocked them"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ask to follow a profile",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/socialgraph/{target_id}/followers/{source_id}": {
+      "delete": {
+        "description": "By the follower, or by whoever looks after the profile followed. Answers with the profile.\n\nWho may call it: somebody signed in.",
+        "operationId": "deleteSocialgraphByTargetIdFollowersBySourceId",
+        "parameters": [
+          {
+            "description": "The id of the profile followed, asked or blocked.",
+            "in": "path",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The id of whoever follows, asks or blocks: the viewer, or a group they run.",
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNodeItem"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not end this follow"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stop following, or remove a follower",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "`source_id` follows `target_id`: the viewer, or a follower a profile's administrator adds. Answers with the profile followed. To a profile that is not open to the viewer, ask instead (`POST .../follow-requests/...`).\n\nWho may call it: somebody signed in.",
+        "operationId": "postSocialgraphByTargetIdFollowersBySourceId",
+        "parameters": [
+          {
+            "description": "The id of the profile followed, asked or blocked.",
+            "in": "path",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The id of whoever follows, asks or blocks: the viewer, or a group they run.",
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNodeItem"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not make this follow"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Follow a profile",
+        "tags": [
+          "socialgraph-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
     "/videos/uploads": {
       "get": {
         "description": "Those being sent or waiting for the worker, and those that failed in the last day, the latest first.\n\nWho may call it: somebody signed in.",
@@ -9558,6 +11254,10 @@
     {
       "description": "Search",
       "name": "search-service"
+    },
+    {
+      "description": "Following and blocking",
+      "name": "socialgraph-service"
     },
     {
       "description": "Video posts",
