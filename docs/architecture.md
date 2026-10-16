@@ -274,8 +274,8 @@ now one, `actor-service`.
   `graph-grpc-service` and owns no tables, so it is given no database
   credentials.
 - **A new kind of actor** is a handler and its routes in this service, not a
-  service of its own. The Website actor is planned that way
-  ([plans/website-actor.md](plans/website-actor.md)).
+  service of its own. The Pulse, a website's feed as a profile, is planned
+  that way ([plans/pulse.md](plans/pulse.md)).
 - **An event is one.** Its type is `node.actor.actor-service.event.v1`, it
   is served at `/events/` by the handler a group has, told a different kind,
   and what only an event has is beside it: answering going or maybe, calling

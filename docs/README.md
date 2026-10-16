@@ -300,7 +300,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Quote posts](plans/done/quote-posts.md) | 25 | done 2026-10-05 |
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [Collections](plans/collections.md) | 34 | shape decided 2026-10-06; kept for later, not to be built yet |
-| [The Website actor](plans/website-actor.md) | 30 | scope settled 2026-10-14: a verified page for a feed on a domain one controls, its administrators posting as it; after replies of any kind |
+| [Pulse: a website's feed as something to follow](plans/pulse.md) | 30 | renamed from the Website actor and narrowed to the feed alone 2026-10-16: a verified domain's feed posts, others reply, like, repost and quote; nobody posts on it |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
 | [The API reference, made from the code](plans/api-reference.md) | 38 | planned 2026-10-11; place in the order not decided |
 | [Documentation agents can use, and an MCP server](plans/docs-for-agents.md) | 39 | planned 2026-10-11; place in the order not decided |
