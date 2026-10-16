@@ -1519,14 +1519,11 @@
                     "type": "string"
                   },
                   "name": {
-                    "description": "Its title.",
+                    "description": "Its title, if it has one.",
                     "maxLength": 100,
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name"
-                ],
                 "type": "object"
               }
             },
@@ -1544,14 +1541,11 @@
                     "type": "string"
                   },
                   "name": {
-                    "description": "Its title.",
+                    "description": "Its title, if it has one.",
                     "maxLength": 100,
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name"
-                ],
                 "type": "object"
               }
             },
@@ -1569,14 +1563,11 @@
                     "type": "string"
                   },
                   "name": {
-                    "description": "Its title.",
+                    "description": "Its title, if it has one.",
                     "maxLength": 100,
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name"
-                ],
                 "type": "object"
               }
             }
@@ -2574,7 +2565,7 @@
                     "type": "string"
                   },
                   "name": {
-                    "description": "Its title: required of a post; a reply need not have one.",
+                    "description": "Its title, if it has one: neither a post nor a reply needs one.",
                     "maxLength": 100,
                     "type": "string"
                   },
@@ -2644,7 +2635,7 @@
                     "type": "string"
                   },
                   "name": {
-                    "description": "Its title: required of a post; a reply need not have one.",
+                    "description": "Its title, if it has one: neither a post nor a reply needs one.",
                     "maxLength": 100,
                     "type": "string"
                   },
@@ -2714,7 +2705,7 @@
                     "type": "string"
                   },
                   "name": {
-                    "description": "Its title: required of a post; a reply need not have one.",
+                    "description": "Its title, if it has one: neither a post nor a reply needs one.",
                     "maxLength": 100,
                     "type": "string"
                   },

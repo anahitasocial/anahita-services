@@ -38,7 +38,7 @@ import (
 type UploadStartRequest struct {
 	// The profile the post will be on.
 	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
-	// Its title: required of a post; a reply need not have one.
+	// Its title, if it has one: neither a post nor a reply needs one.
 	Name string `json:"name" form:"name" validate:"omitempty,max=100"`
 	// Its words, as Markdown.
 	Body string `json:"body" form:"body" validate:"omitempty,max=8000"`
@@ -206,8 +206,6 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		if !permissions.CanReply(thread) {
 			return c.NoContent(http.StatusForbidden)
 		}
-	} else if strings.TrimSpace(req.Name) == "" {
-		return c.NoContent(http.StatusBadRequest)
 	}
 
 	owner, err := h.Srv.ActorsGRPC.Read(req.OwnerID, viewer)

@@ -1135,7 +1135,7 @@
         "x-viewer": "anyone"
       },
       "patch": {
-        "description": "Its pictures are changed with `PATCH /photos/{id}/files`.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "description": "Its title and words, both optional. Its pictures are changed with `PATCH /photos/{id}/files`.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "patchPhotosById",
         "parameters": [
           {
@@ -1155,30 +1155,21 @@
               "schema": {
                 "properties": {
                   "body": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown, if it has any.",
                     "maxLength": 8000,
                     "type": "string"
                   },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
                   "language": {
-                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
+                    "description": "The language it is written in, as a BCP 47 tag.",
                     "maxLength": 12,
                     "type": "string"
                   },
                   "name": {
-                    "description": "Its title.",
+                    "description": "Its title, if it has one.",
                     "maxLength": 100,
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "body"
-                ],
                 "type": "object"
               }
             },
@@ -1186,30 +1177,21 @@
               "schema": {
                 "properties": {
                   "body": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown, if it has any.",
                     "maxLength": 8000,
                     "type": "string"
                   },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
                   "language": {
-                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
+                    "description": "The language it is written in, as a BCP 47 tag.",
                     "maxLength": 12,
                     "type": "string"
                   },
                   "name": {
-                    "description": "Its title.",
+                    "description": "Its title, if it has one.",
                     "maxLength": 100,
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "body"
-                ],
                 "type": "object"
               }
             }
@@ -2304,7 +2286,7 @@
         "x-viewer": "anyone"
       },
       "post": {
-        "description": "As JSON naming the images uploaded for it (`POST /photos/{owner_id}/uploads`), in order: the way to post several. Or as a form carrying one image in `file`, as older clients do.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "description": "As JSON naming the images uploaded for it (`POST /photos/{owner_id}/uploads`), in order: the way to post several. Or as a form carrying one image in `file`, as older clients do. A title and words are both optional: the pictures are the post.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
         "operationId": "postPhotosByOwnerId",
         "parameters": [
           {
@@ -2328,12 +2310,12 @@
                     "type": "boolean"
                   },
                   "quote_policy": {
-                    "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
+                    "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",
                     "maxLength": 16,
                     "type": "string"
                   },
                   "reply_access": {
-                    "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess.",
+                    "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets.",
                     "maxLength": 64,
                     "type": "string"
                   },
@@ -2353,7 +2335,7 @@
                 "properties": {
                   "access": {
                     "default": "public",
-                    "description": "Who may see it, as for changing it. The widest the installation allows when left out.",
+                    "description": "Who may see it (permissions.md). The widest the installation allows when left out.",
                     "enum": [
                       "public",
                       "registered",
@@ -2374,40 +2356,31 @@
                     "type": "string"
                   },
                   "body": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown, if it has any.",
                     "maxLength": 8000,
                     "type": "string"
                   },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
                   "language": {
-                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
+                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\".",
                     "maxLength": 12,
                     "type": "string"
                   },
                   "name": {
-                    "description": "Its title.",
+                    "description": "Its title, if it has one.",
                     "maxLength": 100,
                     "type": "string"
                   },
                   "quote_policy": {
-                    "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
+                    "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",
                     "maxLength": 16,
                     "type": "string"
                   },
                   "reply_access": {
-                    "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess.",
+                    "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets.",
                     "maxLength": 64,
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "body"
-                ],
                 "type": "object"
               }
             },
@@ -2416,7 +2389,7 @@
                 "properties": {
                   "access": {
                     "default": "public",
-                    "description": "Who may see it, as for changing it. The widest the installation allows when left out.",
+                    "description": "Who may see it (permissions.md). The widest the installation allows when left out.",
                     "enum": [
                       "public",
                       "registered",
@@ -2437,40 +2410,31 @@
                     "type": "string"
                   },
                   "body": {
-                    "description": "Its words, as Markdown.",
+                    "description": "Its words, as Markdown, if it has any.",
                     "maxLength": 8000,
                     "type": "string"
                   },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
                   "language": {
-                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
+                    "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\".",
                     "maxLength": 12,
                     "type": "string"
                   },
                   "name": {
-                    "description": "Its title.",
+                    "description": "Its title, if it has one.",
                     "maxLength": 100,
                     "type": "string"
                   },
                   "quote_policy": {
-                    "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
+                    "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",
                     "maxLength": 16,
                     "type": "string"
                   },
                   "reply_access": {
-                    "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess.",
+                    "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets.",
                     "maxLength": 64,
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "body"
-                ],
                 "type": "object"
               }
             }

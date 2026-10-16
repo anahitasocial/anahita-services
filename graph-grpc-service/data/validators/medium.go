@@ -20,8 +20,14 @@ func (v *MediumValidator) baseValidation(node *entities.AnahitaNode) error {
 		return errors.New("service is required")
 	}
 
-	if node.Name == "" && node.Body == "" {
-		return errors.New("either name or body are required")
+	// Something to show: a title, words, or a file. A post of pictures or a
+	// video needs neither title nor words, as a reply with pictures never
+	// had: refused here, it failed with a 500 after its pictures were
+	// stored.
+	// A file is known by its name, or, for a video the worker posts before
+	// its files are named, by its type.
+	if node.Name == "" && node.Body == "" && node.Filename == "" && node.Mimetype == "" {
+		return errors.New("either name, body or a file is required")
 	}
 
 	if node.Name != "" && len(node.Name) > 255 {

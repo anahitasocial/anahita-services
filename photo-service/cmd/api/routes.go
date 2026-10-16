@@ -61,19 +61,19 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusNotFound, "there is no such post")
 	photos.PATCH("/:id", r.handler.Photo.Edit, r.authorize).
 		Summary("Change a photo post's words").
-		Describe("Its pictures are changed with `PATCH /photos/{id}/files`.").
+		Describe("Its title and words, both optional. Its pictures are changed with `PATCH /photos/{id}/files`.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
-		Takes(media.Edit).
+		Takes(&handlers.PhotoEditRequest{}).
 		Sends(http.StatusOK, responses.MediumNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not change it").
 		Refuses(http.StatusNotFound, "there is no such post")
 	photos.POST("/:owner_id/", r.handler.Photo.Add, r.authorize).
 		Summary("Post photos").
-		Describe("As JSON naming the images uploaded for it (`POST /photos/{owner_id}/uploads`), in order: the way to post several. Or as a form carrying one image in `file`, as older clients do.").
+		Describe("As JSON naming the images uploaded for it (`POST /photos/{owner_id}/uploads`), in order: the way to post several. Or as a form carrying one image in `file`, as older clients do. A title and words are both optional: the pictures are the post.").
 		Viewer(apidoc.SignedIn).
 		Scope(write).
-		Takes(&handlers.PhotoAddRequest{MediumAddRequest: *media.Add}).
+		Takes(handlers.NewPhotoAddRequest()).
 		Sends(http.StatusCreated, responses.MediumNode{}).
 		Sends(http.StatusUnprocessableEntity, handlers.FilesRefusal{}).
 		Refuses(http.StatusForbidden, "the viewer may not post here").
