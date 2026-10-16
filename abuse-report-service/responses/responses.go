@@ -12,10 +12,14 @@ import (
 
 // Reason is one entry of the list a reporter chooses from, in their language.
 type Reason struct {
-	Key             string `json:"key"`
-	Label           string `json:"label"`
-	Description     string `json:"description,omitempty"`
-	RequiresDetails bool   `json:"requires_details"`
+	// What it is called in a report.
+	Key string `json:"key"`
+	// What it is called, in the language asked for.
+	Label string `json:"label"`
+	// What it covers.
+	Description string `json:"description,omitempty"`
+	// Whether the reporter must say more in their own words.
+	RequiresDetails bool `json:"requires_details"`
 }
 
 func MapReasons(list []reasons.Reason, language string) []Reason {
@@ -31,54 +35,87 @@ func MapReasons(list []reasons.Reason, language string) []Reason {
 	return mapped
 }
 
+// CaseSummary is how many cases wait to be decided.
+type CaseSummary struct {
+	// How many are open.
+	Open uint64 `json:"open"`
+}
+
 // ReasonCount is how many reports in a case gave one reason.
 type ReasonCount struct {
-	Key   string `json:"key"`
+	// The reason.
+	Key string `json:"key"`
+	// What it is called.
 	Label string `json:"label"`
-	Count int    `json:"count"`
+	// How many reports gave it.
+	Count int `json:"count"`
 }
 
 // Case is what an administrator sees of a case in a list.
 type Case struct {
-	ID          int64  `json:"id"`
-	Status      string `json:"status"`
-	ReportCount int    `json:"report_count"`
+	// Its id.
+	ID int64 `json:"id"`
+	// `open`, `actioned` or `dismissed`.
+	Status string `json:"status"`
+	// How many people reported it.
+	ReportCount int `json:"report_count"`
 
-	TargetID   int64  `json:"target_id"`
+	// The id of what was reported.
+	TargetID int64 `json:"target_id"`
+	// What kind of node it is.
 	TargetType string `json:"target_type"`
 	// Target is the reported node as it is now, or absent when it is gone.
-	Target      *libs_responses.NodeItem `json:"target,omitempty"`
-	TargetGone  bool                     `json:"target_gone"`
+	Target *libs_responses.NodeItem `json:"target,omitempty"`
+	// Whether what was reported is gone.
+	TargetGone bool `json:"target_gone"`
+	// The profile it is on.
 	TargetOwner *libs_responses.NodeItem `json:"target_owner,omitempty"`
 
+	// The reasons given, with how many gave each.
 	Reasons []ReasonCount `json:"reasons"`
 
+	// When it was first reported.
 	FirstReportedAt time.Time `json:"first_reported_at"`
-	LastReportedAt  time.Time `json:"last_reported_at"`
+	// When it was last reported.
+	LastReportedAt time.Time `json:"last_reported_at"`
 
-	DecidedBy      *libs_responses.NodeItem `json:"decided_by,omitempty"`
-	DecidedAt      *time.Time               `json:"decided_at,omitempty"`
-	DecisionAction string                   `json:"decision_action,omitempty"`
-	DecisionNote   string                   `json:"decision_note,omitempty"`
+	// Who decided it.
+	DecidedBy *libs_responses.NodeItem `json:"decided_by,omitempty"`
+	// When it was decided.
+	DecidedAt *time.Time `json:"decided_at,omitempty"`
+	// What was done.
+	DecisionAction string `json:"decision_action,omitempty"`
+	// What the administrator noted.
+	DecisionNote string `json:"decision_note,omitempty"`
 }
 
 // Report is one person's report, as an administrator sees it.
 type Report struct {
-	ID          int64                    `json:"id"`
-	Reporter    *libs_responses.NodeItem `json:"reporter,omitempty"`
-	ReporterID  int64                    `json:"reporter_id"`
-	ReasonKey   string                   `json:"reason_key"`
-	ReasonLabel string                   `json:"reason_label"`
-	Details     string                   `json:"details,omitempty"`
-	CreatedAt   time.Time                `json:"created_at"`
-	UpdatedAt   time.Time                `json:"updated_at"`
+	// Its id.
+	ID int64 `json:"id"`
+	// Who reported it.
+	Reporter *libs_responses.NodeItem `json:"reporter,omitempty"`
+	// Their id.
+	ReporterID int64 `json:"reporter_id"`
+	// The reason given.
+	ReasonKey string `json:"reason_key"`
+	// What it is called.
+	ReasonLabel string `json:"reason_label"`
+	// What the reporter added.
+	Details string `json:"details,omitempty"`
+	// When it was made.
+	CreatedAt time.Time `json:"created_at"`
+	// When it was last changed: a second report by the same person updates it.
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // CaseDetail is a case with its reports and the target's earlier cases.
 type CaseDetail struct {
 	Case
-	Reports  []Report `json:"reports"`
-	Previous []Case   `json:"previous"`
+	// Each person's report.
+	Reports []Report `json:"reports"`
+	// The earlier cases about the same thing.
+	Previous []Case `json:"previous"`
 }
 
 // Mapper turns stored cases into responses, given the nodes they refer to

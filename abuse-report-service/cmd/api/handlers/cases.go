@@ -102,9 +102,9 @@ func (h *casesHandler) Browse(c echo.Context) error {
 		items = append(items, mapper.Case(item, counts))
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"data": items,
-		"pagination": libs_responses.Pagination{
+	return c.JSON(http.StatusOK, libs_responses.List[responses.Case]{
+		Data: items,
+		Pagination: libs_responses.Pagination{
 			Limit:  limit,
 			Offset: offset,
 			Total:  total,
@@ -127,7 +127,7 @@ func (h *casesHandler) Summary(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, map[string]uint64{"open": open})
+	return c.JSON(http.StatusOK, responses.CaseSummary{Open: open})
 }
 
 func (h *casesHandler) readCase(c echo.Context) (*entities.Case, int) {

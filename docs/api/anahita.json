@@ -1356,6 +1356,322 @@
         ],
         "type": "object"
       },
+      "abusereport.Case": {
+        "description": "Case is what an administrator sees of a case in a list.",
+        "properties": {
+          "decided_at": {
+            "description": "When it was decided.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "decided_by": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "Who decided it."
+          },
+          "decision_action": {
+            "description": "What was done.",
+            "type": "string"
+          },
+          "decision_note": {
+            "description": "What the administrator noted.",
+            "type": "string"
+          },
+          "first_reported_at": {
+            "description": "When it was first reported.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_reported_at": {
+            "description": "When it was last reported.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "reasons": {
+            "description": "The reasons given, with how many gave each.",
+            "items": {
+              "$ref": "#/components/schemas/abusereport.ReasonCount"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "report_count": {
+            "description": "How many people reported it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "status": {
+            "description": "`open`, `actioned` or `dismissed`.",
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "Target is the reported node as it is now, or absent when it is gone."
+          },
+          "target_gone": {
+            "description": "Whether what was reported is gone.",
+            "type": "boolean"
+          },
+          "target_id": {
+            "description": "The id of what was reported.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "target_owner": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "The profile it is on."
+          },
+          "target_type": {
+            "description": "What kind of node it is.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "report_count",
+          "target_id",
+          "target_type",
+          "target_gone",
+          "reasons",
+          "first_reported_at",
+          "last_reported_at"
+        ],
+        "type": "object"
+      },
+      "abusereport.CaseDetail": {
+        "description": "CaseDetail is a case with its reports and the target's earlier cases.",
+        "properties": {
+          "decided_at": {
+            "description": "When it was decided.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "decided_by": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "Who decided it."
+          },
+          "decision_action": {
+            "description": "What was done.",
+            "type": "string"
+          },
+          "decision_note": {
+            "description": "What the administrator noted.",
+            "type": "string"
+          },
+          "first_reported_at": {
+            "description": "When it was first reported.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_reported_at": {
+            "description": "When it was last reported.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "previous": {
+            "description": "The earlier cases about the same thing.",
+            "items": {
+              "$ref": "#/components/schemas/abusereport.Case"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "reasons": {
+            "description": "The reasons given, with how many gave each.",
+            "items": {
+              "$ref": "#/components/schemas/abusereport.ReasonCount"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "report_count": {
+            "description": "How many people reported it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "reports": {
+            "description": "Each person's report.",
+            "items": {
+              "$ref": "#/components/schemas/abusereport.Report"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "`open`, `actioned` or `dismissed`.",
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "Target is the reported node as it is now, or absent when it is gone."
+          },
+          "target_gone": {
+            "description": "Whether what was reported is gone.",
+            "type": "boolean"
+          },
+          "target_id": {
+            "description": "The id of what was reported.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "target_owner": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "The profile it is on."
+          },
+          "target_type": {
+            "description": "What kind of node it is.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "report_count",
+          "target_id",
+          "target_type",
+          "target_gone",
+          "reasons",
+          "first_reported_at",
+          "last_reported_at",
+          "reports",
+          "previous"
+        ],
+        "type": "object"
+      },
+      "abusereport.CaseSummary": {
+        "description": "CaseSummary is how many cases wait to be decided.",
+        "properties": {
+          "open": {
+            "description": "How many are open.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "open"
+        ],
+        "type": "object"
+      },
+      "abusereport.Reason": {
+        "description": "Reason is one entry of the list a reporter chooses from, in their language.",
+        "properties": {
+          "description": {
+            "description": "What it covers.",
+            "type": "string"
+          },
+          "key": {
+            "description": "What it is called in a report.",
+            "type": "string"
+          },
+          "label": {
+            "description": "What it is called, in the language asked for.",
+            "type": "string"
+          },
+          "requires_details": {
+            "description": "Whether the reporter must say more in their own words.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "requires_details"
+        ],
+        "type": "object"
+      },
+      "abusereport.ReasonCount": {
+        "description": "ReasonCount is how many reports in a case gave one reason.",
+        "properties": {
+          "count": {
+            "description": "How many reports gave it.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "key": {
+            "description": "The reason.",
+            "type": "string"
+          },
+          "label": {
+            "description": "What it is called.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "count"
+        ],
+        "type": "object"
+      },
+      "abusereport.Report": {
+        "description": "Report is one person's report, as an administrator sees it.",
+        "properties": {
+          "created_at": {
+            "description": "When it was made.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "details": {
+            "description": "What the reporter added.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "reason_key": {
+            "description": "The reason given.",
+            "type": "string"
+          },
+          "reason_label": {
+            "description": "What it is called.",
+            "type": "string"
+          },
+          "reporter": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "Who reported it."
+          },
+          "reporter_id": {
+            "description": "Their id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "updated_at": {
+            "description": "When it was last changed: a second report by the same person updates it.",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reporter_id",
+          "reason_key",
+          "reason_label",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
       "hashtag.HashtagNodeItem": {
         "description": "HashtagNodeItem is a hashtag.",
         "properties": {
@@ -1856,6 +2172,573 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/abuse-reports": {
+      "post": {
+        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
+        "operationId": "postAbuseReports",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "details": {
+                    "description": "What the reporter adds in their own words. Needed where the reason says so.",
+                    "maxLength": 1000,
+                    "type": "string"
+                  },
+                  "reason_key": {
+                    "description": "Why, by the reason's key (GET /abuse-reports/reasons).",
+                    "maxLength": 64,
+                    "type": "string"
+                  },
+                  "target_id": {
+                    "description": "The id of what is reported: a post, a reply, a profile.",
+                    "format": "int64",
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "target_id",
+                  "reason_key"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "the viewer had reported it already; their report was updated"
+          },
+          "201": {
+            "description": "reported"
+          },
+          "400": {
+            "description": "not well formed; or `own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          },
+          "404": {
+            "description": "there is no such thing that the viewer can see"
+          },
+          "429": {
+            "description": "too many reports in the last hour"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "account:write"
+            ]
+          }
+        ],
+        "summary": "Report something",
+        "tags": [
+          "abuse-report-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/abuse-reports/": {
+      "post": {
+        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
+        "operationId": "postAbuseReports2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "details": {
+                    "description": "What the reporter adds in their own words. Needed where the reason says so.",
+                    "maxLength": 1000,
+                    "type": "string"
+                  },
+                  "reason_key": {
+                    "description": "Why, by the reason's key (GET /abuse-reports/reasons).",
+                    "maxLength": 64,
+                    "type": "string"
+                  },
+                  "target_id": {
+                    "description": "The id of what is reported: a post, a reply, a profile.",
+                    "format": "int64",
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "target_id",
+                  "reason_key"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "the viewer had reported it already; their report was updated"
+          },
+          "201": {
+            "description": "reported"
+          },
+          "400": {
+            "description": "not well formed; or `own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          },
+          "404": {
+            "description": "there is no such thing that the viewer can see"
+          },
+          "429": {
+            "description": "too many reports in the last hour"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "account:write"
+            ]
+          }
+        ],
+        "summary": "Report something",
+        "tags": [
+          "abuse-report-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/abuse-reports/cases": {
+      "get": {
+        "description": "What was reported, one case for each thing, however many reported it.\n\nWho may call it: a site administrator, with a token that carries `actors:read`.",
+        "operationId": "getAbuseReportsCases",
+        "parameters": [
+          {
+            "description": "Which cases: `open` (the default), `actioned` or `dismissed`.",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "open",
+                "actioned",
+                "dismissed"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only cases with a report that gave this reason, by its key.",
+            "in": "query",
+            "name": "reason",
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over. Named `offset` here, where other lists say `start`.",
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: 20 unless asked, 100 at most.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The language to word the reasons in. Accept-Language when left out.",
+            "in": "query",
+            "name": "lang",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/abusereport.Case"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "actors:read"
+            ]
+          }
+        ],
+        "summary": "Cases",
+        "tags": [
+          "abuse-report-service"
+        ],
+        "x-viewer": "admin"
+      }
+    },
+    "/abuse-reports/cases/summary": {
+      "get": {
+        "description": "Who may call it: a site administrator, with a token that carries `actors:read`.",
+        "operationId": "getAbuseReportsCasesSummary",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/abusereport.CaseSummary"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "actors:read"
+            ]
+          }
+        ],
+        "summary": "How many cases are open",
+        "tags": [
+          "abuse-report-service"
+        ],
+        "x-viewer": "admin"
+      }
+    },
+    "/abuse-reports/cases/{id}": {
+      "get": {
+        "description": "With each report, and the earlier cases about the same thing.\n\nWho may call it: a site administrator, with a token that carries `actors:read`.",
+        "operationId": "getAbuseReportsCasesById",
+        "parameters": [
+          {
+            "description": "The case's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The language to word the reasons in. Accept-Language when left out.",
+            "in": "query",
+            "name": "lang",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/abusereport.CaseDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          },
+          "404": {
+            "description": "there is no such case"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "actors:read"
+            ]
+          }
+        ],
+        "summary": "One case",
+        "tags": [
+          "abuse-report-service"
+        ],
+        "x-viewer": "admin"
+      }
+    },
+    "/abuse-reports/cases/{id}/reopen": {
+      "post": {
+        "description": "Who may call it: a site administrator, with a token that carries `actors:write`.",
+        "operationId": "postAbuseReportsCasesByIdReopen",
+        "parameters": [
+          {
+            "description": "The case's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "open again"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          },
+          "404": {
+            "description": "there is no such case"
+          },
+          "409": {
+            "description": "`already_open`; or `newer_case_open`, a later case about the same thing is open"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "actors:write"
+            ]
+          }
+        ],
+        "summary": "Reopen a case",
+        "tags": [
+          "abuse-report-service"
+        ],
+        "x-viewer": "admin"
+      }
+    },
+    "/abuse-reports/cases/{id}/resolve": {
+      "post": {
+        "description": "Who may call it: a site administrator, with a token that carries `actors:write`.",
+        "operationId": "postAbuseReportsCasesByIdResolve",
+        "parameters": [
+          {
+            "description": "The case's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "action": {
+                    "description": "What was done: `none`, `deleted`, `disabled`, `archived`, `blocked` or `other`.",
+                    "enum": [
+                      "none",
+                      "deleted",
+                      "disabled",
+                      "archived",
+                      "blocked",
+                      "other"
+                    ],
+                    "type": "string"
+                  },
+                  "note": {
+                    "description": "What the administrator wants remembered of it.",
+                    "maxLength": 2000,
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "`actioned`, something was done; or `dismissed`, nothing needed doing.",
+                    "enum": [
+                      "actioned",
+                      "dismissed"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "decided"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          },
+          "404": {
+            "description": "there is no such case"
+          },
+          "409": {
+            "description": "`already_decided`"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "actors:write"
+            ]
+          }
+        ],
+        "summary": "Decide a case",
+        "tags": [
+          "abuse-report-service"
+        ],
+        "x-viewer": "admin"
+      }
+    },
+    "/abuse-reports/reasons": {
+      "get": {
+        "description": "The installation's list, worded in the language asked for.\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
+        "operationId": "getAbuseReportsReasons",
+        "parameters": [
+          {
+            "description": "Only the reasons for this kind of node: `node.medium.text-service.note.v1` and so on. All of them when left out.",
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The language to word them in. Accept-Language when left out.",
+            "in": "query",
+            "name": "lang",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/abusereport.Reason"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "account:write"
+            ]
+          }
+        ],
+        "summary": "What a thing may be reported for",
+        "tags": [
+          "abuse-report-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
     "/avatars/{node_id}/": {
       "delete": {
         "description": "Who may call it: somebody signed in.",
@@ -3986,6 +4869,10 @@
     }
   ],
   "tags": [
+    {
+      "description": "Abuse reports",
+      "name": "abuse-report-service"
+    },
     {
       "description": "Hashtags",
       "name": "hashtag-service"
