@@ -313,9 +313,26 @@ func (f *fakeWriter) RefOf(_ context.Context, uri string) (*bsky.Ref, *bsky.Ref,
 	return &bsky.Ref{URI: uri, CID: "cid-of-" + uri[len(uri)-6:]}, &bsky.Ref{URI: "at://root", CID: "cid-root"}, nil
 }
 
+// GetRecord reads a record back as the server gives it: as JSON.
+func (f *fakeWriter) GetRecord(_ context.Context, pds, did, collection, rkey string) (map[string]any, error) {
+	record, ok := f.records[collection+"/"+rkey]
+	if !ok {
+		return nil, bsky.ErrNobody
+	}
+	raw, err := json.Marshal(record)
+	if err != nil {
+		return nil, err
+	}
+	var value map[string]any
+	return value, json.Unmarshal(raw, &value)
+}
+
+// fakeQueue is the table of what waits. As in the table, a key is kept
+// while what it names waits, and is free again once that was done.
 type fakeQueue struct {
 	waiting []federation.Delivery
 	keys    map[string]bool
+	keyOf   map[string]string
 }
 
 func (f *fakeQueue) Enqueue(_ context.Context, actorID int64, target string, payload []byte, key string) error {
@@ -323,6 +340,10 @@ func (f *fakeQueue) Enqueue(_ context.Context, actorID int64, target string, pay
 		return nil
 	}
 	f.keys[key] = true
+	if f.keyOf == nil {
+		f.keyOf = map[string]string{}
+	}
+	f.keyOf[string(payload)] = key
 	f.waiting = append(f.waiting, federation.Delivery{ActorID: actorID, Target: target, Payload: payload})
 	return nil
 }
@@ -383,6 +404,7 @@ func (w *writing) drain() []error {
 	for len(w.queue.waiting) > 0 {
 		next := w.queue.waiting[0]
 		w.queue.waiting = w.queue.waiting[1:]
+		delete(w.queue.keys, w.queue.keyOf[string(next.Payload)])
 		if err := w.h.Write(context.Background(), next); err != nil {
 			failed = append(failed, err)
 		}
@@ -885,6 +907,20 @@ func TestWhatPeopleOnBlueskyDoToWhatWasWrittenFromHere(t *testing.T) {
 type fakeMedia struct {
 	services.MediaGRPCInterface
 	nodes *fakeNodes
+	// The replies hidden from their threads.
+	hidden map[int64]bool
+}
+
+func (f *fakeMedia) Thread(rootID int64, _ *entities.Viewer) ([]*entities.AnahitaNode, error) {
+	var replies []*entities.AnahitaNode
+	for _, node := range f.nodes.kept {
+		if node.RootID == rootID {
+			c := *node
+			c.Hidden = f.hidden[node.ID]
+			replies = append(replies, &c)
+		}
+	}
+	return replies, nil
 }
 
 func (f *fakeMedia) Add(medium *entities.AnahitaNode, _ *entities.Viewer) (*entities.AnahitaNode, error) {
@@ -1238,5 +1274,125 @@ func TestABlockIsToldToBluesky(t *testing.T) {
 	}
 	if got := strings.Join(w.writer.written, ", "); got != "create app.bsky.graph.block, delete app.bsky.graph.block" {
 		t.Errorf("written: %s", got)
+	}
+}
+
+// THE RULE THIS GUARDS: a reply on Bluesky hidden here, under a post that
+// went there, is hidden there too, by the post's threadgate; and only that
+// reply is changed in it, so what was set in Bluesky's own app stays.
+func TestAHiddenReplyIsHiddenOnBluesky(t *testing.T) {
+	w, _ := writingWorld(t)
+	media := &fakeMedia{nodes: w.nodes, hidden: map[int64]bool{}}
+	w.h.Media = media
+	w.connect()
+
+	// A note of Ana's that went to Bluesky.
+	w.nodes.kept = append(w.nodes.kept, &entities.AnahitaNode{
+		ID: 80, Type: constants.NodeMediumNoteEntityType, Service: "text-service", Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "Anahita to Bluesky",
+	})
+	w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 80})
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	rkey := w.sent.rows[0].RKey
+	gateAt := bsky.ThreadgateCollection + "/" + rkey
+
+	// Under it: Alice's answer, from Bluesky, and one from somebody here
+	// that never went there.
+	alice, _ := w.actors.ReadByDID(aliceDID)
+	answer := bsky.PostURI(aliceDID, "3l3answer")
+	w.nodes.kept = append(w.nodes.kept,
+		&entities.AnahitaNode{ID: 81, Type: constants.NodeMediumNoteEntityType, URI: answer, OwnerID: alice.NodeID, CreatedBy: alice.NodeID, ParentID: 80, RootID: 80, Body: "Welcome"},
+		&entities.AnahitaNode{ID: 82, Type: constants.NodeMediumNoteEntityType, OwnerID: 9, CreatedBy: 9, ParentID: 80, RootID: 80, Body: "Local", Enabled: true},
+	)
+	// Made in Bluesky's own app: only followers may reply, and a reply not
+	// kept here is hidden.
+	elsewhere := bsky.PostURI(bobDID, "3l3elsewhere")
+	w.writer.records[gateAt] = map[string]any{
+		"$type": bsky.ThreadgateCollection, "post": bsky.PostURI(anaDID, rkey), "createdAt": "2026-10-01T00:00:00.000Z",
+		"allow":         []any{map[string]any{"$type": "app.bsky.feed.threadgate#followerRule"}},
+		"hiddenReplies": []any{elsewhere},
+	}
+	hide := func(reply int64, hidden bool) {
+		t.Helper()
+		media.hidden[reply] = hidden
+		name := "edge.hidden-reply.medium.deleted.v1"
+		if hidden {
+			name = "edge.hidden-reply.medium.added.v1"
+		}
+		w.heard(name, event.EventPayload{SubjectID: anaID, ObjectID: reply, TargetID: 80})
+		if failed := w.drain(); len(failed) != 0 {
+			t.Fatal(failed)
+		}
+	}
+	gate := func() string {
+		out, _ := json.Marshal(w.writer.records[gateAt])
+		return string(out)
+	}
+
+	// The reply from Bluesky, hidden: added, and the rest left as it was.
+	hide(81, true)
+	got := gate()
+	for _, want := range []string{`"hiddenReplies":["` + elsewhere + `","` + answer + `"]`, `followerRule`, `"post":"` + bsky.PostURI(anaDID, rkey) + `"`} {
+		if !strings.Contains(got, want) {
+			t.Errorf("the threadgate lacks %s:\n%s", want, got)
+		}
+	}
+
+	// Heard twice, nothing more is written.
+	written := len(w.writer.written)
+	hide(81, true)
+	// A reply that is not on Bluesky: nothing is written.
+	hide(82, true)
+	if len(w.writer.written) != written {
+		t.Errorf("written again: %v", w.writer.written[written:])
+	}
+
+	// Shown again: taken out, and what Bluesky's app hid stays.
+	hide(81, false)
+	if got := gate(); !strings.Contains(got, `"hiddenReplies":["`+elsewhere+`"]`) || !strings.Contains(got, `followerRule`) {
+		t.Errorf("after showing it again: %s", got)
+	}
+
+	// Hidden and shown again before it was written: what is so at the end
+	// is written, which is nothing to change.
+	written = len(w.writer.written)
+	media.hidden[81] = true
+	w.heard("edge.hidden-reply.medium.added.v1", event.EventPayload{SubjectID: anaID, ObjectID: 81, TargetID: 80})
+	media.hidden[81] = false
+	w.heard("edge.hidden-reply.medium.deleted.v1", event.EventPayload{SubjectID: anaID, ObjectID: 81, TargetID: 80})
+	if failed := w.drain(); len(failed) != 0 || len(w.writer.written) != written {
+		t.Errorf("hidden and shown before it was written: %v, %v", failed, w.writer.written[written:])
+	}
+
+	// A post with no threadgate gets one, saying nothing of who may reply.
+	delete(w.writer.records, gateAt)
+	hide(81, true)
+	if got := gate(); !strings.Contains(got, `"hiddenReplies":["`+answer+`"]`) || strings.Contains(got, `"allow"`) {
+		t.Errorf("a new threadgate: %s", got)
+	}
+
+	// The post deleted here: its threadgate goes with it.
+	w.heard("node.medium.text-service.note.deleted.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: 80})
+	if failed := w.drain(); len(failed) != 0 || len(w.writer.records) != 0 {
+		t.Errorf("after the post was deleted: %v, %v", failed, w.writer.records)
+	}
+}
+
+// THE RULE THIS GUARDS: hiding a reply under a post that never went to
+// Bluesky, or somebody else's, writes nothing there.
+func TestAHiddenReplyUnderAPostNotOnBluesky(t *testing.T) {
+	w, post := writingWorld(t)
+	w.h.Media = &fakeMedia{nodes: w.nodes, hidden: map[int64]bool{}}
+	w.connect()
+
+	// Alice's post, kept from Bluesky: hers to hide replies under there.
+	w.heard("edge.hidden-reply.medium.added.v1", event.EventPayload{SubjectID: anaID, ObjectID: 99, TargetID: post.ID})
+	// A note here that went nowhere.
+	w.nodes.kept = append(w.nodes.kept, &entities.AnahitaNode{ID: 70, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID, Body: "Here only"})
+	w.heard("edge.hidden-reply.medium.added.v1", event.EventPayload{SubjectID: anaID, ObjectID: 99, TargetID: 70})
+	if len(w.queue.waiting) != 0 {
+		t.Errorf("%d things wait to be written", len(w.queue.waiting))
 	}
 }

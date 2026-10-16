@@ -126,6 +126,31 @@ func (c *Client) DeleteRecord(ctx context.Context, pds, accessJWT, did, collecti
 	}, nil)
 }
 
+// GetRecord reads one of an account's records as it is, every field of
+// it, from the server that holds it. Nothing needs signing in for. ErrNobody
+// when there is no such record.
+func (c *Client) GetRecord(ctx context.Context, pds, did, collection, rkey string) (map[string]any, error) {
+	query := url.Values{"repo": {did}, "collection": {collection}, "rkey": {rkey}}
+	var answer struct {
+		Value map[string]any `json:"value"`
+	}
+	if err := c.call(ctx, http.MethodGet, pds+"/xrpc/com.atproto.repo.getRecord?"+query.Encode(), "", nil, &answer); err != nil {
+		return nil, err
+	}
+	if answer.Value == nil {
+		return nil, fmt.Errorf("%w: a record with nothing in it", ErrUnreadable)
+	}
+	return answer.Value, nil
+}
+
+// ThreadgateCollection is the kind of record that says who may answer a
+// post and which answers under it are hidden. It is named as the post is,
+// in the same account's repository.
+const ThreadgateCollection = "app.bsky.feed.threadgate"
+
+// ThreadgateHiddenMax is the most replies a threadgate may hide.
+const ThreadgateHiddenMax = 300
+
 // FollowCollection is the kind of record a follow is.
 const FollowCollection = "app.bsky.graph.follow"
 
@@ -309,6 +334,8 @@ func (c *Client) call(ctx context.Context, method, address, token string, body, 
 		switch {
 		case refused.Error == "ExpiredToken":
 			return ErrExpired
+		case refused.Error == "RecordNotFound":
+			return fmt.Errorf("%w: %s", ErrNobody, refused.Message)
 		case resp.StatusCode == http.StatusUnauthorized,
 			refused.Error == "AuthenticationRequired", refused.Error == "InvalidToken", refused.Error == "AccountTakedown":
 			return fmt.Errorf("%w: %s", ErrDenied, refused.Error)

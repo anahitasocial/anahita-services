@@ -136,16 +136,21 @@ person's server, and no `Block` was sent.
      administer (only their own posts and profile now). And a blocked
      person's reply still shows on their own profile's Replies tab, as on
      Bluesky.
-3. **Bluesky: to do.** Hiding publishes no event today. Add one (graph
-   `HideReply`), have atproto-service write the root post's threadgate
-   (`app.bsky.feed.threadgate`, rkey = the post's, `hiddenReplies` built when
-   the write is sent; `CreateRecord` is already putRecord), for a root that
-   went to Bluesky and a reply that is there. Reading threadgates made in
-   Bluesky's app needs the collection added to Jetstream's
-   `wantedCollections`.
+3. **Bluesky: done, committed.** graph `HideReply` says
+   `edge.hidden-reply.medium.added|deleted.v1` on the bus (object the reply,
+   target the root). atproto-service (`hidden.go`) queues a "gate" write
+   for a root that went to Bluesky as a connected account (or came from
+   it as their own); when written, it reads the root's threadgate
+   (`GetRecord`), adds or takes out that one reply by whether it is hidden
+   then, keeps the rest (`allow`, replies hidden in Bluesky's app), at most
+   300, and puts it back. Deleting the root deletes its threadgate. Tests:
+   `TestAHiddenReplyIsHiddenOnBluesky`,
+   `TestAHiddenReplyUnderAPostNotOnBluesky`. Not tried against real
+   Bluesky. Left for later: a reply hidden in Bluesky's own app hidden
+   here (threadgate in Jetstream's `wantedCollections`, mapped to
+   `HideReply` by the root's owner).
 4. **Web: to do.** In the hide confirmation or the hidden badge, say that a
    reply from Mastodon or another ActivityPub server is hidden here and may
    still be seen there (`reply.uri` https, or the author's type).
-5. Docs when done: `federation.md` (ActivityPub part written; Bluesky part
-   to write), `permissions.md` (written), the web `architecture.md` replies
-   section.
+5. Docs when done: `federation.md` (written), `permissions.md` (written), the
+   web `architecture.md` replies section.

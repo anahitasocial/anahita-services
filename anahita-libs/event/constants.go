@@ -85,6 +85,11 @@ const (
 	EventFormatEdgeBlockAdded   = "edge.block.%s.added.v1"
 	EventFormatEdgeBlockDeleted = "edge.block.%s.deleted.v1"
 
+	// A reply hidden from its thread, or shown again. The object is the
+	// reply, the target the post at the top of its thread.
+	EventFormatEdgeHiddenReplyAdded   = "edge.hidden-reply.%s.added.v1"
+	EventFormatEdgeHiddenReplyDeleted = "edge.hidden-reply.%s.deleted.v1"
+
 	EventFormatEdgeSubscribeAdded   = "edge.subscribe.%s.added.v1"
 	EventFormatEdgeSubscribeDeleted = "edge.subscribe.%s.deleted.v1"
 

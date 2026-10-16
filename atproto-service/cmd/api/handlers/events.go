@@ -28,6 +28,7 @@ var EventTopics = []string{
 	"edge.follow.*.*.v1",
 	"edge.block.*.*.v1",
 	"edge.voteup.*.*.v1",
+	"edge.hidden-reply.*.*.v1",
 	"node.repost.*.*.*.v1",
 	"node.medium.*.*.*.v1",
 }
@@ -55,6 +56,11 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		err = h.localLiked(ctx, payload.SubjectID, payload.ObjectID)
 	case strings.HasPrefix(payload.Name, "edge.voteup.") && deleted:
 		err = h.localUnliked(ctx, payload.SubjectID, payload.ObjectID)
+
+	// A reply hidden from its thread, or shown again: the target is the
+	// post at the top of the thread.
+	case strings.HasPrefix(payload.Name, "edge.hidden-reply."):
+		err = h.hiddenChanged(ctx, payload.TargetID, payload.ObjectID)
 
 	case strings.HasPrefix(payload.Name, "node.repost.") && added:
 		err = h.localReposted(ctx, payload.ObjectID)

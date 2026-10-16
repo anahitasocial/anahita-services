@@ -3,9 +3,11 @@ package handlers
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/event"
 	"anahita-libs/proto/graphpb"
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 
@@ -122,6 +124,27 @@ func (h *mediumHandler) HideReply(ctx context.Context, req *graphpb.ReplyHideReq
 
 	if err := h.env.Repos.Replies.Recount(reply.RootID, 0); err != nil {
 		log.Printf("counting the replies of %d failed: %v", reply.RootID, err)
+	}
+
+	// Said on the bus, for whoever tells other servers: Bluesky keeps a
+	// list of the replies hidden under a post.
+	if h.env.Publisher != nil {
+		format := event.EventFormatEdgeHiddenReplyDeleted
+		if req.Hidden {
+			format = event.EventFormatEdgeHiddenReplyAdded
+		}
+		routingKey := fmt.Sprintf(format, "medium")
+		payload := &event.EventPayload{
+			Name:          routingKey,
+			SourceService: "graph-grpc-service",
+			SubjectID:     req.ViewerId,
+			SubjectType:   constants.NodeActorPersonEntityType,
+			ObjectID:      reply.ID,
+			ObjectType:    reply.Type,
+			TargetID:      reply.RootID,
+			ViewerID:      req.ViewerId,
+		}
+		go h.env.Publisher.Publish(payload, routingKey)
 	}
 
 	return &graphpb.ReplyHideResponse{Success: true}, nil
