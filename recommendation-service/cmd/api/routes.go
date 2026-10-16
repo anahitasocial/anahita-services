@@ -35,7 +35,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 
 	recommendations.GET("/actors", r.handler.Actors.Browse).
 		Summary("Who the viewer might follow").
-		Describe("People, groups and events, best first, each with why. Nobody the viewer follows already, nobody on either side of a block with them, nobody they dismissed, and nobody who asked not to be suggested: the whole list is in recommendations.md, "Who is never suggested".").
+		Describe("People, groups and events, best first, each with why. Nobody the viewer follows already, nobody on either side of a block with them, nobody they dismissed, and nobody who asked not to be suggested: the whole list is under Who is never suggested in recommendations.md.").
 		Viewer(apidoc.SignedIn).
 		Takes(&handlers.ActorsRequest{}).
 		Sends(http.StatusOK, handlers.ActorsResponse{})

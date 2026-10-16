@@ -3424,7 +3424,7 @@
     },
     "/recommendations/actors": {
       "get": {
-        "description": "People, groups and events, best first, each with why. Nobody the viewer follows, has blocked or dismissed, and nobody who is not discoverable.\n\nWho may call it: somebody signed in.",
+        "description": "People, groups and events, best first, each with why. Nobody the viewer follows already, nobody on either side of a block with them, nobody they dismissed, and nobody who asked not to be suggested: the whole list is under Who is never suggested in recommendations.md.\n\nWho may call it: somebody signed in.",
         "operationId": "getRecommendationsActors",
         "parameters": [
           {
@@ -3453,7 +3453,7 @@
             }
           },
           {
-            "description": "The most to send.",
+            "description": "The most to send: up to 50, 10 when left out.",
             "in": "query",
             "name": "limit",
             "schema": {
