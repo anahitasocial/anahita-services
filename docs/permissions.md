@@ -122,6 +122,22 @@ is deleted: it is still theirs, and comes back if the block is lifted. A block
 of somebody on another server is also told to that server (see
 [federation.md](federation.md)).
 
+A person's block does not reach the groups and events they administer. A group
+or an event blocks somebody in its own right, done by one of its
+administrators from the menu on what that person wrote in it, and lifted from
+its settings (Privacy, Blocked). Its block hides what the blocked person left
+in it, for every reader, as a person's does, and keeps them out of it. It is
+told to no other server: groups are not on the fediverse.
+
+| Request | Allowed to |
+| --- | --- |
+| `POST` and `DELETE /socialgraph/<person>/blocks/<group>` | The group's administrators, and site administrators |
+| `GET /socialgraph/<group>/blocks/` | The same |
+
+Posts and replies in a group carry `authorized.block_from_owner`, true for the
+group's administrators on what somebody else wrote there, so that the web app
+offers "Block from <group>" only to them (`permissions.CanBlockFromOwner`).
+
 A post's access is always one of the levels above. There is no way to share a
 post with named people only, and no private messaging: the private notes of
 the PHP version were removed, not carried over.

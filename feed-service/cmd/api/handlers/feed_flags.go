@@ -90,6 +90,8 @@ func setFeedFlags(env *Env, nodes []*entities.AnahitaNode, viewer *entities.View
 		pin := permissions.CanPin(viewer, &withOwner, rels[post.OwnerID])
 		post.Authorized.Quote = &quote
 		post.Authorized.Pin = &pin
+		blockFromOwner := permissions.CanBlockFromOwner(viewer, owner, post.GetAuthorID(), rels[post.OwnerID])
+		post.Authorized.BlockFromOwner = &blockFromOwner
 		// Whether what it holds may be downloaded, said of a photo or a video.
 		if permissions.HoldsAFile(post) {
 			download := permissions.CanDownload(viewer, post)
@@ -239,5 +241,7 @@ func setReplyFeedFlags(env *Env, replies []*entities.AnahitaNode, viewer *entiti
 		reply.Authorized.Hide = &hide
 		reply.Authorized.Comment = &canReply
 		reply.Authorized.Like = &like
+		blockFromOwner := permissions.CanBlockFromOwner(viewer, withOwner.Owner, reply.GetAuthorID(), rels[root.OwnerID])
+		reply.Authorized.BlockFromOwner = &blockFromOwner
 	}
 }

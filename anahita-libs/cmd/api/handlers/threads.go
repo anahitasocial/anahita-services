@@ -128,6 +128,9 @@ func SetReplyFlags(thread *permissions.ReplyAccessContext, reply *entities.Anahi
 	reply.Authorized.Hide = &hide
 	reply.Authorized.Comment = &canReply
 	reply.Authorized.Like = &like
+	// What is said in a group's thread is the group's to keep someone from.
+	blockFromOwner := !removed && permissions.CanBlockFromOwner(ctx.Viewer, ctx.Root.Owner, reply.GetAuthorID(), ctx.RootOwnerViewerRel)
+	reply.Authorized.BlockFromOwner = &blockFromOwner
 }
 
 // ReplyRuling answers a request about one reply by the rules for its thread:

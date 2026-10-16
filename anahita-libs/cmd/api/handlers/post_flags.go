@@ -52,6 +52,8 @@ func SetPostFlags(c echo.Context, actors services.ActorsGRPCInterface, post *ent
 	pin := permissions.CanPin(viewer, &withOwner, rel)
 	post.Authorized.Quote = &quote
 	post.Authorized.Pin = &pin
+	blockFromOwner := permissions.CanBlockFromOwner(viewer, owner, post.GetAuthorID(), rel)
+	post.Authorized.BlockFromOwner = &blockFromOwner
 }
 
 func requestOwner(c echo.Context, actors services.ActorsGRPCInterface, id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error) {

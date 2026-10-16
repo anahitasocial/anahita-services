@@ -62,7 +62,7 @@ is often wanted, and not always:
     administrators; the services allow it already, and such a block hides
     what the blocked person left in the group as a person's does. The web
     app has no way to do it yet: item 55
-    ([group-blocks.md](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/group-blocks.md)).
+    ([group-blocks.md](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/done/group-blocks.md)).
     Groups are not on ActivityPub for now (the user, the same day), so a
     group's block is told to no other server.
   - To look at first: what a block does today to what the blocked person

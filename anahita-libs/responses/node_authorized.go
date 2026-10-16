@@ -18,6 +18,7 @@ func NewNodeAuthorized(node *entities.AnahitaNode) *NodeAuthorized {
 		Hide:           node.Authorized.Hide,
 		Quote:          node.Authorized.Quote,
 		Pin:            node.Authorized.Pin,
+		BlockFromOwner: node.Authorized.BlockFromOwner,
 		Download:       node.Authorized.Download,
 		Composers:      node.Authorized.Composers,
 		Audiences:      node.Authorized.Audiences,
@@ -46,6 +47,9 @@ type NodeAuthorized struct {
 	Quote *bool `json:"quote,omitempty"`
 	// On a post: whether the viewer may pin it to the profile it is on.
 	Pin *bool `json:"pin,omitempty"`
+	// On a post or a reply in a group or an event: whether the viewer may
+	// block its writer from there, as the group.
+	BlockFromOwner *bool `json:"block_from_owner,omitempty"`
 	// On a post that holds a file: whether the viewer may download it.
 	Download  *bool    `json:"download,omitempty"`
 	Composers []string `json:"composers,omitempty"`
