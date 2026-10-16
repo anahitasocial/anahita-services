@@ -10,6 +10,13 @@ type Pagination struct {
 	Total uint64 `json:"total"`
 }
 
+// Unpaged is a list sent whole, not a page of it: the answer of a route
+// that lists a few things and says no more of them.
+type Unpaged[T any] struct {
+	// What there is.
+	Data []T `json:"data"`
+}
+
 // List is a page of things, and where it is among them: the answer of
 // every route that lists. Its `data` is null when the page is empty.
 type List[T any] struct {

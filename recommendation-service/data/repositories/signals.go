@@ -285,10 +285,14 @@ LIMIT ?`
 // Interest is a hashtag offered to pick, and on how many public posts it
 // was lately.
 type Interest struct {
-	ID    int64  `json:"id"`
-	Name  string `json:"name"`
+	// The hashtag's id.
+	ID int64 `json:"id"`
+	// The hashtag, as it is shown.
+	Name string `json:"name"`
+	// What it is found by.
 	Alias string `json:"alias"`
-	Count int    `json:"count"`
+	// How many posts it was on, lately.
+	Count int `json:"count"`
 }
 
 // The viewer has liked what is posted on their profile, lately.

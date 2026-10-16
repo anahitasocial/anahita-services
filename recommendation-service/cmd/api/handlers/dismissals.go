@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/responses"
 	"log"
 	"net/http"
 
@@ -15,11 +16,15 @@ type dismissalsHandler struct {
 	*Env
 }
 
-type dismissalAddRequest struct {
+// DismissalAddRequest says the viewer is not interested in somebody.
+type DismissalAddRequest struct {
+	// The id of the profile the viewer is not interested in.
 	ActorID int64 `json:"actor_id" validate:"required,numeric,min=1"`
 }
 
-type dismissalRemoveRequest struct {
+// DismissalRemoveRequest takes that back.
+type DismissalRemoveRequest struct {
+	// The id of the profile.
 	ActorID int64 `param:"actor_id" validate:"required,numeric,min=1"`
 }
 
@@ -37,7 +42,7 @@ func (h *dismissalsHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{"data": h.dismissedActors(ids, viewer)})
+	return c.JSON(http.StatusOK, responses.Unpaged[*responses.ActorBrief]{Data: h.dismissedActors(ids, viewer)})
 }
 
 func (h *dismissalsHandler) Add(c echo.Context) error {
@@ -46,7 +51,7 @@ func (h *dismissalsHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &dismissalAddRequest{}
+	req := &DismissalAddRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -68,7 +73,7 @@ func (h *dismissalsHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &dismissalRemoveRequest{}
+	req := &DismissalRemoveRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}

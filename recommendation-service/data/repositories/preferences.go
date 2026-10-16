@@ -17,7 +17,9 @@ import (
 type Preferences struct {
 	// To be suggested people, and groups.
 	SuggestPeople bool `json:"suggest_people"`
+	// To be suggested groups.
 	SuggestGroups bool `json:"suggest_groups"`
+	// To be suggested events.
 	SuggestEvents bool `json:"suggest_events"`
 	// That what they liked and wrote may be used to choose for them.
 	UseActivity bool `json:"use_activity"`

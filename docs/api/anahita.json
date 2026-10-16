@@ -1610,6 +1610,230 @@
           "count"
         ],
         "type": "object"
+      },
+      "recommendation.ActorsResponse": {
+        "description": "ActorsResponse is who the viewer might follow, and why.",
+        "properties": {
+          "items": {
+            "description": "The suggestions, best first.",
+            "items": {
+              "$ref": "#/components/schemas/recommendation.SuggestionItem"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "related": {
+            "description": "What the reasons name, for saying them in words: the people who follow somebody suggested, the hashtags shared. The ones the viewer may see.",
+            "items": {
+              "$ref": "#/components/schemas/ActorBrief"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "related"
+        ],
+        "type": "object"
+      },
+      "recommendation.Interest": {
+        "description": "Interest is a hashtag offered to pick, and on how many public posts it was lately.",
+        "properties": {
+          "alias": {
+            "description": "What it is found by.",
+            "type": "string"
+          },
+          "count": {
+            "description": "How many posts it was on, lately.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "description": "The hashtag's id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "The hashtag, as it is shown.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "alias",
+          "count"
+        ],
+        "type": "object"
+      },
+      "recommendation.PreferencesResponse": {
+        "description": "PreferencesResponse is somebody's choices as they are sent: with the weights they are ranked by, each reason there, and the service's own to go back to.",
+        "properties": {
+          "active_within_choices": {
+            "description": "What active_within_days may be, nearest first, and what it is for somebody who has not chosen.",
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "active_within_days": {
+            "description": "How lately somebody must have been here to be suggested to them, in days. Nothing is no limit.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "active_within_default": {
+            "description": "What active_within_days is for somebody who has not chosen.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "default_weights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "The service's own weights.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "discoverable": {
+            "description": "That they may be suggested to other people.",
+            "type": "boolean"
+          },
+          "max_weight": {
+            "description": "The most a weight may be.",
+            "type": "number"
+          },
+          "reasons": {
+            "description": "The reasons, in the order to list them.",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "suggest_events": {
+            "description": "To be suggested events.",
+            "type": "boolean"
+          },
+          "suggest_groups": {
+            "description": "To be suggested groups.",
+            "type": "boolean"
+          },
+          "suggest_people": {
+            "description": "To be suggested people, and groups.",
+            "type": "boolean"
+          },
+          "use_activity": {
+            "description": "That what they liked and wrote may be used to choose for them.",
+            "type": "boolean"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "What each reason counts for, for the viewer, by its name.",
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "suggest_people",
+          "suggest_groups",
+          "suggest_events",
+          "use_activity",
+          "discoverable",
+          "active_within_days",
+          "weights",
+          "default_weights",
+          "max_weight",
+          "reasons",
+          "active_within_choices",
+          "active_within_default"
+        ],
+        "type": "object"
+      },
+      "recommendation.Reason": {
+        "description": "Reason is why a profile is suggested, as it is sent.",
+        "properties": {
+          "count": {
+            "description": "How strongly.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "ids": {
+            "description": "Up to three of what it was found through: the people or the hashtags, named in the answer's `related`.",
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "type": {
+            "description": "Which reason: `follows_you`, `followed_by_leaders`, `inviter`, `hosted_by_leader`, `shared_interest`, `you_engaged`, `popular` or `featured` (recommendations.md).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "count"
+        ],
+        "type": "object"
+      },
+      "recommendation.SuggestionItem": {
+        "description": "SuggestionItem is one suggestion as it is sent: the profile, and why.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NodeItem"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The profile."
+          },
+          "actor_id": {
+            "description": "The profile's id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "reasons": {
+            "description": "Why, the one that counted most first.",
+            "items": {
+              "$ref": "#/components/schemas/recommendation.Reason"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "score": {
+            "description": "What it scored: higher is better.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "actor_id",
+          "score",
+          "reasons",
+          "actor"
+        ],
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -3198,6 +3422,386 @@
         "x-viewer": "signed_in"
       }
     },
+    "/recommendations/actors": {
+      "get": {
+        "description": "People, groups and events, best first, each with why. Nobody the viewer follows, has blocked or dismissed, and nobody who is not discoverable.\n\nWho may call it: somebody signed in.",
+        "operationId": "getRecommendationsActors",
+        "parameters": [
+          {
+            "description": "Only people, only groups, or only events. All of them when left out.",
+            "in": "query",
+            "name": "kind",
+            "schema": {
+              "enum": [
+                "person",
+                "group",
+                "event"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "`home` (the default), or `onboarding` for somebody who has just joined and follows nobody: nothing worked out from who they follow is used.",
+            "in": "query",
+            "name": "context",
+            "schema": {
+              "enum": [
+                "home",
+                "onboarding"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/recommendation.ActorsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Who the viewer might follow",
+        "tags": [
+          "recommendation-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/recommendations/dismissals": {
+      "get": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "getRecommendationsDismissals",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/ActorBrief"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Whom the viewer is not interested in",
+        "tags": [
+          "recommendation-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "They are not suggested to the viewer again.\n\nWho may call it: somebody signed in.",
+        "operationId": "postRecommendationsDismissals",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "actor_id": {
+                    "description": "The id of the profile the viewer is not interested in.",
+                    "format": "int64",
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "actor_id"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "done"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Not interested in this one",
+        "tags": [
+          "recommendation-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/recommendations/dismissals/{actor_id}": {
+      "delete": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "deleteRecommendationsDismissalsByActorId",
+        "parameters": [
+          {
+            "description": "The id of the profile.",
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "done"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Take that back",
+        "tags": [
+          "recommendation-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/recommendations/interests": {
+      "get": {
+        "description": "The ones on the most public posts lately, the most used first, looking further back until enough are found: the last three months, then the year, then all of it.\n\nWho may call it: somebody signed in.",
+        "operationId": "getRecommendationsInterests",
+        "parameters": [
+          {
+            "description": "The most to send: 20 unless asked, 40 at most.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "maximum": 40,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/recommendation.Interest"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Hashtags to pick from when signing up",
+        "tags": [
+          "recommendation-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
+    "/recommendations/preferences": {
+      "get": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "getRecommendationsPreferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/recommendation.PreferencesResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The viewer's choices",
+        "tags": [
+          "recommendation-service"
+        ],
+        "x-viewer": "signed_in"
+      },
+      "put": {
+        "description": "What is sent is set, and what is left out is left as it is. Answers with them all.\n\nWho may call it: somebody signed in.",
+        "operationId": "putRecommendationsPreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "active_within_days": {
+                    "description": "How lately somebody must have been here to be suggested, in days: one of constants.ActiveWithinChoices.",
+                    "format": "int64",
+                    "type": "integer"
+                  },
+                  "discoverable": {
+                    "description": "That they may be suggested to other people.",
+                    "type": "boolean"
+                  },
+                  "reset_weights": {
+                    "description": "Back to the service's own weights, and its own limit on how lately somebody was here. Before any sent with it.",
+                    "type": "boolean"
+                  },
+                  "suggest_events": {
+                    "description": "To be suggested events.",
+                    "type": "boolean"
+                  },
+                  "suggest_groups": {
+                    "description": "To be suggested groups.",
+                    "type": "boolean"
+                  },
+                  "suggest_people": {
+                    "description": "To be suggested people.",
+                    "type": "boolean"
+                  },
+                  "use_activity": {
+                    "description": "That what they liked and wrote may be used to choose for them.",
+                    "type": "boolean"
+                  },
+                  "weights": {
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "description": "How much each reason counts for, by its name: 0, which turns the reason off, to constants.MaxWeight. The ones sent are set and the others left.",
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/recommendation.PreferencesResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "422": {
+            "description": "`invalid_weight`: a reason there is not, or a weight out of range; nothing is changed"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change the viewer's choices",
+        "tags": [
+          "recommendation-service"
+        ],
+        "x-viewer": "signed_in"
+      }
+    },
     "/search/": {
       "get": {
         "description": "Posts, profiles and custom feeds whose words match, of those the viewer may see. Search applies a post's audience and its profile's, but not the exceptions that let a profile's owner and a post's author see their own (permissions.md), so it may not find one's own restricted posts. Each person, group and event found says how it stands with the viewer, and each event when it is.\n\nWho may call it: anyone, signed in or not.",
@@ -3401,6 +4005,10 @@
     {
       "description": "Notifications",
       "name": "notification-service"
+    },
+    {
+      "description": "Recommendations",
+      "name": "recommendation-service"
     },
     {
       "description": "Search",

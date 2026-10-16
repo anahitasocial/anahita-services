@@ -199,7 +199,10 @@ func (s *schemas) fields(t reflect.Type, props map[string]any, required *[]strin
 				field = withDescription(field, text)
 			}
 		}
-		if !opts["omitempty"] {
+		// A field of an embedded struct is shadowed by one of the same name
+		// outside it, as encoding/json has it: written once.
+		_, again := props[name]
+		if !opts["omitempty"] && !again {
 			*required = append(*required, name)
 			if nullable(f.Type) {
 				field = withNull(field)

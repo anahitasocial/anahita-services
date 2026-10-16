@@ -32,22 +32,33 @@ type actorsHandler struct {
 	*Env
 }
 
-type actorsRequest struct {
-	Kind    string `query:"kind" validate:"omitempty,oneof=person group event"`
+// ActorsRequest asks who the viewer might follow.
+type ActorsRequest struct {
+	// Only people, only groups, or only events. All of them when left out.
+	Kind string `query:"kind" validate:"omitempty,oneof=person group event"`
+	// `home` (the default), or `onboarding` for somebody who has just joined
+	// and follows nobody: nothing worked out from who they follow is used.
 	Context string `query:"context" validate:"omitempty,oneof=home onboarding"`
-	Limit   int    `query:"limit" validate:"omitempty,min=1,max=50"`
+	// The most to send: up to 50, 10 when left out.
+	Limit int `query:"limit" validate:"omitempty,min=1,max=50"`
 }
 
-// suggestionItem is one suggestion as it is sent: the profile, and why.
-type suggestionItem struct {
-	ActorID int64               `json:"actor_id"`
-	Score   float64             `json:"score"`
-	Reasons []scoring.Reason    `json:"reasons"`
-	Actor   *responses.NodeItem `json:"actor"`
+// SuggestionItem is one suggestion as it is sent: the profile, and why.
+type SuggestionItem struct {
+	// The profile's id.
+	ActorID int64 `json:"actor_id"`
+	// What it scored: higher is better.
+	Score float64 `json:"score"`
+	// Why, the one that counted most first.
+	Reasons []scoring.Reason `json:"reasons"`
+	// The profile.
+	Actor *responses.NodeItem `json:"actor"`
 }
 
-type actorsResponse struct {
-	Items []*suggestionItem `json:"items"`
+// ActorsResponse is who the viewer might follow, and why.
+type ActorsResponse struct {
+	// The suggestions, best first.
+	Items []*SuggestionItem `json:"items"`
 	// What the reasons name, for saying them in words: the people who
 	// follow somebody suggested, the hashtags shared. The ones the viewer
 	// may see.
@@ -61,7 +72,7 @@ func (h *actorsHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	req := &actorsRequest{}
+	req := &ActorsRequest{}
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -75,7 +86,7 @@ func (h *actorsHandler) Browse(c echo.Context) error {
 		req.Limit = constants.DefaultLimit
 	}
 
-	resp := &actorsResponse{Items: []*suggestionItem{}, Related: []*responses.ActorBrief{}}
+	resp := &ActorsResponse{Items: []*SuggestionItem{}, Related: []*responses.ActorBrief{}}
 
 	prefs, err := h.Repos.Preferences.Read(viewer.ID)
 	if err != nil {
@@ -167,7 +178,7 @@ func (h *actorsHandler) Browse(c echo.Context) error {
 		if !ok {
 			continue
 		}
-		resp.Items = append(resp.Items, &suggestionItem{
+		resp.Items = append(resp.Items, &SuggestionItem{
 			ActorID: suggestion.ActorID,
 			Score:   suggestion.Score,
 			Reasons: suggestion.Reasons,
@@ -262,7 +273,7 @@ func (env *Env) withPictures(list []*entities.AnahitaNode) map[int64]*entities.A
 // readRelated reads what the reasons name, the ones the viewer may see: a
 // person who follows somebody suggested is somebody the viewer follows, and
 // is asked about all the same.
-func (h *actorsHandler) readRelated(items []*suggestionItem, viewer *entities.Viewer) []*responses.ActorBrief {
+func (h *actorsHandler) readRelated(items []*SuggestionItem, viewer *entities.Viewer) []*responses.ActorBrief {
 	related := []*responses.ActorBrief{}
 
 	seen := map[int64]bool{}
