@@ -69,7 +69,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
 <li><a href="#search-service">Search</a> <span class="count">1</span></li>
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
-<li><a href="#text-service">Notes, articles and topics</a> <span class="count">41</span></li>
+<li><a href="#text-service">Notes, articles and topics</a> <span class="count">43</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
 <li><a href="#schemas">Shapes</a> <span class="count">140</span></li>
 </ul>
@@ -6384,6 +6384,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>disabled</code></td><td>query</td><td>boolean</td><td>Disabled posts as well, for whoever may see them.</td></tr>
 <tr><td><code>owner_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile whose posts are listed. At least 1.</td></tr>
 <tr><td><code>library</code></td><td>query</td><td>boolean</td><td>The viewer&#39;s own media library instead: all their photo or video posts on their own profile, with those they put up from inside the article editor, which no other list holds. The owner is then the viewer, whatever the path says.</td></tr>
+<tr><td><code>drafts</code></td><td>query</td><td>boolean</td><td>The viewer&#39;s own drafts on this profile instead, articles or topics still being written, which no other list holds.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -7356,6 +7357,39 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).Unpin</code></p>
 </details>
+<details class="route" id="postArticlesByIdPublish" data-search="post /articles/{id}/publish publish a draft an article or a topic begun as a draft (`draft` when it was made) becomes a post from now: dated now, seen by whoever its audience says, and announced as a post made now. its author&#39;s alone. `access` sets its audience; left out, the one it was saved with.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method post">POST</span> <code class="path">/articles/{id}/publish</code> <span class="summary">Publish a draft</span></summary>
+<div class="description"><p>An article or a topic begun as a draft (<code>draft</code> when it was made) becomes a post from now: dated now, seen by whoever its audience says, and announced as a post made now. Its author&#39;s alone. <code>access</code> sets its audience; left out, the one it was saved with.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The draft&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>access</code></td><td>string</td><td>Who may see it once it is published. Left out, the audience it was saved with. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-MediumNode">MediumNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not publish it</td></tr>
+<tr><td class="status s4">404</td><td>no such draft of theirs</td></tr>
+<tr><td class="status s4">409</td><td>it is published already</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).Publish</code></p>
+</details>
 <details class="route" id="patchArticlesByIdQuotePolicy" data-search="patch /articles/{id}/quote-policy change who may quote it who may call it: somebody signed in, with a token that carries `media:write`.">
 <summary><span class="method patch">PATCH</span> <code class="path">/articles/{id}/quote-policy</code> <span class="summary">Change who may quote it</span></summary>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
@@ -7433,6 +7467,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>disabled</code></td><td>query</td><td>boolean</td><td>Disabled posts as well, for whoever may see them.</td></tr>
 <tr><td><code>owner_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile whose posts are listed. At least 1.</td></tr>
 <tr><td><code>library</code></td><td>query</td><td>boolean</td><td>The viewer&#39;s own media library instead: all their photo or video posts on their own profile, with those they put up from inside the article editor, which no other list holds. The owner is then the viewer, whatever the path says.</td></tr>
+<tr><td><code>drafts</code></td><td>query</td><td>boolean</td><td>The viewer&#39;s own drafts on this profile instead, articles or topics still being written, which no other list holds.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -7459,6 +7494,7 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
+<tr><td><code>draft</code></td><td>boolean</td><td>Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /&lt;kind&gt;/&lt;id&gt;/publish). Not read of anything else.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
 </tbody>
@@ -7469,6 +7505,7 @@ who may call it: anyone, signed in or not.">
 <tbody>
 <tr><td><code>access</code></td><td>string</td><td>Who may see it, as for changing it. The widest the installation allows when left out. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>. <code>public</code> unless given.</td></tr>
 <tr><td><code>body</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. At most 8000 characters.</td></tr>
+<tr><td><code>draft</code></td><td>boolean</td><td>Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /&lt;kind&gt;/&lt;id&gt;/publish). Not read of anything else.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag: &#34;en&#34;, &#34;fr-CA&#34;. Chosen by the author; left out, the post has none. See package language. At most 12 characters.</td></tr>
 <tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its title. At most 100 characters.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
@@ -7986,6 +8023,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>disabled</code></td><td>query</td><td>boolean</td><td>Disabled posts as well, for whoever may see them.</td></tr>
 <tr><td><code>owner_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile whose posts are listed. At least 1.</td></tr>
 <tr><td><code>library</code></td><td>query</td><td>boolean</td><td>The viewer&#39;s own media library instead: all their photo or video posts on their own profile, with those they put up from inside the article editor, which no other list holds. The owner is then the viewer, whatever the path says.</td></tr>
+<tr><td><code>drafts</code></td><td>query</td><td>boolean</td><td>The viewer&#39;s own drafts on this profile instead, articles or topics still being written, which no other list holds.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -8240,6 +8278,39 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).Unpin</code></p>
 </details>
+<details class="route" id="postTopicsByIdPublish" data-search="post /topics/{id}/publish publish a draft an article or a topic begun as a draft (`draft` when it was made) becomes a post from now: dated now, seen by whoever its audience says, and announced as a post made now. its author&#39;s alone. `access` sets its audience; left out, the one it was saved with.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method post">POST</span> <code class="path">/topics/{id}/publish</code> <span class="summary">Publish a draft</span></summary>
+<div class="description"><p>An article or a topic begun as a draft (<code>draft</code> when it was made) becomes a post from now: dated now, seen by whoever its audience says, and announced as a post made now. Its author&#39;s alone. <code>access</code> sets its audience; left out, the one it was saved with.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The draft&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>access</code></td><td>string</td><td>Who may see it once it is published. Left out, the audience it was saved with. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-MediumNode">MediumNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not publish it</td></tr>
+<tr><td class="status s4">404</td><td>no such draft of theirs</td></tr>
+<tr><td class="status s4">409</td><td>it is published already</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).Publish</code></p>
+</details>
 <details class="route" id="patchTopicsByIdQuotePolicy" data-search="patch /topics/{id}/quote-policy change who may quote it who may call it: somebody signed in, with a token that carries `media:write`.">
 <summary><span class="method patch">PATCH</span> <code class="path">/topics/{id}/quote-policy</code> <span class="summary">Change who may quote it</span></summary>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
@@ -8317,6 +8388,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>disabled</code></td><td>query</td><td>boolean</td><td>Disabled posts as well, for whoever may see them.</td></tr>
 <tr><td><code>owner_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile whose posts are listed. At least 1.</td></tr>
 <tr><td><code>library</code></td><td>query</td><td>boolean</td><td>The viewer&#39;s own media library instead: all their photo or video posts on their own profile, with those they put up from inside the article editor, which no other list holds. The owner is then the viewer, whatever the path says.</td></tr>
+<tr><td><code>drafts</code></td><td>query</td><td>boolean</td><td>The viewer&#39;s own drafts on this profile instead, articles or topics still being written, which no other list holds.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -8343,6 +8415,7 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
+<tr><td><code>draft</code></td><td>boolean</td><td>Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /&lt;kind&gt;/&lt;id&gt;/publish). Not read of anything else.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
 </tbody>
@@ -8353,6 +8426,7 @@ who may call it: anyone, signed in or not.">
 <tbody>
 <tr><td><code>access</code></td><td>string</td><td>Who may see it, as for changing it. The widest the installation allows when left out. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>. <code>public</code> unless given.</td></tr>
 <tr><td><code>body</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. At most 8000 characters.</td></tr>
+<tr><td><code>draft</code></td><td>boolean</td><td>Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /&lt;kind&gt;/&lt;id&gt;/publish). Not read of anything else.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag: &#34;en&#34;, &#34;fr-CA&#34;. Chosen by the author; left out, the post has none. See package language. At most 12 characters.</td></tr>
 <tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its title. At most 100 characters.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
@@ -8838,6 +8912,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>disabled</code></td><td>query</td><td>boolean</td><td>Disabled posts as well, for whoever may see them.</td></tr>
 <tr><td><code>owner_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile whose posts are listed. At least 1.</td></tr>
 <tr><td><code>library</code></td><td>query</td><td>boolean</td><td>The viewer&#39;s own media library instead: all their photo or video posts on their own profile, with those they put up from inside the article editor, which no other list holds. The owner is then the viewer, whatever the path says.</td></tr>
+<tr><td><code>drafts</code></td><td>query</td><td>boolean</td><td>The viewer&#39;s own drafts on this profile instead, articles or topics still being written, which no other list holds.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -9210,7 +9285,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized body comment_count comment_status cover_urls created_at deleted editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language library_only likes_count link_preview link_previews media_removed mimetype name origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id type updated_at uri video view_count">
+<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized body comment_count comment_status cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language library_only likes_count link_preview link_previews media_removed mimetype name origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id type updated_at uri video view_count">
 <h3>MediumNode</h3>
 <p>A post or a reply, read on its own or answered with after a change.</p>
 <table>
@@ -9227,6 +9302,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>cover_urls</code></td><td>map of <a href="#schema-Image">Image</a></td><td>Media URLs</td></tr>
 <tr><td><code>created_at</code></td><td>time</td><td>When it was written.</td></tr>
 <tr><td><code>deleted</code></td><td>boolean</td><td>On a reply: removed, and kept as an empty placeholder because other replies hang from it. It carries no text and no author.</td></tr>
+<tr><td><code>draft</code></td><td>boolean</td><td>That it is a draft, an article or a topic still being written, seen by its author alone.</td></tr>
 <tr><td><code>editor</code></td><td><a href="#schema-Editor">Editor</a></td><td>Who changed it last.</td></tr>
 <tr><td><code>enabled</code> <span class="required">always</span></td><td>boolean</td><td>Whether it is shown: false when it has been disabled.</td></tr>
 <tr><td><code>files</code></td><td>list of <a href="#schema-PhotoFile">PhotoFile</a></td><td>The images of a photo post, in order. The first is the one portrait_urls shows.</td></tr>

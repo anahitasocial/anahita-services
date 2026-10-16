@@ -19,7 +19,7 @@ var editableMediumFields = []string{
 // Set when a post is made and never by an edit.
 var createOnlyMediumFields = []string{
 	"OwnerID", "OwnerType", "Type", "Service", "Mimetype", "CreatedBy", "QuoteID",
-	"LibraryOnly",
+	"LibraryOnly", "Draft",
 }
 
 func fullMediumRequest() *graphpb.Node {
@@ -49,6 +49,7 @@ func fullMediumRequest() *graphpb.Node {
 		AllowDownload: true,
 		QuoteId:       77,
 		LibraryOnly:   true,
+		Draft:         true,
 	}
 }
 

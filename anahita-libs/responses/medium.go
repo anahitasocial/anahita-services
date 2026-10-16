@@ -148,6 +148,9 @@ type MediumNode struct {
 	// That it is in its author's media library only: put up to be shown in
 	// an article, and listed nowhere else.
 	LibraryOnly bool `json:"library_only,omitempty"`
+	// That it is a draft, an article or a topic still being written, seen
+	// by its author alone.
+	Draft bool `json:"draft,omitempty"`
 	// On a reply: removed, and kept as an empty placeholder because other
 	// replies hang from it. It carries no text and no author.
 	Deleted bool `json:"deleted,omitempty"`
@@ -300,6 +303,7 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		QuotePolicy:        node.QuotePolicy,
 		AllowDownload:      allowDownloadOf(node),
 		LibraryOnly:        node.LibraryOnly,
+		Draft:              node.Draft,
 		Deleted:            node.RootID > 0 && node.DeletedAt != nil,
 		Hidden:             node.Hidden,
 		Access:             node.Access,

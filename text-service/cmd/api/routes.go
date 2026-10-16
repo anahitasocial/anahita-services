@@ -133,6 +133,17 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 			Refuses(http.StatusNotFound, "there is no such post").
 			Sends(http.StatusUnprocessableEntity, responses.AudienceRefusal{}, "`access_not_allowed`, with the audiences it may have; or "+reply+", without them")
 	}
+	publish := func(route *apidoc.Route) {
+		route.Summary("Publish a draft").
+			Describe("An article or a topic begun as a draft (`draft` when it was made) becomes a post from now: dated now, seen by whoever its audience says, and announced as a post made now. Its author's alone. `access` sets its audience; left out, the one it was saved with.").
+			Viewer(apidoc.SignedIn).
+			Scope(write).
+			Takes(&libs_requests.MediumPublishRequest{}).
+			Sends(http.StatusOK, responses.MediumNode{}).
+			Refuses(http.StatusForbidden, "the viewer may not publish it").
+			Refuses(http.StatusNotFound, "no such draft of theirs").
+			Refuses(http.StatusConflict, "it is published already")
+	}
 	pin := func(what string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
 			route.Summary(what).
@@ -179,6 +190,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	articles.PATCH("/:id", r.handler.Article.Edit, r.authorize).With(edit("article", media.Edit))
 	articles.POST("/:owner_id/", r.handler.Article.Add, r.authorize).With(add("article", media.Add))
 	articles.DELETE("/:id", r.handler.Article.Delete, r.authorize).With(remove("article"))
+	articles.POST("/:id/publish", r.handler.Article.Publish, r.authorize).With(publish)
 
 	// article access
 	articles.PATCH("/:id/access", r.handler.Article.EditAccess, r.authorize).With(access)
@@ -279,6 +291,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	topics.PATCH("/:id", r.handler.Topic.Edit, r.authorize).With(edit("topic", media.Edit))
 	topics.POST("/:owner_id/", r.handler.Topic.Add, r.authorize).With(add("topic", media.Add))
 	topics.DELETE("/:id", r.handler.Topic.Delete, r.authorize).With(remove("topic"))
+	topics.POST("/:id/publish", r.handler.Topic.Publish, r.authorize).With(publish)
 
 	// topic access
 	topics.PATCH("/:id/access", r.handler.Topic.EditAccess, r.authorize).With(access)

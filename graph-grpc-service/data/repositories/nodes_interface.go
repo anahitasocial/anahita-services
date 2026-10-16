@@ -48,6 +48,9 @@ type NodesRepoInterface interface {
 	// Edit updates an existing node based on the provided edit request and viewer context.
 	Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
 
+	// Published dates a draft that has just been published as made now.
+	Published(id int64) error
+
 	// Add creates a new node based on the provided add request and viewer context.
 	Add(node *entities.AnahitaNode) (*entities.AnahitaNode, error)
 

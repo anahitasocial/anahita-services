@@ -18,9 +18,42 @@ import (
 // viewer see this post", for a quote, a report, a thread, and a library
 // post is to be seen wherever it is shown.
 
-// listedQuery leaves out what is in a media library only.
+// A draft (nodes.draft), an article or a topic still being written, is left
+// out of every listing the same way, its author's own profile included,
+// and is listed only in its author's drafts. Its reading is kept to its
+// author by the gate as well (draftCondition).
+
+// listedQuery leaves out what is in a media library only, and drafts.
 func listedQuery(sb sq.SelectBuilder) sq.SelectBuilder {
-	return sb.Where(sq.Eq{"node.library_only": 0})
+	return sb.Where(sq.Eq{"node.library_only": 0, "node.draft": 0})
+}
+
+// draftCondition is who may see a draft: its author alone. Anything that
+// is not a draft, as the rest of the gate says.
+func draftCondition(viewer *entities.Viewer) sq.Sqlizer {
+	if viewer == nil || viewer.ID <= 0 {
+		return sq.Eq{"node.draft": 0}
+	}
+	return sq.Or{
+		sq.Eq{"node.draft": 0},
+		sq.Eq{"node.created_by": viewer.ID},
+	}
+}
+
+// listedAsAsked is a list of posts as it is asked for: the viewer's own
+// drafts, which are what is being written and nothing else; or as
+// listedOrLibrary says.
+func listedAsAsked(sb sq.SelectBuilder, library, drafts bool, viewer *entities.Viewer) sq.SelectBuilder {
+	if !drafts {
+		return listedOrLibrary(sb, library, viewer)
+	}
+	if viewer == nil || viewer.ID <= 0 {
+		return sb.Where("1 = 0")
+	}
+	return sb.Where(sq.Eq{
+		"node.draft":      1,
+		"node.created_by": viewer.ID,
+	})
 }
 
 // listedOrLibrary is a list of posts as it is asked for: the viewer's own
@@ -35,5 +68,5 @@ func listedOrLibrary(sb sq.SelectBuilder, library bool, viewer *entities.Viewer)
 	if viewer == nil || viewer.ID <= 0 {
 		return sb.Where("1 = 0")
 	}
-	return sb.Where(sq.Eq{"node.created_by": viewer.ID})
+	return sb.Where(sq.Eq{"node.created_by": viewer.ID, "node.draft": 0})
 }

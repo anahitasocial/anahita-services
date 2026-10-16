@@ -140,6 +140,7 @@ func (srv *MediaGRPC) Count(req *MediaGRPCBrowseRequest, viewer *entities.Viewer
 		OwnerId:        req.OwnerID,
 		IncludeReplies: req.IncludeReplies,
 		Library:        req.Library,
+		Drafts:         req.Drafts,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
@@ -176,6 +177,7 @@ func (srv *MediaGRPC) Browse(req *MediaGRPCBrowseRequest, viewer *entities.Viewe
 		Direction:      req.Direction,
 		IncludeReplies: req.IncludeReplies,
 		Library:        req.Library,
+		Drafts:         req.Drafts,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,

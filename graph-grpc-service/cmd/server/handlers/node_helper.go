@@ -72,6 +72,7 @@ func nodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		ShowRepostsOnProfile:      node.ShowRepostsOnProfile,
 		AllowDownload:             node.AllowDownload,
 		LibraryOnly:               node.LibraryOnly,
+		Draft:                     node.Draft,
 		StartsAt:                  timestamppb.New(node.StartsAt),
 		EndsAt:                    timestamppb.New(node.EndsAt),
 		OwnerType:                 node.OwnerType,

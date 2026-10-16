@@ -34,4 +34,6 @@ type MediaGRPCBrowseRequest struct {
 	// The viewer's own media library: everything of theirs of the kind
 	// asked for, with what is in the library only.
 	Library bool `validate:"omitempty"`
+	// The viewer's own drafts on this profile.
+	Drafts bool `validate:"omitempty"`
 }

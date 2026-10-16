@@ -44,6 +44,7 @@ func (h *mediumHandler) Count(ctx context.Context, req *graphpb.MediumCountReque
 	rReq.AccessCheck = req.AccessCheck
 	rReq.TopLevelOnly = !req.IncludeReplies
 	rReq.Library = req.Library
+	rReq.Drafts = req.Drafts
 
 	total, err := h.env.Repos.Nodes.Count(rReq)
 	if err != nil {
@@ -81,6 +82,7 @@ func (h *mediumHandler) Browse(ctx context.Context, req *graphpb.MediumBrowseReq
 	rReq.AccessCheck = req.AccessCheck
 	rReq.TopLevelOnly = !req.IncludeReplies
 	rReq.Library = req.Library
+	rReq.Drafts = req.Drafts
 	rReq.Viewer = viewer
 
 	nodes, err := h.env.Repos.Nodes.Browse(rReq)
@@ -218,6 +220,10 @@ func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest
 	viewer.Username = req.Viewer.Username
 	viewer.Email = req.Viewer.Email
 
+	// Whether this edit publishes a draft: it then becomes a post from now,
+	// and is announced as one made now.
+	wasDraft := node.Draft
+
 	applyEditableMediumFields(node, req.Medium)
 
 	v := validators.NewMediumValidator()
@@ -228,6 +234,16 @@ func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest
 	node, err = h.env.Repos.Nodes.Edit(node)
 	if err != nil {
 		return nil, err
+	}
+
+	published := wasDraft && !node.Draft
+	if published {
+		if err := h.env.Repos.Nodes.Published(node.ID); err != nil {
+			return nil, err
+		}
+		if node, err = h.env.Repos.Nodes.Read(node.ID); err != nil {
+			return nil, err
+		}
 	}
 
 	node.IsSubscribedByViewer, err = h.env.Repos.SubscriptionsRel.IsSubscribedToOne(viewer.ID, node.ID)
@@ -250,13 +266,21 @@ func (h *mediumHandler) Edit(ctx context.Context, req *graphpb.MediumEditRequest
 	// what listens is what announces a post, to other servers, to the
 	// owner's subscribers, to a hashtag or a mention, and such a post is
 	// announced to nobody (repositories/listed.go).
+	//
+	// Nor for a draft, which nobody else sees; and a draft just published
+	// is announced as a post made now, as if it had been added, so that
+	// what tells of a new post tells of it (the user, 2026-10-16).
 	go func() {
-		if node.LibraryOnly {
+		if node.LibraryOnly || node.Draft {
 			return
 		}
 		entityName := strings.Split(node.Type, ".")[3]
 		srvName := strings.Split(node.Service, "-")[0]
-		routing_key := fmt.Sprintf(event.EventFormatNodeMediumEdited, srvName, entityName)
+		format := event.EventFormatNodeMediumEdited
+		if published {
+			format = event.EventFormatNodeMediumAdded
+		}
+		routing_key := fmt.Sprintf(format, srvName, entityName)
 		payload := &event.EventPayload{
 			Name:             routing_key,
 			SourceService:    node.Service,
@@ -328,9 +352,10 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 		}
 	}
 
-	// publish event, as on an edit: not for a post in a media library only.
+	// publish event, as on an edit: not for a post in a media library only,
+	// nor for a draft, which is announced when it is published.
 	go func() {
-		if node.LibraryOnly {
+		if node.LibraryOnly || node.Draft {
 			return
 		}
 		entityName := strings.Split(node.Type, ".")[3]

@@ -37,6 +37,8 @@ func postAccessCondition(viewer *entities.Viewer) sq.Sqlizer {
 		sq.And{
 			sq.Expr("node.root_id IS NULL"),
 			mediumAccessCondition(viewer),
+			// A draft, to its author alone (listed.go).
+			draftCondition(viewer),
 		},
 		sq.And{
 			sq.Expr("node.root_id IS NOT NULL"),

@@ -216,6 +216,10 @@
             "description": "On a reply: removed, and kept as an empty placeholder because other replies hang from it. It carries no text and no author.",
             "type": "boolean"
           },
+          "draft": {
+            "description": "That it is a draft, an article or a topic still being written, seen by its author alone.",
+            "type": "boolean"
+          },
           "editor": {
             "$ref": "#/components/schemas/Editor",
             "description": "Who changed it last."
@@ -2250,6 +2254,14 @@
             "description": "The viewer's own media library instead: all their photo or video posts on their own profile, with those they put up from inside the article editor, which no other list holds. The owner is then the viewer, whatever the path says.",
             "in": "query",
             "name": "library",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "The viewer's own drafts on this profile instead, articles or topics still being written, which no other list holds.",
+            "in": "query",
+            "name": "drafts",
             "schema": {
               "type": "boolean"
             }

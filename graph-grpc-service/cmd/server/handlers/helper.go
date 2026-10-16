@@ -94,6 +94,7 @@ func ProtoNodeToAnahitaNode(n *graphpb.Node) *entities.AnahitaNode {
 	node.ShowRepostsOnProfile = n.ShowRepostsOnProfile
 	node.AllowDownload = n.AllowDownload
 	node.LibraryOnly = n.LibraryOnly
+	node.Draft = n.Draft
 
 	return node
 }

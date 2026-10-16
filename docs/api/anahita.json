@@ -937,6 +937,10 @@
             "description": "On a reply: removed, and kept as an empty placeholder because other replies hang from it. It carries no text and no author.",
             "type": "boolean"
           },
+          "draft": {
+            "description": "That it is a draft, an article or a topic still being written, seen by its author alone.",
+            "type": "boolean"
+          },
           "editor": {
             "$ref": "#/components/schemas/Editor",
             "description": "Who changed it last."
@@ -8790,6 +8794,129 @@
         "x-viewer": "signed_in"
       }
     },
+    "/articles/{id}/publish": {
+      "post": {
+        "description": "An article or a topic begun as a draft (`draft` when it was made) becomes a post from now: dated now, seen by whoever its audience says, and announced as a post made now. Its author's alone. `access` sets its audience; left out, the one it was saved with.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "postArticlesByIdPublish",
+        "parameters": [
+          {
+            "description": "The draft's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who may see it once it is published. Left out, the audience it was saved with.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who may see it once it is published. Left out, the audience it was saved with.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who may see it once it is published. Left out, the audience it was saved with.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not publish it"
+          },
+          "404": {
+            "description": "no such draft of theirs"
+          },
+          "409": {
+            "description": "it is published already"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Publish a draft",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Publish",
+        "x-viewer": "signed_in"
+      }
+    },
     "/articles/{id}/quote-policy": {
       "patch": {
         "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
@@ -9115,6 +9242,14 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "description": "The viewer's own drafts on this profile instead, articles or topics still being written, which no other list holds.",
+            "in": "query",
+            "name": "drafts",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -9188,6 +9323,10 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "draft": {
+                    "description": "Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /<kind>/<id>/publish). Not read of anything else.",
+                    "type": "boolean"
+                  },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
                     "maxLength": 16,
@@ -9223,6 +9362,10 @@
                     "description": "Its words, as Markdown.",
                     "maxLength": 8000,
                     "type": "string"
+                  },
+                  "draft": {
+                    "description": "Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /<kind>/<id>/publish). Not read of anything else.",
+                    "type": "boolean"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
@@ -9273,6 +9416,10 @@
                     "description": "Its words, as Markdown.",
                     "maxLength": 8000,
                     "type": "string"
+                  },
+                  "draft": {
+                    "description": "Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /<kind>/<id>/publish). Not read of anything else.",
+                    "type": "boolean"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
@@ -19773,6 +19920,14 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "description": "The viewer's own drafts on this profile instead, articles or topics still being written, which no other list holds.",
+            "in": "query",
+            "name": "drafts",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -25258,6 +25413,14 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "description": "The viewer's own drafts on this profile instead, articles or topics still being written, which no other list holds.",
+            "in": "query",
+            "name": "drafts",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -29329,6 +29492,129 @@
         "x-viewer": "signed_in"
       }
     },
+    "/topics/{id}/publish": {
+      "post": {
+        "description": "An article or a topic begun as a draft (`draft` when it was made) becomes a post from now: dated now, seen by whoever its audience says, and announced as a post made now. Its author's alone. `access` sets its audience; left out, the one it was saved with.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "postTopicsByIdPublish",
+        "parameters": [
+          {
+            "description": "The draft's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who may see it once it is published. Left out, the audience it was saved with.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who may see it once it is published. Left out, the audience it was saved with.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "Who may see it once it is published. Left out, the audience it was saved with.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediumNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not publish it"
+          },
+          "404": {
+            "description": "no such draft of theirs"
+          },
+          "409": {
+            "description": "it is published already"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Publish a draft",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Publish",
+        "x-viewer": "signed_in"
+      }
+    },
     "/topics/{id}/quote-policy": {
       "patch": {
         "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
@@ -29654,6 +29940,14 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "description": "The viewer's own drafts on this profile instead, articles or topics still being written, which no other list holds.",
+            "in": "query",
+            "name": "drafts",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -29727,6 +30021,10 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "draft": {
+                    "description": "Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /<kind>/<id>/publish). Not read of anything else.",
+                    "type": "boolean"
+                  },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
                     "maxLength": 16,
@@ -29762,6 +30060,10 @@
                     "description": "Its words, as Markdown.",
                     "maxLength": 8000,
                     "type": "string"
+                  },
+                  "draft": {
+                    "description": "Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /<kind>/<id>/publish). Not read of anything else.",
+                    "type": "boolean"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
@@ -29812,6 +30114,10 @@
                     "description": "Its words, as Markdown.",
                     "maxLength": 8000,
                     "type": "string"
+                  },
+                  "draft": {
+                    "description": "Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /<kind>/<id>/publish). Not read of anything else.",
+                    "type": "boolean"
                   },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
@@ -31796,6 +32102,14 @@
             "description": "The viewer's own media library instead: all their photo or video posts on their own profile, with those they put up from inside the article editor, which no other list holds. The owner is then the viewer, whatever the path says.",
             "in": "query",
             "name": "library",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "The viewer's own drafts on this profile instead, articles or topics still being written, which no other list holds.",
+            "in": "query",
+            "name": "drafts",
             "schema": {
               "type": "boolean"
             }

@@ -43,6 +43,13 @@ func (m *MediumPermissions) CanBrowse(viewer *entities.Viewer) (bool, error) {
 // 9. If the medium access is admins and the viewer is admin of the owner
 // 10. If the medium access is myself and the viewer is the same as the medium owner
 func (m *MediumPermissions) CanRead(ctx *MediumAccessContext) (bool, error) {
+	// A draft, being written, to its author alone: not to its profile's
+	// administrators, nor to the site's (the user, 2026-10-16).
+	if draft, ok := ctx.Medium.(interface{ IsDraft() bool }); ok && draft.IsDraft() &&
+		ctx.Viewer.ID != ctx.Medium.GetAuthorID() {
+		return false, nil
+	}
+
 	if ctx.Viewer.IsAdmin() {
 		return true, nil
 	}

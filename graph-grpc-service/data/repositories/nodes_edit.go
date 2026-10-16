@@ -148,6 +148,9 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	query = query.Set("show_reposts_on_profile", node.ShowRepostsOnProfile)
 	// The same: written whichever way it is, so that it can be turned off.
 	query = query.Set("allow_download", node.AllowDownload)
+	// A draft is published by an edit that clears it (medium_fields.go
+	// lets an edit do nothing else to it).
+	query = query.Set("draft", node.Draft)
 	if node.Mimetype != "" {
 		query = query.Set("mimetype", node.Mimetype)
 	}

@@ -522,6 +522,10 @@
             "description": "On a reply: removed, and kept as an empty placeholder because other replies hang from it. It carries no text and no author.",
             "type": "boolean"
           },
+          "draft": {
+            "description": "That it is a draft, an article or a topic still being written, seen by its author alone.",
+            "type": "boolean"
+          },
           "editor": {
             "$ref": "#/components/schemas/Editor",
             "description": "Who changed it last."

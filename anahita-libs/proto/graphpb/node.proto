@@ -152,6 +152,9 @@ message Node {
     // A photo or video post in its author's media library only: read by its
     // address, listed nowhere, announced to nobody. Set when it is made.
     bool library_only = 96;
+    // An article or a topic still being written: seen by its author alone,
+    // listed nowhere, announced to nobody. Only ever cleared, by publishing.
+    bool draft = 97;
 
     // Quote posts. quote_policy is who may quote a post, or on a person
     // their posts; quote_id is the post a note quotes; quote_detached says

@@ -73,6 +73,9 @@ type NodeBrowseRequest struct {
 	// the library only, which every other list leaves out
 	// (repositories/listed.go).
 	Library bool
+	// The viewer's own drafts: only those, which every other list leaves
+	// out.
+	Drafts bool
 }
 
 type NodeBrowseMutualConnectionsRequest struct {
@@ -125,6 +128,9 @@ type NodeCountRequest struct {
 	// the library only, which every other list leaves out
 	// (repositories/listed.go).
 	Library bool
+	// The viewer's own drafts: only those, which every other list leaves
+	// out.
+	Drafts bool
 }
 
 type NodeCountConnectionsRequest struct{}

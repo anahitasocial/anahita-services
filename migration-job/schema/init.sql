@@ -87,6 +87,9 @@ CREATE TABLE nodes (
   -- On a photo or video post, that it is in its author's media library
   -- only: read by its address, listed nowhere, announced to nobody.
   `library_only` tinyint(1) NOT NULL DEFAULT 0,
+  -- On an article or a topic, that it is still being written: seen by its
+  -- author alone, listed nowhere, announced to nobody.
+  `draft` tinyint(1) NOT NULL DEFAULT 0,
   `subscriber_count` int(11) unsigned DEFAULT NULL,
   `vote_up_count` int(11) unsigned DEFAULT NULL,
   `mimetype` varchar(100) DEFAULT NULL,

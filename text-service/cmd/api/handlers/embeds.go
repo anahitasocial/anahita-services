@@ -56,7 +56,9 @@ func (h *mediumHandler) withEmbeddedPages(meta []byte, body string) []byte {
 // edges could not be written is posted all the same, and they are put
 // right the next time it is saved.
 func (h *mediumHandler) syncEmbeds(medium *entities.AnahitaNode) {
-	if medium == nil || medium.ID == 0 || h.Srv.GraphEdgeGRPC == nil {
+	// A draft cites nothing yet: what it shows is cited when it is
+	// published.
+	if medium == nil || medium.ID == 0 || medium.Draft || h.Srv.GraphEdgeGRPC == nil {
 		return
 	}
 

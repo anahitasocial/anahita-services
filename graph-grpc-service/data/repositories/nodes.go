@@ -46,7 +46,7 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 		query = query.Where("node.root_id IS NULL")
 	}
 
-	query = listedOrLibrary(query, req.Library, req.Viewer)
+	query = listedAsAsked(query, req.Library, req.Drafts, req.Viewer)
 
 	req.Search = sanitizeSearchString(req.Search)
 	if req.Search != "" {
@@ -166,7 +166,7 @@ func (r *nodesRepo) Count(req *requests.NodeCountRequest) (uint64, error) {
 		query = query.Where("node.root_id IS NULL")
 	}
 
-	query = listedOrLibrary(query, req.Library, req.Viewer)
+	query = listedAsAsked(query, req.Library, req.Drafts, req.Viewer)
 
 	req.Search = sanitizeSearchString(req.Search)
 	if req.Search != "" {
