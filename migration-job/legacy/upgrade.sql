@@ -693,6 +693,13 @@ WHERE type LIKE 'node.medium.%'
   AND enabled = 0
   AND deleted_at IS NULL;
 
+-- Every line break of what was written stored as \n, as the graph writes it
+-- from now on. migrations/20261114000001_body_newlines does the same for an
+-- installation already running.
+UPDATE nodes
+SET body = REPLACE(REPLACE(body, CONCAT(CHAR(13), CHAR(10)), CHAR(10)), CHAR(13), CHAR(10))
+WHERE body LIKE CONCAT('%', CHAR(13), '%');
+
 -- Every post's count, from the replies there now are under it. The same
 -- count the graph keeps from here on: replies that are switched on, not
 -- removed, and not hidden from the thread.

@@ -78,7 +78,7 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		node.Service,
 		node.Name,
 		node.Alias,
-		node.Body,
+		newlines(node.Body),
 		node.StartsAt,
 		node.EndsAt,
 		node.OwnerType,

@@ -35,7 +35,7 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 		query = query.Set("alias", node.Alias)
 	}
 	if node.Body != "" {
-		query = query.Set("body", node.Body)
+		query = query.Set("body", newlines(node.Body))
 	}
 	if !node.StartsAt.IsZero() {
 		query = query.Set("starts_at", node.StartsAt)
