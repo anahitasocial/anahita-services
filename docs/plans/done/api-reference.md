@@ -121,7 +121,7 @@ A and B are worth having alone: they settle the form, and every service after is
 | Phase C | done 2026-10-15: all 19 services with routes are described, 344 routes in all; export-service's routes moved from its `main.go` to a `routes.go`, where the members-only guard reads them |
 | Phase D | done 2026-10-15: `docs/api/index.html`, and a link from each prose page to its routes |
 | Phase E | done 2026-10-15: the answers the handler tests get are checked against the reference, in every service that has handler tests |
-| Verification | 2026-10-15: the combined file lints clean (Redocly, `docs/api/redocly.yaml`); a client generated from it (openapi-typescript and openapi-fetch) type-checks, and on the dev stack reads NodeInfo, the people and a profile. Signing in and posting a note with it is left: the dev stack has no account to sign in with, and signing one up mails a code |
+| Verification | 2026-10-15: the combined file lints clean (Redocly, `docs/api/redocly.yaml`); a client generated from it (openapi-typescript and openapi-fetch) type-checks, and on the dev stack reads NodeInfo, the people and a profile, and posts a note as `apiclientcheck`, an account signed up for it through the signup pages and signed in by the authorization code with PKCE, as `anahita-web` does |
 
 ### What phases D and E did
 
