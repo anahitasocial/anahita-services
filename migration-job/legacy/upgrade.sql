@@ -583,6 +583,10 @@ ALTER TABLE nodes ADD COLUMN `allow_download` tinyint(1) NOT NULL DEFAULT 0 AFTE
 -- migrations/20261112000001_library_only.sql.
 ALTER TABLE nodes ADD COLUMN `library_only` tinyint(1) NOT NULL DEFAULT 0 AFTER `allow_download`;
 
+-- nodes.excerpt, dropped with what is in it. See
+-- migrations/20261113000001_drop_excerpt.sql.
+ALTER TABLE nodes DROP COLUMN `excerpt`;
+
 -- nodes.uuid. See migrations/20261025000001_node_uuid.sql for why it is done
 -- in three steps.
 ALTER TABLE nodes ADD COLUMN `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NULL AFTER `id`;

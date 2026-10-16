@@ -25,8 +25,6 @@ type MediumNodeItem struct {
 	Alias string `json:"alias,omitempty"`
 	// Its words, as Markdown.
 	Body string `json:"body,omitempty"`
-	// A shorter form of its words, where there is one.
-	Excerpt string `json:"excerpt,omitempty"`
 	// When it was written.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// The kind of file it holds, where it holds one.
@@ -112,8 +110,6 @@ type MediumNode struct {
 	Alias string `json:"alias,omitempty"`
 	// Its words, as Markdown.
 	Body string `json:"body,omitempty"`
-	// A shorter form of its words, where there is one.
-	Excerpt string `json:"excerpt,omitempty"`
 	// When it was written.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// When it was last changed.
@@ -225,7 +221,6 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		Name:               node.Name,
 		Alias:              node.Alias,
 		Body:               node.Body,
-		Excerpt:            node.Excerpt,
 		QuoteCount:         node.QuoteCount,
 		CreatedAt:          node.CreatedAt,
 		Mimetype:           node.Mimetype,
@@ -288,7 +283,6 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		Name:               node.Name,
 		Alias:              node.Alias,
 		Body:               node.Body,
-		Excerpt:            node.Excerpt,
 		QuoteCount:         node.QuoteCount,
 		CreatedAt:          node.CreatedAt,
 		UpdatedAt:          node.UpdatedAt,

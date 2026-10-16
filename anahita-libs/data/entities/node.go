@@ -110,7 +110,6 @@ type AnahitaNode struct {
 	Name         string
 	Alias        string
 	Body         string
-	Excerpt      string
 	StartsAt     time.Time
 	EndsAt       time.Time
 	OwnerID      int64

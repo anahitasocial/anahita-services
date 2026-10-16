@@ -239,7 +239,6 @@ WHERE parent_id = ?
 	emptyRemoteNote = `
 UPDATE nodes
 SET body = '',
-    excerpt = NULL,
     name = '',
     meta = NULL,
     deleted_at = UTC_TIMESTAMP(),

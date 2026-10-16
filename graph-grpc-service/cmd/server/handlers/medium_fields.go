@@ -29,7 +29,6 @@ func applyEditableMediumFields(node *entities.AnahitaNode, req *graphpb.Node) {
 	node.Name = req.Name
 	node.Alias = req.Alias
 	node.Body = req.Body
-	node.Excerpt = req.Excerpt
 	node.Filename = req.Filename
 	node.CoverFilename = req.CoverFilename
 	node.Meta = json.RawMessage(req.Meta)

@@ -11,7 +11,7 @@ import (
 // What an edit may change on a post. A field the services send and expect
 // to be saved belongs here.
 var editableMediumFields = []string{
-	"Enabled", "Access", "Name", "Alias", "Body", "Excerpt",
+	"Enabled", "Access", "Name", "Alias", "Body",
 	"Filename", "CoverFilename", "Meta", "ModifiedBy", "CommentStatus",
 	"CommentCount", "Language", "ReplyAccess", "QuotePolicy", "AllowDownload",
 }
@@ -35,7 +35,6 @@ func fullMediumRequest() *graphpb.Node {
 		Name:          "A title",
 		Alias:         "a-title",
 		Body:          "متن",
-		Excerpt:       "An excerpt",
 		Filename:      "a.jpg",
 		Mimetype:      "image/jpeg",
 		CoverFilename: "cover.jpg",

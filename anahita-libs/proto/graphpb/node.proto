@@ -16,7 +16,9 @@ message Node {
     string name = 6;
     string alias = 7;
     string body = 8;
-    string excerpt = 9;
+    // 9 was an article's excerpt, dropped on 2026-10-16.
+    reserved 9;
+    reserved "excerpt";
     string filename = 10;
     string cover_filename = 11;
     string meta = 13;

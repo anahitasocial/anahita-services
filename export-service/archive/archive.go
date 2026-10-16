@@ -102,7 +102,6 @@ type Post struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Title     string    `json:"title,omitempty"`
 	Text      string    `json:"text,omitempty"`
-	Excerpt   string    `json:"excerpt,omitempty"`
 	// Who can see it: "public", "followers" and so on. Empty on a reply,
 	// which is seen by whoever sees the post it is under.
 	Audience string `json:"audience,omitempty"`
@@ -374,7 +373,6 @@ func (b *Builder) postOf(node *entities.AnahitaNode, files []*entities.PhotoFile
 		UpdatedAt:     node.UpdatedAt.UTC(),
 		Title:         node.Name,
 		Text:          node.Body,
-		Excerpt:       node.Excerpt,
 		Audience:      node.Access,
 		Language:      node.Language,
 		Quotes:        node.QuoteID,

@@ -89,7 +89,6 @@ CREATE TABLE nodes (
   `library_only` tinyint(1) NOT NULL DEFAULT 0,
   `subscriber_count` int(11) unsigned DEFAULT NULL,
   `vote_up_count` int(11) unsigned DEFAULT NULL,
-  `excerpt` text,
   `mimetype` varchar(100) DEFAULT NULL,
   `language` varchar(50) DEFAULT NULL,
   `access` varchar(255) NOT NULL,

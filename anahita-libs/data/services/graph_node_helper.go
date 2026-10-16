@@ -55,7 +55,6 @@ func grpcToGraphNode(m *graphpb.Node) *entities.AnahitaNode {
 	n.Name = m.Name
 	n.Alias = m.Alias
 	n.Body = m.Body
-	n.Excerpt = m.Excerpt
 	n.CoverFilename = m.CoverFilename
 	n.Filename = m.Filename
 	n.AvatarFilename = m.AvatarFilename
@@ -261,7 +260,6 @@ func graphNodeToGrpc(node *entities.AnahitaNode) *graphpb.Node {
 		Name:                      node.Name,
 		Alias:                     node.Alias,
 		Body:                      node.Body,
-		Excerpt:                   node.Excerpt,
 		Filename:                  node.Filename,
 		AvatarFilename:            node.AvatarFilename,
 		RootId:                    node.RootID,

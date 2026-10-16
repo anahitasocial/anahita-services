@@ -134,9 +134,6 @@ func (h *articleHandler) Edit(c echo.Context) error {
 	medium.Name = req.Name
 	medium.Alias = slug.Make(req.Name)
 	medium.Body = req.Body
-	// An excerpt changed with the rest; it was dropped here, so a changed
-	// one never reached the graph. An empty one leaves it as it is.
-	medium.Excerpt = req.Excerpt
 
 	// The language the author says it is written in. Not saying is not an
 	// error; a tag that is not one is.
@@ -204,7 +201,6 @@ func (h *articleHandler) Add(c echo.Context) error {
 	} else if language != "" {
 		medium.Language = language
 	}
-	medium.Excerpt = req.Excerpt
 	medium.OwnerID = owner.ID
 	medium.OwnerType = owner.Type
 	// The owner as read above, merged defaults and all. It was read and

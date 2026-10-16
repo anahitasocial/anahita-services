@@ -530,10 +530,6 @@
             "description": "Whether it is shown: false when it has been disabled.",
             "type": "boolean"
           },
-          "excerpt": {
-            "description": "A shorter form of its words, where there is one.",
-            "type": "string"
-          },
           "files": {
             "description": "The images of a photo post, in order. The first is the one portrait_urls shows.",
             "items": {

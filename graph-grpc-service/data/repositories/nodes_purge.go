@@ -74,7 +74,6 @@ UPDATE nodes
 SET
   name = '',
   body = NULL,
-  excerpt = NULL,
   meta = NULL,
   website_url = NULL,
   filename = NULL,

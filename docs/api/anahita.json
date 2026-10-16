@@ -945,10 +945,6 @@
             "description": "Whether it is shown: false when it has been disabled.",
             "type": "boolean"
           },
-          "excerpt": {
-            "description": "A shorter form of its words, where there is one.",
-            "type": "string"
-          },
           "files": {
             "description": "The images of a photo post, in order. The first is the one portrait_urls shows.",
             "items": {
@@ -1151,10 +1147,6 @@
           "deleted": {
             "description": "On a reply: removed, and kept as an empty placeholder because other replies hang from it. It carries no text and no author.",
             "type": "boolean"
-          },
-          "excerpt": {
-            "description": "A shorter form of its words, where there is one.",
-            "type": "string"
           },
           "files": {
             "description": "The images of a photo post, in order. The first is the one portrait_urls shows.",
@@ -8373,11 +8365,6 @@
                     "maxLength": 8000,
                     "type": "string"
                   },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
                     "maxLength": 12,
@@ -8402,11 +8389,6 @@
                   "body": {
                     "description": "Its words, as Markdown.",
                     "maxLength": 8000,
-                    "type": "string"
-                  },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
                     "type": "string"
                   },
                   "language": {
@@ -9242,11 +9224,6 @@
                     "maxLength": 8000,
                     "type": "string"
                   },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
                     "maxLength": 12,
@@ -9295,11 +9272,6 @@
                   "body": {
                     "description": "Its words, as Markdown.",
                     "maxLength": 8000,
-                    "type": "string"
-                  },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
                     "type": "string"
                   },
                   "language": {
@@ -28932,11 +28904,6 @@
                     "maxLength": 8000,
                     "type": "string"
                   },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
                     "maxLength": 12,
@@ -28961,11 +28928,6 @@
                   "body": {
                     "description": "Its words, as Markdown.",
                     "maxLength": 8000,
-                    "type": "string"
-                  },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
                     "type": "string"
                   },
                   "language": {
@@ -29801,11 +29763,6 @@
                     "maxLength": 8000,
                     "type": "string"
                   },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
                   "language": {
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
                     "maxLength": 12,
@@ -29854,11 +29811,6 @@
                   "body": {
                     "description": "Its words, as Markdown.",
                     "maxLength": 8000,
-                    "type": "string"
-                  },
-                  "excerpt": {
-                    "description": "A shorter form of its words.",
-                    "maxLength": 500,
                     "type": "string"
                   },
                   "language": {
