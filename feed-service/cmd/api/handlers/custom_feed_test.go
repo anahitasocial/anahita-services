@@ -316,6 +316,7 @@ func (f *feedTest) call(handler echo.HandlerFunc, method string, viewer *entitie
 	if err := handler(c); err != nil {
 		f.t.Fatalf("handler: %v", err)
 	}
+	answers.Handler(handler, rec)
 
 	answer := map[string]any{}
 	if rec.Body.Len() > 0 {
@@ -632,7 +633,7 @@ func TestFeedsOnTheHomePage(t *testing.T) {
 	if status, answer := f.call(f.handler.SetPins, http.MethodPut, bob, 0, fmt.Sprintf(`{"ids":[%d,%d]}`, shared[0], hidden)); status != http.StatusUnprocessableEntity || answer["error"] != "feed_not_found" {
 		t.Errorf("setting a hidden feed answered %d %v", status, answer)
 	}
-	if status, _ := f.call(f.handler.Pin, http.MethodPut, person(0), shared[0], ""); status != http.StatusForbidden {
+	if status, _ := f.call(f.handler.Pin, http.MethodPut, person(0), shared[0], ""); status != http.StatusUnauthorized {
 		t.Errorf("a visitor adding a feed answered %d", status)
 	}
 
@@ -694,6 +695,7 @@ func (f *feedTest) callQuery(handler echo.HandlerFunc, viewer *entities.Viewer, 
 	if err := handler(c); err != nil {
 		f.t.Fatalf("handler: %v", err)
 	}
+	answers.Handler(handler, rec)
 
 	answer := map[string]any{}
 	if err := json.Unmarshal(rec.Body.Bytes(), &answer); err != nil {

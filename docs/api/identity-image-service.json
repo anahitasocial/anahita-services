@@ -123,6 +123,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).RemoveAvatar",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -223,6 +224,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).SetAvatar",
         "x-viewer": "signed_in"
       }
     },
@@ -268,6 +270,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).PublicAvatar",
         "x-viewer": "anyone"
       }
     },
@@ -313,6 +316,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).RemoveCover",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -413,6 +417,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).SetCover",
         "x-viewer": "signed_in"
       }
     },
@@ -458,6 +463,7 @@
         "tags": [
           "identity-image-service"
         ],
+        "x-handler": "identityimage/cmd/api/handlers.(*imageHandler).PublicCover",
         "x-viewer": "anyone"
       }
     }

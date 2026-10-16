@@ -61,6 +61,7 @@ func browseAccounts(t *testing.T, personType string, scopes []string, query stri
 	if err := newAccountsHandler(te.Env).Browse(c); err != nil {
 		t.Fatalf("browse: %v", err)
 	}
+	answers.Handler(newAccountsHandler(te.Env).Browse, rec)
 	return rec, accounts
 }
 

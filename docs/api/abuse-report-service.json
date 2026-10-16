@@ -1350,6 +1350,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*reportsHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -1430,6 +1431,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*reportsHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -1541,6 +1543,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Browse",
         "x-viewer": "admin"
       }
     },
@@ -1577,6 +1580,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Summary",
         "x-viewer": "admin"
       }
     },
@@ -1639,6 +1643,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Read",
         "x-viewer": "admin"
       }
     },
@@ -1696,6 +1701,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Reopen",
         "x-viewer": "admin"
       }
     },
@@ -1793,6 +1799,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Resolve",
         "x-viewer": "admin"
       }
     },
@@ -1865,6 +1872,7 @@
         "tags": [
           "abuse-report-service"
         ],
+        "x-handler": "abusereport/cmd/api/handlers.(*reasonsHandler).Browse",
         "x-viewer": "signed_in"
       }
     }

@@ -5,6 +5,8 @@ title, a line about it, the site it is on and a picture. The card is made
 when the note is written and is kept with it, so it reads the same later
 even when the page it points to has changed or gone.
 
+Its routes are in the API reference: [link-preview-service](api/index.html#link-preview-service).
+
 ## Contents
 
 - [Two halves](#two-halves)

@@ -339,6 +339,7 @@ func (w *inboxWorld) deliver(body, keyID, privatePEM string, change func(*http.R
 
 	rec := httptest.NewRecorder()
 	_ = w.h.Inbox(echo.New().NewContext(in, rec))
+	answers.Handler(w.h.Inbox, rec)
 	return rec
 }
 

@@ -69,7 +69,7 @@ type ActorsResponse struct {
 func (h *actorsHandler) Browse(c echo.Context) error {
 	viewer := getViewer(c)
 	if !signedIn(viewer) {
-		return c.NoContent(http.StatusForbidden)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	req := &ActorsRequest{}

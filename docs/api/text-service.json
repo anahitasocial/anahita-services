@@ -1123,6 +1123,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -1174,6 +1175,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -1300,6 +1302,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*articleHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -1411,6 +1414,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -1502,6 +1506,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditCommentStatus",
         "x-viewer": "signed_in"
       }
     },
@@ -1566,6 +1571,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Unpin",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -1628,6 +1634,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Pin",
         "x-viewer": "signed_in"
       }
     },
@@ -1749,6 +1756,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -1870,6 +1878,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditReplyAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -1996,6 +2005,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*articleHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -2197,6 +2207,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*articleHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -2275,6 +2286,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Saved",
         "x-viewer": "signed_in"
       }
     },
@@ -2324,6 +2336,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Unsave",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -2371,6 +2384,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Save",
         "x-viewer": "signed_in"
       }
     },
@@ -2424,6 +2438,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -2565,6 +2580,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -2676,6 +2692,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -2767,6 +2784,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditCommentStatus",
         "x-viewer": "signed_in"
       }
     },
@@ -2859,6 +2877,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).HideReply",
         "x-viewer": "signed_in"
       }
     },
@@ -2923,6 +2942,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Unpin",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -2985,6 +3005,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Pin",
         "x-viewer": "signed_in"
       }
     },
@@ -3049,6 +3070,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).DetachQuote",
         "x-viewer": "signed_in"
       }
     },
@@ -3170,6 +3192,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -3235,6 +3258,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Quotes",
         "x-viewer": "anyone"
       }
     },
@@ -3379,6 +3403,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).AddReply",
         "x-viewer": "signed_in"
       }
     },
@@ -3500,6 +3525,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditReplyAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -3563,6 +3589,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Thread",
         "x-viewer": "anyone"
       }
     },
@@ -3689,6 +3716,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -3905,6 +3933,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -3952,6 +3981,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -4003,6 +4033,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -4129,6 +4160,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*topicHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -4240,6 +4272,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -4331,6 +4364,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditCommentStatus",
         "x-viewer": "signed_in"
       }
     },
@@ -4395,6 +4429,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Unpin",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -4457,6 +4492,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).Pin",
         "x-viewer": "signed_in"
       }
     },
@@ -4578,6 +4614,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -4699,6 +4736,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditReplyAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -4825,6 +4863,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*topicHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -5026,6 +5065,7 @@
         "tags": [
           "text-service"
         ],
+        "x-handler": "text/cmd/api/handlers.(*topicHandler).Add",
         "x-viewer": "signed_in"
       }
     }

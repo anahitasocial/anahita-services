@@ -1103,6 +1103,7 @@
         "tags": [
           "search-service"
         ],
+        "x-handler": "search/cmd/api/handlers.(*searchHandler).Browse",
         "x-viewer": "anyone"
       }
     }

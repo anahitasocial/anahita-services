@@ -2,6 +2,8 @@
 
 A custom feed is a feed somebody builds: where its posts come from, what they are about, and what to leave out. They name it, decide who else may see it, and keep it among the tabs of their home page. Posts in every feed are newest first.
 
+Its routes are in the API reference: [feed-service](api/index.html#feed-service).
+
 ## Contents
 
 - [The home page](#the-home-page)

@@ -142,7 +142,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.Anyone).
 		Media("text/html").
 		Takes(&requests.PasswordReset{}).
-		Sends(http.StatusOK, page, "a page that says it was changed, or what was wrong")
+		Sends(http.StatusOK, page, "a page that says it was changed, or what was wrong").
+		SendsNothing(http.StatusSeeOther, "back to the start, when the code ran out")
 
 	// Invites — accept is server-rendered, token-gated, unauthenticated.
 	// Browse, Add, and Delete are JSON admin operations; registered

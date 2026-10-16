@@ -1,0 +1,20 @@
+# Redocly's linter, for the reference (docs/api.md):
+#
+#   npx @redocly/cli lint docs/api/anahita.json --config docs/api/redocly.yaml
+#
+# Its recommended rules, less four that the API breaks on purpose:
+extends:
+  - recommended
+rules:
+  # Some routes' addresses end in a slash (`/notes/{owner_id}/`), and the
+  # reference says what the address is.
+  no-path-trailing-slash: off
+  # echo takes a fixed segment before a parameter, so `/hashtags/_browse/trending`
+  # and `/hashtags/{alias}` are two routes, as the reference says.
+  no-ambiguous-paths: off
+  # The sign-in, sign-up and recovery pages answer 200 and say on the page
+  # what was wrong; the discovery documents and public pictures refuse
+  # nothing.
+  operation-4xx-response: off
+  # Some routes only send the browser on: signing out, a download.
+  operation-2xx-response: off

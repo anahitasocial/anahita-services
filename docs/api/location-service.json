@@ -1144,6 +1144,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -1272,6 +1273,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).Add",
         "x-viewer": "admin"
       }
     },
@@ -1347,6 +1349,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).BrowseOrderedByDegree",
         "x-viewer": "anyone"
       }
     },
@@ -1410,6 +1413,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).BrowseTrending",
         "x-viewer": "anyone"
       }
     },
@@ -1457,6 +1461,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).Delete",
         "x-viewer": "admin"
       },
       "get": {
@@ -1502,6 +1507,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -1635,6 +1641,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*locationHandler).Edit",
         "x-viewer": "admin"
       }
     },
@@ -1753,6 +1760,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*inboundHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -1835,6 +1843,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*inboundHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -1892,6 +1901,7 @@
         "tags": [
           "location-service"
         ],
+        "x-handler": "location/cmd/api/handlers.(*inboundHandler).Delete",
         "x-viewer": "signed_in"
       }
     }

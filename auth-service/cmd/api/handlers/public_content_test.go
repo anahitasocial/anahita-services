@@ -75,6 +75,7 @@ func makeRegistered(t *testing.T, personType string, proved bool, body string) (
 	if err := newAccountsHandler(te.Env).MakeRegistered(c); err != nil {
 		t.Fatalf("make registered: %v", err)
 	}
+	answers.Handler(newAccountsHandler(te.Env).MakeRegistered, rec)
 	return rec, graph, te
 }
 

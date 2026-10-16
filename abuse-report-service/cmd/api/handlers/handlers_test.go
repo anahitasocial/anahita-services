@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/apidoc"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -355,6 +356,7 @@ func (f *fixture) call(method, path, body string, viewer *libs_entities.Viewer, 
 	if err := handler(c); err != nil {
 		f.t.Fatalf("%s %s: %v", method, path, err)
 	}
+	apidoc.Conforms(f.t, "../../../../docs/api/abuse-report-service.json", method+" "+path, rec)
 	return rec
 }
 

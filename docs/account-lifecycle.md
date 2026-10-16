@@ -6,6 +6,8 @@ What can happen to a person's account or a group: disabling, archiving,
 deleting and purging. It covers who may do each, what each removes, and how a
 super administrator clears out accounts nobody uses.
 
+Its routes are in the API reference: [actor-service](api/index.html#actor-service) for a profile, and the accounts list in [auth-service](api/index.html#getAccounts).
+
 ## Contents
 
 - [The four states](#the-four-states)

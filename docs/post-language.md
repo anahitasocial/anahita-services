@@ -5,6 +5,8 @@
 Every post can say which language it is written in. This page covers what is
 stored, how it is chosen, and what uses it.
 
+The routes that take a language are in the API reference: [text-service](api/index.html#text-service), [photo-service](api/index.html#photo-service) and [video-service](api/index.html#video-service).
+
 ## Contents
 
 - [What it is for](#what-it-is-for)

@@ -30,7 +30,7 @@ Most of them will never clone the repositories to change the code, and many will
 | --- | --- |
 | **The working agreements are written nowhere in the repositories.** Migrations go in three places; tests never touch the dev database and how to give them one; `go mod tidy` is not run on `anahita-libs`; what a commit message looks like; a group has followers and never members; the docs are part of the work. They are in the memory of one person's agent on one machine | An agent starting cold breaks each of them once |
 | **anahita-services has no entry file.** anahita-web has a `CLAUDE.md`, about MUI only | Nothing tells an agent to read `docs/README.md` first, or that the roadmap is in the other repository |
-| **What the API takes and sends** ([api-reference.md](api-reference.md)) | Today an agent reads handlers to learn a field's name, and guesses |
+| **What the API takes and sends** ([api-reference.md](done/api-reference.md)) | Today an agent reads handlers to learn a field's name, and guesses |
 | **Not every page says where its code is.** `feeds.md` and `recommendations.md` end with "Where the code is"; most do not | The first thing an agent does with a page is look for the files |
 
 ### Added 2026-10-14: plain language, and keeping the docs true
@@ -144,7 +144,7 @@ What ours adds to that shape is the API reference's route lookups and the recipe
 ## Dependencies
 
 - **Part 1: none.** It can be done now.
-- **The route tools** need [api-reference.md](api-reference.md), phase A at least.
+- **The route tools** need [api-reference.md](done/api-reference.md), phase A at least.
 - **Hosting** needs the docs to be public.
 - **The recipe tools** need [recipes.md](recipes.md).
 

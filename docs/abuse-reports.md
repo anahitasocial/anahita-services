@@ -6,6 +6,8 @@ How people report something, how administrators deal with it, and how an
 installation sets the reasons people can choose from. It is all in
 abuse-report-service, under `/abuse-reports`.
 
+Its routes are in the API reference: [abuse-report-service](api/index.html#abuse-report-service).
+
 ## Contents
 
 - [Reports and cases](#reports-and-cases)

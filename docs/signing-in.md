@@ -5,6 +5,8 @@
 The ways a person proves who they are, and the limits around them. Everything
 here is in auth-service, whose pages the web app sends people to.
 
+Its routes are in the API reference: [auth-service](api/index.html#auth-service).
+
 ## Contents
 
 - [The ways in](#the-ways-in)

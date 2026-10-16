@@ -65,6 +65,7 @@ func purgeBatch(t *testing.T, actors *fakePurgingActors, proofs *fakeProofs, per
 	if err := h.PurgeBatch(c); err != nil {
 		t.Fatalf("purge batch: %v", err)
 	}
+	answers.Handler(h.PurgeBatch, rec)
 	return rec
 }
 

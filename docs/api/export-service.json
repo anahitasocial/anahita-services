@@ -173,6 +173,7 @@
         "tags": [
           "export-service"
         ],
+        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -232,6 +233,7 @@
         "tags": [
           "export-service"
         ],
+        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Add",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -271,6 +273,7 @@
         "tags": [
           "export-service"
         ],
+        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Delete",
         "x-viewer": "signed_in"
       },
       "get": {
@@ -314,6 +317,7 @@
         "tags": [
           "export-service"
         ],
+        "x-handler": "export/cmd/api/handlers.(*ExportsHandler).Read",
         "x-viewer": "signed_in"
       }
     }

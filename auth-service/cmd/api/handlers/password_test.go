@@ -138,6 +138,7 @@ func TestResetFormRejectsUnusableTokens(t *testing.T) {
 			if err := newPasswordHandler(te.Env).ResetForm(c); err != nil {
 				t.Fatalf("reset form: %v", err)
 			}
+			answers.Handler(newPasswordHandler(te.Env).ResetForm, rec)
 
 			body := rec.Body.String()
 			if !strings.Contains(body, tc.want) {
@@ -161,6 +162,7 @@ func TestResetFormRendersTheFormForALiveToken(t *testing.T) {
 	if err := newPasswordHandler(te.Env).ResetForm(c); err != nil {
 		t.Fatalf("reset form: %v", err)
 	}
+	answers.Handler(newPasswordHandler(te.Env).ResetForm, rec)
 
 	body := rec.Body.String()
 	if !strings.Contains(body, `name="password"`) {
@@ -205,6 +207,7 @@ func TestResetChangesThePasswordAndRevokesWhatSurvivesIt(t *testing.T) {
 	if err := newPasswordHandler(te.Env).Reset(c); err != nil {
 		t.Fatalf("reset: %v", err)
 	}
+	answers.Handler(newPasswordHandler(te.Env).Reset, rec)
 
 	if rec.Code != http.StatusOK {
 		t.Errorf("status = %d, want 200", rec.Code)
@@ -271,6 +274,7 @@ func TestResetRefusesToSetTheCurrentPassword(t *testing.T) {
 	if err := newPasswordHandler(te.Env).Reset(c); err != nil {
 		t.Fatalf("reset: %v", err)
 	}
+	answers.Handler(newPasswordHandler(te.Env).Reset, rec)
 
 	if !strings.Contains(rec.Body.String(), "different from your current password") {
 		t.Error("the page does not say why the submission was refused")
@@ -313,6 +317,7 @@ func TestResetThrottlesRepeatedCurrentPasswordProbes(t *testing.T) {
 		if err := h.Reset(c); err != nil {
 			t.Fatalf("probe %d: %v", i+1, err)
 		}
+		answers.Handler(h.Reset, rec)
 		last = rec.Body.String()
 	}
 
@@ -343,6 +348,7 @@ func TestResetDoesNotSpendTheProbeBudgetOnFormErrors(t *testing.T) {
 		if err := h.Reset(c); err != nil {
 			t.Fatalf("reset: %v", err)
 		}
+		answers.Handler(h.Reset, rec)
 		if !strings.Contains(rec.Body.String(), "15 characters") {
 			t.Fatal("a too-short password was not reported as such")
 		}
@@ -356,6 +362,7 @@ func TestResetDoesNotSpendTheProbeBudgetOnFormErrors(t *testing.T) {
 	if err := h.Reset(c); err != nil {
 		t.Fatalf("reset: %v", err)
 	}
+	answers.Handler(h.Reset, rec)
 	if te.Users.editCalls != 1 {
 		t.Errorf("EditPassword called %d times after six form errors, want 1",
 			te.Users.editCalls)
@@ -381,6 +388,7 @@ func TestResetRefusesASpentToken(t *testing.T) {
 	if err := newPasswordHandler(te.Env).Reset(c); err != nil {
 		t.Fatalf("reset: %v", err)
 	}
+	answers.Handler(newPasswordHandler(te.Env).Reset, rec)
 
 	if !strings.Contains(rec.Body.String(), "No Longer Valid") {
 		t.Error("a used token was accepted")
@@ -407,6 +415,7 @@ func TestResetDoesNotSignThePersonIn(t *testing.T) {
 	if err := newPasswordHandler(te.Env).Reset(c); err != nil {
 		t.Fatalf("reset: %v", err)
 	}
+	answers.Handler(newPasswordHandler(te.Env).Reset, rec)
 
 	if cookies := rec.Result().Cookies(); len(cookies) > 0 {
 		t.Errorf("the reset set %d cookie(s); it must not establish a session", len(cookies))
@@ -463,6 +472,7 @@ func TestResetTellsALinkProblemFromAPasswordProblem(t *testing.T) {
 			if err := newPasswordHandler(env.Env).Reset(c); err != nil {
 				t.Fatalf("Reset: %v", err)
 			}
+			answers.Handler(newPasswordHandler(env.Env).Reset, rec)
 
 			body := rec.Body.String()
 			if !strings.Contains(body, tc.wantContain) {

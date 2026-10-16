@@ -6,6 +6,8 @@ How people join an installation, how invitations and the approval queue work,
 how the Terms of Service and Privacy Policy are accepted, and how a new member
 is walked through filling in their profile.
 
+Its routes are in the API reference: [auth-service](api/index.html#auth-service), from [`/signup`](api/index.html#postSignup) and [`/invites`](api/index.html#postInvites) on.
+
 ## Contents
 
 - [Where it happens](#where-it-happens)

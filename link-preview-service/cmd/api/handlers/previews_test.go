@@ -148,6 +148,7 @@ func (f *fixture) read(viewer *entities.Viewer, query string) (int, map[string]a
 	if err := f.handler.Read(c); err != nil {
 		f.t.Fatalf("handler: %v", err)
 	}
+	answers.Handler(f.handler.Read, rec)
 
 	answer := map[string]any{}
 	if rec.Body.Len() > 0 {
@@ -184,7 +185,7 @@ func TestAPreviewIsFetchedOnceAndKept(t *testing.T) {
 func TestWhoIsAnsweredAndWithWhat(t *testing.T) {
 	f := newFixture(t)
 
-	if status, _ := f.read(person(0), "url=https://example.org/"); status != http.StatusForbidden {
+	if status, _ := f.read(person(0), "url=https://example.org/"); status != http.StatusUnauthorized {
 		t.Errorf("a visitor answered %d", status)
 	}
 	for _, query := range []string{"", "url=", "url=ftp://example.org/x", "url=javascript:alert(1)", "url=example.org"} {
@@ -260,6 +261,7 @@ func TestAPictureIsReachedOnlyByItsOwnName(t *testing.T) {
 		if err := f.handler.Image(c); err != nil {
 			t.Fatalf("handler: %v", err)
 		}
+		answers.Handler(f.handler.Image, rec)
 		return rec.Code, rec.Header().Get("Location")
 	}
 

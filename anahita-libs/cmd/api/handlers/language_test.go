@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/apidoc"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -40,6 +41,8 @@ func TestARefusedLanguageIsABadRequest(t *testing.T) {
 	if err := RefuseLanguage(c); err != nil {
 		t.Fatal(err)
 	}
+	// As posting a note answers it.
+	apidoc.Conforms(t, "../../../../docs/api/text-service.json", "POST /notes/5/", rec)
 	if rec.Code != http.StatusBadRequest || !strings.Contains(rec.Body.String(), ErrLanguageInvalid) {
 		t.Errorf("answered %d %s", rec.Code, rec.Body.String())
 	}

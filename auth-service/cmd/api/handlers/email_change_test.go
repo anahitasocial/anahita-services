@@ -44,6 +44,7 @@ func (f *emailFlow) call(method, path, body string, viewer *libentities.Viewer, 
 	if err := handler(c); err != nil {
 		f.t.Fatalf("%s %s: %v", method, path, err)
 	}
+	answers.Handler(handler, rec)
 	return rec
 }
 

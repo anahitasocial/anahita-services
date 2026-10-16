@@ -5,6 +5,8 @@
 A photo post holds up to four images. This page covers how they are uploaded,
 stored, changed and removed.
 
+Its routes are in the API reference: [photo-service](api/index.html#photo-service).
+
 ## Contents
 
 - [One post, several images](#one-post-several-images)

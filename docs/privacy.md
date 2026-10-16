@@ -11,6 +11,8 @@ seen only by somebody who gets past all of them:
    owner or administrators.
 3. **The post**: who can see one post. Set by its author.
 
+The routes that set who may see what are in the API reference, each with the audiences it takes: making everything registered-only is [`POST /accounts/make-registered`](api/index.html#postAccountsMakeRegistered).
+
 ## Contents
 
 - [The audiences](#the-audiences)

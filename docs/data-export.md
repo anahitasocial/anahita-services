@@ -5,6 +5,8 @@ the pictures and videos they posted, who they follow and who follows them.
 They ask for it in their settings; a worker gathers it into one zip file;
 they fetch it within a week.
 
+Its routes are in the API reference: [export-service](api/index.html#export-service).
+
 ## Contents
 
 - [The parts](#the-parts)

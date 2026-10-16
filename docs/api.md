@@ -20,8 +20,15 @@ is in the reference beside this page, [`docs/api/`](api/), made from the code.
 document for each service whose routes are described (`hashtag-service.json`),
 and `anahita.json`, all of them in one. Any OpenAPI tool reads them: a
 reference viewer, a client generator, a test tool, an agent asked to call the
-API. Services are added as their routes are described; until then, a
-service's `cmd/api/routes.go` is where its routes are.
+API. Every service with routes is described.
+
+**For reading, open [`docs/api/index.html`](api/index.html) in a browser.** It
+is the same reference as a page: a section for each service, each route with
+what it takes and answers, and every shape by name, with a box that filters
+them. It is one file and fetches nothing, so it opens with the network off. A
+route is linked to by its `operationId` (`api/index.html#getHashtagsByAlias`),
+a service by its name (`#hashtag-service`), a shape by `#schema-` and its
+name; each prose page links to its routes.
 
 They are made from the code, not written by hand, and `make test` fails when
 they are out of date (see [Describing a route](#describing-a-route)). Each
@@ -196,13 +203,26 @@ A named struct of anahita-libs is described once and named as it is
 (`NodeItem`); one of a service is named with its module
 (`hashtag.HashtagNodeItem`).
 
-Two checks run in `make test`, from a test beside each described service's
-routes (`cmd/api/apidoc_test.go`) and one in anahita-libs for `anahita.json`:
+Three checks run in `make test`, from a test beside each described service's
+routes (`cmd/api/apidoc_test.go`), one in anahita-libs for `anahita.json`
+and the page, and the handler tests:
 
 1. **Every route registered is described, and every description is of a
    route.** A route added with echo directly, past apidoc, fails by name.
 2. **What is committed in `docs/api/` is what the code makes now.** After
    changing a route, or a struct it takes or sends, run `make api_docs` and
    commit what it writes with the change.
+3. **What a handler answers in its tests is what the reference says.** The
+   status must be one the route lists, an answer it sends with nothing in it
+   must have nothing in it, and a body must be of its shape: no field
+   missing that is always there, none of the wrong type or not one of its
+   values, and none the reference does not name. A 500 is not checked. Each
+   service's handler tests keep their answers in `answers_test.go`
+   (`answers.Handler(h.Read, rec)` after calling a handler, or
+   `answers.Route("GET /notes/7", rec)`), and they are checked once the
+   tests have run; a test with a `*testing.T` at hand can call
+   `apidoc.Conforms` itself. A new handler test should keep its answers too.
+
+Each operation also says, as `x-handler`, the Go function that answers it.
 
 A service is added to `make api_docs` when its routes are described.

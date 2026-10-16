@@ -1449,6 +1449,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Handle",
         "x-viewer": "anyone"
       }
     },
@@ -1812,6 +1813,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -1902,6 +1904,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Mine",
         "x-viewer": "signed_in"
       }
     },
@@ -1954,6 +1957,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Delete",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -2003,6 +2007,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -2320,6 +2325,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -2427,6 +2433,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -2529,6 +2536,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -2614,6 +2622,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -2669,6 +2678,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -2724,6 +2734,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Archive",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -2829,6 +2840,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Attendees",
         "x-viewer": "anyone"
       }
     },
@@ -2881,6 +2893,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Cancel",
         "x-viewer": "signed_in"
       }
     },
@@ -2933,6 +2946,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeletionCounts",
         "x-viewer": "signed_in"
       }
     },
@@ -3000,6 +3014,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
         "x-viewer": "signed_in"
       }
     },
@@ -3029,8 +3044,7 @@
                     "items": {
                       "$ref": "#/components/schemas/ActorFeatureRequest"
                     },
-                    "type": "array",
-                    "x-validate": "dive"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -3075,6 +3089,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditFeatures",
         "x-viewer": "signed_in"
       }
     },
@@ -3118,6 +3133,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).ICS",
         "x-viewer": "anyone"
       }
     },
@@ -3194,6 +3210,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Purge",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -3247,6 +3264,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
         "x-viewer": "signed_in"
       }
     },
@@ -3292,6 +3310,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Unrsvp",
         "x-viewer": "signed_in"
       },
       "put": {
@@ -3421,6 +3440,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).Rsvp",
         "x-viewer": "signed_in"
       }
     },
@@ -3552,6 +3572,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Browse",
         "x-viewer": "anyone"
       },
       "post": {
@@ -3651,6 +3672,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -3671,13 +3693,13 @@
                   "ids": {
                     "description": "The profiles: up to 500.",
                     "items": {
+                      "exclusiveMinimum": 0,
                       "format": "int64",
                       "type": "integer"
                     },
                     "maxItems": 500,
                     "minItems": 1,
-                    "type": "array",
-                    "x-validate": "dive,gt=0"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -3754,6 +3776,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).PurgeBatch",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -3807,6 +3830,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).PurgeProgress",
         "x-viewer": "super_admin"
       }
     },
@@ -3859,6 +3883,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Delete",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -3908,6 +3933,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -4023,6 +4049,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
@@ -4130,6 +4157,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -4232,6 +4260,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Browse",
         "x-viewer": "signed_in"
       },
       "post": {
@@ -4317,6 +4346,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Add",
         "x-viewer": "signed_in"
       }
     },
@@ -4372,6 +4402,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
         "x-viewer": "signed_in"
       }
     },
@@ -4427,6 +4458,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Archive",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -4480,6 +4512,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeletionCounts",
         "x-viewer": "signed_in"
       }
     },
@@ -4570,6 +4603,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditDownloadDefault",
         "x-viewer": "signed_in"
       }
     },
@@ -4637,6 +4671,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
         "x-viewer": "signed_in"
       }
     },
@@ -4739,6 +4774,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*eventHandler).HostedBy",
         "x-viewer": "anyone"
       }
     },
@@ -4816,6 +4852,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetFeatured",
         "x-viewer": "signed_in"
       }
     },
@@ -4845,8 +4882,7 @@
                     "items": {
                       "$ref": "#/components/schemas/ActorFeatureRequest"
                     },
-                    "type": "array",
-                    "x-validate": "dive"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -4891,6 +4927,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditFeatures",
         "x-viewer": "signed_in"
       }
     },
@@ -4967,6 +5004,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Purge",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -5020,6 +5058,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
         "x-viewer": "signed_in"
       }
     },
@@ -5151,6 +5190,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Browse",
         "x-viewer": "anyone"
       }
     },
@@ -5171,13 +5211,13 @@
                   "ids": {
                     "description": "The profiles: up to 500.",
                     "items": {
+                      "exclusiveMinimum": 0,
                       "format": "int64",
                       "type": "integer"
                     },
                     "maxItems": 500,
                     "minItems": 1,
-                    "type": "array",
-                    "x-validate": "dive,gt=0"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -5254,6 +5294,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).PurgeBatch",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -5307,6 +5348,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).PurgeProgress",
         "x-viewer": "super_admin"
       }
     },
@@ -5418,6 +5460,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditAccess",
         "x-viewer": "signed_in"
       }
     },
@@ -5473,6 +5516,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Archive",
         "x-step-up": true,
         "x-viewer": "signed_in"
       }
@@ -5526,6 +5570,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).DeletionCounts",
         "x-viewer": "signed_in"
       }
     },
@@ -5616,6 +5661,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditDownloadDefault",
         "x-viewer": "signed_in"
       }
     },
@@ -5693,6 +5739,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).SetEnabled",
         "x-viewer": "signed_in"
       }
     },
@@ -5770,6 +5817,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).SetFeatured",
         "x-viewer": "signed_in"
       }
     },
@@ -5799,8 +5847,7 @@
                     "items": {
                       "$ref": "#/components/schemas/PersonFeatureRequest"
                     },
-                    "type": "array",
-                    "x-validate": "dive"
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -5845,6 +5892,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditFeatures",
         "x-viewer": "signed_in"
       }
     },
@@ -5921,6 +5969,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Purge",
         "x-step-up": true,
         "x-viewer": "super_admin"
       }
@@ -6031,6 +6080,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditQuotePolicy",
         "x-viewer": "signed_in"
       }
     },
@@ -6121,6 +6171,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).EditRepostsOnProfile",
         "x-viewer": "signed_in"
       }
     },
@@ -6173,6 +6224,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Delete",
         "x-step-up": true,
         "x-viewer": "signed_in"
       },
@@ -6222,6 +6274,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Read",
         "x-viewer": "anyone"
       },
       "patch": {
@@ -6349,6 +6402,7 @@
         "tags": [
           "actor-service"
         ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).Edit",
         "x-viewer": "signed_in"
       }
     }

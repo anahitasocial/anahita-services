@@ -303,7 +303,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Collections](plans/collections.md) | 34 | shape decided 2026-10-06; kept for later, not to be built yet |
 | [Pulse: a website's feed as something to follow](plans/pulse.md) | 30 | renamed from the Website actor and narrowed to the feed alone 2026-10-15: a verified domain's feed posts, others reply, like, repost and quote; nobody posts on it |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
-| [The API reference, made from the code](plans/api-reference.md) | 38 | planned 2026-10-11; place in the order not decided |
+| [The API reference, made from the code](plans/done/api-reference.md) | 38 | done 2026-10-15: every route described, `docs/api/index.html`, answers checked in the handler tests |
 | [Documentation agents can use, and an MCP server](plans/docs-for-agents.md) | 39 | planned 2026-10-11; place in the order not decided |
 | [Anahita Recipes: a starting configuration for each kind of site](plans/recipes.md) | 40 | planned 2026-10-11; place in the order not decided |
 | [Animated images: GIF, APNG and animated WebP, through the video service](plans/done/animated-images.md) | 41 | done 2026-10-14: GIFs and animated PNGs (not WebP), and video posts going to other servers and Bluesky |

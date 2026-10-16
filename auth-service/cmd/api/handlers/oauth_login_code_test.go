@@ -71,6 +71,7 @@ func (f *codeFlow) post(path string, form url.Values, handler echo.HandlerFunc) 
 	if err := handler(c); err != nil {
 		f.t.Fatalf("POST %s: %v", path, err)
 	}
+	answers.Handler(handler, rec)
 	return rec
 }
 
@@ -80,6 +81,7 @@ func (f *codeFlow) get(path string, handler echo.HandlerFunc) *httptest.Response
 	if err := handler(c); err != nil {
 		f.t.Fatalf("GET %s: %v", path, err)
 	}
+	answers.Handler(handler, rec)
 	return rec
 }
 

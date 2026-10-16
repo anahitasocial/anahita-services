@@ -37,6 +37,7 @@ func TestOnboardingEditRecordsTheViewer(t *testing.T) {
 	if err := newOnboardingHandler(te.Env).Edit(c); err != nil {
 		t.Fatalf("edit: %v", err)
 	}
+	answers.Handler(newOnboardingHandler(te.Env).Edit, rec)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body %s", rec.Code, rec.Body.String())
@@ -61,6 +62,7 @@ func TestOnboardingEditKeepsTheFirstDate(t *testing.T) {
 	if err := newOnboardingHandler(te.Env).Edit(c); err != nil {
 		t.Fatalf("edit: %v", err)
 	}
+	answers.Handler(newOnboardingHandler(te.Env).Edit, rec)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", rec.Code)
@@ -85,6 +87,7 @@ func TestOnboardingEditRefusesGuests(t *testing.T) {
 			if err := newOnboardingHandler(te.Env).Edit(c); err != nil {
 				t.Fatalf("edit: %v", err)
 			}
+			answers.Handler(newOnboardingHandler(te.Env).Edit, rec)
 
 			if rec.Code != http.StatusUnauthorized {
 				t.Errorf("status = %d, want 401", rec.Code)
@@ -104,6 +107,7 @@ func TestOnboardingEditReportsAStoreFailure(t *testing.T) {
 	if err := newOnboardingHandler(te.Env).Edit(c); err != nil {
 		t.Fatalf("edit: %v", err)
 	}
+	answers.Handler(newOnboardingHandler(te.Env).Edit, rec)
 
 	if rec.Code != http.StatusInternalServerError {
 		t.Errorf("status = %d, want 500", rec.Code)
@@ -121,6 +125,7 @@ func readOnboarding(t *testing.T, te *testEnv, viewer *libentities.Viewer) *http
 	if err := newOnboardingHandler(te.Env).Read(c); err != nil {
 		t.Fatalf("read: %v", err)
 	}
+	answers.Handler(newOnboardingHandler(te.Env).Read, rec)
 	return rec
 }
 

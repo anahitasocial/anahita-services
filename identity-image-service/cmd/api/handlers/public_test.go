@@ -22,8 +22,10 @@ func askPublic(h *imageHandler, k string, uuid, size string) *httptest.ResponseR
 
 	if k == "cover" {
 		_ = h.PublicCover(c)
+		answers.Handler(h.PublicCover, rec)
 	} else {
 		_ = h.PublicAvatar(c)
+		answers.Handler(h.PublicAvatar, rec)
 	}
 	return rec
 }

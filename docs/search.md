@@ -4,6 +4,8 @@ Search finds people, groups, events, posts and shared feeds by what they are
 called or what they say. This page is about the order results come in, and
 how an operator tunes it.
 
+Its route is in the API reference: [search-service](api/index.html#search-service).
+
 ## Contents
 
 - [Two orders](#two-orders)

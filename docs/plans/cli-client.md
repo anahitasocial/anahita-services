@@ -16,7 +16,7 @@ Some people cannot use the web app, or a mobile app when there is one: a very sl
 ## Decisions
 
 - **Our own client, against Anahita's API, and not a Mastodon-compatible API on the server** (user, 2026-10-12). See *Considered* below.
-- **After the API reference** ([api-reference.md](api-reference.md)). The client's calls and types are generated from it, which is most of what makes this small, and it is the first real test of that reference before `anahita-mobile` is built on it.
+- **After the API reference** ([api-reference.md](done/api-reference.md)). The client's calls and types are generated from it, which is most of what makes this small, and it is the first real test of that reference before `anahita-mobile` is built on it.
 - **A repository of its own, `anahita-cli`** (user, 2026-10-12): it is a client, as anahita-web is and `anahita-mobile` will be, with its own releases. Only the device flow is work in anahita-services.
 - **One program, in Go,** with nothing to install beside it, for Linux, macOS and Windows.
 - **The detail waits for `anahita-mobile`** (React Native, once the web app has settled; user, 2026-10-12). What the two clients share is worked out then: the generated API client, signing in on a device with no browser to hand, and what is kept for a poor connection. What is written here is the shape, not the last word.
@@ -92,7 +92,7 @@ Tokens are kept in the system's keychain where there is one, and otherwise in a 
 
 ## Dependencies
 
-- **Hard:** [api-reference.md](api-reference.md), item 38, phases A to C.
+- **Hard:** [api-reference.md](done/api-reference.md), item 38, phases A to C.
 - **Soft:** [docs-for-agents.md](docs-for-agents.md): the client is one of the "clients of their own" its *Building on it* door points to, and a worked example for whoever writes another.
 
 ## Documentation

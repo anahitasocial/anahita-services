@@ -137,6 +137,7 @@ func (f *fixture) call(handler echo.HandlerFunc, method string, personID int64, 
 	if err := handler(c); err != nil {
 		f.t.Fatalf("handler: %v", err)
 	}
+	answers.Handler(handler, rec)
 
 	answer := map[string]any{}
 	if rec.Body.Len() > 0 {

@@ -60,7 +60,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Summary("Where WebFinger is").
 		Describe("An XRD document (RFC 6415), for servers that look for WebFinger this way.").
 		Viewer(apidoc.Anyone).
-		SendsNothing(http.StatusOK, "the XRD document, as `application/xrd+xml`")
+		Media("application/xrd+xml").
+		Sends(http.StatusOK, "", "the XRD document")
 
 	// Where other servers send what somebody did: one for the whole
 	// installation, and one for each person. They are the same door.
@@ -226,7 +227,8 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Describe("Nothing from it is taken, and nothing is sent to it.").
 		Viewer(apidoc.SuperAdmin).
 		Takes(&handlers.BlockRequest{}).
-		Sends(http.StatusCreated, federation.DomainBlock{})
+		Sends(http.StatusCreated, federation.DomainBlock{}).
+		Sends(http.StatusBadRequest, responses.Refusal{}, "`domain_required`: the request names no server; `domain_unreadable`: it is not a server's name; `domain_is_here`: it is this installation")
 	activitypub.DELETE("/blocks/:domain", r.handler.DeleteBlock).
 		Summary("Stop refusing a server").
 		Viewer(apidoc.SuperAdmin).
