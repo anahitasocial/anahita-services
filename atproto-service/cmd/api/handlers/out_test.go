@@ -769,6 +769,47 @@ func TestTheCardOfALinkGoesWithItsPicture(t *testing.T) {
 	}
 }
 
+// An article goes to Bluesky as a post of its title and opening, cut to
+// fit, with a card that leads to it here, its cover the card's picture. A
+// topic stays here (the user, 2026-10-17).
+func TestAnArticleGoesToBlueskyWithACardToIt(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.connect()
+
+	article := &entities.AnahitaNode{
+		ID: 96, Type: constants.NodeMediumArticleEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Name: "Beans in October",
+		Body: "The **beans** went in late this year. " + strings.Repeat("Rain fell and the wind blew. ", 20), CoverFilename: "cover.jpg",
+	}
+	covers, _ := article.GetCovers()
+	w.files.content[covers[entities.CoverSizeMedium].Url] = aPicture(t)
+	topic := &entities.AnahitaNode{
+		ID: 97, Type: "node.medium.text-service.topic.v1", Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Name: "A topic", Body: "Talk about beans",
+	}
+	w.nodes.kept = append(w.nodes.kept, article, topic)
+
+	w.heard("node.medium.text-service.topic.added.v1", event.EventPayload{ObjectType: topic.Type, ObjectID: 97})
+	w.heard("node.medium.text-service.article.added.v1", event.EventPayload{ObjectType: article.Type, ObjectID: 96})
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+	if len(w.sent.rows) != 1 || w.sent.rows[0].LocalID != 96 {
+		t.Fatalf("written: %+v", w.sent.rows)
+	}
+	out, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+w.sent.rows[0].RKey])
+	for _, want := range []string{
+		`"text":"Beans in October\n\nThe beans went in late this year.`,
+		`"$type":"app.bsky.embed.external"`, `/articles/96"`, `"title":"Beans in October"`,
+		`"description":"The beans went in late this year. Rain fell`,
+		`"thumb":{"$type":"blob"`,
+	} {
+		if !strings.Contains(string(out), want) {
+			t.Errorf("the article as written lacks %s:\n%s", want, out)
+		}
+	}
+}
+
 // THE RULE THIS GUARDS: a follow is written to Bluesky only when the
 // account does not follow already, and only what was written from here is
 // taken back from here.
