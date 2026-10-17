@@ -162,7 +162,7 @@ type NodeInfoDocument struct {
 	OpenRegistrations bool `json:"openRegistrations"`
 	// How much it is used.
 	Usage nodeInfoUsage `json:"usage"`
-	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `pulsesFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
+	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
 	Metadata map[string]any `json:"metadata"`
 }
 
@@ -266,10 +266,10 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// installation says otherwise. actor-service enforces it.
 			"eventsFrom": h.Config.GetEventsFrom(),
 
-			// The same for connecting a website as a Pulse (PULSES_FROM):
+			// The same for connecting a website as a website (WEBSITES_FROM):
 			// administrators unless the installation says otherwise.
-			// pulse-service enforces it.
-			"pulsesFrom": h.Config.GetPulsesFrom(),
+			// Website-service enforces it.
+			"websitesFrom": h.Config.GetWebsitesFrom(),
 
 			// The widest audience anything new may be given: "public", or
 			// "registered" on an installation that allows no new public

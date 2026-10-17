@@ -2321,7 +2321,7 @@
           },
           "written_by": {
             "$ref": "#/components/schemas/NodeItem",
-            "description": "Who wrote it, when it is a reply one of a Pulse's administrators made as the Pulse. Sent only here, to those who handle reports."
+            "description": "Who wrote it, when it is a reply one of a website's administrators made as the website. Sent only here, to those who handle reports."
           }
         },
         "required": [
@@ -2434,7 +2434,7 @@
           },
           "written_by": {
             "$ref": "#/components/schemas/NodeItem",
-            "description": "Who wrote it, when it is a reply one of a Pulse's administrators made as the Pulse. Sent only here, to those who handle reports."
+            "description": "Who wrote it, when it is a reply one of a website's administrators made as the website. Sent only here, to those who handle reports."
           }
         },
         "required": [
@@ -3711,7 +3711,7 @@
         "properties": {
           "metadata": {
             "additionalProperties": {},
-            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `pulsesFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
+            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
             "type": [
               "object",
               "null"
@@ -5474,101 +5474,6 @@
         ],
         "type": "object"
       },
-      "pulse.Checked": {
-        "description": "Checked says whether the token was found.",
-        "properties": {
-          "method": {
-            "description": "`dns` or `file`: where it was found.",
-            "type": "string"
-          },
-          "proved": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "proved"
-        ],
-        "type": "object"
-      },
-      "pulse.Connection": {
-        "description": "Connection is a website being connected: its feed, and the token with both places it may be put.",
-        "properties": {
-          "domain": {
-            "description": "The domain to prove, and the host the file is read from.",
-            "type": "string"
-          },
-          "feed_description": {
-            "type": "string"
-          },
-          "feed_title": {
-            "type": "string"
-          },
-          "feed_url": {
-            "type": "string"
-          },
-          "file_url": {
-            "description": "Or a file at this address, holding the token.",
-            "type": "string"
-          },
-          "host": {
-            "type": "string"
-          },
-          "id": {
-            "description": "The connection's id, for checking the proof and making the Pulse.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "record_name": {
-            "description": "A TXT record of this name, holding the token.",
-            "type": "string"
-          },
-          "site_url": {
-            "description": "The site and its feed, as found.",
-            "type": "string"
-          },
-          "suggested_alias": {
-            "type": "string"
-          },
-          "suggested_name": {
-            "description": "A name and a handle to begin with: the feed's title, and the domain's first word.",
-            "type": "string"
-          },
-          "token": {
-            "description": "What to put in either place.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "domain",
-          "host",
-          "site_url",
-          "feed_url",
-          "token",
-          "record_name",
-          "file_url",
-          "suggested_name",
-          "suggested_alias"
-        ],
-        "type": "object"
-      },
-      "pulse.Made": {
-        "description": "Made is the Pulse as it was made: where to go to see it.",
-        "properties": {
-          "alias": {
-            "type": "string"
-          },
-          "id": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "alias"
-        ],
-        "type": "object"
-      },
       "recommendation.ActorsResponse": {
         "description": "ActorsResponse is who the viewer might follow, and why.",
         "properties": {
@@ -6118,6 +6023,101 @@
         "required": [
           "error",
           "max_bytes"
+        ],
+        "type": "object"
+      },
+      "website.Checked": {
+        "description": "Checked says whether the token was found.",
+        "properties": {
+          "method": {
+            "description": "`dns` or `file`: where it was found.",
+            "type": "string"
+          },
+          "proved": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "proved"
+        ],
+        "type": "object"
+      },
+      "website.Connection": {
+        "description": "Connection is a website being connected: its feed, and the token with both places it may be put.",
+        "properties": {
+          "domain": {
+            "description": "The domain to prove, and the host the file is read from.",
+            "type": "string"
+          },
+          "feed_description": {
+            "type": "string"
+          },
+          "feed_title": {
+            "type": "string"
+          },
+          "feed_url": {
+            "type": "string"
+          },
+          "file_url": {
+            "description": "Or a file at this address, holding the token.",
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "id": {
+            "description": "The connection's id, for checking the proof and making the website.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "record_name": {
+            "description": "A TXT record of this name, holding the token.",
+            "type": "string"
+          },
+          "site_url": {
+            "description": "The site and its feed, as found.",
+            "type": "string"
+          },
+          "suggested_alias": {
+            "type": "string"
+          },
+          "suggested_name": {
+            "description": "A name and a handle to begin with: the feed's title, and the domain's first word.",
+            "type": "string"
+          },
+          "token": {
+            "description": "What to put in either place.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "domain",
+          "host",
+          "site_url",
+          "feed_url",
+          "token",
+          "record_name",
+          "file_url",
+          "suggested_name",
+          "suggested_alias"
+        ],
+        "type": "object"
+      },
+      "website.Made": {
+        "description": "Made is the website as it was made: where to go to see it.",
+        "properties": {
+          "alias": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "alias"
         ],
         "type": "object"
       }
@@ -8096,7 +8096,7 @@
     },
     "/ap/notes/{uuid}": {
       "get": {
-        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Note`, of somebody on the fediverse, open to everybody; an `Article` for a Pulse's article.\n\nWho may call it: anyone, signed in or not.",
+        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Note`, of somebody on the fediverse, open to everybody; an `Article` for a Website's article.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getApNotesByUuid",
         "parameters": [
           {
@@ -8261,7 +8261,7 @@
     },
     "/ap/users/{uuid}": {
       "get": {
-        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Person`, or an `Organization` for a Pulse, with their public key.\n\nWho may call it: anyone, signed in or not.",
+        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Person`, or an `Organization` for a Website, with their public key.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getApUsersByUuid",
         "parameters": [
           {
@@ -26522,1309 +26522,6 @@
         "x-viewer": "signed_in"
       }
     },
-    "/pulses/": {
-      "get": {
-        "description": "Those the viewer may see. Each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).\n\nWho may call it: anyone, signed in or not.",
-        "operationId": "getPulses",
-        "parameters": [
-          {
-            "description": "How many to pass over.",
-            "in": "query",
-            "name": "start",
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "The most to send.",
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "default": 20,
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Words the name holds.",
-            "in": "query",
-            "name": "q",
-            "schema": {
-              "maxLength": 100,
-              "type": "string",
-              "x-validate": "search_query"
-            }
-          },
-          {
-            "description": "What they are ordered by.",
-            "in": "query",
-            "name": "ordering",
-            "schema": {
-              "default": "updated_at",
-              "enum": [
-                "created_at",
-                "updated_at",
-                "enabled"
-              ],
-              "maxLength": 15,
-              "type": "string"
-            }
-          },
-          {
-            "description": "Which way the order runs.",
-            "in": "query",
-            "name": "dir",
-            "schema": {
-              "default": "desc",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "maxLength": 4,
-              "type": "string"
-            }
-          },
-          {
-            "description": "Disabled ones as well, for whoever may see them.",
-            "in": "query",
-            "name": "disabled",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "description": "Only the actors the installation features — what onboarding offers a new member to follow. Ordered most recently featured first unless the caller asks for an ordering; see the browse handlers.",
-            "in": "query",
-            "name": "featured",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "data": {
-                      "description": "What is on this page.",
-                      "items": {},
-                      "type": [
-                        "array",
-                        "null"
-                      ]
-                    },
-                    "pagination": {
-                      "$ref": "#/components/schemas/Pagination",
-                      "description": "Where this page is among everything there is."
-                    }
-                  },
-                  "required": [
-                    "data",
-                    "pagination"
-                  ],
-                  "type": "object"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "403": {
-            "description": "the viewer may not list Pulses"
-          }
-        },
-        "security": [
-          {},
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Pulses",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Browse",
-        "x-viewer": "anyone"
-      }
-    },
-    "/pulses/_connect": {
-      "post": {
-        "description": "The site's feed is found: the address itself, or the feed the page names with `<link rel=\"alternate\">`. It must be on the site's domain. The answer is the token, to be put in a TXT record or a file, with a name and a handle to begin with.\n\nWho may call it: somebody signed in.",
-        "operationId": "postPulsesConnect",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "site_url": {
-                    "description": "The site's address, `example.com` or `https://example.com/blog/`, or its feed's.",
-                    "maxLength": 2000,
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "site_url"
-                ],
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/pulse.Connection"
-                }
-              }
-            },
-            "description": "Created"
-          },
-          "400": {
-            "description": "`not_a_domain`, `no_feed`, `unreadable` or `feed_not_on_domain`, as `error`"
-          },
-          "401": {
-            "description": "the viewer is not signed in"
-          },
-          "403": {
-            "description": "the viewer may not connect a website: see PULSES_FROM"
-          },
-          "409": {
-            "description": "`feed_taken`: the feed already has a Pulse"
-          },
-          "429": {
-            "description": "the viewer has begun too many lately"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Begin connecting a website",
-        "tags": [
-          "pulse-service"
-        ],
-        "x-handler": "pulse/cmd/api/handlers.(*connectHandler).Start",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/pulses/_connect/{id}": {
-      "post": {
-        "description": "Once its domain is proved. Whoever proved it is its first administrator and its first follower; its feed's ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes.\n\nWho may call it: somebody signed in.",
-        "operationId": "postPulsesConnectById",
-        "parameters": [
-          {
-            "description": "The connection's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "alias": {
-                    "description": "Its handle: `@example`. Letters, digits, `-` and `_`.",
-                    "maxLength": 30,
-                    "minLength": 3,
-                    "type": "string",
-                    "x-validate": "username"
-                  },
-                  "body": {
-                    "description": "What it is, shown in its About card.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
-                  "feed_url": {
-                    "description": "The feed, as starting the connection found it.",
-                    "maxLength": 2000,
-                    "type": "string"
-                  },
-                  "name": {
-                    "description": "Its name, shown as a profile's is.",
-                    "maxLength": 64,
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "feed_url",
-                  "name",
-                  "alias"
-                ],
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/pulse.Made"
-                }
-              }
-            },
-            "description": "Created"
-          },
-          "400": {
-            "description": "`no_feed`, `unreadable` or `feed_not_on_domain`, as `error`"
-          },
-          "401": {
-            "description": "the viewer is not signed in"
-          },
-          "403": {
-            "description": "the viewer may not connect a website: see PULSES_FROM"
-          },
-          "404": {
-            "description": "there is no such connection begun by the viewer"
-          },
-          "409": {
-            "description": "`not_proved`, `feed_taken` or `handle_taken`, as `error`"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Make the Pulse",
-        "tags": [
-          "pulse-service"
-        ],
-        "x-handler": "pulse/cmd/api/handlers.(*connectHandler).Make",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/pulses/_connect/{id}/check": {
-      "post": {
-        "description": "In the TXT record at `_anahita.<domain>`, then in `https://<host>/.well-known/anahita-verification.txt`. Asked as often as the one connecting likes.\n\nWho may call it: somebody signed in.",
-        "operationId": "postPulsesConnectByIdCheck",
-        "parameters": [
-          {
-            "description": "The connection's id, as starting it answered.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/pulse.Checked"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "the viewer is not signed in"
-          },
-          "403": {
-            "description": "the viewer may not connect a website: see PULSES_FROM"
-          },
-          "404": {
-            "description": "there is no such connection begun by the viewer"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Look for the token",
-        "tags": [
-          "pulse-service"
-        ],
-        "x-handler": "pulse/cmd/api/handlers.(*connectHandler).Check",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/pulses/_websub/{id}/{signature}": {
-      "get": {
-        "description": "WebSub: the hub a Pulse's feed names asks whether its subscription was asked for here, and is answered with its challenge.\n\nWho may call it: anyone, signed in or not.",
-        "operationId": "getPulsesWebsubByIdBySignature",
-        "parameters": [
-          {
-            "description": "The Pulse's id, and the signature that came with it.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "path",
-            "name": "signature",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "What the hub checks: `subscribe`, `unsubscribe`, or `denied`.",
-            "in": "query",
-            "name": "hub.mode",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "What to answer with, to show the subscription was asked for here.",
-            "in": "query",
-            "name": "hub.challenge",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "How long, in seconds, the hub will call back.",
-            "in": "query",
-            "name": "hub.lease_seconds",
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "the challenge, as plain text"
-          },
-          "400": {
-            "description": "it is not a check this answers"
-          },
-          "404": {
-            "description": "there is no such Pulse, or no subscription was asked for"
-          }
-        },
-        "security": [
-          {},
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "A hub checks a subscription",
-        "tags": [
-          "pulse-service"
-        ],
-        "x-handler": "pulse/cmd/api/handlers.(*websubHandler).Verify",
-        "x-viewer": "anyone"
-      },
-      "post": {
-        "description": "The Pulse's feed is read from its site at once, at most once a minute; what the hub sends is not read.\n\nWho may call it: anyone, signed in or not.",
-        "operationId": "postPulsesWebsubByIdBySignature",
-        "parameters": [
-          {
-            "description": "The Pulse's id, and the signature that came with it.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "path",
-            "name": "signature",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "What the hub checks: `subscribe`, `unsubscribe`, or `denied`.",
-            "in": "query",
-            "name": "hub.mode",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "What to answer with, to show the subscription was asked for here.",
-            "in": "query",
-            "name": "hub.challenge",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "How long, in seconds, the hub will call back.",
-            "in": "query",
-            "name": "hub.lease_seconds",
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "202": {
-            "description": "it will be read"
-          },
-          "404": {
-            "description": "there is no such Pulse, or no subscription was asked for"
-          }
-        },
-        "security": [
-          {},
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "A hub says a feed changed",
-        "tags": [
-          "pulse-service"
-        ],
-        "x-handler": "pulse/cmd/api/handlers.(*websubHandler).Notify",
-        "x-viewer": "anyone"
-      }
-    },
-    "/pulses/{id}": {
-      "delete": {
-        "description": "It is out of sight at once and destroyed after thirty days, unless it is restored before then.\n\nWho may call it: somebody signed in, who has just proved who they are again.",
-        "operationId": "deletePulsesById",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "it will be deleted"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Refusal"
-                }
-              }
-            },
-            "description": "`step_up_required`: the viewer must prove who they are again first; or the viewer may not, without a body"
-          },
-          "404": {
-            "description": "there is no such profile"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Delete a Pulse",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Delete",
-        "x-step-up": true,
-        "x-viewer": "signed_in"
-      },
-      "get": {
-        "description": "To somebody it is not open to, but who may ask to follow it, what a stranger is shown of it.\n\nWho may call it: anyone, signed in or not.",
-        "operationId": "getPulsesById",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
-                }
-              }
-            },
-            "description": "it, or what a stranger is shown of it (LimitedActor)"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "403": {
-            "description": "the viewer may not see it"
-          },
-          "404": {
-            "description": "there is no such Pulse"
-          }
-        },
-        "security": [
-          {},
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "One Pulse",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Read",
-        "x-viewer": "anyone"
-      },
-      "patch": {
-        "description": "Its name and its description. Its handle and its site stay as they were connected.\n\nWho may call it: somebody signed in.",
-        "operationId": "patchPulsesById",
-        "parameters": [
-          {
-            "description": "The Pulse's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "body": {
-                    "description": "What it is, shown in its About card.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
-                  "name": {
-                    "description": "Its name.",
-                    "maxLength": 64,
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "name"
-                ],
-                "type": "object"
-              }
-            },
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "properties": {
-                  "body": {
-                    "description": "What it is, shown in its About card.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
-                  "name": {
-                    "description": "Its name.",
-                    "maxLength": 64,
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "name"
-                ],
-                "type": "object"
-              }
-            },
-            "multipart/form-data": {
-              "schema": {
-                "properties": {
-                  "body": {
-                    "description": "What it is, shown in its About card.",
-                    "maxLength": 500,
-                    "type": "string"
-                  },
-                  "name": {
-                    "description": "Its name.",
-                    "maxLength": 64,
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "name"
-                ],
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not change it"
-          },
-          "404": {
-            "description": "there is no such Pulse"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Change a Pulse",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*pulseHandler).Edit",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/pulses/{id}/admins/": {
-      "get": {
-        "description": "Who may call it: somebody signed in.",
-        "operationId": "getPulsesByIdAdmins",
-        "parameters": [
-          {
-            "description": "The group's or the event's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "How many to pass over.",
-            "in": "query",
-            "name": "start",
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "The most to send.",
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "default": 20,
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Which way the order runs.",
-            "in": "query",
-            "name": "dir",
-            "schema": {
-              "default": "asc",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "maxLength": 4,
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "data": {
-                      "description": "What there is.",
-                      "items": {
-                        "$ref": "#/components/schemas/ActorNodeItem"
-                      },
-                      "type": [
-                        "array",
-                        "null"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "type": "object"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not see them"
-          },
-          "404": {
-            "description": "there is no such Pulse"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "A Pulse's administrators",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Browse",
-        "x-viewer": "signed_in"
-      },
-      "post": {
-        "description": "By one of its administrators. Answers with them.\n\nWho may call it: somebody signed in.",
-        "operationId": "postPulsesByIdAdmins",
-        "parameters": [
-          {
-            "description": "The group's or the event's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "properties": {
-                  "admin_id": {
-                    "description": "The person to make an administrator.",
-                    "format": "int64",
-                    "type": "integer"
-                  }
-                },
-                "required": [
-                  "admin_id"
-                ],
-                "type": "object"
-              }
-            },
-            "multipart/form-data": {
-              "schema": {
-                "properties": {
-                  "admin_id": {
-                    "description": "The person to make an administrator.",
-                    "format": "int64",
-                    "type": "integer"
-                  }
-                },
-                "required": [
-                  "admin_id"
-                ],
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActorNodeItem"
-                }
-              }
-            },
-            "description": "Created"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not"
-          },
-          "404": {
-            "description": "there is no such Pulse or person"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Make somebody an administrator of a Pulse",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Add",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/pulses/{id}/admins/{admin_id}": {
-      "delete": {
-        "description": "Who may call it: somebody signed in.",
-        "operationId": "deletePulsesByIdAdminsByAdminId",
-        "parameters": [
-          {
-            "description": "The group's or the event's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "The administrator to remove.",
-            "in": "path",
-            "name": "admin_id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "removed"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not"
-          },
-          "404": {
-            "description": "there is no such Pulse or administrator"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Remove an administrator of a Pulse",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/pulses/{id}/deletion-counts": {
-      "get": {
-        "description": "For the Danger zone, for whoever may delete it.\n\nWho may call it: somebody signed in.",
-        "operationId": "getPulsesByIdDeletionCounts",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/actor.GroupDeletionCounts"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not delete it"
-          },
-          "404": {
-            "description": "there is no such profile"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "What deleting a Pulse would take with it",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeletionCounts",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/pulses/{id}/download-default": {
-      "patch": {
-        "description": "What a post starts with; each post can say otherwise.\n\nWho may call it: somebody signed in.",
-        "operationId": "patchPulsesByIdDownloadDefault",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "allow": {
-                    "description": "Whether its new photos and videos start out downloadable.",
-                    "type": "boolean"
-                  }
-                },
-                "type": "object"
-              }
-            },
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "properties": {
-                  "allow": {
-                    "description": "Whether its new photos and videos start out downloadable.",
-                    "type": "boolean"
-                  }
-                },
-                "type": "object"
-              }
-            },
-            "multipart/form-data": {
-              "schema": {
-                "properties": {
-                  "allow": {
-                    "description": "Whether its new photos and videos start out downloadable.",
-                    "type": "boolean"
-                  }
-                },
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not change it"
-          },
-          "404": {
-            "description": "there is no such profile"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Change whether new photos and videos may be downloaded",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditDownloadDefault",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/pulses/{id}/enabled": {
-      "patch": {
-        "description": "Reversible, site administrators only. Off, it is out of sight and may not act; nothing is deleted.\n\nWho may call it: somebody signed in.",
-        "operationId": "patchPulsesByIdEnabled",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "enabled": {
-                    "description": "Whether it is shown and may act. Off, it is out of sight until it is turned on again; nothing is deleted.",
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "enabled"
-                ],
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "done"
-          },
-          "204": {
-            "description": "it was so already"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not"
-          },
-          "404": {
-            "description": "there is no such profile"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Turn a profile on or off",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
-        "x-viewer": "signed_in"
-      }
-    },
-    "/pulses/{id}/purge": {
-      "delete": {
-        "description": "Everything of it, at once and with no thirty days. Super administrators only, never on their own profile. Queued, and done by the sweeper.\n\nWho may call it: a super administrator, who has just proved who they are again.",
-        "operationId": "deletePulsesByIdPurge",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PurgeQueued"
-                }
-              }
-            },
-            "description": "purged or queued already"
-          },
-          "202": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PurgeQueued"
-                }
-              }
-            },
-            "description": "queued"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Refusal"
-                }
-              }
-            },
-            "description": "`step_up_required`: the viewer must prove who they are again first; or the viewer may not, without a body"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PurgeRefused"
-                }
-              }
-            },
-            "description": "it cannot be purged; nothing was queued"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Destroy a Pulse for good",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Purge",
-        "x-step-up": true,
-        "x-viewer": "super_admin"
-      }
-    },
-    "/pulses/{id}/restore": {
-      "post": {
-        "description": "Within the thirty days. Answers with it.\n\nWho may call it: somebody signed in.",
-        "operationId": "postPulsesByIdRestore",
-        "parameters": [
-          {
-            "description": "The profile's id.",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActorNode"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "description": "the request is not well formed, or a value in it is not one it may be"
-          },
-          "401": {
-            "description": "no token, or one that has expired"
-          },
-          "403": {
-            "description": "the viewer may not"
-          },
-          "404": {
-            "description": "there is no such profile to restore"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Restore a deleted Pulse",
-        "tags": [
-          "actor-service"
-        ],
-        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
-        "x-viewer": "signed_in"
-      }
-    },
     "/reauth/passkey/begin": {
       "post": {
         "description": "The options to hand to `navigator.credentials.get()`: one of the viewer's own passkeys.\n\nWho may call it: somebody signed in.",
@@ -35102,6 +33799,1309 @@
         "x-handler": "auth/cmd/api/handlers.(*webAuthnHandler).Edit",
         "x-viewer": "signed_in"
       }
+    },
+    "/websites/": {
+      "get": {
+        "description": "Those the viewer may see. Each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getWebsites",
+        "parameters": [
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Words the name holds.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string",
+              "x-validate": "search_query"
+            }
+          },
+          {
+            "description": "What they are ordered by.",
+            "in": "query",
+            "name": "ordering",
+            "schema": {
+              "default": "updated_at",
+              "enum": [
+                "created_at",
+                "updated_at",
+                "enabled"
+              ],
+              "maxLength": 15,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Disabled ones as well, for whoever may see them.",
+            "in": "query",
+            "name": "disabled",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Only the actors the installation features — what onboarding offers a new member to follow. Ordered most recently featured first unless the caller asks for an ordering; see the browse handlers.",
+            "in": "query",
+            "name": "featured",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {},
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "403": {
+            "description": "the viewer may not list Websites"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Websites",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Browse",
+        "x-viewer": "anyone"
+      }
+    },
+    "/websites/_connect": {
+      "post": {
+        "description": "The site's feed is found: the address itself, or the feed the page names with `<link rel=\"alternate\">`. It must be on the site's domain. The answer is the token, to be put in a TXT record or a file, with a name and a handle to begin with.\n\nWho may call it: somebody signed in.",
+        "operationId": "postWebsitesConnect",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "site_url": {
+                    "description": "The site's address, `example.com` or `https://example.com/blog/`, or its feed's.",
+                    "maxLength": 2000,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "site_url"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/website.Connection"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "`not_a_domain`, `no_feed`, `unreadable` or `feed_not_on_domain`, as `error`"
+          },
+          "401": {
+            "description": "the viewer is not signed in"
+          },
+          "403": {
+            "description": "the viewer may not connect a website: see WEBSITES_FROM"
+          },
+          "409": {
+            "description": "`feed_taken`: the feed already has a Website"
+          },
+          "429": {
+            "description": "the viewer has begun too many lately"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Begin connecting a website",
+        "tags": [
+          "website-service"
+        ],
+        "x-handler": "website/cmd/api/handlers.(*connectHandler).Start",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/websites/_connect/{id}": {
+      "post": {
+        "description": "Once its domain is proved. Whoever proved it is its first administrator and its first follower; its feed's ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes.\n\nWho may call it: somebody signed in.",
+        "operationId": "postWebsitesConnectById",
+        "parameters": [
+          {
+            "description": "The connection's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "alias": {
+                    "description": "Its handle: `@example`. Letters, digits, `-` and `_`.",
+                    "maxLength": 30,
+                    "minLength": 3,
+                    "type": "string",
+                    "x-validate": "username"
+                  },
+                  "body": {
+                    "description": "What it is, shown in its About card.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "feed_url": {
+                    "description": "The feed, as starting the connection found it.",
+                    "maxLength": 2000,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its name, shown as a profile's is.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "feed_url",
+                  "name",
+                  "alias"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/website.Made"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "`no_feed`, `unreadable` or `feed_not_on_domain`, as `error`"
+          },
+          "401": {
+            "description": "the viewer is not signed in"
+          },
+          "403": {
+            "description": "the viewer may not connect a website: see WEBSITES_FROM"
+          },
+          "404": {
+            "description": "there is no such connection begun by the viewer"
+          },
+          "409": {
+            "description": "`not_proved`, `feed_taken` or `handle_taken`, as `error`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Make the Website",
+        "tags": [
+          "website-service"
+        ],
+        "x-handler": "website/cmd/api/handlers.(*connectHandler).Make",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/websites/_connect/{id}/check": {
+      "post": {
+        "description": "In the TXT record at `_anahita.<domain>`, then in `https://<host>/.well-known/anahita-verification.txt`. Asked as often as the one connecting likes.\n\nWho may call it: somebody signed in.",
+        "operationId": "postWebsitesConnectByIdCheck",
+        "parameters": [
+          {
+            "description": "The connection's id, as starting it answered.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/website.Checked"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "the viewer is not signed in"
+          },
+          "403": {
+            "description": "the viewer may not connect a website: see WEBSITES_FROM"
+          },
+          "404": {
+            "description": "there is no such connection begun by the viewer"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Look for the token",
+        "tags": [
+          "website-service"
+        ],
+        "x-handler": "website/cmd/api/handlers.(*connectHandler).Check",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/websites/_websub/{id}/{signature}": {
+      "get": {
+        "description": "WebSub: the hub a Website's feed names asks whether its subscription was asked for here, and is answered with its challenge.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getWebsitesWebsubByIdBySignature",
+        "parameters": [
+          {
+            "description": "The website's id, and the signature that came with it.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "signature",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "What the hub checks: `subscribe`, `unsubscribe`, or `denied`.",
+            "in": "query",
+            "name": "hub.mode",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "What to answer with, to show the subscription was asked for here.",
+            "in": "query",
+            "name": "hub.challenge",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "How long, in seconds, the hub will call back.",
+            "in": "query",
+            "name": "hub.lease_seconds",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "the challenge, as plain text"
+          },
+          "400": {
+            "description": "it is not a check this answers"
+          },
+          "404": {
+            "description": "there is no such Website, or no subscription was asked for"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A hub checks a subscription",
+        "tags": [
+          "website-service"
+        ],
+        "x-handler": "website/cmd/api/handlers.(*websubHandler).Verify",
+        "x-viewer": "anyone"
+      },
+      "post": {
+        "description": "The Website's feed is read from its site at once, at most once a minute; what the hub sends is not read.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "postWebsitesWebsubByIdBySignature",
+        "parameters": [
+          {
+            "description": "The website's id, and the signature that came with it.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "signature",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "What the hub checks: `subscribe`, `unsubscribe`, or `denied`.",
+            "in": "query",
+            "name": "hub.mode",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "What to answer with, to show the subscription was asked for here.",
+            "in": "query",
+            "name": "hub.challenge",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "How long, in seconds, the hub will call back.",
+            "in": "query",
+            "name": "hub.lease_seconds",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "it will be read"
+          },
+          "404": {
+            "description": "there is no such Website, or no subscription was asked for"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A hub says a feed changed",
+        "tags": [
+          "website-service"
+        ],
+        "x-handler": "website/cmd/api/handlers.(*websubHandler).Notify",
+        "x-viewer": "anyone"
+      }
+    },
+    "/websites/{id}": {
+      "delete": {
+        "description": "It is out of sight at once and destroyed after thirty days, unless it is restored before then.\n\nWho may call it: somebody signed in, who has just proved who they are again.",
+        "operationId": "deleteWebsitesById",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "it will be deleted"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`step_up_required`: the viewer must prove who they are again first; or the viewer may not, without a body"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a Website",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Delete",
+        "x-step-up": true,
+        "x-viewer": "signed_in"
+      },
+      "get": {
+        "description": "To somebody it is not open to, but who may ask to follow it, what a stranger is shown of it.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getWebsitesById",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNode"
+                }
+              }
+            },
+            "description": "it, or what a stranger is shown of it (LimitedActor)"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "403": {
+            "description": "the viewer may not see it"
+          },
+          "404": {
+            "description": "there is no such Website"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One Website",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Read",
+        "x-viewer": "anyone"
+      },
+      "patch": {
+        "description": "Its name and its description. Its handle and its site stay as they were connected.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchWebsitesById",
+        "parameters": [
+          {
+            "description": "The website's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "What it is, shown in its About card.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its name.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "What it is, shown in its About card.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its name.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "What it is, shown in its About card.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its name.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such Website"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a Website",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*websiteHandler).Edit",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/websites/{id}/admins/": {
+      "get": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "getWebsitesByIdAdmins",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Which way the order runs.",
+            "in": "query",
+            "name": "dir",
+            "schema": {
+              "default": "asc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "maxLength": 4,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/ActorNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not see them"
+          },
+          "404": {
+            "description": "there is no such Website"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A Website's administrators",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Browse",
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "By one of its administrators. Answers with them.\n\nWho may call it: somebody signed in.",
+        "operationId": "postWebsitesByIdAdmins",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "admin_id": {
+                    "description": "The person to make an administrator.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "admin_id"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "admin_id": {
+                    "description": "The person to make an administrator.",
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "admin_id"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNodeItem"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such Website or person"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Make somebody an administrator of a Website",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Add",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/websites/{id}/admins/{admin_id}": {
+      "delete": {
+        "description": "Who may call it: somebody signed in.",
+        "operationId": "deleteWebsitesByIdAdminsByAdminId",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The administrator to remove.",
+            "in": "path",
+            "name": "admin_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "removed"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such Website or administrator"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove an administrator of a Website",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*adminHandler).Delete",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/websites/{id}/deletion-counts": {
+      "get": {
+        "description": "For the Danger zone, for whoever may delete it.\n\nWho may call it: somebody signed in.",
+        "operationId": "getWebsitesByIdDeletionCounts",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.GroupDeletionCounts"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not delete it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What deleting a Website would take with it",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).DeletionCounts",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/websites/{id}/download-default": {
+      "patch": {
+        "description": "What a post starts with; each post can say otherwise.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchWebsitesByIdDownloadDefault",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "allow": {
+                    "description": "Whether its new photos and videos start out downloadable.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "allow": {
+                    "description": "Whether its new photos and videos start out downloadable.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "allow": {
+                    "description": "Whether its new photos and videos start out downloadable.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change whether new photos and videos may be downloaded",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).EditDownloadDefault",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/websites/{id}/enabled": {
+      "patch": {
+        "description": "Reversible, site administrators only. Off, it is out of sight and may not act; nothing is deleted.\n\nWho may call it: somebody signed in.",
+        "operationId": "patchWebsitesByIdEnabled",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "enabled": {
+                    "description": "Whether it is shown and may act. Off, it is out of sight until it is turned on again; nothing is deleted.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "enabled"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "done"
+          },
+          "204": {
+            "description": "it was so already"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Turn a profile on or off",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetEnabled",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/websites/{id}/purge": {
+      "delete": {
+        "description": "Everything of it, at once and with no thirty days. Super administrators only, never on their own profile. Queued, and done by the sweeper.\n\nWho may call it: a super administrator, who has just proved who they are again.",
+        "operationId": "deleteWebsitesByIdPurge",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "purged or queued already"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "queued"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`step_up_required`: the viewer must prove who they are again first; or the viewer may not, without a body"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeRefused"
+                }
+              }
+            },
+            "description": "it cannot be purged; nothing was queued"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Destroy a Website for good",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Purge",
+        "x-step-up": true,
+        "x-viewer": "super_admin"
+      }
+    },
+    "/websites/{id}/restore": {
+      "post": {
+        "description": "Within the thirty days. Answers with it.\n\nWho may call it: somebody signed in.",
+        "operationId": "postWebsitesByIdRestore",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorNode"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not"
+          },
+          "404": {
+            "description": "there is no such profile to restore"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restore a deleted Website",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
+        "x-viewer": "signed_in"
+      }
     }
   },
   "servers": [
@@ -35174,10 +35174,6 @@
       "name": "photo-service"
     },
     {
-      "description": "Pulses",
-      "name": "pulse-service"
-    },
-    {
       "description": "Recommendations",
       "name": "recommendation-service"
     },
@@ -35196,6 +35192,10 @@
     {
       "description": "Video posts",
       "name": "video-service"
+    },
+    {
+      "description": "Websites",
+      "name": "website-service"
     }
   ]
 }

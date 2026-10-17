@@ -117,7 +117,7 @@ A and B are worth having alone: they settle the form, and every service after is
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11 |
-| Phases A and B | done 2026-10-15, before Pulse (row 38) at the user's word, so that Pulse's routes are described as they are written |
+| Phases A and B | done 2026-10-15, before the Website profile (row 38, then called Pulse) at the user's word, so that its routes are described as they are written |
 | Phase C | done 2026-10-15: all 19 services with routes are described, 344 routes in all; export-service's routes moved from its `main.go` to a `routes.go`, where the members-only guard reads them |
 | Phase D | done 2026-10-15: `docs/api/index.html`, and a link from each prose page to its routes |
 | Phase E | done 2026-10-15: the answers the handler tests get are checked against the reference, in every service that has handler tests |

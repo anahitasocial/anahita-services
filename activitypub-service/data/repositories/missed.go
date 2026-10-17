@@ -145,11 +145,11 @@ WHERE note.type IN (?, ?, ?)
 ORDER BY note.id
 LIMIT ?`
 
-// A Pulse's articles, and its replies under them, that should have gone out
-// and did not. A Pulse is on the fediverse with nobody to choose it, so
+// A website's articles, and its replies under them, that should have gone out
+// and did not. A website is on the fediverse with nobody to choose it, so
 // there is no account to join; an article of one is made by its
 // administrator, so its maker is not its owner.
-const pulseNotesNotSent = `
+const websiteNotesNotSent = `
 SELECT note.id
 FROM nodes AS note
 LEFT JOIN nodes AS root
@@ -169,7 +169,7 @@ WHERE note.owner_type = ?
 ORDER BY note.id
 LIMIT ?`
 
-// NotesNotSent is people's posts and Pulses' that should have gone out and
+// NotesNotSent is people's posts and websites' that should have gone out and
 // did not, the oldest first.
 func (repo *Missed) NotesNotSent(since, olderThan time.Time, limit int) ([]int64, error) {
 	people, err := repo.ids(notesNotSent,
@@ -177,13 +177,13 @@ func (repo *Missed) NotesNotSent(since, olderThan time.Time, limit int) ([]int64
 	if err != nil {
 		return nil, err
 	}
-	pulses, err := repo.ids(pulseNotesNotSent,
-		constants.NodeActorPulseEntityType, constants.NodeMediumArticleEntityType, constants.NodeMediumNoteEntityType,
+	websites, err := repo.ids(websiteNotesNotSent,
+		constants.NodeActorWebsiteEntityType, constants.NodeMediumArticleEntityType, constants.NodeMediumNoteEntityType,
 		constants.AnahitaAccessPublic, since, olderThan, limit)
 	if err != nil {
 		return nil, err
 	}
-	both := append(people, pulses...)
+	both := append(people, websites...)
 	slices.Sort(both)
 	if len(both) > limit {
 		both = both[:limit]

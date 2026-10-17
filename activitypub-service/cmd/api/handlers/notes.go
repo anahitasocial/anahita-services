@@ -50,7 +50,7 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 	// is not one.
 	isPhoto := note.Type == constants.NodeMediumPhotoEntityType
 	isVideo := note.Type == videos.NodeType && videos.FromMeta(note.Meta) != nil
-	isArticle := isPulseArticle(note)
+	isArticle := isWebsiteArticle(note)
 	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo && !isArticle) || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil, nil
 	}
@@ -60,8 +60,8 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 		return nil, nil
 	}
 	// Somebody's own post: on their own profile, and theirs. Except a
-	// Pulse's article, which is the Pulse's and is made by its first
-	// administrator: it goes out as the Pulse's.
+	// Website's article, which is the website's and is made by its first
+	// administrator: it goes out as the website's.
 	authorID := note.CreatedBy
 	if isArticle {
 		authorID = note.OwnerID
@@ -171,7 +171,7 @@ func (h *Handlers) hasPictures(postID int64) bool {
 // answers.
 func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answer) *ap.Note {
 	sent := ap.NewNote(h.addresses, note, author, h.links())
-	if isPulseArticle(note) {
+	if isWebsiteArticle(note) {
 		sent.AsArticle(h.addresses, note, articleSummary(note))
 	}
 	if answering != nil {
@@ -472,8 +472,8 @@ func (h *Handlers) removed(ctx context.Context, nodeID int64) error {
 		"delete:"+object.UUID)
 }
 
-// articleSummary is a Pulse's article summed up: its opening, the item's
-// excerpt, which is the first paragraph of what it says (pulse-worker
+// articleSummary is a website's article summed up: its opening, the item's
+// excerpt, which is the first paragraph of what it says (website-worker
 // writes it so), and nothing when it begins with the original's address.
 func articleSummary(article *entities.AnahitaNode) string {
 	first, _, _ := strings.Cut(strings.TrimSpace(article.Body), "\n\n")

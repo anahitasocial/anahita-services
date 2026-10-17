@@ -161,9 +161,9 @@ services:
       # administrators or super-administrators. Enforced by actor-service
       # and published by auth-service, from this one entry.
       EVENTS_FROM: ${EVENTS_FROM:-}
-      # Who may connect a website as a Pulse: administrators unless set.
-      # Enforced by pulse-service and published by auth-service.
-      PULSES_FROM: ${PULSES_FROM:-}
+      # Who may connect a website as a website: administrators unless set.
+      # Enforced by website-service and published by auth-service.
+      WEBSITES_FROM: ${WEBSITES_FROM:-}
       # Video: whether it may be posted, and the limits, for the web app.
       # See docs/videos.md.
       VIDEO_UPLOADS: ${VIDEO_UPLOADS:-}
@@ -804,13 +804,13 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.38
 
-# pulse-service - connecting a website: its feed found, its domain proved,
-# and a Pulse made of it. It goes out to the internet for what somebody
-# names, only to public addresses. Left out, there are no Pulses.
-  pulse-service:
+# website-service - connecting a website: its feed found, its domain proved,
+# and a website made of it. It goes out to the internet for what somebody
+# names, only to public addresses. Left out, there are no websites.
+  website-service:
     build:
       context: .
-      dockerfile: ./dockerfiles/pulse-service.dockerfile
+      dockerfile: ./dockerfiles/website-service.dockerfile
     restart: always
     ports:
       - "8107:80"
@@ -836,20 +836,20 @@ services:
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
       # Who may connect a website: administrators unless set. See
       # docs/configuration.md, Who may make what.
-      PULSES_FROM: ${PULSES_FROM:-}
+      WEBSITES_FROM: ${WEBSITES_FROM:-}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.52
 
-# pulse-worker - reads the feeds of Pulses and posts what is new in them,
+# website-worker - reads the feeds of websites and posts what is new in them,
 # and checks every day that their domains are still proved. Answers no
-# requests. Left out with pulse-service.
-  pulse-worker:
+# requests. Left out with website-service.
+  website-worker:
     build:
       context: .
-      dockerfile: ./dockerfiles/pulse-worker.dockerfile
+      dockerfile: ./dockerfiles/website-worker.dockerfile
     restart: always
     depends_on:
       - graph-grpc-service
@@ -864,12 +864,12 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       # For the card of each item's original. Unset, articles have none.
       LINK_PREVIEW_URL: ${LINK_PREVIEW_URL:-http://link-preview-service:80}
-      # The most posts a Pulse makes in an hour, and how often, in minutes,
-      # a feed is read. See docs/pulses.md.
-      PULSE_HOURLY_CAP: ${PULSE_HOURLY_CAP:-10}
-      PULSE_READ_EVERY: ${PULSE_READ_EVERY:-30}
+      # The most posts a website makes in an hour, and how often, in minutes,
+      # a feed is read. See docs/websites.md.
+      WEBSITE_HOURLY_CAP: ${WEBSITE_HOURLY_CAP:-10}
+      WEBSITE_READ_EVERY: ${WEBSITE_READ_EVERY:-30}
       # For WebSub: the address hubs call back at, and the key its
-      # signature is made with, the same as pulse-service's. On a machine
+      # signature is made with, the same as website-service's. On a machine
       # no hub can reach, feeds are read on the clock alone.
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       DOMAIN_NAME: ${DOMAIN_NAME:-}

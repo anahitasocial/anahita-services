@@ -6406,10 +6406,10 @@
         "x-viewer": "signed_in"
       }
     },
-    "/pulses/": {
+    "/websites/": {
       "get": {
         "description": "Those the viewer may see. Each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).\n\nWho may call it: anyone, signed in or not.",
-        "operationId": "getPulses",
+        "operationId": "getWebsites",
         "parameters": [
           {
             "description": "How many to pass over.",
@@ -6521,7 +6521,7 @@
             "description": "the request is not well formed, or a value in it is not one it may be"
           },
           "403": {
-            "description": "the viewer may not list Pulses"
+            "description": "the viewer may not list Websites"
           }
         },
         "security": [
@@ -6530,7 +6530,7 @@
             "bearer": []
           }
         ],
-        "summary": "Pulses",
+        "summary": "Websites",
         "tags": [
           "actor-service"
         ],
@@ -6538,10 +6538,10 @@
         "x-viewer": "anyone"
       }
     },
-    "/pulses/{id}": {
+    "/websites/{id}": {
       "delete": {
         "description": "It is out of sight at once and destroyed after thirty days, unless it is restored before then.\n\nWho may call it: somebody signed in, who has just proved who they are again.",
-        "operationId": "deletePulsesById",
+        "operationId": "deleteWebsitesById",
         "parameters": [
           {
             "description": "The profile's id.",
@@ -6583,7 +6583,7 @@
             "bearer": []
           }
         ],
-        "summary": "Delete a Pulse",
+        "summary": "Delete a Website",
         "tags": [
           "actor-service"
         ],
@@ -6593,7 +6593,7 @@
       },
       "get": {
         "description": "To somebody it is not open to, but who may ask to follow it, what a stranger is shown of it.\n\nWho may call it: anyone, signed in or not.",
-        "operationId": "getPulsesById",
+        "operationId": "getWebsitesById",
         "parameters": [
           {
             "description": "The profile's id.",
@@ -6624,7 +6624,7 @@
             "description": "the viewer may not see it"
           },
           "404": {
-            "description": "there is no such Pulse"
+            "description": "there is no such Website"
           }
         },
         "security": [
@@ -6633,7 +6633,7 @@
             "bearer": []
           }
         ],
-        "summary": "One Pulse",
+        "summary": "One Website",
         "tags": [
           "actor-service"
         ],
@@ -6642,10 +6642,10 @@
       },
       "patch": {
         "description": "Its name and its description. Its handle and its site stay as they were connected.\n\nWho may call it: somebody signed in.",
-        "operationId": "patchPulsesById",
+        "operationId": "patchWebsitesById",
         "parameters": [
           {
-            "description": "The Pulse's id.",
+            "description": "The website's id.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -6741,7 +6741,7 @@
             "description": "the viewer may not change it"
           },
           "404": {
-            "description": "there is no such Pulse"
+            "description": "there is no such Website"
           }
         },
         "security": [
@@ -6749,18 +6749,18 @@
             "bearer": []
           }
         ],
-        "summary": "Change a Pulse",
+        "summary": "Change a Website",
         "tags": [
           "actor-service"
         ],
-        "x-handler": "actor/cmd/api/handlers.(*pulseHandler).Edit",
+        "x-handler": "actor/cmd/api/handlers.(*websiteHandler).Edit",
         "x-viewer": "signed_in"
       }
     },
-    "/pulses/{id}/admins/": {
+    "/websites/{id}/admins/": {
       "get": {
         "description": "Who may call it: somebody signed in.",
-        "operationId": "getPulsesByIdAdmins",
+        "operationId": "getWebsitesByIdAdmins",
         "parameters": [
           {
             "description": "The group's or the event's id.",
@@ -6844,7 +6844,7 @@
             "description": "the viewer may not see them"
           },
           "404": {
-            "description": "there is no such Pulse"
+            "description": "there is no such Website"
           }
         },
         "security": [
@@ -6852,7 +6852,7 @@
             "bearer": []
           }
         ],
-        "summary": "A Pulse's administrators",
+        "summary": "A Website's administrators",
         "tags": [
           "actor-service"
         ],
@@ -6861,7 +6861,7 @@
       },
       "post": {
         "description": "By one of its administrators. Answers with them.\n\nWho may call it: somebody signed in.",
-        "operationId": "postPulsesByIdAdmins",
+        "operationId": "postWebsitesByIdAdmins",
         "parameters": [
           {
             "description": "The group's or the event's id.",
@@ -6930,7 +6930,7 @@
             "description": "the viewer may not"
           },
           "404": {
-            "description": "there is no such Pulse or person"
+            "description": "there is no such Website or person"
           }
         },
         "security": [
@@ -6938,7 +6938,7 @@
             "bearer": []
           }
         ],
-        "summary": "Make somebody an administrator of a Pulse",
+        "summary": "Make somebody an administrator of a Website",
         "tags": [
           "actor-service"
         ],
@@ -6946,10 +6946,10 @@
         "x-viewer": "signed_in"
       }
     },
-    "/pulses/{id}/admins/{admin_id}": {
+    "/websites/{id}/admins/{admin_id}": {
       "delete": {
         "description": "Who may call it: somebody signed in.",
-        "operationId": "deletePulsesByIdAdminsByAdminId",
+        "operationId": "deleteWebsitesByIdAdminsByAdminId",
         "parameters": [
           {
             "description": "The group's or the event's id.",
@@ -6986,7 +6986,7 @@
             "description": "the viewer may not"
           },
           "404": {
-            "description": "there is no such Pulse or administrator"
+            "description": "there is no such Website or administrator"
           }
         },
         "security": [
@@ -6994,7 +6994,7 @@
             "bearer": []
           }
         ],
-        "summary": "Remove an administrator of a Pulse",
+        "summary": "Remove an administrator of a Website",
         "tags": [
           "actor-service"
         ],
@@ -7002,10 +7002,10 @@
         "x-viewer": "signed_in"
       }
     },
-    "/pulses/{id}/deletion-counts": {
+    "/websites/{id}/deletion-counts": {
       "get": {
         "description": "For the Danger zone, for whoever may delete it.\n\nWho may call it: somebody signed in.",
-        "operationId": "getPulsesByIdDeletionCounts",
+        "operationId": "getWebsitesByIdDeletionCounts",
         "parameters": [
           {
             "description": "The profile's id.",
@@ -7047,7 +7047,7 @@
             "bearer": []
           }
         ],
-        "summary": "What deleting a Pulse would take with it",
+        "summary": "What deleting a Website would take with it",
         "tags": [
           "actor-service"
         ],
@@ -7055,10 +7055,10 @@
         "x-viewer": "signed_in"
       }
     },
-    "/pulses/{id}/download-default": {
+    "/websites/{id}/download-default": {
       "patch": {
         "description": "What a post starts with; each post can say otherwise.\n\nWho may call it: somebody signed in.",
-        "operationId": "patchPulsesByIdDownloadDefault",
+        "operationId": "patchWebsitesByIdDownloadDefault",
         "parameters": [
           {
             "description": "The profile's id.",
@@ -7146,10 +7146,10 @@
         "x-viewer": "signed_in"
       }
     },
-    "/pulses/{id}/enabled": {
+    "/websites/{id}/enabled": {
       "patch": {
         "description": "Reversible, site administrators only. Off, it is out of sight and may not act; nothing is deleted.\n\nWho may call it: somebody signed in.",
-        "operationId": "patchPulsesByIdEnabled",
+        "operationId": "patchWebsitesByIdEnabled",
         "parameters": [
           {
             "description": "The profile's id.",
@@ -7214,10 +7214,10 @@
         "x-viewer": "signed_in"
       }
     },
-    "/pulses/{id}/purge": {
+    "/websites/{id}/purge": {
       "delete": {
         "description": "Everything of it, at once and with no thirty days. Super administrators only, never on their own profile. Queued, and done by the sweeper.\n\nWho may call it: a super administrator, who has just proved who they are again.",
-        "operationId": "deletePulsesByIdPurge",
+        "operationId": "deleteWebsitesByIdPurge",
         "parameters": [
           {
             "description": "The profile's id.",
@@ -7283,7 +7283,7 @@
             "bearer": []
           }
         ],
-        "summary": "Destroy a Pulse for good",
+        "summary": "Destroy a Website for good",
         "tags": [
           "actor-service"
         ],
@@ -7292,10 +7292,10 @@
         "x-viewer": "super_admin"
       }
     },
-    "/pulses/{id}/restore": {
+    "/websites/{id}/restore": {
       "post": {
         "description": "Within the thirty days. Answers with it.\n\nWho may call it: somebody signed in.",
-        "operationId": "postPulsesByIdRestore",
+        "operationId": "postWebsitesByIdRestore",
         "parameters": [
           {
             "description": "The profile's id.",
@@ -7337,7 +7337,7 @@
             "bearer": []
           }
         ],
-        "summary": "Restore a deleted Pulse",
+        "summary": "Restore a deleted Website",
         "tags": [
           "actor-service"
         ],

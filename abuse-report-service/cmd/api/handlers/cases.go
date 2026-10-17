@@ -28,7 +28,7 @@ type casesHandler struct {
 func (h *casesHandler) mapper(c echo.Context, ids []int64) *responses.Mapper {
 	nodes := h.readNodes(ids)
 
-	// Who wrote a reply made as a Pulse: one of its administrators, kept
+	// Who wrote a reply made as a website: one of its administrators, kept
 	// with it for this, and shown to nobody else.
 	var writers []int64
 	for _, node := range nodes {

@@ -2,11 +2,11 @@
 --
 --   verified_domains   a domain being proved or proved, by a TXT record
 --                      or a file holding a token (anahita-libs/domains),
---                      for the profile it is proved for. A Pulse rests on
+--                      for the profile it is proved for. A website rests on
 --                      one; people and groups are to use the same proof
 --                      later. Checked again every day.
 --
--- Belongs to pulse-service.
+-- Belongs to website-service.
 
 -- +goose Up
 CREATE TABLE IF NOT EXISTS verified_domains (
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS verified_domains (
     token varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     -- Who is proving it.
     person_id bigint unsigned NOT NULL,
-    -- The profile it is proved for: a Pulse, and later a person or a
+    -- The profile it is proved for: a website, and later a person or a
     -- group. NULL until that profile is made.
     profile_id bigint unsigned DEFAULT NULL,
     -- dns or file: where the token was last found.

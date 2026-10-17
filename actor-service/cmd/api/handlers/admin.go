@@ -30,9 +30,9 @@ func NewEventAdminHandler(env *Env) *adminHandler {
 	return &adminHandler{Env: env, nodeType: an_constants.NodeActorEventEntityType}
 }
 
-// NewPulseAdminHandler serves the administrators of Pulses.
-func NewPulseAdminHandler(env *Env) *adminHandler {
-	return &adminHandler{Env: env, nodeType: an_constants.NodeActorPulseEntityType}
+// NewWebsiteAdminHandler serves the administrators of websites.
+func NewWebsiteAdminHandler(env *Env) *adminHandler {
+	return &adminHandler{Env: env, nodeType: an_constants.NodeActorWebsiteEntityType}
 }
 
 // Browse returns a list of admins

@@ -217,7 +217,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	groupAdmins, addGroupAdmin, removeGroupAdmin := admins("group")
 	eventAdmins, addEventAdmin, removeEventAdmin := admins("event")
-	pulseAdmins, addPulseAdmin, removePulseAdmin := admins("Pulse")
+	websiteAdmins, addWebsiteAdmin, removeWebsiteAdmin := admins("Website")
 
 	// Each kind of actor keeps its own address: /people/ and /groups/. The
 	// gateway sends both here.
@@ -373,38 +373,38 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	groups.POST("/:id/admins/", r.handler.Admin.Add, r.authorize).With(addGroupAdmin)
 	groups.DELETE("/:id/admins/:admin_id", r.handler.Admin.Delete, r.authorize).With(removeGroupAdmin)
 
-	// Pulses — a website's feed as a profile, read and looked after as a
-	// group is. Made by pulse-service once its domain is proved
-	// (POST /pulses/_connect), so there is no POST /pulses/ here; nobody
+	// Websites — a site's feed as a profile, read and looked after as a
+	// group is. Made by website-service once its domain is proved
+	// (POST /websites/_connect), so there is no POST /websites/ here; nobody
 	// posts on one, so it has no features to choose and no audience to
 	// change: it is public.
-	pulses := api.Group("pulses")
-	pulses.GET("/", r.handler.Pulse.Browse, r.setViewer).
-		Summary("Pulses").
+	websites := api.Group("websites")
+	websites.GET("/", r.handler.Website.Browse, r.setViewer).
+		Summary("Websites").
 		Describe("Those the viewer may see. "+someOrLimited).
 		Viewer(apidoc.Anyone).
 		Takes(actorReq.Browse).
 		Sends(http.StatusOK, libs_responses.List[any]{}).
-		Refuses(http.StatusForbidden, "the viewer may not list Pulses")
-	pulses.GET("/:id", r.handler.Pulse.Read, r.setViewer).With(readGroup("Pulse"))
-	pulses.PATCH("/:id", r.handler.Pulse.Edit, r.authorize).
-		Summary("Change a Pulse").
+		Refuses(http.StatusForbidden, "the viewer may not list Websites")
+	websites.GET("/:id", r.handler.Website.Read, r.setViewer).With(readGroup("Website"))
+	websites.PATCH("/:id", r.handler.Website.Edit, r.authorize).
+		Summary("Change a Website").
 		Describe("Its name and its description. Its handle and its site stay as they were connected.").
 		Viewer(apidoc.SignedIn).
-		Takes(&handlers.PulseEditRequest{}).
+		Takes(&handlers.WebsiteEditRequest{}).
 		Sends(http.StatusOK, libs_responses.ActorNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not change it").
-		Refuses(http.StatusNotFound, "there is no such Pulse")
-	pulses.DELETE("/:id", r.handler.Pulse.Delete, r.authorize).With(remove("Pulse", actorReq.Delete))
-	pulses.GET("/:id/deletion-counts", r.handler.Pulse.DeletionCounts, r.authorize).With(counts("Pulse", handlers.GroupDeletionCounts{}))
-	pulses.DELETE("/:id/purge", r.handler.Pulse.Purge, r.authorize).With(purge("Pulse"))
-	pulses.PATCH("/:id/enabled", r.handler.Pulse.SetEnabled, r.authorize).With(enabled)
-	pulses.POST("/:id/restore", r.handler.Pulse.Restore, r.authorize).With(restore("Pulse"))
-	pulses.PATCH("/:id/download-default", r.handler.Pulse.EditDownloadDefault, r.authorize).With(downloads(libs_responses.ActorNode{}))
+		Refuses(http.StatusNotFound, "there is no such Website")
+	websites.DELETE("/:id", r.handler.Website.Delete, r.authorize).With(remove("Website", actorReq.Delete))
+	websites.GET("/:id/deletion-counts", r.handler.Website.DeletionCounts, r.authorize).With(counts("Website", handlers.GroupDeletionCounts{}))
+	websites.DELETE("/:id/purge", r.handler.Website.Purge, r.authorize).With(purge("Website"))
+	websites.PATCH("/:id/enabled", r.handler.Website.SetEnabled, r.authorize).With(enabled)
+	websites.POST("/:id/restore", r.handler.Website.Restore, r.authorize).With(restore("Website"))
+	websites.PATCH("/:id/download-default", r.handler.Website.EditDownloadDefault, r.authorize).With(downloads(libs_responses.ActorNode{}))
 
-	pulses.GET("/:id/admins/", r.handler.PulseAdmin.Browse, r.authorize).With(pulseAdmins)
-	pulses.POST("/:id/admins/", r.handler.PulseAdmin.Add, r.authorize).With(addPulseAdmin)
-	pulses.DELETE("/:id/admins/:admin_id", r.handler.PulseAdmin.Delete, r.authorize).With(removePulseAdmin)
+	websites.GET("/:id/admins/", r.handler.WebsiteAdmin.Browse, r.authorize).With(websiteAdmins)
+	websites.POST("/:id/admins/", r.handler.WebsiteAdmin.Add, r.authorize).With(addWebsiteAdmin)
+	websites.DELETE("/:id/admins/:admin_id", r.handler.WebsiteAdmin.Delete, r.authorize).With(removeWebsiteAdmin)
 
 	// events — an actor like a group, with a time and a place. Everything
 	// a group has, an event has, from the same handler told a different

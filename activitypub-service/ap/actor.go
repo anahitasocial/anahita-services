@@ -10,10 +10,10 @@ import (
 	"anahita-libs/federation"
 )
 
-// NewActor describes a person or a Pulse here to another server: a Person,
+// NewActor describes a person or a website here to another server: a Person,
 // or an Organization, which is what a website's feed is to Mastodon. Not a
 // Service, which Mastodon marks as automated: its administrators answer as
-// it (docs/plans/pulse.md).
+// it (docs/plans/website.md).
 //
 // The caller has decided that they may be described at all. Nothing here is
 // more than their public profile already shows a visitor: a name, what they
@@ -62,7 +62,7 @@ func NewActor(a Addresses, person *entities.AnahitaNode, publicKeyPEM string) *A
 }
 
 func actorType(node *entities.AnahitaNode) string {
-	if node.Type == constants.NodeActorPulseEntityType {
+	if node.Type == constants.NodeActorWebsiteEntityType {
 		return "Organization"
 	}
 	return "Person"

@@ -43,7 +43,7 @@ type Subject struct {
 
 var (
 	postPath  = regexp.MustCompile(`^/(notes|photos|videos|articles|topics)/(\d+)(?:-[^/]*)?/?$`)
-	actorPath = regexp.MustCompile(`^/(groups|events|pulses)/(\d+)(?:-[^/]*)?(?:/.*)?$`)
+	actorPath = regexp.MustCompile(`^/(groups|events|websites)/(\d+)(?:-[^/]*)?(?:/.*)?$`)
 	// Not a person's page: /people/add, and a person's settings and
 	// notifications, which are theirs alone.
 	personPath = regexp.MustCompile(`^/people/([^/]+)(?:/([^/]+))?(?:/.*)?$`)
@@ -53,22 +53,22 @@ var (
 	// /tags/<name> is what other servers are given for a hashtag's page:
 	// see activitypub-service/ap/addresses.go. The web app sends it on.
 	tagPath   = regexp.MustCompile(`^/(?:hashtags|tags)/([^/]+)/?$`)
-	imageName = regexp.MustCompile(`^(person|group|event|pulse|post)-(\d+)$`)
+	imageName = regexp.MustCompile(`^(person|group|event|website|post)-(\d+)$`)
 )
 
 // A group's type, which the shared constants do not name.
 const groupType = "node.actor.group-service.group.v1"
 
 var actorTypes = map[string]string{
-	"groups": groupType,
-	"events": constants.NodeActorEventEntityType,
-	"pulses": constants.NodeActorPulseEntityType,
+	"groups":   groupType,
+	"events":   constants.NodeActorEventEntityType,
+	"websites": constants.NodeActorWebsiteEntityType,
 }
 
 var actorKinds = map[string]string{
-	"groups": "group",
-	"events": "event",
-	"pulses": "pulse",
+	"groups":   "group",
+	"events":   "event",
+	"websites": "website",
 }
 
 // Resolve finds what the page at a path is about. It answers nil for a
@@ -97,7 +97,7 @@ func Resolve(reader Reader, path string) *Subject {
 			{"person", constants.NodeActorPersonEntityType},
 			{"group", groupType},
 			{"event", constants.NodeActorEventEntityType},
-			{"pulse", constants.NodeActorPulseEntityType},
+			{"website", constants.NodeActorWebsiteEntityType},
 		} {
 			if node, err := reader.ActorByAlias(found[1], each.nodeType); err == nil && node != nil {
 				return actor(node, each.kind)
@@ -149,12 +149,12 @@ func ResolveImage(reader Reader, name string) *Subject {
 			return nil
 		}
 		return actor(node, "event")
-	case "pulse":
-		node, err := reader.Actor(id, constants.NodeActorPulseEntityType)
+	case "website":
+		node, err := reader.Actor(id, constants.NodeActorWebsiteEntityType)
 		if err != nil {
 			return nil
 		}
-		return actor(node, "pulse")
+		return actor(node, "website")
 	default:
 		node, err := reader.Actor(id, constants.NodeActorPersonEntityType)
 		if err != nil {

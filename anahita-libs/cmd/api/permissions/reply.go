@@ -202,8 +202,8 @@ func CanEditReply(ctx *ReplyAccessContext) bool {
 		return false
 	}
 
-	// The Pulse's own replies are changed by whoever replies as it.
-	if ctx.Viewer.ID != ctx.Reply.GetAuthorID() && !isPulseReply(ctx) {
+	// The website's own replies are changed by whoever replies as it.
+	if ctx.Viewer.ID != ctx.Reply.GetAuthorID() && !isWebsiteReply(ctx) {
 		return false
 	}
 
@@ -211,8 +211,8 @@ func CanEditReply(ctx *ReplyAccessContext) bool {
 }
 
 // RepliesAs is the profile a reply the viewer writes in this thread belongs
-// to, when it is not the viewer: the Pulse, in a thread under one of its own
-// posts, for one of its administrators (docs/plans/pulse.md). The site
+// to, when it is not the viewer: the website, in a thread under one of its own
+// posts, for one of its administrators (docs/plans/website.md). The site
 // answers its readers as itself. Nil anywhere else: a reply is its
 // writer's.
 func RepliesAs(ctx *ReplyAccessContext) *entities.AnahitaNode {
@@ -220,7 +220,7 @@ func RepliesAs(ctx *ReplyAccessContext) *entities.AnahitaNode {
 		return nil
 	}
 	owner := ctx.Root.GetOwner()
-	if owner.GetType() != constants.NodeActorPulseEntityType {
+	if owner.GetType() != constants.NodeActorWebsiteEntityType {
 		return nil
 	}
 	if !relationOrEmpty(ctx.RootOwnerViewerRel).HasAdmin {
@@ -229,11 +229,11 @@ func RepliesAs(ctx *ReplyAccessContext) *entities.AnahitaNode {
 	return owner
 }
 
-// isPulseReply says whether the reply is the Pulse's own, in its own
+// isWebsiteReply says whether the reply is the website's own, in its own
 // thread, and the viewer one of those who reply as it.
-func isPulseReply(ctx *ReplyAccessContext) bool {
-	pulse := RepliesAs(ctx)
-	return pulse != nil && ctx.Reply.GetAuthorID() == pulse.GetID()
+func isWebsiteReply(ctx *ReplyAccessContext) bool {
+	website := RepliesAs(ctx)
+	return website != nil && ctx.Reply.GetAuthorID() == website.GetID()
 }
 
 // CanDeleteReply reports whether the viewer may remove a reply for good: its

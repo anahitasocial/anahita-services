@@ -1,0 +1,104 @@
+# website-worker: Reads the feeds of websites and posts what is new in them, and checks every day that their domains are still proved. Answers no requests. A website is read by one replica at a time, so more may run.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: website-worker
+  template:
+    metadata:
+      labels:
+        app: website-worker
+    spec:
+      containers:
+        - name: website-worker
+          image: anahita/website-worker
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ENV
+            # Mutual TLS on the calls to the gRPC services. Unset means on,
+            # except with ENV=dev.
+            - name: GRPC_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRPC_TLS
+                  optional: true
+            - name: GRAPH_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRAPH_SERVICE_ADDR
+            - name: DSN
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: DSN
+            # For the card of each item's original. Unset, articles have none.
+            - name: LINK_PREVIEW_URL
+              value: http://link-preview-service:80
+            # The most posts a website makes in an hour, and how often, in
+            # minutes, a feed is read.
+            - name: WEBSITE_HOURLY_CAP
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: WEBSITE_HOURLY_CAP
+                  optional: true
+            - name: WEBSITE_READ_EVERY
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: WEBSITE_READ_EVERY
+                  optional: true
+            # For WebSub: the address hubs call back at, worked out as
+            # activitypub-service's is, and the key its signature is made
+            # with, the same as website-service's.
+            - name: DOMAIN_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: DOMAIN_NAME
+            - name: PUBLIC_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PUBLIC_DOMAIN
+                  optional: true
+            - name: PUBLIC_WEB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PUBLIC_WEB_URL
+                  optional: true
+            - name: PUBLIC_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PUBLIC_API_URL
+                  optional: true
+            - name: SECURE_COOKIE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: SECURE_COOKIE_KEY
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+          volumeMounts:
+            - name: grpc-tls
+              mountPath: /run/secrets/grpc
+              readOnly: true
+      volumes:
+        # The certificate this service presents when it calls a gRPC
+        # service, from k8s/base/grpc-tls.yml.
+        - name: grpc-tls
+          secret:
+            secretName: anahita-grpc-client

@@ -124,10 +124,10 @@ func TestCanRequestToFollow(t *testing.T) {
 		{"on somebody else's behalf, as a site administrator", &FollowContext{viewerWith(constants.PersonTypeAdmin), other, asked(), none, none}, false},
 		{"a guest", &FollowContext{entities.NewViewer(), me, asked(), none, none}, false},
 		// Public, and followed outright, whatever its column says.
-		{"a Pulse", &FollowContext{viewer, me, func() *entities.AnahitaNode {
-			pulse := asked()
-			pulse.Type = constants.NodeActorPulseEntityType
-			return pulse
+		{"a Website", &FollowContext{viewer, me, func() *entities.AnahitaNode {
+			website := asked()
+			website.Type = constants.NodeActorWebsiteEntityType
+			return website
 		}(), none, none}, false},
 	}
 

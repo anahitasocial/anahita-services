@@ -147,9 +147,9 @@ var actorTypes = map[string][]string{
 		constants.NodeActorActivityPubPersonEntityType,
 		constants.NodeActorATProtoPersonEntityType,
 	},
-	"group": {"node.actor.group-service.group.v1"},
-	"event": {constants.NodeActorEventEntityType},
-	"pulse": {constants.NodeActorPulseEntityType},
+	"group":   {"node.actor.group-service.group.v1"},
+	"event":   {constants.NodeActorEventEntityType},
+	"website": {constants.NodeActorWebsiteEntityType},
 }
 
 // Why a definition was refused, as a word the web app has wording for.

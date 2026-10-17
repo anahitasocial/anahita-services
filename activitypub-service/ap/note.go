@@ -146,9 +146,9 @@ func NewNote(a Addresses, note, author *entities.AnahitaNode, links federation.L
 
 // AsArticle makes the post an Article: a title, its opening as its
 // summary, and the page it is read at. Mastodon shows one as its title and
-// a link; WriteFreely, Ghost and the like as an article. For a Pulse's
+// a link; WriteFreely, Ghost and the like as an article. For a website's
 // posts, whose opening and link to the original are all there is
-// (docs/plans/pulse.md).
+// (docs/plans/website.md).
 func (n *Note) AsArticle(a Addresses, article *entities.AnahitaNode, summary string) *Note {
 	n.Type = "Article"
 	n.Name = strings.TrimSpace(article.Name)

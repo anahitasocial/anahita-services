@@ -121,7 +121,7 @@ func (h *Handlers) siteFederates() (bool, string) {
 }
 
 // mayFederate says whether a node is somebody who could be on the
-// fediverse: a person or a Pulse, made here, whose profile anybody may see.
+// fediverse: a person or a website, made here, whose profile anybody may see.
 //
 // Whether anybody may see it is asked of the graph, as a visitor: it knows
 // whether they are disabled, archived or on their way to being deleted. And
@@ -151,9 +151,9 @@ func (h *Handlers) federating(person *entities.AnahitaNode) *entities.AnahitaNod
 	if !h.mayFederate(person) {
 		return nil
 	}
-	// A Pulse is a website's feed made to be followed from anywhere: on the
+	// A website is a site's feed made to be followed from anywhere: on the
 	// fediverse whenever it may be, with nobody to choose it.
-	if isPulse(person) {
+	if isWebsite(person) {
 		return person
 	}
 	account, err := h.Accounts.Read(person.ID)
@@ -164,13 +164,13 @@ func (h *Handlers) federating(person *entities.AnahitaNode) *entities.AnahitaNod
 }
 
 // isFederatingType is the kinds of profile here that may be on the
-// fediverse: a person, when they choose to be, and a Pulse.
+// fediverse: a person, when they choose to be, and a website.
 func isFederatingType(nodeType string) bool {
-	return nodeType == constants.NodeActorPersonEntityType || nodeType == constants.NodeActorPulseEntityType
+	return nodeType == constants.NodeActorPersonEntityType || nodeType == constants.NodeActorWebsiteEntityType
 }
 
-func isPulse(node *entities.AnahitaNode) bool {
-	return node != nil && node.Type == constants.NodeActorPulseEntityType
+func isWebsite(node *entities.AnahitaNode) bool {
+	return node != nil && node.Type == constants.NodeActorWebsiteEntityType
 }
 
 // activityJSON answers in the type a server asked for.

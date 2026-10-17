@@ -42,19 +42,19 @@ type Handlers struct {
 	// Events, and the administrators of events.
 	Event      *eventHandler
 	EventAdmin *adminHandler
-	// Pulses, made by pulse-service, and their administrators.
-	Pulse      *pulseHandler
-	PulseAdmin *adminHandler
+	// Websites, made by website-service, and their administrators.
+	Website      *websiteHandler
+	WebsiteAdmin *adminHandler
 }
 
 func NewHandlers(env *Env) *Handlers {
 	return &Handlers{
-		Person:     NewPersonHandler(env),
-		Group:      NewGroupHandler(env),
-		Admin:      NewAdminHandler(env),
-		Event:      NewEventHandler(env),
-		EventAdmin: NewEventAdminHandler(env),
-		Pulse:      NewPulseHandler(env),
-		PulseAdmin: NewPulseAdminHandler(env),
+		Person:       NewPersonHandler(env),
+		Group:        NewGroupHandler(env),
+		Admin:        NewAdminHandler(env),
+		Event:        NewEventHandler(env),
+		EventAdmin:   NewEventAdminHandler(env),
+		Website:      NewWebsiteHandler(env),
+		WebsiteAdmin: NewWebsiteAdminHandler(env),
 	}
 }

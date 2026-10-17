@@ -1,7 +1,7 @@
 // Package domains proves that somebody controls a domain.
 //
-// A Pulse is only made for a website whose owner proves the domain is
-// theirs (docs/plans/pulse.md), and people and groups are to use the same
+// A website is only made for a website whose owner proves the domain is
+// theirs (docs/plans/website.md), and people and groups are to use the same
 // proof later. The proof is a token given here, put in one of two places
 // only the domain's owner can write:
 //

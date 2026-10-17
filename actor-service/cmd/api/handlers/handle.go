@@ -46,7 +46,7 @@ func (h *personHandler) Handle(c echo.Context) error {
 		{"people", personTypeOf(alias)},
 		{"groups", constants.NodeActorGroupType},
 		{"events", an_constants.NodeActorEventEntityType},
-		{"pulses", an_constants.NodeActorPulseEntityType},
+		{"websites", an_constants.NodeActorWebsiteEntityType},
 	}
 	for _, each := range kinds {
 		req := services.NewGraphNodeRequest().ReadByAlias

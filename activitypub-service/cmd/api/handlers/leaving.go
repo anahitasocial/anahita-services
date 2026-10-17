@@ -84,7 +84,7 @@ func (h *Handlers) leave(ctx context.Context, person *entities.AnahitaNode) erro
 	return h.Accounts.Set(person.ID, false)
 }
 
-// profileChanged is something having happened to a person or a Pulse here:
+// profileChanged is something having happened to a person or a website here:
 // their profile edited, or their account disabled, archived, deleted or
 // purged. Other servers are told what follows from it.
 func (h *Handlers) profileChanged(ctx context.Context, personID int64) error {
@@ -96,9 +96,9 @@ func (h *Handlers) profileChanged(ctx context.Context, personID int64) error {
 		return nil
 	}
 
-	// A person is on the fediverse only once they choose to be; a Pulse
+	// A person is on the fediverse only once they choose to be; a website
 	// always is.
-	if !isPulse(person) {
+	if !isWebsite(person) {
 		account, err := h.Accounts.Read(personID)
 		if err != nil || account == nil || !account.Enabled {
 			// Not on the fediverse: nobody to tell.

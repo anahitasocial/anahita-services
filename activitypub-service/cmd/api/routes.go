@@ -97,7 +97,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusServiceUnavailable, "its key cannot be read now")
 	ap_.GET("/users/:uuid", r.handler.Actor, r.setViewer).
 		Summary("Somebody here, as other servers see them").
-		Describe(server+"A `Person`, or an `Organization` for a Pulse, with their public key.").
+		Describe(server+"A `Person`, or an `Organization` for a Website, with their public key.").
 		Viewer(apidoc.Anyone).
 		Media(activity).
 		Takes(&handlers.ActorRef{}).
@@ -135,7 +135,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusServiceUnavailable, "it cannot be counted now")
 	ap_.GET("/notes/:uuid", r.handler.Note, r.setViewer).
 		Summary("A post, as other servers see it").
-		Describe(server+"A `Note`, of somebody on the fediverse, open to everybody; an `Article` for a Pulse's article.").
+		Describe(server+"A `Note`, of somebody on the fediverse, open to everybody; an `Article` for a Website's article.").
 		Viewer(apidoc.Anyone).
 		Media(activity).
 		Takes(&handlers.NoteRef{}).

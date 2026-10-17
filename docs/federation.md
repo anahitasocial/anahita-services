@@ -368,7 +368,7 @@ The moment one of them stops being so, they are not found: every address of
 theirs answers `404`, in the same words as an address nobody has. A server
 is never told *why* somebody is not there.
 
-A **Pulse**, a website's feed ([Pulses](pulses.md)), is on the fediverse
+A **website**, a website's feed ([Websites](websites.md)), is on the fediverse
 with nobody to turn it on: whenever it is enabled, not on its way to being
 deleted and public, on a site that federates. It is an `Organization`, found
 by its handle as a person is.
@@ -544,9 +544,9 @@ its page. Mastodon shows a video with no sound as a GIF, silently and on a
 loop, so a clip made of a GIF is one there too, with nothing said to make
 it so.
 
-A **Pulse's articles** go out as `Article`: the title as `name`, the item's
+A **website's articles** go out as `Article`: the title as `name`, the item's
 excerpt as `summary`, the content, and the article's page as `url`,
-attributed to the Pulse though its administrator made them; replies under
+attributed to the website though its administrator made them; replies under
 them go and come as under a note.
 
 **Not sent:** people's articles and topics (roadmap row 84); anything in a group;
@@ -867,7 +867,7 @@ every signature fail, in both directions.
 
 - A key is made when a person turns federation on (RSA, 2048 bits, which is
   what every server understands), and for anybody on the fediverse who has
-  none the first time one is asked for: a Pulse's, for one.
+  none the first time one is asked for: a website's, for one.
 - The private half is kept in `actor_keys`, encrypted by the means
   auth-service keeps its secrets: `CRYPT_BACKEND` and `CRYPT_LOCAL_KEY`
   ([Configuration](configuration.md)). **Losing that key loses every

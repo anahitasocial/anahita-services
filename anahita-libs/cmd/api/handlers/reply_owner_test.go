@@ -8,11 +8,11 @@ import (
 	"anahita-libs/data/entities"
 )
 
-func TestAReplyUnderAPulsesPostIsThePulses(t *testing.T) {
-	pulse := entities.NewAnahitaNode()
-	pulse.ID, pulse.Type = 900, constants.NodeActorPulseEntityType
+func TestAReplyUnderAWebsitesPostIsTheWebsites(t *testing.T) {
+	website := entities.NewAnahitaNode()
+	website.ID, website.Type = 900, constants.NodeActorWebsiteEntityType
 	root := entities.NewAnahitaNode()
-	root.ID, root.OwnerID, root.Owner = 10, 900, pulse
+	root.ID, root.OwnerID, root.Owner = 10, 900, website
 
 	viewer := entities.NewViewer()
 	viewer.ID, viewer.Authenticated = 7, true
@@ -21,7 +21,7 @@ func TestAReplyUnderAPulsesPostIsThePulses(t *testing.T) {
 	reply := entities.NewAnahitaNode()
 	reply.Meta = []byte(`{"link_preview":{"url":"https://example.com"}}`)
 	OwnReply(thread, reply, viewer)
-	if reply.OwnerID != 900 || reply.OwnerType != constants.NodeActorPulseEntityType || reply.CreatedBy != 900 || reply.ModifiedBy != 7 {
+	if reply.OwnerID != 900 || reply.OwnerType != constants.NodeActorWebsiteEntityType || reply.CreatedBy != 900 || reply.ModifiedBy != 7 {
 		t.Errorf("the reply: owner %d (%s), author %d, changed by %d", reply.OwnerID, reply.OwnerType, reply.CreatedBy, reply.ModifiedBy)
 	}
 	if WrittenBy(reply.Meta) != 7 || len(reply.Meta) < 40 {

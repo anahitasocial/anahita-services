@@ -184,7 +184,7 @@ func nullableString(value string) any {
 }
 
 // addedAt is when a new node says it was made: when it was written, for a
-// post a service brings from elsewhere (a Pulse's article keeps its item's
+// post a service brings from elsewhere (a website's article keeps its item's
 // date), unless it says nothing (a time never set arrives as the year 1, or
 // 1970) or says the future. As addRemote has it.
 func addedAt(said, now time.Time) time.Time {

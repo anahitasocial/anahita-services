@@ -267,11 +267,11 @@ spec:
                   name: anahita-config
                   key: EVENTS_FROM
                   optional: true
-            - name: PULSES_FROM
+            - name: WEBSITES_FROM
               valueFrom:
                 configMapKeyRef:
                   name: anahita-config
-                  key: PULSES_FROM
+                  key: WEBSITES_FROM
                   optional: true
             # Video: whether it may be posted and the limits, published to the
             # web app. video-service holds uploads to them.

@@ -103,8 +103,8 @@ func CanRequestToFollow(ctx *FollowContext) bool {
 		return false
 	}
 
-	// A Pulse is public, and followed outright: there is nothing to ask.
-	if !ctx.Target.AllowFollowRequest || ctx.Target.Type == constants.NodeActorPulseEntityType {
+	// A website is public, and followed outright: there is nothing to ask.
+	if !ctx.Target.AllowFollowRequest || ctx.Target.Type == constants.NodeActorWebsiteEntityType {
 		return false
 	}
 

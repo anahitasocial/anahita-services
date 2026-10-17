@@ -206,8 +206,8 @@ func (h *mediumHandler) AddReply(c echo.Context) error {
 
 	// A reply belongs to whoever wrote it, wherever the thread is. That is
 	// what lets them edit it and take it down, and what a reply is on the
-	// networks this federates with. Under a Pulse's own post, one by its
-	// administrator is the Pulse's.
+	// networks this federates with. Under a website's own post, one by its
+	// administrator is the website's.
 	an_handlers.OwnReply(thread, reply, viewer)
 
 	reply, err = h.Srv.MediaGRPC.Add(reply, viewer)
