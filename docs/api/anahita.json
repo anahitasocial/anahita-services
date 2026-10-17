@@ -19165,6 +19165,99 @@
         "x-viewer": "signed_in"
       }
     },
+    "/notes/{id}/cited_by": {
+      "get": {
+        "description": "Newest first, those the viewer may see. Its author's own are listed too, though they are not counted in its `citation_count`.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getNotesByIdCitedBy",
+        "parameters": [
+          {
+            "description": "The post cited, of any kind.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: up to 100.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/MediumNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "the installation is in preview and the viewer is not signed in"
+          },
+          "404": {
+            "description": "there is no such post that the viewer may see"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The posts that cite a post",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).CitedBy",
+        "x-viewer": "anyone"
+      }
+    },
     "/notes/{id}/comment-status": {
       "patch": {
         "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",

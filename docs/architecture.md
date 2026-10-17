@@ -189,11 +189,17 @@ web app reads it the same way.
 - **A post here** is not copied into the article. The reader's browser asks
   for it as for any post, so somebody who may not see it gets the link and
   nothing more.
-- **A citation** is the edge from the article to each post here it shows
-  (`edge.medium.citation.v1`). text-service writes the citations when the
-  article or topic is added or edited, and takes away those whose line is
-  gone. A post that could not be read, or is not a post, is not cited.
-  Search and recommendations do not read citations yet.
+- **A citation** is the edge from the article to each post or profile here
+  it shows (`edge.medium.citation.v1`). text-service writes the citations
+  when the article or topic is added or edited, and takes away those whose
+  line is gone. An address that could not be read, or is not a post or a
+  profile, is not cited.
+- **Who cites what.** Each post and profile keeps how many people cite it,
+  `nodes.citation_count`, which [Search](search.md) and
+  [Recommendations](recommendations.md) weigh. `GET /notes/:id/cited_by`
+  lists the posts citing a post of any kind, newest first, as the viewer
+  may see them; the web app shows them in a post's Citations tab, beside
+  Replies and Locations, with what an article or a topic cites under them.
 - **A page elsewhere** is shown by its card, kept in the post's `meta` under
   `link_previews` and sent as `link_previews`: see
   [Link previews](link-previews.md#cards-in-long-writing).

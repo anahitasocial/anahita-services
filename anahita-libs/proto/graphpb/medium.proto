@@ -159,6 +159,20 @@ message QuotesListResponse {
     repeated Node quotes = 1;
 }
 
+// The posts that cite a post, newest first, as the viewer may see them: the
+// articles and topics that show it within their text.
+message CitedByListRequest {
+    int64 cited_id = 1;
+    uint64 limit = 2;
+    uint64 offset = 3;
+    Viewer viewer = 4;
+}
+
+message CitedByListResponse {
+    repeated Node nodes = 1;
+    uint64 total = 2;
+}
+
 // Saves a post for the viewer, or takes it out of what they saved.
 message SavedSetRequest {
     int64 node_id = 1;
@@ -284,6 +298,7 @@ service MediumService {
     rpc ListQuotes(QuotesListRequest) returns (QuotesListResponse) {}
     rpc SetSaved(SavedSetRequest) returns (SavedSetResponse) {}
     rpc ListSaved(SavedListRequest) returns (SavedListResponse) {}
+    rpc ListCitedBy(CitedByListRequest) returns (CitedByListResponse) {}
     rpc ListAuthored(AuthoredListRequest) returns (AuthoredListResponse) {}
 
     // The images of photo posts. A photo is a medium, and these are its

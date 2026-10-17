@@ -34,6 +34,7 @@ const (
 	MediumService_ListQuotes_FullMethodName       = "/graph.MediumService/ListQuotes"
 	MediumService_SetSaved_FullMethodName         = "/graph.MediumService/SetSaved"
 	MediumService_ListSaved_FullMethodName        = "/graph.MediumService/ListSaved"
+	MediumService_ListCitedBy_FullMethodName      = "/graph.MediumService/ListCitedBy"
 	MediumService_ListAuthored_FullMethodName     = "/graph.MediumService/ListAuthored"
 	MediumService_AddPhotoUpload_FullMethodName   = "/graph.MediumService/AddPhotoUpload"
 	MediumService_ReadPhotoUploads_FullMethodName = "/graph.MediumService/ReadPhotoUploads"
@@ -62,6 +63,7 @@ type MediumServiceClient interface {
 	ListQuotes(ctx context.Context, in *QuotesListRequest, opts ...grpc.CallOption) (*QuotesListResponse, error)
 	SetSaved(ctx context.Context, in *SavedSetRequest, opts ...grpc.CallOption) (*SavedSetResponse, error)
 	ListSaved(ctx context.Context, in *SavedListRequest, opts ...grpc.CallOption) (*SavedListResponse, error)
+	ListCitedBy(ctx context.Context, in *CitedByListRequest, opts ...grpc.CallOption) (*CitedByListResponse, error)
 	ListAuthored(ctx context.Context, in *AuthoredListRequest, opts ...grpc.CallOption) (*AuthoredListResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
@@ -229,6 +231,16 @@ func (c *mediumServiceClient) ListSaved(ctx context.Context, in *SavedListReques
 	return out, nil
 }
 
+func (c *mediumServiceClient) ListCitedBy(ctx context.Context, in *CitedByListRequest, opts ...grpc.CallOption) (*CitedByListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CitedByListResponse)
+	err := c.cc.Invoke(ctx, MediumService_ListCitedBy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *mediumServiceClient) ListAuthored(ctx context.Context, in *AuthoredListRequest, opts ...grpc.CallOption) (*AuthoredListResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AuthoredListResponse)
@@ -300,6 +312,7 @@ type MediumServiceServer interface {
 	ListQuotes(context.Context, *QuotesListRequest) (*QuotesListResponse, error)
 	SetSaved(context.Context, *SavedSetRequest) (*SavedSetResponse, error)
 	ListSaved(context.Context, *SavedListRequest) (*SavedListResponse, error)
+	ListCitedBy(context.Context, *CitedByListRequest) (*CitedByListResponse, error)
 	ListAuthored(context.Context, *AuthoredListRequest) (*AuthoredListResponse, error)
 	// The images of photo posts. A photo is a medium, and these are its
 	// images, so they are kept by the service that keeps the post.
@@ -361,6 +374,9 @@ func (UnimplementedMediumServiceServer) SetSaved(context.Context, *SavedSetReque
 }
 func (UnimplementedMediumServiceServer) ListSaved(context.Context, *SavedListRequest) (*SavedListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSaved not implemented")
+}
+func (UnimplementedMediumServiceServer) ListCitedBy(context.Context, *CitedByListRequest) (*CitedByListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCitedBy not implemented")
 }
 func (UnimplementedMediumServiceServer) ListAuthored(context.Context, *AuthoredListRequest) (*AuthoredListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAuthored not implemented")
@@ -668,6 +684,24 @@ func _MediumService_ListSaved_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediumService_ListCitedBy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CitedByListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).ListCitedBy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_ListCitedBy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).ListCitedBy(ctx, req.(*CitedByListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MediumService_ListAuthored_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuthoredListRequest)
 	if err := dec(in); err != nil {
@@ -824,6 +858,10 @@ var MediumService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListSaved",
 			Handler:    _MediumService_ListSaved_Handler,
+		},
+		{
+			MethodName: "ListCitedBy",
+			Handler:    _MediumService_ListCitedBy_Handler,
 		},
 		{
 			MethodName: "ListAuthored",

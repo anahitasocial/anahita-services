@@ -69,7 +69,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
 <li><a href="#search-service">Search</a> <span class="count">3</span></li>
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
-<li><a href="#text-service">Notes, articles and topics</a> <span class="count">43</span></li>
+<li><a href="#text-service">Notes, articles and topics</a> <span class="count">44</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
 <li><a href="#schemas">Shapes</a> <span class="count">143</span></li>
 </ul>
@@ -7809,6 +7809,32 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).EditAccess</code></p>
+</details>
+<details class="route" id="getNotesByIdCitedBy" data-search="get /notes/{id}/cited_by the posts that cite a post newest first, those the viewer may see. its author&#39;s own are listed too, though they are not counted in its `citation_count`.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/notes/{id}/cited_by</code> <span class="summary">The posts that cite a post</span></summary>
+<div class="description"><p>Newest first, those the viewer may see. Its author&#39;s own are listed too, though they are not counted in its <code>citation_count</code>.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The post cited, of any kind.</td></tr>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send: up to 100. At least 0. At most 100. <code>20</code> unless given.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-MediumNodeItem">MediumNodeItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>the installation is in preview and the viewer is not signed in</td></tr>
+<tr><td class="status s4">404</td><td>there is no such post that the viewer may see</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).CitedBy</code></p>
 </details>
 <details class="route" id="patchNotesByIdCommentStatus" data-search="patch /notes/{id}/comment-status open or close replies who may call it: somebody signed in, with a token that carries `media:write`.">
 <summary><span class="method patch">PATCH</span> <code class="path">/notes/{id}/comment-status</code> <span class="summary">Open or close replies</span></summary>

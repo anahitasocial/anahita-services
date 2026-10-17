@@ -128,6 +128,60 @@ func (h *mediumHandler) ListSaved(ctx context.Context, req *graphpb.SavedListReq
 	}, nil
 }
 
+// ListCitedBy returns the posts that cite a post, newest first, as the
+// viewer may see them: the articles and topics that show it within their
+// text (an edge.medium.citation.v1 from each to it). Its author's own are
+// among them, though they do not count toward its citation_count.
+func (h *mediumHandler) ListCitedBy(ctx context.Context, req *graphpb.CitedByListRequest) (*graphpb.CitedByListResponse, error) {
+	viewer := entities.NewViewer()
+	if req.Viewer != nil {
+		viewer.ID = req.Viewer.Id
+		viewer.PersonType = req.Viewer.PersonType
+		viewer.Username = req.Viewer.Username
+		viewer.Email = req.Viewer.Email
+	}
+
+	browse := &graphpb.BrowseNeighboursRequest{
+		NodeId:    req.GetCitedId(),
+		EdgeTypes: []string{constants.EdgeMediumCitationType},
+		Direction: constants.GraphQueryDirectionInbound,
+		Limit:     req.GetLimit(),
+		Offset:    req.GetOffset(),
+		Ordering:  constants.OrderingRecent,
+	}
+	nodes, err := h.env.Repos.Graph.BrowseNeighbours(browse, viewer)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	total, err := h.env.Repos.Graph.CountNeighbours(browse, viewer)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	ids := extractNodeIDs(nodes)
+	if len(ids) > 0 && viewer.ID > 0 {
+		isLikedMap, err := h.env.Repos.LikesRel.IsLikedMany(viewer.ID, ids)
+		if err != nil {
+			return nil, err
+		}
+		isRepostedMap, err := h.env.Repos.Reposts.IsRepostedMany(viewer.ID, ids)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			node.IsLikedByViewer = isLikedMap[node.ID].IsLiked
+			node.IsRepostedByViewer = isRepostedMap[node.ID]
+		}
+	}
+
+	return &graphpb.CitedByListResponse{
+		Nodes: nodesToGrpc(nodes),
+		Total: total,
+	}, nil
+}
+
 // ListAuthored returns what one person wrote, a page at a time, for their
 // own copy of it. It asks nothing about who is asking: the services that
 // call it do so for the person themselves. See the repository.

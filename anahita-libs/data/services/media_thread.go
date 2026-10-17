@@ -145,6 +145,37 @@ func (srv *MediaGRPC) Saved(limit uint64, offset uint64, viewer *entities.Viewer
 	return nodes, resp.GetTotal(), nil
 }
 
+// CitedBy is the posts that cite a post, newest first, a page of them, as
+// the viewer may see them, and how many there are.
+func (srv *MediaGRPC) CitedBy(citedID int64, limit uint64, offset uint64, viewer *entities.Viewer) ([]*entities.AnahitaNode, uint64, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := client.ListCitedBy(context.Background(), &graphpb.CitedByListRequest{
+		CitedId: citedID,
+		Limit:   limit,
+		Offset:  offset,
+		Viewer: &graphpb.Viewer{
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
+		},
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	nodes := make([]*entities.AnahitaNode, 0, len(resp.GetNodes()))
+	for _, node := range resp.GetNodes() {
+		nodes = append(nodes, grpcToGraphNode(node))
+	}
+
+	return nodes, resp.GetTotal(), nil
+}
+
 // SetPinned pins a post to the profile it is on, or takes the pin off. A
 // profile has one pin: pinning moves it from the post that had it.
 func (srv *MediaGRPC) SetPinned(nodeID int64, pinned bool, viewer *entities.Viewer) error {
