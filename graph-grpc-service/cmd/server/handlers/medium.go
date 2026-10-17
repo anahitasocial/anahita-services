@@ -410,6 +410,9 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 		}
 	}
 
+	// What it cites, read while its edges are still there: they go with it.
+	cited := h.citedBy(node.ID)
+
 	if answered {
 		err = h.env.Repos.Replies.Tombstone(node.ID, viewer.ID)
 	} else {
@@ -433,7 +436,7 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 	}
 
 	// And one citer fewer, perhaps, of what it cited.
-	h.recountCitedBy(node.ID)
+	h.recount(cited)
 
 	// The list of a photo post's images goes with the post. The stored images
 	// themselves are removed by the service that asked for this.
@@ -468,18 +471,28 @@ func (h *mediumHandler) Delete(ctx context.Context, req *graphpb.MediumDeleteReq
 // a change to the post: published, its audience changed, taken down. Never
 // in the way of the change itself.
 func (h *mediumHandler) recountCitedBy(citingID int64) {
+	h.recount(h.citedBy(citingID))
+}
+
+// citedBy is what a post cites, or nothing when it cannot be read.
+func (h *mediumHandler) citedBy(citingID int64) []int64 {
 	if h.env.Repos.Citations == nil {
-		return
+		return nil
 	}
 	cited, err := h.env.Repos.Citations.CitedBy(citingID)
 	if err != nil {
 		log.Printf("reading what %d cites failed: %v", citingID, err)
-		return
+		return nil
 	}
-	if len(cited) == 0 {
+	return cited
+}
+
+// recount puts right the citation counts of what was cited.
+func (h *mediumHandler) recount(cited []int64) {
+	if h.env.Repos.Citations == nil || len(cited) == 0 {
 		return
 	}
 	if err := h.env.Repos.Citations.Recount(cited); err != nil {
-		log.Printf("counting the citations of what %d cites failed: %v", citingID, err)
+		log.Printf("counting the citations of %v failed: %v", cited, err)
 	}
 }
