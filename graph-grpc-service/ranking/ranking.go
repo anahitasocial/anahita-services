@@ -23,6 +23,7 @@
 package ranking
 
 import (
+	"anahita-libs/constants"
 	"encoding/json"
 	"log"
 	"os"
@@ -55,6 +56,13 @@ type Useful struct {
 	Save   float64 `json:"save"`
 	Reply  float64 `json:"reply"`
 	Follow float64 `json:"follow"`
+	// Cite is each person who cites it, a post or a profile: shown it
+	// within an article or a topic of their own (nodes.citation_count).
+	// More than a like or a save, since citing takes deliberate effort; a
+	// starting value, to be tuned once there are citations to look at (the
+	// user, 2026-10-16). Counted as it stands, not halved with time: a
+	// citation is lasting, and useful knowledge stays useful.
+	Cite float64 `json:"cite"`
 }
 
 // Weights is the whole of it.
@@ -79,7 +87,7 @@ func Default() Weights {
 			NameContains: 50, Hashtag: 40, BodyWord: 20, BodyContains: 10,
 		},
 		Following:    15,
-		Useful:       Useful{Scale: 5, Like: 1, Save: 2, Reply: 2, Follow: 1},
+		Useful:       Useful{Scale: 5, Like: 1, Save: 2, Reply: 2, Follow: 1, Cite: 3},
 		HalfLifeDays: 365,
 	}
 }
@@ -94,7 +102,7 @@ func (w Weights) valid() bool {
 		w.Match.Handle, w.Match.Name, w.Match.NameStarts, w.Match.WordStarts,
 		w.Match.NameContains, w.Match.Hashtag, w.Match.BodyWord, w.Match.BodyContains,
 		w.Following, w.Useful.Scale, w.Useful.Like, w.Useful.Save, w.Useful.Reply,
-		w.Useful.Follow, w.HalfLifeDays,
+		w.Useful.Follow, w.Useful.Cite, w.HalfLifeDays,
 	}
 	for _, value := range values {
 		if value < 0 || value > most {
@@ -163,4 +171,49 @@ func (s *Source) Weights() Weights {
 	}
 	s.weights, s.modified = weights, info.ModTime()
 	return s.weights
+}
+
+// What somebody may adjust for themselves, and how far (the user,
+// 2026-10-16: as they adjust their recommendations). Each is a step that
+// multiplies the installation's own weight: Off, Less, As is, More, Much
+// more. So what the operator tunes still holds for everybody, and each
+// person leans it their way; what words match where is not theirs to move.
+var Adjustable = constants.SearchAdjustable
+
+// Steps is what each may be set to. 1 is as the installation has it.
+var Steps = constants.SearchSteps
+
+// IsStep says whether a value is one of Steps.
+func IsStep(value float64) bool {
+	for _, step := range Steps {
+		if value == step {
+			return true
+		}
+	}
+	return false
+}
+
+// Adjusted is the weights with somebody's own steps applied. A name or a
+// value that is not one is left as the installation has it.
+func (w Weights) Adjusted(steps map[string]float64) Weights {
+	for name, step := range steps {
+		if !IsStep(step) {
+			continue
+		}
+		switch name {
+		case "like":
+			w.Useful.Like *= step
+		case "save":
+			w.Useful.Save *= step
+		case "reply":
+			w.Useful.Reply *= step
+		case "follow":
+			w.Useful.Follow *= step
+		case "cite":
+			w.Useful.Cite *= step
+		case "following":
+			w.Following *= step
+		}
+	}
+	return w
 }

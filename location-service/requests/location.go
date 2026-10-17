@@ -25,7 +25,7 @@ func NewLocationRequest() *LocationRequest {
 		},
 		BrowseTrending: &LocationBrowseTrendingRequest{
 			Limit:      constants.RequestLimitDefault,
-			TimeWindow: "weekly",
+			TimeWindow: "",
 		},
 		BrowseOrderedByDegree: &LocationBrowseOrderedByDegreeRequest{
 			Offset: 0,
@@ -46,7 +46,7 @@ type LocationBrowseRequest struct {
 	// Words its name or address holds.
 	Search string `query:"q" validate:"max=100,omitempty,search_query"`
 	// The order they come in.
-	Ordering string `query:"sort" validate:"max=10,omitempty,oneof=popular trending recent"`
+	Ordering string `query:"sort" validate:"max=10,omitempty,oneof=popular trending recent name"`
 	// Which way the order runs.
 	Direction string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	// Only the places a post is tied to: the post's id.
@@ -84,7 +84,7 @@ type LocationEditRequest struct {
 	// The place's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 	// What it is called.
-	Name string `form:"name" validate:"required,max=255"`
+	Name string `form:"name" validate:"required,max=100"`
 	// Its street address.
 	Address string `form:"address" validate:"required,max=255"`
 	// Its city.
@@ -97,7 +97,7 @@ type LocationEditRequest struct {
 
 type LocationAddRequest struct {
 	// What it is called.
-	Name string `form:"name" validate:"required,max=255"`
+	Name string `form:"name" validate:"required,max=100"`
 	// Its street address.
 	Address string `form:"address" validate:"required,max=255"`
 	// Its city.

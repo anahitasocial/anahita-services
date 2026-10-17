@@ -421,7 +421,7 @@ func (k *Keeper) copyPostPicture(ctx context.Context, post *entities.AnahitaNode
 		Mimetype: mimeType,
 		Width:    width,
 		Height:   height,
-		AltText:  cutRunes(picture.Alt, 1500),
+		AltText:  cutRunes(picture.Alt, constants.AltTextKeptMax),
 	}, stored
 }
 

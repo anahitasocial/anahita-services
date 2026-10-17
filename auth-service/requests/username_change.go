@@ -15,5 +15,5 @@ package requests
 // somebody else's.
 type UsernameChangeEdit struct {
 	// The new username: letters, digits, `-` and `_`.
-	Username string `json:"username" validate:"required,min=3,max=32,username"`
+	Username string `json:"username" validate:"required,min=3,max=30,username"`
 }

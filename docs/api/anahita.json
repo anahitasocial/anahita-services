@@ -912,6 +912,11 @@
             "description": "Its words, as Markdown.",
             "type": "string"
           },
+          "citation_count": {
+            "description": "How many people cite it, each once, never its author.",
+            "format": "int64",
+            "type": "integer"
+          },
           "comment_count": {
             "description": "How many replies are under it.",
             "format": "int64",
@@ -1099,6 +1104,7 @@
         "required": [
           "id",
           "type",
+          "citation_count",
           "view_count",
           "likes_count",
           "quote_count",
@@ -4964,6 +4970,10 @@
             "description": "What it is found by: `/hashtags/<alias>`.",
             "type": "string"
           },
+          "followed": {
+            "description": "In the following and all lists: the viewer follows it.",
+            "type": "boolean"
+          },
           "id": {
             "description": "Its id.",
             "format": "int64",
@@ -4973,14 +4983,78 @@
             "description": "The hashtag as it is shown, without its #.",
             "type": "string"
           },
+          "people": {
+            "description": "In a trending list: how many people posted with it in the window.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
           "type": {
             "description": "Always `node.tag.hashtag-service.hashtag.v1`.",
             "type": "string"
+          },
+          "uses": {
+            "description": "In the following and all lists: how many posts it is on that anybody may see, and the viewer's own.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
           }
         },
         "required": [
           "id",
           "type"
+        ],
+        "type": "object"
+      },
+      "hashtag.SuggestResponse": {
+        "description": "SuggestResponse is the hashtags offered, the best first.",
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/hashtag.Suggestion"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "hashtag.Suggestion": {
+        "description": "Suggestion is a hashtag in use, offered.",
+        "properties": {
+          "alias": {
+            "description": "In lower case: what it is found by, and what to write after the #.",
+            "type": "string"
+          },
+          "followed": {
+            "description": "In one of the viewer's custom feeds.",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "As it is shown.",
+            "type": "string"
+          },
+          "uses": {
+            "description": "How many posts it is on that anybody may see, and the viewer's own.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "alias",
+          "name",
+          "uses",
+          "followed"
         ],
         "type": "object"
       },
@@ -5053,6 +5127,12 @@
           "name": {
             "description": "What it is called.",
             "type": "string"
+          },
+          "people": {
+            "description": "In a trending list: how many people tied a post to it in the window.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
           },
           "postalcode": {
             "description": "Its postal code.",
@@ -5523,7 +5603,7 @@
             "type": "array"
           },
           "type": {
-            "description": "Which reason: `follows_you`, `followed_by_leaders`, `inviter`, `hosted_by_leader`, `shared_interest`, `you_engaged`, `popular` or `featured` (recommendations.md).",
+            "description": "Which reason: `follows_you`, `followed_by_leaders`, `cited_by_leaders`, `inviter`, `hosted_by_leader`, `shared_interest`, `you_engaged`, `cited`, `popular` or `featured` (recommendations.md).",
             "type": "string"
           }
         },
@@ -5572,6 +5652,47 @@
           "score",
           "reasons",
           "actor"
+        ],
+        "type": "object"
+      },
+      "search.PreferencesResponse": {
+        "description": "PreferencesResponse is the viewer's own steps for search's Most relevant: how much each sign that something was found useful counts for them, as a step that multiplies the installation's own weight.",
+        "properties": {
+          "adjustable": {
+            "description": "What may be set: `like`, `save`, `reply`, `follow`, `cite` and `following` (what the viewer follows coming first).",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "options": {
+            "description": "What each may be set to: 0 (off), 0.5, 1 (as is), 1.5 and 2.",
+            "items": {
+              "type": "number"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "steps": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "By name, what they have set; what is not here is 1, as the installation has it.",
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "steps",
+          "adjustable",
+          "options"
         ],
         "type": "object"
       },
@@ -10234,7 +10355,7 @@
             "name": "username",
             "required": true,
             "schema": {
-              "maxLength": 32,
+              "maxLength": 30,
               "minLength": 3,
               "type": "string",
               "x-validate": "username"
@@ -11496,7 +11617,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -11525,7 +11646,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -11595,7 +11716,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -11624,7 +11745,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -11694,7 +11815,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -11723,7 +11844,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -12055,7 +12176,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -12079,7 +12200,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -12140,7 +12261,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -12164,7 +12285,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -12225,7 +12346,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -12249,7 +12370,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -13723,7 +13844,7 @@
                 }
               }
             },
-            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language` or `unknown_order`; `invalid` for a field"
+            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language`, `invalid_near` (an area's point or radius, 1 to 500 km), `unknown_origin` or `unknown_order`; and, reading a feed of what is near its reader with no `near_latitude` and `near_longitude`, `location_needed`; `invalid` for a field"
           }
         },
         "security": [
@@ -14236,7 +14357,7 @@
                 }
               }
             },
-            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language` or `unknown_order`; `invalid` for a field"
+            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language`, `invalid_near` (an area's point or radius, 1 to 500 km), `unknown_origin` or `unknown_order`; and, reading a feed of what is near its reader with no `near_latitude` and `near_longitude`, `location_needed`; `invalid` for a field"
           }
         },
         "security": [
@@ -14436,7 +14557,7 @@
                 }
               }
             },
-            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language` or `unknown_order`; `invalid` for a field"
+            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language`, `invalid_near` (an area's point or radius, 1 to 500 km), `unknown_origin` or `unknown_order`; and, reading a feed of what is near its reader with no `near_latitude` and `near_longitude`, `location_needed`; `invalid` for a field"
           }
         },
         "security": [
@@ -14579,6 +14700,21 @@
               "maximum": 40,
               "minimum": 0,
               "type": "integer"
+            }
+          },
+          {
+            "description": "Where the reader is, for a feed of what is near them: its area is around this point for this page, and the point is kept nowhere. Rounded to three decimals. Needed by such a feed, unread by any other.",
+            "in": "query",
+            "name": "near_latitude",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "near_longitude",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -14869,7 +15005,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 10000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -14879,7 +15015,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -14900,7 +15036,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 10000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -14910,7 +15046,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -15242,7 +15378,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -15251,7 +15387,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -15272,7 +15408,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -15281,7 +15417,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -16450,6 +16586,206 @@
         "x-viewer": "anyone"
       }
     },
+    "/hashtags/_browse/all": {
+      "get": {
+        "description": "Every hashtag on a post anybody may see, A to Z or the most used first, perhaps only those beginning with `q`: each with how many such posts carry it (`uses`), the viewer's own posts too, and whether the viewer follows it.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getHashtagsBrowseAll",
+        "parameters": [
+          {
+            "description": "Only hashtags beginning with this, its # left out.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "description": "The order: `name`, A to Z (the default), or `uses`, the most used first.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "name",
+              "enum": [
+                "name",
+                "uses"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: up to 20.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int32",
+              "maximum": 20,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Every hashtag",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).All",
+        "x-viewer": "anyone"
+      }
+    },
+    "/hashtags/_browse/following": {
+      "get": {
+        "description": "Those in the viewer's custom feeds, which following a hashtag makes, with how many posts anybody may see carry each (`uses`), and the viewer's own. `q`, `sort` and paging as for all of them.\n\nWho may call it: somebody signed in.",
+        "operationId": "getHashtagsBrowseFollowing",
+        "parameters": [
+          {
+            "description": "Only hashtags beginning with this, its # left out.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "description": "The order: `name`, A to Z (the default), or `uses`, the most used first.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "name",
+              "enum": [
+                "name",
+                "uses"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: up to 20.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int32",
+              "maximum": 20,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The hashtags the viewer follows",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).Following",
+        "x-viewer": "signed_in"
+      }
+    },
     "/hashtags/_browse/ordered_by_degree": {
       "get": {
         "description": "Every hashtag, the ones in the most posts first.\n\nWho may call it: anyone, signed in or not.",
@@ -16528,7 +16864,7 @@
     },
     "/hashtags/_browse/trending": {
       "get": {
-        "description": "The hashtags most used in a window of time that ends now. Not paged: the most there are, up to `limit`.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The hashtags the most people posted with in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getHashtagsBrowseTrending",
         "parameters": [
           {
@@ -16547,7 +16883,6 @@
             "in": "query",
             "name": "time_window",
             "schema": {
-              "default": "weekly",
               "enum": [
                 "daily",
                 "weekly",
@@ -16563,10 +16898,31 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    },
+                    "window": {
+                      "type": "string"
+                    }
                   },
-                  "type": "array"
+                  "required": [
+                    "data",
+                    "pagination",
+                    "window"
+                  ],
+                  "type": "object"
                 }
               }
             },
@@ -16588,6 +16944,120 @@
         ],
         "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).BrowseTrending",
         "x-viewer": "anyone"
+      }
+    },
+    "/hashtags/_suggest": {
+      "get": {
+        "description": "For somebody typing a hashtag: those in use that begin with `q` (what follows the #, its capitals and accents aside), the one that is just that first, then those in the viewer's custom feeds, then the most used. A hashtag is counted by the posts anybody may see, and the viewer's own.\n\nWho may call it: somebody signed in.",
+        "operationId": "getHashtagsSuggest",
+        "parameters": [
+          {
+            "description": "What follows the #, at least one letter.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to offer, 1 to 20; 8 when not given.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/hashtag.SuggestResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Hashtags that begin with what was typed",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).Begun",
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "For long content: the hashtags in use that are words of the title and body, or two words run together (open science, #openscience), and on more than one post. Those in the viewer's custom feeds first, then the words the text uses most. Hashtags the text has already are left out; addresses, code, mentions and hashtags are not words of it.\n\nWho may call it: somebody signed in.",
+        "operationId": "postHashtagsSuggest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "description": "What is written, as Markdown.",
+                    "type": "string"
+                  },
+                  "limit": {
+                    "description": "How many to offer, 1 to 20; 8 when not given.",
+                    "format": "int32",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "title": {
+                    "description": "The title, if it has one.",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/hashtag.SuggestResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Hashtags for a text",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).ForText",
+        "x-viewer": "signed_in"
       }
     },
     "/hashtags/{alias}": {
@@ -17120,7 +17590,7 @@
                 "properties": {
                   "name": {
                     "description": "Optional, and offered rather than required.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -17137,7 +17607,7 @@
                   },
                   "username": {
                     "description": "The username, chosen rather than derived.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -17156,7 +17626,7 @@
                 "properties": {
                   "name": {
                     "description": "Optional, and offered rather than required.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -17173,7 +17643,7 @@
                   },
                   "username": {
                     "description": "The username, chosen rather than derived.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -17693,7 +18163,8 @@
               "enum": [
                 "popular",
                 "trending",
-                "recent"
+                "recent",
+                "name"
               ],
               "maxLength": 10,
               "type": "string"
@@ -17825,7 +18296,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "source_id": {
@@ -17868,7 +18339,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "source_id": {
@@ -18008,7 +18479,7 @@
     },
     "/locations/_browse/trending": {
       "get": {
-        "description": "The places most posts were tied to in a window of time that ends now. Not paged.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The places the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getLocationsBrowseTrending",
         "parameters": [
           {
@@ -18027,7 +18498,6 @@
             "in": "query",
             "name": "time_window",
             "schema": {
-              "default": "weekly",
               "enum": [
                 "daily",
                 "weekly",
@@ -18043,10 +18513,31 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/location.LocationNodeItem"
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/location.LocationNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    },
+                    "window": {
+                      "type": "string"
+                    }
                   },
-                  "type": "array"
+                  "required": [
+                    "data",
+                    "pagination",
+                    "window"
+                  ],
+                  "type": "object"
                 }
               }
             },
@@ -18200,7 +18691,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "state_province": {
@@ -18238,7 +18729,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "state_province": {
@@ -18470,7 +18961,7 @@
         },
         "responses": {
           "201": {
-            "description": "tied"
+            "description": "tied, or tied already"
           },
           "400": {
             "description": "the request is not well formed, or a value in it is not one it may be"
@@ -18483,6 +18974,16 @@
           },
           "404": {
             "description": "there is no such place or post"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`too_many_locations`: the post is tied to five places already"
           }
         },
         "security": [
@@ -18940,6 +19441,99 @@
         ],
         "x-handler": "text/cmd/api/handlers.(*mediumHandler).EditAccess",
         "x-viewer": "signed_in"
+      }
+    },
+    "/notes/{id}/cited_by": {
+      "get": {
+        "description": "Newest first, those the viewer may see. Its author's own are listed too, though they are not counted in its `citation_count`.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getNotesByIdCitedBy",
+        "parameters": [
+          {
+            "description": "The post cited, of any kind.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: up to 100.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/MediumNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "the installation is in preview and the viewer is not signed in"
+          },
+          "404": {
+            "description": "there is no such post that the viewer may see"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The posts that cite a post",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*mediumHandler).CitedBy",
+        "x-viewer": "anyone"
       }
     },
     "/notes/{id}/comment-status": {
@@ -24101,7 +24695,7 @@
                 "properties": {
                   "body": {
                     "description": "What they say of themselves.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "language": {
@@ -24111,7 +24705,7 @@
                   },
                   "name": {
                     "description": "Their name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "person_pronouns": {
@@ -24137,7 +24731,7 @@
                 "properties": {
                   "body": {
                     "description": "What they say of themselves.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "language": {
@@ -24147,7 +24741,7 @@
                   },
                   "name": {
                     "description": "Their name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "person_pronouns": {
@@ -26706,6 +27300,99 @@
         "x-viewer": "anyone"
       }
     },
+    "/search/preferences": {
+      "get": {
+        "description": "How much each sign that something was found useful counts for the viewer: a step that multiplies the installation's own weight (search.md).\n\nWho may call it: somebody signed in.",
+        "operationId": "getSearchPreferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/search.PreferencesResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The viewer's weights for Most relevant",
+        "tags": [
+          "search-service"
+        ],
+        "x-handler": "search/cmd/api/handlers.(*preferencesHandler).Read",
+        "x-viewer": "signed_in"
+      },
+      "put": {
+        "description": "What is sent replaces what there was; a name left out is as the installation has it. Answers with them.\n\nWho may call it: somebody signed in.",
+        "operationId": "putSearchPreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "steps": {
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/search.PreferencesResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`invalid_weight`: a name that may not be set, or a value that is not a step; nothing is changed"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change the viewer's weights for Most relevant",
+        "tags": [
+          "search-service"
+        ],
+        "x-handler": "search/cmd/api/handlers.(*preferencesHandler).Edit",
+        "x-viewer": "signed_in"
+      }
+    },
     "/signup": {
       "get": {
         "description": "Or a page that says the site takes no registrations, or only by invitation.\n\nWho may call it: anyone, signed in or not.",
@@ -26744,7 +27431,7 @@
               "schema": {
                 "properties": {
                   "body": {
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "csrf_token": {
@@ -26760,7 +27447,7 @@
                   },
                   "name": {
                     "description": "Collected in `approval` mode only, and required there.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -26771,7 +27458,7 @@
                   },
                   "username": {
                     "description": "The username: letters, digits, `-` and `_`. It is the address of their profile.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -26794,7 +27481,7 @@
               "schema": {
                 "properties": {
                   "body": {
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "csrf_token": {
@@ -26810,7 +27497,7 @@
                   },
                   "name": {
                     "description": "Collected in `approval` mode only, and required there.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -26821,7 +27508,7 @@
                   },
                   "username": {
                     "description": "The username: letters, digits, `-` and `_`. It is the address of their profile.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -30658,7 +31345,7 @@
                 "properties": {
                   "username": {
                     "description": "The new username: letters, digits, `-` and `_`.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"

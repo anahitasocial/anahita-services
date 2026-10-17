@@ -274,6 +274,17 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusUnauthorized, "the installation is in preview and the viewer is not signed in").
 		Refuses(http.StatusNotFound, "there is no such post that the viewer may see")
 
+	// What cites a post, of any kind: the articles and topics that show it
+	// within their text. Not part of a preview, like its quotes.
+	notes.GET("/:id/cited_by", r.handler.Note.CitedBy, r.setViewer, an_mw.MembersInPreview()).
+		Summary("The posts that cite a post").
+		Describe("Newest first, those the viewer may see. Its author's own are listed too, though they are not counted in its `citation_count`.").
+		Viewer(apidoc.Anyone).
+		Takes(&handlers.CitedByRequest{Limit: 20}).
+		Sends(http.StatusOK, responses.List[*responses.MediumNodeItem]{}).
+		Refuses(http.StatusUnauthorized, "the installation is in preview and the viewer is not signed in").
+		Refuses(http.StatusNotFound, "there is no such post that the viewer may see")
+
 	// note access
 	notes.PATCH("/:id/access", r.handler.Note.EditAccess, r.authorize).With(access)
 

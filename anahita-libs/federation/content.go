@@ -21,6 +21,7 @@ import (
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 )
 
@@ -287,11 +288,17 @@ func linkText(text *html.Node, links Links, rendered *Rendered) {
 	if links.Hashtag != nil {
 		for _, at := range hashtagRegex.FindAllStringSubmatchIndex(source, -1) {
 			tag := source[at[2]:at[3]]
+			// Only the first constants.MaxHashtagsOfAPost are hashtags, here
+			// and in what is sent: the rest stay words.
+			name := "#" + strings.ToLower(tag)
+			if !hasNamed(rendered.Hashtags, name) && len(rendered.Hashtags) >= constants.MaxHashtagsOfAPost {
+				continue
+			}
 			href := links.Hashtag(strings.ToLower(tag))
 			if href == "" {
 				continue
 			}
-			rendered.Hashtags = appendNamed(rendered.Hashtags, Named{Name: "#" + strings.ToLower(tag), Href: href})
+			rendered.Hashtags = appendNamed(rendered.Hashtags, Named{Name: name, Href: href})
 			names = append(names, found{at[2] - 1, at[3], hashtagLink(tag, href)})
 		}
 	}
@@ -364,10 +371,17 @@ func element(tag atom.Atom, attributes ...html.Attribute) *html.Node {
 
 // appendNamed adds a name once, however often the post says it.
 func appendNamed(list []Named, named Named) []Named {
-	for _, have := range list {
-		if have.Name == named.Name {
-			return list
-		}
+	if hasNamed(list, named.Name) {
+		return list
 	}
 	return append(list, named)
+}
+
+func hasNamed(list []Named, name string) bool {
+	for _, have := range list {
+		if have.Name == name {
+			return true
+		}
+	}
+	return false
 }

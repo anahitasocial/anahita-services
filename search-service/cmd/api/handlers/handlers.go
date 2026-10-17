@@ -13,11 +13,13 @@ type Env struct {
 }
 
 type Handlers struct {
-	Search *searchHandler
+	Search      *searchHandler
+	Preferences *preferencesHandler
 }
 
 func NewHandlers(env *Env) *Handlers {
 	return &Handlers{
-		Search: NewSearchHandler(env),
+		Search:      NewSearchHandler(env),
+		Preferences: NewPreferencesHandler(env),
 	}
 }

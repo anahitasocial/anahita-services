@@ -308,14 +308,18 @@ somebody in any one of them may reply.
 - **The older switch**, `comment_status`, is kept in step: off is `nobody`,
   and turning it on makes `nobody` `anyone`. A post closed before this
   setting existed has no value stored and still reads as `nobody`.
+- **A post from another server** (the fediverse or Bluesky) can be replied
+  to here by anybody who can see it, and its `reply_access` reads `anyone`.
+  Who its author lets reply is their server's to hold to; nothing of it is
+  kept here.
 
 The rule is `permissions.CanReply`; the values are in
 `anahita-libs/constants/reply_access.go`. The thread says the answer for the
 viewer (`can_reply`) and the setting (`reply_access`), so the app can say why
 not.
 
-Not built: letting in a list of people (there are no lists), and a switch for
-quote posts (there are no quote posts; roadmap item 25).
+Not built: letting in a list of people (there are no lists). Who may quote a
+post is a setting of its own; see [Quotes](#quotes).
 
 ### Who looks after a thread
 
@@ -532,6 +536,33 @@ reposts among the posts as well ("Also show reposts in the Posts tab", under
 Settings › Privacy). It changes that one list and nothing else: the list of
 reposts always has them, and followers are sent them in their own feeds, which
 is what a repost is for. It does not change who can see a repost.
+
+## Mentions
+
+A post mentions a profile when it names it: by its `@handle`, or by its
+address on a line of its own, which shows its card. People, groups and
+events can be mentioned, here or on another server.
+
+- **actor-service keeps the mentions,** as `edge.tag.mention.v1` from the
+  profile to the post, each time a post is added or edited: it adds what is
+  newly named and takes away what is no longer. A person's own description
+  can name people too.
+- **A person chooses who may mention them,** under Settings › Permissions,
+  "Who can mention you?": the `mention` permission of `socialgraph-service`,
+  one of `registered` (anybody signed in, the default), `followers`,
+  `leaders` (people they follow), `mutuals` or `admins` (nobody but
+  themselves). Somebody they block may not mention them either. A mention
+  that isn't allowed is no edge at all, and nobody is told; the `@handle`
+  stays in the text as written. Groups and events may always be mentioned.
+  The rule is `permissions.CanMention`.
+- **The person is told,** in their notifications, "mentioned you in a post"
+  or "in a reply" (`actor_mention`, `actor_mention_reply`), from the event
+  `edge.mention.actor-service.added.v1`. Only a person here, never for a
+  draft, never for naming themselves, and only when they may see the post,
+  so being named in a private group's post tells nobody outside it that the
+  post exists. A group or an event mentioned is told nothing.
+- **A mention is not a citation.** A post naming a post cites it; naming a
+  profile mentions it (the user, 2026-10-17).
 
 ## Quotes
 

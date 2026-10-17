@@ -20,7 +20,7 @@ func NewHashtagRequest() *HashtagRequest {
 		},
 		BrowseTrending: &HashtagBrowseTrendingRequest{
 			Limit:      constants.RequestLimitDefault,
-			TimeWindow: "weekly",
+			TimeWindow: "",
 		},
 		BrowseOrderedByDegree: &HashtagBrowseOrderedByDegreeRequest{
 			Offset: 0,

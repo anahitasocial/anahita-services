@@ -252,7 +252,9 @@ func (h *personHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	if err := h.Srv.Mentions.Update(person, person.Mentions, viewer); err != nil {
+	// Who a person names in what they say of themselves. Nobody is told:
+	// it is not a post.
+	if _, err := h.Srv.Mentions.Update(person, person.Mentions, viewer); err != nil {
 		log.Println(err)
 		return err
 	}

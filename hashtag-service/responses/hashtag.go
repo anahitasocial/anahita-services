@@ -14,6 +14,13 @@ type HashtagNodeItem struct {
 	Name string `json:"name,omitempty"`
 	// What it is found by: `/hashtags/<alias>`.
 	Alias string `json:"alias,omitempty"`
+	// In a trending list: how many people posted with it in the window.
+	People uint64 `json:"people,omitempty"`
+	// In the following and all lists: how many posts it is on that anybody
+	// may see, and the viewer's own.
+	Uses uint64 `json:"uses,omitempty"`
+	// In the following and all lists: the viewer follows it.
+	Followed bool `json:"followed,omitempty"`
 }
 
 type HashtagNode struct {

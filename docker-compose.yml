@@ -349,6 +349,11 @@ services:
       # docs/configuration.md, Privacy of the installation.
       SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
+      # Over what span of time trending is, and whether the installation
+      # federates, which decides it when it is not set. See
+      # docs/configuration.md, Trending.
+      TRENDING_WINDOW: ${TRENDING_WINDOW:-}
+      FEDERATION_PROTOCOLS: ${FEDERATION_PROTOCOLS:-}
       AMQP_ADDR: ${AMQP_ADDR}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
@@ -387,6 +392,11 @@ services:
       # docs/configuration.md, Privacy of the installation.
       SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
       MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
+      # Over what span of time trending is, and whether the installation
+      # federates, which decides it when it is not set. See
+      # docs/configuration.md, Trending.
+      TRENDING_WINDOW: ${TRENDING_WINDOW:-}
+      FEDERATION_PROTOCOLS: ${FEDERATION_PROTOCOLS:-}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
       REDIS_TLS: ${REDIS_TLS:-}

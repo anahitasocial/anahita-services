@@ -1,6 +1,7 @@
 package bsky
 
 import (
+	"anahita-libs/constants"
 	"regexp"
 	"strings"
 	"time"
@@ -26,6 +27,9 @@ type OutPost struct {
 	Langs     []string   `json:"langs,omitempty"`
 	Reply     *OutReply  `json:"reply,omitempty"`
 	Embed     *OutEmbed  `json:"embed,omitempty"`
+	// Cut is that its words were more than a post may hold, and were cut:
+	// not sent, and for whoever sends it to add the way to the rest.
+	Cut bool `json:"-"`
 }
 
 // OutEmbed is what a post carries besides its words: the card of a link,
@@ -83,8 +87,9 @@ func (e *OutEmbed) GetImages() []OutImage {
 	return e.Images
 }
 
-// BlobMax is the most a picture may weigh.
-const BlobMax = 1000000
+// BlobMax is the most a picture may weigh: 2 MB since 2025, before which
+// it was 1 MB (app.bsky.embed.images).
+const BlobMax = 2000000
 
 // ImagesMax is the most pictures a post may carry.
 const ImagesMax = 4
@@ -199,6 +204,9 @@ func NewOutPost(markdown, language string, at time.Time) *OutPost {
 	var (
 		text   strings.Builder
 		facets []OutFacet
+		// The hashtags marked so far, whatever their capitals: only the
+		// first constants.MaxHashtagsOfAPost are, as here.
+		tagged = map[string]bool{}
 	)
 	mark := func(words string, feature map[string]string) {
 		facet := OutFacet{Features: []map[string]string{feature}}
@@ -227,6 +235,12 @@ func NewOutPost(markdown, language string, at time.Time) *OutPost {
 		default: // #hashtag, after what came before it
 			text.WriteString(markdown[m[8]:m[9]])
 			tag := markdown[m[10]:m[11]]
+			alias := strings.ToLower(tag)
+			if !tagged[alias] && len(tagged) >= constants.MaxHashtagsOfAPost {
+				text.WriteString("#" + tag)
+				continue
+			}
+			tagged[alias] = true
 			mark("#"+tag, map[string]string{"$type": "app.bsky.richtext.facet#tag", "tag": tag})
 		}
 	}
@@ -241,6 +255,7 @@ func NewOutPost(markdown, language string, at time.Time) *OutPost {
 	// that the cut runs through is left as plain words.
 	if letters := []rune(post.Text); len(letters) > PostMax {
 		post.Text = strings.TrimRight(string(letters[:PostMax-1]), " \n") + "…"
+		post.Cut = true
 	}
 	limit := len(post.Text)
 	for _, facet := range facets {

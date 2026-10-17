@@ -82,6 +82,11 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 	}
 
+	// A post naming somebody.
+	if strings.HasPrefix(payload.Name, "edge.mention.") && strings.HasSuffix(payload.Name, ".added.v1") {
+		err = h.eventFormatEdgeMentionAdded(payload)
+	}
+
 	// Follow edge events
 	if strings.Contains(payload.Name, "edge.follow.") {
 		if strings.Contains(payload.Name, ".added.v1") {

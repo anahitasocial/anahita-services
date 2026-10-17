@@ -6,6 +6,7 @@ import (
 	"anahita-libs/proto/graphpb"
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -96,7 +97,7 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 		}
 	} else if req.Ordering != "" {
 		if req.Ordering == constants.OrderingPopular {
-			query = query.OrderBy("(COALESCE(node.repost_count,0) + COALESCE(node.comment_count,0) + COALESCE(node.vote_up_count,0) + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0)) DESC")
+			query = query.OrderBy("(COALESCE(node.repost_count,0) + COALESCE(node.comment_count,0) + COALESCE(node.vote_up_count,0) + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0) + COALESCE(node.citation_count,0)) DESC")
 		} else if req.Ordering == constants.OrderingRecent {
 			query = query.OrderBy("node.created_at DESC")
 		} else if column := safeOrderColumn(req.Ordering); column != "" {
@@ -371,47 +372,42 @@ func (r *graphRepo) ReadShortestPath(req *graphpb.ReadShortestPathRequest, viewe
 	return &graphpb.ReadShortestPathResponse{}, nil
 }
 
-// Trending returns nodes that have had the most activity in a given time window.
-//
-// This method:
-//   - supports filtering by node type, edge types, and direction
-//   - ranks nodes based on recent edge creation activity
-//   - performs permission checks based on the viewer
-//
-// Use this for discovery features, trending topics,
-// or highlighting active entities in the graph.
+// Trending returns the tags, hashtags or places, that the most people
+// posted with in a window of time that ends now: the people who wrote a
+// public post carrying it in that time, each once. The edge types say
+// which tag; the direction is not read, a tag being node_a of its edges.
 func (r *graphRepo) Trending(req *graphpb.TrendingRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
 	// ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	// defer cancel()
 
-	// Resolve time window cutoff
-	var cutoff time.Time
-	now := time.Now()
-	switch req.TimeWindow {
-	case constants.TimeWindow1h:
-		cutoff = now.Add(-1 * time.Hour)
-	case constants.TimeWindow6h:
-		cutoff = now.Add(-6 * time.Hour)
-	case constants.TimeWindow24h:
-		cutoff = now.Add(-24 * time.Hour)
-	case constants.TimeWindowDaily:
-		cutoff = now.AddDate(0, 0, -1)
-	case constants.TimeWindowWeekly:
-		cutoff = now.AddDate(0, 0, -7)
-	case constants.TimeWindowMonthly:
-		cutoff = now.AddDate(0, -1, 0)
-	case constants.TimeWindowYearly:
-		cutoff = now.AddDate(-1, 0, 0)
-	default:
-		cutoff = now.Add(-24 * time.Hour) // fallback to 24h
-	}
+	cutoff := trendingCutoff(req.TimeWindow)
 
+	// What is trending is what people posted with lately: each person once,
+	// however many of their posts carry it, so that one account cannot
+	// make something trend; by when the post was written, not when it came
+	// here, so that a profile's older posts fetched when it is followed do
+	// not trend that day; and only posts anybody may see, on profiles
+	// anybody may see, so that what trends says nothing of what is kept
+	// from view (the user, 2026-10-17). The tag is node_a of its edges.
 	query := GetBaseSelectQuery()
 
-	query = query.Join("edges AS edge ON " + r.buildDegreeJoinCondition(req.Direction)).
-		Where(sq.Gt{"edge.created_at": cutoff}).
+	query = query.
+		Join("edges AS edge ON edge.node_a_id = node.id").
+		Join("nodes AS post ON post.id = edge.node_b_id").
+		LeftJoin("nodes AS post_owner ON post_owner.id = post.owner_id").
+		Where(sq.Gt{"post.created_at": cutoff}).
+		Where("post.access = 'public'").
+		Where("post.enabled = 1").
+		Where("post.draft = 0").
+		Where("post.deleted_at IS NULL").
+		Where("(post_owner.id IS NULL OR post_owner.access IS NULL OR post_owner.access = 'public')").
+		Where("node.deleted_at IS NULL").
 		GroupBy("node.id").
-		OrderBy("count(edge.id) DESC")
+		OrderBy(
+			"COUNT(DISTINCT post.created_by) DESC",
+			"COUNT(DISTINCT post.id) DESC",
+			"node.id DESC",
+		)
 
 	// Optional filters
 	if req.NodeType != "" {
@@ -433,6 +429,83 @@ func (r *graphRepo) Trending(req *graphpb.TrendingRequest, viewer *entities.View
 	query = query.Limit(req.Limit)
 
 	return FetchNodes(r.db, query)
+}
+
+// trendingCutoff is when a trending window begins.
+func trendingCutoff(window string) time.Time {
+	var cutoff time.Time
+	now := time.Now()
+	switch window {
+	case constants.TimeWindow1h:
+		cutoff = now.Add(-1 * time.Hour)
+	case constants.TimeWindow6h:
+		cutoff = now.Add(-6 * time.Hour)
+	case constants.TimeWindow24h:
+		cutoff = now.Add(-24 * time.Hour)
+	case constants.TimeWindowDaily:
+		cutoff = now.AddDate(0, 0, -1)
+	case constants.TimeWindowWeekly:
+		cutoff = now.AddDate(0, 0, -7)
+	case constants.TimeWindowMonthly:
+		cutoff = now.AddDate(0, -1, 0)
+	case constants.TimeWindowYearly:
+		cutoff = now.AddDate(-1, 0, 0)
+	default:
+		cutoff = now.Add(-24 * time.Hour) // fallback to 24h
+	}
+	return cutoff
+}
+
+// The people who posted with each of some tags since a time, each once, in
+// posts Trending counts.
+const trendingPeople = `
+SELECT edge.node_a_id,
+       COUNT(DISTINCT post.created_by)
+FROM edges AS edge
+JOIN nodes AS post ON post.id = edge.node_b_id
+LEFT JOIN nodes AS post_owner ON post_owner.id = post.owner_id
+WHERE edge.node_a_id IN ({{ids}})
+  AND edge.type IN ({{types}})
+  AND post.created_at > ?
+  AND post.access = 'public'
+  AND post.enabled = 1
+  AND post.draft = 0
+  AND post.deleted_at IS NULL
+  AND (post_owner.id IS NULL OR post_owner.access IS NULL OR post_owner.access = 'public')
+GROUP BY edge.node_a_id`
+
+func (r *graphRepo) TrendingPeople(req *graphpb.TrendingRequest, ids []int64) (map[int64]uint64, error) {
+	people := map[int64]uint64{}
+	if len(ids) == 0 || len(req.EdgeTypes) == 0 {
+		return people, nil
+	}
+	args := []any{}
+	for _, id := range ids {
+		args = append(args, id)
+	}
+	for _, each := range req.EdgeTypes {
+		args = append(args, each)
+	}
+	args = append(args, trendingCutoff(req.TimeWindow))
+	query := strings.NewReplacer(
+		"{{ids}}", placeholders(len(ids)),
+		"{{types}}", placeholders(len(req.EdgeTypes)),
+	).Replace(trendingPeople)
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id int64
+		var count uint64
+		if err := rows.Scan(&id, &count); err != nil {
+			return nil, err
+		}
+		people[id] = count
+	}
+	return people, rows.Err()
 }
 
 // setBlockedLikersQuery leaves out, of the people who like something, those

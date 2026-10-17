@@ -57,6 +57,8 @@ func main() {
 	// caller when a token is present but lets anonymous requests
 	// through. Handlers read the viewer via an_mw.GetViewer.
 	setViewer := an_mw.SetViewer(config, jwks)
+	// Authorize requires one: for the viewer's own choices.
+	authorize := an_mw.Authorize(config, jwks)
 
 	// create handlers
 	hEnv := &handlers.Env{
@@ -72,7 +74,7 @@ func main() {
 	})
 
 	// create routes
-	NewRoutes(h, setViewer).Init(e)
+	NewRoutes(h, setViewer, authorize).Init(e)
 
 	// start server
 	err := e.Start(fmt.Sprintf(":%v", webPort))

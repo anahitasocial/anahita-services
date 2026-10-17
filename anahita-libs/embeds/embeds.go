@@ -55,6 +55,29 @@ type Found struct {
 	Posts []Post
 	// Pages elsewhere, tidied as link previews keep them.
 	Pages []string
+	// Profiles of this installation, by alias: /@ana, or /@alice@host for
+	// somebody elsewhere. Shown as their card, and named: a mention, as an
+	// @handle is, not a citation (actor-service keeps the edges).
+	Profiles []string
+}
+
+// The most profiles a post is taken to name.
+const MaxProfiles = 20
+
+// A profile's address: /@ana and its tabs.
+var profilePath = regexp.MustCompile(`^/@([^/]+)(?:/.*)?$`)
+
+// profileAt reads which profile an address of this installation is to.
+func profileAt(address string) (string, bool) {
+	parsed, err := url.Parse(address)
+	if err != nil {
+		return "", false
+	}
+	match := profilePath.FindStringSubmatch(parsed.Path)
+	if match == nil || match[1] == "" {
+		return "", false
+	}
+	return match[1], true
 }
 
 // Find reads what a text embeds. `ours` says whether an address is one of
@@ -63,6 +86,7 @@ func Find(text string, ours func(string) bool) Found {
 	found := Found{}
 	seenPosts := map[int64]bool{}
 	seenPages := map[string]bool{}
+	seenProfiles := map[string]bool{}
 
 	for _, line := range strings.Split(text, "\n") {
 		address, ok := alone(line)
@@ -75,6 +99,11 @@ func Find(text string, ours func(string) bool) Found {
 			if ok && !seenPosts[post.ID] && len(found.Posts) < MaxPosts {
 				seenPosts[post.ID] = true
 				found.Posts = append(found.Posts, post)
+			}
+			alias, isProfile := profileAt(address)
+			if !ok && isProfile && !seenProfiles[alias] && len(found.Profiles) < MaxProfiles {
+				seenProfiles[alias] = true
+				found.Profiles = append(found.Profiles, alias)
 			}
 			continue
 		}

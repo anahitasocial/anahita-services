@@ -1,9 +1,12 @@
 package requests
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
+
+	"anahita-libs/constants"
 )
 
 // Signup and invite-accept create the same thing by two routes, and they had
@@ -156,7 +159,9 @@ func TestBothPathsChooseAUsername(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tag := tagOf(t, req, "Username", "validate")
 
-			for _, rule := range []string{"required", "username", "min=3", "max=32"} {
+			for _, rule := range []string{"required", "username",
+				fmt.Sprintf("min=%d", constants.UsernameMin),
+				fmt.Sprintf("max=%d", constants.UsernameMax)} {
 				if !strings.Contains(tag, rule) {
 					t.Errorf("username is validated as %q, missing %q — the two "+
 						"paths must agree, or one offers a name the other refuses",

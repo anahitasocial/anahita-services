@@ -5,6 +5,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	an_responses "anahita-libs/responses"
+	"anahita-libs/trending"
 	"fmt"
 	"location/constants"
 	"location/data/validators"
@@ -67,9 +68,13 @@ func (h *locationHandler) Browse(c echo.Context) error {
 		gReq.Search = req.Search
 		gReq.Ordering = req.Ordering
 		gReq.OrderingDir = req.Direction
+		// A to Z, for the list of every place.
+		if req.Ordering == "name" {
+			gReq.Ordering = "node.name"
+			gReq.OrderingDir = "asc"
+		}
 		gReq.Limit = req.Limit
 		gReq.Offset = req.Offset
-		gReq.Ordering = req.Ordering
 		gReq.Viewer = viewer
 		gReq.AccessCheck = false
 		resp.Pagination.Total, err = h.Srv.GraphNodeGRPC.Count(gReq)
@@ -185,19 +190,39 @@ func (h *locationHandler) BrowseTrending(c echo.Context) error {
 
 	gReq.NodeType = an_constants.NodeBaseLocationEntityType
 	gReq.EdgeTypes = []string{an_constants.EdgeTagLocationType}
-	gReq.Direction = an_constants.GraphQueryDirectionOutbound
 	gReq.Limit = req.Limit
-	gReq.TimeWindow = strings.ToUpper(req.TimeWindow)
 	gReq.Viewer = viewer
 	gReq.AccessCheck = false
-	nodes, err := h.Srv.GraphGRPC.Trending(gReq)
+
+	// From the window asked for, or the installation's, wider while it
+	// holds too few (anahita-libs/trending).
+	start := trending.Normal(req.TimeWindow)
+	if start == "" {
+		start = trending.DefaultWindow()
+	}
+	found, window, err := trending.Widen(start, req.Limit, func(window string) ([]*services.TrendingItem, error) {
+		gReq.TimeWindow = window
+		return h.Srv.GraphGRPC.TrendingItems(gReq)
+	})
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// In the envelope every list comes in, as one page that is all there
+	// is, and with the window it is of.
 	locationResp := &responses.LocationNodeResponse{}
-	resp := locationResp.MapLocationNodeItems(nodes)
+	resp := &an_responses.Trending[*responses.LocationNodeItem]{Window: strings.ToLower(window)}
+	resp.Data = []*responses.LocationNodeItem{}
+	for _, each := range found {
+		mapped := locationResp.MapLocationNodeItems([]*entities.AnahitaNode{each.Node})
+		if len(mapped) == 1 {
+			mapped[0].People = each.People
+			resp.Data = append(resp.Data, mapped[0])
+		}
+	}
+	resp.Pagination.Limit = req.Limit
+	resp.Pagination.Total = uint64(len(resp.Data))
 
 	return c.JSON(http.StatusOK, resp)
 }

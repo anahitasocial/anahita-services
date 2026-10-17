@@ -26,6 +26,12 @@ type SearchRepoInterface interface {
 
 	// Browse returns a list of Searchs
 	Browse(req *graphpb.SearchBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
+
+	// ReadPreferences is somebody's own steps for Most relevant.
+	ReadPreferences(personID int64) (map[string]float64, error)
+
+	// SavePreferences keeps them, and answers with what was kept.
+	SavePreferences(personID int64, steps map[string]float64) (map[string]float64, error)
 }
 
 // NewSearchRepo creates a new Search repository
@@ -112,8 +118,9 @@ END)`
 // condition on either would read every node for every result; and the
 // index on quotes named, since while nearly no post quotes another the
 // database judges it not worth using and reads every node instead),
-// on a logarithm so that a thousand comes first and not a hundred times
-// first. Then a bonus for what the searcher follows.
+// and the people who cite it, as kept on it (nodes.citation_count, not
+// halved with time), on a logarithm so that a thousand comes first and not
+// a hundred times first. Then a bonus for what the searcher follows.
 const relevantStanding = `(
     ? * LN(1
         + ? * (
@@ -145,6 +152,7 @@ const relevantStanding = `(
             WHERE followed.node_b_id = node.id
               AND followed.type = ?
         )
+        + ? * COALESCE(node.citation_count, 0)
     )
     + %[5]s
 )`
@@ -199,6 +207,7 @@ func relevance(keywords string, weights ranking.Weights, viewer *entities.Viewer
 		weights.Useful.Save, constants.EdgeBaseBookmarkEntityType,
 		weights.Useful.Reply,
 		weights.Useful.Follow, constants.EdgeFollowEntityType,
+		weights.Useful.Cite,
 	}
 	if viewer != nil && viewer.ID > 0 {
 		following = followedByViewer
@@ -332,7 +341,15 @@ func (repo *SearchRepo) browseByRelevance(req *graphpb.SearchBrowseRequest, keyw
 			"nodes AS location ON location_edge.node_a_id = location.id",
 		)
 	}
-	match, standing := relevance(keywords, repo.ranking.Weights(), viewer)
+	// The installation's weights, as the searcher has leaned them, where
+	// they have (search_preferences.go).
+	weights := repo.ranking.Weights()
+	if viewer != nil && viewer.ID > 0 {
+		if steps, err := repo.ReadPreferences(viewer.ID); err == nil && len(steps) > 0 {
+			weights = weights.Adjusted(steps)
+		}
+	}
+	match, standing := relevance(keywords, weights, viewer)
 	ranked = ranked.Column(match).Column(standing)
 	// "People and groups I follow first": what they follow, or what is on
 	// a profile they follow, before everything else, however it matches.

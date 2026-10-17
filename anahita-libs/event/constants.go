@@ -51,6 +51,10 @@ const (
 	EventFormatEdgeVoteupAdded   = "edge.voteup.%s.added.v1"
 	EventFormatEdgeVoteupDeleted = "edge.voteup.%s.deleted.v1"
 
+	// A post names a profile (actor-service): the subject is who wrote
+	// it, the object the post, the target the profile named.
+	EventFormatEdgeMentionAdded = "edge.mention.%s.added.v1"
+
 	EventFormatEdgeFollowAdded   = "edge.follow.%s.added.v1"
 	EventFormatEdgeFollowDeleted = "edge.follow.%s.deleted.v1"
 

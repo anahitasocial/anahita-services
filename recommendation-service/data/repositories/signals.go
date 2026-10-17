@@ -263,7 +263,9 @@ LIMIT ?`
 // joined is offered to pick from. Only public posts, of profiles anybody
 // may see, so that a hashtag offered says nothing about what is kept from
 // view. Counted by posts, and by each spelling of a hashtag; spellings
-// that differ only in case are put together afterwards.
+// that differ only in case are put together afterwards. A hashtag's
+// `enabled` means nothing: the services make every hashtag with it off, and
+// asking for it on left only hashtags from before 2023.
 const popularHashtags = `
 SELECT hashtag.id, hashtag.name, hashtag.alias, COUNT(DISTINCT post.id)
 FROM edges AS tagged
@@ -276,7 +278,6 @@ WHERE tagged.type = ?
   AND post.enabled = 1
   AND post.deleted_at IS NULL
   AND (owner.id IS NULL OR owner.access IS NULL OR owner.access = 'public')
-  AND hashtag.enabled = 1
   AND hashtag.deleted_at IS NULL
 GROUP BY hashtag.id, hashtag.name, hashtag.alias
 ORDER BY 4 DESC, hashtag.id
@@ -316,6 +317,61 @@ FROM edges AS follows
 JOIN nodes AS c ON c.id = follows.node_b_id
 WHERE follows.type = ?
   AND follows.created_at > ?
+  AND {{eligible}}
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
+LIMIT ?`
+
+// Others have cited them in the last year: their profile, or a public post
+// of theirs or on their profile, shown within a published public article or
+// topic. Each citer once, never themselves, and not the viewer, who knows
+// whom they cited. Those named are the citers.
+const signalCited = `
+SELECT c.id, COUNT(DISTINCT citing.created_by),
+       GROUP_CONCAT(DISTINCT citing.created_by ORDER BY citing.created_by)
+FROM edges AS cite
+JOIN nodes AS target ON target.id = cite.node_b_id
+JOIN nodes AS citing ON citing.id = cite.node_a_id
+JOIN nodes AS c ON c.id IN (target.id, target.owner_id, target.created_by)
+WHERE cite.type = ?
+  AND cite.created_at > ?
+  AND (target.id = c.id OR target.access = 'public')
+  AND citing.enabled = 1
+  AND citing.deleted_at IS NULL
+  AND citing.draft = 0
+  AND citing.access = 'public'
+  AND citing.created_by <> c.id
+  AND citing.owner_id <> c.id
+  AND citing.created_by <> ?
+  AND {{eligible}}
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
+LIMIT ?`
+
+// The same, by people the viewer follows only.
+const signalCitedByLeaders = `
+SELECT c.id, COUNT(DISTINCT citing.created_by),
+       GROUP_CONCAT(DISTINCT citing.created_by ORDER BY citing.created_by)
+FROM edges AS cite
+JOIN nodes AS target ON target.id = cite.node_b_id
+JOIN nodes AS citing ON citing.id = cite.node_a_id
+JOIN nodes AS c ON c.id IN (target.id, target.owner_id, target.created_by)
+WHERE cite.type = ?
+  AND cite.created_at > ?
+  AND citing.created_by IN (
+    SELECT leads.node_b_id
+    FROM edges AS leads
+    WHERE leads.type = ?
+      AND leads.node_a_id = ?
+  )
+  AND (target.id = c.id OR target.access = 'public')
+  AND citing.enabled = 1
+  AND citing.deleted_at IS NULL
+  AND citing.draft = 0
+  AND citing.access = 'public'
+  AND citing.created_by <> c.id
+  AND citing.owner_id <> c.id
+  AND citing.created_by <> ?
   AND {{eligible}}
 GROUP BY c.id
 ORDER BY 2 DESC, c.id
@@ -466,6 +522,21 @@ func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart b
 			reason: constants.ReasonPopular,
 			query:  signalPopular,
 			args:   with([]any{an_const.EdgeFollowEntityType, now.Add(-constants.PopularWindow)}, limit),
+		},
+		{
+			reason: constants.ReasonCited,
+			query:  signalCited,
+			args:   with([]any{an_const.EdgeMediumCitationType, now.Add(-constants.InterestWindow), viewerID}, limit),
+		},
+		{
+			reason: constants.ReasonCitedByLeaders,
+			query:  signalCitedByLeaders,
+			args: with([]any{
+				an_const.EdgeMediumCitationType, now.Add(-constants.InterestWindow),
+				an_const.EdgeFollowEntityType, viewerID,
+				viewerID,
+			}, limit),
+			needsFollows: true,
 		},
 		{
 			reason: constants.ReasonFeatured,

@@ -841,6 +841,27 @@
         },
         "type": "object"
       },
+      "Refusal": {
+        "description": "Refusal is why a request was refused, where the answer says: most refusals have no body, and some send this.",
+        "properties": {
+          "description": {
+            "description": "The same in words, for whoever is building a client.",
+            "type": "string"
+          },
+          "error": {
+            "description": "Why, as a code a client can tell apart: `language_invalid`, `quote_not_allowed` and so on. Each route lists its own.",
+            "type": "string"
+          },
+          "reason": {
+            "description": "What lies behind it, where one code has several causes: why a post may not be quoted, for one.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
       "Video": {
         "description": "Video is what a video post plays: its sizes, largest first, and the still shown before it does.",
         "properties": {
@@ -955,6 +976,12 @@
             "description": "What it is called.",
             "type": "string"
           },
+          "people": {
+            "description": "In a trending list: how many people tied a post to it in the window.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
           "postalcode": {
             "description": "Its postal code.",
             "type": "string"
@@ -1040,7 +1067,8 @@
               "enum": [
                 "popular",
                 "trending",
-                "recent"
+                "recent",
+                "name"
               ],
               "maxLength": 10,
               "type": "string"
@@ -1172,7 +1200,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "source_id": {
@@ -1215,7 +1243,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "source_id": {
@@ -1355,7 +1383,7 @@
     },
     "/locations/_browse/trending": {
       "get": {
-        "description": "The places most posts were tied to in a window of time that ends now. Not paged.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The places the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getLocationsBrowseTrending",
         "parameters": [
           {
@@ -1374,7 +1402,6 @@
             "in": "query",
             "name": "time_window",
             "schema": {
-              "default": "weekly",
               "enum": [
                 "daily",
                 "weekly",
@@ -1390,10 +1417,31 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/location.LocationNodeItem"
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/location.LocationNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    },
+                    "window": {
+                      "type": "string"
+                    }
                   },
-                  "type": "array"
+                  "required": [
+                    "data",
+                    "pagination",
+                    "window"
+                  ],
+                  "type": "object"
                 }
               }
             },
@@ -1547,7 +1595,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "state_province": {
@@ -1585,7 +1633,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "state_province": {
@@ -1817,7 +1865,7 @@
         },
         "responses": {
           "201": {
-            "description": "tied"
+            "description": "tied, or tied already"
           },
           "400": {
             "description": "the request is not well formed, or a value in it is not one it may be"
@@ -1830,6 +1878,16 @@
           },
           "404": {
             "description": "there is no such place or post"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`too_many_locations`: the post is tied to five places already"
           }
         },
         "security": [

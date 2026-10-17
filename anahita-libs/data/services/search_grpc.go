@@ -21,6 +21,9 @@ type SearchGRPCConfigInterface interface {
 type SearchGRPCInterface interface {
 	Count(req *SearchBrowseRequest, viewer *entities.Viewer) (uint64, error)
 	Browse(req *SearchBrowseRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
+	// The viewer's own steps for Most relevant, and keeping them.
+	ReadPreferences(viewer *entities.Viewer) (map[string]float64, error)
+	SavePreferences(viewer *entities.Viewer, steps map[string]float64) (map[string]float64, error)
 }
 
 // NewSearchGRPC creates a new search service
@@ -138,4 +141,41 @@ func (srv *SearchGRPC) Browse(req *SearchBrowseRequest, viewer *entities.Viewer)
 	}
 
 	return grpcToGraphNodes(resp.Nodes), nil
+}
+
+// ReadPreferences implements SearchGRPCInterface.
+func (srv *SearchGRPC) ReadPreferences(viewer *entities.Viewer) (map[string]float64, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return map[string]float64{}, nil
+	}
+	resp, err := client.ReadPreferences(context.Background(), &graphpb.SearchPreferencesReadRequest{
+		Viewer: &graphpb.Viewer{Id: viewer.ID, PersonType: viewer.PersonType},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp.GetSteps(), nil
+}
+
+// SavePreferences implements SearchGRPCInterface.
+func (srv *SearchGRPC) SavePreferences(viewer *entities.Viewer, steps map[string]float64) (map[string]float64, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return map[string]float64{}, nil
+	}
+	resp, err := client.SavePreferences(context.Background(), &graphpb.SearchPreferencesSaveRequest{
+		Viewer: &graphpb.Viewer{Id: viewer.ID, PersonType: viewer.PersonType},
+		Steps:  steps,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp.GetSteps(), nil
 }

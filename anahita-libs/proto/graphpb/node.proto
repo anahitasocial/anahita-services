@@ -155,6 +155,8 @@ message Node {
     // An article or a topic still being written: seen by its author alone,
     // listed nowhere, announced to nobody. Only ever cleared, by publishing.
     bool draft = 97;
+    // How many people cite it, each once, never itself.
+    int64 citation_count = 98;
 
     // Quote posts. quote_policy is who may quote a post, or on a person
     // their posts; quote_id is the post a note quotes; quote_detached says

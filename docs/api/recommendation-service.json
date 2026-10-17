@@ -1079,7 +1079,7 @@
             "type": "array"
           },
           "type": {
-            "description": "Which reason: `follows_you`, `followed_by_leaders`, `inviter`, `hosted_by_leader`, `shared_interest`, `you_engaged`, `popular` or `featured` (recommendations.md).",
+            "description": "Which reason: `follows_you`, `followed_by_leaders`, `cited_by_leaders`, `inviter`, `hosted_by_leader`, `shared_interest`, `you_engaged`, `cited`, `popular` or `featured` (recommendations.md).",
             "type": "string"
           }
         },

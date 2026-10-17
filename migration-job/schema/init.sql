@@ -37,6 +37,8 @@ CREATE TABLE nodes (
   `comment_count` int(11) unsigned DEFAULT NULL,
   `repost_count` int(11) unsigned NOT NULL DEFAULT 0,
   `quote_count` int(11) unsigned NOT NULL DEFAULT 0,
+  -- How many people cite it, each once, never itself (repositories/citations.go).
+  `citation_count` int(11) unsigned NOT NULL DEFAULT 0,
   `enabled` tinyint(1) NOT NULL DEFAULT 0,
   `verified` tinyint(1) NOT NULL DEFAULT 0,
   `pinned` tinyint(1) NOT NULL DEFAULT 0,
@@ -541,7 +543,7 @@ CREATE TABLE IF NOT EXISTS photo_files (
     `width` int unsigned NOT NULL DEFAULT 0,
     `height` int unsigned NOT NULL DEFAULT 0,
     -- What the image shows, for people who cannot see it.
-    `alt_text` varchar(1500) NOT NULL DEFAULT '',
+    `alt_text` text NOT NULL DEFAULT (''),
     PRIMARY KEY (`node_id`, `position`),
     UNIQUE KEY `uq_photo_files_filename` (`filename`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -933,6 +935,17 @@ CREATE TABLE IF NOT EXISTS recommendation_preferences (
     `updated_at` datetime NOT NULL,
     PRIMARY KEY (`person_id`),
     KEY `idx_recommendation_preferences_discoverable` (`discoverable`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Each person's own weights for search's Most relevant.
+CREATE TABLE IF NOT EXISTS search_preferences (
+    `person_id` bigint unsigned NOT NULL,
+    -- How much each sign of use counts in their Most relevant, as JSON by
+    -- name: a step that multiplies the installation's own weight (graph
+    -- ranking.Adjustable, ranking.Steps). Only what they have set.
+    `weights` varchar(1000) NOT NULL DEFAULT '',
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`person_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- A suggestion somebody said they were not interested in: that profile is

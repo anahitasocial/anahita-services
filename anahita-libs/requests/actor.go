@@ -99,12 +99,12 @@ type ActorEditRequest struct {
 	// The profile's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 	// Its name.
-	Name string `form:"name" validate:"required,max=100"`
+	Name string `form:"name" validate:"required,max=64"`
 	// What it says of itself.
 	//
 	// Optional. A profile with no bio is ordinary, and requiring one made
 	// editing anything else on such a profile impossible.
-	Body string `form:"body" validate:"omitempty,max=8000"`
+	Body string `form:"body" validate:"omitempty,max=500"`
 	// Whether it is enabled.
 	Enabled bool `form:"enabled" validate:"omitempty"`
 	// One link on the profile. A bare `example.com` is taken as https.
@@ -155,9 +155,9 @@ type ActorEditFeaturesRequest struct {
 
 type ActorAddRequest struct {
 	// Its name.
-	Name string `form:"name" validate:"required,max=100"`
+	Name string `form:"name" validate:"required,max=64"`
 	// What it says of itself.
-	Body string `form:"body" validate:"omitempty,max=10000"`
+	Body string `form:"body" validate:"omitempty,max=500"`
 	// Whether it is enabled.
 	Enabled bool `form:"enabled" validate:"omitempty"`
 	// One link on the profile. A bare `example.com` is taken as https.

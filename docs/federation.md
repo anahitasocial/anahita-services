@@ -501,8 +501,8 @@ narrow, and is asked of the post as it is at that moment:
 
 Such a note goes to every server that has a follower of its author, once
 for each server. It is sent as HTML made from its Markdown, with nothing in
-it that runs; the hashtags and people it names are links, and are listed
-beside the text; its language is said when its author said one. It can also
+it that runs; the people it names and its first ten hashtags are links, and
+are listed beside the text; its language is said when its author said one. It can also
 be fetched, at `/ap/notes/<uuid>`.
 
 | Then | Other servers are sent |
@@ -608,8 +608,9 @@ alone (`federation.PostToMarkdown`), and the note is then given its
 hashtags by hashtag-service exactly as a note written here is: one that is
 not here yet is made, and the note is found under it with every other post
 that has it. So `#gardening` in a note from elsewhere leads to this
-installation's own page for it, as it does on Mastodon. At most fifty to a
-post. A hashtag in letters this installation does not take for one (see
+installation's own page for it, as it does on Mastodon. Only its first ten
+different hashtags are filed, as for a post written here ([Hashtags and
+places](hashtags.md#at-most-ten-hashtags)); the rest stay words. A hashtag in letters this installation does not take for one (see
 `entities.HashtagRegexPattern`) is left the link it came as; so is one in
 what somebody says of themselves.
 
@@ -1292,12 +1293,13 @@ its own. The card says to use one and where to make it.
   what each shows. A note goes with the card of the link in it, picture
   and all: Bluesky draws no card of its own from an address in a post, so
   the card is this installation's, as it was kept when the note was made.
-  Each picture is given to the account's server first. Bluesky takes a
-  megabyte for each: one that weighs more is made smaller, and written
+  Each picture is given to the account's server first. Bluesky takes two
+  megabytes for each: one that weighs more is made smaller, and written
   again as a JPEG when that is not enough. Words become
-  what Bluesky takes: Markdown's marks are taken out, links and hashtags
-  are marked as such, and what is longer than three hundred letters is cut
-  with a mark to say so. A post or a reply that is changed here afterwards
+  what Bluesky takes: Markdown's marks are taken out, links and the first
+  ten hashtags are marked as such, and what is longer than three hundred letters is cut
+  with a mark to say so; a note so cut carries a card of itself here,
+  where the rest is. A post or a reply that is changed here afterwards
   is not changed there: Bluesky has no changing a post, and taking it down
   to post it again would lose its likes, reposts and replies. Mastodon and
   other servers are sent the change.

@@ -2338,7 +2338,7 @@
             "name": "username",
             "required": true,
             "schema": {
-              "maxLength": 32,
+              "maxLength": 30,
               "minLength": 3,
               "type": "string",
               "x-validate": "username"
@@ -3223,7 +3223,7 @@
                 "properties": {
                   "name": {
                     "description": "Optional, and offered rather than required.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -3240,7 +3240,7 @@
                   },
                   "username": {
                     "description": "The username, chosen rather than derived.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -3259,7 +3259,7 @@
                 "properties": {
                   "name": {
                     "description": "Optional, and offered rather than required.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -3276,7 +3276,7 @@
                   },
                   "username": {
                     "description": "The username, chosen rather than derived.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -5898,7 +5898,7 @@
               "schema": {
                 "properties": {
                   "body": {
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "csrf_token": {
@@ -5914,7 +5914,7 @@
                   },
                   "name": {
                     "description": "Collected in `approval` mode only, and required there.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -5925,7 +5925,7 @@
                   },
                   "username": {
                     "description": "The username: letters, digits, `-` and `_`. It is the address of their profile.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -5948,7 +5948,7 @@
               "schema": {
                 "properties": {
                   "body": {
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "csrf_token": {
@@ -5964,7 +5964,7 @@
                   },
                   "name": {
                     "description": "Collected in `approval` mode only, and required there.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -5975,7 +5975,7 @@
                   },
                   "username": {
                     "description": "The username: letters, digits, `-` and `_`. It is the address of their profile.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -6987,7 +6987,7 @@
                 "properties": {
                   "username": {
                     "description": "The new username: letters, digits, `-` and `_`.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"

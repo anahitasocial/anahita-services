@@ -2,23 +2,25 @@ package services
 
 import (
 	"actor/constants"
+	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	libs_services "anahita-libs/data/services"
 )
 
-// MentionsInterface keeps a node's mention edges in step with the @handles in
-// its body.
+// MentionsInterface keeps a node's mention edges in step with the profiles
+// its text names.
 //
-// This was a repository writing `edges` with INSERT and DELETE from
-// person-service. Edges belong to graph-grpc-service, and every operation it
-// needed already existed on the edge and node RPCs — so the move needed no new
-// service surface, only the four calls below.
+// A mention is a post naming a profile (the user, 2026-10-17): a person, a
+// group or an event, here or elsewhere, by its @handle or by its address on a
+// line of its own, embedded. A post naming a post is a citation, and is
+// text-service's to keep (handlers/embeds.go).
 type MentionsInterface interface {
-	// Update reconciles the mention edges of a node against the aliases found
-	// in its body: adds what is newly mentioned, removes what no longer is,
-	// leaves the rest alone.
-	Update(node MentionableInterface, aliases []string, viewer *entities.Viewer) error
+	// Update reconciles the mention edges of a node against the aliases
+	// its text names: adds what is newly named and may be, removes what no
+	// longer is, leaves the rest alone. It answers with the edges it added,
+	// for whoever is to be told.
+	Update(node MentionableInterface, aliases []string, viewer *entities.Viewer) ([]*entities.AnahitaEdge, error)
 }
 
 // MentionableInterface is what Update needs of the node being mentioned FROM.
@@ -35,38 +37,44 @@ type MentionableInterface interface {
 	GetAuthorID() int64
 }
 
-func NewMentions(nodes libs_services.GraphNodeGRPCInterface, edges libs_services.GraphEdgeGRPCInterface) MentionsInterface {
+func NewMentions(nodes libs_services.GraphNodeGRPCInterface, edges libs_services.GraphEdgeGRPCInterface, socialgraph libs_services.SocialgraphGRPCInterface) MentionsInterface {
 	return &Mentions{
-		nodes:    nodes,
-		edges:    edges,
-		edgeType: constants.EdgeTagMentionType,
+		nodes:       nodes,
+		edges:       edges,
+		socialgraph: socialgraph,
+		edgeType:    constants.EdgeTagMentionType,
 	}
 }
 
 type Mentions struct {
-	nodes    libs_services.GraphNodeGRPCInterface
-	edges    libs_services.GraphEdgeGRPCInterface
-	edgeType string
+	nodes       libs_services.GraphNodeGRPCInterface
+	edges       libs_services.GraphEdgeGRPCInterface
+	socialgraph libs_services.SocialgraphGRPCInterface
+	edgeType    string
 }
 
-func (m *Mentions) Update(node MentionableInterface, aliases []string, viewer *entities.Viewer) error {
-	wanted, err := m.resolve(aliases)
+func (m *Mentions) Update(node MentionableInterface, aliases []string, viewer *entities.Viewer) ([]*entities.AnahitaEdge, error) {
+	named, err := m.resolve(aliases)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	wanted, err := m.allowed(node, named)
+	if err != nil {
+		return nil, err
 	}
 
 	current, err := m.current(node)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var added []*entities.AnahitaEdge
-	for id := range wanted {
+	for id, kind := range wanted {
 		if _, ok := current[id]; !ok {
 			edge := entities.NewAnahitaEdge()
 			edge.Type = m.edgeType
 			edge.NodeAID = id
-			edge.NodeAType = an_constants.NodeActorPersonEntityType
+			edge.NodeAType = kind
 			edge.NodeBID = node.GetID()
 			edge.NodeBType = node.GetType()
 			edge.CreatedBy = attribute(node, viewer)
@@ -79,11 +87,11 @@ func (m *Mentions) Update(node MentionableInterface, aliases []string, viewer *e
 	// repository looped, issuing an INSERT each time round.
 	if len(added) > 0 {
 		if _, err := m.edges.BatchAdd(added); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	for id := range current {
+	for id, kind := range current {
 		if _, ok := wanted[id]; ok {
 			continue
 		}
@@ -91,47 +99,87 @@ func (m *Mentions) Update(node MentionableInterface, aliases []string, viewer *e
 		req := libs_services.NewGraphEdgeRequest().BatchDeleteByFilters
 		req.Types = []string{m.edgeType}
 		req.NodeAID = id
-		req.NodeAType = an_constants.NodeActorPersonEntityType
+		req.NodeAType = kind
 		req.NodeBID = node.GetID()
 		req.NodeBType = node.GetType()
 
 		if err := m.edges.BatchDeleteByFilters(req); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return added, nil
 }
 
-// resolve turns @handles into person ids.
+// resolve turns aliases into the profiles they are, of every kind a post can
+// name (constants.ProfileTypes).
 //
 // Unknown handles simply do not come back, which is the behaviour worth
 // keeping: writing "@nobody" in a note should leave the note alone, not fail
 // the edit.
-func (m *Mentions) resolve(aliases []string) (map[int64]struct{}, error) {
-	ids := make(map[int64]struct{})
+func (m *Mentions) resolve(aliases []string) (map[int64]*entities.AnahitaNode, error) {
+	found := make(map[int64]*entities.AnahitaNode)
 	if len(aliases) == 0 {
-		return ids, nil
+		return found, nil
 	}
 
-	req := libs_services.NewGraphNodeRequest().BatchReadByAliases
-	req.Aliases = aliases
-	req.NodeType = an_constants.NodeActorPersonEntityType
+	// One kind at a time: an alias is looked up within a type, and an empty
+	// type matches nothing.
+	for _, kind := range an_constants.ProfileTypes {
+		req := libs_services.NewGraphNodeRequest().BatchReadByAliases
+		req.Aliases = aliases
+		req.NodeType = kind
 
-	nodes, err := m.nodes.BatchReadByAliases(req)
-	if err != nil {
-		return nil, err
+		nodes, err := m.nodes.BatchReadByAliases(req)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range nodes {
+			found[n.ID] = n
+		}
 	}
 
-	for _, n := range nodes {
-		ids[n.ID] = struct{}{}
-	}
-
-	return ids, nil
+	return found, nil
 }
 
-// current reads the mention edges a node already has.
-func (m *Mentions) current(node MentionableInterface) (map[int64]struct{}, error) {
+// allowed is the profiles named that may be (permissions.CanMention), by
+// id, with their type. A person who said nobody, or not this author, may
+// be, or who blocks them, is left out: no edge, and so nobody is told.
+func (m *Mentions) allowed(node MentionableInterface, named map[int64]*entities.AnahitaNode) (map[int64]string, error) {
+	wanted := make(map[int64]string, len(named))
+	if len(named) == 0 {
+		return wanted, nil
+	}
+
+	author := entities.NewViewer()
+	author.ID = node.GetAuthorID()
+
+	var people []int64
+	for id, n := range named {
+		if n.Type == an_constants.NodeActorPersonEntityType && id != author.ID {
+			people = append(people, id)
+		}
+	}
+	relations := map[int64]*entities.ActorRelation{}
+	if len(people) > 0 && author.ID > 0 {
+		read, err := m.socialgraph.Browse(people, author.ID)
+		if err != nil {
+			return nil, err
+		}
+		relations = read
+	}
+
+	for id, n := range named {
+		if permissions.CanMention(n, author, relations[id]) {
+			wanted[id] = n.Type
+		}
+	}
+	return wanted, nil
+}
+
+// current reads the mention edges a node already has: who it names, with
+// their type.
+func (m *Mentions) current(node MentionableInterface) (map[int64]string, error) {
 	req := libs_services.NewGraphEdgeRequest().BatchReadByFilters
 	req.Types = []string{m.edgeType}
 	req.NodeBID = node.GetID()
@@ -141,9 +189,9 @@ func (m *Mentions) current(node MentionableInterface) (map[int64]struct{}, error
 		return nil, err
 	}
 
-	ids := make(map[int64]struct{}, len(edges))
+	ids := make(map[int64]string, len(edges))
 	for _, e := range edges {
-		ids[e.NodeAID] = struct{}{}
+		ids[e.NodeAID] = e.NodeAType
 	}
 
 	return ids, nil

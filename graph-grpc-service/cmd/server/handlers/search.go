@@ -55,3 +55,28 @@ func (h *searchHandler) Browse(ctx context.Context, req *graphpb.SearchBrowseReq
 		Nodes: nodesToGrpc(nodes),
 	}, nil
 }
+
+// ReadPreferences is the viewer's own steps for Most relevant.
+func (h *searchHandler) ReadPreferences(ctx context.Context, req *graphpb.SearchPreferencesReadRequest) (*graphpb.SearchPreferences, error) {
+	if req.Viewer == nil || req.Viewer.Id <= 0 {
+		return &graphpb.SearchPreferences{Steps: map[string]float64{}}, nil
+	}
+	steps, err := h.env.Repos.Search.ReadPreferences(req.Viewer.Id)
+	if err != nil {
+		return nil, err
+	}
+	return &graphpb.SearchPreferences{Steps: steps}, nil
+}
+
+// SavePreferences keeps the viewer's own steps, and answers with what was
+// kept: a name that may not be set, or a value that is not a step, is not.
+func (h *searchHandler) SavePreferences(ctx context.Context, req *graphpb.SearchPreferencesSaveRequest) (*graphpb.SearchPreferences, error) {
+	if req.Viewer == nil || req.Viewer.Id <= 0 {
+		return &graphpb.SearchPreferences{Steps: map[string]float64{}}, nil
+	}
+	steps, err := h.env.Repos.Search.SavePreferences(req.Viewer.Id, req.Steps)
+	if err != nil {
+		return nil, err
+	}
+	return &graphpb.SearchPreferences{Steps: steps}, nil
+}

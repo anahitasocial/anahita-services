@@ -40,12 +40,28 @@ func TestWhatIsWrittenHereAsABlueskyPost(t *testing.T) {
 	}
 }
 
+func TestOnlyTenHashtagsAreMarked(t *testing.T) {
+	post := NewOutPost("#a1 #a2 #a3 #a4 #a5 #a6 #a7 #a8 #a9 #a10 #A1 #a11", "", time.Now())
+
+	if post.Text != "#a1 #a2 #a3 #a4 #a5 #a6 #a7 #a8 #a9 #a10 #A1 #a11" {
+		t.Fatalf("text %q", post.Text)
+	}
+	// #A1 is #a1 again, and marked; #a11 is the eleventh, and a word.
+	if len(post.Facets) != 11 {
+		t.Errorf("%d marked", len(post.Facets))
+	}
+	last := post.Facets[len(post.Facets)-1]
+	if words := post.Text[last.Index.ByteStart:last.Index.ByteEnd]; words != "#A1" {
+		t.Errorf("last marked %q", words)
+	}
+}
+
 func TestAPostTooLongIsCut(t *testing.T) {
 	long := strings.Repeat("é", 290) + " [a link at the end](https://example.com/far)"
 	post := NewOutPost(long, "und", time.Now())
 
-	if got := len([]rune(post.Text)); got != PostMax || !strings.HasSuffix(post.Text, "…") {
-		t.Errorf("%d letters, ending %q", got, post.Text[len(post.Text)-8:])
+	if got := len([]rune(post.Text)); got != PostMax || !strings.HasSuffix(post.Text, "…") || !post.Cut {
+		t.Errorf("%d letters, ending %q, cut %v", got, post.Text[len(post.Text)-8:], post.Cut)
 	}
 	// The link the cut ran through is words, and no language is claimed
 	// that is not known.
@@ -54,7 +70,7 @@ func TestAPostTooLongIsCut(t *testing.T) {
 	}
 
 	short := NewOutPost("[all of it](https://example.com)", "", time.Now())
-	if len(short.Facets) != 1 || short.Text != "all of it" {
+	if len(short.Facets) != 1 || short.Text != "all of it" || short.Cut {
 		t.Errorf("%+v", short)
 	}
 }

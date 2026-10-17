@@ -92,6 +92,13 @@ func (h *mediumHandler) syncEmbeds(medium *entities.AnahitaNode) {
 		}
 	}
 
+	// A post cites posts. A profile it embeds is named, a mention, and not
+	// a citation: actor-service keeps those (the user, 2026-10-17).
+	cited := []int64{}
+	for _, post := range found.Posts {
+		cited = append(cited, post.ID)
+	}
+
 	existing, err := h.Srv.GraphEdgeGRPC.BatchReadByFilters(&services.GraphEdgeBatchReadByFiltersRequest{
 		NodeAID: medium.ID,
 		Types:   []string{an_constants.EdgeMediumCitationType},
@@ -117,12 +124,12 @@ func (h *mediumHandler) syncEmbeds(medium *entities.AnahitaNode) {
 	}
 
 	missing := []*entities.AnahitaEdge{}
-	for _, post := range found.Posts {
-		node, ok := wanted[post.ID]
-		if !ok || have[post.ID] {
+	for _, id := range cited {
+		node, ok := wanted[id]
+		if !ok || have[id] {
 			continue
 		}
-		have[post.ID] = true
+		have[id] = true
 		missing = append(missing, &entities.AnahitaEdge{
 			Type:      an_constants.EdgeMediumCitationType,
 			NodeAID:   medium.ID,

@@ -518,8 +518,13 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 	if post.Text == "" && post.Embed == nil {
 		return nil, nil
 	}
+	// Cut to what Bluesky takes: the card is of the post itself, here,
+	// where the rest of it is (the user, 2026-10-17), when it carries
+	// nothing else. A post has pictures or a card, not both.
+	if post.Cut && post.Embed == nil {
+		post.WithCard(h.Site.Web(fmt.Sprintf("/notes/%d", note.ID)), cutTitle(note), h.Site.Domain, nil)
+	}
 	// The card of the link in it, as it was kept when the note was made.
-	// A post has pictures or a card, not both.
 	if card := linkpreviews.FromMeta(note.Meta); card != nil && post.Embed == nil {
 		post.WithCard(card.URL, card.Title, card.Description, h.cardPicture(card.ImageKey, upload))
 	}
@@ -794,4 +799,18 @@ func (h *Handlers) token(ctx context.Context, account *repositories.Account, fre
 	}
 	h.remember(account.PersonID, session.AccessJWT)
 	return session.AccessJWT, nil
+}
+
+// cutTitle is what the card of a post cut for Bluesky is called: its title
+// where it has one, or its opening words.
+func cutTitle(note *entities.AnahitaNode) string {
+	if title := strings.TrimSpace(note.Name); title != "" {
+		return title
+	}
+	words := strings.Fields(note.Body)
+	opening := strings.Join(words, " ")
+	if letters := []rune(opening); len(letters) > 80 {
+		opening = strings.TrimSpace(string(letters[:79])) + "…"
+	}
+	return opening
 }

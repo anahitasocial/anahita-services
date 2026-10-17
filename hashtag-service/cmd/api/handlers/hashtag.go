@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"anahita-libs/constants"
+	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	an_responses "anahita-libs/responses"
+	"anahita-libs/trending"
 	"hashtag/requests"
 	"hashtag/responses"
 	"log"
@@ -161,23 +163,39 @@ func (h *hashtagHandler) BrowseTrending(c echo.Context) error {
 
 	gReq.NodeType = constants.NodeBaseHashtagEntityType
 	gReq.EdgeTypes = []string{constants.EdgeTagHashtagType}
-	gReq.Direction = constants.GraphQueryDirectionOutbound
 	gReq.Limit = req.Limit
-	gReq.TimeWindow = strings.ToUpper(req.TimeWindow)
 	gReq.Viewer = viewer
 	gReq.AccessCheck = false
-	nodes, err := h.Srv.GraphGRPC.Trending(gReq)
+
+	// From the window asked for, or the installation's, wider while it
+	// holds too few (anahita-libs/trending).
+	start := trending.Normal(req.TimeWindow)
+	if start == "" {
+		start = trending.DefaultWindow()
+	}
+	found, window, err := trending.Widen(start, req.Limit, func(window string) ([]*services.TrendingItem, error) {
+		gReq.TimeWindow = window
+		return h.Srv.GraphGRPC.TrendingItems(gReq)
+	})
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	if len(nodes) == 0 {
-		return c.JSON(http.StatusOK, []*responses.HashtagNodeItem{})
-	}
-
+	// In the envelope every list comes in, as one page that is all there
+	// is, and with the window it is of.
 	hashtagResp := &responses.HashtagNodeResponse{}
-	resp := hashtagResp.MapHashtagNodeItems(nodes)
+	resp := &an_responses.Trending[*responses.HashtagNodeItem]{Window: strings.ToLower(window)}
+	resp.Data = []*responses.HashtagNodeItem{}
+	for _, each := range found {
+		mapped := hashtagResp.MapHashtagNodeItems([]*entities.AnahitaNode{each.Node})
+		if len(mapped) == 1 {
+			mapped[0].People = each.People
+			resp.Data = append(resp.Data, mapped[0])
+		}
+	}
+	resp.Pagination.Limit = req.Limit
+	resp.Pagination.Total = uint64(len(resp.Data))
 
 	return c.JSON(http.StatusOK, resp)
 }

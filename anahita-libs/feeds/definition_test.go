@@ -201,3 +201,59 @@ func TestStoredGoesThereAndBack(t *testing.T) {
 		t.Error("which pictures there are is wrong")
 	}
 }
+
+// An area is a point and a radius within reason, and enough on its own to
+// look at the whole site; where a post was written is one of three.
+func TestNearAndOrigin(t *testing.T) {
+	near, err := Parse([]byte(`{"filters":{"near":{"latitude":49.28,"longitude":-123.12,"radius_km":10}}}`))
+	if err != nil {
+		t.Fatalf("near me, alone: %v", err)
+	}
+	if !near.Narrows() || near.Filters.Near.RadiusKm != 10 {
+		t.Errorf("%+v", near.Filters.Near)
+	}
+
+	for _, bad := range []string{
+		`{"filters":{"near":{"latitude":91,"longitude":0,"radius_km":10}}}`,
+		`{"filters":{"near":{"latitude":0,"longitude":-181,"radius_km":10}}}`,
+		`{"filters":{"near":{"latitude":0,"longitude":0,"radius_km":0}}}`,
+		`{"filters":{"near":{"latitude":0,"longitude":0,"radius_km":501}}}`,
+	} {
+		if _, err := Parse([]byte(bad)); err != RefusedNear {
+			t.Errorf("%s: %v, want invalid_near", bad, err)
+		}
+	}
+
+	from, err := Parse([]byte(`{"filters":{"hashtags_any":["dweb"],"origin":"Elsewhere"}}`))
+	if err != nil || from.Filters.Origin != OriginElsewhere {
+		t.Errorf("origin: %v %+v", err, from)
+	}
+	if _, err := Parse([]byte(`{"filters":{"hashtags_any":["dweb"],"origin":"mars"}}`)); err != RefusedOrigin {
+		t.Errorf("origin mars: %v", err)
+	}
+}
+
+// A live area keeps its radius and no point, and is read around wherever its
+// reader is.
+func TestALiveAreaIsWhereverItsReaderIs(t *testing.T) {
+	def, err := Parse([]byte(`{"filters":{"near":{"live":true,"latitude":49.28,"longitude":-123.12,"radius_km":10}}}`))
+	if err != nil {
+		t.Fatalf("live: %v", err)
+	}
+	def.ForgetPoint()
+	if !def.NeedsPoint() || def.Filters.Near.Latitude != 0 {
+		t.Errorf("kept a point: %+v", def.Filters.Near)
+	}
+	if !def.AtPoint(49.28271, -123.12074) || def.NeedsPoint() || def.Filters.Near.Latitude != 49.283 {
+		t.Errorf("read around: %+v", def.Filters.Near)
+	}
+	if def.AtPoint(95, 0) {
+		t.Error("a point that is not one")
+	}
+
+	fixed, _ := Parse([]byte(`{"filters":{"near":{"latitude":49.28,"longitude":-123.12,"radius_km":10}}}`))
+	fixed.ForgetPoint()
+	if fixed.NeedsPoint() || !fixed.AtPoint(1, 1) || fixed.Filters.Near.Latitude != 49.28 {
+		t.Errorf("a fixed area keeps its own point: %+v", fixed.Filters.Near)
+	}
+}

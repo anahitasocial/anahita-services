@@ -51,6 +51,7 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(node.comment_count, 0) AS comment_count",
 		"COALESCE(node.repost_count, 0) AS repost_count",
 		"COALESCE(node.quote_count, 0) AS quote_count",
+		"COALESCE(node.citation_count, 0) AS citation_count",
 		"node.enabled",
 		"node.verified",
 		// COALESCE: nullable column, non-pointer string. A NULL would fail the
@@ -237,6 +238,7 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.CommentCount,
 		&item.RepostCount,
 		&item.QuoteCount,
+		&item.CitationCount,
 		&item.Enabled,
 		&item.Verified,
 		&item.WebsiteURL,
@@ -389,6 +391,7 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.CommentCount,
 			&item.RepostCount,
 			&item.QuoteCount,
+			&item.CitationCount,
 			&item.Enabled,
 			&item.Verified,
 			&item.WebsiteURL,

@@ -124,8 +124,13 @@ func (h *graphHandler) Trending(ctx context.Context, req *graphpb.TrendingReques
 	if err != nil {
 		return &graphpb.TrendingResponse{}, err
 	}
+	people, err := h.env.Repos.Graph.TrendingPeople(req, extractNodeIDs(result))
+	if err != nil {
+		return &graphpb.TrendingResponse{}, err
+	}
 
 	return &graphpb.TrendingResponse{
-		Nodes: nodesToGrpc(result),
+		Nodes:  nodesToGrpc(result),
+		People: people,
 	}, nil
 }

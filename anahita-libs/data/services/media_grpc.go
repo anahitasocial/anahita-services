@@ -71,6 +71,9 @@ type MediaGRPCInterface interface {
 	// saved. Saved returns what they saved, most recently saved first, as
 	// they may see it now, and how many there are.
 	SetSaved(nodeID int64, saved bool, viewer *entities.Viewer) error
+	// The posts that cite a post, newest first, a page of them, and how
+	// many there are.
+	CitedBy(citedID int64, limit uint64, offset uint64, viewer *entities.Viewer) ([]*entities.AnahitaNode, uint64, error)
 	Saved(limit uint64, offset uint64, viewer *entities.Viewer) ([]*entities.AnahitaNode, uint64, error)
 
 	// SetPinned pins a post to the profile it is on, or takes the pin

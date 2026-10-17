@@ -3,6 +3,7 @@ package services
 import (
 	"testing"
 
+	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	libs_services "anahita-libs/data/services"
 )
@@ -10,18 +11,54 @@ import (
 type fakeNodes struct {
 	libs_services.GraphNodeGRPCInterface
 	byAlias map[string]int64
-	asked   []string
+	// The kind of each, a person unless said.
+	kinds map[int64]string
+	// Who lets whom mention them: their `mention` permission.
+	lets  map[int64]string
+	asked []string
 }
 
 func (f *fakeNodes) BatchReadByAliases(req *libs_services.GraphNodeBatchReadByAliasesRequest) ([]*entities.AnahitaNode, error) {
 	f.asked = req.Aliases
 	var out []*entities.AnahitaNode
 	for _, a := range req.Aliases {
-		if id, ok := f.byAlias[a]; ok {
-			n := entities.NewAnahitaNode()
-			n.ID = id
-			out = append(out, n)
+		id, ok := f.byAlias[a]
+		if !ok {
+			continue
 		}
+		kind := f.kinds[id]
+		if kind == "" {
+			kind = an_constants.NodeActorPersonEntityType
+		}
+		if kind != req.NodeType {
+			continue
+		}
+		n := entities.NewAnahitaNode()
+		n.ID = id
+		n.Type = kind
+		if access := f.lets[id]; access != "" {
+			_ = n.SetFeatures([]*entities.AnahitaNodeFeature{{
+				Service: an_constants.MentionPermissionService,
+				Enabled: true,
+				AddPermissions: []entities.AnahitaNodeAddPermission{
+					{Entity: an_constants.MentionPermission, Access: access},
+				},
+			}})
+		}
+		out = append(out, n)
+	}
+	return out, nil
+}
+
+type fakeSocialgraph struct {
+	libs_services.SocialgraphGRPCInterface
+	blocking map[int64]bool
+}
+
+func (f *fakeSocialgraph) Browse(ids []int64, author int64) (map[int64]*entities.ActorRelation, error) {
+	out := map[int64]*entities.ActorRelation{}
+	for _, id := range ids {
+		out[id] = &entities.ActorRelation{ActorAId: id, ActorBId: author, IsBlocking: f.blocking[id]}
 	}
 	return out, nil
 }
@@ -75,8 +112,8 @@ func TestMentionsUpdateReconciles(t *testing.T) {
 	// 1 is already mentioned and stays; 3 is mentioned and no longer in the body.
 	edges := &fakeEdges{existing: []int64{1, 3}}
 
-	m := NewMentions(nodes, edges)
-	if err := m.Update(mentionable{id: 99}, []string{"ada", "grace"}, entities.NewViewer()); err != nil {
+	m := NewMentions(nodes, edges, &fakeSocialgraph{})
+	if _, err := m.Update(mentionable{id: 99, authorID: 9}, []string{"ada", "grace"}, entities.NewViewer()); err != nil {
 		t.Fatalf("update: %v", err)
 	}
 
@@ -94,8 +131,8 @@ func TestMentionsIgnoresUnknownHandles(t *testing.T) {
 	nodes := &fakeNodes{byAlias: map[string]int64{"ada": 1}}
 	edges := &fakeEdges{}
 
-	m := NewMentions(nodes, edges)
-	if err := m.Update(mentionable{id: 99}, []string{"ada", "nobody"}, entities.NewViewer()); err != nil {
+	m := NewMentions(nodes, edges, &fakeSocialgraph{})
+	if _, err := m.Update(mentionable{id: 99, authorID: 9}, []string{"ada", "nobody"}, entities.NewViewer()); err != nil {
 		t.Fatalf("update: %v", err)
 	}
 
@@ -109,8 +146,8 @@ func TestMentionsSkipsTheLookupWhenNothingIsMentioned(t *testing.T) {
 	nodes := &fakeNodes{byAlias: map[string]int64{"ada": 1}}
 	edges := &fakeEdges{existing: []int64{1}}
 
-	m := NewMentions(nodes, edges)
-	if err := m.Update(mentionable{id: 99}, nil, entities.NewViewer()); err != nil {
+	m := NewMentions(nodes, edges, &fakeSocialgraph{})
+	if _, err := m.Update(mentionable{id: 99, authorID: 9}, nil, entities.NewViewer()); err != nil {
 		t.Fatalf("update: %v", err)
 	}
 
@@ -147,7 +184,7 @@ func TestMentionsAttributeTheEdge(t *testing.T) {
 			viewer := entities.NewViewer()
 			viewer.ID = tc.viewerID
 
-			if err := NewMentions(nodes, edges).Update(tc.node, []string{"ada"}, viewer); err != nil {
+			if _, err := NewMentions(nodes, edges, &fakeSocialgraph{}).Update(tc.node, []string{"ada"}, viewer); err != nil {
 				t.Fatalf("update: %v", err)
 			}
 			if len(edges.added) != 1 {
@@ -157,5 +194,31 @@ func TestMentionsAttributeTheEdge(t *testing.T) {
 				t.Errorf("created_by = %d, want %d", got, tc.want)
 			}
 		})
+	}
+}
+
+// Who may be named (permissions.CanMention): a person who lets nobody, or
+// blocks the author, is no edge; a group always is, with its own type.
+func TestMentionsKeepOnlyWhoMayBeNamed(t *testing.T) {
+	nodes := &fakeNodes{
+		byAlias: map[string]int64{"ada": 1, "grace": 2, "club": 3, "eve": 4},
+		kinds:   map[int64]string{3: an_constants.NodeActorGroupEntityType},
+		lets:    map[int64]string{2: "admins"},
+	}
+	edges := &fakeEdges{}
+	social := &fakeSocialgraph{blocking: map[int64]bool{4: true}}
+
+	m := NewMentions(nodes, edges, social)
+	added, err := m.Update(mentionable{id: 99, authorID: 9}, []string{"ada", "grace", "club", "eve"}, entities.NewViewer())
+	if err != nil {
+		t.Fatalf("update: %v", err)
+	}
+
+	kept := map[int64]string{}
+	for _, e := range added {
+		kept[e.NodeAID] = e.NodeAType
+	}
+	if len(kept) != 2 || kept[1] != an_constants.NodeActorPersonEntityType || kept[3] != an_constants.NodeActorGroupEntityType {
+		t.Errorf("expected ada and the club, got %v", kept)
 	}
 }

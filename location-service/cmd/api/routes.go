@@ -46,10 +46,10 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	locations := api.Group("locations")
 	locations.GET("/_browse/trending", r.handler.Location.BrowseTrending, r.setViewer).
 		Summary("Places used most lately").
-		Describe("The places most posts were tied to in a window of time that ends now. Not paged.").
+		Describe("The places the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.").
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewLocationRequest().BrowseTrending).
-		Sends(http.StatusOK, []*responses.LocationNodeItem{})
+		Sends(http.StatusOK, libs_responses.Trending[*responses.LocationNodeItem]{})
 	locations.GET("/_browse/ordered_by_degree", r.handler.Location.BrowseOrderedByDegree, r.setViewer).
 		Summary("Places used most of all").
 		Viewer(apidoc.Anyone).
@@ -85,9 +85,10 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.SignedIn).
 		Scope(media).
 		Takes(libs_requests.NewInboundRequest().Add).
-		SendsNothing(http.StatusCreated, "tied").
+		SendsNothing(http.StatusCreated, "tied, or tied already").
 		Refuses(http.StatusForbidden, "the viewer may not change the post").
-		Refuses(http.StatusNotFound, "there is no such place or post")
+		Refuses(http.StatusNotFound, "there is no such place or post").
+		Sends(http.StatusUnprocessableEntity, libs_responses.Refusal{}, "`too_many_locations`: the post is tied to five places already")
 	locations.DELETE("/:id/inbounds/:source_id", r.handler.Inbound.Delete, r.authorize).
 		Summary("Untie a post from a place").
 		Describe("For the post's author, the owner of the profile it is on, and site administrators.").

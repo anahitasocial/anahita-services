@@ -90,9 +90,17 @@ func LooksAfterThread(ctx *ReplyAccessContext) bool {
 // is read: "anyone", "nobody", or the groups. A post whose switch for
 // replies is off reads as "nobody" whatever else it says, which is every
 // post closed before authors could choose.
+//
+// A post from another server reads as "anyone", as CanReply has it: who
+// its author lets reply is their server's to hold to, and nothing of it is
+// kept here. Its switch is never set, and read as off it said "Replies are
+// closed" over a box anybody here could reply in.
 func RepliesLimitedTo(root *entities.AnahitaNode) string {
 	if root == nil {
 		return constants.ReplyAccessNobody
+	}
+	if root.IsRemote() {
+		return constants.ReplyAccessAnyone
 	}
 
 	return constants.EffectiveReplyAccess(root.ReplyAccess, root.CommentStatus)

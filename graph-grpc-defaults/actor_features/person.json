@@ -1,7 +1,9 @@
 [
     {
         "service": "socialgraph-service",
-        "add_permissions": []
+        "add_permissions": [
+            {"entity": "mention", "access": "registered"}
+        ]
     },
     {
         "service": "text-service",

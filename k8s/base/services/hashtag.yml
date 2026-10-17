@@ -47,6 +47,20 @@ spec:
                   name: anahita-config
                   key: MIN_CONTENT_ACCESS
                   optional: true
+            # Over what span of time trending is; see docs/configuration.md,
+            # Trending.
+            - name: TRENDING_WINDOW
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: TRENDING_WINDOW
+                  optional: true
+            - name: FEDERATION_PROTOCOLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FEDERATION_PROTOCOLS
+                  optional: true
             - name: SECURE_COOKIE_KEY
               valueFrom:
                 secretKeyRef:

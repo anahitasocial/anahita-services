@@ -586,6 +586,10 @@ ALTER TABLE nodes ADD COLUMN `library_only` tinyint(1) NOT NULL DEFAULT 0 AFTER 
 -- nodes.draft. See migrations/20261115000001_drafts.sql.
 ALTER TABLE nodes ADD COLUMN `draft` tinyint(1) NOT NULL DEFAULT 0 AFTER `library_only`;
 
+-- nodes.citation_count. See migrations/20261116000001_citation_count.sql.
+-- Nothing on the PHP site cited anything, so every count starts at 0.
+ALTER TABLE nodes ADD COLUMN `citation_count` int(11) unsigned NOT NULL DEFAULT 0 AFTER `quote_count`;
+
 -- nodes.excerpt, dropped with what is in it. See
 -- migrations/20261113000001_drop_excerpt.sql.
 ALTER TABLE nodes DROP COLUMN `excerpt`;
@@ -897,7 +901,7 @@ CREATE TABLE IF NOT EXISTS photo_files (
     `width` int unsigned NOT NULL DEFAULT 0,
     `height` int unsigned NOT NULL DEFAULT 0,
     -- What the image shows, for people who cannot see it.
-    `alt_text` varchar(1500) NOT NULL DEFAULT '',
+    `alt_text` text NOT NULL DEFAULT (''),
     PRIMARY KEY (`node_id`, `position`),
     UNIQUE KEY `uq_photo_files_filename` (`filename`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -1453,6 +1457,18 @@ CREATE TABLE IF NOT EXISTS abuse_reports (
 --
 -- Owned by recommendation-service. No foreign keys, like the rest of this
 -- schema.
+-- Each person's own weights for search's Most relevant. See
+-- migrations/20261117000001_search_preferences.sql.
+CREATE TABLE IF NOT EXISTS search_preferences (
+    `person_id` bigint unsigned NOT NULL,
+    -- How much each sign of use counts in their Most relevant, as JSON by
+    -- name: a step that multiplies the installation's own weight (graph
+    -- ranking.Adjustable, ranking.Steps). Only what they have set.
+    `weights` varchar(1000) NOT NULL DEFAULT '',
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`person_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE IF NOT EXISTS recommendation_preferences (
     `person_id` bigint unsigned NOT NULL,
     -- Whether to be suggested people, and groups.

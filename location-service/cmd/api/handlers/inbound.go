@@ -127,6 +127,31 @@ func (h *inboundHandler) Add(c echo.Context) error {
 	edge.NodeBID = source.ID
 	edge.NodeBType = source.Type
 	edge.CreatedBy = viewer.ID
+
+	// Tied to it already: there is nothing to do.
+	tied, err := h.Srv.GraphEdgeGRPC.CheckEdgeExists(edge)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if tied {
+		return c.NoContent(http.StatusCreated)
+	}
+
+	// A post is tied to MaxLocationsOfAPost places at most.
+	places, err := h.Srv.GraphEdgeGRPC.Count(&services.GraphEdgeCountRequest{
+		Types:     []string{an_constants.EdgeTagLocationType},
+		NodeBID:   source.ID,
+		NodeBType: source.Type,
+	})
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if places >= an_constants.MaxLocationsOfAPost {
+		return c.JSON(http.StatusUnprocessableEntity, responses.Refusal{Error: "too_many_locations"})
+	}
+
 	edge, err = h.Srv.GraphEdgeGRPC.Add(edge)
 	if err != nil {
 		log.Println(err)

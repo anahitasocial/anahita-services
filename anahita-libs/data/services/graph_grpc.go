@@ -40,6 +40,8 @@ type GraphGRPCInterface interface {
 
 	// Trending
 	Trending(req *GraphTrendingRequest) ([]*entities.AnahitaNode, error)
+	// TrendingItems is Trending with how many people posted with each.
+	TrendingItems(req *GraphTrendingRequest) ([]*TrendingItem, error)
 }
 
 // NewGraphGRPC creates a new graph service
@@ -319,14 +321,31 @@ func (srv *GraphGRPC) ReadShortestPath(req *GraphReadShortestPathRequest) (*dtos
 	return resp, nil
 }
 
-// Trending
+// TrendingItem is a tag that is trending, and how many people posted with
+// it in the window.
+type TrendingItem struct {
+	Node   *entities.AnahitaNode
+	People uint64
+}
+
+// Trending is what is trending, without how many people.
 func (srv *GraphGRPC) Trending(req *GraphTrendingRequest) ([]*entities.AnahitaNode, error) {
+	items, err := srv.TrendingItems(req)
+	nodes := make([]*entities.AnahitaNode, 0, len(items))
+	for _, item := range items {
+		nodes = append(nodes, item.Node)
+	}
+	return nodes, err
+}
+
+// TrendingItems implements GraphGRPCInterface.
+func (srv *GraphGRPC) TrendingItems(req *GraphTrendingRequest) ([]*TrendingItem, error) {
 	client, err := srv.getClient()
 	if err != nil {
-		return []*entities.AnahitaNode{}, err
+		return []*TrendingItem{}, err
 	}
 	if client == nil {
-		return []*entities.AnahitaNode{}, nil
+		return []*TrendingItem{}, nil
 	}
 
 	r, err := client.Trending(context.Background(), &graphpb.TrendingRequest{
@@ -344,11 +363,15 @@ func (srv *GraphGRPC) Trending(req *GraphTrendingRequest) ([]*entities.AnahitaNo
 		AccessCheck: req.AccessCheck,
 	})
 	if err != nil {
-		return []*entities.AnahitaNode{}, err
+		return []*TrendingItem{}, err
 	}
 	if r == nil {
-		return []*entities.AnahitaNode{}, nil
+		return []*TrendingItem{}, nil
 	}
 
-	return grpcToGraphNodes(r.Nodes), nil
+	items := []*TrendingItem{}
+	for _, node := range grpcToGraphNodes(r.Nodes) {
+		items = append(items, &TrendingItem{Node: node, People: r.GetPeople()[node.ID]})
+	}
+	return items, nil
 }

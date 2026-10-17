@@ -144,6 +144,8 @@ type Node struct {
 	// An article or a topic still being written: seen by its author alone,
 	// listed nowhere, announced to nobody. Only ever cleared, by publishing.
 	Draft bool `protobuf:"varint,97,opt,name=draft,proto3" json:"draft,omitempty"`
+	// How many people cite it, each once, never itself.
+	CitationCount int64 `protobuf:"varint,98,opt,name=citation_count,json=citationCount,proto3" json:"citation_count,omitempty"`
 	// Quote posts. quote_policy is who may quote a post, or on a person
 	// their posts; quote_id is the post a note quotes; quote_detached says
 	// that post's author took it out of the quote.
@@ -700,6 +702,13 @@ func (x *Node) GetDraft() bool {
 		return x.Draft
 	}
 	return false
+}
+
+func (x *Node) GetCitationCount() int64 {
+	if x != nil {
+		return x.CitationCount
+	}
+	return 0
 }
 
 func (x *Node) GetQuotePolicy() string {
@@ -3159,7 +3168,7 @@ var File_proto_graphpb_node_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb9\x17\n" +
+	"\x18proto/graphpb/node.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe0\x17\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -3250,7 +3259,8 @@ const file_proto_graphpb_node_proto_rawDesc = "" +
 	"\x03uri\x18^ \x01(\tR\x03uri\x12#\n" +
 	"\rorigin_domain\x18_ \x01(\tR\foriginDomain\x12!\n" +
 	"\flibrary_only\x18` \x01(\bR\vlibraryOnly\x12\x14\n" +
-	"\x05draft\x18a \x01(\bR\x05draft\x12!\n" +
+	"\x05draft\x18a \x01(\bR\x05draft\x12%\n" +
+	"\x0ecitation_count\x18b \x01(\x03R\rcitationCount\x12!\n" +
 	"\fquote_policy\x18V \x01(\tR\vquotePolicy\x12\x19\n" +
 	"\bquote_id\x18W \x01(\x03R\aquoteId\x12%\n" +
 	"\x0equote_detached\x18X \x01(\bR\rquoteDetached\x12+\n" +

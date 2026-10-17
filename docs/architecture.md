@@ -192,8 +192,19 @@ web app reads it the same way.
 - **A citation** is the edge from the article to each post here it shows
   (`edge.medium.citation.v1`). text-service writes the citations when the
   article or topic is added or edited, and takes away those whose line is
-  gone. A post that could not be read, or is not a post, is not cited.
-  Search and recommendations do not read citations yet.
+  gone. An address that could not be read, or is not a post, is not cited.
+- **A mention** is a post naming a profile, a person, a group or an event:
+  by its `@handle`, or by its address on a line of its own, which shows its
+  card. It is the edge from the profile to the post (`edge.tag.mention.v1`),
+  kept by actor-service; see [Permissions](permissions.md#mentions).
+- **Who cites what.** Each post and profile keeps how many people cite it,
+  a profile counting the citations of its posts,
+  `nodes.citation_count`, which [Search](search.md) and
+  [Recommendations](recommendations.md) weigh. `GET /notes/:id/cited_by`
+  lists the posts citing a post of any kind, newest first, as the viewer
+  may see them; the web app shows them in a post's Cited by tab, beside
+  Replies and Locations. What an article or a topic cites is listed at the
+  end of its own text.
 - **A page elsewhere** is shown by its card, kept in the post's `meta` under
   `link_previews` and sent as `link_previews`: see
   [Link previews](link-previews.md#cards-in-long-writing).

@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"math"
 	"strings"
 	"unicode/utf8"
 
@@ -33,6 +34,9 @@ const (
 	MaxHashtags  = 10
 	MaxKeywords  = 10
 	MaxLocations = 5
+	// How far around a point, in kilometres.
+	MinRadiusKm = 1
+	MaxRadiusKm = 500
 	// A keyword's length, in characters.
 	MinKeywordLength = 2
 	MaxKeywordLength = 50
@@ -87,7 +91,34 @@ type Filters struct {
 	Locations  []int64  `json:"locations_any"`
 	// The language a post was written in, as its author said: "en", "fr".
 	Language string `json:"language"`
+	// Posts tied to a place within a distance of a point, or carrying a
+	// location of their own there (the user, 2026-10-17: "a near me feed,
+	// and set the radius"). Nil for anywhere.
+	Near *Near `json:"near,omitempty"`
+	// Where a post was written: "" anywhere, "here" on this installation,
+	// "elsewhere" on another server, on the fediverse or Bluesky.
+	Origin string `json:"origin,omitempty"`
 }
+
+// Near is a point and how far around it, in kilometres.
+//
+// Live, the point is wherever whoever reads the feed is, sent with each
+// page they read and kept nowhere (the user, 2026-10-17: "read the location
+// live rather than recording the point"): a feed of what is near me, for
+// whoever reads it. Its point is kept empty, and set for one reading only
+// (AtPoint).
+type Near struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	RadiusKm  int     `json:"radius_km"`
+	Live      bool    `json:"live,omitempty"`
+}
+
+// Where a post was written.
+const (
+	OriginHere      = "here"
+	OriginElsewhere = "elsewhere"
+)
 
 type Exclude struct {
 	Hashtags []string `json:"hashtags"`
@@ -141,6 +172,8 @@ const (
 	RefusedLocation      Refusal = "invalid_location"
 	RefusedLanguage      Refusal = "invalid_language"
 	RefusedOrder         Refusal = "unknown_order"
+	RefusedNear          Refusal = "invalid_near"
+	RefusedOrigin        Refusal = "unknown_origin"
 )
 
 // AsRefusal reports the reason in err, when it is one of the above.
@@ -234,6 +267,19 @@ func (d *Definition) Check() error {
 		return RefusedLanguage
 	}
 
+	if near := d.Filters.Near; near != nil {
+		if near.Latitude < -90 || near.Latitude > 90 || near.Longitude < -180 || near.Longitude > 180 ||
+			near.RadiusKm < MinRadiusKm || near.RadiusKm > MaxRadiusKm {
+			return RefusedNear
+		}
+	}
+	d.Filters.Origin = strings.ToLower(strings.TrimSpace(d.Filters.Origin))
+	switch d.Filters.Origin {
+	case "", OriginHere, OriginElsewhere:
+	default:
+		return RefusedOrigin
+	}
+
 	if d.Order == "" {
 		d.Order = OrderNewest
 	}
@@ -252,8 +298,9 @@ func (d *Definition) Check() error {
 		return RefusedTooManyPlaces
 	}
 
-	// The whole site is looked at only through a hashtag, a keyword or a
-	// place. A feed of everything, or of every photo, is not one.
+	// The whole site is looked at only through a hashtag, a keyword, a
+	// place or an area. A feed of everything, or of every photo, is not
+	// one.
 	if !d.HasSources() && !d.Narrows() {
 		return RefusedTooBroad
 	}
@@ -261,14 +308,47 @@ func (d *Definition) Check() error {
 	return nil
 }
 
+// ForgetPoint takes the point out of an area that is wherever its reader
+// is: what is kept of a live feed is its radius.
+func (d *Definition) ForgetPoint() {
+	if near := d.Filters.Near; near != nil && near.Live {
+		near.Latitude, near.Longitude = 0, 0
+	}
+}
+
+// NeedsPoint says whether the feed's area is wherever its reader is, and
+// no point was given for this reading.
+func (d *Definition) NeedsPoint() bool {
+	near := d.Filters.Near
+	return near != nil && near.Live && near.Latitude == 0 && near.Longitude == 0
+}
+
+// AtPoint is the feed read around a point: where its reader is, for a live
+// one, rounded to three decimals, about a hundred metres. A fixed area keeps
+// its own. False for a point that is not one.
+func (d *Definition) AtPoint(latitude, longitude float64) bool {
+	near := d.Filters.Near
+	if near == nil || !near.Live {
+		return true
+	}
+	if latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180 {
+		return false
+	}
+	near.Latitude = math.Round(latitude*1000) / 1000
+	near.Longitude = math.Round(longitude*1000) / 1000
+	return true
+}
+
 // HasSources reports whether the feed names where its posts come from.
 func (d *Definition) HasSources() bool {
 	return d.Sources.Following || len(d.Sources.Actors) > 0
 }
 
-// Narrows reports whether the feed asks for a hashtag, a keyword or a place.
+// Narrows reports whether the feed asks for a hashtag, a keyword, a place
+// or an area.
 func (d *Definition) Narrows() bool {
-	return len(d.Filters.Hashtags) > 0 || len(d.Filters.Keywords) > 0 || len(d.Filters.Locations) > 0
+	return len(d.Filters.Hashtags) > 0 || len(d.Filters.Keywords) > 0 || len(d.Filters.Locations) > 0 ||
+		d.Filters.Near != nil
 }
 
 // MediaEntityTypes is the types of post the feed shows: the ones chosen, or

@@ -22,9 +22,9 @@ type Hit struct {
 
 // Reason is why a profile is suggested, as it is sent.
 type Reason struct {
-	// Which reason: `follows_you`, `followed_by_leaders`, `inviter`,
-	// `hosted_by_leader`, `shared_interest`, `you_engaged`, `popular` or
-	// `featured` (recommendations.md).
+	// Which reason: `follows_you`, `followed_by_leaders`,
+	// `cited_by_leaders`, `inviter`, `hosted_by_leader`, `shared_interest`,
+	// `you_engaged`, `cited`, `popular` or `featured` (recommendations.md).
 	Type string `json:"type"`
 	// How strongly.
 	Count int `json:"count"`

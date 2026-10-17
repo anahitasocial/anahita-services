@@ -16,6 +16,6 @@ import (
 func TestTheAPIReference(t *testing.T) {
 	e := echo.New()
 	pass := func(next echo.HandlerFunc) echo.HandlerFunc { return next }
-	doc := NewRoutes(&handlers.Handlers{}, pass).Init(e)
+	doc := NewRoutes(&handlers.Handlers{}, pass, pass).Init(e)
 	apidoc.Check(t, e, doc, "../../../docs/api/search-service.json")
 }

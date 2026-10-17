@@ -74,10 +74,12 @@ Each reason adds to a score, up to a most. The score is then kept in full for a 
 | --- | --- | --- | --- |
 | `follows_you` | They follow the viewer, who does not follow them. People only | 4 | 4 |
 | `followed_by_leaders` | People the viewer follows, follow them. `ids` are those people | 3 | 15 |
+| `cited_by_leaders` | People the viewer follows cited a public post of theirs or on their profile, in a published public article or topic of the last year. `ids` are those people | 3 | 9 |
 | `inviter` | They invited the viewer, or the viewer invited them. People only | 3 | 3 |
 | `hosted_by_leader` | A group the viewer follows is hosting it. Events only. `ids` are those groups | 3 | 3 |
 | `you_engaged` | The viewer liked what is posted on their profile, in the last 90 days | 2 | 8 |
 | `shared_interest` | Their public posts of the last year carry hashtags the viewer has used or liked, or follows. `ids` are those hashtags | 2 | 8 |
+| `cited` | Anybody cited them, as above, but never themselves and never the viewer. `ids` are those people | 1 | 4 |
 | `featured` | The installation's administrators featured them | 0.5 | 0.5 |
 | `popular` | Many people followed them in the last 30 days | 0.5 | 0.5 |
 

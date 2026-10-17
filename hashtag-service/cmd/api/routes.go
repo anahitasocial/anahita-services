@@ -46,16 +46,42 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	hashtags := api.Group("hashtags")
 	hashtags.GET("/_browse/trending", r.handler.Hashtag.BrowseTrending, r.setViewer).
 		Summary("Hashtags used most lately").
-		Describe("The hashtags most used in a window of time that ends now. Not paged: the most there are, up to `limit`.").
+		Describe("The hashtags the most people posted with in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.").
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewHashtagRequest().BrowseTrending).
-		Sends(http.StatusOK, []*responses.HashtagNodeItem{})
+		Sends(http.StatusOK, libs_responses.Trending[*responses.HashtagNodeItem]{})
+	hashtags.GET("/_browse/following", r.handler.Hashtag.Following, r.authorize).
+		Summary("The hashtags the viewer follows").
+		Describe("Those in the viewer's custom feeds, which following a hashtag makes, with how many posts anybody may see carry each (`uses`), and the viewer's own. `q`, `sort` and paging as for all of them.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.ListRequest{Sort: "name", Limit: 20}).
+		Sends(http.StatusOK, libs_responses.List[*responses.HashtagNodeItem]{})
+	hashtags.GET("/_browse/all", r.handler.Hashtag.All, r.setViewer).
+		Summary("Every hashtag").
+		Describe("Every hashtag on a post anybody may see, A to Z or the most used first, perhaps only those beginning with `q`: each with how many such posts carry it (`uses`), the viewer's own posts too, and whether the viewer follows it.").
+		Viewer(apidoc.Anyone).
+		Takes(&handlers.ListRequest{Sort: "name", Limit: 20}).
+		Sends(http.StatusOK, libs_responses.List[*responses.HashtagNodeItem]{})
 	hashtags.GET("/_browse/ordered_by_degree", r.handler.Hashtag.BrowseOrderedByDegree, r.setViewer).
 		Summary("Hashtags used most of all").
 		Describe("Every hashtag, the ones in the most posts first.").
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewHashtagRequest().BrowseOrderedByDegree).
 		Sends(http.StatusOK, libs_responses.List[*responses.HashtagNodeItem]{})
+	// Offered to somebody writing (roadmap row 78). Signed in only:
+	// writing needs it, and it is not a way to list every hashtag.
+	hashtags.GET("/_suggest", r.handler.Hashtag.Begun, r.authorize).
+		Summary("Hashtags that begin with what was typed").
+		Describe("For somebody typing a hashtag: those in use that begin with `q` (what follows the #, its capitals and accents aside), the one that is just that first, then those in the viewer's custom feeds, then the most used. A hashtag is counted by the posts anybody may see, and the viewer's own.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.SuggestQuery{}).
+		Sends(http.StatusOK, handlers.SuggestResponse{})
+	hashtags.POST("/_suggest", r.handler.Hashtag.ForText, r.authorize).
+		Summary("Hashtags for a text").
+		Describe("For long content: the hashtags in use that are words of the title and body, or two words run together (open science, #openscience), and on more than one post. Those in the viewer's custom feeds first, then the words the text uses most. Hashtags the text has already are left out; addresses, code, mentions and hashtags are not words of it.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.SuggestRequest{}).
+		Sends(http.StatusOK, handlers.SuggestResponse{})
 	hashtags.GET("/", r.handler.Hashtag.Browse, r.setViewer).
 		Summary("Hashtags").
 		Viewer(apidoc.Anyone).

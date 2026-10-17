@@ -126,8 +126,11 @@ type AnahitaNode struct {
 	// is read.
 	Hidden     bool
 	QuoteCount int64
-	Enabled    bool
-	Verified   bool
+	// How many people cite it, each once, never itself (graph
+	// repositories/citations.go).
+	CitationCount int64
+	Enabled       bool
+	Verified      bool
 	// WebsiteURL is one link on an actor profile. Validated to http(s) before
 	// it is stored — it is rendered as an anchor href, so a javascript: or
 	// data: value would be stored XSS.

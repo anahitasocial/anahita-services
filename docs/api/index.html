@@ -59,7 +59,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#auth-service">Accounts and signing in</a> <span class="count">94</span></li>
 <li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
 <li><a href="#feed-service">Feeds</a> <span class="count">18</span></li>
-<li><a href="#hashtag-service">Hashtags</a> <span class="count">6</span></li>
+<li><a href="#hashtag-service">Hashtags</a> <span class="count">10</span></li>
 <li><a href="#identity-image-service">Avatars and covers</a> <span class="count">6</span></li>
 <li><a href="#like-service">Likes</a> <span class="count">3</span></li>
 <li><a href="#link-preview-service">Link previews</a> <span class="count">4</span></li>
@@ -67,11 +67,11 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#notification-service">Notifications</a> <span class="count">6</span></li>
 <li><a href="#photo-service">Photo posts</a> <span class="count">16</span></li>
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
-<li><a href="#search-service">Search</a> <span class="count">1</span></li>
+<li><a href="#search-service">Search</a> <span class="count">3</span></li>
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
-<li><a href="#text-service">Notes, articles and topics</a> <span class="count">43</span></li>
+<li><a href="#text-service">Notes, articles and topics</a> <span class="count">44</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">140</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">143</span></li>
 </ul>
 </nav>
 <main>
@@ -777,13 +777,13 @@ who may call it: somebody signed in.">
 <tbody>
 <tr><td><code>access</code></td><td>string</td><td>Who can see it. Anybody, unless it says otherwise. One of <code>public</code>, <code>registered</code>, <code>followers</code>.</td></tr>
 <tr><td><code>address</code></td><td>string</td><td>Where it is held, when it is somewhere: an address as it is typed, kept on the event and shown to whoever is going. Not a place on the map, which is public. Every part is optional. At most 255 characters.</td></tr>
-<tr><td><code>body</code></td><td>string</td><td>What it is about. At most 10000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What it is about. At most 8000 characters.</td></tr>
 <tr><td><code>capacity</code></td><td>integer</td><td>How many may be going. 0, or left out, for no limit. At least 0. At most 100000.</td></tr>
 <tr><td><code>city</code></td><td>string</td><td> At most 100 characters.</td></tr>
 <tr><td><code>country</code></td><td>string</td><td> At most 100 characters.</td></tr>
 <tr><td><code>ends_at</code> <span class="required">always</span></td><td>string</td><td> At most 40 characters.</td></tr>
 <tr><td><code>host_group_id</code></td><td>integer</td><td>A group hosting it, which whoever makes the event must administer. Left out for an event that is its maker&#39;s own.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 64 characters.</td></tr>
 <tr><td><code>online_url</code></td><td>string (uri)</td><td>Where to join, when it is online. At most 512 characters.</td></tr>
 <tr><td><code>open_to_host_followers</code></td><td>boolean</td><td>Whether everybody who follows the group hosting it may see that it is on and answer it. Means nothing on an event with no host.</td></tr>
 <tr><td><code>postal_code</code></td><td>string</td><td> At most 20 characters.</td></tr>
@@ -870,12 +870,12 @@ who may call it: anyone, signed in or not.">
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>address</code></td><td>string</td><td>Where it is held, when it is somewhere: an address as it is typed, kept on the event and shown to whoever is going. Not a place on the map, which is public. Every part is optional. At most 255 characters.</td></tr>
-<tr><td><code>body</code></td><td>string</td><td>What it is about. At most 10000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What it is about. At most 8000 characters.</td></tr>
 <tr><td><code>capacity</code></td><td>integer</td><td>How many may be going. 0, or left out, for no limit. At least 0. At most 100000.</td></tr>
 <tr><td><code>city</code></td><td>string</td><td> At most 100 characters.</td></tr>
 <tr><td><code>country</code></td><td>string</td><td> At most 100 characters.</td></tr>
 <tr><td><code>ends_at</code> <span class="required">always</span></td><td>string</td><td> At most 40 characters.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 64 characters.</td></tr>
 <tr><td><code>online_url</code></td><td>string (uri)</td><td>Where to join, when it is online. At most 512 characters.</td></tr>
 <tr><td><code>open_to_host_followers</code></td><td>boolean</td><td>Whether everybody who follows the group hosting it may see that it is on and answer it. Means nothing on an event with no host.</td></tr>
 <tr><td><code>postal_code</code></td><td>string</td><td> At most 20 characters.</td></tr>
@@ -1371,9 +1371,9 @@ who may call it: somebody signed in.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>body</code></td><td>string</td><td>What it says of itself. At most 10000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What it says of itself. At most 500 characters.</td></tr>
 <tr><td><code>enabled</code></td><td>boolean</td><td>Whether it is enabled. <code>true</code> unless given.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name. At most 100 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name. At most 64 characters.</td></tr>
 <tr><td><code>website_url</code></td><td>string (uri)</td><td>One link on the profile. A bare <code>example.com</code> is taken as https. At most 255 characters.</td></tr>
 </tbody>
 </table>
@@ -1477,9 +1477,9 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>body</code></td><td>string</td><td>What it says of itself. At most 8000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What it says of itself. At most 500 characters.</td></tr>
 <tr><td><code>enabled</code></td><td>boolean</td><td>Whether it is enabled.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name. At most 100 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name. At most 64 characters.</td></tr>
 <tr><td><code>website_url</code></td><td>string (uri)</td><td>One link on the profile. A bare <code>example.com</code> is taken as https. At most 255 characters.</td></tr>
 </tbody>
 </table>
@@ -2318,9 +2318,9 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>body</code></td><td>string</td><td>What they say of themselves. At most 8000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What they say of themselves. At most 500 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language this person usually posts in, as a BCP 47 tag. It is what the composer starts on; each post can say otherwise. At most 12 characters.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Their name. At most 100 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Their name. At most 64 characters.</td></tr>
 <tr><td><code>person_pronouns</code></td><td>string</td><td>Their pronouns, as free text: <code>she/her</code>, <code>iel</code>. At most 50 characters.</td></tr>
 <tr><td><code>website_url</code></td><td>string (uri)</td><td>One link on the profile. A bare <code>example.com</code> is taken as https. At most 255 characters.</td></tr>
 </tbody>
@@ -2820,7 +2820,7 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>username</code> <span class="required">required</span></td><td>query</td><td>string</td><td>The username. At least 3 characters. At most 32 characters.</td></tr>
+<tr><td><code>username</code> <span class="required">required</span></td><td>query</td><td>string</td><td>The username. At least 3 characters. At most 30 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -3129,10 +3129,10 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>name</code></td><td>string</td><td>Optional, and offered rather than required. At most 100 characters.</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Optional, and offered rather than required. At most 64 characters.</td></tr>
 <tr><td><code>password</code> <span class="required">always</span></td><td>string</td><td>At least 15 characters. At least 15 characters. At most 150 characters.</td></tr>
 <tr><td><code>token</code> <span class="required">always</span></td><td>string</td><td>From the link. At least 128 characters. At most 128 characters.</td></tr>
-<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The username, chosen rather than derived. At least 3 characters. At most 32 characters.</td></tr>
+<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The username, chosen rather than derived. At least 3 characters. At most 30 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -4009,12 +4009,12 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>body</code></td><td>string</td><td> At most 8000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td> At most 500 characters.</td></tr>
 <tr><td><code>csrf_token</code> <span class="required">always</span></td><td>string</td><td>The CSRF token, matched against the one put in the session when the form was rendered.</td></tr>
 <tr><td><code>email</code> <span class="required">always</span></td><td>string (email)</td><td>Their address: a code is mailed to it. At least 3 characters. At most 64 characters.</td></tr>
-<tr><td><code>name</code></td><td>string</td><td>Collected in <code>approval</code> mode only, and required there. At most 100 characters.</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Collected in <code>approval</code> mode only, and required there. At most 64 characters.</td></tr>
 <tr><td><code>password</code> <span class="required">always</span></td><td>string</td><td>At least 15 characters. At least 15 characters. At most 150 characters.</td></tr>
-<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The username: letters, digits, <code>-</code> and <code>_</code>. It is the address of their profile. At least 3 characters. At most 32 characters.</td></tr>
+<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The username: letters, digits, <code>-</code> and <code>_</code>. It is the address of their profile. At least 3 characters. At most 30 characters.</td></tr>
 <tr><td><code>website_url</code></td><td>string</td><td> At most 255 characters.</td></tr>
 </tbody>
 </table>
@@ -4391,7 +4391,7 @@ who may call it: somebody signed in, who has just proved who they are again.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The new username: letters, digits, <code>-</code> and <code>_</code>. At least 3 characters. At most 32 characters.</td></tr>
+<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The new username: letters, digits, <code>-</code> and <code>_</code>. At least 3 characters. At most 30 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -4672,7 +4672,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not make one</td></tr>
 <tr><td class="status s4">409</td><td><code>too_many_feeds</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">422</td><td>why the definition was refused: <code>malformed</code>, <code>unknown_field</code>, <code>too_broad</code>, <code>too_many_actors</code>, <code>too_many_hashtags</code>, <code>too_many_keywords</code>, <code>too_many_locations</code>, <code>keyword_length</code>, <code>invalid_hashtag</code>, <code>unknown_media_type</code>, <code>unknown_actor_type</code>, <code>invalid_actor</code>, <code>invalid_location</code>, <code>invalid_language</code> or <code>unknown_order</code>; <code>invalid</code> for a field<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">422</td><td>why the definition was refused: <code>malformed</code>, <code>unknown_field</code>, <code>too_broad</code>, <code>too_many_actors</code>, <code>too_many_hashtags</code>, <code>too_many_keywords</code>, <code>too_many_locations</code>, <code>keyword_length</code>, <code>invalid_hashtag</code>, <code>unknown_media_type</code>, <code>unknown_actor_type</code>, <code>invalid_actor</code>, <code>invalid_location</code>, <code>invalid_language</code>, <code>invalid_near</code> (an area&#39;s point or radius, 1 to 500 km), <code>unknown_origin</code> or <code>unknown_order</code>; and, reading a feed of what is near its reader with no <code>near_latitude</code> and <code>near_longitude</code>, <code>location_needed</code>; <code>invalid</code> for a field<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>feed/cmd/api/handlers.(*customFeedHandler).Add</code></p>
@@ -4825,7 +4825,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
-<tr><td class="status s4">422</td><td>why the definition was refused: <code>malformed</code>, <code>unknown_field</code>, <code>too_broad</code>, <code>too_many_actors</code>, <code>too_many_hashtags</code>, <code>too_many_keywords</code>, <code>too_many_locations</code>, <code>keyword_length</code>, <code>invalid_hashtag</code>, <code>unknown_media_type</code>, <code>unknown_actor_type</code>, <code>invalid_actor</code>, <code>invalid_location</code>, <code>invalid_language</code> or <code>unknown_order</code>; <code>invalid</code> for a field<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">422</td><td>why the definition was refused: <code>malformed</code>, <code>unknown_field</code>, <code>too_broad</code>, <code>too_many_actors</code>, <code>too_many_hashtags</code>, <code>too_many_keywords</code>, <code>too_many_locations</code>, <code>keyword_length</code>, <code>invalid_hashtag</code>, <code>unknown_media_type</code>, <code>unknown_actor_type</code>, <code>invalid_actor</code>, <code>invalid_location</code>, <code>invalid_language</code>, <code>invalid_near</code> (an area&#39;s point or radius, 1 to 500 km), <code>unknown_origin</code> or <code>unknown_order</code>; and, reading a feed of what is near its reader with no <code>near_latitude</code> and <code>near_longitude</code>, <code>location_needed</code>; <code>invalid</code> for a field<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>feed/cmd/api/handlers.(*customFeedHandler).Preview</code></p>
@@ -4882,7 +4882,7 @@ who may call it: anyone, signed in or not.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>it is not the viewer&#39;s</td></tr>
 <tr><td class="status s4">404</td><td>there is no such feed</td></tr>
-<tr><td class="status s4">422</td><td>why the definition was refused: <code>malformed</code>, <code>unknown_field</code>, <code>too_broad</code>, <code>too_many_actors</code>, <code>too_many_hashtags</code>, <code>too_many_keywords</code>, <code>too_many_locations</code>, <code>keyword_length</code>, <code>invalid_hashtag</code>, <code>unknown_media_type</code>, <code>unknown_actor_type</code>, <code>invalid_actor</code>, <code>invalid_location</code>, <code>invalid_language</code> or <code>unknown_order</code>; <code>invalid</code> for a field<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">422</td><td>why the definition was refused: <code>malformed</code>, <code>unknown_field</code>, <code>too_broad</code>, <code>too_many_actors</code>, <code>too_many_hashtags</code>, <code>too_many_keywords</code>, <code>too_many_locations</code>, <code>keyword_length</code>, <code>invalid_hashtag</code>, <code>unknown_media_type</code>, <code>unknown_actor_type</code>, <code>invalid_actor</code>, <code>invalid_location</code>, <code>invalid_language</code>, <code>invalid_near</code> (an area&#39;s point or radius, 1 to 500 km), <code>unknown_origin</code> or <code>unknown_order</code>; and, reading a feed of what is near its reader with no <code>near_latitude</code> and <code>near_longitude</code>, <code>location_needed</code>; <code>invalid</code> for a field<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>feed/cmd/api/handlers.(*customFeedHandler).Edit</code></p>
@@ -4956,6 +4956,8 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The feed&#39;s id.</td></tr>
 <tr><td><code>cursor</code></td><td>query</td><td>string</td><td>Where the page begins: the <code>next_cursor</code> of the page before. The latest when left out. At most 100 characters.</td></tr>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send: up to 40. At least 0. At most 40.</td></tr>
+<tr><td><code>near_latitude</code></td><td>query</td><td>number</td><td>Where the reader is, for a feed of what is near them: its area is around this point for this page, and the point is kept nowhere. Rounded to three decimals. Needed by such a feed, unread by any other.</td></tr>
+<tr><td><code>near_longitude</code></td><td>query</td><td>number</td><td></td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -5109,6 +5111,57 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).Browse</code></p>
 </details>
+<details class="route" id="getHashtagsBrowseAll" data-search="get /hashtags/_browse/all every hashtag every hashtag on a post anybody may see, a to z or the most used first, perhaps only those beginning with `q`: each with how many such posts carry it (`uses`), the viewer&#39;s own posts too, and whether the viewer follows it.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/hashtags/_browse/all</code> <span class="summary">Every hashtag</span></summary>
+<div class="description"><p>Every hashtag on a post anybody may see, A to Z or the most used first, perhaps only those beginning with <code>q</code>: each with how many such posts carry it (<code>uses</code>), the viewer&#39;s own posts too, and whether the viewer follows it.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>Only hashtags beginning with this, its # left out. At most 100 characters.</td></tr>
+<tr><td><code>sort</code></td><td>query</td><td>string</td><td>The order: <code>name</code>, A to Z (the default), or <code>uses</code>, the most used first. One of <code>name</code>, <code>uses</code>. <code>name</code> unless given.</td></tr>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send: up to 20. At least 0. At most 20. <code>20</code> unless given.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-hashtag.HashtagNodeItem">hashtag.HashtagNodeItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).All</code></p>
+</details>
+<details class="route" id="getHashtagsBrowseFollowing" data-search="get /hashtags/_browse/following the hashtags the viewer follows those in the viewer&#39;s custom feeds, which following a hashtag makes, with how many posts anybody may see carry each (`uses`), and the viewer&#39;s own. `q`, `sort` and paging as for all of them.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/hashtags/_browse/following</code> <span class="summary">The hashtags the viewer follows</span></summary>
+<div class="description"><p>Those in the viewer&#39;s custom feeds, which following a hashtag makes, with how many posts anybody may see carry each (<code>uses</code>), and the viewer&#39;s own. <code>q</code>, <code>sort</code> and paging as for all of them.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>Only hashtags beginning with this, its # left out. At most 100 characters.</td></tr>
+<tr><td><code>sort</code></td><td>query</td><td>string</td><td>The order: <code>name</code>, A to Z (the default), or <code>uses</code>, the most used first. One of <code>name</code>, <code>uses</code>. <code>name</code> unless given.</td></tr>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send: up to 20. At least 0. At most 20. <code>20</code> unless given.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-hashtag.HashtagNodeItem">hashtag.HashtagNodeItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).Following</code></p>
+</details>
 <details class="route" id="getHashtagsBrowseOrderedByDegree" data-search="get /hashtags/_browse/ordered_by_degree hashtags used most of all every hashtag, the ones in the most posts first.
 
 who may call it: anyone, signed in or not.">
@@ -5132,28 +5185,77 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).BrowseOrderedByDegree</code></p>
 </details>
-<details class="route" id="getHashtagsBrowseTrending" data-search="get /hashtags/_browse/trending hashtags used most lately the hashtags most used in a window of time that ends now. not paged: the most there are, up to `limit`.
+<details class="route" id="getHashtagsBrowseTrending" data-search="get /hashtags/_browse/trending hashtags used most lately the hashtags the most people posted with in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation&#39;s own (`trending_window`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. one page, all there is: up to `limit`.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/hashtags/_browse/trending</code> <span class="summary">Hashtags used most lately</span></summary>
-<div class="description"><p>The hashtags most used in a window of time that ends now. Not paged: the most there are, up to <code>limit</code>.</p></div>
+<div class="description"><p>The hashtags the most people posted with in a window of time that ends now: each person once, public posts only, by when they were written. <code>time_window</code> left out, the installation&#39;s own (<code>TRENDING_WINDOW</code>; daily where it federates, monthly where not), widened while it holds fewer than ten; <code>window</code> says which. One page, all there is: up to <code>limit</code>.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
-<tr><td><code>time_window</code></td><td>query</td><td>string</td><td>Asked for in lower case and told to the graph in upper case, as its constants are. &#34;all&#34; was accepted and never understood: the graph fell back to a day for anything it did not know. One of <code>daily</code>, <code>weekly</code>, <code>monthly</code>, <code>yearly</code>. <code>weekly</code> unless given.</td></tr>
+<tr><td><code>time_window</code></td><td>query</td><td>string</td><td>Asked for in lower case and told to the graph in upper case, as its constants are. &#34;all&#34; was accepted and never understood: the graph fell back to a day for anything it did not know. One of <code>daily</code>, <code>weekly</code>, <code>monthly</code>, <code>yearly</code>.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s2">200</td><td>OK<div class="body">list of <a href="#schema-hashtag.HashtagNodeItem">hashtag.HashtagNodeItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-hashtag.HashtagNodeItem">hashtag.HashtagNodeItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a>, <code>window</code>: string } <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).BrowseTrending</code></p>
+</details>
+<details class="route" id="getHashtagsSuggest" data-search="get /hashtags/_suggest hashtags that begin with what was typed for somebody typing a hashtag: those in use that begin with `q` (what follows the #, its capitals and accents aside), the one that is just that first, then those in the viewer&#39;s custom feeds, then the most used. a hashtag is counted by the posts anybody may see, and the viewer&#39;s own.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/hashtags/_suggest</code> <span class="summary">Hashtags that begin with what was typed</span></summary>
+<div class="description"><p>For somebody typing a hashtag: those in use that begin with <code>q</code> (what follows the #, its capitals and accents aside), the one that is just that first, then those in the viewer&#39;s custom feeds, then the most used. A hashtag is counted by the posts anybody may see, and the viewer&#39;s own.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>What follows the #, at least one letter.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>How many to offer, 1 to 20; 8 when not given. At least 0.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-hashtag.SuggestResponse">hashtag.SuggestResponse</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).Begun</code></p>
+</details>
+<details class="route" id="postHashtagsSuggest" data-search="post /hashtags/_suggest hashtags for a text for long content: the hashtags in use that are words of the title and body, or two words run together (open science, #openscience), and on more than one post. those in the viewer&#39;s custom feeds first, then the words the text uses most. hashtags the text has already are left out; addresses, code, mentions and hashtags are not words of it.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/hashtags/_suggest</code> <span class="summary">Hashtags for a text</span></summary>
+<div class="description"><p>For long content: the hashtags in use that are words of the title and body, or two words run together (open science, #openscience), and on more than one post. Those in the viewer&#39;s custom feeds first, then the words the text uses most. Hashtags the text has already are left out; addresses, code, mentions and hashtags are not words of it.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>body</code></td><td>string</td><td>What is written, as Markdown.</td></tr>
+<tr><td><code>limit</code></td><td>integer</td><td>How many to offer, 1 to 20; 8 when not given. At least 0.</td></tr>
+<tr><td><code>title</code></td><td>string</td><td>The title, if it has one.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-hashtag.SuggestResponse">hashtag.SuggestResponse</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).ForText</code></p>
 </details>
 <details class="route" id="getHashtagsByAlias" data-search="get /hashtags/{alias} one hashtag who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/hashtags/{alias}</code> <span class="summary">One hashtag</span></summary>
@@ -5593,7 +5695,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
 <tr><td><code>q</code></td><td>query</td><td>string</td><td>Words its name or address holds. At most 100 characters.</td></tr>
-<tr><td><code>sort</code></td><td>query</td><td>string</td><td>The order they come in. At most 10 characters. One of <code>popular</code>, <code>trending</code>, <code>recent</code>. <code>recent</code> unless given.</td></tr>
+<tr><td><code>sort</code></td><td>query</td><td>string</td><td>The order they come in. At most 10 characters. One of <code>popular</code>, <code>trending</code>, <code>recent</code>, <code>name</code>. <code>recent</code> unless given.</td></tr>
 <tr><td><code>dir</code></td><td>query</td><td>string</td><td>Which way the order runs. At most 4 characters. One of <code>asc</code>, <code>desc</code>. <code>desc</code> unless given.</td></tr>
 <tr><td><code>source_id</code></td><td>query</td><td>integer</td><td>Only the places a post is tied to: the post&#39;s id.</td></tr>
 <tr><td><code>nearby_latitude</code></td><td>query</td><td>number</td><td>Only places near here: latitude.</td></tr>
@@ -5623,7 +5725,7 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 <tr><td><code>address</code> <span class="required">always</span></td><td>string</td><td>Its street address. At most 255 characters.</td></tr>
 <tr><td><code>city</code> <span class="required">always</span></td><td>string</td><td>Its city. At most 100 characters.</td></tr>
 <tr><td><code>country</code> <span class="required">always</span></td><td>string</td><td>Its country. At most 50 characters.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 255 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
 <tr><td><code>source_id</code></td><td>integer</td><td>A post to tie to it at once: the post&#39;s id.</td></tr>
 <tr><td><code>state_province</code></td><td>string</td><td>Its state or province. At most 100 characters.</td></tr>
 </tbody>
@@ -5659,24 +5761,24 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*locationHandler).BrowseOrderedByDegree</code></p>
 </details>
-<details class="route" id="getLocationsBrowseTrending" data-search="get /locations/_browse/trending places used most lately the places most posts were tied to in a window of time that ends now. not paged.
+<details class="route" id="getLocationsBrowseTrending" data-search="get /locations/_browse/trending places used most lately the places the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation&#39;s own (`trending_window`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. one page, all there is: up to `limit`.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/locations/_browse/trending</code> <span class="summary">Places used most lately</span></summary>
-<div class="description"><p>The places most posts were tied to in a window of time that ends now. Not paged.</p></div>
+<div class="description"><p>The places the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. <code>time_window</code> left out, the installation&#39;s own (<code>TRENDING_WINDOW</code>; daily where it federates, monthly where not), widened while it holds fewer than ten; <code>window</code> says which. One page, all there is: up to <code>limit</code>.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
-<tr><td><code>time_window</code></td><td>query</td><td>string</td><td>Asked for in lower case and told to the graph in upper case, as its constants are. &#34;all&#34; was accepted and never understood: the graph fell back to a day for anything it did not know. One of <code>daily</code>, <code>weekly</code>, <code>monthly</code>, <code>yearly</code>. <code>weekly</code> unless given.</td></tr>
+<tr><td><code>time_window</code></td><td>query</td><td>string</td><td>Asked for in lower case and told to the graph in upper case, as its constants are. &#34;all&#34; was accepted and never understood: the graph fell back to a day for anything it did not know. One of <code>daily</code>, <code>weekly</code>, <code>monthly</code>, <code>yearly</code>.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s2">200</td><td>OK<div class="body">list of <a href="#schema-location.LocationNodeItem">location.LocationNodeItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-location.LocationNodeItem">location.LocationNodeItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a>, <code>window</code>: string } <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 </tbody>
 </table>
@@ -5722,7 +5824,7 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 <tr><td><code>address</code> <span class="required">always</span></td><td>string</td><td>Its street address. At most 255 characters.</td></tr>
 <tr><td><code>city</code> <span class="required">always</span></td><td>string</td><td>Its city. At most 100 characters.</td></tr>
 <tr><td><code>country</code> <span class="required">always</span></td><td>string</td><td>Its country. At most 50 characters.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 255 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
 <tr><td><code>state_province</code></td><td>string</td><td>Its state or province. At most 100 characters.</td></tr>
 </tbody>
 </table>
@@ -5810,11 +5912,12 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s2">201</td><td>tied</td></tr>
+<tr><td class="status s2">201</td><td>tied, or tied already</td></tr>
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not change the post</td></tr>
 <tr><td class="status s4">404</td><td>there is no such place or post</td></tr>
+<tr><td class="status s4">422</td><td><code>too_many_locations</code>: the post is tied to five places already<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*inboundHandler).Add</code></p>
@@ -6667,6 +6770,45 @@ who may call it: anyone, signed in or not.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>search/cmd/api/handlers.(*searchHandler).Browse</code></p>
+</details>
+<details class="route" id="getSearchPreferences" data-search="get /search/preferences the viewer&#39;s weights for most relevant how much each sign that something was found useful counts for the viewer: a step that multiplies the installation&#39;s own weight (search.md).
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/search/preferences</code> <span class="summary">The viewer&#39;s weights for Most relevant</span></summary>
+<div class="description"><p>How much each sign that something was found useful counts for the viewer: a step that multiplies the installation&#39;s own weight (<a href="../search.md">search.md</a>).</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-search.PreferencesResponse">search.PreferencesResponse</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>search/cmd/api/handlers.(*preferencesHandler).Read</code></p>
+</details>
+<details class="route" id="putSearchPreferences" data-search="put /search/preferences change the viewer&#39;s weights for most relevant what is sent replaces what there was; a name left out is as the installation has it. answers with them.
+
+who may call it: somebody signed in.">
+<summary><span class="method put">PUT</span> <code class="path">/search/preferences</code> <span class="summary">Change the viewer&#39;s weights for Most relevant</span></summary>
+<div class="description"><p>What is sent replaces what there was; a name left out is as the installation has it. Answers with them.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>steps</code></td><td>map of number</td><td></td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-search.PreferencesResponse">search.PreferencesResponse</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">422</td><td><code>invalid_weight</code>: a name that may not be set, or a value that is not a step; nothing is changed<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>search/cmd/api/handlers.(*preferencesHandler).Edit</code></p>
 </details>
 </section>
 <section id="socialgraph-service" class="service">
@@ -7720,6 +7862,32 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).EditAccess</code></p>
+</details>
+<details class="route" id="getNotesByIdCitedBy" data-search="get /notes/{id}/cited_by the posts that cite a post newest first, those the viewer may see. its author&#39;s own are listed too, though they are not counted in its `citation_count`.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/notes/{id}/cited_by</code> <span class="summary">The posts that cite a post</span></summary>
+<div class="description"><p>Newest first, those the viewer may see. Its author&#39;s own are listed too, though they are not counted in its <code>citation_count</code>.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The post cited, of any kind.</td></tr>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send: up to 100. At least 0. At most 100. <code>20</code> unless given.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-MediumNodeItem">MediumNodeItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>the installation is in preview and the viewer is not signed in</td></tr>
+<tr><td class="status s4">404</td><td>there is no such post that the viewer may see</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).CitedBy</code></p>
 </details>
 <details class="route" id="patchNotesByIdCommentStatus" data-search="patch /notes/{id}/comment-status open or close replies who may call it: somebody signed in, with a token that carries `media:write`.">
 <summary><span class="method patch">PATCH</span> <code class="path">/notes/{id}/comment-status</code> <span class="summary">Open or close replies</span></summary>
@@ -9285,7 +9453,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized body comment_count comment_status cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language library_only likes_count link_preview link_previews media_removed mimetype name origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id type updated_at uri video view_count">
+<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized body citation_count comment_count comment_status cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language library_only likes_count link_preview link_previews media_removed mimetype name origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id type updated_at uri video view_count">
 <h3>MediumNode</h3>
 <p>A post or a reply, read on its own or answered with after a change.</p>
 <table>
@@ -9297,6 +9465,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>author</code></td><td><a href="#schema-Author">Author</a></td><td>Related Entities</td></tr>
 <tr><td><code>authorized</code></td><td><a href="#schema-NodeAuthorized">NodeAuthorized</a></td><td>Authorization Information</td></tr>
 <tr><td><code>body</code></td><td>string</td><td>Its words, as Markdown.</td></tr>
+<tr><td><code>citation_count</code> <span class="required">always</span></td><td>integer</td><td>How many people cite it, each once, never its author.</td></tr>
 <tr><td><code>comment_count</code> <span class="required">always</span></td><td>integer</td><td>How many replies are under it.</td></tr>
 <tr><td><code>comment_status</code> <span class="required">always</span></td><td>boolean</td><td>Whether it takes replies at all.</td></tr>
 <tr><td><code>cover_urls</code></td><td>map of <a href="#schema-Image">Image</a></td><td>Media URLs</td></tr>
@@ -10763,16 +10932,43 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-hashtag.HashtagNodeItem" data-search="hashtag.hashtagnodeitem alias id name type">
+<div class="route schema" id="schema-hashtag.HashtagNodeItem" data-search="hashtag.hashtagnodeitem alias followed id name people type uses">
 <h3>hashtag.HashtagNodeItem</h3>
 <p>A hashtag.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>alias</code></td><td>string</td><td>What it is found by: <code>/hashtags/&lt;alias&gt;</code>.</td></tr>
+<tr><td><code>followed</code></td><td>boolean</td><td>In the following and all lists: the viewer follows it.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>The hashtag as it is shown, without its #.</td></tr>
+<tr><td><code>people</code></td><td>integer</td><td>In a trending list: how many people posted with it in the window. At least 0.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>Always <code>node.tag.hashtag-service.hashtag.v1</code>.</td></tr>
+<tr><td><code>uses</code></td><td>integer</td><td>In the following and all lists: how many posts it is on that anybody may see, and the viewer&#39;s own. At least 0.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-hashtag.SuggestResponse" data-search="hashtag.suggestresponse data">
+<h3>hashtag.SuggestResponse</h3>
+<p>The hashtags offered, the best first.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>data</code> <span class="required">always</span></td><td>list of <a href="#schema-hashtag.Suggestion">hashtag.Suggestion</a> or null</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-hashtag.Suggestion" data-search="hashtag.suggestion alias followed id name uses">
+<h3>hashtag.Suggestion</h3>
+<p>A hashtag in use, offered.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>alias</code> <span class="required">always</span></td><td>string</td><td>In lower case: what it is found by, and what to write after the #.</td></tr>
+<tr><td><code>followed</code> <span class="required">always</span></td><td>boolean</td><td>In one of the viewer&#39;s custom feeds.</td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>As it is shown.</td></tr>
+<tr><td><code>uses</code> <span class="required">always</span></td><td>integer</td><td>How many posts it is on that anybody may see, and the viewer&#39;s own.</td></tr>
 </tbody>
 </table>
 </div>
@@ -10790,7 +10986,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-location.LocationNodeItem" data-search="location.locationnodeitem address alias authorized city country id latitude longitude name postalcode state_province type">
+<div class="route schema" id="schema-location.LocationNodeItem" data-search="location.locationnodeitem address alias authorized city country id latitude longitude name people postalcode state_province type">
 <h3>location.LocationNodeItem</h3>
 <p>A place posts can be tied to.</p>
 <table>
@@ -10805,6 +11001,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>latitude</code></td><td>number</td><td>Where it is: latitude, found from its address.</td></tr>
 <tr><td><code>longitude</code></td><td>number</td><td>Where it is: longitude.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>What it is called.</td></tr>
+<tr><td><code>people</code></td><td>integer</td><td>In a trending list: how many people tied a post to it in the window. At least 0.</td></tr>
 <tr><td><code>postalcode</code></td><td>string</td><td>Its postal code.</td></tr>
 <tr><td><code>state_province</code></td><td>string</td><td>Its state or province.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>Always a place&#39;s type.</td></tr>
@@ -10972,7 +11169,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tbody>
 <tr><td><code>count</code> <span class="required">always</span></td><td>integer</td><td>How strongly.</td></tr>
 <tr><td><code>ids</code></td><td>list of integer</td><td>Up to three of what it was found through: the people or the hashtags, named in the answer&#39;s <code>related</code>.</td></tr>
-<tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>Which reason: <code>follows_you</code>, <code>followed_by_leaders</code>, <code>inviter</code>, <code>hosted_by_leader</code>, <code>shared_interest</code>, <code>you_engaged</code>, <code>popular</code> or <code>featured</code> (<a href="../recommendations.md">recommendations.md</a>).</td></tr>
+<tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>Which reason: <code>follows_you</code>, <code>followed_by_leaders</code>, <code>cited_by_leaders</code>, <code>inviter</code>, <code>hosted_by_leader</code>, <code>shared_interest</code>, <code>you_engaged</code>, <code>cited</code>, <code>popular</code> or <code>featured</code> (<a href="../recommendations.md">recommendations.md</a>).</td></tr>
 </tbody>
 </table>
 </div>
@@ -10986,6 +11183,18 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>actor_id</code> <span class="required">always</span></td><td>integer</td><td>The profile&#39;s id.</td></tr>
 <tr><td><code>reasons</code> <span class="required">always</span></td><td>list of <a href="#schema-recommendation.Reason">recommendation.Reason</a> or null</td><td>Why, the one that counted most first.</td></tr>
 <tr><td><code>score</code> <span class="required">always</span></td><td>number</td><td>What it scored: higher is better.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-search.PreferencesResponse" data-search="search.preferencesresponse adjustable options steps">
+<h3>search.PreferencesResponse</h3>
+<p>The viewer&#39;s own steps for search&#39;s Most relevant: how much each sign that something was found useful counts for them, as a step that multiplies the installation&#39;s own weight.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>adjustable</code> <span class="required">always</span></td><td>list of string or null</td><td>What may be set: <code>like</code>, <code>save</code>, <code>reply</code>, <code>follow</code>, <code>cite</code> and <code>following</code> (what the viewer follows coming first).</td></tr>
+<tr><td><code>options</code> <span class="required">always</span></td><td>list of number or null</td><td>What each may be set to: 0 (off), 0.5, 1 (as is), 1.5 and 2.</td></tr>
+<tr><td><code>steps</code> <span class="required">always</span></td><td>map of number or null</td><td>By name, what they have set; what is not here is 1, as the installation has it.</td></tr>
 </tbody>
 </table>
 </div>

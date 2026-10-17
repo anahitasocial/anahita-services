@@ -52,13 +52,25 @@ the second puts level.
    ```
    standing = scale × ln(1 + like × likes + save × saves
                            + reply × (replies, reposts and quotes)
-                           + follow × followers)
+                           + follow × followers
+                           + cite × citers)
             + following, when the searcher follows it or the profile it is on
    ```
 
    The logarithm keeps one post liked a thousand times from burying
    everything: it comes first, not a hundred times first. Each like, save,
    reply or follow counts by when it happened (below).
+
+   **Citers** are the people who show it within an article or a topic of
+   their own, each once however many of their posts do, and never its own
+   author; a profile's are those of its posts. Showing a profile is naming
+   it, a mention, and not a citation: `nodes.citation_count`, kept in step by the
+   graph (`repositories/citations.go`). Only a published post anybody may
+   read counts as citing. A citation counts as it stands, not halved with
+   time: citing is deliberate and lasting, and useful knowledge stays
+   useful. `cite` starts at 3, above a like (1) and a save (2), since citing
+   takes effort; it is a starting value, to be tuned once there are
+   citations to look at.
 
 3. **Its id,** the newest first, so that results level on everything keep
    their places from one page to the next.
@@ -95,7 +107,7 @@ Every number above is the operator's, in
     "name_contains": 50, "hashtag": 40, "body_word": 20, "body_contains": 10
   },
   "following": 15,
-  "useful": { "scale": 5, "like": 1, "save": 2, "reply": 2, "follow": 1 },
+  "useful": { "scale": 5, "like": 1, "save": 2, "reply": 2, "follow": 1, "cite": 3 },
   "half_life_days": 365
 }
 ```
@@ -116,14 +128,48 @@ Every number above is the operator's, in
 Two, off as they come, sent with a search as `followed_first=true` and
 `recent_first=true` and only with "Most relevant":
 
-- **People and groups I follow first:** what the searcher follows, or what
+- **Profiles I follow first:** what the searcher follows, or what
   is on a profile they follow, before everything else, however it matches.
   Nothing changes for a visitor, who follows nobody.
-- **Prefer recent:** among results that match alike, the newest first, and
+- **Newer results first:** among results that match alike, the newest first, and
   only then by standing. The match still comes first: a profile called
   *Coffee* is still above a post that mentions coffee.
 
 The web app keeps them in the searcher's browser, per person.
+
+### Their own weights
+
+Each person who is signed in can also change how much each sign counts for
+them, as they can for their suggestions (the "Adjust" chip by "Most
+relevant"). There are six: likes, saves, replies, followers, citations,
+and who or what they follow (the people, groups and events, and what is
+posted on them). Each is set to a step that multiplies the operator's
+weight:
+
+| Step | Multiplies by |
+|---|---|
+| Off | 0 |
+| Less | 0.5 |
+| As is | 1 |
+| More | 1.5 |
+| Much more | 2 |
+
+So with the default file, a citation set to Much more counts 6 for that
+person, and a like set to Off counts nothing. The match always comes
+first; the steps only change the order among results that match alike.
+
+- `GET /search/preferences` answers with the person's steps, which may be
+  set (`adjustable`) and to what (`options`). A name not in `steps` is As
+  is.
+- `PUT /search/preferences` with `{"steps": {"cite": 2, "like": 0}}`
+  replaces them all. A name that may not be set, or a value that is not a
+  step, is refused with 422 `invalid_weight`, and nothing changes.
+- They are kept on the server, in `search_preferences`, so they follow the
+  person to any device. Only steps other than As is are stored, and the
+  row is removed when the profile is purged.
+- The names and steps are `constants.SearchAdjustable` and
+  `constants.SearchSteps` in anahita-libs. The graph applies them with
+  `ranking.Weights.Adjusted`.
 
 ## What is found at all
 
@@ -136,7 +182,11 @@ searcher may see; see [Permissions](permissions.md).
 - `graph-grpc-service/data/repositories/search.go`: what is found
   (`wordsMatch`), the two scores (`relevance`), and the order, ranking the
   page's ids before reading their rows (`browseByRelevance`).
-- `graph-grpc-service/ranking`: the weights, the file, and reading it again.
+- `graph-grpc-service/ranking`: the weights, the file, reading it again, and
+  each person's steps (`Adjusted`).
+- `graph-grpc-service/data/repositories/search_preferences.go` and
+  `search-service/cmd/api/handlers/preferences.go`: each person's steps,
+  kept and given.
 - `graph-grpc-service/data/repositories/search_ranking_integration_test.go`:
   the order checked against MySQL, with searches as people make them.
 
@@ -148,6 +198,8 @@ searcher may see; see [Permissions](permissions.md).
   finds (two-letter stopwords, text indexed before the index existed,
   Japanese). Search is fast enough without it at today's sizes; a search
   engine beside the database is the likelier answer when it is not.
-- **Ranking by citation,** as Google ranks the web, is to be decided in a
-  few months, when there is more to rank. See the web app's
+- **Ranking by the citers' own standing,** as Google ranks the web, where
+  a citation from what is itself much cited counts for more. Citations
+  count today each as one (above); weighing them by who cites is for when
+  there are enough to tune it against. See the web app's
   `docs/plans/done/search-improvements.md`.
