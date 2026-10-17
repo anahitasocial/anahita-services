@@ -43,7 +43,7 @@ func userColumns() []string {
 		// A NULL password is a real state — an account created by invitation
 		// that has never set one. It must read as an empty hash, which
 		// CheckPassword then refuses, rather than failing the whole read.
-		"COALESCE(auth_accounts.password, '') AS password",
+		"auth_accounts.password",
 		"COALESCE(nodes.person_type, '') AS person_type",
 		"COALESCE(nodes.service, '') AS service",
 		"COALESCE(nodes.avatar_filename, '') AS avatar_filename",
@@ -51,11 +51,11 @@ func userColumns() []string {
 		"nodes.created_at",
 		"nodes.updated_at",
 		"auth_accounts.totp_enabled",
-		"COALESCE(auth_accounts.totp_recovery_codes, '') AS totp_recovery_codes",
+		"auth_accounts.totp_recovery_codes",
 		// NULL is never: read as no time, so a check of how fresh it is fails
 		// closed, where reading it as "now" would have passed.
 		"auth_accounts.totp_last_verified_at",
-		"COALESCE(auth_accounts.totp_secret, '') AS totp_secret",
+		"auth_accounts.totp_secret",
 		"nodes.deleted_at",
 		"nodes.archived_at",
 		// Consent: the flag and the version, and not the audit trio.
@@ -79,9 +79,9 @@ func userColumns() []string {
 		// account has no inviter, and that is a value, not a failed read.
 		"COALESCE(auth_accounts.invited_by, 0) AS invited_by",
 		"auth_accounts.tos_accepted",
-		"COALESCE(auth_accounts.tos_accepted_version, '') AS tos_accepted_version",
+		"auth_accounts.tos_accepted_version",
 		"auth_accounts.pp_accepted",
-		"COALESCE(auth_accounts.pp_accepted_version, '') AS pp_accepted_version",
+		"auth_accounts.pp_accepted_version",
 		// The language this person usually posts in, which the web app's
 		// composer starts on. Empty when they have not said.
 		"COALESCE(nodes.language, '') AS language",

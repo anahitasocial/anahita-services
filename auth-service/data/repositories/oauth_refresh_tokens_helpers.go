@@ -48,14 +48,13 @@ func (repo *oauthRefreshTokens) getOne(query sq.SelectBuilder) (*entities.OAuthR
 	row := repo.db.QueryRowContext(ctx, q, args...)
 	token := entities.NewOAuthRefreshToken()
 
-	var scopes sql.NullString
 	var revokedAt sql.NullTime
 	err = row.Scan(
 		&token.ID,
 		&token.TokenHash,
 		&token.UserID,
 		&token.ClientID,
-		&scopes,
+		&token.Scopes,
 		&token.Revoked,
 		&token.ExpiresAt,
 		&token.CreatedAt,
@@ -66,7 +65,6 @@ func (repo *oauthRefreshTokens) getOne(query sq.SelectBuilder) (*entities.OAuthR
 		return nil, err
 	}
 
-	token.Scopes = scopes.String
 	if revokedAt.Valid {
 		token.RevokedAt = &revokedAt.Time
 	}
@@ -98,7 +96,6 @@ func (repo *oauthRefreshTokens) browseWhere(pred sq.Sqlizer) ([]*entities.OAuthR
 	var results []*entities.OAuthRefreshToken
 	for rows.Next() {
 		token := entities.NewOAuthRefreshToken()
-		var scopes sql.NullString
 		// Declared inside the loop, not above it: a shared NullTime would
 		// let a row with a NULL revoked_at inherit the previous row's
 		// timestamp, since Scan leaves the value untouched when Valid is
@@ -109,7 +106,7 @@ func (repo *oauthRefreshTokens) browseWhere(pred sq.Sqlizer) ([]*entities.OAuthR
 			&token.TokenHash,
 			&token.UserID,
 			&token.ClientID,
-			&scopes,
+			&token.Scopes,
 			&token.Revoked,
 			&token.ExpiresAt,
 			&token.CreatedAt,
@@ -120,7 +117,6 @@ func (repo *oauthRefreshTokens) browseWhere(pred sq.Sqlizer) ([]*entities.OAuthR
 			return nil, err
 		}
 
-		token.Scopes = scopes.String
 		if revokedAt.Valid {
 			token.RevokedAt = &revokedAt.Time
 		}

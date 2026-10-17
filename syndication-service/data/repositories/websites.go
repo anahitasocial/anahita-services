@@ -147,12 +147,12 @@ const websiteDue = `
 SELECT
     node_id,
     feed_url,
-    COALESCE(etag, ''),
-    COALESCE(last_modified, ''),
+    etag,
+    last_modified,
     failures,
     hour_posts,
     hour_began_at,
-    COALESCE(hub_url, ''),
+    hub_url,
     hub_until
 FROM websites
 WHERE node_id = ?`
@@ -169,7 +169,7 @@ UPDATE websites
 SET hub_until = ?,
     updated_at = ?
 WHERE node_id = ?
-  AND hub_url IS NOT NULL`
+  AND hub_url <> ''`
 
 const websitesPausedFor = `
 SELECT node_id
@@ -182,7 +182,7 @@ LIMIT ?`
 const websiteResume = `
 UPDATE websites
 SET state = 'active',
-    last_error = NULL,
+    last_error = '',
     next_read_at = ?,
     updated_at = ?
 WHERE node_id = ?
@@ -191,7 +191,7 @@ WHERE node_id = ?
 const websiteFeed = `
 SELECT
     feed_url,
-    COALESCE(hub_url, '')
+    hub_url
 FROM websites
 WHERE node_id = ?`
 
@@ -207,14 +207,14 @@ WHERE node_id = ?
 
 const websiteRead = `
 UPDATE websites
-SET etag = NULLIF(?, ''),
-    last_modified = NULLIF(?, ''),
+SET etag = ?,
+    last_modified = ?,
     hour_posts = ?,
     hour_began_at = ?,
     next_read_at = ?,
     read_at = ?,
     failures = 0,
-    last_error = NULL,
+    last_error = '',
     claimed_at = NULL,
     updated_at = ?
 WHERE node_id = ?`
@@ -248,7 +248,7 @@ WHERE domain_id = ?
 const websiteResumeAfterProof = `
 UPDATE websites
 SET state = 'active',
-    last_error = NULL,
+    last_error = '',
     next_read_at = ?,
     updated_at = ?
 WHERE domain_id = ?

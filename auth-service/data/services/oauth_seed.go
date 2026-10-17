@@ -119,11 +119,10 @@ func SeedSigningKey(repos *repositories.Repositories, privateKeyPath string, key
 // healing. The upsert below therefore reactivates and extends an
 // existing row rather than assuming absence.
 //
-// Uses raw SQL because OAuthSigningKeys.Add doesn't support NULL
-// private_key, which the schema's CHECK constraint requires for
-// kms-backend rows. The alternative — adding an AddKMSKey method to
-// the repo — is a follow-up cleanup; the raw SQL is contained to this
-// one call site.
+// Uses raw SQL because OAuthSigningKeys.Add writes a private key, and a
+// kms-backend row has none here: its private_key is ”. The alternative,
+// an AddKMSKey method on the repo, is a follow-up cleanup; the raw SQL is
+// contained to this one call site.
 func SeedKMSSigningKey(ctx context.Context, conn *sql.DB, repos *repositories.Repositories, alias string) error {
 	// Match the signer exactly. If the signer can resolve an active
 	// key, there is nothing to do; if it can't, we must (re)seed even
@@ -213,7 +212,7 @@ func SeedKMSSigningKey(ctx context.Context, conn *sql.DB, repos *repositories.Re
 	_, err = conn.ExecContext(ctx, `
 		INSERT INTO oauth_signing_keys
 			(key_id, algorithm, public_key, private_key, backend, active, expires_at)
-		VALUES (?, ?, ?, NULL, 'kms', TRUE, ?)
+		VALUES (?, ?, ?, '', 'kms', TRUE, ?)
 		ON DUPLICATE KEY UPDATE
 			algorithm  = ?,
 			public_key = ?,

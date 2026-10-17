@@ -68,8 +68,8 @@ func NewCases(db *sql.DB) CasesInterface {
 // The queries, each written out in full so it can be read without running
 // the code that uses it. One clause to a line, one column to a line.
 
-// caseColumns is what scanCase reads, in its order. The COALESCEs turn the
-// columns that are NULL until a case is decided into zero values.
+// caseColumns is what scanCase reads, in its order. The COALESCEs read whose
+// target it is, and who decided it, as 0 when there is nobody.
 const caseColumns = `
 	id,
 	target_id,
@@ -81,8 +81,8 @@ const caseColumns = `
 	last_reported_at,
 	COALESCE(decided_by, 0),
 	decided_at,
-	COALESCE(decision_action, ''),
-	COALESCE(decision_note, ''),
+	decision_action,
+	decision_note,
 	target_gone_at`
 
 const (
@@ -206,8 +206,8 @@ const (
 	reopenClosedCase = `
 		UPDATE abuse_cases
 		   SET status          = ?,
-		       decision_action = NULL,
-		       decision_note   = NULL,
+		       decision_action = '',
+		       decision_note   = '',
 		       decided_by      = NULL,
 		       decided_at      = NULL
 		 WHERE id = ?

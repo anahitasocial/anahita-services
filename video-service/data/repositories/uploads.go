@@ -50,7 +50,7 @@ const uploadColumns = `
     person_id,
     owner_id,
     name,
-    COALESCE(body, ''),
+    body,
     access,
     language,
     reply_access,

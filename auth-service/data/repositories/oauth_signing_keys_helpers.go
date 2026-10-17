@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"auth/data/entities"
@@ -63,11 +62,10 @@ func (repo *oauthSigningKeys) getBaseSelectQueryWithPrivate() sq.SelectBuilder {
 
 // getOneWithPrivate scans a single signing key including the private key.
 //
-// private_key is scanned via sql.NullString because the column is
-// nullable for KMS-backed signing keys. SignerLocal — the only
-// component that consumes PrivateKey for actual cryptographic
-// operations — should never receive a kms-backend row in practice;
-// if it does, parsing the empty PEM fails loudly with a clear error.
+// private_key is ” on a KMS-backed signing key. SignerLocal, the only
+// component that uses PrivateKey for cryptographic operations, should
+// never receive a kms-backend row in practice; if it does, parsing the
+// empty PEM fails loudly with a clear error.
 func (repo *oauthSigningKeys) getOneWithPrivate(query sq.SelectBuilder) (*entities.OAuthSigningKey, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -80,15 +78,13 @@ func (repo *oauthSigningKeys) getOneWithPrivate(query sq.SelectBuilder) (*entiti
 	row := repo.db.QueryRowContext(ctx, q, args...)
 	key := entities.NewOAuthSigningKey()
 
-	var privateKeyNS sql.NullString
-
 	err = row.Scan(
 		&key.ID,
 		&key.KeyID,
 		&key.Algorithm,
 		&key.Backend,
 		&key.PublicKey,
-		&privateKeyNS,
+		&key.PrivateKey,
 		&key.Active,
 		&key.ExpiresAt,
 		&key.CreatedAt,
@@ -97,6 +93,5 @@ func (repo *oauthSigningKeys) getOneWithPrivate(query sq.SelectBuilder) (*entiti
 		return nil, err
 	}
 
-	key.PrivateKey = privateKeyNS.String
 	return key, nil
 }

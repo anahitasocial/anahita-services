@@ -12,18 +12,14 @@ func (repo *tokens) getBaseSelectQuery() sq.SelectBuilder {
 	var fields = []string{
 		"t.id",
 		"t.recipient_email",
-		// Destination address, on emailchange tokens only. COALESCE
-		// because the column is NULL on every other type and Token.NewEmail
-		// is a plain string — a NULL would fail the scan for every password
-		// reset and invite that passes through here.
-		"COALESCE(t.new_email, '') AS new_email",
+		// Destination address, on emailchange tokens only; '' on the rest.
+		"t.new_email",
 		"t.type",
 		"t.body",
-		// One-time-code tokens only. COALESCE for the same reason as
-		// new_email: NULL on every other type, scanned into plain strings.
-		"COALESCE(t.code_hash, '') AS code_hash",
+		// One-time-code tokens only; '' on the rest.
+		"t.code_hash",
 		"t.code_attempts",
-		"COALESCE(t.channel, '') AS channel",
+		"t.channel",
 		"t.started_at",
 		"t.expired_after",
 		"t.is_used",
