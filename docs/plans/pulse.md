@@ -13,7 +13,7 @@
 - **Its administrators** set it up and keep it right (name, picture, the feed's address), and look after the threads under its posts as any post's owner does: they hide replies, and block somebody from the Pulse as a group's administrators do (item 55). Under the Pulse's own posts they reply as the Pulse (above); elsewhere, as themselves.
 - **Who sets one up.** Only somebody who proves the domain is theirs (below). On top of that, `PULSES_FROM`, as `GROUPS_FROM`: `administrators` unless an installation opens it to `registered`. One Pulse per feed address. Whoever proved the domain is its first administrator, and adds others as a group's are added. Offered as **"Connect your website"**, never "create": the first step asks for the site's address. A feed on a domain one does not control (a YouTube channel's, a GitHub project's) is not taken.
 - **Proving the domain (user, 2026-10-15).** Built once, so that people and groups use the same proof later (verified domains, item 26): one table `verified_domains` keyed by profile and one checker, a DNS TXT record at `_anahita.<domain>` or the token at `https://<domain>/.well-known/anahita-verification.txt` (one committed file for a static site), checked again daily; a Pulse whose proof is gone for a week pauses. This replaces the earlier TXT record `anahita-site-verification=<token>` at the domain itself.
-- **Posts.** Each new item becomes a note owned by the Pulse: its title, a short excerpt and a link card to the original (the link-preview service), its categories as hashtags, its own date. Items are remembered by their ID or address and never posted twice. On setting up, what the feed holds is marked seen, not posted; an hourly cap holds back a burst and posts it a few at a time. An item whose title or excerpt changes while it is still in the feed changes its post; one that leaves the feed leaves its post as it is, since feeds seldom say that something was deleted (user, 2026-10-15).
+- **Posts.** Each new item becomes an article owned by the Pulse (the user, 2026-10-16: since row 74 a note has no title): its title, a short excerpt and a link card to the original (the link-preview service), its categories as hashtags, its own date. Items are remembered by their ID or address and never posted twice. On setting up, what the feed holds is marked seen, not posted; an hourly cap holds back a burst and posts it a few at a time. An item whose title or excerpt changes while it is still in the feed changes its post; one that leaves the feed leaves its post as it is, since feeds seldom say that something was deleted (user, 2026-10-15).
 - **Reading the feed.** By a `pulse-worker`, apart from the core services since it reads addresses on the internet, with the link-preview service's safe fetcher (no private addresses, limits of size and time). Asked every 15 to 60 minutes with `ETag` / `If-Modified-Since`, backing off from a site that fails. A feed naming a WebSub hub (`rel="hub"`) is subscribed to instead, and its posts arrive within seconds.
 - **Between networks.** An ActivityPub actor served by `activitypub-service`: people on Mastodon and the rest of the fediverse find and follow a Pulse as any account here (the user, 2026-10-15), and its posts and its replies reach them; replies from there come back to its threads. An `Organization`, not a `Service`: Mastodon marks a `Service` as automated, and its administrators write as it. Its posts public. Not on Bluesky.
 - **Replies.** Open, from here and from other servers.
@@ -32,6 +32,57 @@
 | Web: connecting a website (address, the proof, checking it), the Pulse's page, a Pulses list, the follow snippet | 4–5 h |
 | Tests, docs | 2 h |
 | **Total** | **about 18–23 h, 4–5 sessions** |
+
+## The design, 2026-10-16
+
+Settled with the user on 2026-10-16: a feed's item becomes an **article** (a note has no title since row 74); the work that fetches the internet (finding a site's feed, checking the domain proof, reading feeds) lives in a **pulse-service** of its own with a **pulse-worker**, as video-service has, and nothing in actor-service fetches anything; the ActivityPub `Article` is built for a Pulse's posts only, and row 84 reuses it for everybody's.
+
+**Who does what**
+
+| Piece | Service | Does |
+| --- | --- | --- |
+| Connecting a website | pulse-service (API) | finds the feed, gives the token, checks the proof, makes the Pulse |
+| Reading feeds, checking domains again | pulse-worker | polls each feed, posts new items as articles, checks every proof daily, pauses a Pulse whose proof is gone for a week |
+| The Pulse as a profile | actor-service | read, edit, browse, administrators, delete, as for a group |
+| Its posts and the replies under them | text-service | replies by its administrators are the Pulse's |
+| On the fediverse | activitypub-service | an `Organization`, always on, its posts as `Article`s |
+
+**Tables** (owned by pulse-service)
+
+| Table | Holds |
+| --- | --- |
+| `verified_domains` | a domain somebody is proving or has proved: the person proving it, the profile it is for (empty until the Pulse is made), the token, when it was proved, last checked, failing since. Kept apart from Pulses so that people and groups use the same proof later (row 63) |
+| `pulses` | one row per Pulse, keyed by its node: the feed's address (unique), the site's address, its domain, its state (`active`, `paused`), `ETag` and `Last-Modified`, the WebSub hub, when it is next read, failures in a row, the last error, how many it posted this hour |
+| `pulse_items` | every item seen, by its id or address (hashed), with the article it became and a hash of its title and excerpt, so nothing is posted twice and a changed item changes its post |
+
+**Connecting a website**, three calls, signed in, for somebody `PULSES_FROM` allows (`administrators` by default):
+
+1. `POST /pulses/_connect` with the site's address: the feed is found (the address itself, or the page's `<link rel="alternate">` for RSS, Atom or JSON Feed), and the answer is the domain, the feed, its title, and the token with both places to put it: a TXT record at `_anahita.<domain>`, or the file `https://<domain>/.well-known/anahita-verification.txt`.
+2. `POST /pulses/_connect/:id/check`: either place is looked at; the answer says which was found, or why neither was.
+3. `POST /pulses/_connect/:id` with a name, a handle (suggested from the domain) and a description: the Pulse is made, with whoever proved the domain as its first administrator and first follower, and what the feed holds now is marked seen, not posted.
+
+A feed already connected is refused (`409`), as is a handle that is taken.
+
+**Its posts.** Each new item becomes an article owned by the Pulse: the item's title; as its content, a short excerpt (300 characters, cut at a word), its categories as hashtags, and its address on a line of its own, which gives the link card; the item's own date, if it is not in the future. Made by the worker as the Pulse's first administrator, as the video-worker makes a post as its uploader. At most `PULSE_HOURLY_CAP` (10) an hour; the rest wait for the next hour.
+
+**Replies as the Pulse.** In a thread whose root is the Pulse's, a reply by one of its administrators is the Pulse's (owner and author the Pulse); the administrator is kept in the reply's meta as `written_by`, never sent, read only by moderators handling a report.
+
+**On the fediverse.** WebFinger finds a Pulse by its handle, its actor is an `Organization`, it needs no opt-in, its articles go out as `Article` (`name`, `summary` the excerpt, `content`, `url` the original), and replies to them come back into its threads, as they do for a person's notes.
+
+**Parts, one commit each**
+
+| # | Part | Repo |
+| --- | --- | --- |
+| 1 | Foundations: the Pulse and article types in anahita-libs; a post made by a service may keep its own date | services |
+| 2 | Proving a domain: `anahita-libs/domains` (DNS TXT, the well-known file, by `safehttp`), `verified_domains` | services |
+| 3 | pulse-service: connecting a website, `pulses`, `PULSES_FROM`, compose, nginx, k8s | services |
+| 4 | actor-service and the rest of the stack know a Pulse: routes, features without composers, every list of kinds | services |
+| 5 | pulse-worker: reading feeds, items to articles, the cap, edits, the daily proof, pausing | services |
+| 6 | Replies as the Pulse, `written_by` for moderators | services |
+| 7 | ActivityPub: `Organization`, always on, `Article` out, replies in | services |
+| 8 | WebSub: a hub named by the feed is subscribed to | services |
+| 9 | Web: Connect your website, a Pulse's page and settings, Pulses in the left menu, the follow snippet | web |
+| 10 | Docs: pulses.md, federation, configuration, permissions, architecture | services + web |
 
 ## Before 2026-10-15: the Website actor
 
@@ -92,4 +143,5 @@ Considered and not chosen:
 | --- | --- |
 | Goal and name | recorded 2026-10-05; renamed Pulse 2026-10-15 |
 | Scope | settled 2026-10-14; narrowed to the feed alone 2026-10-15; its open points settled the same day |
-| Design and work | not started |
+| Design | 2026-10-16: an article per item, pulse-service and pulse-worker, Article out for Pulses only |
+| Parts 1–10 | not started |
