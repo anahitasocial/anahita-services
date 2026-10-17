@@ -196,6 +196,14 @@ pushed.
    the same `client_id`. And `DELETE /clients/:id` left them too, though
    its route said "Its tokens stop working": it now revokes them first
    (user, 2026-10-17).
+5. The link and anchor check: `make docs_check` here
+   (`scripts/check_docs_links.py`), part of `make test`, and
+   `src/__tests__/docsLinks.test.js` in the web app, part of `yarn test`.
+   Every relative link in a Markdown file git keeps must lead to a file
+   there is, and a `#heading` to a heading of it, made as GitHub makes them.
+   Links to the web are not followed. The web app's Markdown in `src/` is
+   left out: its links are the app's addresses. Both found nothing broken.
+   The checklist is in both `AGENTS.md`, under Docs.
 
 **Found while doing part 2, not fixed** (for the plain-language pass, or
 their own items):
@@ -228,19 +236,15 @@ in `AGENTS.md`, the sovereignty line and "every string is in
 
 **Next, in this order:**
 
-1. **The link and anchor check in `make test`** (services) and its web
-   equivalent: every link between pages and every `#heading` resolves.
-   Then the checklist in `AGENTS.md`: when a feature changes, grep the docs
-   for it.
-2. **The plain-language pass, one page first:** `docs/feeds.md` in
+1. **The plain-language pass, one page first:** `docs/feeds.md` in
    anahita-services, proposed as the sample. Show the user the rewritten
    page and wait for their approval of the style before doing the rest,
    one commit per page. Facts, paths, settings, endpoints and tables stay;
    only the phrasing changes. The list above is fixed on the way.
-3. **The four doors in `docs/README.md`:** Setting up a site, Keeping it
+2. **The four doors in `docs/README.md`:** Setting up a site, Keeping it
    running, Making it your own, Building on it; and the list of pages found
    missing (backups, upgrades, writing a service, writing a client).
-4. **The MCP server, last** (`tools/docs-mcp`, Go, read only, offline), as
+3. **The MCP server, last** (`tools/docs-mcp`, Go, read only, offline), as
    Design part 3 describes. Its recipe tools wait for row 30; hosting it and
    `llms.txt` wait until the docs are public.
 
@@ -249,4 +253,4 @@ in `AGENTS.md`, the sovereignty line and "every string is in
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11; the plain-language pass and keeping the docs true added 2026-10-14 |
-| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is) done; next is the link check ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |
+| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; next is the plain-language pass ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |

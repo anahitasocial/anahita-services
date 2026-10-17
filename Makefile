@@ -798,7 +798,11 @@ schema_test:
 	@echo "Comparing schema/init.sql with legacy/upgrade.sql..."
 	migration-job/check_schema.sh
 
-test: schema_test
+## docs_check: every link between the docs, and every #heading, leads somewhere
+docs_check:
+	python3 scripts/check_docs_links.py
+
+test: schema_test docs_check
 	@echo "Checking legacy/upgrade.sql statement order..."
 	python3 migration-job/check_sql_order.py
 	@echo "Testing anahita-libs..."

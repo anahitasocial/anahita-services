@@ -30,7 +30,8 @@ starting one, and keep the plan's status up to date as work lands.
 | --- | --- |
 | `make up_build` | Builds and starts the whole stack. Use it after a change to `anahita-libs`, the node entity or a `.proto`, not single services |
 | `make <service>` | Rebuilds and restarts one service (`make graph`, `make auth`, …) |
-| `make test` | Every module's tests, the order check of `legacy/upgrade.sql`, and `make schema_test` (needs Docker) |
+| `make test` | Every module's tests, the order check of `legacy/upgrade.sql`, `make docs_check`, and `make schema_test` (needs Docker) |
+| `make docs_check` | Every link between the docs, and every `#heading`, leads somewhere |
 | `make api_docs` | Writes the API reference again; commit it with any change to a route or to what it takes or sends |
 
 Tests that need a database run only when given one, through a
@@ -116,6 +117,10 @@ and places.
 - A phase is not finished until its docs match the code. A finished plan
   moves to `docs/plans/done/` in the same commit, with every link to it
   fixed.
+- When a feature, a setting or an endpoint changes, grep the docs of both
+  repositories for its name and change every page that says it. Remove "not
+  built" the day it is built.
+- A renamed heading breaks the links to it: `make docs_check` names them.
 
 ## Commits and branches
 
