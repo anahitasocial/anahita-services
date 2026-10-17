@@ -33,7 +33,7 @@ the second puts level.
 
    | Where | Points by default |
    | --- | --- |
-   | The handle exactly (`bmann.ca`, `rastin`), with or without the `@` typed before it | 100 |
+   | The handle exactly (`rastin.example`, `ana`), with or without the `@` typed before it | 100 |
    | The name exactly | 90 |
    | The name begins with them | 70 |
    | A word in the name begins with them ("Jericho **Bea**ch") | 60 |

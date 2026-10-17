@@ -106,7 +106,7 @@ the picture of.
 ## What other servers ask this host
 
 Somebody here is known elsewhere as `ana@example.org`, so a server that
-wants to find her asks `example.org`, the web app's host, where she is. The
+wants to find them asks `example.org`, the web app's host, where they are. The
 shell knows nothing of people; the API does. So three addresses are answered
 with a redirect to the same path on the API, with whatever was asked:
 

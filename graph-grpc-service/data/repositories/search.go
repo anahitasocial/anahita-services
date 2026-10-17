@@ -82,7 +82,7 @@ func handleOf(keywords string) string {
 
 // wordsMatch is the condition that a node has what was searched for: in
 // its name, its handle or its body. The handle is matched without the `@`
-// somebody typed before it, so that `@bmann.ca` finds bmann.ca.
+// somebody typed before it, so that `@rastin.example` finds rastin.example.
 func wordsMatch(keywords string) sq.Or {
 	return sq.Or{
 		sq.Like{"node.name": "%" + keywords + "%"},
