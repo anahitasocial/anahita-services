@@ -43,7 +43,7 @@ type Subject struct {
 
 var (
 	postPath  = regexp.MustCompile(`^/(notes|photos|videos|articles|topics)/(\d+)(?:-[^/]*)?/?$`)
-	actorPath = regexp.MustCompile(`^/(groups|events)/(\d+)(?:-[^/]*)?(?:/.*)?$`)
+	actorPath = regexp.MustCompile(`^/(groups|events|pulses)/(\d+)(?:-[^/]*)?(?:/.*)?$`)
 	// Not a person's page: /people/add, and a person's settings and
 	// notifications, which are theirs alone.
 	personPath = regexp.MustCompile(`^/people/([^/]+)(?:/([^/]+))?(?:/.*)?$`)
@@ -53,7 +53,7 @@ var (
 	// /tags/<name> is what other servers are given for a hashtag's page:
 	// see activitypub-service/ap/addresses.go. The web app sends it on.
 	tagPath   = regexp.MustCompile(`^/(?:hashtags|tags)/([^/]+)/?$`)
-	imageName = regexp.MustCompile(`^(person|group|event|post)-(\d+)$`)
+	imageName = regexp.MustCompile(`^(person|group|event|pulse|post)-(\d+)$`)
 )
 
 // A group's type, which the shared constants do not name.
@@ -62,11 +62,13 @@ const groupType = "node.actor.group-service.group.v1"
 var actorTypes = map[string]string{
 	"groups": groupType,
 	"events": constants.NodeActorEventEntityType,
+	"pulses": constants.NodeActorPulseEntityType,
 }
 
 var actorKinds = map[string]string{
 	"groups": "group",
 	"events": "event",
+	"pulses": "pulse",
 }
 
 // Resolve finds what the page at a path is about. It answers nil for a
@@ -95,6 +97,7 @@ func Resolve(reader Reader, path string) *Subject {
 			{"person", constants.NodeActorPersonEntityType},
 			{"group", groupType},
 			{"event", constants.NodeActorEventEntityType},
+			{"pulse", constants.NodeActorPulseEntityType},
 		} {
 			if node, err := reader.ActorByAlias(found[1], each.nodeType); err == nil && node != nil {
 				return actor(node, each.kind)
@@ -146,6 +149,12 @@ func ResolveImage(reader Reader, name string) *Subject {
 			return nil
 		}
 		return actor(node, "event")
+	case "pulse":
+		node, err := reader.Actor(id, constants.NodeActorPulseEntityType)
+		if err != nil {
+			return nil
+		}
+		return actor(node, "pulse")
 	default:
 		node, err := reader.Actor(id, constants.NodeActorPersonEntityType)
 		if err != nil {

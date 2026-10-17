@@ -30,6 +30,11 @@ func NewEventAdminHandler(env *Env) *adminHandler {
 	return &adminHandler{Env: env, nodeType: an_constants.NodeActorEventEntityType}
 }
 
+// NewPulseAdminHandler serves the administrators of Pulses.
+func NewPulseAdminHandler(env *Env) *adminHandler {
+	return &adminHandler{Env: env, nodeType: an_constants.NodeActorPulseEntityType}
+}
+
 // Browse returns a list of admins
 func (h *adminHandler) Browse(c echo.Context) error {
 	var (

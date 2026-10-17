@@ -1,0 +1,19 @@
+[
+    {
+        "service": "socialgraph-service",
+        "add_permissions": [
+            { "entity": "follower", "access": "admins" },
+            { "entity": "invite", "access": "admins" }
+        ]
+    },
+    {
+        "service": "text-service",
+        "node_types": ["article"],
+        "composers": [],
+        "enabled": true,
+        "add_permissions": [
+            { "entity": "article", "access": "admins" }
+        ],
+        "include_common_permissions": ["content_creator"]
+    }
+]

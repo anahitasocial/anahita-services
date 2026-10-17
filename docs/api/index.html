@@ -54,7 +54,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <ul>
 <li><a href="#abuse-report-service">Abuse reports</a> <span class="count">8</span></li>
 <li><a href="#activitypub-service">The fediverse</a> <span class="count">20</span></li>
-<li><a href="#actor-service">Profiles</a> <span class="count">57</span></li>
+<li><a href="#actor-service">Profiles</a> <span class="count">69</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
 <li><a href="#auth-service">Accounts and signing in</a> <span class="count">94</span></li>
 <li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
@@ -2362,6 +2362,338 @@ who may call it: somebody signed in, who has just proved who they are again.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).Delete</code></p>
+</details>
+<details class="route" id="getPulses" data-search="get /pulses/ pulses those the viewer may see. each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/pulses/</code> <span class="summary">Pulses</span></summary>
+<div class="description"><p>Those the viewer may see. Each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (<code>restricted</code>).</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>Words the name holds. At most 100 characters.</td></tr>
+<tr><td><code>ordering</code></td><td>query</td><td>string</td><td>What they are ordered by. At most 15 characters. One of <code>created_at</code>, <code>updated_at</code>, <code>enabled</code>. <code>updated_at</code> unless given.</td></tr>
+<tr><td><code>dir</code></td><td>query</td><td>string</td><td>Which way the order runs. At most 4 characters. One of <code>asc</code>, <code>desc</code>. <code>desc</code> unless given.</td></tr>
+<tr><td><code>disabled</code></td><td>query</td><td>boolean</td><td>Disabled ones as well, for whoever may see them.</td></tr>
+<tr><td><code>featured</code></td><td>query</td><td>boolean</td><td>Only the actors the installation features — what onboarding offers a new member to follow. Ordered most recently featured first unless the caller asks for an ordering; see the browse handlers.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of anything or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not list Pulses</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Browse</code></p>
+</details>
+<details class="route" id="getPulsesById" data-search="get /pulses/{id} one pulse to somebody it is not open to, but who may ask to follow it, what a stranger is shown of it.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/pulses/{id}</code> <span class="summary">One Pulse</span></summary>
+<div class="description"><p>To somebody it is not open to, but who may ask to follow it, what a stranger is shown of it.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>it, or what a stranger is shown of it (LimitedActor)<div class="body"><a href="#schema-ActorNode">ActorNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not see it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Pulse</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Read</code></p>
+</details>
+<details class="route" id="patchPulsesById" data-search="patch /pulses/{id} change a pulse its name and its description. its handle and its site stay as they were connected.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/pulses/{id}</code> <span class="summary">Change a Pulse</span></summary>
+<div class="description"><p>Its name and its description. Its handle and its site stay as they were connected.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The Pulse&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>body</code></td><td>string</td><td>What it is, shown in its About card. At most 500 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name. At most 64 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-ActorNode">ActorNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Pulse</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*pulseHandler).Edit</code></p>
+</details>
+<details class="route" id="deletePulsesById" data-search="delete /pulses/{id} delete a pulse it is out of sight at once and destroyed after thirty days, unless it is restored before then.
+
+who may call it: somebody signed in, who has just proved who they are again.">
+<summary><span class="method delete">DELETE</span> <code class="path">/pulses/{id}</code> <span class="summary">Delete a Pulse</span></summary>
+<div class="description"><p>It is out of sight at once and destroyed after thirty days, unless it is restored before then.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, who has just proved who they are again</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>it will be deleted</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>step_up_required</code>: the viewer must prove who they are again first; or the viewer may not, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Delete</code></p>
+</details>
+<details class="route" id="getPulsesByIdAdmins" data-search="get /pulses/{id}/admins/ a pulse&#39;s administrators who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/pulses/{id}/admins/</code> <span class="summary">A Pulse&#39;s administrators</span></summary>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The group&#39;s or the event&#39;s id.</td></tr>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
+<tr><td><code>dir</code></td><td>query</td><td>string</td><td>Which way the order runs. At most 4 characters. One of <code>asc</code>, <code>desc</code>. <code>asc</code> unless given.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-ActorNodeItem">ActorNodeItem</a> or null } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not see them</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Pulse</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*adminHandler).Browse</code></p>
+</details>
+<details class="route" id="postPulsesByIdAdmins" data-search="post /pulses/{id}/admins/ make somebody an administrator of a pulse by one of its administrators. answers with them.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/pulses/{id}/admins/</code> <span class="summary">Make somebody an administrator of a Pulse</span></summary>
+<div class="description"><p>By one of its administrators. Answers with them.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The group&#39;s or the event&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>admin_id</code> <span class="required">always</span></td><td>integer</td><td>The person to make an administrator.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-ActorNodeItem">ActorNodeItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Pulse or person</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*adminHandler).Add</code></p>
+</details>
+<details class="route" id="deletePulsesByIdAdminsByAdminId" data-search="delete /pulses/{id}/admins/{admin_id} remove an administrator of a pulse who may call it: somebody signed in.">
+<summary><span class="method delete">DELETE</span> <code class="path">/pulses/{id}/admins/{admin_id}</code> <span class="summary">Remove an administrator of a Pulse</span></summary>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The group&#39;s or the event&#39;s id.</td></tr>
+<tr><td><code>admin_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The administrator to remove.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">204</td><td>removed</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Pulse or administrator</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*adminHandler).Delete</code></p>
+</details>
+<details class="route" id="getPulsesByIdDeletionCounts" data-search="get /pulses/{id}/deletion-counts what deleting a pulse would take with it for the danger zone, for whoever may delete it.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/pulses/{id}/deletion-counts</code> <span class="summary">What deleting a Pulse would take with it</span></summary>
+<div class="description"><p>For the Danger zone, for whoever may delete it.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.GroupDeletionCounts">actor.GroupDeletionCounts</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not delete it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).DeletionCounts</code></p>
+</details>
+<details class="route" id="patchPulsesByIdDownloadDefault" data-search="patch /pulses/{id}/download-default change whether new photos and videos may be downloaded what a post starts with; each post can say otherwise.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/pulses/{id}/download-default</code> <span class="summary">Change whether new photos and videos may be downloaded</span></summary>
+<div class="description"><p>What a post starts with; each post can say otherwise.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>allow</code></td><td>boolean</td><td>Whether its new photos and videos start out downloadable.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-ActorNode">ActorNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).EditDownloadDefault</code></p>
+</details>
+<details class="route" id="patchPulsesByIdEnabled" data-search="patch /pulses/{id}/enabled turn a profile on or off reversible, site administrators only. off, it is out of sight and may not act; nothing is deleted.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/pulses/{id}/enabled</code> <span class="summary">Turn a profile on or off</span></summary>
+<div class="description"><p>Reversible, site administrators only. Off, it is out of sight and may not act; nothing is deleted.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>enabled</code> <span class="required">always</span></td><td>boolean</td><td>Whether it is shown and may act. Off, it is out of sight until it is turned on again; nothing is deleted.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>done</td></tr>
+<tr><td class="status s2">204</td><td>it was so already</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).SetEnabled</code></p>
+</details>
+<details class="route" id="deletePulsesByIdPurge" data-search="delete /pulses/{id}/purge destroy a pulse for good everything of it, at once and with no thirty days. super administrators only, never on their own profile. queued, and done by the sweeper.
+
+who may call it: a super administrator, who has just proved who they are again.">
+<summary><span class="method delete">DELETE</span> <code class="path">/pulses/{id}/purge</code> <span class="summary">Destroy a Pulse for good</span></summary>
+<div class="description"><p>Everything of it, at once and with no thirty days. Super administrators only, never on their own profile. Queued, and done by the sweeper.</p></div>
+<p class="who"><strong>Who:</strong> a super administrator, who has just proved who they are again</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>purged or queued already<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">202</td><td>queued<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>step_up_required</code>: the viewer must prove who they are again first; or the viewer may not, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td>it cannot be purged; nothing was queued<div class="body"><a href="#schema-PurgeRefused">PurgeRefused</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Purge</code></p>
+</details>
+<details class="route" id="postPulsesByIdRestore" data-search="post /pulses/{id}/restore restore a deleted pulse within the thirty days. answers with it.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/pulses/{id}/restore</code> <span class="summary">Restore a deleted Pulse</span></summary>
+<div class="description"><p>Within the thirty days. Answers with it.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-ActorNode">ActorNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile to restore</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Restore</code></p>
 </details>
 </section>
 <section id="atproto-service" class="service">

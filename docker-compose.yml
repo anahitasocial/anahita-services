@@ -813,7 +813,7 @@ services:
       dockerfile: ./dockerfiles/pulse-service.dockerfile
     restart: always
     ports:
-      - "8102:80"
+      - "8107:80"
     depends_on:
       - graph-grpc-service
       - mysql

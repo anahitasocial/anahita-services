@@ -217,6 +217,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	}
 	groupAdmins, addGroupAdmin, removeGroupAdmin := admins("group")
 	eventAdmins, addEventAdmin, removeEventAdmin := admins("event")
+	pulseAdmins, addPulseAdmin, removePulseAdmin := admins("Pulse")
 
 	// Each kind of actor keeps its own address: /people/ and /groups/. The
 	// gateway sends both here.
@@ -371,6 +372,39 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	groups.GET("/:id/admins/", r.handler.Admin.Browse, r.authorize).With(groupAdmins)
 	groups.POST("/:id/admins/", r.handler.Admin.Add, r.authorize).With(addGroupAdmin)
 	groups.DELETE("/:id/admins/:admin_id", r.handler.Admin.Delete, r.authorize).With(removeGroupAdmin)
+
+	// Pulses — a website's feed as a profile, read and looked after as a
+	// group is. Made by pulse-service once its domain is proved
+	// (POST /pulses/_connect), so there is no POST /pulses/ here; nobody
+	// posts on one, so it has no features to choose and no audience to
+	// change: it is public.
+	pulses := api.Group("pulses")
+	pulses.GET("/", r.handler.Pulse.Browse, r.setViewer).
+		Summary("Pulses").
+		Describe("Those the viewer may see. "+someOrLimited).
+		Viewer(apidoc.Anyone).
+		Takes(actorReq.Browse).
+		Sends(http.StatusOK, libs_responses.List[any]{}).
+		Refuses(http.StatusForbidden, "the viewer may not list Pulses")
+	pulses.GET("/:id", r.handler.Pulse.Read, r.setViewer).With(readGroup("Pulse"))
+	pulses.PATCH("/:id", r.handler.Pulse.Edit, r.authorize).
+		Summary("Change a Pulse").
+		Describe("Its name and its description. Its handle and its site stay as they were connected.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.PulseEditRequest{}).
+		Sends(http.StatusOK, libs_responses.ActorNode{}).
+		Refuses(http.StatusForbidden, "the viewer may not change it").
+		Refuses(http.StatusNotFound, "there is no such Pulse")
+	pulses.DELETE("/:id", r.handler.Pulse.Delete, r.authorize).With(remove("Pulse", actorReq.Delete))
+	pulses.GET("/:id/deletion-counts", r.handler.Pulse.DeletionCounts, r.authorize).With(counts("Pulse", handlers.GroupDeletionCounts{}))
+	pulses.DELETE("/:id/purge", r.handler.Pulse.Purge, r.authorize).With(purge("Pulse"))
+	pulses.PATCH("/:id/enabled", r.handler.Pulse.SetEnabled, r.authorize).With(enabled)
+	pulses.POST("/:id/restore", r.handler.Pulse.Restore, r.authorize).With(restore("Pulse"))
+	pulses.PATCH("/:id/download-default", r.handler.Pulse.EditDownloadDefault, r.authorize).With(downloads(libs_responses.ActorNode{}))
+
+	pulses.GET("/:id/admins/", r.handler.PulseAdmin.Browse, r.authorize).With(pulseAdmins)
+	pulses.POST("/:id/admins/", r.handler.PulseAdmin.Add, r.authorize).With(addPulseAdmin)
+	pulses.DELETE("/:id/admins/:admin_id", r.handler.PulseAdmin.Delete, r.authorize).With(removePulseAdmin)
 
 	// events — an actor like a group, with a time and a place. Everything
 	// a group has, an event has, from the same handler told a different
