@@ -146,7 +146,7 @@ go out, as for a person's notes ([Federation](federation.md)).
 ## On Bluesky
 
 A website is followed on Bluesky through its own Bluesky account, which one
-of its administrators connects in its settings (Bluesky), with a password
+of its administrators connects in its settings (Fediverse), with a password
 made for an app, as a person connects theirs
 ([Federation](federation.md#bluesky)). Its domain can be its handle there
 (`@example.com`), proved on Bluesky's side by a DNS record. From then on its
