@@ -102,8 +102,8 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,person_type,avatar_filename,follower_count,leader_count,created_at,updated_at) VALUES
 		 (1,` + person + `,'Ada','ada','public',1,'registered','avatar.jpg',1,2,NOW(),NOW()),
-		 (2,` + person + `,'Grace','grace','public',1,'registered',NULL,1,2,NOW(),NOW()),
-		 (3,` + person + `,'Root','root','public',1,'super-administrator',NULL,0,0,NOW(),NOW())`,
+		 (2,` + person + `,'Grace','grace','public',1,'registered','',1,2,NOW(),NOW()),
+		 (3,` + person + `,'Root','root','public',1,'super-administrator','',0,0,NOW(),NOW())`,
 
 		// What Ada founded. All three name her as created_by, and none of
 		// them is hers to take.
@@ -114,11 +114,11 @@ func seedPurgeFixture(t *testing.T, db *sql.DB) {
 
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,filename,comment_count,vote_up_count,subscriber_count,created_at,updated_at) VALUES
 		 (10,'node.medium.photo-service.photo.v1','photo-service','a photo','n10','public',1,1,1,'photo.jpg',1,0,0,NOW(),NOW()),
-		 (11,'node.medium.text-service.article.v1','text-service','an article','n11','public',1,1,1,NULL,0,0,0,NOW(),NOW()),
-		 (12,` + note + `,'in the group','n12','public',1,8,1,NULL,1,0,0,NOW(),NOW()),
-		 (13,` + note + `,'by grace','n13','public',1,2,2,NULL,4,2,2,NOW(),NOW()),
-		 (14,` + note + `,'on grace','n14','public',1,2,1,NULL,0,0,0,NOW(),NOW()),
-		 (15,` + note + `,'grace in the group','n15','public',1,8,2,NULL,0,0,0,NOW(),NOW())`,
+		 (11,'node.medium.text-service.article.v1','text-service','an article','n11','public',1,1,1,'',0,0,0,NOW(),NOW()),
+		 (12,` + note + `,'in the group','n12','public',1,8,1,'',1,0,0,NOW(),NOW()),
+		 (13,` + note + `,'by grace','n13','public',1,2,2,'',4,2,2,NOW(),NOW()),
+		 (14,` + note + `,'on grace','n14','public',1,2,1,'',0,0,0,NOW(),NOW()),
+		 (15,` + note + `,'grace in the group','n15','public',1,8,2,'',0,0,0,NOW(),NOW())`,
 
 		// Ada's photo post holds two images. The node names the first.
 		`INSERT INTO photo_files (node_id,position,filename,mimetype) VALUES

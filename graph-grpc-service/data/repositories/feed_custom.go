@@ -81,7 +81,6 @@ const feedCustomNear = `(
 	)
 	OR (
 		node.geo_latitude IS NOT NULL
-		AND node.geo_latitude <> 0
 		AND ST_Distance_Sphere(POINT(node.geo_longitude, node.geo_latitude), POINT(?, ?)) <= ?
 	)
 )`
@@ -253,8 +252,8 @@ func feedCustomMentions(keywords []string) sq.Or {
 		}
 
 		matches = append(matches, sq.Or{
-			sq.Like{"COALESCE(node.name, '')": "%" + keyword + "%"},
-			sq.Like{"COALESCE(node.body, '')": "%" + keyword + "%"},
+			sq.Like{"node.name": "%" + keyword + "%"},
+			sq.Like{"node.body": "%" + keyword + "%"},
 		})
 	}
 

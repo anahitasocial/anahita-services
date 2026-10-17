@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"log"
 	"strings"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -38,64 +39,65 @@ func GetBaseSelectQuery() sq.SelectBuilder {
 		"node.type",
 		"node.service",
 		"node.uuid AS uuid",
+		// COALESCE only where NULL means something: no address elsewhere
+		// (made here), no other row (a reference), no place. Read as '' and
+		// 0, which is what the code takes for none.
 		"COALESCE(node.uri, '') AS uri",
 		"COALESCE(node.origin_domain, '') AS origin_domain",
-		"COALESCE(node.name, '') AS name",
-		"COALESCE(node.alias, '') AS alias",
-		"COALESCE(node.body, '') AS body",
-		"COALESCE(node.starts_at, NOW()) AS starts_at",
-		"COALESCE(node.ends_at, NOW()) AS ends_at",
-		"COALESCE(node.owner_type, '') AS owner_type",
+		"node.name AS name",
+		"node.alias AS alias",
+		"node.body AS body",
+		"node.starts_at AS starts_at",
+		"node.ends_at AS ends_at",
+		"node.owner_type AS owner_type",
 		"COALESCE(node.owner_id, 0) AS owner_id",
-		"COALESCE(node.comment_status, false) AS comment_status",
-		"COALESCE(node.comment_count, 0) AS comment_count",
-		"COALESCE(node.repost_count, 0) AS repost_count",
-		"COALESCE(node.quote_count, 0) AS quote_count",
-		"COALESCE(node.citation_count, 0) AS citation_count",
+		"node.comment_status AS comment_status",
+		"node.comment_count AS comment_count",
+		"node.repost_count AS repost_count",
+		"node.quote_count AS quote_count",
+		"node.citation_count AS citation_count",
 		"node.enabled",
 		"node.verified",
-		// COALESCE: nullable column, non-pointer string. A NULL would fail the
-		// scan for every actor that has not set one, which is most of them.
-		"COALESCE(node.website_url, '') AS website_url",
+		"node.website_url AS website_url",
 		"node.pinned",
-		"COALESCE(node.meta, '') AS meta",
-		"COALESCE(node.view_count, 0) AS view_count",
+		"node.meta AS meta",
+		"node.view_count AS view_count",
 		"COALESCE(node.parent_id, 0) AS parent_id",
-		"COALESCE(node.parent_type, '') AS parent_type",
+		"node.parent_type AS parent_type",
 		"COALESCE(node.root_id, 0) AS root_id",
-		"COALESCE(node.reply_access, '') AS reply_access",
-		"COALESCE(node.quote_policy, '') AS quote_policy",
+		"node.reply_access AS reply_access",
+		"node.quote_policy AS quote_policy",
 		"COALESCE(node.quote_id, 0) AS quote_id",
 		"(node.quote_detached_at IS NOT NULL) AS quote_detached",
 		"COALESCE(node.geo_latitude, 0) AS geo_latitude",
 		"COALESCE(node.geo_longitude, 0) AS geo_longitude",
-		"COALESCE(node.geo_address, '') AS geo_address",
-		"COALESCE(node.geo_city, '') AS geo_city",
-		"COALESCE(node.geo_state_province, '') AS geo_state_province",
-		"COALESCE(node.geo_country, '') AS geo_country",
-		"COALESCE(node.geo_postalcode, '') AS geo_postalcode",
-		"COALESCE(node.created_at, NOW()) AS created_at",
+		"node.geo_address AS geo_address",
+		"node.geo_city AS geo_city",
+		"node.geo_state_province AS geo_state_province",
+		"node.geo_country AS geo_country",
+		"node.geo_postalcode AS geo_postalcode",
+		"node.created_at AS created_at",
 		"COALESCE(node.created_by, 0) AS created_by",
-		"COALESCE(node.updated_at, NOW()) AS updated_at",
+		"node.updated_at AS updated_at",
 		"COALESCE(node.modified_by, 0) AS modified_by",
-		"COALESCE(node.filename, '') AS filename",
-		"COALESCE(node.avatar_filename, '') AS avatar_filename",
-		"COALESCE(node.cover_filename, '') AS cover_filename",
-		"COALESCE(node.follower_count, 0) AS follower_count",
-		"COALESCE(node.leader_count, 0) AS leader_count",
-		"COALESCE(node.allow_follow_request, false) AS allow_follow_request",
-		"COALESCE(node.show_reposts_on_profile, false) AS show_reposts_on_profile",
-		"COALESCE(node.allow_download, false) AS allow_download",
-		"COALESCE(node.library_only, false) AS library_only",
-		"COALESCE(node.draft, false) AS draft",
-		"COALESCE(node.subscriber_count, 0) AS subscriber_count",
-		"COALESCE(node.vote_up_count, 0) AS vote_up_count",
-		"COALESCE(node.mimetype, '') AS mimetype",
-		"COALESCE(node.language, '') AS language",
-		"COALESCE(node.access, '') AS access",
-		"COALESCE(node.features, '') AS features",
-		"COALESCE(node.person_type, '') AS person_type",
-		"COALESCE(node.person_pronouns, '') AS person_pronouns",
+		"node.filename AS filename",
+		"node.avatar_filename AS avatar_filename",
+		"node.cover_filename AS cover_filename",
+		"node.follower_count AS follower_count",
+		"node.leader_count AS leader_count",
+		"node.allow_follow_request AS allow_follow_request",
+		"node.show_reposts_on_profile AS show_reposts_on_profile",
+		"node.allow_download AS allow_download",
+		"node.library_only AS library_only",
+		"node.draft AS draft",
+		"node.subscriber_count AS subscriber_count",
+		"node.vote_up_count AS vote_up_count",
+		"node.mimetype AS mimetype",
+		"node.language AS language",
+		"node.access AS access",
+		"node.features AS features",
+		"node.person_type AS person_type",
+		"node.person_pronouns AS person_pronouns",
 		// Not COALESCEd: NULL means "not deleted" and a zero time would mean
 		// every actor was scheduled for deletion at the start of the epoch.
 		"node.deleted_at",
@@ -230,8 +232,8 @@ func FetchNode(db *sql.DB, query sq.SelectBuilder) (*entities.AnahitaNode, error
 		&item.Name,
 		&item.Alias,
 		&item.Body,
-		&item.StartsAt,
-		&item.EndsAt,
+		optionalTime{&item.StartsAt},
+		optionalTime{&item.EndsAt},
 		&item.OwnerType,
 		&item.OwnerID,
 		&item.CommentStatus,
@@ -383,8 +385,8 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 			&item.Name,
 			&item.Alias,
 			&item.Body,
-			&item.StartsAt,
-			&item.EndsAt,
+			optionalTime{&item.StartsAt},
+			optionalTime{&item.EndsAt},
 			&item.OwnerType,
 			&item.OwnerID,
 			&item.CommentStatus,
@@ -506,4 +508,21 @@ func FetchNodes(db *sql.DB, query sq.SelectBuilder) ([]*entities.AnahitaNode, er
 	}
 
 	return items, nil
+}
+
+// optionalTime scans a date that is NULL when it does not apply, as an
+// event's start and end are on everything that is not an event, into the
+// zero time.
+type optionalTime struct{ at *time.Time }
+
+func (o optionalTime) Scan(value any) error {
+	var read sql.NullTime
+	if err := read.Scan(value); err != nil {
+		return err
+	}
+	*o.at = time.Time{}
+	if read.Valid {
+		*o.at = read.Time
+	}
+	return nil
 }

@@ -197,7 +197,7 @@ const tombstoneReply = `
 UPDATE nodes
 SET body = '',
     name = '',
-    meta = NULL,
+    meta = '',
     deleted_at = UTC_TIMESTAMP(),
     modified_by = ?,
     updated_at = UTC_TIMESTAMP()

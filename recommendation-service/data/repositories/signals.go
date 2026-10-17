@@ -77,7 +77,7 @@ const eligibleCandidate = `(c.type = ?{{elsewhere}})
 
 // A person or a group has a picture, or says something of itself: an empty
 // profile is nothing to suggest.
-const eligibleProfile = `AND (COALESCE(c.avatar_filename, '') <> '' OR COALESCE(c.body, '') <> '')`
+const eligibleProfile = `AND (c.avatar_filename <> '' OR c.body <> '')`
 
 // An event is still to come or on, and has not been called off. It has no
 // picture of its own, and is not asked to say anything.

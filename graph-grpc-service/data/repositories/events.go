@@ -135,7 +135,7 @@ GROUP BY edge.node_b_id`
 const selectViewerAnswers = `
 SELECT
   edge.node_b_id,
-  COALESCE(edge.meta, '')
+  edge.meta
 FROM edges AS edge
 WHERE edge.type = ?
   AND edge.node_a_id = ?

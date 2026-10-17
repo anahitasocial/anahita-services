@@ -75,7 +75,7 @@ WHERE type = ?
 func (r *nodesRepo) guardLastSuperAdmin(ctx context.Context, id int64) error {
 	var personType string
 	err := r.db.QueryRowContext(ctx,
-		`SELECT COALESCE(person_type, '') FROM nodes WHERE id = ?`, id).Scan(&personType)
+		`SELECT person_type FROM nodes WHERE id = ?`, id).Scan(&personType)
 	if err != nil {
 		return err
 	}

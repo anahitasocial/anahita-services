@@ -20,7 +20,7 @@ func (r *edgesRepo) Edit(edge *entities.AnahitaEdge) (*entities.AnahitaEdge, err
 
 	query := sq.Update("edges").
 		Set("updated_at", time.Now()).
-		Set("modified_by", edge.ModifiedBy).
+		Set("modified_by", nullableID(edge.ModifiedBy)).
 		Where(sq.Eq{"id": edge.ID})
 
 	if edge.Meta != "" {

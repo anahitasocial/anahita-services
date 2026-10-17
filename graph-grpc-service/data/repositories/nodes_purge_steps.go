@@ -266,10 +266,10 @@ SELECT
   COALESCE(node.type, ''),
   COALESCE(node.service, ''),
   COALESCE(node.owner_id, 0),
-  COALESCE(node.filename, ''),
-  COALESCE(node.cover_filename, ''),
+  node.filename,
+  node.cover_filename,
   CASE
-    WHEN node.type = ? THEN COALESCE(node.meta, '')
+    WHEN node.type = ? THEN node.meta
     ELSE ''
   END
 FROM purge_work work

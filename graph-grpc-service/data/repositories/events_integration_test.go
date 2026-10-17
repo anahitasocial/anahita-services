@@ -217,12 +217,12 @@ func TestEventListsAndWhoIsGoing(t *testing.T) {
 		// Alice looks after the picnic and is going. She went to last
 		// year's. She said maybe to the one that is gone.
 		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,meta,created_at) VALUES
-		 ('edge.actor.admin.v1',1,'` + personType + `',900,'` + eventType + `',NULL,NOW()),
+		 ('edge.actor.admin.v1',1,'` + personType + `',900,'` + eventType + `','',NOW()),
 		 ('edge.actor.follow.v1',1,'` + personType + `',900,'` + eventType + `','` + constants.EventRsvpGoingMeta + `',NOW() - INTERVAL 2 HOUR),
 		 ('edge.actor.follow.v1',1,'` + personType + `',901,'` + eventType + `','` + constants.EventRsvpGoingMeta + `',NOW()),
 		 ('edge.actor.follow.v1',1,'` + personType + `',903,'` + eventType + `','` + constants.EventRsvpMaybeMeta + `',NOW()),
 		 ('edge.actor.follow.v1',2,'` + personType + `',900,'` + eventType + `','` + constants.EventRsvpMaybeMeta + `',NOW() - INTERVAL 1 HOUR),
-		 ('edge.actor.follow.v1',4,'` + personType + `',900,'` + eventType + `',NULL,NOW())`,
+		 ('edge.actor.follow.v1',4,'` + personType + `',900,'` + eventType + `','',NOW())`,
 		// Alice is invited to the later one. Bob's invitation to it lapsed.
 		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,meta,created_at,ends_at) VALUES
 		 ('edge.actor.invite.v1',1,'` + personType + `',902,'` + eventType + `','` + constants.InviteMetaPending + `',NOW(),NOW() + INTERVAL 30 DAY),

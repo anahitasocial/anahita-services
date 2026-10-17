@@ -108,7 +108,7 @@ const relevantMatch = `(CASE
           AND tagged.type = ?
           AND LOWER(hashtag.name) = ?
     ) THEN ?
-    WHEN REGEXP_LIKE(COALESCE(node.body, ''), ?, 'i') THEN ?
+    WHEN REGEXP_LIKE(node.body, ?, 'i') THEN ?
     ELSE ?
 END)`
 

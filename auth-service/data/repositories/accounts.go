@@ -152,9 +152,9 @@ const accountRows = `
 SELECT
   actor.id,
   actor.type,
-  COALESCE(actor.alias, '')                AS alias,
-  COALESCE(actor.name, '')                 AS name,
-  COALESCE(actor.person_type, '')          AS person_type,
+  actor.alias                              AS alias,
+  actor.name                               AS name,
+  actor.person_type                        AS person_type,
   CASE
     WHEN actor.deleted_at IS NOT NULL  THEN 'deleted'
     WHEN actor.enabled = 0             THEN 'disabled'
@@ -171,8 +171,8 @@ SELECT
   account.email_verified_at IS NOT NULL    AS email_verified,
   account.onboarded_at IS NOT NULL         AS onboarded,
   COALESCE(content.total, 0)               AS content_count,
-  COALESCE(actor.follower_count, 0)        AS follower_count,
-  COALESCE(actor.leader_count, 0)          AS leader_count,
+  actor.follower_count                     AS follower_count,
+  actor.leader_count                       AS leader_count,
   COALESCE(admins.total, 0)                AS admin_count
 FROM nodes actor
 LEFT JOIN auth_accounts account

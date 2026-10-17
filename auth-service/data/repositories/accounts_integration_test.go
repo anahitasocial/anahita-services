@@ -48,16 +48,14 @@ func seedAccounts(t *testing.T) *accounts {
 
 	for _, stmt := range []string{
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,person_type,follower_count,leader_count,created_at,updated_at,last_visited_at) VALUES
-		 (9201,` + person + `,'Empty One','acc-empty','public',1,'registered',NULL,NULL,NOW() - INTERVAL 3 YEAR,NOW(),NOW() - INTERVAL 3 YEAR),
+		 (9201,` + person + `,'Empty One','acc-empty','public',1,'registered',0,0,NOW() - INTERVAL 3 YEAR,NOW(),NOW() - INTERVAL 3 YEAR),
 		 (9202,` + person + `,'Dormant One','acc-dormant','public',1,'registered',0,0,NOW() - INTERVAL 5 YEAR,NOW(),NULL),
 		 (9203,` + person + `,'Active One','acc-active','public',1,'registered',3,2,NOW() - INTERVAL 5 YEAR,NOW(),NULL),
 		 (9204,` + person + `,'Signed In','acc-signedin','public',1,'registered',0,1,NOW() - INTERVAL 5 YEAR,NOW(),NULL),
 		 (9205,` + person + `,'Deleted One','acc-deleted','public',0,'registered',0,0,NOW() - INTERVAL 1 YEAR,NOW(),NULL),
 		 (9206,` + person + `,'','acc-purged','public',0,'registered',0,0,NOW() - INTERVAL 1 YEAR,NOW(),NULL),
-		 (9210,` + group + `,'Kept Group','acc-group','public',1,NULL,2,0,NOW() - INTERVAL 5 YEAR,NOW(),NULL),
-		 (9211,` + group + `,'Lost Group','acc-lost','public',1,NULL,1,0,NOW() - INTERVAL 5 YEAR,NOW(),NULL)`,
-		// The first row's counters are NULL, as they are on accounts carried over
-		// from the old site.
+		 (9210,` + group + `,'Kept Group','acc-group','public',1,'',2,0,NOW() - INTERVAL 5 YEAR,NOW(),NULL),
+		 (9211,` + group + `,'Lost Group','acc-lost','public',1,'',1,0,NOW() - INTERVAL 5 YEAR,NOW(),NULL)`,
 		`UPDATE nodes SET deleted_at = NOW() WHERE id IN (9205, 9206)`,
 		`UPDATE nodes SET purged_at = NOW() WHERE id = 9206`,
 

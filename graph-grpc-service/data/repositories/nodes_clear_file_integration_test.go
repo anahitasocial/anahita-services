@@ -123,7 +123,7 @@ func TestAnActorsAvatarIsKeptApartFromFilename(t *testing.T) {
 	}
 
 	var inColumn, inFilename string
-	if err := db.QueryRow(`SELECT COALESCE(avatar_filename, ''), COALESCE(filename, '') FROM nodes WHERE id = ?`, purgeGrace).
+	if err := db.QueryRow(`SELECT avatar_filename, filename FROM nodes WHERE id = ?`, purgeGrace).
 		Scan(&inColumn, &inFilename); err != nil {
 		t.Fatal(err)
 	}
