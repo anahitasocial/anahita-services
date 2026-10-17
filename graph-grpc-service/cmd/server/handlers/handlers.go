@@ -40,6 +40,7 @@ type Handlers struct {
 	Ping              *pingHandler
 	Repost            *repostHandler
 	Search            *searchHandler
+	Hashtag           *hashtagHandler
 	Socialgraph       *socialgraphGrpcHandler
 	SocialgraphFollow *socialgraphFollowGrpcHandler
 	Event             *eventGrpcHandler
@@ -62,6 +63,7 @@ func NewHandlers(env *Env) *Handlers {
 		Ping:              NewPingHandler(env),
 		Repost:            NewRepostHandler(env),
 		Search:            NewSearchHandler(env),
+		Hashtag:           NewHashtagHandler(env),
 		Socialgraph:       NewSocialgraphGrpcHandler(env),
 		SocialgraphFollow: NewSocialgraphFollowGrpcHandler(env),
 		Event:             NewEventGrpcHandler(env),

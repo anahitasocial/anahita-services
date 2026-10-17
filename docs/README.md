@@ -269,6 +269,13 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [What is found at all](search.md#what-is-found-at-all)
    - [Where the code is](search.md#where-the-code-is)
    - [What is not built](search.md#what-is-not-built)
+23. [Hashtags and places](hashtags.md) — how a post gets its hashtags, at most ten hashtags and five places, and the hashtags offered while writing
+   - [How a post gets its hashtags](hashtags.md#how-a-post-gets-its-hashtags)
+   - [At most ten hashtags](hashtags.md#at-most-ten-hashtags)
+   - [At most five places](hashtags.md#at-most-five-places)
+   - [Suggestions while writing](hashtags.md#suggestions-while-writing)
+   - [What the web app does](hashtags.md#what-the-web-app-does)
+   - [Where the code is](hashtags.md#where-the-code-is)
 
 ## Plans
 

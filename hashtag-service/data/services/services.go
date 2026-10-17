@@ -11,6 +11,7 @@ func NewServices(config *config.Config) *Services {
 		GraphGRPC:     services.NewGraphGRPC(config),
 		GraphEdgeGRPC: services.NewGraphEdgeGRPC(config),
 		GraphNodeGRPC: services.NewGraphNodeGRPC(config),
+		HashtagGRPC:   services.NewHashtagGRPC(config),
 	}
 }
 
@@ -19,4 +20,5 @@ type Services struct {
 	GraphGRPC     services.GraphGRPCInterface
 	GraphEdgeGRPC services.GraphEdgeGRPCInterface
 	GraphNodeGRPC services.GraphNodeGRPCInterface
+	HashtagGRPC   services.HashtagGRPCInterface
 }

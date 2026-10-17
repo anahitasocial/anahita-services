@@ -85,9 +85,10 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.SignedIn).
 		Scope(media).
 		Takes(libs_requests.NewInboundRequest().Add).
-		SendsNothing(http.StatusCreated, "tied").
+		SendsNothing(http.StatusCreated, "tied, or tied already").
 		Refuses(http.StatusForbidden, "the viewer may not change the post").
-		Refuses(http.StatusNotFound, "there is no such place or post")
+		Refuses(http.StatusNotFound, "there is no such place or post").
+		Sends(http.StatusUnprocessableEntity, libs_responses.Refusal{}, "`too_many_locations`: the post is tied to five places already")
 	locations.DELETE("/:id/inbounds/:source_id", r.handler.Inbound.Delete, r.authorize).
 		Summary("Untie a post from a place").
 		Describe("For the post's author, the owner of the profile it is on, and site administrators.").

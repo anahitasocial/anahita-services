@@ -56,6 +56,20 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewHashtagRequest().BrowseOrderedByDegree).
 		Sends(http.StatusOK, libs_responses.List[*responses.HashtagNodeItem]{})
+	// Offered to somebody writing (roadmap row 78). Signed in only:
+	// writing needs it, and it is not a way to list every hashtag.
+	hashtags.GET("/_suggest", r.handler.Hashtag.Begun, r.authorize).
+		Summary("Hashtags that begin with what was typed").
+		Describe("For somebody typing a hashtag: those in use that begin with `q` (what follows the #, its capitals and accents aside), the one that is just that first, then those in the viewer's custom feeds, then the most used. A hashtag is counted by the posts anybody may see, and the viewer's own.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.SuggestQuery{}).
+		Sends(http.StatusOK, handlers.SuggestResponse{})
+	hashtags.POST("/_suggest", r.handler.Hashtag.ForText, r.authorize).
+		Summary("Hashtags for a text").
+		Describe("For long content: the hashtags in use that are words of the title and body, or two words run together (open science, #openscience), and on more than one post. Those in the viewer's custom feeds first, then the words the text uses most. Hashtags the text has already are left out; addresses, code, mentions and hashtags are not words of it.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.SuggestRequest{}).
+		Sends(http.StatusOK, handlers.SuggestResponse{})
 	hashtags.GET("/", r.handler.Hashtag.Browse, r.setViewer).
 		Summary("Hashtags").
 		Viewer(apidoc.Anyone).

@@ -11,9 +11,6 @@ import (
 	"strings"
 )
 
-// The most hashtags one post is given.
-const maxHashtagsOfAPost = 50
-
 func (h *hashtagHandler) HandleEvents(payload *event.EventPayload) error {
 	log.Println("Hashtag event received", payload.Name)
 
@@ -46,10 +43,10 @@ func (h *hashtagHandler) updateHashtags(payload *event.EventPayload) error {
 	// from elsewhere writing #Anahita made a second hashtag beside the one
 	// there was, since the database found it and this did not.
 	aliases, names := hashtagAliases(node.Hashtags)
-	// A post may come from anybody, on any server, and each hashtag it is
-	// the first to use is made here. The first of them are enough.
-	if len(aliases) > maxHashtagsOfAPost {
-		aliases = aliases[:maxHashtagsOfAPost]
+	// Only the first of them are its hashtags (MaxHashtagsOfAPost): the
+	// rest are words, here and wherever it is sent.
+	if len(aliases) > an_constants.MaxHashtagsOfAPost {
+		aliases = aliases[:an_constants.MaxHashtagsOfAPost]
 	}
 	if len(aliases) == 0 {
 		// Delete all existing hashtag relations

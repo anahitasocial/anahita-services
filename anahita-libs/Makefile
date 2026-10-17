@@ -19,6 +19,7 @@ gen-proto:
 		proto/graphpb/feed_actor.proto \
 		proto/graphpb/feed_custom.proto \
 		proto/graphpb/repost.proto \
-		proto/graphpb/search.proto
+		proto/graphpb/search.proto \
+		proto/graphpb/hashtag.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/typespb/types.proto
 

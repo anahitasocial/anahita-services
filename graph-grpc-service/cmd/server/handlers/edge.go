@@ -152,9 +152,11 @@ func (h *edgeHandler) Count(ctx context.Context, req *graphpb.EdgeCountRequest) 
 	}, nil
 }
 
-// EdgeCheckEdgeExists
-func (h *edgeHandler) CheckEdgeExists(ctx context.Context, req *graphpb.EdgeCheckExistsRequest) (*graphpb.EdgeCheckExistsResponse, error) {
-	log.Printf("Received CheckEdgeExists request: %v", req)
+// CheckExists says whether an edge of the type is between the two nodes.
+// Named as the RPC is: under another name it was never served, and a
+// call to it reached the embedded nil server and brought the graph down.
+func (h *edgeHandler) CheckExists(ctx context.Context, req *graphpb.EdgeCheckExistsRequest) (*graphpb.EdgeCheckExistsResponse, error) {
+	log.Printf("Received CheckExists request: %v", req)
 
 	edge := entities.NewAnahitaEdge()
 	edge.Type = req.Type

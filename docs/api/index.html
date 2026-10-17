@@ -59,7 +59,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#auth-service">Accounts and signing in</a> <span class="count">94</span></li>
 <li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
 <li><a href="#feed-service">Feeds</a> <span class="count">18</span></li>
-<li><a href="#hashtag-service">Hashtags</a> <span class="count">6</span></li>
+<li><a href="#hashtag-service">Hashtags</a> <span class="count">8</span></li>
 <li><a href="#identity-image-service">Avatars and covers</a> <span class="count">6</span></li>
 <li><a href="#like-service">Likes</a> <span class="count">3</span></li>
 <li><a href="#link-preview-service">Link previews</a> <span class="count">4</span></li>
@@ -71,7 +71,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">43</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">141</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">143</span></li>
 </ul>
 </nav>
 <main>
@@ -5155,6 +5155,55 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).BrowseTrending</code></p>
 </details>
+<details class="route" id="getHashtagsSuggest" data-search="get /hashtags/_suggest hashtags that begin with what was typed for somebody typing a hashtag: those in use that begin with `q` (what follows the #, its capitals and accents aside), the one that is just that first, then those in the viewer&#39;s custom feeds, then the most used. a hashtag is counted by the posts anybody may see, and the viewer&#39;s own.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/hashtags/_suggest</code> <span class="summary">Hashtags that begin with what was typed</span></summary>
+<div class="description"><p>For somebody typing a hashtag: those in use that begin with <code>q</code> (what follows the #, its capitals and accents aside), the one that is just that first, then those in the viewer&#39;s custom feeds, then the most used. A hashtag is counted by the posts anybody may see, and the viewer&#39;s own.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>What follows the #, at least one letter.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>How many to offer, 1 to 20; 8 when not given. At least 0.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-hashtag.SuggestResponse">hashtag.SuggestResponse</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).Begun</code></p>
+</details>
+<details class="route" id="postHashtagsSuggest" data-search="post /hashtags/_suggest hashtags for a text for long content: the hashtags in use that are words of the title and body, or two words run together (open science, #openscience), and on more than one post. those in the viewer&#39;s custom feeds first, then the words the text uses most. hashtags the text has already are left out; addresses, code, mentions and hashtags are not words of it.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/hashtags/_suggest</code> <span class="summary">Hashtags for a text</span></summary>
+<div class="description"><p>For long content: the hashtags in use that are words of the title and body, or two words run together (open science, #openscience), and on more than one post. Those in the viewer&#39;s custom feeds first, then the words the text uses most. Hashtags the text has already are left out; addresses, code, mentions and hashtags are not words of it.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>body</code></td><td>string</td><td>What is written, as Markdown.</td></tr>
+<tr><td><code>limit</code></td><td>integer</td><td>How many to offer, 1 to 20; 8 when not given. At least 0.</td></tr>
+<tr><td><code>title</code></td><td>string</td><td>The title, if it has one.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-hashtag.SuggestResponse">hashtag.SuggestResponse</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).ForText</code></p>
+</details>
 <details class="route" id="getHashtagsByAlias" data-search="get /hashtags/{alias} one hashtag who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/hashtags/{alias}</code> <span class="summary">One hashtag</span></summary>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
@@ -5810,11 +5859,12 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s2">201</td><td>tied</td></tr>
+<tr><td class="status s2">201</td><td>tied, or tied already</td></tr>
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not change the post</td></tr>
 <tr><td class="status s4">404</td><td>there is no such place or post</td></tr>
+<tr><td class="status s4">422</td><td><code>too_many_locations</code>: the post is tied to five places already<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*inboundHandler).Add</code></p>
@@ -10813,6 +10863,30 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>The hashtag as it is shown, without its #.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>Always <code>node.tag.hashtag-service.hashtag.v1</code>.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-hashtag.SuggestResponse" data-search="hashtag.suggestresponse data">
+<h3>hashtag.SuggestResponse</h3>
+<p>The hashtags offered, the best first.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>data</code> <span class="required">always</span></td><td>list of <a href="#schema-hashtag.Suggestion">hashtag.Suggestion</a> or null</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-hashtag.Suggestion" data-search="hashtag.suggestion alias followed id name uses">
+<h3>hashtag.Suggestion</h3>
+<p>A hashtag in use, offered.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>alias</code> <span class="required">always</span></td><td>string</td><td>In lower case: what it is found by, and what to write after the #.</td></tr>
+<tr><td><code>followed</code> <span class="required">always</span></td><td>boolean</td><td>In one of the viewer&#39;s custom feeds.</td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>As it is shown.</td></tr>
+<tr><td><code>uses</code> <span class="required">always</span></td><td>integer</td><td>How many posts it is on that anybody may see, and the viewer&#39;s own.</td></tr>
 </tbody>
 </table>
 </div>

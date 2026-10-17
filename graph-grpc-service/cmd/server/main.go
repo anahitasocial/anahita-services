@@ -113,6 +113,7 @@ func startGrpcServer(h *handlers.Handlers) error {
 	graphpb.RegisterMediumServiceServer(s, h.Medium)
 	graphpb.RegisterRepostServiceServer(s, h.Repost)
 	graphpb.RegisterSearchServiceServer(s, h.Search)
+	graphpb.RegisterHashtagServiceServer(s, h.Hashtag)
 	graphpb.RegisterSocialgraphServiceServer(s, h.Socialgraph)
 	graphpb.RegisterSocialgraphFollowServiceServer(s, h.SocialgraphFollow)
 	graphpb.RegisterEventServiceServer(s, h.Event)

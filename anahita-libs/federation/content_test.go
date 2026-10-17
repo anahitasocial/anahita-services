@@ -112,6 +112,13 @@ func TestToHTMLListsWhoAndWhatIsNamed(t *testing.T) {
 		t.Errorf("hashtags %v", got.Hashtags)
 	}
 
+	// Only the first ten different hashtags are linked and listed: #One
+	// again is one of them, the eleventh is a word.
+	many := ToHTML("#a1 #a2 #a3 #a4 #a5 #a6 #a7 #a8 #a9 #a10 #A1 #a11", links)
+	if len(many.Hashtags) != 10 || strings.Count(many.HTML, "<a ") != 11 || !strings.Contains(many.HTML, " #a11</p>") {
+		t.Errorf("got %d hashtags, %s", len(many.Hashtags), many.HTML)
+	}
+
 	// Without anybody to ask, names are text and nothing is listed.
 	plain := ToHTML("@ana #seeds", Links{})
 	if plain.HTML != "<p>@ana #seeds</p>" || len(plain.Mentions)+len(plain.Hashtags) != 0 {

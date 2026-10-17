@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package graph;
+
+option go_package = "/graphpb";
+
+import "proto/graphpb/context.proto";
+
+// Hashtags in use, offered to somebody writing: those beginning with what
+// they have typed after a #, or those that are words of what they wrote.
+message HashtagSuggestRequest {
+    Viewer viewer = 1;
+    // What follows the # typed so far. Either this or words.
+    string prefix = 2;
+    // Words of a text, and pairs of them run together, the most used
+    // first, in lower case.
+    repeated string words = 3;
+    // Hashtags already in what is written, in lower case: not offered.
+    repeated string exclude = 4;
+    uint32 limit = 5;
+}
+
+message HashtagSuggestion {
+    int64 id = 1;
+    // In lower case, what it is found by.
+    string alias = 2;
+    // As it is shown.
+    string name = 3;
+    // How many posts it is on that anybody may see, and the viewer's own.
+    int64 uses = 4;
+    // In one of the viewer's custom feeds.
+    bool followed = 5;
+}
+
+message HashtagSuggestResponse {
+    repeated HashtagSuggestion suggestions = 1;
+}
+
+service HashtagService {
+    rpc Suggest(HashtagSuggestRequest) returns (HashtagSuggestResponse);
+}

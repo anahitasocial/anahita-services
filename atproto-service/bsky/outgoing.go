@@ -1,6 +1,7 @@
 package bsky
 
 import (
+	"anahita-libs/constants"
 	"regexp"
 	"strings"
 	"time"
@@ -199,6 +200,9 @@ func NewOutPost(markdown, language string, at time.Time) *OutPost {
 	var (
 		text   strings.Builder
 		facets []OutFacet
+		// The hashtags marked so far, whatever their capitals: only the
+		// first constants.MaxHashtagsOfAPost are, as here.
+		tagged = map[string]bool{}
 	)
 	mark := func(words string, feature map[string]string) {
 		facet := OutFacet{Features: []map[string]string{feature}}
@@ -227,6 +231,12 @@ func NewOutPost(markdown, language string, at time.Time) *OutPost {
 		default: // #hashtag, after what came before it
 			text.WriteString(markdown[m[8]:m[9]])
 			tag := markdown[m[10]:m[11]]
+			alias := strings.ToLower(tag)
+			if !tagged[alias] && len(tagged) >= constants.MaxHashtagsOfAPost {
+				text.WriteString("#" + tag)
+				continue
+			}
+			tagged[alias] = true
 			mark("#"+tag, map[string]string{"$type": "app.bsky.richtext.facet#tag", "tag": tag})
 		}
 	}

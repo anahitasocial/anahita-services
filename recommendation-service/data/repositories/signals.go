@@ -263,7 +263,9 @@ LIMIT ?`
 // joined is offered to pick from. Only public posts, of profiles anybody
 // may see, so that a hashtag offered says nothing about what is kept from
 // view. Counted by posts, and by each spelling of a hashtag; spellings
-// that differ only in case are put together afterwards.
+// that differ only in case are put together afterwards. A hashtag's
+// `enabled` means nothing: the services make every hashtag with it off, and
+// asking for it on left only hashtags from before 2023.
 const popularHashtags = `
 SELECT hashtag.id, hashtag.name, hashtag.alias, COUNT(DISTINCT post.id)
 FROM edges AS tagged
@@ -276,7 +278,6 @@ WHERE tagged.type = ?
   AND post.enabled = 1
   AND post.deleted_at IS NULL
   AND (owner.id IS NULL OR owner.access IS NULL OR owner.access = 'public')
-  AND hashtag.enabled = 1
   AND hashtag.deleted_at IS NULL
 GROUP BY hashtag.id, hashtag.name, hashtag.alias
 ORDER BY 4 DESC, hashtag.id
