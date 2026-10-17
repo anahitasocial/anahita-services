@@ -69,7 +69,7 @@ A feed already connected is refused (`409`), as is a handle that is taken.
 
 **Replies as the website.** In a thread whose root is the website's, a reply by one of its administrators is the website's (owner and author the website); the administrator is kept in the reply's meta as `written_by`, never sent, read only by moderators handling a report. **Built for replies in words (2026-10-16); to settle with the user:** a reply with pictures, a GIF or a video by an administrator under a website's post is still the administrator's own, since its files are uploaded for them, and making them the website's reaches into photo-service and video-service.
 
-**On the fediverse.** WebFinger finds a website by its handle, its actor is an `Organization`, it needs no opt-in, its notes go out as anyone's, and replies to them come back into its threads, as they do for a person's notes.
+**On the fediverse.** WebFinger finds a website by its handle, its actor is an `Organization`, it is on the fediverse once its administrators turn it on (2026-10-17; it needed no opt-in at first), its notes go out as anyone's, and replies to them come back into its threads, as they do for a person's notes.
 
 **Parts, one commit each**
 
