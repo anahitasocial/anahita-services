@@ -52,7 +52,9 @@ func userColumns() []string {
 		"nodes.updated_at",
 		"auth_accounts.totp_enabled",
 		"COALESCE(auth_accounts.totp_recovery_codes, '') AS totp_recovery_codes",
-		"COALESCE(auth_accounts.totp_last_verified_at, NOW()) AS totp_last_verified_at",
+		// NULL is never: read as no time, so a check of how fresh it is fails
+		// closed, where reading it as "now" would have passed.
+		"auth_accounts.totp_last_verified_at",
 		"COALESCE(auth_accounts.totp_secret, '') AS totp_secret",
 		"nodes.deleted_at",
 		"nodes.archived_at",
@@ -117,7 +119,7 @@ func scanUser(row rowScanner) (*entities.User, error) {
 		&updatedAt,
 		&item.TotpEnabled,
 		&item.TotpRecoveryCodes,
-		&item.TotpLastVerifiedAt,
+		optionalTime{&item.TotpLastVerifiedAt},
 		&item.TotpSecret,
 		&item.DeletedAt,
 		&item.ArchivedAt,
@@ -219,4 +221,20 @@ func scanBrowsedUser(row rowScanner) (*entities.User, error) {
 	item.UpdatedAt = nullTime(updatedAt)
 
 	return item, nil
+}
+
+// optionalTime scans a date that is NULL when it has not happened into the
+// zero time.
+type optionalTime struct{ at *time.Time }
+
+func (o optionalTime) Scan(value any) error {
+	var read sql.NullTime
+	if err := read.Scan(value); err != nil {
+		return err
+	}
+	*o.at = time.Time{}
+	if read.Valid {
+		*o.at = read.Time
+	}
+	return nil
 }
