@@ -1123,6 +1123,8 @@ name on Bluesky by this installation. Somebody
 who already has an account there can connect it, and from then on their
 public notes are posted there, and a like, a repost or a reply they give
 here to something from Bluesky is made there too, as that account: see [Answering on Bluesky](#answering-on-bluesky).
+A website's administrators connect the site's own account the same way,
+and its notes are posted there ([Websites](websites.md#on-bluesky)).
 For everybody else such things stay here, which the web app says under the
 reply being written, and their follow of somebody on Bluesky is kept here
 without that account being told.

@@ -2752,24 +2752,36 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>atproto/cmd/api/handlers.(*Handlers).RestorePictures</code></p>
 </details>
-<details class="route" id="getAtprotoSettings" data-search="get /atproto/settings the viewer&#39;s bluesky account who may call it: somebody signed in.">
+<details class="route" id="getAtprotoSettings" data-search="get /atproto/settings the viewer&#39;s bluesky account or a website&#39;s, with `profile_id`, for one of its administrators.
+
+who may call it: somebody signed in.">
 <summary><span class="method get">GET</span> <code class="path">/atproto/settings</code> <span class="summary">The viewer&#39;s Bluesky account</span></summary>
+<div class="description"><p>Or a website&#39;s, with <code>profile_id</code>, for one of its administrators.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>profile_id</code></td><td>query</td><td>integer</td><td>A website the viewer is an administrator of. Left out, the viewer.</td></tr>
+</tbody>
+</table>
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-atproto.Settings">atproto.Settings</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
-<tr><td class="status s4">404</td><td><code>bluesky_writing_off</code>: this installation does not write to Bluesky<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">403</td><td><code>bluesky_not_yours</code>: profile_id is not a website the viewer is an administrator of<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td><code>bluesky_writing_off</code>: this installation does not write to Bluesky; <code>bluesky_not_yours</code>, there is no such website<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>atproto/cmd/api/handlers.(*Handlers).ReadSettings</code></p>
 </details>
-<details class="route" id="putAtprotoSettings" data-search="put /atproto/settings connect the viewer&#39;s bluesky account with an app password, which is exchanged for a token and not kept. ten tries in ten minutes.
+<details class="route" id="putAtprotoSettings" data-search="put /atproto/settings connect the viewer&#39;s bluesky account with an app password, which is exchanged for a token and not kept. ten tries in ten minutes. with `profile_id`, a website&#39;s account, for one of its administrators: its notes then go to bluesky as that account, and what the account posts there itself is not made a post of the website.
 
 who may call it: somebody signed in.">
 <summary><span class="method put">PUT</span> <code class="path">/atproto/settings</code> <span class="summary">Connect the viewer&#39;s Bluesky account</span></summary>
-<div class="description"><p>With an app password, which is exchanged for a token and not kept. Ten tries in ten minutes.</p></div>
+<div class="description"><p>With an app password, which is exchanged for a token and not kept. Ten tries in ten minutes. With <code>profile_id</code>, a website&#39;s account, for one of its administrators: its notes then go to Bluesky as that account, and what the account posts there itself is not made a post of the website.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
 <h4>Takes, as <code>application/json</code></h4>
 <table>
@@ -2794,16 +2806,24 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>atproto/cmd/api/handlers.(*Handlers).EditSettings</code></p>
 </details>
-<details class="route" id="deleteAtprotoSettings" data-search="delete /atproto/settings disconnect it the token is forgotten. what was written stays on bluesky.
+<details class="route" id="deleteAtprotoSettings" data-search="delete /atproto/settings disconnect it the token is forgotten. what was written stays on bluesky. with `profile_id`, a website&#39;s.
 
 who may call it: somebody signed in.">
 <summary><span class="method delete">DELETE</span> <code class="path">/atproto/settings</code> <span class="summary">Disconnect it</span></summary>
-<div class="description"><p>The token is forgotten. What was written stays on Bluesky.</p></div>
+<div class="description"><p>The token is forgotten. What was written stays on Bluesky. With <code>profile_id</code>, a website&#39;s.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>profile_id</code></td><td>query</td><td>integer</td><td>A website the viewer is an administrator of. Left out, the viewer.</td></tr>
+</tbody>
+</table>
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-atproto.Settings">atproto.Settings</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">404</td><td><code>bluesky_writing_off</code>: this installation does not write to Bluesky<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>

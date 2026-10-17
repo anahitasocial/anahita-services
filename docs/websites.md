@@ -19,6 +19,7 @@ Why it is built this way is in the plan, [plans/website.md](plans/website.md).
 - [Its posts](#its-posts)
 - [Replies as the website](#replies-as-the-website)
 - [On the fediverse](#on-the-fediverse)
+- [On Bluesky](#on-bluesky)
 - [WebSub](#websub)
 - [Pausing and starting again](#pausing-and-starting-again)
 - [Settings](#settings)
@@ -36,6 +37,7 @@ Why it is built this way is in the plan, [plans/website.md](plans/website.md).
 | `actor-service` | Serves the website as a profile under `/websites/`, as it serves groups: read, change, administrators, delete |
 | `text-service` | Under a website's post, makes a reply by one of its administrators the website's |
 | `activitypub-service` | The website as an `Organization`, always on the fediverse, and its notes |
+| `atproto-service` | Its notes on Bluesky, as its own Bluesky account, when one of its administrators connects one |
 
 A website's node is `node.actor.actor-service.website.v1`, its service
 `actor-service`. Both services are optional: left out, there are no websites,
@@ -139,8 +141,25 @@ is an `Organization`, not a `Service`, which Mastodon marks as automated.
 Its notes go out as `Note`s, the website's, with their card, which is how
 Mastodon shows a post best: an `Article` would be shown there as its title
 and a link. Replies to them come back into its threads, and its own replies
-go out, as for a person's notes ([Federation](federation.md)). It is not on
-Bluesky.
+go out, as for a person's notes ([Federation](federation.md)).
+
+## On Bluesky
+
+A website is followed on Bluesky through its own Bluesky account, which one
+of its administrators connects in its settings (Bluesky), with a password
+made for an app, as a person connects theirs
+([Federation](federation.md#bluesky)). Its domain can be its handle there
+(`@example.com`), proved on Bluesky's side by a DNS record. From then on its
+notes are posted there too, as that account, and people on Bluesky follow
+it there; its replies under posts from Bluesky go there as it. What the
+account posts on Bluesky itself is not made a post of the website here: a
+website's posts come from its feed alone. It is `PUT /atproto/settings`
+with `profile_id`, for one of its administrators; anybody else is refused
+with `bluesky_not_yours`.
+
+Its handle here has no dot (`@example`), on purpose: here, a dot in a
+handle is somebody on Bluesky (`/@ana.bsky.social`), so `@example.com`
+would name its Bluesky account, not it.
 
 ## WebSub
 

@@ -9931,8 +9931,19 @@
     },
     "/atproto/settings": {
       "delete": {
-        "description": "The token is forgotten. What was written stays on Bluesky.\n\nWho may call it: somebody signed in.",
+        "description": "The token is forgotten. What was written stays on Bluesky. With `profile_id`, a website's.\n\nWho may call it: somebody signed in.",
         "operationId": "deleteAtprotoSettings",
+        "parameters": [
+          {
+            "description": "A website the viewer is an administrator of. Left out, the viewer.",
+            "in": "query",
+            "name": "profile_id",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -9943,6 +9954,9 @@
               }
             },
             "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
           },
           "401": {
             "description": "no token, or one that has expired"
@@ -9971,8 +9985,19 @@
         "x-viewer": "signed_in"
       },
       "get": {
-        "description": "Who may call it: somebody signed in.",
+        "description": "Or a website's, with `profile_id`, for one of its administrators.\n\nWho may call it: somebody signed in.",
         "operationId": "getAtprotoSettings",
+        "parameters": [
+          {
+            "description": "A website the viewer is an administrator of. Left out, the viewer.",
+            "in": "query",
+            "name": "profile_id",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -9984,8 +10009,21 @@
             },
             "description": "OK"
           },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
           "401": {
             "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`bluesky_not_yours`: profile_id is not a website the viewer is an administrator of"
           },
           "404": {
             "content": {
@@ -9995,7 +10033,7 @@
                 }
               }
             },
-            "description": "`bluesky_writing_off`: this installation does not write to Bluesky"
+            "description": "`bluesky_writing_off`: this installation does not write to Bluesky; `bluesky_not_yours`, there is no such website"
           }
         },
         "security": [
@@ -10011,7 +10049,7 @@
         "x-viewer": "signed_in"
       },
       "put": {
-        "description": "With an app password, which is exchanged for a token and not kept. Ten tries in ten minutes.\n\nWho may call it: somebody signed in.",
+        "description": "With an app password, which is exchanged for a token and not kept. Ten tries in ten minutes. With `profile_id`, a website's account, for one of its administrators: its notes then go to Bluesky as that account, and what the account posts there itself is not made a post of the website.\n\nWho may call it: somebody signed in.",
         "operationId": "putAtprotoSettings",
         "requestBody": {
           "content": {
