@@ -1,6 +1,7 @@
 package responses
 
 import (
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"time"
 
 	"abusereport/data/entities"
@@ -70,6 +71,9 @@ type Case struct {
 	TargetGone bool `json:"target_gone"`
 	// The profile it is on.
 	TargetOwner *libs_responses.NodeItem `json:"target_owner,omitempty"`
+	// Who wrote it, when it is a reply one of a website's administrators made
+	// as the website. Sent only here, to those who handle reports.
+	WrittenBy *libs_responses.NodeItem `json:"written_by,omitempty"`
 
 	// The reasons given, with how many gave each.
 	Reasons []ReasonCount `json:"reasons"`
@@ -137,6 +141,15 @@ func (m *Mapper) node(id int64) *libs_responses.NodeItem {
 	return (&libs_responses.NodeResponse{}).MapNodeItem(node)
 }
 
+// writer is who wrote a reply made as a website, or nil.
+func (m *Mapper) writer(targetID int64) *libs_responses.NodeItem {
+	target, ok := m.Nodes[targetID]
+	if !ok || target == nil {
+		return nil
+	}
+	return m.node(an_handlers.WrittenBy(target.Meta))
+}
+
 // label is the reason's label, or its key when the installation has since
 // removed the reason from its list.
 func (m *Mapper) label(key string) string {
@@ -158,6 +171,7 @@ func (m *Mapper) Case(c *entities.Case, counts []entities.ReasonCount) Case {
 		Target:          target,
 		TargetGone:      target == nil,
 		TargetOwner:     m.node(c.TargetOwnerID),
+		WrittenBy:       m.writer(c.TargetID),
 		Reasons:         []ReasonCount{},
 		FirstReportedAt: c.FirstReportedAt,
 		LastReportedAt:  c.LastReportedAt,

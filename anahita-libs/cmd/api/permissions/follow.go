@@ -1,6 +1,9 @@
 package permissions
 
-import "anahita-libs/data/entities"
+import (
+	"anahita-libs/constants"
+	"anahita-libs/data/entities"
+)
 
 // Following, and asking to follow.
 //
@@ -100,7 +103,8 @@ func CanRequestToFollow(ctx *FollowContext) bool {
 		return false
 	}
 
-	if !ctx.Target.AllowFollowRequest {
+	// A website is public, and followed outright: there is nothing to ask.
+	if !ctx.Target.AllowFollowRequest || ctx.Target.Type == constants.NodeActorWebsiteEntityType {
 		return false
 	}
 

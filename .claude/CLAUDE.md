@@ -22,6 +22,10 @@ Please adhere to these guidelines:
 - **Commit Before Committing:** Always ask for permission before committing and display the commit message.
 - **Main Branch Practice:** If you are on the main branch, create a branch under “issues” before committing.
 - **Documentation Updates:** After building new features or modifying the underlying architecture, update the documentation using human-friendly language to help developers quickly understand and learn it.
+- Commit messages: a short subject line, a blank line, then one line per
+  change, each starting with its kind: `- added:`, `- changed:`,
+  `- removed:` or `- note:` (what stays the same, what to merge with).
+  Only the kinds that apply.
 
 ## Working with User
 

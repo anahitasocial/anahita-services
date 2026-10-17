@@ -136,14 +136,18 @@ func (h *Handlers) personByAlias(alias string) *entities.AnahitaNode {
 		return nil
 	}
 
-	req := services.NewGraphNodeRequest().ReadByAlias
-	req.Alias = alias
-	req.NodeType = constants.NodeActorPersonEntityType
-	person, err := h.Nodes.ReadByAlias(req)
-	if err != nil || person == nil || person.ID == 0 {
-		return nil
+	// A person, or a website: the two kinds of profile here on the fediverse.
+	// They share the space of handles, so one alias is one or the other.
+	for _, nodeType := range []string{constants.NodeActorPersonEntityType, constants.NodeActorWebsiteEntityType} {
+		req := services.NewGraphNodeRequest().ReadByAlias
+		req.Alias = alias
+		req.NodeType = nodeType
+		profile, err := h.Nodes.ReadByAlias(req)
+		if err == nil && profile != nil && profile.ID > 0 {
+			return profile
+		}
 	}
-	return person
+	return nil
 }
 
 func (h *Handlers) personByUUID(uuid string) *entities.AnahitaNode {

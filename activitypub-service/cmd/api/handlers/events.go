@@ -85,7 +85,8 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 		err = h.profileChanged(ctx, payload.ObjectID)
 
 	// A post made, changed or deleted. Notes, photo posts and video posts
-	// go out; the rest of what decides is asked of the post itself.
+	// go out, a website's among them; the rest of what decides is asked of
+	// the post itself.
 	case strings.HasPrefix(payload.Name, "node.medium.") &&
 		(payload.ObjectType == constants.NodeMediumNoteEntityType || payload.ObjectType == constants.NodeMediumPhotoEntityType ||
 			payload.ObjectType == videos.NodeType):

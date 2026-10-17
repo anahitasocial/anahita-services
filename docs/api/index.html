@@ -54,7 +54,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <ul>
 <li><a href="#abuse-report-service">Abuse reports</a> <span class="count">8</span></li>
 <li><a href="#activitypub-service">The fediverse</a> <span class="count">20</span></li>
-<li><a href="#actor-service">Profiles</a> <span class="count">57</span></li>
+<li><a href="#actor-service">Profiles</a> <span class="count">69</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
 <li><a href="#auth-service">Accounts and signing in</a> <span class="count">94</span></li>
 <li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
@@ -69,9 +69,10 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
 <li><a href="#search-service">Search</a> <span class="count">3</span></li>
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
+<li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">44</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">143</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">146</span></li>
 </ul>
 </nav>
 <main>
@@ -452,7 +453,7 @@ who may call it: somebody signed in.">
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>person_id</code></td><td>query</td><td>integer</td><td>The person&#39;s id. The viewer when left out.</td></tr>
+<tr><td><code>person_id</code></td><td>query</td><td>integer</td><td>The person&#39;s id, or a website&#39;s for one of its administrators. The viewer when left out.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -461,17 +462,17 @@ who may call it: somebody signed in.">
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.Settings">activitypub.Settings</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td><code>person_unreadable</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
-<tr><td class="status s4">403</td><td>somebody else&#39;s, and the viewer is not a site administrator</td></tr>
+<tr><td class="status s4">403</td><td>somebody else&#39;s, and the viewer is not a site administrator, nor an administrator of the website asked about</td></tr>
 <tr><td class="status s4">404</td><td>there is no such person</td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).ReadSettings</code></p>
 </details>
-<details class="route" id="putActivitypubSettings" data-search="put /activitypub/settings go on the fediverse, or leave it it is each person&#39;s own choice, off until they make it, and only for somebody whose profile is open to everybody.
+<details class="route" id="putActivitypubSettings" data-search="put /activitypub/settings go on the fediverse, or leave it it is each person&#39;s own choice, off until they make it, and only for somebody whose profile is open to everybody. a website&#39;s is its administrators&#39; (`?person_id=` with its id).
 
 who may call it: somebody signed in.">
 <summary><span class="method put">PUT</span> <code class="path">/activitypub/settings</code> <span class="summary">Go on the fediverse, or leave it</span></summary>
-<div class="description"><p>It is each person&#39;s own choice, off until they make it, and only for somebody whose profile is open to everybody.</p></div>
+<div class="description"><p>It is each person&#39;s own choice, off until they make it, and only for somebody whose profile is open to everybody. A website&#39;s is its administrators&#39; (<code>?person_id=</code> with its id).</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
 <h4>Takes, as <code>application/json</code></h4>
 <table>
@@ -484,8 +485,9 @@ who may call it: somebody signed in.">
 <table class="answers">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.Settings">activitypub.Settings</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">400</td><td><code>enabled_required</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>enabled_required</code>, <code>person_unreadable</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>somebody else&#39;s, and the viewer is not an administrator of the website asked about</td></tr>
 <tr><td class="status s4">409</td><td>why they cannot be: <code>site_private</code>, <code>site_unreachable</code> or <code>profile_not_public</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
@@ -596,11 +598,11 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).Video</code></p>
 </details>
-<details class="route" id="getApUsersByUuid" data-search="get /ap/users/{uuid} somebody here, as other servers see them for other servers, in activitystreams (https://www.w3.org/tr/activitystreams-vocabulary/). a `person`, with their public key.
+<details class="route" id="getApUsersByUuid" data-search="get /ap/users/{uuid} somebody here, as other servers see them for other servers, in activitystreams (https://www.w3.org/tr/activitystreams-vocabulary/). a `person`, or an `organization` for a website, with their public key.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/ap/users/{uuid}</code> <span class="summary">Somebody here, as other servers see them</span></summary>
-<div class="description"><p>For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A <code>Person</code>, with their public key.</p></div>
+<div class="description"><p>For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A <code>Person</code>, or an <code>Organization</code> for a Website, with their public key.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -2362,6 +2364,338 @@ who may call it: somebody signed in, who has just proved who they are again.">
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).Delete</code></p>
 </details>
+<details class="route" id="getWebsites" data-search="get /websites/ websites those the viewer may see. each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/websites/</code> <span class="summary">Websites</span></summary>
+<div class="description"><p>Those the viewer may see. Each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (<code>restricted</code>).</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>Words the name holds. At most 100 characters.</td></tr>
+<tr><td><code>ordering</code></td><td>query</td><td>string</td><td>What they are ordered by. At most 15 characters. One of <code>created_at</code>, <code>updated_at</code>, <code>enabled</code>. <code>updated_at</code> unless given.</td></tr>
+<tr><td><code>dir</code></td><td>query</td><td>string</td><td>Which way the order runs. At most 4 characters. One of <code>asc</code>, <code>desc</code>. <code>desc</code> unless given.</td></tr>
+<tr><td><code>disabled</code></td><td>query</td><td>boolean</td><td>Disabled ones as well, for whoever may see them.</td></tr>
+<tr><td><code>featured</code></td><td>query</td><td>boolean</td><td>Only the actors the installation features — what onboarding offers a new member to follow. Ordered most recently featured first unless the caller asks for an ordering; see the browse handlers.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of anything or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not list Websites</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Browse</code></p>
+</details>
+<details class="route" id="getWebsitesById" data-search="get /websites/{id} one website to somebody it is not open to, but who may ask to follow it, what a stranger is shown of it.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/websites/{id}</code> <span class="summary">One Website</span></summary>
+<div class="description"><p>To somebody it is not open to, but who may ask to follow it, what a stranger is shown of it.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>it, or what a stranger is shown of it (LimitedActor)<div class="body"><a href="#schema-ActorNode">ActorNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not see it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Website</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Read</code></p>
+</details>
+<details class="route" id="patchWebsitesById" data-search="patch /websites/{id} change a website its name and its description. its handle and its site stay as they were connected.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/websites/{id}</code> <span class="summary">Change a Website</span></summary>
+<div class="description"><p>Its name and its description. Its handle and its site stay as they were connected.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The website&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>body</code></td><td>string</td><td>What it is, shown in its About card. At most 500 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name. At most 64 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-ActorNode">ActorNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Website</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*websiteHandler).Edit</code></p>
+</details>
+<details class="route" id="deleteWebsitesById" data-search="delete /websites/{id} delete a website it is out of sight at once and destroyed after thirty days, unless it is restored before then.
+
+who may call it: somebody signed in, who has just proved who they are again.">
+<summary><span class="method delete">DELETE</span> <code class="path">/websites/{id}</code> <span class="summary">Delete a Website</span></summary>
+<div class="description"><p>It is out of sight at once and destroyed after thirty days, unless it is restored before then.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, who has just proved who they are again</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>it will be deleted</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>step_up_required</code>: the viewer must prove who they are again first; or the viewer may not, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Delete</code></p>
+</details>
+<details class="route" id="getWebsitesByIdAdmins" data-search="get /websites/{id}/admins/ a website&#39;s administrators who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/websites/{id}/admins/</code> <span class="summary">A Website&#39;s administrators</span></summary>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The group&#39;s or the event&#39;s id.</td></tr>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
+<tr><td><code>dir</code></td><td>query</td><td>string</td><td>Which way the order runs. At most 4 characters. One of <code>asc</code>, <code>desc</code>. <code>asc</code> unless given.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-ActorNodeItem">ActorNodeItem</a> or null } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not see them</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Website</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*adminHandler).Browse</code></p>
+</details>
+<details class="route" id="postWebsitesByIdAdmins" data-search="post /websites/{id}/admins/ make somebody an administrator of a website by one of its administrators. answers with them.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/websites/{id}/admins/</code> <span class="summary">Make somebody an administrator of a Website</span></summary>
+<div class="description"><p>By one of its administrators. Answers with them.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The group&#39;s or the event&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>admin_id</code> <span class="required">always</span></td><td>integer</td><td>The person to make an administrator.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-ActorNodeItem">ActorNodeItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Website or person</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*adminHandler).Add</code></p>
+</details>
+<details class="route" id="deleteWebsitesByIdAdminsByAdminId" data-search="delete /websites/{id}/admins/{admin_id} remove an administrator of a website who may call it: somebody signed in.">
+<summary><span class="method delete">DELETE</span> <code class="path">/websites/{id}/admins/{admin_id}</code> <span class="summary">Remove an administrator of a Website</span></summary>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The group&#39;s or the event&#39;s id.</td></tr>
+<tr><td><code>admin_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The administrator to remove.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">204</td><td>removed</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Website or administrator</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*adminHandler).Delete</code></p>
+</details>
+<details class="route" id="getWebsitesByIdDeletionCounts" data-search="get /websites/{id}/deletion-counts what deleting a website would take with it for the danger zone, for whoever may delete it.
+
+who may call it: somebody signed in.">
+<summary><span class="method get">GET</span> <code class="path">/websites/{id}/deletion-counts</code> <span class="summary">What deleting a Website would take with it</span></summary>
+<div class="description"><p>For the Danger zone, for whoever may delete it.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.GroupDeletionCounts">actor.GroupDeletionCounts</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not delete it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).DeletionCounts</code></p>
+</details>
+<details class="route" id="patchWebsitesByIdDownloadDefault" data-search="patch /websites/{id}/download-default change whether new photos and videos may be downloaded what a post starts with; each post can say otherwise.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/websites/{id}/download-default</code> <span class="summary">Change whether new photos and videos may be downloaded</span></summary>
+<div class="description"><p>What a post starts with; each post can say otherwise.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>allow</code></td><td>boolean</td><td>Whether its new photos and videos start out downloadable.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-ActorNode">ActorNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).EditDownloadDefault</code></p>
+</details>
+<details class="route" id="patchWebsitesByIdEnabled" data-search="patch /websites/{id}/enabled turn a profile on or off reversible, site administrators only. off, it is out of sight and may not act; nothing is deleted.
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/websites/{id}/enabled</code> <span class="summary">Turn a profile on or off</span></summary>
+<div class="description"><p>Reversible, site administrators only. Off, it is out of sight and may not act; nothing is deleted.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>enabled</code> <span class="required">always</span></td><td>boolean</td><td>Whether it is shown and may act. Off, it is out of sight until it is turned on again; nothing is deleted.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>done</td></tr>
+<tr><td class="status s2">204</td><td>it was so already</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).SetEnabled</code></p>
+</details>
+<details class="route" id="deleteWebsitesByIdPurge" data-search="delete /websites/{id}/purge destroy a website for good everything of it, at once and with no thirty days. super administrators only, never on their own profile. queued, and done by the sweeper.
+
+who may call it: a super administrator, who has just proved who they are again.">
+<summary><span class="method delete">DELETE</span> <code class="path">/websites/{id}/purge</code> <span class="summary">Destroy a Website for good</span></summary>
+<div class="description"><p>Everything of it, at once and with no thirty days. Super administrators only, never on their own profile. Queued, and done by the sweeper.</p></div>
+<p class="who"><strong>Who:</strong> a super administrator, who has just proved who they are again</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>purged or queued already<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">202</td><td>queued<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>step_up_required</code>: the viewer must prove who they are again first; or the viewer may not, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td>it cannot be purged; nothing was queued<div class="body"><a href="#schema-PurgeRefused">PurgeRefused</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Purge</code></p>
+</details>
+<details class="route" id="postWebsitesByIdRestore" data-search="post /websites/{id}/restore restore a deleted website within the thirty days. answers with it.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/websites/{id}/restore</code> <span class="summary">Restore a deleted Website</span></summary>
+<div class="description"><p>Within the thirty days. Answers with it.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-ActorNode">ActorNode</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile to restore</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Restore</code></p>
+</details>
 </section>
 <section id="atproto-service" class="service">
 <h2>Bluesky <code>atproto-service</code></h2>
@@ -2419,24 +2753,36 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>atproto/cmd/api/handlers.(*Handlers).RestorePictures</code></p>
 </details>
-<details class="route" id="getAtprotoSettings" data-search="get /atproto/settings the viewer&#39;s bluesky account who may call it: somebody signed in.">
+<details class="route" id="getAtprotoSettings" data-search="get /atproto/settings the viewer&#39;s bluesky account or a website&#39;s, with `profile_id`, for one of its administrators.
+
+who may call it: somebody signed in.">
 <summary><span class="method get">GET</span> <code class="path">/atproto/settings</code> <span class="summary">The viewer&#39;s Bluesky account</span></summary>
+<div class="description"><p>Or a website&#39;s, with <code>profile_id</code>, for one of its administrators.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>profile_id</code></td><td>query</td><td>integer</td><td>A website the viewer is an administrator of. Left out, the viewer.</td></tr>
+</tbody>
+</table>
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-atproto.Settings">atproto.Settings</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
-<tr><td class="status s4">404</td><td><code>bluesky_writing_off</code>: this installation does not write to Bluesky<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">403</td><td><code>bluesky_not_yours</code>: profile_id is not a website the viewer is an administrator of<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td><code>bluesky_writing_off</code>: this installation does not write to Bluesky; <code>bluesky_not_yours</code>, there is no such website<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>atproto/cmd/api/handlers.(*Handlers).ReadSettings</code></p>
 </details>
-<details class="route" id="putAtprotoSettings" data-search="put /atproto/settings connect the viewer&#39;s bluesky account with an app password, which is exchanged for a token and not kept. ten tries in ten minutes.
+<details class="route" id="putAtprotoSettings" data-search="put /atproto/settings connect the viewer&#39;s bluesky account with an app password, which is exchanged for a token and not kept. ten tries in ten minutes. with `profile_id`, a website&#39;s account, for one of its administrators: its notes then go to bluesky as that account, and what the account posts there itself is not made a post of the website.
 
 who may call it: somebody signed in.">
 <summary><span class="method put">PUT</span> <code class="path">/atproto/settings</code> <span class="summary">Connect the viewer&#39;s Bluesky account</span></summary>
-<div class="description"><p>With an app password, which is exchanged for a token and not kept. Ten tries in ten minutes.</p></div>
+<div class="description"><p>With an app password, which is exchanged for a token and not kept. Ten tries in ten minutes. With <code>profile_id</code>, a website&#39;s account, for one of its administrators: its notes then go to Bluesky as that account, and what the account posts there itself is not made a post of the website.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
 <h4>Takes, as <code>application/json</code></h4>
 <table>
@@ -2461,16 +2807,24 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>atproto/cmd/api/handlers.(*Handlers).EditSettings</code></p>
 </details>
-<details class="route" id="deleteAtprotoSettings" data-search="delete /atproto/settings disconnect it the token is forgotten. what was written stays on bluesky.
+<details class="route" id="deleteAtprotoSettings" data-search="delete /atproto/settings disconnect it the token is forgotten. what was written stays on bluesky. with `profile_id`, a website&#39;s.
 
 who may call it: somebody signed in.">
 <summary><span class="method delete">DELETE</span> <code class="path">/atproto/settings</code> <span class="summary">Disconnect it</span></summary>
-<div class="description"><p>The token is forgotten. What was written stays on Bluesky.</p></div>
+<div class="description"><p>The token is forgotten. What was written stays on Bluesky. With <code>profile_id</code>, a website&#39;s.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>profile_id</code></td><td>query</td><td>integer</td><td>A website the viewer is an administrator of. Left out, the viewer.</td></tr>
+</tbody>
+</table>
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-atproto.Settings">atproto.Settings</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">404</td><td><code>bluesky_writing_off</code>: this installation does not write to Bluesky<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
@@ -7303,6 +7657,150 @@ who may call it: somebody signed in.">
 <p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*followerHandler).Delete</code></p>
 </details>
 </section>
+<section id="syndication-service" class="service">
+<h2>Websites <code>syndication-service</code></h2>
+<p>Connecting a website: its feed found, its domain proved, and a Website made of it, a profile whose posts are the feed&#39;s items (<a href="../websites.md">websites.md</a>). Who may is WEBSITES_FROM, administrators unless the installation says otherwise.</p>
+<details class="route" id="postWebsitesConnect" data-search="post /websites/_connect begin connecting a website the site&#39;s feed is found: the address itself, or the feed the page names with `&lt;link rel=&#34;alternate&#34;&gt;`. it must be on the site&#39;s domain. the answer is the token, to be put in a txt record or a file, with a name and a handle to begin with.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/websites/_connect</code> <span class="summary">Begin connecting a website</span></summary>
+<div class="description"><p>The site&#39;s feed is found: the address itself, or the feed the page names with <code>&lt;link rel=&#34;alternate&#34;&gt;</code>. It must be on the site&#39;s domain. The answer is the token, to be put in a TXT record or a file, with a name and a handle to begin with.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>site_url</code> <span class="required">always</span></td><td>string</td><td>The site&#39;s address, <code>example.com</code> or <code>https://example.com/blog/</code>, or its feed&#39;s. At most 2000 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-syndication.Connection">syndication.Connection</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>not_a_domain</code>, <code>no_feed</code>, <code>unreadable</code>, <code>feed_not_on_domain</code> or <code>private_feed</code> (behind a login, or a secret in its address: a website is public), as <code>error</code></td></tr>
+<tr><td class="status s4">401</td><td>the viewer is not signed in</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not connect a website: see WEBSITES_FROM</td></tr>
+<tr><td class="status s4">409</td><td><code>feed_taken</code>: the feed already has a Website</td></tr>
+<tr><td class="status s4">429</td><td>the viewer has begun too many lately</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>syndication/cmd/api/handlers.(*connectHandler).Start</code></p>
+</details>
+<details class="route" id="postWebsitesConnectById" data-search="post /websites/_connect/{id} make the website once its domain is proved. whoever proved it is its first administrator and its first follower; its feed&#39;s ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/websites/_connect/{id}</code> <span class="summary">Make the Website</span></summary>
+<div class="description"><p>Once its domain is proved. Whoever proved it is its first administrator and its first follower; its feed&#39;s ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The connection&#39;s id. At least 1.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>alias</code> <span class="required">always</span></td><td>string</td><td>Its handle: <code>@example</code>. Letters, digits, <code>-</code> and <code>_</code>. At least 3 characters. At most 30 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What it is, shown in its About card. At most 500 characters.</td></tr>
+<tr><td><code>feed_url</code> <span class="required">always</span></td><td>string</td><td>The feed, as starting the connection found it. At most 2000 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name, shown as a profile&#39;s is. At most 64 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-syndication.Made">syndication.Made</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>no_feed</code>, <code>unreadable</code>, <code>feed_not_on_domain</code> or <code>private_feed</code>, as <code>error</code></td></tr>
+<tr><td class="status s4">401</td><td>the viewer is not signed in</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not connect a website: see WEBSITES_FROM</td></tr>
+<tr><td class="status s4">404</td><td>there is no such connection begun by the viewer</td></tr>
+<tr><td class="status s4">409</td><td><code>not_proved</code>, <code>feed_taken</code> or <code>handle_taken</code>, as <code>error</code></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>syndication/cmd/api/handlers.(*connectHandler).Make</code></p>
+</details>
+<details class="route" id="postWebsitesConnectByIdCheck" data-search="post /websites/_connect/{id}/check look for the token in the txt record at `_anahita.&lt;domain&gt;`, then in `https://&lt;host&gt;/.well-known/anahita-verification.txt`. asked as often as the one connecting likes.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/websites/_connect/{id}/check</code> <span class="summary">Look for the token</span></summary>
+<div class="description"><p>In the TXT record at <code>_anahita.&lt;domain&gt;</code>, then in <code>https://&lt;host&gt;/.well-known/anahita-verification.txt</code>. Asked as often as the one connecting likes.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The connection&#39;s id, as starting it answered. At least 1.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-syndication.Checked">syndication.Checked</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>the viewer is not signed in</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not connect a website: see WEBSITES_FROM</td></tr>
+<tr><td class="status s4">404</td><td>there is no such connection begun by the viewer</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>syndication/cmd/api/handlers.(*connectHandler).Check</code></p>
+</details>
+<details class="route" id="getWebsitesWebsubByIdBySignature" data-search="get /websites/_websub/{id}/{signature} a hub checks a subscription websub: the hub a website&#39;s feed names asks whether its subscription was asked for here, and is answered with its challenge.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/websites/_websub/{id}/{signature}</code> <span class="summary">A hub checks a subscription</span></summary>
+<div class="description"><p>WebSub: the hub a Website&#39;s feed names asks whether its subscription was asked for here, and is answered with its challenge.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The website&#39;s id, and the signature that came with it.</td></tr>
+<tr><td><code>signature</code> <span class="required">required</span></td><td>path</td><td>string</td><td></td></tr>
+<tr><td><code>hub.mode</code></td><td>query</td><td>string</td><td>What the hub checks: <code>subscribe</code>, <code>unsubscribe</code>, or <code>denied</code>.</td></tr>
+<tr><td><code>hub.challenge</code></td><td>query</td><td>string</td><td>What to answer with, to show the subscription was asked for here.</td></tr>
+<tr><td><code>hub.lease_seconds</code></td><td>query</td><td>integer</td><td>How long, in seconds, the hub will call back.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>the challenge, as plain text<div class="body">string <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>it is not a check this answers</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Website, or no subscription was asked for</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>syndication/cmd/api/handlers.(*websubHandler).Verify</code></p>
+</details>
+<details class="route" id="postWebsitesWebsubByIdBySignature" data-search="post /websites/_websub/{id}/{signature} a hub says a feed changed the website&#39;s feed is read from its site at once, at most once a minute; what the hub sends is not read.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method post">POST</span> <code class="path">/websites/_websub/{id}/{signature}</code> <span class="summary">A hub says a feed changed</span></summary>
+<div class="description"><p>The Website&#39;s feed is read from its site at once, at most once a minute; what the hub sends is not read.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The website&#39;s id, and the signature that came with it.</td></tr>
+<tr><td><code>signature</code> <span class="required">required</span></td><td>path</td><td>string</td><td></td></tr>
+<tr><td><code>hub.mode</code></td><td>query</td><td>string</td><td>What the hub checks: <code>subscribe</code>, <code>unsubscribe</code>, or <code>denied</code>.</td></tr>
+<tr><td><code>hub.challenge</code></td><td>query</td><td>string</td><td>What to answer with, to show the subscription was asked for here.</td></tr>
+<tr><td><code>hub.lease_seconds</code></td><td>query</td><td>integer</td><td>How long, in seconds, the hub will call back.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">202</td><td>it will be read</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Website, or no subscription was asked for</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>syndication/cmd/api/handlers.(*websubHandler).Notify</code></p>
+</details>
+</section>
 <section id="text-service" class="service">
 <h2>Notes, articles and topics <code>text-service</code></h2>
 <p>Posts of words: notes (short, and every reply), articles and topics; threads of replies; quotes; and the posts a person saves.</p>
@@ -9891,7 +10389,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-abusereport.Case" data-search="abusereport.case decided_at decided_by decision_action decision_note first_reported_at id last_reported_at reasons report_count status target target_gone target_id target_owner target_type">
+<div class="route schema" id="schema-abusereport.Case" data-search="abusereport.case decided_at decided_by decision_action decision_note first_reported_at id last_reported_at reasons report_count status target target_gone target_id target_owner target_type written_by">
 <h3>abusereport.Case</h3>
 <p>What an administrator sees of a case in a list.</p>
 <table>
@@ -9912,10 +10410,11 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>target_id</code> <span class="required">always</span></td><td>integer</td><td>The id of what was reported.</td></tr>
 <tr><td><code>target_owner</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>The profile it is on.</td></tr>
 <tr><td><code>target_type</code> <span class="required">always</span></td><td>string</td><td>What kind of node it is.</td></tr>
+<tr><td><code>written_by</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>Who wrote it, when it is a reply one of a website&#39;s administrators made as the website. Sent only here, to those who handle reports.</td></tr>
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-abusereport.CaseDetail" data-search="abusereport.casedetail decided_at decided_by decision_action decision_note first_reported_at id last_reported_at previous reasons report_count reports status target target_gone target_id target_owner target_type">
+<div class="route schema" id="schema-abusereport.CaseDetail" data-search="abusereport.casedetail decided_at decided_by decision_action decision_note first_reported_at id last_reported_at previous reasons report_count reports status target target_gone target_id target_owner target_type written_by">
 <h3>abusereport.CaseDetail</h3>
 <p>A case with its reports and the target&#39;s earlier cases.</p>
 <table>
@@ -9938,6 +10437,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>target_id</code> <span class="required">always</span></td><td>integer</td><td>The id of what was reported.</td></tr>
 <tr><td><code>target_owner</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>The profile it is on.</td></tr>
 <tr><td><code>target_type</code> <span class="required">always</span></td><td>string</td><td>What kind of node it is.</td></tr>
+<tr><td><code>written_by</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>Who wrote it, when it is a reply one of a website&#39;s administrators made as the website. Sent only here, to those who handle reports.</td></tr>
 </tbody>
 </table>
 </div>
@@ -10449,7 +10949,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
+<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>websitesFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
 <tr><td><code>openRegistrations</code> <span class="required">always</span></td><td>boolean</td><td>Whether anybody may sign up without being invited or approved.</td></tr>
 <tr><td><code>protocols</code> <span class="required">always</span></td><td>list of string or null</td><td>What it speaks with other servers: <code>activitypub</code>, when it federates.</td></tr>
 <tr><td><code>services</code> <span class="required">always</span></td><td><a href="#schema-auth.nodeInfoServices">auth.nodeInfoServices</a></td><td>What it bridges to: nothing.</td></tr>
@@ -11237,6 +11737,49 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tbody>
 <tr><td><code>person_id</code> <span class="required">always</span></td><td>integer</td><td>Who.</td></tr>
 <tr><td><code>result</code> <span class="required">always</span></td><td>string</td><td><code>invited</code>; or why not: <code>already_follower</code>, <code>not_follower</code>, <code>blocked</code>, <code>cooldown</code>, <code>pending</code>, <code>requested</code>, <code>unavailable</code>, <code>full</code> or <code>closed</code>.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-syndication.Checked" data-search="syndication.checked method proved">
+<h3>syndication.Checked</h3>
+<p>Checked says whether the token was found.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>method</code></td><td>string</td><td><code>dns</code> or <code>file</code>: where it was found.</td></tr>
+<tr><td><code>proved</code> <span class="required">always</span></td><td>boolean</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-syndication.Connection" data-search="syndication.connection domain feed_description feed_title feed_url file_url host id record_name site_url suggested_alias suggested_name token">
+<h3>syndication.Connection</h3>
+<p>A website being connected: its feed, and the token with both places it may be put.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>domain</code> <span class="required">always</span></td><td>string</td><td>The domain to prove, and the host the file is read from.</td></tr>
+<tr><td><code>feed_description</code></td><td>string</td><td></td></tr>
+<tr><td><code>feed_title</code></td><td>string</td><td></td></tr>
+<tr><td><code>feed_url</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>file_url</code> <span class="required">always</span></td><td>string</td><td>Or a file at this address, holding the token.</td></tr>
+<tr><td><code>host</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>The connection&#39;s id, for checking the proof and making the website.</td></tr>
+<tr><td><code>record_name</code> <span class="required">always</span></td><td>string</td><td>A TXT record of this name, holding the token.</td></tr>
+<tr><td><code>site_url</code> <span class="required">always</span></td><td>string</td><td>The site and its feed, as found.</td></tr>
+<tr><td><code>suggested_alias</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>suggested_name</code> <span class="required">always</span></td><td>string</td><td>A name and a handle to begin with: the feed&#39;s title, and the domain&#39;s first word.</td></tr>
+<tr><td><code>token</code> <span class="required">always</span></td><td>string</td><td>What to put in either place.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-syndication.Made" data-search="syndication.made alias id">
+<h3>syndication.Made</h3>
+<p>The website as it was made: where to go to see it.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>alias</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
 </tbody>
 </table>
 </div>

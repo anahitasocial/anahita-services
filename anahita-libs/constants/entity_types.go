@@ -3,6 +3,11 @@ package constants
 const (
 	// Services
 	PersonService = "person-service"
+	// The `service` of an event's node and a website's: actor-service serves
+	// them. A group's is still the older group-service.
+	ActorService = "actor-service"
+	// The `service` of a note's, an article's and a topic's node.
+	TextService = "text-service"
 
 	// Node Types
 	NodeActorPrefixEntityType  = "node.actor."
@@ -16,6 +21,13 @@ const (
 	NodeActorEventEntityType = "node.actor.actor-service.event.v1"
 	// A note: the kind of post that arrives from another server.
 	NodeMediumNoteEntityType = "node.medium.text-service.note.v1"
+	// An article: long content with a title. What a website posts for each
+	// item of its feed.
+	NodeMediumArticleEntityType = "node.medium.text-service.article.v1"
+	// A website: a site's feed, verified, as a profile to follow. Served by
+	// actor-service as a group is; connected, and its feed read, by
+	// Website-service (docs/plans/done/website.md).
+	NodeActorWebsiteEntityType = "node.actor.actor-service.website.v1"
 	// Somebody on another server, one type for each protocol they are
 	// reached by. Types of their own, and not the person type with a flag:
 	// everything that asks for people by type (the people list, who a name

@@ -65,6 +65,10 @@ images:
     newTag: latest
   - name: anahita/link-preview-service
     newTag: latest
+  - name: anahita/syndication-service
+    newTag: latest
+  - name: anahita/syndication-worker
+    newTag: latest
   - name: anahita/location-service
     newTag: latest
   - name: anahita/mail-grpc-service

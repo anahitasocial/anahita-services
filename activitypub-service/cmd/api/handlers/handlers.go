@@ -121,7 +121,7 @@ func (h *Handlers) siteFederates() (bool, string) {
 }
 
 // mayFederate says whether a node is somebody who could be on the
-// fediverse: a person, made here, whose profile anybody may see.
+// fediverse: a person or a website, made here, whose profile anybody may see.
 //
 // Whether anybody may see it is asked of the graph, as a visitor: it knows
 // whether they are disabled, archived or on their way to being deleted. And
@@ -131,7 +131,7 @@ func (h *Handlers) mayFederate(person *entities.AnahitaNode) bool {
 	if person == nil || person.ID == 0 || person.UUID == "" || person.IsRemote() {
 		return false
 	}
-	if person.Type != constants.NodeActorPersonEntityType || !person.Enabled || person.DeletedAt != nil {
+	if !isFederatingType(person.Type) || !person.Enabled || person.DeletedAt != nil {
 		return false
 	}
 	if person.Access != constants.AnahitaAccessPublic {
@@ -151,11 +151,23 @@ func (h *Handlers) federating(person *entities.AnahitaNode) *entities.AnahitaNod
 	if !h.mayFederate(person) {
 		return nil
 	}
+	// A person chooses it for themselves, and a website's administrators
+	// for it.
 	account, err := h.Accounts.Read(person.ID)
 	if err != nil || account == nil || !account.Enabled {
 		return nil
 	}
 	return person
+}
+
+// isFederatingType is the kinds of profile here that may be on the
+// fediverse: a person, and a website, when they choose to be.
+func isFederatingType(nodeType string) bool {
+	return nodeType == constants.NodeActorPersonEntityType || nodeType == constants.NodeActorWebsiteEntityType
+}
+
+func isWebsite(node *entities.AnahitaNode) bool {
+	return node != nil && node.Type == constants.NodeActorWebsiteEntityType
 }
 
 // activityJSON answers in the type a server asked for.

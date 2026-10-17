@@ -3,7 +3,6 @@ package handlers
 import (
 	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/cmd/api/permissions"
-	libconstants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/responses"
@@ -195,13 +194,6 @@ func (h *mediumHandler) AddReply(c echo.Context) error {
 		reply.Language = language
 	}
 
-	// A reply belongs to whoever wrote it, wherever the thread is. That is
-	// what lets them edit it and take it down, and what a reply is on the
-	// networks this will federate with.
-	reply.OwnerID = viewer.ID
-	reply.OwnerType = libconstants.NodeActorPersonEntityType
-	reply.CreatedBy = viewer.ID
-	reply.ModifiedBy = viewer.ID
 	reply.Enabled = true
 	reply.CommentStatus = true
 
@@ -211,6 +203,12 @@ func (h *mediumHandler) AddReply(c echo.Context) error {
 
 	// A reply is a note, and carries a card for a link like one.
 	reply.Meta = h.withLinkPreview(reply.Meta, req.LinkPreviewURL, reply.Body, false)
+
+	// A reply belongs to whoever wrote it, wherever the thread is. That is
+	// what lets them edit it and take it down, and what a reply is on the
+	// networks this federates with. Under a website's own post, one by its
+	// administrator is the website's.
+	an_handlers.OwnReply(thread, reply, viewer)
 
 	reply, err = h.Srv.MediaGRPC.Add(reply, viewer)
 	if err != nil {

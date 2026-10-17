@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"slices"
 	"time"
 
 	"anahita-libs/constants"
@@ -144,9 +145,54 @@ WHERE note.type IN (?, ?, ?)
 ORDER BY note.id
 LIMIT ?`
 
+// A website's notes, the items of its feed and its replies, that should have
+// gone out and did not, once its administrators have put it on the
+// fediverse. Its items are made by the website itself, and dated as on its
+// site, so they are taken by when they were made here.
+const websiteNotesNotSent = `
+SELECT note.id
+FROM nodes AS note
+JOIN activitypub_accounts AS account
+  ON account.person_id = note.owner_id
+ AND account.enabled = 1
+LEFT JOIN nodes AS root
+       ON root.id = note.root_id
+LEFT JOIN activitypub_objects AS sent
+       ON sent.node_id = note.id
+WHERE note.owner_type = ?
+  AND note.type = ?
+  AND note.library_only = 0
+  AND note.enabled = 1
+  AND note.deleted_at IS NULL
+  AND COALESCE(root.access, note.access) = ?
+  AND note.uri IS NULL
+  AND note.updated_at >= account.enabled_at
+  AND note.updated_at >= ?
+  AND note.updated_at <= ?
+  AND sent.node_id IS NULL
+ORDER BY note.id
+LIMIT ?`
+
+// NotesNotSent is people's posts and websites' that should have gone out and
+// did not, the oldest first.
 func (repo *Missed) NotesNotSent(since, olderThan time.Time, limit int) ([]int64, error) {
-	return repo.ids(notesNotSent,
+	people, err := repo.ids(notesNotSent,
 		constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType, videos.NodeType, constants.AnahitaAccessPublic, since, olderThan, limit)
+	if err != nil {
+		return nil, err
+	}
+	websites, err := repo.ids(websiteNotesNotSent,
+		constants.NodeActorWebsiteEntityType, constants.NodeMediumNoteEntityType,
+		constants.AnahitaAccessPublic, since, olderThan, limit)
+	if err != nil {
+		return nil, err
+	}
+	both := append(people, websites...)
+	slices.Sort(both)
+	if len(both) > limit {
+		both = both[:limit]
+	}
+	return both, nil
 }
 
 const notesGone = `

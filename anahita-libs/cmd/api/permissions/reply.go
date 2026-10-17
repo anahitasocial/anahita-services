@@ -198,11 +198,42 @@ func CanEditReply(ctx *ReplyAccessContext) bool {
 		return false
 	}
 
-	if ctx.Viewer.ID <= 0 || ctx.Viewer.ID != ctx.Reply.GetAuthorID() {
+	if ctx.Viewer.ID <= 0 {
+		return false
+	}
+
+	// The website's own replies are changed by whoever replies as it.
+	if ctx.Viewer.ID != ctx.Reply.GetAuthorID() && !isWebsiteReply(ctx) {
 		return false
 	}
 
 	return CanSeeThread(ctx)
+}
+
+// RepliesAs is the profile a reply the viewer writes in this thread belongs
+// to, when it is not the viewer: the website, in a thread under one of its own
+// posts, for one of its administrators (docs/plans/done/website.md). The site
+// answers its readers as itself. Nil anywhere else: a reply is its
+// writer's.
+func RepliesAs(ctx *ReplyAccessContext) *entities.AnahitaNode {
+	if !ctx.rootLoaded() || ctx.Viewer.ID <= 0 {
+		return nil
+	}
+	owner := ctx.Root.GetOwner()
+	if owner.GetType() != constants.NodeActorWebsiteEntityType {
+		return nil
+	}
+	if !relationOrEmpty(ctx.RootOwnerViewerRel).HasAdmin {
+		return nil
+	}
+	return owner
+}
+
+// isWebsiteReply says whether the reply is the website's own, in its own
+// thread, and the viewer one of those who reply as it.
+func isWebsiteReply(ctx *ReplyAccessContext) bool {
+	website := RepliesAs(ctx)
+	return website != nil && ctx.Reply.GetAuthorID() == website.GetID()
 }
 
 // CanDeleteReply reports whether the viewer may remove a reply for good: its

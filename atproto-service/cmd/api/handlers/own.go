@@ -83,6 +83,11 @@ func (h *Handlers) ownPosted(account *repositories.Account, rkey string, post *b
 	if err != nil || person == nil || person.ID == 0 || person.IsRemote() || !person.Enabled || person.DeletedAt != nil {
 		return err
 	}
+	// A website's posts come from its feed alone: what its account posts on
+	// Bluesky itself is not made a post of it here (docs/websites.md).
+	if person.Type == constants.NodeActorWebsiteEntityType {
+		return nil
+	}
 
 	var pictures []federation.Picture
 	if h.Keeper != nil && h.Keeper.CanKeepPictures() && !post.IsSensitive() {

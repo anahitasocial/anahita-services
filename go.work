@@ -7,6 +7,7 @@ use (
 	./anahita-libs
 	./atproto-service
 	./auth-service
+	./export-service
 	./feed-service
 	./file-grpc-service
 	./graph-grpc-service
@@ -14,9 +15,6 @@ use (
 	./identity-image-service
 	./like-service
 	./link-preview-service
-	./video-service
-	./export-service
-	./web-shell
 	./location-service
 	./mail-grpc-service
 	./notification-service
@@ -26,4 +24,7 @@ use (
 	./search-service
 	./socialgraph-service
 	./text-service
+	./video-service
+	./web-shell
+	./syndication-service
 )

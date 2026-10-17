@@ -329,12 +329,12 @@ or `secrets.env` and applying again restarts the services that read them.
 Every Deployment starts with one replica. The services that only answer
 requests can be given more:
 
-export, feed, identity-image, like, link-preview, location, photo,
+export, feed, identity-image, like, link-preview, location, photo, website,
 search, socialgraph, text, video, web-shell, and the gateway.
 
-The two workers, export-worker and video-worker, take their jobs from a
-table one at a time, so any number of copies share the work without doing
-it twice.
+The three workers, export-worker, video-worker and syndication-worker, take their
+jobs from a table one at a time, so any number of copies share the work
+without doing it twice.
 
 These listen for events on the bus, and each copy receives every event, so
 two copies would do the work twice (two notifications, two emails, two

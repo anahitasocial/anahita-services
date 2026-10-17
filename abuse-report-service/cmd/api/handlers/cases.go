@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"database/sql"
 	"errors"
 	"log"
@@ -25,8 +26,22 @@ type casesHandler struct {
 }
 
 func (h *casesHandler) mapper(c echo.Context, ids []int64) *responses.Mapper {
+	nodes := h.readNodes(ids)
+
+	// Who wrote a reply made as a website: one of its administrators, kept
+	// with it for this, and shown to nobody else.
+	var writers []int64
+	for _, node := range nodes {
+		if id := an_handlers.WrittenBy(node.Meta); id > 0 && nodes[id] == nil {
+			writers = append(writers, id)
+		}
+	}
+	for id, node := range h.readNodes(writers) {
+		nodes[id] = node
+	}
+
 	return &responses.Mapper{
-		Nodes:     h.readNodes(ids),
+		Nodes:     nodes,
 		Catalogue: h.Reasons.Catalogue(),
 		Language:  language(c),
 	}

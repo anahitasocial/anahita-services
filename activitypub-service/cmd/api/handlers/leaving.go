@@ -9,7 +9,6 @@ import (
 	"activitypub/ap"
 	"activitypub/data/repositories"
 
-	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 )
@@ -85,22 +84,24 @@ func (h *Handlers) leave(ctx context.Context, person *entities.AnahitaNode) erro
 	return h.Accounts.Set(person.ID, false)
 }
 
-// profileChanged is something having happened to a person here: their
-// profile edited, or their account disabled, archived, deleted or purged.
-// Other servers are told what follows from it.
+// profileChanged is something having happened to a person or a website here:
+// their profile edited, or their account disabled, archived, deleted or
+// purged. Other servers are told what follows from it.
 func (h *Handlers) profileChanged(ctx context.Context, personID int64) error {
-	account, err := h.Accounts.Read(personID)
-	if err != nil || account == nil || !account.Enabled {
-		// Not on the fediverse: nobody to tell.
-		return err
-	}
-
 	person, err := h.Nodes.Read(personID)
 	if err != nil {
 		return err
 	}
-	if person == nil || person.ID == 0 || person.Type != constants.NodeActorPersonEntityType {
+	if person == nil || person.ID == 0 || !isFederatingType(person.Type) {
 		return nil
+	}
+
+	// On the fediverse only once they choose to be, a website by its
+	// administrators.
+	account, err := h.Accounts.Read(personID)
+	if err != nil || account == nil || !account.Enabled {
+		// Not on the fediverse: nobody to tell.
+		return err
 	}
 
 	// No longer somebody who may be on it: they leave.

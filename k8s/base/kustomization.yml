@@ -29,6 +29,8 @@ resources:
   - services/identity-image.yml
   - services/like.yml
   - services/link-preview.yml
+  - services/syndication.yml
+  - services/syndication-worker.yml
   - services/location.yml
   - services/notification.yml
   - services/photo.yml

@@ -58,6 +58,8 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 	if note.LibraryOnly {
 		return nil, nil
 	}
+	// Somebody's own post, on their own profile; a website's, made of its
+	// feed, is the website's on both counts.
 	if note.CreatedBy <= 0 || note.OwnerID != note.CreatedBy {
 		return nil, nil
 	}

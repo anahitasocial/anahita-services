@@ -30,6 +30,11 @@ func NewEventAdminHandler(env *Env) *adminHandler {
 	return &adminHandler{Env: env, nodeType: an_constants.NodeActorEventEntityType}
 }
 
+// NewWebsiteAdminHandler serves the administrators of websites.
+func NewWebsiteAdminHandler(env *Env) *adminHandler {
+	return &adminHandler{Env: env, nodeType: an_constants.NodeActorWebsiteEntityType}
+}
+
 // Browse returns a list of admins
 func (h *adminHandler) Browse(c echo.Context) error {
 	var (

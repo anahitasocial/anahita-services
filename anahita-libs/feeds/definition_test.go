@@ -70,7 +70,7 @@ func TestParseRefuses(t *testing.T) {
 		"every photo":        {`{"filters":{"media_types":["photo"]}}`, RefusedTooBroad},
 		"every group's post": {`{"filters":{"actor_types":["group"]}}`, RefusedTooBroad},
 		"a kind of post":     {`{"sources":{"following":true},"filters":{"media_types":["podcast"]}}`, RefusedMediaType},
-		"a kind of profile":  {`{"sources":{"following":true},"filters":{"actor_types":["website"]}}`, RefusedActorType},
+		"a kind of profile":  {`{"sources":{"following":true},"filters":{"actor_types":["planet"]}}`, RefusedActorType},
 		"an order":           {`{"sources":{"following":true},"order":"top"}`, RefusedOrder},
 		"a language":         {`{"sources":{"following":true},"filters":{"language":"en'; --"}}`, RefusedLanguage},
 		"a short keyword":    {`{"filters":{"keywords_any":["a"]}}`, RefusedKeywordLength},

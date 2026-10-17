@@ -170,7 +170,9 @@ func (h *mediumHandler) onAfterFetched(c echo.Context, item *entities.AnahitaNod
 		return err
 	}
 
+	// Not a website's own note, which follows its site.
 	item.Authorized.Edit, _ = h.Perms.Medium.CanEdit(mediumAccessCtx)
+	item.Authorized.Edit = item.Authorized.Edit && !permissions.IsWebsiteItem(item)
 	// Who it may be shown to, for whoever may change that: the rule the
 	// change-access route enforces, so the web app offers only audiences
 	// that will be accepted.

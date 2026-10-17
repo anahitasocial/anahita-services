@@ -161,6 +161,9 @@ services:
       # administrators or super-administrators. Enforced by actor-service
       # and published by auth-service, from this one entry.
       EVENTS_FROM: ${EVENTS_FROM:-}
+      # Who may connect a website as a website: administrators unless set.
+      # Enforced by syndication-service and published by auth-service.
+      WEBSITES_FROM: ${WEBSITES_FROM:-}
       # Video: whether it may be posted, and the limits, for the web app.
       # See docs/videos.md.
       VIDEO_UPLOADS: ${VIDEO_UPLOADS:-}
@@ -800,6 +803,84 @@ services:
     networks:
       anahita-network:
         ipv4_address: 172.20.1.38
+
+# syndication-service - connecting a website: its feed found, its domain proved,
+# and a website made of it. It goes out to the internet for what somebody
+# names, only to public addresses. Left out, there are no websites.
+  syndication-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/syndication-service.dockerfile
+    restart: always
+    ports:
+      - "8107:80"
+    depends_on:
+      - graph-grpc-service
+      - mysql
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
+      DSN: ${DSN}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
+      REDIS_PASSWORD: ""
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      # Who may connect a website: administrators unless set. See
+      # docs/configuration.md, Who may make what.
+      WEBSITES_FROM: ${WEBSITES_FROM:-}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.52
+
+# syndication-worker - reads the feeds of websites and posts what is new in them,
+# and checks every day that their domains are still proved. Answers no
+# requests. Left out with syndication-service.
+  syndication-worker:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/syndication-worker.dockerfile
+    restart: always
+    depends_on:
+      - graph-grpc-service
+      - mysql
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      GRPC_TLS: ${GRPC_TLS:-on}
+      DSN: ${DSN}
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      # For the card of each item's original. Unset, articles have none.
+      LINK_PREVIEW_URL: ${LINK_PREVIEW_URL:-http://link-preview-service:80}
+      # The most posts a website makes in an hour, and how often, in minutes,
+      # a feed is read. See docs/websites.md.
+      WEBSITE_HOURLY_CAP: ${WEBSITE_HOURLY_CAP:-10}
+      WEBSITE_READ_EVERY: ${WEBSITE_READ_EVERY:-30}
+      # For WebSub: the address hubs call back at, and the key its
+      # signature is made with, the same as syndication-service's. On a machine
+      # no hub can reach, feeds are read on the clock alone.
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      DOMAIN_NAME: ${DOMAIN_NAME:-}
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:-}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.53
 
 # video-service - videos: the upload a browser sends straight to storage,
 # and the posts made of them. Optional: left out, there are no video posts.

@@ -368,6 +368,12 @@ The moment one of them stops being so, they are not found: every address of
 theirs answers `404`, in the same words as an address nobody has. A server
 is never told *why* somebody is not there.
 
+A **website**, a site's feed connected as a profile ([Websites](websites.md)),
+is on the fediverse once one of its administrators turns it on, off until
+then as a person is, and only while it is enabled and not on its way to
+being deleted, on a site that federates. It is an `Organization`, found by
+its handle as a person is.
+
 Groups and events are not on the fediverse yet.
 
 ## What a person is called
@@ -539,7 +545,10 @@ its page. Mastodon shows a video with no sound as a GIF, silently and on a
 loop, so a clip made of a GIF is one there too, with nothing said to make
 it so.
 
-**Not sent:** articles and topics; anything in a group;
+A **website's notes**, the items of its feed and its replies, go out as a
+person's notes do, the website's, to its followers ([Websites](websites.md)).
+
+**Not sent:** articles and topics (roadmap row 84); anything in a group;
 a quoted post (the note that quotes goes, without what it quotes);
 the card for a link. Somebody who starts following is sent what is posted
 from then on, and nothing from before.
@@ -856,7 +865,8 @@ manifests here pass it on; a proxy put in front that does not will make
 every signature fail, in both directions.
 
 - A key is made when a person turns federation on (RSA, 2048 bits, which is
-  what every server understands).
+  what every server understands), and for anybody on the fediverse who has
+  none the first time one is asked for: a website's, for one.
 - The private half is kept in `actor_keys`, encrypted by the means
   auth-service keeps its secrets: `CRYPT_BACKEND` and `CRYPT_LOCAL_KEY`
   ([Configuration](configuration.md)). **Losing that key loses every
@@ -1114,6 +1124,8 @@ name on Bluesky by this installation. Somebody
 who already has an account there can connect it, and from then on their
 public notes are posted there, and a like, a repost or a reply they give
 here to something from Bluesky is made there too, as that account: see [Answering on Bluesky](#answering-on-bluesky).
+A website's administrators connect the site's own account the same way,
+and its notes are posted there ([Websites](websites.md#on-bluesky)).
 For everybody else such things stay here, which the web app says under the
 reply being written, and their follow of somebody on Bluesky is kept here
 without that account being told.
