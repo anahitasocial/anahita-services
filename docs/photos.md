@@ -33,8 +33,9 @@ It is a constant (`constants.PhotoMaxFiles`), not a setting, and is published
 in NodeInfo as `metadata.photoMaxFiles` so that a client does not have to
 carry the number.
 
-Each image can have a description of what it shows, up to 1,500 characters,
-for people who cannot see it.
+Each image can have a description of what it shows, up to 2,000 characters,
+for people who cannot see it. One that comes with a post from another server
+is kept up to 10,000, Mastodon's own limit.
 
 ## Posting
 
@@ -85,7 +86,7 @@ When the images are refused the answer says why, and how many a post holds:
 | 422 | `files_required` | No image |
 | 422 | `too_many_files` | More than four |
 | 422 | `file_repeated` | The same image twice |
-| 422 | `alt_text_too_long` | A description over 1,500 characters |
+| 422 | `alt_text_too_long` | A description over 2,000 characters |
 | 404 | `file_not_found` | An upload that is gone, or an image the post does not have |
 | 403 | `upload_not_yours` | Somebody else's upload, or one made for another profile |
 | 415 | `file_unsupported` | Not a JPEG or a PNG |
@@ -229,10 +230,11 @@ Videos work the same way, with `/videos/` in place of `/photos/`; see
 | One uploaded file | 10 MB, which is what the gateway lets one request carry (`client_max_body_size` in `nginx.conf`). The two services that take images, photo-service and identity-image-service, allow a request of 11M for it (`constants.ImageRequestBodyMaxSizeLimit`); until 2026-10-10 they used the general 2M, which refused anything larger before this limit was reached |
 | Pixels in one image | 50 million |
 | Formats | JPEG, PNG. An animated PNG is kept still, as its first picture; a GIF or an animated PNG that is to move is posted as a video, which loops (see [Videos](videos.md#gifs-and-animated-pngs)) |
-| A description | 1,500 characters |
+| A description | 2,000 characters written here (what Bluesky's own app takes); 10,000 kept from another server (Mastodon's) |
 
-Bluesky takes images of up to 1 MB. A picture sent there is made small enough
-before it goes.
+Bluesky takes images of up to 2 MB (1 MB until 2025). A picture sent there is
+made small enough before it goes. Every length people write is listed in
+[The API](api.md#lengths).
 
 ## What is not built
 

@@ -114,7 +114,8 @@ domain, is written down for later (`docs/plans/atproto-server.md`).
   and storage, run by whoever runs the site. That is the fediverse's sense
   of owning: choosing one's host, or being it.
 - **A copy of a connected person's public posts goes to Bluesky.** Each
-  picture is uploaded, made small enough for Bluesky's limit of a megabyte,
+  picture is uploaded, made small enough for Bluesky's limit of two
+  megabytes,
   to their PDS: Bluesky's own hosting for most people, or their own server
   if they run one. Those copies are theirs in the AT Protocol's sense: in
   their repository, under their identity, moving with it. From there

@@ -65,8 +65,8 @@ suspends invitations already sent.
 | Website | — | — | required |
 
 - Passwords are at least 15 characters.
-- Usernames are 3–32 letters, numbers, `_` or `-`, and share one namespace with
-  every other actor, groups included.
+- Usernames are 3–30 letters, numbers, `_` or `-` (Mastodon's 30), and
+  share one namespace with every other actor, groups included.
 - In `approval` mode the extra fields are the request: an administrator
   cannot decide on an email address alone.
 - A display name is optional everywhere. An empty one displays as the username.
