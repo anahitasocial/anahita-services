@@ -53,6 +53,13 @@ func (m *memPulses) PauseForProof(_ context.Context, id int64) error {
 	m.pausedOn = append(m.pausedOn, id)
 	return nil
 }
+func (m *memPulses) PausedFor(context.Context, string, int) ([]int64, error) {
+	return []int64{900}, nil
+}
+func (m *memPulses) Resume(_ context.Context, id int64) error {
+	m.resumed = append(m.resumed, id)
+	return nil
+}
 func (m *memPulses) Hub(_ context.Context, _ int64, hub string, again time.Time) error {
 	m.hub, m.hubAgain = hub, again
 	return nil
@@ -290,13 +297,20 @@ func TestAFeedThatFailsIsAskedLessOften(t *testing.T) {
 	}
 }
 
-func TestASwitchedOffPulseIsPaused(t *testing.T) {
-	f := newFixture()
-	f.graph.pulse.Enabled = false
-	f.feed.items = []feeds.Item{item(1)}
-	f.round(t)
-	if f.pulses.paused != repositories.PausedProfileGone || len(f.graph.posted) != 0 {
-		t.Errorf("paused %q, posted %d", f.pulses.paused, len(f.graph.posted))
+func TestAPulseSwitchedOffOrDeletedIsPaused(t *testing.T) {
+	deleted := start
+	for why, change := range map[string]func(*entities.AnahitaNode){
+		"switched off": func(p *entities.AnahitaNode) { p.Enabled = false },
+		"deleted":      func(p *entities.AnahitaNode) { p.DeletedAt = &deleted },
+		"archived":     func(p *entities.AnahitaNode) { p.ArchivedAt = &deleted },
+	} {
+		f := newFixture()
+		change(f.graph.pulse)
+		f.feed.items = []feeds.Item{item(1)}
+		f.round(t)
+		if f.pulses.paused != repositories.PausedProfileGone || len(f.graph.posted) != 0 {
+			t.Errorf("%s: paused %q, posted %d", why, f.pulses.paused, len(f.graph.posted))
+		}
 	}
 }
 
@@ -389,5 +403,19 @@ func TestAFeedsHubIsAskedToCallBack(t *testing.T) {
 	_, _ = f.w.Once(context.Background())
 	if len(asked) != 1 {
 		t.Errorf("asked with nowhere to call back")
+	}
+}
+
+func TestAPulseBackIsStartedAgain(t *testing.T) {
+	f := newFixture()
+	f.graph.pulse.Enabled = false
+	f.w.CheckProfiles(context.Background())
+	if len(f.pulses.resumed) != 0 {
+		t.Fatal("started again while still switched off")
+	}
+	f.graph.pulse.Enabled = true
+	f.w.CheckProfiles(context.Background())
+	if fmt.Sprint(f.pulses.resumed) != "[900]" {
+		t.Errorf("resumed %v", f.pulses.resumed)
 	}
 }

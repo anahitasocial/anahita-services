@@ -106,6 +106,10 @@ type PulsesInterface interface {
 	// Feed is the feed a Pulse reads and the hub it asked, for a hub's
 	// check.
 	Feed(ctx context.Context, nodeID int64) (feedURL, hubURL string, err error)
+	// PausedFor is the Pulses paused for this reason, a page at a time;
+	// Resume starts one again, its feed read at once.
+	PausedFor(ctx context.Context, why string, limit int) ([]int64, error)
+	Resume(ctx context.Context, nodeID int64) error
 	// ReadSoon brings the next read forward to now, as a hub's word that
 	// something was published does: at most once a minute.
 	ReadSoon(ctx context.Context, nodeID int64) error
@@ -166,6 +170,23 @@ SET hub_until = ?,
     updated_at = ?
 WHERE node_id = ?
   AND hub_url IS NOT NULL`
+
+const pulsesPausedFor = `
+SELECT node_id
+FROM pulses
+WHERE state = 'paused'
+  AND last_error = ?
+ORDER BY updated_at
+LIMIT ?`
+
+const pulseResume = `
+UPDATE pulses
+SET state = 'active',
+    last_error = NULL,
+    next_read_at = ?,
+    updated_at = ?
+WHERE node_id = ?
+  AND state = 'paused'`
 
 const pulseFeed = `
 SELECT
@@ -385,5 +406,29 @@ func (r *pulsesRepo) Feed(ctx context.Context, nodeID int64) (string, string, er
 func (r *pulsesRepo) ReadSoon(ctx context.Context, nodeID int64) error {
 	now := r.now().UTC()
 	_, err := r.db.ExecContext(ctx, pulseReadSoon, now, now, nodeID, now.Add(-time.Minute))
+	return err
+}
+
+func (r *pulsesRepo) PausedFor(ctx context.Context, why string, limit int) ([]int64, error) {
+	rows, err := r.db.QueryContext(ctx, pulsesPausedFor, why, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
+func (r *pulsesRepo) Resume(ctx context.Context, nodeID int64) error {
+	now := r.now().UTC()
+	_, err := r.db.ExecContext(ctx, pulseResume, now, now, nodeID)
 	return err
 }

@@ -99,6 +99,7 @@ func (w *Worker) Run(ctx context.Context) {
 	proofs := time.NewTicker(proofRound)
 	defer proofs.Stop()
 	w.CheckProofs(ctx)
+	w.CheckProfiles(ctx)
 
 	for {
 		for {
@@ -116,6 +117,7 @@ func (w *Worker) Run(ctx context.Context) {
 			return
 		case <-proofs.C:
 			w.CheckProofs(ctx)
+			w.CheckProfiles(ctx)
 		case <-time.After(idle):
 		}
 	}
@@ -168,7 +170,9 @@ func (w *Worker) read(ctx context.Context, due *repositories.Due) error {
 	if err != nil {
 		return w.failed(ctx, due, fmt.Errorf("the Pulse could not be read: %w", err))
 	}
-	if pulse == nil || pulse.ID == 0 || !pulse.Enabled {
+	// Switched off, or deleted and waiting out its grace period, archived:
+	// nothing is posted on it.
+	if pulse == nil || pulse.ID == 0 || !pulse.Enabled || pulse.DeletedAt != nil || pulse.ArchivedAt != nil {
 		return w.Pulses.Pause(ctx, due.NodeID, repositories.PausedProfileGone)
 	}
 
@@ -368,6 +372,28 @@ func (w *Worker) change(ctx context.Context, pulse *entities.AnahitaNode, nodeID
 		return err
 	}
 	return w.Items.Changed(ctx, pulse.ID, item.Key, repositories.ContentHash(item.Title, item.Excerpt))
+}
+
+// CheckProfiles starts again the Pulses paused because their profile was
+// switched off, deleted or archived, once it is back: switched on again, or
+// restored within its grace period.
+func (w *Worker) CheckProfiles(ctx context.Context) {
+	paused, err := w.Pulses.PausedFor(ctx, repositories.PausedProfileGone, proofsPerRound)
+	if err != nil {
+		log.Printf("pulse-worker: profiles: %v", err)
+		return
+	}
+	for _, id := range paused {
+		pulse, err := w.Graph.Pulse(id)
+		if err != nil || pulse == nil || pulse.ID == 0 {
+			continue
+		}
+		if pulse.Enabled && pulse.DeletedAt == nil && pulse.ArchivedAt == nil {
+			if err := w.Pulses.Resume(ctx, id); err != nil {
+				log.Printf("pulse-worker: resuming %d: %v", id, err)
+			}
+		}
+	}
 }
 
 // CheckProofs looks again at the proofs not looked at for a day: one found
