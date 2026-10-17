@@ -166,9 +166,64 @@ What ours adds to that shape is the API reference's route lookups and the recipe
 - **services and web `getting-started.md`**: the MCP server and how an agent is pointed at it.
 - **services `README.md`**, and **web `README.md`**: a line on `AGENTS.md`.
 
+## Where it stands, and what is next (2026-10-17)
+
+Written at the end of the session that began the row, for the next one to
+start from. Both repositories are on a branch `docs-for-agents`, not yet
+pushed.
+
+**Done:**
+
+1. Part 1: `AGENTS.md` in both repositories, with `CLAUDE.md` (the web
+   app's at the root, the services' in `.claude/`) loading it and keeping
+   only how the user and their agent work together. Services commit
+   `4a333b2`, web `4a0fda17`.
+2. On the web branch, roadmap rows 85 (regional English and French), 86
+   (German), 87 (Spanish), 88 (Brazilian Portuguese) and 89 (a test that
+   every language has every string), all after this row. Japanese was
+   decided against: nobody to read it.
+
+**Waiting for the user** (asked 2026-10-17, not answered): four lines of
+the services' old `.claude/CLAUDE.md` were left out of both files, to keep
+or drop:
+
+1. "Always ask for permission before committing" (in practice: one commit
+   per item, without asking);
+2. "Create a branch under issues" (in practice: one branch per feature);
+3. "Use Star Trek names of characters and places when testing" (the tests
+   use Ana, Ben, Alice);
+4. "Founder & Architect: user Mehr" (a placeholder?).
+
+Also to confirm: two lines written new in `AGENTS.md`, the sovereignty line
+("no service only one cloud has", for "no AWS-only services") and "every
+string is in `src/languages/en-GB` and `fr-FR`" (row 85 will make that
+`en-CA`).
+
+**Next, in this order:**
+
+1. **Part 2, "Where the code is"** at the end of every docs page of both
+   repositories that lacks one: a short table of packages, tables and
+   settings. Two pages have it (`feeds.md`, `recommendations.md`); copy
+   their shape.
+2. **The link and anchor check in `make test`** (services) and its web
+   equivalent: every link between pages and every `#heading` resolves.
+   Then the checklist in `AGENTS.md`: when a feature changes, grep the docs
+   for it.
+3. **The plain-language pass, one page first:** `docs/feeds.md` in
+   anahita-services, proposed as the sample. Show the user the rewritten
+   page and wait for their approval of the style before doing the rest,
+   one commit per page. Facts, paths, settings, endpoints and tables stay;
+   only the phrasing changes.
+4. **The four doors in `docs/README.md`:** Setting up a site, Keeping it
+   running, Making it your own, Building on it; and the list of pages found
+   missing (backups, upgrades, writing a service, writing a client).
+5. **The MCP server, last** (`tools/docs-mcp`, Go, read only, offline), as
+   Design part 3 describes. Its recipe tools wait for row 30; hosting it and
+   `llms.txt` wait until the docs are public.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11; the plain-language pass and keeping the docs true added 2026-10-14 |
-| Implementation | begun 2026-10-17. Part 1, `AGENTS.md` in both repositories, done |
+| Implementation | begun 2026-10-17. Part 1, `AGENTS.md` in both repositories, done; next is part 2 ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |
