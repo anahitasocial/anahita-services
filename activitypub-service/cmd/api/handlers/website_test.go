@@ -23,9 +23,9 @@ const (
 	itemID      = 960
 )
 
-// A website on the fediverse: a site's feed (docs/websites.md), public,
-// with nobody to choose it, and a note of it, the website's own, made by
-// its administrator Ana, who is not on the fediverse herself.
+// A website on the fediverse: a site's feed (docs/websites.md), public, put
+// on the fediverse by its administrators, and a note of it, the website's
+// own, made by its administrator Ana, who is not on the fediverse herself.
 func websiteWorld() *inboxWorld {
 	w := newInboxWorld()
 
@@ -45,6 +45,7 @@ func websiteWorld() *inboxWorld {
 
 	w.nodes.people = append(w.nodes.people, website, item)
 	w.accounts.enabled[anaID] = false
+	w.accounts.enabled[websiteID] = true
 	w.follows.inboxes = []string{"https://mastodon.example/inbox"}
 	return w
 }
@@ -98,43 +99,52 @@ func TestAWebsitesNoteGoesOutAsTheWebsites(t *testing.T) {
 	}
 }
 
-// A website's administrators see its handle under its settings, and that it
-// is on the fediverse, which nobody chose; anybody else is refused.
-func TestAWebsitesAdministratorsSeeItsHandle(t *testing.T) {
+// A website is off the fediverse until one of its administrators puts it
+// on, as a person is until they choose to be; they see its handle, and
+// take it off again. Anybody else, a site administrator among them, may not
+// make that choice for it.
+func TestAWebsitesAdministratorsPutItOnTheFediverse(t *testing.T) {
 	w := websiteWorld()
-	ask := func(viewer int64) *httptest.ResponseRecorder {
+	w.accounts.enabled[websiteID] = false
+	call := func(handler echo.HandlerFunc, method string, viewer int64, personType, body string) (*httptest.ResponseRecorder, Settings) {
 		ec := echo.New()
 		rec := httptest.NewRecorder()
-		c := ec.NewContext(httptest.NewRequest(http.MethodGet, "/activitypub/settings?person_id=950", nil), rec)
+		req := httptest.NewRequest(method, "/activitypub/settings?person_id=950", strings.NewReader(body))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		c := ec.NewContext(req, rec)
 		v := entities.NewViewer()
-		v.ID, v.PersonType = viewer, "registered"
+		v.ID, v.PersonType = viewer, personType
 		c.Set(constants.ViewerContextKey, v)
-		_ = w.h.ReadSettings(c)
-		return rec
+		_ = handler(c)
+		var settings Settings
+		_ = json.Unmarshal(rec.Body.Bytes(), &settings)
+		return rec, settings
 	}
-
 	w.relations.relation = &entities.ActorRelation{ActorAId: websiteID, ActorBId: anaID, HasAdmin: true}
-	rec := ask(anaID)
-	var settings Settings
-	_ = json.Unmarshal(rec.Body.Bytes(), &settings)
-	if rec.Code != http.StatusOK || !settings.Enabled || !settings.Available || settings.Handle != "garden-notes@example.org" {
-		t.Errorf("its administrator: %d %+v", rec.Code, settings)
+
+	rec, settings := call(w.h.ReadSettings, http.MethodGet, anaID, "registered", "")
+	if rec.Code != http.StatusOK || settings.Enabled || !settings.Available || settings.Handle != "garden-notes@example.org" {
+		t.Errorf("off until chosen: %d %+v", rec.Code, settings)
+	}
+	if w.h.federating(w.nodes.people[len(w.nodes.people)-2]) != nil {
+		t.Errorf("found on the fediverse before it is put there")
 	}
 
-	// Switched off, it is not.
-	for _, node := range w.nodes.people {
-		if node.ID == websiteID {
-			node.Enabled = false
-		}
+	rec, settings = call(w.h.EditSettings, http.MethodPut, anaID, "registered", `{"enabled":true}`)
+	if rec.Code != http.StatusOK || !settings.Enabled || !w.accounts.enabled[websiteID] || w.accounts.enabled[anaID] {
+		t.Errorf("put on by its administrator: %d %+v, website %v, Ana %v", rec.Code, settings, w.accounts.enabled[websiteID], w.accounts.enabled[anaID])
 	}
-	settings = Settings{}
-	_ = json.Unmarshal(ask(anaID).Body.Bytes(), &settings)
-	if settings.Enabled || settings.Available || settings.Reason != reasonProfileNotPublic {
-		t.Errorf("switched off: %+v", settings)
+
+	rec, settings = call(w.h.EditSettings, http.MethodPut, anaID, "registered", `{"enabled":false}`)
+	if rec.Code != http.StatusOK || settings.Enabled || w.accounts.enabled[websiteID] {
+		t.Errorf("taken off: %d %+v", rec.Code, settings)
 	}
 
 	w.relations.relation = &entities.ActorRelation{ActorAId: websiteID, ActorBId: 99}
-	if rec := ask(99); rec.Code != http.StatusForbidden {
-		t.Errorf("somebody else: %d", rec.Code)
+	if rec, _ := call(w.h.ReadSettings, http.MethodGet, 99, "registered", ""); rec.Code != http.StatusForbidden {
+		t.Errorf("somebody else reading: %d", rec.Code)
+	}
+	if rec, _ := call(w.h.EditSettings, http.MethodPut, 99, "administrator", `{"enabled":true}`); rec.Code != http.StatusForbidden || w.accounts.enabled[websiteID] {
+		t.Errorf("a site administrator choosing for it: %d", rec.Code)
 	}
 }

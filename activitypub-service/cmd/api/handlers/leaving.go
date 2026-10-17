@@ -96,14 +96,12 @@ func (h *Handlers) profileChanged(ctx context.Context, personID int64) error {
 		return nil
 	}
 
-	// A person is on the fediverse only once they choose to be; a website
-	// always is.
-	if !isWebsite(person) {
-		account, err := h.Accounts.Read(personID)
-		if err != nil || account == nil || !account.Enabled {
-			// Not on the fediverse: nobody to tell.
-			return err
-		}
+	// On the fediverse only once they choose to be, a website by its
+	// administrators.
+	account, err := h.Accounts.Read(personID)
+	if err != nil || account == nil || !account.Enabled {
+		// Not on the fediverse: nobody to tell.
+		return err
 	}
 
 	// No longer somebody who may be on it: they leave.

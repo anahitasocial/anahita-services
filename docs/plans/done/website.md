@@ -147,6 +147,7 @@ Considered and not chosen:
 | Scope | settled 2026-10-14; narrowed to the feed alone 2026-10-15; its open points settled the same day |
 | Design | 2026-10-16: a note per item (an article for a day first), syndication-service and syndication-worker, a website's own notes never edited, private feeds refused |
 | Parts 1–10 (as each was first built: articles, and the Pulse's name, were changed after) | done 2026-10-16: foundations, proving a domain, syndication-service, the stack knowing a website, syndication-worker, replies as the website, on the fediverse, WebSub, the web app, docs ([Websites](../../websites.md)) |
+| On the fediverse by choice | 2026-10-17, the user: off until one of its administrators turns it on, as a person's profile is, in place of always on; under Settings › Fediverse, with its handle |
 | Bluesky | 2026-10-17: a website's own Bluesky account, connected by one of its administrators under Settings › Fediverse; its notes posted there as it |
 | Tried | 2026-10-17: rmdstudio.com proved and connected, its ten newest items posted as notes, its Bluesky account (@rmdstudio.com) connected |
 | Done | 2026-10-17 |

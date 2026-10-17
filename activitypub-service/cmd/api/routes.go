@@ -182,11 +182,13 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusNotFound, "there is no such person")
 	activitypub.PUT("/settings", r.handler.EditSettings).
 		Summary("Go on the fediverse, or leave it").
-		Describe("It is each person's own choice, off until they make it, and only for somebody whose profile is open to everybody.").
+		Describe("It is each person's own choice, off until they make it, and only for somebody whose profile is open to everybody. A website's is its administrators' (`?person_id=` with its id).").
 		Viewer(apidoc.SignedIn).
+		Takes(&handlers.SettingsQuery{}).
 		Takes(&handlers.SettingsRequest{}).
 		Sends(http.StatusOK, handlers.Settings{}).
-		Sends(http.StatusBadRequest, responses.Refusal{}, "`enabled_required`").
+		Sends(http.StatusBadRequest, responses.Refusal{}, "`enabled_required`, `person_unreadable`").
+		Refuses(http.StatusForbidden, "somebody else's, and the viewer is not an administrator of the website asked about").
 		Sends(http.StatusConflict, responses.Refusal{}, "why they cannot be: `site_private`, `site_unreachable` or `profile_not_public`")
 	// Finding somebody on another server.
 	activitypub.GET("/lookup", r.handler.Lookup).

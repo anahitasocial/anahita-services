@@ -151,11 +151,8 @@ func (h *Handlers) federating(person *entities.AnahitaNode) *entities.AnahitaNod
 	if !h.mayFederate(person) {
 		return nil
 	}
-	// A website is a site's feed made to be followed from anywhere: on the
-	// fediverse whenever it may be, with nobody to choose it.
-	if isWebsite(person) {
-		return person
-	}
+	// A person chooses it for themselves, and a website's administrators
+	// for it.
 	account, err := h.Accounts.Read(person.ID)
 	if err != nil || account == nil || !account.Enabled {
 		return nil
@@ -164,7 +161,7 @@ func (h *Handlers) federating(person *entities.AnahitaNode) *entities.AnahitaNod
 }
 
 // isFederatingType is the kinds of profile here that may be on the
-// fediverse: a person, when they choose to be, and a website.
+// fediverse: a person, and a website, when they choose to be.
 func isFederatingType(nodeType string) bool {
 	return nodeType == constants.NodeActorPersonEntityType || nodeType == constants.NodeActorWebsiteEntityType
 }

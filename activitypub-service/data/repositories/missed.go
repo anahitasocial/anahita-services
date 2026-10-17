@@ -146,11 +146,15 @@ ORDER BY note.id
 LIMIT ?`
 
 // A website's notes, the items of its feed and its replies, that should have
-// gone out and did not. A website is on the fediverse with nobody to choose
-// it, so there is no account to join.
+// gone out and did not, once its administrators have put it on the
+// fediverse. Its items are made by the website itself, and dated as on its
+// site, so they are taken by when they were made here.
 const websiteNotesNotSent = `
 SELECT note.id
 FROM nodes AS note
+JOIN activitypub_accounts AS account
+  ON account.person_id = note.owner_id
+ AND account.enabled = 1
 LEFT JOIN nodes AS root
        ON root.id = note.root_id
 LEFT JOIN activitypub_objects AS sent
@@ -162,6 +166,7 @@ WHERE note.owner_type = ?
   AND note.deleted_at IS NULL
   AND COALESCE(root.access, note.access) = ?
   AND note.uri IS NULL
+  AND note.updated_at >= account.enabled_at
   AND note.updated_at >= ?
   AND note.updated_at <= ?
   AND sent.node_id IS NULL

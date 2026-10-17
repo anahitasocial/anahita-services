@@ -369,9 +369,10 @@ theirs answers `404`, in the same words as an address nobody has. A server
 is never told *why* somebody is not there.
 
 A **website**, a site's feed connected as a profile ([Websites](websites.md)),
-is on the fediverse with nobody to turn it on: whenever it is enabled, not on
-its way to being deleted and public, on a site that federates. It is an
-`Organization`, found by its handle as a person is.
+is on the fediverse once one of its administrators turns it on, off until
+then as a person is, and only while it is enabled and not on its way to
+being deleted, on a site that federates. It is an `Organization`, found by
+its handle as a person is.
 
 Groups and events are not on the fediverse yet.
 

@@ -7665,7 +7665,7 @@
         "x-viewer": "signed_in"
       },
       "put": {
-        "description": "It is each person's own choice, off until they make it, and only for somebody whose profile is open to everybody.\n\nWho may call it: somebody signed in.",
+        "description": "It is each person's own choice, off until they make it, and only for somebody whose profile is open to everybody. A website's is its administrators' (`?person_id=` with its id).\n\nWho may call it: somebody signed in.",
         "operationId": "putActivitypubSettings",
         "requestBody": {
           "content": {
@@ -7705,10 +7705,13 @@
                 }
               }
             },
-            "description": "`enabled_required`"
+            "description": "`enabled_required`, `person_unreadable`"
           },
           "401": {
             "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "somebody else's, and the viewer is not an administrator of the website asked about"
           },
           "409": {
             "content": {

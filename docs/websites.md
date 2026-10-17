@@ -36,7 +36,7 @@ Why it is built this way is in the plan, [plans/done/website.md](plans/done/webs
 | `syndication-worker` | Reads every website's feed and posts what is new; looks at every proof again once a day; pauses and starts websites again. Answers no requests |
 | `actor-service` | Serves the website as a profile under `/websites/`, as it serves groups: read, change, administrators, delete |
 | `text-service` | Under a website's post, makes a reply by one of its administrators the website's |
-| `activitypub-service` | The website as an `Organization`, always on the fediverse, and its notes |
+| `activitypub-service` | The website as an `Organization` on the fediverse, once its administrators turn it on, and its notes |
 | `atproto-service` | Its notes on Bluesky, as its own Bluesky account, when one of its administrators connects one |
 
 A website's node is `node.actor.actor-service.website.v1`, its service
@@ -135,17 +135,21 @@ Anywhere else, and by anybody else, a reply is its writer's.
 
 ## On the fediverse
 
-A website is on the fediverse whenever the installation is, with nobody to
-turn it on: WebFinger finds it by its handle (`@garden@example.org`), and it
-is an `Organization`, not a `Service`, which Mastodon marks as automated.
+A website is on the fediverse once one of its administrators turns it on in
+its settings (Fediverse), and off until then, as a person is: sharing is
+chosen, never assumed. Turning it off asks first, and tells every server
+that knows it to remove it. While it is on, WebFinger finds it by its handle
+(`@garden@example.org`), and it is an `Organization`, not a `Service`, which
+Mastodon marks as automated.
 Its notes go out as `Note`s, the website's, with their card, which is how
 Mastodon shows a post best: an `Article` would be shown there as its title
 and a link. Replies to them come back into its threads, and its own replies
-go out, as for a person's notes ([Federation](federation.md)). Its
-administrators see its handle in its settings (Fediverse), from
-`GET /activitypub/settings?person_id=` with the website's id, which answers
-them as it answers a person about themselves; a website switched off or
-deleted is not on the fediverse, and the answer says so.
+go out, as for a person's notes ([Federation](federation.md)). Only what it
+posts after being turned on goes out. It is `GET` and
+`PUT /activitypub/settings?person_id=` with the website's id, for one of its
+administrators, as for a person about themselves; anybody else, a site
+administrator among them, is refused with `403`. A website switched off or
+deleted is not on the fediverse.
 
 ## On Bluesky
 

@@ -468,11 +468,11 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).ReadSettings</code></p>
 </details>
-<details class="route" id="putActivitypubSettings" data-search="put /activitypub/settings go on the fediverse, or leave it it is each person&#39;s own choice, off until they make it, and only for somebody whose profile is open to everybody.
+<details class="route" id="putActivitypubSettings" data-search="put /activitypub/settings go on the fediverse, or leave it it is each person&#39;s own choice, off until they make it, and only for somebody whose profile is open to everybody. a website&#39;s is its administrators&#39; (`?person_id=` with its id).
 
 who may call it: somebody signed in.">
 <summary><span class="method put">PUT</span> <code class="path">/activitypub/settings</code> <span class="summary">Go on the fediverse, or leave it</span></summary>
-<div class="description"><p>It is each person&#39;s own choice, off until they make it, and only for somebody whose profile is open to everybody.</p></div>
+<div class="description"><p>It is each person&#39;s own choice, off until they make it, and only for somebody whose profile is open to everybody. A website&#39;s is its administrators&#39; (<code>?person_id=</code> with its id).</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in</p>
 <h4>Takes, as <code>application/json</code></h4>
 <table>
@@ -485,8 +485,9 @@ who may call it: somebody signed in.">
 <table class="answers">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.Settings">activitypub.Settings</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">400</td><td><code>enabled_required</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>enabled_required</code>, <code>person_unreadable</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>somebody else&#39;s, and the viewer is not an administrator of the website asked about</td></tr>
 <tr><td class="status s4">409</td><td>why they cannot be: <code>site_private</code>, <code>site_unreachable</code> or <code>profile_not_public</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>

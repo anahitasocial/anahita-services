@@ -44,8 +44,8 @@ type SettingsRequest struct {
 // An administrator may ask it of somebody else (?person_id=), to read and
 // not to change: they can change that person's profile in ways that take
 // them off the fediverse, and have to be able to see that it would. A
-// website's administrators may ask it of the website, which is always on,
-// to see its handle.
+// website's administrators may ask it of the website, which they turn on
+// and off as a person does for themselves.
 func (h *Handlers) ReadSettings(c echo.Context) error {
 	viewer := getViewer(c)
 
@@ -72,16 +72,30 @@ func (h *Handlers) ReadSettings(c echo.Context) error {
 	return c.JSON(http.StatusOK, settings)
 }
 
-// EditSettings turns it on or off for the viewer.
+// EditSettings turns it on or off for the viewer, or, for one of its
+// administrators, a website (?person_id=). Nobody else's: a site
+// administrator reads a person's choice, and never makes it for them.
 func (h *Handlers) EditSettings(c echo.Context) error {
 	viewer := getViewer(c)
+
+	personID := viewer.ID
+	if asked := c.QueryParam("person_id"); asked != "" {
+		id, err := strconv.ParseInt(asked, 10, 64)
+		if err != nil || id <= 0 {
+			return refuse(c, http.StatusBadRequest, "person_unreadable")
+		}
+		if id != viewer.ID && !h.administersWebsite(viewer.ID, id) {
+			return c.NoContent(http.StatusForbidden)
+		}
+		personID = id
+	}
 
 	req := &SettingsRequest{}
 	if err := c.Bind(req); err != nil || req.Enabled == nil {
 		return refuse(c, http.StatusBadRequest, "enabled_required")
 	}
 
-	settings, err := h.settingsOf(viewer.ID)
+	settings, err := h.settingsOf(personID)
 	if err != nil {
 		log.Println("activitypub settings:", err)
 		return refuse(c, http.StatusInternalServerError, "unavailable")
@@ -95,7 +109,7 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 	if *req.Enabled {
 		// The key is made before anybody is told they are here, so that
 		// the first server to ask finds it.
-		if _, err := h.publicKeyOf(viewer.ID); err != nil {
+		if _, err := h.publicKeyOf(personID); err != nil {
 			log.Println("activitypub key:", err)
 			return refuse(c, http.StatusInternalServerError, "unavailable")
 		}
@@ -104,7 +118,7 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 	// Off, having been on: every server that knows them is told to forget
 	// them, and what crossed between servers is undone here.
 	if !*req.Enabled && settings.Enabled {
-		person, err := h.Nodes.Read(viewer.ID)
+		person, err := h.Nodes.Read(personID)
 		if err == nil {
 			err = h.leave(c.Request().Context(), person)
 		}
@@ -114,7 +128,7 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 		}
 	}
 
-	if err := h.Accounts.Set(viewer.ID, *req.Enabled); err != nil {
+	if err := h.Accounts.Set(personID, *req.Enabled); err != nil {
 		log.Println("activitypub settings:", err)
 		return refuse(c, http.StatusInternalServerError, "unavailable")
 	}
@@ -151,8 +165,7 @@ func (h *Handlers) settingsOf(personID int64) (*Settings, error) {
 	if err != nil {
 		return nil, err
 	}
-	// A website is on the fediverse with nobody to choose it.
-	settings.Enabled = account.Enabled || isWebsite(person)
+	settings.Enabled = account.Enabled
 
 	if ok, reason := h.siteFederates(); !ok {
 		settings.Reason = reason
@@ -167,11 +180,6 @@ func (h *Handlers) settingsOf(personID int64) (*Settings, error) {
 
 	if !h.mayFederate(person) {
 		settings.Reason = reasonProfileNotPublic
-		// A website switched off or deleted is not on it, nobody having
-		// chosen otherwise.
-		if isWebsite(person) {
-			settings.Enabled = false
-		}
 		return settings, nil
 	}
 
