@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -92,7 +93,13 @@ func (f *fakePulses) FeedTaken(_ context.Context, feedURL string) (bool, error) 
 
 type fakeItems struct {
 	repositories.ItemsInterface
-	seen []repositories.ItemSeenAs
+	seen    []repositories.ItemSeenAs
+	waiting []repositories.ItemSeenAs
+}
+
+func (f *fakeItems) AddWaiting(_ context.Context, _ int64, items []repositories.ItemSeenAs) error {
+	f.waiting = append(f.waiting, items...)
+	return nil
 }
 
 func (f *fakeItems) MarkSeen(_ context.Context, _ int64, items []repositories.ItemSeenAs) error {
@@ -256,8 +263,8 @@ func TestAWebsiteIsConnectedInThreeSteps(t *testing.T) {
 	if f.admins.added != 1 || f.follows.added != 1 {
 		t.Errorf("its maker is its administrator (%d) and follower (%d)", f.admins.added, f.follows.added)
 	}
-	if len(f.pulses.added) != 1 || f.pulses.added[0].NodeID != 900 || len(f.items.seen) != 2 || f.domains.rows[1].ProfileID != 900 {
-		t.Errorf("kept: %+v, %d seen, domain for %d", f.pulses.added, len(f.items.seen), f.domains.rows[1].ProfileID)
+	if len(f.pulses.added) != 1 || f.pulses.added[0].NodeID != 900 || len(f.items.waiting) != 2 || len(f.items.seen) != 0 || f.domains.rows[1].ProfileID != 900 {
+		t.Errorf("kept: %+v, %d to post, %d seen, domain for %d", f.pulses.added, len(f.items.waiting), len(f.items.seen), f.domains.rows[1].ProfileID)
 	}
 
 	// Once made, the connection is done with.
@@ -330,5 +337,16 @@ func TestAHandleIsSuggestedFromTheDomain(t *testing.T) {
 		if got := SuggestedAlias(domain); got != want {
 			t.Errorf("%s: %q, want %q", domain, got, want)
 		}
+	}
+}
+
+func TestANewPulsePostsItsNewestTen(t *testing.T) {
+	var items []feeds.Item
+	for n := 1; n <= 13; n++ {
+		items = append(items, feeds.Item{Key: fmt.Sprintf("k%d", n), Title: "t", Published: time.Date(2026, 1, n, 0, 0, 0, 0, time.UTC)})
+	}
+	waiting, seen := firstPosts(items)
+	if len(waiting) != FirstPosts || len(seen) != 3 || waiting[0].Key != "k13" || waiting[9].Key != "k4" || seen[0].Key != "k3" {
+		t.Errorf("to post %v, seen %v", waiting, seen)
 	}
 }

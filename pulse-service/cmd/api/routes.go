@@ -61,7 +61,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	connect.POST("/:id", r.handler.Connect.Make, r.authorize).With(func(route *apidoc.Route) {
 		notAllowed(route.
 			Summary("Make the Pulse").
-			Describe("Once its domain is proved. Whoever proved it is its first administrator and its first follower; what the feed holds now is marked seen, and only what is published afterwards is posted.").
+			Describe("Once its domain is proved. Whoever proved it is its first administrator and its first follower; its feed's ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes.").
 			Viewer(apidoc.SignedIn).
 			Takes(&handlers.ConnectMakeRequest{}).
 			Sends(http.StatusCreated, handlers.Made{}).

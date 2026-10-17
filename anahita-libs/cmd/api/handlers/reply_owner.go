@@ -26,7 +26,7 @@ func OwnReply(thread *permissions.ReplyAccessContext, reply *entities.AnahitaNod
 		reply.OwnerID = pulse.ID
 		reply.OwnerType = pulse.Type
 		reply.CreatedBy = pulse.ID
-		reply.Meta = withWrittenBy(reply.Meta, viewer.ID)
+		reply.Meta = WithWrittenBy(reply.Meta, viewer.ID)
 		return
 	}
 
@@ -35,7 +35,10 @@ func OwnReply(thread *permissions.ReplyAccessContext, reply *entities.AnahitaNod
 	reply.CreatedBy = viewer.ID
 }
 
-func withWrittenBy(meta json.RawMessage, personID int64) json.RawMessage {
+// WithWrittenBy keeps, beside what a post's meta holds, which administrator
+// made it as a Pulse: one of its replies, or one of its articles, made by
+// pulse-worker as its first administrator.
+func WithWrittenBy(meta json.RawMessage, personID int64) json.RawMessage {
 	fields := map[string]json.RawMessage{}
 	if len(meta) > 0 {
 		_ = json.Unmarshal(meta, &fields)

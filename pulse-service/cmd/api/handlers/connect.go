@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -327,9 +328,12 @@ func (h *connectHandler) Make(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	seen := make([]repositories.ItemSeenAs, len(read.Items))
-	for i, item := range read.Items {
-		seen[i] = repositories.ItemSeenAs{Key: item.Key, ContentHash: repositories.ContentHash(item.Title, item.Excerpt)}
+	// Its newest few are posted, so that a new Pulse does not open empty;
+	// the rest are marked seen, so that its first followers are not sent
+	// the site's whole past (the user, 2026-10-16).
+	waiting, seen := firstPosts(read.Items)
+	if err := h.Srv.Items.AddWaiting(ctx, pulse.ID, waiting); err != nil {
+		log.Println(err)
 	}
 	if err := h.Srv.Items.MarkSeen(ctx, pulse.ID, seen); err != nil {
 		log.Println(err)
@@ -339,6 +343,25 @@ func (h *connectHandler) Make(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, Made{ID: pulse.ID, Alias: pulse.Alias})
+}
+
+// FirstPosts is how many of a feed's items a new Pulse posts: its newest.
+const FirstPosts = 10
+
+// firstPosts splits a feed as a new Pulse takes it: its newest FirstPosts
+// items to post, and the rest seen.
+func firstPosts(items []feeds.Item) (waiting, seen []repositories.ItemSeenAs) {
+	newest := append([]feeds.Item(nil), items...)
+	sort.SliceStable(newest, func(i, j int) bool { return newest[i].Published.After(newest[j].Published) })
+	for i, item := range newest {
+		kept := repositories.ItemSeenAs{Key: item.Key, ContentHash: repositories.ContentHash(item.Title, item.Excerpt)}
+		if i < FirstPosts {
+			waiting = append(waiting, kept)
+		} else {
+			seen = append(seen, kept)
+		}
+	}
+	return waiting, seen
 }
 
 // lookAfter makes the viewer the Pulse's first administrator and its first

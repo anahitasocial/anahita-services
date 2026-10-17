@@ -291,9 +291,8 @@ func (r *pulsesRepo) FeedTaken(ctx context.Context, feedURL string) (bool, error
 	return count > 0, err
 }
 
-// A new Pulse's feed is next read this long after it is made: whatever is
-// published in the meantime is new.
-const firstRead = 15 * time.Minute
+// A new Pulse's feed is read at once, to post its first items.
+const firstRead = 0
 
 func isDuplicate(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "Error 1062")

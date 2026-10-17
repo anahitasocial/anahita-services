@@ -26720,7 +26720,7 @@
     },
     "/pulses/_connect/{id}": {
       "post": {
-        "description": "Once its domain is proved. Whoever proved it is its first administrator and its first follower; what the feed holds now is marked seen, and only what is published afterwards is posted.\n\nWho may call it: somebody signed in.",
+        "description": "Once its domain is proved. Whoever proved it is its first administrator and its first follower; its feed's ten newest items are posted, the rest marked seen, and what is published afterwards is posted as it comes.\n\nWho may call it: somebody signed in.",
         "operationId": "postPulsesConnectById",
         "parameters": [
           {

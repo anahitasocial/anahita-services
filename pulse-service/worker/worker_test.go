@@ -216,13 +216,13 @@ func TestANewItemIsPostedAsTheArticleOfThePulse(t *testing.T) {
 	a := f.graph.posted[0]
 	if a.Type != an_const.NodeMediumArticleEntityType || a.Service != an_const.TextService ||
 		a.OwnerID != 900 || a.OwnerType != an_const.NodeActorPulseEntityType ||
-		a.CreatedBy != 7 || f.graph.poster != 7 || a.Access != an_const.AnahitaAccessPublic {
+		a.CreatedBy != 900 || a.ModifiedBy != 7 || f.graph.poster != 7 || a.Access != an_const.AnahitaAccessPublic {
 		t.Errorf("the article: %+v", a)
 	}
 	if a.Name != "Post 2" || a.Body != "What post 2 says.\n\nhttps://example.com/2\n\n#Gardens #OpenScience" {
 		t.Errorf("it says %q: %q", a.Name, a.Body)
 	}
-	if !a.CreatedAt.Equal(start.Add(-2*time.Hour)) || !strings.Contains(string(a.Meta), "The original") {
+	if !a.CreatedAt.Equal(start.Add(-2*time.Hour)) || !strings.Contains(string(a.Meta), "The original") || !strings.Contains(string(a.Meta), `"written_by":7`) {
 		t.Errorf("its date %v, its card %s", a.CreatedAt, a.Meta)
 	}
 	if f.items.kept["key-2"].State != repositories.ItemPosted || f.items.kept["key-2"].NodeID != a.ID {

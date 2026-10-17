@@ -18,6 +18,7 @@ import (
 	"pulse/data/repositories"
 	"pulse/feeds"
 
+	an_handlers "anahita-libs/cmd/api/handlers"
 	an_const "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/domains"
@@ -327,9 +328,11 @@ func (w *Worker) articleOf(ctx context.Context, pulse *entities.AnahitaNode, adm
 	article := entities.NewAnahitaNode()
 	article.Type = an_const.NodeMediumArticleEntityType
 	article.Service = an_const.TextService
+	// The Pulse's own, shown and sent as its, as its replies are; the
+	// administrator it was made as is kept for moderators.
 	article.OwnerID = pulse.ID
 	article.OwnerType = pulse.Type
-	article.CreatedBy = adminID
+	article.CreatedBy = pulse.ID
 	article.ModifiedBy = adminID
 	article.Name = item.Title
 	article.Alias = slug.Make(item.Title)
@@ -339,7 +342,7 @@ func (w *Worker) articleOf(ctx context.Context, pulse *entities.AnahitaNode, adm
 	article.CommentStatus = true
 	// The graph keeps it unless it is in the future.
 	article.CreatedAt = item.Published
-	article.Meta = w.cardOf(ctx, item.Link)
+	article.Meta = an_handlers.WithWrittenBy(w.cardOf(ctx, item.Link), adminID)
 	return article
 }
 

@@ -57,8 +57,10 @@ says otherwise), in three calls:
 2. `POST /pulses/_connect/:id/check` looks for the token, as often as asked.
 3. `POST /pulses/_connect/:id` with a name, a handle and a description makes
    the Pulse: public, with whoever proved the domain as its first
-   administrator and first follower. What the feed holds now is marked seen,
-   and only what is published afterwards is posted.
+   administrator and first follower. The feed's ten newest items are posted
+   at once, each with its own date, so that a new Pulse does not open empty;
+   the rest are marked seen, and from then on only what is published is
+   posted.
 
 A connection is the person's who began it: anybody else is told it is not
 there.
@@ -98,7 +100,9 @@ Each new item becomes an article owned by the Pulse:
 | Date | The item's, unless it says the future |
 | Audience | Public |
 
-It is made as the Pulse's first administrator. At most 10 an hour
+Its author is the Pulse, so it is shown and sent as the Pulse's; it is made
+as the Pulse's first administrator, who is kept in it as `written_by`, as
+for its replies. At most 10 an hour
 (`PULSE_HOURLY_CAP`), oldest first; the rest wait for the next hour. Items
 are known by their id, or their address when they have none, and none is
 posted twice. One whose title or excerpt changes changes its article; one
