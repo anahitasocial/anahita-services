@@ -147,7 +147,7 @@ domain, is written down for later (`docs/plans/atproto-server.md`).
 
 ### Groups, events and the rest
 
-What only Anahita has (groups, events, articles and topics, followers-only
+What only Anahita has (groups, events, people's articles and topics, followers-only
 posts, likes and follows between people here, custom feeds) stays here, on
 either network. An app built on the AT Protocol may keep such things as
 records of its own kinds in people's repositories; Anahita does not, since
@@ -368,6 +368,11 @@ The moment one of them stops being so, they are not found: every address of
 theirs answers `404`, in the same words as an address nobody has. A server
 is never told *why* somebody is not there.
 
+A **Pulse**, a website's feed ([Pulses](pulses.md)), is on the fediverse
+with nobody to turn it on: whenever it is enabled, not on its way to being
+deleted and public, on a site that federates. It is an `Organization`, found
+by its handle as a person is.
+
 Groups and events are not on the fediverse yet.
 
 ## What a person is called
@@ -539,7 +544,12 @@ its page. Mastodon shows a video with no sound as a GIF, silently and on a
 loop, so a clip made of a GIF is one there too, with nothing said to make
 it so.
 
-**Not sent:** articles and topics; anything in a group;
+A **Pulse's articles** go out as `Article`: the title as `name`, the item's
+excerpt as `summary`, the content, and the article's page as `url`,
+attributed to the Pulse though its administrator made them; replies under
+them go and come as under a note.
+
+**Not sent:** people's articles and topics (roadmap row 84); anything in a group;
 a quoted post (the note that quotes goes, without what it quotes);
 the card for a link. Somebody who starts following is sent what is posted
 from then on, and nothing from before.
@@ -856,7 +866,8 @@ manifests here pass it on; a proxy put in front that does not will make
 every signature fail, in both directions.
 
 - A key is made when a person turns federation on (RSA, 2048 bits, which is
-  what every server understands).
+  what every server understands), and for anybody on the fediverse who has
+  none the first time one is asked for: a Pulse's, for one.
 - The private half is kept in `actor_keys`, encrypted by the means
   auth-service keeps its secrets: `CRYPT_BACKEND` and `CRYPT_LOCAL_KEY`
   ([Configuration](configuration.md)). **Losing that key loses every

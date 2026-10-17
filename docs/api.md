@@ -175,7 +175,7 @@ in the reference.
 ## Services an installation may not run
 
 Some services are optional: recommendations, abuse reports, link previews,
-video, data export, and the two for other networks
+video, data export, Pulses, and the two for other networks
 ([architecture.md](architecture.md)). Where one is not run, its routes are
 not there, and a client takes a `404`, or a `501` or above from the gateway,
 for there being nothing, not for a failure, as the web app does. What an installation speaks

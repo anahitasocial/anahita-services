@@ -278,6 +278,17 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Suggestions while writing](hashtags.md#suggestions-while-writing)
    - [What the web app does](hashtags.md#what-the-web-app-does)
    - [Where the code is](hashtags.md#where-the-code-is)
+24. [Pulses](pulses.md) — a website's feed as a profile to follow: connecting a site, proving its domain, its feed read and posted as articles, replies as the Pulse, and on the fediverse
+   - [Who does what](pulses.md#who-does-what)
+   - [Connecting a website](pulses.md#connecting-a-website)
+   - [Proving a domain](pulses.md#proving-a-domain)
+   - [Reading the feed](pulses.md#reading-the-feed)
+   - [Its posts](pulses.md#its-posts)
+   - [Replies as the Pulse](pulses.md#replies-as-the-pulse)
+   - [On the fediverse](pulses.md#on-the-fediverse)
+   - [WebSub](pulses.md#websub)
+   - [Settings](pulses.md#settings)
+   - [Where the code is](pulses.md#where-the-code-is)
 
 ## Plans
 
@@ -310,7 +321,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Quote posts](plans/done/quote-posts.md) | 25 | done 2026-10-05 |
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [Collections](plans/collections.md) | 34 | shape decided 2026-10-06; kept for later, not to be built yet |
-| [Pulse: a website's feed as something to follow](plans/pulse.md) | 30 | renamed from the Website actor and narrowed to the feed alone 2026-10-15: a verified domain's feed posts, others reply, like, repost and quote; nobody posts on it |
+| [Pulse: a website's feed as something to follow](plans/pulse.md) | 30 | built 2026-10-16: pulse-service and pulse-worker, a verified domain's feed posted as articles, replies as the Pulse, an Organization on the fediverse ([Pulses](pulses.md)) |
 | [One clean schema](plans/migration-baseline.md) | 27 | not started |
 | [The API reference, made from the code](plans/done/api-reference.md) | 38 | done 2026-10-15: every route described, `docs/api/index.html`, answers checked in the handler tests |
 | [Documentation agents can use, and an MCP server](plans/docs-for-agents.md) | 39 | planned 2026-10-11; place in the order not decided |

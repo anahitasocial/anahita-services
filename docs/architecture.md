@@ -55,6 +55,8 @@ react. Event names are versioned constants in `anahita-libs/event`, shaped
 | `feed-service` | 8098 | 50059 | Feeds and reposts |
 | `recommendation-service` | 8100 | | Suggestions of who to follow. Optional |
 | `link-preview-service` | 8101 | — | Fetches the page a link points to and keeps its title and picture, for the card on a note. The only service that connects to addresses people type. Optional. See [Link previews](link-previews.md) |
+| `pulse-service` | 8107 | — | Connecting a website as a Pulse: finds its feed and checks its domain's proof; takes WebSub hubs' calls. Goes only to public addresses. Optional. See [Pulses](pulses.md) |
+| `pulse-worker` | — | — | Reads every Pulse's feed and posts what is new; looks at every proof again daily. Answers no requests |
 | `video-service` | 8103 | — | Videos: uploads sent straight to storage, and the posts made of them. Optional. See [Videos](videos.md) |
 | `video-worker` | — | — | Makes the sizes of each uploaded video with ffmpeg, then the post. Answers no requests |
 | `export-service` | 8104 | — | A person's copy of their own data: asking for one and fetching it. Optional. See [Download your data](data-export.md) |
@@ -100,6 +102,8 @@ Kubernetes, where the Ingress sends everything to it
 | `/feeds/`, `/reposts/` | `feed-service` |
 | `/recommendations/` | `recommendation-service` |
 | `/link-previews` | `link-preview-service` |
+| `/pulses/_connect`, `/pulses/_websub/` | `pulse-service` (`/pulses/_websub/` not signed in) |
+| `/pulses/` | `actor-service` |
 | `/notifications/` | `notification-service` |
 | `/abuse-reports` | `abuse-report-service` |
 | `/socialgraph/` | `socialgraph-service` |

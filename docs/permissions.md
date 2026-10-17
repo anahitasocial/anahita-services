@@ -21,6 +21,7 @@ What each route answers when the viewer may not is in the [API reference](api/in
   - [Seeing a reply](#seeing-a-reply)
   - [Replying](#replying)
   - [Who looks after a thread](#who-looks-after-a-thread)
+  - [Replying as a Pulse](#replying-as-a-pulse)
   - [Editing, deleting and hiding a reply](#editing-deleting-and-hiding-a-reply)
   - [Liking a reply](#liking-a-reply)
 - [Likes](#likes)
@@ -326,7 +327,8 @@ post is a setting of its own; see [Quotes](#quotes).
 Three kinds of people can deal with what is said under a post:
 
 - **the author of the root**, wherever it is posted;
-- **the profile the root is on**: the person, or a group's administrators;
+- **the profile the root is on**: the person, or a group's or a Pulse's
+  administrators;
 - **site administrators.**
 
 The first is there for somebody who posts in a group they do not administer.
@@ -337,7 +339,7 @@ of the group's administrators.
 
 | | Who |
 | --- | --- |
-| **Edit** | Its author only, and only while they can still see the root. Nobody who looks after the thread: an edited reply still carries its author's name |
+| **Edit** | Its author only, and only while they can still see the root. Nobody who looks after the thread: an edited reply still carries its author's name. A reply that is a Pulse's, by whoever replies as it |
 | **Delete** | Its author, and whoever looks after the thread. The author can delete it even after losing sight of the root |
 | **Hide**, and show again | Whoever looks after the thread. Not its author, who can delete it |
 
@@ -356,6 +358,14 @@ hidden reply is not counted in the number of replies a post shows.
 Hiding exists as well as deleting because, once this installation federates, a
 reply that came from another server can be hidden here and cannot be deleted
 there.
+
+### Replying as a Pulse
+
+Under a Pulse's own post, a reply in words by one of its administrators is
+the Pulse's, its owner and author, so the site answers its readers as
+itself; which administrator wrote it is kept for those who handle reports
+(`written_by`). Anywhere else a reply is its writer's. Who may connect a
+website is `PULSES_FROM`, administrators unless set. See [Pulses](pulses.md).
 
 ### Liking a reply
 
