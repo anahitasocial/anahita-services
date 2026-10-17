@@ -13,6 +13,8 @@ LINK_PREVIEW_SRV=link-preview-service
 PULSE_BINARY=app-binary
 PULSE_VERSION=latest
 PULSE_SRV=pulse-service
+PULSE_WORKER_BINARY=worker-binary
+PULSE_WORKER=pulse-worker
 VIDEO_BINARY=app-binary
 VIDEO_WORKER_BINARY=worker-binary
 VIDEO_VERSION=latest
@@ -135,6 +137,7 @@ build_dockerfiles: check_docker build_abuse_report build_recommendation build_li
 	docker build -f ${DOCKERFILES}/${RECOMMENDATION_SRV}.dockerfile -t ${REPOSITORY}/${RECOMMENDATION_SRV}:${RECOMMENDATION_VERSION} .
 	docker build -f ${DOCKERFILES}/${LINK_PREVIEW_SRV}.dockerfile -t ${REPOSITORY}/${LINK_PREVIEW_SRV}:${LINK_PREVIEW_VERSION} .
 	docker build -f ${DOCKERFILES}/${PULSE_SRV}.dockerfile -t ${REPOSITORY}/${PULSE_SRV}:${PULSE_VERSION} .
+	docker build -f ${DOCKERFILES}/${PULSE_WORKER}.dockerfile -t ${REPOSITORY}/${PULSE_WORKER}:${PULSE_VERSION} .
 	docker build -f ${DOCKERFILES}/${VIDEO_SRV}.dockerfile -t ${REPOSITORY}/${VIDEO_SRV}:${VIDEO_VERSION} .
 	docker build -f ${DOCKERFILES}/${VIDEO_WORKER}.dockerfile -t ${REPOSITORY}/${VIDEO_WORKER}:${VIDEO_VERSION} .
 	docker build -f ${DOCKERFILES}/${EXPORT_SRV}.dockerfile -t ${REPOSITORY}/${EXPORT_SRV}:${EXPORT_VERSION} .
@@ -167,6 +170,7 @@ push_dockerfiles: check_docker build_dockerfiles
 	docker push ${REPOSITORY}/${RECOMMENDATION_SRV}:${RECOMMENDATION_VERSION}
 	docker push ${REPOSITORY}/${LINK_PREVIEW_SRV}:${LINK_PREVIEW_VERSION}
 	docker push ${REPOSITORY}/${PULSE_SRV}:${PULSE_VERSION}
+	docker push ${REPOSITORY}/${PULSE_WORKER}:${PULSE_VERSION}
 	docker push ${REPOSITORY}/${VIDEO_SRV}:${VIDEO_VERSION}
 	docker push ${REPOSITORY}/${VIDEO_WORKER}:${VIDEO_VERSION}
 	docker push ${REPOSITORY}/${EXPORT_SRV}:${EXPORT_VERSION}
@@ -289,11 +293,12 @@ build_link_preview:
 	cd ${LINK_PREVIEW_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${LINK_PREVIEW_BINARY} ./cmd/api
 	@echo "Link preview binary built!"
 
-## build_pulse: builds the pulse binary as a linux executable
+## build_pulse: builds the pulse binaries, the API and the worker, as linux executables
 build_pulse:
-	@echo "Building pulse binary.."
+	@echo "Building pulse binaries.."
 	cd ${PULSE_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${PULSE_BINARY} ./cmd/api
-	@echo "Pulse binary built!"
+	cd ${PULSE_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${PULSE_WORKER_BINARY} ./cmd/worker
+	@echo "Pulse binaries built!"
 
 ## build_web_shell: builds the web shell binary as a linux executable. WEB_BUILD=<folder> copies the web app's build in beside it, for an image with the app baked in
 build_web_shell:
@@ -516,14 +521,13 @@ link_preview: build_link_preview
 	docker-compose start ${LINK_PREVIEW_SRV}
 	@echo "${LINK_PREVIEW_SRV} built and started!"
 
-## pulse: stops pulse-service, removes docker image, builds service, and starts it
+## pulse: stops pulse-service and pulse-worker, removes their images, builds them, and starts them
 pulse: build_pulse
-	@echo "Building ${PULSE_SRV} docker image..."
-	- docker-compose stop ${PULSE_SRV}
-	- docker-compose rm -f ${PULSE_SRV}
-	docker-compose up --build -d ${PULSE_SRV}
-	docker-compose start ${PULSE_SRV}
-	@echo "${PULSE_SRV} built and started!"
+	@echo "Building ${PULSE_SRV} and ${PULSE_WORKER} docker images..."
+	- docker-compose stop ${PULSE_SRV} ${PULSE_WORKER}
+	- docker-compose rm -f ${PULSE_SRV} ${PULSE_WORKER}
+	docker-compose up --build -d ${PULSE_SRV} ${PULSE_WORKER}
+	@echo "${PULSE_SRV} and ${PULSE_WORKER} built and started!"
 
 ## hashtag: stops hashtag-service, removes docker image, builds service, and starts it
 hashtag: build_hashtag
@@ -649,7 +653,7 @@ clean:
 	@cd ${RECOMMENDATION_SRV} && go clean
 	@cd ${LINK_PREVIEW_SRV} && rm -f ${LINK_PREVIEW_BINARY}
 	@cd ${LINK_PREVIEW_SRV} && go clean
-	@cd ${PULSE_SRV} && rm -f ${PULSE_BINARY}
+	@cd ${PULSE_SRV} && rm -f ${PULSE_BINARY} ${PULSE_WORKER_BINARY}
 	@cd ${PULSE_SRV} && go clean
 	@cd ${VIDEO_SRV} && rm -f ${VIDEO_BINARY} ${VIDEO_WORKER_BINARY}
 	@cd ${VIDEO_SRV} && go clean
@@ -697,7 +701,7 @@ K8S_LOCAL=k8s/overlays/local
 # Always the Minikube cluster, whatever kubectl currently points at, so these
 # targets can never touch a real one.
 KUBECTL=kubectl --context minikube
-K8S_IMAGES=${ABUSE_REPORT_SRV} ${RECOMMENDATION_SRV} ${LINK_PREVIEW_SRV} ${PULSE_SRV} ${VIDEO_SRV} ${VIDEO_WORKER} ${EXPORT_SRV} ${EXPORT_WORKER} ${ACTIVITYPUB_SRV} ${ATPROTO_SRV} ${AUTH_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
+K8S_IMAGES=${ABUSE_REPORT_SRV} ${RECOMMENDATION_SRV} ${LINK_PREVIEW_SRV} ${PULSE_SRV} ${PULSE_WORKER} ${VIDEO_SRV} ${VIDEO_WORKER} ${EXPORT_SRV} ${EXPORT_WORKER} ${ACTIVITYPUB_SRV} ${ATPROTO_SRV} ${AUTH_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
 
 ## k8s-start: starts a local Minikube cluster with the ingress controller and cert-manager
 k8s-start:

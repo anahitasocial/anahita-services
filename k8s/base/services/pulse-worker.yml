@@ -1,0 +1,73 @@
+# pulse-worker: Reads the feeds of Pulses and posts what is new in them, and checks every day that their domains are still proved. Answers no requests. A Pulse is read by one replica at a time, so more may run.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pulse-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pulse-worker
+  template:
+    metadata:
+      labels:
+        app: pulse-worker
+    spec:
+      containers:
+        - name: pulse-worker
+          image: anahita/pulse-worker
+          env:
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ENV
+            # Mutual TLS on the calls to the gRPC services. Unset means on,
+            # except with ENV=dev.
+            - name: GRPC_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRPC_TLS
+                  optional: true
+            - name: GRAPH_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: GRAPH_SERVICE_ADDR
+            - name: DSN
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: DSN
+            # For the card of each item's original. Unset, articles have none.
+            - name: LINK_PREVIEW_URL
+              value: http://link-preview-service:80
+            # The most posts a Pulse makes in an hour, and how often, in
+            # minutes, a feed is read.
+            - name: PULSE_HOURLY_CAP
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PULSE_HOURLY_CAP
+                  optional: true
+            - name: PULSE_READ_EVERY
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PULSE_READ_EVERY
+                  optional: true
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+          volumeMounts:
+            - name: grpc-tls
+              mountPath: /run/secrets/grpc
+              readOnly: true
+      volumes:
+        # The certificate this service presents when it calls a gRPC
+        # service, from k8s/base/grpc-tls.yml.
+        - name: grpc-tls
+          secret:
+            secretName: anahita-grpc-client

@@ -6,6 +6,8 @@ const (
 	// The `service` of an event's node and a Pulse's: actor-service serves
 	// them. A group's is still the older group-service.
 	ActorService = "actor-service"
+	// The `service` of a note's, an article's and a topic's node.
+	TextService = "text-service"
 
 	// Node Types
 	NodeActorPrefixEntityType  = "node.actor."

@@ -67,6 +67,8 @@ images:
     newTag: latest
   - name: anahita/pulse-service
     newTag: latest
+  - name: anahita/pulse-worker
+    newTag: latest
   - name: anahita/location-service
     newTag: latest
   - name: anahita/mail-grpc-service

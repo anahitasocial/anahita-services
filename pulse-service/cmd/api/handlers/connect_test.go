@@ -45,7 +45,10 @@ func (f *fakeChecker) Check(context.Context, domains.Site, string) (string, erro
 	return f.method, nil
 }
 
-type fakeDomains struct{ rows map[int64]*repositories.Domain }
+type fakeDomains struct {
+	repositories.DomainsInterface
+	rows map[int64]*repositories.Domain
+}
 
 func (f *fakeDomains) Add(_ context.Context, d *repositories.Domain) (int64, error) {
 	id := int64(len(f.rows) + 1)
@@ -69,7 +72,10 @@ func (f *fakeDomains) ForProfile(_ context.Context, id, profileID int64) error {
 	return nil
 }
 
-type fakePulses struct{ added []*repositories.Pulse }
+type fakePulses struct {
+	repositories.PulsesInterface
+	added []*repositories.Pulse
+}
 
 func (f *fakePulses) Add(_ context.Context, p *repositories.Pulse) error {
 	f.added = append(f.added, p)
@@ -84,7 +90,10 @@ func (f *fakePulses) FeedTaken(_ context.Context, feedURL string) (bool, error) 
 	return false, nil
 }
 
-type fakeItems struct{ seen []repositories.ItemSeenAs }
+type fakeItems struct {
+	repositories.ItemsInterface
+	seen []repositories.ItemSeenAs
+}
 
 func (f *fakeItems) MarkSeen(_ context.Context, _ int64, items []repositories.ItemSeenAs) error {
 	f.seen = append(f.seen, items...)
@@ -135,7 +144,7 @@ func (f *fakeFollows) Add(*an_services.SocialgraphFollowAddRequest) error {
 type counter struct{}
 
 func (counter) Incr(string, time.Duration) (int64, error) { return 1, nil }
-func (counter) Del(...string) error                        { return nil }
+func (counter) Del(...string) error                       { return nil }
 
 type fixture struct {
 	h       *connectHandler

@@ -36,6 +36,14 @@ type Config struct {
 	DSN string
 	// Who may connect a website. See GetPulsesFrom.
 	PulsesFrom string
+
+	// The worker's. Where link-preview-service is asked for the card of an
+	// item's original; unset, articles have no card.
+	LinkPreviewURL string
+	// The most posts a Pulse makes in an hour (PULSE_HOURLY_CAP, 10), and
+	// how often a feed is read, in minutes (PULSE_READ_EVERY, 30).
+	HourlyCap int
+	ReadEvery int
 }
 
 func NewConfig() *Config {
@@ -52,6 +60,9 @@ func NewConfig() *Config {
 		DomainName:       os.Getenv("DOMAIN_NAME"),
 		DSN:              os.Getenv("DSN"),
 		PulsesFrom:       os.Getenv("PULSES_FROM"),
+		LinkPreviewURL:   os.Getenv("LINK_PREVIEW_URL"),
+		HourlyCap:        getIntEnv("PULSE_HOURLY_CAP", 10),
+		ReadEvery:        getIntEnv("PULSE_READ_EVERY", 30),
 	}
 
 	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
@@ -106,6 +117,9 @@ func (config *Config) ValidateWorker() error {
 	}
 	if len(missing) > 0 {
 		return errors.New("missing fields: " + strings.Join(missing, ", "))
+	}
+	if config.HourlyCap < 1 || config.ReadEvery < 15 {
+		return errors.New("PULSE_HOURLY_CAP must be at least 1, and PULSE_READ_EVERY at least 15 minutes")
 	}
 	return nil
 }

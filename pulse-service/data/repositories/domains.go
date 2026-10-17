@@ -78,12 +78,39 @@ SET profile_id = ?,
 WHERE id = ?
   AND profile_id IS NULL`
 
+// The proofs of profiles' domains not looked at since this long ago are
+// looked at again: once a day.
+const checkEvery = 24 * time.Hour
+
+// Proofs that hold, of profiles that exist, not looked at for a day.
+const domainsDue = `
+SELECT` + domainColumns + `
+FROM verified_domains
+WHERE profile_id IS NOT NULL
+  AND verified_at IS NOT NULL
+  AND (checked_at IS NULL OR checked_at < ?)
+ORDER BY checked_at
+LIMIT ?`
+
+// The token was in neither place: failing since now, if it was not
+// already.
+const domainFailing = `
+UPDATE verified_domains
+SET checked_at = ?,
+    failing_since = COALESCE(failing_since, ?),
+    updated_at = ?
+WHERE id = ?`
+
 // DomainsInterface is what is kept of the domains people prove.
 type DomainsInterface interface {
 	Add(ctx context.Context, d *Domain) (int64, error)
 	Read(ctx context.Context, id int64) (*Domain, error)
 	Proved(ctx context.Context, id int64, method string) error
 	ForProfile(ctx context.Context, id, profileID int64) error
+	// Due is the proofs to look at again, a few at a time.
+	Due(ctx context.Context, limit int) ([]*Domain, error)
+	// Failing says the token was not found, and answers since when.
+	Failing(ctx context.Context, id int64) (time.Time, error)
 }
 
 type domainsRepo struct {
@@ -164,4 +191,37 @@ func timeOrNil(t sql.NullTime) *time.Time {
 		return nil
 	}
 	return &t.Time
+}
+
+func (r *domainsRepo) Due(ctx context.Context, limit int) ([]*Domain, error) {
+	rows, err := r.db.QueryContext(ctx, domainsDue, r.now().UTC().Add(-checkEvery), limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var due []*Domain
+	for rows.Next() {
+		d, err := scanDomain(rows)
+		if err != nil {
+			return nil, err
+		}
+		due = append(due, d)
+	}
+	return due, rows.Err()
+}
+
+func (r *domainsRepo) Failing(ctx context.Context, id int64) (time.Time, error) {
+	now := r.now().UTC()
+	if _, err := r.db.ExecContext(ctx, domainFailing, now, now, now, id); err != nil {
+		return time.Time{}, err
+	}
+	d, err := r.Read(ctx, id)
+	if err != nil {
+		return time.Time{}, err
+	}
+	if d.FailingSince == nil {
+		return now, nil
+	}
+	return *d.FailingSince, nil
 }

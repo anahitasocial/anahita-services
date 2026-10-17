@@ -30,6 +30,7 @@ resources:
   - services/like.yml
   - services/link-preview.yml
   - services/pulse.yml
+  - services/pulse-worker.yml
   - services/location.yml
   - services/notification.yml
   - services/photo.yml

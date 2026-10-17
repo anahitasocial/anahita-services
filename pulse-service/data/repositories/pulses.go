@@ -54,11 +54,136 @@ SELECT COUNT(*)
 FROM pulses
 WHERE feed_hash = ?`
 
+// Due is a Pulse whose feed is to be read now, as a worker took it.
+type Due struct {
+	NodeID       int64
+	FeedURL      string
+	ETag         string
+	LastModified string
+	Failures     int
+	// How many it posted in the hour that began at HourBeganAt.
+	HourPosts   int
+	HourBeganAt *time.Time
+}
+
+// Read is how reading a feed went, kept for the next time.
+type Read struct {
+	ETag         string
+	LastModified string
+	HourPosts    int
+	HourBeganAt  *time.Time
+	NextReadAt   time.Time
+}
+
 // PulsesInterface is what is kept of each Pulse's feed.
 type PulsesInterface interface {
 	Add(ctx context.Context, p *Pulse) error
 	FeedTaken(ctx context.Context, feedURL string) (bool, error)
+
+	// Claim takes the Pulse whose feed is most overdue, for one worker
+	// alone; nil when none is due.
+	Claim(ctx context.Context) (*Due, error)
+	// Read keeps how reading went and lets the Pulse go.
+	Read(ctx context.Context, nodeID int64, read Read) error
+	// Failed counts a read that failed and puts the next one off.
+	Failed(ctx context.Context, nodeID int64, failures int, next time.Time, why string) error
+	// Pause stops a Pulse's feed being read, saying why.
+	Pause(ctx context.Context, nodeID int64, why string) error
+	// PauseForProof pauses the Pulses resting on a domain whose proof is
+	// gone; ResumeAfterProof starts again those it paused.
+	PauseForProof(ctx context.Context, domainID int64) error
+	ResumeAfterProof(ctx context.Context, domainID int64) error
 }
+
+// Why a Pulse was paused, in last_error.
+const (
+	// Its domain's proof has been gone a week.
+	PausedProofGone = "proof_gone"
+	// Its profile is gone or switched off.
+	PausedProfileGone = "profile_gone"
+)
+
+// A claim is taken back from a worker that took it this long ago and never
+// let it go: it stopped while reading.
+const claimHeld = 10 * time.Minute
+
+// The most overdue feed of an active Pulse that no worker holds.
+const pulseNextDue = `
+SELECT node_id
+FROM pulses
+WHERE state = 'active'
+  AND next_read_at <= ?
+  AND (claimed_at IS NULL OR claimed_at < ?)
+ORDER BY next_read_at
+LIMIT 1
+FOR UPDATE SKIP LOCKED`
+
+const pulseClaim = `
+UPDATE pulses
+SET claimed_at = ?
+WHERE node_id = ?`
+
+const pulseDue = `
+SELECT
+    node_id,
+    feed_url,
+    COALESCE(etag, ''),
+    COALESCE(last_modified, ''),
+    failures,
+    hour_posts,
+    hour_began_at
+FROM pulses
+WHERE node_id = ?`
+
+const pulseRead = `
+UPDATE pulses
+SET etag = NULLIF(?, ''),
+    last_modified = NULLIF(?, ''),
+    hour_posts = ?,
+    hour_began_at = ?,
+    next_read_at = ?,
+    read_at = ?,
+    failures = 0,
+    last_error = NULL,
+    claimed_at = NULL,
+    updated_at = ?
+WHERE node_id = ?`
+
+const pulseFailed = `
+UPDATE pulses
+SET failures = ?,
+    next_read_at = ?,
+    last_error = ?,
+    claimed_at = NULL,
+    updated_at = ?
+WHERE node_id = ?`
+
+const pulsePause = `
+UPDATE pulses
+SET state = 'paused',
+    last_error = ?,
+    claimed_at = NULL,
+    updated_at = ?
+WHERE node_id = ?`
+
+const pulsePauseForProof = `
+UPDATE pulses
+SET state = 'paused',
+    last_error = 'proof_gone',
+    updated_at = ?
+WHERE domain_id = ?
+  AND state = 'active'`
+
+// Only what the proof paused: a Pulse paused for another reason stays so.
+const pulseResumeAfterProof = `
+UPDATE pulses
+SET state = 'active',
+    last_error = NULL,
+    next_read_at = ?,
+    updated_at = ?
+WHERE domain_id = ?
+  AND state = 'paused'
+  AND last_error = 'proof_gone'`
 
 type pulsesRepo struct {
 	db  *sql.DB
@@ -102,4 +227,85 @@ const firstRead = 15 * time.Minute
 
 func isDuplicate(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "Error 1062")
+}
+
+func (r *pulsesRepo) Claim(ctx context.Context) (*Due, error) {
+	now := r.now().UTC()
+
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	var nodeID int64
+	err = tx.QueryRowContext(ctx, pulseNextDue, now, now.Add(-claimHeld)).Scan(&nodeID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if _, err := tx.ExecContext(ctx, pulseClaim, now, nodeID); err != nil {
+		return nil, err
+	}
+
+	var (
+		due   Due
+		began sql.NullTime
+	)
+	err = tx.QueryRowContext(ctx, pulseDue, nodeID).Scan(
+		&due.NodeID,
+		&due.FeedURL,
+		&due.ETag,
+		&due.LastModified,
+		&due.Failures,
+		&due.HourPosts,
+		&began,
+	)
+	if err != nil {
+		return nil, err
+	}
+	due.HourBeganAt = timeOrNil(began)
+
+	return &due, tx.Commit()
+}
+
+func (r *pulsesRepo) Read(ctx context.Context, nodeID int64, read Read) error {
+	now := r.now().UTC()
+	_, err := r.db.ExecContext(ctx, pulseRead,
+		read.ETag,
+		read.LastModified,
+		read.HourPosts,
+		read.HourBeganAt,
+		read.NextReadAt.UTC(),
+		now,
+		now,
+		nodeID,
+	)
+	return err
+}
+
+func (r *pulsesRepo) Failed(ctx context.Context, nodeID int64, failures int, next time.Time, why string) error {
+	if len(why) > 500 {
+		why = why[:500]
+	}
+	_, err := r.db.ExecContext(ctx, pulseFailed, failures, next.UTC(), why, r.now().UTC(), nodeID)
+	return err
+}
+
+func (r *pulsesRepo) Pause(ctx context.Context, nodeID int64, why string) error {
+	_, err := r.db.ExecContext(ctx, pulsePause, why, r.now().UTC(), nodeID)
+	return err
+}
+
+func (r *pulsesRepo) PauseForProof(ctx context.Context, domainID int64) error {
+	_, err := r.db.ExecContext(ctx, pulsePauseForProof, r.now().UTC(), domainID)
+	return err
+}
+
+func (r *pulsesRepo) ResumeAfterProof(ctx context.Context, domainID int64) error {
+	now := r.now().UTC()
+	_, err := r.db.ExecContext(ctx, pulseResumeAfterProof, now, now, domainID)
+	return err
 }

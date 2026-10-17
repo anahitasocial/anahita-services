@@ -144,4 +144,5 @@ Considered and not chosen:
 | Goal and name | recorded 2026-10-05; renamed Pulse 2026-10-15 |
 | Scope | settled 2026-10-14; narrowed to the feed alone 2026-10-15; its open points settled the same day |
 | Design | 2026-10-16: an article per item, pulse-service and pulse-worker, Article out for Pulses only |
-| Parts 1–10 | not started |
+| Parts 1–5 | done 2026-10-16: foundations, proving a domain, pulse-service, the stack knowing a Pulse, pulse-worker |
+| Parts 6–10 | not started |
