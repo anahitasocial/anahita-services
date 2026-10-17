@@ -82,7 +82,16 @@ type Worker struct {
 	ReadEvery time.Duration
 	HourlyCap int
 	Now       func() time.Time
+
+	// Subscribing to the hubs feeds name. Callback is nil where no hub
+	// could call back: an installation not reachable from the internet.
+	Subscribe func(ctx context.Context, hub, topic, callback string) error
+	Callback  func(nodeID int64) string
 }
+
+// A subscription is asked for again this long before it runs out, and this
+// long after it was asked for when the hub never checked it.
+const hubRenew = 24 * time.Hour
 
 // Run reads feeds until it is stopped: whatever is due, then a pause, and
 // the proofs once an hour.
@@ -179,8 +188,29 @@ func (w *Worker) read(ctx context.Context, due *repositories.Due) error {
 		if err := w.take(ctx, pulse, read.Items, &next); err != nil {
 			return w.failed(ctx, due, err)
 		}
+		w.subscribe(ctx, due, read)
 	}
 	return w.Pulses.Read(ctx, due.NodeID, next)
+}
+
+// subscribe asks the hub a feed names to say when it changes: when it has
+// not been asked, or its subscription is near its end. A hub that does not
+// answer is no reason to stop reading the feed.
+func (w *Worker) subscribe(ctx context.Context, due *repositories.Due, read *feeds.Read) {
+	if read.Hub == "" || w.Subscribe == nil || w.Callback == nil {
+		return
+	}
+	now := w.now()
+	if due.HubURL == read.Hub && due.HubUntil != nil && now.Before(due.HubUntil.Add(-hubRenew)) {
+		return
+	}
+	if err := w.Subscribe(ctx, read.Hub, read.Self, w.Callback(due.NodeID)); err != nil {
+		log.Printf("pulse-worker: subscribing to %s: %v", read.Hub, err)
+		return
+	}
+	if err := w.Pulses.Hub(ctx, due.NodeID, read.Hub, now.Add(2*hubRenew)); err != nil {
+		log.Printf("pulse-worker: %v", err)
+	}
 }
 
 // take keeps what is new in a feed, posts as much of what waits as this

@@ -14,6 +14,7 @@ import (
 	"pulse/config"
 	"pulse/data/repositories"
 	"pulse/feeds"
+	"pulse/websub"
 	"pulse/worker"
 
 	an_const "anahita-libs/constants"
@@ -21,6 +22,8 @@ import (
 	"anahita-libs/data/services"
 	"anahita-libs/domains"
 	"anahita-libs/federation"
+	"anahita-libs/safehttp"
+	"anahita-libs/site"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -53,6 +56,21 @@ func main() {
 	// Left nil when there is no address, so that no card is asked for.
 	if cards := federation.NewCards(config.LinkPreviewURL); cards != nil {
 		w.Cards = cards
+	}
+
+	// Hubs are asked to call back only where one could: an installation
+	// reachable from the internet, over https, as for federation.
+	addresses := site.FromEnv()
+	if key := config.GetSecureCookieKey(); key != "" && addresses.CanFederate() == nil {
+		client := safehttp.NewClient(safehttp.Options{Timeout: 10 * time.Second})
+		w.Subscribe = func(ctx context.Context, hub, topic, callback string) error {
+			return websub.Subscribe(ctx, client, hub, topic, callback)
+		}
+		w.Callback = func(nodeID int64) string {
+			return websub.Callback(addresses.API, nodeID, key)
+		}
+	} else {
+		log.Println("pulse-worker: not reachable from the internet; feeds are read on the clock, without WebSub")
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

@@ -868,6 +868,14 @@ services:
       # a feed is read. See docs/pulses.md.
       PULSE_HOURLY_CAP: ${PULSE_HOURLY_CAP:-10}
       PULSE_READ_EVERY: ${PULSE_READ_EVERY:-30}
+      # For WebSub: the address hubs call back at, and the key its
+      # signature is made with, the same as pulse-service's. On a machine
+      # no hub can reach, feeds are read on the clock alone.
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      DOMAIN_NAME: ${DOMAIN_NAME:-}
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:-}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
     networks:

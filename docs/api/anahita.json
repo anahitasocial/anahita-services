@@ -26868,6 +26868,156 @@
         "x-viewer": "signed_in"
       }
     },
+    "/pulses/_websub/{id}/{signature}": {
+      "get": {
+        "description": "WebSub: the hub a Pulse's feed names asks whether its subscription was asked for here, and is answered with its challenge.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getPulsesWebsubByIdBySignature",
+        "parameters": [
+          {
+            "description": "The Pulse's id, and the signature that came with it.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "signature",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "What the hub checks: `subscribe`, `unsubscribe`, or `denied`.",
+            "in": "query",
+            "name": "hub.mode",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "What to answer with, to show the subscription was asked for here.",
+            "in": "query",
+            "name": "hub.challenge",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "How long, in seconds, the hub will call back.",
+            "in": "query",
+            "name": "hub.lease_seconds",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "the challenge, as plain text"
+          },
+          "400": {
+            "description": "it is not a check this answers"
+          },
+          "404": {
+            "description": "there is no such Pulse, or no subscription was asked for"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A hub checks a subscription",
+        "tags": [
+          "pulse-service"
+        ],
+        "x-handler": "pulse/cmd/api/handlers.(*websubHandler).Verify",
+        "x-viewer": "anyone"
+      },
+      "post": {
+        "description": "The Pulse's feed is read from its site at once, at most once a minute; what the hub sends is not read.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "postPulsesWebsubByIdBySignature",
+        "parameters": [
+          {
+            "description": "The Pulse's id, and the signature that came with it.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "signature",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "What the hub checks: `subscribe`, `unsubscribe`, or `denied`.",
+            "in": "query",
+            "name": "hub.mode",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "What to answer with, to show the subscription was asked for here.",
+            "in": "query",
+            "name": "hub.challenge",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "How long, in seconds, the hub will call back.",
+            "in": "query",
+            "name": "hub.lease_seconds",
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "it will be read"
+          },
+          "404": {
+            "description": "there is no such Pulse, or no subscription was asked for"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A hub says a feed changed",
+        "tags": [
+          "pulse-service"
+        ],
+        "x-handler": "pulse/cmd/api/handlers.(*websubHandler).Notify",
+        "x-viewer": "anyone"
+      }
+    },
     "/pulses/{id}": {
       "delete": {
         "description": "It is out of sight at once and destroyed after thirty days, unless it is restored before then.\n\nWho may call it: somebody signed in, who has just proved who they are again.",

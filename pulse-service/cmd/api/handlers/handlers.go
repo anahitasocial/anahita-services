@@ -38,11 +38,13 @@ type Env struct {
 
 type Handlers struct {
 	Connect *connectHandler
+	WebSub  *websubHandler
 }
 
 func NewHandlers(env *Env) *Handlers {
 	return &Handlers{
 		Connect: &connectHandler{env},
+		WebSub:  &websubHandler{env},
 	}
 }
 

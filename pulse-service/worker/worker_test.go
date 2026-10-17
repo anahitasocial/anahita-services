@@ -28,6 +28,8 @@ type memPulses struct {
 	paused   string
 	resumed  []int64
 	pausedOn []int64
+	hub      string
+	hubAgain time.Time
 }
 
 func (m *memPulses) Claim(context.Context) (*repositories.Due, error) {
@@ -49,6 +51,10 @@ func (m *memPulses) Pause(_ context.Context, _ int64, why string) error {
 }
 func (m *memPulses) PauseForProof(_ context.Context, id int64) error {
 	m.pausedOn = append(m.pausedOn, id)
+	return nil
+}
+func (m *memPulses) Hub(_ context.Context, _ int64, hub string, again time.Time) error {
+	m.hub, m.hubAgain = hub, again
 	return nil
 }
 func (m *memPulses) ResumeAfterProof(_ context.Context, id int64) error {
@@ -94,13 +100,14 @@ func (m *memItems) Changed(_ context.Context, _ int64, key, hash string) error {
 type memFeed struct {
 	items []feeds.Item
 	err   error
+	hub   string
 }
 
 func (m *memFeed) Read(context.Context, string, string, string) (*feeds.Read, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
-	return &feeds.Read{ETag: `"v2"`, Items: m.items}, nil
+	return &feeds.Read{ETag: `"v2"`, Items: m.items, Hub: m.hub, Self: "https://example.com/feed/"}, nil
 }
 
 type memGraph struct {
@@ -347,5 +354,40 @@ func TestAProofGoneAWeekPausesItsPulses(t *testing.T) {
 	f.w.CheckProofs(context.Background())
 	if len(f.pulses.pausedOn) != 0 {
 		t.Errorf("paused after three days")
+	}
+}
+
+func TestAFeedsHubIsAskedToCallBack(t *testing.T) {
+	f := newFixture()
+	f.feed.hub = "https://hub.example/"
+	var asked []string
+	f.w.Subscribe = func(_ context.Context, hub, topic, callback string) error {
+		asked = append(asked, hub+" "+topic+" "+callback)
+		return nil
+	}
+	f.w.Callback = func(id int64) string { return fmt.Sprintf("https://api.example.org/pulses/_websub/%d/sig", id) }
+
+	f.round(t)
+	if len(asked) != 1 || asked[0] != "https://hub.example/ https://example.com/feed/ https://api.example.org/pulses/_websub/900/sig" {
+		t.Fatalf("asked %v", asked)
+	}
+	if f.pulses.hub != "https://hub.example/" || !f.pulses.hubAgain.Equal(start.Add(48*time.Hour)) {
+		t.Errorf("kept %q until %v", f.pulses.hub, f.pulses.hubAgain)
+	}
+
+	// Asked, and checked until ten days on: not asked again for nine.
+	until := start.Add(10 * 24 * time.Hour)
+	f.pulses.due = &repositories.Due{NodeID: 900, HubURL: "https://hub.example/", HubUntil: &until}
+	_, _ = f.w.Once(context.Background())
+	if len(asked) != 1 {
+		t.Errorf("asked again: %v", asked)
+	}
+
+	// Where no hub could call back, none is asked.
+	f.w.Callback = nil
+	f.pulses.due = &repositories.Due{NodeID: 900}
+	_, _ = f.w.Once(context.Background())
+	if len(asked) != 1 {
+		t.Errorf("asked with nowhere to call back")
 	}
 }

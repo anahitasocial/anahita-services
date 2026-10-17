@@ -66,7 +66,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#location-service">Places</a> <span class="count">10</span></li>
 <li><a href="#notification-service">Notifications</a> <span class="count">6</span></li>
 <li><a href="#photo-service">Photo posts</a> <span class="count">16</span></li>
-<li><a href="#pulse-service">Pulses</a> <span class="count">3</span></li>
+<li><a href="#pulse-service">Pulses</a> <span class="count">5</span></li>
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
 <li><a href="#search-service">Search</a> <span class="count">3</span></li>
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
@@ -7008,6 +7008,59 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>pulse/cmd/api/handlers.(*connectHandler).Check</code></p>
+</details>
+<details class="route" id="getPulsesWebsubByIdBySignature" data-search="get /pulses/_websub/{id}/{signature} a hub checks a subscription websub: the hub a pulse&#39;s feed names asks whether its subscription was asked for here, and is answered with its challenge.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/pulses/_websub/{id}/{signature}</code> <span class="summary">A hub checks a subscription</span></summary>
+<div class="description"><p>WebSub: the hub a Pulse&#39;s feed names asks whether its subscription was asked for here, and is answered with its challenge.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The Pulse&#39;s id, and the signature that came with it.</td></tr>
+<tr><td><code>signature</code> <span class="required">required</span></td><td>path</td><td>string</td><td></td></tr>
+<tr><td><code>hub.mode</code></td><td>query</td><td>string</td><td>What the hub checks: <code>subscribe</code>, <code>unsubscribe</code>, or <code>denied</code>.</td></tr>
+<tr><td><code>hub.challenge</code></td><td>query</td><td>string</td><td>What to answer with, to show the subscription was asked for here.</td></tr>
+<tr><td><code>hub.lease_seconds</code></td><td>query</td><td>integer</td><td>How long, in seconds, the hub will call back.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>the challenge, as plain text<div class="body">string <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>it is not a check this answers</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Pulse, or no subscription was asked for</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>pulse/cmd/api/handlers.(*websubHandler).Verify</code></p>
+</details>
+<details class="route" id="postPulsesWebsubByIdBySignature" data-search="post /pulses/_websub/{id}/{signature} a hub says a feed changed the pulse&#39;s feed is read from its site at once, at most once a minute; what the hub sends is not read.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method post">POST</span> <code class="path">/pulses/_websub/{id}/{signature}</code> <span class="summary">A hub says a feed changed</span></summary>
+<div class="description"><p>The Pulse&#39;s feed is read from its site at once, at most once a minute; what the hub sends is not read.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The Pulse&#39;s id, and the signature that came with it.</td></tr>
+<tr><td><code>signature</code> <span class="required">required</span></td><td>path</td><td>string</td><td></td></tr>
+<tr><td><code>hub.mode</code></td><td>query</td><td>string</td><td>What the hub checks: <code>subscribe</code>, <code>unsubscribe</code>, or <code>denied</code>.</td></tr>
+<tr><td><code>hub.challenge</code></td><td>query</td><td>string</td><td>What to answer with, to show the subscription was asked for here.</td></tr>
+<tr><td><code>hub.lease_seconds</code></td><td>query</td><td>integer</td><td>How long, in seconds, the hub will call back.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">202</td><td>it will be read</td></tr>
+<tr><td class="status s4">404</td><td>there is no such Pulse, or no subscription was asked for</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>pulse/cmd/api/handlers.(*websubHandler).Notify</code></p>
 </details>
 </section>
 <section id="recommendation-service" class="service">

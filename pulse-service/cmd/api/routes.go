@@ -70,5 +70,26 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 			Refuses(http.StatusConflict, "`not_proved`, `feed_taken` or `handle_taken`, as `error`"))
 	})
 
+	// Where a WebSub hub calls back: not signed in, since a hub has no
+	// account here; the address's signature says which Pulse it is about.
+	hub := api.Group("pulses/_websub")
+	hub.GET("/:id/:signature", r.handler.WebSub.Verify).
+		Summary("A hub checks a subscription").
+		Describe("WebSub: the hub a Pulse's feed names asks whether its subscription was asked for here, and is answered with its challenge.").
+		Viewer(apidoc.Anyone).
+		Takes(&handlers.WebSubRequest{}).
+		Unbound().
+		Sends(http.StatusOK, "", "the challenge, as plain text").
+		Refuses(http.StatusBadRequest, "it is not a check this answers").
+		Refuses(http.StatusNotFound, "there is no such Pulse, or no subscription was asked for")
+	hub.POST("/:id/:signature", r.handler.WebSub.Notify).
+		Summary("A hub says a feed changed").
+		Describe("The Pulse's feed is read from its site at once, at most once a minute; what the hub sends is not read.").
+		Viewer(apidoc.Anyone).
+		Takes(&handlers.WebSubRequest{}).
+		Unbound().
+		SendsNothing(http.StatusAccepted, "it will be read").
+		Refuses(http.StatusNotFound, "there is no such Pulse, or no subscription was asked for")
+
 	return doc
 }

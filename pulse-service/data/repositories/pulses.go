@@ -64,6 +64,10 @@ type Due struct {
 	// How many it posted in the hour that began at HourBeganAt.
 	HourPosts   int
 	HourBeganAt *time.Time
+	// The WebSub hub it asked, and until when that holds: the end of the
+	// hub's lease, or, until the hub checks it, when to ask again.
+	HubURL   string
+	HubUntil *time.Time
 }
 
 // Read is how reading a feed went, kept for the next time.
@@ -93,6 +97,18 @@ type PulsesInterface interface {
 	// gone; ResumeAfterProof starts again those it paused.
 	PauseForProof(ctx context.Context, domainID int64) error
 	ResumeAfterProof(ctx context.Context, domainID int64) error
+
+	// Hub says a subscription to a hub was asked for, to be asked again
+	// at askAgain unless the hub checks it first (HubVerified), which puts
+	// that off to when the hub's lease ends.
+	Hub(ctx context.Context, nodeID int64, hubURL string, askAgain time.Time) error
+	HubVerified(ctx context.Context, nodeID int64, until time.Time) error
+	// Feed is the feed a Pulse reads and the hub it asked, for a hub's
+	// check.
+	Feed(ctx context.Context, nodeID int64) (feedURL, hubURL string, err error)
+	// ReadSoon brings the next read forward to now, as a hub's word that
+	// something was published does: at most once a minute.
+	ReadSoon(ctx context.Context, nodeID int64) error
 }
 
 // Why a Pulse was paused, in last_error.
@@ -131,9 +147,42 @@ SELECT
     COALESCE(last_modified, ''),
     failures,
     hour_posts,
-    hour_began_at
+    hour_began_at,
+    COALESCE(hub_url, ''),
+    hub_until
 FROM pulses
 WHERE node_id = ?`
+
+const pulseHub = `
+UPDATE pulses
+SET hub_url = ?,
+    hub_until = ?,
+    updated_at = ?
+WHERE node_id = ?`
+
+const pulseHubVerified = `
+UPDATE pulses
+SET hub_until = ?,
+    updated_at = ?
+WHERE node_id = ?
+  AND hub_url IS NOT NULL`
+
+const pulseFeed = `
+SELECT
+    feed_url,
+    COALESCE(hub_url, '')
+FROM pulses
+WHERE node_id = ?`
+
+// Not a Pulse that is paused, and not one read in the last minute: a hub
+// that says so over and over brings nothing forward.
+const pulseReadSoon = `
+UPDATE pulses
+SET next_read_at = ?,
+    updated_at = ?
+WHERE node_id = ?
+  AND state = 'active'
+  AND (read_at IS NULL OR read_at < ?)`
 
 const pulseRead = `
 UPDATE pulses
@@ -251,8 +300,9 @@ func (r *pulsesRepo) Claim(ctx context.Context) (*Due, error) {
 	}
 
 	var (
-		due   Due
-		began sql.NullTime
+		due      Due
+		began    sql.NullTime
+		hubUntil sql.NullTime
 	)
 	err = tx.QueryRowContext(ctx, pulseDue, nodeID).Scan(
 		&due.NodeID,
@@ -262,11 +312,14 @@ func (r *pulsesRepo) Claim(ctx context.Context) (*Due, error) {
 		&due.Failures,
 		&due.HourPosts,
 		&began,
+		&due.HubURL,
+		&hubUntil,
 	)
 	if err != nil {
 		return nil, err
 	}
 	due.HourBeganAt = timeOrNil(began)
+	due.HubUntil = timeOrNil(hubUntil)
 
 	return &due, tx.Commit()
 }
@@ -307,5 +360,30 @@ func (r *pulsesRepo) PauseForProof(ctx context.Context, domainID int64) error {
 func (r *pulsesRepo) ResumeAfterProof(ctx context.Context, domainID int64) error {
 	now := r.now().UTC()
 	_, err := r.db.ExecContext(ctx, pulseResumeAfterProof, now, now, domainID)
+	return err
+}
+
+func (r *pulsesRepo) Hub(ctx context.Context, nodeID int64, hubURL string, askAgain time.Time) error {
+	_, err := r.db.ExecContext(ctx, pulseHub, hubURL, askAgain.UTC(), r.now().UTC(), nodeID)
+	return err
+}
+
+func (r *pulsesRepo) HubVerified(ctx context.Context, nodeID int64, until time.Time) error {
+	_, err := r.db.ExecContext(ctx, pulseHubVerified, until.UTC(), r.now().UTC(), nodeID)
+	return err
+}
+
+func (r *pulsesRepo) Feed(ctx context.Context, nodeID int64) (string, string, error) {
+	var feedURL, hubURL string
+	err := r.db.QueryRowContext(ctx, pulseFeed, nodeID).Scan(&feedURL, &hubURL)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", "", ErrNotFound
+	}
+	return feedURL, hubURL, err
+}
+
+func (r *pulsesRepo) ReadSoon(ctx context.Context, nodeID int64) error {
+	now := r.now().UTC()
+	_, err := r.db.ExecContext(ctx, pulseReadSoon, now, now, nodeID, now.Add(-time.Minute))
 	return err
 }

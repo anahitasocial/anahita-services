@@ -136,3 +136,16 @@ func TestTextIsCutAtAWord(t *testing.T) {
 		t.Error("short text was cut")
 	}
 }
+
+func TestAFeedNamesItsHub(t *testing.T) {
+	body := []byte(`<rss xmlns:atom="http://www.w3.org/2005/Atom"><channel>
+		<atom:link rel="self" type="application/rss+xml" href="https://example.com/feed/"/>
+		<atom:link href='https://pubsubhubbub.appspot.com/' rel='hub'/>
+	</channel></rss>`)
+	if hub, self := hubOf(body, "https://example.com/feed"); hub != "https://pubsubhubbub.appspot.com/" || self != "https://example.com/feed/" {
+		t.Errorf("hub %q, self %q", hub, self)
+	}
+	if hub, self := hubOf([]byte(rss), "https://example.com/feed.xml"); hub != "" || self != "" {
+		t.Errorf("a feed with no hub: %q %q", hub, self)
+	}
+}

@@ -131,6 +131,10 @@ type Read struct {
 	ETag         string
 	LastModified string
 	Items        []Item
+	// The WebSub hub the feed names, and the address it names itself by,
+	// which is what is subscribed to. Empty when it names no hub.
+	Hub  string
+	Self string
 }
 
 // Item is one entry of a feed, as a post is made of it.
@@ -167,6 +171,7 @@ func (r *Reader) Read(ctx context.Context, feedURL, etag, lastModified string) (
 	}
 
 	read := &Read{ETag: res.Header.Get("ETag"), LastModified: res.Header.Get("Last-Modified")}
+	read.Hub, read.Self = hubOf(body, feedURL)
 	for _, entry := range feed.Items {
 		if item, ok := itemOf(entry, feedURL); ok {
 			read.Items = append(read.Items, item)
@@ -429,4 +434,38 @@ func clip(text string, n int) string {
 		cut = cut[:i]
 	}
 	return strings.TrimRightFunc(cut, func(r rune) bool { return unicode.IsSpace(r) || unicode.IsPunct(r) }) + "…"
+}
+
+// A link in a feed: <atom:link> in RSS, <link> in Atom.
+var feedLink = regexp.MustCompile(`(?i)<(?:atom:)?link\b[^>]*>`)
+var linkAttr = regexp.MustCompile(`(?i)\b(rel|href)\s*=\s*("[^"]*"|'[^']*')`)
+
+// hubOf is the WebSub hub a feed names (rel="hub") and the address it
+// names itself by (rel="self"), the feed's own when it names none. Only an
+// https or http hub is taken.
+func hubOf(body []byte, feedURL string) (hub, self string) {
+	for _, tag := range feedLink.FindAll(body, 50) {
+		var rel, href string
+		for _, attr := range linkAttr.FindAllSubmatch(tag, -1) {
+			value := html.UnescapeString(strings.Trim(string(attr[2]), `"'`))
+			if strings.EqualFold(string(attr[1]), "rel") {
+				rel = strings.ToLower(value)
+			} else {
+				href = strings.TrimSpace(value)
+			}
+		}
+		switch {
+		case hasWord(rel, "hub") && hub == "":
+			hub = absolute(href, feedURL)
+		case hasWord(rel, "self") && self == "":
+			self = absolute(href, feedURL)
+		}
+	}
+	if hub == "" {
+		return "", ""
+	}
+	if self == "" {
+		self = feedURL
+	}
+	return hub, self
 }
