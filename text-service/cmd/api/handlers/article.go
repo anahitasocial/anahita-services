@@ -98,6 +98,8 @@ func (h *articleHandler) Browse(c echo.Context) error {
 	}
 
 	batchPresignPaths(h.Env, nodes)
+	// What the viewer may do with each, as a post's own page says.
+	an_handlers.SetListPostFlags(c, h.Srv.ActorsGRPC, h.Srv.SocialgraphGRPC, nodes, viewer)
 
 	mediaResp := &responses.MediumNodeResponse{}
 	resp.Data = mediaResp.MapMediumNodeItems(nodes)

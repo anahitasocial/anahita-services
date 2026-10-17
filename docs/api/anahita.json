@@ -1133,6 +1133,10 @@
             "$ref": "#/components/schemas/Author",
             "description": "Related Entities"
           },
+          "authorized": {
+            "$ref": "#/components/schemas/NodeAuthorized",
+            "description": "What the viewer may do with it, as on the post's own page: reply, like, quote and the rest. Left out where a list does not say."
+          },
           "comment_count": {
             "description": "How many replies are under it.",
             "format": "int64",

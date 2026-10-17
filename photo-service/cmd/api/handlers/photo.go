@@ -102,6 +102,8 @@ func (h *photoHandler) Browse(c echo.Context) error {
 	}
 
 	batchPresignPaths(h.Env, nodes)
+	// What the viewer may do with each, as a post's own page says.
+	handlers.SetListPostFlags(c, h.Srv.ActorsGRPC, h.Srv.SocialgraphGRPC, nodes, viewer)
 
 	mediaResp := &responses.MediumNodeResponse{}
 	resp.Data = mediaResp.MapMediumNodeItems(nodes)

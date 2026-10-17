@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"log"
+
 	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
@@ -74,4 +76,45 @@ func requestOwner(c echo.Context, actors services.ActorsGRPCInterface, id int64,
 
 	owners[id] = owner
 	return owner, nil
+}
+
+// SetListPostFlags answers for each post in a list what SetPostFlags answers
+// for one post on its own page: whether the viewer may reply to it, like it,
+// quote it, and the rest. A list that left them out had the web app read
+// every one as "no": Quote was switched off on the viewer's own public posts.
+//
+// How the viewer stands with each owner is read once for the whole list.
+// A failure to read it is logged, and the answers are worked out as for
+// somebody with no relation to the owner.
+func SetListPostFlags(c echo.Context, actors services.ActorsGRPCInterface, relations RelationReader, posts []*entities.AnahitaNode, viewer *entities.Viewer) {
+	if len(posts) == 0 {
+		return
+	}
+
+	rels := map[int64]*entities.ActorRelation{}
+	if relations != nil && viewer != nil && viewer.ID > 0 {
+		seen := map[int64]bool{}
+		ownerIDs := make([]int64, 0, len(posts))
+		for _, post := range posts {
+			if post != nil && post.OwnerID > 0 && !seen[post.OwnerID] {
+				seen[post.OwnerID] = true
+				ownerIDs = append(ownerIDs, post.OwnerID)
+			}
+		}
+		if read, err := relations.Browse(ownerIDs, viewer.ID); err != nil {
+			log.Println("list post flags: reading relationships:", err)
+		} else if read != nil {
+			rels = read
+		}
+	}
+
+	for _, post := range posts {
+		if post == nil {
+			continue
+		}
+		if post.Authorized == nil {
+			post.Authorized = &entities.AnahitaNodeAuthorized{}
+		}
+		SetPostFlags(c, actors, post, viewer, rels[post.OwnerID])
+	}
 }

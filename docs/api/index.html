@@ -10007,7 +10007,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias author comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video">
+<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video">
 <h3>MediumNodeItem</h3>
 <p>A post or a reply in a list.</p>
 <table>
@@ -10016,6 +10016,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>access</code></td><td>string</td><td>Who may see it: <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code> or <code>myself</code> (<a href="../permissions.md">permissions.md</a>).</td></tr>
 <tr><td><code>alias</code></td><td>string</td><td>Its short name, where it has one.</td></tr>
 <tr><td><code>author</code></td><td><a href="#schema-Author">Author</a></td><td>Related Entities</td></tr>
+<tr><td><code>authorized</code></td><td><a href="#schema-NodeAuthorized">NodeAuthorized</a></td><td>What the viewer may do with it, as on the post&#39;s own page: reply, like, quote and the rest. Left out where a list does not say.</td></tr>
 <tr><td><code>comment_count</code> <span class="required">always</span></td><td>integer</td><td>How many replies are under it.</td></tr>
 <tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown.</td></tr>
 <tr><td><code>cover_urls</code></td><td>map of <a href="#schema-Image">Image</a></td><td>Media URLs</td></tr>
