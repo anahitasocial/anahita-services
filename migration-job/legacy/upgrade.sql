@@ -1257,6 +1257,12 @@ ALTER TABLE nodes         CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_
 ALTER TABLE edges         CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 ALTER TABLE people_people CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
+-- The conversion takes every text column to utf8mb4, the two added above as
+-- ASCII among them: a node's uuid and uri are identifiers, compared byte for
+-- byte, and are put back as a fresh schema has them.
+ALTER TABLE nodes MODIFY COLUMN `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT (LOWER(CONCAT(HEX(RANDOM_BYTES(4)),'-',HEX(RANDOM_BYTES(2)),'-4',SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(CONV(SUBSTR(HEX(RANDOM_BYTES(1)),1,1),16,10) & 3 | 8),SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(RANDOM_BYTES(6)))));
+ALTER TABLE nodes MODIFY COLUMN `uri` varchar(512) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL;
+
 -- The index on nodes.service is still called `component`: step 5 renamed the
 -- column and MySQL carried the index across under its old name, so a legacy
 -- database and a fresh install disagreed on what it is called.
@@ -1977,6 +1983,10 @@ ALTER TABLE notifications RENAME INDEX `modified_on` TO `updated_at`;
 ALTER TABLE auth_logs RENAME INDEX `idx_auth_logs_created_on` TO `idx_auth_logs_created_at`;
 ALTER TABLE auth_logs RENAME INDEX `idx_auth_logs_created_by_client_id_created_on` TO `idx_auth_logs_created_by_client_id_created_at`;
 ALTER TABLE node_deletion_logs RENAME INDEX `idx_node_deletion_logs_created_on` TO `idx_node_deletion_logs_created_at`;
+
+-- Every node has a service by now, the PHP application's rows without one
+-- repaired above, and a fresh schema says it must.
+ALTER TABLE nodes MODIFY `service` varchar(255) NOT NULL;
 
 -- --------------------------------------------------------
 
