@@ -87,6 +87,12 @@ type CustomFeedItemsRequest struct {
 	Cursor string `query:"cursor" validate:"omitempty,max=100"`
 	// The most to send: up to 40.
 	Limit uint64 `query:"limit" validate:"omitempty,numeric,max=40"`
+	// Where the reader is, for a feed of what is near them: its area is
+	// around this point for this page, and the point is kept nowhere.
+	// Rounded to three decimals. Needed by such a feed, unread by any
+	// other.
+	NearLatitude  *float64 `query:"near_latitude"`
+	NearLongitude *float64 `query:"near_longitude"`
 }
 
 type CustomFeedDiscoverRequest struct {
@@ -391,6 +397,9 @@ func checkFields(fields *CustomFeedFields, current string) (*feeds.Definition, s
 		}
 		return nil, string(feeds.RefusedMalformed)
 	}
+	// Of an area that is wherever its reader is, the radius is kept, and
+	// never where its maker was when they made it.
+	def.ForgetPoint()
 
 	if fields.Access == "" {
 		fields.Access = current
@@ -981,6 +990,17 @@ func (h *customFeedHandler) Items(c echo.Context) error {
 	before, err := feeds.ParseCursor(req.Cursor)
 	if err != nil {
 		return c.NoContent(http.StatusBadRequest)
+	}
+
+	// A feed of what is near its reader is read around where they are,
+	// which they say with each page.
+	if def.NeedsPoint() {
+		if req.NearLatitude == nil || req.NearLongitude == nil {
+			return refuseFeed(c, http.StatusUnprocessableEntity, "location_needed")
+		}
+		if !def.AtPoint(*req.NearLatitude, *req.NearLongitude) {
+			return refuseFeed(c, http.StatusUnprocessableEntity, string(feeds.RefusedNear))
+		}
 	}
 
 	// "Whoever I follow" is whoever the feed's owner follows.

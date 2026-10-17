@@ -80,7 +80,7 @@ The web app offers this as one choice of three: **Everyone** (neither), **Profil
 | `keywords_any` | Posts with any of these words in the title or the text, in any case |
 | `locations_any` | Posts tagged with any of these places, by id |
 | `language` | Posts their author marked as written in this language |
-| `near` | Posts within `radius_km` (1 to 500) of a point, `latitude` and `longitude`: tied to a place there, or carrying a location of their own there. The point is kept with the feed; the web app takes it from the browser, to three decimals. Narrows as a place does |
+| `near` | Posts within `radius_km` (1 to 500) of a point, `latitude` and `longitude`: tied to a place there, or carrying a location of their own there. Narrows as a place does. With `"live": true` the point is wherever whoever reads the feed is: none is kept, and each page is read with `near_latitude` and `near_longitude` (see below). Otherwise the point is kept with the feed, as the web app took it from the browser when it was made, to three decimals |
 | `origin` | Where a post was written: `here`, on this installation, or `elsewhere`, on the fediverse or Bluesky. Left out for anywhere |
 
 **Exclude** leaves posts out whatever else is true of them: by hashtag, by keyword, and by profile. An excluded profile's posts are left out wherever they were posted, and so is everything posted on it.
@@ -88,6 +88,18 @@ The web app offers this as one choice of three: **Everyone** (neither), **Profil
 **`include_replies`** is off unless asked for: a reply is read in its thread. **`order`** is `newest`, the one value there is. The key is kept so that another order is a value added and not a change of shape.
 
 A key the code does not know is refused, at any depth. A definition is tidied when it is read: lists lose their repeats and blanks, a hashtag loses its `#` and is lower-cased, and a keyword's spaces are closed up.
+
+### A feed of what is near its reader
+
+A feed whose area is live (`"near": {"live": true, "radius_km": 10}`) is
+read around wherever its reader is, which they send with each page:
+`GET /feeds/:id/items?near_latitude=49.283&near_longitude=-123.121`. The
+point is rounded to three decimals, about a hundred metres, used for that
+page, and kept nowhere; whoever reads a shared feed of this kind sees what is
+near them. Read without a point it is answered `422` with
+`location_needed`. A point saved with a live area is dropped. The web app
+asks the browser for the point each time, a reading up to five minutes old
+will do, and says why when the browser will not tell it.
 
 ## Limits
 

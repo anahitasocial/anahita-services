@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"math"
 	"strings"
 	"unicode/utf8"
 
@@ -100,10 +101,17 @@ type Filters struct {
 }
 
 // Near is a point and how far around it, in kilometres.
+//
+// Live, the point is wherever whoever reads the feed is, sent with each
+// page they read and kept nowhere (the user, 2026-10-17: "read the location
+// live rather than recording the point"): a feed of what is near me, for
+// whoever reads it. Its point is kept empty, and set for one reading only
+// (AtPoint).
 type Near struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 	RadiusKm  int     `json:"radius_km"`
+	Live      bool    `json:"live,omitempty"`
 }
 
 // Where a post was written.
@@ -298,6 +306,37 @@ func (d *Definition) Check() error {
 	}
 
 	return nil
+}
+
+// ForgetPoint takes the point out of an area that is wherever its reader
+// is: what is kept of a live feed is its radius.
+func (d *Definition) ForgetPoint() {
+	if near := d.Filters.Near; near != nil && near.Live {
+		near.Latitude, near.Longitude = 0, 0
+	}
+}
+
+// NeedsPoint says whether the feed's area is wherever its reader is, and
+// no point was given for this reading.
+func (d *Definition) NeedsPoint() bool {
+	near := d.Filters.Near
+	return near != nil && near.Live && near.Latitude == 0 && near.Longitude == 0
+}
+
+// AtPoint is the feed read around a point: where its reader is, for a live
+// one, rounded to three decimals, about a hundred metres. A fixed area keeps
+// its own. False for a point that is not one.
+func (d *Definition) AtPoint(latitude, longitude float64) bool {
+	near := d.Filters.Near
+	if near == nil || !near.Live {
+		return true
+	}
+	if latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180 {
+		return false
+	}
+	near.Latitude = math.Round(latitude*1000) / 1000
+	near.Longitude = math.Round(longitude*1000) / 1000
+	return true
 }
 
 // HasSources reports whether the feed names where its posts come from.

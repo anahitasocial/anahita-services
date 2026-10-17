@@ -232,3 +232,28 @@ func TestNearAndOrigin(t *testing.T) {
 		t.Errorf("origin mars: %v", err)
 	}
 }
+
+// A live area keeps its radius and no point, and is read around wherever its
+// reader is.
+func TestALiveAreaIsWhereverItsReaderIs(t *testing.T) {
+	def, err := Parse([]byte(`{"filters":{"near":{"live":true,"latitude":49.28,"longitude":-123.12,"radius_km":10}}}`))
+	if err != nil {
+		t.Fatalf("live: %v", err)
+	}
+	def.ForgetPoint()
+	if !def.NeedsPoint() || def.Filters.Near.Latitude != 0 {
+		t.Errorf("kept a point: %+v", def.Filters.Near)
+	}
+	if !def.AtPoint(49.28271, -123.12074) || def.NeedsPoint() || def.Filters.Near.Latitude != 49.283 {
+		t.Errorf("read around: %+v", def.Filters.Near)
+	}
+	if def.AtPoint(95, 0) {
+		t.Error("a point that is not one")
+	}
+
+	fixed, _ := Parse([]byte(`{"filters":{"near":{"latitude":49.28,"longitude":-123.12,"radius_km":10}}}`))
+	fixed.ForgetPoint()
+	if fixed.NeedsPoint() || !fixed.AtPoint(1, 1) || fixed.Filters.Near.Latitude != 49.28 {
+		t.Errorf("a fixed area keeps its own point: %+v", fixed.Filters.Near)
+	}
+}

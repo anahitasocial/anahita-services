@@ -176,6 +176,11 @@ func feedCustomFilters(query sq.SelectBuilder, def *feeds.Definition) sq.SelectB
 		query = query.Where(sq.Eq{"node.language": def.Filters.Language})
 	}
 
+	// Wherever its reader is, and nobody said where: nothing, and never
+	// the area around 0, 0.
+	if def.NeedsPoint() {
+		return query.Where("1 = 0")
+	}
 	if near := def.Filters.Near; near != nil {
 		metres := near.RadiusKm * 1000
 		query = query.Where(feedCustomNear,

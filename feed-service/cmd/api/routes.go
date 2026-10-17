@@ -37,7 +37,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	doc := apidoc.NewService("feed-service", "Feeds",
 		"The home feed and a profile's posts, custom feeds that a person makes and names (feeds.md), and reposts.")
 	api := doc.On(e)
-	definition := "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language`, `invalid_near` (an area's point or radius, 1 to 500 km), `unknown_origin` or `unknown_order`; `invalid` for a field"
+	definition := "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language`, `invalid_near` (an area's point or radius, 1 to 500 km), `unknown_origin` or `unknown_order`; and, reading a feed of what is near its reader with no `near_latitude` and `near_longitude`, `location_needed`; `invalid` for a field"
 	feedList := responses.Unpaged[*handlers.CustomFeedResponse]{}
 
 	// feeds — public, but still identify the caller when a token is
