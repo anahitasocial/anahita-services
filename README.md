@@ -11,6 +11,9 @@ injected as environment variables.
 
 The web app lives in a separate repository, `anahita-web`.
 
+Changing the code, as a person or with an agent: begin with
+[AGENTS.md](AGENTS.md), the project's working rules.
+
 ## Quick start
 
 Requires GNU make and a recent Docker.

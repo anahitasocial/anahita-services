@@ -47,6 +47,19 @@ The user asked that the docs be "updated and descriptive for people to read and 
 - **The MCP server only reads.** Docs, plans and the API reference. It has no way to the database, to a running site or to anything that changes something.
 - **It runs from a clone first, and is hosted as soon as the docs are public:** the people it is for have no clone.
 
+### Settled with the user on 2026-10-17
+
+- **Row 29 comes after row 27,** which changed the schema rules it writes
+  down.
+- **The rules are split:** the project's in `AGENTS.md`, in each repository;
+  how the user and their agent work together stays in `CLAUDE.md` (the web
+  app's at the root, the services' in `.claude/`), which loads `AGENTS.md`
+  with `@AGENTS.md` and adds only that.
+- **The plain-language pass begins with one page,** whose style the user
+  approves before the rest are done, one commit a page.
+- **The MCP server comes last** in this row: it serves the docs the rest
+  improves.
+
 ## Design
 
 ### 1. `AGENTS.md` in both repositories
@@ -158,4 +171,4 @@ What ours adds to that shape is the API reference's route lookups and the recipe
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11; the plain-language pass and keeping the docs true added 2026-10-14 |
-| Implementation | not started; place in the order not decided |
+| Implementation | begun 2026-10-17. Part 1, `AGENTS.md` in both repositories, done |
