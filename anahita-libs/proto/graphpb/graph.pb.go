@@ -1140,8 +1140,10 @@ func (x *TrendingRequest) GetAccessCheck() bool {
 }
 
 type TrendingResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Nodes         []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Nodes []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	// How many people posted with each, in the window, by its id.
+	People        map[int64]uint64 `protobuf:"bytes,2,rep,name=people,proto3" json:"people,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1179,6 +1181,13 @@ func (*TrendingResponse) Descriptor() ([]byte, []int) {
 func (x *TrendingResponse) GetNodes() []*Node {
 	if x != nil {
 		return x.Nodes
+	}
+	return nil
+}
+
+func (x *TrendingResponse) GetPeople() map[int64]uint64 {
+	if x != nil {
+		return x.People
 	}
 	return nil
 }
@@ -1296,9 +1305,13 @@ const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"timeWindow\x12\x14\n" +
 	"\x05limit\x18\x05 \x01(\x04R\x05limit\x12%\n" +
 	"\x06viewer\x18\x06 \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
-	"\faccess_check\x18\a \x01(\bR\vaccessCheck\"5\n" +
+	"\faccess_check\x18\a \x01(\bR\vaccessCheck\"\xad\x01\n" +
 	"\x10TrendingResponse\x12!\n" +
-	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes2\xd2\x04\n" +
+	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\x12;\n" +
+	"\x06people\x18\x02 \x03(\v2#.graph.TrendingResponse.PeopleEntryR\x06people\x1a9\n" +
+	"\vPeopleEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\x03R\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x04R\x05value:\x028\x012\xd2\x04\n" +
 	"\fGraphService\x12S\n" +
 	"\x10BrowseNeighbours\x12\x1e.graph.BrowseNeighboursRequest\x1a\x1f.graph.BrowseNeighboursResponse\x12b\n" +
 	"\x15BrowseConnectionNodes\x12#.graph.BrowseConnectionNodesRequest\x1a$.graph.BrowseConnectionNodesResponse\x12b\n" +
@@ -1321,7 +1334,7 @@ func file_proto_graphpb_graph_proto_rawDescGZIP() []byte {
 	return file_proto_graphpb_graph_proto_rawDescData
 }
 
-var file_proto_graphpb_graph_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_proto_graphpb_graph_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_proto_graphpb_graph_proto_goTypes = []any{
 	(*BrowseNeighboursRequest)(nil),       // 0: graph.BrowseNeighboursRequest
 	(*BrowseNeighboursResponse)(nil),      // 1: graph.BrowseNeighboursResponse
@@ -1337,50 +1350,52 @@ var file_proto_graphpb_graph_proto_goTypes = []any{
 	(*ReadShortestPathResponse)(nil),      // 11: graph.ReadShortestPathResponse
 	(*TrendingRequest)(nil),               // 12: graph.TrendingRequest
 	(*TrendingResponse)(nil),              // 13: graph.TrendingResponse
-	(*Viewer)(nil),                        // 14: graph.Viewer
-	(*Node)(nil),                          // 15: graph.Node
-	(*Edge)(nil),                          // 16: graph.Edge
-	(*timestamppb.Timestamp)(nil),         // 17: google.protobuf.Timestamp
+	nil,                                   // 14: graph.TrendingResponse.PeopleEntry
+	(*Viewer)(nil),                        // 15: graph.Viewer
+	(*Node)(nil),                          // 16: graph.Node
+	(*Edge)(nil),                          // 17: graph.Edge
+	(*timestamppb.Timestamp)(nil),         // 18: google.protobuf.Timestamp
 }
 var file_proto_graphpb_graph_proto_depIdxs = []int32{
-	14, // 0: graph.BrowseNeighboursRequest.viewer:type_name -> graph.Viewer
-	15, // 1: graph.BrowseNeighboursResponse.nodes:type_name -> graph.Node
-	14, // 2: graph.BrowseConnectionNodesRequest.viewer:type_name -> graph.Viewer
-	15, // 3: graph.BrowseConnectionNodesResponse.nodes:type_name -> graph.Node
-	14, // 4: graph.BrowseOrderedByDegreeRequest.viewer:type_name -> graph.Viewer
-	15, // 5: graph.BrowseOrderedByDegreeResponse.nodes:type_name -> graph.Node
-	14, // 6: graph.ReadNeighbourhoodRequest.viewer:type_name -> graph.Viewer
-	15, // 7: graph.ReadNeighbourhoodResponse.center:type_name -> graph.Node
-	15, // 8: graph.ReadNeighbourhoodResponse.neighbours:type_name -> graph.Node
-	16, // 9: graph.ReadNeighbourhoodResponse.edges:type_name -> graph.Edge
-	17, // 10: graph.ReadNeighbourhoodResponse.created_at:type_name -> google.protobuf.Timestamp
-	15, // 11: graph.TraverseResponse.nodes:type_name -> graph.Node
-	16, // 12: graph.TraverseResponse.edges:type_name -> graph.Edge
-	17, // 13: graph.TraverseResponse.created_at:type_name -> google.protobuf.Timestamp
-	15, // 14: graph.ReadShortestPathResponse.nodes:type_name -> graph.Node
-	16, // 15: graph.ReadShortestPathResponse.edges:type_name -> graph.Edge
-	17, // 16: graph.ReadShortestPathResponse.created_at:type_name -> google.protobuf.Timestamp
-	14, // 17: graph.TrendingRequest.viewer:type_name -> graph.Viewer
-	15, // 18: graph.TrendingResponse.nodes:type_name -> graph.Node
-	0,  // 19: graph.GraphService.BrowseNeighbours:input_type -> graph.BrowseNeighboursRequest
-	2,  // 20: graph.GraphService.BrowseConnectionNodes:input_type -> graph.BrowseConnectionNodesRequest
-	4,  // 21: graph.GraphService.BrowseOrderedByDegree:input_type -> graph.BrowseOrderedByDegreeRequest
-	6,  // 22: graph.GraphService.ReadNeighbourhood:input_type -> graph.ReadNeighbourhoodRequest
-	8,  // 23: graph.GraphService.Traverse:input_type -> graph.TraverseRequest
-	10, // 24: graph.GraphService.ReadShortestPath:input_type -> graph.ReadShortestPathRequest
-	12, // 25: graph.GraphService.Trending:input_type -> graph.TrendingRequest
-	1,  // 26: graph.GraphService.BrowseNeighbours:output_type -> graph.BrowseNeighboursResponse
-	3,  // 27: graph.GraphService.BrowseConnectionNodes:output_type -> graph.BrowseConnectionNodesResponse
-	5,  // 28: graph.GraphService.BrowseOrderedByDegree:output_type -> graph.BrowseOrderedByDegreeResponse
-	7,  // 29: graph.GraphService.ReadNeighbourhood:output_type -> graph.ReadNeighbourhoodResponse
-	9,  // 30: graph.GraphService.Traverse:output_type -> graph.TraverseResponse
-	11, // 31: graph.GraphService.ReadShortestPath:output_type -> graph.ReadShortestPathResponse
-	13, // 32: graph.GraphService.Trending:output_type -> graph.TrendingResponse
-	26, // [26:33] is the sub-list for method output_type
-	19, // [19:26] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	15, // 0: graph.BrowseNeighboursRequest.viewer:type_name -> graph.Viewer
+	16, // 1: graph.BrowseNeighboursResponse.nodes:type_name -> graph.Node
+	15, // 2: graph.BrowseConnectionNodesRequest.viewer:type_name -> graph.Viewer
+	16, // 3: graph.BrowseConnectionNodesResponse.nodes:type_name -> graph.Node
+	15, // 4: graph.BrowseOrderedByDegreeRequest.viewer:type_name -> graph.Viewer
+	16, // 5: graph.BrowseOrderedByDegreeResponse.nodes:type_name -> graph.Node
+	15, // 6: graph.ReadNeighbourhoodRequest.viewer:type_name -> graph.Viewer
+	16, // 7: graph.ReadNeighbourhoodResponse.center:type_name -> graph.Node
+	16, // 8: graph.ReadNeighbourhoodResponse.neighbours:type_name -> graph.Node
+	17, // 9: graph.ReadNeighbourhoodResponse.edges:type_name -> graph.Edge
+	18, // 10: graph.ReadNeighbourhoodResponse.created_at:type_name -> google.protobuf.Timestamp
+	16, // 11: graph.TraverseResponse.nodes:type_name -> graph.Node
+	17, // 12: graph.TraverseResponse.edges:type_name -> graph.Edge
+	18, // 13: graph.TraverseResponse.created_at:type_name -> google.protobuf.Timestamp
+	16, // 14: graph.ReadShortestPathResponse.nodes:type_name -> graph.Node
+	17, // 15: graph.ReadShortestPathResponse.edges:type_name -> graph.Edge
+	18, // 16: graph.ReadShortestPathResponse.created_at:type_name -> google.protobuf.Timestamp
+	15, // 17: graph.TrendingRequest.viewer:type_name -> graph.Viewer
+	16, // 18: graph.TrendingResponse.nodes:type_name -> graph.Node
+	14, // 19: graph.TrendingResponse.people:type_name -> graph.TrendingResponse.PeopleEntry
+	0,  // 20: graph.GraphService.BrowseNeighbours:input_type -> graph.BrowseNeighboursRequest
+	2,  // 21: graph.GraphService.BrowseConnectionNodes:input_type -> graph.BrowseConnectionNodesRequest
+	4,  // 22: graph.GraphService.BrowseOrderedByDegree:input_type -> graph.BrowseOrderedByDegreeRequest
+	6,  // 23: graph.GraphService.ReadNeighbourhood:input_type -> graph.ReadNeighbourhoodRequest
+	8,  // 24: graph.GraphService.Traverse:input_type -> graph.TraverseRequest
+	10, // 25: graph.GraphService.ReadShortestPath:input_type -> graph.ReadShortestPathRequest
+	12, // 26: graph.GraphService.Trending:input_type -> graph.TrendingRequest
+	1,  // 27: graph.GraphService.BrowseNeighbours:output_type -> graph.BrowseNeighboursResponse
+	3,  // 28: graph.GraphService.BrowseConnectionNodes:output_type -> graph.BrowseConnectionNodesResponse
+	5,  // 29: graph.GraphService.BrowseOrderedByDegree:output_type -> graph.BrowseOrderedByDegreeResponse
+	7,  // 30: graph.GraphService.ReadNeighbourhood:output_type -> graph.ReadNeighbourhoodResponse
+	9,  // 31: graph.GraphService.Traverse:output_type -> graph.TraverseResponse
+	11, // 32: graph.GraphService.ReadShortestPath:output_type -> graph.ReadShortestPathResponse
+	13, // 33: graph.GraphService.Trending:output_type -> graph.TrendingResponse
+	27, // [27:34] is the sub-list for method output_type
+	20, // [20:27] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_proto_graphpb_graph_proto_init() }
@@ -1397,7 +1412,7 @@ func file_proto_graphpb_graph_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_graphpb_graph_proto_rawDesc), len(file_proto_graphpb_graph_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

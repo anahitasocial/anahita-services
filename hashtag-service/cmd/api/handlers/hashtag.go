@@ -173,9 +173,9 @@ func (h *hashtagHandler) BrowseTrending(c echo.Context) error {
 	if start == "" {
 		start = trending.DefaultWindow()
 	}
-	nodes, window, err := trending.Widen(start, req.Limit, func(window string) ([]*entities.AnahitaNode, error) {
+	found, window, err := trending.Widen(start, req.Limit, func(window string) ([]*services.TrendingItem, error) {
 		gReq.TimeWindow = window
-		return h.Srv.GraphGRPC.Trending(gReq)
+		return h.Srv.GraphGRPC.TrendingItems(gReq)
 	})
 	if err != nil {
 		log.Println(err)
@@ -187,8 +187,12 @@ func (h *hashtagHandler) BrowseTrending(c echo.Context) error {
 	hashtagResp := &responses.HashtagNodeResponse{}
 	resp := &an_responses.Trending[*responses.HashtagNodeItem]{Window: strings.ToLower(window)}
 	resp.Data = []*responses.HashtagNodeItem{}
-	if len(nodes) > 0 {
-		resp.Data = hashtagResp.MapHashtagNodeItems(nodes)
+	for _, each := range found {
+		mapped := hashtagResp.MapHashtagNodeItems([]*entities.AnahitaNode{each.Node})
+		if len(mapped) == 1 {
+			mapped[0].People = each.People
+			resp.Data = append(resp.Data, mapped[0])
+		}
 	}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Total = uint64(len(resp.Data))

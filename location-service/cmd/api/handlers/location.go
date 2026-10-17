@@ -68,9 +68,13 @@ func (h *locationHandler) Browse(c echo.Context) error {
 		gReq.Search = req.Search
 		gReq.Ordering = req.Ordering
 		gReq.OrderingDir = req.Direction
+		// A to Z, for the list of every place.
+		if req.Ordering == "name" {
+			gReq.Ordering = "node.name"
+			gReq.OrderingDir = "asc"
+		}
 		gReq.Limit = req.Limit
 		gReq.Offset = req.Offset
-		gReq.Ordering = req.Ordering
 		gReq.Viewer = viewer
 		gReq.AccessCheck = false
 		resp.Pagination.Total, err = h.Srv.GraphNodeGRPC.Count(gReq)
@@ -196,9 +200,9 @@ func (h *locationHandler) BrowseTrending(c echo.Context) error {
 	if start == "" {
 		start = trending.DefaultWindow()
 	}
-	nodes, window, err := trending.Widen(start, req.Limit, func(window string) ([]*entities.AnahitaNode, error) {
+	found, window, err := trending.Widen(start, req.Limit, func(window string) ([]*services.TrendingItem, error) {
 		gReq.TimeWindow = window
-		return h.Srv.GraphGRPC.Trending(gReq)
+		return h.Srv.GraphGRPC.TrendingItems(gReq)
 	})
 	if err != nil {
 		log.Println(err)
@@ -210,8 +214,12 @@ func (h *locationHandler) BrowseTrending(c echo.Context) error {
 	locationResp := &responses.LocationNodeResponse{}
 	resp := &an_responses.Trending[*responses.LocationNodeItem]{Window: strings.ToLower(window)}
 	resp.Data = []*responses.LocationNodeItem{}
-	if len(nodes) > 0 {
-		resp.Data = locationResp.MapLocationNodeItems(nodes)
+	for _, each := range found {
+		mapped := locationResp.MapLocationNodeItems([]*entities.AnahitaNode{each.Node})
+		if len(mapped) == 1 {
+			mapped[0].People = each.People
+			resp.Data = append(resp.Data, mapped[0])
+		}
 	}
 	resp.Pagination.Limit = req.Limit
 	resp.Pagination.Total = uint64(len(resp.Data))

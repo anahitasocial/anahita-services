@@ -922,6 +922,10 @@
             "description": "What it is found by: `/hashtags/<alias>`.",
             "type": "string"
           },
+          "followed": {
+            "description": "In the following and all lists: the viewer follows it.",
+            "type": "boolean"
+          },
           "id": {
             "description": "Its id.",
             "format": "int64",
@@ -931,9 +935,21 @@
             "description": "The hashtag as it is shown, without its #.",
             "type": "string"
           },
+          "people": {
+            "description": "In a trending list: how many people posted with it in the window.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
           "type": {
             "description": "Always `node.tag.hashtag-service.hashtag.v1`.",
             "type": "string"
+          },
+          "uses": {
+            "description": "In the following and all lists: how many posts it is on that anybody may see, and the viewer's own.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
           }
         },
         "required": [
@@ -1117,6 +1133,206 @@
         ],
         "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).Browse",
         "x-viewer": "anyone"
+      }
+    },
+    "/hashtags/_browse/all": {
+      "get": {
+        "description": "Every hashtag on a post anybody may see, A to Z or the most used first, perhaps only those beginning with `q`: each with how many such posts carry it (`uses`), the viewer's own posts too, and whether the viewer follows it.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getHashtagsBrowseAll",
+        "parameters": [
+          {
+            "description": "Only hashtags beginning with this, its # left out.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "description": "The order: `name`, A to Z (the default), or `uses`, the most used first.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "name",
+              "enum": [
+                "name",
+                "uses"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: up to 20.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int32",
+              "maximum": 20,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Every hashtag",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).All",
+        "x-viewer": "anyone"
+      }
+    },
+    "/hashtags/_browse/following": {
+      "get": {
+        "description": "Those in the viewer's custom feeds, which following a hashtag makes, with how many posts anybody may see carry each (`uses`), and the viewer's own. `q`, `sort` and paging as for all of them.\n\nWho may call it: somebody signed in.",
+        "operationId": "getHashtagsBrowseFollowing",
+        "parameters": [
+          {
+            "description": "Only hashtags beginning with this, its # left out.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "description": "The order: `name`, A to Z (the default), or `uses`, the most used first.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "name",
+              "enum": [
+                "name",
+                "uses"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: up to 20.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "format": "int32",
+              "maximum": 20,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The hashtags the viewer follows",
+        "tags": [
+          "hashtag-service"
+        ],
+        "x-handler": "hashtag/cmd/api/handlers.(*hashtagHandler).Following",
+        "x-viewer": "signed_in"
       }
     },
     "/hashtags/_browse/ordered_by_degree": {

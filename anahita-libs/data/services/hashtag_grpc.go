@@ -24,6 +24,13 @@ type HashtagSuggestRequest struct {
 	Words   []string
 	Exclude []string
 	Limit   uint32
+	// A listing for the Hashtags page rather than an offer: the ones the
+	// viewer follows, or all, perhaps beginning with Prefix, ordered by
+	// "name" or "uses", a page at a time.
+	List         bool
+	FollowedOnly bool
+	Order        string
+	Offset       uint64
 }
 
 // HashtagSuggestion is a hashtag in use, offered to somebody writing.
@@ -39,6 +46,8 @@ type HashtagSuggestion struct {
 // writing.
 type HashtagGRPCInterface interface {
 	Suggest(req *HashtagSuggestRequest, viewer *entities.Viewer) ([]*HashtagSuggestion, error)
+	// List is the hashtags of a listing, and how many there are in all.
+	List(req *HashtagSuggestRequest, viewer *entities.Viewer) ([]*HashtagSuggestion, uint64, error)
 }
 
 func NewHashtagGRPC(config HashtagGRPCConfigInterface) HashtagGRPCInterface {
@@ -80,19 +89,29 @@ func (srv *HashtagGRPC) getClient() (graphpb.HashtagServiceClient, error) {
 
 // Suggest implements HashtagGRPCInterface.
 func (srv *HashtagGRPC) Suggest(req *HashtagSuggestRequest, viewer *entities.Viewer) ([]*HashtagSuggestion, error) {
+	found, _, err := srv.List(req, viewer)
+	return found, err
+}
+
+// List implements HashtagGRPCInterface.
+func (srv *HashtagGRPC) List(req *HashtagSuggestRequest, viewer *entities.Viewer) ([]*HashtagSuggestion, uint64, error) {
 	client, err := srv.getClient()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	resp, err := client.Suggest(context.Background(), &graphpb.HashtagSuggestRequest{
-		Viewer:  &graphpb.Viewer{Id: viewer.ID, PersonType: viewer.PersonType},
-		Prefix:  req.Prefix,
-		Words:   req.Words,
-		Exclude: req.Exclude,
-		Limit:   req.Limit,
+		Viewer:       &graphpb.Viewer{Id: viewer.ID, PersonType: viewer.PersonType},
+		Prefix:       req.Prefix,
+		Words:        req.Words,
+		Exclude:      req.Exclude,
+		Limit:        req.Limit,
+		List:         req.List,
+		FollowedOnly: req.FollowedOnly,
+		Order:        req.Order,
+		Offset:       req.Offset,
 	})
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	suggestions := []*HashtagSuggestion{}
@@ -105,5 +124,5 @@ func (srv *HashtagGRPC) Suggest(req *HashtagSuggestRequest, viewer *entities.Vie
 			Followed: each.GetFollowed(),
 		})
 	}
-	return suggestions, nil
+	return suggestions, resp.GetTotal(), nil
 }

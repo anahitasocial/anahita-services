@@ -139,6 +139,8 @@ message TrendingRequest {
 
 message TrendingResponse {
     repeated Node nodes = 1;
+    // How many people posted with each, in the window, by its id.
+    map<int64, uint64> people = 2;
 }
 
 service GraphService {

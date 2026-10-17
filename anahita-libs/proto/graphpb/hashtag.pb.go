@@ -32,8 +32,16 @@ type HashtagSuggestRequest struct {
 	// first, in lower case.
 	Words []string `protobuf:"bytes,3,rep,name=words,proto3" json:"words,omitempty"`
 	// Hashtags already in what is written, in lower case: not offered.
-	Exclude       []string `protobuf:"bytes,4,rep,name=exclude,proto3" json:"exclude,omitempty"`
-	Limit         uint32   `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
+	Exclude []string `protobuf:"bytes,4,rep,name=exclude,proto3" json:"exclude,omitempty"`
+	Limit   uint32   `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
+	// A listing rather than an offer, for the Hashtags page: with
+	// followed_only, the hashtags the viewer follows; otherwise, with
+	// neither prefix nor words, every hashtag on a post anybody may see.
+	// Ordered by `order`, "name" or "uses" (the default), a page at a time.
+	List          bool   `protobuf:"varint,6,opt,name=list,proto3" json:"list,omitempty"`
+	FollowedOnly  bool   `protobuf:"varint,7,opt,name=followed_only,json=followedOnly,proto3" json:"followed_only,omitempty"`
+	Order         string `protobuf:"bytes,8,opt,name=order,proto3" json:"order,omitempty"`
+	Offset        uint64 `protobuf:"varint,9,opt,name=offset,proto3" json:"offset,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -99,6 +107,34 @@ func (x *HashtagSuggestRequest) GetExclude() []string {
 func (x *HashtagSuggestRequest) GetLimit() uint32 {
 	if x != nil {
 		return x.Limit
+	}
+	return 0
+}
+
+func (x *HashtagSuggestRequest) GetList() bool {
+	if x != nil {
+		return x.List
+	}
+	return false
+}
+
+func (x *HashtagSuggestRequest) GetFollowedOnly() bool {
+	if x != nil {
+		return x.FollowedOnly
+	}
+	return false
+}
+
+func (x *HashtagSuggestRequest) GetOrder() string {
+	if x != nil {
+		return x.Order
+	}
+	return ""
+}
+
+func (x *HashtagSuggestRequest) GetOffset() uint64 {
+	if x != nil {
+		return x.Offset
 	}
 	return 0
 }
@@ -184,8 +220,10 @@ func (x *HashtagSuggestion) GetFollowed() bool {
 }
 
 type HashtagSuggestResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Suggestions   []*HashtagSuggestion   `protobuf:"bytes,1,rep,name=suggestions,proto3" json:"suggestions,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Suggestions []*HashtagSuggestion   `protobuf:"bytes,1,rep,name=suggestions,proto3" json:"suggestions,omitempty"`
+	// How many there are in all, for a listing.
+	Total         uint64 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -227,25 +265,37 @@ func (x *HashtagSuggestResponse) GetSuggestions() []*HashtagSuggestion {
 	return nil
 }
 
+func (x *HashtagSuggestResponse) GetTotal() uint64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
 var File_proto_graphpb_hashtag_proto protoreflect.FileDescriptor
 
 const file_proto_graphpb_hashtag_proto_rawDesc = "" +
 	"\n" +
-	"\x1bproto/graphpb/hashtag.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\"\x9c\x01\n" +
+	"\x1bproto/graphpb/hashtag.proto\x12\x05graph\x1a\x1bproto/graphpb/context.proto\"\x83\x02\n" +
 	"\x15HashtagSuggestRequest\x12%\n" +
 	"\x06viewer\x18\x01 \x01(\v2\r.graph.ViewerR\x06viewer\x12\x16\n" +
 	"\x06prefix\x18\x02 \x01(\tR\x06prefix\x12\x14\n" +
 	"\x05words\x18\x03 \x03(\tR\x05words\x12\x18\n" +
 	"\aexclude\x18\x04 \x03(\tR\aexclude\x12\x14\n" +
-	"\x05limit\x18\x05 \x01(\rR\x05limit\"}\n" +
+	"\x05limit\x18\x05 \x01(\rR\x05limit\x12\x12\n" +
+	"\x04list\x18\x06 \x01(\bR\x04list\x12#\n" +
+	"\rfollowed_only\x18\a \x01(\bR\ffollowedOnly\x12\x14\n" +
+	"\x05order\x18\b \x01(\tR\x05order\x12\x16\n" +
+	"\x06offset\x18\t \x01(\x04R\x06offset\"}\n" +
 	"\x11HashtagSuggestion\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
 	"\x05alias\x18\x02 \x01(\tR\x05alias\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
 	"\x04uses\x18\x04 \x01(\x03R\x04uses\x12\x1a\n" +
-	"\bfollowed\x18\x05 \x01(\bR\bfollowed\"T\n" +
+	"\bfollowed\x18\x05 \x01(\bR\bfollowed\"j\n" +
 	"\x16HashtagSuggestResponse\x12:\n" +
-	"\vsuggestions\x18\x01 \x03(\v2\x18.graph.HashtagSuggestionR\vsuggestions2X\n" +
+	"\vsuggestions\x18\x01 \x03(\v2\x18.graph.HashtagSuggestionR\vsuggestions\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x04R\x05total2X\n" +
 	"\x0eHashtagService\x12F\n" +
 	"\aSuggest\x12\x1c.graph.HashtagSuggestRequest\x1a\x1d.graph.HashtagSuggestResponseB\n" +
 	"Z\b/graphpbb\x06proto3"

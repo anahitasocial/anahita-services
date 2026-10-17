@@ -6,6 +6,7 @@ import (
 	"anahita-libs/proto/graphpb"
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -379,27 +380,7 @@ func (r *graphRepo) Trending(req *graphpb.TrendingRequest, viewer *entities.View
 	// ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	// defer cancel()
 
-	// Resolve time window cutoff
-	var cutoff time.Time
-	now := time.Now()
-	switch req.TimeWindow {
-	case constants.TimeWindow1h:
-		cutoff = now.Add(-1 * time.Hour)
-	case constants.TimeWindow6h:
-		cutoff = now.Add(-6 * time.Hour)
-	case constants.TimeWindow24h:
-		cutoff = now.Add(-24 * time.Hour)
-	case constants.TimeWindowDaily:
-		cutoff = now.AddDate(0, 0, -1)
-	case constants.TimeWindowWeekly:
-		cutoff = now.AddDate(0, 0, -7)
-	case constants.TimeWindowMonthly:
-		cutoff = now.AddDate(0, -1, 0)
-	case constants.TimeWindowYearly:
-		cutoff = now.AddDate(-1, 0, 0)
-	default:
-		cutoff = now.Add(-24 * time.Hour) // fallback to 24h
-	}
+	cutoff := trendingCutoff(req.TimeWindow)
 
 	// What is trending is what people posted with lately: each person once,
 	// however many of their posts carry it, so that one account cannot
@@ -448,6 +429,83 @@ func (r *graphRepo) Trending(req *graphpb.TrendingRequest, viewer *entities.View
 	query = query.Limit(req.Limit)
 
 	return FetchNodes(r.db, query)
+}
+
+// trendingCutoff is when a trending window begins.
+func trendingCutoff(window string) time.Time {
+	var cutoff time.Time
+	now := time.Now()
+	switch window {
+	case constants.TimeWindow1h:
+		cutoff = now.Add(-1 * time.Hour)
+	case constants.TimeWindow6h:
+		cutoff = now.Add(-6 * time.Hour)
+	case constants.TimeWindow24h:
+		cutoff = now.Add(-24 * time.Hour)
+	case constants.TimeWindowDaily:
+		cutoff = now.AddDate(0, 0, -1)
+	case constants.TimeWindowWeekly:
+		cutoff = now.AddDate(0, 0, -7)
+	case constants.TimeWindowMonthly:
+		cutoff = now.AddDate(0, -1, 0)
+	case constants.TimeWindowYearly:
+		cutoff = now.AddDate(-1, 0, 0)
+	default:
+		cutoff = now.Add(-24 * time.Hour) // fallback to 24h
+	}
+	return cutoff
+}
+
+// The people who posted with each of some tags since a time, each once, in
+// posts Trending counts.
+const trendingPeople = `
+SELECT edge.node_a_id,
+       COUNT(DISTINCT post.created_by)
+FROM edges AS edge
+JOIN nodes AS post ON post.id = edge.node_b_id
+LEFT JOIN nodes AS post_owner ON post_owner.id = post.owner_id
+WHERE edge.node_a_id IN ({{ids}})
+  AND edge.type IN ({{types}})
+  AND post.created_at > ?
+  AND post.access = 'public'
+  AND post.enabled = 1
+  AND post.draft = 0
+  AND post.deleted_at IS NULL
+  AND (post_owner.id IS NULL OR post_owner.access IS NULL OR post_owner.access = 'public')
+GROUP BY edge.node_a_id`
+
+func (r *graphRepo) TrendingPeople(req *graphpb.TrendingRequest, ids []int64) (map[int64]uint64, error) {
+	people := map[int64]uint64{}
+	if len(ids) == 0 || len(req.EdgeTypes) == 0 {
+		return people, nil
+	}
+	args := []any{}
+	for _, id := range ids {
+		args = append(args, id)
+	}
+	for _, each := range req.EdgeTypes {
+		args = append(args, each)
+	}
+	args = append(args, trendingCutoff(req.TimeWindow))
+	query := strings.NewReplacer(
+		"{{ids}}", placeholders(len(ids)),
+		"{{types}}", placeholders(len(req.EdgeTypes)),
+	).Replace(trendingPeople)
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id int64
+		var count uint64
+		if err := rows.Scan(&id, &count); err != nil {
+			return nil, err
+		}
+		people[id] = count
+	}
+	return people, rows.Err()
 }
 
 // setBlockedLikersQuery leaves out, of the people who like something, those

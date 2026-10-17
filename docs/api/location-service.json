@@ -976,6 +976,12 @@
             "description": "What it is called.",
             "type": "string"
           },
+          "people": {
+            "description": "In a trending list: how many people tied a post to it in the window.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
           "postalcode": {
             "description": "Its postal code.",
             "type": "string"
@@ -1061,7 +1067,8 @@
               "enum": [
                 "popular",
                 "trending",
-                "recent"
+                "recent",
+                "name"
               ],
               "maxLength": 10,
               "type": "string"

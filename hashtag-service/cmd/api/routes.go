@@ -50,6 +50,18 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewHashtagRequest().BrowseTrending).
 		Sends(http.StatusOK, libs_responses.Trending[*responses.HashtagNodeItem]{})
+	hashtags.GET("/_browse/following", r.handler.Hashtag.Following, r.authorize).
+		Summary("The hashtags the viewer follows").
+		Describe("Those in the viewer's custom feeds, which following a hashtag makes, with how many posts anybody may see carry each (`uses`), and the viewer's own. `q`, `sort` and paging as for all of them.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.ListRequest{Sort: "name", Limit: 20}).
+		Sends(http.StatusOK, libs_responses.List[*responses.HashtagNodeItem]{})
+	hashtags.GET("/_browse/all", r.handler.Hashtag.All, r.setViewer).
+		Summary("Every hashtag").
+		Describe("Every hashtag on a post anybody may see, A to Z or the most used first, perhaps only those beginning with `q`: each with how many such posts carry it (`uses`), the viewer's own posts too, and whether the viewer follows it.").
+		Viewer(apidoc.Anyone).
+		Takes(&handlers.ListRequest{Sort: "name", Limit: 20}).
+		Sends(http.StatusOK, libs_responses.List[*responses.HashtagNodeItem]{})
 	hashtags.GET("/_browse/ordered_by_degree", r.handler.Hashtag.BrowseOrderedByDegree, r.setViewer).
 		Summary("Hashtags used most of all").
 		Describe("Every hashtag, the ones in the most posts first.").

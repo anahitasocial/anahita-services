@@ -18,12 +18,13 @@ func NewHashtagHandler(env *Env) *hashtagHandler {
 // begin with what they typed, or those that are words of their text
 // (repositories.HashtagSuggestionsRepoInterface).
 func (h *hashtagHandler) Suggest(ctx context.Context, req *graphpb.HashtagSuggestRequest) (*graphpb.HashtagSuggestResponse, error) {
-	if req.Viewer == nil || req.Viewer.Id <= 0 {
+	// Offered to somebody writing, who is signed in; listed to anybody.
+	if !req.GetList() && (req.Viewer == nil || req.Viewer.Id <= 0) {
 		return &graphpb.HashtagSuggestResponse{}, nil
 	}
-	suggestions, err := h.env.Repos.HashtagSuggestions.Suggest(req)
+	suggestions, total, err := h.env.Repos.HashtagSuggestions.Suggest(req)
 	if err != nil {
 		return nil, err
 	}
-	return &graphpb.HashtagSuggestResponse{Suggestions: suggestions}, nil
+	return &graphpb.HashtagSuggestResponse{Suggestions: suggestions, Total: total}, nil
 }

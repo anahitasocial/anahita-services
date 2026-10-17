@@ -18,6 +18,14 @@ message HashtagSuggestRequest {
     // Hashtags already in what is written, in lower case: not offered.
     repeated string exclude = 4;
     uint32 limit = 5;
+    // A listing rather than an offer, for the Hashtags page: with
+    // followed_only, the hashtags the viewer follows; otherwise, with
+    // neither prefix nor words, every hashtag on a post anybody may see.
+    // Ordered by `order`, "name" or "uses" (the default), a page at a time.
+    bool list = 6;
+    bool followed_only = 7;
+    string order = 8;
+    uint64 offset = 9;
 }
 
 message HashtagSuggestion {
@@ -34,6 +42,8 @@ message HashtagSuggestion {
 
 message HashtagSuggestResponse {
     repeated HashtagSuggestion suggestions = 1;
+    // How many there are in all, for a listing.
+    uint64 total = 2;
 }
 
 service HashtagService {

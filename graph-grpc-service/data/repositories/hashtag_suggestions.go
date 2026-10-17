@@ -20,7 +20,7 @@ import (
 // writer's own, so that what is offered says nothing about what is kept
 // from them. One they follow, in one of their custom feeds, comes first.
 type HashtagSuggestionsRepoInterface interface {
-	Suggest(req *graphpb.HashtagSuggestRequest) ([]*graphpb.HashtagSuggestion, error)
+	Suggest(req *graphpb.HashtagSuggestRequest) ([]*graphpb.HashtagSuggestion, uint64, error)
 }
 
 type hashtagSuggestionsRepo struct {
@@ -45,8 +45,11 @@ const (
 )
 
 // {{match}} is which hashtags; {{exclude}} leaves out those already
-// written; {{order}} puts first what matches best.
-const suggestHashtags = `
+// written. A post is counted, in the join itself, only when anybody may see
+// it or it is the viewer's own; a hashtag no such post carries is counted
+// as on none, and is listed only where none is enough: the ones the viewer
+// follows.
+const hashtagsWithUses = `
 SELECT hashtag.id,
        hashtag.alias,
        COALESCE(NULLIF(hashtag.name, ''), hashtag.alias),
@@ -60,29 +63,44 @@ SELECT hashtag.id,
              AND feed.deleted_at IS NULL
        ) AS followed
 FROM nodes AS hashtag
-JOIN edges AS tagged ON tagged.node_a_id = hashtag.id AND tagged.type = ?
-JOIN nodes AS post ON post.id = tagged.node_b_id
-LEFT JOIN nodes AS owner ON owner.id = post.owner_id
+LEFT JOIN edges AS tagged
+       ON tagged.node_a_id = hashtag.id
+      AND tagged.type = ?
+LEFT JOIN nodes AS post
+       ON post.id = tagged.node_b_id
+      AND post.enabled = 1
+      AND post.deleted_at IS NULL
+      AND (
+          post.created_by = ?
+          OR (
+              post.access = 'public'
+              AND post.draft = 0
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM nodes AS owner
+                  WHERE owner.id = post.owner_id
+                    AND owner.access IS NOT NULL
+                    AND owner.access <> 'public'
+              )
+          )
+      )
 WHERE hashtag.type = ?
   AND hashtag.deleted_at IS NULL
   AND {{match}}
   AND {{exclude}}
-  AND post.enabled = 1
-  AND post.deleted_at IS NULL
-  AND (
-      post.created_by = ?
-      OR (
-          post.access = 'public'
-          AND post.draft = 0
-          AND (owner.id IS NULL OR owner.access IS NULL OR owner.access = 'public')
-      )
-  )
 GROUP BY hashtag.id, hashtag.alias, hashtag.name
-HAVING uses >= ?
-ORDER BY followed DESC, {{order}}, uses DESC, hashtag.alias
-LIMIT ?`
+HAVING uses >= ?`
 
-func (r *hashtagSuggestionsRepo) Suggest(req *graphpb.HashtagSuggestRequest) ([]*graphpb.HashtagSuggestion, error) {
+// The orders a listing may be in.
+const (
+	listByName = "name"
+	listByUses = "uses"
+)
+
+// Suggest is the hashtags offered to somebody writing, or, with `list`,
+// those listed on the Hashtags page (HashtagSuggestRequest), and how many
+// there are in all for a listing.
+func (r *hashtagSuggestionsRepo) Suggest(req *graphpb.HashtagSuggestRequest) ([]*graphpb.HashtagSuggestion, uint64, error) {
 	viewerID := req.GetViewer().GetId()
 	limit := req.GetLimit()
 	if limit == 0 || limit > maxHashtagSuggestions {
@@ -93,7 +111,7 @@ func (r *hashtagSuggestionsRepo) Suggest(req *graphpb.HashtagSuggestRequest) ([]
 		match   string
 		order   string
 		minUses = 1
-		args    = []any{feeds.NodeType, viewerID, constants.EdgeTagHashtagType, constants.NodeBaseHashtagEntityType}
+		args    = []any{feeds.NodeType, viewerID, constants.EdgeTagHashtagType, viewerID, constants.NodeBaseHashtagEntityType}
 		after   []any
 	)
 
@@ -101,23 +119,46 @@ func (r *hashtagSuggestionsRepo) Suggest(req *graphpb.HashtagSuggestRequest) ([]
 	words := lowered(req.GetWords(), maxSuggestionWords)
 
 	switch {
+	case req.GetList():
+		// The Hashtags page: those the viewer follows, or every one on a
+		// post anybody may see, perhaps beginning with what was searched.
+		match = "TRUE"
+		if prefix != "" {
+			match = "hashtag.alias LIKE ? ESCAPE '!'"
+			args = append(args, likePrefix(prefix))
+		}
+		if req.GetFollowedOnly() {
+			if viewerID <= 0 {
+				return []*graphpb.HashtagSuggestion{}, 0, nil
+			}
+			match += " HAVING_FOLLOWED"
+			minUses = 0
+		}
+		// By the name as it is shown, whatever its capitals.
+		byName := "LOWER(COALESCE(NULLIF(hashtag.name, ''), hashtag.alias))"
+		order = "uses DESC, " + byName
+		if req.GetOrder() == listByName {
+			order = byName
+		}
 	case prefix != "":
-		// Begins with what was typed; the hashtag that is just that first.
+		// Begins with what was typed: followed first, then the hashtag that
+		// is just that, then the most used.
 		match = "hashtag.alias LIKE ? ESCAPE '!'"
 		args = append(args, likePrefix(prefix))
-		order = "(hashtag.alias = ?) DESC"
+		order = "followed DESC, (hashtag.alias = ?) DESC, uses DESC, hashtag.alias"
 		after = append(after, prefix)
 	case len(words) > 0:
-		// Is one of the words, the one used most in the text first.
+		// Is one of the words: followed first, then the one used most in
+		// the text, then the most used.
 		match = "hashtag.alias IN (" + placeholders(len(words)) + ")"
-		order = "FIELD(hashtag.alias, " + placeholders(len(words)) + ")"
+		order = "followed DESC, FIELD(hashtag.alias, " + placeholders(len(words)) + "), uses DESC, hashtag.alias"
 		for _, word := range words {
 			args = append(args, word)
 			after = append(after, word)
 		}
 		minUses = minUsesOfAWord
 	default:
-		return []*graphpb.HashtagSuggestion{}, nil
+		return []*graphpb.HashtagSuggestion{}, 0, nil
 	}
 
 	exclude := "TRUE"
@@ -128,18 +169,33 @@ func (r *hashtagSuggestionsRepo) Suggest(req *graphpb.HashtagSuggestRequest) ([]
 		}
 	}
 
-	args = append(args, viewerID, minUses)
-	args = append(args, after...)
-	args = append(args, limit)
+	args = append(args, minUses)
 
-	query := strings.NewReplacer("{{match}}", match, "{{exclude}}", exclude, "{{order}}", order).Replace(suggestHashtags)
+	// Only the followed: a condition on the grouped row, after HAVING.
+	having := ""
+	if strings.HasSuffix(match, " HAVING_FOLLOWED") {
+		match = strings.TrimSuffix(match, " HAVING_FOLLOWED")
+		having = "\n   AND followed = 1"
+	}
+	base := strings.NewReplacer("{{match}}", match, "{{exclude}}", exclude).Replace(hashtagsWithUses) + having
 
 	ctx, cancel := context.WithTimeout(context.Background(), hashtagSuggestTimeout)
 	defer cancel()
 
-	rows, err := r.db.QueryContext(ctx, query, args...)
+	var total uint64
+	if req.GetList() {
+		count := "SELECT COUNT(*) FROM (" + base + "\n) AS listed"
+		if err := r.db.QueryRowContext(ctx, count, args...).Scan(&total); err != nil {
+			return nil, 0, err
+		}
+	}
+
+	query := base + "\nORDER BY " + order + "\nLIMIT ? OFFSET ?"
+	pageArgs := append(append(append([]any{}, args...), after...), limit, req.GetOffset())
+
+	rows, err := r.db.QueryContext(ctx, query, pageArgs...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
@@ -147,11 +203,11 @@ func (r *hashtagSuggestionsRepo) Suggest(req *graphpb.HashtagSuggestRequest) ([]
 	for rows.Next() {
 		each := &graphpb.HashtagSuggestion{}
 		if err := rows.Scan(&each.Id, &each.Alias, &each.Name, &each.Uses, &each.Followed); err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		suggestions = append(suggestions, each)
 	}
-	return suggestions, rows.Err()
+	return suggestions, total, rows.Err()
 }
 
 // lowered is each of a list once, in lower case and in the order given,

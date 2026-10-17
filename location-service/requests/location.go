@@ -46,7 +46,7 @@ type LocationBrowseRequest struct {
 	// Words its name or address holds.
 	Search string `query:"q" validate:"max=100,omitempty,search_query"`
 	// The order they come in.
-	Ordering string `query:"sort" validate:"max=10,omitempty,oneof=popular trending recent"`
+	Ordering string `query:"sort" validate:"max=10,omitempty,oneof=popular trending recent name"`
 	// Which way the order runs.
 	Direction string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	// Only the places a post is tied to: the post's id.

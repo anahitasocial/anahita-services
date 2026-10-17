@@ -31,6 +31,8 @@ type LocationNodeItem struct {
 	GeoPostalcode string `json:"postalcode,omitempty"`
 	// What the viewer may do with it.
 	Authorized *responses.NodeAuthorized `json:"authorized,omitempty"`
+	// In a trending list: how many people tied a post to it in the window.
+	People uint64 `json:"people,omitempty"`
 }
 
 type LocationNode struct {
