@@ -141,7 +141,8 @@ The web app keeps them in the searcher's browser, per person.
 Each person who is signed in can also change how much each sign counts for
 them, as they can for their suggestions (the "Adjust" chip by "Most
 relevant"). There are six: likes, saves, replies, followers, citations,
-and what they follow. Each is set to a step that multiplies the operator's
+and who or what they follow (the people, groups and events, and what is
+posted on them). Each is set to a step that multiplies the operator's
 weight:
 
 | Step | Multiplies by |
