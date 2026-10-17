@@ -17644,7 +17644,7 @@
         "x-viewer": "signed_in"
       },
       "post": {
-        "description": "Mails them a link. Who may invite is the installation's choice (`REGISTRATION_MODE`), and how many may wait at once.\n\nWho may call it: somebody signed in, with a token that carries `actors:write`.",
+        "description": "Mails them a link. Who may invite is the installation's choice (`INVITES_FROM`), and so is how many may wait at once (`INVITE_PENDING_MAX`).\n\nWho may call it: somebody signed in, with a token that carries `actors:write`.",
         "operationId": "postInvites",
         "requestBody": {
           "content": {
