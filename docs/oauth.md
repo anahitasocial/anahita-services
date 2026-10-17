@@ -85,6 +85,11 @@ its `client_id`, so when the restart seeds the client again, they work with it
 as before, and nobody is signed out. On a live site, `PATCH /clients/:id`
 instead.
 
+`DELETE /clients/:id` is different: it revokes the client's refresh tokens and
+deletes its authorization codes, then the client. Everybody signed in with it
+is signed out within 15 minutes, when their access token expires, and a client
+made later under the same `client_id` starts with no tokens.
+
 Scopes are validated against the catalog both at boot (a typo fails
 startup) and at the `/clients` BREAD boundary (a bad scope returns 400
 naming it).
@@ -97,5 +102,5 @@ naming it).
 | The guard against scope literals | `anahita-libs/constants/oauth_scopes_guard_test.go` (`TestNoScopeStringLiterals`, `TestOnlyOAuthScopesAreSuperAdminOnly`) |
 | Checking requested scopes | `auth-service/data/services/oauth_scopes.go` (`ValidateScopes`, `ValidateScopesForClient`) |
 | Seeding clients | `auth-service/data/services/oauth_seed.go` (`SeedDefaultClients`), `auth-defaults/oauth_seed_clients.json`; setting `OAUTH_SEED_CLIENT_PATH` |
-| The `/clients` endpoints | `auth-service/cmd/api/handlers/oauth_clients.go`, `auth-service/cmd/api/permissions/oauth.go` |
+| The `/clients` endpoints | `auth-service/cmd/api/handlers/oauth_clients.go` (`DeleteClient`, tested in `oauth_clients_test.go`), `auth-service/cmd/api/permissions/oauth.go` |
 | Clients and what hangs off them | tables `oauth_clients`, `oauth_authorizations`, `oauth_refresh_tokens` |

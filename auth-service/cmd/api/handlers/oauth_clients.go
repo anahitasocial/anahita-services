@@ -214,10 +214,11 @@ func (h *oauthHandler) EditClient(c echo.Context) error {
 
 // DeleteClient removes a client and revokes all its outstanding state.
 //
-// FK constraints with ON DELETE CASCADE handle cleanup of refresh
-// tokens and authorization codes automatically. The explicit revoke +
-// delete calls below are belt-and-suspenders — Anahita does this; the
-// CASCADE alone would suffice. Keeping for explicitness.
+// The schema has no foreign keys, so nothing cascades: the client's refresh
+// tokens are revoked and its authorization codes deleted here, before the
+// client's row, so a failure leaves the client in place to be deleted again.
+// Left behind, they would work again for a client later made under the same
+// client_id.
 func (h *oauthHandler) DeleteClient(c echo.Context) error {
 	req := requests.NewOAuthClientRequest().Delete
 	viewer := getViewer(c)
@@ -245,6 +246,16 @@ func (h *oauthHandler) DeleteClient(c echo.Context) error {
 	if err := h.requireStepUp(viewer.ID); err != nil {
 		log.Println("oauth client delete:", err)
 		return stepUpRequired(c, err)
+	}
+
+	if err := h.Repos.OAuthRefreshTokens.RevokeByClientID(client.ClientID); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if err := h.Repos.OAuthAuthorizations.DeleteByClientID(client.ClientID); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	if err := h.Repos.OAuthClients.Delete(client.ID); err != nil {

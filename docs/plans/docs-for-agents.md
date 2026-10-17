@@ -193,31 +193,29 @@ pushed.
 4. Found while doing part 2 and fixed: `oauth.md` said deleting a client
    cascades to its tokens and signs its users out. The schema has no
    foreign keys; the tokens stay and work again with a client seeded under
-   the same `client_id`.
+   the same `client_id`. And `DELETE /clients/:id` left them too, though
+   its route said "Its tokens stop working": it now revokes them first
+   (user, 2026-10-17).
 
 **Found while doing part 2, not fixed** (for the plain-language pass, or
 their own items):
 
-1. `DELETE /clients/:id` leaves the client's refresh tokens and
-   authorizations. They are refused while the client is gone, and work again
-   if a client with the same `client_id` is made. A code change, asked of
-   the user.
-2. `abuse-reports.md`: `POST /abuse-reports` can answer `403` (`CanReport`),
+1. `abuse-reports.md`: `POST /abuse-reports` can answer `403` (`CanReport`),
    and reopening a case that is open answers `409 already_open`; neither is
    on the page.
-3. `web-shell.md`, "Which pages are described", leaves out `/videos/<id>`,
+2. `web-shell.md`, "Which pages are described", leaves out `/videos/<id>`,
    `/websites/<id>`, a website at `/@<alias>`, and `/tags/<tag>`.
-4. `permissions.md`: the defaults name three files of
+3. `permissions.md`: the defaults name three files of
    `graph-grpc-defaults/actor_features/`, which has five (also `event.json`,
    `website.json`); its Contents leaves out "Who the author lets reply" and
    "Mentions".
-5. `permissions.md`, `privacy.md` and `post-language.md` name notes,
+4. `permissions.md`, `privacy.md` and `post-language.md` name notes,
    articles, topics and photos as taking `access` and `language`; videos do
    too, and replies take `language`.
-6. The API reference says `REGISTRATION_MODE` decides who may invite
+5. The API reference says `REGISTRATION_MODE` decides who may invite
    (`auth-service/cmd/api/routes.go`, `POST /invites`); it is
    `INVITES_FROM`.
-7. In the web app, `src/containers/StaticPage.jsx` is imported by nothing
+6. In the web app, `src/containers/StaticPage.jsx` is imported by nothing
    and reads a folder that does not exist (`src/statics/pages/`).
 
 **Waiting for the user** (asked 2026-10-17, not answered): four lines of
