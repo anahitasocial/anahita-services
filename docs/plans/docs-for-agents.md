@@ -37,7 +37,7 @@ Most of them will never clone the repositories to change the code, and many will
 
 The user asked that the docs be "updated and descriptive for people to read and understand, otherwise they won't be useful", and asked whether plain language would make them worse for training AI; separate docs only if it had to, and hopefully not. It does not have to: plain language serves both, and a model reads clear, current text best, as a person does. So this item also takes on:
 
-- **A plain-language pass over both repositories' docs.** Much of the prose is roundabout ("somebody", "left alone", "as it comes", "what is due to go"). Rewritten in short, direct sentences, with one word for one thing throughout: "profile", not "actor", in what people read; "by default", not "as it comes". The facts, file paths, settings, endpoints and tables stay; only the way they are said changes.
+- **A plain-language pass over both repositories' docs.** Much of the prose is roundabout ("somebody", "left alone", "as it comes", "what is due to go"). Rewritten in short, direct sentences, with one word for one thing throughout: "profile", not "actor", in what people read; "by default", not "as it comes". The facts, file paths, settings, endpoints and tables stay; only the way they are said changes. *Decided against on 2026-10-17: see [Where it stands](#where-it-stands-and-what-is-next-2026-10-17).*
 - **Keeping them true.** A sweep of both repositories on 2026-10-14 found about 57 statements the code no longer bore out (features "not built" that were, settings documented but never passed, services long merged) and one bug behind them. They were fixed; this item makes the sweep a habit: a short checklist in `AGENTS.md` (when a feature changes, grep the docs for it, and remove "not built yet" the day it is), and a check in `make test` that every link between pages and every heading anchor resolves.
 
 ## Decisions
@@ -137,7 +137,7 @@ What ours adds to that shape is the API reference's route lookups and the recipe
 | 3. Hosted | 2–3 h, when the docs are public |
 | 4. `llms.txt` and its check | 1 h, then |
 | The four doors in the index, and the list of pages found missing | 2–3 h |
-| The plain-language pass over both repositories' docs | 6–8 h |
+| The plain-language pass over both repositories' docs | 6–8 h; decided against |
 | The link and anchor check in `make test`, and the checklist | 1 h |
 | **Total** | **about 21–28 h, 6–7 sessions**, without the missing pages themselves |
 
@@ -205,26 +205,18 @@ pushed.
    left out: its links are the app's addresses. Both found nothing broken.
    The checklist is in both `AGENTS.md`, under Docs.
 
-**Found while doing part 2, not fixed** (for the plain-language pass, or
-their own items):
-
-1. `abuse-reports.md`: `POST /abuse-reports` can answer `403` (`CanReport`),
-   and reopening a case that is open answers `409 already_open`; neither is
-   on the page.
-2. `web-shell.md`, "Which pages are described", leaves out `/videos/<id>`,
-   `/websites/<id>`, a website at `/@<alias>`, and `/tags/<tag>`.
-3. `permissions.md`: the defaults name three files of
-   `graph-grpc-defaults/actor_features/`, which has five (also `event.json`,
-   `website.json`); its Contents leaves out "Who the author lets reply" and
-   "Mentions".
-4. `permissions.md`, `privacy.md` and `post-language.md` name notes,
-   articles, topics and photos as taking `access` and `language`; videos do
-   too, and replies take `language`.
-5. The API reference says `REGISTRATION_MODE` decides who may invite
-   (`auth-service/cmd/api/routes.go`, `POST /invites`); it is
-   `INVITES_FROM`.
-6. In the web app, `src/containers/StaticPage.jsx` is imported by nothing
-   and reads a folder that does not exist (`src/statics/pages/`).
+6. The plain-language pass, decided against (user, 2026-10-17). A sample
+   rewrite of `feeds.md` changed words for words of the same kind, which
+   nobody would notice. What stays of it is four sentences that were hard to
+   follow, and the page's code map as a table. From now on a sentence is
+   rewritten only when it is unclear or wrong.
+7. What part 2 found on the pages and the code did not bear out, fixed:
+   `abuse-reports.md` (a `403`, and `409 already_open`), `web-shell.md`
+   (videos, websites and `/tags/<tag>`), `permissions.md` (the five default
+   files, and two sections missing from its Contents), the pages that left
+   videos and replies out of `access` and `language`, the API reference's
+   `POST /invites` (`INVITES_FROM`, not `REGISTRATION_MODE`), and in the web
+   app, `src/containers/StaticPage.jsx`, which nothing used, removed.
 
 **Settled with the user** (2026-10-17): the four lines of the services' old
 `.claude/CLAUDE.md` left out of part 1 come back, in both repositories. Asking
@@ -236,15 +228,10 @@ in `AGENTS.md`, the sovereignty line and "every string is in
 
 **Next, in this order:**
 
-1. **The plain-language pass, one page first:** `docs/feeds.md` in
-   anahita-services, proposed as the sample. Show the user the rewritten
-   page and wait for their approval of the style before doing the rest,
-   one commit per page. Facts, paths, settings, endpoints and tables stay;
-   only the phrasing changes. The list above is fixed on the way.
-2. **The four doors in `docs/README.md`:** Setting up a site, Keeping it
+1. **The four doors in `docs/README.md`:** Setting up a site, Keeping it
    running, Making it your own, Building on it; and the list of pages found
    missing (backups, upgrades, writing a service, writing a client).
-3. **The MCP server, last** (`tools/docs-mcp`, Go, read only, offline), as
+2. **The MCP server, last** (`tools/docs-mcp`, Go, read only, offline), as
    Design part 3 describes. Its recipe tools wait for row 30; hosting it and
    `llms.txt` wait until the docs are public.
 
@@ -253,4 +240,4 @@ in `AGENTS.md`, the sovereignty line and "every string is in
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11; the plain-language pass and keeping the docs true added 2026-10-14 |
-| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; next is the plain-language pass ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |
+| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; the plain-language pass decided against; next are the four doors ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |
