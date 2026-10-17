@@ -10315,7 +10315,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-abusereport.Case" data-search="abusereport.case decided_at decided_by decision_action decision_note first_reported_at id last_reported_at reasons report_count status target target_gone target_id target_owner target_type">
+<div class="route schema" id="schema-abusereport.Case" data-search="abusereport.case decided_at decided_by decision_action decision_note first_reported_at id last_reported_at reasons report_count status target target_gone target_id target_owner target_type written_by">
 <h3>abusereport.Case</h3>
 <p>What an administrator sees of a case in a list.</p>
 <table>
@@ -10336,10 +10336,11 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>target_id</code> <span class="required">always</span></td><td>integer</td><td>The id of what was reported.</td></tr>
 <tr><td><code>target_owner</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>The profile it is on.</td></tr>
 <tr><td><code>target_type</code> <span class="required">always</span></td><td>string</td><td>What kind of node it is.</td></tr>
+<tr><td><code>written_by</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>Who wrote it, when it is a reply one of a Pulse&#39;s administrators made as the Pulse. Sent only here, to those who handle reports.</td></tr>
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-abusereport.CaseDetail" data-search="abusereport.casedetail decided_at decided_by decision_action decision_note first_reported_at id last_reported_at previous reasons report_count reports status target target_gone target_id target_owner target_type">
+<div class="route schema" id="schema-abusereport.CaseDetail" data-search="abusereport.casedetail decided_at decided_by decision_action decision_note first_reported_at id last_reported_at previous reasons report_count reports status target target_gone target_id target_owner target_type written_by">
 <h3>abusereport.CaseDetail</h3>
 <p>A case with its reports and the target&#39;s earlier cases.</p>
 <table>
@@ -10362,6 +10363,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>target_id</code> <span class="required">always</span></td><td>integer</td><td>The id of what was reported.</td></tr>
 <tr><td><code>target_owner</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>The profile it is on.</td></tr>
 <tr><td><code>target_type</code> <span class="required">always</span></td><td>string</td><td>What kind of node it is.</td></tr>
+<tr><td><code>written_by</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>Who wrote it, when it is a reply one of a Pulse&#39;s administrators made as the Pulse. Sent only here, to those who handle reports.</td></tr>
 </tbody>
 </table>
 </div>

@@ -1026,6 +1026,10 @@
           "target_type": {
             "description": "What kind of node it is.",
             "type": "string"
+          },
+          "written_by": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "Who wrote it, when it is a reply one of a Pulse's administrators made as the Pulse. Sent only here, to those who handle reports."
           }
         },
         "required": [
@@ -1135,6 +1139,10 @@
           "target_type": {
             "description": "What kind of node it is.",
             "type": "string"
+          },
+          "written_by": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "Who wrote it, when it is a reply one of a Pulse's administrators made as the Pulse. Sent only here, to those who handle reports."
           }
         },
         "required": [

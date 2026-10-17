@@ -198,11 +198,42 @@ func CanEditReply(ctx *ReplyAccessContext) bool {
 		return false
 	}
 
-	if ctx.Viewer.ID <= 0 || ctx.Viewer.ID != ctx.Reply.GetAuthorID() {
+	if ctx.Viewer.ID <= 0 {
+		return false
+	}
+
+	// The Pulse's own replies are changed by whoever replies as it.
+	if ctx.Viewer.ID != ctx.Reply.GetAuthorID() && !isPulseReply(ctx) {
 		return false
 	}
 
 	return CanSeeThread(ctx)
+}
+
+// RepliesAs is the profile a reply the viewer writes in this thread belongs
+// to, when it is not the viewer: the Pulse, in a thread under one of its own
+// posts, for one of its administrators (docs/plans/pulse.md). The site
+// answers its readers as itself. Nil anywhere else: a reply is its
+// writer's.
+func RepliesAs(ctx *ReplyAccessContext) *entities.AnahitaNode {
+	if !ctx.rootLoaded() || ctx.Viewer.ID <= 0 {
+		return nil
+	}
+	owner := ctx.Root.GetOwner()
+	if owner.GetType() != constants.NodeActorPulseEntityType {
+		return nil
+	}
+	if !relationOrEmpty(ctx.RootOwnerViewerRel).HasAdmin {
+		return nil
+	}
+	return owner
+}
+
+// isPulseReply says whether the reply is the Pulse's own, in its own
+// thread, and the viewer one of those who reply as it.
+func isPulseReply(ctx *ReplyAccessContext) bool {
+	pulse := RepliesAs(ctx)
+	return pulse != nil && ctx.Reply.GetAuthorID() == pulse.GetID()
 }
 
 // CanDeleteReply reports whether the viewer may remove a reply for good: its

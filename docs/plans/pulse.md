@@ -65,7 +65,7 @@ A feed already connected is refused (`409`), as is a handle that is taken.
 
 **Its posts.** Each new item becomes an article owned by the Pulse: the item's title; as its content, a short excerpt (300 characters, cut at a word), its categories as hashtags, and its address on a line of its own, which gives the link card; the item's own date, if it is not in the future. Made by the worker as the Pulse's first administrator, as the video-worker makes a post as its uploader. At most `PULSE_HOURLY_CAP` (10) an hour; the rest wait for the next hour.
 
-**Replies as the Pulse.** In a thread whose root is the Pulse's, a reply by one of its administrators is the Pulse's (owner and author the Pulse); the administrator is kept in the reply's meta as `written_by`, never sent, read only by moderators handling a report.
+**Replies as the Pulse.** In a thread whose root is the Pulse's, a reply by one of its administrators is the Pulse's (owner and author the Pulse); the administrator is kept in the reply's meta as `written_by`, never sent, read only by moderators handling a report. **Built for replies in words (2026-10-16); to settle with the user:** a reply with pictures, a GIF or a video by an administrator under a Pulse's post is still the administrator's own, since its files are uploaded for them, and making them the Pulse's reaches into photo-service and video-service.
 
 **On the fediverse.** WebFinger finds a Pulse by its handle, its actor is an `Organization`, it needs no opt-in, its articles go out as `Article` (`name`, `summary` the excerpt, `content`, `url` the original), and replies to them come back into its threads, as they do for a person's notes.
 
@@ -144,5 +144,5 @@ Considered and not chosen:
 | Goal and name | recorded 2026-10-05; renamed Pulse 2026-10-15 |
 | Scope | settled 2026-10-14; narrowed to the feed alone 2026-10-15; its open points settled the same day |
 | Design | 2026-10-16: an article per item, pulse-service and pulse-worker, Article out for Pulses only |
-| Parts 1–5 | done 2026-10-16: foundations, proving a domain, pulse-service, the stack knowing a Pulse, pulse-worker |
-| Parts 6–10 | not started |
+| Parts 1–6 | done 2026-10-16: foundations, proving a domain, pulse-service, the stack knowing a Pulse, pulse-worker, replies as the Pulse |
+| Parts 7–10 | not started |
