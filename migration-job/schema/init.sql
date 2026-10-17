@@ -20,21 +20,21 @@ CREATE TABLE nodes (
   -- so the width is paid for five times over.
   `type` varchar(128) NOT NULL,
   `service` varchar(255) NOT NULL,
-  `name` varchar(255),
-  `alias` varchar(255),
-  `body` mediumtext,
+  `name` varchar(255) NOT NULL DEFAULT '',
+  `alias` varchar(255) NOT NULL DEFAULT '',
+  `body` mediumtext NOT NULL DEFAULT (''),
   `starts_at` datetime DEFAULT NULL,
   `ends_at` datetime DEFAULT NULL,
-  `owner_type` varchar(255) DEFAULT NULL,
+  `owner_type` varchar(255) NOT NULL DEFAULT '',
   `owner_id` bigint(11) unsigned DEFAULT NULL,
-  `comment_status` tinyint(1) DEFAULT NULL,
+  `comment_status` tinyint(1) NOT NULL DEFAULT 0,
   -- Who may reply, as the post's author sets it. NULL when they have not
   -- said. See anahita-libs/constants/reply_access.go.
-  `reply_access` varchar(64) DEFAULT NULL,
+  `reply_access` varchar(64) NOT NULL DEFAULT '',
   -- Who may quote: on a post, that post; on a person, their posts when
   -- they say nothing. See anahita-libs/constants/quote_policy.go.
-  `quote_policy` varchar(16) DEFAULT NULL,
-  `comment_count` int(11) unsigned DEFAULT NULL,
+  `quote_policy` varchar(16) NOT NULL DEFAULT '',
+  `comment_count` int unsigned NOT NULL DEFAULT 0,
   `repost_count` int(11) unsigned NOT NULL DEFAULT 0,
   `quote_count` int(11) unsigned NOT NULL DEFAULT 0,
   -- How many people cite it, each once, never itself (repositories/citations.go).
@@ -48,13 +48,13 @@ CREATE TABLE nodes (
   -- column to preserve its character capacity, so a database migrated by
   -- legacy/upgrade.sql ends up with mediumtext. Declared here so the two
   -- paths produce the same schema.
-  `meta` mediumtext DEFAULT NULL,
+  `meta` mediumtext NOT NULL DEFAULT (''),
   -- One link on an actor profile. Replaces the website/contact/phone trio that
   -- used to be read out of `meta`, none of which any Go request ever accepted.
-  `website_url` varchar(255) DEFAULT NULL,
+  `website_url` varchar(255) NOT NULL DEFAULT '',
   `view_count` int(11) unsigned NOT NULL DEFAULT 0,
   `parent_id` bigint(11) unsigned DEFAULT NULL,
-  `parent_type` varchar(255) DEFAULT NULL,
+  `parent_type` varchar(255) NOT NULL DEFAULT '',
   -- The post at the top of the thread a reply belongs to. NULL on anything
   -- that is not a reply. Who may see a reply is decided by this post.
   `root_id` bigint(11) unsigned DEFAULT NULL,
@@ -64,23 +64,23 @@ CREATE TABLE nodes (
   `quote_detached_at` datetime DEFAULT NULL,
   `geo_latitude` float(10,6) DEFAULT NULL,
   `geo_longitude` float(10,6) DEFAULT NULL,
-  `geo_address` VARCHAR(255) DEFAULT NULL,
-  `geo_city` VARCHAR(50) DEFAULT NULL,
-  `geo_state_province` VARCHAR(50) DEFAULT NULL,
-  `geo_country` VARCHAR(30) DEFAULT NULL,
-  `geo_postalcode` VARCHAR(15) DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
+  `geo_address` varchar(255) NOT NULL DEFAULT '',
+  `geo_city` varchar(50) NOT NULL DEFAULT '',
+  `geo_state_province` varchar(50) NOT NULL DEFAULT '',
+  `geo_country` varchar(30) NOT NULL DEFAULT '',
+  `geo_postalcode` varchar(15) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_by` bigint(11) unsigned DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
   -- The file this node is: a photo post's photo. Never an actor's picture.
-  `filename` varchar(255) DEFAULT NULL,
+  `filename` varchar(255) NOT NULL DEFAULT '',
   -- The picture that stands for an actor. Only actors have one.
-  `avatar_filename` varchar(255) DEFAULT NULL,
-  `cover_filename` varchar(255) DEFAULT NULL,
-  `follower_count` int(11) unsigned DEFAULT NULL,
-  `leader_count` int(11) unsigned DEFAULT NULL,
-  `allow_follow_request` tinyint(1) unsigned DEFAULT NULL,
+  `avatar_filename` varchar(255) NOT NULL DEFAULT '',
+  `cover_filename` varchar(255) NOT NULL DEFAULT '',
+  `follower_count` int unsigned NOT NULL DEFAULT 0,
+  `leader_count` int unsigned NOT NULL DEFAULT 0,
+  `allow_follow_request` tinyint unsigned NOT NULL DEFAULT 0,
   -- Whether what an actor reposts is also among its profile's posts.
   `show_reposts_on_profile` tinyint(1) NOT NULL DEFAULT 0,
   -- On a post that holds a file, whether whoever can see it may download
@@ -92,15 +92,15 @@ CREATE TABLE nodes (
   -- On an article or a topic, that it is still being written: seen by its
   -- author alone, listed nowhere, announced to nobody.
   `draft` tinyint(1) NOT NULL DEFAULT 0,
-  `subscriber_count` int(11) unsigned DEFAULT NULL,
-  `vote_up_count` int(11) unsigned DEFAULT NULL,
-  `mimetype` varchar(100) DEFAULT NULL,
-  `language` varchar(50) DEFAULT NULL,
+  `subscriber_count` int unsigned NOT NULL DEFAULT 0,
+  `vote_up_count` int unsigned NOT NULL DEFAULT 0,
+  `mimetype` varchar(100) NOT NULL DEFAULT '',
+  `language` varchar(50) NOT NULL DEFAULT '',
   `access` varchar(255) NOT NULL,
   -- The per-node-type optional feature set, as JSON. Named `features` because
   -- that is what the code selects; this file called it
   -- `enabled_optional_features`, which nothing has ever read.
-  `features` mediumtext,
+  `features` mediumtext NOT NULL DEFAULT (''),
   -- When an actor was scheduled for deletion. NULL for everything that is not
   -- deleted, which is almost every row.
   --
@@ -130,11 +130,11 @@ CREATE TABLE nodes (
   -- Named for the node rather than for auth: the graph owns the person, and
   -- unlike owner_type and parent_type this holds an authority level, not a node
   -- type string.
-  `person_type` varchar(50) DEFAULT NULL,
+  `person_type` varchar(50) NOT NULL DEFAULT '',
   -- Free text, e.g. "she/her", "iel". Never an enum — an enum hard-codes
   -- English grammar and is meaningless in a language with no gendered
   -- third-person pronoun. Never used for logic; empty renders nothing.
-  `person_pronouns` varchar(50) DEFAULT NULL,
+  `person_pronouns` varchar(50) NOT NULL DEFAULT '',
   `last_visited_at` datetime DEFAULT NULL,
   -- The actor handle namespace.
   --
@@ -208,14 +208,14 @@ CREATE TABLE edges (
   `node_a_type` varchar(128) NOT NULL,
   `node_b_id` bigint(11) unsigned NOT NULL,
   `node_b_type` varchar(128) NOT NULL,
-  `meta` mediumtext,
-  `created_at` datetime DEFAULT NULL,
+  `meta` mediumtext NOT NULL DEFAULT (''),
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_by` bigint(11) unsigned DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
   -- Where an edge sits among its siblings, for the ones kept in an order
   -- somebody chose. Written with every edge, so it has to be here.
-  `ordering` int(11) unsigned DEFAULT NULL,
+  `ordering` int unsigned NOT NULL DEFAULT 0,
   `starts_at` datetime DEFAULT NULL,
   `ends_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -346,21 +346,21 @@ CREATE TABLE notifications (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `type` varchar(255) NOT NULL,
     `service` varchar(255) NOT NULL,
-    `recipient_id` bigint(11) unsigned DEFAULT NULL,
+    `recipient_id` bigint unsigned NOT NULL,
     `subject_id` bigint(11) unsigned DEFAULT NULL,
-    `subject_type` varchar(255) DEFAULT NULL,
+    `subject_type` varchar(255) NOT NULL DEFAULT '',
     `object_id` bigint(11) unsigned DEFAULT NULL,
-    `object_type` varchar(255) DEFAULT NULL,
+    `object_type` varchar(255) NOT NULL DEFAULT '',
     `target_id` bigint(11) unsigned DEFAULT NULL,
-    `target_type` varchar(255) DEFAULT NULL,
+    `target_type` varchar(255) NOT NULL DEFAULT '',
     `comment_id` int(11) unsigned DEFAULT NULL,
-    `created_at` datetime DEFAULT NULL,
-    `updated_at` datetime DEFAULT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     -- mediumtext, not text. An existing database reaches utf8mb4 through
     -- CONVERT TO CHARACTER SET, which promotes text to preserve its character
     -- capacity; a fresh one is created as utf8mb4 outright and would keep
     -- text. Declaring the wider type is what makes the two paths agree.
-    `meta` mediumtext DEFAULT NULL,
+    `meta` mediumtext NOT NULL DEFAULT (''),
     `is_read` tinyint(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `recipient_id` (`recipient_id`),
@@ -378,14 +378,14 @@ CREATE TABLE notifications (
 
 CREATE TABLE auth_logs (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-    `created_at` datetime DEFAULT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `created_by` BIGINT UNSIGNED NOT NULL,
-    `agent_device` varchar(50) DEFAULT 'bot',
-    `agent_os` varchar(255) DEFAULT NULL,
-    `agent_name` varchar(255) DEFAULT NULL,
-    `ip` varchar(255) DEFAULT NULL,
-    `city` varchar(255) DEFAULT NULL,
-    `country` varchar(255) DEFAULT NULL,
+    `agent_device` varchar(50) NOT NULL DEFAULT 'bot',
+    `agent_os` varchar(255) NOT NULL DEFAULT '',
+    `agent_name` varchar(255) NOT NULL DEFAULT '',
+    `ip` varchar(255) NOT NULL DEFAULT '',
+    `city` varchar(255) NOT NULL DEFAULT '',
+    `country` varchar(255) NOT NULL DEFAULT '',
     `oauth_refresh_token_id` bigint(11) unsigned NOT NULL,
     `client_id` varchar(255) NOT NULL,
     PRIMARY KEY (`id`)
@@ -417,10 +417,10 @@ CREATE TABLE node_deletion_logs (
     `node_id` bigint(11) unsigned NOT NULL,
     -- The alias at the time, kept because a tombstone can be scrubbed by a
     -- later erasure request and this is then the only record of what went.
-    `node_alias` varchar(255) DEFAULT NULL,
+    `node_alias` varchar(255) NOT NULL DEFAULT '',
     -- Full type string, e.g. node.actor.group-service.group.v1. Doubles as the
     -- service filter, so no separate column is needed for it.
-    `node_type` varchar(255) DEFAULT NULL,
+    `node_type` varchar(255) NOT NULL DEFAULT '',
     -- Who asked. Equal to node_id for a self-service account deletion, and for
     -- the sweeper, which acts on a deadline rather than for a person.
     `deleted_by` bigint(11) unsigned NOT NULL,
