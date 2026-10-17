@@ -3426,11 +3426,11 @@ who may call it: somebody signed in, with a token that carries `actors:read`.">
 </table>
 <p class="handler">Answered by <code>auth/cmd/api/handlers.(*inviteHandler).Browse</code></p>
 </details>
-<details class="route" id="postInvites" data-search="post /invites invite somebody mails them a link. who may invite is the installation&#39;s choice (`registration_mode`), and how many may wait at once.
+<details class="route" id="postInvites" data-search="post /invites invite somebody mails them a link. who may invite is the installation&#39;s choice (`invites_from`), and so is how many may wait at once (`invite_pending_max`).
 
 who may call it: somebody signed in, with a token that carries `actors:write`.">
 <summary><span class="method post">POST</span> <code class="path">/invites</code> <span class="summary">Invite somebody</span></summary>
-<div class="description"><p>Mails them a link. Who may invite is the installation&#39;s choice (<code>REGISTRATION_MODE</code>), and how many may wait at once.</p></div>
+<div class="description"><p>Mails them a link. Who may invite is the installation&#39;s choice (<code>INVITES_FROM</code>), and so is how many may wait at once (<code>INVITE_PENDING_MAX</code>).</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>actors:write</code></p>
 <h4>Takes, as <code>application/json</code></h4>
 <table>

@@ -2,6 +2,20 @@
 
 Documentation for anahita-services, the Go microservices behind Anahita.
 
+## Where to begin
+
+Four ways in, by what you are doing. Each is a short page of links, in the
+order to read them.
+
+| To | Read |
+| --- | --- |
+| Put a site on the web | [Setting up a site](setting-up.md) |
+| Change how it looks, what it says and what it allows | [Making it your own](making-it-your-own.md) |
+| Run it from day to day: upgrades, storage, accounts, reports | [Keeping it running](keeping-it-running.md) |
+| Write an app or a service against it | [Building on it](building-on-it.md) |
+
+Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
+
 ## Contents
 
 1. [Getting started](getting-started.md) — running the stack locally
@@ -43,6 +57,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
 4. [OAuth scopes and clients](oauth.md)
    - [Scopes](oauth.md#scopes)
    - [Seeding clients](oauth.md#seeding-clients)
+   - [Where the code is](oauth.md#where-the-code-is)
 5. [Registration and agreements](registration.md) — how people join
    - [Where it happens](registration.md#where-it-happens)
    - [Registration modes](registration.md#registration-modes)
@@ -55,14 +70,15 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Onboarding](registration.md#onboarding)
    - [NodeInfo](registration.md#nodeinfo)
    - [The first super administrator](registration.md#the-first-super-administrator)
+   - [Where the code is](registration.md#where-the-code-is)
 6. [Permissions](permissions.md) — who can post, reply, like and add followers
    - [Two separate settings](permissions.md#two-separate-settings)
    - [Access levels](permissions.md#access-levels)
    - [A members-only installation](permissions.md#a-members-only-installation)
    - [Who is always allowed](permissions.md#who-is-always-allowed)
    - [Seeing posts](permissions.md#seeing-posts)
-   - [Posting](permissions.md#posting)
    - [Choosing who can see a post](permissions.md#choosing-who-can-see-a-post)
+   - [Posting](permissions.md#posting)
    - [Replies](permissions.md#replies)
    - [Likes](permissions.md#likes)
    - [Following](permissions.md#following)
@@ -81,6 +97,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The defaults](permissions.md#the-defaults)
    - [What profile owners can change](permissions.md#what-profile-owners-can-change)
    - [Accepted values](permissions.md#accepted-values)
+   - [Where the code is](permissions.md#where-the-code-is)
 7. [Signing in](signing-in.md) — passwords, passkeys, emailed codes and their limits
    - [The ways in](signing-in.md#the-ways-in)
    - [Signing in with a code](signing-in.md#signing-in-with-a-code)
@@ -90,6 +107,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Resetting a forgotten password](signing-in.md#resetting-a-forgotten-password)
    - [Changing an email address](signing-in.md#changing-an-email-address)
    - [Adding text messages later](signing-in.md#adding-text-messages-later)
+   - [Where the code is](signing-in.md#where-the-code-is)
 8. [Abuse reports](abuse-reports.md) — reporting, the reasons list, and what administrators do
    - [Reports and cases](abuse-reports.md#reports-and-cases)
    - [Reporting something](abuse-reports.md#reporting-something)
@@ -98,6 +116,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [What administrators do](abuse-reports.md#what-administrators-do)
    - [When the reported thing is deleted](abuse-reports.md#when-the-reported-thing-is-deleted)
    - [Who sees what](abuse-reports.md#who-sees-what)
+   - [Where the code is](abuse-reports.md#where-the-code-is)
 9. [Privacy](privacy.md) — who can see a post, a profile and the site, and the settings an installation makes
    - [The audiences](privacy.md#the-audiences)
    - [Who can see a post](privacy.md#who-can-see-a-post)
@@ -114,6 +133,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [On a post](post-language.md#on-a-post)
    - [On a person](post-language.md#on-a-person)
    - [What the web app does](post-language.md#what-the-web-app-does)
+   - [Where the code is](post-language.md#where-the-code-is)
    - [What is not built](post-language.md#what-is-not-built)
 11. [Photo posts](photos.md) — several images in one post: uploading, storing, changing and removing them
    - [One post, several images](photos.md#one-post-several-images)
@@ -124,6 +144,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Downloading](photos.md#downloading)
    - [Removal](photos.md#removal)
    - [Limits](photos.md#limits)
+   - [Where the code is](photos.md#where-the-code-is)
    - [What is not built](photos.md#what-is-not-built)
 12. [Account lifecycle](account-lifecycle.md) — disabling, archiving, deleting, purging, and clearing out unused accounts
    - [The four states](account-lifecycle.md#the-four-states)
@@ -134,6 +155,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The accounts list](account-lifecycle.md#the-accounts-list)
    - [The sweeper](account-lifecycle.md#the-sweeper)
    - [Groups left without an administrator](account-lifecycle.md#groups-left-without-an-administrator)
+   - [Where the code is](account-lifecycle.md#where-the-code-is)
 13. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
    - [What you need](deploying.md#what-you-need)
    - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
@@ -182,6 +204,8 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Endpoints](link-previews.md#endpoints)
    - [The card on a note](link-previews.md#the-card-on-a-note)
    - [Running it, and not running it](link-previews.md#running-it-and-not-running-it)
+   - [Cards in long writing](link-previews.md#cards-in-long-writing)
+   - [Where the code is](link-previews.md#where-the-code-is)
    - [What is not built](link-previews.md#what-is-not-built)
 17. [The web shell](web-shell.md) — sending the web app with each page's own title and picture, for links shared elsewhere
    - [What it sends](web-shell.md#what-it-sends)
@@ -192,6 +216,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Running it](web-shell.md#running-it)
    - [Settings](web-shell.md#settings)
    - [Not running it](web-shell.md#not-running-it)
+   - [Where the code is](web-shell.md#where-the-code-is)
    - [What is not built](web-shell.md#what-is-not-built)
 18. [Videos](videos.md) — a video sent straight to storage, the worker that makes a post of it, and how it is played
    - [The parts](videos.md#the-parts)
@@ -201,11 +226,13 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [The post](videos.md#the-post)
    - [Playing it](videos.md#playing-it)
    - [Sizes](videos.md#sizes)
+   - [GIFs and animated PNGs](videos.md#gifs-and-animated-pngs)
    - [Downloading](videos.md#downloading)
    - [Endpoints](videos.md#endpoints)
    - [Settings](videos.md#settings)
    - [Storage](videos.md#storage)
    - [Running it, and not running it](videos.md#running-it-and-not-running-it)
+   - [Where the code is](videos.md#where-the-code-is)
    - [What is not built](videos.md#what-is-not-built)
 19. [Download your data](data-export.md) — a person's copy of everything they put here: asking for it, what is in it, and how long it is kept
    - [The parts](data-export.md#the-parts)
@@ -217,6 +244,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Endpoints](data-export.md#endpoints)
    - [Settings](data-export.md#settings)
    - [Running it, and not running it](data-export.md#running-it-and-not-running-it)
+   - [Where the code is](data-export.md#where-the-code-is)
    - [What is not built](data-export.md#what-is-not-built)
 20. [Federation](federation.md) — taking part in the fediverse and in Bluesky: turning it on, who is on the fediverse, what they are called and what is told about them, reading Bluesky and writing to it as a connected account, and who owns what
    - [What it is](federation.md#what-it-is)

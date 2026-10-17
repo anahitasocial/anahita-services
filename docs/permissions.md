@@ -20,15 +20,17 @@ What each route answers when the viewer may not is in the [API reference](api/in
 - [Replies](#replies)
   - [Seeing a reply](#seeing-a-reply)
   - [Replying](#replying)
+  - [Who the author lets reply](#who-the-author-lets-reply)
   - [Who looks after a thread](#who-looks-after-a-thread)
-  - [Replying as a website](#replying-as-a-website)
   - [Editing, deleting and hiding a reply](#editing-deleting-and-hiding-a-reply)
+  - [Replying as a website](#replying-as-a-website)
   - [Liking a reply](#liking-a-reply)
 - [Likes](#likes)
 - [Following](#following)
 - [Invitations](#invitations)
 - [Events](#events)
 - [Reposts](#reposts)
+- [Mentions](#mentions)
 - [Quotes](#quotes)
 - [Saved posts](#saved-posts)
 - [Pinned posts](#pinned-posts)
@@ -40,6 +42,7 @@ What each route answers when the viewer may not is in the [API reference](api/in
 - [The defaults](#the-defaults)
 - [What profile owners can change](#what-profile-owners-can-change)
 - [Accepted values](#accepted-values)
+- [Where the code is](#where-the-code-is)
 
 ## Two separate settings
 
@@ -165,8 +168,9 @@ you. You see it only if you could see the original.
 
 The author chooses a post's audience when writing it, and whoever may edit the
 post can change it afterwards. It is sent as `access` when the post is created
-(`POST /notes/:owner_id/` and the same for articles, topics and photos) and
-changed with `PATCH /…/:id/access`. Left out, a new post is `public`.
+(`POST /notes/:owner_id/` and the same for articles, topics and photos; for a
+video, when its upload begins, `POST /videos/:owner_id/uploads`) and changed
+with `PATCH /…/:id/access`. Left out, a new post is `public`.
 
 Which audiences a post may have depends on where it is:
 
@@ -207,7 +211,7 @@ because "only me" depends on who wrote the post, not on who is changing it.
 
 ## Posting
 
-Who can create a note, article, topic or photo on somebody's profile.
+Who can create a note, article, topic, photo or video on somebody's profile.
 
 - The owner and the profile's administrators always can.
 - Everybody else has to be able to see the profile and meet the level set for
@@ -775,6 +779,8 @@ The defaults live in `graph-grpc-defaults/actor_features/`:
 | `default.json` | Every profile, as the base |
 | `person.json` | People, layered over `default.json` |
 | `group.json` | Groups, layered over `default.json` |
+| `event.json` | Events, layered over `default.json` |
+| `website.json` | Websites, layered over `default.json` |
 
 Each service lists its `add_permissions` as an entity and a level:
 
@@ -848,3 +854,25 @@ checks enforce.
 | `comment` | `registered`, `followers` | `registered`, `followers` |
 | `like` | `registered`, `followers`, `leaders`, `mutuals`, `admins` | `registered`, `followers`, `admins` |
 | `follower` | `admins` (not enforced) | `followers`, `admins` |
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| What each level admits | `anahita-libs/cmd/api/permissions/add_access.go` (`AddAccessAllows`), tested in `add_access_test.go` |
+| Seeing a profile and a post | `anahita-libs/cmd/api/permissions/actor.go` and `medium.go` (`CanRead`); in lists and feeds, `graph-grpc-service/data/repositories/access.go`, `access_actor.go`, `access_medium.go` |
+| A post reached by its id | `anahita-libs/cmd/api/handlers/quotes.go` (`MaySee`), `anahita-libs/data/services/graph_node_grpc.go` (`FilterVisible`) |
+| Choosing who can see a post | `anahita-libs/cmd/api/permissions/audience.go` (`MediumAudiences`), tested in `audience_test.go` |
+| Posting and likes | `anahita-libs/cmd/api/permissions/capabilities.go` (`CanPostTo`, `CanLike`) |
+| A group's or an event's block | `anahita-libs/cmd/api/permissions/block_from_owner.go` (`CanBlockFromOwner`) |
+| Replies | `anahita-libs/cmd/api/permissions/reply.go` (`CanReply`, `CanEditReply`, `CanDeleteReply`, `CanHideReply`, `CanLikeReply`); the thread, `anahita-libs/cmd/api/handlers/threads.go` |
+| Who the author lets reply | `anahita-libs/constants/reply_access.go`; table `nodes`, column `reply_access` |
+| Following, and what a stranger is shown | `anahita-libs/cmd/api/permissions/follow.go`, `limited_profile.go` (`CanSeeLimitedProfile`); `graph-grpc-service/cmd/server/handlers/actor_restricted.go` (`restrictUnseen`) |
+| Invitations | `anahita-libs/cmd/api/permissions/invite.go` (`CanInvite`), `graph-grpc-service/data/repositories/invites.go` |
+| Events | `anahita-libs/cmd/api/permissions/event.go` (`CanRsvp`, `CanSeeOnlineURL`); setting `EVENTS_FROM` |
+| Mentions | `anahita-libs/cmd/api/permissions/mention.go` (`CanMention`) |
+| Quotes | `anahita-libs/cmd/api/permissions/quote.go` (`CanQuote`, `CanDetachQuote`), `anahita-libs/constants/quote_policy.go`, `anahita-libs/cmd/api/handlers/quotes.go` (`SetQuotes`) |
+| Pinned posts | `anahita-libs/cmd/api/permissions/pin.go` (`CanPin`, `RunsProfile`) |
+| Downloading | `anahita-libs/cmd/api/permissions/download.go` (`CanDownload`), `anahita-libs/cmd/api/handlers/download.go` (`MayDownload`) |
+| The defaults | `graph-grpc-defaults/actor_features/`, read by `graph-grpc-service/data/actor_features/`; setting `ACTOR_FEATURES_PATH` |
+| Accepted values | `anahita-libs/validators/request.go` (`validatePersonAddPermissionAccess`, `validateActorAddPermissionAccess`) |

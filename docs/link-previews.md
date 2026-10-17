@@ -18,6 +18,7 @@ Its routes are in the API reference: [link-preview-service](api/index.html#link-
 - [The card on a note](#the-card-on-a-note)
 - [Cards in long writing](#cards-in-long-writing)
 - [Running it, and not running it](#running-it-and-not-running-it)
+- [Where the code is](#where-the-code-is)
 - [What is not built](#what-is-not-built)
 
 ## Two halves
@@ -139,6 +140,18 @@ the same fields as a note's card.
 It is optional. Without it, asking for a preview fails, the composer shows
 no card, and notes are written without one. Cards already on notes are
 still shown; only their pictures need the service.
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| Fetching a page safely | `link-preview-service/fetch/safe.go`, `fetch.go`, over `anahita-libs/safehttp`; tested in `fetch_test.go` |
+| What is read from the page | `link-preview-service/fetch/parse.go` |
+| The picture, no wider than 800 pixels | `link-preview-service/fetch/fetch.go` (`Thumbnail`), `safe.go` (`ThumbnailWidth`), `link-preview-service/cmd/api/handlers/previews.go` (`keepPicture`, `Image`) |
+| The endpoints | `link-preview-service/cmd/api/handlers/previews.go` |
+| The preview, the Redis store, how long it is kept, normalising an address | `anahita-libs/linkpreviews/linkpreviews.go` (`FreshFor`, `FailedFor`, `Key`, `Normalise`) |
+| The card in a note's `meta` | `anahita-libs/linkpreviews/linkpreviews.go` (`IntoMeta`, `FromMeta`); `text-service/cmd/api/handlers/note.go` (`withLinkPreview`) |
+| Cards in long writing | `text-service/cmd/api/handlers/embeds.go` (`withEmbeddedPages`); `SnapshotsIntoMeta` in `anahita-libs/linkpreviews` |
 
 ## What is not built
 

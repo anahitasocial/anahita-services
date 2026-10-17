@@ -21,6 +21,7 @@ is told apart by what they say they are.
 - [Running it](#running-it)
 - [Settings](#settings)
 - [Not running it](#not-running-it)
+- [Where the code is](#where-the-code-is)
 - [What is not built](#what-is-not-built)
 
 ## What it sends
@@ -47,13 +48,14 @@ twice.
 
 | Page | Title | Description | Picture |
 | --- | --- | --- | --- |
-| `/@<alias>` and its tabs: a person, a group or an event at its alias | Its name | Its bio, or what it says of itself | Its avatar |
+| `/@<alias>` and its tabs: a person, a group, an event or a website at its alias | Its name | Its bio, or what it says of itself | Its avatar |
 | `/people/<alias>` and its tabs | The person's name | Their bio | Their avatar |
-| `/groups/<id>`, `/events/<id>` and their tabs | Its name | What it says of itself | Its avatar |
+| `/groups/<id>`, `/events/<id>`, `/websites/<id>` and their tabs | Its name | What it says of itself | Its avatar |
 | `/photos/<id>` | The photo's title | Its text | The photo |
+| `/videos/<id>` | The video's title | Its text | Its poster: for a GIF, its first picture |
 | `/articles/<id>`, `/topics/<id>` | Its title | The start of its text | Its cover |
 | `/notes/<id>` | Its writer's name | The start of the note | The picture of the link it carries a card for |
-| `/hashtags/<tag>` | `#tag` | The site's | The site's |
+| `/hashtags/<tag>`, and `/tags/<tag>`, the address other servers are given | `#tag` | The site's | The site's |
 | Any other | The site's name | The site's | `/statics/media/ogimage.jpg` |
 
 Text is made plain, with Markdown and HTML taken out, and cut to 200
@@ -105,7 +107,7 @@ the picture of.
 ## What other servers ask this host
 
 Somebody here is known elsewhere as `ana@example.org`, so a server that
-wants to find her asks `example.org`, the web app's host, where she is. The
+wants to find them asks `example.org`, the web app's host, where they are. The
 shell knows nothing of people; the API does. So three addresses are answered
 with a redirect to the same path on the API, with whatever was asked:
 
@@ -169,6 +171,19 @@ all show the site's own title and picture.
 do what the shell does for other servers: redirect the three addresses
 [above](#what-other-servers-ask-this-host) to the same paths on the API.
 Without that, nobody here can be found by their handle.
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| What it sends, and the `/.well-known` redirects | `web-shell/shell/server.go` (`ServeHTTP`, `file`, `page`, `image`, `wellKnown`) |
+| Which pages are described | `web-shell/shell/pages.go` (`Resolve`, `ResolveImage`) |
+| What is never described | `web-shell/shell/pages.go` (`IsPublic`), with `anahita-libs/policy/policy.go` (`MembersOnly`) |
+| Writing the tags into `index.html` | `web-shell/shell/template.go` (`NewTemplate`, `Render`) |
+| Reading as a visitor, and signing picture addresses | `web-shell/shell/graph.go` |
+| Settings | `web-shell/config/config.go` (`PUBLIC_WEB_URL`, `WEB_BUILD_DIR`), `anahita-libs/site/addresses.go` (`FromEnv`) |
+| Running it | `web-shell/cmd/api/main.go`, `make web_shell` and `make build_web_shell` in `Makefile`, `dockerfiles/web-shell.dockerfile`, `k8s/base/services/web-shell.yml` |
+| Tests of the rules | `web-shell/shell/shell_test.go` (`TestWhatIsNotPublicIsNotDescribed`) |
 
 ## What is not built
 

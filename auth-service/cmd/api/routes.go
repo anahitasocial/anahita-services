@@ -718,7 +718,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusForbidden, "the viewer may not invite")
 	invitesAuth.POST("", h.Invite.Add).
 		Summary("Invite somebody").
-		Describe("Mails them a link. Who may invite is the installation's choice (`REGISTRATION_MODE`), and how many may wait at once.").
+		Describe("Mails them a link. Who may invite is the installation's choice (`INVITES_FROM`), and so is how many may wait at once (`INVITE_PENDING_MAX`).").
 		Viewer(apidoc.SignedIn).
 		Scope(libs_constants.OAuthScopeActorsWrite).
 		Takes(&requests.InviteAdd{}).

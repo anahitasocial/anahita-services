@@ -18,6 +18,7 @@ Its routes are in the API reference: [export-service](api/index.html#export-serv
 - [Endpoints](#endpoints)
 - [Settings](#settings)
 - [Running it, and not running it](#running-it-and-not-running-it)
+- [Where the code is](#where-the-code-is)
 - [What is not built](#what-is-not-built)
 
 ## The parts
@@ -146,6 +147,21 @@ Redis, `graph-grpc-service` and `file-grpc-service`.
 
 Both are optional. Without them the web app's setting says the download is
 not available here.
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| Asking for one, and the endpoints | `export-service/cmd/api/handlers/exports.go` (`Add`), over `anahita-libs/sessions/step_up.go` (`RequireStepUp`) |
+| The requests | `export-service/data/repositories/exports.go` (`Claim`, `MaxAttempts`), table `data_exports` in `migration-job/schema/init.sql` |
+| The worker: making, storing, deleting | `export-service/worker/worker.go` (`Tidy`), `export-service/cmd/worker/main.go` |
+| Reading as the person | `export-service/worker/source.go` |
+| What is in an archive | `export-service/archive/archive.go` (`Write`), `export-service/archive/page.go` (`writePage` for `index.html`, `readme`, `actorOf` and `outboxOf`) |
+| Everything one person wrote | `ListAuthored`: `graph-grpc-service/cmd/server/handlers/saved.go`, `anahita-libs/data/services/media_authored.go` |
+| Sent only as a file to save | `file-grpc-service/data/services/uploads.go` (`ExportsPrefix`) |
+| Settings | `export-service/config/config.go`: `EXPORT_EVERY_DAYS`, `EXPORT_KEEP_DAYS`, `PUBLIC_WEB_URL`, `SITE_NAME`; `EXPORT_WORK_DIR` in `export-service/cmd/worker/main.go` |
+| Tests of the rules | `export-service/cmd/api/handlers/exports_test.go`, `export-service/archive/archive_test.go`, `export-service/worker/worker_test.go`, `export-service/data/repositories/exports_integration_test.go` |
+| The web app | `src/containers/actors/Settings/DataExport.jsx`, `src/api/exports.js` (anahita-web) |
 
 ## What is not built
 

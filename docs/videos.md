@@ -23,6 +23,7 @@ Its routes are in the API reference: [video-service](api/index.html#video-servic
 - [Settings](#settings)
 - [Storage](#storage)
 - [Running it, and not running it](#running-it-and-not-running-it)
+- [Where the code is](#where-the-code-is)
 - [What is not built](#what-is-not-built)
 
 ## The parts
@@ -308,6 +309,21 @@ running and no worker, uploads are taken and wait.
 
 One worker makes one video at a time. Run more replicas to make more at
 once; each needs processor and working space of its own.
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| Beginning and finishing an upload, and how it is getting on | `video-service/cmd/api/handlers/video_uploads.go` |
+| Video posts: read, edit, delete, audience, replies, pin | `video-service/cmd/api/handlers/` (`video.go`, `video_access.go`, `video_reply.go`, `video_pin.go`) |
+| Sending viewers to a video's files | `video-service/cmd/api/handlers/video_files.go` |
+| Downloading | `video-service/cmd/api/handlers/video_download.go`, over `anahita-libs/cmd/api/permissions/download.go` (`CanDownload`) |
+| The worker | `video-service/worker/worker.go`, `video-service/cmd/worker/main.go`, tested in `worker_test.go` |
+| What a file is, how long it runs, and the sizes made | `video-service/encode/encode.go` (`Container`, `ParseProbe`, `Plan`, `PlanAnimation`), tested in `encode_test.go` and `encode_ffmpeg_test.go` |
+| The uploads | `video-service/data/repositories/uploads.go`, table `video_uploads`, tested in `uploads_integration_test.go` |
+| Where large files may be written and read | `file-grpc-service/data/services/uploads.go` (`UploadsPrefix`, `WorkerPrefix`) |
+| Settings | `video-service/config/config.go` |
+| The two images | `dockerfiles/video-service.dockerfile`, `dockerfiles/video-worker.dockerfile` |
 
 ## What is not built
 

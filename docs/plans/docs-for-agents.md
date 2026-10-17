@@ -37,7 +37,7 @@ Most of them will never clone the repositories to change the code, and many will
 
 The user asked that the docs be "updated and descriptive for people to read and understand, otherwise they won't be useful", and asked whether plain language would make them worse for training AI; separate docs only if it had to, and hopefully not. It does not have to: plain language serves both, and a model reads clear, current text best, as a person does. So this item also takes on:
 
-- **A plain-language pass over both repositories' docs.** Much of the prose is roundabout ("somebody", "left alone", "as it comes", "what is due to go"). Rewritten in short, direct sentences, with one word for one thing throughout: "profile", not "actor", in what people read; "by default", not "as it comes". The facts, file paths, settings, endpoints and tables stay; only the way they are said changes.
+- **A plain-language pass over both repositories' docs.** Much of the prose is roundabout ("somebody", "left alone", "as it comes", "what is due to go"). Rewritten in short, direct sentences, with one word for one thing throughout: "profile", not "actor", in what people read; "by default", not "as it comes". The facts, file paths, settings, endpoints and tables stay; only the way they are said changes. *Decided against on 2026-10-17: see [Where it stands](#where-it-stands-and-what-is-next-2026-10-17).*
 - **Keeping them true.** A sweep of both repositories on 2026-10-14 found about 57 statements the code no longer bore out (features "not built" that were, settings documented but never passed, services long merged) and one bug behind them. They were fixed; this item makes the sweep a habit: a short checklist in `AGENTS.md` (when a feature changes, grep the docs for it, and remove "not built yet" the day it is), and a check in `make test` that every link between pages and every heading anchor resolves.
 
 ## Decisions
@@ -46,6 +46,19 @@ The user asked that the docs be "updated and descriptive for people to read and 
 - **`AGENTS.md` at the root of each repository** holds the working agreements. It is the name most tools read; `CLAUDE.md` in each becomes one line that brings it in, so nothing is said twice.
 - **The MCP server only reads.** Docs, plans and the API reference. It has no way to the database, to a running site or to anything that changes something.
 - **It runs from a clone first, and is hosted as soon as the docs are public:** the people it is for have no clone.
+
+### Settled with the user on 2026-10-17
+
+- **Row 29 comes after row 27,** which changed the schema rules it writes
+  down.
+- **The rules are split:** the project's in `AGENTS.md`, in each repository;
+  how the user and their agent work together stays in `CLAUDE.md` (the web
+  app's at the root, the services' in `.claude/`), which loads `AGENTS.md`
+  with `@AGENTS.md` and adds only that.
+- **The plain-language pass begins with one page,** whose style the user
+  approves before the rest are done, one commit a page.
+- **The MCP server comes last** in this row: it serves the docs the rest
+  improves.
 
 ## Design
 
@@ -124,7 +137,7 @@ What ours adds to that shape is the API reference's route lookups and the recipe
 | 3. Hosted | 2–3 h, when the docs are public |
 | 4. `llms.txt` and its check | 1 h, then |
 | The four doors in the index, and the list of pages found missing | 2–3 h |
-| The plain-language pass over both repositories' docs | 6–8 h |
+| The plain-language pass over both repositories' docs | 6–8 h; decided against |
 | The link and anchor check in `make test`, and the checklist | 1 h |
 | **Total** | **about 21–28 h, 6–7 sessions**, without the missing pages themselves |
 
@@ -153,9 +166,90 @@ What ours adds to that shape is the API reference's route lookups and the recipe
 - **services and web `getting-started.md`**: the MCP server and how an agent is pointed at it.
 - **services `README.md`**, and **web `README.md`**: a line on `AGENTS.md`.
 
+## Where it stands, and what is next (2026-10-17)
+
+Written at the end of the session that began the row, for the next one to
+start from. Both repositories are on a branch `docs-for-agents`, not yet
+pushed.
+
+**Done:**
+
+1. Part 1: `AGENTS.md` in both repositories, with `CLAUDE.md` (the web
+   app's at the root, the services' in `.claude/`) loading it and keeping
+   only how the user and their agent work together. Services commit
+   `4a333b2`, web `4a0fda17`.
+2. On the web branch, roadmap rows 85 (regional English and French), 86
+   (German), 87 (Spanish), 88 (Brazilian Portuguese) and 89 (a test that
+   every language has every string), all after this row. Japanese was
+   decided against: nobody to read it.
+3. Part 2, "Where the code is", as a table (What | Where) on every page
+   about one subject: thirteen services pages and the web app's
+   Configuration and Customising, each linked from its index. Privacy's
+   "Where it is enforced, and how it is tested" was already its code map and
+   gained three rows. The pages about the whole (architecture, getting
+   started, deploying, configuration in the services, the API) have none:
+   the whole page is about where things are. Every path and name in them
+   was checked against the code.
+4. Found while doing part 2 and fixed: `oauth.md` said deleting a client
+   cascades to its tokens and signs its users out. The schema has no
+   foreign keys; the tokens stay and work again with a client seeded under
+   the same `client_id`. And `DELETE /clients/:id` left them too, though
+   its route said "Its tokens stop working": it now revokes them first
+   (user, 2026-10-17).
+5. The link and anchor check: `make docs_check` here
+   (`scripts/check_docs_links.py`), part of `make test`, and
+   `src/__tests__/docsLinks.test.js` in the web app, part of `yarn test`.
+   Every relative link in a Markdown file git keeps must lead to a file
+   there is, and a `#heading` to a heading of it, made as GitHub makes them.
+   Links to the web are not followed. The web app's Markdown in `src/` is
+   left out: its links are the app's addresses. Both found nothing broken.
+   The checklist is in both `AGENTS.md`, under Docs.
+
+6. The plain-language pass, decided against (user, 2026-10-17). A sample
+   rewrite of `feeds.md` changed words for words of the same kind, which
+   nobody would notice. What stays of it is four sentences that were hard to
+   follow, and the page's code map as a table. From now on a sentence is
+   rewritten only when it is unclear or wrong.
+7. What part 2 found on the pages and the code did not bear out, fixed:
+   `abuse-reports.md` (a `403`, and `409 already_open`), `web-shell.md`
+   (videos, websites and `/tags/<tag>`), `permissions.md` (the five default
+   files, and two sections missing from its Contents), the pages that left
+   videos and replies out of `access` and `language`, the API reference's
+   `POST /invites` (`INVITES_FROM`, not `REGISTRATION_MODE`), and in the web
+   app, `src/containers/StaticPage.jsx`, which nothing used, removed.
+
+8. The four doors: [Setting up a site](../setting-up.md),
+   [Making it your own](../making-it-your-own.md),
+   [Keeping it running](../keeping-it-running.md) and
+   [Building on it](../building-on-it.md), each a numbered list of links in
+   the order to read them, under "Where to begin" in the index. The web
+   app's index points to them. Each door ends with the pages found missing
+   in filling it: backing up and restoring, and upgrading step by step
+   (Keeping it running); the events on the bus, writing a service, and
+   writing a client (Building on it); starting configurations for kinds of
+   site, which is row 30 (Making it your own). Each is a page to plan.
+
+**Settled with the user** (2026-10-17): the four lines of the services' old
+`.claude/CLAUDE.md` left out of part 1 come back, in both repositories. Asking
+before every commit, showing its message, and branching under `issues` on
+`main` go in each `CLAUDE.md`; Star Trek names in tests and "Founder & Core
+Architect: Rastin Mehr" go in each `AGENTS.md`. The two lines written new
+in `AGENTS.md`, the sovereignty line and "every string is in
+`src/languages/en-GB` and `fr-FR`", stay as written.
+
+**Waiting for anahita-services to be public** under
+`github.com/anahitasocial` (user, 2026-10-17): the MCP server
+(`tools/docs-mcp`, Go, read only, offline, one server for both repositories'
+docs, started from each `.mcp.json`), as Design part 3 describes, and
+`llms.txt`. The people it is for have no clone, and cannot reach it before
+then. Publishing also changes the web app's 55 links to
+`github.com/purplerat/anahita-services`, which until then lead nowhere for
+anybody else; they are left as they are and changed together. The recipe
+tools wait for row 30 as well.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11; the plain-language pass and keeping the docs true added 2026-10-14 |
-| Implementation | not started; place in the order not decided |
+| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; the plain-language pass decided against; the four doors done, 2026-10-17. The MCP server waits for anahita-services to be public ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |

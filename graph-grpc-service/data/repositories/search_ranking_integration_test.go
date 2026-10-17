@@ -53,7 +53,7 @@ func seedRankingFixture(t *testing.T) func(scope, keywords string, viewer int64)
 		 (11,` + group + `,'Coffee Lovers','lovers','public',1,NOW(),NOW()),
 		 (12,` + group + `,'Vancouver Coffee','vancouver','public',1,NOW(),NOW()),
 		 (13,` + group + `,'Decaffeinated','decafcoffeeclub','public',1,NOW(),NOW()),
-		 (14,` + bluesky + `,'Boris','bmann.ca','public',1,NOW(),NOW()),
+		 (14,` + bluesky + `,'Rastin','rastin.example','public',1,NOW(),NOW()),
 		 (15,` + person + `,'Coffee','beans','public',1,NOW(),NOW()),
 		 (100,` + hashtag + `,'coffee','coffee','public',1,NOW(),NOW())`,
 		// Posts that mention coffee, written at different times.
@@ -150,8 +150,8 @@ func TestMostRelevant(t *testing.T) {
 	}
 
 	// A handle typed with its @ is found by it, and first.
-	if got := search(constants.SearchScopeActor, "@bmann.ca", visitor); len(got) == 0 || got[0] != 14 {
-		t.Errorf("@bmann.ca: %v", got)
+	if got := search(constants.SearchScopeActor, "@rastin.example", visitor); len(got) == 0 || got[0] != 14 {
+		t.Errorf("@rastin.example: %v", got)
 	}
 }
 

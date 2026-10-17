@@ -136,7 +136,9 @@ the database, and how to change the schema, are in
 make test
 ~~~
 
-That runs every module's tests, the check of `legacy/upgrade.sql`, and
+That runs every module's tests, the check of `legacy/upgrade.sql`,
+`make docs_check`, which fails on a link between the docs that leads nowhere
+(a page that is not there, or a `#heading` it does not have), and
 `make schema_test`, which needs Docker: it builds a database from
 `schema/init.sql` and one from the PHP schema through `legacy/upgrade.sql`,
 and fails on any column or index where the two differ. Among

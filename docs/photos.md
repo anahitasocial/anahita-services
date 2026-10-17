@@ -17,6 +17,7 @@ Its routes are in the API reference: [photo-service](api/index.html#photo-servic
 - [Downloading](#downloading)
 - [Removal](#removal)
 - [Limits](#limits)
+- [Where the code is](#where-the-code-is)
 - [What is not built](#what-is-not-built)
 
 ## One post, several images
@@ -235,6 +236,21 @@ Videos work the same way, with `/videos/` in place of `/photos/`; see
 Bluesky takes images of up to 2 MB (1 MB until 2025). A picture sent there is
 made small enough before it goes. Every length people write is listed in
 [The API](api.md#lengths).
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| Posting, uploads and changing a post's images | `photo-service/cmd/api/handlers/photo.go` (`Add`), `photo_files.go` (`Upload`, `EditFiles`) |
+| Checking the images of a post, and the refusals | `photo-service/cmd/api/handlers/photo_plan.go` (`planFiles`), tested in `photo_plan_test.go` |
+| Turning an image the right way up and writing it out again | `anahita-libs/utils/images.go` (`Accept`, `CorrectOrientation`, `FitLongest`, `AsPhoto`, `SquareImage`) |
+| The sizes | `anahita-libs/data/entities/node_portrait.go` |
+| Limits | `photo-service/constants/constants.go` (`MaxFileSize`, `MaxPixels`, `OriginalMaxSide`); `anahita-libs/constants/photo.go` (`PhotoMaxFiles`), `limits.go` (`AltTextMax`, `AltTextKeptMax`) |
+| The images of each post, and uploads not in a post yet | `graph-grpc-service/data/repositories/photo_files.go`, tables `photo_files` and `photo_uploads` |
+| Removing unused uploads | `graph-grpc-service/sweeper/uploads.go` |
+| Downloading | `photo-service/cmd/api/handlers/photo_download.go` (`EditDownload`, `Download`), over `anahita-libs/cmd/api/permissions/download.go` (`CanDownload`) |
+| In preview mode | `anahita-libs/middleware/preview.go` |
+| `photoMaxFiles` in NodeInfo | `auth-service/cmd/api/handlers/node_info.go` |
 
 ## What is not built
 
