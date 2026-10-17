@@ -218,21 +218,13 @@ their own items):
 6. In the web app, `src/containers/StaticPage.jsx` is imported by nothing
    and reads a folder that does not exist (`src/statics/pages/`).
 
-**Waiting for the user** (asked 2026-10-17, not answered): four lines of
-the services' old `.claude/CLAUDE.md` were left out of both files, to keep
-or drop:
-
-1. "Always ask for permission before committing" (in practice: one commit
-   per item, without asking);
-2. "Create a branch under issues" (in practice: one branch per feature);
-3. "Use Star Trek names of characters and places when testing" (the tests
-   use Ana, Ben, Alice);
-4. "Founder & Architect: user Mehr" (a placeholder?).
-
-Also to confirm: two lines written new in `AGENTS.md`, the sovereignty line
-("no service only one cloud has", for "no AWS-only services") and "every
-string is in `src/languages/en-GB` and `fr-FR`" (row 85 will make that
-`en-CA`).
+**Settled with the user** (2026-10-17): the four lines of the services' old
+`.claude/CLAUDE.md` left out of part 1 come back, in both repositories. Asking
+before every commit, showing its message, and branching under `issues` on
+`main` go in each `CLAUDE.md`; Star Trek names in tests and "Founder & Core
+Architect: Rastin Mehr" go in each `AGENTS.md`. The two lines written new
+in `AGENTS.md`, the sovereignty line and "every string is in
+`src/languages/en-GB` and `fr-FR`", stay as written.
 
 **Next, in this order:**
 

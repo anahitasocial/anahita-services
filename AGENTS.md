@@ -5,6 +5,11 @@ leaving Meta and X, on ActivityPub and the AT Protocol. This file is for
 anybody changing the code, a person or an agent. It holds only what the
 code cannot tell you; everything else is in the docs.
 
+- Website: <https://www.anahita.io>
+- Founder & Core Architect: Rastin Mehr
+- Maintained and developed by rmd Studio, <https://www.rmdstudio.com>
+- Commercial inquiries: <https://www.rmdstudio.com/contact>
+
 ## Where to begin
 
 | To learn | Read |
@@ -32,6 +37,9 @@ Tests that need a database run only when given one, through a
 `*_TEST_DSN` variable: a throwaway MySQL, never the database you develop
 on ([getting-started.md › Tests](docs/getting-started.md#tests)). Remove a
 throwaway container with `docker rm -fv`, which takes its volume too.
+
+People and places made up for a test are named after Star Trek characters
+and places.
 
 ## Rules that have each been broken once
 

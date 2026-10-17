@@ -9,6 +9,8 @@ in AGENTS.md.
   referred to by number. Keep the numbers stable when a list is repeated.
 - When a name or direction is still open, settle it before making bulk
   changes.
+- Ask before every commit, showing the commit message.
+- On `main`, create a branch under `issues` before committing.
 - The user pushes and merges. Don't suggest merging mid-milestone.
 - `gh` is not installed: write PR text for the user to paste.
 - Before beginning a milestone, check the docs of both repos against the
