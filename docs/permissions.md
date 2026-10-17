@@ -308,14 +308,18 @@ somebody in any one of them may reply.
 - **The older switch**, `comment_status`, is kept in step: off is `nobody`,
   and turning it on makes `nobody` `anyone`. A post closed before this
   setting existed has no value stored and still reads as `nobody`.
+- **A post from another server** (the fediverse or Bluesky) can be replied
+  to here by anybody who can see it, and its `reply_access` reads `anyone`.
+  Who its author lets reply is their server's to hold to; nothing of it is
+  kept here.
 
 The rule is `permissions.CanReply`; the values are in
 `anahita-libs/constants/reply_access.go`. The thread says the answer for the
 viewer (`can_reply`) and the setting (`reply_access`), so the app can say why
 not.
 
-Not built: letting in a list of people (there are no lists), and a switch for
-quote posts (there are no quote posts; roadmap item 25).
+Not built: letting in a list of people (there are no lists). Who may quote a
+post is a setting of its own; see [Quotes](#quotes).
 
 ### Who looks after a thread
 

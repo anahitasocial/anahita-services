@@ -120,6 +120,26 @@ func TestWhoCanReply(t *testing.T) {
 	}
 }
 
+// A post from another server is open to reply here, and says so: its switch
+// for replies is never set, and is not read as closed.
+func TestAPostFromElsewhereIsOpenToReply(t *testing.T) {
+	root, _ := thread(ownerWith(groupOwnerID, "public"), "public", false)
+	root.URI = "at://did:plc:example/app.bsky.feed.post/1"
+
+	if got := RepliesLimitedTo(root); got != constants.ReplyAccessAnyone {
+		t.Errorf("RepliesLimitedTo = %q, want anyone", got)
+	}
+	viewer := replyViewer(bystanderID, constants.PersonTypeRegistered)
+	if !CanReply(ctxFor(viewer, root, nil, &entities.ActorRelation{})) {
+		t.Error("CanReply = false, want true")
+	}
+
+	root.URI = ""
+	if got := RepliesLimitedTo(root); got != constants.ReplyAccessNobody {
+		t.Errorf("a post here with replies off: RepliesLimitedTo = %q, want nobody", got)
+	}
+}
+
 // The case the rules exist for. The reply's author has a public profile and
 // the thread is in a private group. Judged as a post the reply would be
 // readable by anybody; judged by its root it is not.
