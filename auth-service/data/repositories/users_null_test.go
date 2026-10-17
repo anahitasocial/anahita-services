@@ -22,10 +22,12 @@ import (
 // These tests are about the SQL: every nullable column must be COALESCEd, or
 // scanned as nullable. They fail if a future edit drops one.
 
-// columnsThatMayBeNull are nullable in the schema and scanned into a
-// non-nullable Go type, so each needs COALESCE in the select.
-// Qualified, because the reads join auth_accounts to nodes and several of
-// these names exist on both sides.
+// columnsThatMayBeNull may be NULL as read and are scanned into a
+// non-nullable Go type, so each needs COALESCE in the select: the nodes
+// columns because the profile is LEFT JOINed, email because it is unique and
+// NULL when an account has none, invited_by because nobody may have invited
+// it. Qualified, because the reads join auth_accounts to nodes and several
+// of these names exist on both sides.
 var columnsThatMayBeNull = []string{
 	"nodes.name",
 	"nodes.alias",
@@ -33,9 +35,6 @@ var columnsThatMayBeNull = []string{
 	"nodes.service",
 	"nodes.avatar_filename",
 	"auth_accounts.email",
-	"auth_accounts.password",
-	"auth_accounts.totp_recovery_codes",
-	"auth_accounts.totp_secret",
 	"auth_accounts.invited_by",
 }
 
@@ -46,12 +45,9 @@ func TestUserColumnsCoalesceEveryNullableColumn(t *testing.T) {
 		skip    map[string]bool
 	}{
 		{"userColumns", userColumns(), nil},
-		// Browse selects no password and no TOTP state.
+		// Browse selects no inviter.
 		{"userBrowseColumns", userBrowseColumns(), map[string]bool{
-			"auth_accounts.password":            true,
-			"auth_accounts.totp_recovery_codes": true,
-			"auth_accounts.totp_secret":         true,
-			"auth_accounts.invited_by":          true,
+			"auth_accounts.invited_by": true,
 		}},
 	} {
 		t.Run(list.name, func(t *testing.T) {

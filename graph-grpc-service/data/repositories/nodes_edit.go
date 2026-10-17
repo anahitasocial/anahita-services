@@ -72,7 +72,7 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 	// whatever it carried.
 
 	if node.Meta != nil {
-		query = query.Set("meta", node.Meta)
+		query = query.Set("meta", text(node.Meta))
 	}
 
 	if node.ViewCount > 0 {
@@ -127,7 +127,7 @@ func (r *nodesRepo) Edit(node *entities.AnahitaNode) (*entities.AnahitaNode, err
 		query = query.Set("geo_postalcode", node.GeoPostalcode)
 	}
 
-	query = query.Set("modified_by", node.ModifiedBy)
+	query = query.Set("modified_by", nullableID(node.ModifiedBy))
 	query = query.Set("updated_at", time.Now())
 
 	if node.Filename != "" {

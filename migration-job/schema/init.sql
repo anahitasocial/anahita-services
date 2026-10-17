@@ -1,3 +1,7 @@
+-- The connection's character set, which is what an expression default such
+-- as DEFAULT ('') is recorded in: the same whatever the client's own is.
+SET NAMES utf8mb4;
+
 -- --------------------------------------------------------
 
 CREATE TABLE nodes (
@@ -20,21 +24,21 @@ CREATE TABLE nodes (
   -- so the width is paid for five times over.
   `type` varchar(128) NOT NULL,
   `service` varchar(255) NOT NULL,
-  `name` varchar(255),
-  `alias` varchar(255),
-  `body` mediumtext,
+  `name` varchar(255) NOT NULL DEFAULT '',
+  `alias` varchar(255) NOT NULL DEFAULT '',
+  `body` mediumtext NOT NULL DEFAULT (''),
   `starts_at` datetime DEFAULT NULL,
   `ends_at` datetime DEFAULT NULL,
-  `owner_type` varchar(255) DEFAULT NULL,
+  `owner_type` varchar(255) NOT NULL DEFAULT '',
   `owner_id` bigint(11) unsigned DEFAULT NULL,
-  `comment_status` tinyint(1) DEFAULT NULL,
+  `comment_status` tinyint(1) NOT NULL DEFAULT 0,
   -- Who may reply, as the post's author sets it. NULL when they have not
   -- said. See anahita-libs/constants/reply_access.go.
-  `reply_access` varchar(64) DEFAULT NULL,
+  `reply_access` varchar(64) NOT NULL DEFAULT '',
   -- Who may quote: on a post, that post; on a person, their posts when
   -- they say nothing. See anahita-libs/constants/quote_policy.go.
-  `quote_policy` varchar(16) DEFAULT NULL,
-  `comment_count` int(11) unsigned DEFAULT NULL,
+  `quote_policy` varchar(16) NOT NULL DEFAULT '',
+  `comment_count` int unsigned NOT NULL DEFAULT 0,
   `repost_count` int(11) unsigned NOT NULL DEFAULT 0,
   `quote_count` int(11) unsigned NOT NULL DEFAULT 0,
   -- How many people cite it, each once, never itself (repositories/citations.go).
@@ -48,13 +52,13 @@ CREATE TABLE nodes (
   -- column to preserve its character capacity, so a database migrated by
   -- legacy/upgrade.sql ends up with mediumtext. Declared here so the two
   -- paths produce the same schema.
-  `meta` mediumtext DEFAULT NULL,
+  `meta` mediumtext NOT NULL DEFAULT (''),
   -- One link on an actor profile. Replaces the website/contact/phone trio that
   -- used to be read out of `meta`, none of which any Go request ever accepted.
-  `website_url` varchar(255) DEFAULT NULL,
+  `website_url` varchar(255) NOT NULL DEFAULT '',
   `view_count` int(11) unsigned NOT NULL DEFAULT 0,
   `parent_id` bigint(11) unsigned DEFAULT NULL,
-  `parent_type` varchar(255) DEFAULT NULL,
+  `parent_type` varchar(255) NOT NULL DEFAULT '',
   -- The post at the top of the thread a reply belongs to. NULL on anything
   -- that is not a reply. Who may see a reply is decided by this post.
   `root_id` bigint(11) unsigned DEFAULT NULL,
@@ -64,23 +68,23 @@ CREATE TABLE nodes (
   `quote_detached_at` datetime DEFAULT NULL,
   `geo_latitude` float(10,6) DEFAULT NULL,
   `geo_longitude` float(10,6) DEFAULT NULL,
-  `geo_address` VARCHAR(255) DEFAULT NULL,
-  `geo_city` VARCHAR(50) DEFAULT NULL,
-  `geo_state_province` VARCHAR(50) DEFAULT NULL,
-  `geo_country` VARCHAR(30) DEFAULT NULL,
-  `geo_postalcode` VARCHAR(15) DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
+  `geo_address` varchar(255) NOT NULL DEFAULT '',
+  `geo_city` varchar(50) NOT NULL DEFAULT '',
+  `geo_state_province` varchar(50) NOT NULL DEFAULT '',
+  `geo_country` varchar(30) NOT NULL DEFAULT '',
+  `geo_postalcode` varchar(15) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_by` bigint(11) unsigned DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
   -- The file this node is: a photo post's photo. Never an actor's picture.
-  `filename` varchar(255) DEFAULT NULL,
+  `filename` varchar(255) NOT NULL DEFAULT '',
   -- The picture that stands for an actor. Only actors have one.
-  `avatar_filename` varchar(255) DEFAULT NULL,
-  `cover_filename` varchar(255) DEFAULT NULL,
-  `follower_count` int(11) unsigned DEFAULT NULL,
-  `leader_count` int(11) unsigned DEFAULT NULL,
-  `allow_follow_request` tinyint(1) unsigned DEFAULT NULL,
+  `avatar_filename` varchar(255) NOT NULL DEFAULT '',
+  `cover_filename` varchar(255) NOT NULL DEFAULT '',
+  `follower_count` int unsigned NOT NULL DEFAULT 0,
+  `leader_count` int unsigned NOT NULL DEFAULT 0,
+  `allow_follow_request` tinyint unsigned NOT NULL DEFAULT 0,
   -- Whether what an actor reposts is also among its profile's posts.
   `show_reposts_on_profile` tinyint(1) NOT NULL DEFAULT 0,
   -- On a post that holds a file, whether whoever can see it may download
@@ -92,15 +96,15 @@ CREATE TABLE nodes (
   -- On an article or a topic, that it is still being written: seen by its
   -- author alone, listed nowhere, announced to nobody.
   `draft` tinyint(1) NOT NULL DEFAULT 0,
-  `subscriber_count` int(11) unsigned DEFAULT NULL,
-  `vote_up_count` int(11) unsigned DEFAULT NULL,
-  `mimetype` varchar(100) DEFAULT NULL,
-  `language` varchar(50) DEFAULT NULL,
+  `subscriber_count` int unsigned NOT NULL DEFAULT 0,
+  `vote_up_count` int unsigned NOT NULL DEFAULT 0,
+  `mimetype` varchar(100) NOT NULL DEFAULT '',
+  `language` varchar(50) NOT NULL DEFAULT '',
   `access` varchar(255) NOT NULL,
   -- The per-node-type optional feature set, as JSON. Named `features` because
   -- that is what the code selects; this file called it
   -- `enabled_optional_features`, which nothing has ever read.
-  `features` mediumtext,
+  `features` mediumtext NOT NULL DEFAULT (''),
   -- When an actor was scheduled for deletion. NULL for everything that is not
   -- deleted, which is almost every row.
   --
@@ -130,11 +134,11 @@ CREATE TABLE nodes (
   -- Named for the node rather than for auth: the graph owns the person, and
   -- unlike owner_type and parent_type this holds an authority level, not a node
   -- type string.
-  `person_type` varchar(50) DEFAULT NULL,
+  `person_type` varchar(50) NOT NULL DEFAULT '',
   -- Free text, e.g. "she/her", "iel". Never an enum — an enum hard-codes
   -- English grammar and is meaningless in a language with no gendered
   -- third-person pronoun. Never used for logic; empty renders nothing.
-  `person_pronouns` varchar(50) DEFAULT NULL,
+  `person_pronouns` varchar(50) NOT NULL DEFAULT '',
   `last_visited_at` datetime DEFAULT NULL,
   -- The actor handle namespace.
   --
@@ -208,14 +212,14 @@ CREATE TABLE edges (
   `node_a_type` varchar(128) NOT NULL,
   `node_b_id` bigint(11) unsigned NOT NULL,
   `node_b_type` varchar(128) NOT NULL,
-  `meta` mediumtext,
-  `created_at` datetime DEFAULT NULL,
+  `meta` mediumtext NOT NULL DEFAULT (''),
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_by` bigint(11) unsigned DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `modified_by` bigint(11) unsigned DEFAULT NULL,
   -- Where an edge sits among its siblings, for the ones kept in an order
   -- somebody chose. Written with every edge, so it has to be here.
-  `ordering` int(11) unsigned DEFAULT NULL,
+  `ordering` int unsigned NOT NULL DEFAULT 0,
   `starts_at` datetime DEFAULT NULL,
   `ends_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -242,10 +246,10 @@ CREATE TABLE edges (
 CREATE TABLE auth_accounts (
     `node_id`               bigint unsigned NOT NULL,
     `email`                 varchar(255) DEFAULT NULL,
-    `password`              varchar(255) DEFAULT NULL,
-    `totp_secret`           varchar(255) DEFAULT '',
+    `password` varchar(255) NOT NULL DEFAULT '',
+    `totp_secret` varchar(255) NOT NULL DEFAULT '',
     `totp_enabled`          tinyint(1) NOT NULL DEFAULT 0,
-    `totp_recovery_codes`   mediumtext DEFAULT NULL,
+    `totp_recovery_codes` mediumtext NOT NULL DEFAULT (''),
     `totp_last_verified_at` datetime DEFAULT NULL,
 
     -- When the address was confirmed. NULL means it has not been, and an
@@ -274,18 +278,18 @@ CREATE TABLE auth_accounts (
     -- date>) is ambiguous and the audit trail cannot be read.
     `tos_accepted`            tinyint(1) NOT NULL DEFAULT 0,
     `tos_accepted_at`         datetime     DEFAULT NULL,
-    `tos_accepted_version`    varchar(20)  DEFAULT NULL,
-    `tos_accepted_ip`         varchar(45)  DEFAULT NULL,
-    `tos_accepted_user_agent` varchar(255) DEFAULT NULL,
-    `tos_accepted_os`         varchar(100) DEFAULT NULL,
+    `tos_accepted_version` varchar(20) NOT NULL DEFAULT '',
+    `tos_accepted_ip` varchar(45) NOT NULL DEFAULT '',
+    `tos_accepted_user_agent` varchar(255) NOT NULL DEFAULT '',
+    `tos_accepted_os` varchar(100) NOT NULL DEFAULT '',
 
     -- Privacy Policy acceptance, same shape.
     `pp_accepted`             tinyint(1) NOT NULL DEFAULT 0,
     `pp_accepted_at`          datetime     DEFAULT NULL,
-    `pp_accepted_version`     varchar(20)  DEFAULT NULL,
-    `pp_accepted_ip`          varchar(45)  DEFAULT NULL,
-    `pp_accepted_user_agent`  varchar(255) DEFAULT NULL,
-    `pp_accepted_os`          varchar(100) DEFAULT NULL,
+    `pp_accepted_version` varchar(20) NOT NULL DEFAULT '',
+    `pp_accepted_ip` varchar(45) NOT NULL DEFAULT '',
+    `pp_accepted_user_agent` varchar(255) NOT NULL DEFAULT '',
+    `pp_accepted_os` varchar(100) NOT NULL DEFAULT '',
 
     PRIMARY KEY (`node_id`),
     UNIQUE KEY `email` (`email`),
@@ -303,9 +307,9 @@ CREATE TABLE IF NOT EXISTS signup_requests (
 
     -- What an administrator is deciding on. Required in this mode, because
     -- deciding on an email address alone is not deciding.
-    `name`        varchar(100) DEFAULT NULL,
-    `body`        text         DEFAULT NULL,
-    `website_url` varchar(255) DEFAULT NULL,
+    `name` varchar(100) NOT NULL DEFAULT '',
+    `body` text NOT NULL DEFAULT (''),
+    `website_url` varchar(255) NOT NULL DEFAULT '',
 
     -- unverified -> pending -> approved | rejected
     --
@@ -322,14 +326,14 @@ CREATE TABLE IF NOT EXISTS signup_requests (
 
     `decided_by`    bigint unsigned DEFAULT NULL,
     `decided_at`    datetime        DEFAULT NULL,
-    `decision_note` varchar(255)    DEFAULT NULL,
+    `decision_note` varchar(255) NOT NULL DEFAULT '',
 
     -- Where the request came from. The same evidential trio the consent
     -- columns carry, and for the same reason: a queue entry that cannot say
     -- where it came from is harder to moderate, and a spam wave is usually
     -- recognisable by its source long before its content.
-    `created_ip`         varchar(45)  DEFAULT NULL,
-    `created_user_agent` varchar(255) DEFAULT NULL,
+    `created_ip` varchar(45) NOT NULL DEFAULT '',
+    `created_user_agent` varchar(255) NOT NULL DEFAULT '',
 
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
@@ -346,21 +350,21 @@ CREATE TABLE notifications (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `type` varchar(255) NOT NULL,
     `service` varchar(255) NOT NULL,
-    `recipient_id` bigint(11) unsigned DEFAULT NULL,
+    `recipient_id` bigint unsigned NOT NULL,
     `subject_id` bigint(11) unsigned DEFAULT NULL,
-    `subject_type` varchar(255) DEFAULT NULL,
+    `subject_type` varchar(255) NOT NULL DEFAULT '',
     `object_id` bigint(11) unsigned DEFAULT NULL,
-    `object_type` varchar(255) DEFAULT NULL,
+    `object_type` varchar(255) NOT NULL DEFAULT '',
     `target_id` bigint(11) unsigned DEFAULT NULL,
-    `target_type` varchar(255) DEFAULT NULL,
+    `target_type` varchar(255) NOT NULL DEFAULT '',
     `comment_id` int(11) unsigned DEFAULT NULL,
-    `created_at` datetime DEFAULT NULL,
-    `updated_at` datetime DEFAULT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     -- mediumtext, not text. An existing database reaches utf8mb4 through
     -- CONVERT TO CHARACTER SET, which promotes text to preserve its character
     -- capacity; a fresh one is created as utf8mb4 outright and would keep
     -- text. Declaring the wider type is what makes the two paths agree.
-    `meta` mediumtext DEFAULT NULL,
+    `meta` mediumtext NOT NULL DEFAULT (''),
     `is_read` tinyint(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `recipient_id` (`recipient_id`),
@@ -378,14 +382,14 @@ CREATE TABLE notifications (
 
 CREATE TABLE auth_logs (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-    `created_at` datetime DEFAULT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `created_by` BIGINT UNSIGNED NOT NULL,
-    `agent_device` varchar(50) DEFAULT 'bot',
-    `agent_os` varchar(255) DEFAULT NULL,
-    `agent_name` varchar(255) DEFAULT NULL,
-    `ip` varchar(255) DEFAULT NULL,
-    `city` varchar(255) DEFAULT NULL,
-    `country` varchar(255) DEFAULT NULL,
+    `agent_device` varchar(50) NOT NULL DEFAULT 'bot',
+    `agent_os` varchar(255) NOT NULL DEFAULT '',
+    `agent_name` varchar(255) NOT NULL DEFAULT '',
+    `ip` varchar(255) NOT NULL DEFAULT '',
+    `city` varchar(255) NOT NULL DEFAULT '',
+    `country` varchar(255) NOT NULL DEFAULT '',
     `oauth_refresh_token_id` bigint(11) unsigned NOT NULL,
     `client_id` varchar(255) NOT NULL,
     PRIMARY KEY (`id`)
@@ -417,10 +421,10 @@ CREATE TABLE node_deletion_logs (
     `node_id` bigint(11) unsigned NOT NULL,
     -- The alias at the time, kept because a tombstone can be scrubbed by a
     -- later erasure request and this is then the only record of what went.
-    `node_alias` varchar(255) DEFAULT NULL,
+    `node_alias` varchar(255) NOT NULL DEFAULT '',
     -- Full type string, e.g. node.actor.group-service.group.v1. Doubles as the
     -- service filter, so no separate column is needed for it.
-    `node_type` varchar(255) DEFAULT NULL,
+    `node_type` varchar(255) NOT NULL DEFAULT '',
     -- Who asked. Equal to node_id for a self-service account deletion, and for
     -- the sweeper, which acts on a deadline rather than for a person.
     `deleted_by` bigint(11) unsigned NOT NULL,
@@ -506,7 +510,7 @@ CREATE TABLE IF NOT EXISTS site_actions (
     -- The super administrator who did it.
     `performed_by` bigint unsigned NOT NULL,
     -- What it came to, as JSON: how many rows of each kind it changed.
-    `detail` text,
+    `detail` text NOT NULL DEFAULT (''),
     `created_at` datetime NOT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_site_actions_created_at` (`created_at`)
@@ -632,10 +636,10 @@ CREATE TABLE oauth_authorizations (
     `client_id` varchar(255) NOT NULL,
     `user_id` bigint(11) unsigned NOT NULL,
     `redirect_uri` text NOT NULL,
-    `scopes` text DEFAULT NULL,
-    `code_challenge` varchar(128) DEFAULT NULL,
-    `code_challenge_method` varchar(10) DEFAULT NULL,
-    `nonce` varchar(255) DEFAULT NULL,
+    `scopes` text NOT NULL DEFAULT (''),
+    `code_challenge` varchar(128) NOT NULL DEFAULT '',
+    `code_challenge_method` varchar(10) NOT NULL DEFAULT '',
+    `nonce` varchar(255) NOT NULL DEFAULT '',
     `expires_at` datetime NOT NULL,
     -- Defaulted, not supplied by the insert. Under MySQL strict mode a
     -- NOT NULL column with no default and no value is error 1364, not a
@@ -691,7 +695,7 @@ CREATE TABLE oauth_refresh_tokens (
     `token_hash` varchar(255) NOT NULL,
     `user_id` bigint(11) unsigned NOT NULL,
     `client_id` varchar(255) NOT NULL,
-    `scopes` text DEFAULT NULL,
+    `scopes` text NOT NULL DEFAULT (''),
     `revoked` tinyint(1) NOT NULL DEFAULT 0,
     -- Records WHEN the token was revoked, which reuse detection needs in
     -- order to tell a rotation race from a replay: revoked moments ago is
@@ -722,7 +726,7 @@ CREATE TABLE oauth_signing_keys (
     `key_id` varchar(255) NOT NULL,
     `algorithm` varchar(10) NOT NULL DEFAULT 'RS256',
     `public_key` text NOT NULL,
-    `private_key` text DEFAULT NULL,
+    `private_key` text NOT NULL DEFAULT (''),
     `active` tinyint(1) NOT NULL DEFAULT 1,
     `expires_at` datetime NOT NULL,
     -- Defaulted: neither Add nor the KMS seeder names it. See
@@ -753,7 +757,7 @@ CREATE TABLE tokens (
     -- other type. Separate from recipient_email precisely so the two
     -- cannot be confused — swapping them turns the confirmation flow
     -- from a control into a way to hand the account away.
-    `new_email` varchar(255) DEFAULT NULL,
+    `new_email` varchar(255) NOT NULL DEFAULT '',
     -- 'passwordreset' or 'invite' (constants.TokenType*). A varchar
     -- rather than an ENUM so adding a token type is a code change, not
     -- an ALTER TABLE on a table that gets written on every reset.
@@ -767,9 +771,9 @@ CREATE TABLE tokens (
     -- million. code_attempts counts wrong submissions, in the database so that
     -- guesses arriving together cannot share one. channel is how the code was
     -- sent: 'email', and later 'sms'.
-    `code_hash` varchar(64) DEFAULT NULL,
+    `code_hash` varchar(64) NOT NULL DEFAULT '',
     `code_attempts` int(11) NOT NULL DEFAULT 0,
-    `channel` varchar(16) DEFAULT NULL,
+    `channel` varchar(16) NOT NULL DEFAULT '',
     -- Defaulted: Token.NewToken sets StartTime in Go but tokens.Add
     -- does not include it in the insert column list.
     `started_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -882,8 +886,8 @@ CREATE TABLE IF NOT EXISTS abuse_cases (
     `decided_at` datetime DEFAULT NULL,
     -- What was done about it: 'none', 'deleted', 'disabled', 'archived',
     -- 'blocked' or 'other'.
-    `decision_action` varchar(16) DEFAULT NULL,
-    `decision_note` text,
+    `decision_action` varchar(16) NOT NULL DEFAULT '',
+    `decision_note` text NOT NULL DEFAULT (''),
     -- When the target was deleted or purged, if it was.
     `target_gone_at` datetime DEFAULT NULL,
     PRIMARY KEY (`id`),
@@ -975,7 +979,7 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     -- The post as it will be made: said when the upload began, and settled
     -- then, so that nothing has to be asked again when the video is ready.
     `name` varchar(255) NOT NULL DEFAULT '',
-    `body` text,
+    `body` text NOT NULL DEFAULT (''),
     `access` varchar(32) NOT NULL DEFAULT '',
     `language` varchar(50) NOT NULL DEFAULT '',
     `reply_access` varchar(64) NOT NULL DEFAULT '',
@@ -1054,14 +1058,14 @@ CREATE TABLE IF NOT EXISTS data_exports (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ActivityPub: who has chosen to be on the fediverse, and the key each signs
--- with. See migrations/20261027000001_activitypub.sql.
+-- with.
 CREATE TABLE IF NOT EXISTS activitypub_accounts (
     `person_id` bigint unsigned NOT NULL,
     `enabled` tinyint(1) NOT NULL DEFAULT 0,
     -- When they last turned it on.
     `enabled_at` datetime DEFAULT NULL,
     -- Their own updated_at when their followers' servers were last sent
-    -- their description. See migrations/20261102000001_activitypub_told.sql.
+    -- their description.
     `told_updated_at` datetime DEFAULT NULL,
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
@@ -1083,8 +1087,7 @@ CREATE TABLE IF NOT EXISTS actor_keys (
     KEY `node_id` (`node_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- What is known of the people on other servers. See
--- migrations/20261028000001_activitypub_actors.sql.
+-- What is known of the people on other servers.
 CREATE TABLE IF NOT EXISTS activitypub_actors (
     `node_id` bigint unsigned NOT NULL,
     -- Their address: the same as the node's uri.
@@ -1110,7 +1113,7 @@ CREATE TABLE IF NOT EXISTS activitypub_actors (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- What is waiting to be sent to other servers, and who follows whom
--- across them. See migrations/20261029000001_activitypub_follows.sql.
+-- across them.
 CREATE TABLE IF NOT EXISTS activitypub_deliveries (
     id bigint unsigned NOT NULL AUTO_INCREMENT,
     -- Said by whoever adds a row, to add it once however often they try:
@@ -1128,7 +1131,7 @@ CREATE TABLE IF NOT EXISTS activitypub_deliveries (
     next_attempt_at datetime NOT NULL,
     -- When a worker last took it.
     claimed_at datetime DEFAULT NULL,
-    last_error varchar(500) DEFAULT NULL,
+    `last_error` varchar(500) NOT NULL DEFAULT '',
     created_at datetime NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_dedupe_key (dedupe_key),
@@ -1156,18 +1159,17 @@ CREATE TABLE IF NOT EXISTS activitypub_follows (
     KEY `activity_id` (`activity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Which posts made here other servers have been told of. See
--- migrations/20261030000001_activitypub_objects.sql.
+-- Which posts made here other servers have been told of.
 CREATE TABLE IF NOT EXISTS activitypub_objects (
     `node_id` bigint unsigned NOT NULL,
     -- The post's UUID: what its address between servers is made of.
     `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     -- Whose it is: the person here who wrote it.
     `actor_id` bigint unsigned NOT NULL,
-    -- 'note' or 'repost'. See migrations/20261104000001_activitypub_object_kind.sql.
+    -- 'note' or 'repost'.
     `kind` varchar(16) NOT NULL DEFAULT 'note',
     -- For a reply: the inbox of whoever it answers, when they are on
-    -- another server. See migrations/20261103000001_activitypub_object_reply.sql.
+    -- another server.
     `reply_inbox` varchar(512) NOT NULL DEFAULT '',
     -- The post's own updated_at when other servers were last sent it.
     `told_updated_at` datetime DEFAULT NULL,
@@ -1176,8 +1178,7 @@ CREATE TABLE IF NOT EXISTS activitypub_objects (
     KEY `actor_id` (`actor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- The servers this installation will have nothing to do with. See
--- migrations/20261031000001_federation_domain_blocks.sql.
+-- The servers this installation will have nothing to do with.
 CREATE TABLE IF NOT EXISTS federation_domain_blocks (
     `domain` varchar(255) NOT NULL,
     -- Why, for the administrators who come after. Never shown to anybody
@@ -1189,7 +1190,7 @@ CREATE TABLE IF NOT EXISTS federation_domain_blocks (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- What is kept for reading Bluesky: the people on it who are kept here, and
--- how far the listener has got. See migrations/20261105000001_atproto.sql.
+-- how far the listener has got.
 CREATE TABLE IF NOT EXISTS atproto_actors (
     `node_id` bigint unsigned NOT NULL,
     -- Their lasting name: what does not change when their handle does.
@@ -1218,8 +1219,7 @@ CREATE TABLE IF NOT EXISTS atproto_cursor (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Which post each repost heard from Bluesky was of. See
--- migrations/20261106000001_atproto_reposts.sql.
+-- Which post each repost heard from Bluesky was of.
 CREATE TABLE IF NOT EXISTS atproto_reposts (
     -- Who reposted: the node of somebody on Bluesky.
     `actor_id` bigint unsigned NOT NULL,
@@ -1231,8 +1231,7 @@ CREATE TABLE IF NOT EXISTS atproto_reposts (
     PRIMARY KEY (`actor_id`, `rkey`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Writing to Bluesky as accounts people here connected. See
--- migrations/20261107000001_atproto_accounts.sql.
+-- Writing to Bluesky as accounts people here connected.
 CREATE TABLE IF NOT EXISTS atproto_accounts (
     -- Who here connected it.
     `person_id` bigint unsigned NOT NULL,
@@ -1248,8 +1247,7 @@ CREATE TABLE IF NOT EXISTS atproto_accounts (
     -- works.
     `broken_at` datetime DEFAULT NULL,
     -- The time of the last thing somebody on Bluesky did to what was
-    -- written from here that was dealt with. See
-    -- migrations/20261108000001_atproto_notified.sql.
+    -- written from here that was dealt with.
     `notified_at` datetime(3) DEFAULT NULL,
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
@@ -1292,7 +1290,7 @@ CREATE TABLE IF NOT EXISTS atproto_writes (
     next_attempt_at datetime NOT NULL,
     -- When a worker last took it.
     claimed_at datetime DEFAULT NULL,
-    last_error varchar(500) DEFAULT NULL,
+    `last_error` varchar(500) NOT NULL DEFAULT '',
     created_at datetime NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_dedupe_key (dedupe_key),
@@ -1300,8 +1298,7 @@ CREATE TABLE IF NOT EXISTS atproto_writes (
     KEY actor_id (actor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Domains somebody has proved are theirs. See
--- migrations/20261120000001_verified_domains.sql.
+-- Domains somebody has proved are theirs.
 CREATE TABLE IF NOT EXISTS verified_domains (
     id bigint unsigned NOT NULL AUTO_INCREMENT,
     -- The domain proved (example.com), and the host its file is fetched
@@ -1318,7 +1315,7 @@ CREATE TABLE IF NOT EXISTS verified_domains (
     -- group. NULL until that profile is made.
     profile_id bigint unsigned DEFAULT NULL,
     -- dns or file: where the token was last found.
-    method varchar(8) DEFAULT NULL,
+    `method` varchar(8) NOT NULL DEFAULT '',
     -- When it was first proved; NULL until it is.
     verified_at datetime DEFAULT NULL,
     -- When it was last looked at, and since when the token has been in
@@ -1334,8 +1331,7 @@ CREATE TABLE IF NOT EXISTS verified_domains (
     KEY checked_at (checked_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Websites: websites' feeds as profiles. See
--- migrations/20261121000001_websites.sql.
+-- Websites: websites' feeds as profiles.
 CREATE TABLE IF NOT EXISTS websites (
     -- The website's node: node.actor.actor-service.website.v1.
     node_id bigint unsigned NOT NULL,
@@ -1350,18 +1346,18 @@ CREATE TABLE IF NOT EXISTS websites (
     state varchar(16) NOT NULL DEFAULT 'active',
     -- What the feed's server said the last time, sent back so that an
     -- unchanged feed is not sent again.
-    etag varchar(255) DEFAULT NULL,
-    last_modified varchar(64) DEFAULT NULL,
+    `etag` varchar(255) NOT NULL DEFAULT '',
+    `last_modified` varchar(64) NOT NULL DEFAULT '',
     -- The WebSub hub the feed names, and until when it sends to us. NULL
     -- while there is none.
-    hub_url varchar(2000) DEFAULT NULL,
+    `hub_url` varchar(2000) NOT NULL DEFAULT '',
     hub_until datetime DEFAULT NULL,
     -- When the feed is next read, when it last was, and how often in a row
     -- it could not be: a feed that fails is asked less often.
     next_read_at datetime NOT NULL,
     read_at datetime DEFAULT NULL,
     failures int unsigned NOT NULL DEFAULT 0,
-    last_error varchar(500) DEFAULT NULL,
+    `last_error` varchar(500) NOT NULL DEFAULT '',
     -- When a worker took it to read: see Claim.
     claimed_at datetime DEFAULT NULL,
     -- How many posts it made this hour, and when that hour began.

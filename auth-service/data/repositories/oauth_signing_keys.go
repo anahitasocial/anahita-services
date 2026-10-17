@@ -115,9 +115,8 @@ func (repo *oauthSigningKeys) BrowseVerificationKeys() ([]*entities.OAuthSigning
 
 // Add inserts a new signing key into the database.
 //
-// Note: this method does not currently support nullable private_key
-// (KMS-backed rows). KMS rows are inserted via SeedKMSSigningKey using
-// raw SQL. Adding nullable support here is a follow-up cleanup.
+// A KMS-backed row has no private key here, and is added by
+// SeedKMSSigningKey instead, with raw SQL.
 func (repo *oauthSigningKeys) Add(key *entities.OAuthSigningKey) (*entities.OAuthSigningKey, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

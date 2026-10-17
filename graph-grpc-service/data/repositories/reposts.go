@@ -166,16 +166,18 @@ func (repo *RepostsRepo) Add(item *entities.AnahitaNode) (int64, error) {
 			"access",
 			"created_at",
 			"created_by",
+			"updated_at",
 		).Values(
-		item.OwnerID,
+		nullableID(item.OwnerID),
 		item.OwnerType,
-		item.ParentID,
+		nullableID(item.ParentID),
 		item.ParentType,
 		item.Type,
 		item.Service,
 		item.Access,
 		time.Now().UTC(),
-		item.CreatedBy,
+		nullableID(item.CreatedBy),
+		time.Now().UTC(),
 	)
 
 	sql, args, err := query.ToSql()

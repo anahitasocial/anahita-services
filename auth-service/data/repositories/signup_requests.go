@@ -41,11 +41,11 @@ type signupRequests struct {
 // every read at runtime rather than at build time.
 func signupRequestColumns() string {
 	return `id, username, email, password,
-		COALESCE(name, ''), COALESCE(body, ''), COALESCE(website_url, ''),
+		name, body, website_url,
 		status, email_verified_at,
 		COALESCE(invited_by, 0), COALESCE(decided_by, 0), decided_at,
-		COALESCE(decision_note, ''),
-		COALESCE(created_ip, ''), COALESCE(created_user_agent, ''),
+		decision_note,
+		created_ip, created_user_agent,
 		created_at, updated_at`
 }
 

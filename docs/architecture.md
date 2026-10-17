@@ -14,6 +14,7 @@ How the services, the gateway and the shared library fit together.
 - [anahita-libs](#anahita-libs)
 - [What a node is called elsewhere](#what-a-node-is-called-elsewhere)
 - [Naming dates and times](#naming-dates-and-times)
+- [The database](#the-database)
 
 ## Components
 
@@ -370,8 +371,9 @@ lined up. This is what each is, and what it is called where.
   `cover_filename`, and each of the three names one thing.
 - **"Portrait"** in the code and in `portrait_urls` means a photo post's
   image, not a picture of a person. It is not to be used for anything new,
-  and is to be retired when the schema is put in order
-  ([plans/migration-baseline.md](plans/migration-baseline.md)).
+  and is to be retired. That is a change to the API and the web app, not
+  to the schema, and was left out when the schema was put in order
+  ([plans/done/migration-baseline.md](plans/done/migration-baseline.md)).
 - **"Avatar"** stays, in the code and the API. It is the word Mastodon and
   Bluesky use for the same field.
 - **Where they are stored** is named for the service that looks after
@@ -483,3 +485,56 @@ never `modified_at`.
 A test, `TestTimestampColumnsEndInAt` in graph-grpc-service, reads
 `migration-job/schema/init.sql` and fails on a date or time column that does
 not follow.
+
+## The database
+
+### How it is made
+
+`migration-job` runs once each time the stack starts, and does one of three
+things:
+
+| The database has | It runs | Then |
+| --- | --- | --- |
+| No tables | `schema/init.sql` | records goose's baseline |
+| The PHP application's tables (`<prefix>_nodes`, `<prefix>_edges`) | `legacy/upgrade.sql` | records goose's baseline |
+| This schema | `goose up`, the migrations in `migrations/` | |
+
+`schema/init.sql` and `legacy/upgrade.sql` each make the whole schema, and
+`make schema_test` checks that they make the same one: column by column and
+index by index, on a throwaway MySQL. Until 2026-10-17 there were 70 goose
+migrations as well; they were folded into the two files (roadmap row 27),
+and `migrations/` holds only what is written after. How to change the schema
+is in [`migration-job/migrations/README.md`](../migration-job/migrations/README.md).
+
+What a site's own data needs beyond the upgrade, as anahita.io does on its
+way to banu.io, is a file of its own in `legacy/sites/`, run by hand.
+
+### NULL only where it means something
+
+A column says what it holds, in every table. NULL is kept for five things,
+and for nothing else:
+
+| NULL means | Columns |
+| --- | --- |
+| No other row: a reference with nothing at its end | `owner_id`, `parent_id`, `root_id`, `quote_id`, `created_by`, `modified_by`; a notification's `subject_id`, `object_id`, `target_id` |
+| Made here: no address on another server | `uri`, `origin_domain` |
+| No place | `geo_latitude`, `geo_longitude`, NULL together |
+| Not happened, or does not apply | `deleted_at`, `archived_at`, `pinned_at` and the like; `starts_at` and `ends_at`, which only an event has |
+| None, where a unique index would make `''` collide | an account's `email`; the delivery queues' `dedupe_key` |
+
+Everything else is `NOT NULL`: `''` for no text, `0` for no count, false for
+a switch not set, and `created_at` and `updated_at` default to the time of
+insert. A reference is never 0 for none, and a place never 0,0.
+
+So the code reads a column as it is, and uses `COALESCE` only for:
+
+- what may be NULL by the table above, read as `''` or `0`;
+- a row from a `LEFT JOIN`, which may not be there;
+- an aggregate over no rows (`SUM` gives NULL, not 0);
+- a choice between two values (`COALESCE(root.access, note.access)`, the
+  first date a domain was proved).
+
+A date NULL for "never" is read as the zero time, not as now, so a check of
+how recent it is fails closed (`optionalTime` in the graph and auth
+services).
+

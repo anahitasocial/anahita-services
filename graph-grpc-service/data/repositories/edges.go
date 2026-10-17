@@ -208,11 +208,9 @@ func (r *edgesRepo) Exists(edge *entities.AnahitaEdge) (bool, error) {
 // edgeColumns is the select list every edge read uses, in the order the scans
 // expect.
 //
-// Named rather than `SELECT *` for two reasons. The scans are positional, so a
-// column added to `edges` silently shifts every one of them; and `meta`,
-// `created_by` and `modified_by` are nullable, which a `SELECT *` hands to the
-// scan as NULL — "converting NULL to string is unsupported" — failing the whole
-// read. Every mention edge in the reference database has a NULL meta.
+// Named rather than `SELECT *`: the scans are positional, so a column added
+// to `edges` would silently shift every one of them. Who made and last
+// changed an edge are NULL when nobody is known, and read as 0.
 func edgeColumns() []string {
 	return []string{
 		"edge.id",
@@ -221,12 +219,12 @@ func edgeColumns() []string {
 		"edge.node_a_type",
 		"edge.node_b_id",
 		"edge.node_b_type",
-		"COALESCE(edge.meta, '') AS meta",
+		"edge.meta",
 		"edge.created_at",
 		"COALESCE(edge.created_by, 0) AS created_by",
 		"edge.updated_at",
 		"COALESCE(edge.modified_by, 0) AS modified_by",
-		"COALESCE(edge.ordering, 0) AS ordering",
+		"edge.ordering",
 		"edge.starts_at",
 		"edge.ends_at",
 	}

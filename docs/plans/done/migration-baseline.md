@@ -1,6 +1,6 @@
 # One clean schema: fold the migrations into a baseline
 
-*Roadmap item 27, planned 2026-10-03. Done last, before the first public release. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md).*
+*Roadmap item 27, planned 2026-10-03. **Done 2026-10-17,** before row 29 at the user's word. Done last, before the first public release. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md).*
 
 ## Context
 `migration-job` has three ways to build a database, kept in step by hand:
@@ -82,9 +82,56 @@ A phase is finished only when these pages match the code.
 - **services `getting-started.md`**: how the database is created, and the rule for schema changes after the release.
 - **services `architecture.md`**: the migration job's two paths.
 
+## What was built (2026-10-17)
+
+1. **The PHP upgrade was broken, and is fixed.** Run on the user's copy of
+   anahita.io's production database (2022-09-06), `legacy/upgrade.sql` stopped
+   at `pinned_at`, which used `updated_at` before the PHP names were renamed
+   to it; every PHP site's upgrade would have stopped there. Then the two
+   differences: `nodes.uuid` and `nodes.uri` came out as utf8mb4, taken along
+   by the table's conversion, and `nodes.service` allowed NULL.
+2. **`make schema_test`** (`migration-job/check_schema.sh`, run by `make test`):
+   `schema/init.sql` into one database, the PHP schema without rows
+   (`legacy/fixtures/php-schema.sql`) through `legacy/upgrade.sql` into
+   another, on a throwaway MySQL, compared column by column and index by
+   index. It fails on the old file with the error the upgrade stopped at.
+3. **NULL only where it means something** (asked for by the user the same
+   day: "We want our databases to be pristine whether we create them from
+   scratch or migrating an existing Anahita instance"). Every PHP-era table
+   says what it holds; NULL is kept for references, an address elsewhere, a
+   place and the dates of what may not have happened
+   ([Architecture](../../architecture.md#null-only-where-it-means-something)).
+   The data had three faults this showed: 784 nodes with 0 for no parent,
+   which a query asking `IS NULL` missed; 3,129 at 0,0 for no place; 519
+   that are not events with a start date, which every node was read as
+   having, "now". The code lost every COALESCE it no longer needs, and the
+   database tests found a repost written without `updated_at` and three
+   statements writing NULL that now could not.
+4. **The fold.** The 70 migrations are gone; `entrypoint.sh` records goose's
+   baseline alone, and takes the folded versions' rows out of a database
+   that ran them. Tried on a copy of dev and on an empty database.
+5. **Comments that pointed to migration files** say why themselves.
+   What anahita.io's own data needed went to `legacy/sites/anahita-io.sql`,
+   run by hand, the start of the move to banu.io.
+
+## Different from the plan
+
+- **`init.sql` was tidied, not written again from `SHOW CREATE TABLE`:** it
+  already described its columns, and matched the live schema but for two
+  lines. Regenerating it would have lost that.
+- **`legacy/upgrade.sql` was not regrouped** into conversion, repairs and
+  cleanup. Its order is what makes it work, and the schema test now holds it
+  to the result; regrouping 2,000 lines would have been risk without gain.
+- **"Portrait" is not retired:** it is in 93 places in the services and 46
+  in the web app, and in the API, which makes it a change of its own, not of
+  the schema.
+- **There is no staging database** (the user, 2026-10-17): only a fresh one
+  and the user's copy of production through the upgrade.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-03 |
-| Implementation | not started |
+| Implementation | done 2026-10-17 |
+| Left | retiring "portrait" (an API change); the banu.io move's own data changes, in `legacy/sites/anahita-io.sql` |

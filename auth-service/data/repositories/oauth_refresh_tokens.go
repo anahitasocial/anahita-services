@@ -54,7 +54,7 @@ func (repo *oauthRefreshTokens) Add(token *entities.OAuthRefreshToken) (*entitie
 		token.TokenHash,
 		token.UserID,
 		token.ClientID,
-		sql.NullString{String: token.Scopes, Valid: token.Scopes != ""},
+		token.Scopes,
 		false,
 		token.ExpiresAt,
 	)

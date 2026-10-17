@@ -43,10 +43,10 @@ func (repo *oauthAuthorizations) Add(auth *entities.OAuthAuthorization) (*entiti
 		auth.ClientID,
 		auth.UserID,
 		auth.RedirectURI,
-		nullStringIfEmpty(auth.Scopes),
-		nullStringIfEmpty(auth.CodeChallenge),
-		nullStringIfEmpty(auth.CodeChallengeMethod),
-		nullStringIfEmpty(auth.Nonce),
+		auth.Scopes,
+		auth.CodeChallenge,
+		auth.CodeChallengeMethod,
+		auth.Nonce,
 		auth.ExpiresAt,
 	)
 
@@ -125,10 +125,4 @@ func (repo *oauthAuthorizations) DeleteExpired() (int64, error) {
 	}
 
 	return result.RowsAffected()
-}
-
-// nullStringIfEmpty converts an empty string to a SQL NULL for nullable
-// text columns.
-func nullStringIfEmpty(s string) sql.NullString {
-	return sql.NullString{String: s, Valid: s != ""}
 }

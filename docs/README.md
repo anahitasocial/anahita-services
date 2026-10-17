@@ -322,7 +322,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Verified domains](plans/verified-domains.md) | 26 | not started |
 | [Collections](plans/collections.md) | 34 | shape decided 2026-10-06; kept for later, not to be built yet |
 | [Websites: a site's feed as something to follow](plans/done/website.md) | 30 | done 2026-10-17: syndication-service and syndication-worker, a verified domain's feed posted as notes, replies as the website, an Organization on the fediverse, its own Bluesky account ([Websites](websites.md)) |
-| [One clean schema](plans/migration-baseline.md) | 27 | not started |
+| [One clean schema](plans/done/migration-baseline.md) | 27 | done 2026-10-17: the migrations folded into `init.sql` and `legacy/upgrade.sql`, the PHP upgrade fixed, `make schema_test`, NULL only where it means something ([The database](architecture.md#the-database)) |
 | [The API reference, made from the code](plans/done/api-reference.md) | 38 | done 2026-10-15: every route described, `docs/api/index.html`, answers checked in the handler tests |
 | [Documentation agents can use, and an MCP server](plans/docs-for-agents.md) | 39 | planned 2026-10-11; place in the order not decided |
 | [Anahita Recipes: a starting configuration for each kind of site](plans/recipes.md) | 40 | planned 2026-10-11; place in the order not decided |

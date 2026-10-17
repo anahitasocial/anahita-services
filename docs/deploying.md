@@ -271,7 +271,8 @@ To use a managed service instead, remove its line from `components:` in
 | RabbitMQ | | `AMQP_ADDR` |
 
 The database account needs every right on its own database, including
-creating and dropping stored procedures, which the migrations use.
+creating and dropping stored procedures, which the upgrade from the PHP
+application uses.
 
 To put a volume on a StorageClass other than the default, add a patch to the
 overlay:

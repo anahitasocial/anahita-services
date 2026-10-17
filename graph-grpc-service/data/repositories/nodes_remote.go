@@ -240,7 +240,7 @@ WHERE parent_id = ?
 UPDATE nodes
 SET body = '',
     name = '',
-    meta = NULL,
+    meta = '',
     deleted_at = UTC_TIMESTAMP(),
     updated_at = UTC_TIMESTAMP()
 WHERE id = ?
@@ -461,13 +461,11 @@ func (r *nodesRepo) addRemote(ctx context.Context, node *entities.AnahitaNode) (
 		"name":          node.Name,
 		"alias":         node.Alias,
 		"body":          newlines(node.Body),
-		"meta":          node.Meta,
+		"meta":          text(node.Meta),
 		"language":      node.Language,
 		"website_url":   node.WebsiteURL,
 		"access":        remoteAccess,
 		"enabled":       true,
-		"starts_at":     created,
-		"ends_at":       created,
 		"created_at":    created,
 		"updated_at":    now,
 	}
@@ -478,15 +476,15 @@ func (r *nodesRepo) addRemote(ctx context.Context, node *entities.AnahitaNode) (
 		columns["cover_filename"] = node.CoverFilename
 	}
 	if !IsRemoteActorType(node.Type) {
-		columns["owner_id"] = node.OwnerID
+		columns["owner_id"] = nullableID(node.OwnerID)
 		columns["owner_type"] = node.OwnerType
-		columns["created_by"] = node.OwnerID
-		columns["modified_by"] = node.OwnerID
+		columns["created_by"] = nullableID(node.OwnerID)
+		columns["modified_by"] = nullableID(node.OwnerID)
 	}
 	// A reply is seen by whoever may see the root of its thread, and says
 	// nothing of its own about who may: as a reply written here.
 	if node.RootID > 0 {
-		columns["parent_id"] = node.ParentID
+		columns["parent_id"] = nullableID(node.ParentID)
 		columns["root_id"] = node.RootID
 		columns["access"] = ""
 	}
@@ -511,7 +509,7 @@ func (r *nodesRepo) editRemote(ctx context.Context, id int64, node *entities.Ana
 	columns := map[string]any{
 		"name":        node.Name,
 		"body":        newlines(node.Body),
-		"meta":        node.Meta,
+		"meta":        text(node.Meta),
 		"language":    node.Language,
 		"website_url": node.WebsiteURL,
 		"updated_at":  time.Now().UTC(),

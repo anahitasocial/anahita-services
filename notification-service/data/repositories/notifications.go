@@ -66,11 +66,12 @@ func (r *Notification) getBaseSelectQuery() sq.SelectBuilder {
 		"notification.service",
 		"notification.recipient_id",
 		"notification.created_at",
-		"COALESCE(notification.updated_at, NOW()) AS updated_at",
-		"COALESCE(notification.is_read, 0) AS is_read",
-		"notification.subject_id",
+		"notification.updated_at",
+		"notification.is_read",
+		// Who, what and where it is about: NULL when there is none, read as 0.
+		"COALESCE(notification.subject_id, 0) AS subject_id",
 		"COALESCE(notification.object_id, 0) AS object_id",
-		"notification.target_id",
+		"COALESCE(notification.target_id, 0) AS target_id",
 	}
 
 	return sq.Select(fields...).From(
@@ -211,13 +212,13 @@ func (repo *Notification) Add(item *entities.Notification) (int64, error) {
 		item.Type,
 		item.Service,
 		item.RecipientID,
-		item.Subject.ID,
+		nullableID(item.Subject.ID),
 		item.Subject.Type,
-		item.Object.ID,
+		nullableID(item.Object.ID),
 		item.Object.Type,
-		item.Target.ID,
+		nullableID(item.Target.ID),
 		item.Target.Type,
-		item.CommentID,
+		nullableID(int64(item.CommentID)),
 		time.Now(),
 		time.Now(),
 	)
@@ -360,4 +361,12 @@ func (repo *Notification) getItem(q *sq.SelectBuilder) (*entities.Notification, 
 	}
 
 	return item, nil
+}
+
+// nullableID is the id, or NULL for none.
+func nullableID(id int64) any {
+	if id <= 0 {
+		return nil
+	}
+	return id
 }

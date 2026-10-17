@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 
 	"auth/data/entities"
 
@@ -41,18 +40,16 @@ func (repo *oauthAuthorizations) getOne(query sq.SelectBuilder) (*entities.OAuth
 	row := repo.db.QueryRowContext(ctx, q, args...)
 	auth := entities.NewOAuthAuthorization()
 
-	// Nullable text columns: scopes, code_challenge, code_challenge_method, nonce.
-	var scopes, challenge, method, nonce sql.NullString
 	err = row.Scan(
 		&auth.ID,
 		&auth.CodeHash,
 		&auth.ClientID,
 		&auth.UserID,
 		&auth.RedirectURI,
-		&scopes,
-		&challenge,
-		&method,
-		&nonce,
+		&auth.Scopes,
+		&auth.CodeChallenge,
+		&auth.CodeChallengeMethod,
+		&auth.Nonce,
 		&auth.ExpiresAt,
 		&auth.CreatedAt,
 	)
@@ -60,11 +57,6 @@ func (repo *oauthAuthorizations) getOne(query sq.SelectBuilder) (*entities.OAuth
 	if err != nil {
 		return nil, err
 	}
-
-	auth.Scopes = scopes.String
-	auth.CodeChallenge = challenge.String
-	auth.CodeChallengeMethod = method.String
-	auth.Nonce = nonce.String
 
 	return auth, nil
 }

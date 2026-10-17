@@ -793,7 +793,12 @@ api_docs:
 ##
 ## Not `-v`: twenty modules of verbose output buries the one line that
 ## matters. Add it per-module when something fails.
-test:
+## schema_test: a fresh schema and an upgraded PHP one are the same (needs Docker)
+schema_test:
+	@echo "Comparing schema/init.sql with legacy/upgrade.sql..."
+	migration-job/check_schema.sh
+
+test: schema_test
 	@echo "Checking legacy/upgrade.sql statement order..."
 	python3 migration-job/check_sql_order.py
 	@echo "Testing anahita-libs..."

@@ -172,12 +172,10 @@ func (repo *tokens) Add(token *entities.Token) (*entities.Token, error) {
 		"type",
 		"body",
 		"recipient_email",
-		// Empty for every type but emailchange, which is fine: the column
-		// is nullable and an empty string is as good as NULL for a value
-		// nothing reads on those types. Omitting it here is what silently
-		// dropped the destination address of every email change.
+		// Empty for every type but emailchange. Omitting it here is what
+		// silently dropped the destination address of every email change.
 		"new_email",
-		// NULL unless this is a one-time-code token. The code itself is
+		// Empty unless this is a one-time-code token. The code itself is
 		// never a column: only its keyed hash is.
 		"code_hash",
 		"channel",
@@ -192,8 +190,8 @@ func (repo *tokens) Add(token *entities.Token) (*entities.Token, error) {
 		token.Body,
 		token.RecipientEmail,
 		token.NewEmail,
-		nullIfEmpty(token.CodeHash),
-		nullIfEmpty(token.Channel),
+		token.CodeHash,
+		token.Channel,
 		token.ExpiredAfter,
 		token.IsUsed,
 		token.CreatedAt,
@@ -224,14 +222,6 @@ func (repo *tokens) Add(token *entities.Token) (*entities.Token, error) {
 	stored.Code = token.Code
 
 	return stored, nil
-}
-
-// nullIfEmpty stores NULL for a value that does not apply to this token type.
-func nullIfEmpty(value string) any {
-	if value == "" {
-		return nil
-	}
-	return value
 }
 
 // SpendCodeAttempt counts one submission against a one-time-code token, and

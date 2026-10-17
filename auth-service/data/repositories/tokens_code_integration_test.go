@@ -111,7 +111,7 @@ func TestRealCodeIsStoredAsItsHashOnly(t *testing.T) {
 	}
 }
 
-// A token that is not a code stores NULL in the code columns, and reads back.
+// A token that is not a code stores '' in the code columns, and reads back.
 func TestRealOtherTokensLeaveTheCodeColumnsEmpty(t *testing.T) {
 	repo := realTokens(t)
 
@@ -134,7 +134,7 @@ func TestRealOtherTokensLeaveTheCodeColumnsEmpty(t *testing.T) {
 
 	var nulls int
 	err = repo.db.QueryRow(
-		`SELECT COUNT(*) FROM tokens WHERE id = ? AND code_hash IS NULL AND channel IS NULL`,
+		`SELECT COUNT(*) FROM tokens WHERE id = ? AND code_hash = '' AND channel = ''`,
 		stored.ID).Scan(&nulls)
 	if err != nil {
 		t.Fatal(err)

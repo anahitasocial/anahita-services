@@ -83,8 +83,8 @@ const inviteColumns = `
   node_b_id,
   node_a_id,
   COALESCE(created_by, 0),
-  COALESCE(meta, ''),
-  COALESCE(created_at, NOW()),
+  meta,
+  created_at,
   COALESCE(ends_at, NOW())`
 
 const selectInviteWaiting = `
@@ -417,9 +417,9 @@ WHERE type = ?
 	existing := map[int64]standing{}
 	rows, err := r.db.Query(`
 SELECT node_a_id,
-       COALESCE(meta, ''),
+       meta,
        COALESCE(ends_at, NOW()) <= NOW(),
-       COALESCE(updated_at, NOW())
+       updated_at
 FROM edges
 WHERE type = ?
   AND node_b_id = ?

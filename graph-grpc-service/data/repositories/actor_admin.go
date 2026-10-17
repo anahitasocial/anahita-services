@@ -41,9 +41,9 @@ func (repo *ActorAdmin) getBaseSelectQuery() sq.SelectBuilder {
 		"node.id",
 		"node.type",
 		"node.service",
-		"COALESCE(node.name, '') AS name",
+		"node.name",
 		"node.alias",
-		"COALESCE(node.avatar_filename, '') AS avatar_filename",
+		"node.avatar_filename",
 		"node.created_at",
 		"node.updated_at",
 	}

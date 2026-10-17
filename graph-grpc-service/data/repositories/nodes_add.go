@@ -1,8 +1,10 @@
 package repositories
 
 import (
+	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"context"
+	"encoding/json"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -15,15 +17,6 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 
 	if err := r.validateAdd(node); err != nil {
 		return nil, err
-	}
-
-	// Ensure StartsAt and EndsAt have default values if zero value
-	if node.StartsAt.IsZero() {
-		node.StartsAt = time.Now()
-	}
-	if node.EndsAt.IsZero() {
-		// Default end date: same as start date (adjust if different logic needed)
-		node.EndsAt = node.StartsAt
 	}
 
 	now := time.Now()
@@ -83,10 +76,11 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		node.Name,
 		node.Alias,
 		newlines(node.Body),
-		node.StartsAt,
-		node.EndsAt,
+		// An event's start and end, and nothing on anything else.
+		eventTime(node, node.StartsAt),
+		eventTime(node, node.EndsAt),
 		node.OwnerType,
-		node.OwnerID,
+		nullableID(node.OwnerID),
 		node.CommentStatus,
 		node.CommentCount,
 		node.Enabled,
@@ -95,30 +89,31 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		node.PersonType,
 		node.PersonPronouns,
 		node.Pinned,
-		node.Meta,
+		text(node.Meta),
 		node.ViewCount,
-		node.ParentID,
+		nullableID(node.ParentID),
 		node.ParentType,
 		// NULL, not 0, on anything that is not a reply: "top level" is
 		// asked for as root_id IS NULL.
 		nullableID(node.RootID),
-		nullableString(node.ReplyAccess),
-		nullableString(node.QuotePolicy),
+		node.ReplyAccess,
+		node.QuotePolicy,
 		node.AllowDownload,
 		node.LibraryOnly,
 		node.Draft,
 		nullableID(node.QuoteID),
-		node.GeoLatitude,
-		node.GeoLongitude,
+		// No coordinates is no place, not a point in the sea off Africa.
+		nullablePlace(node.GeoLatitude, node.GeoLongitude),
+		nullablePlace(node.GeoLongitude, node.GeoLatitude),
 		node.GeoAddress,
 		node.GeoCity,
 		node.GeoStateProvince,
 		node.GeoCountry,
 		node.GeoPostalcode,
 		created,
-		node.CreatedBy,
+		nullableID(node.CreatedBy),
 		now,
-		node.ModifiedBy,
+		nullableID(node.ModifiedBy),
 		node.Filename,
 		node.AvatarFilename,
 		node.CoverFilename,
@@ -126,7 +121,7 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		node.Mimetype,
 		node.Language,
 		node.Access,
-		node.FeaturesRaw,
+		text(node.FeaturesRaw),
 	)
 
 	sql, args, err := query.ToSql()
@@ -175,12 +170,29 @@ func nullableID(id int64) any {
 	return id
 }
 
-// nullableString is the value, or NULL for none.
-func nullableString(value string) any {
-	if value == "" {
+// nullablePlace is a coordinate, or NULL when the node has no place: both
+// coordinates 0. Given the other as well, so latitude and longitude are
+// NULL together.
+func nullablePlace(coordinate, other float64) any {
+	if coordinate == 0 && other == 0 {
 		return nil
 	}
-	return value
+	return coordinate
+}
+
+// eventTime is an event's start or end, or NULL on anything that is not an
+// event, or an event with none.
+func eventTime(node *entities.AnahitaNode, at time.Time) any {
+	if node.Type != constants.NodeActorEventEntityType || at.IsZero() {
+		return nil
+	}
+	return at
+}
+
+// text is JSON kept as text: the empty string when there is none, as the
+// column says.
+func text(raw json.RawMessage) string {
+	return string(raw)
 }
 
 // addedAt is when a new node says it was made: when it was written, for a
