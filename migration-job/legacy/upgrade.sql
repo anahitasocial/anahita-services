@@ -559,7 +559,9 @@ ALTER TABLE nodes ADD INDEX `root_id` (`root_id`);
 -- nodes.pinned_at. See migrations/20261016000001_nodes_pinned_at.sql.
 ALTER TABLE nodes ADD COLUMN `pinned_at` datetime DEFAULT NULL AFTER `pinned`;
 ALTER TABLE nodes ADD INDEX `owner_pinned` (`owner_id`, `pinned`);
-UPDATE nodes SET pinned_at = COALESCE(updated_at, created_at) WHERE pinned = 1 AND pinned_at IS NULL;
+-- The dates still have the PHP application's names here: they become
+-- created_at and updated_at near the end of this file.
+UPDATE nodes SET pinned_at = COALESCE(modified_on, created_on) WHERE pinned = 1 AND pinned_at IS NULL;
 
 -- Quote posts. See migrations/20261015000001_nodes_quotes.sql.
 ALTER TABLE nodes ADD COLUMN `quote_id` bigint(11) unsigned DEFAULT NULL AFTER `root_id`;
