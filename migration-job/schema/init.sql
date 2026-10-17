@@ -1054,14 +1054,14 @@ CREATE TABLE IF NOT EXISTS data_exports (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ActivityPub: who has chosen to be on the fediverse, and the key each signs
--- with. See migrations/20261027000001_activitypub.sql.
+-- with.
 CREATE TABLE IF NOT EXISTS activitypub_accounts (
     `person_id` bigint unsigned NOT NULL,
     `enabled` tinyint(1) NOT NULL DEFAULT 0,
     -- When they last turned it on.
     `enabled_at` datetime DEFAULT NULL,
     -- Their own updated_at when their followers' servers were last sent
-    -- their description. See migrations/20261102000001_activitypub_told.sql.
+    -- their description.
     `told_updated_at` datetime DEFAULT NULL,
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
@@ -1083,8 +1083,7 @@ CREATE TABLE IF NOT EXISTS actor_keys (
     KEY `node_id` (`node_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- What is known of the people on other servers. See
--- migrations/20261028000001_activitypub_actors.sql.
+-- What is known of the people on other servers.
 CREATE TABLE IF NOT EXISTS activitypub_actors (
     `node_id` bigint unsigned NOT NULL,
     -- Their address: the same as the node's uri.
@@ -1110,7 +1109,7 @@ CREATE TABLE IF NOT EXISTS activitypub_actors (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- What is waiting to be sent to other servers, and who follows whom
--- across them. See migrations/20261029000001_activitypub_follows.sql.
+-- across them.
 CREATE TABLE IF NOT EXISTS activitypub_deliveries (
     id bigint unsigned NOT NULL AUTO_INCREMENT,
     -- Said by whoever adds a row, to add it once however often they try:
@@ -1156,18 +1155,17 @@ CREATE TABLE IF NOT EXISTS activitypub_follows (
     KEY `activity_id` (`activity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Which posts made here other servers have been told of. See
--- migrations/20261030000001_activitypub_objects.sql.
+-- Which posts made here other servers have been told of.
 CREATE TABLE IF NOT EXISTS activitypub_objects (
     `node_id` bigint unsigned NOT NULL,
     -- The post's UUID: what its address between servers is made of.
     `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     -- Whose it is: the person here who wrote it.
     `actor_id` bigint unsigned NOT NULL,
-    -- 'note' or 'repost'. See migrations/20261104000001_activitypub_object_kind.sql.
+    -- 'note' or 'repost'.
     `kind` varchar(16) NOT NULL DEFAULT 'note',
     -- For a reply: the inbox of whoever it answers, when they are on
-    -- another server. See migrations/20261103000001_activitypub_object_reply.sql.
+    -- another server.
     `reply_inbox` varchar(512) NOT NULL DEFAULT '',
     -- The post's own updated_at when other servers were last sent it.
     `told_updated_at` datetime DEFAULT NULL,
@@ -1176,8 +1174,7 @@ CREATE TABLE IF NOT EXISTS activitypub_objects (
     KEY `actor_id` (`actor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- The servers this installation will have nothing to do with. See
--- migrations/20261031000001_federation_domain_blocks.sql.
+-- The servers this installation will have nothing to do with.
 CREATE TABLE IF NOT EXISTS federation_domain_blocks (
     `domain` varchar(255) NOT NULL,
     -- Why, for the administrators who come after. Never shown to anybody
@@ -1189,7 +1186,7 @@ CREATE TABLE IF NOT EXISTS federation_domain_blocks (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- What is kept for reading Bluesky: the people on it who are kept here, and
--- how far the listener has got. See migrations/20261105000001_atproto.sql.
+-- how far the listener has got.
 CREATE TABLE IF NOT EXISTS atproto_actors (
     `node_id` bigint unsigned NOT NULL,
     -- Their lasting name: what does not change when their handle does.
@@ -1218,8 +1215,7 @@ CREATE TABLE IF NOT EXISTS atproto_cursor (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Which post each repost heard from Bluesky was of. See
--- migrations/20261106000001_atproto_reposts.sql.
+-- Which post each repost heard from Bluesky was of.
 CREATE TABLE IF NOT EXISTS atproto_reposts (
     -- Who reposted: the node of somebody on Bluesky.
     `actor_id` bigint unsigned NOT NULL,
@@ -1231,8 +1227,7 @@ CREATE TABLE IF NOT EXISTS atproto_reposts (
     PRIMARY KEY (`actor_id`, `rkey`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Writing to Bluesky as accounts people here connected. See
--- migrations/20261107000001_atproto_accounts.sql.
+-- Writing to Bluesky as accounts people here connected.
 CREATE TABLE IF NOT EXISTS atproto_accounts (
     -- Who here connected it.
     `person_id` bigint unsigned NOT NULL,
@@ -1248,8 +1243,7 @@ CREATE TABLE IF NOT EXISTS atproto_accounts (
     -- works.
     `broken_at` datetime DEFAULT NULL,
     -- The time of the last thing somebody on Bluesky did to what was
-    -- written from here that was dealt with. See
-    -- migrations/20261108000001_atproto_notified.sql.
+    -- written from here that was dealt with.
     `notified_at` datetime(3) DEFAULT NULL,
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
@@ -1300,8 +1294,7 @@ CREATE TABLE IF NOT EXISTS atproto_writes (
     KEY actor_id (actor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Domains somebody has proved are theirs. See
--- migrations/20261120000001_verified_domains.sql.
+-- Domains somebody has proved are theirs.
 CREATE TABLE IF NOT EXISTS verified_domains (
     id bigint unsigned NOT NULL AUTO_INCREMENT,
     -- The domain proved (example.com), and the host its file is fetched
@@ -1334,8 +1327,7 @@ CREATE TABLE IF NOT EXISTS verified_domains (
     KEY checked_at (checked_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Websites: websites' feeds as profiles. See
--- migrations/20261121000001_websites.sql.
+-- Websites: websites' feeds as profiles.
 CREATE TABLE IF NOT EXISTS websites (
     -- The website's node: node.actor.actor-service.website.v1.
     node_id bigint unsigned NOT NULL,

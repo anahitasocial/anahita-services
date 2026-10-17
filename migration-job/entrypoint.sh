@@ -7,15 +7,11 @@ export GOOSE_DBSTRING="$MYSQL_USER:$MYSQL_PASSWORD@tcp($MYSQL_HOST:3306)/$MYSQL_
 
 # stamp_migrations records every migration as already applied.
 #
-# schema/init.sql and legacy/upgrade.sql both produce a schema that already
-# INCLUDES everything under ./migrations — they are kept in step by hand. Both
-# branches used to exit here without telling goose that, so the next start of
-# the same database found tables, found no legacy tables, and ran every
-# migration from zero against a schema that already had them.
-#
-# Every migration written so far carries an information-schema guard and
-# survives that, but the guards are a seatbelt: the fix is to not drive at the
-# wall. A migration added without one would fail the container on restart.
+# schema/init.sql and legacy/upgrade.sql both produce the whole schema, every
+# migration under ./migrations included: they are kept in step by hand, and
+# make schema_test checks that the two agree. Without the stamp, the next
+# start of the same database would find tables and no legacy ones, and run
+# every migration against a schema that already has it.
 #
 # Goose has no baseline or stamp command, so the version rows are written
 # directly. The table definition matches the one goose creates for MySQL; the
@@ -95,7 +91,16 @@ if [[ -n "$LEGACY_TABLES" && "$LEGACY_TABLES" -gt 0 ]]; then
     exit 0
 fi
 
-# If there are tables but no legacy tables, proceed with Goose migrations
+# If there are tables but no legacy tables, proceed with Goose migrations.
+#
+# The migrations up to 20261122000001 were folded into schema/init.sql and
+# legacy/upgrade.sql on 2026-10-17 (roadmap row 27), and their files are
+# gone. A database that ran them still has their version rows; they are
+# taken out, so goose sees only its baseline and what was written since. A
+# database older than the last of them has no way forward from here: it is
+# upgraded with the release before.
 echo "Tables found but no legacy tables. Proceeding with Goose migrations..."
+mysql -h "$MYSQL_HOST" -P 3306 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -e "
+    DELETE FROM goose_db_version WHERE version_id BETWEEN 1 AND 20261122000001;"
 goose -dir ./migrations up
 echo "Goose migrations completed."

@@ -387,9 +387,12 @@ CALL migrate_notifications();
 DELETE FROM nodes WHERE type = 'node.base.notification-service.notification.v1';
 
 -- Legacy private notes: notes left on somebody else's profile for the two of
--- them only, stored with a list of person ids in `access`. The Go services
--- have no private messaging and nothing can reach these rows. See
--- migrations/20261003000001_delete_private_notes.sql for the reasoning.
+-- them only, stored with a list of person ids in `access` ("21010,1"). The
+-- services have no private messaging, and will not: it is more
+-- responsibility than the project wants, and has no workable equivalent on
+-- ActivityPub or the AT Protocol. Nobody can reach these rows, the two people
+-- included, and they are conversations people believed were private, so they
+-- go, with their comments, edges and notifications.
 --
 -- Here, after the notifications table has been filled, so the notifications
 -- about them can be removed with them. Nothing cascades, so notifications and
@@ -422,10 +425,10 @@ DELETE n FROM nodes n JOIN anahita_private_nodes p ON p.id = n.id;
 DROP TEMPORARY TABLE anahita_private_notes;
 DROP TEMPORARY TABLE anahita_private_nodes;
 
--- Legacy photo sets (albums). Nothing in the Go services reads them and the
--- web app has no page for them. See
--- migrations/20261003000002_delete_photo_sets.sql for the reasoning. The
--- photos stay: a photo belongs to its owner, never to a set.
+-- Legacy photo sets (albums). Nothing in the services reads them and the web
+-- app has no page for them; albums are not coming back, a photo post holding
+-- up to four images. The photos stay: a photo belongs to its owner, never to
+-- a set, and a set's filename is its cover photo's, not a file of its own.
 CREATE TEMPORARY TABLE anahita_photo_sets (id BIGINT UNSIGNED NOT NULL PRIMARY KEY);
 CREATE TEMPORARY TABLE anahita_photo_set_nodes (id BIGINT UNSIGNED NOT NULL PRIMARY KEY);
 
@@ -504,8 +507,11 @@ ALTER TABLE nodes DROP COLUMN story_object_type;
 ALTER TABLE nodes DROP COLUMN story_target_id;
 ALTER TABLE nodes DROP COLUMN story_comment_id;
 
--- Columns the Go services never used, carried over from the PHP schema. See
--- migrations/20261002000001_nodes_drop_unused_columns.sql for what each was.
+-- Columns the services never used, carried over from the PHP schema: a
+-- profile status line, a default flag and an ordering never read, an integer
+-- time zone that cannot follow daylight saving, the last comment's id, author
+-- and date, file sizes nothing wrote, a mutual count never calculated, and a
+-- downvote count, there being no downvote.
 -- The indexes go first: dropping a column takes it out of a composite index but
 -- leaves the index behind on what remains.
 ALTER TABLE nodes DROP INDEX `type_status_update_time`;
@@ -548,56 +554,52 @@ ALTER TABLE nodes ADD COLUMN `purged_at` datetime DEFAULT NULL;
 
 -- nodes.avatar_filename, the picture that stands for an actor. The PHP
 -- application kept it in `filename`, which on a post names the file the post
--- is. See migrations/20261009000001_avatar_filename.sql.
+-- is.
 ALTER TABLE nodes ADD COLUMN `avatar_filename` varchar(255) DEFAULT NULL AFTER `filename`;
 
--- nodes.root_id, the post at the top of the thread a reply belongs to. See
--- migrations/20261010000001_nodes_root_id.sql.
+-- nodes.root_id, the post at the top of the thread a reply belongs to.
 ALTER TABLE nodes ADD COLUMN `root_id` bigint(11) unsigned DEFAULT NULL AFTER `parent_type`;
 ALTER TABLE nodes ADD INDEX `root_id` (`root_id`);
 
--- nodes.pinned_at. See migrations/20261016000001_nodes_pinned_at.sql.
+-- nodes.pinned_at.
 ALTER TABLE nodes ADD COLUMN `pinned_at` datetime DEFAULT NULL AFTER `pinned`;
 ALTER TABLE nodes ADD INDEX `owner_pinned` (`owner_id`, `pinned`);
 -- The dates still have the PHP application's names here: they become
 -- created_at and updated_at near the end of this file.
 UPDATE nodes SET pinned_at = COALESCE(modified_on, created_on) WHERE pinned = 1 AND pinned_at IS NULL;
 
--- Quote posts. See migrations/20261015000001_nodes_quotes.sql.
+-- Quote posts.
 ALTER TABLE nodes ADD COLUMN `quote_id` bigint(11) unsigned DEFAULT NULL AFTER `root_id`;
 ALTER TABLE nodes ADD COLUMN `quote_detached_at` datetime DEFAULT NULL AFTER `quote_id`;
 ALTER TABLE nodes ADD INDEX `quote_id` (`quote_id`);
 
--- nodes.reply_access, who may reply to a post. See
--- migrations/20261012000001_nodes_reply_access.sql.
+-- nodes.reply_access, who may reply to a post.
 ALTER TABLE nodes ADD COLUMN `reply_access` varchar(64) DEFAULT NULL AFTER `comment_status`;
 ALTER TABLE nodes ADD COLUMN `quote_policy` varchar(16) DEFAULT NULL AFTER `reply_access`;
 
--- nodes.show_reposts_on_profile. See
--- migrations/20261013000001_nodes_show_reposts_on_profile.sql.
+-- nodes.show_reposts_on_profile.
 ALTER TABLE nodes ADD COLUMN `show_reposts_on_profile` tinyint(1) NOT NULL DEFAULT 0 AFTER `allow_follow_request`;
 
--- nodes.allow_download. See
--- migrations/20261023000001_allow_download.sql.
+-- nodes.allow_download.
 ALTER TABLE nodes ADD COLUMN `allow_download` tinyint(1) NOT NULL DEFAULT 0 AFTER `show_reposts_on_profile`;
 
--- nodes.library_only. See
--- migrations/20261112000001_library_only.sql.
+-- nodes.library_only.
 ALTER TABLE nodes ADD COLUMN `library_only` tinyint(1) NOT NULL DEFAULT 0 AFTER `allow_download`;
 
--- nodes.draft. See migrations/20261115000001_drafts.sql.
+-- nodes.draft.
 ALTER TABLE nodes ADD COLUMN `draft` tinyint(1) NOT NULL DEFAULT 0 AFTER `library_only`;
 
--- nodes.citation_count. See migrations/20261116000001_citation_count.sql.
+-- nodes.citation_count.
 -- Nothing on the PHP site cited anything, so every count starts at 0.
 ALTER TABLE nodes ADD COLUMN `citation_count` int(11) unsigned NOT NULL DEFAULT 0 AFTER `quote_count`;
 
--- nodes.excerpt, dropped with what is in it. See
--- migrations/20261113000001_drop_excerpt.sql.
+-- nodes.excerpt, dropped with what is in it.
 ALTER TABLE nodes DROP COLUMN `excerpt`;
 
--- nodes.uuid. See migrations/20261025000001_node_uuid.sql for why it is done
--- in three steps.
+-- nodes.uuid: what other servers are told a node is called, random and never
+-- changed. In three steps: a default that differs on every row cannot be
+-- given to the rows already there by adding the column with it (error 1674),
+-- so the column is added empty, filled, then made required with its default.
 ALTER TABLE nodes ADD COLUMN `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NULL AFTER `id`;
 UPDATE nodes
 SET `uuid` = (LOWER(CONCAT(HEX(RANDOM_BYTES(4)),'-',HEX(RANDOM_BYTES(2)),'-4',SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(CONV(SUBSTR(HEX(RANDOM_BYTES(1)),1,1),16,10) & 3 | 8),SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(RANDOM_BYTES(6)))))
@@ -605,17 +607,19 @@ WHERE `uuid` IS NULL;
 ALTER TABLE nodes MODIFY COLUMN `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT (LOWER(CONCAT(HEX(RANDOM_BYTES(4)),'-',HEX(RANDOM_BYTES(2)),'-4',SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(CONV(SUBSTR(HEX(RANDOM_BYTES(1)),1,1),16,10) & 3 | 8),SUBSTR(HEX(RANDOM_BYTES(2)),2),'-',HEX(RANDOM_BYTES(6)))));
 ALTER TABLE nodes ADD UNIQUE KEY `uq_uuid` (`uuid`);
 
--- nodes.uri and nodes.origin_domain. See
--- migrations/20261026000001_node_remote.sql.
+-- nodes.uri and nodes.origin_domain.
 ALTER TABLE nodes
     ADD COLUMN `uri` varchar(512) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER `uuid`,
     ADD COLUMN `origin_domain` varchar(255) DEFAULT NULL AFTER `uri`,
     ADD UNIQUE KEY `uq_uri` (`uri`),
     ADD KEY `origin_domain` (`origin_domain`);
 
--- Comments become replies: notes that answer the post they were under. The
--- same statements as migrations/20261011000001_comments_become_replies.sql,
--- where the reasons are. They come after the conversion of types above,
+-- Comments become replies: notes that answer the post they were under, owned
+-- by whoever wrote them, with the post as the top of their thread. Their ids
+-- do not change, so what pointed at a comment points at the reply. Comments
+-- from before 2016-01-30, switched off by the PHP application's own upgrade,
+-- are switched back on under a post that is still published; comments whose
+-- post is gone are deleted. They come after the conversion of types above,
 -- which is what gives a comment the type these look for.
 -- Comments under a post that is gone.
 --
@@ -694,8 +698,7 @@ WHERE comment.type = 'node.base.comment-service.comment.v1';
 -- switches a post off; what the PHP site had switched off is real writing,
 -- which would otherwise be in no list and on no page (the user, 2026-10-16).
 -- A removed post stays removed. Before the count below, so that the replies
--- switched on here are counted. migrations/20261111000001_enable_medium_nodes
--- does the same for an installation already running.
+-- switched on here are counted.
 UPDATE nodes
 SET enabled = 1
 WHERE type LIKE 'node.medium.%'
@@ -703,8 +706,7 @@ WHERE type LIKE 'node.medium.%'
   AND deleted_at IS NULL;
 
 -- Every line break of what was written stored as \n, as the graph writes it
--- from now on. migrations/20261114000001_body_newlines does the same for an
--- installation already running.
+-- from now on.
 UPDATE nodes
 SET body = REPLACE(REPLACE(body, CONCAT(CHAR(13), CHAR(10)), CHAR(10)), CHAR(13), CHAR(10))
 WHERE body LIKE CONCAT('%', CHAR(13), '%');
@@ -1465,8 +1467,7 @@ CREATE TABLE IF NOT EXISTS abuse_reports (
 --
 -- Owned by recommendation-service. No foreign keys, like the rest of this
 -- schema.
--- Each person's own weights for search's Most relevant. See
--- migrations/20261117000001_search_preferences.sql.
+-- Each person's own weights for search's Most relevant.
 CREATE TABLE IF NOT EXISTS search_preferences (
     `person_id` bigint unsigned NOT NULL,
     -- How much each sign of use counts in their Most relevant, as JSON by
@@ -1601,14 +1602,14 @@ CREATE TABLE IF NOT EXISTS data_exports (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ActivityPub: who has chosen to be on the fediverse, and the key each signs
--- with. See migrations/20261027000001_activitypub.sql.
+-- with.
 CREATE TABLE IF NOT EXISTS activitypub_accounts (
     `person_id` bigint unsigned NOT NULL,
     `enabled` tinyint(1) NOT NULL DEFAULT 0,
     -- When they last turned it on.
     `enabled_at` datetime DEFAULT NULL,
     -- Their own updated_at when their followers' servers were last sent
-    -- their description. See migrations/20261102000001_activitypub_told.sql.
+    -- their description.
     `told_updated_at` datetime DEFAULT NULL,
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
@@ -1630,8 +1631,7 @@ CREATE TABLE IF NOT EXISTS actor_keys (
     KEY `node_id` (`node_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- What is known of the people on other servers. See
--- migrations/20261028000001_activitypub_actors.sql.
+-- What is known of the people on other servers.
 CREATE TABLE IF NOT EXISTS activitypub_actors (
     `node_id` bigint unsigned NOT NULL,
     -- Their address: the same as the node's uri.
@@ -1657,7 +1657,7 @@ CREATE TABLE IF NOT EXISTS activitypub_actors (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- What is waiting to be sent to other servers, and who follows whom
--- across them. See migrations/20261029000001_activitypub_follows.sql.
+-- across them.
 CREATE TABLE IF NOT EXISTS activitypub_deliveries (
     id bigint unsigned NOT NULL AUTO_INCREMENT,
     -- Said by whoever adds a row, to add it once however often they try:
@@ -1703,18 +1703,17 @@ CREATE TABLE IF NOT EXISTS activitypub_follows (
     KEY `activity_id` (`activity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Which posts made here other servers have been told of. See
--- migrations/20261030000001_activitypub_objects.sql.
+-- Which posts made here other servers have been told of.
 CREATE TABLE IF NOT EXISTS activitypub_objects (
     `node_id` bigint unsigned NOT NULL,
     -- The post's UUID: what its address between servers is made of.
     `uuid` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     -- Whose it is: the person here who wrote it.
     `actor_id` bigint unsigned NOT NULL,
-    -- 'note' or 'repost'. See migrations/20261104000001_activitypub_object_kind.sql.
+    -- 'note' or 'repost'.
     `kind` varchar(16) NOT NULL DEFAULT 'note',
     -- For a reply: the inbox of whoever it answers, when they are on
-    -- another server. See migrations/20261103000001_activitypub_object_reply.sql.
+    -- another server.
     `reply_inbox` varchar(512) NOT NULL DEFAULT '',
     -- The post's own updated_at when other servers were last sent it.
     `told_updated_at` datetime DEFAULT NULL,
@@ -1723,8 +1722,7 @@ CREATE TABLE IF NOT EXISTS activitypub_objects (
     KEY `actor_id` (`actor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- The servers this installation will have nothing to do with. See
--- migrations/20261031000001_federation_domain_blocks.sql.
+-- The servers this installation will have nothing to do with.
 CREATE TABLE IF NOT EXISTS federation_domain_blocks (
     `domain` varchar(255) NOT NULL,
     -- Why, for the administrators who come after. Never shown to anybody
@@ -1736,7 +1734,7 @@ CREATE TABLE IF NOT EXISTS federation_domain_blocks (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- What is kept for reading Bluesky: the people on it who are kept here, and
--- how far the listener has got. See migrations/20261105000001_atproto.sql.
+-- how far the listener has got.
 CREATE TABLE IF NOT EXISTS atproto_actors (
     `node_id` bigint unsigned NOT NULL,
     -- Their lasting name: what does not change when their handle does.
@@ -1765,8 +1763,7 @@ CREATE TABLE IF NOT EXISTS atproto_cursor (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Which post each repost heard from Bluesky was of. See
--- migrations/20261106000001_atproto_reposts.sql.
+-- Which post each repost heard from Bluesky was of.
 CREATE TABLE IF NOT EXISTS atproto_reposts (
     -- Who reposted: the node of somebody on Bluesky.
     `actor_id` bigint unsigned NOT NULL,
@@ -1778,8 +1775,7 @@ CREATE TABLE IF NOT EXISTS atproto_reposts (
     PRIMARY KEY (`actor_id`, `rkey`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Writing to Bluesky as accounts people here connected. See
--- migrations/20261107000001_atproto_accounts.sql.
+-- Writing to Bluesky as accounts people here connected.
 CREATE TABLE IF NOT EXISTS atproto_accounts (
     -- Who here connected it.
     `person_id` bigint unsigned NOT NULL,
@@ -1795,8 +1791,7 @@ CREATE TABLE IF NOT EXISTS atproto_accounts (
     -- works.
     `broken_at` datetime DEFAULT NULL,
     -- The time of the last thing somebody on Bluesky did to what was
-    -- written from here that was dealt with. See
-    -- migrations/20261108000001_atproto_notified.sql.
+    -- written from here that was dealt with.
     `notified_at` datetime(3) DEFAULT NULL,
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
@@ -1847,8 +1842,7 @@ CREATE TABLE IF NOT EXISTS atproto_writes (
     KEY actor_id (actor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Domains somebody has proved are theirs. See
--- migrations/20261120000001_verified_domains.sql.
+-- Domains somebody has proved are theirs.
 CREATE TABLE IF NOT EXISTS verified_domains (
     id bigint unsigned NOT NULL AUTO_INCREMENT,
     -- The domain proved (example.com), and the host its file is fetched
@@ -1881,8 +1875,7 @@ CREATE TABLE IF NOT EXISTS verified_domains (
     KEY checked_at (checked_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Websites: websites' feeds as profiles. See
--- migrations/20261121000001_websites.sql.
+-- Websites: websites' feeds as profiles.
 CREATE TABLE IF NOT EXISTS websites (
     -- The website's node: node.actor.actor-service.website.v1.
     node_id bigint unsigned NOT NULL,
@@ -2149,9 +2142,3 @@ UPDATE node_deletion_logs SET
 ALTER TABLE node_deletion_logs
     MODIFY `node_alias` varchar(255) NOT NULL DEFAULT '',
     MODIFY `node_type` varchar(255) NOT NULL DEFAULT '';
-
--- --------------------------------------------------------
-
--- Some data updates for now, remove it in the final commit
-UPDATE nodes SET avatar_filename = '8944e519-1d9f-46c4-a16f-3da487ade61f.jpg' WHERE alias = 'rastin';
-UPDATE nodes SET avatar_filename = '423f925ce9bb8dce0c8f1876778a96a8.jpg' WHERE alias = 'rmundel';

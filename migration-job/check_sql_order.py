@@ -4,7 +4,8 @@
 entrypoint.sh runs this one file, top to bottom, against a database migrated
 from the PHP app — then exits. It never sees schema/init.sql or the goose
 migrations, so every schema change made elsewhere has to be mirrored here by
-hand. That hand-mirroring is the risk this checks.
+hand. That hand-mirroring is the risk this checks: that a table is made
+before it is used. make schema_test checks the rest, by running the file.
 
 The failure it exists for: `ALTER TABLE tokens ADD COLUMN new_email` was
 mirrored in near the top of the file while `CREATE TABLE tokens` sits 170 lines
