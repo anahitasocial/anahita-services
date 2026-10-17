@@ -1,3 +1,7 @@
+-- The connection's character set, which is what an expression default such
+-- as DEFAULT ('') is recorded in: the same whatever the client's own is.
+SET NAMES utf8mb4;
+
 -- --------------------------------------------------------
 
 CREATE TABLE nodes (
@@ -242,10 +246,10 @@ CREATE TABLE edges (
 CREATE TABLE auth_accounts (
     `node_id`               bigint unsigned NOT NULL,
     `email`                 varchar(255) DEFAULT NULL,
-    `password`              varchar(255) DEFAULT NULL,
-    `totp_secret`           varchar(255) DEFAULT '',
+    `password` varchar(255) NOT NULL DEFAULT '',
+    `totp_secret` varchar(255) NOT NULL DEFAULT '',
     `totp_enabled`          tinyint(1) NOT NULL DEFAULT 0,
-    `totp_recovery_codes`   mediumtext DEFAULT NULL,
+    `totp_recovery_codes` mediumtext NOT NULL DEFAULT (''),
     `totp_last_verified_at` datetime DEFAULT NULL,
 
     -- When the address was confirmed. NULL means it has not been, and an
@@ -274,18 +278,18 @@ CREATE TABLE auth_accounts (
     -- date>) is ambiguous and the audit trail cannot be read.
     `tos_accepted`            tinyint(1) NOT NULL DEFAULT 0,
     `tos_accepted_at`         datetime     DEFAULT NULL,
-    `tos_accepted_version`    varchar(20)  DEFAULT NULL,
-    `tos_accepted_ip`         varchar(45)  DEFAULT NULL,
-    `tos_accepted_user_agent` varchar(255) DEFAULT NULL,
-    `tos_accepted_os`         varchar(100) DEFAULT NULL,
+    `tos_accepted_version` varchar(20) NOT NULL DEFAULT '',
+    `tos_accepted_ip` varchar(45) NOT NULL DEFAULT '',
+    `tos_accepted_user_agent` varchar(255) NOT NULL DEFAULT '',
+    `tos_accepted_os` varchar(100) NOT NULL DEFAULT '',
 
     -- Privacy Policy acceptance, same shape.
     `pp_accepted`             tinyint(1) NOT NULL DEFAULT 0,
     `pp_accepted_at`          datetime     DEFAULT NULL,
-    `pp_accepted_version`     varchar(20)  DEFAULT NULL,
-    `pp_accepted_ip`          varchar(45)  DEFAULT NULL,
-    `pp_accepted_user_agent`  varchar(255) DEFAULT NULL,
-    `pp_accepted_os`          varchar(100) DEFAULT NULL,
+    `pp_accepted_version` varchar(20) NOT NULL DEFAULT '',
+    `pp_accepted_ip` varchar(45) NOT NULL DEFAULT '',
+    `pp_accepted_user_agent` varchar(255) NOT NULL DEFAULT '',
+    `pp_accepted_os` varchar(100) NOT NULL DEFAULT '',
 
     PRIMARY KEY (`node_id`),
     UNIQUE KEY `email` (`email`),
@@ -303,9 +307,9 @@ CREATE TABLE IF NOT EXISTS signup_requests (
 
     -- What an administrator is deciding on. Required in this mode, because
     -- deciding on an email address alone is not deciding.
-    `name`        varchar(100) DEFAULT NULL,
-    `body`        text         DEFAULT NULL,
-    `website_url` varchar(255) DEFAULT NULL,
+    `name` varchar(100) NOT NULL DEFAULT '',
+    `body` text NOT NULL DEFAULT (''),
+    `website_url` varchar(255) NOT NULL DEFAULT '',
 
     -- unverified -> pending -> approved | rejected
     --
@@ -322,14 +326,14 @@ CREATE TABLE IF NOT EXISTS signup_requests (
 
     `decided_by`    bigint unsigned DEFAULT NULL,
     `decided_at`    datetime        DEFAULT NULL,
-    `decision_note` varchar(255)    DEFAULT NULL,
+    `decision_note` varchar(255) NOT NULL DEFAULT '',
 
     -- Where the request came from. The same evidential trio the consent
     -- columns carry, and for the same reason: a queue entry that cannot say
     -- where it came from is harder to moderate, and a spam wave is usually
     -- recognisable by its source long before its content.
-    `created_ip`         varchar(45)  DEFAULT NULL,
-    `created_user_agent` varchar(255) DEFAULT NULL,
+    `created_ip` varchar(45) NOT NULL DEFAULT '',
+    `created_user_agent` varchar(255) NOT NULL DEFAULT '',
 
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
@@ -506,7 +510,7 @@ CREATE TABLE IF NOT EXISTS site_actions (
     -- The super administrator who did it.
     `performed_by` bigint unsigned NOT NULL,
     -- What it came to, as JSON: how many rows of each kind it changed.
-    `detail` text,
+    `detail` text NOT NULL DEFAULT (''),
     `created_at` datetime NOT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_site_actions_created_at` (`created_at`)
@@ -632,10 +636,10 @@ CREATE TABLE oauth_authorizations (
     `client_id` varchar(255) NOT NULL,
     `user_id` bigint(11) unsigned NOT NULL,
     `redirect_uri` text NOT NULL,
-    `scopes` text DEFAULT NULL,
-    `code_challenge` varchar(128) DEFAULT NULL,
-    `code_challenge_method` varchar(10) DEFAULT NULL,
-    `nonce` varchar(255) DEFAULT NULL,
+    `scopes` text NOT NULL DEFAULT (''),
+    `code_challenge` varchar(128) NOT NULL DEFAULT '',
+    `code_challenge_method` varchar(10) NOT NULL DEFAULT '',
+    `nonce` varchar(255) NOT NULL DEFAULT '',
     `expires_at` datetime NOT NULL,
     -- Defaulted, not supplied by the insert. Under MySQL strict mode a
     -- NOT NULL column with no default and no value is error 1364, not a
@@ -691,7 +695,7 @@ CREATE TABLE oauth_refresh_tokens (
     `token_hash` varchar(255) NOT NULL,
     `user_id` bigint(11) unsigned NOT NULL,
     `client_id` varchar(255) NOT NULL,
-    `scopes` text DEFAULT NULL,
+    `scopes` text NOT NULL DEFAULT (''),
     `revoked` tinyint(1) NOT NULL DEFAULT 0,
     -- Records WHEN the token was revoked, which reuse detection needs in
     -- order to tell a rotation race from a replay: revoked moments ago is
@@ -722,7 +726,7 @@ CREATE TABLE oauth_signing_keys (
     `key_id` varchar(255) NOT NULL,
     `algorithm` varchar(10) NOT NULL DEFAULT 'RS256',
     `public_key` text NOT NULL,
-    `private_key` text DEFAULT NULL,
+    `private_key` text NOT NULL DEFAULT (''),
     `active` tinyint(1) NOT NULL DEFAULT 1,
     `expires_at` datetime NOT NULL,
     -- Defaulted: neither Add nor the KMS seeder names it. See
@@ -753,7 +757,7 @@ CREATE TABLE tokens (
     -- other type. Separate from recipient_email precisely so the two
     -- cannot be confused — swapping them turns the confirmation flow
     -- from a control into a way to hand the account away.
-    `new_email` varchar(255) DEFAULT NULL,
+    `new_email` varchar(255) NOT NULL DEFAULT '',
     -- 'passwordreset' or 'invite' (constants.TokenType*). A varchar
     -- rather than an ENUM so adding a token type is a code change, not
     -- an ALTER TABLE on a table that gets written on every reset.
@@ -767,9 +771,9 @@ CREATE TABLE tokens (
     -- million. code_attempts counts wrong submissions, in the database so that
     -- guesses arriving together cannot share one. channel is how the code was
     -- sent: 'email', and later 'sms'.
-    `code_hash` varchar(64) DEFAULT NULL,
+    `code_hash` varchar(64) NOT NULL DEFAULT '',
     `code_attempts` int(11) NOT NULL DEFAULT 0,
-    `channel` varchar(16) DEFAULT NULL,
+    `channel` varchar(16) NOT NULL DEFAULT '',
     -- Defaulted: Token.NewToken sets StartTime in Go but tokens.Add
     -- does not include it in the insert column list.
     `started_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -882,8 +886,8 @@ CREATE TABLE IF NOT EXISTS abuse_cases (
     `decided_at` datetime DEFAULT NULL,
     -- What was done about it: 'none', 'deleted', 'disabled', 'archived',
     -- 'blocked' or 'other'.
-    `decision_action` varchar(16) DEFAULT NULL,
-    `decision_note` text,
+    `decision_action` varchar(16) NOT NULL DEFAULT '',
+    `decision_note` text NOT NULL DEFAULT (''),
     -- When the target was deleted or purged, if it was.
     `target_gone_at` datetime DEFAULT NULL,
     PRIMARY KEY (`id`),
@@ -975,7 +979,7 @@ CREATE TABLE IF NOT EXISTS video_uploads (
     -- The post as it will be made: said when the upload began, and settled
     -- then, so that nothing has to be asked again when the video is ready.
     `name` varchar(255) NOT NULL DEFAULT '',
-    `body` text,
+    `body` text NOT NULL DEFAULT (''),
     `access` varchar(32) NOT NULL DEFAULT '',
     `language` varchar(50) NOT NULL DEFAULT '',
     `reply_access` varchar(64) NOT NULL DEFAULT '',
@@ -1127,7 +1131,7 @@ CREATE TABLE IF NOT EXISTS activitypub_deliveries (
     next_attempt_at datetime NOT NULL,
     -- When a worker last took it.
     claimed_at datetime DEFAULT NULL,
-    last_error varchar(500) DEFAULT NULL,
+    `last_error` varchar(500) NOT NULL DEFAULT '',
     created_at datetime NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_dedupe_key (dedupe_key),
@@ -1286,7 +1290,7 @@ CREATE TABLE IF NOT EXISTS atproto_writes (
     next_attempt_at datetime NOT NULL,
     -- When a worker last took it.
     claimed_at datetime DEFAULT NULL,
-    last_error varchar(500) DEFAULT NULL,
+    `last_error` varchar(500) NOT NULL DEFAULT '',
     created_at datetime NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_dedupe_key (dedupe_key),
@@ -1311,7 +1315,7 @@ CREATE TABLE IF NOT EXISTS verified_domains (
     -- group. NULL until that profile is made.
     profile_id bigint unsigned DEFAULT NULL,
     -- dns or file: where the token was last found.
-    method varchar(8) DEFAULT NULL,
+    `method` varchar(8) NOT NULL DEFAULT '',
     -- When it was first proved; NULL until it is.
     verified_at datetime DEFAULT NULL,
     -- When it was last looked at, and since when the token has been in
@@ -1342,18 +1346,18 @@ CREATE TABLE IF NOT EXISTS websites (
     state varchar(16) NOT NULL DEFAULT 'active',
     -- What the feed's server said the last time, sent back so that an
     -- unchanged feed is not sent again.
-    etag varchar(255) DEFAULT NULL,
-    last_modified varchar(64) DEFAULT NULL,
+    `etag` varchar(255) NOT NULL DEFAULT '',
+    `last_modified` varchar(64) NOT NULL DEFAULT '',
     -- The WebSub hub the feed names, and until when it sends to us. NULL
     -- while there is none.
-    hub_url varchar(2000) DEFAULT NULL,
+    `hub_url` varchar(2000) NOT NULL DEFAULT '',
     hub_until datetime DEFAULT NULL,
     -- When the feed is next read, when it last was, and how often in a row
     -- it could not be: a feed that fails is asked less often.
     next_read_at datetime NOT NULL,
     read_at datetime DEFAULT NULL,
     failures int unsigned NOT NULL DEFAULT 0,
-    last_error varchar(500) DEFAULT NULL,
+    `last_error` varchar(500) NOT NULL DEFAULT '',
     -- When a worker took it to read: see Claim.
     claimed_at datetime DEFAULT NULL,
     -- How many posts it made this hour, and when that hour began.

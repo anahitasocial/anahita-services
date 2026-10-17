@@ -1,3 +1,7 @@
+-- The connection's character set, which is what an expression default such
+-- as DEFAULT ('') is recorded in: the same whatever the client's own is.
+SET NAMES utf8mb4;
+
 -- Step 1: Rename tables by removing the prefix
 -- DATABASE(), not a hardcoded 'anahita': entrypoint.sh connects to
 -- $MYSQL_DATABASE, which is configurable, so anyone whose database is called
@@ -2142,3 +2146,120 @@ UPDATE node_deletion_logs SET
 ALTER TABLE node_deletion_logs
     MODIFY `node_alias` varchar(255) NOT NULL DEFAULT '',
     MODIFY `node_type` varchar(255) NOT NULL DEFAULT '';
+
+-- Text that is NULL only to say it is empty says so with ''. NULL stays
+-- on email (unique: no two accounts share one) and on the queues'
+-- dedupe_key (unique, and NULL for a delivery that may be repeated).
+
+UPDATE abuse_cases SET
+    `decision_action` = COALESCE(`decision_action`, ''),
+    `decision_note` = COALESCE(`decision_note`, '');
+ALTER TABLE abuse_cases
+    MODIFY `decision_action` varchar(16) NOT NULL DEFAULT '',
+    MODIFY `decision_note` text NOT NULL DEFAULT ('');
+
+UPDATE activitypub_deliveries SET
+    `last_error` = COALESCE(`last_error`, '');
+ALTER TABLE activitypub_deliveries
+    MODIFY `last_error` varchar(500) NOT NULL DEFAULT '';
+
+UPDATE atproto_writes SET
+    `last_error` = COALESCE(`last_error`, '');
+ALTER TABLE atproto_writes
+    MODIFY `last_error` varchar(500) NOT NULL DEFAULT '';
+
+UPDATE auth_accounts SET
+    `password` = COALESCE(`password`, ''),
+    `totp_secret` = COALESCE(`totp_secret`, ''),
+    `totp_recovery_codes` = COALESCE(`totp_recovery_codes`, ''),
+    `tos_accepted_version` = COALESCE(`tos_accepted_version`, ''),
+    `tos_accepted_ip` = COALESCE(`tos_accepted_ip`, ''),
+    `tos_accepted_user_agent` = COALESCE(`tos_accepted_user_agent`, ''),
+    `tos_accepted_os` = COALESCE(`tos_accepted_os`, ''),
+    `pp_accepted_version` = COALESCE(`pp_accepted_version`, ''),
+    `pp_accepted_ip` = COALESCE(`pp_accepted_ip`, ''),
+    `pp_accepted_user_agent` = COALESCE(`pp_accepted_user_agent`, ''),
+    `pp_accepted_os` = COALESCE(`pp_accepted_os`, '');
+ALTER TABLE auth_accounts
+    MODIFY `password` varchar(255) NOT NULL DEFAULT '',
+    MODIFY `totp_secret` varchar(255) NOT NULL DEFAULT '',
+    MODIFY `totp_recovery_codes` mediumtext NOT NULL DEFAULT (''),
+    MODIFY `tos_accepted_version` varchar(20) NOT NULL DEFAULT '',
+    MODIFY `tos_accepted_ip` varchar(45) NOT NULL DEFAULT '',
+    MODIFY `tos_accepted_user_agent` varchar(255) NOT NULL DEFAULT '',
+    MODIFY `tos_accepted_os` varchar(100) NOT NULL DEFAULT '',
+    MODIFY `pp_accepted_version` varchar(20) NOT NULL DEFAULT '',
+    MODIFY `pp_accepted_ip` varchar(45) NOT NULL DEFAULT '',
+    MODIFY `pp_accepted_user_agent` varchar(255) NOT NULL DEFAULT '',
+    MODIFY `pp_accepted_os` varchar(100) NOT NULL DEFAULT '';
+
+UPDATE oauth_authorizations SET
+    `scopes` = COALESCE(`scopes`, ''),
+    `code_challenge` = COALESCE(`code_challenge`, ''),
+    `code_challenge_method` = COALESCE(`code_challenge_method`, ''),
+    `nonce` = COALESCE(`nonce`, '');
+ALTER TABLE oauth_authorizations
+    MODIFY `scopes` text NOT NULL DEFAULT (''),
+    MODIFY `code_challenge` varchar(128) NOT NULL DEFAULT '',
+    MODIFY `code_challenge_method` varchar(10) NOT NULL DEFAULT '',
+    MODIFY `nonce` varchar(255) NOT NULL DEFAULT '';
+
+UPDATE oauth_refresh_tokens SET
+    `scopes` = COALESCE(`scopes`, '');
+ALTER TABLE oauth_refresh_tokens
+    MODIFY `scopes` text NOT NULL DEFAULT ('');
+
+UPDATE oauth_signing_keys SET
+    `private_key` = COALESCE(`private_key`, '');
+ALTER TABLE oauth_signing_keys
+    MODIFY `private_key` text NOT NULL DEFAULT ('');
+
+UPDATE signup_requests SET
+    `name` = COALESCE(`name`, ''),
+    `body` = COALESCE(`body`, ''),
+    `website_url` = COALESCE(`website_url`, ''),
+    `decision_note` = COALESCE(`decision_note`, ''),
+    `created_ip` = COALESCE(`created_ip`, ''),
+    `created_user_agent` = COALESCE(`created_user_agent`, '');
+ALTER TABLE signup_requests
+    MODIFY `name` varchar(100) NOT NULL DEFAULT '',
+    MODIFY `body` text NOT NULL DEFAULT (''),
+    MODIFY `website_url` varchar(255) NOT NULL DEFAULT '',
+    MODIFY `decision_note` varchar(255) NOT NULL DEFAULT '',
+    MODIFY `created_ip` varchar(45) NOT NULL DEFAULT '',
+    MODIFY `created_user_agent` varchar(255) NOT NULL DEFAULT '';
+
+UPDATE site_actions SET
+    `detail` = COALESCE(`detail`, '');
+ALTER TABLE site_actions
+    MODIFY `detail` text NOT NULL DEFAULT ('');
+
+UPDATE tokens SET
+    `new_email` = COALESCE(`new_email`, ''),
+    `code_hash` = COALESCE(`code_hash`, ''),
+    `channel` = COALESCE(`channel`, '');
+ALTER TABLE tokens
+    MODIFY `new_email` varchar(255) NOT NULL DEFAULT '',
+    MODIFY `code_hash` varchar(64) NOT NULL DEFAULT '',
+    MODIFY `channel` varchar(16) NOT NULL DEFAULT '';
+
+UPDATE verified_domains SET
+    `method` = COALESCE(`method`, '');
+ALTER TABLE verified_domains
+    MODIFY `method` varchar(8) NOT NULL DEFAULT '';
+
+UPDATE video_uploads SET
+    `body` = COALESCE(`body`, '');
+ALTER TABLE video_uploads
+    MODIFY `body` text NOT NULL DEFAULT ('');
+
+UPDATE websites SET
+    `etag` = COALESCE(`etag`, ''),
+    `last_modified` = COALESCE(`last_modified`, ''),
+    `hub_url` = COALESCE(`hub_url`, ''),
+    `last_error` = COALESCE(`last_error`, '');
+ALTER TABLE websites
+    MODIFY `etag` varchar(255) NOT NULL DEFAULT '',
+    MODIFY `last_modified` varchar(64) NOT NULL DEFAULT '',
+    MODIFY `hub_url` varchar(2000) NOT NULL DEFAULT '',
+    MODIFY `last_error` varchar(500) NOT NULL DEFAULT '';
