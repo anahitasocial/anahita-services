@@ -26,6 +26,9 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		node.EndsAt = node.StartsAt
 	}
 
+	now := time.Now()
+	created := addedAt(node.CreatedAt, now)
+
 	query := sq.Insert("nodes").Columns(
 		"type",
 		"service",
@@ -112,9 +115,9 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		node.GeoStateProvince,
 		node.GeoCountry,
 		node.GeoPostalcode,
-		time.Now(),
+		created,
 		node.CreatedBy,
-		time.Now(),
+		now,
 		node.ModifiedBy,
 		node.Filename,
 		node.AvatarFilename,
@@ -178,4 +181,15 @@ func nullableString(value string) any {
 		return nil
 	}
 	return value
+}
+
+// addedAt is when a new node says it was made: when it was written, for a
+// post a service brings from elsewhere (a Pulse's article keeps its item's
+// date), unless it says nothing (a time never set arrives as the year 1, or
+// 1970) or says the future. As addRemote has it.
+func addedAt(said, now time.Time) time.Time {
+	if said.Unix() <= 0 || said.After(now) {
+		return now
+	}
+	return said
 }

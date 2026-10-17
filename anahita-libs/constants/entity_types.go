@@ -16,6 +16,13 @@ const (
 	NodeActorEventEntityType = "node.actor.actor-service.event.v1"
 	// A note: the kind of post that arrives from another server.
 	NodeMediumNoteEntityType = "node.medium.text-service.note.v1"
+	// An article: long content with a title. What a Pulse posts for each
+	// item of its feed.
+	NodeMediumArticleEntityType = "node.medium.text-service.article.v1"
+	// A Pulse: a website's feed, verified, as a profile to follow. Served by
+	// actor-service as a group is; connected, and its feed read, by
+	// pulse-service (docs/plans/pulse.md).
+	NodeActorPulseEntityType = "node.actor.actor-service.pulse.v1"
 	// Somebody on another server, one type for each protocol they are
 	// reached by. Types of their own, and not the person type with a flag:
 	// everything that asks for people by type (the people list, who a name

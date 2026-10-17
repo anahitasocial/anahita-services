@@ -71,6 +71,11 @@ func newMediumFromRequest(req *graphpb.Node) *entities.AnahitaNode {
 	node.LibraryOnly = req.LibraryOnly
 	// Whether it is begun as a draft.
 	node.Draft = req.Draft
+	// When it was written, for a post a service brings from elsewhere; the
+	// repository uses now when it says nothing or the future.
+	if req.CreatedAt != nil {
+		node.CreatedAt = req.CreatedAt.AsTime()
+	}
 
 	return node
 }
