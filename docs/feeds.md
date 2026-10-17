@@ -70,7 +70,7 @@ Every feed orders its posts by date, newest first. (Search is the one place with
 
 The web app offers this as one choice of three: **Everyone** (neither), **Profiles I follow** (`following`), or **Chosen profiles** (`actors`, with "And profiles I follow" for both). A new feed starts from the profiles its owner follows, so that it shows something; given a hashtag, a keyword, a place or an area before the owner chose, it switches to Everyone, since "a #dweb feed" almost always means everybody's.
 
-**Filters** narrow that. Each kind given has to hold; inside a list, any one entry will do.
+**Filters** narrow the sources. A post must match every kind of filter given; within a list, matching one entry is enough.
 
 | Key | Keeps |
 | --- | --- |
@@ -87,7 +87,7 @@ The web app offers this as one choice of three: **Everyone** (neither), **Profil
 
 **`include_replies`** is off unless asked for: a reply is read in its thread. **`order`** is `newest`, the one value there is. The key is kept so that another order is a value added and not a change of shape.
 
-A key the code does not know is refused, at any depth. A definition is tidied when it is read: lists lose their repeats and blanks, a hashtag loses its `#` and is lower-cased, and a keyword's spaces are closed up.
+A key the code does not know is refused, at any depth. A definition is tidied when it is read: lists lose their repeats and blanks, a hashtag loses its `#` and is lower-cased, and a keyword is trimmed, with each run of spaces inside it made one.
 
 ### A feed of what is near its reader
 
@@ -137,7 +137,7 @@ Whoever may see a feed may read it, copy it and keep it on their home page. Only
 
 `GET /feeds/<id>/items` returns a page: `data`, and `pagination` with `limit`, `has_more` and `next_cursor`. The next page is asked for with `?cursor=<next_cursor>`.
 
-A feed is paged by what came before, not by a count from the top. The cursor is the date and id of the last post of the page before, and the next page is whatever is older. A post written while somebody is reading neither repeats a post nor pushes one out of sight. A feed has no total: counting it would be reading all of it.
+A page starts after the last post of the page before, not at a count from the top. The cursor is the date and id of the last post of the page before, and the next page is whatever is older. A post written while somebody is reading neither repeats a post nor pushes one out of sight. A feed has no total: counting it would be reading all of it.
 
 A query that cannot finish in the time a query is given is answered `422` with `too_broad`.
 
@@ -189,10 +189,13 @@ A feed is sent with its `icon`, `is_pinned` and `authorized` (`edit`, `delete`, 
 
 ## Where the code is
 
-- **`anahita-libs/feeds`:** the definition, its rules and limits (`Parse`, `Check`), and the cursor. feed-service checks a definition with it when a feed is saved, and graph-grpc-service reads it again with the same code before building a query, so nothing reaches the database that was not read into its fields.
-- **`graph-grpc-service/data/repositories/feed_custom.go`:** the query. Every value is a parameter. It ends with `SetFeedAccessQuery`, `SetLifecycleQuery` and `SetArchiveQuery`, for the reader.
-- **`graph-grpc-service/data/repositories/nodes_visible.go`:** a feed's own visibility, in `FilterVisible`.
-- **`feed-service/cmd/api/handlers/custom_feed.go`:** the endpoints. `custom_feed_test.go` runs them over a graph held in memory: who may see, change, copy and delete a feed, the limits, and the home page.
+| What | Where |
+| --- | --- |
+| The definition, its rules and limits, and the cursor | `anahita-libs/feeds` (`Parse`, `Check`). feed-service checks a definition with it when a feed is saved, and graph-grpc-service reads it again with the same code before building a query, so nothing reaches the database that was not read into its fields |
+| The query | `graph-grpc-service/data/repositories/feed_custom.go`. Every value is a parameter. It ends with `SetFeedAccessQuery`, `SetLifecycleQuery` and `SetArchiveQuery`, for the reader |
+| That a feed never widens what anybody may see | `graph-grpc-service/data/repositories/feed_custom_integration_test.go` |
+| A feed's own visibility | `graph-grpc-service/data/repositories/nodes_visible.go` (`FilterVisible`) |
+| The endpoints | `feed-service/cmd/api/handlers/custom_feed.go`. `custom_feed_test.go` runs them over a graph held in memory: who may see, change, copy and delete a feed, the limits, and the home page |
 
 ## What is not built
 
