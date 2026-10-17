@@ -148,8 +148,8 @@ func (repo *oauthClients) Edit(client *entities.OAuthClient) (*entities.OAuthCli
 	return repo.ReadByID(client.ID)
 }
 
-// Delete removes an oauth client. ON DELETE CASCADE on child tables will
-// drop all authorizations and refresh tokens for this client.
+// Delete removes an oauth client's row only. The schema has no foreign keys,
+// so its authorizations and refresh tokens stay, keyed by client_id.
 func (repo *oauthClients) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

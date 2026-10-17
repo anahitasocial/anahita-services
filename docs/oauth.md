@@ -79,8 +79,11 @@ docker compose exec mysql mysql -uroot -proot anahita \
 docker compose restart auth-service
 ~~~
 
-This cascades to that client's refresh tokens and authorizations, logging
-every one of its users out. On a live site, `PATCH /clients/:id` instead.
+This removes the client's row and nothing else: the schema has no foreign
+keys, so its refresh tokens and authorizations stay. They name the client by
+its `client_id`, so when the restart seeds the client again, they work with it
+as before, and nobody is signed out. On a live site, `PATCH /clients/:id`
+instead.
 
 Scopes are validated against the catalog both at boot (a typo fails
 startup) and at the `/clients` BREAD boundary (a bad scope returns 400
