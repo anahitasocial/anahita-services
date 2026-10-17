@@ -51,6 +51,12 @@ is no guide to the names.
 ## Reading and writing
 
 - **Names are snake_case:** `created_at`, `likes_count`.
+- **A post has a `title` and `content`**, as WordPress and ActivityPub
+  call them: every kind of post, a reply among them, is sent and taken
+  with these. A profile (a person, a group, an event), a custom feed and a
+  hashtag have a `name`, and a profile or a feed says what it is in
+  `body`. A list that holds both sends each with its own words; the type
+  (`node.medium.…` for a post) says which it is.
 - **Ids are numbers.** A person is also found by their username
   (`/people/ana`), and `GET /actors/<alias>` says what kind of profile an
   alias is, with its id.

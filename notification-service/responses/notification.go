@@ -29,12 +29,17 @@ type Object struct {
 	Type string `json:"type"`
 	// The service it belongs to.
 	Service string `json:"service,omitempty"`
-	// Its name, or its title.
+	// A profile's name. Left out on a post, which has a title instead.
 	Name string `json:"name,omitempty"`
+	// A post's title, where it has one.
+	Title string `json:"title,omitempty"`
 	// Its handle, or its short name.
 	Alias string `json:"alias,omitempty"`
-	// Its words, as Markdown.
+	// A profile's description. Left out on a post, whose words are its
+	// content.
 	Body string `json:"body,omitempty"`
+	// A post's words, as Markdown.
+	Content string `json:"content,omitempty"`
 	// A photo post's first picture, in each size there is.
 	Portrait map[string]responses.Image `json:"portrait_urls,omitempty"`
 }
@@ -47,8 +52,10 @@ type Target struct {
 	Type string `json:"type,omitempty"`
 	// Its handle, or its short name.
 	Alias string `json:"alias,omitempty"`
-	// Its name, or its title.
+	// A profile's name. Left out on a post, which has a title instead.
 	Name string `json:"name,omitempty"`
+	// A post's title, where it has one.
+	Title string `json:"title,omitempty"`
 }
 
 // NotificationItem is something the viewer is told of.
@@ -128,13 +135,11 @@ func (r *NotificationResponse) MapObject(object *an_entities.AnahitaNode) *Objec
 		return nil
 	}
 
-	return &Object{
+	dto := &Object{
 		ID:      object.ID,
 		Type:    object.Type,
 		Service: object.Service,
-		Name:    object.Name,
 		Alias:   object.Alias,
-		Body:    object.Body,
 		Portrait: func() map[string]responses.Image {
 			if object.Portrait != nil {
 				return responses.NewPortrait(object.Portrait)
@@ -142,6 +147,12 @@ func (r *NotificationResponse) MapObject(object *an_entities.AnahitaNode) *Objec
 			return nil
 		}(),
 	}
+	if responses.IsPost(object.Type) {
+		dto.Title, dto.Content = object.Name, object.Body
+	} else {
+		dto.Name, dto.Body = object.Name, object.Body
+	}
+	return dto
 }
 
 func (r *NotificationResponse) MapTarget(target *an_entities.AnahitaNode) *Target {
@@ -149,12 +160,17 @@ func (r *NotificationResponse) MapTarget(target *an_entities.AnahitaNode) *Targe
 		return nil
 	}
 
-	return &Target{
+	dto := &Target{
 		ID:    target.ID,
 		Type:  target.Type,
 		Alias: target.Alias,
-		Name:  target.Name,
 	}
+	if responses.IsPost(target.Type) {
+		dto.Title = target.Name
+	} else {
+		dto.Name = target.Name
+	}
+	return dto
 }
 
 func (r *NotificationResponse) MapNotificationItems(items []*entities.Notification) []*NotificationItem {

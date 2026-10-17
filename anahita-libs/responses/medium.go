@@ -20,11 +20,11 @@ type MediumNodeItem struct {
 	// and so on.
 	Type string `json:"type"`
 	// Its title, where it has one.
-	Name string `json:"name,omitempty"`
+	Title string `json:"title,omitempty"`
 	// Its short name, where it has one.
 	Alias string `json:"alias,omitempty"`
 	// Its words, as Markdown.
-	Body string `json:"body,omitempty"`
+	Content string `json:"content,omitempty"`
 	// When it was written.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// The kind of file it holds, where it holds one.
@@ -105,11 +105,11 @@ type MediumNode struct {
 	// and so on.
 	Type string `json:"type"`
 	// Its title, where it has one.
-	Name string `json:"name,omitempty"`
+	Title string `json:"title,omitempty"`
 	// Its short name, where it has one.
 	Alias string `json:"alias,omitempty"`
 	// Its words, as Markdown.
-	Body string `json:"body,omitempty"`
+	Content string `json:"content,omitempty"`
 	// When it was written.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// When it was last changed.
@@ -223,9 +223,9 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 		URI:                node.URI,
 		OriginDomain:       node.OriginDomain,
 		Type:               node.Type,
-		Name:               node.Name,
+		Title:              node.Name,
 		Alias:              node.Alias,
-		Body:               node.Body,
+		Content:            node.Body,
 		QuoteCount:         node.QuoteCount,
 		CreatedAt:          node.CreatedAt,
 		Mimetype:           node.Mimetype,
@@ -285,9 +285,9 @@ func (r *MediumNodeResponse) MapMediumNode(node *entities.AnahitaNode) *MediumNo
 		URI:                node.URI,
 		OriginDomain:       node.OriginDomain,
 		Type:               node.Type,
-		Name:               node.Name,
+		Title:              node.Name,
 		Alias:              node.Alias,
-		Body:               node.Body,
+		Content:            node.Body,
 		QuoteCount:         node.QuoteCount,
 		CreatedAt:          node.CreatedAt,
 		UpdatedAt:          node.UpdatedAt,

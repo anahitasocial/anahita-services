@@ -35,8 +35,8 @@ func bindPhotoAdd(t *testing.T, req *http.Request) *PhotoAddRequest {
 // embeds, and they have to arrive through it.
 func TestAPhotoPostSentAsJSONNamesItsUploads(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/photos/8/", strings.NewReader(`{
-		"name": "Herons",
-		"body": "at the lagoon",
+		"title": "Herons",
+		"content": "at the lagoon",
 		"access": "followers",
 		"language": "en",
 		"uploads": [
@@ -48,7 +48,7 @@ func TestAPhotoPostSentAsJSONNamesItsUploads(t *testing.T) {
 
 	bound := bindPhotoAdd(t, req)
 
-	if bound.OwnerID != 8 || bound.Name != "Herons" || bound.Body != "at the lagoon" ||
+	if bound.OwnerID != 8 || bound.Title != "Herons" || bound.Content != "at the lagoon" ||
 		bound.Access != "followers" || bound.Language != "en" {
 		t.Errorf("the shared fields did not arrive: %+v", bound)
 	}
@@ -64,7 +64,7 @@ func TestAPhotoPostSentAsAFormCarriesOneImage(t *testing.T) {
 	var body bytes.Buffer
 	form := multipart.NewWriter(&body)
 	for field, value := range map[string]string{
-		"name": "Heron", "body": "one", "access": "public", "alt_text": "a heron",
+		"title": "Heron", "content": "one", "access": "public", "alt_text": "a heron",
 	} {
 		if err := form.WriteField(field, value); err != nil {
 			t.Fatal(err)
@@ -82,7 +82,7 @@ func TestAPhotoPostSentAsAFormCarriesOneImage(t *testing.T) {
 
 	bound := bindPhotoAdd(t, req)
 
-	if bound.OwnerID != 8 || bound.Name != "Heron" || bound.Access != "public" || bound.AltText != "a heron" {
+	if bound.OwnerID != 8 || bound.Title != "Heron" || bound.Access != "public" || bound.AltText != "a heron" {
 		t.Errorf("the form's fields did not arrive: %+v, alt %q", bound, bound.AltText)
 	}
 	if len(bound.Uploads) != 0 {
@@ -93,7 +93,7 @@ func TestAPhotoPostSentAsAFormCarriesOneImage(t *testing.T) {
 // When neither says, the audience is the installation's default, as for any
 // post.
 func TestAPhotoPostKeepsTheDefaultAudience(t *testing.T) {
-	req := httptest.NewRequest(http.MethodPost, "/photos/8/", strings.NewReader(`{"name": "x", "body": "y", "uploads": [{"upload_id": 1}]}`))
+	req := httptest.NewRequest(http.MethodPost, "/photos/8/", strings.NewReader(`{"title": "x", "content": "y", "uploads": [{"upload_id": 1}]}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	bound := bindPhotoAdd(t, req)

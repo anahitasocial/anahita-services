@@ -24,10 +24,10 @@ func TestTheLengthsAreTheStandardOnes(t *testing.T) {
 		{ActorEditRequest{}, "Body", constants.BioMax},
 		{ActorAddRequest{}, "Name", constants.DisplayNameMax},
 		{ActorAddRequest{}, "Body", constants.BioMax},
-		{MediumEditRequest{}, "Name", constants.TitleMax},
-		{MediumEditRequest{}, "Body", constants.PostBodyMax},
-		{MediumAddRequest{}, "Name", constants.TitleMax},
-		{MediumAddRequest{}, "Body", constants.PostBodyMax},
+		{MediumEditRequest{}, "Title", constants.TitleMax},
+		{MediumEditRequest{}, "Content", constants.PostBodyMax},
+		{MediumAddRequest{}, "Title", constants.TitleMax},
+		{MediumAddRequest{}, "Content", constants.PostBodyMax},
 	} {
 		kind := reflect.TypeOf(c.req)
 		field, ok := kind.FieldByName(c.field)

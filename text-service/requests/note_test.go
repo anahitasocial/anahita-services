@@ -38,7 +38,7 @@ func TestNoteAccessIsAKeyword(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.access, func(t *testing.T) {
-			add := validate.Struct(&NoteAddRequest{OwnerID: 1, Body: "hello", Access: c.access})
+			add := validate.Struct(&NoteAddRequest{OwnerID: 1, Content: "hello", Access: c.access})
 			edit := validate.Struct(&NoteEditAccessRequest{ID: 1, Access: c.access})
 
 			if (add == nil) != c.ok {
@@ -51,7 +51,7 @@ func TestNoteAccessIsAKeyword(t *testing.T) {
 	}
 
 	// Leaving it out is allowed when adding: the note takes the default.
-	if err := validate.Struct(&NoteAddRequest{OwnerID: 1, Body: "hello"}); err != nil {
+	if err := validate.Struct(&NoteAddRequest{OwnerID: 1, Content: "hello"}); err != nil {
 		t.Errorf("adding a note with no access: %v", err)
 	}
 }

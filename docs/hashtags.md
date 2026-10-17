@@ -88,7 +88,7 @@ writing. There are two ways to ask:
 | Request | For | Offers |
 | --- | --- | --- |
 | `GET /hashtags/_suggest?q=ana` | Typing a hashtag | Those that begin with `q` (what follows the `#`) |
-| `POST /hashtags/_suggest` with `{"title": "…", "body": "…"}` | Long content | Those that are words of the title and body |
+| `POST /hashtags/_suggest` with `{"title": "…", "content": "…"}` | Long content | Those that are words of the title and content |
 
 Both take `limit`, 1 to 20, and offer 8 when it is not given. Both answer
 with the best first:

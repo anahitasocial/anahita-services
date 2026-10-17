@@ -61,7 +61,7 @@ func longPost(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{
 		"data": []map[string]any{{
 			"id":            1,
-			"body":          strings.Repeat("word ", 100),
+			"content":       strings.Repeat("word ", 100),
 			"portrait_urls": map[string]any{"small": "s", "large": "l", "original": "o"},
 		}},
 		"pagination": map[string]any{"offset": 20, "limit": 50, "total": 400},

@@ -18,13 +18,19 @@ type NodeItem struct {
 	// What kind of thing it is: `node.medium.text-service.note.v1` for a
 	// note, `node.actor.actor-service.person.v1` for a person, and so on.
 	Type string `json:"type"`
-	// A profile's name, or a post's title where it has one.
+	// A profile's name, a custom feed's or a hashtag's. Left out on a post,
+	// which has a title instead.
 	Name string `json:"name,omitempty"`
+	// A post's title, where it has one.
+	Title string `json:"title,omitempty"`
 	// A profile's handle (`ana`, or `ana@mastodon.social` for somebody on
 	// another server), or a hashtag's name.
 	Alias string `json:"alias,omitempty"`
-	// Its words: a post's text, as Markdown, or a profile's description.
+	// A profile's description, or a custom feed's. Left out on a post, whose
+	// words are its content.
 	Body string `json:"body,omitempty"`
+	// A post's words, as Markdown.
+	Content string `json:"content,omitempty"`
 	// How many notes quote it.
 	QuoteCount int64 `json:"quote_count,omitempty"`
 	// A mark kept from earlier versions of Anahita. Nothing sets it yet.
@@ -127,14 +133,18 @@ func (r *NodeResponse) MapNodeItem(node *entities.AnahitaNode) *NodeItem {
 		return nil
 	}
 
+	words := wordsOf(node)
+
 	return &NodeItem{
 		ID:                   node.ID,
 		URI:                  node.URI,
 		OriginDomain:         node.OriginDomain,
 		Type:                 node.Type,
-		Name:                 node.Name,
+		Name:                 words.Name,
+		Title:                words.Title,
 		Alias:                node.Alias,
-		Body:                 node.Body,
+		Body:                 words.Body,
+		Content:              words.Content,
 		QuoteCount:           node.QuoteCount,
 		RootID:               node.RootID,
 		Pinned:               node.Pinned,
