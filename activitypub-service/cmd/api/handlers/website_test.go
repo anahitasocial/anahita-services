@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -12,6 +13,8 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/event"
+
+	"github.com/labstack/echo/v4"
 )
 
 const (
@@ -92,5 +95,46 @@ func TestAWebsitesNoteGoesOutAsTheWebsites(t *testing.T) {
 	}
 	if cc, _ := object["cc"].([]any); len(cc) != 1 || cc[0] != websiteActor+"/followers" {
 		t.Errorf("cc %v: the website's followers", object["cc"])
+	}
+}
+
+// A website's administrators see its handle under its settings, and that it
+// is on the fediverse, which nobody chose; anybody else is refused.
+func TestAWebsitesAdministratorsSeeItsHandle(t *testing.T) {
+	w := websiteWorld()
+	ask := func(viewer int64) *httptest.ResponseRecorder {
+		ec := echo.New()
+		rec := httptest.NewRecorder()
+		c := ec.NewContext(httptest.NewRequest(http.MethodGet, "/activitypub/settings?person_id=950", nil), rec)
+		v := entities.NewViewer()
+		v.ID, v.PersonType = viewer, "registered"
+		c.Set(constants.ViewerContextKey, v)
+		_ = w.h.ReadSettings(c)
+		return rec
+	}
+
+	w.relations.relation = &entities.ActorRelation{ActorAId: websiteID, ActorBId: anaID, HasAdmin: true}
+	rec := ask(anaID)
+	var settings Settings
+	_ = json.Unmarshal(rec.Body.Bytes(), &settings)
+	if rec.Code != http.StatusOK || !settings.Enabled || !settings.Available || settings.Handle != "garden-notes@example.org" {
+		t.Errorf("its administrator: %d %+v", rec.Code, settings)
+	}
+
+	// Switched off, it is not.
+	for _, node := range w.nodes.people {
+		if node.ID == websiteID {
+			node.Enabled = false
+		}
+	}
+	settings = Settings{}
+	_ = json.Unmarshal(ask(anaID).Body.Bytes(), &settings)
+	if settings.Enabled || settings.Available || settings.Reason != reasonProfileNotPublic {
+		t.Errorf("switched off: %+v", settings)
+	}
+
+	w.relations.relation = &entities.ActorRelation{ActorAId: websiteID, ActorBId: 99}
+	if rec := ask(99); rec.Code != http.StatusForbidden {
+		t.Errorf("somebody else: %d", rec.Code)
 	}
 }

@@ -178,7 +178,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Unbound().
 		Sends(http.StatusOK, handlers.Settings{}).
 		Sends(http.StatusBadRequest, responses.Refusal{}, "`person_unreadable`").
-		Refuses(http.StatusForbidden, "somebody else's, and the viewer is not a site administrator").
+		Refuses(http.StatusForbidden, "somebody else's, and the viewer is not a site administrator, nor an administrator of the website asked about").
 		Refuses(http.StatusNotFound, "there is no such person")
 	activitypub.PUT("/settings", r.handler.EditSettings).
 		Summary("Go on the fediverse, or leave it").

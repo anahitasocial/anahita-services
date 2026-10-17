@@ -981,7 +981,7 @@
         "operationId": "getActivitypubSettings",
         "parameters": [
           {
-            "description": "The person's id. The viewer when left out.",
+            "description": "The person's id, or a website's for one of its administrators. The viewer when left out.",
             "in": "query",
             "name": "person_id",
             "schema": {
@@ -1015,7 +1015,7 @@
             "description": "no token, or one that has expired"
           },
           "403": {
-            "description": "somebody else's, and the viewer is not a site administrator"
+            "description": "somebody else's, and the viewer is not a site administrator, nor an administrator of the website asked about"
           },
           "404": {
             "description": "there is no such person"

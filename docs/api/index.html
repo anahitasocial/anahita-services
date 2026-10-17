@@ -453,7 +453,7 @@ who may call it: somebody signed in.">
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>person_id</code></td><td>query</td><td>integer</td><td>The person&#39;s id. The viewer when left out.</td></tr>
+<tr><td><code>person_id</code></td><td>query</td><td>integer</td><td>The person&#39;s id, or a website&#39;s for one of its administrators. The viewer when left out.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -462,7 +462,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-activitypub.Settings">activitypub.Settings</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td><code>person_unreadable</code><div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
-<tr><td class="status s4">403</td><td>somebody else&#39;s, and the viewer is not a site administrator</td></tr>
+<tr><td class="status s4">403</td><td>somebody else&#39;s, and the viewer is not a site administrator, nor an administrator of the website asked about</td></tr>
 <tr><td class="status s4">404</td><td>there is no such person</td></tr>
 </tbody>
 </table>

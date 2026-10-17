@@ -43,7 +43,9 @@ type SettingsRequest struct {
 //
 // An administrator may ask it of somebody else (?person_id=), to read and
 // not to change: they can change that person's profile in ways that take
-// them off the fediverse, and have to be able to see that it would.
+// them off the fediverse, and have to be able to see that it would. A
+// website's administrators may ask it of the website, which is always on,
+// to see its handle.
 func (h *Handlers) ReadSettings(c echo.Context) error {
 	viewer := getViewer(c)
 
@@ -53,7 +55,7 @@ func (h *Handlers) ReadSettings(c echo.Context) error {
 		if err != nil || id <= 0 {
 			return refuse(c, http.StatusBadRequest, "person_unreadable")
 		}
-		if id != viewer.ID && !viewer.IsAdmin() {
+		if id != viewer.ID && !viewer.IsAdmin() && !h.administersWebsite(viewer.ID, id) {
 			return c.NoContent(http.StatusForbidden)
 		}
 		personID = id
@@ -121,6 +123,22 @@ func (h *Handlers) EditSettings(c echo.Context) error {
 	return c.JSON(http.StatusOK, settings)
 }
 
+// administersWebsite says whether the viewer is one of a website's
+// administrators. Anything that is not a website here is not theirs to ask
+// about.
+func (h *Handlers) administersWebsite(viewerID, id int64) bool {
+	if h.Relations == nil {
+		return false
+	}
+	website, err := h.Nodes.Read(id)
+	if err != nil || !isWebsite(website) || website.IsRemote() {
+		return false
+	}
+	// Read(actor, viewer).HasAdmin: the viewer administers the actor.
+	rel, err := h.Relations.Read(website.ID, viewerID)
+	return err == nil && rel != nil && rel.HasAdmin
+}
+
 func (h *Handlers) settingsOf(personID int64) (*Settings, error) {
 	settings := &Settings{}
 
@@ -133,7 +151,8 @@ func (h *Handlers) settingsOf(personID int64) (*Settings, error) {
 	if err != nil {
 		return nil, err
 	}
-	settings.Enabled = account.Enabled
+	// A website is on the fediverse with nobody to choose it.
+	settings.Enabled = account.Enabled || isWebsite(person)
 
 	if ok, reason := h.siteFederates(); !ok {
 		settings.Reason = reason
@@ -148,6 +167,11 @@ func (h *Handlers) settingsOf(personID int64) (*Settings, error) {
 
 	if !h.mayFederate(person) {
 		settings.Reason = reasonProfileNotPublic
+		// A website switched off or deleted is not on it, nobody having
+		// chosen otherwise.
+		if isWebsite(person) {
+			settings.Enabled = false
+		}
 		return settings, nil
 	}
 

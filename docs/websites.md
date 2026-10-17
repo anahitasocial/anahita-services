@@ -141,7 +141,11 @@ is an `Organization`, not a `Service`, which Mastodon marks as automated.
 Its notes go out as `Note`s, the website's, with their card, which is how
 Mastodon shows a post best: an `Article` would be shown there as its title
 and a link. Replies to them come back into its threads, and its own replies
-go out, as for a person's notes ([Federation](federation.md)).
+go out, as for a person's notes ([Federation](federation.md)). Its
+administrators see its handle in its settings (Fediverse), from
+`GET /activitypub/settings?person_id=` with the website's id, which answers
+them as it answers a person about themselves; a website switched off or
+deleted is not on the fediverse, and the answer says so.
 
 ## On Bluesky
 
