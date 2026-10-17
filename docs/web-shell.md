@@ -21,6 +21,7 @@ is told apart by what they say they are.
 - [Running it](#running-it)
 - [Settings](#settings)
 - [Not running it](#not-running-it)
+- [Where the code is](#where-the-code-is)
 - [What is not built](#what-is-not-built)
 
 ## What it sends
@@ -169,6 +170,19 @@ all show the site's own title and picture.
 do what the shell does for other servers: redirect the three addresses
 [above](#what-other-servers-ask-this-host) to the same paths on the API.
 Without that, nobody here can be found by their handle.
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| What it sends, and the `/.well-known` redirects | `web-shell/shell/server.go` (`ServeHTTP`, `file`, `page`, `image`, `wellKnown`) |
+| Which pages are described | `web-shell/shell/pages.go` (`Resolve`, `ResolveImage`) |
+| What is never described | `web-shell/shell/pages.go` (`IsPublic`), with `anahita-libs/policy/policy.go` (`MembersOnly`) |
+| Writing the tags into `index.html` | `web-shell/shell/template.go` (`NewTemplate`, `Render`) |
+| Reading as a visitor, and signing picture addresses | `web-shell/shell/graph.go` |
+| Settings | `web-shell/config/config.go` (`PUBLIC_WEB_URL`, `WEB_BUILD_DIR`), `anahita-libs/site/addresses.go` (`FromEnv`) |
+| Running it | `web-shell/cmd/api/main.go`, `make web_shell` and `make build_web_shell` in `Makefile`, `dockerfiles/web-shell.dockerfile`, `k8s/base/services/web-shell.yml` |
+| Tests of the rules | `web-shell/shell/shell_test.go` (`TestWhatIsNotPublicIsNotDescribed`) |
 
 ## What is not built
 

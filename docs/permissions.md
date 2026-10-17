@@ -40,6 +40,7 @@ What each route answers when the viewer may not is in the [API reference](api/in
 - [The defaults](#the-defaults)
 - [What profile owners can change](#what-profile-owners-can-change)
 - [Accepted values](#accepted-values)
+- [Where the code is](#where-the-code-is)
 
 ## Two separate settings
 
@@ -848,3 +849,25 @@ checks enforce.
 | `comment` | `registered`, `followers` | `registered`, `followers` |
 | `like` | `registered`, `followers`, `leaders`, `mutuals`, `admins` | `registered`, `followers`, `admins` |
 | `follower` | `admins` (not enforced) | `followers`, `admins` |
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| What each level admits | `anahita-libs/cmd/api/permissions/add_access.go` (`AddAccessAllows`), tested in `add_access_test.go` |
+| Seeing a profile and a post | `anahita-libs/cmd/api/permissions/actor.go` and `medium.go` (`CanRead`); in lists and feeds, `graph-grpc-service/data/repositories/access.go`, `access_actor.go`, `access_medium.go` |
+| A post reached by its id | `anahita-libs/cmd/api/handlers/quotes.go` (`MaySee`), `anahita-libs/data/services/graph_node_grpc.go` (`FilterVisible`) |
+| Choosing who can see a post | `anahita-libs/cmd/api/permissions/audience.go` (`MediumAudiences`), tested in `audience_test.go` |
+| Posting and likes | `anahita-libs/cmd/api/permissions/capabilities.go` (`CanPostTo`, `CanLike`) |
+| A group's or an event's block | `anahita-libs/cmd/api/permissions/block_from_owner.go` (`CanBlockFromOwner`) |
+| Replies | `anahita-libs/cmd/api/permissions/reply.go` (`CanReply`, `CanEditReply`, `CanDeleteReply`, `CanHideReply`, `CanLikeReply`); the thread, `anahita-libs/cmd/api/handlers/threads.go` |
+| Who the author lets reply | `anahita-libs/constants/reply_access.go`; table `nodes`, column `reply_access` |
+| Following, and what a stranger is shown | `anahita-libs/cmd/api/permissions/follow.go`, `limited_profile.go` (`CanSeeLimitedProfile`); `graph-grpc-service/cmd/server/handlers/actor_restricted.go` (`restrictUnseen`) |
+| Invitations | `anahita-libs/cmd/api/permissions/invite.go` (`CanInvite`), `graph-grpc-service/data/repositories/invites.go` |
+| Events | `anahita-libs/cmd/api/permissions/event.go` (`CanRsvp`, `CanSeeOnlineURL`); setting `EVENTS_FROM` |
+| Mentions | `anahita-libs/cmd/api/permissions/mention.go` (`CanMention`) |
+| Quotes | `anahita-libs/cmd/api/permissions/quote.go` (`CanQuote`, `CanDetachQuote`), `anahita-libs/constants/quote_policy.go`, `anahita-libs/cmd/api/handlers/quotes.go` (`SetQuotes`) |
+| Pinned posts | `anahita-libs/cmd/api/permissions/pin.go` (`CanPin`, `RunsProfile`) |
+| Downloading | `anahita-libs/cmd/api/permissions/download.go` (`CanDownload`), `anahita-libs/cmd/api/handlers/download.go` (`MayDownload`) |
+| The defaults | `graph-grpc-defaults/actor_features/`, read by `graph-grpc-service/data/actor_features/`; setting `ACTOR_FEATURES_PATH` |
+| Accepted values | `anahita-libs/validators/request.go` (`validatePersonAddPermissionAccess`, `validateActorAddPermissionAccess`) |

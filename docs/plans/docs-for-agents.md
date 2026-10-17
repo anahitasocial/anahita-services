@@ -182,6 +182,43 @@ pushed.
    (German), 87 (Spanish), 88 (Brazilian Portuguese) and 89 (a test that
    every language has every string), all after this row. Japanese was
    decided against: nobody to read it.
+3. Part 2, "Where the code is", as a table (What | Where) on every page
+   about one subject: thirteen services pages and the web app's
+   Configuration and Customising, each linked from its index. Privacy's
+   "Where it is enforced, and how it is tested" was already its code map and
+   gained three rows. The pages about the whole (architecture, getting
+   started, deploying, configuration in the services, the API) have none:
+   the whole page is about where things are. Every path and name in them
+   was checked against the code.
+4. Found while doing part 2 and fixed: `oauth.md` said deleting a client
+   cascades to its tokens and signs its users out. The schema has no
+   foreign keys; the tokens stay and work again with a client seeded under
+   the same `client_id`.
+
+**Found while doing part 2, not fixed** (for the plain-language pass, or
+their own items):
+
+1. `DELETE /clients/:id` leaves the client's refresh tokens and
+   authorizations. They are refused while the client is gone, and work again
+   if a client with the same `client_id` is made. A code change, asked of
+   the user.
+2. `abuse-reports.md`: `POST /abuse-reports` can answer `403` (`CanReport`),
+   and reopening a case that is open answers `409 already_open`; neither is
+   on the page.
+3. `web-shell.md`, "Which pages are described", leaves out `/videos/<id>`,
+   `/websites/<id>`, a website at `/@<alias>`, and `/tags/<tag>`.
+4. `permissions.md`: the defaults name three files of
+   `graph-grpc-defaults/actor_features/`, which has five (also `event.json`,
+   `website.json`); its Contents leaves out "Who the author lets reply" and
+   "Mentions".
+5. `permissions.md`, `privacy.md` and `post-language.md` name notes,
+   articles, topics and photos as taking `access` and `language`; videos do
+   too, and replies take `language`.
+6. The API reference says `REGISTRATION_MODE` decides who may invite
+   (`auth-service/cmd/api/routes.go`, `POST /invites`); it is
+   `INVITES_FROM`.
+7. In the web app, `src/containers/StaticPage.jsx` is imported by nothing
+   and reads a folder that does not exist (`src/statics/pages/`).
 
 **Waiting for the user** (asked 2026-10-17, not answered): four lines of
 the services' old `.claude/CLAUDE.md` were left out of both files, to keep
@@ -201,23 +238,19 @@ string is in `src/languages/en-GB` and `fr-FR`" (row 85 will make that
 
 **Next, in this order:**
 
-1. **Part 2, "Where the code is"** at the end of every docs page of both
-   repositories that lacks one: a short table of packages, tables and
-   settings. Two pages have it (`feeds.md`, `recommendations.md`); copy
-   their shape.
-2. **The link and anchor check in `make test`** (services) and its web
+1. **The link and anchor check in `make test`** (services) and its web
    equivalent: every link between pages and every `#heading` resolves.
    Then the checklist in `AGENTS.md`: when a feature changes, grep the docs
    for it.
-3. **The plain-language pass, one page first:** `docs/feeds.md` in
+2. **The plain-language pass, one page first:** `docs/feeds.md` in
    anahita-services, proposed as the sample. Show the user the rewritten
    page and wait for their approval of the style before doing the rest,
    one commit per page. Facts, paths, settings, endpoints and tables stay;
-   only the phrasing changes.
-4. **The four doors in `docs/README.md`:** Setting up a site, Keeping it
+   only the phrasing changes. The list above is fixed on the way.
+3. **The four doors in `docs/README.md`:** Setting up a site, Keeping it
    running, Making it your own, Building on it; and the list of pages found
    missing (backups, upgrades, writing a service, writing a client).
-5. **The MCP server, last** (`tools/docs-mcp`, Go, read only, offline), as
+4. **The MCP server, last** (`tools/docs-mcp`, Go, read only, offline), as
    Design part 3 describes. Its recipe tools wait for row 30; hosting it and
    `llms.txt` wait until the docs are public.
 
@@ -226,4 +259,4 @@ string is in `src/languages/en-GB` and `fr-FR`" (row 85 will make that
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11; the plain-language pass and keeping the docs true added 2026-10-14 |
-| Implementation | begun 2026-10-17. Part 1, `AGENTS.md` in both repositories, done; next is part 2 ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |
+| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is) done; next is the link check ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |

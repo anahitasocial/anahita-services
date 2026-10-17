@@ -14,6 +14,7 @@ The routes that take a language are in the API reference: [text-service](api/ind
 - [On a post](#on-a-post)
 - [On a person](#on-a-person)
 - [What the web app does](#what-the-web-app-does)
+- [Where the code is](#where-the-code-is)
 - [What is not built](#what-is-not-built)
 
 ## What it is for
@@ -89,6 +90,20 @@ shown in is a separate thing, chosen in the web app.
   reader reads each in the right one.
 - **Profile settings** have "Language you post in". Left on "My browser's
   language", nothing is stored.
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| The tags | `anahita-libs/language/language.go` (`Normalize`), tested in `language_test.go` |
+| Reading a request's language, 400 `language_invalid` | `anahita-libs/cmd/api/handlers/language.go` (`RequestLanguage`, `RefuseLanguage`) |
+| On a post | `text-service/cmd/api/handlers/`, `photo-service/cmd/api/handlers/photo.go`, `video-service/cmd/api/handlers/video.go` |
+| Where it is stored | table `nodes`, column `language`; `graph-grpc-service/data/repositories/nodes_add.go`, `nodes_edit.go` |
+| On a person | `actor-service/cmd/api/handlers/person.go` |
+| In `/oauth/userinfo` | `auth-service/data/services/oauth_user_info.go` |
+| Sent to other servers | `activitypub-service/ap/note.go` (`NewNote`), `atproto-service/bsky/outgoing.go` (`NewOutPost`) |
+| Custom feeds in one language | `anahita-libs/feeds/definition.go`, `graph-grpc-service/data/repositories/feed_custom.go` |
+| The web app | `src/components/LanguageButton.jsx`, `src/utils/postLanguage.js` (anahita-web) |
 
 ## What is not built
 

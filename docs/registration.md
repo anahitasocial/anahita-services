@@ -21,6 +21,7 @@ Its routes are in the API reference: [auth-service](api/index.html#auth-service)
 - [Onboarding](#onboarding)
 - [NodeInfo](#nodeinfo)
 - [The first super administrator](#the-first-super-administrator)
+- [Where the code is](#where-the-code-is)
 
 ## Where it happens
 
@@ -66,7 +67,7 @@ suspends invitations already sent.
 
 - Passwords are at least 15 characters.
 - Usernames are 3–30 letters, numbers, `_` or `-` (Mastodon's 30), and
-  share one namespace with every other actor, groups included.
+  share one namespace with every other profile, groups included.
 - In `approval` mode the extra fields are the request: an administrator
   cannot decide on an email address alone.
 - A display name is optional everywhere. An empty one displays as the username.
@@ -214,7 +215,7 @@ administrator features a person or a group from its profile:
 
 Super administrators only; anybody else gets `403`. The answer is `200` when
 something changed and `204` when it was already so. A disabled, archived or
-deleted account cannot be featured (`409`). Featured actors carry
+deleted account cannot be featured (`409`). Featured profiles carry
 `featured_at` in their JSON.
 
 `GET /people/?featured=1` and `GET /groups/?featured=1` list them, most
@@ -269,3 +270,18 @@ Nothing in signup can create a super administrator. On a fresh database, set
 
 3. On an installation that already has a super administrator it does nothing,
    so the variable can stay set.
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| Registration modes, invitation settings, agreement links | `auth-service/config/bootstrap.go` (`GetRegistrationMode`, `AllowsSelfServeRegistration`, `MayInvite`, `GetInvitePendingMax`); settings `REGISTRATION_MODE`, `INVITES_FROM`, `INVITE_PENDING_MAX`, `INVITE_PENDING_MAX_ADMIN`, `TOS_URL`, `PRIVACY_URL`. Checked by `auth-service/config/registration_test.go` |
+| Signup and protection against bots | `auth-service/cmd/api/handlers/signup.go` (`looksAutomated`), `auth-service/requests/signup.go`, `auth-service/cmd/api/handlers/rate_limit.go` |
+| Email verification | `auth-service/cmd/api/handlers/signup_confirm.go`, `signup_confirm_test.go` |
+| Invitations | `auth-service/cmd/api/handlers/invite.go`, `invite_accept.go`, `auth-service/cmd/api/permissions/invite.go`, table `tokens` (type `invite`) |
+| The approval queue | `auth-service/cmd/api/handlers/signup_requests.go`, `auth-service/data/repositories/signup_requests.go`, table `signup_requests` |
+| Terms of Service and Privacy Policy | `auth-service/cmd/api/handlers/agreements.go`, the `tos_accepted_*` and `pp_accepted_*` columns of table `auth_accounts` |
+| Onboarding | `auth-service/cmd/api/handlers/onboarding.go`, `onboarding_test.go`; `onboarded_at` and `invited_by` in table `auth_accounts` |
+| Featured profiles | `actor-service/cmd/api/handlers/person.go` and `group.go` (`SetFeatured`), `featured_at` in table `nodes` |
+| NodeInfo | `auth-service/cmd/api/handlers/node_info.go` (`federationProtocols`); setting `FEDERATION_PROTOCOLS` |
+| The first super administrator | `auth-service/data/services/super_admin_seed.go` (`SeedSuperAdmin`); settings `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_USERNAME`, `SUPER_ADMIN_NAME` |

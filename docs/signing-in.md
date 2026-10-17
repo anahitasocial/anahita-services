@@ -17,6 +17,7 @@ Its routes are in the API reference: [auth-service](api/index.html#auth-service)
 - [Resetting a forgotten password](#resetting-a-forgotten-password)
 - [Changing an email address](#changing-an-email-address)
 - [Adding text messages later](#adding-text-messages-later)
+- [Where the code is](#where-the-code-is)
 
 ## The ways in
 
@@ -147,3 +148,19 @@ email is the only way. Text messages need a verified phone number on the
 account, a sender, and `sms` added to the list of channels in
 `auth-service/cmd/api/handlers/oauth_login_code.go`. The pages, the limits and
 the storage do not change.
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| Signing in with a password, then two-factor | `auth-service/cmd/api/handlers/oauth_login.go` (`AddCredentials`, `AddTotp`) |
+| Signing in with a passkey | `auth-service/cmd/api/handlers/oauth_web_authn.go`, table `webauthn_credentials` |
+| Signing in with a code | `auth-service/cmd/api/handlers/oauth_login_code.go` (`loginCodeChannels`), `oauth_login_code_test.go` |
+| Issuing and checking codes | `auth-service/cmd/api/handlers/otp.go` (`issueCode`, `verifyCode`, `consumeCode`), `auth-service/data/repositories/tokens.go` (`SpendCodeAttempt`, `ConsumeCode`), table `tokens` |
+| How codes are kept | `auth-service/data/entities/token.go` (`hashCode`), `auth-service/config/config.go` (`GetCodeKey`); setting `SECURE_COOKIE_KEY` |
+| Code lifetimes | `auth-service/constants/token.go` (`TokenExpiryTimeOTP`, `TokenExpiryTimeCode`) |
+| Limits | `auth-service/cmd/api/handlers/rate_limit.go` (`rateLimits`) |
+| The form token | `auth-service/cmd/api/handlers/form_csrf.go` |
+| A deleted account offered its restore | `auth-service/cmd/api/handlers/oauth_restore.go` |
+| Resetting a forgotten password | `auth-service/cmd/api/handlers/password_reset_code.go`, `password_reset_code_test.go` |
+| Changing an email address | `auth-service/cmd/api/handlers/email_change.go`, `email_change_test.go` |

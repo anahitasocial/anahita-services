@@ -10,6 +10,7 @@ The OAuth routes are in the API reference: [auth-service](api/index.html#auth-se
 
 - [Scopes](#scopes)
 - [Seeding clients](#seeding-clients)
+- [Where the code is](#where-the-code-is)
 
 ## Scopes
 
@@ -84,3 +85,14 @@ every one of its users out. On a live site, `PATCH /clients/:id` instead.
 Scopes are validated against the catalog both at boot (a typo fails
 startup) and at the `/clients` BREAD boundary (a bad scope returns 400
 naming it).
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| The scope catalog | `anahita-libs/constants/oauth_scopes.go` (`OAuthScopeDefinitions`, `OAuthScopeExists`) |
+| The guard against scope literals | `anahita-libs/constants/oauth_scopes_guard_test.go` (`TestNoScopeStringLiterals`, `TestOnlyOAuthScopesAreSuperAdminOnly`) |
+| Checking requested scopes | `auth-service/data/services/oauth_scopes.go` (`ValidateScopes`, `ValidateScopesForClient`) |
+| Seeding clients | `auth-service/data/services/oauth_seed.go` (`SeedDefaultClients`), `auth-defaults/oauth_seed_clients.json`; setting `OAUTH_SEED_CLIENT_PATH` |
+| The `/clients` endpoints | `auth-service/cmd/api/handlers/oauth_clients.go`, `auth-service/cmd/api/permissions/oauth.go` |
+| Clients and what hangs off them | tables `oauth_clients`, `oauth_authorizations`, `oauth_refresh_tokens` |

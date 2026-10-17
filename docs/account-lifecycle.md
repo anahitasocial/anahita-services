@@ -18,6 +18,7 @@ Its routes are in the API reference: [actor-service](api/index.html#actor-servic
 - [The accounts list](#the-accounts-list)
 - [The sweeper](#the-sweeper)
 - [Groups left without an administrator](#groups-left-without-an-administrator)
+- [Where the code is](#where-the-code-is)
 
 ## The four states
 
@@ -198,3 +199,17 @@ place with nobody running it. Find these with
 
 A site administrator can then appoint one of its followers with
 `POST /groups/:id/admins/`, giving that person's id as `admin_id`.
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| Disabling, archiving, deleting and restoring | `actor-service/cmd/api/handlers/person.go` (`SetEnabled`, `Archive`, `Delete`), `group.go` (`Archive`, `Restore`); in the graph, `graph-grpc-service/data/repositories/nodes_archive.go` (`ArchiveActor`, `SetEnabled`) and `nodes_soft_delete.go` (`SoftDeleteActor`, `RestoreActor`) |
+| Proving who you are again | `actor-service/cmd/api/handlers/step_up.go` (`requireStepUp`) |
+| The only super administrator | `graph-grpc-service/data/repositories/nodes_super_admin.go` (`GuardLastSuperAdmin`) |
+| What a deleted person is emailed, and their sign-in details removed on a purge | `auth-service/cmd/api/handlers/account_deleted.go` (`handlePurged`), `auth-service/cmd/api/notifiers/account_delete.go` |
+| What a purge removes and leaves | `graph-grpc-service/purge/purge.go` (`Account`), `graph-grpc-service/data/repositories/nodes_purge_steps.go`, `nodes_purge.go` (`TombstoneActor`), `nodes_deletion_counts.go` (`ReadDeletionCounts`), tables `purge_work` and `node_deletion_logs`. Checked by `purge_integration_test.go` |
+| Purging now | `actor-service/cmd/api/handlers/person_purge.go`, `group_purge.go`; `graph-grpc-service/data/repositories/purge_requests.go` (`PurgeRequestMaxAttempts`), table `purge_requests` |
+| The filed reports of a purged person | `abuse-report-service/cmd/api/handlers/events.go` |
+| The accounts list | `auth-service/cmd/api/handlers/accounts.go`, `auth-service/data/repositories/accounts.go`; `auth-service/config/bootstrap.go` (`GetAccountDormantDays`), setting `ACCOUNT_DORMANT_DAYS` |
+| The sweeper | `graph-grpc-service/sweeper/sweeper.go` (`GraceDays`, `Run`), `graph-grpc-service/cmd/sweeper/main.go`, `k8s/base/jobs/sweeper-cronjob.yml`, `account-sweeper` in `docker-compose.yml`; setting `FILE_SERVICE_ADDR` |

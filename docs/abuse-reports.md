@@ -17,6 +17,7 @@ Its routes are in the API reference: [abuse-report-service](api/index.html#abuse
 - [What administrators do](#what-administrators-do)
 - [When the reported thing is deleted](#when-the-reported-thing-is-deleted)
 - [Who sees what](#who-sees-what)
+- [Where the code is](#where-the-code-is)
 
 ## Reports and cases
 
@@ -182,3 +183,18 @@ stays.
 Filing a report needs the `account:write` scope. Reading cases needs
 `actors:read` and deciding them `actors:write`, on top of being an
 administrator.
+
+## Where the code is
+
+| What | Where |
+| --- | --- |
+| The service | `abuse-report-service/` |
+| Reporting something | `abuse-report-service/cmd/api/handlers/reports.go` (`Add`) |
+| The reasons list, and your own | `abuse-report-service/data/reasons/reasons.go` (`BuiltIn`, `Parse`, `Source`), `abuse-report-service/data/reasons/reasons.json`, setting `REASONS_PATH` |
+| What administrators do | `abuse-report-service/cmd/api/handlers/cases.go`, `abuse-report-service/cmd/api/permissions/permissions.go` |
+| Cases and reports | `abuse-report-service/data/repositories/cases.go`, tables `abuse_cases` and `abuse_reports` in `migration-job/schema/init.sql` |
+| When the reported thing is deleted | `abuse-report-service/cmd/api/handlers/events.go` (`Handle`) |
+| Blanking network addresses after 90 days | `abuse-report-service/cmd/api/main.go` (`forgetOldAddresses`) |
+| Limits: 20 reports an hour, 1,000 characters | `abuse-report-service/constants/constants.go` |
+| Tests of the rules | `abuse-report-service/cmd/api/handlers/handlers_test.go`, `abuse-report-service/data/repositories/cases_integration_test.go` |
+| The web app | `src/containers/admin/Reports/`, `src/api/abuseReports.js` (anahita-web) |
