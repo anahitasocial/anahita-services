@@ -14,6 +14,6 @@ const PhotoServiceName = "photo-service"
 // hold".
 const PhotoMaxFiles = 4
 
-// PhotoAltTextMaxLength is the longest description one image can have. The
-// same limit Mastodon uses.
-const PhotoAltTextMaxLength = 1500
+// PhotoAltTextMaxLength is the longest description one image can have, as
+// written here (AltTextMax).
+const PhotoAltTextMaxLength = AltTextMax

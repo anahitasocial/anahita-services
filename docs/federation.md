@@ -1293,12 +1293,13 @@ its own. The card says to use one and where to make it.
   what each shows. A note goes with the card of the link in it, picture
   and all: Bluesky draws no card of its own from an address in a post, so
   the card is this installation's, as it was kept when the note was made.
-  Each picture is given to the account's server first. Bluesky takes a
-  megabyte for each: one that weighs more is made smaller, and written
+  Each picture is given to the account's server first. Bluesky takes two
+  megabytes for each: one that weighs more is made smaller, and written
   again as a JPEG when that is not enough. Words become
   what Bluesky takes: Markdown's marks are taken out, links and the first
   ten hashtags are marked as such, and what is longer than three hundred letters is cut
-  with a mark to say so. A post or a reply that is changed here afterwards
+  with a mark to say so; a note so cut carries a card of itself here,
+  where the rest is. A post or a reply that is changed here afterwards
   is not changed there: Bluesky has no changing a post, and taking it down
   to post it again would lose its likes, reposts and replies. Mastodon and
   other servers are sent the change.

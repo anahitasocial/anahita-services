@@ -1478,7 +1478,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -1507,7 +1507,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -1577,7 +1577,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -1606,7 +1606,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -1676,7 +1676,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -1705,7 +1705,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -2037,7 +2037,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -2061,7 +2061,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -2122,7 +2122,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -2146,7 +2146,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -2207,7 +2207,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -2231,7 +2231,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -3585,7 +3585,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 10000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -3595,7 +3595,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -3616,7 +3616,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 10000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -3626,7 +3626,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -3958,7 +3958,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -3967,7 +3967,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -3988,7 +3988,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -3997,7 +3997,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -6299,7 +6299,7 @@
                 "properties": {
                   "body": {
                     "description": "What they say of themselves.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "language": {
@@ -6309,7 +6309,7 @@
                   },
                   "name": {
                     "description": "Their name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "person_pronouns": {
@@ -6335,7 +6335,7 @@
                 "properties": {
                   "body": {
                     "description": "What they say of themselves.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "language": {
@@ -6345,7 +6345,7 @@
                   },
                   "name": {
                     "description": "Their name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "person_pronouns": {

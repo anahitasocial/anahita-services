@@ -36,7 +36,7 @@ type InviteAccept struct {
 	// It is also the account's address on the network, which is not a thing to
 	// assign somebody silently. The form suggests the local part, so the
 	// common case is still one glance and a click.
-	Username string `form:"username" validate:"required,username,min=3,max=32"`
+	Username string `form:"username" validate:"required,username,min=3,max=30"`
 
 	// Optional, and offered rather than required.
 	//
@@ -45,7 +45,7 @@ type InviteAccept struct {
 	// minute later with a better editor, and a required field here would
 	// mostly produce names typed to get past it. Empty falls back to the
 	// username, as it does for a self-serve signup.
-	Name string `form:"name" validate:"omitempty,max=100"`
+	Name string `form:"name" validate:"omitempty,max=64"`
 	// At least 15 characters.
 	Password string `form:"password"   validate:"required,min=15,max=150"`
 }

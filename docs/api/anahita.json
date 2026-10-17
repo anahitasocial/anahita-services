@@ -10355,7 +10355,7 @@
             "name": "username",
             "required": true,
             "schema": {
-              "maxLength": 32,
+              "maxLength": 30,
               "minLength": 3,
               "type": "string",
               "x-validate": "username"
@@ -11617,7 +11617,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -11646,7 +11646,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -11716,7 +11716,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -11745,7 +11745,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -11815,7 +11815,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -11844,7 +11844,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -12176,7 +12176,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -12200,7 +12200,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -12261,7 +12261,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -12285,7 +12285,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -12346,7 +12346,7 @@
                   },
                   "body": {
                     "description": "What it is about.",
-                    "maxLength": 10000,
+                    "maxLength": 8000,
                     "type": "string"
                   },
                   "capacity": {
@@ -12370,7 +12370,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "online_url": {
@@ -14990,7 +14990,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 10000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -15000,7 +15000,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -15021,7 +15021,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 10000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -15031,7 +15031,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -15363,7 +15363,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -15372,7 +15372,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -15393,7 +15393,7 @@
                 "properties": {
                   "body": {
                     "description": "What it says of itself.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "enabled": {
@@ -15402,7 +15402,7 @@
                   },
                   "name": {
                     "description": "Its name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "website_url": {
@@ -17575,7 +17575,7 @@
                 "properties": {
                   "name": {
                     "description": "Optional, and offered rather than required.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -17592,7 +17592,7 @@
                   },
                   "username": {
                     "description": "The username, chosen rather than derived.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -17611,7 +17611,7 @@
                 "properties": {
                   "name": {
                     "description": "Optional, and offered rather than required.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -17628,7 +17628,7 @@
                   },
                   "username": {
                     "description": "The username, chosen rather than derived.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -18281,7 +18281,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "source_id": {
@@ -18324,7 +18324,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "source_id": {
@@ -18676,7 +18676,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "state_province": {
@@ -18714,7 +18714,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "state_province": {
@@ -24680,7 +24680,7 @@
                 "properties": {
                   "body": {
                     "description": "What they say of themselves.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "language": {
@@ -24690,7 +24690,7 @@
                   },
                   "name": {
                     "description": "Their name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "person_pronouns": {
@@ -24716,7 +24716,7 @@
                 "properties": {
                   "body": {
                     "description": "What they say of themselves.",
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "language": {
@@ -24726,7 +24726,7 @@
                   },
                   "name": {
                     "description": "Their name.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "person_pronouns": {
@@ -27416,7 +27416,7 @@
               "schema": {
                 "properties": {
                   "body": {
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "csrf_token": {
@@ -27432,7 +27432,7 @@
                   },
                   "name": {
                     "description": "Collected in `approval` mode only, and required there.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -27443,7 +27443,7 @@
                   },
                   "username": {
                     "description": "The username: letters, digits, `-` and `_`. It is the address of their profile.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -27466,7 +27466,7 @@
               "schema": {
                 "properties": {
                   "body": {
-                    "maxLength": 8000,
+                    "maxLength": 500,
                     "type": "string"
                   },
                   "csrf_token": {
@@ -27482,7 +27482,7 @@
                   },
                   "name": {
                     "description": "Collected in `approval` mode only, and required there.",
-                    "maxLength": 100,
+                    "maxLength": 64,
                     "type": "string"
                   },
                   "password": {
@@ -27493,7 +27493,7 @@
                   },
                   "username": {
                     "description": "The username: letters, digits, `-` and `_`. It is the address of their profile.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"
@@ -31330,7 +31330,7 @@
                 "properties": {
                   "username": {
                     "description": "The new username: letters, digits, `-` and `_`.",
-                    "maxLength": 32,
+                    "maxLength": 30,
                     "minLength": 3,
                     "type": "string",
                     "x-validate": "username"

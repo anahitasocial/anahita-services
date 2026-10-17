@@ -27,6 +27,9 @@ type OutPost struct {
 	Langs     []string   `json:"langs,omitempty"`
 	Reply     *OutReply  `json:"reply,omitempty"`
 	Embed     *OutEmbed  `json:"embed,omitempty"`
+	// Cut is that its words were more than a post may hold, and were cut:
+	// not sent, and for whoever sends it to add the way to the rest.
+	Cut bool `json:"-"`
 }
 
 // OutEmbed is what a post carries besides its words: the card of a link,
@@ -84,8 +87,9 @@ func (e *OutEmbed) GetImages() []OutImage {
 	return e.Images
 }
 
-// BlobMax is the most a picture may weigh.
-const BlobMax = 1000000
+// BlobMax is the most a picture may weigh: 2 MB since 2025, before which
+// it was 1 MB (app.bsky.embed.images).
+const BlobMax = 2000000
 
 // ImagesMax is the most pictures a post may carry.
 const ImagesMax = 4
@@ -251,6 +255,7 @@ func NewOutPost(markdown, language string, at time.Time) *OutPost {
 	// that the cut runs through is left as plain words.
 	if letters := []rune(post.Text); len(letters) > PostMax {
 		post.Text = strings.TrimRight(string(letters[:PostMax-1]), " \n") + "…"
+		post.Cut = true
 	}
 	limit := len(post.Text)
 	for _, facet := range facets {

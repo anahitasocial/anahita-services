@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"anahita-libs/constants"
+
 	"auth/data/entities"
 
 	"anahita-libs/validators"
@@ -131,13 +133,13 @@ func TestUsernameCharacterSet(t *testing.T) {
 		{"ada_lovelace", true},
 		{"john-doe", true},
 		{"Ada99", true},
-		{"ab", false},                    // below min=3
-		{strings.Repeat("a", 32), true},  // at max
-		{strings.Repeat("a", 33), false}, // over max
-		{"ada lovelace", false},          // space
-		{"ada.lovelace", false},          // dot
-		{"ada@example.com", false},       // an email is not a username
-		{"adá", false},                   // unicode
+		{"ab", false}, // below min=3
+		{strings.Repeat("a", constants.UsernameMax), true},    // at max
+		{strings.Repeat("a", constants.UsernameMax+1), false}, // over max
+		{"ada lovelace", false},                               // space
+		{"ada.lovelace", false},                               // dot
+		{"ada@example.com", false},                            // an email is not a username
+		{"adá", false},                                        // unicode
 		{"", false},
 	}
 

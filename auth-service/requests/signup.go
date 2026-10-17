@@ -31,7 +31,7 @@ type SignupAddRequest struct {
 	// Their address: a code is mailed to it.
 	Email string `form:"email" validate:"required,email,min=3,max=64"`
 	// The username: letters, digits, `-` and `_`. It is the address of their profile.
-	Username string `form:"username" validate:"required,username,min=3,max=32"`
+	Username string `form:"username" validate:"required,username,min=3,max=30"`
 	// At least 15 characters.
 	Password string `form:"password" validate:"required,min=15,max=150"`
 
@@ -44,8 +44,8 @@ type SignupAddRequest struct {
 	//
 	// `omitempty` because the same struct binds both forms — the handler
 	// requires them when the mode does, which is the only place that knows.
-	Name       string `form:"name" validate:"omitempty,max=100"`
-	Body       string `form:"body" validate:"omitempty,max=8000"`
+	Name       string `form:"name" validate:"omitempty,max=64"`
+	Body       string `form:"body" validate:"omitempty,max=500"`
 	WebsiteURL string `form:"website_url" validate:"omitempty,max=255"`
 }
 
@@ -57,7 +57,7 @@ type SignupAddRequest struct {
 // would be worse than no check at all.
 type UsernameAvailability struct {
 	// The username.
-	Username string `query:"username" validate:"required,username,min=3,max=32"`
+	Username string `query:"username" validate:"required,username,min=3,max=30"`
 }
 
 // AgreementAccept is what the agreements page sends for one document.

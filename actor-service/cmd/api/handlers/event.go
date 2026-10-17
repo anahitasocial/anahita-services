@@ -56,9 +56,9 @@ const eventLongest = 366 * 24 * time.Hour
 // the name and description every actor has.
 type EventFields struct {
 	// What it is called.
-	Name string `form:"name" json:"name" validate:"required,max=100"`
+	Name string `form:"name" json:"name" validate:"required,max=64"`
 	// What it is about.
-	Body string `form:"body" json:"body" validate:"omitempty,max=10000"`
+	Body string `form:"body" json:"body" validate:"omitempty,max=8000"`
 	// One link.
 	WebsiteURL string `form:"website_url" json:"website_url" validate:"omitempty,http_url,max=255"`
 	// When, as RFC 3339 with an offset: 2026-11-05T19:00:00-05:00.

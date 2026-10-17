@@ -84,7 +84,7 @@ type LocationEditRequest struct {
 	// The place's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 	// What it is called.
-	Name string `form:"name" validate:"required,max=255"`
+	Name string `form:"name" validate:"required,max=100"`
 	// Its street address.
 	Address string `form:"address" validate:"required,max=255"`
 	// Its city.
@@ -97,7 +97,7 @@ type LocationEditRequest struct {
 
 type LocationAddRequest struct {
 	// What it is called.
-	Name string `form:"name" validate:"required,max=255"`
+	Name string `form:"name" validate:"required,max=100"`
 	// Its street address.
 	Address string `form:"address" validate:"required,max=255"`
 	// Its city.

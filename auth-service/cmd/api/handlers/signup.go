@@ -453,8 +453,8 @@ func signupValidationMessage(req *requests.SignupAddRequest) string {
 		return "Please choose a username."
 	case len(username) < 3:
 		return "That username is too short — it needs at least 3 characters."
-	case len(username) > 32:
-		return "That username is too long — 32 characters at most."
+	case len(username) > constants.UsernameMax:
+		return fmt.Sprintf("That username is too long — %d characters at most.", constants.UsernameMax)
 	case !usernameCharacters.MatchString(username):
 		return "A username can contain letters, numbers, hyphens and " +
 			"underscores, and nothing else."

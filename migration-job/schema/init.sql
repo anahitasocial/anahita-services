@@ -543,7 +543,7 @@ CREATE TABLE IF NOT EXISTS photo_files (
     `width` int unsigned NOT NULL DEFAULT 0,
     `height` int unsigned NOT NULL DEFAULT 0,
     -- What the image shows, for people who cannot see it.
-    `alt_text` varchar(1500) NOT NULL DEFAULT '',
+    `alt_text` text NOT NULL DEFAULT (''),
     PRIMARY KEY (`node_id`, `position`),
     UNIQUE KEY `uq_photo_files_filename` (`filename`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

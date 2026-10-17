@@ -1200,7 +1200,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "source_id": {
@@ -1243,7 +1243,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "source_id": {
@@ -1595,7 +1595,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "state_province": {
@@ -1633,7 +1633,7 @@
                   },
                   "name": {
                     "description": "What it is called.",
-                    "maxLength": 255,
+                    "maxLength": 100,
                     "type": "string"
                   },
                   "state_province": {

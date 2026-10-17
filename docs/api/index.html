@@ -777,13 +777,13 @@ who may call it: somebody signed in.">
 <tbody>
 <tr><td><code>access</code></td><td>string</td><td>Who can see it. Anybody, unless it says otherwise. One of <code>public</code>, <code>registered</code>, <code>followers</code>.</td></tr>
 <tr><td><code>address</code></td><td>string</td><td>Where it is held, when it is somewhere: an address as it is typed, kept on the event and shown to whoever is going. Not a place on the map, which is public. Every part is optional. At most 255 characters.</td></tr>
-<tr><td><code>body</code></td><td>string</td><td>What it is about. At most 10000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What it is about. At most 8000 characters.</td></tr>
 <tr><td><code>capacity</code></td><td>integer</td><td>How many may be going. 0, or left out, for no limit. At least 0. At most 100000.</td></tr>
 <tr><td><code>city</code></td><td>string</td><td> At most 100 characters.</td></tr>
 <tr><td><code>country</code></td><td>string</td><td> At most 100 characters.</td></tr>
 <tr><td><code>ends_at</code> <span class="required">always</span></td><td>string</td><td> At most 40 characters.</td></tr>
 <tr><td><code>host_group_id</code></td><td>integer</td><td>A group hosting it, which whoever makes the event must administer. Left out for an event that is its maker&#39;s own.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 64 characters.</td></tr>
 <tr><td><code>online_url</code></td><td>string (uri)</td><td>Where to join, when it is online. At most 512 characters.</td></tr>
 <tr><td><code>open_to_host_followers</code></td><td>boolean</td><td>Whether everybody who follows the group hosting it may see that it is on and answer it. Means nothing on an event with no host.</td></tr>
 <tr><td><code>postal_code</code></td><td>string</td><td> At most 20 characters.</td></tr>
@@ -870,12 +870,12 @@ who may call it: anyone, signed in or not.">
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>address</code></td><td>string</td><td>Where it is held, when it is somewhere: an address as it is typed, kept on the event and shown to whoever is going. Not a place on the map, which is public. Every part is optional. At most 255 characters.</td></tr>
-<tr><td><code>body</code></td><td>string</td><td>What it is about. At most 10000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What it is about. At most 8000 characters.</td></tr>
 <tr><td><code>capacity</code></td><td>integer</td><td>How many may be going. 0, or left out, for no limit. At least 0. At most 100000.</td></tr>
 <tr><td><code>city</code></td><td>string</td><td> At most 100 characters.</td></tr>
 <tr><td><code>country</code></td><td>string</td><td> At most 100 characters.</td></tr>
 <tr><td><code>ends_at</code> <span class="required">always</span></td><td>string</td><td> At most 40 characters.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 64 characters.</td></tr>
 <tr><td><code>online_url</code></td><td>string (uri)</td><td>Where to join, when it is online. At most 512 characters.</td></tr>
 <tr><td><code>open_to_host_followers</code></td><td>boolean</td><td>Whether everybody who follows the group hosting it may see that it is on and answer it. Means nothing on an event with no host.</td></tr>
 <tr><td><code>postal_code</code></td><td>string</td><td> At most 20 characters.</td></tr>
@@ -1371,9 +1371,9 @@ who may call it: somebody signed in.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>body</code></td><td>string</td><td>What it says of itself. At most 10000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What it says of itself. At most 500 characters.</td></tr>
 <tr><td><code>enabled</code></td><td>boolean</td><td>Whether it is enabled. <code>true</code> unless given.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name. At most 100 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name. At most 64 characters.</td></tr>
 <tr><td><code>website_url</code></td><td>string (uri)</td><td>One link on the profile. A bare <code>example.com</code> is taken as https. At most 255 characters.</td></tr>
 </tbody>
 </table>
@@ -1477,9 +1477,9 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>body</code></td><td>string</td><td>What it says of itself. At most 8000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What it says of itself. At most 500 characters.</td></tr>
 <tr><td><code>enabled</code></td><td>boolean</td><td>Whether it is enabled.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name. At most 100 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name. At most 64 characters.</td></tr>
 <tr><td><code>website_url</code></td><td>string (uri)</td><td>One link on the profile. A bare <code>example.com</code> is taken as https. At most 255 characters.</td></tr>
 </tbody>
 </table>
@@ -2318,9 +2318,9 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>body</code></td><td>string</td><td>What they say of themselves. At most 8000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What they say of themselves. At most 500 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language this person usually posts in, as a BCP 47 tag. It is what the composer starts on; each post can say otherwise. At most 12 characters.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Their name. At most 100 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Their name. At most 64 characters.</td></tr>
 <tr><td><code>person_pronouns</code></td><td>string</td><td>Their pronouns, as free text: <code>she/her</code>, <code>iel</code>. At most 50 characters.</td></tr>
 <tr><td><code>website_url</code></td><td>string (uri)</td><td>One link on the profile. A bare <code>example.com</code> is taken as https. At most 255 characters.</td></tr>
 </tbody>
@@ -2820,7 +2820,7 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>username</code> <span class="required">required</span></td><td>query</td><td>string</td><td>The username. At least 3 characters. At most 32 characters.</td></tr>
+<tr><td><code>username</code> <span class="required">required</span></td><td>query</td><td>string</td><td>The username. At least 3 characters. At most 30 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -3129,10 +3129,10 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>name</code></td><td>string</td><td>Optional, and offered rather than required. At most 100 characters.</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Optional, and offered rather than required. At most 64 characters.</td></tr>
 <tr><td><code>password</code> <span class="required">always</span></td><td>string</td><td>At least 15 characters. At least 15 characters. At most 150 characters.</td></tr>
 <tr><td><code>token</code> <span class="required">always</span></td><td>string</td><td>From the link. At least 128 characters. At most 128 characters.</td></tr>
-<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The username, chosen rather than derived. At least 3 characters. At most 32 characters.</td></tr>
+<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The username, chosen rather than derived. At least 3 characters. At most 30 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -4009,12 +4009,12 @@ who may call it: anyone, signed in or not.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>body</code></td><td>string</td><td> At most 8000 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td> At most 500 characters.</td></tr>
 <tr><td><code>csrf_token</code> <span class="required">always</span></td><td>string</td><td>The CSRF token, matched against the one put in the session when the form was rendered.</td></tr>
 <tr><td><code>email</code> <span class="required">always</span></td><td>string (email)</td><td>Their address: a code is mailed to it. At least 3 characters. At most 64 characters.</td></tr>
-<tr><td><code>name</code></td><td>string</td><td>Collected in <code>approval</code> mode only, and required there. At most 100 characters.</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Collected in <code>approval</code> mode only, and required there. At most 64 characters.</td></tr>
 <tr><td><code>password</code> <span class="required">always</span></td><td>string</td><td>At least 15 characters. At least 15 characters. At most 150 characters.</td></tr>
-<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The username: letters, digits, <code>-</code> and <code>_</code>. It is the address of their profile. At least 3 characters. At most 32 characters.</td></tr>
+<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The username: letters, digits, <code>-</code> and <code>_</code>. It is the address of their profile. At least 3 characters. At most 30 characters.</td></tr>
 <tr><td><code>website_url</code></td><td>string</td><td> At most 255 characters.</td></tr>
 </tbody>
 </table>
@@ -4391,7 +4391,7 @@ who may call it: somebody signed in, who has just proved who they are again.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The new username: letters, digits, <code>-</code> and <code>_</code>. At least 3 characters. At most 32 characters.</td></tr>
+<tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The new username: letters, digits, <code>-</code> and <code>_</code>. At least 3 characters. At most 30 characters.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -5723,7 +5723,7 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 <tr><td><code>address</code> <span class="required">always</span></td><td>string</td><td>Its street address. At most 255 characters.</td></tr>
 <tr><td><code>city</code> <span class="required">always</span></td><td>string</td><td>Its city. At most 100 characters.</td></tr>
 <tr><td><code>country</code> <span class="required">always</span></td><td>string</td><td>Its country. At most 50 characters.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 255 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
 <tr><td><code>source_id</code></td><td>integer</td><td>A post to tie to it at once: the post&#39;s id.</td></tr>
 <tr><td><code>state_province</code></td><td>string</td><td>Its state or province. At most 100 characters.</td></tr>
 </tbody>
@@ -5822,7 +5822,7 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 <tr><td><code>address</code> <span class="required">always</span></td><td>string</td><td>Its street address. At most 255 characters.</td></tr>
 <tr><td><code>city</code> <span class="required">always</span></td><td>string</td><td>Its city. At most 100 characters.</td></tr>
 <tr><td><code>country</code> <span class="required">always</span></td><td>string</td><td>Its country. At most 50 characters.</td></tr>
-<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 255 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
 <tr><td><code>state_province</code></td><td>string</td><td>Its state or province. At most 100 characters.</td></tr>
 </tbody>
 </table>
