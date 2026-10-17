@@ -13844,7 +13844,7 @@
                 }
               }
             },
-            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language` or `unknown_order`; `invalid` for a field"
+            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language`, `invalid_near` (an area's point or radius, 1 to 500 km), `unknown_origin` or `unknown_order`; `invalid` for a field"
           }
         },
         "security": [
@@ -14357,7 +14357,7 @@
                 }
               }
             },
-            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language` or `unknown_order`; `invalid` for a field"
+            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language`, `invalid_near` (an area's point or radius, 1 to 500 km), `unknown_origin` or `unknown_order`; `invalid` for a field"
           }
         },
         "security": [
@@ -14557,7 +14557,7 @@
                 }
               }
             },
-            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language` or `unknown_order`; `invalid` for a field"
+            "description": "why the definition was refused: `malformed`, `unknown_field`, `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language`, `invalid_near` (an area's point or radius, 1 to 500 km), `unknown_origin` or `unknown_order`; `invalid` for a field"
           }
         },
         "security": [

@@ -66,6 +66,26 @@ const feedCustomPlaced = `EXISTS (
 	  AND placed.node_b_id = node.id
 	  AND placed.node_a_id IN (`
 
+// Within a distance of a point: tied to a place there, or carrying a
+// location of its own there. The point twice, then the distance in metres,
+// twice. ST_Distance_Sphere takes longitude first.
+const feedCustomNear = `(
+	EXISTS (
+		SELECT 1
+		FROM edges AS placed
+		JOIN nodes AS place ON place.id = placed.node_a_id
+		WHERE placed.type = ?
+		  AND placed.node_b_id = node.id
+		  AND place.geo_latitude IS NOT NULL
+		  AND ST_Distance_Sphere(POINT(place.geo_longitude, place.geo_latitude), POINT(?, ?)) <= ?
+	)
+	OR (
+		node.geo_latitude IS NOT NULL
+		AND node.geo_latitude <> 0
+		AND ST_Distance_Sphere(POINT(node.geo_longitude, node.geo_latitude), POINT(?, ?)) <= ?
+	)
+)`
+
 // Older than the cursor: written before it, or in the same second with a
 // smaller id.
 const feedCustomOlder = `(
@@ -154,6 +174,22 @@ func feedCustomFilters(query sq.SelectBuilder, def *feeds.Definition) sq.SelectB
 
 	if def.Filters.Language != "" {
 		query = query.Where(sq.Eq{"node.language": def.Filters.Language})
+	}
+
+	if near := def.Filters.Near; near != nil {
+		metres := near.RadiusKm * 1000
+		query = query.Where(feedCustomNear,
+			constants.EdgeTagLocationType, near.Longitude, near.Latitude, metres,
+			near.Longitude, near.Latitude, metres)
+	}
+
+	// Where it was written: here, or on another server, which a post kept
+	// from elsewhere says by its address there.
+	switch def.Filters.Origin {
+	case feeds.OriginHere:
+		query = query.Where("(node.uri IS NULL OR node.uri = '')")
+	case feeds.OriginElsewhere:
+		query = query.Where("node.uri <> ''")
 	}
 
 	return query

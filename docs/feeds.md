@@ -46,7 +46,9 @@ Every feed orders its posts by date, newest first. (Search is the one place with
     "hashtags_any": ["permaculture", "seeds"],
     "keywords_any": ["compost"],
     "locations_any": [42],
-    "language": "en"
+    "language": "en",
+    "near": { "latitude": 49.283, "longitude": -123.121, "radius_km": 10 },
+    "origin": "elsewhere"
   },
   "exclude": {
     "hashtags": ["ad"],
@@ -64,7 +66,9 @@ Every feed orders its posts by date, newest first. (Search is the one place with
 | --- | --- |
 | `following` | Whoever the feed's owner follows: people, groups and events. The owner's, whoever is reading |
 | `actors` | Profiles chosen by hand, of any kind |
-| neither | The whole site, which is allowed only with a hashtag, a keyword or a place among the filters |
+| neither | The whole site, posts from the fediverse and Bluesky kept here included, which is allowed only with a hashtag, a keyword, a place or an area among the filters |
+
+The web app offers this as one choice of three: **Everyone** (neither), **Profiles I follow** (`following`), or **Chosen profiles** (`actors`, with "And profiles I follow" for both). A new feed starts from the profiles its owner follows, so that it shows something; given a hashtag, a keyword, a place or an area before the owner chose, it switches to Everyone, since "a #dweb feed" almost always means everybody's.
 
 **Filters** narrow that. Each kind given has to hold; inside a list, any one entry will do.
 
@@ -76,6 +80,8 @@ Every feed orders its posts by date, newest first. (Search is the one place with
 | `keywords_any` | Posts with any of these words in the title or the text, in any case |
 | `locations_any` | Posts tagged with any of these places, by id |
 | `language` | Posts their author marked as written in this language |
+| `near` | Posts within `radius_km` (1 to 500) of a point, `latitude` and `longitude`: tied to a place there, or carrying a location of their own there. The point is kept with the feed; the web app takes it from the browser, to three decimals. Narrows as a place does |
+| `origin` | Where a post was written: `here`, on this installation, or `elsewhere`, on the fediverse or Bluesky. Left out for anywhere |
 
 **Exclude** leaves posts out whatever else is true of them: by hashtag, by keyword, and by profile. An excluded profile's posts are left out wherever they were posted, and so is everything posted on it.
 
@@ -91,11 +97,12 @@ A key the code does not know is refused, at any depth. A definition is tidied wh
 | Hashtags, in the filter and left out | 10 each |
 | Keywords, in the filter and left out | 10 each, of 2 to 50 characters |
 | Places | 5 |
+| An area's radius | 1 to 500 km |
 | Feeds one person owns | 10 |
 | Feeds on one person's home page | 10 |
 | Posts in a page | 20 by default, 40 at most |
 
-A definition that breaks a rule is answered `422` with the reason as a word: `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language`, `unknown_order`, `unknown_field`, `malformed`.
+A definition that breaks a rule is answered `422` with the reason as a word: `too_broad`, `too_many_actors`, `too_many_hashtags`, `too_many_keywords`, `too_many_locations`, `keyword_length`, `invalid_hashtag`, `unknown_media_type`, `unknown_actor_type`, `invalid_actor`, `invalid_location`, `invalid_language`, `invalid_near`, `unknown_origin`, `unknown_order`, `unknown_field`, `malformed`.
 
 ## Who sees a feed, and what they see in it
 
