@@ -5132,11 +5132,11 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).BrowseOrderedByDegree</code></p>
 </details>
-<details class="route" id="getHashtagsBrowseTrending" data-search="get /hashtags/_browse/trending hashtags used most lately the hashtags most used in a window of time that ends now. not paged: the most there are, up to `limit`.
+<details class="route" id="getHashtagsBrowseTrending" data-search="get /hashtags/_browse/trending hashtags used most lately the hashtags most used in a window of time that ends now. one page, all there is: up to `limit`, and `total` says how many.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/hashtags/_browse/trending</code> <span class="summary">Hashtags used most lately</span></summary>
-<div class="description"><p>The hashtags most used in a window of time that ends now. Not paged: the most there are, up to <code>limit</code>.</p></div>
+<div class="description"><p>The hashtags most used in a window of time that ends now. One page, all there is: up to <code>limit</code>, and <code>total</code> says how many.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -5149,7 +5149,7 @@ who may call it: anyone, signed in or not.">
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s2">200</td><td>OK<div class="body">list of <a href="#schema-hashtag.HashtagNodeItem">hashtag.HashtagNodeItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-hashtag.HashtagNodeItem">hashtag.HashtagNodeItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 </tbody>
 </table>
@@ -5708,11 +5708,11 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*locationHandler).BrowseOrderedByDegree</code></p>
 </details>
-<details class="route" id="getLocationsBrowseTrending" data-search="get /locations/_browse/trending places used most lately the places most posts were tied to in a window of time that ends now. not paged.
+<details class="route" id="getLocationsBrowseTrending" data-search="get /locations/_browse/trending places used most lately the places most posts were tied to in a window of time that ends now. one page, all there is: up to `limit`, and `total` says how many.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/locations/_browse/trending</code> <span class="summary">Places used most lately</span></summary>
-<div class="description"><p>The places most posts were tied to in a window of time that ends now. Not paged.</p></div>
+<div class="description"><p>The places most posts were tied to in a window of time that ends now. One page, all there is: up to <code>limit</code>, and <code>total</code> says how many.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -5725,7 +5725,7 @@ who may call it: anyone, signed in or not.">
 <h4>Answers</h4>
 <table class="answers">
 <tbody>
-<tr><td class="status s2">200</td><td>OK<div class="body">list of <a href="#schema-location.LocationNodeItem">location.LocationNodeItem</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-location.LocationNodeItem">location.LocationNodeItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 </tbody>
 </table>

@@ -196,8 +196,15 @@ func (h *locationHandler) BrowseTrending(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// In the envelope every list comes in, as one page that is all there
+	// is, as hashtags' trending is.
 	locationResp := &responses.LocationNodeResponse{}
-	resp := locationResp.MapLocationNodeItems(nodes)
+	resp := &an_responses.List[*responses.LocationNodeItem]{Data: []*responses.LocationNodeItem{}}
+	if len(nodes) > 0 {
+		resp.Data = locationResp.MapLocationNodeItems(nodes)
+	}
+	resp.Pagination.Limit = req.Limit
+	resp.Pagination.Total = uint64(len(resp.Data))
 
 	return c.JSON(http.StatusOK, resp)
 }

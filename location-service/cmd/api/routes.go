@@ -46,10 +46,10 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	locations := api.Group("locations")
 	locations.GET("/_browse/trending", r.handler.Location.BrowseTrending, r.setViewer).
 		Summary("Places used most lately").
-		Describe("The places most posts were tied to in a window of time that ends now. Not paged.").
+		Describe("The places most posts were tied to in a window of time that ends now. One page, all there is: up to `limit`, and `total` says how many.").
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewLocationRequest().BrowseTrending).
-		Sends(http.StatusOK, []*responses.LocationNodeItem{})
+		Sends(http.StatusOK, libs_responses.List[*responses.LocationNodeItem]{})
 	locations.GET("/_browse/ordered_by_degree", r.handler.Location.BrowseOrderedByDegree, r.setViewer).
 		Summary("Places used most of all").
 		Viewer(apidoc.Anyone).

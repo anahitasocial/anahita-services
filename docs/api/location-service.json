@@ -1376,7 +1376,7 @@
     },
     "/locations/_browse/trending": {
       "get": {
-        "description": "The places most posts were tied to in a window of time that ends now. Not paged.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The places most posts were tied to in a window of time that ends now. One page, all there is: up to `limit`, and `total` says how many.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getLocationsBrowseTrending",
         "parameters": [
           {
@@ -1411,10 +1411,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/location.LocationNodeItem"
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/location.LocationNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
                   },
-                  "type": "array"
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
                 }
               }
             },

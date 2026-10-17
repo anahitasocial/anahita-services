@@ -1197,7 +1197,7 @@
     },
     "/hashtags/_browse/trending": {
       "get": {
-        "description": "The hashtags most used in a window of time that ends now. Not paged: the most there are, up to `limit`.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The hashtags most used in a window of time that ends now. One page, all there is: up to `limit`, and `total` says how many.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getHashtagsBrowseTrending",
         "parameters": [
           {
@@ -1232,10 +1232,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/hashtag.HashtagNodeItem"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
                   },
-                  "type": "array"
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
                 }
               }
             },

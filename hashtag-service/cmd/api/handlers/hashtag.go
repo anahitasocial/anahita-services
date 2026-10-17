@@ -172,12 +172,16 @@ func (h *hashtagHandler) BrowseTrending(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	if len(nodes) == 0 {
-		return c.JSON(http.StatusOK, []*responses.HashtagNodeItem{})
-	}
-
+	// In the envelope every list comes in, as one page that is all there
+	// is. Sent bare, the web app read it as a page with nothing on it, and
+	// showed no trending hashtags at all.
 	hashtagResp := &responses.HashtagNodeResponse{}
-	resp := hashtagResp.MapHashtagNodeItems(nodes)
+	resp := &an_responses.List[*responses.HashtagNodeItem]{Data: []*responses.HashtagNodeItem{}}
+	if len(nodes) > 0 {
+		resp.Data = hashtagResp.MapHashtagNodeItems(nodes)
+	}
+	resp.Pagination.Limit = req.Limit
+	resp.Pagination.Total = uint64(len(resp.Data))
 
 	return c.JSON(http.StatusOK, resp)
 }
