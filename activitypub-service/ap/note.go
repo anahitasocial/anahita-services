@@ -12,22 +12,28 @@ import (
 
 // Note is a post, as it is sent to and read from another server.
 type Note struct {
-	Context      any               `json:"@context,omitempty"`
-	ID           string            `json:"id"`
-	Type         string            `json:"type"`
-	AttributedTo string            `json:"attributedTo"`
-	Content      string            `json:"content"`
-	ContentMap   map[string]string `json:"contentMap,omitempty"`
-	Published    string            `json:"published,omitempty"`
-	Updated      string            `json:"updated,omitempty"`
-	URL          string            `json:"url,omitempty"`
-	To           []string          `json:"to"`
-	Cc           []string          `json:"cc"`
-	Tag          []Tag             `json:"tag,omitempty"`
+	Context      any    `json:"@context,omitempty"`
+	ID           string `json:"id"`
+	Type         string `json:"type"`
+	AttributedTo string `json:"attributedTo"`
+	// An Article's title, and the opening it is summed up by. A note has
+	// neither: Mastodon shows a note's summary as a warning to click past.
+	Name       string            `json:"name,omitempty"`
+	Summary    string            `json:"summary,omitempty"`
+	Content    string            `json:"content"`
+	ContentMap map[string]string `json:"contentMap,omitempty"`
+	Published  string            `json:"published,omitempty"`
+	Updated    string            `json:"updated,omitempty"`
+	URL        string            `json:"url,omitempty"`
+	To         []string          `json:"to"`
+	Cc         []string          `json:"cc"`
+	Tag        []Tag             `json:"tag,omitempty"`
 	// What it answers, by the address that has between servers.
 	InReplyTo string `json:"inReplyTo,omitempty"`
 	// The pictures of a photo post, or the video of a video post.
 	Attachment []SentPicture `json:"attachment,omitempty"`
+	// An Article's cover.
+	Image *Image `json:"image,omitempty"`
 }
 
 // SentPicture is one picture of a post, as it is sent: where to fetch it,
@@ -139,6 +145,21 @@ func NewNote(a Addresses, note, author *entities.AnahitaNode, links federation.L
 	}
 
 	return sent
+}
+
+// AsArticle makes the post an Article: its title, its opening as its
+// summary, all of it as its content, the page it is read at, and its
+// cover. Mastodon shows one as its title and a link to that page;
+// WriteFreely, Ghost, Friendica and the like show the article.
+func (n *Note) AsArticle(a Addresses, article *entities.AnahitaNode, summary string) *Note {
+	n.Type = "Article"
+	n.Name = strings.TrimSpace(article.Name)
+	n.Summary = summary
+	n.URL = a.ArticlePage(article.ID)
+	if article.CoverFilename != "" {
+		n.Image = &Image{Type: "Image", MediaType: mediaType(article.CoverFilename), URL: a.Cover(article.UUID)}
+	}
+	return n
 }
 
 // Answering makes the note a reply: to what, and, when whoever wrote that

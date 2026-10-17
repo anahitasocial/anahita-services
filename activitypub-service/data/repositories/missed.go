@@ -131,7 +131,7 @@ LEFT JOIN nodes AS root
        ON root.id = note.root_id
 LEFT JOIN activitypub_objects AS sent
        ON sent.node_id = note.id
-WHERE note.type IN (?, ?, ?)
+WHERE note.type IN (?, ?, ?, ?)
   AND note.library_only = 0
   AND note.enabled = 1
   AND note.deleted_at IS NULL
@@ -177,7 +177,8 @@ LIMIT ?`
 // did not, the oldest first.
 func (repo *Missed) NotesNotSent(since, olderThan time.Time, limit int) ([]int64, error) {
 	people, err := repo.ids(notesNotSent,
-		constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType, videos.NodeType, constants.AnahitaAccessPublic, since, olderThan, limit)
+		constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType, videos.NodeType, constants.NodeMediumArticleEntityType,
+		constants.AnahitaAccessPublic, since, olderThan, limit)
 	if err != nil {
 		return nil, err
 	}

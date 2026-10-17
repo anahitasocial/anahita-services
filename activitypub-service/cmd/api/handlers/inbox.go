@@ -420,7 +420,8 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 
 // isPost says whether something is a post other servers can be spoken to
 // about: a note, a photo post or a video post, which between servers are a
-// note with pictures or with a video. Video posts were left out of this
+// note with pictures or with a video, and an article, which is an Article.
+// Topics stay here. Video posts were left out of this
 // when they began to go out, so a reply under one, a repost of one and a
 // reply to one from elsewhere were all refused.
 func isPost(node *entities.AnahitaNode) bool {
@@ -429,7 +430,8 @@ func isPost(node *entities.AnahitaNode) bool {
 	}
 	return node.Type == constants.NodeMediumNoteEntityType ||
 		node.Type == constants.NodeMediumPhotoEntityType ||
-		node.Type == videos.NodeType
+		node.Type == videos.NodeType ||
+		node.Type == constants.NodeMediumArticleEntityType
 }
 
 // announceKept says that a post from another server was kept or changed,

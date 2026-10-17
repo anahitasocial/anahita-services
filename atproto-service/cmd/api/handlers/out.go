@@ -297,7 +297,10 @@ func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 	isPhoto := note.Type == constants.NodeMediumPhotoEntityType
 	// A video post is written once it has its video.
 	isVideo := note.Type == videos.NodeType && videos.FromMeta(note.Meta) != nil
-	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo) || note.IsRemote() || !note.Enabled || note.DeletedAt != nil || note.Hidden {
+	// An article, as a post of its title and opening with a card that leads
+	// to it. A topic stays here (the user, 2026-10-17).
+	isArticle := note.Type == constants.NodeMediumArticleEntityType
+	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo && !isArticle) || note.IsRemote() || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil
 	}
 	// In its author's media library only: announced to nobody.
@@ -492,9 +495,9 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 		return nil, nil
 	}
 	words := note.Body
-	// A video post's title comes first, as its own line: a post on
-	// Bluesky has no title of its own.
-	if note.Type == videos.NodeType {
+	// A video post's title comes first, as its own line, and an article's:
+	// a post on Bluesky has no title of its own.
+	if note.Type == videos.NodeType || note.Type == constants.NodeMediumArticleEntityType {
 		if title := strings.TrimSpace(note.Name); title != "" {
 			words = strings.TrimSpace(title + "\n\n" + words)
 		}
@@ -514,6 +517,11 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 		if err := h.withVideo(ctx, post, note, upload); err != nil {
 			return nil, err
 		}
+	}
+	// An article is read here, whatever its length: its card leads to it,
+	// with its title, its opening and its cover.
+	if note.Type == constants.NodeMediumArticleEntityType {
+		post.WithCard(h.Site.Web(fmt.Sprintf("/articles/%d", note.ID)), cutTitle(note), articleOpening(note), h.coverPicture(note, upload))
 	}
 	if post.Text == "" && post.Embed == nil {
 		return nil, nil
@@ -659,6 +667,41 @@ func (h *Handlers) withPictures(post *bsky.OutPost, note *entities.AnahitaNode, 
 		post.AddImage(blob, file.AltText, file.Width, file.Height)
 	}
 	return nil
+}
+
+// coverPicture is a post's cover, given to the account's server for its
+// card, or nil.
+func (h *Handlers) coverPicture(note *entities.AnahitaNode, upload uploader) *bsky.OutBlob {
+	if note.CoverFilename == "" || h.Keeper == nil || h.Keeper.Files == nil {
+		return nil
+	}
+	covers, err := note.GetCovers()
+	if err != nil {
+		return nil
+	}
+	content, mimeType := h.stored(covers[entities.CoverSizeMedium].Url)
+	if content == nil {
+		return nil
+	}
+	blob, err := upload(content, mimeType)
+	if err != nil {
+		return nil
+	}
+	return blob
+}
+
+// articleOpening is what an article's card says under its title: its
+// opening words, plain, near 300 characters at most.
+func articleOpening(article *entities.AnahitaNode) string {
+	words := strings.Join(strings.Fields(bsky.NewOutPost(article.Body, "", time.Time{}).Text), " ")
+	if letters := []rune(words); len(letters) > 300 {
+		cut := string(letters[:300])
+		if at := strings.LastIndex(cut, " "); at > 150 {
+			cut = cut[:at]
+		}
+		words = strings.TrimRight(cut, " ,;:.") + "…"
+	}
+	return words
 }
 
 // cardPicture is the picture of a link's card, given to the account's

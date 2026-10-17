@@ -12,6 +12,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/event"
+	"anahita-libs/federation"
 )
 
 const (
@@ -124,6 +125,64 @@ func TestAPublicNoteGoesToFollowersOnce(t *testing.T) {
 	}
 }
 
+// An article goes out as an Article: its title, its first paragraph of
+// words as its summary, all of it as its content, the page it is read at,
+// and its cover. A topic does not go out (the user, 2026-10-17).
+func TestAnArticleGoesOutAsAnArticle(t *testing.T) {
+	w := notesWorld()
+	article := w.note()
+	article.Type = constants.NodeMediumArticleEntityType
+	article.Name = "Beans in October"
+	article.Body = "## Sowing\n\n![Rows of beans](https://example.org/photos/7)\n\nThe **beans** went in late this year, after the rain & the wind.\n\nMore below."
+	article.CoverFilename = "cover.jpg"
+
+	event := made(noteID)
+	event.ObjectType = article.Type
+	if err := w.h.HandleEvent(event); err != nil {
+		t.Fatal(err)
+	}
+	if len(w.queue.sent) == 0 {
+		t.Fatal("nothing queued")
+	}
+	object, _ := w.queue.sent[0].payload["object"].(map[string]any)
+	if object["type"] != "Article" || object["name"] != "Beans in October" || object["url"] != "https://example.org/articles/500" ||
+		object["attributedTo"] != anaActor {
+		t.Errorf("the article sent: %v", object)
+	}
+	if object["summary"] != "The beans went in late this year, after the rain &amp; the wind." {
+		t.Errorf("summary %q", object["summary"])
+	}
+	if content, _ := object["content"].(string); !strings.Contains(content, "<strong>beans</strong>") || !strings.Contains(content, "More below.") {
+		t.Errorf("content %q", content)
+	}
+	if image, _ := object["image"].(map[string]any); image["url"] != "https://api.example.org/covers/"+noteUUID+"/large" || image["mediaType"] != "image/jpeg" {
+		t.Errorf("image %v", object["image"])
+	}
+
+	// A server that asks for it is given the same.
+	rec := w.get(w.h.Note, "/ap/notes/"+noteUUID, "uuid", noteUUID)
+	var served map[string]any
+	_ = json.Unmarshal(rec.Body.Bytes(), &served)
+	if rec.Code != http.StatusOK || served["type"] != "Article" || served["name"] != "Beans in October" {
+		t.Errorf("served %d %v", rec.Code, served)
+	}
+}
+
+// A long first paragraph is cut at a word, and an article with no
+// paragraph of words has no summary.
+func TestAnArticlesSummary(t *testing.T) {
+	long := entities.NewAnahitaNode()
+	long.Body = strings.Repeat("seed ", 100)
+	if got := articleSummary(long, federation.Links{}); len([]rune(got)) > summaryMax+1 || !strings.HasSuffix(got, "seed…") {
+		t.Errorf("long: %q", got)
+	}
+	none := entities.NewAnahitaNode()
+	none.Body = "# Title\n\n![a picture](https://example.org/p.jpg)\n\nhttps://example.org/elsewhere"
+	if got := articleSummary(none, federation.Links{}); got != "" {
+		t.Errorf("none: %q", got)
+	}
+}
+
 func TestWhatDoesNotGoOut(t *testing.T) {
 	cases := map[string]func(w *inboxWorld){
 		"for followers":            func(w *inboxWorld) { w.note().Access = "followers" },
@@ -132,7 +191,11 @@ func TestWhatDoesNotGoOut(t *testing.T) {
 		"a reply to nothing known": func(w *inboxWorld) { w.note().ParentID, w.note().RootID = 77, 77 },
 		"in a group":               func(w *inboxWorld) { w.note().OwnerID = 900 },
 		"on somebody else's page":  func(w *inboxWorld) { w.note().CreatedBy = 901 },
-		"an article":               func(w *inboxWorld) { w.note().Type = "node.medium.text-service.article.v1" },
+		"a topic":                  func(w *inboxWorld) { w.note().Type = "node.medium.text-service.topic.v1" },
+		"an article in a group":    func(w *inboxWorld) { w.note().Type, w.note().OwnerID = constants.NodeMediumArticleEntityType, 900 },
+		"an article for followers": func(w *inboxWorld) {
+			w.note().Type, w.note().Access = constants.NodeMediumArticleEntityType, "followers"
+		},
 		"disabled":                 func(w *inboxWorld) { w.note().Enabled = false },
 		"hidden by the graph":      func(w *inboxWorld) { w.nodes.hidden[noteID] = true },
 		"from elsewhere":           func(w *inboxWorld) { w.note().URI = "https://mastodon.example/n/1" },
