@@ -48,6 +48,7 @@ the thing it was about.
 | 201 | Reported |
 | 200 | You had already reported it. Your report now has the new reason and details |
 | 400 | The reason is not on the list or does not apply to this kind of thing, the reason needs an explanation and none was given, or it is your own |
+| 403 | You are not signed in, or the app you use may not write for you (`account:write`) |
 | 404 | There is no such thing that you can see |
 | 429 | More than 20 reports in the last hour |
 
@@ -140,8 +141,9 @@ then records the case as `actioned` with what was done: `deleted`, `disabled`,
 
 Two administrators deciding the same case at once get one decision recorded;
 the second is told it was already decided (409). A closed case cannot be
-reopened while a newer case for the same thing is open (409): use the newer
-one.
+reopened while a newer case for the same thing is open (409,
+`newer_case_open`): use the newer one. Reopening a case that is open already
+is answered 409 with `already_open`.
 
 Nobody is emailed about a report. Administrators see the number waiting on
 the Administration menu.
