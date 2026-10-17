@@ -2768,11 +2768,22 @@
           "id": {
             "type": "string"
           },
+          "image": {
+            "$ref": "#/components/schemas/activitypub.Image",
+            "description": "An Article's cover."
+          },
           "inReplyTo": {
             "description": "What it answers, by the address that has between servers.",
             "type": "string"
           },
+          "name": {
+            "description": "An Article's title, and the opening it is summed up by. A note has neither: Mastodon shows a note's summary as a warning to click past.",
+            "type": "string"
+          },
           "published": {
+            "type": "string"
+          },
+          "summary": {
             "type": "string"
           },
           "tag": {

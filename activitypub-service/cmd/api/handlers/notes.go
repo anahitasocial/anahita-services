@@ -20,6 +20,7 @@ import (
 	"anahita-libs/videos"
 	"github.com/labstack/echo/v4"
 	"html"
+	"regexp"
 )
 
 // Posts going out.
@@ -50,7 +51,9 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 	// is not one.
 	isPhoto := note.Type == constants.NodeMediumPhotoEntityType
 	isVideo := note.Type == videos.NodeType && videos.FromMeta(note.Meta) != nil
-	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo) || !note.Enabled || note.DeletedAt != nil || note.Hidden {
+	// An article, as an Article. A topic stays here (the user, 2026-10-17).
+	isArticle := note.Type == constants.NodeMediumArticleEntityType
+	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo && !isArticle) || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil, nil
 	}
 	// In its author's media library only: shown within an article here,
@@ -166,6 +169,9 @@ func (h *Handlers) hasPictures(postID int64) bool {
 // answers.
 func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answer) *ap.Note {
 	sent := ap.NewNote(h.addresses, note, author, h.links())
+	if note.Type == constants.NodeMediumArticleEntityType {
+		sent.AsArticle(h.addresses, note, articleSummary(note, h.links()))
+	}
 	if answering != nil {
 		sent.Answering(answering.ID, answering.Actor, answering.Handle)
 	}
@@ -463,3 +469,35 @@ func (h *Handlers) removed(ctx context.Context, nodeID int64) error {
 		ap.NewDelete(h.addresses.Activity(newUUID()), h.addresses.Actor(author.UUID), h.addresses.Note(object.UUID)),
 		"delete:"+object.UUID)
 }
+
+// articleSummary is an article summed up for other servers: its first
+// paragraph of words, as plain text, cut at a word near 300 characters.
+// A heading, a picture, a quotation, a list or an address on a line of its
+// own is passed over. Nothing when the article has no such paragraph.
+func articleSummary(article *entities.AnahitaNode, links federation.Links) string {
+	for _, paragraph := range strings.Split(strings.ReplaceAll(article.Body, "\r\n", "\n"), "\n\n") {
+		paragraph = strings.TrimSpace(paragraph)
+		if paragraph == "" || strings.ContainsAny(paragraph[:1], "#!>|-*<`") ||
+			strings.HasPrefix(paragraph, "http://") || strings.HasPrefix(paragraph, "https://") {
+			continue
+		}
+		words := strings.Join(strings.Fields(html.UnescapeString(tags.ReplaceAllString(federation.ToHTML(paragraph, links).HTML, " "))), " ")
+		if words == "" {
+			continue
+		}
+		if letters := []rune(words); len(letters) > summaryMax {
+			cut := string(letters[:summaryMax])
+			if at := strings.LastIndex(cut, " "); at > summaryMax/2 {
+				cut = cut[:at]
+			}
+			words = strings.TrimRight(cut, " ,;:.") + "…"
+		}
+		return html.EscapeString(words)
+	}
+	return ""
+}
+
+// The longest an article's summary is, and the marks taken out of it.
+const summaryMax = 300
+
+var tags = regexp.MustCompile(`<[^>]*>`)
