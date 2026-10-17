@@ -32,7 +32,7 @@ type SuggestRequest struct {
 	// The title, if it has one.
 	Title string `json:"title"`
 	// What is written, as Markdown.
-	Body string `json:"body"`
+	Content string `json:"content"`
 	// How many to offer, 1 to 20; 8 when not given.
 	Limit uint32 `json:"limit"`
 }
@@ -83,7 +83,7 @@ func (h *hashtagHandler) ForText(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
-	text := req.Title + "\n\n" + req.Body
+	text := req.Title + "\n\n" + req.Content
 	if len(text) > maxSuggestText {
 		text = text[:maxSuggestText]
 	}

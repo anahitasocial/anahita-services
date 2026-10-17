@@ -493,10 +493,6 @@
             "$ref": "#/components/schemas/NodeAuthorized",
             "description": "Authorization Information"
           },
-          "body": {
-            "description": "Its words, as Markdown.",
-            "type": "string"
-          },
           "citation_count": {
             "description": "How many people cite it, each once, never its author.",
             "format": "int64",
@@ -510,6 +506,10 @@
           "comment_status": {
             "description": "Whether it takes replies at all.",
             "type": "boolean"
+          },
+          "content": {
+            "description": "Its words, as Markdown.",
+            "type": "string"
           },
           "cover_urls": {
             "additionalProperties": {
@@ -599,10 +599,6 @@
             "description": "The kind of file it holds, where it holds one.",
             "type": "string"
           },
-          "name": {
-            "description": "Its title, where it has one.",
-            "type": "string"
-          },
           "origin_domain": {
             "description": "The server it came from, when it came from another.",
             "type": "string"
@@ -662,6 +658,10 @@
             "description": "On a reply: the post at the top of its thread.",
             "format": "int64",
             "type": "integer"
+          },
+          "title": {
+            "description": "Its title, where it has one.",
+            "type": "string"
           },
           "type": {
             "description": "What kind of post it is: `node.medium.text-service.note.v1` for a note, and so on.",
@@ -871,7 +871,11 @@
             "description": "What the viewer may do with it."
           },
           "body": {
-            "description": "Its words, as Markdown.",
+            "description": "A profile's description. Left out on a post, whose words are its content.",
+            "type": "string"
+          },
+          "content": {
+            "description": "A post's words, as Markdown.",
             "type": "string"
           },
           "cover_urls": {
@@ -915,7 +919,7 @@
             "description": "The preview of a link in it."
           },
           "name": {
-            "description": "A profile's name, or a post's title where it has one.",
+            "description": "A profile's name. Left out on a post, which has a title instead.",
             "type": "string"
           },
           "owner": {
@@ -928,6 +932,10 @@
             },
             "description": "A photo post's first picture, in each size there is.",
             "type": "object"
+          },
+          "title": {
+            "description": "A post's title, where it has one.",
+            "type": "string"
           },
           "type": {
             "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",

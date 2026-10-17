@@ -127,7 +127,7 @@ type ReplyAddRequest struct {
 	// the path itself.
 	ParentID int64 `param:"id"`
 	// Its words, as Markdown.
-	Body string `json:"body" form:"body" validate:"required,max=8000"`
+	Content string `json:"content" form:"content" validate:"required,max=8000"`
 	// The language it is written in, as a BCP 47 tag.
 	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
 	// The link in it to show a card for, as on a note. See NoteAddRequest.
@@ -187,7 +187,7 @@ func (h *mediumHandler) AddReply(c echo.Context) error {
 	reply := entities.NewAnahitaNode()
 	reply.Type = constants.NodeMediumNoteType
 	reply.Service = constants.TextService
-	reply.Body = req.Body
+	reply.Body = req.Content
 
 	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
 		return an_handlers.RefuseLanguage(c)

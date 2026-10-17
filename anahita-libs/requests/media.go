@@ -28,9 +28,9 @@ func NewMediumRequest() *MediumRequest {
 			ID: 0,
 		},
 		Edit: &MediumEditRequest{
-			ID:   0,
-			Name: "",
-			Body: "",
+			ID:      0,
+			Title:   "",
+			Content: "",
 		},
 		EditAccess: &MediumEditAccessRequest{
 			ID:     0,
@@ -86,9 +86,9 @@ type MediumEditRequest struct {
 	// The post's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 	// Its title.
-	Name string `form:"name" validate:"required,max=100"`
+	Title string `form:"title" validate:"required,max=100"`
 	// Its words, as Markdown.
-	Body string `form:"body" validate:"required,max=8000"`
+	Content string `form:"content" validate:"required,max=8000"`
 	// The language it is written in, as a BCP 47 tag: "en", "fr-CA". Chosen
 	// by the author; left out, the post has none. See package language.
 	Language string `form:"language" validate:"omitempty,max=12"`
@@ -117,9 +117,9 @@ type MediumAddRequest struct {
 	// The profile it is posted on.
 	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
 	// Its title.
-	Name string `form:"name" validate:"required,max=100"`
+	Title string `form:"title" validate:"required,max=100"`
 	// Its words, as Markdown.
-	Body string `form:"body" validate:"required,max=8000"`
+	Content string `form:"content" validate:"required,max=8000"`
 	// Who may see it, as for changing it. The widest the installation allows
 	// when left out.
 	Access string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`

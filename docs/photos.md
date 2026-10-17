@@ -59,8 +59,8 @@ not post there may not upload there. The answer:
 
 ```json
 {
-  "name": "Herons",
-  "body": "At the lagoon this morning.",
+  "title": "Herons",
+  "content": "At the lagoon this morning.",
   "access": "followers",
   "language": "en",
   "uploads": [

@@ -195,9 +195,9 @@ func (h *photoHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	medium.Name = req.Name
+	medium.Name = req.Title
 	medium.Alias = slug.Make(medium.Name)
-	medium.Body = req.Body
+	medium.Body = req.Content
 
 	// The language the author says it is written in. Not saying is not an
 	// error; a tag that is not one is.
@@ -239,9 +239,9 @@ type PhotoAddRequest struct {
 	// The profile it is posted on.
 	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
 	// Its title, if it has one.
-	Name string `form:"name" validate:"omitempty,max=100"`
+	Title string `form:"title" validate:"omitempty,max=100"`
 	// Its words, as Markdown, if it has any.
-	Body string `form:"body" validate:"omitempty,max=8000"`
+	Content string `form:"content" validate:"omitempty,max=8000"`
 	// Who may see it (permissions.md). The widest the installation allows
 	// when left out.
 	Access string `form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
@@ -278,9 +278,9 @@ type PhotoEditRequest struct {
 	// The post's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 	// Its title, if it has one.
-	Name string `form:"name" validate:"omitempty,max=100"`
+	Title string `form:"title" validate:"omitempty,max=100"`
 	// Its words, as Markdown, if it has any.
-	Body string `form:"body" validate:"omitempty,max=8000"`
+	Content string `form:"content" validate:"omitempty,max=8000"`
 	// The language it is written in, as a BCP 47 tag.
 	Language string `form:"language" validate:"omitempty,max=12"`
 }
@@ -310,9 +310,9 @@ func (h *photoHandler) Add(c echo.Context) error {
 
 	medium := placeholderPhoto(owner, viewer)
 	medium.Access = req.Access
-	medium.Name = req.Name
+	medium.Name = req.Title
 	medium.Alias = slug.Make(medium.Name)
-	medium.Body = req.Body
+	medium.Body = req.Content
 
 	// The language the author says it is written in. Not saying is not an
 	// error; a tag that is not one is.

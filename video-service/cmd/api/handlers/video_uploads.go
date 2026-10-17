@@ -39,9 +39,9 @@ type UploadStartRequest struct {
 	// The profile the post will be on.
 	OwnerID int64 `param:"owner_id" validate:"required,numeric"`
 	// Its title, if it has one: neither a post nor a reply needs one.
-	Name string `json:"name" form:"name" validate:"omitempty,max=100"`
+	Title string `json:"title" form:"title" validate:"omitempty,max=100"`
 	// Its words, as Markdown.
-	Body string `json:"body" form:"body" validate:"omitempty,max=8000"`
+	Content string `json:"content" form:"content" validate:"omitempty,max=8000"`
 	// Who may see it (permissions.md).
 	Access string `json:"access" form:"access" validate:"omitempty,oneof=public registered followers leaders mutuals admins myself"`
 	// The language it is written in, as a BCP 47 tag.
@@ -86,7 +86,7 @@ type UploadResponse struct {
 	// `uploading`, `processing`, `ready`, `failed` or `cancelled`.
 	Status string `json:"status"`
 	// The post's title.
-	Name string `json:"name"`
+	Title string `json:"title"`
 	// The profile the post will be on.
 	OwnerID int64 `json:"owner_id"`
 	// Why it failed.
@@ -111,7 +111,7 @@ func newUploadResponse(upload *repositories.Upload) *UploadResponse {
 	resp := &UploadResponse{
 		ID:        upload.ID,
 		Status:    upload.Status,
-		Name:      upload.Name,
+		Title:     upload.Name,
 		OwnerID:   upload.OwnerID,
 		Error:     upload.Error,
 		NodeID:    upload.NodeID,
@@ -277,8 +277,8 @@ func (h *videoHandler) UploadStart(c echo.Context) error {
 		ID:            uuid.NewString(),
 		PersonID:      viewer.ID,
 		OwnerID:       owner.ID,
-		Name:          strings.TrimSpace(req.Name),
-		Body:          req.Body,
+		Name:          strings.TrimSpace(req.Title),
+		Body:          req.Content,
 		Access:        medium.Access,
 		Language:      language,
 		ReplyAccess:   replyAccess,

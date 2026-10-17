@@ -34,7 +34,7 @@ type PhotoReplyRequest struct {
 	// the path itself.
 	ParentID int64 `param:"id"`
 	// Its words, as Markdown. A reply with pictures need not have any.
-	Body string `json:"body" form:"body" validate:"omitempty,max=8000"`
+	Content string `json:"content" form:"content" validate:"omitempty,max=8000"`
 	// The language it is written in, as a BCP 47 tag.
 	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
 	// Its pictures, each uploaded first for the person replying.
@@ -95,7 +95,7 @@ func (h *photoHandler) AddReply(c echo.Context) error {
 	}
 
 	reply := placeholderPhoto(author, viewer)
-	reply.Body = req.Body
+	reply.Body = req.Content
 	reply.Enabled = true
 	reply.CommentStatus = true
 	reply.AllowDownload = handlers.DefaultAllowDownload(nil, author)

@@ -187,10 +187,6 @@
             "$ref": "#/components/schemas/NodeAuthorized",
             "description": "Authorization Information"
           },
-          "body": {
-            "description": "Its words, as Markdown.",
-            "type": "string"
-          },
           "citation_count": {
             "description": "How many people cite it, each once, never its author.",
             "format": "int64",
@@ -204,6 +200,10 @@
           "comment_status": {
             "description": "Whether it takes replies at all.",
             "type": "boolean"
+          },
+          "content": {
+            "description": "Its words, as Markdown.",
+            "type": "string"
           },
           "cover_urls": {
             "additionalProperties": {
@@ -293,10 +293,6 @@
             "description": "The kind of file it holds, where it holds one.",
             "type": "string"
           },
-          "name": {
-            "description": "Its title, where it has one.",
-            "type": "string"
-          },
           "origin_domain": {
             "description": "The server it came from, when it came from another.",
             "type": "string"
@@ -357,6 +353,10 @@
             "format": "int64",
             "type": "integer"
           },
+          "title": {
+            "description": "Its title, where it has one.",
+            "type": "string"
+          },
           "type": {
             "description": "What kind of post it is: `node.medium.text-service.note.v1` for a note, and so on.",
             "type": "string"
@@ -412,14 +412,14 @@
             "$ref": "#/components/schemas/Author",
             "description": "Related Entities"
           },
-          "body": {
-            "description": "Its words, as Markdown.",
-            "type": "string"
-          },
           "comment_count": {
             "description": "How many replies are under it.",
             "format": "int64",
             "type": "integer"
+          },
+          "content": {
+            "description": "Its words, as Markdown.",
+            "type": "string"
           },
           "cover_urls": {
             "additionalProperties": {
@@ -493,10 +493,6 @@
             "description": "The kind of file it holds, where it holds one.",
             "type": "string"
           },
-          "name": {
-            "description": "Its title, where it has one.",
-            "type": "string"
-          },
           "origin_domain": {
             "description": "The server it came from, when it came from another.",
             "type": "string"
@@ -540,6 +536,10 @@
             "description": "On a reply: the post at the top of its thread.",
             "format": "int64",
             "type": "integer"
+          },
+          "title": {
+            "description": "Its title, where it has one.",
+            "type": "string"
           },
           "type": {
             "description": "What kind of post it is: `node.medium.text-service.note.v1` for a note, and so on.",
@@ -734,7 +734,11 @@
             "description": "What the viewer may do with it."
           },
           "body": {
-            "description": "Its words, as Markdown.",
+            "description": "A profile's description. Left out on a post, whose words are its content.",
+            "type": "string"
+          },
+          "content": {
+            "description": "A post's words, as Markdown.",
             "type": "string"
           },
           "cover_urls": {
@@ -778,7 +782,7 @@
             "description": "The preview of a link in it."
           },
           "name": {
-            "description": "A profile's name, or a post's title where it has one.",
+            "description": "A profile's name. Left out on a post, which has a title instead.",
             "type": "string"
           },
           "owner": {
@@ -791,6 +795,10 @@
             },
             "description": "A photo post's first picture, in each size there is.",
             "type": "object"
+          },
+          "title": {
+            "description": "A post's title, where it has one.",
+            "type": "string"
           },
           "type": {
             "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
@@ -1174,7 +1182,7 @@
             "application/x-www-form-urlencoded": {
               "schema": {
                 "properties": {
-                  "body": {
+                  "content": {
                     "description": "Its words, as Markdown, if it has any.",
                     "maxLength": 8000,
                     "type": "string"
@@ -1184,7 +1192,7 @@
                     "maxLength": 12,
                     "type": "string"
                   },
-                  "name": {
+                  "title": {
                     "description": "Its title, if it has one.",
                     "maxLength": 100,
                     "type": "string"
@@ -1196,7 +1204,7 @@
             "multipart/form-data": {
               "schema": {
                 "properties": {
-                  "body": {
+                  "content": {
                     "description": "Its words, as Markdown, if it has any.",
                     "maxLength": 8000,
                     "type": "string"
@@ -1206,7 +1214,7 @@
                     "maxLength": 12,
                     "type": "string"
                   },
-                  "name": {
+                  "title": {
                     "description": "Its title, if it has one.",
                     "maxLength": 100,
                     "type": "string"
@@ -1960,7 +1968,7 @@
             "application/json": {
               "schema": {
                 "properties": {
-                  "body": {
+                  "content": {
                     "description": "Its words, as Markdown. A reply with pictures need not have any.",
                     "maxLength": 8000,
                     "type": "string"
@@ -1984,7 +1992,7 @@
             "application/x-www-form-urlencoded": {
               "schema": {
                 "properties": {
-                  "body": {
+                  "content": {
                     "description": "Its words, as Markdown. A reply with pictures need not have any.",
                     "maxLength": 8000,
                     "type": "string"
@@ -2001,7 +2009,7 @@
             "multipart/form-data": {
               "schema": {
                 "properties": {
-                  "body": {
+                  "content": {
                     "description": "Its words, as Markdown. A reply with pictures need not have any.",
                     "maxLength": 8000,
                     "type": "string"
@@ -2395,7 +2403,7 @@
                     "description": "What the one image of a form post shows.",
                     "type": "string"
                   },
-                  "body": {
+                  "content": {
                     "description": "Its words, as Markdown, if it has any.",
                     "maxLength": 8000,
                     "type": "string"
@@ -2409,11 +2417,6 @@
                     "description": "In the author's media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author's own profile.",
                     "type": "boolean"
                   },
-                  "name": {
-                    "description": "Its title, if it has one.",
-                    "maxLength": 100,
-                    "type": "string"
-                  },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",
                     "maxLength": 16,
@@ -2422,6 +2425,11 @@
                   "reply_access": {
                     "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets.",
                     "maxLength": 64,
+                    "type": "string"
+                  },
+                  "title": {
+                    "description": "Its title, if it has one.",
+                    "maxLength": 100,
                     "type": "string"
                   }
                 },
@@ -2453,7 +2461,7 @@
                     "description": "What the one image of a form post shows.",
                     "type": "string"
                   },
-                  "body": {
+                  "content": {
                     "description": "Its words, as Markdown, if it has any.",
                     "maxLength": 8000,
                     "type": "string"
@@ -2467,11 +2475,6 @@
                     "description": "In the author's media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author's own profile.",
                     "type": "boolean"
                   },
-                  "name": {
-                    "description": "Its title, if it has one.",
-                    "maxLength": 100,
-                    "type": "string"
-                  },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",
                     "maxLength": 16,
@@ -2480,6 +2483,11 @@
                   "reply_access": {
                     "description": "Who may reply: \"anyone\", \"nobody\", or any of \"followers\", \"following\" and \"mentioned\" joined by commas. Left out, anyone the profile lets.",
                     "maxLength": 64,
+                    "type": "string"
+                  },
+                  "title": {
+                    "description": "Its title, if it has one.",
+                    "maxLength": 100,
                     "type": "string"
                   }
                 },

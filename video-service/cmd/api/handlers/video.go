@@ -169,9 +169,9 @@ type VideoEditRequest struct {
 	// The post's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 	// Its title, if it has one.
-	Name string `json:"name" form:"name" validate:"omitempty,max=100"`
+	Title string `json:"title" form:"title" validate:"omitempty,max=100"`
 	// Its words, as Markdown.
-	Body string `json:"body" form:"body" validate:"omitempty,max=8000"`
+	Content string `json:"content" form:"content" validate:"omitempty,max=8000"`
 	// The language it is written in, as a BCP 47 tag.
 	Language string `json:"language" form:"language" validate:"omitempty,max=12"`
 }
@@ -209,9 +209,9 @@ func (h *videoHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	medium.Name = req.Name
+	medium.Name = req.Title
 	medium.Alias = slug.Make(medium.Name)
-	medium.Body = req.Body
+	medium.Body = req.Content
 
 	// The language the author says it is written in. Not saying is not an
 	// error; a tag that is not one is.

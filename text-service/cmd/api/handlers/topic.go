@@ -132,9 +132,9 @@ func (h *topicHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	medium.Name = req.Name
+	medium.Name = req.Title
 	medium.Alias = slug.Make(medium.Name)
-	medium.Body = req.Body
+	medium.Body = req.Content
 
 	// The language the author says it is written in. Not saying is not an
 	// error; a tag that is not one is.
@@ -192,9 +192,9 @@ func (h *topicHandler) Add(c echo.Context) error {
 	medium.Type = constants.NodeMediumTopicType
 	medium.Service = constants.TextService
 	medium.Access = req.Access
-	medium.Name = req.Name
+	medium.Name = req.Title
 	medium.Alias = slug.Make(medium.Name)
-	medium.Body = req.Body
+	medium.Body = req.Content
 
 	// The language the author says it is written in. Not saying is not an
 	// error; a tag that is not one is.

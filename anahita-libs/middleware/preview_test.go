@@ -88,10 +88,10 @@ func TestPreviewOfAListOfPosts(t *testing.T) {
 
 	list := decode(t, `{
 		"data": [
-			{"id": 9007199254740993, "body": "`+long+`", "owner": {"id": 5, "body": "`+long+`",
+			{"id": 9007199254740993, "content": "`+long+`", "owner": {"id": 5, "body": "`+long+`",
 			 "avatar_urls": {"small": {"url": "a"}, "large": {"url": "b"}}},
 			 "portrait_urls": {"original": {"url": "o"}, "small": {"url": "s"}, "large": {"url": "l"}}},
-			{"id": 2, "body": "short"}
+			{"id": 2, "content": "short"}
 		],
 		"pagination": {"offset": 0, "limit": 10, "total": 165}
 	}`)
@@ -99,8 +99,8 @@ func TestPreviewOfAListOfPosts(t *testing.T) {
 	items := list["data"].([]any)
 	first := items[0].(map[string]any)
 
-	if first["truncated"] != true || !strings.HasSuffix(first["body"].(string), "…") {
-		t.Errorf("the long post was not cut and marked: %v", first["body"])
+	if first["truncated"] != true || !strings.HasSuffix(first["content"].(string), "…") {
+		t.Errorf("the long post was not cut and marked: %v", first["content"])
 	}
 
 	// Only the smallest picture of a photo.
@@ -120,7 +120,7 @@ func TestPreviewOfAListOfPosts(t *testing.T) {
 	}
 
 	second := items[1].(map[string]any)
-	if second["body"] != "short" || second["truncated"] != nil {
+	if second["content"] != "short" || second["truncated"] != nil {
 		t.Errorf("a short post was touched: %v", second)
 	}
 
@@ -227,7 +227,7 @@ func TestAnonymousReadersGetAPreview(t *testing.T) {
 			t.Errorf("the handler was not given an anonymous viewer")
 		}
 		return c.JSON(http.StatusOK, map[string]any{
-			"data":       []map[string]any{{"id": 1, "body": long}},
+			"data":       []map[string]any{{"id": 1, "content": long}},
 			"pagination": map[string]any{"offset": 0, "limit": 10, "total": 40},
 		})
 	})

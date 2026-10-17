@@ -11,12 +11,16 @@ func NewParent(node *entities.AnahitaNode) *Parent {
 		return nil
 	}
 
+	words := wordsOf(node)
+
 	dto := &Parent{
 		ID:                 node.ID,
 		Type:               node.Type,
 		Alias:              node.Alias,
-		Name:               node.Name,
-		Body:               node.Body,
+		Name:               words.Name,
+		Title:              words.Title,
+		Body:               words.Body,
+		Content:            words.Content,
 		Access:             node.Access,
 		CreatedAt:          createdAtOrNil(node),
 		IsLikedByViewer:    node.IsLikedByViewer,
@@ -63,10 +67,15 @@ type Parent struct {
 	// A profile's handle (`ana`, or `ana@mastodon.social` for somebody on
 	// another server), or a hashtag's name.
 	Alias string `json:"alias,omitempty"`
-	// A profile's name, or a post's title where it has one.
+	// A profile's name. Left out on a post, which has a title instead.
 	Name string `json:"name,omitempty"`
-	// Its words, as Markdown.
+	// A post's title, where it has one.
+	Title string `json:"title,omitempty"`
+	// A profile's description. Left out on a post, whose words are its
+	// content.
 	Body string `json:"body,omitempty"`
+	// A post's words, as Markdown.
+	Content string `json:"content,omitempty"`
 	// Who may see it. Said so that a repost can be shared as what it reposts.
 	Access string `json:"access,omitempty"`
 	// When it was written, so that a reposted post can be shown as itself.

@@ -161,8 +161,8 @@ func previewJSON(document []byte) ([]byte, bool) {
 // It knows responses by the names of their fields, which are the same across
 // the services:
 //
-//	body           cut to PreviewBodyLength, and the object marked
-//	               "truncated": true
+//	content, body  a post's words or a profile's description, cut to
+//	               PreviewBodyLength, and the object marked "truncated": true
 //	portrait_urls  a photo's sizes: only the smallest is kept
 //	files          a photo post's images: only the first is kept, at its
 //	               smallest size, and the object says how many were held
@@ -186,10 +186,12 @@ func previewValue(value any) any {
 			typed[key] = previewValue(item)
 		}
 
-		if body, ok := typed["body"].(string); ok {
-			if cut, wasCut := previewText(body); wasCut {
-				typed["body"] = cut
-				typed["truncated"] = true
+		for _, key := range []string{"content", "body"} {
+			if words, ok := typed[key].(string); ok {
+				if cut, wasCut := previewText(words); wasCut {
+					typed[key] = cut
+					typed["truncated"] = true
+				}
 			}
 		}
 

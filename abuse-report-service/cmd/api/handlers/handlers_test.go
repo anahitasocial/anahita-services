@@ -559,7 +559,7 @@ func TestAnAdministratorSeesTheCaseWithItsReportsAndReporters(t *testing.T) {
 			ID          int64 `json:"id"`
 			ReportCount int   `json:"report_count"`
 			Target      struct {
-				Name string `json:"name"`
+				Title string `json:"title"`
 			} `json:"target"`
 			TargetOwner struct {
 				Name string `json:"name"`
@@ -583,7 +583,7 @@ func TestAnAdministratorSeesTheCaseWithItsReportsAndReporters(t *testing.T) {
 		t.Fatalf("list: %s", rec.Body.String())
 	}
 	row := list.Data[0]
-	if row.ReportCount != 2 || row.Target.Name != "A note" || row.TargetOwner.Name != "Ada" {
+	if row.ReportCount != 2 || row.Target.Title != "A note" || row.TargetOwner.Name != "Ada" {
 		t.Errorf("row: %+v", row)
 	}
 	if len(row.Reasons) != 1 || row.Reasons[0].Label != "Racism" || row.Reasons[0].Count != 2 {

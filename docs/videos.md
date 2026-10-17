@@ -40,8 +40,8 @@ ffmpeg in it and runs as a user of its own.
 
 ## Sending a video
 
-1. `POST /videos/:owner_id/uploads` with what the post will say (`name`,
-   `body`, `access`, `language`, `reply_access`, `quote_policy`) and the
+1. `POST /videos/:owner_id/uploads` with what the post will say (`title`,
+   `content`, `access`, `language`, `reply_access`, `quote_policy`) and the
    file's `size` and `content_type`. Everything about the post is settled
    now, by the rules for any post: whether this person may post on that
    profile, and to that audience. The answer has the upload's `id`, a

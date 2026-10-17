@@ -138,9 +138,9 @@ func (h *articleHandler) Edit(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	medium.Name = req.Name
-	medium.Alias = slug.Make(req.Name)
-	medium.Body = req.Body
+	medium.Name = req.Title
+	medium.Alias = slug.Make(req.Title)
+	medium.Body = req.Content
 
 	// The language the author says it is written in. Not saying is not an
 	// error; a tag that is not one is.
@@ -198,8 +198,8 @@ func (h *articleHandler) Add(c echo.Context) error {
 	medium.Type = constants.NodeMediumArticleType
 	medium.Service = constants.TextService
 	medium.Access = req.Access
-	medium.Name = req.Name
-	medium.Body = req.Body
+	medium.Name = req.Title
+	medium.Body = req.Content
 
 	// The language the author says it is written in. Not saying is not an
 	// error; a tag that is not one is.
@@ -215,7 +215,7 @@ func (h *articleHandler) Add(c echo.Context) error {
 	// access, no add_permissions — and only the owner themselves, let
 	// through before the permissions are read, could post here.
 	medium.Owner = owner
-	medium.Alias = slug.Make(req.Name)
+	medium.Alias = slug.Make(req.Title)
 	medium.CreatedBy = viewer.ID
 	medium.ModifiedBy = viewer.ID
 	medium.Enabled = true

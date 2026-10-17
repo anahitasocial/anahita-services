@@ -587,13 +587,17 @@
             "type": "object"
           },
           "body": {
-            "description": "Its words: a post's text, as Markdown, or a profile's description.",
+            "description": "A profile's description, or a custom feed's. Left out on a post, whose words are its content.",
             "type": "string"
           },
           "comment_count": {
             "description": "How many replies are under it. A post in a feed said nothing of this, so its interactions counted its replies as none.",
             "format": "int64",
             "type": "integer"
+          },
+          "content": {
+            "description": "A post's words, as Markdown.",
+            "type": "string"
           },
           "cover_urls": {
             "additionalProperties": {
@@ -690,7 +694,7 @@
             "type": "string"
           },
           "name": {
-            "description": "A profile's name, or a post's title where it has one.",
+            "description": "A profile's name, a custom feed's or a hashtag's. Left out on a post, which has a title instead.",
             "type": "string"
           },
           "origin_domain": {
@@ -743,6 +747,10 @@
             "description": "Set on a reply: the post at the top of its thread. Its parent, what it directly answers, is sent whole as `parent`.",
             "format": "int64",
             "type": "integer"
+          },
+          "title": {
+            "description": "A post's title, where it has one.",
+            "type": "string"
           },
           "type": {
             "description": "What kind of thing it is: `node.medium.text-service.note.v1` for a note, `node.actor.actor-service.person.v1` for a person, and so on.",
@@ -862,7 +870,11 @@
             "description": "What the viewer may do with it."
           },
           "body": {
-            "description": "Its words, as Markdown.",
+            "description": "A profile's description. Left out on a post, whose words are its content.",
+            "type": "string"
+          },
+          "content": {
+            "description": "A post's words, as Markdown.",
             "type": "string"
           },
           "cover_urls": {
@@ -906,7 +918,7 @@
             "description": "The preview of a link in it."
           },
           "name": {
-            "description": "A profile's name, or a post's title where it has one.",
+            "description": "A profile's name. Left out on a post, which has a title instead.",
             "type": "string"
           },
           "owner": {
@@ -919,6 +931,10 @@
             },
             "description": "A photo post's first picture, in each size there is.",
             "type": "object"
+          },
+          "title": {
+            "description": "A post's title, where it has one.",
+            "type": "string"
           },
           "type": {
             "description": "What kind of thing it is: `node.actor.<service>.person.v1`, `...group.v1`, `...event.v1`, or a post's kind.",
