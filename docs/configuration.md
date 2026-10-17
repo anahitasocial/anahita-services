@@ -273,6 +273,23 @@ be saved without coordinates. actor-service starts without either, and events
 are then saved with their address and no map. An event's address is sent to
 a geocoder only when "Show a map" is ticked on its form.
 
+## Trending
+
+Read by hashtag-service and location-service: over what span of time the
+hashtags and places trending are counted. A hashtag or a place trends by
+how many people posted with it in that time, each once, in public posts,
+by when the posts were written.
+
+| Variable | Value |
+| --- | --- |
+| `TRENDING_WINDOW` | Optional. `daily`, `weekly`, `monthly` or `yearly`. Left out, `daily` when `FEDERATION_PROTOCOLS` names a network, where the fediverse brings enough every day, and `monthly` on an installation only its own members post to |
+
+Whatever it starts from, a window that holds fewer than ten is widened to
+the next, a week, a month, then a year, so the list is not empty on a quiet
+day; the answer says which window it is of, and the web app shows it. A
+client may still ask for a window (`time_window`). See [Hashtags and
+places](hashtags.md).
+
 ## Mail
 
 Read by mail-grpc-service.

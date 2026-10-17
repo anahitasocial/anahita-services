@@ -46,10 +46,10 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	hashtags := api.Group("hashtags")
 	hashtags.GET("/_browse/trending", r.handler.Hashtag.BrowseTrending, r.setViewer).
 		Summary("Hashtags used most lately").
-		Describe("The hashtags most used in a window of time that ends now. One page, all there is: up to `limit`, and `total` says how many.").
+		Describe("The hashtags the most people posted with in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.").
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewHashtagRequest().BrowseTrending).
-		Sends(http.StatusOK, libs_responses.List[*responses.HashtagNodeItem]{})
+		Sends(http.StatusOK, libs_responses.Trending[*responses.HashtagNodeItem]{})
 	hashtags.GET("/_browse/ordered_by_degree", r.handler.Hashtag.BrowseOrderedByDegree, r.setViewer).
 		Summary("Hashtags used most of all").
 		Describe("Every hashtag, the ones in the most posts first.").

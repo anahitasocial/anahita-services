@@ -16627,7 +16627,7 @@
     },
     "/hashtags/_browse/trending": {
       "get": {
-        "description": "The hashtags most used in a window of time that ends now. One page, all there is: up to `limit`, and `total` says how many.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The hashtags the most people posted with in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getHashtagsBrowseTrending",
         "parameters": [
           {
@@ -16646,7 +16646,6 @@
             "in": "query",
             "name": "time_window",
             "schema": {
-              "default": "weekly",
               "enum": [
                 "daily",
                 "weekly",
@@ -16676,11 +16675,15 @@
                     "pagination": {
                       "$ref": "#/components/schemas/Pagination",
                       "description": "Where this page is among everything there is."
+                    },
+                    "window": {
+                      "type": "string"
                     }
                   },
                   "required": [
                     "data",
-                    "pagination"
+                    "pagination",
+                    "window"
                   ],
                   "type": "object"
                 }
@@ -18238,7 +18241,7 @@
     },
     "/locations/_browse/trending": {
       "get": {
-        "description": "The places most posts were tied to in a window of time that ends now. One page, all there is: up to `limit`, and `total` says how many.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The places the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getLocationsBrowseTrending",
         "parameters": [
           {
@@ -18257,7 +18260,6 @@
             "in": "query",
             "name": "time_window",
             "schema": {
-              "default": "weekly",
               "enum": [
                 "daily",
                 "weekly",
@@ -18287,11 +18289,15 @@
                     "pagination": {
                       "$ref": "#/components/schemas/Pagination",
                       "description": "Where this page is among everything there is."
+                    },
+                    "window": {
+                      "type": "string"
                     }
                   },
                   "required": [
                     "data",
-                    "pagination"
+                    "pagination",
+                    "window"
                   ],
                   "type": "object"
                 }

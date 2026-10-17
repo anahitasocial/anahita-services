@@ -371,15 +371,10 @@ func (r *graphRepo) ReadShortestPath(req *graphpb.ReadShortestPathRequest, viewe
 	return &graphpb.ReadShortestPathResponse{}, nil
 }
 
-// Trending returns nodes that have had the most activity in a given time window.
-//
-// This method:
-//   - supports filtering by node type, edge types, and direction
-//   - ranks nodes based on recent edge creation activity
-//   - performs permission checks based on the viewer
-//
-// Use this for discovery features, trending topics,
-// or highlighting active entities in the graph.
+// Trending returns the tags, hashtags or places, that the most people
+// posted with in a window of time that ends now: the people who wrote a
+// public post carrying it in that time, each once. The edge types say
+// which tag; the direction is not read, a tag being node_a of its edges.
 func (r *graphRepo) Trending(req *graphpb.TrendingRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
 	// ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	// defer cancel()
@@ -406,12 +401,32 @@ func (r *graphRepo) Trending(req *graphpb.TrendingRequest, viewer *entities.View
 		cutoff = now.Add(-24 * time.Hour) // fallback to 24h
 	}
 
+	// What is trending is what people posted with lately: each person once,
+	// however many of their posts carry it, so that one account cannot
+	// make something trend; by when the post was written, not when it came
+	// here, so that a profile's older posts fetched when it is followed do
+	// not trend that day; and only posts anybody may see, on profiles
+	// anybody may see, so that what trends says nothing of what is kept
+	// from view (the user, 2026-10-17). The tag is node_a of its edges.
 	query := GetBaseSelectQuery()
 
-	query = query.Join("edges AS edge ON " + r.buildDegreeJoinCondition(req.Direction)).
-		Where(sq.Gt{"edge.created_at": cutoff}).
+	query = query.
+		Join("edges AS edge ON edge.node_a_id = node.id").
+		Join("nodes AS post ON post.id = edge.node_b_id").
+		LeftJoin("nodes AS post_owner ON post_owner.id = post.owner_id").
+		Where(sq.Gt{"post.created_at": cutoff}).
+		Where("post.access = 'public'").
+		Where("post.enabled = 1").
+		Where("post.draft = 0").
+		Where("post.deleted_at IS NULL").
+		Where("(post_owner.id IS NULL OR post_owner.access IS NULL OR post_owner.access = 'public')").
+		Where("node.deleted_at IS NULL").
 		GroupBy("node.id").
-		OrderBy("count(edge.id) DESC")
+		OrderBy(
+			"COUNT(DISTINCT post.created_by) DESC",
+			"COUNT(DISTINCT post.id) DESC",
+			"node.id DESC",
+		)
 
 	// Optional filters
 	if req.NodeType != "" {

@@ -25,7 +25,7 @@ func NewLocationRequest() *LocationRequest {
 		},
 		BrowseTrending: &LocationBrowseTrendingRequest{
 			Limit:      constants.RequestLimitDefault,
-			TimeWindow: "weekly",
+			TimeWindow: "",
 		},
 		BrowseOrderedByDegree: &LocationBrowseOrderedByDegreeRequest{
 			Offset: 0,

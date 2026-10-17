@@ -5,6 +5,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	an_responses "anahita-libs/responses"
+	"anahita-libs/trending"
 	"fmt"
 	"location/constants"
 	"location/data/validators"
@@ -185,21 +186,30 @@ func (h *locationHandler) BrowseTrending(c echo.Context) error {
 
 	gReq.NodeType = an_constants.NodeBaseLocationEntityType
 	gReq.EdgeTypes = []string{an_constants.EdgeTagLocationType}
-	gReq.Direction = an_constants.GraphQueryDirectionOutbound
 	gReq.Limit = req.Limit
-	gReq.TimeWindow = strings.ToUpper(req.TimeWindow)
 	gReq.Viewer = viewer
 	gReq.AccessCheck = false
-	nodes, err := h.Srv.GraphGRPC.Trending(gReq)
+
+	// From the window asked for, or the installation's, wider while it
+	// holds too few (anahita-libs/trending).
+	start := trending.Normal(req.TimeWindow)
+	if start == "" {
+		start = trending.DefaultWindow()
+	}
+	nodes, window, err := trending.Widen(start, req.Limit, func(window string) ([]*entities.AnahitaNode, error) {
+		gReq.TimeWindow = window
+		return h.Srv.GraphGRPC.Trending(gReq)
+	})
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	// In the envelope every list comes in, as one page that is all there
-	// is, as hashtags' trending is.
+	// is, and with the window it is of.
 	locationResp := &responses.LocationNodeResponse{}
-	resp := &an_responses.List[*responses.LocationNodeItem]{Data: []*responses.LocationNodeItem{}}
+	resp := &an_responses.Trending[*responses.LocationNodeItem]{Window: strings.ToLower(window)}
+	resp.Data = []*responses.LocationNodeItem{}
 	if len(nodes) > 0 {
 		resp.Data = locationResp.MapLocationNodeItems(nodes)
 	}

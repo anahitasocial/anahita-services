@@ -23,6 +23,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [OAuth signing and encryption](configuration.md#oauth-signing-and-encryption)
    - [Storage](configuration.md#storage)
    - [Places](configuration.md#places)
+   - [Trending](configuration.md#trending)
    - [Mail](configuration.md#mail)
    - [Abuse reports](configuration.md#abuse-reports)
    - [Account cleanup](configuration.md#account-cleanup)

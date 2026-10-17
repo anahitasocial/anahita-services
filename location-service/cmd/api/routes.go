@@ -46,10 +46,10 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	locations := api.Group("locations")
 	locations.GET("/_browse/trending", r.handler.Location.BrowseTrending, r.setViewer).
 		Summary("Places used most lately").
-		Describe("The places most posts were tied to in a window of time that ends now. One page, all there is: up to `limit`, and `total` says how many.").
+		Describe("The places the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.").
 		Viewer(apidoc.Anyone).
 		Takes(requests.NewLocationRequest().BrowseTrending).
-		Sends(http.StatusOK, libs_responses.List[*responses.LocationNodeItem]{})
+		Sends(http.StatusOK, libs_responses.Trending[*responses.LocationNodeItem]{})
 	locations.GET("/_browse/ordered_by_degree", r.handler.Location.BrowseOrderedByDegree, r.setViewer).
 		Summary("Places used most of all").
 		Viewer(apidoc.Anyone).

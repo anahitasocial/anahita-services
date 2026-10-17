@@ -8,6 +8,7 @@ hashtags offered to somebody while they write.
 - [How a post gets its hashtags](#how-a-post-gets-its-hashtags)
 - [At most ten hashtags](#at-most-ten-hashtags)
 - [At most five places](#at-most-five-places)
+- [Trending](#trending)
 - [Suggestions while writing](#suggestions-while-writing)
 - [What the web app does](#what-the-web-app-does)
 - [Where the code is](#where-the-code-is)
@@ -60,6 +61,24 @@ already has is not a sixth.
 The number is `constants.MaxLocationsOfAPost` in anahita-libs, and
 `Medium.MAX_LOCATIONS` in the web app. Five is also how many places a custom
 feed can filter on (`feeds.MaxLocations`).
+
+## Trending
+
+`GET /hashtags/_browse/trending` and `GET /locations/_browse/trending` list
+what the most people posted with lately.
+
+- **Each person once.** One account posting a hashtag twenty times counts
+  as one, so nobody can make something trend alone. Ties go to the one on
+  more posts.
+- **By when a post was written,** not when it arrived. A profile's older
+  posts fetched when it is followed don't trend that day.
+- **Public posts only,** on profiles anybody may see, so what trends says
+  nothing about what is kept from view.
+- **Over a window** the installation chooses (`TRENDING_WINDOW`, see
+  [Configuration](configuration.md#trending)): daily where it federates,
+  monthly where only its own members post. A window with fewer than ten is
+  widened, to a week, a month, then a year, and the answer's `window` says
+  which it is of. The web app shows it under the tabs.
 
 ## Suggestions while writing
 

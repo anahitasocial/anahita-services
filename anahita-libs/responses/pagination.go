@@ -26,6 +26,15 @@ type List[T any] struct {
 	Pagination Pagination `json:"pagination"`
 }
 
+// Trending is what is trending, one page that is all there is, and over
+// what span of time: `daily`, `weekly`, `monthly` or `yearly`, which may be
+// wider than the one asked for when that one held too few
+// (anahita-libs/trending).
+type Trending[T any] struct {
+	List[T]
+	Window string `json:"window"`
+}
+
 // Item is one thing, in the envelope a list's things come in.
 type Item[T any] struct {
 	// What was asked for.
