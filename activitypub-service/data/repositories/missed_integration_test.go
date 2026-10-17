@@ -113,11 +113,12 @@ VALUES (?, ?, ?, ?, 'accepted', ?, ?)`, local, far, direction, fmt.Sprintf("a-%d
 	node(105, note, ben, ben, "public", 1, hour(3), nil)                                  // not on the fediverse
 	node(106, note, 50, ana, "public", 1, hour(3), nil)                                   // on somebody else's profile
 	node(107, note, ana, ana, "public", 1, hour(72), nil)                                 // too long ago to send as new
-	node(108, "node.medium.text-service.article.v1", ana, ana, "public", 1, hour(3), nil) // not a note
+	node(108, "node.medium.text-service.topic.v1", ana, ana, "public", 1, hour(3), nil)   // a topic stays here
 	node(109, note, ana, ana, "public", 0, hour(3), nil)                                  // disabled
+	node(130, "node.medium.text-service.article.v1", ana, ana, "public", 1, hour(3), nil) // an article goes, as a note does
 
 	notes, err := repo.NotesNotSent(now.Add(-48*time.Hour), now.Add(-2*time.Minute), 50)
-	if err != nil || fmt.Sprint(notes) != "[100]" {
+	if err != nil || fmt.Sprint(notes) != "[100 130]" {
 		t.Errorf("notes not sent: %v (%v)", notes, err)
 	}
 
@@ -128,7 +129,7 @@ VALUES (?, ?, ?, ?, 'accepted', ?, ?)`, local, far, direction, fmt.Sprintf("a-%d
 	node(121, note, ana, ana, "", 1, hour(3), nil)
 	exec(`UPDATE nodes SET parent_id = 100, root_id = 100 WHERE id = 120`)
 	exec(`UPDATE nodes SET parent_id = 102, root_id = 102 WHERE id = 121`)
-	if notes, err := repo.NotesNotSent(now.Add(-48*time.Hour), now.Add(-2*time.Minute), 50); err != nil || fmt.Sprint(notes) != "[100 120]" {
+	if notes, err := repo.NotesNotSent(now.Add(-48*time.Hour), now.Add(-2*time.Minute), 50); err != nil || fmt.Sprint(notes) != "[100 120 130]" {
 		t.Errorf("notes and replies not sent: %v (%v)", notes, err)
 	}
 	// Sent, a reply is not taken for gone because it has no audience of
