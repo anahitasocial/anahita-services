@@ -2,6 +2,20 @@
 
 Documentation for anahita-services, the Go microservices behind Anahita.
 
+## Where to begin
+
+Four ways in, by what you are doing. Each is a short page of links, in the
+order to read them.
+
+| To | Read |
+| --- | --- |
+| Put a site on the web | [Setting up a site](setting-up.md) |
+| Change how it looks, what it says and what it allows | [Making it your own](making-it-your-own.md) |
+| Run it from day to day: upgrades, storage, accounts, reports | [Keeping it running](keeping-it-running.md) |
+| Write an app or a service against it | [Building on it](building-on-it.md) |
+
+Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
+
 ## Contents
 
 1. [Getting started](getting-started.md) — running the stack locally

@@ -218,6 +218,17 @@ pushed.
    `POST /invites` (`INVITES_FROM`, not `REGISTRATION_MODE`), and in the web
    app, `src/containers/StaticPage.jsx`, which nothing used, removed.
 
+8. The four doors: [Setting up a site](../setting-up.md),
+   [Making it your own](../making-it-your-own.md),
+   [Keeping it running](../keeping-it-running.md) and
+   [Building on it](../building-on-it.md), each a numbered list of links in
+   the order to read them, under "Where to begin" in the index. The web
+   app's index points to them. Each door ends with the pages found missing
+   in filling it: backing up and restoring, and upgrading step by step
+   (Keeping it running); the events on the bus, writing a service, and
+   writing a client (Building on it); starting configurations for kinds of
+   site, which is row 30 (Making it your own). Each is a page to plan.
+
 **Settled with the user** (2026-10-17): the four lines of the services' old
 `.claude/CLAUDE.md` left out of part 1 come back, in both repositories. Asking
 before every commit, showing its message, and branching under `issues` on
@@ -226,18 +237,13 @@ Architect: Rastin Mehr" go in each `AGENTS.md`. The two lines written new
 in `AGENTS.md`, the sovereignty line and "every string is in
 `src/languages/en-GB` and `fr-FR`", stay as written.
 
-**Next, in this order:**
-
-1. **The four doors in `docs/README.md`:** Setting up a site, Keeping it
-   running, Making it your own, Building on it; and the list of pages found
-   missing (backups, upgrades, writing a service, writing a client).
-2. **The MCP server, last** (`tools/docs-mcp`, Go, read only, offline), as
-   Design part 3 describes. Its recipe tools wait for row 30; hosting it and
-   `llms.txt` wait until the docs are public.
+**Next:** the MCP server (`tools/docs-mcp`, Go, read only, offline), as
+Design part 3 describes. Its recipe tools wait for row 30; hosting it and
+`llms.txt` wait until the docs are public.
 
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11; the plain-language pass and keeping the docs true added 2026-10-14 |
-| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; the plain-language pass decided against; next are the four doors ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |
+| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; the plain-language pass decided against; the four doors done; next is the MCP server ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |
