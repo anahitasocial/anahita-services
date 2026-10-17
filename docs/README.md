@@ -278,7 +278,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Suggestions while writing](hashtags.md#suggestions-while-writing)
    - [What the web app does](hashtags.md#what-the-web-app-does)
    - [Where the code is](hashtags.md#where-the-code-is)
-24. [Websites](websites.md) — a website's feed as a profile to follow: connecting a site, proving its domain, its feed read and posted as articles, replies as the website, and on the fediverse
+24. [Websites](websites.md) — a website's feed as a profile to follow: connecting a site, proving its domain, its feed read and posted as notes, replies as the website, and on the fediverse
    - [Who does what](websites.md#who-does-what)
    - [Connecting a website](websites.md#connecting-a-website)
    - [Proving a domain](websites.md#proving-a-domain)

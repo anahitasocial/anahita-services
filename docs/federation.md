@@ -147,7 +147,7 @@ domain, is written down for later (`docs/plans/atproto-server.md`).
 
 ### Groups, events and the rest
 
-What only Anahita has (groups, events, articles and topics, followers-only
+What only Anahita has (groups, events, topics, followers-only
 posts, likes and follows between people here, custom feeds) stays here, on
 either network. An app built on the AT Protocol may keep such things as
 records of its own kinds in people's repositories; Anahita does not, since
@@ -498,9 +498,10 @@ happened and asks the other server, with a signed `Follow`.
 What is sent to another server cannot be called back, so what is sent is
 narrow, and is asked of the post as it is at that moment:
 
-- a **note, a photo post or a video post**, written here, by somebody who
-  is on the fediverse. A photo post is sent as a note with its pictures,
-  and a video post as a note with its video;
+- a **note, a photo post, a video post or an article**, written here, by
+  somebody who is on the fediverse. A photo post is sent as a note with its
+  pictures, a video post as a note with its video, and an article as an
+  `Article`;
 - on **their own profile**: not in a group, not on somebody else's;
 - **open to everybody**: not to members, not to followers;
 - or **a reply**, by [the rule for replies](#replies);
@@ -548,7 +549,24 @@ it so.
 A **website's notes**, the items of its feed and its replies, go out as a
 person's notes do, the website's, to its followers ([Websites](websites.md)).
 
-**Not sent:** articles and topics (roadmap row 84); anything in a group;
+**An article goes as an `Article`** at the same address a note has
+(`/ap/notes/<uuid>`), under the same rules:
+
+| Of the `Article` | From the article |
+| --- | --- |
+| `name` | Its title |
+| `summary` | Its first paragraph of words, as plain text, cut at a word near 300 characters; a heading, a picture, a quotation, a list or an address on a line of its own is passed over |
+| `content` | All of it, as HTML made from its Markdown, as a note's is |
+| `url` | Its page here, `/articles/<id>` |
+| `image` | Its cover, at `/covers/<uuid>/large` |
+
+Mastodon shows an `Article` as its title and a link to its page here;
+WriteFreely, Ghost, Friendica and the like show the article itself.
+Replies, likes and reposts from elsewhere are taken on it, its changes and
+its deletion follow, as for a note. A post the article shows by its
+address on a line of its own stays a link.
+
+**Not sent:** topics (the user, 2026-10-17: they stay here); anything in a group;
 a quoted post (the note that quotes goes, without what it quotes);
 the card for a link. Somebody who starts following is sent what is posted
 from then on, and nothing from before.
@@ -1286,9 +1304,9 @@ its own. The card says to use one and where to make it.
   with no such key reads Bluesky and writes nothing: nobody is offered the
   card.
 - **What goes.** A like or a repost of a post that came from Bluesky; a
-  reply under one, or under a reply that itself went there; and a note or
-  a photo or video post of the person's own that everybody may read, on
-  their own profile. Connecting an account is saying that such posts are
+  reply under one, or under a reply that itself went there; and a note, a
+  photo or video post or an article of the person's own that everybody may
+  read, on their own profile. A topic does not go. Connecting an account is saying that such posts are
   posted there, as being on the fediverse is. A post on somebody else's
   profile or a group's does not go.
 - **Videos.** A video post goes with its video, a GIF made into a clip
@@ -1302,6 +1320,10 @@ its own. The card says to use one and where to make it.
   than that goes as a card that leads to its page here, with its poster;
   so does one Bluesky would not take. An account Bluesky hosts must have
   confirmed its email to post videos, and has a daily limit.
+- **Articles.** An article goes as its title, as the first line, then its
+  words, cut to what a post holds, with a card that leads to the article
+  here: its title, its opening under it, and its cover as its picture,
+  given to the account's server as a photo post's pictures are.
 - **Pictures and cards.** A photo post goes with up to four pictures and
   what each shows. A note goes with the card of the link in it, picture
   and all: Bluesky draws no card of its own from an address in a post, so
