@@ -56,9 +56,10 @@ The rules are in `anahita-libs/language`.
 
 ## On a post
 
-`language` is accepted when a note, article, topic or photo is created
-(`POST /notes/:owner_id/` and the others) and when it is edited
-(`PATCH /…/:id`). It is optional. Left out when creating, the post has no
+`language` is accepted when a note, article, topic, photo or video is created
+(`POST /notes/:owner_id/` and the others; for a video,
+`POST /videos/:owner_id/uploads`), when a reply is posted
+(`POST /…/:id/replies`), and when a post is edited (`PATCH /…/:id`). It is optional. Left out when creating, the post has no
 language; left out when editing, it keeps the one it has.
 
 Every post in a response carries `language` when it has one.

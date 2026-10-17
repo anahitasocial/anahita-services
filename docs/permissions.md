@@ -20,15 +20,17 @@ What each route answers when the viewer may not is in the [API reference](api/in
 - [Replies](#replies)
   - [Seeing a reply](#seeing-a-reply)
   - [Replying](#replying)
+  - [Who the author lets reply](#who-the-author-lets-reply)
   - [Who looks after a thread](#who-looks-after-a-thread)
-  - [Replying as a website](#replying-as-a-website)
   - [Editing, deleting and hiding a reply](#editing-deleting-and-hiding-a-reply)
+  - [Replying as a website](#replying-as-a-website)
   - [Liking a reply](#liking-a-reply)
 - [Likes](#likes)
 - [Following](#following)
 - [Invitations](#invitations)
 - [Events](#events)
 - [Reposts](#reposts)
+- [Mentions](#mentions)
 - [Quotes](#quotes)
 - [Saved posts](#saved-posts)
 - [Pinned posts](#pinned-posts)
@@ -166,8 +168,9 @@ you. You see it only if you could see the original.
 
 The author chooses a post's audience when writing it, and whoever may edit the
 post can change it afterwards. It is sent as `access` when the post is created
-(`POST /notes/:owner_id/` and the same for articles, topics and photos) and
-changed with `PATCH /…/:id/access`. Left out, a new post is `public`.
+(`POST /notes/:owner_id/` and the same for articles, topics and photos; for a
+video, when its upload begins, `POST /videos/:owner_id/uploads`) and changed
+with `PATCH /…/:id/access`. Left out, a new post is `public`.
 
 Which audiences a post may have depends on where it is:
 
@@ -208,7 +211,7 @@ because "only me" depends on who wrote the post, not on who is changing it.
 
 ## Posting
 
-Who can create a note, article, topic or photo on somebody's profile.
+Who can create a note, article, topic, photo or video on somebody's profile.
 
 - The owner and the profile's administrators always can.
 - Everybody else has to be able to see the profile and meet the level set for
@@ -776,6 +779,8 @@ The defaults live in `graph-grpc-defaults/actor_features/`:
 | `default.json` | Every profile, as the base |
 | `person.json` | People, layered over `default.json` |
 | `group.json` | Groups, layered over `default.json` |
+| `event.json` | Events, layered over `default.json` |
+| `website.json` | Websites, layered over `default.json` |
 
 Each service lists its `add_permissions` as an entity and a level:
 

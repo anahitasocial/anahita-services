@@ -81,7 +81,8 @@ the audiences that are allowed.
   post at the top of their thread.
 
 The API: `access` when the post is created (`POST /notes/:owner_id/`, and the
-same for articles, topics and photos), and `PATCH /…/:id/access` to change it.
+same for articles, topics and photos; for a video, when its upload begins,
+`POST /videos/:owner_id/uploads`), and `PATCH /…/:id/access` to change it.
 Every person, group and post in a response carries `authorized.audiences`, the
 audiences the viewer may choose there, so a client offers only those.
 
