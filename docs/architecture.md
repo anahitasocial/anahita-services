@@ -198,8 +198,9 @@ web app reads it the same way.
   `nodes.citation_count`, which [Search](search.md) and
   [Recommendations](recommendations.md) weigh. `GET /notes/:id/cited_by`
   lists the posts citing a post of any kind, newest first, as the viewer
-  may see them; the web app shows them in a post's Citations tab, beside
-  Replies and Locations, with what an article or a topic cites under them.
+  may see them; the web app shows them in a post's Cited by tab, beside
+  Replies and Locations. What an article or a topic cites is listed at the
+  end of its own text.
 - **A page elsewhere** is shown by its card, kept in the post's `meta` under
   `link_previews` and sent as `link_previews`: see
   [Link previews](link-previews.md#cards-in-long-writing).
