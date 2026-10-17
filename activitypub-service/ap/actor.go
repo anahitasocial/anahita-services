@@ -1,6 +1,7 @@
 package ap
 
 import (
+	"anahita-libs/constants"
 	"path"
 	"strings"
 	"time"
@@ -9,7 +10,10 @@ import (
 	"anahita-libs/federation"
 )
 
-// NewActor describes a person here to another server.
+// NewActor describes a person or a Pulse here to another server: a Person,
+// or an Organization, which is what a website's feed is to Mastodon. Not a
+// Service, which Mastodon marks as automated: its administrators answer as
+// it (docs/plans/pulse.md).
 //
 // The caller has decided that they may be described at all. Nothing here is
 // more than their public profile already shows a visitor: a name, what they
@@ -20,7 +24,7 @@ func NewActor(a Addresses, person *entities.AnahitaNode, publicKeyPEM string) *A
 	actor := &Actor{
 		Context:           actorContext,
 		ID:                a.Actor(uuid),
-		Type:              "Person",
+		Type:              actorType(person),
 		PreferredUsername: person.Alias,
 		Name:              person.Name,
 		URL:               a.Profile(person.Alias),
@@ -55,6 +59,13 @@ func NewActor(a Addresses, person *entities.AnahitaNode, publicKeyPEM string) *A
 	}
 
 	return actor
+}
+
+func actorType(node *entities.AnahitaNode) string {
+	if node.Type == constants.NodeActorPulseEntityType {
+		return "Organization"
+	}
+	return "Person"
 }
 
 // NewInstanceActor describes the installation itself: who signs what it

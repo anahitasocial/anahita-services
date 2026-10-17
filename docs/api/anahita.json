@@ -2772,7 +2772,14 @@
             "description": "What it answers, by the address that has between servers.",
             "type": "string"
           },
+          "name": {
+            "description": "An Article's title, and the opening it is summed up by.",
+            "type": "string"
+          },
           "published": {
+            "type": "string"
+          },
+          "summary": {
             "type": "string"
           },
           "tag": {
@@ -8089,7 +8096,7 @@
     },
     "/ap/notes/{uuid}": {
       "get": {
-        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Note`, of somebody on the fediverse, open to everybody.\n\nWho may call it: anyone, signed in or not.",
+        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Note`, of somebody on the fediverse, open to everybody; an `Article` for a Pulse's article.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getApNotesByUuid",
         "parameters": [
           {
@@ -8254,7 +8261,7 @@
     },
     "/ap/users/{uuid}": {
       "get": {
-        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Person`, with their public key.\n\nWho may call it: anyone, signed in or not.",
+        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Person`, or an `Organization` for a Pulse, with their public key.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getApUsersByUuid",
         "parameters": [
           {
