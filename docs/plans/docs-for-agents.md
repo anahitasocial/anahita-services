@@ -237,13 +237,19 @@ Architect: Rastin Mehr" go in each `AGENTS.md`. The two lines written new
 in `AGENTS.md`, the sovereignty line and "every string is in
 `src/languages/en-GB` and `fr-FR`", stay as written.
 
-**Next:** the MCP server (`tools/docs-mcp`, Go, read only, offline), as
-Design part 3 describes. Its recipe tools wait for row 30; hosting it and
-`llms.txt` wait until the docs are public.
+**Waiting for anahita-services to be public** under
+`github.com/anahitasocial` (user, 2026-10-17): the MCP server
+(`tools/docs-mcp`, Go, read only, offline, one server for both repositories'
+docs, started from each `.mcp.json`), as Design part 3 describes, and
+`llms.txt`. The people it is for have no clone, and cannot reach it before
+then. Publishing also changes the web app's 55 links to
+`github.com/purplerat/anahita-services`, which until then lead nowhere for
+anybody else; they are left as they are and changed together. The recipe
+tools wait for row 30 as well.
 
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11; the plain-language pass and keeping the docs true added 2026-10-14 |
-| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; the plain-language pass decided against; the four doors done; next is the MCP server ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |
+| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; the plain-language pass decided against; the four doors done, 2026-10-17. The MCP server waits for anahita-services to be public ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |
