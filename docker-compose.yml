@@ -161,6 +161,9 @@ services:
       # administrators or super-administrators. Enforced by actor-service
       # and published by auth-service, from this one entry.
       EVENTS_FROM: ${EVENTS_FROM:-}
+      # Who may connect a website as a Pulse: administrators unless set.
+      # Enforced by pulse-service and published by auth-service.
+      PULSES_FROM: ${PULSES_FROM:-}
       # Video: whether it may be posted, and the limits, for the web app.
       # See docs/videos.md.
       VIDEO_UPLOADS: ${VIDEO_UPLOADS:-}
@@ -800,6 +803,45 @@ services:
     networks:
       anahita-network:
         ipv4_address: 172.20.1.38
+
+# pulse-service - connecting a website: its feed found, its domain proved,
+# and a Pulse made of it. It goes out to the internet for what somebody
+# names, only to public addresses. Left out, there are no Pulses.
+  pulse-service:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/pulse-service.dockerfile
+    restart: always
+    ports:
+      - "8102:80"
+    depends_on:
+      - graph-grpc-service
+      - mysql
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      ENV: ${ENV}
+      # Mutual TLS between the services. See docs/configuration.md, Internal calls.
+      GRPC_TLS: ${GRPC_TLS:-on}
+      SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
+      MIN_CONTENT_ACCESS: ${MIN_CONTENT_ACCESS:-}
+      DSN: ${DSN}
+      SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_TLS: ${REDIS_TLS:-}
+      REDIS_PASSWORD: ""
+      GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
+      OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      # Who may connect a website: administrators unless set. See
+      # docs/configuration.md, Who may make what.
+      PULSES_FROM: ${PULSES_FROM:-}
+    volumes:
+      - ./grpc-certs:/run/secrets/grpc:ro
+    networks:
+      anahita-network:
+        ipv4_address: 172.20.1.52
 
 # video-service - videos: the upload a browser sends straight to storage,
 # and the posts made of them. Optional: left out, there are no video posts.

@@ -3,6 +3,9 @@ package constants
 const (
 	// Services
 	PersonService = "person-service"
+	// The `service` of an event's node and a Pulse's: actor-service serves
+	// them. A group's is still the older group-service.
+	ActorService = "actor-service"
 
 	// Node Types
 	NodeActorPrefixEntityType  = "node.actor."

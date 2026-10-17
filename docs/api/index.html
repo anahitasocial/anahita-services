@@ -66,12 +66,13 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#location-service">Places</a> <span class="count">10</span></li>
 <li><a href="#notification-service">Notifications</a> <span class="count">6</span></li>
 <li><a href="#photo-service">Photo posts</a> <span class="count">16</span></li>
+<li><a href="#pulse-service">Pulses</a> <span class="count">3</span></li>
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
 <li><a href="#search-service">Search</a> <span class="count">3</span></li>
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">44</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">143</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">146</span></li>
 </ul>
 </nav>
 <main>
@@ -6586,6 +6587,97 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <p class="handler">Answered by <code>photo/cmd/api/handlers.(*photoHandler).Upload</code></p>
 </details>
 </section>
+<section id="pulse-service" class="service">
+<h2>Pulses <code>pulse-service</code></h2>
+<p>Connecting a website: its feed found, its domain proved, and a Pulse made of it, a profile whose posts are the feed&#39;s items (<a href="../pulses.md">pulses.md</a>). Who may is PULSES_FROM, administrators unless the installation says otherwise.</p>
+<details class="route" id="postPulsesConnect" data-search="post /pulses/_connect begin connecting a website the site&#39;s feed is found: the address itself, or the feed the page names with `&lt;link rel=&#34;alternate&#34;&gt;`. it must be on the site&#39;s domain. the answer is the token, to be put in a txt record or a file, with a name and a handle to begin with.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/pulses/_connect</code> <span class="summary">Begin connecting a website</span></summary>
+<div class="description"><p>The site&#39;s feed is found: the address itself, or the feed the page names with <code>&lt;link rel=&#34;alternate&#34;&gt;</code>. It must be on the site&#39;s domain. The answer is the token, to be put in a TXT record or a file, with a name and a handle to begin with.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>site_url</code> <span class="required">always</span></td><td>string</td><td>The site&#39;s address, <code>example.com</code> or <code>https://example.com/blog/</code>, or its feed&#39;s. At most 2000 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-pulse.Connection">pulse.Connection</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>not_a_domain</code>, <code>no_feed</code>, <code>unreadable</code> or <code>feed_not_on_domain</code>, as <code>error</code></td></tr>
+<tr><td class="status s4">401</td><td>the viewer is not signed in</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not connect a website: see PULSES_FROM</td></tr>
+<tr><td class="status s4">409</td><td><code>feed_taken</code>: the feed already has a Pulse</td></tr>
+<tr><td class="status s4">429</td><td>the viewer has begun too many lately</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>pulse/cmd/api/handlers.(*connectHandler).Start</code></p>
+</details>
+<details class="route" id="postPulsesConnectById" data-search="post /pulses/_connect/{id} make the pulse once its domain is proved. whoever proved it is its first administrator and its first follower; what the feed holds now is marked seen, and only what is published afterwards is posted.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/pulses/_connect/{id}</code> <span class="summary">Make the Pulse</span></summary>
+<div class="description"><p>Once its domain is proved. Whoever proved it is its first administrator and its first follower; what the feed holds now is marked seen, and only what is published afterwards is posted.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The connection&#39;s id. At least 1.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>alias</code> <span class="required">always</span></td><td>string</td><td>Its handle: <code>@example</code>. Letters, digits, <code>-</code> and <code>_</code>. At least 3 characters. At most 30 characters.</td></tr>
+<tr><td><code>body</code></td><td>string</td><td>What it is, shown in its About card. At most 500 characters.</td></tr>
+<tr><td><code>feed_url</code> <span class="required">always</span></td><td>string</td><td>The feed, as starting the connection found it. At most 2000 characters.</td></tr>
+<tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>Its name, shown as a profile&#39;s is. At most 64 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-pulse.Made">pulse.Made</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>no_feed</code>, <code>unreadable</code> or <code>feed_not_on_domain</code>, as <code>error</code></td></tr>
+<tr><td class="status s4">401</td><td>the viewer is not signed in</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not connect a website: see PULSES_FROM</td></tr>
+<tr><td class="status s4">404</td><td>there is no such connection begun by the viewer</td></tr>
+<tr><td class="status s4">409</td><td><code>not_proved</code>, <code>feed_taken</code> or <code>handle_taken</code>, as <code>error</code></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>pulse/cmd/api/handlers.(*connectHandler).Make</code></p>
+</details>
+<details class="route" id="postPulsesConnectByIdCheck" data-search="post /pulses/_connect/{id}/check look for the token in the txt record at `_anahita.&lt;domain&gt;`, then in `https://&lt;host&gt;/.well-known/anahita-verification.txt`. asked as often as the one connecting likes.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/pulses/_connect/{id}/check</code> <span class="summary">Look for the token</span></summary>
+<div class="description"><p>In the TXT record at <code>_anahita.&lt;domain&gt;</code>, then in <code>https://&lt;host&gt;/.well-known/anahita-verification.txt</code>. Asked as often as the one connecting likes.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The connection&#39;s id, as starting it answered. At least 1.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-pulse.Checked">pulse.Checked</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>the viewer is not signed in</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not connect a website: see PULSES_FROM</td></tr>
+<tr><td class="status s4">404</td><td>there is no such connection begun by the viewer</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>pulse/cmd/api/handlers.(*connectHandler).Check</code></p>
+</details>
+</section>
 <section id="recommendation-service" class="service">
 <h2>Recommendations <code>recommendation-service</code></h2>
 <p>Who the viewer might follow, with the reasons, worked out from the graph by rules and no model; and the viewer&#39;s own choices about it. Optional: an installation may not run it, or may run another service that answers these routes (<a href="../recommendations.md">recommendations.md</a>).</p>
@@ -10449,7 +10541,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
+<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>pulsesFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
 <tr><td><code>openRegistrations</code> <span class="required">always</span></td><td>boolean</td><td>Whether anybody may sign up without being invited or approved.</td></tr>
 <tr><td><code>protocols</code> <span class="required">always</span></td><td>list of string or null</td><td>What it speaks with other servers: <code>activitypub</code>, when it federates.</td></tr>
 <tr><td><code>services</code> <span class="required">always</span></td><td><a href="#schema-auth.nodeInfoServices">auth.nodeInfoServices</a></td><td>What it bridges to: nothing.</td></tr>
@@ -11120,6 +11212,49 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>upload_id</code> <span class="required">always</span></td><td>integer</td><td>What the post names it by, in <code>uploads</code>.</td></tr>
 <tr><td><code>urls</code> <span class="required">always</span></td><td>map of <a href="#schema-Image">Image</a> or null</td><td>Each size made of it, as a post&#39;s pictures are sent.</td></tr>
 <tr><td><code>width</code> <span class="required">always</span></td><td>integer</td><td>In pixels.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-pulse.Checked" data-search="pulse.checked method proved">
+<h3>pulse.Checked</h3>
+<p>Checked says whether the token was found.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>method</code></td><td>string</td><td><code>dns</code> or <code>file</code>: where it was found.</td></tr>
+<tr><td><code>proved</code> <span class="required">always</span></td><td>boolean</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-pulse.Connection" data-search="pulse.connection domain feed_description feed_title feed_url file_url host id record_name site_url suggested_alias suggested_name token">
+<h3>pulse.Connection</h3>
+<p>A website being connected: its feed, and the token with both places it may be put.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>domain</code> <span class="required">always</span></td><td>string</td><td>The domain to prove, and the host the file is read from.</td></tr>
+<tr><td><code>feed_description</code></td><td>string</td><td></td></tr>
+<tr><td><code>feed_title</code></td><td>string</td><td></td></tr>
+<tr><td><code>feed_url</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>file_url</code> <span class="required">always</span></td><td>string</td><td>Or a file at this address, holding the token.</td></tr>
+<tr><td><code>host</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>The connection&#39;s id, for checking the proof and making the Pulse.</td></tr>
+<tr><td><code>record_name</code> <span class="required">always</span></td><td>string</td><td>A TXT record of this name, holding the token.</td></tr>
+<tr><td><code>site_url</code> <span class="required">always</span></td><td>string</td><td>The site and its feed, as found.</td></tr>
+<tr><td><code>suggested_alias</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>suggested_name</code> <span class="required">always</span></td><td>string</td><td>A name and a handle to begin with: the feed&#39;s title, and the domain&#39;s first word.</td></tr>
+<tr><td><code>token</code> <span class="required">always</span></td><td>string</td><td>What to put in either place.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-pulse.Made" data-search="pulse.made alias id">
+<h3>pulse.Made</h3>
+<p>The Pulse as it was made: where to go to see it.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>alias</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
 </tbody>
 </table>
 </div>

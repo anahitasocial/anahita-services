@@ -21,6 +21,7 @@ use (
 	./mail-grpc-service
 	./notification-service
 	./photo-service
+	./pulse-service
 	./recommendation-service
 	./scripts/s3-migration
 	./search-service

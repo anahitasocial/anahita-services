@@ -3696,7 +3696,7 @@
         "properties": {
           "metadata": {
             "additionalProperties": {},
-            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
+            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `pulsesFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
             "type": [
               "object",
               "null"
@@ -5456,6 +5456,101 @@
           "width",
           "height",
           "urls"
+        ],
+        "type": "object"
+      },
+      "pulse.Checked": {
+        "description": "Checked says whether the token was found.",
+        "properties": {
+          "method": {
+            "description": "`dns` or `file`: where it was found.",
+            "type": "string"
+          },
+          "proved": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "proved"
+        ],
+        "type": "object"
+      },
+      "pulse.Connection": {
+        "description": "Connection is a website being connected: its feed, and the token with both places it may be put.",
+        "properties": {
+          "domain": {
+            "description": "The domain to prove, and the host the file is read from.",
+            "type": "string"
+          },
+          "feed_description": {
+            "type": "string"
+          },
+          "feed_title": {
+            "type": "string"
+          },
+          "feed_url": {
+            "type": "string"
+          },
+          "file_url": {
+            "description": "Or a file at this address, holding the token.",
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "id": {
+            "description": "The connection's id, for checking the proof and making the Pulse.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "record_name": {
+            "description": "A TXT record of this name, holding the token.",
+            "type": "string"
+          },
+          "site_url": {
+            "description": "The site and its feed, as found.",
+            "type": "string"
+          },
+          "suggested_alias": {
+            "type": "string"
+          },
+          "suggested_name": {
+            "description": "A name and a handle to begin with: the feed's title, and the domain's first word.",
+            "type": "string"
+          },
+          "token": {
+            "description": "What to put in either place.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "domain",
+          "host",
+          "site_url",
+          "feed_url",
+          "token",
+          "record_name",
+          "file_url",
+          "suggested_name",
+          "suggested_alias"
+        ],
+        "type": "object"
+      },
+      "pulse.Made": {
+        "description": "Made is the Pulse as it was made: where to go to see it.",
+        "properties": {
+          "alias": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "alias"
         ],
         "type": "object"
       },
@@ -26412,6 +26507,220 @@
         "x-viewer": "signed_in"
       }
     },
+    "/pulses/_connect": {
+      "post": {
+        "description": "The site's feed is found: the address itself, or the feed the page names with `<link rel=\"alternate\">`. It must be on the site's domain. The answer is the token, to be put in a TXT record or a file, with a name and a handle to begin with.\n\nWho may call it: somebody signed in.",
+        "operationId": "postPulsesConnect",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "site_url": {
+                    "description": "The site's address, `example.com` or `https://example.com/blog/`, or its feed's.",
+                    "maxLength": 2000,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "site_url"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pulse.Connection"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "`not_a_domain`, `no_feed`, `unreadable` or `feed_not_on_domain`, as `error`"
+          },
+          "401": {
+            "description": "the viewer is not signed in"
+          },
+          "403": {
+            "description": "the viewer may not connect a website: see PULSES_FROM"
+          },
+          "409": {
+            "description": "`feed_taken`: the feed already has a Pulse"
+          },
+          "429": {
+            "description": "the viewer has begun too many lately"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Begin connecting a website",
+        "tags": [
+          "pulse-service"
+        ],
+        "x-handler": "pulse/cmd/api/handlers.(*connectHandler).Start",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/pulses/_connect/{id}": {
+      "post": {
+        "description": "Once its domain is proved. Whoever proved it is its first administrator and its first follower; what the feed holds now is marked seen, and only what is published afterwards is posted.\n\nWho may call it: somebody signed in.",
+        "operationId": "postPulsesConnectById",
+        "parameters": [
+          {
+            "description": "The connection's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "alias": {
+                    "description": "Its handle: `@example`. Letters, digits, `-` and `_`.",
+                    "maxLength": 30,
+                    "minLength": 3,
+                    "type": "string",
+                    "x-validate": "username"
+                  },
+                  "body": {
+                    "description": "What it is, shown in its About card.",
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "feed_url": {
+                    "description": "The feed, as starting the connection found it.",
+                    "maxLength": 2000,
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Its name, shown as a profile's is.",
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "feed_url",
+                  "name",
+                  "alias"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pulse.Made"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "`no_feed`, `unreadable` or `feed_not_on_domain`, as `error`"
+          },
+          "401": {
+            "description": "the viewer is not signed in"
+          },
+          "403": {
+            "description": "the viewer may not connect a website: see PULSES_FROM"
+          },
+          "404": {
+            "description": "there is no such connection begun by the viewer"
+          },
+          "409": {
+            "description": "`not_proved`, `feed_taken` or `handle_taken`, as `error`"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Make the Pulse",
+        "tags": [
+          "pulse-service"
+        ],
+        "x-handler": "pulse/cmd/api/handlers.(*connectHandler).Make",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/pulses/_connect/{id}/check": {
+      "post": {
+        "description": "In the TXT record at `_anahita.<domain>`, then in `https://<host>/.well-known/anahita-verification.txt`. Asked as often as the one connecting likes.\n\nWho may call it: somebody signed in.",
+        "operationId": "postPulsesConnectByIdCheck",
+        "parameters": [
+          {
+            "description": "The connection's id, as starting it answered.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pulse.Checked"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "the viewer is not signed in"
+          },
+          "403": {
+            "description": "the viewer may not connect a website: see PULSES_FROM"
+          },
+          "404": {
+            "description": "there is no such connection begun by the viewer"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Look for the token",
+        "tags": [
+          "pulse-service"
+        ],
+        "x-handler": "pulse/cmd/api/handlers.(*connectHandler).Check",
+        "x-viewer": "signed_in"
+      }
+    },
     "/reauth/passkey/begin": {
       "post": {
         "description": "The options to hand to `navigator.credentials.get()`: one of the viewer's own passkeys.\n\nWho may call it: somebody signed in.",
@@ -33759,6 +34068,10 @@
     {
       "description": "Photo posts",
       "name": "photo-service"
+    },
+    {
+      "description": "Pulses",
+      "name": "pulse-service"
     },
     {
       "description": "Recommendations",

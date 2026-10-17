@@ -29,6 +29,7 @@ resources:
   - services/identity-image.yml
   - services/like.yml
   - services/link-preview.yml
+  - services/pulse.yml
   - services/location.yml
   - services/notification.yml
   - services/photo.yml

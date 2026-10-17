@@ -167,6 +167,18 @@ func (config *Config) GetEventsFrom() string {
 	return value
 }
 
+// GetPulsesFrom returns the minimum role that may connect a website.
+//
+// Defaults to administrators, matching pulse-service, which enforces it.
+func (config *Config) GetPulsesFrom() string {
+	value := libs_constants.NormalizeRoleLevel(config.PulsesFrom)
+	if value == "" {
+		return libs_constants.RoleLevelAdministrators
+	}
+
+	return value
+}
+
 // MayInvite reports whether somebody of this person type meets the
 // configured minimum.
 //
@@ -269,6 +281,7 @@ func (config *Config) bootstrapFromEnv() {
 	config.InvitesFrom = os.Getenv("INVITES_FROM")
 	config.GroupsFrom = os.Getenv("GROUPS_FROM")
 	config.EventsFrom = os.Getenv("EVENTS_FROM")
+	config.PulsesFrom = os.Getenv("PULSES_FROM")
 	config.InvitePendingMax = getIntEnv("INVITE_PENDING_MAX", 0)
 	config.InvitePendingMaxAdmin = getIntEnv("INVITE_PENDING_MAX_ADMIN", 0)
 	config.TosURL = os.Getenv("TOS_URL")
@@ -316,6 +329,13 @@ func (config *Config) validateBootstrap(missingFields []string) []string {
 		missingFields = append(missingFields, fmt.Sprintf(
 			"EVENTS_FROM must be one of %s (got %q)",
 			strings.Join(libs_constants.RoleLevelValues, ", "), config.EventsFrom))
+	}
+
+	if config.PulsesFrom != "" &&
+		!libs_constants.IsRoleLevel(config.GetPulsesFrom()) {
+		missingFields = append(missingFields, fmt.Sprintf(
+			"PULSES_FROM must be one of %s (got %q)",
+			strings.Join(libs_constants.RoleLevelValues, ", "), config.PulsesFrom))
 	}
 
 	// Negative is refused rather than read as unlimited. An operator who
