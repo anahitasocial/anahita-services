@@ -36,8 +36,9 @@ throwaway container with `docker rm -fv`, which takes its volume too.
 ## Rules that have each been broken once
 
 1. **A schema change is three things in one commit:** a goose migration in
-   `migration-job/migrations/`, the same change in `schema/init.sql`, and the
-   same in `legacy/upgrade.sql`. Then `make schema_test`
+   `migration-job/migrations/`, the same change in
+   `migration-job/schema/init.sql`, and the same in
+   `migration-job/legacy/upgrade.sql`. Then `make schema_test`
    ([migration-job/migrations/README.md](migration-job/migrations/README.md)).
 2. **NULL only where it means something:** no other row, made here, no
    place, a date that has not happened or does not apply, or a unique column
