@@ -1,6 +1,6 @@
 // Package feeds finds a website's feed and reads it.
 //
-// A website is the feed of a website (docs/plans/website.md): RSS, Atom or JSON
+// A website is the feed of a website (docs/plans/done/website.md): RSS, Atom or JSON
 // Feed, whatever made it. Every address is fetched with safehttp, which goes
 // only to public addresses on the web's two ports, so that somebody naming
 // an address cannot send this service into the installation's own network.

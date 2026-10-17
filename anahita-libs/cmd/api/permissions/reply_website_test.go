@@ -8,7 +8,7 @@ import (
 )
 
 // Under a website's own post, its administrators reply as the website
-// (docs/plans/website.md); anywhere else, and anybody else, as themselves.
+// (docs/plans/done/website.md); anywhere else, and anybody else, as themselves.
 func TestAWebsitesAdministratorRepliesAsIt(t *testing.T) {
 	website := ownerWith(groupOwnerID, "public")
 	website.Type = constants.NodeActorWebsiteEntityType

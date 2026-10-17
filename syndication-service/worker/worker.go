@@ -3,7 +3,7 @@
 //
 // It runs apart from the API (cmd/worker), as one or more processes: a
 // Website is taken by one worker at a time (repositories.Claim), so several
-// may run. See docs/plans/website.md.
+// may run. See docs/plans/done/website.md.
 package worker
 
 import (

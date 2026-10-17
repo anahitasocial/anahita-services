@@ -10,7 +10,7 @@ import (
 
 // WrittenByMetaKey is where a reply made as a website keeps who wrote it: one
 // of its administrators. Never sent with the reply; for the installation's
-// moderators, when it is reported (docs/plans/website.md).
+// moderators, when it is reported (docs/plans/done/website.md).
 const WrittenByMetaKey = "written_by"
 
 // OwnReply gives a new reply its owner and author: whoever writes it, as a

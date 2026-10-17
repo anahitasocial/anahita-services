@@ -114,7 +114,7 @@ Considered and not chosen:
 
 ## What it would be
 
-- **A kind of actor,** served by actor-service ([done/actor-service.md](done/actor-service.md)): a name, an avatar, followers, and the address of the website it stands for. Type `node.actor.actor-service.website.v1`. On ActivityPub, a `Service` actor, which Mastodon labels as automated.
+- **A kind of actor,** served by actor-service ([done/actor-service.md](actor-service.md)): a name, an avatar, followers, and the address of the website it stands for. Type `node.actor.actor-service.website.v1`. On ActivityPub, a `Service` actor, which Mastodon labels as automated.
 - **A fetcher, as a worker of its own.** It asks for arbitrary addresses on the internet, which is the risk the link-preview plan keeps apart from the core services, and it runs on a schedule and not per request. It reads each website's feed, skips what it has seen, and posts what is new as posts owned by that Website, each linking to the original.
 
 ## Three ways a website can take part
@@ -125,7 +125,7 @@ Considered and not chosen:
 
 ## To be decided before any design
 
-- **Who may make one.** Anybody, administrators only, or only somebody who proves they control the site. Standing in for a site you do not own is republishing somebody else's work. Proof of control is already planned for people and groups in [verified-domains.md](verified-domains.md), and would be the same proof.
+- **Who may make one.** Anybody, administrators only, or only somebody who proves they control the site. Standing in for a site you do not own is republishing somebody else's work. Proof of control is already planned for people and groups in [verified-domains.md](../verified-domains.md), and would be the same proof.
 - **An excerpt or the whole text.** An excerpt with a link is safer and sends readers to the site, which is the goal. The whole text reads better here.
 - **Replies.** The author is not here to answer. Either replies are off on a Website's posts, or somebody who has proved they own the site can claim the Website and look after it, as a group's administrators do. With a plugin, replies could go back to the site.
 - **How far the plugins go,** and which system first.
@@ -146,5 +146,8 @@ Considered and not chosen:
 | Goal and name | recorded 2026-10-05; renamed website 2026-10-15 |
 | Scope | settled 2026-10-14; narrowed to the feed alone 2026-10-15; its open points settled the same day |
 | Design | 2026-10-16: a note per item (an article for a day first), syndication-service and syndication-worker, a website's own notes never edited, private feeds refused |
-| Parts 1–10 (as each was first built: articles, and the Pulse's name, were changed after) | done 2026-10-16: foundations, proving a domain, syndication-service, the stack knowing a website, syndication-worker, replies as the website, on the fediverse, WebSub, the web app, docs ([Websites](../websites.md)) |
-| Still open | a real proof on a site of the user's (rmdstudio.com, peach.ca); a follow from a real Mastodon; replies with pictures, a GIF or a video as the website |
+| Parts 1–10 (as each was first built: articles, and the Pulse's name, were changed after) | done 2026-10-16: foundations, proving a domain, syndication-service, the stack knowing a website, syndication-worker, replies as the website, on the fediverse, WebSub, the web app, docs ([Websites](../../websites.md)) |
+| Bluesky | 2026-10-17: a website's own Bluesky account, connected by one of its administrators under Settings › Fediverse; its notes posted there as it |
+| Tried | 2026-10-17: rmdstudio.com proved and connected, its ten newest items posted as notes, its Bluesky account (@rmdstudio.com) connected |
+| Done | 2026-10-17 |
+| Left for later | a follow from a real Mastodon server, not yet tried; replies with pictures, a GIF or a video as the website, which are still their writer's ([Websites](../../websites.md#what-is-not-built)) |

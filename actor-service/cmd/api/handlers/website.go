@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// A website is a site's feed as a profile (docs/plans/website.md): followed,
+// A website is a site's feed as a profile (docs/plans/done/website.md): followed,
 // looked after by administrators, read and deleted as a group is, so it is
 // served by the same handler told a different kind.
 //

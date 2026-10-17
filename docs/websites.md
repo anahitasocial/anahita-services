@@ -8,7 +8,7 @@ the website, its title, an excerpt and a link to the original, and people
 reply, like, repost and quote it as any post. Nobody posts on a website; its
 administrators answer under its posts as the website.
 
-Why it is built this way is in the plan, [plans/website.md](plans/website.md).
+Why it is built this way is in the plan, [plans/done/website.md](plans/done/website.md).
 
 ## Contents
 

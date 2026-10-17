@@ -25,7 +25,7 @@ import (
 // Connecting a website: "Connect your website", never "create". Three
 // calls: the site's address, to find its feed and be given a token; a check
 // that the token is where it should be; and the website made, with a name and
-// a handle. See docs/plans/website.md.
+// a handle. See docs/plans/done/website.md.
 type connectHandler struct {
 	*Env
 }

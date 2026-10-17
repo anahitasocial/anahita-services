@@ -212,7 +212,7 @@ func CanEditReply(ctx *ReplyAccessContext) bool {
 
 // RepliesAs is the profile a reply the viewer writes in this thread belongs
 // to, when it is not the viewer: the website, in a thread under one of its own
-// posts, for one of its administrators (docs/plans/website.md). The site
+// posts, for one of its administrators (docs/plans/done/website.md). The site
 // answers its readers as itself. Nil anywhere else: a reply is its
 // writer's.
 func RepliesAs(ctx *ReplyAccessContext) *entities.AnahitaNode {

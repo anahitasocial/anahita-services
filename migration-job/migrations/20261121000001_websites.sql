@@ -1,4 +1,4 @@
--- Websites: websites' feeds, as profiles to follow (docs/plans/website.md).
+-- Websites: websites' feeds, as profiles to follow (docs/plans/done/website.md).
 --
 --   websites        one for each website: its feed, the site, the domain
 --                 proved for it, and how its feed is being read

@@ -26,7 +26,7 @@ const (
 	NodeMediumArticleEntityType = "node.medium.text-service.article.v1"
 	// A website: a site's feed, verified, as a profile to follow. Served by
 	// actor-service as a group is; connected, and its feed read, by
-	// Website-service (docs/plans/website.md).
+	// Website-service (docs/plans/done/website.md).
 	NodeActorWebsiteEntityType = "node.actor.actor-service.website.v1"
 	// Somebody on another server, one type for each protocol they are
 	// reached by. Types of their own, and not the person type with a flag:
