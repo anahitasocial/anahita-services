@@ -114,7 +114,9 @@ starts it again. Available service targets:
 `text`, `video`, `web_shell`
 
 Each has a matching `build_*` target that only compiles the Linux binary,
-and `make migration` runs the migration job on its own.
+and `make migration` runs the migration job on its own. How the job makes
+the database, and how to change the schema, are in
+[Architecture](architecture.md#the-database).
 
 - **`video` and `export` each start two containers,** the service and its
   worker. The video worker's image has ffmpeg in it, so nothing is installed
@@ -134,7 +136,10 @@ and `make migration` runs the migration job on its own.
 make test
 ~~~
 
-That runs every module's tests and the check of `legacy/upgrade.sql`. Among
+That runs every module's tests, the check of `legacy/upgrade.sql`, and
+`make schema_test`, which needs Docker: it builds a database from
+`schema/init.sql` and one from the PHP schema through `legacy/upgrade.sql`,
+and fails on any column or index where the two differ. Among
 them are the API reference's checks: a route registered without a
 description fails by name, a reference in `docs/api/` that is not what the
 code describes now fails, and so does a handler test that gets an answer the
