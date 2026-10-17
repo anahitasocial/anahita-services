@@ -473,7 +473,7 @@ func (h *Handlers) removed(ctx context.Context, nodeID int64) error {
 }
 
 // articleSummary is a website's article summed up: its opening, the item's
-// excerpt, which is the first paragraph of what it says (website-worker
+// excerpt, which is the first paragraph of what it says (syndication-worker
 // writes it so), and nothing when it begins with the original's address.
 func articleSummary(article *entities.AnahitaNode) string {
 	first, _, _ := strings.Cut(strings.TrimSpace(article.Body), "\n\n")

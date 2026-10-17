@@ -26,5 +26,5 @@ use (
 	./text-service
 	./video-service
 	./web-shell
-	./website-service
+	./syndication-service
 )

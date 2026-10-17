@@ -3,8 +3,8 @@ package services
 import (
 	"database/sql"
 
-	"website/config"
-	"website/data/repositories"
+	"syndication/config"
+	"syndication/data/repositories"
 
 	"anahita-libs/data/services"
 )

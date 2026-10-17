@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"website/data/repositories"
-	"website/websub"
+	"syndication/data/repositories"
+	"syndication/websub"
 
 	"github.com/labstack/echo/v4"
 )

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"website/data/repositories"
-	"website/feeds"
+	"syndication/data/repositories"
+	"syndication/feeds"
 
 	an_const "anahita-libs/constants"
 	"anahita-libs/data/entities"

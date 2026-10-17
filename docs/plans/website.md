@@ -8,7 +8,7 @@
 
 **A website is the feed of a website, verified, as something to follow.** Any website or app that publishes an RSS, Atom or JSON feed on a domain its owner controls can have one: a WordPress or other site, a PHP site written by hand, a static site made by Jekyll or Hugo, an app's changelog, a podcast, a status page. Nothing about the site's software is asked, only its feed and its domain. Its posts reach people here and across the fediverse, and send readers to the site: the site stays where it is written. A site that already speaks ActivityPub is followed as it is.
 
-- **The name, settled 2026-10-16.** *Website*, and *websites*: "Connect your website", "Follow our website on the fediverse". It was *Pulse* from 2026-10-15, chosen for the steady beat of a site's posts and the project's words of life (Anahita is the goddess of love, fertility and wisdom, and its releases are called *birth* and *embryo*). The user gave it up on 2026-10-16 for trademarks: several businesses already trade as Pulse (pulse-syndicate.com, pulseservices.ca, mediapulse.ca), and an operator who runs Anahita for a business would show the name to its members. A plain word for the very thing it names can be trademarked by nobody, which a coined or themed one can. *Website* was the first name, set aside because "create a website" read as if Anahita made one; connecting a website, never creating one, answers that, and the profile is shown with its verified domain ("example.com ✓"). Weighed and refused on 2026-10-16: Pulls (it sounds like Pulse, is GitHub's word for pull requests, and is a sweater in French), Syndicate (as a noun it reads as a cartel), Spring and Wellspring (themed, so no safer than Pulse), Source, Site feed. *Syndication* stays the word for the mechanism, in code and technical writing.
+- **The name, settled 2026-10-16.** *Website*, and *websites*: "Connect your website", "Follow our website on the fediverse". It was *Pulse* from 2026-10-15, chosen for the steady beat of a site's posts and the project's words of life (Anahita is the goddess of love, fertility and wisdom, and its releases are called *birth* and *embryo*). The user gave it up on 2026-10-16 for trademarks: several businesses already trade as Pulse (pulse-syndicate.com, pulseservices.ca, mediapulse.ca), and an operator who runs Anahita for a business would show the name to its members. A plain word for the very thing it names can be trademarked by nobody, which a coined or themed one can. *Website* was the first name, set aside because "create a website" read as if Anahita made one; connecting a website, never creating one, answers that, and the profile is shown with its verified domain ("example.com ✓"). Weighed and refused on 2026-10-16: Pulls (it sounds like Pulse, is GitHub's word for pull requests, and is a sweater in French), Syndicate (as a noun it reads as a cartel), Spring and Wellspring (themed, so no safer than Pulse), Source, Site feed. *Syndication* stays the word for the mechanism, in code and technical writing: the service that finds feeds, proves domains and reads feeds is **syndication-service**, with **syndication-worker** (the user, 2026-10-16); the website itself, as a profile, is actor-service's.
 - **Only the feed posts (user, 2026-10-15).** No composer: nobody posts notes, photos, videos or articles on a website, its administrators included. Each new item of the feed becomes a post owned by the website. Everybody else interacts with those posts as with any: replies, likes, reposts, quotes. The site's own software is where it writes.
 - **Its administrators reply as the website, under its own posts (user, 2026-10-15).** In the threads under a website's posts, an administrator's reply is the website's: its author is the website (`created_by` is the website's id), and it is shown and sent out as the website's, so the site answers its readers. Anywhere else administrators reply as themselves; there is no "reply as" choice. Which administrator wrote each such reply is kept, shown to nobody, for the installation's moderators when it is reported (the user, the same day).
 - **What it is.** A kind of profile (`node.actor.actor-service.website.v1`): name, avatar (the site's icon to begin with), cover, description, the site's address and its verified domain, followers. Administrators as a group has, who look after it; followers, who read.
@@ -16,7 +16,7 @@
 - **Who sets one up.** Only somebody who proves the domain is theirs (below). On top of that, `WEBSITES_FROM`, as `GROUPS_FROM`: `administrators` unless an installation opens it to `registered`. One website per feed address. Whoever proved the domain is its first administrator, and adds others as a group's are added. Offered as **"Connect your website"**, never "create": the first step asks for the site's address. A feed on a domain one does not control (a YouTube channel's, a GitHub project's) is not taken.
 - **Proving the domain (user, 2026-10-15).** Built once, so that people and groups use the same proof later (verified domains, item 26): one table `verified_domains` keyed by profile and one checker, a DNS TXT record at `_anahita.<domain>` or the token at `https://<domain>/.well-known/anahita-verification.txt` (one committed file for a static site), checked again daily; a website whose proof is gone for a week pauses. This replaces the earlier TXT record `anahita-site-verification=<token>` at the domain itself.
 - **Posts.** Each new item becomes an article owned by the website (the user, 2026-10-16: since row 74 a note has no title): its title, a short excerpt and a link card to the original (the link-preview service), its categories as hashtags, its own date. Items are remembered by their ID or address and never posted twice. On setting up, its ten newest items are posted and the rest marked seen, not posted (the user, 2026-10-16: a website of a site that posts seldom opened empty); an hourly cap holds back a burst and posts it a few at a time. An item whose title or excerpt changes while it is still in the feed changes its post; one that leaves the feed leaves its post as it is, since feeds seldom say that something was deleted (user, 2026-10-15).
-- **Reading the feed.** By a `website-worker`, apart from the core services since it reads addresses on the internet, with the link-preview service's safe fetcher (no private addresses, limits of size and time). Asked every 15 to 60 minutes with `ETag` / `If-Modified-Since`, backing off from a site that fails. A feed naming a WebSub hub (`rel="hub"`) is subscribed to instead, and its posts arrive within seconds.
+- **Reading the feed.** By a `syndication-worker`, apart from the core services since it reads addresses on the internet, with the link-preview service's safe fetcher (no private addresses, limits of size and time). Asked every 15 to 60 minutes with `ETag` / `If-Modified-Since`, backing off from a site that fails. A feed naming a WebSub hub (`rel="hub"`) is subscribed to instead, and its posts arrive within seconds.
 - **Between networks.** An ActivityPub actor served by `activitypub-service`: people on Mastodon and the rest of the fediverse find and follow a website as any account here (the user, 2026-10-15), and its posts and its replies reach them; replies from there come back to its threads. An `Organization`, not a `Service`: Mastodon marks a `Service` as automated, and its administrators write as it. Its posts public. Not on Bluesky.
 - **Replies.** Open, from here and from other servers.
 - **"Follow our website on the Fediverse" (user, 2026-10-15).** A few lines of HTML in the website's settings that the site can paste in, leading to its website here.
@@ -28,7 +28,7 @@
 | --- | --- |
 | Proving a domain, built to be shared: token, DNS and file checks, the daily check again, pausing | 2–3 h |
 | The website as a kind of profile in actor-service: connecting one, administrators, `WEBSITES_FROM`, one per feed | 2–3 h |
-| `website-worker`: finding the feed, reading it with the safe fetcher, polling with `ETag`, WebSub, items to posts with cards and hashtags, the first-fetch rule and hourly cap | 5–6 h |
+| `syndication-worker`: finding the feed, reading it with the safe fetcher, polling with `ETag`, WebSub, items to posts with cards and hashtags, the first-fetch rule and hourly cap | 5–6 h |
 | Replies as the website under its own posts, with who wrote each kept for moderators | 2 h |
 | ActivityPub: a website as an `Organization` actor, followed from the fediverse, its posts and replies going out, replies to it coming in | 2–3 h |
 | Web: connecting a website (address, the proof, checking it), the website's page, a websites list, the follow snippet | 4–5 h |
@@ -37,19 +37,19 @@
 
 ## The design, 2026-10-16
 
-Settled with the user on 2026-10-16: a feed's item becomes an **article** (a note has no title since row 74); the work that fetches the internet (finding a site's feed, checking the domain proof, reading feeds) lives in a **website-service** of its own with a **website-worker**, as video-service has, and nothing in actor-service fetches anything; the ActivityPub `Article` is built for a website's posts only, and row 84 reuses it for everybody's.
+Settled with the user on 2026-10-16: a feed's item becomes an **article** (a note has no title since row 74); the work that fetches the internet (finding a site's feed, checking the domain proof, reading feeds) lives in a **syndication-service** of its own with a **syndication-worker**, as video-service has, and nothing in actor-service fetches anything; the ActivityPub `Article` is built for a website's posts only, and row 84 reuses it for everybody's.
 
 **Who does what**
 
 | Piece | Service | Does |
 | --- | --- | --- |
-| Connecting a website | website-service (API) | finds the feed, gives the token, checks the proof, makes the website |
-| Reading feeds, checking domains again | website-worker | polls each feed, posts new items as articles, checks every proof daily, pauses a website whose proof is gone for a week |
+| Connecting a website | syndication-service (API) | finds the feed, gives the token, checks the proof, makes the website |
+| Reading feeds, checking domains again | syndication-worker | polls each feed, posts new items as articles, checks every proof daily, pauses a website whose proof is gone for a week |
 | The website as a profile | actor-service | read, edit, browse, administrators, delete, as for a group |
 | Its posts and the replies under them | text-service | replies by its administrators are the website's |
 | On the fediverse | activitypub-service | an `Organization`, always on, its posts as `Article`s |
 
-**Tables** (owned by website-service)
+**Tables** (owned by syndication-service)
 
 | Table | Holds |
 | --- | --- |
@@ -77,9 +77,9 @@ A feed already connected is refused (`409`), as is a handle that is taken.
 | --- | --- | --- |
 | 1 | Foundations: the website and article types in anahita-libs; a post made by a service may keep its own date | services |
 | 2 | Proving a domain: `anahita-libs/domains` (DNS TXT, the well-known file, by `safehttp`), `verified_domains` | services |
-| 3 | website-service: connecting a website, `websites`, `WEBSITES_FROM`, compose, nginx, k8s | services |
+| 3 | syndication-service: connecting a website, `websites`, `WEBSITES_FROM`, compose, nginx, k8s | services |
 | 4 | actor-service and the rest of the stack know a website: routes, features without composers, every list of kinds | services |
-| 5 | website-worker: reading feeds, items to articles, the cap, edits, the daily proof, pausing | services |
+| 5 | syndication-worker: reading feeds, items to articles, the cap, edits, the daily proof, pausing | services |
 | 6 | Replies as the website, `written_by` for moderators | services |
 | 7 | ActivityPub: `Organization`, always on, `Article` out, replies in | services |
 | 8 | WebSub: a hub named by the feed is subscribed to | services |
@@ -145,6 +145,6 @@ Considered and not chosen:
 | --- | --- |
 | Goal and name | recorded 2026-10-05; renamed website 2026-10-15 |
 | Scope | settled 2026-10-14; narrowed to the feed alone 2026-10-15; its open points settled the same day |
-| Design | 2026-10-16: an article per item, website-service and website-worker, Article out for websites only |
-| Parts 1–10 | done 2026-10-16: foundations, proving a domain, website-service, the stack knowing a website, website-worker, replies as the website, on the fediverse, WebSub, the web app, docs ([Websites](../websites.md)) |
+| Design | 2026-10-16: an article per item, syndication-service and syndication-worker, Article out for websites only |
+| Parts 1–10 | done 2026-10-16: foundations, proving a domain, syndication-service, the stack knowing a website, syndication-worker, replies as the website, on the fediverse, WebSub, the web app, docs ([Websites](../websites.md)) |
 | Still open | a real proof on a site of the user's (rmdstudio.com, peach.ca); a follow from a real Mastodon; replies with pictures, a GIF or a video as the website |

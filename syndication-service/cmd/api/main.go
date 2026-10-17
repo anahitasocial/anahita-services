@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"website/cmd/api/handlers"
-	"website/config"
-	"website/data/services"
-	"website/feeds"
+	"syndication/cmd/api/handlers"
+	"syndication/config"
+	"syndication/data/services"
+	"syndication/feeds"
 
 	"anahita-libs/constants"
 	"anahita-libs/domains"

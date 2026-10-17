@@ -6,7 +6,7 @@
 --                      one; people and groups are to use the same proof
 --                      later. Checked again every day.
 --
--- Belongs to website-service.
+-- Belongs to syndication-service.
 
 -- +goose Up
 CREATE TABLE IF NOT EXISTS verified_domains (

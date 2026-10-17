@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"website/config"
-	"website/data/repositories"
-	"website/data/services"
-	"website/feeds"
+	"syndication/config"
+	"syndication/data/repositories"
+	"syndication/data/services"
+	"syndication/feeds"
 
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"

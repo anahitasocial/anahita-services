@@ -31,8 +31,8 @@ Why it is built this way is in the plan, [plans/website.md](plans/website.md).
 
 | Piece | Does |
 | --- | --- |
-| `website-service` | Connecting a website: finds its feed, gives the token, checks the proof, makes the website. Takes WebSub hubs' calls. The only service besides link-preview-service that fetches addresses people type, and it goes only to public addresses on ports 80 and 443 (`anahita-libs/safehttp`) |
-| `website-worker` | Reads every website's feed and posts what is new; looks at every proof again once a day; pauses and starts websites again. Answers no requests |
+| `syndication-service` | Connecting a website: finds its feed, gives the token, checks the proof, makes the website. Takes WebSub hubs' calls. The only service besides link-preview-service that fetches addresses people type, and it goes only to public addresses on ports 80 and 443 (`anahita-libs/safehttp`) |
+| `syndication-worker` | Reads every website's feed and posts what is new; looks at every proof again once a day; pauses and starts websites again. Answers no requests |
 | `actor-service` | Serves the website as a profile under `/websites/`, as it serves groups: read, change, administrators, delete |
 | `text-service` | Under a website's post, makes a reply by one of its administrators the website's |
 | `activitypub-service` | The website as an `Organization`, always on the fediverse; its articles as `Article`s |
@@ -153,15 +153,15 @@ A paused website's feed is not read.
 
 | Variable | Read by | Default | Means |
 | --- | --- | --- | --- |
-| `WEBSITES_FROM` | website-service, auth-service (NodeInfo `websitesFrom`) | `administrators` | The least role that may connect a website: `registered`, `administrators` or `super-administrators`. Give both the same value |
-| `WEBSITE_HOURLY_CAP` | website-worker | 10 | The most posts a website makes in an hour |
-| `WEBSITE_READ_EVERY` | website-worker | 30 | How often a feed is read, in minutes; 15 at least |
-| `LINK_PREVIEW_URL` | website-worker | `http://link-preview-service:80` | Where the original's card is asked for; unset, articles have none |
-| `SECURE_COOKIE_KEY`, `DOMAIN_NAME`, `PUBLIC_*` | website-service, website-worker | | The key the WebSub signature is made with, and the address hubs call back at |
+| `WEBSITES_FROM` | syndication-service, auth-service (NodeInfo `websitesFrom`) | `administrators` | The least role that may connect a website: `registered`, `administrators` or `super-administrators`. Give both the same value |
+| `WEBSITE_HOURLY_CAP` | syndication-worker | 10 | The most posts a website makes in an hour |
+| `WEBSITE_READ_EVERY` | syndication-worker | 30 | How often a feed is read, in minutes; 15 at least |
+| `LINK_PREVIEW_URL` | syndication-worker | `http://link-preview-service:80` | Where the original's card is asked for; unset, articles have none |
+| `SECURE_COOKIE_KEY`, `DOMAIN_NAME`, `PUBLIC_*` | syndication-service, syndication-worker | | The key the WebSub signature is made with, and the address hubs call back at |
 
 ## The tables
 
-All three are website-service's (migrations `20261120000001` and
+All three are syndication-service's (migrations `20261120000001` and
 `20261121000001`).
 
 | Table | Holds |
@@ -184,7 +184,7 @@ All three are website-service's (migrations `20261120000001` and
 
 Refusals say why as `error`: `not_a_domain`, `no_feed`, `unreadable`,
 `feed_not_on_domain` (400); `feed_taken`, `handle_taken`, `not_proved` (409).
-The full reference is [`docs/api/`](api/index.html#website-service).
+The full reference is [`docs/api/`](api/index.html#syndication-service).
 
 ## What is not built
 
@@ -198,10 +198,10 @@ The full reference is [`docs/api/`](api/index.html#website-service).
 | What | Where |
 | --- | --- |
 | Proving a domain | `anahita-libs/domains` |
-| Connecting a website, WebSub calls | `website-service/cmd/api` |
-| Finding and reading feeds | `website-service/feeds` |
-| The worker | `website-service/worker`, `website-service/cmd/worker` |
-| WebSub | `website-service/websub` |
+| Connecting a website, WebSub calls | `syndication-service/cmd/api` |
+| Finding and reading feeds | `syndication-service/feeds` |
+| The worker | `syndication-service/worker`, `syndication-service/cmd/worker` |
+| WebSub | `syndication-service/websub` |
 | The website as a profile | `actor-service/cmd/api/handlers/website.go` |
 | Replies as the website | `anahita-libs/cmd/api/permissions/reply.go` (`RepliesAs`), `anahita-libs/cmd/api/handlers/reply_owner.go` |
 | On the fediverse | `activitypub-service` (`isWebsite`, `isWebsiteArticle`, `AsArticle`) |

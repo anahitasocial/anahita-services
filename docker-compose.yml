@@ -162,7 +162,7 @@ services:
       # and published by auth-service, from this one entry.
       EVENTS_FROM: ${EVENTS_FROM:-}
       # Who may connect a website as a website: administrators unless set.
-      # Enforced by website-service and published by auth-service.
+      # Enforced by syndication-service and published by auth-service.
       WEBSITES_FROM: ${WEBSITES_FROM:-}
       # Video: whether it may be posted, and the limits, for the web app.
       # See docs/videos.md.
@@ -804,13 +804,13 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.38
 
-# website-service - connecting a website: its feed found, its domain proved,
+# syndication-service - connecting a website: its feed found, its domain proved,
 # and a website made of it. It goes out to the internet for what somebody
 # names, only to public addresses. Left out, there are no websites.
-  website-service:
+  syndication-service:
     build:
       context: .
-      dockerfile: ./dockerfiles/website-service.dockerfile
+      dockerfile: ./dockerfiles/syndication-service.dockerfile
     restart: always
     ports:
       - "8107:80"
@@ -843,13 +843,13 @@ services:
       anahita-network:
         ipv4_address: 172.20.1.52
 
-# website-worker - reads the feeds of websites and posts what is new in them,
+# syndication-worker - reads the feeds of websites and posts what is new in them,
 # and checks every day that their domains are still proved. Answers no
-# requests. Left out with website-service.
-  website-worker:
+# requests. Left out with syndication-service.
+  syndication-worker:
     build:
       context: .
-      dockerfile: ./dockerfiles/website-worker.dockerfile
+      dockerfile: ./dockerfiles/syndication-worker.dockerfile
     restart: always
     depends_on:
       - graph-grpc-service
@@ -869,7 +869,7 @@ services:
       WEBSITE_HOURLY_CAP: ${WEBSITE_HOURLY_CAP:-10}
       WEBSITE_READ_EVERY: ${WEBSITE_READ_EVERY:-30}
       # For WebSub: the address hubs call back at, and the key its
-      # signature is made with, the same as website-service's. On a machine
+      # signature is made with, the same as syndication-service's. On a machine
       # no hub can reach, feeds are read on the clock alone.
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       DOMAIN_NAME: ${DOMAIN_NAME:-}

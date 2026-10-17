@@ -169,7 +169,7 @@ func (config *Config) GetEventsFrom() string {
 
 // GetWebsitesFrom returns the minimum role that may connect a website.
 //
-// Defaults to administrators, matching website-service, which enforces it.
+// Defaults to administrators, matching syndication-service, which enforces it.
 func (config *Config) GetWebsitesFrom() string {
 	value := libs_constants.NormalizeRoleLevel(config.WebsitesFrom)
 	if value == "" {

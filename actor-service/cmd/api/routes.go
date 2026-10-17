@@ -374,7 +374,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	groups.DELETE("/:id/admins/:admin_id", r.handler.Admin.Delete, r.authorize).With(removeGroupAdmin)
 
 	// Websites — a site's feed as a profile, read and looked after as a
-	// group is. Made by website-service once its domain is proved
+	// group is. Made by syndication-service once its domain is proved
 	// (POST /websites/_connect), so there is no POST /websites/ here; nobody
 	// posts on one, so it has no features to choose and no audience to
 	// change: it is public.

@@ -4,7 +4,7 @@ FROM alpine:latest
 RUN mkdir /app \
     && adduser -D -H -u 10001 worker
 
-COPY website-service/worker-binary /app
+COPY syndication-service/worker-binary /app
 
 USER worker
 

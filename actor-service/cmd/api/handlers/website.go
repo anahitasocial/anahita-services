@@ -15,7 +15,7 @@ import (
 // looked after by administrators, read and deleted as a group is, so it is
 // served by the same handler told a different kind.
 //
-// What differs is here. It is made by website-service, which proves its
+// What differs is here. It is made by syndication-service, which proves its
 // domain first, so there is no Add. Its handle was chosen by whoever
 // connected it and stays as it was, and its site is the domain proved for
 // it: changing one is changing its name and its description only.

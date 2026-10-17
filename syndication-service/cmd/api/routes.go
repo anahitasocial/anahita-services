@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"website/cmd/api/handlers"
+	"syndication/cmd/api/handlers"
 
 	"anahita-libs/apidoc"
 
@@ -21,12 +21,12 @@ func NewRoutes(handler *handlers.Handlers, authorize, setViewer echo.MiddlewareF
 }
 
 // Init registers the routes, each with its description, and answers with
-// the descriptions: docs/api/website-service.json is made of them.
+// the descriptions: docs/api/syndication-service.json is made of them.
 //
 // Only connecting a website is here. The website, once made, is a profile
 // served by actor-service under /websites, as a group is under /groups.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
-	doc := apidoc.NewService("website-service", "Websites",
+	doc := apidoc.NewService("syndication-service", "Websites",
 		"Connecting a website: its feed found, its domain proved, and a Website made of it, a profile whose posts are the feed's items (websites.md). Who may is WEBSITES_FROM, administrators unless the installation says otherwise.")
 	api := doc.On(e)
 	connect := api.Group("websites/_connect")

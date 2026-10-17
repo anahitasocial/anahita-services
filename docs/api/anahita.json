@@ -5827,6 +5827,101 @@
         ],
         "type": "object"
       },
+      "syndication.Checked": {
+        "description": "Checked says whether the token was found.",
+        "properties": {
+          "method": {
+            "description": "`dns` or `file`: where it was found.",
+            "type": "string"
+          },
+          "proved": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "proved"
+        ],
+        "type": "object"
+      },
+      "syndication.Connection": {
+        "description": "Connection is a website being connected: its feed, and the token with both places it may be put.",
+        "properties": {
+          "domain": {
+            "description": "The domain to prove, and the host the file is read from.",
+            "type": "string"
+          },
+          "feed_description": {
+            "type": "string"
+          },
+          "feed_title": {
+            "type": "string"
+          },
+          "feed_url": {
+            "type": "string"
+          },
+          "file_url": {
+            "description": "Or a file at this address, holding the token.",
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "id": {
+            "description": "The connection's id, for checking the proof and making the website.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "record_name": {
+            "description": "A TXT record of this name, holding the token.",
+            "type": "string"
+          },
+          "site_url": {
+            "description": "The site and its feed, as found.",
+            "type": "string"
+          },
+          "suggested_alias": {
+            "type": "string"
+          },
+          "suggested_name": {
+            "description": "A name and a handle to begin with: the feed's title, and the domain's first word.",
+            "type": "string"
+          },
+          "token": {
+            "description": "What to put in either place.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "domain",
+          "host",
+          "site_url",
+          "feed_url",
+          "token",
+          "record_name",
+          "file_url",
+          "suggested_name",
+          "suggested_alias"
+        ],
+        "type": "object"
+      },
+      "syndication.Made": {
+        "description": "Made is the website as it was made: where to go to see it.",
+        "properties": {
+          "alias": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "alias"
+        ],
+        "type": "object"
+      },
       "text.HiddenAnswer": {
         "description": "HiddenAnswer says whether a reply is hidden now.",
         "properties": {
@@ -6023,101 +6118,6 @@
         "required": [
           "error",
           "max_bytes"
-        ],
-        "type": "object"
-      },
-      "website.Checked": {
-        "description": "Checked says whether the token was found.",
-        "properties": {
-          "method": {
-            "description": "`dns` or `file`: where it was found.",
-            "type": "string"
-          },
-          "proved": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "proved"
-        ],
-        "type": "object"
-      },
-      "website.Connection": {
-        "description": "Connection is a website being connected: its feed, and the token with both places it may be put.",
-        "properties": {
-          "domain": {
-            "description": "The domain to prove, and the host the file is read from.",
-            "type": "string"
-          },
-          "feed_description": {
-            "type": "string"
-          },
-          "feed_title": {
-            "type": "string"
-          },
-          "feed_url": {
-            "type": "string"
-          },
-          "file_url": {
-            "description": "Or a file at this address, holding the token.",
-            "type": "string"
-          },
-          "host": {
-            "type": "string"
-          },
-          "id": {
-            "description": "The connection's id, for checking the proof and making the website.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "record_name": {
-            "description": "A TXT record of this name, holding the token.",
-            "type": "string"
-          },
-          "site_url": {
-            "description": "The site and its feed, as found.",
-            "type": "string"
-          },
-          "suggested_alias": {
-            "type": "string"
-          },
-          "suggested_name": {
-            "description": "A name and a handle to begin with: the feed's title, and the domain's first word.",
-            "type": "string"
-          },
-          "token": {
-            "description": "What to put in either place.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "domain",
-          "host",
-          "site_url",
-          "feed_url",
-          "token",
-          "record_name",
-          "file_url",
-          "suggested_name",
-          "suggested_alias"
-        ],
-        "type": "object"
-      },
-      "website.Made": {
-        "description": "Made is the website as it was made: where to go to see it.",
-        "properties": {
-          "alias": {
-            "type": "string"
-          },
-          "id": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "alias"
         ],
         "type": "object"
       }
@@ -33961,7 +33961,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/website.Connection"
+                  "$ref": "#/components/schemas/syndication.Connection"
                 }
               }
             },
@@ -33990,9 +33990,9 @@
         ],
         "summary": "Begin connecting a website",
         "tags": [
-          "website-service"
+          "syndication-service"
         ],
-        "x-handler": "website/cmd/api/handlers.(*connectHandler).Start",
+        "x-handler": "syndication/cmd/api/handlers.(*connectHandler).Start",
         "x-viewer": "signed_in"
       }
     },
@@ -34057,7 +34057,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/website.Made"
+                  "$ref": "#/components/schemas/syndication.Made"
                 }
               }
             },
@@ -34086,9 +34086,9 @@
         ],
         "summary": "Make the Website",
         "tags": [
-          "website-service"
+          "syndication-service"
         ],
-        "x-handler": "website/cmd/api/handlers.(*connectHandler).Make",
+        "x-handler": "syndication/cmd/api/handlers.(*connectHandler).Make",
         "x-viewer": "signed_in"
       }
     },
@@ -34114,7 +34114,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/website.Checked"
+                  "$ref": "#/components/schemas/syndication.Checked"
                 }
               }
             },
@@ -34140,9 +34140,9 @@
         ],
         "summary": "Look for the token",
         "tags": [
-          "website-service"
+          "syndication-service"
         ],
-        "x-handler": "website/cmd/api/handlers.(*connectHandler).Check",
+        "x-handler": "syndication/cmd/api/handlers.(*connectHandler).Check",
         "x-viewer": "signed_in"
       }
     },
@@ -34221,9 +34221,9 @@
         ],
         "summary": "A hub checks a subscription",
         "tags": [
-          "website-service"
+          "syndication-service"
         ],
-        "x-handler": "website/cmd/api/handlers.(*websubHandler).Verify",
+        "x-handler": "syndication/cmd/api/handlers.(*websubHandler).Verify",
         "x-viewer": "anyone"
       },
       "post": {
@@ -34290,9 +34290,9 @@
         ],
         "summary": "A hub says a feed changed",
         "tags": [
-          "website-service"
+          "syndication-service"
         ],
-        "x-handler": "website/cmd/api/handlers.(*websubHandler).Notify",
+        "x-handler": "syndication/cmd/api/handlers.(*websubHandler).Notify",
         "x-viewer": "anyone"
       }
     },
@@ -35186,16 +35186,16 @@
       "name": "socialgraph-service"
     },
     {
+      "description": "Websites",
+      "name": "syndication-service"
+    },
+    {
       "description": "Notes, articles and topics",
       "name": "text-service"
     },
     {
       "description": "Video posts",
       "name": "video-service"
-    },
-    {
-      "description": "Websites",
-      "name": "website-service"
     }
   ]
 }

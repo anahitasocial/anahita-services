@@ -6,7 +6,7 @@
 --                 became, so that nothing is posted twice and a changed
 --                 item changes its post
 --
--- Belongs to website-service.
+-- Belongs to syndication-service.
 
 -- +goose Up
 CREATE TABLE IF NOT EXISTS websites (

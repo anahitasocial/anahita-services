@@ -1,21 +1,21 @@
-# website-service: Connecting a website as a website: its feed found, its domain proved. It fetches from the internet, and goes only to public addresses. Optional: left out, there are no websites.
+# syndication-service: Connecting a website as a website: its feed found, its domain proved. It fetches from the internet, and goes only to public addresses. Optional: left out, there are no websites.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: website-service
+  name: syndication-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: website-service
+      app: syndication-service
   template:
     metadata:
       labels:
-        app: website-service
+        app: syndication-service
     spec:
       containers:
-        - name: website-service
-          image: anahita/website-service
+        - name: syndication-service
+          image: anahita/syndication-service
           ports:
             - name: http
               containerPort: 80
@@ -126,10 +126,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: website-service
+  name: syndication-service
 spec:
   selector:
-    app: website-service
+    app: syndication-service
   ports:
     - name: http
       port: 80

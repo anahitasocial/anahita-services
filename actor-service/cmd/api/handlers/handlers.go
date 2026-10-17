@@ -42,7 +42,7 @@ type Handlers struct {
 	// Events, and the administrators of events.
 	Event      *eventHandler
 	EventAdmin *adminHandler
-	// Websites, made by website-service, and their administrators.
+	// Websites, made by syndication-service, and their administrators.
 	Website      *websiteHandler
 	WebsiteAdmin *adminHandler
 }

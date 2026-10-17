@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"website/data/repositories"
-	"website/feeds"
+	"syndication/data/repositories"
+	"syndication/feeds"
 
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"

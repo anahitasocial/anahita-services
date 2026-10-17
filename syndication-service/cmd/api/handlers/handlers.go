@@ -3,9 +3,9 @@ package handlers
 import (
 	"context"
 
-	"website/config"
-	"website/data/services"
-	"website/feeds"
+	"syndication/config"
+	"syndication/data/services"
+	"syndication/feeds"
 
 	"anahita-libs/data/entities"
 	"anahita-libs/domains"

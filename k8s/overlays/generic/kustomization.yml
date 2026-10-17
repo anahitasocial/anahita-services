@@ -65,9 +65,9 @@ images:
     newTag: latest
   - name: anahita/link-preview-service
     newTag: latest
-  - name: anahita/website-service
+  - name: anahita/syndication-service
     newTag: latest
-  - name: anahita/website-worker
+  - name: anahita/syndication-worker
     newTag: latest
   - name: anahita/location-service
     newTag: latest

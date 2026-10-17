@@ -18,7 +18,7 @@ const (
 	ErrInvalidWebsitesFrom      = "WEBSITES_FROM must be one of: "
 )
 
-// Config is what website-service is told from its environment. The API and
+// Config is what syndication-service is told from its environment. The API and
 // the worker read the same; each checks what it needs.
 type Config struct {
 	Env              string

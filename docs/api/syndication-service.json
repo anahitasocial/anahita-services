@@ -1,7 +1,7 @@
 {
   "components": {
     "schemas": {
-      "website.Checked": {
+      "syndication.Checked": {
         "description": "Checked says whether the token was found.",
         "properties": {
           "method": {
@@ -17,7 +17,7 @@
         ],
         "type": "object"
       },
-      "website.Connection": {
+      "syndication.Connection": {
         "description": "Connection is a website being connected: its feed, and the token with both places it may be put.",
         "properties": {
           "domain": {
@@ -79,7 +79,7 @@
         ],
         "type": "object"
       },
-      "website.Made": {
+      "syndication.Made": {
         "description": "Made is the website as it was made: where to go to see it.",
         "properties": {
           "alias": {
@@ -146,7 +146,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/website.Connection"
+                  "$ref": "#/components/schemas/syndication.Connection"
                 }
               }
             },
@@ -175,9 +175,9 @@
         ],
         "summary": "Begin connecting a website",
         "tags": [
-          "website-service"
+          "syndication-service"
         ],
-        "x-handler": "website/cmd/api/handlers.(*connectHandler).Start",
+        "x-handler": "syndication/cmd/api/handlers.(*connectHandler).Start",
         "x-viewer": "signed_in"
       }
     },
@@ -242,7 +242,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/website.Made"
+                  "$ref": "#/components/schemas/syndication.Made"
                 }
               }
             },
@@ -271,9 +271,9 @@
         ],
         "summary": "Make the Website",
         "tags": [
-          "website-service"
+          "syndication-service"
         ],
-        "x-handler": "website/cmd/api/handlers.(*connectHandler).Make",
+        "x-handler": "syndication/cmd/api/handlers.(*connectHandler).Make",
         "x-viewer": "signed_in"
       }
     },
@@ -299,7 +299,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/website.Checked"
+                  "$ref": "#/components/schemas/syndication.Checked"
                 }
               }
             },
@@ -325,9 +325,9 @@
         ],
         "summary": "Look for the token",
         "tags": [
-          "website-service"
+          "syndication-service"
         ],
-        "x-handler": "website/cmd/api/handlers.(*connectHandler).Check",
+        "x-handler": "syndication/cmd/api/handlers.(*connectHandler).Check",
         "x-viewer": "signed_in"
       }
     },
@@ -406,9 +406,9 @@
         ],
         "summary": "A hub checks a subscription",
         "tags": [
-          "website-service"
+          "syndication-service"
         ],
-        "x-handler": "website/cmd/api/handlers.(*websubHandler).Verify",
+        "x-handler": "syndication/cmd/api/handlers.(*websubHandler).Verify",
         "x-viewer": "anyone"
       },
       "post": {
@@ -475,9 +475,9 @@
         ],
         "summary": "A hub says a feed changed",
         "tags": [
-          "website-service"
+          "syndication-service"
         ],
-        "x-handler": "website/cmd/api/handlers.(*websubHandler).Notify",
+        "x-handler": "syndication/cmd/api/handlers.(*websubHandler).Notify",
         "x-viewer": "anyone"
       }
     }
@@ -497,7 +497,7 @@
   "tags": [
     {
       "description": "Websites",
-      "name": "website-service"
+      "name": "syndication-service"
     }
   ]
 }

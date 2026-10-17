@@ -368,10 +368,10 @@ The moment one of them stops being so, they are not found: every address of
 theirs answers `404`, in the same words as an address nobody has. A server
 is never told *why* somebody is not there.
 
-A **website**, a website's feed ([Websites](websites.md)), is on the fediverse
-with nobody to turn it on: whenever it is enabled, not on its way to being
-deleted and public, on a site that federates. It is an `Organization`, found
-by its handle as a person is.
+A **website**, a site's feed connected as a profile ([Websites](websites.md)),
+is on the fediverse with nobody to turn it on: whenever it is enabled, not on
+its way to being deleted and public, on a site that federates. It is an
+`Organization`, found by its handle as a person is.
 
 Groups and events are not on the fediverse yet.
 
@@ -546,8 +546,8 @@ it so.
 
 A **website's articles** go out as `Article`: the title as `name`, the item's
 excerpt as `summary`, the content, and the article's page as `url`,
-attributed to the website though its administrator made them; replies under
-them go and come as under a note.
+attributed to the website, which is their author; replies under them go and
+come as under a note.
 
 **Not sent:** people's articles and topics (roadmap row 84); anything in a group;
 a quoted post (the note that quotes goes, without what it quotes);

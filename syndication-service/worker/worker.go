@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"website/data/repositories"
-	"website/feeds"
+	"syndication/data/repositories"
+	"syndication/feeds"
 
 	an_handlers "anahita-libs/cmd/api/handlers"
 	an_const "anahita-libs/constants"
@@ -106,7 +106,7 @@ func (w *Worker) Run(ctx context.Context) {
 		for {
 			did, err := w.Once(ctx)
 			if err != nil {
-				log.Printf("website-worker: %v", err)
+				log.Printf("syndication-worker: %v", err)
 			}
 			if !did || ctx.Err() != nil {
 				break
@@ -210,11 +210,11 @@ func (w *Worker) subscribe(ctx context.Context, due *repositories.Due, read *fee
 		return
 	}
 	if err := w.Subscribe(ctx, read.Hub, read.Self, w.Callback(due.NodeID)); err != nil {
-		log.Printf("website-worker: subscribing to %s: %v", read.Hub, err)
+		log.Printf("syndication-worker: subscribing to %s: %v", read.Hub, err)
 		return
 	}
 	if err := w.Websites.Hub(ctx, due.NodeID, read.Hub, now.Add(2*hubRenew)); err != nil {
-		log.Printf("website-worker: %v", err)
+		log.Printf("syndication-worker: %v", err)
 	}
 }
 
@@ -291,7 +291,7 @@ func (w *Worker) take(ctx context.Context, website *entities.AnahitaNode, items 
 
 	for _, item := range changed {
 		if err := w.change(ctx, website, known[item.Key].NodeID, item, viewer); err != nil {
-			log.Printf("website-worker: the article of %s was not changed: %v", item.Link, err)
+			log.Printf("syndication-worker: the article of %s was not changed: %v", item.Link, err)
 		}
 	}
 	return nil
@@ -383,7 +383,7 @@ func (w *Worker) change(ctx context.Context, website *entities.AnahitaNode, node
 func (w *Worker) CheckProfiles(ctx context.Context) {
 	paused, err := w.Websites.PausedFor(ctx, repositories.PausedProfileGone, proofsPerRound)
 	if err != nil {
-		log.Printf("website-worker: profiles: %v", err)
+		log.Printf("syndication-worker: profiles: %v", err)
 		return
 	}
 	for _, id := range paused {
@@ -393,7 +393,7 @@ func (w *Worker) CheckProfiles(ctx context.Context) {
 		}
 		if website.Enabled && website.DeletedAt == nil && website.ArchivedAt == nil {
 			if err := w.Websites.Resume(ctx, id); err != nil {
-				log.Printf("website-worker: resuming %d: %v", id, err)
+				log.Printf("syndication-worker: resuming %d: %v", id, err)
 			}
 		}
 	}
@@ -405,7 +405,7 @@ func (w *Worker) CheckProfiles(ctx context.Context) {
 func (w *Worker) CheckProofs(ctx context.Context) {
 	due, err := w.Domains.Due(ctx, proofsPerRound)
 	if err != nil {
-		log.Printf("website-worker: proofs: %v", err)
+		log.Printf("syndication-worker: proofs: %v", err)
 		return
 	}
 	for _, d := range due {
@@ -413,7 +413,7 @@ func (w *Worker) CheckProofs(ctx context.Context) {
 		method, err := w.Checker.Check(ctx, site, d.Token)
 		if err == nil {
 			if err := w.Domains.Proved(ctx, d.ID, method); err != nil {
-				log.Printf("website-worker: proof of %s: %v", d.Domain, err)
+				log.Printf("syndication-worker: proof of %s: %v", d.Domain, err)
 				continue
 			}
 			if d.FailingSince != nil {
@@ -424,12 +424,12 @@ func (w *Worker) CheckProofs(ctx context.Context) {
 
 		since, err := w.Domains.Failing(ctx, d.ID)
 		if err != nil {
-			log.Printf("website-worker: proof of %s: %v", d.Domain, err)
+			log.Printf("syndication-worker: proof of %s: %v", d.Domain, err)
 			continue
 		}
 		if w.now().Sub(since) >= proofGrace {
 			if err := w.Websites.PauseForProof(ctx, d.ID); err != nil {
-				log.Printf("website-worker: pausing for %s: %v", d.Domain, err)
+				log.Printf("syndication-worker: pausing for %s: %v", d.Domain, err)
 			}
 		}
 	}

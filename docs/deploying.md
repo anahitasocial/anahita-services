@@ -332,7 +332,7 @@ requests can be given more:
 export, feed, identity-image, like, link-preview, location, photo, website,
 search, socialgraph, text, video, web-shell, and the gateway.
 
-The three workers, export-worker, video-worker and website-worker, take their
+The three workers, export-worker, video-worker and syndication-worker, take their
 jobs from a table one at a time, so any number of copies share the work
 without doing it twice.
 

@@ -1,4 +1,4 @@
-module website
+module syndication
 
 go 1.24.9
 

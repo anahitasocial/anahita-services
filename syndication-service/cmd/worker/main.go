@@ -11,11 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	"website/config"
-	"website/data/repositories"
-	"website/feeds"
-	"website/websub"
-	"website/worker"
+	"syndication/config"
+	"syndication/data/repositories"
+	"syndication/feeds"
+	"syndication/websub"
+	"syndication/worker"
 
 	an_const "anahita-libs/constants"
 	"anahita-libs/data/entities"
@@ -70,15 +70,15 @@ func main() {
 			return websub.Callback(addresses.API, nodeID, key)
 		}
 	} else {
-		log.Println("website-worker: not reachable from the internet; feeds are read on the clock, without WebSub")
+		log.Println("syndication-worker: not reachable from the internet; feeds are read on the clock, without WebSub")
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	log.Println("website-worker: reading feeds")
+	log.Println("syndication-worker: reading feeds")
 	w.Run(ctx)
-	log.Println("website-worker: stopped")
+	log.Println("syndication-worker: stopped")
 }
 
 // graph is the worker's way to the graph, through graph-grpc-service.

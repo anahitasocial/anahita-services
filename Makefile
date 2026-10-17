@@ -10,11 +10,11 @@ RECOMMENDATION_SRV=recommendation-service
 LINK_PREVIEW_BINARY=app-binary
 LINK_PREVIEW_VERSION=latest
 LINK_PREVIEW_SRV=link-preview-service
-WEBSITE_BINARY=app-binary
-WEBSITE_VERSION=latest
-WEBSITE_SRV=website-service
-WEBSITE_WORKER_BINARY=worker-binary
-WEBSITE_WORKER=website-worker
+SYNDICATION_BINARY=app-binary
+SYNDICATION_VERSION=latest
+SYNDICATION_SRV=syndication-service
+SYNDICATION_WORKER_BINARY=worker-binary
+SYNDICATION_WORKER=syndication-worker
 VIDEO_BINARY=app-binary
 VIDEO_WORKER_BINARY=worker-binary
 VIDEO_VERSION=latest
@@ -131,13 +131,13 @@ down:
 	@echo "Docker stopped!"
 
 ## build_dockerfiles: builds all dockerfile images
-build_dockerfiles: check_docker build_abuse_report build_recommendation build_link_preview build_website build_video build_export build_activitypub build_atproto build_auth build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
+build_dockerfiles: check_docker build_abuse_report build_recommendation build_link_preview build_syndication build_video build_export build_activitypub build_atproto build_auth build_graph build_sweeper build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
 	@echo "Building dockerfiles..."
 	docker build -f ${DOCKERFILES}/${ABUSE_REPORT_SRV}.dockerfile -t ${REPOSITORY}/${ABUSE_REPORT_SRV}:${ABUSE_REPORT_VERSION} .
 	docker build -f ${DOCKERFILES}/${RECOMMENDATION_SRV}.dockerfile -t ${REPOSITORY}/${RECOMMENDATION_SRV}:${RECOMMENDATION_VERSION} .
 	docker build -f ${DOCKERFILES}/${LINK_PREVIEW_SRV}.dockerfile -t ${REPOSITORY}/${LINK_PREVIEW_SRV}:${LINK_PREVIEW_VERSION} .
-	docker build -f ${DOCKERFILES}/${WEBSITE_SRV}.dockerfile -t ${REPOSITORY}/${WEBSITE_SRV}:${WEBSITE_VERSION} .
-	docker build -f ${DOCKERFILES}/${WEBSITE_WORKER}.dockerfile -t ${REPOSITORY}/${WEBSITE_WORKER}:${WEBSITE_VERSION} .
+	docker build -f ${DOCKERFILES}/${SYNDICATION_SRV}.dockerfile -t ${REPOSITORY}/${SYNDICATION_SRV}:${SYNDICATION_VERSION} .
+	docker build -f ${DOCKERFILES}/${SYNDICATION_WORKER}.dockerfile -t ${REPOSITORY}/${SYNDICATION_WORKER}:${SYNDICATION_VERSION} .
 	docker build -f ${DOCKERFILES}/${VIDEO_SRV}.dockerfile -t ${REPOSITORY}/${VIDEO_SRV}:${VIDEO_VERSION} .
 	docker build -f ${DOCKERFILES}/${VIDEO_WORKER}.dockerfile -t ${REPOSITORY}/${VIDEO_WORKER}:${VIDEO_VERSION} .
 	docker build -f ${DOCKERFILES}/${EXPORT_SRV}.dockerfile -t ${REPOSITORY}/${EXPORT_SRV}:${EXPORT_VERSION} .
@@ -169,8 +169,8 @@ push_dockerfiles: check_docker build_dockerfiles
 	docker push ${REPOSITORY}/${ABUSE_REPORT_SRV}:${ABUSE_REPORT_VERSION}
 	docker push ${REPOSITORY}/${RECOMMENDATION_SRV}:${RECOMMENDATION_VERSION}
 	docker push ${REPOSITORY}/${LINK_PREVIEW_SRV}:${LINK_PREVIEW_VERSION}
-	docker push ${REPOSITORY}/${WEBSITE_SRV}:${WEBSITE_VERSION}
-	docker push ${REPOSITORY}/${WEBSITE_WORKER}:${WEBSITE_VERSION}
+	docker push ${REPOSITORY}/${SYNDICATION_SRV}:${SYNDICATION_VERSION}
+	docker push ${REPOSITORY}/${SYNDICATION_WORKER}:${SYNDICATION_VERSION}
 	docker push ${REPOSITORY}/${VIDEO_SRV}:${VIDEO_VERSION}
 	docker push ${REPOSITORY}/${VIDEO_WORKER}:${VIDEO_VERSION}
 	docker push ${REPOSITORY}/${EXPORT_SRV}:${EXPORT_VERSION}
@@ -293,12 +293,12 @@ build_link_preview:
 	cd ${LINK_PREVIEW_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${LINK_PREVIEW_BINARY} ./cmd/api
 	@echo "Link preview binary built!"
 
-## build_website: builds the website binaries, the API and the worker, as linux executables
-build_website:
-	@echo "Building website binaries.."
-	cd ${WEBSITE_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${WEBSITE_BINARY} ./cmd/api
-	cd ${WEBSITE_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${WEBSITE_WORKER_BINARY} ./cmd/worker
-	@echo "Website binaries built!"
+## build_syndication: builds the syndication binaries, the API and the worker, as linux executables
+build_syndication:
+	@echo "Building syndication binaries.."
+	cd ${SYNDICATION_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${SYNDICATION_BINARY} ./cmd/api
+	cd ${SYNDICATION_SRV} && env GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o ${SYNDICATION_WORKER_BINARY} ./cmd/worker
+	@echo "Syndication binaries built!"
 
 ## build_web_shell: builds the web shell binary as a linux executable. WEB_BUILD=<folder> copies the web app's build in beside it, for an image with the app baked in
 build_web_shell:
@@ -368,7 +368,7 @@ build_feed:
 
 ## up_build: stops docker-compose (if running), builds all projects and starts docker compose
 # up_build: build_auth build_broker build_listener build_logger build_mail
-up_build: build_abuse_report build_recommendation build_link_preview build_website build_video build_export build_activitypub build_atproto build_auth build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
+up_build: build_abuse_report build_recommendation build_link_preview build_syndication build_video build_export build_activitypub build_atproto build_auth build_graph build_actor build_like build_text build_photo build_hashtag build_location build_search build_socialgraph build_notification build_file build_identity_image build_mail build_feed
 	@echo "Stopping docker images (if running...)"
 	docker-compose down
 	@echo "Building (when required) and starting docker images..."
@@ -521,13 +521,13 @@ link_preview: build_link_preview
 	docker-compose start ${LINK_PREVIEW_SRV}
 	@echo "${LINK_PREVIEW_SRV} built and started!"
 
-## website: stops website-service and website-worker, removes their images, builds them, and starts them
-website: build_website
-	@echo "Building ${WEBSITE_SRV} and ${WEBSITE_WORKER} docker images..."
-	- docker-compose stop ${WEBSITE_SRV} ${WEBSITE_WORKER}
-	- docker-compose rm -f ${WEBSITE_SRV} ${WEBSITE_WORKER}
-	docker-compose up --build -d ${WEBSITE_SRV} ${WEBSITE_WORKER}
-	@echo "${WEBSITE_SRV} and ${WEBSITE_WORKER} built and started!"
+## syndication: stops syndication-service and syndication-worker, removes their images, builds them, and starts them
+syndication: build_syndication
+	@echo "Building ${SYNDICATION_SRV} and ${SYNDICATION_WORKER} docker images..."
+	- docker-compose stop ${SYNDICATION_SRV} ${SYNDICATION_WORKER}
+	- docker-compose rm -f ${SYNDICATION_SRV} ${SYNDICATION_WORKER}
+	docker-compose up --build -d ${SYNDICATION_SRV} ${SYNDICATION_WORKER}
+	@echo "${SYNDICATION_SRV} and ${SYNDICATION_WORKER} built and started!"
 
 ## hashtag: stops hashtag-service, removes docker image, builds service, and starts it
 hashtag: build_hashtag
@@ -653,8 +653,8 @@ clean:
 	@cd ${RECOMMENDATION_SRV} && go clean
 	@cd ${LINK_PREVIEW_SRV} && rm -f ${LINK_PREVIEW_BINARY}
 	@cd ${LINK_PREVIEW_SRV} && go clean
-	@cd ${WEBSITE_SRV} && rm -f ${WEBSITE_BINARY} ${WEBSITE_WORKER_BINARY}
-	@cd ${WEBSITE_SRV} && go clean
+	@cd ${SYNDICATION_SRV} && rm -f ${SYNDICATION_BINARY} ${SYNDICATION_WORKER_BINARY}
+	@cd ${SYNDICATION_SRV} && go clean
 	@cd ${VIDEO_SRV} && rm -f ${VIDEO_BINARY} ${VIDEO_WORKER_BINARY}
 	@cd ${VIDEO_SRV} && go clean
 	@cd ${EXPORT_SRV} && rm -f ${EXPORT_BINARY} ${EXPORT_WORKER_BINARY}
@@ -701,7 +701,7 @@ K8S_LOCAL=k8s/overlays/local
 # Always the Minikube cluster, whatever kubectl currently points at, so these
 # targets can never touch a real one.
 KUBECTL=kubectl --context minikube
-K8S_IMAGES=${ABUSE_REPORT_SRV} ${RECOMMENDATION_SRV} ${LINK_PREVIEW_SRV} ${WEBSITE_SRV} ${WEBSITE_WORKER} ${VIDEO_SRV} ${VIDEO_WORKER} ${EXPORT_SRV} ${EXPORT_WORKER} ${ACTIVITYPUB_SRV} ${ATPROTO_SRV} ${AUTH_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
+K8S_IMAGES=${ABUSE_REPORT_SRV} ${RECOMMENDATION_SRV} ${LINK_PREVIEW_SRV} ${SYNDICATION_SRV} ${SYNDICATION_WORKER} ${VIDEO_SRV} ${VIDEO_WORKER} ${EXPORT_SRV} ${EXPORT_WORKER} ${ACTIVITYPUB_SRV} ${ATPROTO_SRV} ${AUTH_SRV} ${IDENTITY_IMAGE_SRV} ${FEED_SRV} ${FILE_SRV} ${GRAPH_SRV} ${ACTOR_SRV} ${HASHTAG_SRV} ${LIKE_SRV} ${LOCATION_SRV} ${MAIL_SRV} ${MIGRATION_JOB} ${NGINX_SRV} ${NOTIFICATION_SRV} ${PHOTO_SRV} ${SEARCH_SRV} ${SOCIALGRAPH_SRV} ${SWEEPER_JOB} ${TEXT_SRV}
 
 ## k8s-start: starts a local Minikube cluster with the ingress controller and cert-manager
 k8s-start:
@@ -764,7 +764,7 @@ api_docs:
 	@cd ${SEARCH_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
 	@cd ${LIKE_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
 	@cd ${LINK_PREVIEW_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
-	@cd ${WEBSITE_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
+	@cd ${SYNDICATION_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
 	@cd ${IDENTITY_IMAGE_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
 	@cd ${NOTIFICATION_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
 	@cd ${RECOMMENDATION_SRV} && APIDOC_UPDATE=1 go test ./cmd/api/ -run TestTheAPIReference -count=1
@@ -819,7 +819,7 @@ test:
 	@cd ${SOCIALGRAPH_SRV} && go test ./...
 	@cd ${RECOMMENDATION_SRV} && go test ./...
 	@cd ${LINK_PREVIEW_SRV} && go test ./...
-	@cd ${WEBSITE_SRV} && go test ./...
+	@cd ${SYNDICATION_SRV} && go test ./...
 	@cd ${WEB_SHELL_SRV} && go test ./...
 	@cd ${TEXT_SRV} && go test ./...
 	@echo "Tests passed!"

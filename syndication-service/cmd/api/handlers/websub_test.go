@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"website/config"
-	"website/data/repositories"
-	"website/data/services"
-	"website/websub"
+	"syndication/config"
+	"syndication/data/repositories"
+	"syndication/data/services"
+	"syndication/websub"
 
 	"github.com/labstack/echo/v4"
 )
