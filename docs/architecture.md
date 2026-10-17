@@ -511,8 +511,8 @@ way to banu.io, is a file of its own in `legacy/sites/`, run by hand.
 
 ### NULL only where it means something
 
-A column says what it holds. NULL is kept for four things, and for nothing
-else:
+A column says what it holds, in every table. NULL is kept for five things,
+and for nothing else:
 
 | NULL means | Columns |
 | --- | --- |
@@ -520,12 +520,21 @@ else:
 | Made here: no address on another server | `uri`, `origin_domain` |
 | No place | `geo_latitude`, `geo_longitude`, NULL together |
 | Not happened, or does not apply | `deleted_at`, `archived_at`, `pinned_at` and the like; `starts_at` and `ends_at`, which only an event has |
+| None, where a unique index would make `''` collide | an account's `email`; the delivery queues' `dedupe_key` |
 
 Everything else is `NOT NULL`: `''` for no text, `0` for no count, false for
 a switch not set, and `created_at` and `updated_at` default to the time of
 insert. A reference is never 0 for none, and a place never 0,0.
 
-So the code reads a column as it is, and uses `COALESCE` only on what may be
-NULL by the table above, or on a row from a `LEFT JOIN`, which may not be
-there.
+So the code reads a column as it is, and uses `COALESCE` only for:
+
+- what may be NULL by the table above, read as `''` or `0`;
+- a row from a `LEFT JOIN`, which may not be there;
+- an aggregate over no rows (`SUM` gives NULL, not 0);
+- a choice between two values (`COALESCE(root.access, note.access)`, the
+  first date a domain was proved).
+
+A date NULL for "never" is read as the zero time, not as now, so a check of
+how recent it is fails closed (`optionalTime` in the graph and auth
+services).
 
