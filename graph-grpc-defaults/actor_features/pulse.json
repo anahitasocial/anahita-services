@@ -8,7 +8,7 @@
     },
     {
         "service": "text-service",
-        "node_types": ["article"],
+        "node_types": [],
         "composers": [],
         "enabled": true,
         "add_permissions": [
