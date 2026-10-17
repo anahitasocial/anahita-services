@@ -97,7 +97,7 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 		}
 	} else if req.Ordering != "" {
 		if req.Ordering == constants.OrderingPopular {
-			query = query.OrderBy("(node.repost_count + node.comment_count + node.vote_up_count + COALESCE(node.subscriber_count,0) + COALESCE(node.follower_count,0) + COALESCE(node.citation_count,0)) DESC")
+			query = query.OrderBy("(node.repost_count + node.comment_count + node.vote_up_count + node.subscriber_count + node.follower_count + node.citation_count) DESC")
 		} else if req.Ordering == constants.OrderingRecent {
 			query = query.OrderBy("node.created_at DESC")
 		} else if column := safeOrderColumn(req.Ordering); column != "" {

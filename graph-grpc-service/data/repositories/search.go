@@ -152,7 +152,7 @@ const relevantStanding = `(
             WHERE followed.node_b_id = node.id
               AND followed.type = ?
         )
-        + ? * COALESCE(node.citation_count, 0)
+        + ? * node.citation_count
     )
     + %[5]s
 )`
