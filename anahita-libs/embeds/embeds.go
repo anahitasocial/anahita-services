@@ -56,11 +56,12 @@ type Found struct {
 	// Pages elsewhere, tidied as link previews keep them.
 	Pages []string
 	// Profiles of this installation, by alias: /@ana, or /@alice@host for
-	// somebody elsewhere. Shown as their card, and cited as a post is.
+	// somebody elsewhere. Shown as their card, and named: a mention, as an
+	// @handle is, not a citation (actor-service keeps the edges).
 	Profiles []string
 }
 
-// The most profiles a post is taken to cite.
+// The most profiles a post is taken to name.
 const MaxProfiles = 20
 
 // A profile's address: /@ana and its tabs.

@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"anahita-libs/data/entities"
+	"anahita-libs/embeds"
 	"anahita-libs/event"
+	"anahita-libs/site"
+	"fmt"
 	"log"
 	"strings"
 )
@@ -31,9 +34,38 @@ func (h *personHandler) updateTags(payload *event.EventPayload) error {
 		return err
 	}
 
-	if err := h.Srv.Mentions.Update(item, item.Mentions, viewer); err != nil {
+	// Who it names: by @handle, and by a profile's address on a line of
+	// its own, embedded, which is a mention too, not a citation (the user,
+	// 2026-10-17).
+	named := append([]string{}, item.Mentions...)
+	named = append(named, embeds.Find(item.Body, site.FromEnv().IsOurs).Profiles...)
+
+	added, err := h.Srv.Mentions.Update(item, named, viewer)
+	if err != nil {
 		log.Println(err)
 		return err
+	}
+
+	// Each newly named, told of it by notification-service, which decides
+	// whether there is anybody to tell. Only for a post: a person naming
+	// somebody in what they say of themselves tells nobody.
+	if !item.IsMedium() {
+		return nil
+	}
+	for _, edge := range added {
+		routingKey := fmt.Sprintf(event.EventFormatEdgeMentionAdded, "actor-service")
+		payload := &event.EventPayload{
+			Name:             routingKey,
+			SourceService:    "actor-service",
+			SubjectID:        item.GetAuthorID(),
+			ObjectID:         item.ID,
+			TargetID:         edge.NodeAID,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
+		}
+		if err := h.Publisher.Publish(payload, routingKey); err != nil {
+			log.Println(err)
+		}
 	}
 
 	return nil

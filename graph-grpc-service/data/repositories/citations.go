@@ -10,12 +10,13 @@ import (
 
 // CitationsRepoInterface keeps nodes.citation_count in step with the
 // citations there are (edge.medium.citation.v1, from an article or a topic
-// to a post or a profile it shows within itself).
+// to a post it shows within itself). A post naming a profile is a mention,
+// not a citation (the user, 2026-10-17).
 //
 // A post is cited by as many people as cite it: each person once, however
 // many of their posts cite it, and never its own author. A person, a group
-// or an event is cited by as many people as cite it, its profile or any of
-// its posts, never itself. Only a citation in a published post that anybody
+// or an event is cited by as many people as cite any of its posts, never
+// itself. Only a citation in a published post that anybody
 // may read counts: not a draft, not one taken down or switched off, not one
 // with a closer audience. (The user, 2026-10-16: a post cited more, and its
 // author and owner, count for more in search and recommendations.)

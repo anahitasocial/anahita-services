@@ -537,6 +537,33 @@ Settings › Privacy). It changes that one list and nothing else: the list of
 reposts always has them, and followers are sent them in their own feeds, which
 is what a repost is for. It does not change who can see a repost.
 
+## Mentions
+
+A post mentions a profile when it names it: by its `@handle`, or by its
+address on a line of its own, which shows its card. People, groups and
+events can be mentioned, here or on another server.
+
+- **actor-service keeps the mentions,** as `edge.tag.mention.v1` from the
+  profile to the post, each time a post is added or edited: it adds what is
+  newly named and takes away what is no longer. A person's own description
+  can name people too.
+- **A person chooses who may mention them,** under Settings › Permissions,
+  "Who can mention you?": the `mention` permission of `socialgraph-service`,
+  one of `registered` (anybody signed in, the default), `followers`,
+  `leaders` (people they follow), `mutuals` or `admins` (nobody but
+  themselves). Somebody they block may not mention them either. A mention
+  that isn't allowed is no edge at all, and nobody is told; the `@handle`
+  stays in the text as written. Groups and events may always be mentioned.
+  The rule is `permissions.CanMention`.
+- **The person is told,** in their notifications, "mentioned you in a post"
+  or "in a reply" (`actor_mention`, `actor_mention_reply`), from the event
+  `edge.mention.actor-service.added.v1`. Only a person here, never for a
+  draft, never for naming themselves, and only when they may see the post,
+  so being named in a private group's post tells nobody outside it that the
+  post exists. A group or an event mentioned is told nothing.
+- **A mention is not a citation.** A post naming a post cites it; naming a
+  profile mentions it (the user, 2026-10-17).
+
 ## Quotes
 
 A quote is a note that carries another post under its own words. It sits

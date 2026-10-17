@@ -122,7 +122,9 @@ func validatePersonAddPermissionAccess(fl validator.FieldLevel) bool {
 		// permissions.CommentAccess.
 		return access == "registered" || access == "followers"
 
-	case "like":
+	case "like", "mention":
+		// Who may like what is here, and who may mention the person
+		// (permissions.CanMention): the same levels.
 		return access == "registered" || access == "followers" || access == "leaders" || access == "mutuals" || access == "admins"
 
 	case "follower":

@@ -62,8 +62,9 @@ the second puts level.
    reply or follow counts by when it happened (below).
 
    **Citers** are the people who show it within an article or a topic of
-   their own, a post or a profile, each once however many of their posts
-   do, and never its own author: `nodes.citation_count`, kept in step by the
+   their own, each once however many of their posts do, and never its own
+   author; a profile's are those of its posts. Showing a profile is naming
+   it, a mention, and not a citation: `nodes.citation_count`, kept in step by the
    graph (`repositories/citations.go`). Only a published post anybody may
    read counts as citing. A citation counts as it stands, not halved with
    time: citing is deliberate and lasting, and useful knowledge stays

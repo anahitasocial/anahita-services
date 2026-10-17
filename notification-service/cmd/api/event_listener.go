@@ -24,6 +24,8 @@ func startEventListerner(h *handlers.Handlers, config *config.Config) error {
 		"node.repost.*.*.*.v1",
 		"edge.voteup.*.*.v1",
 		"edge.follow.*.*.v1",
+		// A post naming somebody here.
+		"edge.mention.*.*.v1",
 		"edge.follow-request.*.*.v1",
 		"edge.invite.*.*.v1",
 		// Events, the kind people go to.

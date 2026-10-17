@@ -24,6 +24,7 @@ func NewServices(config *config.Config) *Services {
 		geocoder = found
 	}
 
+	socialgraph := services.NewSocialgraphGRPC(config)
 	return &Services{
 		Geocoder:        geocoder,
 		ActorsGRPC:      services.NewActorsGRPC(config),
@@ -34,9 +35,9 @@ func NewServices(config *config.Config) *Services {
 		FilesGRPC:             services.NewFilesGRPC(config),
 		GraphEdgeGRPC:         edges,
 		GraphNodeGRPC:         nodes,
-		Mentions:              NewMentions(nodes, edges),
+		Mentions:              NewMentions(nodes, edges, socialgraph),
 		SocialgraphFollowGRPC: services.NewSocialgraphFollowGRPC(config),
-		SocialgraphGRPC:       services.NewSocialgraphGRPC(config),
+		SocialgraphGRPC:       socialgraph,
 	}
 }
 

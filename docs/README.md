@@ -69,6 +69,7 @@ Documentation for anahita-services, the Go microservices behind Anahita.
    - [Invitations](permissions.md#invitations)
    - [Events](permissions.md#events)
    - [Reposts](permissions.md#reposts)
+   - [Mentions](permissions.md#mentions)
    - [Quotes](permissions.md#quotes)
    - [Saved posts](permissions.md#saved-posts)
    - [Pinned posts](permissions.md#pinned-posts)
