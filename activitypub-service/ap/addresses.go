@@ -38,9 +38,6 @@ func (a Addresses) NoteCreate(uuid string) string { return a.Note(uuid) + "/acti
 // NotePage is where a note is read, in the web app.
 func (a Addresses) NotePage(id int64) string { return a.Site.Web(fmt.Sprintf("/notes/%d", id)) }
 
-// ArticlePage is where an article is read, in the web app.
-func (a Addresses) ArticlePage(id int64) string { return a.Site.Web(fmt.Sprintf("/articles/%d", id)) }
-
 // PhotoPage is where a photo post is read, in the web app.
 func (a Addresses) PhotoPage(id int64) string { return a.Site.Web(fmt.Sprintf("/photos/%d", id)) }
 

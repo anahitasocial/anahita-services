@@ -39,6 +39,7 @@ const (
 	refusedFeedTaken   = "feed_taken"
 	refusedHandleTaken = "handle_taken"
 	refusedNotProved   = "not_proved"
+	refusedPrivateFeed = "private_feed"
 )
 
 // Finding a feed fetches somebody else's site: a few times an hour each.
@@ -146,6 +147,8 @@ func (h *connectHandler) Start(c echo.Context) error {
 	ctx := c.Request().Context()
 	found, err := h.Feeds.Find(ctx, address)
 	switch {
+	case errors.Is(err, feeds.ErrPrivate) || (err == nil && feeds.IsPrivate(found.FeedURL)):
+		return c.JSON(http.StatusBadRequest, refusal{refusedPrivateFeed})
 	case errors.Is(err, feeds.ErrNoFeed):
 		return c.JSON(http.StatusBadRequest, refusal{refusedNoFeed})
 	case err != nil:
@@ -273,8 +276,13 @@ func (h *connectHandler) Make(c echo.Context) error {
 	if !site.Covers(req.FeedURL) {
 		return c.JSON(http.StatusBadRequest, refusal{refusedFeedOffSite})
 	}
+	if feeds.IsPrivate(req.FeedURL) {
+		return c.JSON(http.StatusBadRequest, refusal{refusedPrivateFeed})
+	}
 	read, err := h.Feeds.Read(ctx, req.FeedURL, "", "")
 	switch {
+	case errors.Is(err, feeds.ErrPrivate):
+		return c.JSON(http.StatusBadRequest, refusal{refusedPrivateFeed})
 	case errors.Is(err, feeds.ErrNoFeed):
 		return c.JSON(http.StatusBadRequest, refusal{refusedNoFeed})
 	case err != nil:

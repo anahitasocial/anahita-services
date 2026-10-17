@@ -23,8 +23,6 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/domains"
 	"anahita-libs/linkpreviews"
-
-	"github.com/gosimple/slug"
 )
 
 const (
@@ -59,9 +57,9 @@ type Checker interface {
 type Graph interface {
 	Website(id int64) (*entities.AnahitaNode, error)
 	FirstAdmin(websiteID int64) (int64, error)
-	Post(article *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error)
+	Post(note *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error)
 	Read(id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error)
-	Edit(article *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error)
+	Edit(note *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error)
 }
 
 // Cards finds a link's card; nil when there is none to show.
@@ -77,7 +75,7 @@ type Worker struct {
 	Checker  Checker
 	Graph    Graph
 	// May be nil: an installation without link-preview-service has no
-	// cards, and its articles none.
+	// cards, and its notes none.
 	Cards Cards
 
 	ReadEvery time.Duration
@@ -177,7 +175,16 @@ func (w *Worker) read(ctx context.Context, due *repositories.Due) error {
 		return w.Websites.Pause(ctx, due.NodeID, repositories.PausedProfileGone)
 	}
 
-	read, err := w.Feeds.Read(ctx, due.FeedURL, due.ETag, due.LastModified)
+	// What waits to be posted is posted from the feed as it is read: so
+	// while anything waits, the feed is read whole, and not answered "not
+	// changed since".
+	etag, lastModified := due.ETag, due.LastModified
+	if waiting, err := w.Items.Waiting(ctx, due.NodeID); err != nil {
+		return w.failed(ctx, due, err)
+	} else if waiting > 0 {
+		etag, lastModified = "", ""
+	}
+	read, err := w.Feeds.Read(ctx, due.FeedURL, etag, lastModified)
 	if err != nil {
 		return w.failed(ctx, due, err)
 	}
@@ -279,9 +286,9 @@ func (w *Worker) take(ctx context.Context, website *entities.AnahitaNode, items 
 			}
 			break
 		}
-		node, err := w.Graph.Post(w.articleOf(ctx, website, adminID, item), viewer)
+		node, err := w.Graph.Post(w.noteOf(ctx, website, adminID, item), viewer)
 		if err != nil {
-			return fmt.Errorf("the article was not made: %w", err)
+			return fmt.Errorf("the note was not made: %w", err)
 		}
 		if err := w.Items.Posted(ctx, website.ID, item.Key, node.ID); err != nil {
 			return err
@@ -291,13 +298,13 @@ func (w *Worker) take(ctx context.Context, website *entities.AnahitaNode, items 
 
 	for _, item := range changed {
 		if err := w.change(ctx, website, known[item.Key].NodeID, item, viewer); err != nil {
-			log.Printf("syndication-worker: the article of %s was not changed: %v", item.Link, err)
+			log.Printf("syndication-worker: the note of %s was not changed: %v", item.Link, err)
 		}
 	}
 	return nil
 }
 
-// posterFor is the viewer a website's article is made as: its first
+// posterFor is the viewer a website's note is made as: its first
 // administrator, as the video-worker makes a post as its uploader.
 func posterFor(adminID int64) *entities.Viewer {
 	viewer := entities.NewViewer()
@@ -309,13 +316,14 @@ func posterFor(adminID int64) *entities.Viewer {
 	return viewer
 }
 
-// ContentOf is what an article of an item says: its excerpt, the address
-// of the original on a line of its own (which gives the card), and its
-// categories as hashtags.
+// ContentOf is what a note of an item says: its title in bold, as a note
+// has no title of its own (roadmap row 74); its excerpt; the original's
+// address on a line of its own, which gives the card; and its categories
+// as hashtags.
 func ContentOf(item feeds.Item) string {
-	var parts []string
+	parts := []string{"**" + markdownEscaper.Replace(item.Title) + "**"}
 	if item.Excerpt != "" && item.Excerpt != item.Title {
-		parts = append(parts, item.Excerpt)
+		parts = append(parts, markdownEscaper.Replace(item.Excerpt))
 	}
 	parts = append(parts, item.Link)
 	if len(item.Tags) > 0 {
@@ -324,30 +332,32 @@ func ContentOf(item feeds.Item) string {
 	return strings.Join(parts, "\n\n")
 }
 
-func (w *Worker) articleOf(ctx context.Context, website *entities.AnahitaNode, adminID int64, item feeds.Item) *entities.AnahitaNode {
-	article := entities.NewAnahitaNode()
-	article.Type = an_const.NodeMediumArticleEntityType
-	article.Service = an_const.TextService
-	// The website's own, shown and sent as its, as its replies are; the
-	// administrator it was made as is kept for moderators.
-	article.OwnerID = website.ID
-	article.OwnerType = website.Type
-	article.CreatedBy = website.ID
-	article.ModifiedBy = adminID
-	article.Name = item.Title
-	article.Alias = slug.Make(item.Title)
-	article.Body = ContentOf(item)
-	article.Access = an_const.AnahitaAccessPublic
-	article.Enabled = true
-	article.CommentStatus = true
+// A title or an excerpt is plain text: what Markdown would read as marks in
+// it is kept as it is written.
+var markdownEscaper = strings.NewReplacer(`\`, `\\`, `*`, `\*`, `_`, `\_`, "`", "\\`", `[`, `\[`, `#`, `\#`)
+
+// noteOf is the note an item becomes: the website's own, shown and sent as
+// its, public, with the original's card. The administrator it is made as is
+// kept for moderators (`written_by`), as for its replies.
+func (w *Worker) noteOf(ctx context.Context, website *entities.AnahitaNode, adminID int64, item feeds.Item) *entities.AnahitaNode {
+	note := entities.NewAnahitaNode()
+	note.Type = an_const.NodeMediumNoteEntityType
+	note.Service = an_const.TextService
+	note.OwnerID = website.ID
+	note.OwnerType = website.Type
+	note.CreatedBy = website.ID
+	note.ModifiedBy = adminID
+	note.Body = ContentOf(item)
+	note.Access = an_const.AnahitaAccessPublic
+	note.Enabled = true
+	note.CommentStatus = true
 	// The graph keeps it unless it is in the future.
-	article.CreatedAt = item.Published
-	article.Meta = an_handlers.WithWrittenBy(w.cardOf(ctx, item.Link), adminID)
-	return article
+	note.CreatedAt = item.Published
+	note.Meta = an_handlers.WithWrittenBy(w.cardOf(ctx, item.Link), adminID)
+	return note
 }
 
-// cardOf is the card of the original, as an article keeps the cards of the
-// pages it shows.
+// cardOf is the card of the original, the one card a note carries.
 func (w *Worker) cardOf(ctx context.Context, link string) []byte {
 	if w.Cards == nil {
 		return nil
@@ -356,22 +366,20 @@ func (w *Worker) cardOf(ctx context.Context, link string) []byte {
 	if snapshot == nil {
 		return nil
 	}
-	return linkpreviews.SnapshotsIntoMeta(nil, []*linkpreviews.Snapshot{snapshot})
+	return linkpreviews.IntoMeta(nil, snapshot)
 }
 
 func (w *Worker) change(ctx context.Context, website *entities.AnahitaNode, nodeID int64, item feeds.Item, viewer *entities.Viewer) error {
-	article, err := w.Graph.Read(nodeID, viewer)
+	note, err := w.Graph.Read(nodeID, viewer)
 	if err != nil {
 		return err
 	}
-	if article == nil || article.ID == 0 || article.OwnerID != website.ID {
-		return errors.New("it is no longer the Website's")
+	if note == nil || note.ID == 0 || note.OwnerID != website.ID {
+		return errors.New("it is no longer the website's")
 	}
-	article.Name = item.Title
-	article.Alias = slug.Make(item.Title)
-	article.Body = ContentOf(item)
-	article.ModifiedBy = viewer.ID
-	if _, err := w.Graph.Edit(article, viewer); err != nil {
+	note.Body = ContentOf(item)
+	note.ModifiedBy = viewer.ID
+	if _, err := w.Graph.Edit(note, viewer); err != nil {
 		return err
 	}
 	return w.Items.Changed(ctx, website.ID, item.Key, repositories.ContentHash(item.Title, item.Excerpt))

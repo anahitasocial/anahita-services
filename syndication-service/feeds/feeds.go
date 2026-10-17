@@ -49,7 +49,37 @@ var (
 	// ErrUnreadable is an address that could not be fetched, or answered
 	// with an error.
 	ErrUnreadable = errors.New("could not be read")
+	// ErrPrivate is a feed behind a login, or one whose address carries a
+	// secret. A website's posts are public, so a private feed is never
+	// taken: what it holds was not meant for everybody.
+	ErrPrivate = errors.New("a private feed")
 )
+
+// The names a secret goes by in an address: a paid podcast's feed, a
+// private repository's, a tracker's.
+var secretParams = map[string]bool{
+	"token": true, "access_token": true, "auth": true, "key": true, "apikey": true,
+	"api_key": true, "secret": true, "password": true, "pass": true, "signature": true,
+	"sig": true, "private": true, "private_token": true, "feed_token": true,
+}
+
+// IsPrivate says whether an address carries what should not be made public:
+// a user and password, or a parameter that is a secret.
+func IsPrivate(address string) bool {
+	u, err := url.Parse(address)
+	if err != nil {
+		return false
+	}
+	if u.User != nil {
+		return true
+	}
+	for name := range u.Query() {
+		if secretParams[strings.ToLower(name)] {
+			return true
+		}
+	}
+	return false
+}
 
 // The kinds of feed a page may name with <link rel="alternate">.
 var feedTypes = map[string]bool{
@@ -186,6 +216,9 @@ func (r *Reader) get(ctx context.Context, address, etag, lastModified string) ([
 }
 
 func (r *Reader) fetch(ctx context.Context, address, etag, lastModified string) ([]byte, string, *http.Response, error) {
+	if IsPrivate(address) {
+		return nil, "", nil, ErrPrivate
+	}
 	u, err := url.Parse(address)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
 		return nil, "", nil, ErrUnreadable
@@ -213,6 +246,9 @@ func (r *Reader) fetch(ctx context.Context, address, etag, lastModified string) 
 	final := res.Request.URL.String()
 	if res.StatusCode == http.StatusNotModified {
 		return nil, final, res, nil
+	}
+	if res.StatusCode == http.StatusUnauthorized || res.StatusCode == http.StatusForbidden {
+		return nil, final, res, fmt.Errorf("%w: %s answered %d", ErrPrivate, final, res.StatusCode)
 	}
 	if res.StatusCode != http.StatusOK {
 		return nil, final, res, fmt.Errorf("%w: %s answered %d", ErrUnreadable, final, res.StatusCode)

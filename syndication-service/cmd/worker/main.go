@@ -1,5 +1,5 @@
-// Website-worker reads the feeds of websites and posts what is new in them as
-// their articles, and checks every day that their domains are still proved.
+// syndication-worker reads the feeds of websites and posts what is new in them as
+// their notes, and checks every day that their domains are still proved.
 package main
 
 import (
@@ -93,7 +93,7 @@ func (g *graph) Website(id int64) (*entities.AnahitaNode, error) {
 	return g.actors.ReadOfType(id, an_const.NodeActorWebsiteEntityType, entities.NewViewer())
 }
 
-// FirstAdmin is the administrator its articles are made as: the one who
+// FirstAdmin is the administrator its notes are made as: the one who
 // has been one longest.
 func (g *graph) FirstAdmin(websiteID int64) (int64, error) {
 	admins, err := g.admins.Browse(websiteID)
@@ -112,16 +112,16 @@ func (g *graph) FirstAdmin(websiteID int64) (int64, error) {
 	return first, nil
 }
 
-func (g *graph) Post(article *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
-	return g.media.Add(article, viewer)
+func (g *graph) Post(note *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
+	return g.media.Add(note, viewer)
 }
 
 func (g *graph) Read(id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
 	return g.media.Read(id, viewer)
 }
 
-func (g *graph) Edit(article *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
-	return g.media.Edit(article, viewer)
+func (g *graph) Edit(note *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
+	return g.media.Edit(note, viewer)
 }
 
 // connectToDB waits for MySQL, which may still be starting when this does.

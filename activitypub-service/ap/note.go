@@ -12,21 +12,18 @@ import (
 
 // Note is a post, as it is sent to and read from another server.
 type Note struct {
-	Context      any    `json:"@context,omitempty"`
-	ID           string `json:"id"`
-	Type         string `json:"type"`
-	AttributedTo string `json:"attributedTo"`
-	// An Article's title, and the opening it is summed up by.
-	Name       string            `json:"name,omitempty"`
-	Summary    string            `json:"summary,omitempty"`
-	Content    string            `json:"content"`
-	ContentMap map[string]string `json:"contentMap,omitempty"`
-	Published  string            `json:"published,omitempty"`
-	Updated    string            `json:"updated,omitempty"`
-	URL        string            `json:"url,omitempty"`
-	To         []string          `json:"to"`
-	Cc         []string          `json:"cc"`
-	Tag        []Tag             `json:"tag,omitempty"`
+	Context      any               `json:"@context,omitempty"`
+	ID           string            `json:"id"`
+	Type         string            `json:"type"`
+	AttributedTo string            `json:"attributedTo"`
+	Content      string            `json:"content"`
+	ContentMap   map[string]string `json:"contentMap,omitempty"`
+	Published    string            `json:"published,omitempty"`
+	Updated      string            `json:"updated,omitempty"`
+	URL          string            `json:"url,omitempty"`
+	To           []string          `json:"to"`
+	Cc           []string          `json:"cc"`
+	Tag          []Tag             `json:"tag,omitempty"`
 	// What it answers, by the address that has between servers.
 	InReplyTo string `json:"inReplyTo,omitempty"`
 	// The pictures of a photo post, or the video of a video post.
@@ -142,19 +139,6 @@ func NewNote(a Addresses, note, author *entities.AnahitaNode, links federation.L
 	}
 
 	return sent
-}
-
-// AsArticle makes the post an Article: a title, its opening as its
-// summary, and the page it is read at. Mastodon shows one as its title and
-// a link; WriteFreely, Ghost and the like as an article. For a website's
-// posts, whose opening and link to the original are all there is
-// (docs/plans/website.md).
-func (n *Note) AsArticle(a Addresses, article *entities.AnahitaNode, summary string) *Note {
-	n.Type = "Article"
-	n.Name = strings.TrimSpace(article.Name)
-	n.Summary = summary
-	n.URL = a.ArticlePage(article.ID)
-	return n
 }
 
 // Answering makes the note a reply: to what, and, when whoever wrote that

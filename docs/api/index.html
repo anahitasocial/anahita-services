@@ -508,11 +508,11 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>activitypub/cmd/api/handlers.(*Handlers).InstanceActor</code></p>
 </details>
-<details class="route" id="getApNotesByUuid" data-search="get /ap/notes/{uuid} a post, as other servers see it for other servers, in activitystreams (https://www.w3.org/tr/activitystreams-vocabulary/). a `note`, of somebody on the fediverse, open to everybody; an `article` for a website&#39;s article.
+<details class="route" id="getApNotesByUuid" data-search="get /ap/notes/{uuid} a post, as other servers see it for other servers, in activitystreams (https://www.w3.org/tr/activitystreams-vocabulary/). a `note`, of somebody on the fediverse, open to everybody.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/ap/notes/{uuid}</code> <span class="summary">A post, as other servers see it</span></summary>
-<div class="description"><p>For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A <code>Note</code>, of somebody on the fediverse, open to everybody; an <code>Article</code> for a Website&#39;s article.</p></div>
+<div class="description"><p>For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A <code>Note</code>, of somebody on the fediverse, open to everybody.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -7656,7 +7656,7 @@ who may call it: somebody signed in.">
 <table class="answers">
 <tbody>
 <tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-syndication.Connection">syndication.Connection</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">400</td><td><code>not_a_domain</code>, <code>no_feed</code>, <code>unreadable</code> or <code>feed_not_on_domain</code>, as <code>error</code></td></tr>
+<tr><td class="status s4">400</td><td><code>not_a_domain</code>, <code>no_feed</code>, <code>unreadable</code>, <code>feed_not_on_domain</code> or <code>private_feed</code> (behind a login, or a secret in its address: a website is public), as <code>error</code></td></tr>
 <tr><td class="status s4">401</td><td>the viewer is not signed in</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not connect a website: see WEBSITES_FROM</td></tr>
 <tr><td class="status s4">409</td><td><code>feed_taken</code>: the feed already has a Website</td></tr>
@@ -7692,7 +7692,7 @@ who may call it: somebody signed in.">
 <table class="answers">
 <tbody>
 <tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-syndication.Made">syndication.Made</a> <span class="media">application/json</span></div></td></tr>
-<tr><td class="status s4">400</td><td><code>no_feed</code>, <code>unreadable</code> or <code>feed_not_on_domain</code>, as <code>error</code></td></tr>
+<tr><td class="status s4">400</td><td><code>no_feed</code>, <code>unreadable</code>, <code>feed_not_on_domain</code> or <code>private_feed</code>, as <code>error</code></td></tr>
 <tr><td class="status s4">401</td><td>the viewer is not signed in</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not connect a website: see WEBSITES_FROM</td></tr>
 <tr><td class="status s4">404</td><td>there is no such connection begun by the viewer</td></tr>
@@ -10555,7 +10555,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-activitypub.Note" data-search="activitypub.note @context attachment attributedto cc content contentmap id inreplyto name published summary tag to type updated url">
+<div class="route schema" id="schema-activitypub.Note" data-search="activitypub.note @context attachment attributedto cc content contentmap id inreplyto published tag to type updated url">
 <h3>activitypub.Note</h3>
 <p>A post, as it is sent to and read from another server.</p>
 <table>
@@ -10569,9 +10569,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>contentMap</code></td><td>map of string</td><td></td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>inReplyTo</code></td><td>string</td><td>What it answers, by the address that has between servers.</td></tr>
-<tr><td><code>name</code></td><td>string</td><td>An Article&#39;s title, and the opening it is summed up by.</td></tr>
 <tr><td><code>published</code></td><td>string</td><td></td></tr>
-<tr><td><code>summary</code></td><td>string</td><td></td></tr>
 <tr><td><code>tag</code></td><td>list of <a href="#schema-activitypub.Tag">activitypub.Tag</a></td><td></td></tr>
 <tr><td><code>to</code> <span class="required">always</span></td><td>list of string or null</td><td></td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td></td></tr>

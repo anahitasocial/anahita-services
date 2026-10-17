@@ -149,3 +149,23 @@ func TestAFeedNamesItsHub(t *testing.T) {
 		t.Errorf("a feed with no hub: %q %q", hub, self)
 	}
 }
+
+func TestAPrivateFeedIsNotTaken(t *testing.T) {
+	for address, want := range map[string]bool{
+		"https://example.com/feed/":                        false,
+		"https://example.com/feed/?paged=2":                false,
+		"https://ana:secret@example.com/feed/":             true,
+		"https://example.com/podcast.rss?token=abc123":     true,
+		"https://example.com/commits.atom?Private_Token=x": true,
+		"https://example.com/feed?key=1":                   true,
+	} {
+		if got := IsPrivate(address); got != want {
+			t.Errorf("%s: private %v, want %v", address, got, want)
+		}
+	}
+
+	r := readerOf(site{"https://example.com/members.xml": {status: http.StatusUnauthorized}})
+	if _, err := r.Read(context.Background(), "https://example.com/members.xml", "", ""); !errors.Is(err, ErrPrivate) {
+		t.Errorf("a feed behind a login: %v", err)
+	}
+}

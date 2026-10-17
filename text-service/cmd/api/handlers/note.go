@@ -130,6 +130,10 @@ func (h *noteHandler) Edit(c echo.Context) error {
 			return c.NoContent(refused)
 		}
 	} else {
+		// A website's own note follows its site: nobody changes its words.
+		if permissions.IsWebsiteItem(medium) {
+			return c.JSON(http.StatusForbidden, responses.Refusal{Error: permissions.WebsiteItemRefusal})
+		}
 		mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
 		if err != nil {
 			log.Println(err)

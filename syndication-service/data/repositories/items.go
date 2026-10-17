@@ -67,7 +67,15 @@ type ItemsInterface interface {
 	Posted(ctx context.Context, websiteID int64, key string, nodeID int64) error
 	// Changed keeps what a changed item says now.
 	Changed(ctx context.Context, websiteID int64, key, contentHash string) error
+	// Waiting is how many of its items wait to be posted.
+	Waiting(ctx context.Context, websiteID int64) (int, error)
 }
+
+const itemsWaiting = `
+SELECT COUNT(*)
+FROM website_items
+WHERE website_id = ?
+  AND state = 'waiting'`
 
 const itemsKnownHead = `
 SELECT
@@ -175,4 +183,10 @@ func (r *itemsRepo) add(ctx context.Context, head, state string, websiteID int64
 		}
 	}
 	return nil
+}
+
+func (r *itemsRepo) Waiting(ctx context.Context, websiteID int64) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx, itemsWaiting, websiteID).Scan(&count)
+	return count, err
 }

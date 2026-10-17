@@ -145,10 +145,9 @@ WHERE note.type IN (?, ?, ?)
 ORDER BY note.id
 LIMIT ?`
 
-// A website's articles, and its replies under them, that should have gone out
-// and did not. A website is on the fediverse with nobody to choose it, so
-// there is no account to join; an article of one is made by its
-// administrator, so its maker is not its owner.
+// A website's notes, the items of its feed and its replies, that should have
+// gone out and did not. A website is on the fediverse with nobody to choose
+// it, so there is no account to join.
 const websiteNotesNotSent = `
 SELECT note.id
 FROM nodes AS note
@@ -157,7 +156,7 @@ LEFT JOIN nodes AS root
 LEFT JOIN activitypub_objects AS sent
        ON sent.node_id = note.id
 WHERE note.owner_type = ?
-  AND note.type IN (?, ?)
+  AND note.type = ?
   AND note.library_only = 0
   AND note.enabled = 1
   AND note.deleted_at IS NULL
@@ -178,7 +177,7 @@ func (repo *Missed) NotesNotSent(since, olderThan time.Time, limit int) ([]int64
 		return nil, err
 	}
 	websites, err := repo.ids(websiteNotesNotSent,
-		constants.NodeActorWebsiteEntityType, constants.NodeMediumArticleEntityType, constants.NodeMediumNoteEntityType,
+		constants.NodeActorWebsiteEntityType, constants.NodeMediumNoteEntityType,
 		constants.AnahitaAccessPublic, since, olderThan, limit)
 	if err != nil {
 		return nil, err

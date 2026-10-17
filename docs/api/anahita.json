@@ -2772,14 +2772,7 @@
             "description": "What it answers, by the address that has between servers.",
             "type": "string"
           },
-          "name": {
-            "description": "An Article's title, and the opening it is summed up by.",
-            "type": "string"
-          },
           "published": {
-            "type": "string"
-          },
-          "summary": {
             "type": "string"
           },
           "tag": {
@@ -8096,7 +8089,7 @@
     },
     "/ap/notes/{uuid}": {
       "get": {
-        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Note`, of somebody on the fediverse, open to everybody; an `Article` for a Website's article.\n\nWho may call it: anyone, signed in or not.",
+        "description": "For other servers, in ActivityStreams (https://www.w3.org/TR/activitystreams-vocabulary/). A `Note`, of somebody on the fediverse, open to everybody.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getApNotesByUuid",
         "parameters": [
           {
@@ -33968,7 +33961,7 @@
             "description": "Created"
           },
           "400": {
-            "description": "`not_a_domain`, `no_feed`, `unreadable` or `feed_not_on_domain`, as `error`"
+            "description": "`not_a_domain`, `no_feed`, `unreadable`, `feed_not_on_domain` or `private_feed` (behind a login, or a secret in its address: a website is public), as `error`"
           },
           "401": {
             "description": "the viewer is not signed in"
@@ -34064,7 +34057,7 @@
             "description": "Created"
           },
           "400": {
-            "description": "`no_feed`, `unreadable` or `feed_not_on_domain`, as `error`"
+            "description": "`no_feed`, `unreadable`, `feed_not_on_domain` or `private_feed`, as `error`"
           },
           "401": {
             "description": "the viewer is not signed in"

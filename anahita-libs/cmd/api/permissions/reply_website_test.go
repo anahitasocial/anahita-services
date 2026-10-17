@@ -55,3 +55,25 @@ func TestTheWebsitesRepliesAreChangedByThoseWhoReplyAsIt(t *testing.T) {
 		t.Error("an administrator can change somebody else's reply")
 	}
 }
+
+// A website's own notes follow its site; the replies under them, its own
+// included, are replies like any.
+func TestAWebsitesOwnNoteFollowsItsSite(t *testing.T) {
+	item := entities.NewAnahitaNode()
+	item.OwnerType = constants.NodeActorWebsiteEntityType
+	if !IsWebsiteItem(item) {
+		t.Error("a website's own note can be changed")
+	}
+
+	reply := entities.NewAnahitaNode()
+	reply.OwnerType, reply.ParentID, reply.RootID = constants.NodeActorWebsiteEntityType, 10, 10
+	if IsWebsiteItem(reply) {
+		t.Error("a website's reply cannot be changed by whoever replies as it")
+	}
+
+	someone := entities.NewAnahitaNode()
+	someone.OwnerType = constants.NodeActorPersonEntityType
+	if IsWebsiteItem(someone) {
+		t.Error("somebody's own note follows a website")
+	}
+}

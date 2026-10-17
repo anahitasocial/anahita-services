@@ -153,7 +153,7 @@
             "description": "Created"
           },
           "400": {
-            "description": "`not_a_domain`, `no_feed`, `unreadable` or `feed_not_on_domain`, as `error`"
+            "description": "`not_a_domain`, `no_feed`, `unreadable`, `feed_not_on_domain` or `private_feed` (behind a login, or a secret in its address: a website is public), as `error`"
           },
           "401": {
             "description": "the viewer is not signed in"
@@ -249,7 +249,7 @@
             "description": "Created"
           },
           "400": {
-            "description": "`no_feed`, `unreadable` or `feed_not_on_domain`, as `error`"
+            "description": "`no_feed`, `unreadable`, `feed_not_on_domain` or `private_feed`, as `error`"
           },
           "401": {
             "description": "the viewer is not signed in"

@@ -50,8 +50,7 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 	// is not one.
 	isPhoto := note.Type == constants.NodeMediumPhotoEntityType
 	isVideo := note.Type == videos.NodeType && videos.FromMeta(note.Meta) != nil
-	isArticle := isWebsiteArticle(note)
-	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo && !isArticle) || !note.Enabled || note.DeletedAt != nil || note.Hidden {
+	if (note.Type != constants.NodeMediumNoteEntityType && !isPhoto && !isVideo) || !note.Enabled || note.DeletedAt != nil || note.Hidden {
 		return nil, nil
 	}
 	// In its author's media library only: shown within an article here,
@@ -59,13 +58,9 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 	if note.LibraryOnly {
 		return nil, nil
 	}
-	// Somebody's own post: on their own profile, and theirs. Except a
-	// Website's article, which is the website's and is made by its first
-	// administrator: it goes out as the website's.
-	authorID := note.CreatedBy
-	if isArticle {
-		authorID = note.OwnerID
-	} else if note.CreatedBy <= 0 || note.OwnerID != note.CreatedBy {
+	// Somebody's own post, on their own profile; a website's, made of its
+	// feed, is the website's on both counts.
+	if note.CreatedBy <= 0 || note.OwnerID != note.CreatedBy {
 		return nil, nil
 	}
 
@@ -81,7 +76,7 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 		return nil, nil
 	}
 
-	author, err := h.Nodes.Read(authorID)
+	author, err := h.Nodes.Read(note.CreatedBy)
 	if err != nil || h.federating(author) == nil {
 		return nil, nil
 	}
@@ -171,9 +166,6 @@ func (h *Handlers) hasPictures(postID int64) bool {
 // answers.
 func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answer) *ap.Note {
 	sent := ap.NewNote(h.addresses, note, author, h.links())
-	if isWebsiteArticle(note) {
-		sent.AsArticle(h.addresses, note, articleSummary(note))
-	}
 	if answering != nil {
 		sent.Answering(answering.ID, answering.Actor, answering.Handle)
 	}
@@ -470,15 +462,4 @@ func (h *Handlers) removed(ctx context.Context, nodeID int64) error {
 	return h.toReaders(ctx, author, object.ReplyInbox,
 		ap.NewDelete(h.addresses.Activity(newUUID()), h.addresses.Actor(author.UUID), h.addresses.Note(object.UUID)),
 		"delete:"+object.UUID)
-}
-
-// articleSummary is a website's article summed up: its opening, the item's
-// excerpt, which is the first paragraph of what it says (syndication-worker
-// writes it so), and nothing when it begins with the original's address.
-func articleSummary(article *entities.AnahitaNode) string {
-	first, _, _ := strings.Cut(strings.TrimSpace(article.Body), "\n\n")
-	if first == "" || strings.HasPrefix(first, "http://") || strings.HasPrefix(first, "https://") {
-		return ""
-	}
-	return html.EscapeString(first)
 }

@@ -135,7 +135,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Refuses(http.StatusServiceUnavailable, "it cannot be counted now")
 	ap_.GET("/notes/:uuid", r.handler.Note, r.setViewer).
 		Summary("A post, as other servers see it").
-		Describe(server+"A `Note`, of somebody on the fediverse, open to everybody; an `Article` for a Website's article.").
+		Describe(server+"A `Note`, of somebody on the fediverse, open to everybody.").
 		Viewer(apidoc.Anyone).
 		Media(activity).
 		Takes(&handlers.NoteRef{}).

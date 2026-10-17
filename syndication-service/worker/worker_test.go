@@ -97,6 +97,15 @@ func (m *memItems) Posted(_ context.Context, _ int64, key string, nodeID int64) 
 	m.kept[key] = item
 	return nil
 }
+func (m *memItems) Waiting(context.Context, int64) (int, error) {
+	n := 0
+	for _, item := range m.kept {
+		if item.State == repositories.ItemWaiting {
+			n++
+		}
+	}
+	return n, nil
+}
 func (m *memItems) Changed(_ context.Context, _ int64, key, hash string) error {
 	item := m.kept[key]
 	item.ContentHash = hash
@@ -108,11 +117,16 @@ type memFeed struct {
 	items []feeds.Item
 	err   error
 	hub   string
+	// The feed's ETag: a read sending it is answered "not changed".
+	etag string
 }
 
-func (m *memFeed) Read(context.Context, string, string, string) (*feeds.Read, error) {
+func (m *memFeed) Read(_ context.Context, _ string, etag, _ string) (*feeds.Read, error) {
 	if m.err != nil {
 		return nil, m.err
+	}
+	if m.etag != "" && etag == m.etag {
+		return &feeds.Read{NotModified: true, ETag: etag}, nil
 	}
 	return &feeds.Read{ETag: `"v2"`, Items: m.items, Hub: m.hub, Self: "https://example.com/feed/"}, nil
 }
@@ -203,7 +217,7 @@ func item(n int) feeds.Item {
 	}
 }
 
-func TestANewItemIsPostedAsTheArticleOfTheWebsite(t *testing.T) {
+func TestANewItemIsPostedAsANoteOfTheWebsite(t *testing.T) {
 	f := newFixture()
 	f.items.kept["key-1"] = repositories.Known{State: repositories.ItemSeen}
 	f.feed.items = []feeds.Item{item(1), item(2)}
@@ -214,13 +228,16 @@ func TestANewItemIsPostedAsTheArticleOfTheWebsite(t *testing.T) {
 		t.Fatalf("posted %d: what was seen when the Website was made is never posted", len(f.graph.posted))
 	}
 	a := f.graph.posted[0]
-	if a.Type != an_const.NodeMediumArticleEntityType || a.Service != an_const.TextService ||
+	if a.Type != an_const.NodeMediumNoteEntityType || a.Service != an_const.TextService ||
 		a.OwnerID != 900 || a.OwnerType != an_const.NodeActorWebsiteEntityType ||
 		a.CreatedBy != 900 || a.ModifiedBy != 7 || f.graph.poster != 7 || a.Access != an_const.AnahitaAccessPublic {
-		t.Errorf("the article: %+v", a)
+		t.Errorf("the note: %+v", a)
 	}
-	if a.Name != "Post 2" || a.Body != "What post 2 says.\n\nhttps://example.com/2\n\n#Gardens #OpenScience" {
+	if a.Name != "" || a.Body != "**Post 2**\n\nWhat post 2 says.\n\nhttps://example.com/2\n\n#Gardens #OpenScience" {
 		t.Errorf("it says %q: %q", a.Name, a.Body)
+	}
+	if !strings.Contains(string(a.Meta), `"link_preview"`) {
+		t.Errorf("a note's one card: %s", a.Meta)
 	}
 	if !a.CreatedAt.Equal(start.Add(-2*time.Hour)) || !strings.Contains(string(a.Meta), "The original") || !strings.Contains(string(a.Meta), `"written_by":7`) {
 		t.Errorf("its date %v, its card %s", a.CreatedAt, a.Meta)
@@ -248,8 +265,8 @@ func TestNoMoreThanTheCapAreMadeInAnHour(t *testing.T) {
 	if len(f.graph.posted) != DefaultHourlyCap {
 		t.Fatalf("posted %d in the first hour", len(f.graph.posted))
 	}
-	if f.graph.posted[0].Name != "Post 12" {
-		t.Errorf("the oldest first: %s", f.graph.posted[0].Name)
+	if !strings.HasPrefix(f.graph.posted[0].Body, "**Post 12**") {
+		t.Errorf("the oldest first: %s", f.graph.posted[0].Body)
 	}
 
 	f.clock = start.Add(30 * time.Minute)
@@ -265,7 +282,7 @@ func TestNoMoreThanTheCapAreMadeInAnHour(t *testing.T) {
 	}
 }
 
-func TestAChangedItemChangesItsArticle(t *testing.T) {
+func TestAChangedItemChangesItsNote(t *testing.T) {
 	f := newFixture()
 	f.feed.items = []feeds.Item{item(1)}
 	f.round(t)
@@ -275,7 +292,7 @@ func TestAChangedItemChangesItsArticle(t *testing.T) {
 	f.feed.items = []feeds.Item{changed}
 	f.round(t)
 
-	if len(f.graph.posted) != 1 || len(f.graph.edited) != 1 || f.graph.edited[0].Name != "Post 1, corrected" {
+	if len(f.graph.posted) != 1 || len(f.graph.edited) != 1 || !strings.HasPrefix(f.graph.edited[0].Body, "**Post 1, corrected**") {
 		t.Errorf("posted %d, edited %+v", len(f.graph.posted), f.graph.edited)
 	}
 }
@@ -417,5 +434,36 @@ func TestAWebsiteBackIsStartedAgain(t *testing.T) {
 	f.w.CheckProfiles(context.Background())
 	if fmt.Sprint(f.websites.resumed) != "[900]" {
 		t.Errorf("resumed %v", f.websites.resumed)
+	}
+}
+
+func TestWhatASiteWritesIsKeptAsWritten(t *testing.T) {
+	it := item(1)
+	it.Title = "Notes on *bold* claims_and #tags"
+	it.Excerpt = "See [this] `code`"
+	got := ContentOf(it)
+	if !strings.HasPrefix(got, `**Notes on \*bold\* claims\_and \#tags**`) || !strings.Contains(got, "See \\[this] \\`code\\`") {
+		t.Errorf("content %q", got)
+	}
+}
+
+func TestWhatWaitsIsPostedThoughTheFeedHasNotChanged(t *testing.T) {
+	f := newFixture()
+	for n := 1; n <= 12; n++ {
+		f.feed.items = append(f.feed.items, item(n))
+	}
+	f.feed.etag = `"v2"`
+	f.round(t)
+
+	// The next hour, the feed unchanged: the two held back are posted all
+	// the same.
+	f.clock = start.Add(61 * time.Minute)
+	due := &repositories.Due{NodeID: 900, ETag: `"v2"`, HourPosts: f.websites.read.HourPosts, HourBeganAt: f.websites.read.HourBeganAt}
+	f.websites.due = due
+	if _, err := f.w.Once(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if len(f.graph.posted) != 12 {
+		t.Errorf("posted %d: what waited stayed waiting while the feed was unchanged", len(f.graph.posted))
 	}
 }

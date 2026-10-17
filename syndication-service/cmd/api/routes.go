@@ -44,7 +44,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 			Viewer(apidoc.SignedIn).
 			Takes(&handlers.ConnectStartRequest{}).
 			Sends(http.StatusCreated, handlers.Connection{}).
-			Refuses(http.StatusBadRequest, "`not_a_domain`, `no_feed`, `unreadable` or `feed_not_on_domain`, as `error`").
+			Refuses(http.StatusBadRequest, "`not_a_domain`, `no_feed`, `unreadable`, `feed_not_on_domain` or `private_feed` (behind a login, or a secret in its address: a website is public), as `error`").
 			Refuses(http.StatusConflict, "`feed_taken`: the feed already has a Website").
 			Refuses(http.StatusTooManyRequests, "the viewer has begun too many lately"))
 	})
@@ -66,7 +66,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 			Viewer(apidoc.SignedIn).
 			Takes(&handlers.ConnectMakeRequest{}).
 			Sends(http.StatusCreated, handlers.Made{}).
-			Refuses(http.StatusBadRequest, "`no_feed`, `unreadable` or `feed_not_on_domain`, as `error`").
+			Refuses(http.StatusBadRequest, "`no_feed`, `unreadable`, `feed_not_on_domain` or `private_feed`, as `error`").
 			Refuses(http.StatusNotFound, "there is no such connection begun by the viewer").
 			Refuses(http.StatusConflict, "`not_proved`, `feed_taken` or `handle_taken`, as `error`"))
 	})

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,12 +17,12 @@ import (
 const (
 	websiteID   = 950
 	websiteUUID = "5a0f7c3e-2b1d-4c8e-9f6a-0d3b2e1c4a59"
-	articleID   = 960
+	itemID      = 960
 )
 
-// A website on the fediverse: a site's feed (docs/plans/website.md), public,
-// with nobody to choose it, and an article of it made by its administrator,
-// Ana, who is not on the fediverse herself.
+// A website on the fediverse: a site's feed (docs/websites.md), public,
+// with nobody to choose it, and a note of it, the website's own, made by
+// its administrator Ana, who is not on the fediverse herself.
 func websiteWorld() *inboxWorld {
 	w := newInboxWorld()
 
@@ -30,17 +31,16 @@ func websiteWorld() *inboxWorld {
 	website.Type = constants.NodeActorWebsiteEntityType
 	website.Access, website.Enabled = "public", true
 
-	article := entities.NewAnahitaNode()
-	article.ID, article.UUID = articleID, "1c2b3a49-5d6e-4f70-8a9b-0c1d2e3f4a5b"
-	article.Type = constants.NodeMediumArticleEntityType
-	article.Name = "Beans & peas"
-	article.Body = "Sown in March, up in April.\n\nhttps://garden.example/beans\n\n#Gardens"
-	article.Access, article.Enabled = "public", true
-	article.OwnerID, article.OwnerType, article.CreatedBy = websiteID, constants.NodeActorWebsiteEntityType, anaID
-	article.CreatedAt = time.Date(2026, 10, 12, 9, 0, 0, 0, time.UTC)
-	article.UpdatedAt = article.CreatedAt
+	item := entities.NewAnahitaNode()
+	item.ID, item.UUID = itemID, "1c2b3a49-5d6e-4f70-8a9b-0c1d2e3f4a5b"
+	item.Type = constants.NodeMediumNoteEntityType
+	item.Body = "**Beans & peas**\n\nSown in March, up in April.\n\nhttps://garden.example/beans\n\n#Gardens"
+	item.Access, item.Enabled = "public", true
+	item.OwnerID, item.OwnerType, item.CreatedBy = websiteID, constants.NodeActorWebsiteEntityType, websiteID
+	item.CreatedAt = time.Date(2026, 10, 12, 9, 0, 0, 0, time.UTC)
+	item.UpdatedAt = item.CreatedAt
 
-	w.nodes.people = append(w.nodes.people, website, article)
+	w.nodes.people = append(w.nodes.people, website, item)
 	w.accounts.enabled[anaID] = false
 	w.follows.inboxes = []string{"https://mastodon.example/inbox"}
 	return w
@@ -66,14 +66,14 @@ func TestAWebsiteIsAnOrganizationFoundByItsHandle(t *testing.T) {
 	// A website switched off is not there.
 	w.nodes.people[len(w.nodes.people)-2].Enabled = false
 	if rec := w.get(w.h.Actor, "/ap/users/"+websiteUUID, "uuid", websiteUUID); rec.Code != http.StatusNotFound {
-		t.Errorf("a switched-off Website: %d", rec.Code)
+		t.Errorf("a switched-off website: %d", rec.Code)
 	}
 }
 
-func TestAWebsitesArticleGoesOutAsAnArticleOfTheWebsite(t *testing.T) {
+func TestAWebsitesNoteGoesOutAsTheWebsites(t *testing.T) {
 	w := websiteWorld()
 
-	err := w.h.HandleEvent(&event.EventPayload{Name: "node.medium.text.article.added.v1", ObjectID: articleID, ObjectType: constants.NodeMediumArticleEntityType})
+	err := w.h.HandleEvent(&event.EventPayload{Name: "node.medium.text.note.added.v1", ObjectID: itemID, ObjectType: constants.NodeMediumNoteEntityType})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,25 +84,13 @@ func TestAWebsitesArticleGoesOutAsAnArticleOfTheWebsite(t *testing.T) {
 	websiteActor := "https://api.example.org/ap/users/" + websiteUUID
 	object, _ := sent.payload["object"].(map[string]any)
 	if sent.actorID != websiteID || sent.payload["actor"] != websiteActor {
-		t.Errorf("sent as %d %v, want the Website", sent.actorID, sent.payload["actor"])
+		t.Errorf("sent as %d %v, want the website", sent.actorID, sent.payload["actor"])
 	}
-	if object["type"] != "Article" || object["name"] != "Beans & peas" || object["summary"] != "Sown in March, up in April." ||
-		object["attributedTo"] != websiteActor || object["url"] != "https://example.org/articles/960" {
-		t.Errorf("the article: %v", object)
+	content, _ := object["content"].(string)
+	if object["type"] != "Note" || object["attributedTo"] != websiteActor || !strings.Contains(content, "<strong>Beans &amp; peas</strong>") {
+		t.Errorf("the note: %v", object)
 	}
 	if cc, _ := object["cc"].([]any); len(cc) != 1 || cc[0] != websiteActor+"/followers" {
-		t.Errorf("cc %v: the Website's followers", object["cc"])
-	}
-}
-
-func TestOnlyAWebsitesArticlesGoOut(t *testing.T) {
-	w := websiteWorld()
-	article := w.nodes.people[len(w.nodes.people)-1]
-	article.OwnerID, article.OwnerType = anaID, constants.NodeActorPersonEntityType
-	w.accounts.enabled[anaID] = true
-
-	_ = w.h.HandleEvent(&event.EventPayload{Name: "node.medium.text.article.added.v1", ObjectID: articleID, ObjectType: constants.NodeMediumArticleEntityType})
-	if len(w.queue.sent) != 0 {
-		t.Errorf("somebody's own article went out: roadmap row 84")
+		t.Errorf("cc %v: the website's followers", object["cc"])
 	}
 }

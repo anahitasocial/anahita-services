@@ -147,7 +147,7 @@ domain, is written down for later (`docs/plans/atproto-server.md`).
 
 ### Groups, events and the rest
 
-What only Anahita has (groups, events, people's articles and topics, followers-only
+What only Anahita has (groups, events, articles and topics, followers-only
 posts, likes and follows between people here, custom feeds) stays here, on
 either network. An app built on the AT Protocol may keep such things as
 records of its own kinds in people's repositories; Anahita does not, since
@@ -544,12 +544,10 @@ its page. Mastodon shows a video with no sound as a GIF, silently and on a
 loop, so a clip made of a GIF is one there too, with nothing said to make
 it so.
 
-A **website's articles** go out as `Article`: the title as `name`, the item's
-excerpt as `summary`, the content, and the article's page as `url`,
-attributed to the website, which is their author; replies under them go and
-come as under a note.
+A **website's notes**, the items of its feed and its replies, go out as a
+person's notes do, the website's, to its followers ([Websites](websites.md)).
 
-**Not sent:** people's articles and topics (roadmap row 84); anything in a group;
+**Not sent:** articles and topics (roadmap row 84); anything in a group;
 a quoted post (the note that quotes goes, without what it quotes);
 the card for a link. Somebody who starts following is sent what is posted
 from then on, and nothing from before.

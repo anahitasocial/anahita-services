@@ -285,7 +285,13 @@ func TestWhatIsRefusedOnTheWay(t *testing.T) {
 	f.feeds.found, f.feeds.err = nil, feeds.ErrNoFeed
 	refusedWith(t, f.call(f.h.Start, ana, "", `{"site_url": "example.com"}`), http.StatusBadRequest, refusedNoFeed)
 
+	f.feeds.found, f.feeds.err = nil, feeds.ErrPrivate
+	refusedWith(t, f.call(f.h.Start, ana, "", `{"site_url": "example.com"}`), http.StatusBadRequest, refusedPrivateFeed)
+
 	f.feeds.err = nil
+	f.feeds.found = &feeds.Found{FeedURL: "https://example.com/feed.xml?token=abc"}
+	refusedWith(t, f.call(f.h.Start, ana, "", `{"site_url": "example.com"}`), http.StatusBadRequest, refusedPrivateFeed)
+
 	f.feeds.found = &feeds.Found{FeedURL: "https://example.com/feed.xml"}
 	f.websites.added = []*repositories.Website{{FeedURL: "https://example.com/feed.xml"}}
 	refusedWith(t, f.call(f.h.Start, ana, "", `{"site_url": "example.com"}`), http.StatusConflict, refusedFeedTaken)
