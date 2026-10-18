@@ -10,6 +10,7 @@ hashtags offered to somebody while they write.
 - [At most five places](#at-most-five-places)
 - [Trending](#trending)
 - [Suggestions while writing](#suggestions-while-writing)
+- [A hashtag's and a place's posts](#a-hashtags-and-a-places-posts)
 - [What the web app does](#what-the-web-app-does)
 - [Where the code is](#where-the-code-is)
 
@@ -125,6 +126,19 @@ has are left out. The first 100,000 characters are read.
 
 Matching ignores capitals and accents: `cafe` finds `#café`. `%` and `_`
 are matched as themselves.
+
+## A hashtag's and a place's posts
+
+`GET /hashtags/:id/inbounds` and `GET /locations/:id/inbounds` list what is
+tied to a hashtag or a place, in one of two orders, by `sort`:
+
+| `sort` | Order |
+| --- | --- |
+| `recent` | Newest first. The web app's first tab, and its default |
+| `relevant` | What people have found useful lately, as search's [Most relevant](search.md#most-relevant) ranks it, without the words: likes, saves, replies and quotes, each fading by the operator's half-life, citations, and a bonus for what the viewer follows, with the viewer's own leanings. Newest first among equals |
+
+`popular`, an all-time sum of a post's counts, is still taken, and the web
+app no longer asks for it: an old post that did well stayed on top for good.
 
 ## What the web app does
 
