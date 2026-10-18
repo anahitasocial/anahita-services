@@ -27,6 +27,9 @@ const (
 	OrderingPopular  = "popular"
 	OrderingTrending = "trending"
 	OrderingRecent   = "recent"
+	// Most relevant: what people have found useful lately, as search ranks
+	// it (graph-grpc-service/ranking).
+	OrderingRelevant = "relevant"
 	// For a list of who is connected to something, such as a profile's
 	// followers: the newest connection first.
 	OrderingConnected = "connected"
