@@ -157,15 +157,37 @@ func (h *mediumHandler) AddReply(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	reply, thread, refuse := h.newReply(c, parentID, req, viewer)
+	if refuse != nil {
+		return refuse()
+	}
+
+	reply, err = h.Srv.MediaGRPC.Add(reply, viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	setReplyFlags(thread, reply)
+	batchPresignPaths(h.Env, []*entities.AnahitaNode{reply})
+
+	mediaResp := &responses.MediumNodeResponse{}
+	return c.JSON(http.StatusCreated, mediaResp.MapMediumNode(reply))
+}
+
+// newReply is a reply to `parentID` as `req` describes it, checked: that
+// what it answers is there, and that the viewer may answer it. With the
+// thread it is in; or, when it may not be made, what to answer instead.
+func (h *mediumHandler) newReply(c echo.Context, parentID int64, req *ReplyAddRequest, viewer *entities.Viewer) (*entities.AnahitaNode, *permissions.ReplyAccessContext, func() error) {
 	parent, err := h.Srv.MediaGRPC.Read(parentID, viewer)
 	if err != nil {
 		log.Println(err)
-		return c.NoContent(http.StatusNotFound)
+		return nil, nil, func() error { return c.NoContent(http.StatusNotFound) }
 	}
 
 	// Nothing is said under a reply that has been removed.
 	if parent.RootID > 0 && parent.DeletedAt != nil {
-		return c.NoContent(http.StatusGone)
+		return nil, nil, func() error { return c.NoContent(http.StatusGone) }
 	}
 
 	rootID := parent.RootID
@@ -176,11 +198,11 @@ func (h *mediumHandler) AddReply(c echo.Context) error {
 	thread, err := h.thread(c, rootID, viewer)
 	if err != nil {
 		log.Println(err)
-		return c.NoContent(http.StatusNotFound)
+		return nil, nil, func() error { return c.NoContent(http.StatusNotFound) }
 	}
 
 	if !permissions.CanReply(thread) {
-		return c.NoContent(http.StatusForbidden)
+		return nil, nil, func() error { return c.NoContent(http.StatusForbidden) }
 	}
 
 	reply := entities.NewAnahitaNode()
@@ -189,7 +211,7 @@ func (h *mediumHandler) AddReply(c echo.Context) error {
 	reply.Body = req.Content
 
 	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
-		return an_handlers.RefuseLanguage(c)
+		return nil, nil, func() error { return an_handlers.RefuseLanguage(c) }
 	} else if language != "" {
 		reply.Language = language
 	}
@@ -210,17 +232,7 @@ func (h *mediumHandler) AddReply(c echo.Context) error {
 	// administrator is the website's.
 	an_handlers.OwnReply(thread, reply, viewer)
 
-	reply, err = h.Srv.MediaGRPC.Add(reply, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	setReplyFlags(thread, reply)
-	batchPresignPaths(h.Env, []*entities.AnahitaNode{reply})
-
-	mediaResp := &responses.MediumNodeResponse{}
-	return c.JSON(http.StatusCreated, mediaResp.MapMediumNode(reply))
+	return reply, thread, nil
 }
 
 // ReplyHideRequest hides a reply from its thread, or shows it again.

@@ -1097,6 +1097,44 @@
           "truncated"
         ],
         "type": "object"
+      },
+      "text.ThreadAdded": {
+        "description": "ThreadAdded is a thread as it was made: its notes, first to last.",
+        "properties": {
+          "parts": {
+            "items": {
+              "$ref": "#/components/schemas/MediumNode"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "parts"
+        ],
+        "type": "object"
+      },
+      "text.ThreadPart": {
+        "description": "ThreadPart is one note of a thread: what it says, in what language, and the link in it to show a card for, as on a note.",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "link_preview_url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "content",
+          "language",
+          "link_preview_url"
+        ],
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -3747,6 +3785,95 @@
         "x-viewer": "signed_in"
       }
     },
+    "/notes/{id}/replies/thread": {
+      "post": {
+        "description": "Up to ten notes, made together in order, all or none: the first a reply to the post or the reply `id`, and each after it a reply to the one before. Each is checked as a reply is. They go to other networks in order, and whoever is told of the thread is told of its first note.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "postNotesByIdRepliesThread",
+        "parameters": [
+          {
+            "description": "The id of the post or the reply it answers. Read by the handler from the path itself.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "parts": {
+                    "description": "The notes of the thread, first to last: up to ten.",
+                    "items": {
+                      "$ref": "#/components/schemas/text.ThreadPart"
+                    },
+                    "maxItems": 10,
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "parts"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/text.ThreadAdded"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`language_invalid`; or not well formed, or more than ten notes, without a body"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not reply here"
+          },
+          "404": {
+            "description": "there is no such post the viewer may see"
+          },
+          "410": {
+            "description": "it answers a reply that was removed"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Reply with a thread",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).AddReplyThread",
+        "x-viewer": "signed_in"
+      }
+    },
     "/notes/{id}/reply-access": {
       "patch": {
         "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
@@ -3931,6 +4058,134 @@
         ],
         "x-handler": "text/cmd/api/handlers.(*mediumHandler).Thread",
         "x-viewer": "anyone"
+      },
+      "post": {
+        "description": "Up to ten notes, made together in order, all or none: the first a post on the profile `owner_id`, with what a post takes, and each after it a reply to the one before, written by the viewer. Each is checked as a note is. They go to other networks in order, and whoever is told of the thread is told of its first note.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "postNotesByOwnerIdThread",
+        "parameters": [
+          {
+            "description": "Here, the `owner_id`. The profile it is posted on.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "As on NoteAddRequest, for the first part: the rest are replies, seen by whoever may see it.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  },
+                  "location_ids": {
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
+                  },
+                  "parts": {
+                    "description": "The notes of the thread, first to last: up to ten.",
+                    "items": {
+                      "$ref": "#/components/schemas/text.ThreadPart"
+                    },
+                    "maxItems": 10,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "quote_id": {
+                    "format": "int64",
+                    "type": "integer"
+                  },
+                  "quote_policy": {
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "reply_access": {
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "parts"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/text.ThreadAdded"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`language_invalid`, `reply_access_invalid`, `quote_policy_invalid`; or not well formed, or more than ten notes, without a body"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not post here"
+          },
+          "404": {
+            "description": "there is no such profile"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudienceRefusal"
+                }
+              }
+            },
+            "description": "`access_not_allowed`, with the audiences it may have"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Post a thread",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).AddThread",
+        "x-viewer": "signed_in"
       }
     },
     "/notes/{owner_id}/": {

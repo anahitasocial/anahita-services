@@ -197,85 +197,10 @@ func (h *noteHandler) Add(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	owner, err := h.Srv.ActorsGRPC.Read(req.OwnerID, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusNotFound)
+	medium, refuse := h.newNote(c, req, viewer)
+	if refuse != nil {
+		return refuse()
 	}
-
-	medium := entities.NewAnahitaNode()
-	medium.Type = constants.NodeMediumNoteType
-	medium.Service = constants.TextService
-	medium.Access = req.Access
-	medium.Body = req.Content
-
-	// The language the author says it is written in. Not saying is not an
-	// error; a tag that is not one is.
-	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
-		return an_handlers.RefuseLanguage(c)
-	} else if language != "" {
-		medium.Language = language
-	}
-	medium.OwnerID = owner.ID
-	medium.OwnerType = owner.Type
-	// The owner as read above, merged defaults and all. It was read and
-	// never attached, so CanAdd judged the empty placeholder owner — no
-	// access, no add_permissions — and only the owner themselves, let
-	// through before the permissions are read, could post here.
-	medium.Owner = owner
-	medium.CreatedBy = viewer.ID
-	medium.ModifiedBy = viewer.ID
-	medium.Enabled = true
-	medium.CommentStatus = true
-
-	// Who may reply, when the author says. Not saying leaves it to the
-	// profile; a value that is not one is an error.
-	if replyAccess, valid := an_handlers.RequestReplyAccess(req.ReplyAccess); !valid {
-		return an_handlers.RefuseReplyAccess(c)
-	} else if replyAccess != "" {
-		an_handlers.SetReplyAccess(medium, replyAccess)
-	}
-
-	// Who may quote it, when the author says. Not saying leaves it to
-	// their own setting.
-	if quotePolicy, valid := an_handlers.RequestQuotePolicy(req.QuotePolicy); !valid {
-		return an_handlers.RefuseQuotePolicy(c)
-	} else if quotePolicy != "" {
-		medium.QuotePolicy = quotePolicy
-	}
-	medium.Access = an_handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
-	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	if ok, err := h.Perms.Medium.CanAdd(mediumAccessCtx); !ok {
-		log.Println(err)
-		return c.NoContent(http.StatusForbidden)
-	}
-
-	// The audience has to be one this post can have where it is going: no
-	// "admins" on a person's profile, no "only me" on somebody else's.
-	if !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
-		log.Printf("refused: audience %q is not allowed on this profile", req.Access)
-		return an_handlers.RefuseAudience(c, mediumAccessCtx)
-	}
-
-	// A note that quotes a post. Whether it may is the quoted post's to
-	// say, and is asked last, once the note itself is known to be allowed.
-	if req.QuoteID > 0 {
-		if allowed, reason, status := h.mayQuote(req.QuoteID, viewer); !allowed {
-			if status != 0 {
-				return c.NoContent(status)
-			}
-			log.Printf("refused: %d may not quote %d: %s", viewer.ID, req.QuoteID, reason)
-			return an_handlers.RefuseQuote(c, reason)
-		}
-		medium.QuoteID = req.QuoteID
-	}
-
-	// The preview of a link in it, when its writer kept one.
-	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body, false)
 
 	medium, err = h.Srv.MediaGRPC.AddWithLocations(medium, viewer, req.LocationIDs)
 	if err != nil {
@@ -294,6 +219,93 @@ func (h *noteHandler) Add(c echo.Context) error {
 	resp := mediaResp.MapMediumNode(medium)
 
 	return c.JSON(http.StatusCreated, resp)
+}
+
+// newNote is a note as `req` describes it, checked: who may post where,
+// with what audience, quoting what. Or, when it may not be made, what to
+// answer instead.
+func (h *noteHandler) newNote(c echo.Context, req *requests.NoteAddRequest, viewer *entities.Viewer) (*entities.AnahitaNode, func() error) {
+	owner, err := h.Srv.ActorsGRPC.Read(req.OwnerID, viewer)
+	if err != nil {
+		log.Println(err)
+		return nil, func() error { return c.NoContent(http.StatusNotFound) }
+	}
+
+	medium := entities.NewAnahitaNode()
+	medium.Type = constants.NodeMediumNoteType
+	medium.Service = constants.TextService
+	medium.Access = req.Access
+	medium.Body = req.Content
+
+	// The language the author says it is written in. Not saying is not an
+	// error; a tag that is not one is.
+	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
+		return nil, func() error { return an_handlers.RefuseLanguage(c) }
+	} else if language != "" {
+		medium.Language = language
+	}
+	medium.OwnerID = owner.ID
+	medium.OwnerType = owner.Type
+	// The owner as read above, merged defaults and all. It was read and
+	// never attached, so CanAdd judged the empty placeholder owner — no
+	// access, no add_permissions — and only the owner themselves, let
+	// through before the permissions are read, could post here.
+	medium.Owner = owner
+	medium.CreatedBy = viewer.ID
+	medium.ModifiedBy = viewer.ID
+	medium.Enabled = true
+	medium.CommentStatus = true
+
+	// Who may reply, when the author says. Not saying leaves it to the
+	// profile; a value that is not one is an error.
+	if replyAccess, valid := an_handlers.RequestReplyAccess(req.ReplyAccess); !valid {
+		return nil, func() error { return an_handlers.RefuseReplyAccess(c) }
+	} else if replyAccess != "" {
+		an_handlers.SetReplyAccess(medium, replyAccess)
+	}
+
+	// Who may quote it, when the author says. Not saying leaves it to
+	// their own setting.
+	if quotePolicy, valid := an_handlers.RequestQuotePolicy(req.QuotePolicy); !valid {
+		return nil, func() error { return an_handlers.RefuseQuotePolicy(c) }
+	} else if quotePolicy != "" {
+		medium.QuotePolicy = quotePolicy
+	}
+	medium.Access = an_handlers.DetermineMediumNodeAccess(req.Access, medium.Owner.Access)
+	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
+	if err != nil {
+		log.Println(err)
+		return nil, func() error { return c.NoContent(http.StatusInternalServerError) }
+	}
+	if ok, err := h.Perms.Medium.CanAdd(mediumAccessCtx); !ok {
+		log.Println(err)
+		return nil, func() error { return c.NoContent(http.StatusForbidden) }
+	}
+
+	// The audience has to be one this post can have where it is going: no
+	// "admins" on a person's profile, no "only me" on somebody else's.
+	if !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
+		log.Printf("refused: audience %q is not allowed on this profile", req.Access)
+		return nil, func() error { return an_handlers.RefuseAudience(c, mediumAccessCtx) }
+	}
+
+	// A note that quotes a post. Whether it may is the quoted post's to
+	// say, and is asked last, once the note itself is known to be allowed.
+	if req.QuoteID > 0 {
+		if allowed, reason, status := h.mayQuote(req.QuoteID, viewer); !allowed {
+			if status != 0 {
+				return nil, func() error { return c.NoContent(status) }
+			}
+			log.Printf("refused: %d may not quote %d: %s", viewer.ID, req.QuoteID, reason)
+			return nil, func() error { return an_handlers.RefuseQuote(c, reason) }
+		}
+		medium.QuoteID = req.QuoteID
+	}
+
+	// The preview of a link in it, when its writer kept one.
+	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body, false)
+
+	return medium, nil
 }
 
 // withLinkPreview puts the preview of a link into a note's meta, keeps the

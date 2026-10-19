@@ -2,7 +2,7 @@
 
 *Roadmap row 101, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** part 1 done (2026-10-19); parts 2 to 5 next. Branch
+**Status:** parts 1 and 2 done (2026-10-19); parts 3 to 5 next. Branch
 `issues/thread-composer` in both repositories, from `issues/network-limits`.
 
 ## Context
@@ -63,7 +63,7 @@ Settled with the user on 2026-10-19:
    root, a thread at the top, and a thread with a part that cannot be made,
    which leaves none.
 
-### 2. The request (text-service)
+### 2. The request (text-service) — done 2026-10-19
 
 `POST /notes/:owner_id/thread` for a thread that begins a post, with what a
 post takes (access, who may reply, quote policy, locations) and `parts`, a
@@ -71,6 +71,13 @@ list of `{ content, language, link_preview_url }`. `POST /notes/:id/replies/thre
 for one that answers a post, with `parts` alone. Each part is checked as a
 note or a reply is; up to ten. Notes only at first: pictures in a part are
 later.
+
+Built as planned (`thread_add.go`): the first part is checked by the same
+code as a single note or reply (`newNote`, `newReply`, taken out of `Add` and
+`AddReply`), and the rest are replies owned by the writer, or by a website
+in its own thread. The answer is `{ "parts": [ … ] }`. Tried on dev: a thread
+of three at the top and one of two under it, read back in order by
+`GET /notes/:id/thread`, with the replies counted; eleven parts refused.
 
 ### 3. Told once (notification-service)
 

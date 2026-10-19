@@ -70,9 +70,9 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#search-service">Search</a> <span class="count">3</span></li>
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
-<li><a href="#text-service">Notes, articles and topics</a> <span class="count">44</span></li>
+<li><a href="#text-service">Notes, articles and topics</a> <span class="count">46</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">150</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">152</span></li>
 </ul>
 </nav>
 <main>
@@ -8716,6 +8716,39 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).AddReply</code></p>
 </details>
+<details class="route" id="postNotesByIdRepliesThread" data-search="post /notes/{id}/replies/thread reply with a thread up to ten notes, made together in order, all or none: the first a reply to the post or the reply `id`, and each after it a reply to the one before. each is checked as a reply is. they go to other networks in order, and whoever is told of the thread is told of its first note.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method post">POST</span> <code class="path">/notes/{id}/replies/thread</code> <span class="summary">Reply with a thread</span></summary>
+<div class="description"><p>Up to ten notes, made together in order, all or none: the first a reply to the post or the reply <code>id</code>, and each after it a reply to the one before. Each is checked as a reply is. They go to other networks in order, and whoever is told of the thread is told of its first note.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The id of the post or the reply it answers. Read by the handler from the path itself.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-text.ThreadPart">text.ThreadPart</a></td><td>The notes of the thread, first to last: up to ten. At least 1 of them. At most 10 of them.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-text.ThreadAdded">text.ThreadAdded</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>language_invalid</code>; or not well formed, or more than ten notes, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not reply here</td></tr>
+<tr><td class="status s4">404</td><td>there is no such post the viewer may see</td></tr>
+<tr><td class="status s4">410</td><td>it answers a reply that was removed</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*noteHandler).AddReplyThread</code></p>
+</details>
 <details class="route" id="patchNotesByIdReplyAccess" data-search="patch /notes/{id}/reply-access change who may reply who may call it: somebody signed in, with a token that carries `media:write`.">
 <summary><span class="method patch">PATCH</span> <code class="path">/notes/{id}/reply-access</code> <span class="summary">Change who may reply</span></summary>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
@@ -8771,6 +8804,44 @@ who may call it: anyone, signed in or not.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).Thread</code></p>
+</details>
+<details class="route" id="postNotesByOwnerIdThread" data-search="post /notes/{id}/thread post a thread up to ten notes, made together in order, all or none: the first a post on the profile `owner_id`, with what a post takes, and each after it a reply to the one before, written by the viewer. each is checked as a note is. they go to other networks in order, and whoever is told of the thread is told of its first note.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method post">POST</span> <code class="path">/notes/{id}/thread</code> <span class="summary">Post a thread</span></summary>
+<div class="description"><p>Up to ten notes, made together in order, all or none: the first a post on the profile <code>owner_id</code>, with what a post takes, and each after it a reply to the one before, written by the viewer. Each is checked as a note is. They go to other networks in order, and whoever is told of the thread is told of its first note.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>Here, the <code>owner_id</code>. The profile it is posted on.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>access</code></td><td>string</td><td>As on NoteAddRequest, for the first part: the rest are replies, seen by whoever may see it. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>.</td></tr>
+<tr><td><code>location_ids</code></td><td>list of integer</td><td> At most 5 of them.</td></tr>
+<tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-text.ThreadPart">text.ThreadPart</a></td><td>The notes of the thread, first to last: up to ten. At least 1 of them. At most 10 of them.</td></tr>
+<tr><td><code>quote_id</code></td><td>integer</td><td></td></tr>
+<tr><td><code>quote_policy</code></td><td>string</td><td> At most 16 characters.</td></tr>
+<tr><td><code>reply_access</code></td><td>string</td><td> At most 64 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-text.ThreadAdded">text.ThreadAdded</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>language_invalid</code>, <code>reply_access_invalid</code>, <code>quote_policy_invalid</code>; or not well formed, or more than ten notes, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not post here</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+<tr><td class="status s4">422</td><td><code>access_not_allowed</code>, with the audiences it may have<div class="body"><a href="#schema-AudienceRefusal">AudienceRefusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*noteHandler).AddThread</code></p>
 </details>
 <details class="route" id="getNotesByOwnerId" data-search="get /notes/{owner_id}/ a profile&#39;s notes those the viewer may see.
 
@@ -11990,6 +12061,28 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>hidden_count</code> <span class="required">always</span></td><td>integer</td><td>For whoever looks after the thread: how many of the replies sent are hidden from everybody else.</td></tr>
 <tr><td><code>reply_access</code> <span class="required">always</span></td><td>string</td><td>Who the post&#39;s author lets reply, for saying why not: <code>anyone</code>, <code>nobody</code>, or any of <code>followers</code>, <code>following</code> and <code>mentioned</code>.</td></tr>
 <tr><td><code>truncated</code> <span class="required">always</span></td><td>boolean</td><td>Whether the thread is longer than is sent at once: 500 replies.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-text.ThreadAdded" data-search="text.threadadded parts">
+<h3>text.ThreadAdded</h3>
+<p>A thread as it was made: its notes, first to last.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-MediumNode">MediumNode</a> or null</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-text.ThreadPart" data-search="text.threadpart content language link_preview_url">
+<h3>text.ThreadPart</h3>
+<p>One note of a thread: what it says, in what language, and the link in it to show a card for, as on a note.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>language</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>link_preview_url</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 </tbody>
 </table>
 </div>
