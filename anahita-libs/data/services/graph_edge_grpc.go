@@ -1,18 +1,11 @@
 package services
 
 import (
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
-	"time"
-
-	"google.golang.org/grpc"
 
 	"anahita-libs/data/entities"
 )
-
-var graphEdgeGRPCConnectCounts int
 
 type GraphEdgeGRPCConfigInterface interface {
 	GetGraphServiceAddr() string
@@ -73,35 +66,14 @@ type GraphEdgeGRPC struct {
 }
 
 // GetClient returns the grpc client
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *GraphEdgeGRPC) getClient() (graphpb.EdgeServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("GraphEdge GRPC not ready...")
-			graphEdgeGRPCConnectCounts++
-		} else {
-			log.Println("Connected to GraphEdge GRPC!")
-			return graphpb.NewEdgeServiceClient(cc), nil
-		}
-
-		if graphEdgeGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return graphpb.NewEdgeServiceClient(conn), nil
 }
 
 // Browse returns a list of graph edges

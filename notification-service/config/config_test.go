@@ -166,3 +166,14 @@ func TestConfig_Getters(t *testing.T) {
 func contains(s, substr string) bool {
 	return strings.Contains(s, substr)
 }
+
+// NOTIFICATIONS_KEEP_DAYS: 90 unless set, 0 for forever, and nothing less.
+func TestKeepDays(t *testing.T) {
+	for value, want := range map[string]int{"": 90, "30": 30, "0": 0, "-5": 90, "many": 90} {
+		cleanup := setEnvVars(map[string]string{"NOTIFICATIONS_KEEP_DAYS": value})
+		if got := NewConfig().KeepDays; got != want {
+			t.Errorf("NOTIFICATIONS_KEEP_DAYS=%q: %d, want %d", value, got, want)
+		}
+		cleanup()
+	}
+}

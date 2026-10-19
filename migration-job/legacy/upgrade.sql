@@ -229,7 +229,7 @@ ALTER TABLE nodes ADD COLUMN `features` TEXT AFTER `access`;
 -- Drop a few fields from nodes table
 ALTER TABLE nodes DROP COLUMN `permissions`;
 
--- Migrate notifications to `notifications` table
+-- The notifications table, empty: see below
 
 CREATE TABLE IF NOT EXISTS signup_requests (
     `id`       bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -311,83 +311,9 @@ CREATE TABLE notifications (
     KEY `modified_on` (`modified_on`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Migrate data from nodes to notifications
-DELIMITER $$
-
-CREATE PROCEDURE migrate_notifications()
-BEGIN
-  DECLARE done INT DEFAULT 0;
-  DECLARE n_id BIGINT;
-  DECLARE n_type VARCHAR(255);
-  DECLARE n_service VARCHAR(255);
-  DECLARE n_name VARCHAR(255);
-  DECLARE n_meta TEXT;
-  DECLARE n_created_on DATETIME;
-  DECLARE n_modified_on DATETIME;
-  DECLARE n_subject_id BIGINT;
-  DECLARE n_object_type VARCHAR(255);
-  DECLARE n_object_id BIGINT;
-  DECLARE n_target_id BIGINT;
-  DECLARE n_comment_id INT;
-  DECLARE n_subscriber_ids TEXT;
-
-  DECLARE cur CURSOR FOR
-    SELECT id, service, name, meta, created_on, modified_on,
-           story_subject_id, story_object_type, story_object_id,
-           story_target_id, story_comment_id, subscriber_ids
-    FROM nodes
-    WHERE type = 'node.base.notification-service.notification.v1';
-
-  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
-
-  OPEN cur;
-
-  read_loop: LOOP
-    FETCH cur INTO n_id, n_service, n_name, n_meta, n_created_on, n_modified_on,
-                   n_subject_id, n_object_type, n_object_id,
-                   n_target_id, n_comment_id, n_subscriber_ids;
-    IF done THEN
-      LEAVE read_loop;
-    END IF;
-
-    -- Split subscriber_ids string and iterate
-    WHILE LOCATE(',', n_subscriber_ids) > 0 DO
-      SET @subscriber_id = SUBSTRING_INDEX(n_subscriber_ids, ',', 1);
-      SET n_subscriber_ids = SUBSTRING(n_subscriber_ids, LOCATE(',', n_subscriber_ids) + 1);
-
-      INSERT INTO notifications (
-        type, service, recipient_id, subject_id, object_id, object_type,
-        target_id, comment_id, created_on, modified_on,
-        meta, is_read
-      )
-      VALUES (
-        n_name, n_service, @subscriber_id, n_subject_id, n_object_id, n_object_type,
-        n_target_id, n_comment_id, n_created_on, n_modified_on,
-        n_meta, 1
-      );
-    END WHILE;
-
-    -- Final ID (last one without comma)
-    IF LENGTH(TRIM(n_subscriber_ids)) > 0 THEN
-      INSERT INTO notifications (
-        type, service, recipient_id, subject_id, object_id, object_type,
-        target_id, comment_id, created_on, modified_on,
-        meta, is_read
-      )
-      VALUES (
-        n_name, n_service, TRIM(n_subscriber_ids), n_subject_id, n_object_id, n_object_type,
-        n_target_id, n_comment_id, n_created_on, n_modified_on,
-        n_meta, 1
-      );
-    END IF;
-
-  END LOOP;
-
-  CLOSE cur;
-END$$
-
-DELIMITER ;
-CALL migrate_notifications();
+-- The PHP site's notifications are not carried over: none is worth keeping
+-- (the user, 2026-10-19). The table starts empty, and the nodes that held
+-- them go.
 DELETE FROM nodes WHERE type = 'node.base.notification-service.notification.v1';
 
 -- Legacy private notes: notes left on somebody else's profile for the two of
@@ -2263,3 +2189,38 @@ ALTER TABLE websites
     MODIFY `last_modified` varchar(64) NOT NULL DEFAULT '',
     MODIFY `hub_url` varchar(2000) NOT NULL DEFAULT '',
     MODIFY `last_error` varchar(500) NOT NULL DEFAULT '';
+
+-- --------------------------------------------------------
+-- Changes made after the migrations were folded in (roadmap row 27), each
+-- also a migration in migrations/.
+
+-- 20261019120000_notifications_one_of_each: one notification for one thing
+-- (roadmap row 96). The table is empty here: the PHP site's notifications
+-- are not carried over.
+ALTER TABLE notifications
+    MODIFY `comment_id` bigint unsigned DEFAULT NULL,
+    DROP COLUMN `meta`,
+    DROP INDEX `recipient_id`,
+    ADD KEY `recipient_unread` (`recipient_id`, `is_read`),
+    ADD KEY `recipient_created` (`recipient_id`, `created_at`),
+    ADD UNIQUE KEY `one_of_each` (`recipient_id`, `type`,
+        (IFNULL(`subject_id`, 0)), (IFNULL(`object_id`, 0)),
+        (IFNULL(`target_id`, 0)), (IFNULL(`comment_id`, 0)));
+
+-- 20261019180000_notifications_read_at: when a notification was read, in
+-- place of whether (roadmap row 97). The table is empty here.
+ALTER TABLE notifications
+    ADD COLUMN `read_at` datetime DEFAULT NULL AFTER `updated_at`,
+    DROP INDEX `recipient_unread`,
+    DROP COLUMN `is_read`,
+    ADD KEY `recipient_unread` (`recipient_id`, `read_at`),
+    ADD KEY `read_at` (`read_at`);
+
+-- 20261122000002_notifications_off: what a person has turned off being told
+-- about (roadmap row 97).
+CREATE TABLE notifications_off (
+    `recipient_id` bigint unsigned NOT NULL,
+    `topic` varchar(32) NOT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`recipient_id`, `topic`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

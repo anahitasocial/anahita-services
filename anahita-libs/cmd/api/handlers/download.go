@@ -46,8 +46,8 @@ func DefaultAllowDownload(said *bool, owner *entities.AnahitaNode) bool {
 //
 // Whoever cannot see the post is told it is not there, as for the post
 // itself. Whoever can see it and may not download it is told so.
-func MayDownload(filter VisibilityFilter, limiter ratelimit.Counter, post *entities.AnahitaNode, viewer *entities.Viewer) int {
-	if post == nil || !permissions.HoldsAFile(post) || !MaySee(filter, post.ID, viewer) {
+func MayDownload(filter permissions.VisibilityFilter, limiter ratelimit.Counter, post *entities.AnahitaNode, viewer *entities.Viewer) int {
+	if post == nil || !permissions.HoldsAFile(post) || !permissions.CanReadByID(filter, post.ID, viewer) {
 		return http.StatusNotFound
 	}
 	if !permissions.CanDownload(viewer, post) {

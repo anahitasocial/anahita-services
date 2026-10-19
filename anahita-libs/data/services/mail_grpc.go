@@ -1,20 +1,18 @@
 package services
 
 import (
-	"anahita-libs/grpctls"
 	"context"
 	"encoding/json"
 	"log"
 	"time"
 
 	"anahita-libs/proto/mailpb"
-
-	"google.golang.org/grpc"
 )
 
-// mailsGRPCMaxConnectAttempts bounds the dial retries for ONE call. It replaces
-// a package-level counter that was incremented but never reset — see getClient.
-const mailsGRPCMaxConnectAttempts = 10
+// mailSendTimeout is how long one email may take to hand to the mail
+// service, which has its own timeout for the SMTP server. Without one, a
+// stalled mail service held the caller for good.
+const mailSendTimeout = 60 * time.Second
 
 type MailGRPCConfigInterface interface {
 	GetMailServiceAddr() string
@@ -41,46 +39,15 @@ type MailGRPC struct {
 	config MailGRPCConfigInterface
 }
 
-// getClient returns the grpc client
+// getClient returns the client, on the one connection to the mail service
+// this process keeps (sharedConnection).
 func (srv *MailGRPC) getClient() (mailpb.MailServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetMailServiceAddr())
 	if err != nil {
+		log.Println("mail: no connection to the mail service:", err)
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	// Attempts are counted PER CALL, not for the lifetime of the process.
-	//
-	// This used to increment a package-level counter that nothing ever reset,
-	// so the ten retries were a budget spent once and never refilled: after ten
-	// cumulative failures — a mail service that was slow to start, or briefly
-	// restarted — every later call in that process returned immediately without
-	// dialling, for as long as the service ran. Since every notifier is
-	// fire-and-forget, the result was mail silently ceasing to send with
-	// nothing to show for it.
-	attempts := 0
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetMailServiceAddr(), opts...)
-
-		if err == nil {
-			log.Println("Connected to Mail GRPC!")
-			return mailpb.NewMailServiceClient(cc), nil
-		}
-
-		log.Println("Mail GRPC not ready...")
-		attempts++
-
-		if attempts > mailsGRPCMaxConnectAttempts {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-	}
+	return mailpb.NewMailServiceClient(conn), nil
 }
 
 // Send sends an email
@@ -90,7 +57,10 @@ func (srv *MailGRPC) Send(from string, to []string, cc []string, bcc []string, s
 		return "", err
 	}
 
-	res, err := client.Send(context.Background(), &mailpb.SendRequest{
+	ctx, cancel := context.WithTimeout(context.Background(), mailSendTimeout)
+	defer cancel()
+
+	res, err := client.Send(ctx, &mailpb.SendRequest{
 		From:    from,
 		To:      to,
 		Cc:      cc,
@@ -117,7 +87,10 @@ func (srv *MailGRPC) SendFromTemplate(from string, to []string, cc []string, bcc
 		return err
 	}
 
-	_, err = client.SendFromTemplate(context.Background(), &mailpb.SendFromTemplateRequest{
+	ctx, cancel := context.WithTimeout(context.Background(), mailSendTimeout)
+	defer cancel()
+
+	_, err = client.SendFromTemplate(ctx, &mailpb.SendFromTemplateRequest{
 		From:         from,
 		To:           to,
 		Cc:           cc,

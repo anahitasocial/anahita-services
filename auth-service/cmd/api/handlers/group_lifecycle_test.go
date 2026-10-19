@@ -3,6 +3,7 @@ package handlers
 import (
 	"strings"
 	"testing"
+	"time"
 
 	lib_entities "anahita-libs/data/entities"
 	"anahita-libs/event"
@@ -23,6 +24,7 @@ func newGroupEnv(t *testing.T) (*testEnv, *fakeMail) {
 
 	adminOne := testUser(t, 11, "ada@example.com", "correct horse battery staple")
 	adminTwo := testUser(t, 12, "grace@example.com", "correct horse battery staple")
+	adminOne.Enabled, adminTwo.Enabled = true, true
 
 	env := newTestEnv(adminOne, adminTwo)
 	env.Srv.ActorAdminsGRPC = &fakeActorAdmins{
@@ -167,4 +169,54 @@ func TestGroupLifecycleWithoutTheGraphClientIsANoOp(t *testing.T) {
 		t.Errorf("HandleEvents returned %v; missing optional config must not "+
 			"nack the message", err)
 	}
+}
+
+// WHAT THIS GUARDS (roadmap row 96, part 5): the administrator who deleted
+// the group knows, and is not mailed; one whose own account is disabled or
+// scheduled for deletion is not mailed either.
+func TestGroupDeletionMailsNeitherWhoDidItNorADisabledAdministrator(t *testing.T) {
+	env, mail := newGroupEnv(t)
+	h := newAccountDeletedHandler(env.Env)
+
+	if err := h.HandleEvents(&event.EventPayload{
+		Name:     "node.actor.group.group.deleted.v1",
+		ObjectID: 4242,
+		ViewerID: 11, // Ada deleted it
+	}); err != nil {
+		t.Fatalf("HandleEvents: %v", err)
+	}
+	for _, m := range onlyOne(t, mail) {
+		if strings.Join(m.To, ",") != "grace@example.com" {
+			t.Errorf("mailed %v; only Grace, who did not delete it, should be", m.To)
+		}
+	}
+
+	env2, mail2 := newGroupEnv(t)
+	grace, _ := env2.Repos.Users.ReadByID(12)
+	grace.Enabled = false
+	h2 := newAccountDeletedHandler(env2.Env)
+	if err := h2.HandleEvents(&event.EventPayload{
+		Name:     "node.actor.group.group.deleted.v1",
+		ObjectID: 4242,
+	}); err != nil {
+		t.Fatalf("HandleEvents: %v", err)
+	}
+	for _, m := range onlyOne(t, mail2) {
+		if strings.Join(m.To, ",") != "ada@example.com" {
+			t.Errorf("mailed %v; Grace's account is disabled", m.To)
+		}
+	}
+}
+
+// onlyOne waits for a message, then long enough for a second to arrive, and
+// fails if one does: the mail goes out on goroutines.
+func onlyOne(t *testing.T, mail *fakeMail) []sentMail {
+	t.Helper()
+	mail.waitFor(t, 1)
+	time.Sleep(250 * time.Millisecond)
+	sent := mail.snapshot()
+	if len(sent) != 1 {
+		t.Fatalf("%d messages sent, want 1", len(sent))
+	}
+	return sent
 }

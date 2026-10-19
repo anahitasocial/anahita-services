@@ -8,9 +8,7 @@ import (
 	"auth/constants"
 	"auth/data/entities"
 	"auth/messages"
-	"auth/requests"
 
-	an_constants "anahita-libs/constants"
 	an_entities "anahita-libs/data/entities"
 	an_event "anahita-libs/event"
 )
@@ -63,13 +61,7 @@ func (h *signupNotifier) EmailConfirmCode(user *entities.User, code string) erro
 // Errors are accumulated rather than short-circuiting, so one administrator
 // with a dead address does not stop the others being told.
 func (h *signupNotifier) EmailSignupRequestReceived(sr *entities.SignupRequest) error {
-	personReq := requests.NewUserRequest().Browse
-	personReq.PersonTypes = []string{
-		an_constants.PersonTypeAdmin,
-		an_constants.PersonTypeSuperAdmin,
-	}
-
-	admins, err := h.Repos.Users.Browse(personReq)
+	admins, err := administrators(h.Repos)
 	if err != nil {
 		return err
 	}

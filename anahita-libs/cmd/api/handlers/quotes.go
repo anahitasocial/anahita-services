@@ -4,6 +4,7 @@ import (
 	"anahita-libs/responses"
 	"net/http"
 
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
@@ -50,36 +51,10 @@ type QuoteReader interface {
 	Read(id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error)
 }
 
-// VisibilityFilter answers which of some nodes a viewer may see: the gate
-// every listing goes through, asked about ids.
-type VisibilityFilter interface {
-	FilterVisible(ids []int64, viewer *entities.Viewer) ([]int64, error)
-}
-
 var (
-	_ QuoteReader      = services.MediaGRPCInterface(nil)
-	_ VisibilityFilter = services.GraphNodeGRPCInterface(nil)
+	_ QuoteReader                  = services.MediaGRPCInterface(nil)
+	_ permissions.VisibilityFilter = services.GraphNodeGRPCInterface(nil)
 )
-
-// MaySee reports whether the viewer may see one node. False when the answer
-// cannot be had.
-func MaySee(filter VisibilityFilter, id int64, viewer *entities.Viewer) bool {
-	if id <= 0 {
-		return false
-	}
-
-	visible, err := filter.FilterVisible([]int64{id}, viewer)
-	if err != nil {
-		return false
-	}
-
-	for _, seen := range visible {
-		if seen == id {
-			return true
-		}
-	}
-	return false
-}
 
 // SetQuotes gives every note that quotes a post that post, as this viewer
 // may see it, or the reason it is not shown.
@@ -100,7 +75,7 @@ func MaySee(filter VisibilityFilter, id int64, viewer *entities.Viewer) bool {
 //
 // It returns the quoted posts it attached, for the caller to make their
 // images ready the way it does for its own.
-func SetQuotes(media QuoteReader, filter VisibilityFilter, nodes []*entities.AnahitaNode, viewer *entities.Viewer) []*entities.AnahitaNode {
+func SetQuotes(media QuoteReader, filter permissions.VisibilityFilter, nodes []*entities.AnahitaNode, viewer *entities.Viewer) []*entities.AnahitaNode {
 	attached := []*entities.AnahitaNode{}
 
 	// The quoted posts to ask about: each once, and not one its author

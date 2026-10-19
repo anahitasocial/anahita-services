@@ -1,13 +1,12 @@
 package handlers
 
 import (
+	"anahita-libs/cmd/api/permissions"
+	"anahita-libs/data/services"
+	"anahita-libs/videos"
 	"log"
 	"net/http"
 	"strconv"
-
-	"anahita-libs/cmd/api/handlers"
-	"anahita-libs/data/services"
-	"anahita-libs/videos"
 	"video/constants"
 
 	"github.com/labstack/echo/v4"
@@ -33,7 +32,7 @@ func (h *videoHandler) File(c echo.Context) error {
 	}
 
 	// Reading a post by its id asks nothing about who is reading. This does.
-	if !handlers.MaySee(h.Srv.GraphNodeGRPC, id, viewer) {
+	if !permissions.CanReadByID(h.Srv.GraphNodeGRPC, id, viewer) {
 		return c.NoContent(http.StatusNotFound)
 	}
 

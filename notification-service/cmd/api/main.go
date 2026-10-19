@@ -80,6 +80,9 @@ func main() {
 		}
 	}()
 
+	// Read notifications past keeping go (NOTIFICATIONS_KEEP_DAYS).
+	go keepNotifications(hEnv.Repos.Notifications, config.KeepDays)
+
 	// heartbeat
 	e.GET("/ping", func(c echo.Context) error {
 		return c.String(http.StatusOK, "pong")

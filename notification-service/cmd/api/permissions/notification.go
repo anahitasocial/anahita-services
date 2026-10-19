@@ -33,6 +33,20 @@ func (p *notificationsPermissions) CanBrowse(viewer *an_entities.Viewer) (bool, 
 	return false, errors.New(ErrNotificationBrowseNotAllowed)
 }
 
+// CanEditAll is whether the viewer may mark all their notifications read:
+// their own, signed in, with the scope to change them.
+func (p *notificationsPermissions) CanEditAll(viewer *an_entities.Viewer) (bool, error) {
+	if !viewer.HasScope(libs_constants.OAuthScopeNotificationsWrite) {
+		return false, errors.New(ErrInsufficientScope)
+	}
+
+	if !viewer.IsGuest() {
+		return true, nil
+	}
+
+	return false, errors.New(ErrNotificationBrowseNotAllowed)
+}
+
 func (p *notificationsPermissions) CanEdit(viewer *an_entities.Viewer, notification *entities.Notification) (bool, error) {
 	if !viewer.HasScope(libs_constants.OAuthScopeNotificationsWrite) {
 		return false, errors.New(ErrInsufficientScope)

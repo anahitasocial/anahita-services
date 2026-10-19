@@ -458,6 +458,9 @@ services:
       GRAPH_SERVICE_ADDR: "graph-grpc-service:50051"
       OAUTH_ISSUER: ${OAUTH_ISSUER}
       OAUTH_JWKS_URL: ${OAUTH_JWKS_URL:-http://auth-service:80/.well-known/jwks.json}
+      # How many days a read notification is kept; 90 unless set, 0 for
+      # forever. See docs/configuration.md, Notifications.
+      NOTIFICATIONS_KEEP_DAYS: ${NOTIFICATIONS_KEEP_DAYS:-}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
     networks:

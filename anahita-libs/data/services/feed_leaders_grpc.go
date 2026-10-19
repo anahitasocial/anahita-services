@@ -2,16 +2,9 @@ package services
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
-	"time"
-
-	"google.golang.org/grpc"
 )
-
-var feedLeadersGRPCConnectCounts int
 
 type FeedLeadersGRPCConfigInterface interface {
 	GetGraphServiceAddr() string
@@ -41,37 +34,14 @@ type FeedLeadersGRPC struct {
 	config FeedLeadersGRPCConfigInterface
 }
 
-// getClient returns the grpc client
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *FeedLeadersGRPC) getClient() (graphpb.FeedLeadersServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("Feed Leaders GRPC not ready...")
-			feedLeadersGRPCConnectCounts++
-		} else {
-			log.Println("Connected to FeedLeaders GRPC!")
-			return graphpb.NewFeedLeadersServiceClient(cc), nil
-			// return srv.client, nil
-		}
-
-		if feedLeadersGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return graphpb.NewFeedLeadersServiceClient(conn), nil
 }
 
 // Count returns the total number of feed nodes from leaders

@@ -101,21 +101,14 @@ func (h *eventHandler) eventFormatEdgeVoteupDeleted(payload *event.EventPayload)
 		return err
 	}
 
-	// Delete notification
+	// The like's notification, and nothing else: a like makes no
+	// subscription, so taking it back ends none.
+	n.Type = NotificationTypeVoteup
 	n.Service = payload.SourceService
 	n.RecipientID = recipient.ID
 	n.Subject.ID = subject.ID
 	n.Object.ID = object.ID
 	n.Target.ID = target.ID
 
-	if err := h.Repos.Notifications.Delete(n); err != nil {
-		return err
-	}
-
-	// Delete subscription
-	if err = h.Srv.SubscriptionsGRPC.Delete(subject, object); err != nil {
-		return err
-	}
-
-	return nil
+	return h.Repos.Notifications.Delete(n)
 }

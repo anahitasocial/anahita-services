@@ -37,6 +37,7 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [OAuth signing and encryption](configuration.md#oauth-signing-and-encryption)
    - [Storage](configuration.md#storage)
    - [Locations](configuration.md#locations)
+   - [Notifications](configuration.md#notifications)
    - [Trending](configuration.md#trending)
    - [Mail](configuration.md#mail)
    - [Abuse reports](configuration.md#abuse-reports)
@@ -318,6 +319,19 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [WebSub](websites.md#websub)
    - [Settings](websites.md#settings)
    - [Where the code is](websites.md#where-the-code-is)
+25. [Notifications](notifications.md) — what people are told in the app, never by email: the kinds, who is told and who never is, and how a notification goes with what it tells of
+   - [No email](notifications.md#no-email)
+   - [What a notification is](notifications.md#what-a-notification-is)
+   - [The kinds](notifications.md#the-kinds)
+   - [Only what its reader may see](notifications.md#only-what-its-reader-may-see)
+   - [Who is never told](notifications.md#who-is-never-told)
+   - [When what it tells of goes](notifications.md#when-what-it-tells-of-goes)
+   - [Choosing what one is told about](notifications.md#choosing-what-one-is-told-about)
+   - [Several as one](notifications.md#several-as-one)
+   - [What can be done from one](notifications.md#what-can-be-done-from-one)
+   - [Read, and how long they are kept](notifications.md#read-and-how-long-they-are-kept)
+   - [Delivery](notifications.md#delivery)
+   - [The API](notifications.md#the-api)
 
 ## Plans
 
@@ -332,6 +346,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
+| [Notifications: right, then worth acting on](plans/done/notifications.md) | 79, 80 | done 2026-10-19 |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0 done 2026-10-12; phase 1, ActivityPub, mostly built 2026-10-13: see [Federation](federation.md). AT Protocol built 2026-10-13 as connected accounts: everybody reads Bluesky, and whoever connects their own account posts, replies, likes, reposts and follows there. Hosting Bluesky identities on a server of the site's own is [plans/atproto-server.md](plans/atproto-server.md), to be decided |

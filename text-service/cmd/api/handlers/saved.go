@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	an_handlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/responses"
 	"log"
@@ -100,7 +100,7 @@ func (h *mediumHandler) setSaved(c echo.Context, saved bool) error {
 	}
 
 	// Asked of the gate, not of the read, which hands a post to anybody.
-	if saved && !an_handlers.MaySee(h.Srv.GraphNodeGRPC, id, viewer) {
+	if saved && !permissions.CanReadByID(h.Srv.GraphNodeGRPC, id, viewer) {
 		return c.NoContent(http.StatusNotFound)
 	}
 

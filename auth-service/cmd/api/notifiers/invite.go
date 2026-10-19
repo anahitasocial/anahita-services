@@ -8,9 +8,7 @@ import (
 	"auth/constants"
 	"auth/data/entities"
 	"auth/messages"
-	"auth/requests"
 
-	an_constants "anahita-libs/constants"
 	an_event "anahita-libs/event"
 )
 
@@ -82,13 +80,7 @@ func (h *inviteNotifier) NotifyAccept(user *entities.User) error {
 // than short-circuiting the loop — one failed SMTP delivery should
 // not silently skip the remaining admins.
 func (h *inviteNotifier) EmailAccept(joiner *entities.User, inviter *entities.User) error {
-	personReq := requests.NewUserRequest().Browse
-	personReq.PersonTypes = []string{
-		an_constants.PersonTypeAdmin,
-		an_constants.PersonTypeSuperAdmin,
-	}
-
-	admins, err := h.Repos.Users.Browse(personReq)
+	admins, err := administrators(h.Repos)
 	if err != nil {
 		return err
 	}

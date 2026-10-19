@@ -98,7 +98,7 @@ func (h *noteHandler) DetachQuote(c echo.Context) error {
 
 	// A note the viewer may not see is not found, whoever they are: the
 	// author of a quoted post takes it out of the notes they can read.
-	if !an_handlers.MaySee(h.Srv.GraphNodeGRPC, id, viewer) {
+	if !permissions.CanReadByID(h.Srv.GraphNodeGRPC, id, viewer) {
 		return c.NoContent(http.StatusNotFound)
 	}
 
@@ -162,7 +162,7 @@ func (h *mediumHandler) Quotes(c echo.Context) error {
 	}
 
 	// A post the viewer cannot see has no list for them.
-	if !an_handlers.MaySee(h.Srv.GraphNodeGRPC, id, viewer) {
+	if !permissions.CanReadByID(h.Srv.GraphNodeGRPC, id, viewer) {
 		return c.NoContent(http.StatusNotFound)
 	}
 

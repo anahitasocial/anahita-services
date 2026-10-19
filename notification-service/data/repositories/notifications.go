@@ -20,8 +20,9 @@ type NotificationInterface interface {
 	// Count returns the number of Notifications
 	Count(req *requests.NotificationBrowseRequest, viewer *an_entities.Viewer) (uint64, error)
 
-	// UnreadCount returns the number of unread Notifications
-	UnreadCount(viewer *an_entities.Viewer) (uint64, error)
+	// UnreadCount returns the number of unread Notifications, and when the
+	// newest of all was told.
+	UnreadCount(viewer *an_entities.Viewer) (uint64, *time.Time, error)
 
 	// Browse returns a list of Notifications
 	Browse(req *requests.NotificationBrowseRequest, viewer *an_entities.Viewer) ([]*entities.Notification, error)
@@ -32,11 +33,27 @@ type NotificationInterface interface {
 	// Edit
 	Edit(notification *entities.Notification) error
 
+	// EditAll marks all of the viewer's notifications read, and answers how
+	// many were not.
+	EditAll(viewer *an_entities.Viewer) (int64, error)
+
 	// Add a new notification
 	Add(notification *entities.Notification) (int64, error)
 
-	// DeleteOfReply removes the news of a reply that is gone.
-	DeleteOfReply(replyID int64) error
+	// OffTopics are the kinds of thing a person has turned off.
+	OffTopics(recipientID int64) ([]string, error)
+
+	// SetTopic turns a kind of thing on or off for a person.
+	SetTopic(recipientID int64, topic string, on bool) error
+
+	// DeleteAbout removes every notification about a node that is gone.
+	DeleteAbout(nodeID int64) error
+
+	// DeleteReadBefore removes, a batch at a time, those read before then.
+	DeleteReadBefore(before time.Time, batch int) (int64, error)
+
+	// DeleteBetween removes what two profiles were told of each other.
+	DeleteBetween(a, b int64) error
 
 	// Delete a notification
 	Delete(notification *entities.Notification) error
@@ -67,11 +84,13 @@ func (r *Notification) getBaseSelectQuery() sq.SelectBuilder {
 		"notification.recipient_id",
 		"notification.created_at",
 		"notification.updated_at",
-		"notification.is_read",
+		// Read when read_at is set: NULL while it is unread.
+		"notification.read_at IS NOT NULL AS is_read",
 		// Who, what and where it is about: NULL when there is none, read as 0.
 		"COALESCE(notification.subject_id, 0) AS subject_id",
 		"COALESCE(notification.object_id, 0) AS object_id",
 		"COALESCE(notification.target_id, 0) AS target_id",
+		"COALESCE(notification.comment_id, 0) AS comment_id",
 	}
 
 	return sq.Select(fields...).From(
@@ -103,18 +122,32 @@ func (repo *Notification) Count(req *requests.NotificationBrowseRequest, viewer 
 	return count, nil
 }
 
-// UnreadCount returns the number of unread Notifications
-func (repo *Notification) UnreadCount(viewer *an_entities.Viewer) (uint64, error) {
+const unreadCountAndNewest = `
+SELECT
+    COALESCE(SUM(read_at IS NULL), 0),
+    MAX(created_at)
+FROM notifications
+WHERE recipient_id = ?`
+
+// UnreadCount returns how many of the viewer's notifications are unread, and
+// when the newest of them all, read or not, was told: what the bell asks, and
+// how an open list knows there is something new to fetch although the count
+// is the same. Telling somebody something again moves its row's created_at,
+// not its id, so the time is what says so. Nil when they have none.
+func (repo *Notification) UnreadCount(viewer *an_entities.Viewer) (uint64, *time.Time, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
 
-	var unreadCount uint64
-	err := repo.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM notifications WHERE recipient_id = ? AND is_read = 0", viewer.ID).Scan(&unreadCount)
+	var unread uint64
+	var newest sql.NullTime
+	err := repo.db.QueryRowContext(ctx, unreadCountAndNewest, viewer.ID).Scan(&unread, &newest)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
-
-	return unreadCount, nil
+	if !newest.Valid {
+		return unread, nil, nil
+	}
+	return unread, &newest.Time, nil
 }
 
 // Browse returns a list of Notifications
@@ -154,6 +187,7 @@ func (repo *Notification) Browse(req *requests.NotificationBrowseRequest, viewer
 			&item.Subject.ID,
 			&item.Object.ID,
 			&item.Target.ID,
+			&item.CommentID,
 		)
 		if err != nil {
 			return nil, err
@@ -176,10 +210,14 @@ func (repo *Notification) Edit(item *entities.Notification) error {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
 
-	query := sq.Update("notifications").SetMap(sq.Eq{
-		"is_read":    item.IsRead,
-		"updated_at": time.Now(),
-	}).Where(sq.Eq{"id": item.ID})
+	// Read now, or unread again. Read once, it keeps the time it was first.
+	values := sq.Eq{"updated_at": time.Now()}
+	if item.IsRead {
+		values["read_at"] = sq.Expr("COALESCE(read_at, NOW())")
+	} else {
+		values["read_at"] = nil
+	}
+	query := sq.Update("notifications").SetMap(values).Where(sq.Eq{"id": item.ID})
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -190,10 +228,58 @@ func (repo *Notification) Edit(item *entities.Notification) error {
 	return err
 }
 
-// Add a new notification
+const markAllRead = `
+UPDATE notifications
+SET read_at = NOW(),
+    updated_at = NOW()
+WHERE recipient_id = ?
+    AND read_at IS NULL`
+
+// EditAll marks every one of the viewer's notifications read (Mark all
+// read), and answers how many were unread.
+func (repo *Notification) EditAll(viewer *an_entities.Viewer) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	result, err := repo.db.ExecContext(ctx, markAllRead, viewer.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+// addAgain is what telling somebody the same thing again does: one row for
+// one thing (the unique key one_of_each), moved to the top of their list,
+// unread. LAST_INSERT_ID(id) answers with that row's id.
+const addAgain = `
+ON DUPLICATE KEY UPDATE
+    id = LAST_INSERT_ID(id),
+    created_at = NOW(),
+    updated_at = NOW(),
+    read_at = NULL`
+
+const isTopicOff = `
+SELECT COUNT(*)
+FROM notifications_off
+WHERE recipient_id = ?
+    AND topic = ?`
+
+// Add tells somebody something, or tells them again; or does not, when they
+// have turned off that kind of thing (roadmap row 97, part 5), and answers
+// 0.
 func (repo *Notification) Add(item *entities.Notification) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
+
+	if topic := constants.TopicOf(item.Type); topic != "" {
+		var off int
+		if err := repo.db.QueryRowContext(ctx, isTopicOff, item.RecipientID, topic).Scan(&off); err != nil {
+			return 0, err
+		}
+		if off > 0 {
+			return 0, nil
+		}
+	}
 
 	query := sq.Insert("notifications").Columns(
 		"type",
@@ -221,7 +307,7 @@ func (repo *Notification) Add(item *entities.Notification) (int64, error) {
 		nullableID(int64(item.CommentID)),
 		time.Now(),
 		time.Now(),
-	)
+	).Suffix(addAgain)
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -243,22 +329,119 @@ func (repo *Notification) Add(item *entities.Notification) (int64, error) {
 	return id, nil
 }
 
-const deleteNotificationsOfReply = `
+const deleteNotificationsAbout = `
 DELETE FROM notifications
-WHERE comment_id = ?`
+WHERE object_id = ?
+    OR comment_id = ?
+    OR target_id = ?`
 
-// DeleteOfReply removes the news of a reply, for everybody who was told:
-// the reply is gone, and a notification that leads to nothing is noise.
-// The reply's id is in comment_id, whoever it was news to.
-func (repo *Notification) DeleteOfReply(replyID int64) error {
-	if replyID <= 0 {
+// DeleteAbout removes every notification about a node that is gone, for
+// everybody who was told, whoever did what it tells of (roadmap row 96, part
+// 2): a post deleted takes its likes, reposts, quotes, mentions and the
+// replies under it; a reply or a repost takes the news of it, kept in
+// comment_id. A notification that leads to nothing is noise. A node's id is
+// the same in every column, so one id finds them all.
+func (repo *Notification) DeleteAbout(nodeID int64) error {
+	if nodeID <= 0 {
 		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
 
-	_, err := repo.db.ExecContext(ctx, deleteNotificationsOfReply, replyID)
+	_, err := repo.db.ExecContext(ctx, deleteNotificationsAbout, nodeID, nodeID, nodeID)
+	return err
+}
+
+const offTopics = `
+SELECT topic
+FROM notifications_off
+WHERE recipient_id = ?`
+
+// OffTopics are the kinds of thing a person has turned off being told about.
+func (repo *Notification) OffTopics(recipientID int64) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	rows, err := repo.db.QueryContext(ctx, offTopics, recipientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	off := []string{}
+	for rows.Next() {
+		var topic string
+		if err := rows.Scan(&topic); err != nil {
+			return nil, err
+		}
+		off = append(off, topic)
+	}
+	return off, rows.Err()
+}
+
+const turnTopicOff = `
+INSERT IGNORE INTO notifications_off (recipient_id, topic)
+VALUES (?, ?)`
+
+const turnTopicOn = `
+DELETE FROM notifications_off
+WHERE recipient_id = ?
+    AND topic = ?`
+
+// SetTopic turns a kind of thing on or off for a person: off is a row, on
+// is none.
+func (repo *Notification) SetTopic(recipientID int64, topic string, on bool) error {
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	query := turnTopicOff
+	if on {
+		query = turnTopicOn
+	}
+	_, err := repo.db.ExecContext(ctx, query, recipientID, topic)
+	return err
+}
+
+const deleteReadBefore = `
+DELETE FROM notifications
+WHERE read_at < ?
+LIMIT ?`
+
+// DeleteReadBefore removes up to a batch of notifications read before the
+// time given (NOTIFICATIONS_KEEP_DAYS): a batch at a time, so the table is
+// never held long. Unread ones stay, however old.
+func (repo *Notification) DeleteReadBefore(before time.Time, batch int) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	result, err := repo.db.ExecContext(ctx, deleteReadBefore, before, batch)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deleteNotificationsBetween = `
+DELETE FROM notifications
+WHERE (recipient_id = ? AND subject_id = ?)
+    OR (recipient_id = ? AND subject_id = ?)
+    OR (subject_id = ? AND target_id = ?)
+    OR (subject_id = ? AND target_id = ?)`
+
+// DeleteBetween removes what two profiles were told of each other, when one
+// blocks the other (roadmap row 96, part 1): what each was told the other
+// did, and, for a group or an event, what its administrators were told the
+// other did to it.
+func (repo *Notification) DeleteBetween(a, b int64) error {
+	if a <= 0 || b <= 0 {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	_, err := repo.db.ExecContext(ctx, deleteNotificationsBetween, a, b, b, a, b, a, a, b)
 	return err
 }
 
@@ -354,6 +537,7 @@ func (repo *Notification) getItem(q *sq.SelectBuilder) (*entities.Notification, 
 		&item.Subject.ID,
 		&item.Object.ID,
 		&item.Target.ID,
+		&item.CommentID,
 	)
 
 	if err != nil {

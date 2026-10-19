@@ -126,7 +126,8 @@ avoided because everywhere else in this product it means an OAuth client.
 All three are for administrators. Approval checks again that the username is
 still free, since somebody else may have taken it while the request waited.
 
-When a request joins the queue, every administrator is emailed a link to it:
+When a request joins the queue, every administrator and super administrator
+is emailed a link to it, however many there are:
 `/admin/signup-requests` in the web app, a tab of its administration area.
 
 `approve` and `reject` are named in the path rather than being a bare `POST`

@@ -2,16 +2,9 @@ package services
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
-	"time"
-
-	"google.golang.org/grpc"
 )
-
-var hashtagGRPCConnectCounts int
 
 type HashtagGRPCConfigInterface interface {
 	GetGraphServiceAddr() string
@@ -58,33 +51,14 @@ type HashtagGRPC struct {
 	config HashtagGRPCConfigInterface
 }
 
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *HashtagGRPC) getClient() (graphpb.HashtagServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("Hashtag GRPC not ready...")
-			hashtagGRPCConnectCounts++
-		} else {
-			return graphpb.NewHashtagServiceClient(cc), nil
-		}
-
-		if hashtagGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-	}
+	return graphpb.NewHashtagServiceClient(conn), nil
 }
 
 // Suggest implements HashtagGRPCInterface.

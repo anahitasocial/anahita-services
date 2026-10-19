@@ -2,16 +2,9 @@ package services
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/filepb"
 	"context"
-	"log"
-	"time"
-
-	"google.golang.org/grpc"
 )
-
-var filesGRPCConnectCounts int
 
 type FileGRPCConfigInterface interface {
 	GetFileServiceAddr() string
@@ -53,36 +46,14 @@ type FilesGRPC struct {
 	config FileGRPCConfigInterface
 }
 
-// getClient returns the grpc client
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *FilesGRPC) getClient() (filepb.FileServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetFileServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetFileServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("File GRPC not ready...")
-			filesGRPCConnectCounts++
-		} else {
-			log.Println("Connected to File GRPC!")
-			return filepb.NewFileServiceClient(cc), nil
-		}
-
-		if filesGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return filepb.NewFileServiceClient(conn), nil
 }
 
 // Read returns the file content

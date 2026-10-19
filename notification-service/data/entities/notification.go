@@ -29,9 +29,18 @@ type Notification struct {
 	Object      *entities.AnahitaNode
 	Target      *entities.AnahitaNode
 	CommentID   int64
+	// What the reader can do from it, worked out when it is read: never
+	// stored (handlers/actions.go).
+	Actions []string
+	// Grouped with it, when the list is read (handlers/group.go): every
+	// row's id, this one's first, and whoever else did the same, newest
+	// first, as far as three in all are shown. Never stored.
+	IDs    []int64
+	Others []*entities.AnahitaNode
+	// How many more did it than are named: the group less those shown.
+	OthersCount int
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	Meta        string
 	IsRead      bool
 }
 

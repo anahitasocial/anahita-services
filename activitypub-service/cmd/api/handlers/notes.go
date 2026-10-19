@@ -11,8 +11,7 @@ import (
 
 	"activitypub/ap"
 	"activitypub/data/repositories"
-
-	libhandlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
@@ -84,7 +83,7 @@ func (h *Handlers) goesOut(note *entities.AnahitaNode) (*entities.AnahitaNode, *
 	if err != nil || h.federating(author) == nil {
 		return nil, nil
 	}
-	if !libhandlers.MaySee(h.Nodes, note.ID, entities.NewViewer()) {
+	if !permissions.CanReadByID(h.Nodes, note.ID, entities.NewViewer()) {
 		return nil, nil
 	}
 	return author, answering

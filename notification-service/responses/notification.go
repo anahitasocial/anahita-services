@@ -73,20 +73,42 @@ type NotificationItem struct {
 	Object *Object `json:"object"`
 	// What it was done to.
 	Target *Target `json:"target"`
+	// The reply or the repost that holds what was done, where it is not the
+	// object: the reply to answer, for a reply.
+	CommentID int64 `json:"comment_id,omitempty"`
 	// When it was made.
 	CreatedAt time.Time `json:"created_at"`
 	// When it last changed: when it was read, for one.
 	UpdatedAt time.Time `json:"updated_at"`
-	// More about it, as JSON in a string.
-	Meta string `json:"meta"`
 	// Whether the viewer has read it.
 	IsRead bool `json:"is_read"`
+	// Grouped with it (likes of one post, reposts of one post, follows of
+	// one profile): every notification's id, this one's first. Reading or
+	// deleting it is reading or deleting them all.
+	IDs []int64 `json:"ids,omitempty"`
+	// Whoever else did the same, newest first, at most two.
+	Others []*Subject `json:"others,omitempty"`
+	// How many more did it than are named.
+	OthersCount int `json:"others_count,omitempty"`
+	// What the viewer can do from it, now: `answer_request` (accept or
+	// decline a request to follow that is still waiting), `follow` (they
+	// do not follow whoever did it), `reply`. Left out when nothing.
+	Actions []string `json:"actions,omitempty"`
+}
+
+// MarkedRead is how many notifications Mark all read marked.
+type MarkedRead struct {
+	// How many were unread, and are read now.
+	Count int64 `json:"count"`
 }
 
 // UnreadCount is how many notifications the viewer has not read.
 type UnreadCount struct {
 	// How many.
 	Count uint64 `json:"count"`
+	// When the newest of all their notifications, read or not, was told:
+	// changed, there is something new to fetch. Left out when they have none.
+	NewestAt *time.Time `json:"newest_at,omitempty"`
 }
 
 type NotificationResponse struct{}
@@ -104,11 +126,26 @@ func (r *NotificationResponse) MapNotificationItem(item *entities.Notification) 
 		Subject:     r.MapSubject(item.Subject),
 		Object:      r.MapObject(item.Object),
 		Target:      r.MapTarget(item.Target),
+		CommentID:   item.CommentID,
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
-		Meta:        item.Meta,
 		IsRead:      item.IsRead,
+		Actions:     item.Actions,
+		IDs:         item.IDs,
+		Others:      r.mapOthers(item.Others),
+		OthersCount: item.OthersCount,
 	}
+}
+
+func (r *NotificationResponse) mapOthers(others []*an_entities.AnahitaNode) []*Subject {
+	if len(others) == 0 {
+		return nil
+	}
+	out := make([]*Subject, 0, len(others))
+	for _, other := range others {
+		out = append(out, r.MapSubject(other))
+	}
+	return out
 }
 
 func (r *NotificationResponse) MapSubject(subject *an_entities.AnahitaNode) *Subject {
@@ -179,4 +216,18 @@ func (r *NotificationResponse) MapNotificationItems(items []*entities.Notificati
 		responseItems = append(responseItems, r.MapNotificationItem(item))
 	}
 	return responseItems
+}
+
+// TopicChoice is whether a person is told about one kind of thing.
+type TopicChoice struct {
+	// The kind of thing: likes, reposts, replies, mentions, follows, posts,
+	// events or invitations.
+	Topic string `json:"topic"`
+	// Whether they are told about it.
+	On bool `json:"on"`
+}
+
+// Settings are what a person is told about, every kind of thing in order.
+type Settings struct {
+	Topics []TopicChoice `json:"topics"`
 }

@@ -109,6 +109,25 @@ func (h *socialgraphBlockGrpcHandler) Add(ctx context.Context, req *graphpb.Soci
 		}
 	}
 
+	// Neither is told of the other any more (roadmap row 96, part 1): the
+	// subscriptions go with the follows, both ways, the one that came with
+	// administering included.
+	for _, pair := range [][2]*entities.AnahitaNode{{source, target}, {target, source}} {
+		edgeReq := requests.NewEdgeRequest().BatchDeleteByFilters
+		edgeReq.Types = []string{constants.EdgeBaseSubscriptionEntityType}
+		edgeReq.NodeAID = pair[0].ID
+		edgeReq.NodeAType = pair[0].Type
+		edgeReq.NodeBID = pair[1].ID
+		edgeReq.NodeBType = pair[1].Type
+		if _, err := h.env.Repos.Edges.BatchDeleteByFilters(edgeReq); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		if err := h.env.Repos.SubscriptionsRel.UpdateSubscriberCount(pair[1].ID); err != nil {
+			log.Println(err)
+		}
+	}
+
 	_, err = h.env.Repos.Edges.Add(&entities.AnahitaEdge{
 		Type:       constants.EdgeBlockEntityType,
 		NodeAID:    source.ID,

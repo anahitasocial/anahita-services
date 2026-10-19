@@ -113,8 +113,13 @@ func TestMentionsUpdateReconciles(t *testing.T) {
 	edges := &fakeEdges{existing: []int64{1, 3}}
 
 	m := NewMentions(nodes, edges, &fakeSocialgraph{})
-	if _, err := m.Update(mentionable{id: 99, authorID: 9}, []string{"ada", "grace"}, entities.NewViewer()); err != nil {
+	_, removed, err := m.Update(mentionable{id: 99, authorID: 9}, []string{"ada", "grace"}, entities.NewViewer())
+	if err != nil {
 		t.Fatalf("update: %v", err)
+	}
+	// Said, so that the news of being named goes too.
+	if len(removed) != 1 || removed[0] != 3 {
+		t.Errorf("expected 3 to be answered as removed, got %v", removed)
 	}
 
 	if len(edges.added) != 1 || edges.added[0].NodeAID != 2 {
@@ -132,7 +137,7 @@ func TestMentionsIgnoresUnknownHandles(t *testing.T) {
 	edges := &fakeEdges{}
 
 	m := NewMentions(nodes, edges, &fakeSocialgraph{})
-	if _, err := m.Update(mentionable{id: 99, authorID: 9}, []string{"ada", "nobody"}, entities.NewViewer()); err != nil {
+	if _, _, err := m.Update(mentionable{id: 99, authorID: 9}, []string{"ada", "nobody"}, entities.NewViewer()); err != nil {
 		t.Fatalf("update: %v", err)
 	}
 
@@ -147,7 +152,7 @@ func TestMentionsSkipsTheLookupWhenNothingIsMentioned(t *testing.T) {
 	edges := &fakeEdges{existing: []int64{1}}
 
 	m := NewMentions(nodes, edges, &fakeSocialgraph{})
-	if _, err := m.Update(mentionable{id: 99, authorID: 9}, nil, entities.NewViewer()); err != nil {
+	if _, _, err := m.Update(mentionable{id: 99, authorID: 9}, nil, entities.NewViewer()); err != nil {
 		t.Fatalf("update: %v", err)
 	}
 
@@ -184,7 +189,7 @@ func TestMentionsAttributeTheEdge(t *testing.T) {
 			viewer := entities.NewViewer()
 			viewer.ID = tc.viewerID
 
-			if _, err := NewMentions(nodes, edges, &fakeSocialgraph{}).Update(tc.node, []string{"ada"}, viewer); err != nil {
+			if _, _, err := NewMentions(nodes, edges, &fakeSocialgraph{}).Update(tc.node, []string{"ada"}, viewer); err != nil {
 				t.Fatalf("update: %v", err)
 			}
 			if len(edges.added) != 1 {
@@ -209,7 +214,7 @@ func TestMentionsKeepOnlyWhoMayBeNamed(t *testing.T) {
 	social := &fakeSocialgraph{blocking: map[int64]bool{4: true}}
 
 	m := NewMentions(nodes, edges, social)
-	added, err := m.Update(mentionable{id: 99, authorID: 9}, []string{"ada", "grace", "club", "eve"}, entities.NewViewer())
+	added, _, err := m.Update(mentionable{id: 99, authorID: 9}, []string{"ada", "grace", "club", "eve"}, entities.NewViewer())
 	if err != nil {
 		t.Fatalf("update: %v", err)
 	}

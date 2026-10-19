@@ -2,14 +2,10 @@ package services
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
-
-	"google.golang.org/grpc"
 )
 
 // EventsGRPCInterface is what only an event has, beside the actor it is:
@@ -53,22 +49,14 @@ func NewEventsGRPC(config GraphGRPCConfigInterface) EventsGRPCInterface {
 	return &EventsGRPC{config: config}
 }
 
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *EventsGRPC) getClient() (graphpb.EventServiceClient, error) {
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-
-	cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(),
-		transport,
-		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`),
-	)
-	if err != nil {
-		log.Println("Event GRPC not ready:", err)
-		return nil, err
-	}
-
-	return graphpb.NewEventServiceClient(cc), nil
+	return graphpb.NewEventServiceClient(conn), nil
 }
 
 func grpcToEventDetails(details *graphpb.EventDetails) *entities.EventDetails {

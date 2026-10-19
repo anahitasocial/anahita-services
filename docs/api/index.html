@@ -64,7 +64,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#like-service">Likes</a> <span class="count">3</span></li>
 <li><a href="#link-preview-service">Link previews</a> <span class="count">4</span></li>
 <li><a href="#location-service">Locations</a> <span class="count">10</span></li>
-<li><a href="#notification-service">Notifications</a> <span class="count">6</span></li>
+<li><a href="#notification-service">Notifications</a> <span class="count">9</span></li>
 <li><a href="#photo-service">Photo posts</a> <span class="count">16</span></li>
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
 <li><a href="#search-service">Search</a> <span class="count">3</span></li>
@@ -72,7 +72,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">44</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">147</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">150</span></li>
 </ul>
 </nav>
 <main>
@@ -6370,6 +6370,63 @@ who may call it: somebody signed in, with a token that carries `notifications:re
 </table>
 <p class="handler">Answered by <code>notification/cmd/api/handlers.(*notificationHandler).Browse</code></p>
 </details>
+<details class="route" id="patchNotificationsReadAll" data-search="patch /notifications/read-all mark all as read every one of the viewer&#39;s notifications. answers how many were unread.
+
+who may call it: somebody signed in, with a token that carries `notifications:write`.">
+<summary><span class="method patch">PATCH</span> <code class="path">/notifications/read-all</code> <span class="summary">Mark all as read</span></summary>
+<div class="description"><p>Every one of the viewer&#39;s notifications. Answers how many were unread.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>notifications:write</code></p>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-notification.MarkedRead">notification.MarkedRead</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>notification/cmd/api/handlers.(*notificationHandler).EditAll</code></p>
+</details>
+<details class="route" id="getNotificationsSettings" data-search="get /notifications/settings what the viewer is told about every kind of thing, on or off: likes, reposts, replies, mentions, follows, posts, events and invitations. all on to begin with.
+
+who may call it: somebody signed in, with a token that carries `notifications:read`.">
+<summary><span class="method get">GET</span> <code class="path">/notifications/settings</code> <span class="summary">What the viewer is told about</span></summary>
+<div class="description"><p>Every kind of thing, on or off: likes, reposts, replies, mentions, follows, posts, events and invitations. All on to begin with.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>notifications:read</code></p>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-notification.Settings">notification.Settings</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>notification/cmd/api/handlers.(*notificationHandler).ReadSettings</code></p>
+</details>
+<details class="route" id="patchNotificationsSettings" data-search="patch /notifications/settings be told about a kind of thing, or not turns one on or off. a notification of a kind turned off is not made. answers with them all.
+
+who may call it: somebody signed in, with a token that carries `notifications:write`.">
+<summary><span class="method patch">PATCH</span> <code class="path">/notifications/settings</code> <span class="summary">Be told about a kind of thing, or not</span></summary>
+<div class="description"><p>Turns one on or off. A notification of a kind turned off is not made. Answers with them all.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>notifications:write</code></p>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>on</code></td><td>boolean</td><td>Whether to be told about it.</td></tr>
+<tr><td><code>topic</code> <span class="required">always</span></td><td>string</td><td>The kind of thing: likes, reposts, replies, mentions, follows, posts, events or invitations. One of <code>likes</code>, <code>reposts</code>, <code>replies</code>, <code>mentions</code>, <code>follows</code>, <code>posts</code>, <code>events</code>, <code>invitations</code>.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-notification.Settings">notification.Settings</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>there is no such kind of thing</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>notification/cmd/api/handlers.(*notificationHandler).EditSettings</code></p>
+</details>
 <details class="route" id="postNotificationsSubscriptions" data-search="post /notifications/subscriptions be told about a post or a profile the viewer is notified of what happens to it from now on. answers with what they are told about.
 
 who may call it: somebody signed in, with a token that carries `notifications:write`.">
@@ -9998,7 +10055,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language library_only likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count">
+<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language library_only likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count">
 <h3>MediumNode</h3>
 <p>A post or a reply, read on its own or answered with after a change.</p>
 <table>
@@ -10025,6 +10082,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>is_liked_by_viewer</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer likes it.</td></tr>
 <tr><td><code>is_reposted_by_viewer</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer has reposted it.</td></tr>
 <tr><td><code>is_saved_by_viewer</code></td><td>boolean</td><td>Whether the viewer has saved it. Sent to them alone, like the rest of what is said here about the viewer.</td></tr>
+<tr><td><code>is_subscribed_by_viewer</code></td><td>boolean</td><td>Whether the viewer asked to be told of its replies (Get notifications, docs/notifications.md).</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as its author said (<code>en</code>, <code>fa</code>).</td></tr>
 <tr><td><code>library_only</code></td><td>boolean</td><td>That it is in its author&#39;s media library only: put up to be shown in an article, and listed nowhere else.</td></tr>
 <tr><td><code>likes_count</code> <span class="required">always</span></td><td>integer</td><td>How many like it.</td></tr>
@@ -10054,7 +10112,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video">
+<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video">
 <h3>MediumNodeItem</h3>
 <p>A post or a reply in a list.</p>
 <table>
@@ -10075,6 +10133,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>is_liked_by_viewer</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer likes it.</td></tr>
 <tr><td><code>is_reposted_by_viewer</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer has reposted it.</td></tr>
 <tr><td><code>is_saved_by_viewer</code></td><td>boolean</td><td>Whether the viewer has saved it. Sent to them alone, like the rest of what is said here about the viewer.</td></tr>
+<tr><td><code>is_subscribed_by_viewer</code></td><td>boolean</td><td>Whether the viewer asked to be told of its replies (Get notifications, docs/notifications.md).</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language the author said it is written in. Left out when they did not say.</td></tr>
 <tr><td><code>likes_count</code> <span class="required">always</span></td><td>integer</td><td>How many like it.</td></tr>
 <tr><td><code>link_preview</code></td><td><a href="#schema-LinkPreview">LinkPreview</a></td><td>On a note that carries one: the preview of a link in it.</td></tr>
@@ -11580,17 +11639,31 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-notification.NotificationItem" data-search="notification.notificationitem created_at id is_read meta object service subject target type updated_at">
+<div class="route schema" id="schema-notification.MarkedRead" data-search="notification.markedread count">
+<h3>notification.MarkedRead</h3>
+<p>How many notifications Mark all read marked.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>count</code> <span class="required">always</span></td><td>integer</td><td>How many were unread, and are read now.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-notification.NotificationItem" data-search="notification.notificationitem actions comment_id created_at id ids is_read object others others_count service subject target type updated_at">
 <h3>notification.NotificationItem</h3>
 <p>Something the viewer is told of.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
+<tr><td><code>actions</code></td><td>list of string</td><td>What the viewer can do from it, now: <code>answer_request</code> (accept or decline a request to follow that is still waiting), <code>follow</code> (they do not follow whoever did it), <code>reply</code>. Left out when nothing.</td></tr>
+<tr><td><code>comment_id</code></td><td>integer</td><td>The reply or the repost that holds what was done, where it is not the object: the reply to answer, for a reply.</td></tr>
 <tr><td><code>created_at</code> <span class="required">always</span></td><td>time</td><td>When it was made.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
+<tr><td><code>ids</code></td><td>list of integer</td><td>Grouped with it (likes of one post, reposts of one post, follows of one profile): every notification&#39;s id, this one&#39;s first. Reading or deleting it is reading or deleting them all.</td></tr>
 <tr><td><code>is_read</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer has read it.</td></tr>
-<tr><td><code>meta</code> <span class="required">always</span></td><td>string</td><td>More about it, as JSON in a string.</td></tr>
 <tr><td><code>object</code> <span class="required">always</span></td><td>one of <a href="#schema-notification.Object">notification.Object</a>, null</td><td>What was done.</td></tr>
+<tr><td><code>others</code></td><td>list of <a href="#schema-notification.Subject">notification.Subject</a></td><td>Whoever else did the same, newest first, at most two.</td></tr>
+<tr><td><code>others_count</code></td><td>integer</td><td>How many more did it than are named.</td></tr>
 <tr><td><code>service</code> <span class="required">always</span></td><td>string</td><td>The service that told it.</td></tr>
 <tr><td><code>subject</code> <span class="required">always</span></td><td>one of <a href="#schema-notification.Subject">notification.Subject</a>, null</td><td>Who did it.</td></tr>
 <tr><td><code>target</code> <span class="required">always</span></td><td>one of <a href="#schema-notification.Target">notification.Target</a>, null</td><td>What it was done to.</td></tr>
@@ -11614,6 +11687,16 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>service</code></td><td>string</td><td>The service it belongs to.</td></tr>
 <tr><td><code>title</code></td><td>string</td><td>A post&#39;s title, where it has one.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>What kind of thing it is.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-notification.Settings" data-search="notification.settings topics">
+<h3>notification.Settings</h3>
+<p>Settings are what a person is told about, every kind of thing in order.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>topics</code> <span class="required">always</span></td><td>list of <a href="#schema-notification.TopicChoice">notification.TopicChoice</a> or null</td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -11645,13 +11728,25 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-notification.UnreadCount" data-search="notification.unreadcount count">
+<div class="route schema" id="schema-notification.TopicChoice" data-search="notification.topicchoice on topic">
+<h3>notification.TopicChoice</h3>
+<p>Whether a person is told about one kind of thing.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>on</code> <span class="required">always</span></td><td>boolean</td><td>Whether they are told about it.</td></tr>
+<tr><td><code>topic</code> <span class="required">always</span></td><td>string</td><td>The kind of thing: likes, reposts, replies, mentions, follows, posts, events or invitations.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-notification.UnreadCount" data-search="notification.unreadcount count newest_at">
 <h3>notification.UnreadCount</h3>
 <p>How many notifications the viewer has not read.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>count</code> <span class="required">always</span></td><td>integer</td><td>How many. At least 0.</td></tr>
+<tr><td><code>newest_at</code></td><td>time</td><td>When the newest of all their notifications, read or not, was told: changed, there is something new to fetch. Left out when they have none.</td></tr>
 </tbody>
 </table>
 </div>

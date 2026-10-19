@@ -55,7 +55,9 @@ archived one stays.
 - A **person** restores their account by signing in within 30 days. They are
   emailed when the deletion is scheduled, with the date it becomes final.
 - A **group** cannot sign in, so one of its administrators restores it from
-  the group's settings. The group's administrators are emailed.
+  the group's settings. The group's administrators are emailed when it is
+  deleted and when it is restored: each whose own account is enabled, but
+  not the one who did it.
 
 After 30 days the [sweeper](#the-sweeper) purges it.
 

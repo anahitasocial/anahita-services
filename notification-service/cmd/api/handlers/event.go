@@ -49,15 +49,15 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 		// Taken away where it was written: the news of it goes too.
 		if strings.HasSuffix(payload.Name, ".deleted.v1") {
-			return h.Repos.Notifications.DeleteOfReply(payload.ObjectID)
+			return h.Repos.Notifications.DeleteAbout(payload.ObjectID)
 		}
 		return nil
 	}
 
 	if strings.Contains(payload.Name, "node.medium.") {
-		if strings.Contains(payload.Name, ".edited.v1") {
-			err = h.eventFormatNodeMediumEdited(payload)
-		} else if strings.Contains(payload.Name, ".added.v1") {
+		// An edit tells nobody (the user, 2026-10-19): a name it newly
+		// adds is a mention, told as one by actor-service.
+		if strings.Contains(payload.Name, ".added.v1") {
 			err = h.eventFormatNodeMediumAdded(payload)
 		} else if strings.Contains(payload.Name, ".deleted.v1") {
 			err = h.eventFormatNodeMediumDeleted(payload)
@@ -82,9 +82,19 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 	}
 
-	// A post naming somebody.
-	if strings.HasPrefix(payload.Name, "edge.mention.") && strings.HasSuffix(payload.Name, ".added.v1") {
-		err = h.eventFormatEdgeMentionAdded(payload)
+	// A post naming somebody, and no longer naming them after an edit.
+	if strings.HasPrefix(payload.Name, "edge.mention.") {
+		if strings.HasSuffix(payload.Name, ".added.v1") {
+			err = h.eventFormatEdgeMentionAdded(payload)
+		} else if strings.HasSuffix(payload.Name, ".deleted.v1") {
+			err = h.eventFormatEdgeMentionDeleted(payload)
+		}
+	}
+
+	// A block: what the two were told of each other goes. The graph has
+	// ended the follows and the subscriptions already.
+	if strings.HasPrefix(payload.Name, "edge.block.") && strings.HasSuffix(payload.Name, ".added.v1") {
+		err = h.Repos.Notifications.DeleteBetween(payload.ObjectID, payload.TargetID)
 	}
 
 	// Follow edge events

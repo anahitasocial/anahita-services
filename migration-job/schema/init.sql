@@ -357,17 +357,24 @@ CREATE TABLE notifications (
     `object_type` varchar(255) NOT NULL DEFAULT '',
     `target_id` bigint(11) unsigned DEFAULT NULL,
     `target_type` varchar(255) NOT NULL DEFAULT '',
-    `comment_id` int(11) unsigned DEFAULT NULL,
+    `comment_id` bigint unsigned DEFAULT NULL,
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    -- mediumtext, not text. An existing database reaches utf8mb4 through
-    -- CONVERT TO CHARACTER SET, which promotes text to preserve its character
-    -- capacity; a fresh one is created as utf8mb4 outright and would keep
-    -- text. Declaring the wider type is what makes the two paths agree.
-    `meta` mediumtext NOT NULL DEFAULT (''),
-    `is_read` tinyint(1) NOT NULL DEFAULT 0,
+    -- When it was read: NULL while it is unread. A read one is kept so many
+    -- days after (NOTIFICATIONS_KEEP_DAYS).
+    `read_at` datetime DEFAULT NULL,
     PRIMARY KEY (`id`),
-    KEY `recipient_id` (`recipient_id`),
+    -- One notification for one thing: a repeated event makes no second row.
+    -- A missing subject, object, target or reply is read as 0, since MySQL
+    -- lets NULLs repeat in a unique key.
+    UNIQUE KEY `one_of_each` (`recipient_id`, `type`,
+        (IFNULL(`subject_id`, 0)), (IFNULL(`object_id`, 0)),
+        (IFNULL(`target_id`, 0)), (IFNULL(`comment_id`, 0))),
+    -- The unread count, and the list.
+    KEY `recipient_unread` (`recipient_id`, `read_at`),
+    KEY `recipient_created` (`recipient_id`, `created_at`),
+    -- Read ones past keeping.
+    KEY `read_at` (`read_at`),
     KEY `subject_id` (`subject_id`),
     KEY `subject_type` (`subject_type`),
     KEY `object_id` (`object_id`),
@@ -377,6 +384,16 @@ CREATE TABLE notifications (
     KEY `comment_id` (`comment_id`),
     KEY `created_at` (`created_at`),
     KEY `updated_at` (`updated_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- --------------------------------------------------------
+
+-- What a person has turned off being told about: one row for each kind of
+-- thing turned off (roadmap row 97). A notification of that kind is not made.
+CREATE TABLE notifications_off (
+    `recipient_id` bigint unsigned NOT NULL,
+    `topic` varchar(32) NOT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`recipient_id`, `topic`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 

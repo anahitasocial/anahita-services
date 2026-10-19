@@ -13,8 +13,7 @@ import (
 
 	"activitypub/ap"
 	"activitypub/fetch"
-
-	libhandlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/federation"
 	"anahita-libs/ratelimit"
@@ -57,7 +56,7 @@ func (h *Handlers) RestorePictures(c echo.Context) error {
 	if err != nil || post == nil || post.ID == 0 || post.Type != constants.NodeMediumPhotoEntityType {
 		return refuse(c, http.StatusNotFound, errMediaNotRemoved)
 	}
-	if !strings.HasPrefix(post.URI, "https://") || federation.MediaRemovedFrom(post.Meta) == nil || !libhandlers.MaySee(h.Nodes, post.ID, viewer) {
+	if !strings.HasPrefix(post.URI, "https://") || federation.MediaRemovedFrom(post.Meta) == nil || !permissions.CanReadByID(h.Nodes, post.ID, viewer) {
 		return refuse(c, http.StatusNotFound, errMediaNotRemoved)
 	}
 	if h.Blocks != nil && h.Blocks.IsBlocked(hostOf(post.URI)) {

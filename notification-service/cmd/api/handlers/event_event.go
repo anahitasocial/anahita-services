@@ -57,10 +57,8 @@ func (h *eventHandler) eventFormatEventAnswered(payload *event.EventPayload) err
 	n.Target.Type = target.Type
 
 	// Said once for each person and event: somebody who goes back and
-	// forth between going and maybe is not announced each time.
-	if err = h.Repos.Notifications.Delete(n); err != nil {
-		return err
-	}
+	// forth between going and maybe is not announced each time. Telling an
+	// administrator again moves the one notification to the top (Add).
 
 	for _, recipient := range recipients {
 		// Not to themselves, when it is their own event.
@@ -112,11 +110,8 @@ func (h *eventHandler) eventFormatEventTold(payload *event.EventPayload, kind st
 	}
 
 	// One of each kind for an event and a person. An event moved three
-	// times says so once, with the time it has now on its page.
-	if err = h.Repos.Notifications.Delete(n); err != nil {
-		return err
-	}
-
+	// times says so once, with the time it has now on its page: telling
+	// them again moves the one notification to the top (Add).
 	_, err = h.Repos.Notifications.Add(n)
 
 	return err

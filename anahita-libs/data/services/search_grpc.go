@@ -2,16 +2,9 @@ package services
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
-	"time"
-
-	"google.golang.org/grpc"
 )
-
-var searchGRPCConnectCounts int
 
 type SearchGRPCConfigInterface interface {
 	GetGraphServiceAddr() string
@@ -38,35 +31,14 @@ type SearchGRPC struct {
 }
 
 // GetClient returns the grpc client
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *SearchGRPC) getClient() (graphpb.SearchServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("Search GRPC not ready...")
-			searchGRPCConnectCounts++
-		} else {
-			log.Println("Connected to Search GRPC!")
-			return graphpb.NewSearchServiceClient(cc), nil
-		}
-
-		if searchGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return graphpb.NewSearchServiceClient(conn), nil
 }
 
 // Count implements SearchGRPCInterface

@@ -33,8 +33,8 @@ func (h *eventHandler) remoteNoteAdded(payload *event.EventPayload) error {
 }
 
 // replyAdded tells the people a reply answers that it was made: the author of
-// the post at the top of the thread, and the author of what was directly
-// answered when that is somebody else.
+// the post at the top of the thread, the author of what was directly
+// answered when that is somebody else, and whoever subscribed to the post.
 //
 // Nobody else. Not the replier's followers, who would otherwise be told about
 // every answer anybody they follow gives anywhere.
@@ -67,6 +67,18 @@ func (h *eventHandler) replyAdded(payload *event.EventPayload, subject *an_entit
 		}
 	}
 
+	// And whoever asked to be told about this post (Get notifications, in
+	// its menu).
+	subscribers, err := h.Srv.SubscriptionsGRPC.BrowseSources(root)
+	if err != nil {
+		return err
+	}
+	for _, subscriber := range subscribers {
+		if subscriber != nil && !subscriber.IsRemote() {
+			recipients = append(recipients, subscriber.ID)
+		}
+	}
+
 	told := map[int64]bool{}
 	for _, recipient := range recipients {
 		// Not yourself, not nobody, and not the same person twice when the
@@ -75,6 +87,10 @@ func (h *eventHandler) replyAdded(payload *event.EventPayload, subject *an_entit
 			continue
 		}
 		told[recipient] = true
+		// Nor somebody who may not see the thread, or the reply in it.
+		if !h.mayRead(recipient, root.ID, reply.ID) {
+			continue
+		}
 
 		n := entities.NewNotification()
 		n.Type = NotificationTypeReplyAdd

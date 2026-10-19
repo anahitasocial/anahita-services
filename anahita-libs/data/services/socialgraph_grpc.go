@@ -2,16 +2,9 @@ package services
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
-	"time"
-
-	"google.golang.org/grpc"
 )
-
-var socialgraphGRPCConnectCounts int
 
 type SocialgraphGRPCInterface interface {
 	// Browse gets relationships for a list of actorIds vs. an actorId
@@ -30,36 +23,14 @@ func NewSocialgraphGRPC(config GraphGRPCConfigInterface) SocialgraphGRPCInterfac
 	}
 }
 
-// getClient returns the grpc client
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *SocialgraphGRPC) getClient() (graphpb.SocialgraphServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("Socialgraph Relationship GRPC not ready...")
-			socialgraphGRPCConnectCounts++
-		} else {
-			log.Println("Connected to socialgraph relationship GRPC!")
-			return graphpb.NewSocialgraphServiceClient(cc), nil
-		}
-
-		if socialgraphGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return graphpb.NewSocialgraphServiceClient(conn), nil
 }
 
 // Browse gets a list of relationships for actorAIds vs. actorBId

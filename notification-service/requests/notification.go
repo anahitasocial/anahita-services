@@ -6,6 +6,8 @@ type NotificationRequest struct {
 	Browse *NotificationBrowseRequest
 	Edit   *NotificationEditRequest
 	Delete *NotificationDeleteRequest
+	// Turning a kind of thing on or off.
+	EditSettings *NotificationSettingsEditRequest
 }
 
 func NewNotificationRequest() *NotificationRequest {
@@ -14,8 +16,9 @@ func NewNotificationRequest() *NotificationRequest {
 			Offset: 0,
 			Limit:  constants.RequestLimitDefault,
 		},
-		Edit:   &NotificationEditRequest{},
-		Delete: &NotificationDeleteRequest{},
+		Edit:         &NotificationEditRequest{},
+		Delete:       &NotificationDeleteRequest{},
+		EditSettings: &NotificationSettingsEditRequest{},
 	}
 }
 
@@ -34,4 +37,12 @@ type NotificationEditRequest struct {
 type NotificationDeleteRequest struct {
 	// The notification's id.
 	ID int64 `param:"id" validate:"required,numeric"`
+}
+
+type NotificationSettingsEditRequest struct {
+	// The kind of thing: likes, reposts, replies, mentions, follows, posts,
+	// events or invitations.
+	Topic string `json:"topic" form:"topic" validate:"required,oneof=likes reposts replies mentions follows posts events invitations"`
+	// Whether to be told about it.
+	On bool `json:"on" form:"on"`
 }

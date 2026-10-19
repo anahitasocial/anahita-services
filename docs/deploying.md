@@ -345,6 +345,13 @@ durable queues:
 abuse-report, activitypub, actor, atproto, auth, hashtag, notification,
 recommendation, file-grpc, graph-grpc, mail-grpc.
 
+An event is acknowledged as it arrives and is never delivered twice, even
+when its handler fails part way: what a handler wrote or sent is never
+written or sent again. Its error is logged, a panic in it is caught, and
+when the bus closes the channel the service says so and stops, to be
+started again (anahita-libs/event/consumer.go). An event published while a
+service is down is not heard by it.
+
 ## Trying it on your own machine
 
 The `local` overlay runs the whole stack on

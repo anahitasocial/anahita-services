@@ -2,16 +2,9 @@ package services
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
-	"time"
-
-	"google.golang.org/grpc"
 )
-
-var likesGRPCConnectCounts int
 
 type LikesGRPCConfigInterface interface {
 	GetGraphServiceAddr() string
@@ -34,36 +27,14 @@ func NewLikesGRPC(config LikesGRPCConfigInterface) LikesGRPCInterface {
 	}
 }
 
-// getClient
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *LikesGRPC) getClient() (graphpb.LikeServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("Like GRPC not ready...")
-			likesGRPCConnectCounts++
-		} else {
-			log.Println("Connected to Like GRPC!")
-			return graphpb.NewLikeServiceClient(cc), nil
-		}
-
-		if likesGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return graphpb.NewLikeServiceClient(conn), nil
 }
 
 // Add

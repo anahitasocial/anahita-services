@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	libhandlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -128,7 +128,7 @@ func (h *Handlers) begin(ctx context.Context, account *repositories.Account, kin
 	// Only for somebody whose profile anybody may see, as on the
 	// fediverse: a profile kept to followers or to members writes nothing
 	// to Bluesky, which is read by anybody.
-	if !libhandlers.MaySee(h.Nodes, account.PersonID, entities.NewViewer()) {
+	if !permissions.CanReadByID(h.Nodes, account.PersonID, entities.NewViewer()) {
 		return nil
 	}
 	sent := &repositories.Sent{

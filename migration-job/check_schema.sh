@@ -3,7 +3,8 @@
 # empty one from schema/init.sql, and the PHP application's from
 # legacy/fixtures/php-schema.sql through legacy/upgrade.sql. Compared column
 # by column and index by index, never as one joined string, which MySQL cuts
-# off at 1,024 characters.
+# off at 1,024 characters. A key part that is an expression is compared as
+# its expression.
 #
 # Runs a throwaway MySQL in Docker and removes it, with its volume, after.
 # Run from the repository root:  make schema_test
@@ -53,7 +54,7 @@ FROM information_schema.columns
 WHERE table_schema = DATABASE() AND table_name <> 'goose_db_version'
 UNION ALL
 SELECT CONCAT_WS(' | ', 'index', table_name, index_name, non_unique,
-       GROUP_CONCAT(CONCAT(column_name, IFNULL(CONCAT('(', sub_part, ')'), '')) ORDER BY seq_in_index))
+       GROUP_CONCAT(CONCAT(IFNULL(column_name, CONCAT('(', expression, ')')), IFNULL(CONCAT('(', sub_part, ')'), '')) ORDER BY seq_in_index))
 FROM information_schema.statistics
 WHERE table_schema = DATABASE() AND table_name <> 'goose_db_version'
 GROUP BY table_name, index_name, non_unique

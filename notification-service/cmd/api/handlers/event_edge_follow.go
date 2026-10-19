@@ -123,7 +123,9 @@ func (h *eventHandler) eventFormatEdgeFollowDeleted(payload *event.EventPayload)
 		return err
 	}
 
-	// Delete the notification
+	// The follow's notification, and only that: the same service tells of
+	// an answer to an event, which an unfollow must not take with it.
+	n.Type = NotificationTypeActorFollow
 	n.Service = payload.SourceService
 	n.Subject.ID = subject.ID
 	n.Target.ID = target.ID
@@ -131,10 +133,5 @@ func (h *eventHandler) eventFormatEdgeFollowDeleted(payload *event.EventPayload)
 		return err
 	}
 
-	// Delete subscription
-	if err = h.Srv.SubscriptionsGRPC.Delete(subject, target); err != nil {
-		return err
-	}
-
-	return nil
+	return h.unsubscribeUnlessWanted(subject, target)
 }

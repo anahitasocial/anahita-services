@@ -140,16 +140,6 @@ func TestNothingIsQuotedWhenTheGateCannotBeAsked(t *testing.T) {
 	}
 }
 
-func TestMaySee(t *testing.T) {
-	gate := &fakeVisibility{visible: map[int64]bool{10: true}}
-	if !MaySee(gate, 10, entities.NewViewer()) || MaySee(gate, 11, entities.NewViewer()) || MaySee(gate, 0, entities.NewViewer()) {
-		t.Error("MaySee disagrees with the gate")
-	}
-	if MaySee(&fakeVisibility{err: errors.New("unreachable")}, 10, entities.NewViewer()) {
-		t.Error("said yes without an answer")
-	}
-}
-
 // A note whose handler never looked the quoted post up sends nothing about
 // it: not the post, and not a guess that it cannot be shown.
 func TestAQuoteNobodyLookedUpIsNotSent(t *testing.T) {

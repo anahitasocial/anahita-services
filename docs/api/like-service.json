@@ -567,6 +567,10 @@
             "description": "Whether the viewer has saved it. Sent to them alone, like the rest of what is said here about the viewer.",
             "type": "boolean"
           },
+          "is_subscribed_by_viewer": {
+            "description": "Whether the viewer asked to be told of its replies (Get notifications, docs/notifications.md).",
+            "type": "boolean"
+          },
           "language": {
             "description": "The language it is written in, as its author said (`en`, `fa`).",
             "type": "string"

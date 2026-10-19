@@ -2,16 +2,9 @@ package services
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
-	"time"
-
-	"google.golang.org/grpc"
 )
-
-var mediaGRPCConnectCounts int
 
 type MediaGRPCConfigInterface interface {
 	GetGraphServiceAddr() string
@@ -100,35 +93,14 @@ type MediaGRPC struct {
 }
 
 // GetClient returns the grpc client
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *MediaGRPC) getClient() (graphpb.MediumServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("Medium GRPC not ready...")
-			mediaGRPCConnectCounts++
-		} else {
-			log.Println("Connected to Medium GRPC!")
-			return graphpb.NewMediumServiceClient(cc), nil
-		}
-
-		if mediaGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return graphpb.NewMediumServiceClient(conn), nil
 }
 
 // Count returns the total number of media

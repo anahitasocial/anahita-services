@@ -71,7 +71,7 @@ Short, and only what cannot be found by reading the code:
 - **Rules that have each been broken once:**
   - a schema change is a goose migration and the same change in `schema/init.sql` and `legacy/upgrade.sql`, then `check_sql_order.py`;
   - tests are never run against the dev database;
-  - a single node read from the graph is not access-checked: use `handlers.MaySee`;
+  - a single node read from the graph is not access-checked: use `permissions.CanReadByID`;
   - `go mod tidy` is not run on `anahita-libs`; add a library with `go get` at a version that moves nothing else;
   - after a change to `anahita-libs` or a `.proto`, everything is rebuilt.
 - **Names:** dates end in `_at`; a group has followers; "custom feeds"; "profile", not "account"; SQL as named constants, one clause a line.

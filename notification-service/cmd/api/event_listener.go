@@ -31,6 +31,8 @@ func startEventListerner(h *handlers.Handlers, config *config.Config) error {
 		// Events, the kind people go to.
 		"event.*.*.v1",
 		"edge.admin.*.*.v1",
+		// A block: the two are told nothing more of each other.
+		"edge.block.*.added.v1",
 		// A note kept from another server: a reply among them is news to
 		// whoever here it answers. See anahita-libs/event/remote.go.
 		event.RemoteMediaTopic,
