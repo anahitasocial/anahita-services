@@ -1751,13 +1751,14 @@
               "schema": {
                 "properties": {
                   "action": {
-                    "description": "What was done: `none`, `deleted`, `disabled`, `archived`, `blocked` or `other`.",
+                    "description": "What was done: `none`, `deleted`, `disabled`, `archived`, `blocked`, `removed_as_spam` or `other`.",
                     "enum": [
                       "none",
                       "deleted",
                       "disabled",
                       "archived",
                       "blocked",
+                      "removed_as_spam",
                       "other"
                     ],
                     "type": "string"

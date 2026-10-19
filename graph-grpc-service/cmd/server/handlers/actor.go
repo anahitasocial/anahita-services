@@ -662,6 +662,15 @@ func (h *actorHandler) RequestPurge(ctx context.Context, req *graphpb.ActorPurge
 		if err != nil {
 			return nil, err
 		}
+		// Removed as spam: why, and who decided, recorded now; the purge
+		// writes its own rows when it is done.
+		if queued && req.Reason == constants.PurgeReasonSpam {
+			if err := h.env.Repos.NodeDeletionLogs.Add(
+				actor.ID, actor.Alias, actor.Type, requestedBy, repositories.DeletionActionRemovedAsSpam,
+			); err != nil {
+				log.Printf("actor purge: recording %d as removed as spam failed: %v", actor.ID, err)
+			}
+		}
 		if queued {
 			response.Queued++
 		} else {

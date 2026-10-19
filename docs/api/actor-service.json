@@ -5062,6 +5062,76 @@
         "x-viewer": "signed_in"
       }
     },
+    "/groups/{id}/spam": {
+      "post": {
+        "description": "A moderator's decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. Administrators and super administrators; never an administrator's or a super administrator's account, nor one's own. Queued, and done by the sweeper.\n\nWho may call it: a site administrator.",
+        "operationId": "postGroupsByIdSpam",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "purged or queued already"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "queued"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not an administrator"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeRefused"
+                }
+              }
+            },
+            "description": "it cannot be removed (`administrator`, `yourself`, `not_found`, `wrong_type`); nothing was queued"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a group as spam",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).RemoveAsSpam",
+        "x-viewer": "admin"
+      }
+    },
     "/people/": {
       "get": {
         "description": "Those the viewer may see. Each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).\n\nWho may call it: anyone, signed in or not.",
@@ -6173,6 +6243,76 @@
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).EditRepostsOnProfile",
         "x-viewer": "signed_in"
+      }
+    },
+    "/people/{id}/spam": {
+      "post": {
+        "description": "A moderator's decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. Administrators and super administrators; never an administrator's or a super administrator's account, nor one's own. Queued, and done by the sweeper.\n\nWho may call it: a site administrator.",
+        "operationId": "postPeopleByIdSpam",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "purged or queued already"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "queued"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not an administrator"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeRefused"
+                }
+              }
+            },
+            "description": "it cannot be removed (`administrator`, `yourself`, `not_found`, `wrong_type`); nothing was queued"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a person as spam",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).RemoveAsSpam",
+        "x-viewer": "admin"
       }
     },
     "/people/{username}": {

@@ -94,6 +94,18 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 				Sends(http.StatusConflict, libs_handlers.PurgeRefused{}, "it cannot be purged; nothing was queued")
 		}
 	}
+	spam := func(kind string) func(*apidoc.Route) {
+		return func(route *apidoc.Route) {
+			route.Summary("Remove a "+kind+" as spam").
+				Describe("A moderator's decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. Administrators and super administrators; never an administrator's or a super administrator's account, nor one's own. Queued, and done by the sweeper.").
+				Viewer(apidoc.Admin).
+				Takes(actorReq.Delete).
+				Sends(http.StatusAccepted, libs_handlers.PurgeQueued{}, "queued").
+				Sends(http.StatusOK, libs_handlers.PurgeQueued{}, "purged or queued already").
+				Refuses(http.StatusForbidden, "the viewer is not an administrator").
+				Sends(http.StatusConflict, libs_handlers.PurgeRefused{}, "it cannot be removed (`administrator`, `yourself`, `not_found`, `wrong_type`); nothing was queued")
+		}
+	}
 	purgeBatch := func(kind string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
 			route.Summary("Destroy many "+kind+"s for good").
@@ -272,6 +284,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	// difference between recoverable and gone should not be a parameter.
 	// Super administrators only — enforced in the handler.
 	people.DELETE("/:id/purge", r.handler.Person.Purge, r.authorize).With(purge("person"))
+	people.POST("/:id/spam", r.handler.Person.RemoveAsSpam, r.authorize).With(spam("person"))
 	// The same for many at once, and how far a request has got.
 	people.POST("/purge-batch", r.handler.Person.PurgeBatch, r.authorize).With(purgeBatch("person"))
 	people.GET("/purge-batch/:batch_id", r.handler.Person.PurgeProgress, r.authorize).With(purgeProgress)
@@ -340,6 +353,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	groups.GET("/:id/deletion-counts", r.handler.Group.DeletionCounts, r.authorize).With(counts("group", handlers.GroupDeletionCounts{}))
 	// Hard delete. Super administrators only — enforced in the handler.
 	groups.DELETE("/:id/purge", r.handler.Group.Purge, r.authorize).With(purge("group"))
+	groups.POST("/:id/spam", r.handler.Group.RemoveAsSpam, r.authorize).With(spam("group"))
 	groups.POST("/purge-batch", r.handler.Group.PurgeBatch, r.authorize).With(purgeBatch("group"))
 	groups.GET("/purge-batch/:batch_id", r.handler.Group.PurgeProgress, r.authorize).With(purgeProgress)
 	// Archive: permanent, destroys nothing. A group administrator may.

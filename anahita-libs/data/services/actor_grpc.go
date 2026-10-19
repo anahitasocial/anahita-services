@@ -402,6 +402,10 @@ type ActorPurgeRequest struct {
 	// AllowAdministrators is false for a bulk cleanup, which is refused whole
 	// if it names an administrator, and true for removing one named account.
 	AllowAdministrators bool
+
+	// Reason is "spam" for an account removed as spam by a moderator
+	// (roadmap row 102), recorded as such; empty for a cleanup.
+	Reason string
 }
 
 // RequestPurge queues actors to be destroyed now. The authority check belongs
@@ -419,6 +423,7 @@ func (srv *ActorsGRPC) RequestPurge(req *ActorPurgeRequest, viewer *entities.Vie
 		Ids:                 req.IDs,
 		Type:                req.Type,
 		AllowAdministrators: req.AllowAdministrators,
+		Reason:              req.Reason,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,

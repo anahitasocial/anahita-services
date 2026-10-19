@@ -2,7 +2,7 @@
 
 *Roadmap row 102, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** parts 1 to 3 done 2026-10-19. Branch
+**Status:** parts 1 to 4 done 2026-10-19. Branch
 `issues/rules` in both repositories, from `issues/thread-composer`.
 
 **Parts, in order:**
@@ -24,7 +24,13 @@
    (anahita-web `containers/about/Promises.jsx`). The site's rules have a
    page of their own, `/rules`, after the Terms (the user, the same day),
    each zooming forward once the one before is ticked.
-4. Remove as spam.
+4. Remove as spam — done 2026-10-19: `POST /people/:id/spam` and
+   `POST /groups/:id/spam` in actor-service, the purge with a `reason`
+   (`removed-as-spam` logged with who decided); the case action
+   `removed_as_spam`; in the web app, in the profile's menu and on a
+   report's case. No proof of identity: asked once more instead. Tried on
+   dev: refused for a registered person (403) and for oneself (409); three
+   throwaway accounts removed, one from a case, one from a profile.
 5. A group's and an event's rules: written, ticked before following or
    answering, shown in the About card, agreed again after a change.
 6. Reporting against a rule.

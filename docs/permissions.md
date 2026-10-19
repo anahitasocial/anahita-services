@@ -795,6 +795,7 @@ own rule, set in code and not changeable per profile:
 | Archive | The person themselves, a group's administrators, or a super administrator |
 | Delete, with 30 days to restore | The person themselves, a group's administrators, or a site administrator |
 | Purge, with no way back | Super administrators only |
+| Remove as spam, at once and with no way back | Site administrators and super administrators; never an administrator's or a super administrator's account, nor their own: see [Removing as spam](account-lifecycle.md#removing-as-spam) |
 | See the list of accounts and their activity | Super administrators only |
 | Appoint an administrator to any group | Site administrators and super administrators |
 | Change a person's account type | Administrators make administrators of registered people; the rest is super administrators'; never their own: see [Account types](#account-types) |

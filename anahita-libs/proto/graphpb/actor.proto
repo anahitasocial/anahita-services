@@ -188,6 +188,10 @@ message ActorPurgeBatchRequest {
     // deliberate removal of one named account sets it true.
     bool allow_administrators = 3;
     Viewer viewer = 4;
+    // Why, when it is a moderator's decision rather than a cleanup: "spam",
+    // recorded as removed-as-spam with who decided (roadmap row 102). Empty
+    // for a cleanup.
+    string reason = 5;
 }
 
 // Why one actor stopped a request.

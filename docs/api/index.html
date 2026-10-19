@@ -54,7 +54,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <ul>
 <li><a href="#abuse-report-service">Abuse reports</a> <span class="count">8</span></li>
 <li><a href="#activitypub-service">The fediverse</a> <span class="count">20</span></li>
-<li><a href="#actor-service">Profiles</a> <span class="count">69</span></li>
+<li><a href="#actor-service">Profiles</a> <span class="count">71</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
 <li><a href="#auth-service">Accounts and signing in</a> <span class="count">97</span></li>
 <li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
@@ -241,7 +241,7 @@ who may call it: a site administrator, with a token that carries `actors:read`."
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>action</code></td><td>string</td><td>What was done: <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code> or <code>other</code>. One of <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code>, <code>other</code>.</td></tr>
+<tr><td><code>action</code></td><td>string</td><td>What was done: <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code>, <code>removed_as_spam</code> or <code>other</code>. One of <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code>, <code>removed_as_spam</code>, <code>other</code>.</td></tr>
 <tr><td><code>note</code></td><td>string</td><td>What the administrator wants remembered of it. At most 2000 characters.</td></tr>
 <tr><td><code>status</code> <span class="required">always</span></td><td>string</td><td><code>actioned</code>, something was done; or <code>dismissed</code>, nothing needed doing. One of <code>actioned</code>, <code>dismissed</code>.</td></tr>
 </tbody>
@@ -1895,6 +1895,32 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Restore</code></p>
 </details>
+<details class="route" id="postGroupsByIdSpam" data-search="post /groups/{id}/spam remove a group as spam a moderator&#39;s decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. administrators and super administrators; never an administrator&#39;s or a super administrator&#39;s account, nor one&#39;s own. queued, and done by the sweeper.
+
+who may call it: a site administrator.">
+<summary><span class="method post">POST</span> <code class="path">/groups/{id}/spam</code> <span class="summary">Remove a group as spam</span></summary>
+<div class="description"><p>A moderator&#39;s decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as <code>removed-as-spam</code> with who decided. Administrators and super administrators; never an administrator&#39;s or a super administrator&#39;s account, nor one&#39;s own. Queued, and done by the sweeper.</p></div>
+<p class="who"><strong>Who:</strong> an administrator</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>purged or queued already<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">202</td><td>queued<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer is not an administrator</td></tr>
+<tr><td class="status s4">409</td><td>it cannot be removed (<code>administrator</code>, <code>yourself</code>, <code>not_found</code>, <code>wrong_type</code>); nothing was queued<div class="body"><a href="#schema-PurgeRefused">PurgeRefused</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).RemoveAsSpam</code></p>
+</details>
 <details class="route" id="getPeople" data-search="get /people/ people those the viewer may see. each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).
 
 who may call it: anyone, signed in or not.">
@@ -2281,6 +2307,32 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).EditRepostsOnProfile</code></p>
+</details>
+<details class="route" id="postPeopleByIdSpam" data-search="post /people/{id}/spam remove a person as spam a moderator&#39;s decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. administrators and super administrators; never an administrator&#39;s or a super administrator&#39;s account, nor one&#39;s own. queued, and done by the sweeper.
+
+who may call it: a site administrator.">
+<summary><span class="method post">POST</span> <code class="path">/people/{id}/spam</code> <span class="summary">Remove a person as spam</span></summary>
+<div class="description"><p>A moderator&#39;s decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as <code>removed-as-spam</code> with who decided. Administrators and super administrators; never an administrator&#39;s or a super administrator&#39;s account, nor one&#39;s own. Queued, and done by the sweeper.</p></div>
+<p class="who"><strong>Who:</strong> an administrator</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>purged or queued already<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">202</td><td>queued<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer is not an administrator</td></tr>
+<tr><td class="status s4">409</td><td>it cannot be removed (<code>administrator</code>, <code>yourself</code>, <code>not_found</code>, <code>wrong_type</code>); nothing was queued<div class="body"><a href="#schema-PurgeRefused">PurgeRefused</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).RemoveAsSpam</code></p>
 </details>
 <details class="route" id="getPeopleByUsername" data-search="get /people/{username} one person by their username. to somebody they are not open to, but who may ask to follow them, what a stranger is shown of them.
 

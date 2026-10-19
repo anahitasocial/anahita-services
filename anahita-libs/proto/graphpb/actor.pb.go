@@ -1167,8 +1167,12 @@ type ActorPurgeBatchRequest struct {
 	// deliberate removal of one named account sets it true.
 	AllowAdministrators bool    `protobuf:"varint,3,opt,name=allow_administrators,json=allowAdministrators,proto3" json:"allow_administrators,omitempty"`
 	Viewer              *Viewer `protobuf:"bytes,4,opt,name=viewer,proto3" json:"viewer,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// Why, when it is a moderator's decision rather than a cleanup: "spam",
+	// recorded as removed-as-spam with who decided (roadmap row 102). Empty
+	// for a cleanup.
+	Reason        string `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ActorPurgeBatchRequest) Reset() {
@@ -1227,6 +1231,13 @@ func (x *ActorPurgeBatchRequest) GetViewer() *Viewer {
 		return x.Viewer
 	}
 	return nil
+}
+
+func (x *ActorPurgeBatchRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
 }
 
 // Why one actor stopped a request.
@@ -2409,12 +2420,13 @@ const file_proto_graphpb_actor_proto_rawDesc = "" +
 	"\tfollowing\x18\x04 \x01(\x03R\tfollowing\x12\x16\n" +
 	"\x06admins\x18\a \x01(\x03R\x06admins\x12/\n" +
 	"\x13groups_administered\x18\x05 \x01(\x03R\x12groupsAdministered\x12*\n" +
-	"\x11member_since_unix\x18\x06 \x01(\x03R\x0fmemberSinceUnix\"\x98\x01\n" +
+	"\x11member_since_unix\x18\x06 \x01(\x03R\x0fmemberSinceUnix\"\xb0\x01\n" +
 	"\x16ActorPurgeBatchRequest\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\x03R\x03ids\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x121\n" +
 	"\x14allow_administrators\x18\x03 \x01(\bR\x13allowAdministrators\x12%\n" +
-	"\x06viewer\x18\x04 \x01(\v2\r.graph.ViewerR\x06viewer\";\n" +
+	"\x06viewer\x18\x04 \x01(\v2\r.graph.ViewerR\x06viewer\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\";\n" +
 	"\x11ActorPurgeRefusal\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\"\x9a\x01\n" +

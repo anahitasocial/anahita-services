@@ -19,6 +19,8 @@ const (
 	ActionArchived = "archived"
 	ActionBlocked  = "blocked"
 	ActionOther    = "other"
+	// Removed as spam: destroyed at once, by a moderator (roadmap row 102).
+	ActionRemovedAsSpam = "removed_as_spam"
 
 	// DetailsMaxLength is how much a reporter may write. Enough to explain,
 	// short enough that a queue of reports can be read.
