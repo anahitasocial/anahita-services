@@ -23,6 +23,12 @@ func (h *eventHandler) quoteAdded(payload *event.EventPayload, subject *an_entit
 		return err
 	}
 
+	// A post from another server: its author is told by their own server,
+	// which is sent the quote. Nothing is made for them here.
+	if quoted.IsRemote() {
+		return nil
+	}
+
 	recipient := quoted.CreatedBy
 	if recipient <= 0 || recipient == subject.ID {
 		return nil

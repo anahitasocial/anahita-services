@@ -90,7 +90,8 @@ func (h *eventHandler) eventFormatEdgeAdminDeleted(payload *event.EventPayload) 
 		return err
 	}
 
-	// Create notification
+	// The news of their becoming an administrator, and only that.
+	n.Type = NotificationTypeAdminAdd
 	n.Service = payload.SourceService
 	n.Subject.ID = subject.ID
 	n.Target.ID = target.ID
@@ -99,10 +100,5 @@ func (h *eventHandler) eventFormatEdgeAdminDeleted(payload *event.EventPayload) 
 		return err
 	}
 
-	// Delete subscription
-	if err = h.Srv.SubscriptionsGRPC.Delete(subject, target); err != nil {
-		return err
-	}
-
-	return nil
+	return h.unsubscribeUnlessWanted(subject, target)
 }

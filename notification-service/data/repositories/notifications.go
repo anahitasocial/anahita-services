@@ -35,8 +35,8 @@ type NotificationInterface interface {
 	// Add a new notification
 	Add(notification *entities.Notification) (int64, error)
 
-	// DeleteOfReply removes the news of a reply that is gone.
-	DeleteOfReply(replyID int64) error
+	// DeleteAbout removes every notification about a node that is gone.
+	DeleteAbout(nodeID int64) error
 
 	// Delete a notification
 	Delete(notification *entities.Notification) error
@@ -253,22 +253,27 @@ func (repo *Notification) Add(item *entities.Notification) (int64, error) {
 	return id, nil
 }
 
-const deleteNotificationsOfReply = `
+const deleteNotificationsAbout = `
 DELETE FROM notifications
-WHERE comment_id = ?`
+WHERE object_id = ?
+    OR comment_id = ?
+    OR target_id = ?`
 
-// DeleteOfReply removes the news of a reply, for everybody who was told:
-// the reply is gone, and a notification that leads to nothing is noise.
-// The reply's id is in comment_id, whoever it was news to.
-func (repo *Notification) DeleteOfReply(replyID int64) error {
-	if replyID <= 0 {
+// DeleteAbout removes every notification about a node that is gone, for
+// everybody who was told, whoever did what it tells of (roadmap row 96, part
+// 2): a post deleted takes its likes, reposts, quotes, mentions and the
+// replies under it; a reply or a repost takes the news of it, kept in
+// comment_id. A notification that leads to nothing is noise. A node's id is
+// the same in every column, so one id finds them all.
+func (repo *Notification) DeleteAbout(nodeID int64) error {
+	if nodeID <= 0 {
 		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
 
-	_, err := repo.db.ExecContext(ctx, deleteNotificationsOfReply, replyID)
+	_, err := repo.db.ExecContext(ctx, deleteNotificationsAbout, nodeID, nodeID, nodeID)
 	return err
 }
 

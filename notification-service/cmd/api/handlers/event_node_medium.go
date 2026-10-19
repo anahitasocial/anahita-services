@@ -142,59 +142,11 @@ func (h *eventHandler) eventFormatNodeMediumAdded(payload *event.EventPayload) e
 		}
 	}
 
-	// Add subscription
-	if err = h.Srv.SubscriptionsGRPC.Add(subject, subject, viewer); err != nil {
-		return err
-	}
-
 	return nil
 }
 
-// eventFormatNodeMediumDeleted
+// eventFormatNodeMediumDeleted removes everything that told of a post or a
+// reply now gone, whoever deleted it: its author, or a moderator.
 func (h *eventHandler) eventFormatNodeMediumDeleted(payload *event.EventPayload) error {
-	var (
-		err    error
-		n      = entities.NewNotification()
-		viewer = an_entities.NewViewer()
-	)
-
-	// If what went was a reply, the news of it goes with it, whoever was
-	// told. First, and whatever else here fails: the rest looks for
-	// notifications about a post, which a reply's are not.
-	if err := h.Repos.Notifications.DeleteOfReply(payload.ObjectID); err != nil {
-		log.Printf("removing the news of reply %d failed: %v", payload.ObjectID, err)
-	}
-
-	subject, err := h.Srv.ActorsGRPC.Read(payload.SubjectID, viewer)
-	if err != nil {
-		return err
-	}
-
-	target, err := h.Srv.ActorsGRPC.Read(payload.TargetID, viewer)
-	if err != nil {
-		return err
-	}
-
-	n.Subject.ID = subject.ID
-	n.Object.ID = payload.ObjectID
-	n.Target.ID = target.ID
-
-	n.Service = payload.SourceService
-	if err = h.Repos.Notifications.Delete(n); err != nil {
-		return err
-	}
-
-	// Notifications about comments, from before comments became replies,
-	// are still stored under the name of the service that made them.
-	n.Service = "comment-service"
-	if err = h.Repos.Notifications.Delete(n); err != nil {
-		return err
-	}
-
-	n.Service = "like-service"
-	if err = h.Repos.Notifications.Delete(n); err != nil {
-		return err
-	}
-
-	return nil
+	return h.Repos.Notifications.DeleteAbout(payload.ObjectID)
 }

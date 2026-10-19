@@ -33,8 +33,8 @@ func (h *eventHandler) remoteNoteAdded(payload *event.EventPayload) error {
 }
 
 // replyAdded tells the people a reply answers that it was made: the author of
-// the post at the top of the thread, and the author of what was directly
-// answered when that is somebody else.
+// the post at the top of the thread, the author of what was directly
+// answered when that is somebody else, and whoever subscribed to the post.
 //
 // Nobody else. Not the replier's followers, who would otherwise be told about
 // every answer anybody they follow gives anywhere.
@@ -64,6 +64,18 @@ func (h *eventHandler) replyAdded(payload *event.EventPayload, subject *an_entit
 		}
 		if !parent.IsRemote() {
 			recipients = append(recipients, parent.CreatedBy)
+		}
+	}
+
+	// And whoever asked to be told about this post (Get notifications, in
+	// its menu).
+	subscribers, err := h.Srv.SubscriptionsGRPC.BrowseSources(root)
+	if err != nil {
+		return err
+	}
+	for _, subscriber := range subscribers {
+		if subscriber != nil && !subscriber.IsRemote() {
+			recipients = append(recipients, subscriber.ID)
 		}
 	}
 

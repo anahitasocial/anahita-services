@@ -19,8 +19,9 @@ type MentionsInterface interface {
 	// Update reconciles the mention edges of a node against the aliases
 	// its text names: adds what is newly named and may be, removes what no
 	// longer is, leaves the rest alone. It answers with the edges it added,
-	// for whoever is to be told.
-	Update(node MentionableInterface, aliases []string, viewer *entities.Viewer) ([]*entities.AnahitaEdge, error)
+	// for whoever is to be told, and the profiles it took off, whose news
+	// of being named goes.
+	Update(node MentionableInterface, aliases []string, viewer *entities.Viewer) (added []*entities.AnahitaEdge, removed []int64, err error)
 }
 
 // MentionableInterface is what Update needs of the node being mentioned FROM.
@@ -53,22 +54,23 @@ type Mentions struct {
 	edgeType    string
 }
 
-func (m *Mentions) Update(node MentionableInterface, aliases []string, viewer *entities.Viewer) ([]*entities.AnahitaEdge, error) {
+func (m *Mentions) Update(node MentionableInterface, aliases []string, viewer *entities.Viewer) ([]*entities.AnahitaEdge, []int64, error) {
 	named, err := m.resolve(aliases)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	wanted, err := m.allowed(node, named)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	current, err := m.current(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var added []*entities.AnahitaEdge
+	var removed []int64
 	for id, kind := range wanted {
 		if _, ok := current[id]; !ok {
 			edge := entities.NewAnahitaEdge()
@@ -87,7 +89,7 @@ func (m *Mentions) Update(node MentionableInterface, aliases []string, viewer *e
 	// repository looped, issuing an INSERT each time round.
 	if len(added) > 0 {
 		if _, err := m.edges.BatchAdd(added); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -104,11 +106,12 @@ func (m *Mentions) Update(node MentionableInterface, aliases []string, viewer *e
 		req.NodeBType = node.GetType()
 
 		if err := m.edges.BatchDeleteByFilters(req); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
+		removed = append(removed, id)
 	}
 
-	return added, nil
+	return added, removed, nil
 }
 
 // resolve turns aliases into the profiles they are, of every kind a post can

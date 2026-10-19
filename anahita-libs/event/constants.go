@@ -54,6 +54,8 @@ const (
 	// A post names a profile (actor-service): the subject is who wrote
 	// it, the object the post, the target the profile named.
 	EventFormatEdgeMentionAdded = "edge.mention.%s.added.v1"
+	// A post no longer naming a profile, after an edit.
+	EventFormatEdgeMentionDeleted = "edge.mention.%s.deleted.v1"
 
 	EventFormatEdgeFollowAdded   = "edge.follow.%s.added.v1"
 	EventFormatEdgeFollowDeleted = "edge.follow.%s.deleted.v1"

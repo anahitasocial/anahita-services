@@ -40,7 +40,7 @@ func (h *personHandler) updateTags(payload *event.EventPayload) error {
 	named := append([]string{}, item.Mentions...)
 	named = append(named, embeds.Find(item.Body, site.FromEnv().IsOurs).Profiles...)
 
-	added, err := h.Srv.Mentions.Update(item, named, viewer)
+	added, removed, err := h.Srv.Mentions.Update(item, named, viewer)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -60,6 +60,23 @@ func (h *personHandler) updateTags(payload *event.EventPayload) error {
 			SubjectID:        item.GetAuthorID(),
 			ObjectID:         item.ID,
 			TargetID:         edge.NodeAID,
+			ViewerID:         viewer.ID,
+			ViewerPersonType: viewer.PersonType,
+		}
+		if err := h.Publisher.Publish(payload, routingKey); err != nil {
+			log.Println(err)
+		}
+	}
+
+	// Each no longer named: the news of it goes (roadmap row 96, part 2).
+	for _, id := range removed {
+		routingKey := fmt.Sprintf(event.EventFormatEdgeMentionDeleted, "actor-service")
+		payload := &event.EventPayload{
+			Name:             routingKey,
+			SourceService:    "actor-service",
+			SubjectID:        item.GetAuthorID(),
+			ObjectID:         item.ID,
+			TargetID:         id,
 			ViewerID:         viewer.ID,
 			ViewerPersonType: viewer.PersonType,
 		}

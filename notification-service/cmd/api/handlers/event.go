@@ -49,7 +49,7 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 		// Taken away where it was written: the news of it goes too.
 		if strings.HasSuffix(payload.Name, ".deleted.v1") {
-			return h.Repos.Notifications.DeleteOfReply(payload.ObjectID)
+			return h.Repos.Notifications.DeleteAbout(payload.ObjectID)
 		}
 		return nil
 	}
@@ -82,9 +82,13 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 	}
 
-	// A post naming somebody.
-	if strings.HasPrefix(payload.Name, "edge.mention.") && strings.HasSuffix(payload.Name, ".added.v1") {
-		err = h.eventFormatEdgeMentionAdded(payload)
+	// A post naming somebody, and no longer naming them after an edit.
+	if strings.HasPrefix(payload.Name, "edge.mention.") {
+		if strings.HasSuffix(payload.Name, ".added.v1") {
+			err = h.eventFormatEdgeMentionAdded(payload)
+		} else if strings.HasSuffix(payload.Name, ".deleted.v1") {
+			err = h.eventFormatEdgeMentionDeleted(payload)
+		}
 	}
 
 	// Follow edge events

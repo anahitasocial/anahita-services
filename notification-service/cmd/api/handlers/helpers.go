@@ -69,3 +69,18 @@ func indexNodesByID(nodes []*an_entities.AnahitaNode) map[int64]*an_entities.Ana
 	}
 	return nodeMap
 }
+
+// unsubscribeUnlessWanted ends a subscription to a profile when nothing
+// keeps it any more: following it, or being one of its administrators,
+// each of which subscribes (roadmap row 96, part 2). Losing one leaves the
+// other's.
+func (h *eventHandler) unsubscribeUnlessWanted(subject, target *an_entities.AnahitaNode) error {
+	relation, err := h.Srv.SocialgraphGRPC.Read(target.ID, subject.ID)
+	if err != nil {
+		return err
+	}
+	if relation != nil && (relation.IsLeading || relation.HasAdmin) {
+		return nil
+	}
+	return h.Srv.SubscriptionsGRPC.Delete(subject, target)
+}

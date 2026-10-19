@@ -318,6 +318,14 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [WebSub](websites.md#websub)
    - [Settings](websites.md#settings)
    - [Where the code is](websites.md#where-the-code-is)
+25. [Notifications](notifications.md) — what people are told in the app, never by email: the kinds, who is told and who never is, and how a notification goes with what it tells of
+   - [No email](notifications.md#no-email)
+   - [What a notification is](notifications.md#what-a-notification-is)
+   - [The kinds](notifications.md#the-kinds)
+   - [Who is never told](notifications.md#who-is-never-told)
+   - [When what it tells of goes](notifications.md#when-what-it-tells-of-goes)
+   - [Delivery](notifications.md#delivery)
+   - [The API](notifications.md#the-api)
 
 ## Plans
 

@@ -72,3 +72,22 @@ func (h *eventHandler) eventFormatEdgeMentionAdded(payload *event.EventPayload) 
 	_, err = h.Repos.Notifications.Add(n)
 	return err
 }
+
+// eventFormatEdgeMentionDeleted takes back the news of being named, when an
+// edit no longer names them (roadmap row 96, part 2). Named again later,
+// they are told again.
+func (h *eventHandler) eventFormatEdgeMentionDeleted(payload *event.EventPayload) error {
+	for _, kind := range []string{NotificationTypeActorMention, NotificationTypeActorMentionReply} {
+		n := entities.NewNotification()
+		n.Type = kind
+		n.Service = payload.SourceService
+		n.RecipientID = payload.TargetID
+		n.Subject.ID = payload.SubjectID
+		n.Object.ID = payload.ObjectID
+		n.Target.ID = payload.TargetID
+		if err := h.Repos.Notifications.Delete(n); err != nil {
+			return err
+		}
+	}
+	return nil
+}

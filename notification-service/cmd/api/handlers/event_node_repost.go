@@ -54,6 +54,10 @@ func (h *eventHandler) eventFormatNodeRepostAdded(payload *event.EventPayload) e
 	n.Object.Type = objectParent.Type
 	n.Target.ID = target.ID
 	n.Target.Type = target.Type
+	// The repost itself, which holds what was done, as a reply's notification
+	// keeps the reply: taken back, it is gone before it is told, and this is
+	// how its news is found.
+	n.CommentID = object.ID
 
 	if recipient.ID == subject.ID {
 		return nil // Skip the subject itself
@@ -72,36 +76,8 @@ func (h *eventHandler) eventFormatNodeRepostAdded(payload *event.EventPayload) e
 	return nil
 }
 
-// eventFormatNodeRepostDeleted
+// eventFormatNodeRepostDeleted removes the news of a repost taken back. The
+// repost is gone by now, and its notification is found by its id.
 func (h *eventHandler) eventFormatNodeRepostDeleted(payload *event.EventPayload) error {
-	var (
-		err    error
-		n      = entities.NewNotification()
-		viewer = an_entities.NewViewer()
-	)
-
-	subject, err := h.Srv.ActorsGRPC.Read(payload.SubjectID, viewer)
-	if err != nil {
-		return err
-	}
-
-	object, err := h.Srv.GraphNodeGRPC.Read(payload.ObjectID)
-	if err != nil {
-		return err
-	}
-
-	target, err := h.Srv.ActorsGRPC.Read(payload.TargetID, viewer)
-	if err != nil {
-		return err
-	}
-
-	n.Subject.ID = subject.ID
-	n.Object.ID = object.Parent.ID
-	n.Target.ID = target.ID
-	n.Service = payload.SourceService
-	if err = h.Repos.Notifications.Delete(n); err != nil {
-		return err
-	}
-
-	return nil
+	return h.Repos.Notifications.DeleteAbout(payload.ObjectID)
 }
