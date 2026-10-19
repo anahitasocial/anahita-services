@@ -532,6 +532,13 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 	if post.Cut && post.Embed == nil {
 		post.WithCard(h.Site.Web(fmt.Sprintf("/notes/%d", note.ID)), cutTitle(note), h.Site.Domain, nil)
 	}
+	// One with pictures or a video ends with a link to the rest instead,
+	// shown as its address, which needs no words in any language (roadmap
+	// row 100).
+	if post.Cut && post.Embed != nil && post.Embed.Type != "app.bsky.embed.external" {
+		address := h.Site.Web(webPathOf(note))
+		post.EndWithLink(strings.TrimPrefix(address, "https://"), address)
+	}
 	// The card of the link in it, as it was kept when the note was made.
 	if card := linkpreviews.FromMeta(note.Meta); card != nil && post.Embed == nil {
 		post.WithCard(card.URL, card.Title, card.Description, h.cardPicture(card.ImageKey, upload))
@@ -842,6 +849,19 @@ func (h *Handlers) token(ctx context.Context, account *repositories.Account, fre
 	}
 	h.remember(account.PersonID, session.AccessJWT)
 	return session.AccessJWT, nil
+}
+
+// webPathOf is where a post is read in the web app.
+func webPathOf(note *entities.AnahitaNode) string {
+	switch note.Type {
+	case constants.NodeMediumPhotoEntityType:
+		return fmt.Sprintf("/photos/%d", note.ID)
+	case videos.NodeType:
+		return fmt.Sprintf("/videos/%d", note.ID)
+	case constants.NodeMediumArticleEntityType:
+		return fmt.Sprintf("/articles/%d", note.ID)
+	}
+	return fmt.Sprintf("/notes/%d", note.ID)
 }
 
 // cutTitle is what the card of a post cut for Bluesky is called: its title

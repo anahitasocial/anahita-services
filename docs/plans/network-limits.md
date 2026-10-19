@@ -2,7 +2,8 @@
 
 *Roadmap row 100, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** planned, not started. Branch `issues/network-limits` in both
+**Status:** part 1 done (2026-10-19); parts 2 and 3 wait for the picture
+limit from the user. Branch `issues/network-limits` in both
 repositories.
 
 ## Context
@@ -20,7 +21,8 @@ each takes, and what happens now:
 
 1. A note cut for Bluesky gets a card that links to it here only when it had
    no embed already (`post.Cut && post.Embed == nil`). One with pictures or a
-   link's card is cut with no way to the rest.
+   video is cut with no way to the rest. (A note with a link's card is not
+   affected: the cut is looked at first, and its own card wins.)
 2. Nothing tells the writer. The composer does not say that a note going to
    Bluesky will be cut at 300 letters.
 
@@ -46,15 +48,14 @@ Settled with the user on 2026-10-19:
 
 ## Design
 
-### 1. Bluesky: a link to the rest (atproto-service)
+### 1. Bluesky: a link to the rest (atproto-service) — done 2026-10-19
 
-1. A note cut, with pictures: Bluesky takes pictures or a card, not both.
-   Keep the pictures, and end the text with a short link to the note here
-   (a facet), cutting the text shorter to make room for it.
-2. A note cut, with a link's card: replace the card with the note's own
-   card, as a note with no embed has now; the link is in the note it opens.
-3. Tests in `out_test.go` for each: cut and pictures, cut and card, cut and
-   nothing, not cut.
+1. A post cut, with pictures or a video: Bluesky takes those or a card, not
+   both. The pictures stay, and the text ends with the post's address here
+   on a line of its own, as a link facet (`bsky.OutPost.EndWithLink`), cut
+   shorter to make room. The address needs no words in any language.
+2. Tests: `TestAPostCutEndsWithALinkToTheRest` (bsky) and
+   `TestAPhotoPostCutLinksToTheRest` (handlers).
 
 ### 2. More pictures in a post (anahita-libs, photo-service, web)
 

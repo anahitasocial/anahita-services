@@ -1366,7 +1366,9 @@ its own. The card says to use one and where to make it.
   what Bluesky takes: Markdown's marks are taken out, links and the first
   ten hashtags are marked as such, and what is longer than three hundred letters is cut
   with a mark to say so; a note so cut carries a card of itself here,
-  where the rest is. A post or a reply that is changed here afterwards
+  where the rest is. A post with pictures or a video has no room for a
+  card, so when it is cut its words end instead with the address of the
+  post here, on a line of its own. A post or a reply that is changed here afterwards
   is not changed there: Bluesky has no changing a post, and taking it down
   to post it again would lose its likes, reposts and replies. Mastodon and
   other servers are sent the change.
