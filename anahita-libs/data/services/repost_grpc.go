@@ -2,16 +2,9 @@ package services
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
-	"time"
-
-	"google.golang.org/grpc"
 )
-
-var repostGRPCConnectCounts int
 
 type RepostGRPCConfigInterface interface {
 	GetGraphServiceAddr() string
@@ -38,36 +31,14 @@ func NewRepostGRPC(config RepostGRPCConfigInterface) RepostGRPCInterface {
 	}
 }
 
-// getClient
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *RepostGRPC) getClient() (graphpb.RepostServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("Repost GRPC not ready...")
-			repostGRPCConnectCounts++
-		} else {
-			log.Println("Connected to Like GRPC!")
-			return graphpb.NewRepostServiceClient(cc), nil
-		}
-
-		if repostGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return graphpb.NewRepostServiceClient(conn), nil
 }
 
 // Browse

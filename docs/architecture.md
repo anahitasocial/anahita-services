@@ -416,6 +416,14 @@ The shared module every service imports:
 | `middleware`, `cors` | HTTP middleware |
 | `geocoding`, `utils`, `cmd` | Supporting helpers |
 
+**The calls between services** are made by the clients in
+`data/services` (`GraphNodeGRPC`, `MailGRPC` and the rest). A process
+keeps one gRPC connection to each service it calls, made the first time
+and shared by every client and every call (`data/services/connections.go`):
+a connection is safe to share and reconnects by itself. Before roadmap row
+98, each call opened a connection of its own, with a new handshake, and
+left it open.
+
 ## What a node is called elsewhere
 
 Inside the installation a node is its number, and a person is also their

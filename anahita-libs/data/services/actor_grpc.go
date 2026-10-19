@@ -2,18 +2,11 @@ package services
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
 	"errors"
-	"log"
 	"strings"
-	"time"
-
-	"google.golang.org/grpc"
 )
-
-var actorsGRPCConnectCounts int
 
 type ActorGRPCConfigInterface interface {
 	GetGraphServiceAddr() string
@@ -109,37 +102,14 @@ type ActorsGRPC struct {
 	entityType string
 }
 
-// getClient returns the grpc client
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *ActorsGRPC) getClient() (graphpb.ActorServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("Actor GRPC not ready...")
-			actorsGRPCConnectCounts++
-		} else {
-			log.Println("Connected to Actor GRPC!")
-			return graphpb.NewActorServiceClient(cc), nil
-			// return srv.client, nil
-		}
-
-		if actorsGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return graphpb.NewActorServiceClient(conn), nil
 }
 
 // Count returns the total number of media

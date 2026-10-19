@@ -2,16 +2,9 @@ package services
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
-	"time"
-
-	"google.golang.org/grpc"
 )
-
-var socialgraphBlocksGRPCConnectCounts int
 
 type SocialgraphBlockGRPCInterface interface {
 	// Add adds a new block edge
@@ -31,36 +24,14 @@ func NewSocialgraphBlockGRPC(config GraphGRPCConfigInterface) SocialgraphBlockGR
 	}
 }
 
-// getClient returns the grpc client
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *SocialgraphBlockGRPC) getClient() (graphpb.SocialgraphBlockServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("Socialgraph Block GRPC not ready...")
-			socialgraphBlocksGRPCConnectCounts++
-		} else {
-			log.Println("Connected to socialgraph follower GRPC!")
-			return graphpb.NewSocialgraphBlockServiceClient(cc), nil
-		}
-
-		if socialgraphBlocksGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return graphpb.NewSocialgraphBlockServiceClient(conn), nil
 }
 
 // Add adds a new block

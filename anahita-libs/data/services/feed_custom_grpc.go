@@ -3,20 +3,14 @@ package services
 import (
 	"context"
 	"errors"
-	"log"
-	"time"
 
 	"anahita-libs/data/entities"
 	"anahita-libs/feeds"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-var feedCustomGRPCConnectCounts int
 
 // ErrFeedTooBroad is a feed that could not be read in the time a query is
 // given. The feed has to be narrowed.
@@ -43,34 +37,14 @@ type FeedCustomGRPC struct {
 	config FeedCustomGRPCConfigInterface
 }
 
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *FeedCustomGRPC) getClient() (graphpb.FeedCustomServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("Feed Custom GRPC not ready...")
-			feedCustomGRPCConnectCounts++
-		} else {
-			return graphpb.NewFeedCustomServiceClient(cc), nil
-		}
-
-		if feedCustomGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return graphpb.NewFeedCustomServiceClient(conn), nil
 }
 
 func (srv *FeedCustomGRPC) Browse(def *feeds.Definition, ownerID int64, before feeds.Cursor, limit uint64, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {

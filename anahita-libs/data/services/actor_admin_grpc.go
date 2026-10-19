@@ -2,16 +2,9 @@ package services
 
 import (
 	"anahita-libs/data/entities"
-	"anahita-libs/grpctls"
 	"anahita-libs/proto/graphpb"
 	"context"
-	"log"
-	"time"
-
-	"google.golang.org/grpc"
 )
-
-var actorAdminsGRPCConnectCounts int
 
 type ActorAdminsGRPCConfigInterface interface {
 	GetGraphServiceAddr() string
@@ -38,36 +31,14 @@ func NewActorAdminsGRPC(config ActorAdminsGRPCConfigInterface) ActorAdminsGRPCIn
 	}
 }
 
-// getClient returns the grpc client
+// getClient returns the client, on the one connection to the service this
+// process keeps (sharedConnection).
 func (srv *ActorAdminsGRPC) getClient() (graphpb.ActorAdminServiceClient, error) {
-	var opts []grpc.DialOption
-	transport, err := grpctls.DialOption()
+	conn, err := sharedConnection(srv.config.GetGraphServiceAddr())
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, transport)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-
-	for {
-		cc, err := grpc.NewClient(srv.config.GetGraphServiceAddr(), opts...)
-
-		if err != nil {
-			log.Println("Actor Admin GRPC not ready...")
-			actorAdminsGRPCConnectCounts++
-		} else {
-			log.Println("Connected to Actor Admin GRPC!")
-			return graphpb.NewActorAdminServiceClient(cc), nil
-		}
-
-		if actorAdminsGRPCConnectCounts > 10 {
-			log.Println(err)
-			return nil, err
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+	return graphpb.NewActorAdminServiceClient(conn), nil
 }
 
 // Browse returns a list of admins
