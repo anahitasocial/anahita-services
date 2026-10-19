@@ -1335,6 +1335,9 @@ services:
       # For the card of a link in a post from another server. Empty, and
       # such posts have none.
       LINK_PREVIEW_URL: ${LINK_PREVIEW_URL:-http://link-preview-service:80}
+      # Whether a post from elsewhere is tagged with the locations it names:
+      # on unless `off`. See docs/configuration.md, Federation.
+      FEDERATION_LOCATIONS: ${FEDERATION_LOCATIONS:-}
     volumes:
       - ./grpc-certs:/run/secrets/grpc:ro
       - ./fedi-lab/certs:/fedi-lab-certs:ro

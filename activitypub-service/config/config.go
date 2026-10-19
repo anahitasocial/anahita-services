@@ -24,6 +24,10 @@ type Config struct {
 	// Where link-preview-service is, for the cards of links in posts from
 	// other servers. Empty for none.
 	LinkPreviewURL string
+	// Whether a post from elsewhere is tagged with the locations it names
+	// (FEDERATION_LOCATIONS): on unless it says `off` (the user, 2026-10-19;
+	// roadmap row 82, part 4).
+	TakesLocations bool
 	RedisAddr      string
 	RedisPassword  string
 	RedisDB        int
@@ -46,6 +50,7 @@ func NewConfig() *Config {
 		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
 		Lab:              os.Getenv("ACTIVITYPUB_LAB") == "on",
 		LinkPreviewURL:   os.Getenv("LINK_PREVIEW_URL"),
+		TakesLocations:   strings.ToLower(strings.TrimSpace(os.Getenv("FEDERATION_LOCATIONS"))) != "off",
 		RedisAddr:        getEnv("REDIS_ADDR", "localhost:6379"),
 		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
 		RedisDB:          getIntEnv("REDIS_DB", 0),

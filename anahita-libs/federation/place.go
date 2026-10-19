@@ -2,6 +2,7 @@ package federation
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 )
 
@@ -21,7 +22,13 @@ type Place struct {
 	Longitude float64
 	// Where it is read on this installation, when it is one of ours.
 	URL string
+	// Its own address, when the server that sent it gave it one (places.pub
+	// gives OpenStreetMap's places stable ones): how it is known again.
+	ID string
 }
+
+// The most places read of one post, as many as a post may be tagged with.
+const placesMax = 5
 
 // The longest name kept of a place.
 const placeNameMax = 100
@@ -46,29 +53,84 @@ func ReadPlace(location json.RawMessage) *Place {
 	}
 
 	for _, one := range many {
-		var shape struct {
-			Type      any      `json:"type"`
-			Name      string   `json:"name"`
-			Latitude  *float64 `json:"latitude"`
-			Longitude *float64 `json:"longitude"`
+		if place := readOnePlace(one); place != nil {
+			return place
 		}
-		if err := json.Unmarshal(one, &shape); err != nil {
-			continue
-		}
-		if !typeIs(shape.Type, "Place") || shape.Latitude == nil || shape.Longitude == nil {
-			continue
-		}
-		lat, lon := *shape.Latitude, *shape.Longitude
-		if lat < -90 || lat > 90 || lon < -180 || lon > 180 {
-			continue
-		}
-		name := strings.TrimSpace(shape.Name)
-		if letters := []rune(name); len(letters) > placeNameMax {
-			name = string(letters[:placeNameMax])
-		}
-		return &Place{Name: name, Latitude: lat, Longitude: lon}
 	}
 	return nil
+}
+
+// readOnePlace is one object as a Place with a point on the Earth, or nil.
+func readOnePlace(one json.RawMessage) *Place {
+	var shape struct {
+		Type      any      `json:"type"`
+		ID        string   `json:"id"`
+		Name      string   `json:"name"`
+		Latitude  *float64 `json:"latitude"`
+		Longitude *float64 `json:"longitude"`
+	}
+	if err := json.Unmarshal(one, &shape); err != nil {
+		return nil
+	}
+	if !typeIs(shape.Type, "Place") || shape.Latitude == nil || shape.Longitude == nil {
+		return nil
+	}
+	lat, lon := *shape.Latitude, *shape.Longitude
+	if lat < -90 || lat > 90 || lon < -180 || lon > 180 {
+		return nil
+	}
+	name := strings.TrimSpace(shape.Name)
+	if letters := []rune(name); len(letters) > placeNameMax {
+		name = string(letters[:placeNameMax])
+	}
+	id := strings.TrimSpace(shape.ID)
+	if !strings.HasPrefix(id, "https://") {
+		id = ""
+	}
+	return &Place{Name: name, Latitude: lat, Longitude: lon, ID: id}
+}
+
+// ReadPlaces is every place a post from elsewhere names (roadmap row 82,
+// part 4): its `location`, where it was made, then the `Place`s in its
+// `tag`, what it is about. One thing or a list is read alike; what is not a
+// Place with a point is passed over; the same place twice, by its address or
+// its name and point, is one; at most five.
+func ReadPlaces(location, tag json.RawMessage) []Place {
+	places := []Place{}
+	seen := map[string]bool{}
+	for _, raw := range []json.RawMessage{location, tag} {
+		trimmed := strings.TrimSpace(string(raw))
+		if trimmed == "" || trimmed == "null" {
+			continue
+		}
+		var many []json.RawMessage
+		if strings.HasPrefix(trimmed, "[") {
+			if err := json.Unmarshal(raw, &many); err != nil {
+				continue
+			}
+		} else {
+			many = []json.RawMessage{raw}
+		}
+		for _, one := range many {
+			place := readOnePlace(one)
+			if place == nil {
+				continue
+			}
+			key := place.ID
+			if key == "" {
+				key = fmt.Sprintf("%s|%.4f|%.4f", strings.ToLower(place.Name), place.Latitude, place.Longitude)
+			}
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+			places = append(places, *place)
+			if len(places) == placesMax {
+				return places
+			}
+		}
+	}
+	return places
 }
 
 // AsLocation is the place as an object's `location`, for sending.

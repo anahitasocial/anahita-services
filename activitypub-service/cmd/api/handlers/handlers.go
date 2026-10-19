@@ -44,6 +44,10 @@ type Env struct {
 	// The locations a post was tagged with, which go out with it. Nil for
 	// none, in tests that are not of locations.
 	Locations Locations
+	// Tags a post from elsewhere with the locations it names, when the
+	// installation takes them (TakesLocations). Nil for none, in tests.
+	Tags           LocationTags
+	TakesLocations bool
 	// The card for a link in a post from elsewhere. Nil for none: in tests,
 	// and where there is no link-preview-service.
 	Cards Cards

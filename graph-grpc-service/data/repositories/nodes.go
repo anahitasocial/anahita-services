@@ -64,10 +64,11 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 		query = query.Where("node.geo_latitude IS NOT NULL")
 		query = query.Where("node.geo_longitude IS NOT NULL")
 
-		// Optional: add radius filter if you have a NearbyRadius field
+		// Within NearbyRadius metres, when one is asked for.
 		if req.NearbyRadius > 0 {
 			distanceCalc := r.calculateDistance(req.NearbyLatitude, req.NearbyLongitude)
-			query = query.Where(fmt.Sprintf("%s <= ?", distanceCalc), req.NearbyRadius) // Convert km to meters if your radius is in km
+			// In metres, as the distance is (earthRadius).
+			query = query.Where(fmt.Sprintf("%s <= ?", distanceCalc), req.NearbyRadius)
 		}
 
 		// Order by distance (closest first)
@@ -184,10 +185,11 @@ func (r *nodesRepo) Count(req *requests.NodeCountRequest) (uint64, error) {
 		query = query.Where("node.geo_latitude IS NOT NULL")
 		query = query.Where("node.geo_longitude IS NOT NULL")
 
-		// Optional: add radius filter if you have a NearbyRadius field
+		// Within NearbyRadius metres, when one is asked for.
 		if req.NearbyRadius > 0 {
 			distanceCalc := r.calculateDistance(req.NearbyLatitude, req.NearbyLongitude)
-			query = query.Where(fmt.Sprintf("%s <= ?", distanceCalc), req.NearbyRadius) // Convert km to meters if your radius is in km
+			// In metres, as the distance is (earthRadius).
+			query = query.Where(fmt.Sprintf("%s <= ?", distanceCalc), req.NearbyRadius)
 		}
 	}
 

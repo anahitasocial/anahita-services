@@ -293,8 +293,11 @@ type ReceivedNote struct {
 	To           json.RawMessage   `json:"to"`
 	Cc           json.RawMessage   `json:"cc"`
 	InReplyTo    json.RawMessage   `json:"inReplyTo"`
-	// What is listed beside the text. Read for its custom emoji.
+	// What is listed beside the text. Read for its custom emoji, and for
+	// the Places it names.
 	Tag json.RawMessage `json:"tag"`
+	// Where it was made: a Place, or several (roadmap row 82, part 4).
+	Location json.RawMessage `json:"location"`
 	// What came with it: pictures, and other things that are not kept.
 	Attachment json.RawMessage `json:"attachment"`
 	// Marked by its author as something not everybody wants to see.

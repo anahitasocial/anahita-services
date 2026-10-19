@@ -647,6 +647,21 @@ can be read again from its own server:
 docker compose exec activitypub-service /app/app-binary reread https://mastodon.example/users/alice/statuses/1
 ~~~
 
+**Its locations are tagged here** (roadmap row 82, part 4), unless the
+installation says `FEDERATION_LOCATIONS=off`. Every `Place` it names, its
+`location` (Pixelfed sends one with a post its author placed) and the
+`Place`s in its `tag`, at most five, is matched to a location here: one of
+the same name within 25 km, since Pixelfed's places are mostly cities whose
+point differs from server to server; else any within 100 m. When none
+matches, one is made, with its name and its point kept to four decimals
+(about 11 m), put down to the post's author as a hashtag is to whoever first
+used it. The post then shows among that location's posts, in trending and
+nearby. When it is edited there, the locations it no longer names are taken
+off. A place's own address (places.pub gives OpenStreetMap places stable
+ones) is not kept yet: the graph keeps addresses only for profiles and
+posts from elsewhere. Nobody's own position is read: `Arrive` and other
+check-ins are not (row 94).
+
 **Its hashtags are this installation's.** A hashtag arrives as a link to
 its page on the server the note was written on. It is kept as the hashtag
 alone (`federation.PostToMarkdown`), and the note is then given its

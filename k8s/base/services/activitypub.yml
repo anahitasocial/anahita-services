@@ -88,6 +88,14 @@ spec:
             # out where link-preview-service is not deployed.
             - name: LINK_PREVIEW_URL
               value: http://link-preview-service
+            # Whether a post from elsewhere is tagged with the locations it
+            # names: on unless `off`.
+            - name: FEDERATION_LOCATIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: FEDERATION_LOCATIONS
+                  optional: true
             - name: OAUTH_ISSUER
               valueFrom:
                 configMapKeyRef:

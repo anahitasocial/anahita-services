@@ -410,6 +410,13 @@ func (h *Handlers) store(authorID int64, note *ap.ReceivedNote, parentID int64) 
 	}
 	h.announceKept(saved, authorID, created)
 
+	// The places it names, matched to locations here or made, as it is
+	// now: a later edit there takes off what it no longer names. After the
+	// server that sent it is answered, as its pictures are.
+	if saved != nil && h.Tags != nil && h.TakesLocations {
+		h.later(func() { h.locate(saved, note, authorID) })
+	}
+
 	// Its pictures are fetched after it is kept, and not waited for: the
 	// server that sent it is answered now, and a picture takes a while.
 	if saved != nil && saved.Type == constants.NodeMediumPhotoEntityType && len(pictures) > 0 {
