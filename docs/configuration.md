@@ -278,8 +278,10 @@ a geocoder only when "Show a map" is ticked on its form.
 
 Read by hashtag-service and location-service: over what span of time the
 hashtags and locations trending are counted. A hashtag or a location trends by
-how many people posted with it in that time, each once, in public posts,
-by when the posts were written.
+how many profiles used it in that time, each once: the writers of public
+posts carrying it, by when the posts were written, and the public profiles
+tagged with it, by when they were tagged. See
+[Hashtags and locations](hashtags.md#trending).
 
 | Variable | Value |
 | --- | --- |

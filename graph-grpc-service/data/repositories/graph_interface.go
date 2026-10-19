@@ -92,7 +92,7 @@ type GraphRepoInterface interface {
 	// Use this for discovery features, trending topics,
 	// or highlighting active entities in the graph.
 	Trending(req *graphpb.TrendingRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error)
-	// TrendingPeople is how many people posted with each of these tags in
-	// the same window, as Trending counts them, by the tag's id.
-	TrendingPeople(req *graphpb.TrendingRequest, ids []int64) (map[int64]uint64, error)
+	// TrendingProfiles is how many profiles used each of these tags in the
+	// same window, as Trending counts them, by the tag's id.
+	TrendingProfiles(req *graphpb.TrendingRequest, ids []int64) (map[int64]uint64, error)
 }

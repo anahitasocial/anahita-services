@@ -216,7 +216,7 @@ func (h *locationHandler) BrowseTrending(c echo.Context) error {
 	for _, each := range found {
 		mapped := locationResp.MapLocationNodeItems([]*entities.AnahitaNode{each.Node})
 		if len(mapped) == 1 {
-			mapped[0].People = each.People
+			mapped[0].Profiles = each.Profiles
 			resp.Data = append(resp.Data, mapped[0])
 		}
 	}

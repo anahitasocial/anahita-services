@@ -992,15 +992,15 @@
             "description": "What it is called.",
             "type": "string"
           },
-          "people": {
-            "description": "In a trending list: how many people tied a post to it in the window.",
+          "postal_code": {
+            "description": "Its postal or zip code.",
+            "type": "string"
+          },
+          "profiles": {
+            "description": "In a trending list: how many profiles used it in the window, each once: the writers of posts tied to it, and the profiles tagged with it.",
             "format": "int64",
             "minimum": 0,
             "type": "integer"
-          },
-          "postalcode": {
-            "description": "Its postal code.",
-            "type": "string"
           },
           "state_province": {
             "description": "Its state or province.",
@@ -1228,6 +1228,11 @@
                     "maxLength": 100,
                     "type": "string"
                   },
+                  "postal_code": {
+                    "description": "Its postal or zip code.",
+                    "maxLength": 15,
+                    "type": "string"
+                  },
                   "source_id": {
                     "description": "A post to tie to it at once: the post's id.",
                     "format": "int64",
@@ -1275,6 +1280,11 @@
                   "name": {
                     "description": "What it is called.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "postal_code": {
+                    "description": "Its postal or zip code.",
+                    "maxLength": 15,
                     "type": "string"
                   },
                   "source_id": {
@@ -1411,7 +1421,7 @@
     },
     "/locations/_browse/trending": {
       "get": {
-        "description": "The locations the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The locations the most profiles used in a window of time that ends now: the writers of public posts tied to it, by when they were written, and the public profiles (people, groups, events, websites) tagged with it, by when they were tagged; each profile once, whatever its kind, here or elsewhere; `profiles` says how many. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getLocationsBrowseTrending",
         "parameters": [
           {
@@ -1635,6 +1645,11 @@
                     "maxLength": 100,
                     "type": "string"
                   },
+                  "postal_code": {
+                    "description": "Its postal or zip code.",
+                    "maxLength": 15,
+                    "type": "string"
+                  },
                   "state_province": {
                     "description": "Its state or province.",
                     "maxLength": 100,
@@ -1677,6 +1692,11 @@
                   "name": {
                     "description": "What it is called.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "postal_code": {
+                    "description": "Its postal or zip code.",
+                    "maxLength": 15,
                     "type": "string"
                   },
                   "state_province": {

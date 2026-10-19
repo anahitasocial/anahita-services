@@ -66,15 +66,20 @@ feed can filter on (`feeds.MaxLocations`).
 ## Trending
 
 `GET /hashtags/_browse/trending` and `GET /locations/_browse/trending` list
-what the most people posted with lately.
+what the most profiles used lately, and how many (`profiles`, shown as
+"3 profiles").
 
-- **Each person once.** One account posting a hashtag twenty times counts
-  as one, so nobody can make something trend alone. Ties go to the one on
-  more posts.
-- **By when a post was written,** not when it arrived. A profile's older
-  posts fetched when it is followed don't trend that day.
-- **Public posts only,** on profiles anybody may see, so what trends says
-  nothing about what is kept from view.
+- **Each profile once, of every kind.** A profile uses a tag by writing a
+  post that carries it, or by being tagged with it: a person, a group, an
+  event or a website, here or on another server. One profile posting a
+  hashtag twenty times counts as one, so nobody can make something trend
+  alone. Ties go to the one on more posts and profiles.
+- **By when a post was written,** not when it arrived, and a profile by
+  when it was tagged, not when it was made. A profile's older posts fetched
+  when it is followed don't trend that day.
+- **Public only:** posts anybody may see, on profiles anybody may see, and
+  public profiles, so what trends says nothing about what is kept from
+  view.
 - **Over a window** the installation chooses (`TRENDING_WINDOW`, see
   [Configuration](configuration.md#trending)): daily where it federates,
   monthly where only its own members post. A window with fewer than ten is

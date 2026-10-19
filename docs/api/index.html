@@ -5539,11 +5539,11 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>hashtag/cmd/api/handlers.(*hashtagHandler).BrowseOrderedByDegree</code></p>
 </details>
-<details class="route" id="getHashtagsBrowseTrending" data-search="get /hashtags/_browse/trending hashtags used most lately the hashtags the most people posted with in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation&#39;s own (`trending_window`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. one page, all there is: up to `limit`.
+<details class="route" id="getHashtagsBrowseTrending" data-search="get /hashtags/_browse/trending hashtags used most lately the hashtags the most profiles used in a window of time that ends now: the writers of public posts carrying it, by when they were written, and the public profiles (people, groups, events, websites) tagged with it, by when they were tagged; each profile once, whatever its kind, here or elsewhere; `profiles` says how many. `time_window` left out, the installation&#39;s own (`trending_window`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. one page, all there is: up to `limit`.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/hashtags/_browse/trending</code> <span class="summary">Hashtags used most lately</span></summary>
-<div class="description"><p>The hashtags the most people posted with in a window of time that ends now: each person once, public posts only, by when they were written. <code>time_window</code> left out, the installation&#39;s own (<code>TRENDING_WINDOW</code>; daily where it federates, monthly where not), widened while it holds fewer than ten; <code>window</code> says which. One page, all there is: up to <code>limit</code>.</p></div>
+<div class="description"><p>The hashtags the most profiles used in a window of time that ends now: the writers of public posts carrying it, by when they were written, and the public profiles (people, groups, events, websites) tagged with it, by when they were tagged; each profile once, whatever its kind, here or elsewhere; <code>profiles</code> says how many. <code>time_window</code> left out, the installation&#39;s own (<code>TRENDING_WINDOW</code>; daily where it federates, monthly where not), widened while it holds fewer than ten; <code>window</code> says which. One page, all there is: up to <code>limit</code>.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -6082,6 +6082,7 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 <tr><td><code>latitude</code></td><td>string</td><td>Its point, where somebody placed it on a map: both, or neither. A point given is kept as it is; without one, the address is looked up.</td></tr>
 <tr><td><code>longitude</code></td><td>string</td><td></td></tr>
 <tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
+<tr><td><code>postal_code</code></td><td>string</td><td>Its postal or zip code. At most 15 characters.</td></tr>
 <tr><td><code>source_id</code></td><td>integer</td><td>A post to tie to it at once: the post&#39;s id.</td></tr>
 <tr><td><code>state_province</code></td><td>string</td><td>Its state or province. At most 100 characters.</td></tr>
 </tbody>
@@ -6117,11 +6118,11 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*locationHandler).BrowseOrderedByDegree</code></p>
 </details>
-<details class="route" id="getLocationsBrowseTrending" data-search="get /locations/_browse/trending locations used most lately the locations the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation&#39;s own (`trending_window`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. one page, all there is: up to `limit`.
+<details class="route" id="getLocationsBrowseTrending" data-search="get /locations/_browse/trending locations used most lately the locations the most profiles used in a window of time that ends now: the writers of public posts tied to it, by when they were written, and the public profiles (people, groups, events, websites) tagged with it, by when they were tagged; each profile once, whatever its kind, here or elsewhere; `profiles` says how many. `time_window` left out, the installation&#39;s own (`trending_window`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. one page, all there is: up to `limit`.
 
 who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/locations/_browse/trending</code> <span class="summary">Locations used most lately</span></summary>
-<div class="description"><p>The locations the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. <code>time_window</code> left out, the installation&#39;s own (<code>TRENDING_WINDOW</code>; daily where it federates, monthly where not), widened while it holds fewer than ten; <code>window</code> says which. One page, all there is: up to <code>limit</code>.</p></div>
+<div class="description"><p>The locations the most profiles used in a window of time that ends now: the writers of public posts tied to it, by when they were written, and the public profiles (people, groups, events, websites) tagged with it, by when they were tagged; each profile once, whatever its kind, here or elsewhere; <code>profiles</code> says how many. <code>time_window</code> left out, the installation&#39;s own (<code>TRENDING_WINDOW</code>; daily where it federates, monthly where not), widened while it holds fewer than ten; <code>window</code> says which. One page, all there is: up to <code>limit</code>.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -6183,6 +6184,7 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 <tr><td><code>latitude</code></td><td>string</td><td>Its point, where somebody placed it on a map: both, or neither. A point given is kept as it is; without one, the address is looked up.</td></tr>
 <tr><td><code>longitude</code></td><td>string</td><td></td></tr>
 <tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
+<tr><td><code>postal_code</code></td><td>string</td><td>Its postal or zip code. At most 15 characters.</td></tr>
 <tr><td><code>state_province</code></td><td>string</td><td>Its state or province. At most 100 characters.</td></tr>
 </tbody>
 </table>
@@ -11444,7 +11446,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-hashtag.HashtagNodeItem" data-search="hashtag.hashtagnodeitem alias followed id name people type uses">
+<div class="route schema" id="schema-hashtag.HashtagNodeItem" data-search="hashtag.hashtagnodeitem alias followed id name profiles type uses">
 <h3>hashtag.HashtagNodeItem</h3>
 <p>A hashtag.</p>
 <table>
@@ -11454,7 +11456,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>followed</code></td><td>boolean</td><td>In the following and all lists: the viewer follows it.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>The hashtag as it is shown, without its #.</td></tr>
-<tr><td><code>people</code></td><td>integer</td><td>In a trending list: how many people posted with it in the window. At least 0.</td></tr>
+<tr><td><code>profiles</code></td><td>integer</td><td>In a trending list: how many profiles used it in the window, each once: the writers of posts carrying it, and the profiles tagged with it. At least 0.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>Always <code>node.tag.hashtag-service.hashtag.v1</code>.</td></tr>
 <tr><td><code>uses</code></td><td>integer</td><td>In the following and all lists: how many posts it is on that anybody may see, and the viewer&#39;s own. At least 0.</td></tr>
 </tbody>
@@ -11498,7 +11500,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-location.LocationNodeItem" data-search="location.locationnodeitem address alias authorized city country id latitude longitude name people postalcode state_province type">
+<div class="route schema" id="schema-location.LocationNodeItem" data-search="location.locationnodeitem address alias authorized city country id latitude longitude name postal_code profiles state_province type">
 <h3>location.LocationNodeItem</h3>
 <p>A place posts can be tied to.</p>
 <table>
@@ -11513,8 +11515,8 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>latitude</code></td><td>number</td><td>Where it is: latitude, found from its address.</td></tr>
 <tr><td><code>longitude</code></td><td>number</td><td>Where it is: longitude.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>What it is called.</td></tr>
-<tr><td><code>people</code></td><td>integer</td><td>In a trending list: how many people tied a post to it in the window. At least 0.</td></tr>
-<tr><td><code>postalcode</code></td><td>string</td><td>Its postal code.</td></tr>
+<tr><td><code>postal_code</code></td><td>string</td><td>Its postal or zip code.</td></tr>
+<tr><td><code>profiles</code></td><td>integer</td><td>In a trending list: how many profiles used it in the window, each once: the writers of posts tied to it, and the profiles tagged with it. At least 0.</td></tr>
 <tr><td><code>state_province</code></td><td>string</td><td>Its state or province.</td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td>Always a place&#39;s type.</td></tr>
 </tbody>
