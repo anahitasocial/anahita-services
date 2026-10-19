@@ -73,12 +73,19 @@ type NotificationItem struct {
 	Object *Object `json:"object"`
 	// What it was done to.
 	Target *Target `json:"target"`
+	// The reply or the repost that holds what was done, where it is not the
+	// object: the reply to answer, for a reply.
+	CommentID int64 `json:"comment_id,omitempty"`
 	// When it was made.
 	CreatedAt time.Time `json:"created_at"`
 	// When it last changed: when it was read, for one.
 	UpdatedAt time.Time `json:"updated_at"`
 	// Whether the viewer has read it.
 	IsRead bool `json:"is_read"`
+	// What the viewer can do from it, now: `answer_request` (accept or
+	// decline a request to follow that is still waiting), `follow` (they
+	// do not follow whoever did it), `reply`. Left out when nothing.
+	Actions []string `json:"actions,omitempty"`
 }
 
 // MarkedRead is how many notifications Mark all read marked.
@@ -111,9 +118,11 @@ func (r *NotificationResponse) MapNotificationItem(item *entities.Notification) 
 		Subject:     r.MapSubject(item.Subject),
 		Object:      r.MapObject(item.Object),
 		Target:      r.MapTarget(item.Target),
+		CommentID:   item.CommentID,
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
 		IsRead:      item.IsRead,
+		Actions:     item.Actions,
 	}
 }
 

@@ -111,6 +111,22 @@ of, for everybody who was told, whoever's hand removed it:
 
 Taking one of these back tells nobody.
 
+## What can be done from one
+
+The list says, for each notification, what its reader can still do from it
+(`actions`, worked out as it is read, from the graph as it is now; never
+stored: `notification-service/cmd/api/handlers/actions.go`):
+
+| `actions` | On | When |
+| --- | --- | --- |
+| `answer_request` | `actor_follow_request` | The request is still waiting: accept or decline it |
+| `follow` | `actor_follow` | The reader does not follow whoever followed |
+| `reply` | `reply_add`, `actor_mention`, `actor_mention_reply`, `quote_add` | Always: answer the reply (`comment_id`), or the post |
+
+An event's notifications have none: whoever is told has answered the event
+already, and changes the answer on its page. Using an action reads the
+notification.
+
 ## Read, and how long they are kept
 
 A notification is read when its reader opens it, by following one of its

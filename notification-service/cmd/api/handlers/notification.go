@@ -76,6 +76,9 @@ func (h *notificationHandler) Browse(c echo.Context) error {
 		return c.JSON(http.StatusOK, resp)
 	}
 
+	// What the viewer can do from each, as things stand.
+	h.setActions(notifications, viewer)
+
 	ids := collectRelationNodeIDs(notifications)
 	nodesReq := &services.GraphNodeBatchReadRequest{
 		IDs:    ids,
@@ -221,6 +224,8 @@ func (h *notificationHandler) Edit(c echo.Context) error {
 			notification.Target = node
 		}
 	}
+
+	h.setActions([]*entities.Notification{notification}, viewer)
 
 	services.PresignAvatar(h.Srv.FilesGRPC, notification.Subject)
 

@@ -29,9 +29,12 @@ type Notification struct {
 	Object      *entities.AnahitaNode
 	Target      *entities.AnahitaNode
 	CommentID   int64
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	IsRead      bool
+	// What the reader can do from it, worked out when it is read: never
+	// stored (handlers/actions.go).
+	Actions   []string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	IsRead    bool
 }
 
 func NewNotification() *Notification {

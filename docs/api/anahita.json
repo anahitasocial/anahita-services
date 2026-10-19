@@ -5262,6 +5262,18 @@
       "notification.NotificationItem": {
         "description": "NotificationItem is something the viewer is told of.",
         "properties": {
+          "actions": {
+            "description": "What the viewer can do from it, now: `answer_request` (accept or decline a request to follow that is still waiting), `follow` (they do not follow whoever did it), `reply`. Left out when nothing.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "comment_id": {
+            "description": "The reply or the repost that holds what was done, where it is not the object: the reply to answer, for a reply.",
+            "format": "int64",
+            "type": "integer"
+          },
           "created_at": {
             "description": "When it was made.",
             "format": "date-time",

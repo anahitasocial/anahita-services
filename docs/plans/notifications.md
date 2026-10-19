@@ -216,7 +216,7 @@ is told about.
    | `actor_invite` | Decline · Accept (as now) |
    | `actor_follow` | **+ Follow**, unless already following |
    | `reply_add`, `actor_mention`, `actor_mention_reply`, `quote_add` | Reply, in place |
-   | `event_changed`, `event_reminder` | Going · Maybe · Not going |
+   | `event_changed`, `event_reminder` | none, after all: whoever is told has answered already, and the answer buttons need the event's times and limits, which a notification does not carry; it opens the event |
    | the others | none: the notification opens what it is about |
 
    Acting marks it read.
@@ -246,7 +246,7 @@ is told about.
 | Row 96, part 4: the web app | ✅ 2026-10-19 |
 | Row 96, part 5: email | ✅ 2026-10-19 |
 | Row 97, part 1: read when opened, how long they are kept | ✅ 2026-10-19 |
-| Row 97, part 2: actions | ⬜ |
+| Row 97, part 2: actions | ✅ 2026-10-19 |
 | Row 97, part 3: grouping | ⬜ |
 | Row 97, part 4: the bell's menu | ⬜ |
 | Row 97, part 5: choosing what one is told about | ⬜ |
