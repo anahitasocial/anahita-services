@@ -2,7 +2,8 @@
 
 *Roadmap row 101, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** planned, not started. After row 100.
+**Status:** part 1 done (2026-10-19); parts 2 to 5 next. Branch
+`issues/thread-composer` in both repositories, from `issues/network-limits`.
 
 ## Context
 
@@ -24,30 +25,73 @@ Settled with the user on 2026-10-19:
    a reply to the one before.
 2. **Written here as a thread,** not split by the server: the writer decides
    where each part ends.
+3. **No numbering,** here or on other networks: the thread shows itself
+   (the user, 2026-10-19).
+4. **Up to 10 parts** (`constants.ThreadPartsMax`).
+5. **Posts and replies alike:** a thread can begin a post, or answer one.
 
-**Open, to settle before building:**
+## What the code does now (found 2026-10-19)
 
-1. Numbered "1/3" only on other networks, or here too? Proposed: neither;
-   the thread shows itself.
-2. The most parts: proposed 10.
-3. Top-level posts too, or only replies? Proposed: both, from the composer
-   and from Reply.
+1. **No transaction.** A post is one gRPC call (`Medium.Add`) and one
+   INSERT, and announces itself at once, in a goroutine of its own.
+2. **Events are handled in any order.** The consumer runs each message in a
+   goroutine of its own, so the parts of a thread reach other services in
+   no set order.
+3. **Bluesky drops a reply whose parent it has not handled yet:**
+   `localPosted` finds no record of the parent in `atproto_sent` and sends
+   nothing; and when the parent is recorded but not yet written there,
+   `Writer.RefOf` answers `ErrNobody`, which is made permanent.
+4. **The fediverse catches up late:** a reply whose parent is not yet in
+   `activitypub_objects` is passed over, and the sweep sends it within
+   about five minutes, parents before children.
+5. **Notifications:** every part of a thread under somebody else's post
+   would tell the root's author and every subscriber again.
 
 ## Design
 
-1. **One request** (text-service): `POST` a list of parts, each a note with
-   its own pictures and descriptions, made in one transaction; each part a
-   reply to the one before, the first a reply to the post answered (or a
-   post). One event for the thread, so federation sends them in order.
-2. **Going out** (activitypub-service, atproto-service): the parts in order,
-   each `inReplyTo` / `reply.parent` the one before, waiting for each to be
-   accepted before the next. A part that fails to go out is retried in its
-   place, never skipped.
-3. **The composer** (web): "Add to thread" under a part makes the next; each
-   part counts its letters against the networks the profile goes to (row
-   100's line); the whole posts with one button. On a phone, the whole
-   screen.
-4. **Notifications:** one for the thread, not one per part.
+### 1. One transaction (graph-grpc-service, anahita-libs) — done 2026-10-19
+
+1. `Nodes.AddThread` writes the parts in one transaction, each after the
+   first a reply to the one before, placed as `placeInThread` places a
+   reply; the first answers `parent`, or is a post.
+2. `Medium.AddThread` (`MediumThreadAddRequest`) checks the parent and each
+   part as `Add` does, tags the first part's locations, recounts the
+   replies, and announces the parts in order once all are made, each with
+   its place in the thread (`EventPayload.Part`: 1, 2, …).
+3. `MediaGRPC.AddThread` in anahita-libs.
+4. Tests: `thread_add_integration_test.go`, a thread in order under one
+   root, a thread at the top, and a thread with a part that cannot be made,
+   which leaves none.
+
+### 2. The request (text-service)
+
+`POST /notes/:owner_id/thread` for a thread that begins a post, with what a
+post takes (access, who may reply, quote policy, locations) and `parts`, a
+list of `{ content, language, link_preview_url }`. `POST /notes/:id/replies/thread`
+for one that answers a post, with `parts` alone. Each part is checked as a
+note or a reply is; up to ten. Notes only at first: pictures in a part are
+later.
+
+### 3. Told once (notification-service)
+
+A part after the first (`Part > 1`) tells nobody: whoever is told of the
+thread is told of its first part. A name mentioned in any part is still
+told, as it is somebody else.
+
+### 4. In order on other networks (atproto-service, activitypub-service)
+
+1. Bluesky: a reply whose parent is the writer's own post here, not yet
+   recorded, records the parent first; and a parent recorded but not yet
+   written is a reason to try again shortly, not to give up. The parent's
+   reference is read from `atproto_sent` once written there, not from the
+   AppView, which may not have it yet.
+2. Fediverse: the same for `activitypub_objects`, so the thread goes out
+   at once and not at the next sweep.
+
+### 5. The composer (web)
+
+"Add to thread" under the text makes the next part; each part shows what
+row 100's lines show; Post sends them all. On a phone, the whole screen.
 
 ## Checking
 

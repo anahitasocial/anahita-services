@@ -363,31 +363,37 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 
 	// publish event, as on an edit: not for a post in a media library only,
 	// nor for a draft, which is announced when it is published.
-	go func() {
-		if node.LibraryOnly || node.Draft {
-			return
-		}
-		entityName := strings.Split(node.Type, ".")[3]
-		srvName := strings.Split(node.Service, "-")[0]
-		routing_key := fmt.Sprintf(event.EventFormatNodeMediumAdded, srvName, entityName)
-		payload := &event.EventPayload{
-			Name:             routing_key,
-			SourceService:    node.Service,
-			SubjectID:        viewer.ID,
-			SubjectType:      constants.NodeActorPersonEntityType,
-			ObjectID:         node.ID,
-			ObjectType:       node.Type,
-			TargetID:         node.Owner.ID,
-			TargetType:       node.Owner.Type,
-			ViewerID:         viewer.ID,
-			ViewerPersonType: viewer.PersonType,
-		}
-		h.env.Publisher.Publish(payload, routing_key)
-	}()
+	go h.announceAdded(node, viewer, 0)
 
 	return &graphpb.MediumAddResponse{
 		Medium: nodeToGrpc(node),
 	}, nil
+}
+
+// announceAdded says a post was made: not one in a media library only,
+// nor a draft, which is announced when it is published. `part` is where it
+// is in a thread written in one go, or 0.
+func (h *mediumHandler) announceAdded(node *entities.AnahitaNode, viewer *entities.Viewer, part int) {
+	if node.LibraryOnly || node.Draft {
+		return
+	}
+	entityName := strings.Split(node.Type, ".")[3]
+	srvName := strings.Split(node.Service, "-")[0]
+	routing_key := fmt.Sprintf(event.EventFormatNodeMediumAdded, srvName, entityName)
+	payload := &event.EventPayload{
+		Name:             routing_key,
+		SourceService:    node.Service,
+		SubjectID:        viewer.ID,
+		SubjectType:      constants.NodeActorPersonEntityType,
+		ObjectID:         node.ID,
+		ObjectType:       node.Type,
+		TargetID:         node.Owner.ID,
+		TargetType:       node.Owner.Type,
+		ViewerID:         viewer.ID,
+		ViewerPersonType: viewer.PersonType,
+		Part:             part,
+	}
+	h.env.Publisher.Publish(payload, routing_key)
 }
 
 // Delete remove a medium
