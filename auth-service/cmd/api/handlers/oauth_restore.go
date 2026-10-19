@@ -64,7 +64,7 @@ func (h *oauthHandler) purgeDate(user *entities.User) string {
 	}
 
 	return user.DeletedAt.
-		Add(time.Duration(constants.AccountGraceDays) * 24 * time.Hour).
+		Add(time.Duration(constants.AccountGraceDays()) * 24 * time.Hour).
 		Format("2 January 2006")
 }
 

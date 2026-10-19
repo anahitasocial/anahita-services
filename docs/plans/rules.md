@@ -28,7 +28,12 @@
    `POST /groups/:id/spam` in actor-service, the purge with a `reason`
    (`removed-as-spam` logged with who decided); the case action
    `removed_as_spam`; in the web app, in the profile's menu and on a
-   report's case. No proof of identity: asked once more instead. Tried on
+   report's case. No proof of identity: asked once more instead. Only for
+   an account made in the last 30 days (`SPAM_REMOVAL_MAX_DAYS`; the user,
+   the same day), refused `too_old` otherwise. Asked for with it: the days a
+   deleted profile can be brought back made a setting too,
+   `ACCOUNT_GRACE_DAYS`, 30 unless said, one number for the sweeper, the
+   dates told, NodeInfo and the promise. Tried on
    dev: refused for a registered person (403) and for oneself (409); three
    throwaway accounts removed, one from a case, one from a profile.
 5. A group's and an event's rules: written, ticked before following or

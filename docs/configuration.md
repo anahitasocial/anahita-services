@@ -379,6 +379,7 @@ Read by abuse-report-service.
 | Variable | Value |
 | --- | --- |
 | `REASONS_PATH` | An installation's own list of reasons people can give when they report something. Optional: unset, the list built into the service is used. See [Using your own reasons](abuse-reports.md#using-your-own-reasons) |
+| `SPAM_REMOVAL_MAX_DAYS` | How many days after it was made an account may still be removed as spam. 30 unless said. Read by graph-grpc-service, which refuses an older one, and auth-service, which publishes it as `metadata.spamRemovalMaxDays`. See [Removing as spam](account-lifecycle.md#removing-as-spam) |
 
 Somebody may file at most 20 reports an hour. That limit, like the ones on
 signing in, is counted in Redis by the shared limiter in
@@ -392,9 +393,9 @@ a super administrator uses to find accounts nobody uses.
 | Variable | Value |
 | --- | --- |
 | `ACCOUNT_DORMANT_DAYS` | How many days without activity make an account `dormant` in that list. Optional: unset, 730 (two years). It only sorts accounts into tiers; nothing is removed because of it |
+| `ACCOUNT_GRACE_DAYS` | How many days a deleted profile can be brought back before it is purged: a person by signing in again, a group or an event by an administrator. 30 unless said. Read by auth-service (the dates it tells people, `metadata.accountGraceDays` in NodeInfo, the site's promise), graph-grpc-service and the account sweeper (when it purges); all three must have the same. Not kept per profile: changing it moves the date of every profile already waiting |
 
-Three things about purging are fixed in the code and are not settings: an
-account deleted by its owner is purged after 30 days, one purge request names
+Two things about purging are fixed in the code and are not settings: one purge request names
 at most 500 accounts, and a purge works through an account 500 posts at a
 time. How often the sweeper runs is its CronJob's schedule, in
 `k8s/base/jobs/sweeper-cronjob.yml`.

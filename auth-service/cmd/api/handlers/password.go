@@ -102,7 +102,7 @@ func (h *passwordHandler) ResetForm(c echo.Context) error {
 		if user.DeletedAt != nil {
 			data["ScheduledForDeletion"] = true
 			data["PurgeDate"] = user.DeletedAt.
-				AddDate(0, 0, constants.AccountGraceDays).
+				AddDate(0, 0, constants.AccountGraceDays()).
 				Format("2 January 2006")
 		}
 	}
@@ -348,7 +348,7 @@ func (h *passwordHandler) applyReset(
 	if user.DeletedAt != nil {
 		successData["ScheduledForDeletion"] = true
 		successData["PurgeDate"] = user.DeletedAt.
-			AddDate(0, 0, constants.AccountGraceDays).
+			AddDate(0, 0, constants.AccountGraceDays()).
 			Format("2 January 2006")
 	}
 

@@ -20,6 +20,20 @@ spec:
             - name: http
               containerPort: 80
           env:
+            # How long a deleted profile can be brought back: 30 days unless said.
+            - name: ACCOUNT_GRACE_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ACCOUNT_GRACE_DAYS
+                  optional: true
+            # How new an account must be to be removed as spam: 30 days unless said.
+            - name: SPAM_REMOVAL_MAX_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SPAM_REMOVAL_MAX_DAYS
+                  optional: true
             - name: ENV
               valueFrom:
                 configMapKeyRef:

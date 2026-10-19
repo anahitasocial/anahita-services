@@ -32,7 +32,7 @@ type SiteAbout struct {
 // Site answers what the installation says about itself. Public: it is read
 // before signing up.
 func (h *nodeInfoHandler) Site(c echo.Context) error {
-	said := siteSays.Site().Filled(constants.AccountGraceDays)
+	said := siteSays.Site().Filled(constants.AccountGraceDays())
 	c.Response().Header().Set("Cache-Control", "public, max-age=300")
 	return c.JSON(http.StatusOK, SiteAbout{
 		Rules:           said.Rules,

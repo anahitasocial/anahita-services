@@ -11,6 +11,7 @@ import (
 	"graph/requests"
 	"log"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -560,6 +561,9 @@ const (
 	purgeRefusedAdministrator  = "administrator"
 	purgeRefusedYourself       = "yourself"
 	purgeRefusedLastSuperAdmin = "last_super_administrator"
+	// Removed as spam, but here longer than SPAM_REMOVAL_MAX_DAYS: disabled
+	// or deleted instead, with the thirty days to bring it back.
+	purgeRefusedTooOld = "too_old"
 )
 
 // RequestPurge queues actors to be destroyed, with everything they owned or
@@ -726,7 +730,20 @@ func (h *actorHandler) purgeable(id int64, req *graphpb.ActorPurgeBatchRequest, 
 		return nil, purgeRefusedLastSuperAdmin
 	}
 
+	// Spam is new (the user, 2026-10-19): an account here longer than the
+	// installation allows is not removed this way, which has no way back.
+	if req.Reason == constants.PurgeReasonSpam && tooOldForSpam(actor.CreatedAt, time.Now(), constants.SpamRemovalMaxDays()) {
+		return nil, purgeRefusedTooOld
+	}
+
 	return actor, ""
+}
+
+// tooOldForSpam says whether an account made at `made` has been here longer
+// than `days` at `now`, and so is not removed as spam. One with no date is
+// not held to it.
+func tooOldForSpam(made, now time.Time, days int) bool {
+	return !made.IsZero() && now.Sub(made) > time.Duration(days)*24*time.Hour
 }
 
 // ReadPurgeBatch reports how far a RequestPurge has got.

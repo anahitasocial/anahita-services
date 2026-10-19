@@ -39,6 +39,10 @@ answer is 409, and says to make somebody else a super administrator first (see
 
 ## Deleting and the 30 days
 
+Thirty days unless the installation says otherwise, in `ACCOUNT_GRACE_DAYS`
+([Account cleanup](configuration.md#account-cleanup)); the web app says the
+site's number.
+
 A deleted account is hidden immediately and its sessions are ended. Nothing it
 owns is touched, so restoring it brings it back whole.
 
@@ -161,6 +165,10 @@ deleted account waits, since by the time those run out it may be too late.
 - **Never an administrator's or a super administrator's account,** nor the
   viewer's own: refused with 409 `purge_refused`, `administrator` or
   `yourself`, as a batch purge refuses them.
+- **Only a new account,** made in the last 30 days (`SPAM_REMOVAL_MAX_DAYS`):
+  spam is new, and one here longer is disabled or deleted instead, with the
+  30 days to bring it back (the user, 2026-10-19). An older one is refused
+  with `too_old`, and the web app offers the action only while it may.
 - **Recorded** in `node_deletion_logs` as `removed-as-spam` with who decided,
   when it is asked for; the purge then writes its own rows (`purged`,
   `hard-deleted`).
@@ -253,4 +261,4 @@ A site administrator can then appoint one of its followers with
 | Purging now | `actor-service/cmd/api/handlers/person_purge.go`, `group_purge.go`; `graph-grpc-service/data/repositories/purge_requests.go` (`PurgeRequestMaxAttempts`), table `purge_requests` |
 | The filed reports of a purged person | `abuse-report-service/cmd/api/handlers/events.go` |
 | The accounts list | `auth-service/cmd/api/handlers/accounts.go`, `auth-service/data/repositories/accounts.go`; `auth-service/config/bootstrap.go` (`GetAccountDormantDays`), setting `ACCOUNT_DORMANT_DAYS` |
-| The sweeper | `graph-grpc-service/sweeper/sweeper.go` (`GraceDays`, `Run`), `graph-grpc-service/cmd/sweeper/main.go`, `k8s/base/jobs/sweeper-cronjob.yml`, `account-sweeper` in `docker-compose.yml`; setting `FILE_SERVICE_ADDR` |
+| The sweeper | `graph-grpc-service/sweeper/sweeper.go` (`Run`; the days are `anahita-libs/constants` `AccountGraceDays()`), `graph-grpc-service/cmd/sweeper/main.go`, `k8s/base/jobs/sweeper-cronjob.yml`, `account-sweeper` in `docker-compose.yml`; settings `FILE_SERVICE_ADDR` and `ACCOUNT_GRACE_DAYS` |

@@ -274,7 +274,7 @@ func (h *passwordHandler) resetFormAfterCode(c echo.Context) error {
 	if user.DeletedAt != nil {
 		data["ScheduledForDeletion"] = true
 		data["PurgeDate"] = user.DeletedAt.
-			AddDate(0, 0, constants.AccountGraceDays).
+			AddDate(0, 0, constants.AccountGraceDays()).
 			Format("2 January 2006")
 	}
 
