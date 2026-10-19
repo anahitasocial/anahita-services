@@ -2,7 +2,7 @@
 
 *Roadmap row 101, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** parts 1 and 2 done (2026-10-19); parts 3 to 5 next. Branch
+**Status:** parts 1 to 3 done (2026-10-19); parts 4 and 5 next. Branch
 `issues/thread-composer` in both repositories, from `issues/network-limits`.
 
 ## Context
@@ -79,11 +79,15 @@ in its own thread. The answer is `{ "parts": [ … ] }`. Tried on dev: a thread
 of three at the top and one of two under it, read back in order by
 `GET /notes/:id/thread`, with the replies counted; eleven parts refused.
 
-### 3. Told once (notification-service)
+### 3. Told once (notification-service) — done 2026-10-19
 
 A part after the first (`Part > 1`) tells nobody: whoever is told of the
 thread is told of its first part. A name mentioned in any part is still
 told, as it is somebody else.
+
+Built as planned (`event_node_medium.go`), tested in
+`thread_told_once_test.go`. Tried on dev: Worf's thread of three under a post
+of the test account made one `reply_add`, for its first note.
 
 ### 4. In order on other networks (atproto-service, activitypub-service)
 

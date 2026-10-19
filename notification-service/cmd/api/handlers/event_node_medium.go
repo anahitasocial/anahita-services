@@ -32,6 +32,11 @@ func (h *eventHandler) eventFormatNodeMediumAdded(payload *event.EventPayload) e
 	// author's followers to be told about: it is news to the people it
 	// answers, and to nobody else.
 	if object.RootID > 0 {
+		// A note after the first of a thread written in one go: whoever is
+		// told of the thread was told of its first note (roadmap row 101).
+		if payload.Part > 1 {
+			return nil
+		}
 		return h.replyAdded(payload, subject, object)
 	}
 
