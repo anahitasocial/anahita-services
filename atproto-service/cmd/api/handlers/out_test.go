@@ -749,6 +749,65 @@ func TestAPhotoPostGoesWithItsPictures(t *testing.T) {
 	}
 }
 
+// A photo post too long for Bluesky keeps its pictures, and its words end
+// with a link to it here (roadmap row 100): a post has pictures or a card,
+// not both.
+func TestAPhotoPostCutLinksToTheRest(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.connect()
+
+	photo := &entities.AnahitaNode{
+		ID: 91, Type: constants.NodeMediumPhotoEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: strings.Repeat("beans ", 80),
+	}
+	w.nodes.kept = append(w.nodes.kept, photo)
+	sizes, _ := photo.PortraitsFor("one.png")
+	w.files.content[sizes[entities.PortraitSizeOriginal].Url] = aPicture(t)
+	w.listed.kept[91] = []*entities.PhotoFile{{Filename: "one.png", Mimetype: "image/png", Width: 600, Height: 400}}
+	w.heard("node.medium.photo-service.photo.added.v1", event.EventPayload{ObjectType: constants.NodeMediumPhotoEntityType, ObjectID: 91})
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+
+	out, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+w.sent.rows[0].RKey])
+	for _, want := range []string{`…\n\nanahita.example/photos/91"`, `"uri":"https://anahita.example/photos/91"`, `"app.bsky.embed.images"`} {
+		if !strings.Contains(string(out), want) {
+			t.Errorf("the post as written lacks %s:\n%s", want, out)
+		}
+	}
+}
+
+// More pictures than Bluesky takes: the first four, and a link to the
+// post here, where they all are (roadmap row 100).
+func TestAPhotoPostWithMorePicturesThanBlueskyTakes(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.connect()
+
+	photo := &entities.AnahitaNode{
+		ID: 92, Type: constants.NodeMediumPhotoEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID,
+		Access: constants.AnahitaAccessPublic, Body: "The garden",
+	}
+	w.nodes.kept = append(w.nodes.kept, photo)
+	for i := 0; i < 6; i++ {
+		name := fmt.Sprintf("%d.png", i)
+		sizes, _ := photo.PortraitsFor(name)
+		w.files.content[sizes[entities.PortraitSizeOriginal].Url] = aPicture(t)
+		w.listed.kept[92] = append(w.listed.kept[92], &entities.PhotoFile{Filename: name, Mimetype: "image/png", Width: 600, Height: 400})
+	}
+	w.heard("node.medium.photo-service.photo.added.v1", event.EventPayload{ObjectType: constants.NodeMediumPhotoEntityType, ObjectID: 92})
+	if failed := w.drain(); len(failed) != 0 {
+		t.Fatal(failed)
+	}
+
+	out, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+w.sent.rows[0].RKey])
+	if want := `"text":"The garden\n\nanahita.example/photos/92"`; !strings.Contains(string(out), want) {
+		t.Errorf("the post as written lacks %s:\n%s", want, out)
+	}
+	if len(w.writer.uploaded) != bsky.ImagesMax || strings.Count(string(out), `"image":`) != bsky.ImagesMax {
+		t.Errorf("%d uploaded:\n%s", len(w.writer.uploaded), out)
+	}
+}
+
 func TestTheCardOfALinkGoesWithItsPicture(t *testing.T) {
 	w, _ := writingWorld(t)
 	w.connect()

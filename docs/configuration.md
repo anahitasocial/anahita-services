@@ -26,6 +26,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 - [Account cleanup](#account-cleanup)
 - [Federation](#federation)
 - [The web shell](#the-web-shell)
+- [Photos](#photos)
 - [Video](#video)
 - [Download your data](#download-your-data)
 
@@ -392,6 +393,12 @@ Only for an installation that sends the web app through `web-shell`; see
 | `PUBLIC_WEB_URL` | The address people reach the web app at, such as `https://www.example.org`. Left out, the host each request came to is used |
 | `WEB_BUILD_PATH` | docker-compose only: the folder on the host with the web app's build in it. Defaults to `web-shell/web` |
 | `WEB_BUILD_DIR` | Where web-shell looks for the build inside its container. Defaults to `/app/web`; change it only with a build put elsewhere |
+
+## Photos
+
+| Variable | Value |
+| --- | --- |
+| `PHOTO_MAX_FILES` | How many images one photo post may hold, from 1 to 20. 20 unless said. Read by auth-service (which tells the web app), photo-service and the two federation services (which keep no more of a post from elsewhere). Posts made before it was lowered keep their images. See [Photo posts](photos.md#one-post-several-images) |
 
 ## Video
 

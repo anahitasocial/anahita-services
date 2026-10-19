@@ -152,6 +152,38 @@ func (p *OutPost) AddImage(blob *OutBlob, alt string, width, height int) {
 	p.Embed.Images = append(p.Embed.Images, image)
 }
 
+// EndWithLink ends a post's words with a link to `address`, on a line of
+// its own and shown as `label`, cutting the words shorter to make room
+// when they must be. It is for a post that carries pictures or a video,
+// and so has no room for a card that leads to the rest.
+func (p *OutPost) EndWithLink(label, address string) {
+	if !strings.HasPrefix(address, "https://") || label == "" {
+		return
+	}
+	tail := "\n\n" + label
+	room := PostMax - len([]rune(tail))
+	if letters := []rune(p.Text); len(letters) > room {
+		p.Text = strings.TrimRight(string(letters[:room-1]), " \n") + "…"
+		p.Cut = true
+	}
+	// What the words were cut through is left as plain words.
+	kept := len(strings.TrimSuffix(p.Text, "…"))
+	facets := p.Facets[:0]
+	for _, facet := range p.Facets {
+		if facet.Index.ByteEnd <= kept {
+			facets = append(facets, facet)
+		}
+	}
+	if p.Text == "" {
+		tail = label
+	}
+	link := OutFacet{Features: []map[string]string{{"$type": "app.bsky.richtext.facet#link", "uri": address}}}
+	link.Index.ByteStart = len(p.Text) + len(tail) - len(label)
+	p.Text += tail
+	link.Index.ByteEnd = len(p.Text)
+	p.Facets = append(facets, link)
+}
+
 // OutReply says what a post answers, and what began the thread.
 type OutReply struct {
 	Root   Ref `json:"root"`

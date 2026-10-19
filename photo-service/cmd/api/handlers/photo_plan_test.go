@@ -63,7 +63,7 @@ func TestAPostNeedsAnImageAndHoldsNoMoreThanTheLimit(t *testing.T) {
 
 	var uploads []*entities.PhotoUpload
 	var wanted []FileRef
-	for i := int64(1); i <= constants.PhotoMaxFiles+1; i++ {
+	for i := int64(1); i <= int64(constants.PhotoMaxFiles())+1; i++ {
 		uploads = append(uploads, upload(i, strings.Repeat("x", int(i))+".jpg"))
 		wanted = append(wanted, FileRef{UploadID: i})
 	}
@@ -71,7 +71,7 @@ func TestAPostNeedsAnImageAndHoldsNoMoreThanTheLimit(t *testing.T) {
 	if _, refused := planFiles(nil, uploads, wanted, testViewer, testOwner); refused != errTooManyFiles {
 		t.Errorf("one over the limit: %q", refused)
 	}
-	if _, refused := planFiles(nil, uploads, wanted[:constants.PhotoMaxFiles], testViewer, testOwner); refused != "" {
+	if _, refused := planFiles(nil, uploads, wanted[:constants.PhotoMaxFiles()], testViewer, testOwner); refused != "" {
 		t.Errorf("exactly the limit was refused: %q", refused)
 	}
 }

@@ -300,7 +300,7 @@ A reply read on its own (`GET /notes/<id>`) carries `root` too, with its
 owner, so a page can say what it is a reply to and whose profile it is on. The
 thread is the root's: `GET /notes/<root id>/thread`.
 
-A photo post holds up to four images, each uploaded in a request of its own
+A photo post holds up to twenty images (`PHOTO_MAX_FILES`), each uploaded in a request of its own
 and kept in `photo_files`, a table beside the post. How that works, and what
 is stored for each image, is in [Photo posts](photos.md).
 

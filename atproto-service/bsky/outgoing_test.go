@@ -75,6 +75,38 @@ func TestAPostTooLongIsCut(t *testing.T) {
 	}
 }
 
+func TestAPostCutEndsWithALinkToTheRest(t *testing.T) {
+	address := "https://example.com/photos/90"
+	label := "example.com/photos/90"
+
+	long := NewOutPost(strings.Repeat("é", 280)+" [a link](https://example.com/far) and more words", "und", time.Now())
+	long.EndWithLink(label, address)
+	if got := len([]rune(long.Text)); got != PostMax || !strings.HasSuffix(long.Text, "…\n\n"+label) || !long.Cut {
+		t.Errorf("%d letters: %q", got, long.Text)
+	}
+	if len(long.Facets) != 1 || long.Text[long.Facets[0].Index.ByteStart:long.Facets[0].Index.ByteEnd] != label ||
+		long.Facets[0].Features[0]["uri"] != address {
+		t.Errorf("facets %+v", long.Facets)
+	}
+
+	// Short enough already: its words and links are kept as they were.
+	short := NewOutPost("See [this](https://example.com/a)", "und", time.Now())
+	short.EndWithLink(label, address)
+	if short.Text != "See this\n\n"+label || len(short.Facets) != 2 || short.Cut {
+		t.Errorf("%q %+v", short.Text, short.Facets)
+	}
+	if end := short.Facets[1].Index; short.Text[end.ByteStart:end.ByteEnd] != label {
+		t.Errorf("the link marks %q", short.Text[end.ByteStart:end.ByteEnd])
+	}
+
+	// No words: the link alone.
+	empty := NewOutPost("", "und", time.Now())
+	empty.EndWithLink(label, address)
+	if empty.Text != label || empty.Facets[0].Index.ByteStart != 0 {
+		t.Errorf("%q %+v", empty.Text, empty.Facets)
+	}
+}
+
 func TestNamesOfRecordsSortAsTheyWereMade(t *testing.T) {
 	before := ""
 	for i := 0; i < 200; i++ {

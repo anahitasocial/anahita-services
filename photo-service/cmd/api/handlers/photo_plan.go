@@ -52,7 +52,7 @@ type filePlan struct {
 // can be tested without a server.
 //
 // The rules:
-//   - at least one image, at most constants.PhotoMaxFiles;
+//   - at least one image, at most constants.PhotoMaxFiles();
 //   - each is either one the post already has or an upload;
 //   - an upload can be used only by whoever uploaded it, and only on the
 //     profile it was uploaded for, because that is where it is stored;
@@ -67,7 +67,7 @@ func planFiles(
 	if len(wanted) == 0 {
 		return nil, errFilesRequired
 	}
-	if len(wanted) > constants.PhotoMaxFiles {
+	if len(wanted) > constants.PhotoMaxFiles() {
 		return nil, errTooManyFiles
 	}
 

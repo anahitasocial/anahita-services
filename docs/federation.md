@@ -607,7 +607,8 @@ profile of somebody followed, it is in the feed of whoever follows them
 with nothing changed in the feeds.
 
 **With pictures, it is a photo post,** which is what a post with pictures
-is here: its words are the caption and up to four pictures are its images,
+is here: its words are the caption and its pictures, up to what a photo post
+holds here (`PHOTO_MAX_FILES`), are its images,
 each with what its author said it shows. So it is drawn, opened and stepped
 through like any photo post, and is in its author's photos. The pictures
 are copied into this installation's storage (`pictures.go`) and never shown
@@ -1278,7 +1279,8 @@ It is kept the way a post from the fediverse is:
 - **Its words** become Markdown. Links stay links, a name leads to that
   account's page on Bluesky, and a hashtag is a hashtag of this
   installation, made if it is new.
-- **With pictures it is a photo post,** up to four, each with what its
+- **With pictures it is a photo post,** up to four (what Bluesky takes),
+  each with what its
   author said it shows, copied into this installation's storage. What its
   author marked as not to be shown plainly (nudity, graphic media) is kept
   for its words, without its pictures.
@@ -1357,7 +1359,8 @@ its own. The card says to use one and where to make it.
   here: its title, its opening under it, and its cover as its picture,
   given to the account's server as a photo post's pictures are.
 - **Pictures and cards.** A photo post goes with up to four pictures and
-  what each shows. A note goes with the card of the link in it, picture
+  what each shows; one with more goes with the first four, and its words
+  end with the address of the post here, where they all are. A note goes with the card of the link in it, picture
   and all: Bluesky draws no card of its own from an address in a post, so
   the card is this installation's, as it was kept when the note was made.
   Each picture is given to the account's server first. Bluesky takes two
@@ -1366,7 +1369,9 @@ its own. The card says to use one and where to make it.
   what Bluesky takes: Markdown's marks are taken out, links and the first
   ten hashtags are marked as such, and what is longer than three hundred letters is cut
   with a mark to say so; a note so cut carries a card of itself here,
-  where the rest is. A post or a reply that is changed here afterwards
+  where the rest is. A post with pictures or a video has no room for a
+  card, so when it is cut its words end instead with the address of the
+  post here, on a line of its own. A post or a reply that is changed here afterwards
   is not changed there: Bluesky has no changing a post, and taking it down
   to post it again would lose its likes, reposts and replies. Mastodon and
   other servers are sent the change.

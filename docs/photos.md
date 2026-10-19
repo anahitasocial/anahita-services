@@ -2,7 +2,8 @@
 
 [Documentation](README.md) › Photo posts
 
-A photo post holds up to four images. This page covers how they are uploaded,
+A photo post holds up to twenty images, or fewer where the installation
+says so. This page covers how they are uploaded,
 stored, changed and removed.
 
 Its routes are in the API reference: [photo-service](api/index.html#photo-service).
@@ -26,13 +27,17 @@ A post with several images is one post: one caption, one audience, one set of
 likes and comments. It is not an album of separate posts. That is also how
 Mastodon and Bluesky send them, as one post with attachments.
 
-Four is the limit because it is what a stock Mastodon server lets its users
-attach, so a post of four is shown whole there. Bluesky allows more. Whether
-to raise it is left until what other servers do with a longer post has been
-seen.
-It is a constant (`constants.PhotoMaxFiles`), not a setting, and is published
-in NodeInfo as `metadata.photoMaxFiles` so that a client does not have to
-carry the number.
+Twenty is the limit, as on Instagram and Pixelfed (decided 2026-10-19). An
+installation may hold fewer with `PHOTO_MAX_FILES` (see
+[Configuration](configuration.md#photos)), never more. It is published in
+NodeInfo as `metadata.photoMaxFiles`, so that a client does not have to carry
+the number (`constants.PhotoMaxFiles()`).
+
+A stock Mastodon server shows four pictures of a post, and Bluesky takes four.
+So a post of more than four goes out with every picture to the fediverse and
+the first four to Bluesky, and its words end with the address of the post
+here, where they all are. Pixelfed and Misskey show them all. The composer
+says so before it is posted.
 
 Each image can have a description of what it shows, up to 2,000 characters,
 for people who cannot see it. One that comes with a post from another server
@@ -85,7 +90,7 @@ When the images are refused the answer says why, and how many a post holds:
 | Status | `error` | |
 | --- | --- | --- |
 | 422 | `files_required` | No image |
-| 422 | `too_many_files` | More than four |
+| 422 | `too_many_files` | More than a post may hold (`max` says how many) |
 | 422 | `file_repeated` | The same image twice |
 | 422 | `alt_text_too_long` | A description over 2,000 characters |
 | 404 | `file_not_found` | An upload that is gone, or an image the post does not have |
@@ -227,7 +232,7 @@ Videos work the same way, with `/videos/` in place of `/photos/`; see
 
 | | |
 | --- | --- |
-| Images in a post | 4 |
+| Images in a post | 20, or fewer with `PHOTO_MAX_FILES` |
 | One uploaded file | 10 MB, which is what the gateway lets one request carry (`client_max_body_size` in `nginx.conf`). The two services that take images, photo-service and identity-image-service, allow a request of 11M for it (`constants.ImageRequestBodyMaxSizeLimit`); until 2026-10-10 they used the general 2M, which refused anything larger before this limit was reached |
 | Pixels in one image | 50 million |
 | Formats | JPEG, PNG. An animated PNG is kept still, as its first picture; a GIF or an animated PNG that is to move is posted as a video, which loops (see [Videos](videos.md#gifs-and-animated-pngs)) |

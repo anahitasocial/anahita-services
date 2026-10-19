@@ -286,8 +286,6 @@ func (k *Keeper) DeleteFiles(paths []string) {
 // plainly is not this installation's to decide.
 
 const (
-	// The most pictures of one post that are kept: what a photo post holds.
-	postPicturesMax = 4
 	// The limits an uploaded photo is held to (photo-service/constants).
 	postPictureMaxBytes  = 10 << 20
 	postPictureMaxPixels = 50_000_000
@@ -307,8 +305,11 @@ func (k *Keeper) CanKeepPictures() bool {
 	return k.Pictures != nil && k.Files != nil && k.PhotoFiles != nil
 }
 
-// PostPicturesMax is the most pictures of one post that are kept.
-const PostPicturesMax = postPicturesMax
+// PostPicturesMax is the most pictures of one post that are kept: what a
+// photo post holds here.
+func PostPicturesMax() int {
+	return constants.PhotoMaxFiles()
+}
 
 // CopyPostPictures fetches a post's pictures and keeps them as its images.
 // Whatever goes wrong with one, the others are kept; with all of them, the

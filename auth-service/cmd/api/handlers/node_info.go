@@ -303,7 +303,7 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 
 			// How many images one photo post can hold, so a client need
 			// not carry the number itself.
-			"photoMaxFiles": an_constants.PhotoMaxFiles,
+			"photoMaxFiles": an_constants.PhotoMaxFiles(),
 
 			// Whether videos may be posted here (VIDEO_UPLOADS), and the
 			// largest and longest taken, so the web app offers the upload
