@@ -35,6 +35,9 @@ func batchPresignPaths(env *Env, items []*entities.Notification) {
 		if item.Subject != nil {
 			subjectAvatarNodes = append(subjectAvatarNodes, item.Subject)
 		}
+		for _, other := range item.Others {
+			subjectAvatarNodes = append(subjectAvatarNodes, other)
+		}
 		if item.Object != nil {
 			objectPortraitNodes = append(objectPortraitNodes, item.Object)
 		}
@@ -51,6 +54,9 @@ func collectRelationNodeIDs(items []*entities.Notification) []int64 {
 	for _, item := range items {
 		if item.Subject != nil {
 			ids = append(ids, item.Subject.ID)
+		}
+		for _, other := range item.Others {
+			ids = append(ids, other.ID)
 		}
 		if item.Object != nil {
 			ids = append(ids, item.Object.ID)

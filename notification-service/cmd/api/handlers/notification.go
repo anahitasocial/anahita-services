@@ -76,6 +76,9 @@ func (h *notificationHandler) Browse(c echo.Context) error {
 		return c.JSON(http.StatusOK, resp)
 	}
 
+	// One of each group: "Worf and 2 others liked your post".
+	notifications = groupNotifications(notifications)
+
 	// What the viewer can do from each, as things stand.
 	h.setActions(notifications, viewer)
 
@@ -95,6 +98,11 @@ func (h *notificationHandler) Browse(c echo.Context) error {
 		if notification.Subject.ID > 0 {
 			if node, ok := nodeIndex[notification.Subject.ID]; ok {
 				notification.Subject = node
+			}
+		}
+		for i, other := range notification.Others {
+			if node, ok := nodeIndex[other.ID]; ok {
+				notification.Others[i] = node
 			}
 		}
 		if notification.Object.ID > 0 {

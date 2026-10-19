@@ -11608,7 +11608,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-notification.NotificationItem" data-search="notification.notificationitem actions comment_id created_at id is_read object service subject target type updated_at">
+<div class="route schema" id="schema-notification.NotificationItem" data-search="notification.notificationitem actions comment_id created_at id ids is_read object others others_count service subject target type updated_at">
 <h3>notification.NotificationItem</h3>
 <p>Something the viewer is told of.</p>
 <table>
@@ -11618,8 +11618,11 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>comment_id</code></td><td>integer</td><td>The reply or the repost that holds what was done, where it is not the object: the reply to answer, for a reply.</td></tr>
 <tr><td><code>created_at</code> <span class="required">always</span></td><td>time</td><td>When it was made.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
+<tr><td><code>ids</code></td><td>list of integer</td><td>Grouped with it (likes of one post, reposts of one post, follows of one profile): every notification&#39;s id, this one&#39;s first. Reading or deleting it is reading or deleting them all.</td></tr>
 <tr><td><code>is_read</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer has read it.</td></tr>
 <tr><td><code>object</code> <span class="required">always</span></td><td>one of <a href="#schema-notification.Object">notification.Object</a>, null</td><td>What was done.</td></tr>
+<tr><td><code>others</code></td><td>list of <a href="#schema-notification.Subject">notification.Subject</a></td><td>Whoever else did the same, newest first, at most two.</td></tr>
+<tr><td><code>others_count</code></td><td>integer</td><td>How many more did it than are named.</td></tr>
 <tr><td><code>service</code> <span class="required">always</span></td><td>string</td><td>The service that told it.</td></tr>
 <tr><td><code>subject</code> <span class="required">always</span></td><td>one of <a href="#schema-notification.Subject">notification.Subject</a>, null</td><td>Who did it.</td></tr>
 <tr><td><code>target</code> <span class="required">always</span></td><td>one of <a href="#schema-notification.Target">notification.Target</a>, null</td><td>What it was done to.</td></tr>

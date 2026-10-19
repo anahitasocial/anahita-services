@@ -111,6 +111,17 @@ of, for everybody who was told, whoever's hand removed it:
 
 Taking one of these back tells nobody.
 
+## Several as one
+
+Likes of one post, reposts of one post, and follows of one profile are one
+line of the list: "Worf and 2 others liked your post"
+(`notification-service/cmd/api/handlers/group.go`). They are grouped on each
+page of the list, at the place of the newest; each row stays as it was
+stored. The line carries every row's id (`ids`), whoever else did the same,
+newest first (`others`, at most two), and how many more (`others_count`).
+It is unread while any of its rows is, and reading or deleting it reads or
+deletes them all. A line of several follows offers no **+ Follow**.
+
 ## What can be done from one
 
 The list says, for each notification, what its reader can still do from it

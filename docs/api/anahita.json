@@ -5284,6 +5284,14 @@
             "format": "int64",
             "type": "integer"
           },
+          "ids": {
+            "description": "Grouped with it (likes of one post, reposts of one post, follows of one profile): every notification's id, this one's first. Reading or deleting it is reading or deleting them all.",
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          },
           "is_read": {
             "description": "Whether the viewer has read it.",
             "type": "boolean"
@@ -5298,6 +5306,18 @@
               }
             ],
             "description": "What was done."
+          },
+          "others": {
+            "description": "Whoever else did the same, newest first, at most two.",
+            "items": {
+              "$ref": "#/components/schemas/notification.Subject"
+            },
+            "type": "array"
+          },
+          "others_count": {
+            "description": "How many more did it than are named.",
+            "format": "int64",
+            "type": "integer"
           },
           "service": {
             "description": "The service that told it.",

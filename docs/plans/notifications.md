@@ -247,6 +247,6 @@ is told about.
 | Row 96, part 5: email | ✅ 2026-10-19 |
 | Row 97, part 1: read when opened, how long they are kept | ✅ 2026-10-19 |
 | Row 97, part 2: actions | ✅ 2026-10-19 |
-| Row 97, part 3: grouping | ⬜ |
+| Row 97, part 3: grouping | ✅ 2026-10-19 |
 | Row 97, part 4: the bell's menu | ⬜ |
 | Row 97, part 5: choosing what one is told about | ⬜ |

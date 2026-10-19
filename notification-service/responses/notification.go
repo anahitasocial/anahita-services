@@ -82,6 +82,14 @@ type NotificationItem struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// Whether the viewer has read it.
 	IsRead bool `json:"is_read"`
+	// Grouped with it (likes of one post, reposts of one post, follows of
+	// one profile): every notification's id, this one's first. Reading or
+	// deleting it is reading or deleting them all.
+	IDs []int64 `json:"ids,omitempty"`
+	// Whoever else did the same, newest first, at most two.
+	Others []*Subject `json:"others,omitempty"`
+	// How many more did it than are named.
+	OthersCount int `json:"others_count,omitempty"`
 	// What the viewer can do from it, now: `answer_request` (accept or
 	// decline a request to follow that is still waiting), `follow` (they
 	// do not follow whoever did it), `reply`. Left out when nothing.
@@ -123,7 +131,21 @@ func (r *NotificationResponse) MapNotificationItem(item *entities.Notification) 
 		UpdatedAt:   item.UpdatedAt,
 		IsRead:      item.IsRead,
 		Actions:     item.Actions,
+		IDs:         item.IDs,
+		Others:      r.mapOthers(item.Others),
+		OthersCount: item.OthersCount,
 	}
+}
+
+func (r *NotificationResponse) mapOthers(others []*an_entities.AnahitaNode) []*Subject {
+	if len(others) == 0 {
+		return nil
+	}
+	out := make([]*Subject, 0, len(others))
+	for _, other := range others {
+		out = append(out, r.MapSubject(other))
+	}
+	return out
 }
 
 func (r *NotificationResponse) MapSubject(subject *an_entities.AnahitaNode) *Subject {

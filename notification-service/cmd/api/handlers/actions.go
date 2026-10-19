@@ -54,7 +54,11 @@ func (h *notificationHandler) setActions(items []*entities.Notification, viewer 
 		case replyable[item.Type]:
 			item.Actions = []string{ActionReply}
 		case item.Type == NotificationTypeActorFollow:
-			// Followed by somebody the reader does not follow: + Follow.
+			// Followed by somebody the reader does not follow: + Follow. Not
+			// on a line of several, which would not say whom.
+			if len(item.Others) > 0 {
+				continue
+			}
 			rel, known := relations[item.Subject.ID]
 			if known && rel != nil && !rel.IsLeading {
 				item.Actions = []string{ActionFollow}
