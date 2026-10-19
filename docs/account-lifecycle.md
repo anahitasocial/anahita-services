@@ -77,7 +77,7 @@ there are what will go.
 - **A tombstone.** The account's row stays, with the handle and nothing else.
   It is what keeps the handle from being registered again by somebody who
   would then inherit the old account's mentions and followers.
-- **What the account started but does not own**: groups, hashtags and places
+- **What the account started but does not own**: groups, hashtags and locations
   it created. Other people are in the group and other posts carry the tag.
 - **The audit trail**: who deleted or purged what, and when
   (`node_deletion_logs`), and the purge request, if a super administrator

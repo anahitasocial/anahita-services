@@ -248,7 +248,7 @@ and its access are not consulted for anything.
 
 A reply is seen by exactly the people who can see the root. That holds in
 every place a note can turn up: the thread, a profile's list, a feed, search,
-and the page of a hashtag or a place.
+and the page of a hashtag or a location.
 
 So a reply to a post in a private group is seen only by the group's
 followers, though the person who wrote it has a public profile. And when a

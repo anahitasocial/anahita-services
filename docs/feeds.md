@@ -66,9 +66,9 @@ Every feed orders its posts by date, newest first. (Search is the one place with
 | --- | --- |
 | `following` | Whoever the feed's owner follows: people, groups and events. The owner's, whoever is reading |
 | `actors` | Profiles chosen by hand, of any kind |
-| neither | The whole site, posts from the fediverse and Bluesky kept here included, which is allowed only with a hashtag, a keyword, a place or an area among the filters |
+| neither | The whole site, posts from the fediverse and Bluesky kept here included, which is allowed only with a hashtag, a keyword, a location or an area among the filters |
 
-The web app offers this as one choice of three: **Everyone** (neither), **Profiles I follow** (`following`), or **Chosen profiles** (`actors`, with "And profiles I follow" for both). A new feed starts from the profiles its owner follows, so that it shows something; given a hashtag, a keyword, a place or an area before the owner chose, it switches to Everyone, since "a #dweb feed" almost always means everybody's.
+The web app offers this as one choice of three: **Everyone** (neither), **Profiles I follow** (`following`), or **Chosen profiles** (`actors`, with "And profiles I follow" for both). A new feed starts from the profiles its owner follows, so that it shows something; given a hashtag, a keyword, a location or an area before the owner chose, it switches to Everyone, since "a #dweb feed" almost always means everybody's.
 
 **Filters** narrow the sources. A post must match every kind of filter given; within a list, matching one entry is enough.
 
@@ -78,9 +78,9 @@ The web app offers this as one choice of three: **Everyone** (neither), **Profil
 | `media_types` | These kinds of post: `note`, `article`, `topic`, `photo`, `video`. Empty for every kind |
 | `hashtags_any` | Posts carrying any of these hashtags |
 | `keywords_any` | Posts with any of these words in the title or the text, in any case |
-| `locations_any` | Posts tagged with any of these places, by id |
+| `locations_any` | Posts tagged with any of these locations, by id |
 | `language` | Posts their author marked as written in this language |
-| `near` | Posts within `radius_km` (1 to 500) of a point, `latitude` and `longitude`: tied to a place there, or carrying a location of their own there. Narrows as a place does. With `"live": true` the point is wherever whoever reads the feed is: none is kept, and each page is read with `near_latitude` and `near_longitude` (see below). Otherwise the point is kept with the feed, as the web app took it from the browser when it was made, to three decimals |
+| `near` | Posts within `radius_km` (1 to 500) of a point, `latitude` and `longitude`: tied to a location there, or carrying a point of their own there. Narrows as a location does. With `"live": true` the point is wherever whoever reads the feed is: none is kept, and each page is read with `near_latitude` and `near_longitude` (see below). Otherwise the point is kept with the feed, as the web app took it from the browser when it was made, to three decimals |
 | `origin` | Where a post was written: `here`, on this installation, or `elsewhere`, on the fediverse or Bluesky. Left out for anywhere |
 
 **Exclude** leaves posts out whatever else is true of them: by hashtag, by keyword, and by profile. An excluded profile's posts are left out wherever they were posted, and so is everything posted on it.
@@ -108,7 +108,7 @@ will do, and says why when the browser will not tell it.
 | Profiles in `sources.actors`, and in `exclude.actors` | 50 each |
 | Hashtags, in the filter and left out | 10 each |
 | Keywords, in the filter and left out | 10 each, of 2 to 50 characters |
-| Places | 5 |
+| Locations | 5 |
 | An area's radius | 1 to 500 km |
 | Feeds one person owns | 10 |
 | Feeds on one person's home page | 10 |
@@ -178,7 +178,7 @@ All on feed-service. Writing needs the `media:write` scope.
 | `GET /feeds/discover?q=&start=&limit=` | anybody | The feeds people have shared that the viewer may see, newest first. `q` is part of a name. Paged by `pagination.next_start` |
 | `PUT /feeds/pins` `{ ids }` | signed in | Replaces the feeds on the home page |
 | `POST /feeds/preview` `{ definition }` | signed in | The first page of a feed not saved yet, as the viewer's own |
-| `GET /feeds/<id>` | whoever may see it | The feed, with `references`: the profiles and places it names that the viewer may see |
+| `GET /feeds/<id>` | whoever may see it | The feed, with `references`: the profiles and locations it names that the viewer may see |
 | `PATCH /feeds/<id>` | its owner | Changes it |
 | `DELETE /feeds/<id>` | its owner | Deletes it |
 | `GET /feeds/<id>/items?cursor=&limit=` | whoever may see it | A page of its posts |

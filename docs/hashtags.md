@@ -1,16 +1,16 @@
-# Hashtags and places
+# Hashtags and locations
 
-How a post gets its hashtags and its places, how many it can have, and the
+How a post gets its hashtags and its locations, how many it can have, and the
 hashtags offered to somebody while they write.
 
 ## Contents
 
 - [How a post gets its hashtags](#how-a-post-gets-its-hashtags)
 - [At most ten hashtags](#at-most-ten-hashtags)
-- [At most five places](#at-most-five-places)
+- [At most five locations](#at-most-five-locations)
 - [Trending](#trending)
 - [Suggestions while writing](#suggestions-while-writing)
-- [A hashtag's and a place's posts](#a-hashtags-and-a-places-posts)
+- [A hashtag's and a location's posts](#a-hashtags-and-a-locations-posts)
 - [What the web app does](#what-the-web-app-does)
 - [Where the code is](#where-the-code-is)
 
@@ -52,15 +52,15 @@ feed can filter on (`feeds.MaxHashtags`). For comparison: Mastodon, Pixelfed
 and the other fediverse servers set no limit in code; Bluesky allows eight
 extra tags outside a post's text, and no limit in it.
 
-## At most five places
+## At most five locations
 
-A post can be tied to **at most five places**. Places are added one at a
+A post can be tied to **at most five locations**. Locations are added one at a
 time (`POST /locations/:id/inbounds/`), so a sixth is refused with
-`422` and `{"error": "too_many_locations"}`. Tying a post to a place it
+`422` and `{"error": "too_many_locations"}`. Tying a post to a location it
 already has is not a sixth.
 
 The number is `constants.MaxLocationsOfAPost` in anahita-libs, and
-`Medium.MAX_LOCATIONS` in the web app. Five is also how many places a custom
+`Medium.MAX_LOCATIONS` in the web app. Five is also how many locations a custom
 feed can filter on (`feeds.MaxLocations`).
 
 ## Trending
@@ -127,10 +127,10 @@ has are left out. The first 100,000 characters are read.
 Matching ignores capitals and accents: `cafe` finds `#café`. `%` and `_`
 are matched as themselves.
 
-## A hashtag's and a place's posts
+## A hashtag's and a location's posts
 
 `GET /hashtags/:id/inbounds` and `GET /locations/:id/inbounds` list what is
-tied to a hashtag or a place, in one of two orders, by `sort`:
+tied to a hashtag or a location, in one of two orders, by `sort`:
 
 | `sort` | Order |
 | --- | --- |
@@ -156,8 +156,8 @@ app no longer asks for it: an old post that did well stayed on top for good.
   of hashtags the text ends with, or on a line of its own.
 - **At ten hashtags**, both say "Only the first 10 hashtags count" instead
   of offering more.
-- **At five places**, a post's Locations card says a post can have up to 5
-  places in place of its add button.
+- **At five locations**, a post's Locations card says a post can have up to 5
+  locations in place of its add button.
 
 ## Where the code is
 
@@ -169,6 +169,6 @@ app no longer asks for it: an old post that did well stayed on top for good.
 - `graph-grpc-service/data/repositories/hashtag_suggestions.go`: which
   hashtags are offered, and in what order (`HashtagService.Suggest` in
   `proto/graphpb/hashtag.proto`).
-- `location-service/cmd/api/handlers/inbound.go`: the cap on places.
+- `location-service/cmd/api/handlers/inbound.go`: the cap on locations.
 - `anahita-libs/federation/content.go` and `atproto-service/bsky/outgoing.go`:
   the cap in what is sent to other servers.

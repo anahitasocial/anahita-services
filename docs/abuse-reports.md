@@ -22,7 +22,7 @@ Its routes are in the API reference: [abuse-report-service](api/index.html#abuse
 ## Reports and cases
 
 Anything can be reported: a person, a group, a post, a reply, a hashtag or
-a place.
+a location.
 
 A **report** is one person's complaint. A **case** is one reported thing and
 the decision about it. Everybody who reports the same thing while its case is
