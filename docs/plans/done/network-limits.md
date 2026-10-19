@@ -2,8 +2,8 @@
 
 *Roadmap row 100, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** parts 1 and 2 done (2026-10-19); part 3, the composer's line,
-next. Branch `issues/network-limits` in both repositories.
+**Status:** done 2026-10-19, all three parts. Branch `issues/network-limits`
+in both repositories.
 
 ## Context
 
@@ -80,15 +80,19 @@ Settled with the user on 2026-10-19:
    `TestAPhotoPostWithMorePicturesThanBlueskyTakes`,
    `TestAPhotoPostWithMorePicturesThanMastodonShows`.
 
-### 3. The composer says so (web)
+### 3. The composer says so (web) — done 2026-10-19
 
-1. Under the text, when the profile federates to Bluesky and the text is
-   over 300 letters: "Bluesky shows the first 300 characters, with a link
-   to the rest here."
-2. Under the pictures, when there are more than four and the profile
-   federates: "Mastodon and Bluesky show the first 4 photos, with a link to
-   see all of them here."
-3. A reserved line, so nothing jumps; every string in every base.
+1. Under the text, when the viewer's Bluesky account is connected and the
+   post is public on their own profile, past 300 characters: "Bluesky shows
+   the first 300 characters, with a link to the rest here." Its line is kept
+   (empty) while the post goes to Bluesky, so nothing moves.
+2. Under the pictures, past four, when the post goes to the fediverse,
+   Bluesky or both: "Mastodon and Bluesky show the first 4 photos, with a
+   link to all of them here" (or one of the two).
+3. `constants/limits.js` holds `BLUESKY_POST_MAX` and `PICTURES_SHOWN_MAX`;
+   the strings are in every base.
+4. Checked in headless Chrome with both networks' settings answered as on:
+   both lines at desktop size, the Bluesky line on a phone.
 
 ## Checking
 
