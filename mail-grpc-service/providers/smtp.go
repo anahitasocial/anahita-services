@@ -142,9 +142,16 @@ func (s *SmtpMailer) dial(ctx context.Context) (*smtp.Client, error) {
 	dialer := &net.Dialer{}
 
 	if s.secure {
-		conn, err := tls.DialWithDialer(dialer, "tcp", addr, &tls.Config{ServerName: s.host})
+		// Dialled within the context, and held to its deadline, as the plain
+		// connection is below: without them a server that stalled held the
+		// send, and whoever asked for it, for good (roadmap row 96, part 5).
+		tlsDialer := &tls.Dialer{NetDialer: dialer, Config: &tls.Config{ServerName: s.host}}
+		conn, err := tlsDialer.DialContext(ctx, "tcp", addr)
 		if err != nil {
 			return nil, fmt.Errorf("smtp: tls dial %s: %w", addr, err)
+		}
+		if deadline, ok := ctx.Deadline(); ok {
+			_ = conn.SetDeadline(deadline)
 		}
 		client, err := smtp.NewClient(conn, s.host)
 		if err != nil {

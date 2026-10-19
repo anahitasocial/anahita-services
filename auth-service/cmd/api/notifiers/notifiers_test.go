@@ -26,10 +26,20 @@ type fakeUsers struct {
 	repositories.UsersInterface
 
 	admins []*entities.User
+	pages  int
 }
 
 func (f *fakeUsers) Browse(req *authrequests.UserBrowseRequest) ([]*entities.User, error) {
-	return f.admins, nil
+	f.pages++
+	// A page, as the repository answers one.
+	if req.Offset >= uint64(len(f.admins)) {
+		return nil, nil
+	}
+	end := uint64(len(f.admins))
+	if req.Limit > 0 && req.Offset+req.Limit < end {
+		end = req.Offset + req.Limit
+	}
+	return f.admins[req.Offset:end], nil
 }
 
 // The formatting guard.

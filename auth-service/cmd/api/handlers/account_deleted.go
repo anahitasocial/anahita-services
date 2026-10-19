@@ -77,9 +77,9 @@ func (h *accountDeletedHandler) HandleEvents(payload *event.EventPayload) error 
 	if parts[3] == "group" {
 		switch parts[4] {
 		case "deleted":
-			h.notifyGroupAdmins(payload.ObjectID, false)
+			h.notifyGroupAdmins(payload.ObjectID, payload.ViewerID, false)
 		case "restored":
-			h.notifyGroupAdmins(payload.ObjectID, true)
+			h.notifyGroupAdmins(payload.ObjectID, payload.ViewerID, true)
 		}
 		return nil
 	}
@@ -147,7 +147,7 @@ func systemViewer() *lib_entities.Viewer {
 // Missing configuration is a no-op rather than a failure. GRAPH_SERVICE_ADDR
 // is optional, and an installation that has not set it should lose this one
 // notification quietly rather than log an error on every group deletion.
-func (h *accountDeletedHandler) notifyGroupAdmins(groupID int64, restored bool) {
+func (h *accountDeletedHandler) notifyGroupAdmins(groupID, byID int64, restored bool) {
 	if h.Srv.ActorAdminsGRPC == nil {
 		return
 	}
@@ -197,6 +197,12 @@ func (h *accountDeletedHandler) notifyGroupAdmins(groupID int64, restored bool) 
 			continue
 		}
 		if user.Email == "" {
+			continue
+		}
+		// Not the one who did it, who knows; and not an administrator whose
+		// own account is disabled or scheduled for deletion (roadmap row 96,
+		// part 5).
+		if user.ID == byID || !user.Enabled {
 			continue
 		}
 

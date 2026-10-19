@@ -226,5 +226,5 @@ Planned with row 96, to be built after it.
 | Row 96, part 2: cleaning up | ✅ 2026-10-19 |
 | Row 96, part 3: delivery | ✅ 2026-10-19 |
 | Row 96, part 4: the web app | ⬜ |
-| Row 96, part 5: email | ⬜ |
+| Row 96, part 5: email | ✅ 2026-10-19 |
 | Row 97 | ⬜ planned |
