@@ -387,6 +387,16 @@ CREATE TABLE notifications (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
+-- What a person has turned off being told about: one row for each kind of
+-- thing turned off (roadmap row 97). A notification of that kind is not made.
+CREATE TABLE notifications_off (
+    `recipient_id` bigint unsigned NOT NULL,
+    `topic` varchar(32) NOT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`recipient_id`, `topic`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- --------------------------------------------------------
+
 CREATE TABLE auth_logs (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

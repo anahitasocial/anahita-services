@@ -40,6 +40,12 @@ type NotificationInterface interface {
 	// Add a new notification
 	Add(notification *entities.Notification) (int64, error)
 
+	// OffTopics are the kinds of thing a person has turned off.
+	OffTopics(recipientID int64) ([]string, error)
+
+	// SetTopic turns a kind of thing on or off for a person.
+	SetTopic(recipientID int64, topic string, on bool) error
+
 	// DeleteAbout removes every notification about a node that is gone.
 	DeleteAbout(nodeID int64) error
 
@@ -252,10 +258,28 @@ ON DUPLICATE KEY UPDATE
     updated_at = NOW(),
     read_at = NULL`
 
-// Add tells somebody something, or tells them again.
+const isTopicOff = `
+SELECT COUNT(*)
+FROM notifications_off
+WHERE recipient_id = ?
+    AND topic = ?`
+
+// Add tells somebody something, or tells them again; or does not, when they
+// have turned off that kind of thing (roadmap row 97, part 5), and answers
+// 0.
 func (repo *Notification) Add(item *entities.Notification) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
+
+	if topic := constants.TopicOf(item.Type); topic != "" {
+		var off int
+		if err := repo.db.QueryRowContext(ctx, isTopicOff, item.RecipientID, topic).Scan(&off); err != nil {
+			return 0, err
+		}
+		if off > 0 {
+			return 0, nil
+		}
+	}
 
 	query := sq.Insert("notifications").Columns(
 		"type",
@@ -326,6 +350,56 @@ func (repo *Notification) DeleteAbout(nodeID int64) error {
 	defer cancel()
 
 	_, err := repo.db.ExecContext(ctx, deleteNotificationsAbout, nodeID, nodeID, nodeID)
+	return err
+}
+
+const offTopics = `
+SELECT topic
+FROM notifications_off
+WHERE recipient_id = ?`
+
+// OffTopics are the kinds of thing a person has turned off being told about.
+func (repo *Notification) OffTopics(recipientID int64) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	rows, err := repo.db.QueryContext(ctx, offTopics, recipientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	off := []string{}
+	for rows.Next() {
+		var topic string
+		if err := rows.Scan(&topic); err != nil {
+			return nil, err
+		}
+		off = append(off, topic)
+	}
+	return off, rows.Err()
+}
+
+const turnTopicOff = `
+INSERT IGNORE INTO notifications_off (recipient_id, topic)
+VALUES (?, ?)`
+
+const turnTopicOn = `
+DELETE FROM notifications_off
+WHERE recipient_id = ?
+    AND topic = ?`
+
+// SetTopic turns a kind of thing on or off for a person: off is a row, on
+// is none.
+func (repo *Notification) SetTopic(recipientID int64, topic string, on bool) error {
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	query := turnTopicOff
+	if on {
+		query = turnTopicOn
+	}
+	_, err := repo.db.ExecContext(ctx, query, recipientID, topic)
 	return err
 }
 

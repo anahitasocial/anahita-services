@@ -528,6 +528,12 @@ DELETE FROM notifications
 WHERE target_id = ?
 LIMIT ?`
 
+	// What they turned off being told about.
+	const deleteNotificationsOff = `
+DELETE FROM notifications_off
+WHERE recipient_id = ?
+LIMIT ?`
+
 	// Their own weights for search.
 	const deleteSearchPreferences = `
 DELETE FROM search_preferences
@@ -542,6 +548,7 @@ LIMIT ?`
 		deleteNotificationsByActor,
 		deleteNotificationsAboutActor,
 		deleteNotificationsInActor,
+		deleteNotificationsOff,
 	} {
 		if err := r.deleteInChunks(query, actorID); err != nil {
 			return err

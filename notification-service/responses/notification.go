@@ -217,3 +217,17 @@ func (r *NotificationResponse) MapNotificationItems(items []*entities.Notificati
 	}
 	return responseItems
 }
+
+// TopicChoice is whether a person is told about one kind of thing.
+type TopicChoice struct {
+	// The kind of thing: likes, reposts, replies, mentions, follows, posts,
+	// events or invitations.
+	Topic string `json:"topic"`
+	// Whether they are told about it.
+	On bool `json:"on"`
+}
+
+// Settings are what a person is told about, every kind of thing in order.
+type Settings struct {
+	Topics []TopicChoice `json:"topics"`
+}

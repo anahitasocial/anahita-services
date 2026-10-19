@@ -2215,3 +2215,12 @@ ALTER TABLE notifications
     DROP COLUMN `is_read`,
     ADD KEY `recipient_unread` (`recipient_id`, `read_at`),
     ADD KEY `read_at` (`read_at`);
+
+-- 20261122000002_notifications_off: what a person has turned off being told
+-- about (roadmap row 97).
+CREATE TABLE notifications_off (
+    `recipient_id` bigint unsigned NOT NULL,
+    `topic` varchar(32) NOT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`recipient_id`, `topic`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

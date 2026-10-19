@@ -64,7 +64,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#like-service">Likes</a> <span class="count">3</span></li>
 <li><a href="#link-preview-service">Link previews</a> <span class="count">4</span></li>
 <li><a href="#location-service">Locations</a> <span class="count">10</span></li>
-<li><a href="#notification-service">Notifications</a> <span class="count">7</span></li>
+<li><a href="#notification-service">Notifications</a> <span class="count">9</span></li>
 <li><a href="#photo-service">Photo posts</a> <span class="count">16</span></li>
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
 <li><a href="#search-service">Search</a> <span class="count">3</span></li>
@@ -72,7 +72,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">44</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">148</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">150</span></li>
 </ul>
 </nav>
 <main>
@@ -6386,6 +6386,47 @@ who may call it: somebody signed in, with a token that carries `notifications:wr
 </table>
 <p class="handler">Answered by <code>notification/cmd/api/handlers.(*notificationHandler).EditAll</code></p>
 </details>
+<details class="route" id="getNotificationsSettings" data-search="get /notifications/settings what the viewer is told about every kind of thing, on or off: likes, reposts, replies, mentions, follows, posts, events and invitations. all on to begin with.
+
+who may call it: somebody signed in, with a token that carries `notifications:read`.">
+<summary><span class="method get">GET</span> <code class="path">/notifications/settings</code> <span class="summary">What the viewer is told about</span></summary>
+<div class="description"><p>Every kind of thing, on or off: likes, reposts, replies, mentions, follows, posts, events and invitations. All on to begin with.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>notifications:read</code></p>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-notification.Settings">notification.Settings</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>notification/cmd/api/handlers.(*notificationHandler).ReadSettings</code></p>
+</details>
+<details class="route" id="patchNotificationsSettings" data-search="patch /notifications/settings be told about a kind of thing, or not turns one on or off. a notification of a kind turned off is not made. answers with them all.
+
+who may call it: somebody signed in, with a token that carries `notifications:write`.">
+<summary><span class="method patch">PATCH</span> <code class="path">/notifications/settings</code> <span class="summary">Be told about a kind of thing, or not</span></summary>
+<div class="description"><p>Turns one on or off. A notification of a kind turned off is not made. Answers with them all.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>notifications:write</code></p>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>on</code></td><td>boolean</td><td>Whether to be told about it.</td></tr>
+<tr><td><code>topic</code> <span class="required">always</span></td><td>string</td><td>The kind of thing: likes, reposts, replies, mentions, follows, posts, events or invitations. One of <code>likes</code>, <code>reposts</code>, <code>replies</code>, <code>mentions</code>, <code>follows</code>, <code>posts</code>, <code>events</code>, <code>invitations</code>.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-notification.Settings">notification.Settings</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>there is no such kind of thing</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>notification/cmd/api/handlers.(*notificationHandler).EditSettings</code></p>
+</details>
 <details class="route" id="postNotificationsSubscriptions" data-search="post /notifications/subscriptions be told about a post or a profile the viewer is notified of what happens to it from now on. answers with what they are told about.
 
 who may call it: somebody signed in, with a token that carries `notifications:write`.">
@@ -11649,6 +11690,16 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-notification.Settings" data-search="notification.settings topics">
+<h3>notification.Settings</h3>
+<p>Settings are what a person is told about, every kind of thing in order.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>topics</code> <span class="required">always</span></td><td>list of <a href="#schema-notification.TopicChoice">notification.TopicChoice</a> or null</td><td></td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-notification.Subject" data-search="notification.subject alias avatar_urls id name type">
 <h3>notification.Subject</h3>
 <p>Who did what a notification tells of.</p>
@@ -11674,6 +11725,17 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>name</code></td><td>string</td><td>A profile&#39;s name. Left out on a post, which has a title instead.</td></tr>
 <tr><td><code>title</code></td><td>string</td><td>A post&#39;s title, where it has one.</td></tr>
 <tr><td><code>type</code></td><td>string</td><td>What kind of thing it is.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-notification.TopicChoice" data-search="notification.topicchoice on topic">
+<h3>notification.TopicChoice</h3>
+<p>Whether a person is told about one kind of thing.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>on</code> <span class="required">always</span></td><td>boolean</td><td>Whether they are told about it.</td></tr>
+<tr><td><code>topic</code> <span class="required">always</span></td><td>string</td><td>The kind of thing: likes, reposts, replies, mentions, follows, posts, events or invitations.</td></tr>
 </tbody>
 </table>
 </div>

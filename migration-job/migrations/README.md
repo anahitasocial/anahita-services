@@ -20,5 +20,7 @@ start the job takes out the versions of the folded migrations, numbered as
 far as 20261122000001, but never one that has a file here, whatever its
 number (`entrypoint.sh`). Until 2026-10-19 it took out every version in that
 range, and the first migrations written after the fold, numbered by their
-real dates, ran again on every start. The folded migrations are in the repository's history, before the
+real dates, ran again on every start. A migration written since is numbered after
+20261122000001 all the same, so that its number says it came after the
+fold. The folded migrations are in the repository's history, before the
 commit that removed them.

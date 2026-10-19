@@ -111,6 +111,25 @@ of, for everybody who was told, whoever's hand removed it:
 
 Taking one of these back tells nobody.
 
+## Choosing what one is told about
+
+Everybody is told about everything to begin with. A person turns kinds of
+thing off, and on again, in the Notifications section of their settings
+(`GET` and `PATCH /notifications/settings`); a notification of a kind turned
+off is not made at all. Each off is a row in `notifications_off`; on is
+none. A purge takes them with the person.
+
+| Kind of thing (`topic`) | Notifications |
+| --- | --- |
+| `likes` | `voteup` |
+| `reposts` | `repost_add`, `quote_add` |
+| `replies` | `reply_add` |
+| `mentions` | `actor_mention`, `actor_mention_reply` |
+| `follows` | `actor_follow`, `actor_follow_request`, `actor_follow_request_accept` |
+| `posts` | `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add` |
+| `events` | `event_rsvp`, `event_changed`, `event_cancelled`, `event_reminder` |
+| `invitations` | `actor_invite`, `actor_invite_accept`, `admin_add` |
+
 ## Several as one
 
 Likes of one post, reposts of one post, and follows of one profile are one
@@ -167,6 +186,8 @@ notification-service at one copy: each copy hears every event.
 | --- | --- |
 | `GET /notifications/?start=&limit=` | The viewer's notifications, newest first |
 | `GET /notifications/unread-count` | How many they have not read (`count`), and when the newest was told (`newest_at`) |
+| `GET /notifications/settings` | What the viewer is told about: every kind of thing, on or off |
+| `PATCH /notifications/settings` | Turns one kind of thing on or off (`topic`, `on`) |
 | `PATCH /notifications/read-all` | Marks all of them read (Mark all read), and answers how many were unread |
 | `PATCH /notifications/:id` | Marks one read |
 | `DELETE /notifications/:id` | Deletes one |

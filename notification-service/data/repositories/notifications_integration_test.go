@@ -367,3 +367,55 @@ func TestReadOnesPastKeepingGo(t *testing.T) {
 		t.Errorf("left %s; want 3 (unread, however old) and 4 (read today)", left)
 	}
 }
+
+// WHAT THIS GUARDS (roadmap row 97, part 5): a kind of thing turned off is
+// not made; on again, it is; and only for whoever turned it off.
+func TestAKindTurnedOffIsNotMade(t *testing.T) {
+	dsn := os.Getenv("ACCESS_TEST_DSN")
+	if dsn == "" {
+		t.Skip("set ACCESS_TEST_DSN to run against MySQL")
+	}
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, stmt := range []string{`DELETE FROM notifications`, `DELETE FROM notifications_off`} {
+		if _, err := db.Exec(stmt); err != nil {
+			t.Fatal(err)
+		}
+	}
+	repo := NewNotification(db)
+	like := func(recipient, by int64) *entities.Notification {
+		n := entities.NewNotification()
+		n.Type, n.Service, n.RecipientID = "voteup", "like-service", recipient
+		n.Subject.ID, n.Subject.Type = by, "p"
+		n.Object.ID, n.Object.Type = 100, "n"
+		n.Target.ID, n.Target.Type = recipient, "p"
+		return n
+	}
+
+	if err := repo.SetTopic(1, "likes", false); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.SetTopic(1, "likes", false); err != nil { // twice is once
+		t.Fatal(err)
+	}
+	if id, err := repo.Add(like(1, 2)); err != nil || id != 0 {
+		t.Errorf("a like for somebody who turned likes off: %d, %v; want none made", id, err)
+	}
+	if id, err := repo.Add(like(7, 2)); err != nil || id == 0 {
+		t.Errorf("a like for somebody else: %d, %v; want it made", id, err)
+	}
+	off, err := repo.OffTopics(1)
+	if err != nil || len(off) != 1 || off[0] != "likes" {
+		t.Errorf("off: %v, %v; want [likes]", off, err)
+	}
+
+	if err := repo.SetTopic(1, "likes", true); err != nil {
+		t.Fatal(err)
+	}
+	if id, err := repo.Add(like(1, 3)); err != nil || id == 0 {
+		t.Errorf("turned on again: %d, %v; want it made", id, err)
+	}
+}

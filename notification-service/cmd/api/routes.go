@@ -53,6 +53,20 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.SignedIn).
 		Scope(read).
 		Sends(http.StatusOK, responses.UnreadCount{})
+	notifications.GET("/settings", r.handler.Notification.ReadSettings).
+		Summary("What the viewer is told about").
+		Describe("Every kind of thing, on or off: likes, reposts, replies, mentions, follows, posts, events and invitations. All on to begin with.").
+		Viewer(apidoc.SignedIn).
+		Scope(read).
+		Sends(http.StatusOK, responses.Settings{})
+	notifications.PATCH("/settings", r.handler.Notification.EditSettings).
+		Summary("Be told about a kind of thing, or not").
+		Describe("Turns one on or off. A notification of a kind turned off is not made. Answers with them all.").
+		Viewer(apidoc.SignedIn).
+		Scope(write).
+		Takes(requests.NewNotificationRequest().EditSettings).
+		Sends(http.StatusOK, responses.Settings{}).
+		Refuses(http.StatusBadRequest, "there is no such kind of thing")
 	notifications.PATCH("/read-all", r.handler.Notification.EditAll).
 		Summary("Mark all as read").
 		Describe("Every one of the viewer's notifications. Answers how many were unread.").

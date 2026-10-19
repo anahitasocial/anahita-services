@@ -5418,6 +5418,24 @@
         ],
         "type": "object"
       },
+      "notification.Settings": {
+        "description": "Settings are what a person is told about, every kind of thing in order.",
+        "properties": {
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/notification.TopicChoice"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "topics"
+        ],
+        "type": "object"
+      },
       "notification.Subject": {
         "description": "Subject is who did what a notification tells of.",
         "properties": {
@@ -5478,6 +5496,24 @@
         },
         "required": [
           "id"
+        ],
+        "type": "object"
+      },
+      "notification.TopicChoice": {
+        "description": "TopicChoice is whether a person is told about one kind of thing.",
+        "properties": {
+          "on": {
+            "description": "Whether they are told about it.",
+            "type": "boolean"
+          },
+          "topic": {
+            "description": "The kind of thing: likes, reposts, replies, mentions, follows, posts, events or invitations.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic",
+          "on"
         ],
         "type": "object"
       },
@@ -21409,6 +21445,170 @@
           "notification-service"
         ],
         "x-handler": "notification/cmd/api/handlers.(*notificationHandler).EditAll",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/notifications/settings": {
+      "get": {
+        "description": "Every kind of thing, on or off: likes, reposts, replies, mentions, follows, posts, events and invitations. All on to begin with.\n\nWho may call it: somebody signed in, with a token that carries `notifications:read`.",
+        "operationId": "getNotificationsSettings",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/notification.Settings"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "notifications:read"
+            ]
+          }
+        ],
+        "summary": "What the viewer is told about",
+        "tags": [
+          "notification-service"
+        ],
+        "x-handler": "notification/cmd/api/handlers.(*notificationHandler).ReadSettings",
+        "x-viewer": "signed_in"
+      },
+      "patch": {
+        "description": "Turns one on or off. A notification of a kind turned off is not made. Answers with them all.\n\nWho may call it: somebody signed in, with a token that carries `notifications:write`.",
+        "operationId": "patchNotificationsSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "on": {
+                    "description": "Whether to be told about it.",
+                    "type": "boolean"
+                  },
+                  "topic": {
+                    "description": "The kind of thing: likes, reposts, replies, mentions, follows, posts, events or invitations.",
+                    "enum": [
+                      "likes",
+                      "reposts",
+                      "replies",
+                      "mentions",
+                      "follows",
+                      "posts",
+                      "events",
+                      "invitations"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "topic"
+                ],
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "on": {
+                    "description": "Whether to be told about it.",
+                    "type": "boolean"
+                  },
+                  "topic": {
+                    "description": "The kind of thing: likes, reposts, replies, mentions, follows, posts, events or invitations.",
+                    "enum": [
+                      "likes",
+                      "reposts",
+                      "replies",
+                      "mentions",
+                      "follows",
+                      "posts",
+                      "events",
+                      "invitations"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "topic"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "on": {
+                    "description": "Whether to be told about it.",
+                    "type": "boolean"
+                  },
+                  "topic": {
+                    "description": "The kind of thing: likes, reposts, replies, mentions, follows, posts, events or invitations.",
+                    "enum": [
+                      "likes",
+                      "reposts",
+                      "replies",
+                      "mentions",
+                      "follows",
+                      "posts",
+                      "events",
+                      "invitations"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "topic"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/notification.Settings"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "there is no such kind of thing"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not do this"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "notifications:write"
+            ]
+          }
+        ],
+        "summary": "Be told about a kind of thing, or not",
+        "tags": [
+          "notification-service"
+        ],
+        "x-handler": "notification/cmd/api/handlers.(*notificationHandler).EditSettings",
         "x-viewer": "signed_in"
       }
     },
