@@ -2,7 +2,7 @@
 
 *Roadmap row 101, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** parts 1 to 3 done (2026-10-19); parts 4 and 5 next. Branch
+**Status:** parts 1 to 4 done (2026-10-19); part 5, the composer, next. Branch
 `issues/thread-composer` in both repositories, from `issues/network-limits`.
 
 ## Context
@@ -89,7 +89,7 @@ Built as planned (`event_node_medium.go`), tested in
 `thread_told_once_test.go`. Tried on dev: Worf's thread of three under a post
 of the test account made one `reply_add`, for its first note.
 
-### 4. In order on other networks (atproto-service, activitypub-service)
+### 4. In order on other networks (atproto-service, activitypub-service) — done 2026-10-19
 
 1. Bluesky: a reply whose parent is the writer's own post here, not yet
    recorded, records the parent first; and a parent recorded but not yet
@@ -98,6 +98,17 @@ of the test account made one `reply_add`, for its first note.
    AppView, which may not have it yet.
 2. Fediverse: the same for `activitypub_objects`, so the thread goes out
    at once and not at the next sweep.
+
+Built as planned, with one narrowing found by an existing test: only a
+parent made within a minute of the reply by the same writer is sent first
+(`federation.WrittenTogether`), so replying to an old post that never went
+out does not send it. On Bluesky the parent's reference comes from the
+writer's server (`Client.RecordRefOf`), falling back to the AppView; a
+part whose parent is on neither yet fails with `errNotWrittenYet`, which
+the queue tries again. Tests: `TestAThreadGoesToBlueskyInOrder` (parts heard
+and written last first), `TestAThreadGoesOutInOrder`,
+`TestWhatWasWrittenTogether`. Not tried against a real Bluesky or
+Mastodon server.
 
 ### 5. The composer (web)
 

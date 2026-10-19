@@ -60,6 +60,7 @@ type Writer interface {
 	Follows(ctx context.Context, pds, accessJWT, did string) (bool, error)
 	Notifications(ctx context.Context, pds, accessJWT string, limit int) ([]bsky.Notification, error)
 	RefOf(ctx context.Context, uri string) (post, root *bsky.Ref, err error)
+	RecordRefOf(ctx context.Context, pds, uri string) (post, root *bsky.Ref, err error)
 	GetRecord(ctx context.Context, pds, did, collection, rkey string) (map[string]any, error)
 }
 
@@ -336,6 +337,17 @@ func (h *Handlers) localPosted(ctx context.Context, noteID int64) error {
 		return err
 	}
 	subject := h.onBluesky(parent)
+	// What it answers is the part before it in a thread written in one go,
+	// and not on its way to Bluesky yet: the parts of such a thread are
+	// heard of in no set order. That goes first, if it goes at all, so the
+	// thread goes out whole and in order (roadmap row 101). An older post
+	// of the writer's that never went still does not.
+	if subject == "" && federation.WrittenTogether(parent, note) {
+		if err := h.localPosted(ctx, parent.ID); err != nil {
+			return err
+		}
+		subject = h.onBluesky(parent)
+	}
 	if subject == "" {
 		return nil
 	}
@@ -452,6 +464,42 @@ func (h *Handlers) forgetSent(account *repositories.Account, kind, rkey string) 
 	return h.Sent.DeleteByName(account.DID, kind, rkey)
 }
 
+// errNotWrittenYet is a reply to a post from here that is to be written to
+// Bluesky and is not there yet: tried again shortly, never given up on,
+// so that a thread goes out whole and in order (roadmap row 101).
+var errNotWrittenYet = errors.New("what it answers is not written to Bluesky yet")
+
+// refOf is what a post on Bluesky is named by, and the post that began its
+// thread. One written from here is read from the server of the account
+// that wrote it, which has it the moment it is written; anything else from
+// the AppView.
+func (h *Handlers) refOf(ctx context.Context, uri string) (*bsky.Ref, *bsky.Ref, error) {
+	if did, rkey, ok := bsky.ParsePostURI(uri); ok {
+		if sent, err := h.Sent.ReadByName(did, repositories.SentPost, rkey); err != nil {
+			return nil, nil, err
+		} else if sent != nil {
+			account, err := h.Accounts.Read(sent.PersonID)
+			if err != nil {
+				return nil, nil, err
+			}
+			if account != nil && account.PDS != "" {
+				post, root, err := h.Writer.RecordRefOf(ctx, account.PDS, uri)
+				if !errors.Is(err, bsky.ErrNobody) {
+					return post, root, err
+				}
+				// Not on its server: written there some other way, or not
+				// yet. Nowhere is not yet.
+				post, root, err = h.Writer.RefOf(ctx, uri)
+				if errors.Is(err, bsky.ErrNobody) {
+					return nil, nil, errNotWrittenYet
+				}
+				return post, root, err
+			}
+		}
+	}
+	return h.Writer.RefOf(ctx, uri)
+}
+
 // kindOf is what kind of thing a collection holds, as it is remembered.
 func kindOf(collection string) string {
 	for kind, each := range collections {
@@ -470,7 +518,10 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 		err           error
 	)
 	if w.Subject != "" {
-		subject, root, err = h.Writer.RefOf(ctx, w.Subject)
+		subject, root, err = h.refOf(ctx, w.Subject)
+		if errors.Is(err, errNotWrittenYet) {
+			return nil, err
+		}
 		if errors.Is(err, bsky.ErrNobody) {
 			// What it was of is gone from Bluesky.
 			return nil, federation.Permanent(err)

@@ -719,6 +719,17 @@ from another server, or a note here that itself went out. So a thread of
 somebody's own notes goes out whole, each after the one before, and a reply
 under a note that stayed here stays here.
 
+**A thread written in one go** (`POST /notes/…/thread`, roadmap row 101) is
+heard of in no set order: its notes are announced together. A note whose
+part before it, by the same writer and made within a minute of it
+(`federation.WrittenTogether`), has not gone out yet sends that part first,
+so the thread goes out at once and in order, on the fediverse and on
+Bluesky, not at the next sweep. An older note of the writer's that never
+went out still does not go out because of a reply. On Bluesky, the part
+before is read from the writer's own server (`com.atproto.repo.getRecord`)
+rather than the AppView, which may not have seen it yet; a part written
+before the one it answers is tried again shortly, and not given up on.
+
 It is sent with `inReplyTo` set to what it answers, by the address that
 has between servers, to its author's followers and to whoever wrote what
 it answers when they are on another server. They are named beside the text
