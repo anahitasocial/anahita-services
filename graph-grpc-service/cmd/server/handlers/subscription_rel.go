@@ -91,6 +91,16 @@ func (h *subscriptionGrpcHandler) Add(ctx context.Context, req *graphpb.Subscrip
 	viewer.ID = req.Viewer.Id
 	viewer.PersonType = req.Viewer.PersonType
 
+	// Subscribed already: so be it, and nothing more to do. The edge is
+	// unique, and adding it again failed (roadmap row 96, part 4).
+	already, err := h.env.Repos.SubscriptionsRel.IsSubscribedToOne(source.ID, target.ID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to read the subscription: %v", err)
+	}
+	if already {
+		return &graphpb.SubscriptionAddResponse{Success: true}, nil
+	}
+
 	edge := entities.NewAnahitaEdge()
 	edge.Type = constants.EdgeBaseSubscriptionEntityType
 	edge.NodeAID = source.ID

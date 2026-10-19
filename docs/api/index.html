@@ -9998,7 +9998,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language library_only likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count">
+<div class="route schema" id="schema-MediumNode" data-search="mediumnode access alias allow_download author authorized citation_count comment_count comment_status content cover_urls created_at deleted draft editor enabled files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language library_only likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id pinned portrait_urls quote quote_count quote_id quote_policy reply_access repost_count root root_id title type updated_at uri video view_count">
 <h3>MediumNode</h3>
 <p>A post or a reply, read on its own or answered with after a change.</p>
 <table>
@@ -10025,6 +10025,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>is_liked_by_viewer</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer likes it.</td></tr>
 <tr><td><code>is_reposted_by_viewer</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer has reposted it.</td></tr>
 <tr><td><code>is_saved_by_viewer</code></td><td>boolean</td><td>Whether the viewer has saved it. Sent to them alone, like the rest of what is said here about the viewer.</td></tr>
+<tr><td><code>is_subscribed_by_viewer</code></td><td>boolean</td><td>Whether the viewer asked to be told of its replies (Get notifications, docs/notifications.md).</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as its author said (<code>en</code>, <code>fa</code>).</td></tr>
 <tr><td><code>library_only</code></td><td>boolean</td><td>That it is in its author&#39;s media library only: put up to be shown in an article, and listed nowhere else.</td></tr>
 <tr><td><code>likes_count</code> <span class="required">always</span></td><td>integer</td><td>How many like it.</td></tr>
@@ -10054,7 +10055,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer language likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video">
+<div class="route schema" id="schema-MediumNodeItem" data-search="mediumnodeitem access alias author authorized comment_count content cover_urls created_at deleted files hidden id is_liked_by_viewer is_reposted_by_viewer is_saved_by_viewer is_subscribed_by_viewer language likes_count link_preview link_previews media_removed mimetype origin_domain owner parent_id portrait_urls quote quote_count quote_id repost_count root_id title type uri video">
 <h3>MediumNodeItem</h3>
 <p>A post or a reply in a list.</p>
 <table>
@@ -10075,6 +10076,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>is_liked_by_viewer</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer likes it.</td></tr>
 <tr><td><code>is_reposted_by_viewer</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer has reposted it.</td></tr>
 <tr><td><code>is_saved_by_viewer</code></td><td>boolean</td><td>Whether the viewer has saved it. Sent to them alone, like the rest of what is said here about the viewer.</td></tr>
+<tr><td><code>is_subscribed_by_viewer</code></td><td>boolean</td><td>Whether the viewer asked to be told of its replies (Get notifications, docs/notifications.md).</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language the author said it is written in. Left out when they did not say.</td></tr>
 <tr><td><code>likes_count</code> <span class="required">always</span></td><td>integer</td><td>How many like it.</td></tr>
 <tr><td><code>link_preview</code></td><td><a href="#schema-LinkPreview">LinkPreview</a></td><td>On a note that carries one: the preview of a link in it.</td></tr>
