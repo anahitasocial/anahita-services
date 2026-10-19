@@ -76,41 +76,49 @@ type LocationBrowseTrendingRequest struct {
 }
 
 type LocationReadRequest struct {
-	// The place's id.
+	// The location's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 }
 
 type LocationEditRequest struct {
-	// The place's id.
+	// The location's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 	// What it is called.
 	Name string `form:"name" validate:"required,max=100"`
-	// Its street address.
-	Address string `form:"address" validate:"required,max=255"`
+	// Its street address, where it has one: a beach or a trail has none.
+	Address string `form:"address" validate:"max=255"`
 	// Its city.
-	City string `form:"city" validate:"required,max=100"`
+	City string `form:"city" validate:"max=100"`
 	// Its state or province.
 	StateProvince string `form:"state_province" validate:"max=100"`
 	// Its country.
-	Country string `form:"country" validate:"required,max=50"`
+	Country string `form:"country" validate:"max=50"`
+	// Its point, where somebody placed it on a map: both, or neither. A
+	// point given is kept as it is; without one, the address is looked up.
+	Latitude  string `form:"latitude" validate:"omitempty,latitude"`
+	Longitude string `form:"longitude" validate:"omitempty,longitude"`
 }
 
 type LocationAddRequest struct {
 	// What it is called.
 	Name string `form:"name" validate:"required,max=100"`
-	// Its street address.
-	Address string `form:"address" validate:"required,max=255"`
+	// Its street address, where it has one: a beach or a trail has none.
+	Address string `form:"address" validate:"max=255"`
 	// Its city.
-	City string `form:"city" validate:"required,max=100"`
+	City string `form:"city" validate:"max=100"`
 	// Its state or province.
 	StateProvince string `form:"state_province" validate:"max=100"`
 	// Its country.
-	Country string `form:"country" validate:"required,max=50"`
+	Country string `form:"country" validate:"max=50"`
+	// Its point, where somebody placed it on a map: both, or neither. A
+	// point given is kept as it is; without one, the address is looked up.
+	Latitude  string `form:"latitude" validate:"omitempty,latitude"`
+	Longitude string `form:"longitude" validate:"omitempty,longitude"`
 	// A post to tie to it at once: the post's id.
 	SourceID int64 `form:"source_id" validate:"omitempty,numeric"`
 }
 
 type LocationDeleteRequest struct {
-	// The place's id.
+	// The location's id.
 	ID int64 `param:"id" validate:"required,numeric"`
 }

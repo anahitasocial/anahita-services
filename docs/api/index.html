@@ -63,7 +63,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#identity-image-service">Avatars and covers</a> <span class="count">6</span></li>
 <li><a href="#like-service">Likes</a> <span class="count">3</span></li>
 <li><a href="#link-preview-service">Link previews</a> <span class="count">4</span></li>
-<li><a href="#location-service">Places</a> <span class="count">10</span></li>
+<li><a href="#location-service">Locations</a> <span class="count">10</span></li>
 <li><a href="#notification-service">Notifications</a> <span class="count">6</span></li>
 <li><a href="#photo-service">Photo posts</a> <span class="count">16</span></li>
 <li><a href="#recommendation-service">Recommendations</a> <span class="count">7</span></li>
@@ -6034,13 +6034,13 @@ who may call it: anyone, signed in or not.">
 </details>
 </section>
 <section id="location-service" class="service">
-<h2>Places <code>location-service</code></h2>
-<p>Places posts can be tied to, found on a map from their address, and the posts tied to each.</p>
-<details class="route" id="getLocations" data-search="get /locations/ places found by words, near a point, or the places one post is tied to.
+<h2>Locations <code>location-service</code></h2>
+<p>Locations posts can be tied to: placed on a map, or found from an address, and the posts tied to each.</p>
+<details class="route" id="getLocations" data-search="get /locations/ locations found by words, near a point, or the locations one post is tied to.
 
 who may call it: anyone, signed in or not.">
-<summary><span class="method get">GET</span> <code class="path">/locations/</code> <span class="summary">Places</span></summary>
-<div class="description"><p>Found by words, near a point, or the places one post is tied to.</p></div>
+<summary><span class="method get">GET</span> <code class="path">/locations/</code> <span class="summary">Locations</span></summary>
+<div class="description"><p>Found by words, near a point, or the locations one post is tied to.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -6066,19 +6066,21 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*locationHandler).Browse</code></p>
 </details>
-<details class="route" id="postLocations" data-search="post /locations/ add a place its address is found on the map. answers with the place.
+<details class="route" id="postLocations" data-search="post /locations/ add a location it needs a point: one given (`latitude`, `longitude`), placed on a map, or an address to find it by. the address is optional, since a beach or a trail has none. answers with the location.
 
 who may call it: a site administrator, with a token that carries `taxonomy:write`.">
-<summary><span class="method post">POST</span> <code class="path">/locations/</code> <span class="summary">Add a place</span></summary>
-<div class="description"><p>Its address is found on the map. Answers with the place.</p></div>
+<summary><span class="method post">POST</span> <code class="path">/locations/</code> <span class="summary">Add a location</span></summary>
+<div class="description"><p>It needs a point: one given (<code>latitude</code>, <code>longitude</code>), placed on a map, or an address to find it by. The address is optional, since a beach or a trail has none. Answers with the location.</p></div>
 <p class="who"><strong>Who:</strong> an administrator, with <code>taxonomy:write</code></p>
 <h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>address</code> <span class="required">always</span></td><td>string</td><td>Its street address. At most 255 characters.</td></tr>
-<tr><td><code>city</code> <span class="required">always</span></td><td>string</td><td>Its city. At most 100 characters.</td></tr>
-<tr><td><code>country</code> <span class="required">always</span></td><td>string</td><td>Its country. At most 50 characters.</td></tr>
+<tr><td><code>address</code></td><td>string</td><td>Its street address, where it has one: a beach or a trail has none. At most 255 characters.</td></tr>
+<tr><td><code>city</code></td><td>string</td><td>Its city. At most 100 characters.</td></tr>
+<tr><td><code>country</code></td><td>string</td><td>Its country. At most 50 characters.</td></tr>
+<tr><td><code>latitude</code></td><td>string</td><td>Its point, where somebody placed it on a map: both, or neither. A point given is kept as it is; without one, the address is looked up.</td></tr>
+<tr><td><code>longitude</code></td><td>string</td><td></td></tr>
 <tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
 <tr><td><code>source_id</code></td><td>integer</td><td>A post to tie to it at once: the post&#39;s id.</td></tr>
 <tr><td><code>state_province</code></td><td>string</td><td>Its state or province. At most 100 characters.</td></tr>
@@ -6095,8 +6097,8 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*locationHandler).Add</code></p>
 </details>
-<details class="route" id="getLocationsBrowseOrderedByDegree" data-search="get /locations/_browse/ordered_by_degree places used most of all who may call it: anyone, signed in or not.">
-<summary><span class="method get">GET</span> <code class="path">/locations/_browse/ordered_by_degree</code> <span class="summary">Places used most of all</span></summary>
+<details class="route" id="getLocationsBrowseOrderedByDegree" data-search="get /locations/_browse/ordered_by_degree locations used most of all who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/locations/_browse/ordered_by_degree</code> <span class="summary">Locations used most of all</span></summary>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -6115,11 +6117,11 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*locationHandler).BrowseOrderedByDegree</code></p>
 </details>
-<details class="route" id="getLocationsBrowseTrending" data-search="get /locations/_browse/trending places used most lately the places the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation&#39;s own (`trending_window`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. one page, all there is: up to `limit`.
+<details class="route" id="getLocationsBrowseTrending" data-search="get /locations/_browse/trending locations used most lately the locations the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation&#39;s own (`trending_window`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. one page, all there is: up to `limit`.
 
 who may call it: anyone, signed in or not.">
-<summary><span class="method get">GET</span> <code class="path">/locations/_browse/trending</code> <span class="summary">Places used most lately</span></summary>
-<div class="description"><p>The places the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. <code>time_window</code> left out, the installation&#39;s own (<code>TRENDING_WINDOW</code>; daily where it federates, monthly where not), widened while it holds fewer than ten; <code>window</code> says which. One page, all there is: up to <code>limit</code>.</p></div>
+<summary><span class="method get">GET</span> <code class="path">/locations/_browse/trending</code> <span class="summary">Locations used most lately</span></summary>
+<div class="description"><p>The locations the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. <code>time_window</code> left out, the installation&#39;s own (<code>TRENDING_WINDOW</code>; daily where it federates, monthly where not), widened while it holds fewer than ten; <code>window</code> says which. One page, all there is: up to <code>limit</code>.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
@@ -6138,14 +6140,14 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*locationHandler).BrowseTrending</code></p>
 </details>
-<details class="route" id="getLocationsById" data-search="get /locations/{id} one place who may call it: anyone, signed in or not.">
-<summary><span class="method get">GET</span> <code class="path">/locations/{id}</code> <span class="summary">One place</span></summary>
+<details class="route" id="getLocationsById" data-search="get /locations/{id} one location who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/locations/{id}</code> <span class="summary">One location</span></summary>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The place&#39;s id.</td></tr>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The location&#39;s id.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -6153,31 +6155,33 @@ who may call it: anyone, signed in or not.">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-location.LocationNodeItem">location.LocationNodeItem</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
-<tr><td class="status s4">404</td><td>there is no such place</td></tr>
+<tr><td class="status s4">404</td><td>there is no such location</td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*locationHandler).Read</code></p>
 </details>
-<details class="route" id="patchLocationsById" data-search="patch /locations/{id} change a place a changed address is found on the map again. answers with the place.
+<details class="route" id="patchLocationsById" data-search="patch /locations/{id} change a location a point given (`latitude`, `longitude`) is kept as it is; without one, a changed address is found on the map again, and clearing the address keeps the point. answers with the location.
 
 who may call it: a site administrator, with a token that carries `taxonomy:write`.">
-<summary><span class="method patch">PATCH</span> <code class="path">/locations/{id}</code> <span class="summary">Change a place</span></summary>
-<div class="description"><p>A changed address is found on the map again. Answers with the place.</p></div>
+<summary><span class="method patch">PATCH</span> <code class="path">/locations/{id}</code> <span class="summary">Change a location</span></summary>
+<div class="description"><p>A point given (<code>latitude</code>, <code>longitude</code>) is kept as it is; without one, a changed address is found on the map again, and clearing the address keeps the point. Answers with the location.</p></div>
 <p class="who"><strong>Who:</strong> an administrator, with <code>taxonomy:write</code></p>
 <h4>Takes</h4>
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The place&#39;s id.</td></tr>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The location&#39;s id.</td></tr>
 </tbody>
 </table>
 <h4>Takes, as <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>address</code> <span class="required">always</span></td><td>string</td><td>Its street address. At most 255 characters.</td></tr>
-<tr><td><code>city</code> <span class="required">always</span></td><td>string</td><td>Its city. At most 100 characters.</td></tr>
-<tr><td><code>country</code> <span class="required">always</span></td><td>string</td><td>Its country. At most 50 characters.</td></tr>
+<tr><td><code>address</code></td><td>string</td><td>Its street address, where it has one: a beach or a trail has none. At most 255 characters.</td></tr>
+<tr><td><code>city</code></td><td>string</td><td>Its city. At most 100 characters.</td></tr>
+<tr><td><code>country</code></td><td>string</td><td>Its country. At most 50 characters.</td></tr>
+<tr><td><code>latitude</code></td><td>string</td><td>Its point, where somebody placed it on a map: both, or neither. A point given is kept as it is; without one, the address is looked up.</td></tr>
+<tr><td><code>longitude</code></td><td>string</td><td></td></tr>
 <tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>What it is called. At most 100 characters.</td></tr>
 <tr><td><code>state_province</code></td><td>string</td><td>Its state or province. At most 100 characters.</td></tr>
 </tbody>
@@ -6189,19 +6193,19 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 <tr><td class="status s4">400</td><td>not well formed, or the address could not be found on a map</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
-<tr><td class="status s4">404</td><td>there is no such place</td></tr>
+<tr><td class="status s4">404</td><td>there is no such location</td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*locationHandler).Edit</code></p>
 </details>
-<details class="route" id="deleteLocationsById" data-search="delete /locations/{id} delete a place who may call it: a site administrator, with a token that carries `taxonomy:write`.">
-<summary><span class="method delete">DELETE</span> <code class="path">/locations/{id}</code> <span class="summary">Delete a place</span></summary>
+<details class="route" id="deleteLocationsById" data-search="delete /locations/{id} delete a location who may call it: a site administrator, with a token that carries `taxonomy:write`.">
+<summary><span class="method delete">DELETE</span> <code class="path">/locations/{id}</code> <span class="summary">Delete a location</span></summary>
 <p class="who"><strong>Who:</strong> an administrator, with <code>taxonomy:write</code></p>
 <h4>Takes</h4>
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The place&#39;s id.</td></tr>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The location&#39;s id.</td></tr>
 </tbody>
 </table>
 <h4>Answers</h4>
@@ -6211,15 +6215,15 @@ who may call it: a site administrator, with a token that carries `taxonomy:write
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
-<tr><td class="status s4">404</td><td>there is no such place</td></tr>
+<tr><td class="status s4">404</td><td>there is no such location</td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*locationHandler).Delete</code></p>
 </details>
-<details class="route" id="getLocationsByIdInbounds" data-search="get /locations/{id}/inbounds the posts tied to a place those the viewer may see.
+<details class="route" id="getLocationsByIdInbounds" data-search="get /locations/{id}/inbounds the posts tied to a location those the viewer may see.
 
 who may call it: anyone, signed in or not.">
-<summary><span class="method get">GET</span> <code class="path">/locations/{id}/inbounds</code> <span class="summary">The posts tied to a place</span></summary>
+<summary><span class="method get">GET</span> <code class="path">/locations/{id}/inbounds</code> <span class="summary">The posts tied to a location</span></summary>
 <div class="description"><p>Those the viewer may see.</p></div>
 <p class="who"><strong>Who:</strong> anyone, signed in or not</p>
 <h4>Takes</h4>
@@ -6238,15 +6242,15 @@ who may call it: anyone, signed in or not.">
 <tbody>
 <tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-NodeItem">NodeItem</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
-<tr><td class="status s4">404</td><td>there is no such place</td></tr>
+<tr><td class="status s4">404</td><td>there is no such location</td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*inboundHandler).Browse</code></p>
 </details>
-<details class="route" id="postLocationsByIdInbounds" data-search="post /locations/{id}/inbounds/ tie a post to a place for the post&#39;s author, the owner of the profile it is on, and site administrators.
+<details class="route" id="postLocationsByIdInbounds" data-search="post /locations/{id}/inbounds/ tie a post to a location for the post&#39;s author, the owner of the profile it is on, and site administrators.
 
 who may call it: somebody signed in, with a token that carries `media:write`.">
-<summary><span class="method post">POST</span> <code class="path">/locations/{id}/inbounds/</code> <span class="summary">Tie a post to a place</span></summary>
+<summary><span class="method post">POST</span> <code class="path">/locations/{id}/inbounds/</code> <span class="summary">Tie a post to a location</span></summary>
 <div class="description"><p>For the post&#39;s author, the owner of the profile it is on, and site administrators.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
 <h4>Takes</h4>
@@ -6270,16 +6274,16 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not change the post</td></tr>
-<tr><td class="status s4">404</td><td>there is no such place or post</td></tr>
-<tr><td class="status s4">422</td><td><code>too_many_locations</code>: the post is tied to five places already<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td>there is no such location or post</td></tr>
+<tr><td class="status s4">422</td><td><code>too_many_locations</code>: the post is tied to five locations already<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*inboundHandler).Add</code></p>
 </details>
-<details class="route" id="deleteLocationsByIdInboundsBySourceId" data-search="delete /locations/{id}/inbounds/{source_id} untie a post from a place for the post&#39;s author, the owner of the profile it is on, and site administrators.
+<details class="route" id="deleteLocationsByIdInboundsBySourceId" data-search="delete /locations/{id}/inbounds/{source_id} untie a post from a location for the post&#39;s author, the owner of the profile it is on, and site administrators.
 
 who may call it: somebody signed in, with a token that carries `media:write`.">
-<summary><span class="method delete">DELETE</span> <code class="path">/locations/{id}/inbounds/{source_id}</code> <span class="summary">Untie a post from a place</span></summary>
+<summary><span class="method delete">DELETE</span> <code class="path">/locations/{id}/inbounds/{source_id}</code> <span class="summary">Untie a post from a location</span></summary>
 <div class="description"><p>For the post&#39;s author, the owner of the profile it is on, and site administrators.</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
 <h4>Takes</h4>
@@ -6297,7 +6301,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not change the post</td></tr>
-<tr><td class="status s4">404</td><td>there is no such place or post</td></tr>
+<tr><td class="status s4">404</td><td>there is no such location or post</td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>location/cmd/api/handlers.(*inboundHandler).Delete</code></p>
