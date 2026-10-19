@@ -99,8 +99,23 @@ fi
 # taken out, so goose sees only its baseline and what was written since. A
 # database older than the last of them has no way forward from here: it is
 # upgraded with the release before.
+#
+# Only theirs: a version with a file in ./migrations is one written since,
+# whatever its number, and is kept. The folded ones were numbered as far as
+# 20261122000001, ahead of the dates they were written, and the first
+# migrations written after (2026-10-19) were numbered by their real date,
+# inside that range: their versions were taken out on every start, so they
+# ran again, and the first, which empties the notifications, emptied them
+# again each time (roadmap row 97).
 echo "Tables found but no legacy tables. Proceeding with Goose migrations..."
+kept="0"
+for file in ./migrations/*.sql; do
+    [ -e "$file" ] || continue
+    kept="$kept, $(basename "$file" | cut -d_ -f1)"
+done
 mysql -h "$MYSQL_HOST" -P 3306 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -e "
-    DELETE FROM goose_db_version WHERE version_id BETWEEN 1 AND 20261122000001;"
+    DELETE FROM goose_db_version
+    WHERE version_id BETWEEN 1 AND 20261122000001
+        AND version_id NOT IN ($kept);"
 goose -dir ./migrations up
 echo "Goose migrations completed."
