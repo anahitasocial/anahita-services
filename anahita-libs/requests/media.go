@@ -137,6 +137,11 @@ type MediumAddRequest struct {
 	// until it is published (POST /<kind>/<id>/publish). Not read of
 	// anything else.
 	Draft bool `form:"draft" json:"draft"`
+	// The locations its author chose for it, tied to it as it is made, so
+	// that it goes to other servers with them: the first as its
+	// `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b).
+	// Up to five; what is not a location is passed over.
+	LocationIDs []int64 `json:"location_ids" form:"location_ids" validate:"omitempty,max=5,dive,gt=0"`
 }
 
 // MediumEditQuotePolicyRequest changes who may quote a post.

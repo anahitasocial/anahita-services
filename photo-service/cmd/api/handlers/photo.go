@@ -266,6 +266,11 @@ type PhotoAddRequest struct {
 	// editor to be shown in an article, and listed and announced nowhere.
 	// Only on the author's own profile.
 	LibraryOnly bool `json:"library_only" form:"library_only"`
+	// The locations its author chose for it, tied to it as it is made, so
+	// that it goes to other servers with them: the first as its
+	// `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b).
+	// Up to five; what is not a location is passed over.
+	LocationIDs []int64 `json:"location_ids" form:"location_ids" validate:"omitempty,max=5,dive,gt=0"`
 }
 
 // NewPhotoAddRequest is a photo post as the handler starts it: open to as
@@ -403,7 +408,7 @@ func (h *photoHandler) Add(c echo.Context) error {
 	medium.Filename = plan.Files[0].Filename
 	medium.Mimetype = plan.Files[0].Mimetype
 
-	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)
+	medium, err = h.Srv.MediaGRPC.AddWithLocations(medium, viewer, req.LocationIDs)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

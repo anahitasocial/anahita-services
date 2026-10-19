@@ -28,6 +28,9 @@ type Note struct {
 	To         []string          `json:"to"`
 	Cc         []string          `json:"cc"`
 	Tag        []Tag             `json:"tag,omitempty"`
+	// Where it is: the first location its author chose for it, a `Place`
+	// (roadmap row 82, part 3b). Every one is also a `Place` in Tag.
+	Location map[string]any `json:"location,omitempty"`
 	// What it answers, by the address that has between servers.
 	InReplyTo string `json:"inReplyTo,omitempty"`
 	// The pictures of a photo post, or the video of a video post.
@@ -100,11 +103,37 @@ func (n *Note) WithPictures(a Addresses, post *entities.AnahitaNode, files []*en
 	return n
 }
 
-// Tag names somebody or a hashtag that a post mentions, beside its text.
+// Tag names somebody or a hashtag that a post mentions, beside its text,
+// or a location it was tagged with, a `Place` with its point.
 type Tag struct {
 	Type string `json:"type"`
 	Href string `json:"href"`
 	Name string `json:"name"`
+	// A Place's point.
+	Latitude  *float64 `json:"latitude,omitempty"`
+	Longitude *float64 `json:"longitude,omitempty"`
+}
+
+// WithPlaces gives the post the locations its author chose for it (the
+// user, 2026-10-19: choosing one is their consent, for that post; roadmap
+// row 82, part 3b): the first as its `location`, as Pixelfed sends and reads
+// one, since servers that read `location` expect one, and every one as a
+// `Place` in its `tag`. Mastodon shows neither.
+func (n *Note) WithPlaces(places []federation.Place) *Note {
+	for i, place := range places {
+		if i == 0 {
+			n.Location = place.AsLocation()
+		}
+		latitude, longitude := place.Latitude, place.Longitude
+		n.Tag = append(n.Tag, Tag{
+			Type:      "Place",
+			Href:      place.URL,
+			Name:      place.Name,
+			Latitude:  &latitude,
+			Longitude: &longitude,
+		})
+	}
+	return n
 }
 
 // NewNote is a post made here, as other servers are sent it: its Markdown

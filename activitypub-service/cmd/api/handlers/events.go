@@ -40,6 +40,8 @@ var EventTopics = []string{
 	"node.repost.*.*.*.v1",
 	"node.medium.*.*.*.v1",
 	"node.actor.*.*.*.v1",
+	// A location added to a post, or taken off it, from its page.
+	"edge.location.*.*.v1",
 }
 
 // HandleEvent is told of something that happened here.
@@ -84,12 +86,15 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 	case strings.HasPrefix(payload.Name, "node.actor.") && !strings.HasSuffix(payload.Name, ".added.v1"):
 		err = h.profileChanged(ctx, payload.ObjectID)
 
+	// A location added to a post, or taken off it, from its page: a post
+	// that went out goes again, with its locations as they are now.
+	case strings.HasPrefix(payload.Name, "edge.location.") && goesOutKind(payload.ObjectType):
+		err = h.relocated(ctx, payload.ObjectID)
+
 	// A post made, changed or deleted. Notes, photo posts, video posts and
 	// articles go out, a website's among them; the rest of what decides is
 	// asked of the post itself. Topics stay here.
-	case strings.HasPrefix(payload.Name, "node.medium.") &&
-		(payload.ObjectType == constants.NodeMediumNoteEntityType || payload.ObjectType == constants.NodeMediumPhotoEntityType ||
-			payload.ObjectType == videos.NodeType || payload.ObjectType == constants.NodeMediumArticleEntityType):
+	case strings.HasPrefix(payload.Name, "node.medium.") && goesOutKind(payload.ObjectType):
 		if strings.HasSuffix(payload.Name, ".deleted.v1") {
 			err = h.removed(ctx, payload.ObjectID)
 		} else {
@@ -245,4 +250,15 @@ func (h *Handlers) localUnblocked(ctx context.Context, sourceID, targetID int64)
 	actor := h.addresses.Actor(source.UUID)
 	return h.send(ctx, source.ID, kept.Inbox,
 		ap.NewUndoBlock(h.addresses.Activity(newUUID()), actor, kept.URI, id), "unblock:"+newUUID())
+}
+
+// goesOutKind is a kind of post that goes to other servers: notes, photo
+// posts, video posts and articles. Topics stay here.
+func goesOutKind(nodeType string) bool {
+	switch nodeType {
+	case constants.NodeMediumNoteEntityType, constants.NodeMediumPhotoEntityType,
+		videos.NodeType, constants.NodeMediumArticleEntityType:
+		return true
+	}
+	return false
 }

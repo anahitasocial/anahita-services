@@ -303,6 +303,11 @@
             "description": "What it answers, by the address that has between servers.",
             "type": "string"
           },
+          "location": {
+            "additionalProperties": {},
+            "description": "Where it is: the first location its author chose for it, a `Place` (roadmap row 82, part 3b). Every one is also a `Place` in Tag.",
+            "type": "object"
+          },
           "name": {
             "description": "An Article's title, and the opening it is summed up by. A note has neither: Mastodon shows a note's summary as a warning to click past.",
             "type": "string"
@@ -506,10 +511,17 @@
         "type": "object"
       },
       "activitypub.Tag": {
-        "description": "Tag names somebody or a hashtag that a post mentions, beside its text.",
+        "description": "Tag names somebody or a hashtag that a post mentions, beside its text, or a location it was tagged with, a `Place` with its point.",
         "properties": {
           "href": {
             "type": "string"
+          },
+          "latitude": {
+            "description": "A Place's point.",
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
           },
           "name": {
             "type": "string"

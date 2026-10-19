@@ -277,7 +277,7 @@ func (h *noteHandler) Add(c echo.Context) error {
 	// The preview of a link in it, when its writer kept one.
 	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body, false)
 
-	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)
+	medium, err = h.Srv.MediaGRPC.AddWithLocations(medium, viewer, req.LocationIDs)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

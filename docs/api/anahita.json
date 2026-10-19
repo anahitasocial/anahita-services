@@ -2780,6 +2780,11 @@
             "description": "What it answers, by the address that has between servers.",
             "type": "string"
           },
+          "location": {
+            "additionalProperties": {},
+            "description": "Where it is: the first location its author chose for it, a `Place` (roadmap row 82, part 3b). Every one is also a `Place` in Tag.",
+            "type": "object"
+          },
           "name": {
             "description": "An Article's title, and the opening it is summed up by. A note has neither: Mastodon shows a note's summary as a warning to click past.",
             "type": "string"
@@ -2983,10 +2988,17 @@
         "type": "object"
       },
       "activitypub.Tag": {
-        "description": "Tag names somebody or a hashtag that a post mentions, beside its text.",
+        "description": "Tag names somebody or a hashtag that a post mentions, beside its text, or a location it was tagged with, a `Place` with its point.",
         "properties": {
           "href": {
             "type": "string"
+          },
+          "latitude": {
+            "description": "A Place's point.",
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
           },
           "name": {
             "type": "string"
@@ -9737,6 +9749,16 @@
                     "description": "Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /<kind>/<id>/publish). Not read of anything else.",
                     "type": "boolean"
                   },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
+                  },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
                     "maxLength": 16,
@@ -9781,6 +9803,16 @@
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
                     "maxLength": 12,
                     "type": "string"
+                  },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
                   },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
@@ -9835,6 +9867,16 @@
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
                     "maxLength": 12,
                     "type": "string"
+                  },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
                   },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
@@ -20973,6 +21015,16 @@
                     "maxLength": 2000,
                     "type": "string"
                   },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
+                  },
                   "quote_id": {
                     "description": "The post this note quotes: it is carried under the note's own words. Checked against that post's policy. See permissions.CanQuote.",
                     "format": "int64",
@@ -21023,6 +21075,16 @@
                     "description": "The link whose preview the note carries: one its writer was shown a preview of while writing. Only the address is taken. What the card says is what this installation read off the page, and never what is sent here.",
                     "maxLength": 2000,
                     "type": "string"
+                  },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
                   },
                   "quote_id": {
                     "description": "The post this note quotes: it is carried under the note's own words. Checked against that post's policy. See permissions.CanQuote.",
@@ -21077,6 +21139,16 @@
                     "description": "The link whose preview the note carries: one its writer was shown a preview of while writing. Only the address is taken. What the card says is what this installation read off the page, and never what is sent here.",
                     "maxLength": 2000,
                     "type": "string"
+                  },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
                   },
                   "quote_id": {
                     "description": "The post this note quotes: it is carried under the note's own words. Checked against that post's policy. See permissions.CanQuote.",
@@ -26466,6 +26538,16 @@
                     "description": "In the author's media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author's own profile.",
                     "type": "boolean"
                   },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
+                  },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",
                     "maxLength": 16,
@@ -26526,6 +26608,16 @@
                     "description": "In the author's media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author's own profile.",
                     "type": "boolean"
                   },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
+                  },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",
                     "maxLength": 16,
@@ -26583,6 +26675,16 @@
                   "library_only": {
                     "description": "In the author's media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author's own profile.",
                     "type": "boolean"
+                  },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
                   },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",
@@ -31085,6 +31187,16 @@
                     "description": "Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /<kind>/<id>/publish). Not read of anything else.",
                     "type": "boolean"
                   },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
+                  },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
                     "maxLength": 16,
@@ -31129,6 +31241,16 @@
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
                     "maxLength": 12,
                     "type": "string"
+                  },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
                   },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",
@@ -31183,6 +31305,16 @@
                     "description": "The language it is written in, as a BCP 47 tag: \"en\", \"fr-CA\". Chosen by the author; left out, the post has none. See package language.",
                     "maxLength": 12,
                     "type": "string"
+                  },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
                   },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies. See constants.EffectiveQuotePolicy.",

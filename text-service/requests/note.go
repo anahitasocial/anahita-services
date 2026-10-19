@@ -88,4 +88,9 @@ type NoteAddRequest struct {
 	// says is what this installation read off the page, and never what is
 	// sent here.
 	LinkPreviewURL string `json:"link_preview_url" form:"link_preview_url" validate:"omitempty,max=2000"`
+	// The locations its author chose for it, tied to it as it is made, so
+	// that it goes to other servers with them: the first as its
+	// `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b).
+	// Up to five; what is not a location is passed over.
+	LocationIDs []int64 `json:"location_ids" form:"location_ids" validate:"omitempty,max=5,dive,gt=0"`
 }

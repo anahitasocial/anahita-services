@@ -698,9 +698,13 @@ func (x *MediumEditResponse) GetMedium() *Node {
 }
 
 type MediumAddRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Medium        *Node                  `protobuf:"bytes,1,opt,name=medium,proto3" json:"medium,omitempty"`
-	Viewer        *Viewer                `protobuf:"bytes,2,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Medium *Node                  `protobuf:"bytes,1,opt,name=medium,proto3" json:"medium,omitempty"`
+	Viewer *Viewer                `protobuf:"bytes,2,opt,name=viewer,proto3" json:"viewer,omitempty"`
+	// The locations its author chose for it, tied to it as it is made, so
+	// that it goes to other servers with them (roadmap row 82, part 3b).
+	// Up to five; what is not a location is passed over.
+	LocationIds   []int64 `protobuf:"varint,3,rep,packed,name=location_ids,json=locationIds,proto3" json:"location_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -745,6 +749,13 @@ func (x *MediumAddRequest) GetMedium() *Node {
 func (x *MediumAddRequest) GetViewer() *Viewer {
 	if x != nil {
 		return x.Viewer
+	}
+	return nil
+}
+
+func (x *MediumAddRequest) GetLocationIds() []int64 {
+	if x != nil {
+		return x.LocationIds
 	}
 	return nil
 }
@@ -2552,10 +2563,11 @@ const file_proto_graphpb_medium_proto_rawDesc = "" +
 	"\x06medium\x18\x01 \x01(\v2\v.graph.NodeR\x06medium\x12%\n" +
 	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\"9\n" +
 	"\x12MediumEditResponse\x12#\n" +
-	"\x06medium\x18\x01 \x01(\v2\v.graph.NodeR\x06medium\"^\n" +
+	"\x06medium\x18\x01 \x01(\v2\v.graph.NodeR\x06medium\"\x81\x01\n" +
 	"\x10MediumAddRequest\x12#\n" +
 	"\x06medium\x18\x01 \x01(\v2\v.graph.NodeR\x06medium\x12%\n" +
-	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\"8\n" +
+	"\x06viewer\x18\x02 \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
+	"\flocation_ids\x18\x03 \x03(\x03R\vlocationIds\"8\n" +
 	"\x11MediumAddResponse\x12#\n" +
 	"\x06medium\x18\x01 \x01(\v2\v.graph.NodeR\x06medium\"L\n" +
 	"\x13MediumDeleteRequest\x12\x0e\n" +
