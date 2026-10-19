@@ -42,10 +42,10 @@ the top of their list, unread: an event moved twice says so once.
 
 | `type` | Told when | Who is told |
 | --- | --- | --- |
-| `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add` | A profile posts | Its subscribers |
-| `note_edit`, `article_edit`, `photo_edit`, `topic_edit`, `video_edit` | A post is edited | Its profile's subscribers |
-| `reply_add` | A reply is made | The author of the post at the top of the thread, the author of what it answers, and the post's subscribers |
-| `quote_add` | A note quotes a post | The quoted post's author |
+| `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add` | A profile posts | Its subscribers who may see the post |
+| `note_edit`, `article_edit`, `photo_edit`, `topic_edit`, `video_edit` | A post is edited | Its profile's subscribers who may see it |
+| `reply_add` | A reply is made | The author of the post at the top of the thread, the author of what it answers, and the post's subscribers, each when they may see the thread and the reply |
+| `quote_add` | A note quotes a post | The quoted post's author, when they may see the note |
 | `repost_add` | A post is reposted | Its author |
 | `voteup` | A post is liked | Its author |
 | `actor_mention`, `actor_mention_reply` | A post or a reply names a person | The person, when they may see it ([Permissions](permissions.md)) |
@@ -60,6 +60,29 @@ the top of their list, unread: an event moved twice says so once.
 administrators, subscribes to it; each is a reason to stay subscribed, and
 the subscription ends with the last of them. Get notifications, in a post's
 menu, subscribes to that post: its replies are told.
+
+## Only what its reader may see
+
+Nobody is told of a post they may not see, and nobody is shown one:
+
+1. **When a notification is made,** each recipient is asked about, as a
+   registered member, with `permissions.CanReadEach`: the post, and the
+   reply that holds what was done. A post for a profile's followers is told
+   to its followers, not to everybody subscribed; one for its
+   administrators, to its administrators. Asked as a member, a site
+   administrator is told what they would be as one.
+2. **When the list is read,** the viewer is asked about every post and
+   reply in it at once. A notification about one they may no longer see (it
+   was made private, they left its audience, or it is gone) is left out and
+   deleted, so that the unread count says what the list does. When the
+   question cannot be answered, the list is empty rather than unchecked.
+3. **A block** ends the follows and the subscriptions between the two,
+   both ways, and what each was told of the other goes, with what a group's
+   or an event's administrators were told of the one it blocked.
+
+The rule is the same one every post is read by, `permissions.CanRead`, asked
+by id through the graph's `FilterVisible`. A test keeps the two in step:
+`graph-grpc-service/data/repositories/visibility_agreement_integration_test.go`.
 
 ## Who is never told
 
@@ -83,6 +106,7 @@ of, for everybody who was told, whoever's hand removed it:
 | An administrator | Their `admin_add`, and the subscription unless they follow the profile |
 | A note from another server, taken back there | Everything about it |
 | An account, purged | Everything to, by or about it (graph-grpc-service's purge) |
+| A block | What the two were told of each other |
 
 Taking one of these back tells nobody.
 

@@ -87,6 +87,10 @@ func (h *eventHandler) replyAdded(payload *event.EventPayload, subject *an_entit
 			continue
 		}
 		told[recipient] = true
+		// Nor somebody who may not see the thread, or the reply in it.
+		if !h.mayRead(recipient, root.ID, reply.ID) {
+			continue
+		}
 
 		n := entities.NewNotification()
 		n.Type = NotificationTypeReplyAdd

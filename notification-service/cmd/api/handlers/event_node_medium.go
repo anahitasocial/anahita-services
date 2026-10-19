@@ -55,6 +55,9 @@ func (h *eventHandler) eventFormatNodeMediumEdited(payload *event.EventPayload) 
 		if recipient.ID == subject.ID {
 			continue // Skip the subject itself
 		}
+		if !h.mayRead(recipient.ID, object.ID) {
+			continue // Not told of a post they may not see
+		}
 
 		n.RecipientID = recipient.ID
 		if err = n.Validate(); err != nil {
@@ -129,6 +132,12 @@ func (h *eventHandler) eventFormatNodeMediumAdded(payload *event.EventPayload) e
 	for _, recipient := range recipients {
 		if recipient.ID == subject.ID {
 			continue // Skip the subject itself
+		}
+		// A post for some of its profile's subscribers is told to them alone:
+		// to its followers, not to everybody subscribed; to its
+		// administrators, not to its followers.
+		if !h.mayRead(recipient.ID, object.ID) {
+			continue
 		}
 
 		n.RecipientID = recipient.ID

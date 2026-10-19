@@ -91,6 +91,12 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 	}
 
+	// A block: what the two were told of each other goes. The graph has
+	// ended the follows and the subscriptions already.
+	if strings.HasPrefix(payload.Name, "edge.block.") && strings.HasSuffix(payload.Name, ".added.v1") {
+		err = h.Repos.Notifications.DeleteBetween(payload.ObjectID, payload.TargetID)
+	}
+
 	// Follow edge events
 	if strings.Contains(payload.Name, "edge.follow.") {
 		if strings.Contains(payload.Name, ".added.v1") {

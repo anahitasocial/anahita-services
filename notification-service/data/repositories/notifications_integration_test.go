@@ -164,3 +164,51 @@ func TestAPostGoneTakesItsNews(t *testing.T) {
 		t.Errorf("after the post went, left: %s; want the follow and the other post's like", left)
 	}
 }
+
+// WHAT THIS GUARDS (roadmap row 96, part 1): a block takes what the two
+// were told of each other, a group's administrators' news of the blocked
+// person included, and nobody else's.
+//
+//	ACCESS_TEST_DSN=... go test ./data/repositories/ -run TestABlockTakesWhatTheTwoWereToldOfEachOther -v
+func TestABlockTakesWhatTheTwoWereToldOfEachOther(t *testing.T) {
+	dsn := os.Getenv("ACCESS_TEST_DSN")
+	if dsn == "" {
+		t.Skip("set ACCESS_TEST_DSN to run against MySQL")
+	}
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`DELETE FROM notifications`); err != nil {
+		t.Fatal(err)
+	}
+
+	// Quark (1) blocks Rom (2); Bajor (10) is a group Kira (3) administers.
+	if _, err := db.Exec(`INSERT INTO notifications
+		(type, service, recipient_id, subject_id, subject_type, object_id, object_type, target_id, target_type)
+		VALUES
+		('voteup', 'like-service', 1, 2, 'p', 100, 'n', 1, 'p'),
+		('voteup', 'like-service', 2, 1, 'p', 200, 'n', 2, 'p'),
+		('actor_follow', 'graph-grpc-service', 3, 2, 'p', NULL, '', 10, 'g'),
+		('voteup', 'like-service', 1, 3, 'p', 100, 'n', 1, 'p'),
+		('actor_follow', 'graph-grpc-service', 3, 4, 'p', NULL, '', 10, 'g')`); err != nil {
+		t.Fatal(err)
+	}
+	repo := NewNotification(db)
+
+	if err := repo.DeleteBetween(1, 2); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.DeleteBetween(10, 2); err != nil { // Bajor blocks Rom
+		t.Fatal(err)
+	}
+
+	var left string
+	if err := db.QueryRow(`SELECT GROUP_CONCAT(CONCAT(recipient_id, '<', subject_id) ORDER BY id) FROM notifications`).Scan(&left); err != nil {
+		t.Fatal(err)
+	}
+	if left != "1<3,3<4" {
+		t.Errorf("left %s, want 1<3,3<4: Kira's like and Odo's follow of Bajor", left)
+	}
+}

@@ -575,7 +575,9 @@ events can be mentioned, here or on another server.
   `edge.mention.actor-service.added.v1`. Only a person here, never for a
   draft, never for naming themselves, and only when they may see the post,
   so being named in a private group's post tells nobody outside it that the
-  post exists. A group or an event mentioned is told nothing.
+  post exists. A group or an event mentioned is told nothing. Taken out of
+  the post in an edit, the news of it goes
+  (`edge.mention.actor-service.deleted.v1`).
 - **A mention is not a citation.** A post naming a post cites it; naming a
   profile mentions it (the user, 2026-10-17).
 

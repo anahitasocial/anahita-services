@@ -38,6 +38,9 @@ type NotificationInterface interface {
 	// DeleteAbout removes every notification about a node that is gone.
 	DeleteAbout(nodeID int64) error
 
+	// DeleteBetween removes what two profiles were told of each other.
+	DeleteBetween(a, b int64) error
+
 	// Delete a notification
 	Delete(notification *entities.Notification) error
 }
@@ -72,6 +75,7 @@ func (r *Notification) getBaseSelectQuery() sq.SelectBuilder {
 		"COALESCE(notification.subject_id, 0) AS subject_id",
 		"COALESCE(notification.object_id, 0) AS object_id",
 		"COALESCE(notification.target_id, 0) AS target_id",
+		"COALESCE(notification.comment_id, 0) AS comment_id",
 	}
 
 	return sq.Select(fields...).From(
@@ -154,6 +158,7 @@ func (repo *Notification) Browse(req *requests.NotificationBrowseRequest, viewer
 			&item.Subject.ID,
 			&item.Object.ID,
 			&item.Target.ID,
+			&item.CommentID,
 		)
 		if err != nil {
 			return nil, err
@@ -277,6 +282,29 @@ func (repo *Notification) DeleteAbout(nodeID int64) error {
 	return err
 }
 
+const deleteNotificationsBetween = `
+DELETE FROM notifications
+WHERE (recipient_id = ? AND subject_id = ?)
+    OR (recipient_id = ? AND subject_id = ?)
+    OR (subject_id = ? AND target_id = ?)
+    OR (subject_id = ? AND target_id = ?)`
+
+// DeleteBetween removes what two profiles were told of each other, when one
+// blocks the other (roadmap row 96, part 1): what each was told the other
+// did, and, for a group or an event, what its administrators were told the
+// other did to it.
+func (repo *Notification) DeleteBetween(a, b int64) error {
+	if a <= 0 || b <= 0 {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	_, err := repo.db.ExecContext(ctx, deleteNotificationsBetween, a, b, b, a, b, a, a, b)
+	return err
+}
+
 // Delete a notification
 func (repo *Notification) Delete(item *entities.Notification) error {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
@@ -369,6 +397,7 @@ func (repo *Notification) getItem(q *sq.SelectBuilder) (*entities.Notification, 
 		&item.Subject.ID,
 		&item.Object.ID,
 		&item.Target.ID,
+		&item.CommentID,
 	)
 
 	if err != nil {

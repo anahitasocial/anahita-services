@@ -33,6 +33,10 @@ func (h *eventHandler) quoteAdded(payload *event.EventPayload, subject *an_entit
 	if recipient <= 0 || recipient == subject.ID {
 		return nil
 	}
+	// Told only when they may see the note that quotes them.
+	if !h.mayRead(recipient, note.ID) {
+		return nil
+	}
 
 	n := entities.NewNotification()
 	n.Type = NotificationTypeQuoteAdd

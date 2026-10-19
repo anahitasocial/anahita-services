@@ -322,6 +322,7 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [No email](notifications.md#no-email)
    - [What a notification is](notifications.md#what-a-notification-is)
    - [The kinds](notifications.md#the-kinds)
+   - [Only what its reader may see](notifications.md#only-what-its-reader-may-see)
    - [Who is never told](notifications.md#who-is-never-told)
    - [When what it tells of goes](notifications.md#when-what-it-tells-of-goes)
    - [Delivery](notifications.md#delivery)

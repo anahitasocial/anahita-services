@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"anahita-libs/cmd/api/permissions"
+	an_constants "anahita-libs/constants"
 	an_entities "anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	an_mw "anahita-libs/middleware"
@@ -83,4 +85,27 @@ func (h *eventHandler) unsubscribeUnlessWanted(subject, target *an_entities.Anah
 		return nil
 	}
 	return h.Srv.SubscriptionsGRPC.Delete(subject, target)
+}
+
+// mayRead reports whether a person here may read these nodes, a post and the
+// reply that holds what was done, before they are told of them (roadmap row
+// 96, part 1): nobody is told of a post they may not see. Asked as a
+// registered member, which can only leave somebody out, never show them
+// more: a site administrator is told what they would be as a member.
+func (h *eventHandler) mayRead(recipientID int64, ids ...int64) bool {
+	reader := an_entities.NewViewer()
+	reader.ID = recipientID
+	reader.PersonType = an_constants.PersonTypeRegistered
+	reader.Authenticated = true
+
+	readable, err := permissions.CanReadEach(h.Srv.GraphNodeGRPC, ids, reader)
+	if err != nil {
+		return false
+	}
+	for _, id := range ids {
+		if id > 0 && !readable[id] {
+			return false
+		}
+	}
+	return true
 }
