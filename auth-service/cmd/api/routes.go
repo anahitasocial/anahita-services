@@ -777,7 +777,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	// is person-service's and group-service's purge.
 	accounts := api.Group("/accounts", r.authorize)
 	accounts.GET("", h.Accounts.Browse).
-		Summary("People or groups, for cleaning up a site").
+		Summary("People, groups, events or websites, for cleaning up a site").
 		Describe("Least recently active first, by default; purged ones are not listed. Removing them is the purge (`DELETE /people`, `DELETE /groups`, account-lifecycle.md).").
 		Viewer(apidoc.SuperAdmin).
 		Scope(libs_constants.OAuthScopeActorsRead).

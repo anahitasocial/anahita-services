@@ -32,7 +32,7 @@ func newAccountsHandler(env *Env) *accountsHandler {
 type AccountItem struct {
 	// The profile's id.
 	ID int64 `json:"id"`
-	// `person` or `group`.
+	// `person`, `group`, `event` or `website`.
 	Kind string `json:"kind"`
 	// The username.
 	Alias string `json:"alias"`
@@ -42,6 +42,9 @@ type AccountItem struct {
 	PersonType string `json:"person_type,omitempty"`
 	// `active`, `disabled`, `archived` or `deleted` (on its way to being destroyed).
 	State string `json:"state"`
+	// When it was deleted, while it waits out the thirty days before it is
+	// purged; absent otherwise.
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// `empty`: nothing written, following nobody and followed by nobody; `dormant`: not active for as long as the installation calls dormant (`ACCOUNT_DORMANT_DAYS`); `active` otherwise.
 	Tier string `json:"tier"`
 
@@ -65,14 +68,14 @@ type AccountItem struct {
 	// How many it follows.
 	LeaderCount int64 `json:"leader_count"`
 
-	// Groups only: how many administrators it has.
+	// Groups, events and websites only: how many administrators it has.
 	AdminCount *int64 `json:"admin_count,omitempty"`
 }
 
 // Browse lists the site's people or groups for cleanup, least recently active
 // first.
 //
-//	GET /accounts?kind=person|group
+//	GET /accounts?kind=person|group|event|website
 //
 // Filters, all optional: q, tier (empty, dormant, active), state (active,
 // disabled, archived, deleted), last_active_before and created_before
@@ -131,8 +134,8 @@ func (h *accountsHandler) Browse(c echo.Context) error {
 
 	// Each kind has filters that mean nothing for the other. They are
 	// ignored rather than refused: the client keeps one filter bar for both.
-	if req.Kind == repositories.AccountKindGroup {
-		filter.Kind = repositories.AccountKindGroup
+	if hasAdministrators(req.Kind) {
+		filter.Kind = req.Kind
 		filter.OnlyWithoutAdmin = req.HasAdmin == "false"
 	} else {
 		filter.OnlyUnverified = req.EmailVerified == "false"
@@ -171,6 +174,16 @@ func (h *accountsHandler) Browse(c echo.Context) error {
 	})
 }
 
+// hasAdministrators is a kind of profile run by administrators of its own,
+// with no sign-in: a group, an event or a website.
+func hasAdministrators(kind string) bool {
+	switch kind {
+	case repositories.AccountKindGroup, repositories.AccountKindEvent, repositories.AccountKindWebsite:
+		return true
+	}
+	return false
+}
+
 func mapAccount(kind string, account *repositories.Account) AccountItem {
 	item := AccountItem{
 		ID:            account.ID,
@@ -179,6 +192,7 @@ func mapAccount(kind string, account *repositories.Account) AccountItem {
 		Name:          account.Name,
 		PersonType:    account.PersonType,
 		State:         account.State,
+		DeletedAt:     account.DeletedAt,
 		Tier:          account.Tier,
 		CreatedAt:     account.CreatedAt,
 		LastActiveAt:  account.LastActiveAt,
@@ -187,7 +201,7 @@ func mapAccount(kind string, account *repositories.Account) AccountItem {
 		LeaderCount:   account.LeaderCount,
 	}
 
-	if kind == repositories.AccountKindGroup {
+	if hasAdministrators(kind) {
 		item.AdminCount = &account.AdminCount
 	} else {
 		item.EmailVerified = &account.EmailVerified

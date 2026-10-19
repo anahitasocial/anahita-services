@@ -23,6 +23,12 @@ import (
 const (
 	AccountKindPerson = "person"
 	AccountKindGroup  = "group"
+	// Events, so a super administrator can find one that was deleted, which
+	// no other list shows (the user, 2026-10-18).
+	AccountKindEvent = "event"
+	// Websites too, for the same reason: every kind of profile here can be
+	// scheduled for deletion, and this is where a super administrator finds it.
+	AccountKindWebsite = "website"
 
 	AccountTierEmpty   = "empty"
 	AccountTierDormant = "dormant"
@@ -37,9 +43,11 @@ const (
 	AccountSortCreated    = "created_at"
 	AccountSortName       = "name"
 
-	accountPersonType = "node.actor.person-service.person.v1"
-	accountGroupType  = "node.actor.group-service.group.v1"
-	accountAdminEdge  = "edge.actor.admin.v1"
+	accountPersonType  = "node.actor.person-service.person.v1"
+	accountGroupType   = "node.actor.group-service.group.v1"
+	accountEventType   = "node.actor.actor-service.event.v1"
+	accountWebsiteType = "node.actor.actor-service.website.v1"
+	accountAdminEdge   = "edge.actor.admin.v1"
 
 	accountsTimeout = 10 * time.Second
 )
@@ -54,6 +62,9 @@ type Account struct {
 	// State is active, disabled, archived or deleted. Deleted means waiting
 	// out the thirty days; a purged account is not listed at all.
 	State string
+	// DeletedAt is when it was deleted, while it waits out the thirty days;
+	// nil otherwise. The days it has left are counted from it.
+	DeletedAt *time.Time
 	// Tier is empty, dormant or active. See AccountFilter.DormantBefore.
 	Tier          string
 	CreatedAt     time.Time
@@ -69,7 +80,8 @@ type Account struct {
 // AccountFilter narrows the list. The zero value of each field means "do not
 // filter on this".
 type AccountFilter struct {
-	// Kind is AccountKindPerson or AccountKindGroup. Required.
+	// Kind is AccountKindPerson, AccountKindGroup, AccountKindEvent or
+	// AccountKindWebsite. Required.
 	Kind string
 
 	Search string
@@ -161,6 +173,7 @@ SELECT
     WHEN actor.archived_at IS NOT NULL THEN 'archived'
     ELSE 'active'
   END                                      AS state,
+  actor.deleted_at                         AS deleted_at,
   actor.created_at                         AS created_at,
   GREATEST(
     actor.created_at,
@@ -243,6 +256,7 @@ SELECT
   found.name,
   found.person_type,
   found.state,
+  found.deleted_at,
   found.tier,
   found.created_at,
   found.last_active_at,
@@ -272,8 +286,16 @@ var accountOrders = map[string]string{
 // everything up to and including the filters.
 func (filter *AccountFilter) statement(outer string) (string, []any) {
 	actorType, content, emptyFollowers := accountPersonType, accountContentWritten, 0
-	if filter.Kind == AccountKindGroup {
+	switch filter.Kind {
+	case AccountKindGroup:
 		actorType, content, emptyFollowers = accountGroupType, accountContentOwned, 1
+	case AccountKindEvent:
+		// Like a group: what was posted in it, and one follower, whoever
+		// is holding it, going.
+		actorType, content, emptyFollowers = accountEventType, accountContentOwned, 1
+	case AccountKindWebsite:
+		// What it posted from its feed, and one follower, whoever connected it.
+		actorType, content, emptyFollowers = accountWebsiteType, accountContentOwned, 1
 	}
 
 	rows := strings.Replace(accountRows, "%s", content, 1)
@@ -358,6 +380,7 @@ func (repo *accounts) Browse(filter *AccountFilter) ([]*Account, error) {
 			&account.Name,
 			&account.PersonType,
 			&account.State,
+			&account.DeletedAt,
 			&account.Tier,
 			&account.CreatedAt,
 			&account.LastActiveAt,
