@@ -353,6 +353,56 @@ message ActorPingResponse {
     string message = 1;
 }
 
+// A group's or an event's rules (roadmap row 102, part 5): a short title
+// each, and a line more if needed; at most ten, in order.
+message ProfileRule {
+    string title = 1;
+    string body = 2;
+}
+
+// A profile's rules and the version they are at, raised by every change.
+// Version 0 with none is a profile that never had any.
+message ProfileRules {
+    int64 profile_id = 1;
+    int64 version = 2;
+    // RFC 3339, or empty.
+    string updated_at = 3;
+    repeated ProfileRule items = 4;
+}
+
+// With a person, also the version they last agreed to.
+message RulesReadRequest {
+    int64 profile_id = 1;
+    int64 person_id = 2;
+}
+
+message RulesReadResponse {
+    ProfileRules rules = 1;
+    int64 agreed_version = 2;
+}
+
+// The rules as they are to be from now on, in order. Whether the viewer may
+// set them is the caller's to ask.
+message RulesSetRequest {
+    int64 profile_id = 1;
+    repeated ProfileRule items = 2;
+    Viewer viewer = 3;
+}
+
+message RulesSetResponse {
+    ProfileRules rules = 1;
+}
+
+// The viewer agreeing to the version a profile's rules are at now; any
+// other is refused (FailedPrecondition).
+message RulesAgreeRequest {
+    int64 profile_id = 1;
+    int64 version = 2;
+    Viewer viewer = 3;
+}
+
+message RulesAgreeResponse {}
+
 service ActorService {
     rpc Count(ActorCountRequest) returns (ActorCountResponse) {}
     rpc Browse(ActorBrowseRequest) returns (ActorBrowseResponse) {}
@@ -389,5 +439,9 @@ service ActorService {
     rpc SetPersonType(ActorSetPersonTypeRequest) returns (ActorSetPersonTypeResponse) {}
     // Records that this actor just signed in.
     rpc TouchLastVisit(ActorTouchLastVisitRequest) returns (ActorTouchLastVisitResponse) {}
+    // A group's or an event's rules (roadmap row 102, part 5).
+    rpc ReadRules(RulesReadRequest) returns (RulesReadResponse) {}
+    rpc SetRules(RulesSetRequest) returns (RulesSetResponse) {}
+    rpc AgreeRules(RulesAgreeRequest) returns (RulesAgreeResponse) {}
     rpc Ping(ActorPingRequest) returns (ActorPingResponse) {}
 }

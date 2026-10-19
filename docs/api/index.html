@@ -54,7 +54,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <ul>
 <li><a href="#abuse-report-service">Abuse reports</a> <span class="count">8</span></li>
 <li><a href="#activitypub-service">The fediverse</a> <span class="count">20</span></li>
-<li><a href="#actor-service">Profiles</a> <span class="count">71</span></li>
+<li><a href="#actor-service">Profiles</a> <span class="count">77</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
 <li><a href="#auth-service">Accounts and signing in</a> <span class="count">97</span></li>
 <li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
@@ -72,7 +72,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">46</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">155</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">157</span></li>
 </ul>
 </nav>
 <main>
@@ -1334,6 +1334,94 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*eventHandler).Unrsvp</code></p>
 </details>
+<details class="route" id="getEventsByIdRules" data-search="get /events/{id}/rules the rules of a event what somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. for whoever may see it, and for whoever it would let ask to follow.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/events/{id}/rules</code> <span class="summary">The rules of a event</span></summary>
+<div class="description"><p>What somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. For whoever may see it, and for whoever it would let ask to follow.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.Rules">actor.Rules</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not see it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such event</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).ReadRules</code></p>
+</details>
+<details class="route" id="putEventsByIdRules" data-search="put /events/{id}/rules set the rules of a event the rules as they are to be from now on, in order, at most ten; an empty list takes them away. every change raises the version, so that whoever agreed before is asked again. for whoever may change it.
+
+who may call it: somebody signed in.">
+<summary><span class="method put">PUT</span> <code class="path">/events/{id}/rules</code> <span class="summary">Set the rules of a event</span></summary>
+<div class="description"><p>The rules as they are to be from now on, in order, at most ten; an empty list takes them away. Every change raises the version, so that whoever agreed before is asked again. For whoever may change it.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>items</code></td><td>list of <a href="#schema-actor.Rule">actor.Rule</a></td><td> At most 10 of them.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.Rules">actor.Rules</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>rules_invalid</code>: more than ten, or one too long<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such event</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).SetRules</code></p>
+</details>
+<details class="route" id="postEventsByIdRulesAgree" data-search="post /events/{id}/rules/agree agree to the rules of a event the viewer agreeing, each rule ticked, to the version they were shown.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/events/{id}/rules/agree</code> <span class="summary">Agree to the rules of a event</span></summary>
+<div class="description"><p>The viewer agreeing, each rule ticked, to the version they were shown.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>version</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">204</td><td>No Content</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td>there is no such event</td></tr>
+<tr><td class="status s4">409</td><td><code>rules_not_current</code>: the rules changed since; read them again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).AgreeRules</code></p>
+</details>
 <details class="route" id="getGroups" data-search="get /groups/ groups those the viewer may see. each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).
 
 who may call it: anyone, signed in or not.">
@@ -1894,6 +1982,94 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Restore</code></p>
+</details>
+<details class="route" id="getGroupsByIdRules" data-search="get /groups/{id}/rules the rules of a group what somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. for whoever may see it, and for whoever it would let ask to follow.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/groups/{id}/rules</code> <span class="summary">The rules of a group</span></summary>
+<div class="description"><p>What somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. For whoever may see it, and for whoever it would let ask to follow.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.Rules">actor.Rules</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not see it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such group</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).ReadRules</code></p>
+</details>
+<details class="route" id="putGroupsByIdRules" data-search="put /groups/{id}/rules set the rules of a group the rules as they are to be from now on, in order, at most ten; an empty list takes them away. every change raises the version, so that whoever agreed before is asked again. for whoever may change it.
+
+who may call it: somebody signed in.">
+<summary><span class="method put">PUT</span> <code class="path">/groups/{id}/rules</code> <span class="summary">Set the rules of a group</span></summary>
+<div class="description"><p>The rules as they are to be from now on, in order, at most ten; an empty list takes them away. Every change raises the version, so that whoever agreed before is asked again. For whoever may change it.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>items</code></td><td>list of <a href="#schema-actor.Rule">actor.Rule</a></td><td> At most 10 of them.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.Rules">actor.Rules</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>rules_invalid</code>: more than ten, or one too long<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such group</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).SetRules</code></p>
+</details>
+<details class="route" id="postGroupsByIdRulesAgree" data-search="post /groups/{id}/rules/agree agree to the rules of a group the viewer agreeing, each rule ticked, to the version they were shown.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/groups/{id}/rules/agree</code> <span class="summary">Agree to the rules of a group</span></summary>
+<div class="description"><p>The viewer agreeing, each rule ticked, to the version they were shown.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>version</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">204</td><td>No Content</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td>there is no such group</td></tr>
+<tr><td class="status s4">409</td><td><code>rules_not_current</code>: the rules changed since; read them again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).AgreeRules</code></p>
 </details>
 <details class="route" id="postGroupsByIdSpam" data-search="post /groups/{id}/spam remove a group as spam a moderator&#39;s decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. administrators and super administrators; never an administrator&#39;s or a super administrator&#39;s account, nor one&#39;s own. queued, and done by the sweeper.
 
@@ -11063,6 +11239,30 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>uri</code></td><td>string</td><td>What it is called on the server it came from, and that server, when it came from another. Left out of everything made here.</td></tr>
 <tr><td><code>verified</code></td><td>boolean</td><td>A mark kept from earlier versions of Anahita. Nothing sets it yet.</td></tr>
 <tr><td><code>website_url</code></td><td>string</td><td>One link on the profile. Rendered as an anchor, so the value is validated to http(s) on the way in — see requests/actor.go.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-actor.Rule" data-search="actor.rule body title">
+<h3>actor.Rule</h3>
+<p>One of a profile&#39;s rules.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>body</code> <span class="required">always</span></td><td>string</td><td>A line more, if it needs one.</td></tr>
+<tr><td><code>title</code> <span class="required">always</span></td><td>string</td><td>A few words: &#34;Be kind&#34;.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-actor.Rules" data-search="actor.rules agreed_version items updated_at version">
+<h3>actor.Rules</h3>
+<p>A profile&#39;s rules, as they are now.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>agreed_version</code> <span class="required">always</span></td><td>integer</td><td>The version the viewer last agreed to, 0 for none: behind Version, they are asked again.</td></tr>
+<tr><td><code>items</code> <span class="required">always</span></td><td>list of <a href="#schema-actor.Rule">actor.Rule</a> or null</td><td></td></tr>
+<tr><td><code>updated_at</code> <span class="required">always</span></td><td>string</td><td>When they last changed, RFC 3339, or empty.</td></tr>
+<tr><td><code>version</code> <span class="required">always</span></td><td>integer</td><td>Raised by every change; 0 for a profile that never had any.</td></tr>
 </tbody>
 </table>
 </div>

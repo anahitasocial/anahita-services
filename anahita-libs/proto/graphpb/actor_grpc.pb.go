@@ -37,6 +37,9 @@ const (
 	ActorService_SetFeatured_FullMethodName          = "/graph.ActorService/SetFeatured"
 	ActorService_SetPersonType_FullMethodName        = "/graph.ActorService/SetPersonType"
 	ActorService_TouchLastVisit_FullMethodName       = "/graph.ActorService/TouchLastVisit"
+	ActorService_ReadRules_FullMethodName            = "/graph.ActorService/ReadRules"
+	ActorService_SetRules_FullMethodName             = "/graph.ActorService/SetRules"
+	ActorService_AgreeRules_FullMethodName           = "/graph.ActorService/AgreeRules"
 	ActorService_Ping_FullMethodName                 = "/graph.ActorService/Ping"
 )
 
@@ -79,6 +82,10 @@ type ActorServiceClient interface {
 	SetPersonType(ctx context.Context, in *ActorSetPersonTypeRequest, opts ...grpc.CallOption) (*ActorSetPersonTypeResponse, error)
 	// Records that this actor just signed in.
 	TouchLastVisit(ctx context.Context, in *ActorTouchLastVisitRequest, opts ...grpc.CallOption) (*ActorTouchLastVisitResponse, error)
+	// A group's or an event's rules (roadmap row 102, part 5).
+	ReadRules(ctx context.Context, in *RulesReadRequest, opts ...grpc.CallOption) (*RulesReadResponse, error)
+	SetRules(ctx context.Context, in *RulesSetRequest, opts ...grpc.CallOption) (*RulesSetResponse, error)
+	AgreeRules(ctx context.Context, in *RulesAgreeRequest, opts ...grpc.CallOption) (*RulesAgreeResponse, error)
 	Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error)
 }
 
@@ -270,6 +277,36 @@ func (c *actorServiceClient) TouchLastVisit(ctx context.Context, in *ActorTouchL
 	return out, nil
 }
 
+func (c *actorServiceClient) ReadRules(ctx context.Context, in *RulesReadRequest, opts ...grpc.CallOption) (*RulesReadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RulesReadResponse)
+	err := c.cc.Invoke(ctx, ActorService_ReadRules_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *actorServiceClient) SetRules(ctx context.Context, in *RulesSetRequest, opts ...grpc.CallOption) (*RulesSetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RulesSetResponse)
+	err := c.cc.Invoke(ctx, ActorService_SetRules_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *actorServiceClient) AgreeRules(ctx context.Context, in *RulesAgreeRequest, opts ...grpc.CallOption) (*RulesAgreeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RulesAgreeResponse)
+	err := c.cc.Invoke(ctx, ActorService_AgreeRules_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *actorServiceClient) Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ActorPingResponse)
@@ -319,6 +356,10 @@ type ActorServiceServer interface {
 	SetPersonType(context.Context, *ActorSetPersonTypeRequest) (*ActorSetPersonTypeResponse, error)
 	// Records that this actor just signed in.
 	TouchLastVisit(context.Context, *ActorTouchLastVisitRequest) (*ActorTouchLastVisitResponse, error)
+	// A group's or an event's rules (roadmap row 102, part 5).
+	ReadRules(context.Context, *RulesReadRequest) (*RulesReadResponse, error)
+	SetRules(context.Context, *RulesSetRequest) (*RulesSetResponse, error)
+	AgreeRules(context.Context, *RulesAgreeRequest) (*RulesAgreeResponse, error)
 	Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error)
 	mustEmbedUnimplementedActorServiceServer()
 }
@@ -383,6 +424,15 @@ func (UnimplementedActorServiceServer) SetPersonType(context.Context, *ActorSetP
 }
 func (UnimplementedActorServiceServer) TouchLastVisit(context.Context, *ActorTouchLastVisitRequest) (*ActorTouchLastVisitResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TouchLastVisit not implemented")
+}
+func (UnimplementedActorServiceServer) ReadRules(context.Context, *RulesReadRequest) (*RulesReadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadRules not implemented")
+}
+func (UnimplementedActorServiceServer) SetRules(context.Context, *RulesSetRequest) (*RulesSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetRules not implemented")
+}
+func (UnimplementedActorServiceServer) AgreeRules(context.Context, *RulesAgreeRequest) (*RulesAgreeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AgreeRules not implemented")
 }
 func (UnimplementedActorServiceServer) Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -732,6 +782,60 @@ func _ActorService_TouchLastVisit_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ActorService_ReadRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RulesReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).ReadRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_ReadRules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).ReadRules(ctx, req.(*RulesReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ActorService_SetRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RulesSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).SetRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_SetRules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).SetRules(ctx, req.(*RulesSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ActorService_AgreeRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RulesAgreeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).AgreeRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_AgreeRules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).AgreeRules(ctx, req.(*RulesAgreeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ActorService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ActorPingRequest)
 	if err := dec(in); err != nil {
@@ -828,6 +932,18 @@ var ActorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TouchLastVisit",
 			Handler:    _ActorService_TouchLastVisit_Handler,
+		},
+		{
+			MethodName: "ReadRules",
+			Handler:    _ActorService_ReadRules_Handler,
+		},
+		{
+			MethodName: "SetRules",
+			Handler:    _ActorService_SetRules_Handler,
+		},
+		{
+			MethodName: "AgreeRules",
+			Handler:    _ActorService_AgreeRules_Handler,
 		},
 		{
 			MethodName: "Ping",

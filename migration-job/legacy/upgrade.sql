@@ -2232,3 +2232,29 @@ CREATE TABLE notifications_off (
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`recipient_id`, `topic`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 20261122000004_profile_rules: a group's and an event's rules, and who
+-- agreed to which version (roadmap row 102, part 5).
+CREATE TABLE profile_rules (
+    `profile_id` bigint unsigned NOT NULL,
+    `position` tinyint unsigned NOT NULL,
+    `title` varchar(100) NOT NULL,
+    `body` varchar(300) NOT NULL DEFAULT '',
+    PRIMARY KEY (`profile_id`, `position`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE profile_rule_versions (
+    `profile_id` bigint unsigned NOT NULL,
+    `version` int unsigned NOT NULL DEFAULT 0,
+    `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`profile_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE profile_rule_agreements (
+    `person_id` bigint unsigned NOT NULL,
+    `profile_id` bigint unsigned NOT NULL,
+    `version` int unsigned NOT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`person_id`, `profile_id`),
+    KEY `profile_id` (`profile_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

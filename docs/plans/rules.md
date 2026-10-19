@@ -19,6 +19,17 @@
    Terms' versions are left in the web app for now: their text is there
    too, and moving one without the other would split a document from its
    version (to settle with the user).
+2b. **The site's rules at sign-up, on the server** (the user, 2026-10-19:
+   the first super administrator should be reminded "on the server side
+   when signup happens"): every page auth-service renders to make an
+   account — the first super administrator's set-password page, open
+   sign-up, an invitation's acceptance, a sign-up request — shows the rules
+   as a plain checklist, all at once with a box each and no animation ("we
+   can be blunt and raw on the ux", the user), and the account is made with the
+   agreement and its version recorded; without the current version ticked
+   the server refuses. The first super administrator sees them whatever
+   `SITE_RULES` says, and the boot log and the set-password email say them
+   too. The web app's `/rules` then comes only when the version is raised.
 3. The promises on the About page — done 2026-10-19: first on the page,
    under "Our promises to you", with "Read our rules" leading to `/rules`
    (anahita-web `containers/about/Promises.jsx`). The site's rules have a

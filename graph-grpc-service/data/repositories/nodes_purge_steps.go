@@ -528,6 +528,28 @@ DELETE FROM notifications
 WHERE target_id = ?
 LIMIT ?`
 
+	// A group's or an event's rules, and who agreed to them; and what a
+	// person agreed to (roadmap row 102).
+	const deleteProfileRules = `
+DELETE FROM profile_rules
+WHERE profile_id = ?
+LIMIT ?`
+
+	const deleteProfileRuleVersions = `
+DELETE FROM profile_rule_versions
+WHERE profile_id = ?
+LIMIT ?`
+
+	const deleteRuleAgreementsOfProfile = `
+DELETE FROM profile_rule_agreements
+WHERE profile_id = ?
+LIMIT ?`
+
+	const deleteRuleAgreementsByPerson = `
+DELETE FROM profile_rule_agreements
+WHERE person_id = ?
+LIMIT ?`
+
 	// What they turned off being told about.
 	const deleteNotificationsOff = `
 DELETE FROM notifications_off
@@ -549,6 +571,10 @@ LIMIT ?`
 		deleteNotificationsAboutActor,
 		deleteNotificationsInActor,
 		deleteNotificationsOff,
+		deleteProfileRules,
+		deleteProfileRuleVersions,
+		deleteRuleAgreementsOfProfile,
+		deleteRuleAgreementsByPerson,
 	} {
 		if err := r.deleteInChunks(query, actorID); err != nil {
 			return err

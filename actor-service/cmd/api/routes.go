@@ -94,6 +94,41 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 				Sends(http.StatusConflict, libs_handlers.PurgeRefused{}, "it cannot be purged; nothing was queued")
 		}
 	}
+	// A group's and an event's rules (roadmap row 102, part 5).
+	readRules := func(kind string) func(*apidoc.Route) {
+		return func(route *apidoc.Route) {
+			route.Summary("The rules of a "+kind).
+				Describe("What somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. For whoever may see it, and for whoever it would let ask to follow.").
+				Viewer(apidoc.Anyone).
+				Takes(actorReq.Read).
+				Sends(http.StatusOK, handlers.Rules{}).
+				Refuses(http.StatusForbidden, "the viewer may not see it").
+				Refuses(http.StatusNotFound, "there is no such "+kind)
+		}
+	}
+	setRules := func(kind string) func(*apidoc.Route) {
+		return func(route *apidoc.Route) {
+			route.Summary("Set the rules of a "+kind).
+				Describe("The rules as they are to be from now on, in order, at most ten; an empty list takes them away. Every change raises the version, so that whoever agreed before is asked again. For whoever may change it.").
+				Viewer(apidoc.SignedIn).
+				Takes(&handlers.RulesSetRequest{}).
+				Sends(http.StatusOK, handlers.Rules{}).
+				Sends(http.StatusBadRequest, libs_responses.Refusal{}, "`rules_invalid`: more than ten, or one too long").
+				Refuses(http.StatusForbidden, "the viewer may not change it").
+				Refuses(http.StatusNotFound, "there is no such "+kind)
+		}
+	}
+	agreeRules := func(kind string) func(*apidoc.Route) {
+		return func(route *apidoc.Route) {
+			route.Summary("Agree to the rules of a "+kind).
+				Describe("The viewer agreeing, each rule ticked, to the version they were shown.").
+				Viewer(apidoc.SignedIn).
+				Takes(&handlers.RulesAgreeRequest{}).
+				Sends(http.StatusNoContent, nil).
+				Sends(http.StatusConflict, libs_responses.Refusal{}, "`rules_not_current`: the rules changed since; read them again").
+				Refuses(http.StatusNotFound, "there is no such "+kind)
+		}
+	}
 	spam := func(kind string) func(*apidoc.Route) {
 		return func(route *apidoc.Route) {
 			route.Summary("Remove a "+kind+" as spam").
@@ -372,6 +407,9 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 
 	// group edit features
 	groups.PATCH("/:id/features", r.handler.Group.EditFeatures, r.authorize).With(features(actorReq.EditFeatures, libs_responses.ActorNode{}))
+	groups.GET("/:id/rules", r.handler.Group.ReadRules, r.setViewer).With(readRules("group"))
+	groups.PUT("/:id/rules", r.handler.Group.SetRules, r.authorize).With(setRules("group"))
+	groups.POST("/:id/rules/agree", r.handler.Group.AgreeRules, r.authorize).With(agreeRules("group"))
 
 	// The events a group hosts.
 	groups.GET("/:id/events/", r.handler.Event.HostedBy, r.setViewer).
@@ -478,6 +516,9 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	events.PATCH("/:id/enabled", r.handler.Event.SetEnabled, r.authorize).With(enabled)
 	events.POST("/:id/restore", r.handler.Event.Restore, r.authorize).With(restore("event"))
 	events.PATCH("/:id/access", r.handler.Event.EditAccess, r.authorize).With(access(actorReq.EditAccess, libs_responses.ActorNode{}))
+	events.GET("/:id/rules", r.handler.Event.ReadRules, r.setViewer).With(readRules("event"))
+	events.PUT("/:id/rules", r.handler.Event.SetRules, r.authorize).With(setRules("event"))
+	events.POST("/:id/rules/agree", r.handler.Event.AgreeRules, r.authorize).With(agreeRules("event"))
 	events.PATCH("/:id/features", r.handler.Event.EditFeatures, r.authorize).With(features(actorReq.EditFeatures, libs_responses.ActorNode{}))
 
 	events.GET("/:id/admins/", r.handler.EventAdmin.Browse, r.authorize).With(eventAdmins)
