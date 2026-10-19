@@ -55,9 +55,9 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 	}
 
 	if strings.Contains(payload.Name, "node.medium.") {
-		if strings.Contains(payload.Name, ".edited.v1") {
-			err = h.eventFormatNodeMediumEdited(payload)
-		} else if strings.Contains(payload.Name, ".added.v1") {
+		// An edit tells nobody (the user, 2026-10-19): a name it newly
+		// adds is a mention, told as one by actor-service.
+		if strings.Contains(payload.Name, ".added.v1") {
 			err = h.eventFormatNodeMediumAdded(payload)
 		} else if strings.Contains(payload.Name, ".deleted.v1") {
 			err = h.eventFormatNodeMediumDeleted(payload)

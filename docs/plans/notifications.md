@@ -78,7 +78,7 @@ Proposed in this plan, for the user to overrule:
    object or target the viewer may not see, or whose subject they may not
    (blocked, disabled), is deleted and left out.
 2. **New posts and edits are told only to who may see them.** The handlers
-   for `<entity>_add` and `<entity>_edit` ask `FilterVisible` once for each
+   for `<entity>_add` ask `FilterVisible` once for each
    subscriber, as mentions do; replies and quotes the same, for the people
    they are told to.
 3. **A block ends the subscriptions both ways,** with the follows, in

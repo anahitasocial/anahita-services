@@ -43,7 +43,6 @@ the top of their list, unread: an event moved twice says so once.
 | `type` | Told when | Who is told |
 | --- | --- | --- |
 | `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add` | A profile posts | Its subscribers who may see the post |
-| `note_edit`, `article_edit`, `photo_edit`, `topic_edit`, `video_edit` | A post is edited | Its profile's subscribers who may see it |
 | `reply_add` | A reply is made | The author of the post at the top of the thread, the author of what it answers, and the post's subscribers, each when they may see the thread and the reply |
 | `quote_add` | A note quotes a post | The quoted post's author, when they may see the note |
 | `repost_add` | A post is reposted | Its author |
@@ -86,6 +85,8 @@ by id through the graph's `FilterVisible`. A test keeps the two in step:
 
 ## Who is never told
 
+- **Anybody, of an edit.** Changing a post tells nobody (the user,
+  2026-10-19); a name an edit adds is a mention, and told as one.
 - **Whoever did it**, of their own doing.
 - **A profile on another server,** of a like, a repost, a reply, a quote, a
   mention or a follow: its own server is told, by federation.
