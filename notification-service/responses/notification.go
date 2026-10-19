@@ -77,8 +77,6 @@ type NotificationItem struct {
 	CreatedAt time.Time `json:"created_at"`
 	// When it last changed: when it was read, for one.
 	UpdatedAt time.Time `json:"updated_at"`
-	// More about it, as JSON in a string.
-	Meta string `json:"meta"`
 	// Whether the viewer has read it.
 	IsRead bool `json:"is_read"`
 }
@@ -106,7 +104,6 @@ func (r *NotificationResponse) MapNotificationItem(item *entities.Notification) 
 		Target:      r.MapTarget(item.Target),
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
-		Meta:        item.Meta,
 		IsRead:      item.IsRead,
 	}
 }

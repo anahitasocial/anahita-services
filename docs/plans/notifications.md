@@ -112,7 +112,9 @@ Proposed in this plan, for the user to overrule:
     acknowledges on arrival.
 11. **The table** gains an index on `(recipient_id, is_read)` for the count
     and `(recipient_id, created_at)` for the list; `comment_id` becomes
-    `bigint`, as every id is. The unused `meta` column goes.
+    `bigint`, as every id is. The unused `meta` column goes. The
+    notifications there are go with the change, and the PHP site's are not
+    carried over: none is worth keeping (the user, 2026-10-19).
 12. **The mail rule as a test:** a Go test fails if any service but
     auth-service and mail-grpc-service imports the mail client.
 
@@ -222,7 +224,7 @@ Planned with row 96, to be built after it.
 | --- | --- |
 | Row 96, part 1: who may see it | ⬜ |
 | Row 96, part 2: cleaning up | ⬜ |
-| Row 96, part 3: delivery | ⬜ |
+| Row 96, part 3: delivery | ✅ 2026-10-19 |
 | Row 96, part 4: the web app | ⬜ |
 | Row 96, part 5: email | ⬜ |
 | Row 97 | ⬜ planned |

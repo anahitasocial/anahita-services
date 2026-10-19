@@ -31,7 +31,6 @@ type Notification struct {
 	CommentID   int64
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	Meta        string
 	IsRead      bool
 }
 

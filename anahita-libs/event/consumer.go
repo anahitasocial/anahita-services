@@ -2,7 +2,9 @@ package event
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
+	"runtime/debug"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -75,16 +77,36 @@ func (consumer *Consumer) Listen(topics []string, handlePayload HandlePayload) e
 		return err
 	}
 
-	forever := make(chan bool)
-	go func() {
-		for d := range messages {
-			payload := &EventPayload{}
-			_ = json.Unmarshal(d.Body, payload)
-			go handlePayload(payload)
+	log.Printf("[*] Waiting for message [Exchange, Queue][%s, %s].", getExchangeName(), q.Name)
+
+	// Each message is acknowledged as it arrives and never redelivered: a
+	// handler that fails part way is not run again, so nothing it wrote or
+	// sent is written or sent twice (anahita.io sent the same email again
+	// and again on 2026-10-15 that way). Its error is logged, and a panic in
+	// it is caught, so one bad event takes nothing else down.
+	for d := range messages {
+		payload := &EventPayload{}
+		if err := json.Unmarshal(d.Body, payload); err != nil {
+			log.Printf("event on %s not read: %v", d.RoutingKey, err)
+			continue
+		}
+		go handle(handlePayload, payload)
+	}
+
+	// The bus closed the channel: said, and returned, so that the service
+	// stops and is started again, or listens again, instead of hearing
+	// nothing from here on.
+	return errors.New("event: the bus closed the channel; listening stopped")
+}
+
+// handle runs one handler, and says what went wrong in it.
+func handle(handlePayload HandlePayload, payload *EventPayload) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("event %s: the handler panicked: %v\n%s", payload.Name, r, debug.Stack())
 		}
 	}()
-
-	log.Printf("[*] Waiting for message [Exchange, Queue][%s, %s].", getExchangeName(), q.Name)
-	<-forever
-	return nil
+	if err := handlePayload(payload); err != nil {
+		log.Printf("event %s: %v", payload.Name, err)
+	}
 }

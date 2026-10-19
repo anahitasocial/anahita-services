@@ -90,8 +90,8 @@ func (h *accountDeletedHandler) HandleEvents(payload *event.EventPayload) error 
 
 	// ObjectID is the actor that was deleted. Anything without credentials
 	// resolves to nothing here, which is expected and not an error worth
-	// returning — returning one would nack the message and have the broker
-	// redeliver it forever.
+	// returning. (An error is only logged: events are acknowledged as they
+	// arrive and never redelivered; see anahita-libs/event/consumer.go.)
 	user, err := h.Repos.Users.ReadByID(payload.ObjectID)
 	if err != nil || user == nil {
 		log.Printf("account deleted: no credentials for actor %d, nothing to revoke",
@@ -107,8 +107,8 @@ func (h *accountDeletedHandler) HandleEvents(payload *event.EventPayload) error 
 	// still recoverable. Sent last, so it describes work already done.
 	//
 	// DeletedAt drives the date rather than time.Now(): the event may be
-	// redelivered or handled late, and a mail naming a purge date a day out
-	// from the real one is worse than no date at all.
+	// handled late, and a mail naming a purge date a day out from the real
+	// one is worse than no date at all.
 	if user.DeletedAt != nil {
 		deletedAt := *user.DeletedAt
 		notifyUser := *user
@@ -137,10 +137,12 @@ func systemViewer() *lib_entities.Viewer {
 // notifyGroupAdmins mails every administrator of a group about its deletion or
 // restoration.
 //
-// Never returns an error, and that is deliberate: this runs off a broker
-// message, so an error nacks it and the group deletion is redelivered — which
-// would re-send the mail on every redelivery. A notification that failed is
-// worth a log line, not a retry loop aimed at somebody's inbox.
+// Never returns an error, and that is deliberate. Events are acknowledged as
+// they arrive and never redelivered (anahita-libs/event/consumer.go), and
+// that must stay so for anything that sends mail: a retry would re-send it,
+// which is how anahita.io sent the same email again and again on 2026-10-15.
+// A notification that failed is worth a log line, not a retry loop aimed at
+// somebody's inbox.
 //
 // Missing configuration is a no-op rather than a failure. GRAPH_SERVICE_ADDR
 // is optional, and an installation that has not set it should lose this one
@@ -218,9 +220,9 @@ func (h *accountDeletedHandler) notifyGroupAdmins(groupID int64, restored bool) 
 // revokeCredentials removes everything the person could sign in or act with.
 //
 // Best-effort throughout, and it does not stop at the first failure: the
-// profile is already marked deleted, so returning an error here would nack the
-// message and leave the OTHER credentials in place while the broker retries.
-// Getting three of four revoked beats getting none.
+// profile is already marked deleted, and the event is not delivered again,
+// so stopping would leave the OTHER credentials in place for good. Getting
+// three of four revoked beats getting none.
 //
 // The same three revocations password reset performs, for the same reason —
 // none of them are derived from the account's existence, so all three survive a
@@ -278,14 +280,14 @@ func (h *accountDeletedHandler) revokeCredentials(userID int64) {
 // inherit a departed member's identity, and what lets the actor URI answer
 // 410 Gone to the ActivityPub instances that cached them.
 //
-// Best-effort throughout and never returns an error. A nack would have the
-// broker redeliver a purge whose content is already destroyed, and each retry
-// would find less to do while logging the same failure.
+// Best-effort throughout and never returns an error: the event is not
+// delivered again, and a purge whose content is already destroyed has
+// nothing to retry.
 func (h *accountDeletedHandler) handlePurged(personID int64) error {
 	user, err := h.Repos.Users.ReadByID(personID)
 	if err != nil || user == nil {
 		// Expected for groups, which come through the same topic and have no
-		// credentials, and for a redelivered purge that already succeeded.
+		// credentials.
 		log.Printf("account purged: no credentials for actor %d, nothing to remove", personID)
 		return nil
 	}

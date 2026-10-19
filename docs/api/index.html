@@ -11580,7 +11580,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-notification.NotificationItem" data-search="notification.notificationitem created_at id is_read meta object service subject target type updated_at">
+<div class="route schema" id="schema-notification.NotificationItem" data-search="notification.notificationitem created_at id is_read object service subject target type updated_at">
 <h3>notification.NotificationItem</h3>
 <p>Something the viewer is told of.</p>
 <table>
@@ -11589,7 +11589,6 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>created_at</code> <span class="required">always</span></td><td>time</td><td>When it was made.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
 <tr><td><code>is_read</code> <span class="required">always</span></td><td>boolean</td><td>Whether the viewer has read it.</td></tr>
-<tr><td><code>meta</code> <span class="required">always</span></td><td>string</td><td>More about it, as JSON in a string.</td></tr>
 <tr><td><code>object</code> <span class="required">always</span></td><td>one of <a href="#schema-notification.Object">notification.Object</a>, null</td><td>What was done.</td></tr>
 <tr><td><code>service</code> <span class="required">always</span></td><td>string</td><td>The service that told it.</td></tr>
 <tr><td><code>subject</code> <span class="required">always</span></td><td>one of <a href="#schema-notification.Subject">notification.Subject</a>, null</td><td>Who did it.</td></tr>

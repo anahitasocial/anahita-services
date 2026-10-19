@@ -948,10 +948,6 @@
             "description": "Whether the viewer has read it.",
             "type": "boolean"
           },
-          "meta": {
-            "description": "More about it, as JSON in a string.",
-            "type": "string"
-          },
           "object": {
             "anyOf": [
               {
@@ -1008,7 +1004,6 @@
           "target",
           "created_at",
           "updated_at",
-          "meta",
           "is_read"
         ],
         "type": "object"

@@ -190,7 +190,17 @@ func (repo *Notification) Edit(item *entities.Notification) error {
 	return err
 }
 
-// Add a new notification
+// addAgain is what telling somebody the same thing again does: one row for
+// one thing (the unique key one_of_each), moved to the top of their list,
+// unread. LAST_INSERT_ID(id) answers with that row's id.
+const addAgain = `
+ON DUPLICATE KEY UPDATE
+    id = LAST_INSERT_ID(id),
+    created_at = NOW(),
+    updated_at = NOW(),
+    is_read = 0`
+
+// Add tells somebody something, or tells them again.
 func (repo *Notification) Add(item *entities.Notification) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
@@ -221,7 +231,7 @@ func (repo *Notification) Add(item *entities.Notification) (int64, error) {
 		nullableID(int64(item.CommentID)),
 		time.Now(),
 		time.Now(),
-	)
+	).Suffix(addAgain)
 
 	sql, args, err := query.ToSql()
 	if err != nil {
