@@ -276,6 +276,30 @@ message ActorSetEnabledResponse {
     bool changed = 1;
 }
 
+// Change a person's type: registered, administrator or super-administrator.
+//
+// Its own RPC rather than a field on Edit, for the reason SetEnabled gives:
+// person_type is an authority level, not a profile field, and Edit writes the
+// whole actor from the payload it is handed. SUPER ADMINISTRATORS ONLY, and
+// the caller enforces that, as with SetFeatured.
+//
+// What this service does enforce is the floor: nobody changes their own type
+// (refused with "own_person_type"), so the last super administrator can never
+// be demoted, there being nobody else who may. Only a person here, not
+// deleted, can be changed (refused with "not_a_person").
+message ActorSetPersonTypeRequest {
+    int64 id = 1;
+    string person_type = 2;
+    Viewer viewer = 3;
+}
+
+message ActorSetPersonTypeResponse {
+    // False when nothing changed: already of that type.
+    bool changed = 1;
+    // The type before, whether or not it changed.
+    string previous = 2;
+}
+
 // Feature or unfeature an actor: the accounts onboarding offers a new member
 // to follow.
 //
@@ -357,6 +381,8 @@ service ActorService {
     // Features or unfeatures an actor. Super administrators only; the caller
     // enforces that.
     rpc SetFeatured(ActorSetFeaturedRequest) returns (ActorSetFeaturedResponse) {}
+    // A person's type. Super administrators only, enforced by the caller.
+    rpc SetPersonType(ActorSetPersonTypeRequest) returns (ActorSetPersonTypeResponse) {}
     // Records that this actor just signed in.
     rpc TouchLastVisit(ActorTouchLastVisitRequest) returns (ActorTouchLastVisitResponse) {}
     rpc Ping(ActorPingRequest) returns (ActorPingResponse) {}

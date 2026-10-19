@@ -71,8 +71,8 @@ func isLastSuperAdmin(err error) bool {
 func refuseLastSuperAdmin(c echo.Context, action string) error {
 	return c.JSON(http.StatusConflict, responses.Refusal{
 		Error: "last_super_administrator",
-		Description: "This is the only super administrator. Promote someone " +
-			"else, or change this account to administrator, and then " + action + " it.",
+		Description: "This is the only super administrator. Make somebody " +
+			"else a super administrator, and then " + action + " it.",
 	})
 }
 

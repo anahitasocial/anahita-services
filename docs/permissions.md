@@ -38,6 +38,7 @@ What each route answers when the viewer may not is in the [API reference](api/in
 - [Custom feeds](#custom-feeds)
 - [Suggestions](#suggestions)
 - [Reporting](#reporting)
+- [Account types](#account-types)
 - [Removing accounts](#removing-accounts)
 - [The defaults](#the-defaults)
 - [What profile owners can change](#what-profile-owners-can-change)
@@ -754,6 +755,33 @@ Only administrators and super administrators may read what has been reported,
 see who reported it, and decide a case. The person reported is not told. See
 [Abuse reports](abuse-reports.md).
 
+## Account types
+
+A person's account type is **registered**, **administrator** or **super
+administrator** (`person_type` in the code and the API). Everybody is registered when they join; the first super
+administrator is made from `SUPER_ADMIN_EMAIL` (see
+[Registration](registration.md)). After that:
+
+| Rule | |
+| --- | --- |
+| Who may change a person's account type | An administrator may make somebody registered an administrator. Everything else, making a super administrator and taking a type away from anybody, is a super administrator's. Always after proving who they are again |
+| Whose | Anybody else's, never their own |
+| Of whom | A person here: not a group, not a profile from another server, not a deleted person |
+| Recorded | In `node_deletion_logs`, as `made-registered`, `made-admin` or `made-super-admin`, with who did it |
+| When it takes effect | At the person's next token, within fifteen minutes |
+
+What sets a super administrator apart is the installation's configuration and
+its system tasks, which is why an administrator may add administrators but not
+make a super administrator or remove anybody's type (the user, 2026-10-18).
+
+Nobody changing their own account type is what keeps a super administrator: the last
+one can only be demoted by another, and there is no other. One who wants to
+step down makes somebody else a super administrator first, who can then
+change theirs. It is done from the **Account type** card in the
+Administration section of a person's settings in the web app, or with
+`PATCH /accounts/:id/person-type`. The rule is
+`anahita-libs/constants/person_types.go` (`MayChangePersonType`).
+
 ## Removing accounts
 
 Disabling, archiving, deleting and purging a person or a group each have their
@@ -767,6 +795,7 @@ own rule, set in code and not changeable per profile:
 | Purge, with no way back | Super administrators only |
 | See the list of accounts and their activity | Super administrators only |
 | Appoint an administrator to any group | Site administrators and super administrators |
+| Change a person's account type | Administrators make administrators of registered people; the rest is super administrators'; never their own: see [Account types](#account-types) |
 
 What each one does is in [Account lifecycle](account-lifecycle.md).
 
@@ -870,6 +899,7 @@ checks enforce.
 | Following, and what a stranger is shown | `anahita-libs/cmd/api/permissions/follow.go`, `limited_profile.go` (`CanSeeLimitedProfile`); `graph-grpc-service/cmd/server/handlers/actor_restricted.go` (`restrictUnseen`) |
 | Invitations | `anahita-libs/cmd/api/permissions/invite.go` (`CanInvite`), `graph-grpc-service/data/repositories/invites.go` |
 | Events | `anahita-libs/cmd/api/permissions/event.go` (`CanRsvp`, `CanSeeOnlineURL`); setting `EVENTS_FROM` |
+| Account types | `auth-service/cmd/api/handlers/person_type.go` (`EditPersonType`), `graph-grpc-service/cmd/server/handlers/actor_person_type.go` (`SetPersonType`, which refuses one's own), `graph-grpc-service/data/repositories/nodes_person_type.go` |
 | Adding a location | `location-service/cmd/api/permissions/locations.go` (`CanAdd`); setting `LOCATIONS_FROM` |
 | Mentions | `anahita-libs/cmd/api/permissions/mention.go` (`CanMention`) |
 | Quotes | `anahita-libs/cmd/api/permissions/quote.go` (`CanQuote`, `CanDetachQuote`), `anahita-libs/constants/quote_policy.go`, `anahita-libs/cmd/api/handlers/quotes.go` (`SetQuotes`) |

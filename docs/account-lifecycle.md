@@ -33,7 +33,8 @@ Deleting, archiving and purging ask the person doing it to prove who they are
 again first, with their password or a passkey.
 
 Nobody can disable, archive, delete or purge the only super administrator. The
-answer is 409, and says to promote somebody else first.
+answer is 409, and says to make somebody else a super administrator first (see
+[Account types](permissions.md#account-types)).
 
 ## Deleting and the 30 days
 
@@ -117,7 +118,7 @@ The reasons an account stops a request:
 | --- | --- |
 | `not_found` | No such account |
 | `wrong_type` | Not a person, on the people route; not a group, on the groups route |
-| `administrator` | An administrator or super administrator. A batch never removes one: change their role first, or remove them by name with the single route |
+| `administrator` | An administrator or super administrator. A batch never removes one: change their account type first ([Account types](permissions.md#account-types)), or remove them by name with the single route |
 | `yourself` | The account asking |
 | `last_super_administrator` | The only super administrator |
 

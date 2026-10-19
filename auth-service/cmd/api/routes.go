@@ -802,6 +802,19 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusBadRequest, handlers.ConfirmationMismatch{}, "`confirmation_mismatch`: the number is not how much is public now, which it says; or, without a body, the request is not well formed").
 		Sends(http.StatusForbidden, refusal, stepUp+"; or, without a body, the viewer may not").
 		Sends(http.StatusConflict, refusal, "`public_content_allowed`: new content may still be public here")
+	// A person's type, for an administrator, never their own (the user,
+	// 2026-10-18). See handlers/person_type.go.
+	accounts.PATCH("/:id/person-type", h.Accounts.EditPersonType).
+		Summary("Change a person's type").
+		Describe("Registered, administrator or super administrator. An administrator may make somebody registered an administrator; making a super administrator, and taking a type away, are a super administrator's. Nobody changes their own, so the last super administrator cannot be demoted: one who wants to step down makes somebody else a super administrator first. Recorded with who did it (`made-registered`, `made-admin`, `made-super-admin`). It takes effect at the person's next token, within fifteen minutes.").
+		Viewer(apidoc.Admin).
+		Scope(libs_constants.OAuthScopeActorsWrite).
+		StepUp().
+		Takes(&handlers.PersonTypeRequest{}).
+		Sends(http.StatusOK, handlers.PersonTypeChanged{}, "the type they have now and had before; `changed` is false when they had it already, and no proof was needed").
+		Sends(http.StatusForbidden, refusal, stepUp+"; `person_type_not_allowed`: an administrator asked for what is a super administrator's; or, without a body, the viewer is not an administrator").
+		Sends(http.StatusNotFound, refusal, "`not_a_person`: no person here has that id; a group, a profile from another server and a deleted person have no type to change").
+		Sends(http.StatusConflict, refusal, "`own_person_type`: it is the viewer's own")
 
 	totps := api.Group("/totp", r.authorize)
 	// Status read. Registered on "" so the path is /totp, matching the

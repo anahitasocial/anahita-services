@@ -88,6 +88,11 @@ type NodesRepoInterface interface {
 	// SetEnabled turns an actor on or off. Reversible, and the only thing that
 	// writes that column on its own.
 	SetEnabled(id int64, enabled bool) (bool, error)
+	// PersonTypeOf is a person's type: only a person here, not deleted.
+	PersonTypeOf(id int64) (string, error)
+	// SetPersonType changes a person's type from the one read to another,
+	// answering whether it changed.
+	SetPersonType(id int64, from, to string) (bool, error)
 
 	// SetFeatured features or unfeatures an actor. Refuses to feature one that
 	// is disabled, archived or deleted with ErrNotFeaturable.

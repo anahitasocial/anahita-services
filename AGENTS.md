@@ -105,6 +105,9 @@ and places.
   only for the ActivityStreams type a post from elsewhere carries.
 - **Profile**, not "actor" or "account". "Actor" is the code's word;
   "account" is for signing in.
+- **Account type** for registered, administrator or super administrator,
+  never "user type", "person type" or "role"; `person_type` is the code's
+  word.
 - **+ Follow**, with no name after it: no "Follow back", no "Follow #tag".
 - Action labels name no entity: "Delete", not "Delete reply", unless two
   actions in one menu would otherwise read the same.
