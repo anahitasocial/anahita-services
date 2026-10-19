@@ -1,8 +1,9 @@
-# Rules as checklists: the site, groups and events
+# Rules, promises and removing spam
 
 *Roadmap row 102, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** planned, not started. After rows 100 and 101.
+**Status:** planned, decisions settled 2026-10-19; not started. Branch
+`issues/rules` in both repositories, from `issues/thread-composer`.
 
 ## Context
 
@@ -23,6 +24,15 @@ The user, 2026-10-19, asked for:
 "An instance is one big fancy group after all" (the user): one checklist
 feature for all three.
 
+Asked for the same day, and planned here with the rules, since all three say
+what a site is and what it keeps to:
+
+4. **Promises on every site's About page,** of what Anahita itself keeps to,
+   in short and plain words, so that people read them (the user).
+5. **Removing an account as spam at once,** without the 30 days a deleted
+   account waits: "by the time we get to it, it might be too late" (the
+   user).
+
 ## Decisions
 
 Settled with the user on 2026-10-19:
@@ -40,39 +50,181 @@ Settled with the user on 2026-10-19:
    configuration can turn them off. The first super administrator sees them
    whatever the setting.
 
-**Open, to settle before building:**
+6. **A group with rules takes a follow from another server as a request**
+   (the user): somebody elsewhere cannot tick a checklist. Groups and events
+   do not federate yet (row 73), so this is built when they do; recorded here
+   so that it is.
+7. **Rules changed, agreed again,** for the site and for groups: before
+   their next post there (the user). For an event, changed rules are shown,
+   not asked again.
+8. **The site's starting list is drafted here** for the user to approve (the
+   user), from what progressive servers on the fediverse share: the
+   Mastodon Server Covenant asks servers for "active moderation against
+   racism, sexism, homophobia and transphobia".
 
-1. A remote follower from the fediverse cannot tick anything: accept them as
-   now, or send them to approval when a group has rules? Proposed: a group
-   with rules takes remote follows as requests.
-2. When rules change: do followers agree again before their next post?
-   Proposed: yes for the site and for groups; shown, not asked, for events.
-3. The site's starting list, in words for all five bases.
+### The site's starting rules (approved by the user, 2026-10-19)
+
+Short, one tick each:
+
+1. **No hate.** Don't attack or put down people for their race, ethnicity,
+   religion, gender, sexuality, disability or where they come from. No hate
+   groups.
+2. **Keep children safe.** Never post or share anything that sexualises or
+   harms a child.
+3. **No harassment.** Don't threaten, bully, pile on or stalk anyone. Never
+   share someone's private details or intimate images without their
+   consent.
+4. **No violent extremism.** Don't promote fascism, white supremacy, or any
+   far-right or violent movement.
+5. **Stick to the facts on health and science.** Don't spread anti-vaccine or
+   anti-science misinformation that puts people at risk.
+6. **Moderators decide.** The people who run this site can remove anything
+   that breaks these rules, and things these rules don't list.
+
+### The promises (settled 2026-10-19)
+
+On the About page of every Anahita site, under **Our promises to you**, as
+the user chose them from what is built:
+
+1. **Changed your mind?** You have 30 days to undo deleting your account.
+   Just sign in again.
+2. **Your data is yours.** Download all of it, any time, from your settings.
+3. **Keep your account safe.** Turn on two-factor sign-in in your settings.
+
+Only what the software keeps by itself: an operator's own promises (such as
+moderation and daily backups on banu.io) are theirs to add. The Mastodon
+Server Covenant's four commitments (active moderation, daily backups, a
+second person with emergency access, three months' notice before closing)
+go in `docs/deploying.md` as good practice for operators, not as a
+requirement: the user can keep two of them, and a school or a small group
+may keep fewer.
+
+### Removing an account as spam
+
+1. **Remove as spam,** for a person or a group, by an administrator or a
+   super administrator: from a report (Administration › Reports) and from
+   the profile itself.
+2. **At once and for good:** purged now, as a super administrator's purge
+   is, with everything it wrote; not restorable, so promise 1 does not apply
+   to it. Its sessions end.
+3. **Never an administrator's or a super administrator's account,** nor
+   one's own.
+4. **Recorded:** `removed-as-spam` in the account's log, with who did it; a
+   report about it closed as `actioned`, `removed_as_spam`.
+5. **Asked once more** before it is done, saying it cannot be undone.
+
+**Open:** keeping the address it signed up with from signing up again.
+Proposed: not in this row.
+
+### What a site says about itself, in one file (settled 2026-10-19)
+
+The site's rules and its promises are the operator's, in a file like the
+other defaults (the user: "the same way that we have <servicename>-defaults",
+and "same as signup rules"): `auth-defaults/site.json`, read by auth-service
+from `SITE_DEFAULTS_PATH` (`/app/defaults/site.json` in the image; mounted by
+docker-compose, a ConfigMap on Kubernetes), read again when it changes, and
+the defaults kept when it cannot be read, as `search_ranking.json` is.
+
+```json
+{
+  "rules": {
+    "version": "1",
+    "items": [
+      { "title": { "en-CA": "No hate.", "fr-FR": "…" }, "body": { "en-CA": "…" } }
+    ]
+  },
+  "promises": [
+    { "title": { "en-CA": "Changed your mind?" }, "body": { "en-CA": "You have {{days}} days to undo deleting your account. Just sign in again." } }
+  ],
+  "rule_suggestions": [
+    { "title": { "en-CA": "Be kind and respectful" } }
+  ]
+}
+```
+
+1. **Each text carries its translations;** a language left out falls back to
+   English, so an operator may write in one language.
+2. **The site's rules are not edited in the app:** the file is where they
+   are. Raising `version` asks everybody to agree again; a correction that
+   leaves it is not asked again.
+3. **`{{days}}`** and any such number is filled from the configuration, so a
+   promise never says what the site does not do.
+4. **Served on one public route,** `GET /site`, read by the About page, the
+   sign-up checklist and the group rules editor; NodeInfo says only whether
+   rules are on (`SITE_RULES`).
+5. **An operator's own promises** (banu.io's moderation and daily backups)
+   are added to the file, with no change to the code.
+6. **On the service side** (the user): the web app keeps only its own
+   words (the headings, "I agree"); what a site says comes from `GET /site`.
+   The Terms of Service and Privacy Policy versions, now in the web app
+   (`src/statics/legal`), move into the file too, so the server knows the
+   current version and refuses one that is not.
+
+### A group's and an event's rules
+
+1. **Written by its administrators,** each a short title and a line of
+   explanation if wanted; **at most ten**, so that every line is read;
+   in the order they choose, with the date they last changed.
+2. **Suggestions to pick from and change** (`rule_suggestions` in the
+   file), as Facebook offers a new group's administrators. To begin with:
+   be kind and respectful; stay on topic; no spam or self-promotion; what is
+   shared here stays here; no hate or bullying; content warnings for
+   difficult topics; check facts before you share; credit people's work.
+3. **The site's rules apply as well,** said in one line under the group's,
+   so a group need not repeat them.
+
+**Reporting against a rule** (the user, 2026-10-19: in this row, as its last
+part): a post in a group can be reported as breaking one of the group's
+rules, and the report reaches that group's administrators, as Reddit and
+Mastodon do; the site's rules are offered as reasons in the same way.
 
 ## Design
 
-1. **Data** (migration after `20261122000001`): `rules` (profile, position,
-   title, body, version) and `rule_agreements` (person, profile, version,
-   created_at).
-2. **Services:** BREAD for a profile's rules by its administrators (actor
-   service; the site's by super administrators); `agree` records the
-   version. Following a group or answering an event with rules needs the
-   current version agreed (graph-grpc-service, at follow and at
-   `answer_request`). Sign-up and the first super administrator need the
-   site's (auth-service, beside `agreements`); `SITE_RULES` in the
-   configuration (default on).
-3. **Web:** a Rules editor in a group's and an event's settings; the
-   checklist dialog before + Follow and before an event's answer; the
-   checklist step in sign-up (every way in) and at the first sign-in of the
-   first super administrator; the rules in the About card.
+What is there already (found 2026-10-19): the Terms of Service and Privacy
+Policy are recorded as columns of `auth_accounts` (`tos_*`, `pp_*`), with the
+version the web app holds (`src/statics/legal`); sign-up asks for none of it,
+and every way in reaches the web app's `AgreementsGate` at the first sign-in,
+the first super administrator too (`SeedSuperAdmin`). Following a group is a
+follow edge (`SocialgraphFollow.Add`), or a request where the group takes
+requests; answering an event is a follow edge with its answer in its meta
+(`Events.Rsvp`).
+
+1. **Data** (migration `20261122000003`, with `init.sql` and
+   `legacy/upgrade.sql` in step): `rules` (profile, position, title, body)
+   for groups and events, with a version on the profile that changes with
+   any edit; and `rule_agreements` (person, profile, version, created_at),
+   profile 0 for the site, whose rules are in `site.json`.
+2. **The site's rules** at sign-in, in the gate after the Terms
+   (`AgreementsGate`), so every way in is covered, as the Terms are.
+   `SITE_RULES` (default on) in the configuration and in NodeInfo; off, only
+   the first super administrator sees them, once.
+3. **A group's and an event's rules:** edited by its administrators in a
+   Rules tab of its settings; ticked in a dialog before + Follow, before a
+   request to follow, and before an event's answer; checked by the server
+   where each is made (`Follower.Add`, `FollowRequest.Add`, `Event.Rsvp`, an
+   invitation's acceptance), which refuses without the current version
+   agreed. Shown in the About card.
+4. **Agreeing again** after a change, for the site and groups: the next post
+   there is refused (409, `rules_changed`) until the new version is
+   agreed, and the web app shows the checklist.
+5. **The promises:** a section of the About page, in every base, with the
+   30 days read from the configuration rather than written in.
+6. **Remove as spam:** a route beside the purge, for administrators, with
+   the checks above; a button in a report's case and in the profile's menu.
+7. **Reporting against a rule,** last: a report can name a rule of the group
+   it was posted in, or of the site (abuse-report-service); a group's
+   administrators see the reports of their group's rules.
 
 ## Checking
 
-Sign up by each way in; follow a group with rules and one without; change a
-rule and follow again; a remote follow on the dev PDS and fediverse.
+Sign up by each way in; follow a group with rules and one without; answer
+an event with rules; change a rule and post again; remove a test account as
+spam and see it gone at once; the About page at both sizes.
 
 ## Docs to change
 
 `docs/configuration.md` (`SITE_RULES`), `docs/api.md` and the reference,
-`docs/permissions.md`, `docs/deploying.md` (the first super administrator),
-anahita-web `docs/` for sign-up, groups and events.
+`docs/permissions.md`, `docs/registration.md`, `docs/account-lifecycle.md`
+and `docs/abuse-reports.md` (removing as spam), `docs/deploying.md` (the
+first super administrator, and the covenant as good practice), anahita-web
+`docs/` for sign-up, groups, events and the About page.
