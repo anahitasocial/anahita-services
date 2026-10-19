@@ -10,13 +10,12 @@ import (
 	"strconv"
 	"time"
 
-	"atproto/bsky"
-
-	libhandlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/federation"
 	"anahita-libs/ratelimit"
+	"atproto/bsky"
 
 	"github.com/labstack/echo/v4"
 )
@@ -56,7 +55,7 @@ func (h *Handlers) RestorePictures(c echo.Context) error {
 		return refuse(c, http.StatusNotFound, errMediaNotRemoved)
 	}
 	did, _, isPost := bsky.ParsePostURI(post.URI)
-	if !isPost || federation.MediaRemovedFrom(post.Meta) == nil || !libhandlers.MaySee(h.Nodes, post.ID, viewer) {
+	if !isPost || federation.MediaRemovedFrom(post.Meta) == nil || !permissions.CanReadByID(h.Nodes, post.ID, viewer) {
 		return refuse(c, http.StatusNotFound, errMediaNotRemoved)
 	}
 

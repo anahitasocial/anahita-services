@@ -10,6 +10,7 @@ import (
 	"time"
 
 	an_handlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
@@ -221,7 +222,7 @@ func (h *customFeedHandler) read(id int64, viewer *entities.Viewer) *entities.An
 		return feed
 	}
 
-	if !an_handlers.MaySee(h.Srv.GraphNodeGRPC, feed.ID, viewer) {
+	if !permissions.CanReadByID(h.Srv.GraphNodeGRPC, feed.ID, viewer) {
 		return nil
 	}
 

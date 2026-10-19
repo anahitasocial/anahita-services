@@ -890,7 +890,7 @@ checks enforce.
 | --- | --- |
 | What each level admits | `anahita-libs/cmd/api/permissions/add_access.go` (`AddAccessAllows`), tested in `add_access_test.go` |
 | Seeing a profile and a post | `anahita-libs/cmd/api/permissions/actor.go` and `medium.go` (`CanRead`); in lists and feeds, `graph-grpc-service/data/repositories/access.go`, `access_actor.go`, `access_medium.go` |
-| A post reached by its id | `anahita-libs/cmd/api/handlers/quotes.go` (`MaySee`), `anahita-libs/data/services/graph_node_grpc.go` (`FilterVisible`) |
+| A post reached by its id | `anahita-libs/cmd/api/permissions/visibility.go` (`CanReadByID`, `CanReadEach`), `anahita-libs/data/services/graph_node_grpc.go` (`FilterVisible`) |
 | Choosing who can see a post | `anahita-libs/cmd/api/permissions/audience.go` (`MediumAudiences`), tested in `audience_test.go` |
 | Posting and likes | `anahita-libs/cmd/api/permissions/capabilities.go` (`CanPostTo`, `CanLike`) |
 | A group's or an event's block | `anahita-libs/cmd/api/permissions/block_from_owner.go` (`CanBlockFromOwner`) |

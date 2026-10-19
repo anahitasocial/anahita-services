@@ -7,8 +7,7 @@ import (
 	"activitypub/ap"
 	"activitypub/data/repositories"
 	"activitypub/remote"
-
-	libhandlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/crypt"
 	"anahita-libs/data/entities"
@@ -144,7 +143,7 @@ func (h *Handlers) mayFederate(person *entities.AnahitaNode) bool {
 	if person.Access != constants.AnahitaAccessPublic {
 		return false
 	}
-	return libhandlers.MaySee(h.Nodes, person.ID, entities.NewViewer())
+	return permissions.CanReadByID(h.Nodes, person.ID, entities.NewViewer())
 }
 
 // federating is the person with this UUID if they are on the fediverse now:

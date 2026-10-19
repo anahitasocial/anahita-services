@@ -56,8 +56,11 @@ and places.
    rows, or a choice between two values
    ([architecture.md › The database](docs/architecture.md#the-database)).
 3. **A single node read from the graph is not access-checked.** Before
-   showing a post reached by its id, ask `handlers.MaySee` (or
-   `GraphNodeGRPC.FilterVisible`).
+   showing a post reached by its id, ask `permissions.CanReadByID`, or
+   `permissions.CanReadEach` for many at once (both through
+   `GraphNodeGRPC.FilterVisible`). Permissions are named for what they
+   allow, as BREAD has it: `CanBrowse`, `CanRead`, `CanEdit`, `CanAdd`,
+   `CanDelete`.
 4. **An address somebody typed is fetched only through `anahita-libs/safehttp`,**
    which goes to public addresses alone.
 5. **Do not run `go mod tidy` on `anahita-libs`.** Add a library with

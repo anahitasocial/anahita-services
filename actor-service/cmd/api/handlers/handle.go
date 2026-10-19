@@ -6,8 +6,7 @@ import (
 	"strings"
 
 	"actor/constants"
-
-	an_handlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/services"
 
@@ -56,7 +55,7 @@ func (h *personHandler) Handle(c echo.Context) error {
 		if err != nil || node == nil || node.ID == 0 {
 			continue
 		}
-		if !an_handlers.MaySee(h.Srv.GraphNodeGRPC, node.ID, viewer) {
+		if !permissions.CanReadByID(h.Srv.GraphNodeGRPC, node.ID, viewer) {
 			log.Printf("handle %q: not for this viewer", alias)
 			return c.NoContent(http.StatusNotFound)
 		}

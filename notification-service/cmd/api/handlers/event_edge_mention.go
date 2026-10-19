@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	an_handlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	an_entities "anahita-libs/data/entities"
 	"anahita-libs/event"
 	"notification/data/entities"
@@ -44,7 +44,7 @@ func (h *eventHandler) eventFormatEdgeMentionAdded(payload *event.EventPayload) 
 	reader.ID = target.ID
 	reader.PersonType = target.PersonType
 	reader.Authenticated = true
-	if !an_handlers.MaySee(h.Srv.GraphNodeGRPC, object.ID, reader) {
+	if !permissions.CanReadByID(h.Srv.GraphNodeGRPC, object.ID, reader) {
 		return nil
 	}
 

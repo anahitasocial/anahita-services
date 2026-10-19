@@ -1,14 +1,13 @@
 package handlers
 
 import (
-	"net/http"
-	"regexp"
-
-	libhandlers "anahita-libs/cmd/api/handlers"
+	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/policy"
+	"net/http"
+	"regexp"
 
 	"github.com/labstack/echo/v4"
 )
@@ -64,7 +63,7 @@ func (h *imageHandler) public(c echo.Context, k kind) error {
 	// may see the node is asked of the graph, which knows about its
 	// profile, its state and everything else; and the node must be open to
 	// everybody in its own right, not merely to whoever has an account.
-	if node.Access != constants.AnahitaAccessPublic || !libhandlers.MaySee(h.Srv.GraphNodeGRPC, node.ID, entities.NewViewer()) {
+	if node.Access != constants.AnahitaAccessPublic || !permissions.CanReadByID(h.Srv.GraphNodeGRPC, node.ID, entities.NewViewer()) {
 		return c.NoContent(http.StatusNotFound)
 	}
 
