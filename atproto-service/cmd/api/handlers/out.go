@@ -503,14 +503,18 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 		}
 	}
 	post := bsky.NewOutPost(words, note.Language, note.CreatedAt)
+	// More pictures than Bluesky takes.
+	morePictures := false
 	if subject != nil {
 		post.Reply = &bsky.OutReply{Root: *root, Parent: *subject}
 	}
 	// Its pictures, when it is a photo post.
 	if note.Type == constants.NodeMediumPhotoEntityType {
-		if err := h.withPictures(post, note, upload); err != nil {
+		more, err := h.withPictures(post, note, upload)
+		if err != nil {
 			return nil, err
 		}
+		morePictures = more
 	}
 	// Its video, when it is a video post.
 	if note.Type == videos.NodeType {
@@ -533,9 +537,9 @@ func (h *Handlers) record(ctx context.Context, w *write, upload uploader) (any, 
 		post.WithCard(h.Site.Web(fmt.Sprintf("/notes/%d", note.ID)), cutTitle(note), h.Site.Domain, nil)
 	}
 	// One with pictures or a video ends with a link to the rest instead,
-	// shown as its address, which needs no words in any language (roadmap
-	// row 100).
-	if post.Cut && post.Embed != nil && post.Embed.Type != "app.bsky.embed.external" {
+	// shown as its address, which needs no words in any language; and so
+	// does one with more pictures than Bluesky takes (roadmap row 100).
+	if (post.Cut || morePictures) && post.Embed != nil && post.Embed.Type != "app.bsky.embed.external" {
 		address := h.Site.Web(webPathOf(note))
 		post.EndWithLink(strings.TrimPrefix(address, "https://"), address)
 	}
@@ -630,23 +634,24 @@ var errPicturesNotThere = errors.New("the post's pictures are not there yet")
 
 // withPictures gives a post the pictures of a photo post: read from this
 // installation's storage, made small enough for Bluesky to take, and
-// given to the account's server.
-func (h *Handlers) withPictures(post *bsky.OutPost, note *entities.AnahitaNode, upload uploader) error {
+// given to the account's server; and whether it has more than Bluesky
+// takes.
+func (h *Handlers) withPictures(post *bsky.OutPost, note *entities.AnahitaNode, upload uploader) (bool, error) {
 	if h.Keeper == nil || h.Keeper.PhotoFiles == nil || h.Keeper.Files == nil {
-		return nil
+		return false, nil
 	}
 
 	var files []*entities.PhotoFile
 	for waited := time.Duration(0); ; waited += time.Second {
 		var err error
 		if files, err = h.Keeper.PhotoFiles.BrowsePhotoFiles([]int64{note.ID}); err != nil {
-			return err
+			return false, err
 		}
 		if len(files) > 0 {
 			break
 		}
 		if waited >= h.PicturesWait {
-			return errPicturesNotThere
+			return false, errPicturesNotThere
 		}
 		time.Sleep(time.Second)
 	}
@@ -665,7 +670,7 @@ func (h *Handlers) withPictures(post *bsky.OutPost, note *entities.AnahitaNode, 
 		}
 		blob, err := upload(content, mimeType)
 		if errors.Is(err, bsky.ErrExpired) || errors.Is(err, bsky.ErrDenied) {
-			return err
+			return false, err
 		}
 		if err != nil {
 			log.Printf("a picture of post %d was not taken by Bluesky: %v", note.ID, err)
@@ -673,7 +678,7 @@ func (h *Handlers) withPictures(post *bsky.OutPost, note *entities.AnahitaNode, 
 		}
 		post.AddImage(blob, file.AltText, file.Width, file.Height)
 	}
-	return nil
+	return len(files) > bsky.ImagesMax, nil
 }
 
 // coverPicture is a post's cover, given to the account's server for its

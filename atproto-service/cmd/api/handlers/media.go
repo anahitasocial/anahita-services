@@ -95,7 +95,7 @@ func (h *Handlers) restorePictures(ctx context.Context, post *entities.AnahitaNo
 	var pictures []federation.Picture
 	if !record.IsSensitive() {
 		for _, each := range record.Pictures() {
-			if len(pictures) == federation.PostPicturesMax {
+			if len(pictures) == federation.PostPicturesMax() {
 				break
 			}
 			pictures = append(pictures, federation.Picture{URL: bsky.PictureURL(h.CDN, did, each.CID), Alt: each.Alt})

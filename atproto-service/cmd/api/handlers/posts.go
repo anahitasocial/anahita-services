@@ -75,7 +75,7 @@ func (h *Handlers) storePost(author *repositories.RemoteActor, rkey string, post
 	var pictures []federation.Picture
 	if h.Keeper != nil && h.Keeper.CanKeepPictures() && !post.IsSensitive() {
 		for _, each := range post.Pictures() {
-			if len(pictures) == federation.PostPicturesMax {
+			if len(pictures) == federation.PostPicturesMax() {
 				break
 			}
 			pictures = append(pictures, federation.Picture{

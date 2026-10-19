@@ -35,7 +35,7 @@ func NewRoutes(
 // the descriptions: docs/api/photo-service.json is made of them.
 func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	doc := apidoc.NewService("photo-service", "Photo posts",
-		"Posts of up to four pictures, each with what it shows, and replies with pictures (photos.md).")
+		"Posts of up to twenty pictures (PHOTO_MAX_FILES), each with what it shows, and replies with pictures (photos.md).")
 	api := doc.On(e)
 	write := libs_constants.OAuthScopeMediaWrite
 	media := requests.NewMediumRequest()

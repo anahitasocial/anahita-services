@@ -19,7 +19,7 @@ import (
 // refuseFiles answers a request whose images were refused, saying why and
 // how many a post can hold.
 func refuseFiles(c echo.Context, code string) error {
-	return c.JSON(refusalStatus(code), FilesRefusal{Error: code, Max: constants.PhotoMaxFiles})
+	return c.JSON(refusalStatus(code), FilesRefusal{Error: code, Max: constants.PhotoMaxFiles()})
 }
 
 // placeholderPhoto is a photo on this profile that does not exist yet: what

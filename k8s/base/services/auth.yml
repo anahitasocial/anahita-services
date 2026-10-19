@@ -25,6 +25,13 @@ spec:
                 configMapKeyRef:
                   name: anahita-config
                   key: ENV
+            # How many images a photo post may hold: 20 unless fewer.
+            - name: PHOTO_MAX_FILES
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PHOTO_MAX_FILES
+                  optional: true
             # Mutual TLS on the calls to the gRPC services. Unset means on,
             # except with ENV=dev.
             - name: GRPC_TLS

@@ -2,9 +2,8 @@
 
 *Roadmap row 100, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** part 1 done (2026-10-19); parts 2 and 3 wait for the picture
-limit from the user. Branch `issues/network-limits` in both
-repositories.
+**Status:** parts 1 and 2 done (2026-10-19); part 3, the composer's line,
+next. Branch `issues/network-limits` in both repositories.
 
 ## Context
 
@@ -43,8 +42,12 @@ Settled with the user on 2026-10-19:
 3. **The composer says so, once, in a line**, only for a writer whose posts go
    out (`federation` on for that profile), and only when it applies: more
    than 300 letters for Bluesky, more than four pictures for either.
-4. **More pictures per post:** the limit to be set by the user. Proposed: 20,
-   as Instagram and Pixelfed. **Open.**
+4. **Twenty pictures per post** (the user, 2026-10-19), as Instagram and
+   Pixelfed; **fewer where an installation says so** in `PHOTO_MAX_FILES`
+   (the user, the same day: "some servers may want to cap the file
+   uploads"). Never more than twenty.
+5. **The link back is the post's address,** shown without its scheme, on a
+   line of its own: it needs no words in any language.
 
 ## Design
 
@@ -57,17 +60,25 @@ Settled with the user on 2026-10-19:
 2. Tests: `TestAPostCutEndsWithALinkToTheRest` (bsky) and
    `TestAPhotoPostCutLinksToTheRest` (handlers).
 
-### 2. More pictures in a post (anahita-libs, photo-service, web)
+### 2. More pictures in a post — done 2026-10-19
 
-1. `constants.PhotoMaxFiles` to the new limit; NodeInfo's `photoMaxFiles`
-   says it, and the web app reads it already (`src/utils/photoFiles.js`).
-2. Check what assumes four: the stepper and grid in the web app, the
-   theatre, the edit dialog, Download, the fediverse `attachment` list, the
-   OpenGraph image, the `photo_files` reads and anything that pages them.
-3. Bluesky: the first four, in order, and the link to the post in the text,
-   "See all 15 photos" (a facet).
-4. Fediverse: every picture in `attachment`, and the same "See all 15
-   photos" link at the end of the content when there are more than four.
+1. `constants.PhotoMaxFiles()` reads `PHOTO_MAX_FILES`: 1 to 20, 20 unless
+   said (`PhotoMaxFilesCeiling`). Read by auth-service (NodeInfo's
+   `photoMaxFiles`, which the web app reads already), photo-service, and the
+   two federation services, which keep no more pictures of a post from
+   elsewhere (`federation.PostPicturesMax()`). The address that gives a
+   picture to other servers takes positions up to the ceiling, so a post
+   made before the limit was lowered keeps its pictures.
+2. The web app needed no change: the composer, the edit dialog and replies
+   read the limit from NodeInfo, and the slides' dots fit twenty on a phone.
+3. Bluesky: the first four, in order, and the post's address at the end of
+   its words (`withPictures` says there are more).
+4. Fediverse: every picture in `attachment`, and when there are more than
+   four (`ap.PicturesShownMax`), a last paragraph that links to the post
+   here, in `content` and every `contentMap` language.
+5. Tests: `TestHowManyImagesAPostHolds`,
+   `TestAPhotoPostWithMorePicturesThanBlueskyTakes`,
+   `TestAPhotoPostWithMorePicturesThanMastodonShows`.
 
 ### 3. The composer says so (web)
 

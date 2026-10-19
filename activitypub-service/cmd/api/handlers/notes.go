@@ -303,7 +303,9 @@ func (h *Handlers) videoFile(c echo.Context, keyOf func(*videos.Video) string) e
 func (h *Handlers) Picture(c echo.Context) error {
 	uuid := c.Param("uuid")
 	position, err := strconv.Atoi(c.Param("position"))
-	if !uuidShape.MatchString(uuid) || err != nil || position < 0 || position >= federation.PostPicturesMax {
+	// Up to the most any installation allows: a post made before the limit
+	// here was lowered keeps its pictures.
+	if !uuidShape.MatchString(uuid) || err != nil || position < 0 || position >= constants.PhotoMaxFilesCeiling {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if ok, _ := h.siteFederates(); !ok || h.PhotoFiles == nil || h.Files == nil {

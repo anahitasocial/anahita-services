@@ -70,6 +70,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # How many images a photo post may hold: 20 unless fewer. See docs/configuration.md.
+      PHOTO_MAX_FILES: ${PHOTO_MAX_FILES:-}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
       # What the installation lets people who are not signed in see, and
@@ -311,6 +313,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # How many images a photo post may hold: 20 unless fewer. See docs/configuration.md.
+      PHOTO_MAX_FILES: ${PHOTO_MAX_FILES:-}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
       # What the installation lets people who are not signed in see, and
@@ -1288,6 +1292,8 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # How many images a photo post may hold: 20 unless fewer. See docs/configuration.md.
+      PHOTO_MAX_FILES: ${PHOTO_MAX_FILES:-}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
       # Only a site that is open to read federates.
@@ -1370,6 +1376,8 @@ services:
       # only one that is federates. See docs/privacy.md.
       SITE_READ_ACCESS: ${SITE_READ_ACCESS:-}
       ENV: ${ENV}
+      # How many images a photo post may hold: 20 unless fewer. See docs/configuration.md.
+      PHOTO_MAX_FILES: ${PHOTO_MAX_FILES:-}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
       DSN: ${DSN}

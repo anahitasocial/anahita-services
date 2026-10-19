@@ -20,7 +20,7 @@ func (h *Handlers) picturesToKeep(note *ap.ReceivedNote) []federation.Picture {
 	}
 	var pictures []federation.Picture
 	for _, each := range note.Pictures() {
-		if len(pictures) == federation.PostPicturesMax {
+		if len(pictures) == federation.PostPicturesMax() {
 			break
 		}
 		pictures = append(pictures, federation.Picture{URL: each.URL, Alt: each.Name})

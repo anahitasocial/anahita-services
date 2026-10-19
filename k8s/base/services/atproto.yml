@@ -28,6 +28,13 @@ spec:
                   name: anahita-config
                   key: SITE_READ_ACCESS
                   optional: true
+            # How many images a photo post may hold: 20 unless fewer.
+            - name: PHOTO_MAX_FILES
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: PHOTO_MAX_FILES
+                  optional: true
             - name: ENV
               valueFrom:
                 configMapKeyRef:

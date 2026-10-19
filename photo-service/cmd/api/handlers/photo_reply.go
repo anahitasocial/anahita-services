@@ -63,7 +63,7 @@ func (h *photoHandler) AddReply(c echo.Context) error {
 	if len(req.Uploads) == 0 {
 		return refuseFiles(c, errFilesRequired)
 	}
-	if len(req.Uploads) > an_constants.PhotoMaxFiles {
+	if len(req.Uploads) > an_constants.PhotoMaxFiles() {
 		return refuseFiles(c, errTooManyFiles)
 	}
 

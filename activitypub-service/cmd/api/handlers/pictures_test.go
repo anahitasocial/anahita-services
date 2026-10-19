@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -165,5 +166,41 @@ func TestAPhotoPostGoesOutWithItsPictures(t *testing.T) {
 	w.note().Access = "followers"
 	if rec := w.get(w.h.Picture, "/", "uuid", noteUUID, "position", "0"); rec.Code != 404 {
 		t.Errorf("a picture of a post that was closed: %d", rec.Code)
+	}
+}
+
+// More pictures than Mastodon shows: every one is sent, and the words end
+// with a link to the post here, where they all are (roadmap row 100).
+func TestAPhotoPostWithMorePicturesThanMastodonShows(t *testing.T) {
+	picturesWait = 0
+
+	w := notesWorld()
+	listed := &fakePhotoFiles{kept: map[int64][]*entities.PhotoFile{}}
+	w.h.Files, w.h.PhotoFiles = &fakeFiles{stored: map[string]int{}}, listed
+	w.note().Type = constants.NodeMediumPhotoEntityType
+	w.note().Service = "photo-service"
+	w.note().Body = "The garden"
+	for i := 0; i < 6; i++ {
+		listed.kept[noteID] = append(listed.kept[noteID], &entities.PhotoFile{Filename: fmt.Sprintf("%d.png", i), Mimetype: "image/png"})
+	}
+
+	photoMade := made(noteID)
+	photoMade.ObjectType = constants.NodeMediumPhotoEntityType
+	_ = w.h.HandleEvent(photoMade)
+	if len(w.queue.sent) == 0 {
+		t.Fatal("nothing sent")
+	}
+	object, _ := w.queue.sent[0].payload["object"].(map[string]any)
+	if attached, _ := object["attachment"].([]any); len(attached) != 6 {
+		t.Errorf("%d attachments", len(attached))
+	}
+	content, _ := object["content"].(string)
+	if want := `<p><a href="https://example.org/photos/500">example.org/photos/500</a></p>`; !strings.HasSuffix(content, want) {
+		t.Errorf("content %q", content)
+	}
+	for language, words := range object["contentMap"].(map[string]any) {
+		if !strings.HasSuffix(words.(string), "example.org/photos/500</a></p>") {
+			t.Errorf("contentMap[%s] %q", language, words)
+		}
 	}
 }

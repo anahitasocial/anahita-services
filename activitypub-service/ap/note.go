@@ -2,6 +2,8 @@ package ap
 
 import (
 	"encoding/json"
+	"fmt"
+	"html"
 	"strings"
 	"time"
 
@@ -100,7 +102,28 @@ func (n *Note) WithPictures(a Addresses, post *entities.AnahitaNode, files []*en
 			Height:    file.Height,
 		})
 	}
+	// More than Mastodon shows: every one is sent, for the servers that show
+	// them all, and the words end with the post's address here, where they
+	// all are (roadmap row 100).
+	if len(files) > PicturesShownMax {
+		n.endWithLink(n.URL)
+	}
 	return n
+}
+
+// PicturesShownMax is how many pictures of a post a stock Mastodon server
+// shows; it keeps no more.
+const PicturesShownMax = 4
+
+// endWithLink ends the post's words with a paragraph that is a link to
+// `address`, shown without its scheme, in every language they are in.
+func (n *Note) endWithLink(address string) {
+	shown := strings.TrimPrefix(address, "https://")
+	link := fmt.Sprintf(`<p><a href="%s">%s</a></p>`, html.EscapeString(address), html.EscapeString(shown))
+	n.Content += link
+	for language, words := range n.ContentMap {
+		n.ContentMap[language] = words + link
+	}
 }
 
 // Tag names somebody or a hashtag that a post mentions, beside its text,

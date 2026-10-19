@@ -4,7 +4,7 @@ import "fmt"
 
 // PhotoFile is one image of a photo post.
 //
-// A post holds up to constants.PhotoMaxFiles of them, in order. The first is
+// A post holds up to constants.PhotoMaxFiles() of them, in order. The first is
 // the cover, and the node's own Filename is a copy of its name, so anything
 // that shows one image for a photo needs to know nothing about these.
 type PhotoFile struct {
