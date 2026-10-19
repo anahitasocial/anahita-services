@@ -2,7 +2,7 @@
 
 *Roadmap row 102, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** parts 1 to 4 done 2026-10-19. Branch
+**Status:** parts 1 to 5 and 2b done 2026-10-19; part 6 next. Branch
 `issues/rules` in both repositories, from `issues/thread-composer`.
 
 **Parts, in order:**
@@ -30,6 +30,19 @@
    the server refuses. The first super administrator sees them whatever
    `SITE_RULES` says, and the boot log and the set-password email say them
    too. The web app's `/rules` then comes only when the version is raised.
+   — done 2026-10-19: `web/templates/rules.html` on the sign-up, invitation
+   and set-password pages (`site_rules_signup.go`); a request's version kept
+   in `signup_requests.rules_accepted_version` (migration
+   `20261122000005`) and recorded on approval; the boot log prints the rules.
+   Tried on dev: a sign-up without the boxes refused, one with them made with
+   the rules recorded. The email with the link does not carry them: the page
+   it opens does. **Changed the same day** (the user: "for the first time
+   installation I want the super admins agree not to use Anahita for those
+   purposes ... hard code those in the code ... those are my rules as the
+   creator"): the first super administrator makes a pledge written in the
+   code, "I won't use Anahita to:" and five items, in place of the site's
+   rules, whatever `SITE_RULES` says; members keep the site's rules as they
+   are. `SITE_RULES=off` now asks nobody in the web app.
 3. The promises on the About page — done 2026-10-19: first on the page,
    under "Our promises to you", with "Read our rules" leading to `/rules`
    (anahita-web `containers/about/Promises.jsx`). The site's rules have a

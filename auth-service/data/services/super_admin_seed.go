@@ -1,6 +1,7 @@
 package services
 
 import (
+	"anahita-libs/about"
 	"anahita-libs/policy"
 	"errors"
 	"fmt"
@@ -235,6 +236,15 @@ func IssueSuperAdminBootstrapLink(env *SuperAdminSeedEnv, user *entities.User) e
 	// send panics or hangs.
 	log.Printf("super admin seed: set the password for %s within %s:\n  %s",
 		user.Email, SuperAdminBootstrapTTL, url)
+
+	// And the pledge Anahita's creator asks of whoever installs it (roadmap
+	// row 102): said here, and ticked on the page the link opens.
+	lines := make([]string, 0, len(about.PledgeItems))
+	for _, item := range about.PledgeItems {
+		lines = append(lines, "  - "+item.In("en-CA"))
+	}
+	log.Printf("super admin seed: %s\n%s\n%s",
+		about.PledgeIntro.In("en-CA"), about.PledgeLead.In("en-CA"), strings.Join(lines, "\n"))
 
 	if env.SendLink == nil {
 		return nil

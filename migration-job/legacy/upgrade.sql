@@ -2258,3 +2258,8 @@ CREATE TABLE profile_rule_agreements (
     PRIMARY KEY (`person_id`, `profile_id`),
     KEY `profile_id` (`profile_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 20261122000005_signup_requests_rules: the version of the site's rules a
+-- sign-up request agreed to (roadmap row 102, part 2b).
+ALTER TABLE signup_requests
+    ADD COLUMN `rules_accepted_version` varchar(20) NOT NULL DEFAULT '' AFTER `created_user_agent`;

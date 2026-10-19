@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"anahita-libs/about"
+	libs_constants "anahita-libs/constants"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,12 +38,31 @@ func newPasswordHandler(env *Env) *passwordHandler {
 
 // resetFormError re-renders the reset form with a message.
 func (h *passwordHandler) resetFormError(
-	c echo.Context, tokenBody string, _ *entities.User, message string,
+	c echo.Context, tokenBody string, user *entities.User, message string,
 ) error {
-	return h.renderTemplate(c, "password_reset.html", map[string]any{
-		"Token": tokenBody,
-		"Error": message,
-	})
+	data := h.firstRulesData(c, user)
+	data["Token"] = tokenBody
+	data["Error"] = message
+	return h.renderTemplate(c, "password_reset.html", data)
+}
+
+// installing says whether this is whoever installs Anahita setting their
+// first password: a super administrator with no password yet, from the link
+// the installation gives them (roadmap row 102, part 2b). They make the
+// creator's pledge here (about.PledgeItems), whatever the site's rules and
+// SITE_RULES say; the site's rules come to them afterwards, in the web app,
+// as to anybody.
+func installing(user *entities.User) bool {
+	return user != nil && user.Password == "" && user.PersonType == libs_constants.PersonTypeSuperAdmin
+}
+
+// firstRulesData is the pledge for the set-password page of whoever installs
+// Anahita, and nothing for anybody else.
+func (h *passwordHandler) firstRulesData(c echo.Context, user *entities.User) map[string]any {
+	if installing(user) {
+		return pledgeData(c)
+	}
+	return map[string]any{}
 }
 
 // ResetForm validates the reset token from the URL and renders the new
@@ -99,6 +120,9 @@ func (h *passwordHandler) ResetForm(c echo.Context) error {
 	// Best-effort: a lookup failure costs the notice, not the reset.
 	data := map[string]any{"Token": token.Body}
 	if user, err := h.Repos.Users.ReadByEmail(token.RecipientEmail); err == nil && user != nil {
+		for key, value := range h.firstRulesData(c, user) {
+			data[key] = value
+		}
 		if user.DeletedAt != nil {
 			data["ScheduledForDeletion"] = true
 			data["PurgeDate"] = user.DeletedAt.
@@ -204,7 +228,18 @@ func (h *passwordHandler) Reset(c echo.Context) error {
 			"We could not find an account associated with this reset link.")
 	}
 
+	// Whoever installs Anahita: its creator's pledge, each item ticked.
+	pledging := installing(user)
+	if pledging && !pledgeTicked(c) {
+		return h.resetFormError(c, req.Token, user, "Tick each one to make the promise.")
+	}
+
 	return h.applyReset(c, user, req.Password, req.Token, req.Token, func() {
+		// The pledge, on record with who made it, when and from where.
+		if pledging {
+			log.Printf("pledge: %s (%d) made Anahita's promise, version %s, from %s",
+				user.Email, user.ID, about.PledgeVersion, getClientIP(c))
+		}
 		// Consume the token. If this fails, the password is already
 		// updated — log but don't block the user. Subsequent attempts
 		// will be caught by the status gate on the next read.

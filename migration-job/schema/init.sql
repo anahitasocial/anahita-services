@@ -344,6 +344,9 @@ CREATE TABLE IF NOT EXISTS signup_requests (
     -- recognisable by its source long before its content.
     `created_ip` varchar(45) NOT NULL DEFAULT '',
     `created_user_agent` varchar(255) NOT NULL DEFAULT '',
+    -- The version of the site's rules it agreed to on the form, recorded on
+    -- the account when it is approved (roadmap row 102).
+    `rules_accepted_version` varchar(20) NOT NULL DEFAULT '',
 
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,

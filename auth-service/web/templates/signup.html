@@ -158,6 +158,8 @@
              password in mind and has forgotten it by the time they do. -->
         <span class="helper-text">At least 15 characters. Use a unique passphrase that you don't use anywhere else.</span>
 
+        {{template "rules" .}}
+
         <button type="submit" class="btn btn-primary">{{if .NeedsApproval}}Send application{{else}}Create account{{end}}</button>
     </form>
 

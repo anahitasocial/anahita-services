@@ -37,3 +37,32 @@
     --mui-elevation-3: 0 3px 3px -2px rgba(0,0,0,0.2), 0 3px 4px 0 rgba(0,0,0,0.14), 0 1px 8px 0 rgba(0,0,0,0.12);
     --mui-elevation-4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
 }
+
+/* The site's rules where an account is made (roadmap row 102): a plain
+   checklist, a box each, all at once. */
+.rules {
+    border: 1px solid var(--divider, rgba(0, 0, 0, 0.12));
+    border-radius: 8px;
+    margin: 16px 0;
+    padding: 8px 16px 16px;
+}
+.rules legend {
+    font-weight: 600;
+    padding: 0 8px;
+}
+.rules .rule {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-top: 8px;
+}
+.rules .rule input {
+    margin-top: 4px;
+}
+.rules .rules-lead {
+    font-weight: 600;
+    margin: 8px 0 0;
+}
+.rules .rules-note {
+    margin: 16px 0 0;
+}

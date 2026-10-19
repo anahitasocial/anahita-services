@@ -56,6 +56,8 @@ type SignupRequest struct {
 
 	CreatedIP        string
 	CreatedUserAgent string
+	// The version of the site's rules it agreed to on the form, or "".
+	RulesVersion string
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

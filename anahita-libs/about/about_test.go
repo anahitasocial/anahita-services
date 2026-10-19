@@ -108,3 +108,20 @@ func TestTheFileIsReadAgainWhenItChanges(t *testing.T) {
 		t.Error("the change was not read")
 	}
 }
+
+// The pledge whoever installs Anahita makes is whole in every language.
+func TestThePledgeIsWhole(t *testing.T) {
+	if PledgeVersion == "" || len(PledgeItems) != 6 {
+		t.Fatalf("version %q, %d items", PledgeVersion, len(PledgeItems))
+	}
+	for _, language := range []string{"en-CA", "fr-FR", "de-DE", "es-419", "pt-BR"} {
+		if PledgeLead[language] == "" || PledgeIntro[language] == "" {
+			t.Errorf("the lead lacks %s", language)
+		}
+		for _, item := range PledgeItems {
+			if item[language] == "" {
+				t.Errorf("%q lacks %s", item["en-CA"], language)
+			}
+		}
+	}
+}

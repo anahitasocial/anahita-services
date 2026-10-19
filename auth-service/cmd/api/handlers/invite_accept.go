@@ -103,7 +103,7 @@ func (h *inviteHandler) AcceptForm(c echo.Context) error {
 	}
 
 	return h.renderTemplate(c, "invite_accept.html",
-		h.inviteAcceptContext(token.Body, token.RecipientEmail, "", ""))
+		h.inviteAcceptContext(c, token.Body, token.RecipientEmail, "", ""))
 }
 
 // inviteAcceptContext builds the form's context in one place, so a re-render
@@ -114,7 +114,7 @@ func (h *inviteHandler) AcceptForm(c echo.Context) error {
 // submission failed for a reason the person could not see. Every render goes
 // through this now.
 func (h *inviteHandler) inviteAcceptContext(
-	token, email, username, errMsg string,
+	c echo.Context, token, email, username, errMsg string,
 ) map[string]any {
 	// The suggestion is only offered when it is actually free. Prefilling a
 	// username that is already taken invites somebody to submit it and be
@@ -128,12 +128,13 @@ func (h *inviteHandler) inviteAcceptContext(
 		}
 	}
 
-	return map[string]any{
-		"Token":    token,
-		"Email":    email,
-		"Username": username,
-		"Error":    errMsg,
-	}
+	// The site's rules, ticked before the account is made (roadmap row 102).
+	data := h.rulesData(c, false)
+	data["Token"] = token
+	data["Email"] = email
+	data["Username"] = username
+	data["Error"] = errMsg
+	return data
 }
 
 // inviteValidationMessage says which field is wrong, for the same reason
@@ -211,7 +212,13 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	if err := c.Validate(req); err != nil {
 		log.Println(err)
 		return h.renderTemplate(c, "invite_accept.html",
-			h.inviteAcceptContext(req.Token, "", req.Username, inviteValidationMessage(req)))
+			h.inviteAcceptContext(c, req.Token, "", req.Username, inviteValidationMessage(req)))
+	}
+
+	// The site's rules, each ticked (roadmap row 102, part 2b).
+	if !h.rulesTicked(c, false) {
+		return h.renderTemplate(c, "invite_accept.html",
+			h.inviteAcceptContext(c, req.Token, "", req.Username, "Tick each of our rules to agree to it."))
 	}
 
 	token, err := h.Repos.Tokens.ReadByBody(req.Token)
@@ -304,11 +311,11 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	if taken, err := h.Repos.Users.IsUsername(req.Username); err != nil {
 		log.Println("invite accept: username check failed:", err)
 		return h.renderTemplate(c, "invite_accept.html",
-			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username,
+			h.inviteAcceptContext(c, req.Token, token.RecipientEmail, req.Username,
 				"Could not create your account. Please try again."))
 	} else if taken {
 		return h.renderTemplate(c, "invite_accept.html",
-			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username,
+			h.inviteAcceptContext(c, req.Token, token.RecipientEmail, req.Username,
 				"That username is already taken."))
 	}
 
@@ -319,7 +326,7 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 	if err := user.SetPassword(req.Password); err != nil {
 		log.Println(err)
 		return h.renderTemplate(c, "invite_accept.html",
-			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username, "Could not create your account. Please try again."))
+			h.inviteAcceptContext(c, req.Token, token.RecipientEmail, req.Username, "Could not create your account. Please try again."))
 	}
 
 	// The actor node first, through the graph — see signup.go for why this is
@@ -355,7 +362,7 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 		}
 
 		return h.renderTemplate(c, "invite_accept.html",
-			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username, message))
+			h.inviteAcceptContext(c, req.Token, token.RecipientEmail, req.Username, message))
 	}
 
 	user.ID = createdActor.ID
@@ -374,7 +381,12 @@ func (h *inviteHandler) Accept(c echo.Context) error {
 			log.Printf("invite accept: orphaned actor %d: %v (purge also failed: %v)", createdActor.ID, err, purgeErr)
 		}
 		return h.renderTemplate(c, "invite_accept.html",
-			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username, "Could not create your account. Please try again."))
+			h.inviteAcceptContext(c, req.Token, token.RecipientEmail, req.Username, "Could not create your account. Please try again."))
+	}
+
+	// Made with the agreement to the site's rules, as ticked.
+	if lines, version := h.rulesToTick(c, false); len(lines) > 0 {
+		h.recordRules(c, user.ID, version)
 	}
 
 	// Mark the token used. If this fails after the person was
@@ -502,12 +514,16 @@ func (h *inviteHandler) acceptIntoQueue(
 
 	source := newConsentSource(c)
 	sr.CreatedIP = source.ip
+	// The site's rules, ticked on the form (roadmap row 102).
+	if lines, version := h.rulesToTick(c, false); len(lines) > 0 {
+		sr.RulesVersion = version
+	}
 	sr.CreatedUserAgent = source.userAgent
 
 	if err := sr.SetPassword(req.Password); err != nil {
 		log.Println("invite accept: could not hash the signup request password:", err)
 		return h.renderTemplate(c, "invite_accept.html",
-			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username,
+			h.inviteAcceptContext(c, req.Token, token.RecipientEmail, req.Username,
 				"Could not send your request. Please try again."))
 	}
 
@@ -515,7 +531,7 @@ func (h *inviteHandler) acceptIntoQueue(
 	if err != nil {
 		log.Println("invite accept: could not store the signup request:", err)
 		return h.renderTemplate(c, "invite_accept.html",
-			h.inviteAcceptContext(req.Token, token.RecipientEmail, req.Username,
+			h.inviteAcceptContext(c, req.Token, token.RecipientEmail, req.Username,
 				"Could not send your request. Please try again."))
 	}
 
