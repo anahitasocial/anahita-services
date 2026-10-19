@@ -162,7 +162,7 @@ type NodeInfoDocument struct {
 	OpenRegistrations bool `json:"openRegistrations"`
 	// How much it is used.
 	Usage nodeInfoUsage `json:"usage"`
-	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
+	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
 	Metadata map[string]any `json:"metadata"`
 }
 
@@ -304,6 +304,10 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// How many images one photo post can hold, so a client need
 			// not carry the number itself.
 			"photoMaxFiles": an_constants.PhotoMaxFiles(),
+
+			// Whether everybody ticks the site's rules (SITE_RULES): the
+			// rules themselves are on GET /site (roadmap row 102).
+			"siteRules": h.Config.SiteRulesOn(),
 
 			// Whether videos may be posted here (VIDEO_UPLOADS), and the
 			// largest and longest taken, so the web app offers the upload

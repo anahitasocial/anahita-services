@@ -32,6 +32,13 @@ spec:
                   name: anahita-config
                   key: PHOTO_MAX_FILES
                   optional: true
+            # Whether everybody ticks the site's rules: on unless off.
+            - name: SITE_RULES
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_RULES
+                  optional: true
             # Mutual TLS on the calls to the gRPC services. Unset means on,
             # except with ENV=dev.
             - name: GRPC_TLS

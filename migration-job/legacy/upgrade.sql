@@ -1289,10 +1289,18 @@ CREATE TABLE auth_accounts (
     `pp_accepted_ip`          varchar(45)  DEFAULT NULL,
     `pp_accepted_user_agent`  varchar(255) DEFAULT NULL,
     `pp_accepted_os`          varchar(100) DEFAULT NULL,
+    -- The site's rules (roadmap row 102): nobody has agreed to them yet.
+    `rules_accepted`             tinyint(1) NOT NULL DEFAULT 0,
+    `rules_accepted_at`          datetime     DEFAULT NULL,
+    `rules_accepted_version`     varchar(20)  NOT NULL DEFAULT '',
+    `rules_accepted_ip`          varchar(45)  NOT NULL DEFAULT '',
+    `rules_accepted_user_agent`  varchar(255) NOT NULL DEFAULT '',
+    `rules_accepted_os`          varchar(100) NOT NULL DEFAULT '',
     PRIMARY KEY (`node_id`),
     UNIQUE KEY `email` (`email`),
     KEY `tos_accepted_version` (`tos_accepted_version`),
-    KEY `pp_accepted_version` (`pp_accepted_version`)
+    KEY `pp_accepted_version` (`pp_accepted_version`),
+    KEY `rules_accepted_version` (`rules_accepted_version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Consent columns keep their defaults: nobody has accepted anything yet, and

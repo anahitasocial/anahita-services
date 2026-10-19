@@ -291,11 +291,21 @@ CREATE TABLE auth_accounts (
     `pp_accepted_user_agent` varchar(255) NOT NULL DEFAULT '',
     `pp_accepted_os` varchar(100) NOT NULL DEFAULT '',
 
+    -- The site's rules (site.json), agreed to by ticking each one, same
+    -- shape (roadmap row 102).
+    `rules_accepted`             tinyint(1) NOT NULL DEFAULT 0,
+    `rules_accepted_at`          datetime     DEFAULT NULL,
+    `rules_accepted_version` varchar(20) NOT NULL DEFAULT '',
+    `rules_accepted_ip` varchar(45) NOT NULL DEFAULT '',
+    `rules_accepted_user_agent` varchar(255) NOT NULL DEFAULT '',
+    `rules_accepted_os` varchar(100) NOT NULL DEFAULT '',
+
     PRIMARY KEY (`node_id`),
     UNIQUE KEY `email` (`email`),
     -- Revising the terms means finding everyone still on an older version.
     KEY `tos_accepted_version` (`tos_accepted_version`),
-    KEY `pp_accepted_version` (`pp_accepted_version`)
+    KEY `pp_accepted_version` (`pp_accepted_version`),
+    KEY `rules_accepted_version` (`rules_accepted_version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 

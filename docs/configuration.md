@@ -137,6 +137,7 @@ the operator's, in a JSON file read by auth-service and served on
 
 | Variable | Value |
 | --- | --- |
+| `SITE_RULES` | `on` unless `off`. On, everybody ticks the site's rules before using it, and again when their version is raised; off, only a super administrator who has never agreed is shown them, once. Read by auth-service and published as `metadata.siteRules` in NodeInfo; see [Registration](registration.md#the-sites-rules) |
 | `SITE_DEFAULTS_PATH` | Where the file is. `/app/defaults/site.json` in the image, which holds `auth-defaults/site.json`; docker-compose mounts the working tree's copy there. On Kubernetes, mount a ConfigMap over that path to change it |
 
 ```json

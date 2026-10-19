@@ -60,6 +60,8 @@ type Agreements struct {
 	Tos consentItem `json:"tos"`
 	// The Privacy Policy.
 	Privacy consentItem `json:"privacy"`
+	// The site's rules (site.json, roadmap row 102).
+	Rules consentItem `json:"rules"`
 }
 
 // Accepted is an acceptance recorded.
@@ -119,6 +121,7 @@ func (h *agreementsHandler) Read(c echo.Context) error {
 	return c.JSON(http.StatusOK, libs_responses.Item[Agreements]{Data: Agreements{
 		Tos:     mapConsent(&user.TermsOfService),
 		Privacy: mapConsent(&user.PrivacyPolicy),
+		Rules:   mapConsent(&user.SiteRules),
 	}})
 }
 
@@ -140,7 +143,18 @@ func (h *agreementsHandler) EditPrivacy(c echo.Context) error {
 		h.Repos.Users.EditPrivacyConsent)
 }
 
-// accept is the shared body of both endpoints.
+// EditRules records agreeing to the site's rules, each ticked (roadmap row
+// 102). Only the version the site has now: the rules are the server's
+// (site.json), so an agreement to a version that is not theirs is refused.
+//
+//	PATCH /agreements/rules
+func (h *agreementsHandler) EditRules(c echo.Context) error {
+	return h.accept(c, "rules",
+		func(u *entities.User) *entities.Consent { return &u.SiteRules },
+		h.Repos.Users.EditRulesConsent)
+}
+
+// accept is the shared body of the endpoints.
 //
 // Shared so the two documents cannot drift in what they record or how they
 // refuse — one of them quietly not stamping an IP address would only be found
@@ -179,6 +193,14 @@ func (h *agreementsHandler) accept(
 		log.Printf("agreements %s: could not read the viewer (person=%d): %v",
 			document, viewer.ID, err)
 		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	// The site's rules are known here: only their version now is agreed to.
+	if document == "rules" {
+		if current := siteSays.Site().Rules.Version; req.Version != current {
+			return refuse(c, http.StatusConflict, "version_not_current",
+				"The site's rules are at version "+current+" now: read them again.")
+		}
 	}
 
 	consent := consentOf(user)

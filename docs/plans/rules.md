@@ -2,7 +2,7 @@
 
 *Roadmap row 102, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** part 1 done 2026-10-19: `site.json` and `GET /site`. Branch
+**Status:** parts 1 and 2 done 2026-10-19. Branch
 `issues/rules` in both repositories, from `issues/thread-composer`.
 
 **Parts, in order:**
@@ -11,8 +11,14 @@
    `GET /site` — done 2026-10-19. The approved rules, the promises and the
    suggestions in all five languages; read again when it changes.
 2. The site's rules ticked at sign-in, beside the Terms, recorded, and asked
-   again when the version is raised; `SITE_RULES`; the Terms' versions moved
-   into the file.
+   again when the version is raised; `SITE_RULES` — done 2026-10-19.
+   Recorded as the Terms are (`auth_accounts.rules_accepted_*`, migration
+   `20261122000003`), not in a table of their own: the site's agreement is
+   the Terms' kind; groups' get theirs in part 5. `PATCH /agreements/rules`
+   takes only the current version. Tried in a browser at both sizes. The
+   Terms' versions are left in the web app for now: their text is there
+   too, and moving one without the other would split a document from its
+   version (to settle with the user).
 3. The promises on the About page.
 4. Remove as spam.
 5. A group's and an event's rules: written, ticked before following or

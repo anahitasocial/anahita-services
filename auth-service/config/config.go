@@ -198,6 +198,10 @@ type Config struct {
 	InvitePendingMax      int
 	InvitePendingMaxAdmin int
 
+	// SiteRules is whether everybody ticks the site's rules (site.json) before
+	// using it: "on" unless said "off" (roadmap row 102). See bootstrap.go.
+	SiteRules string
+
 	// GroupsFrom is who may create a group. Enforced by GROUP-SERVICE, which
 	// reads the same variable; auth-service holds it only to republish it in
 	// NodeInfo, because auth-service is what publishes that document. The two

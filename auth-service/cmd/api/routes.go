@@ -212,6 +212,14 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		With(accept("Terms of Service"))
 	agreements.PATCH("/privacy", h.Agreements.EditPrivacy).
 		With(accept("Privacy Policy"))
+	agreements.PATCH("/rules", h.Agreements.EditRules).
+		Summary("Agree to the site's rules").
+		Describe("The viewer's own agreement, each rule ticked, of the version `GET /site` has now (roadmap row 102).").
+		Viewer(apidoc.SignedIn).
+		Takes(&requests.AgreementAccept{}).
+		Sends(http.StatusOK, handlers.Accepted{}).
+		Sends(http.StatusBadRequest, refusal, "`version_malformed`: the version is not a dotted number; `not_accepted`: `accepted` is false; or, without a body, the request is not well formed").
+		Sends(http.StatusConflict, refusal, "`version_not_current`: the site's rules are at another version now")
 	// Reading takes a person id where the two writes take none, and the
 	// asymmetry is deliberate: accepting on somebody's behalf is
 	// meaningless and stays unexpressible, while reading an acceptance

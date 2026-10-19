@@ -119,6 +119,13 @@ func (config *Config) AllowsInvitations() bool {
 	return config.GetRegistrationMode() != constants.RegistrationModeClosed
 }
 
+// SiteRulesOn says whether everybody ticks the site's rules before using it
+// (SITE_RULES, roadmap row 102): on unless "off". Off, they are still shown
+// to super administrators, once, as a reminder of what Anahita is not for.
+func (config *Config) SiteRulesOn() bool {
+	return !strings.EqualFold(strings.TrimSpace(config.SiteRules), "off")
+}
+
 // GetInvitesFrom returns the minimum role that may issue an invitation.
 //
 // Defaults to administrators, which is what happened before this setting
@@ -291,6 +298,7 @@ func (config *Config) bootstrapFromEnv() {
 	config.SupportPhone = os.Getenv("SUPPORT_PHONE")
 	config.SupportWebsite = os.Getenv("SUPPORT_WEBSITE")
 	config.InvitesFrom = os.Getenv("INVITES_FROM")
+	config.SiteRules = os.Getenv("SITE_RULES")
 	config.GroupsFrom = os.Getenv("GROUPS_FROM")
 	config.EventsFrom = os.Getenv("EVENTS_FROM")
 	config.WebsitesFrom = os.Getenv("WEBSITES_FROM")

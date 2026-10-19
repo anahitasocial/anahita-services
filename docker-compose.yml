@@ -72,6 +72,8 @@ services:
       ENV: ${ENV}
       # How many images a photo post may hold: 20 unless fewer. See docs/configuration.md.
       PHOTO_MAX_FILES: ${PHOTO_MAX_FILES:-}
+      # Whether everybody ticks the site's rules: on unless off. See docs/configuration.md.
+      SITE_RULES: ${SITE_RULES:-}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
       # What the installation lets people who are not signed in see, and

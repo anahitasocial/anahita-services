@@ -177,6 +177,24 @@ existing ones alike.
 
 This is enforced by the web app's interface, not the API.
 
+### The site's rules
+
+After the Terms and the Privacy Policy, on a page of their own (`/rules` in
+the web app), everybody ticks the site's rules, one at a time, before using
+it, and again when their version is raised (roadmap row 102). Every way in
+reaches that page at the first sign-in, the first super administrator too.
+
+- **The rules and their version** are the server's, in `site.json`
+  ([Rules and promises](configuration.md#rules-and-promises)), served on
+  `GET /site`.
+- Agreeing calls `PATCH /agreements/rules` with the version `GET /site` has
+  now; any other is refused (409, `version_not_current`). It is recorded as the
+  Terms are, in `auth_accounts.rules_accepted_*`, and the version agreed to is
+  the `rules_agreement` claim of `/oauth/userinfo`.
+- **`SITE_RULES=off`** asks nobody but a super administrator who has never
+  agreed, once: a reminder of what Anahita is not for. NodeInfo says which as
+  `metadata.siteRules`.
+
 ## Onboarding
 
 Signup asks only for a username, an email address and a password. After the

@@ -97,6 +97,9 @@ func (s *OAuthService) GetUserInfo(user *entities.User, scopes string) map[strin
 		// client decides, and it has no business in a token-bearing response.
 		info["tos_agreement"] = agreementClaim(user.TermsOfService)
 		info["privacy_agreement"] = agreementClaim(user.PrivacyPolicy)
+		// The site's rules, and the version agreed to, which the web app
+		// compares with the one GET /site has now (roadmap row 102).
+		info["rules_agreement"] = agreementClaim(user.SiteRules)
 
 		// Onboarding. The web app sends a person with an incomplete profile
 		// through it after the agreements, unless they have been through it

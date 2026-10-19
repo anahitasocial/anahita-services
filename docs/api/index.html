@@ -56,7 +56,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#activitypub-service">The fediverse</a> <span class="count">20</span></li>
 <li><a href="#actor-service">Profiles</a> <span class="count">69</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
-<li><a href="#auth-service">Accounts and signing in</a> <span class="count">96</span></li>
+<li><a href="#auth-service">Accounts and signing in</a> <span class="count">97</span></li>
 <li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
 <li><a href="#feed-service">Feeds</a> <span class="count">18</span></li>
 <li><a href="#hashtag-service">Hashtags</a> <span class="count">10</span></li>
@@ -3050,6 +3050,31 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>auth/cmd/api/handlers.(*agreementsHandler).EditPrivacy</code></p>
+</details>
+<details class="route" id="patchAgreementsRules" data-search="patch /agreements/rules agree to the site&#39;s rules the viewer&#39;s own agreement, each rule ticked, of the version `get /site` has now (roadmap row 102).
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/agreements/rules</code> <span class="summary">Agree to the site&#39;s rules</span></summary>
+<div class="description"><p>The viewer&#39;s own agreement, each rule ticked, of the version <code>GET /site</code> has now (roadmap row 102).</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>accepted</code></td><td>boolean</td><td>True.</td></tr>
+<tr><td><code>version</code> <span class="required">always</span></td><td>string</td><td>The version accepted: <code>1.0</code>. At most 20 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-auth.Accepted">auth.Accepted</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>version_malformed</code>: the version is not a dotted number; <code>not_accepted</code>: <code>accepted</code> is false; or, without a body, the request is not well formed<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">409</td><td><code>version_not_current</code>: the site&#39;s rules are at another version now<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>auth/cmd/api/handlers.(*agreementsHandler).EditRules</code></p>
 </details>
 <details class="route" id="patchAgreementsTos" data-search="patch /agreements/tos accept the terms of service the viewer&#39;s own acceptance, of the version the web app shows.
 
@@ -11078,13 +11103,14 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-auth.Agreements" data-search="auth.agreements privacy tos">
+<div class="route schema" id="schema-auth.Agreements" data-search="auth.agreements privacy rules tos">
 <h3>auth.Agreements</h3>
 <p>What somebody has accepted of the two documents.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>privacy</code> <span class="required">always</span></td><td><a href="#schema-auth.consentItem">auth.consentItem</a></td><td>The Privacy Policy.</td></tr>
+<tr><td><code>rules</code> <span class="required">always</span></td><td><a href="#schema-auth.consentItem">auth.consentItem</a></td><td>The site&#39;s rules (site.json, roadmap row 102).</td></tr>
 <tr><td><code>tos</code> <span class="required">always</span></td><td><a href="#schema-auth.consentItem">auth.consentItem</a></td><td>The Terms of Service.</td></tr>
 </tbody>
 </table>
@@ -11170,7 +11196,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>websitesFrom</code>, <code>locationsFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
+<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>websitesFrom</code>, <code>locationsFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>siteRules</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
 <tr><td><code>openRegistrations</code> <span class="required">always</span></td><td>boolean</td><td>Whether anybody may sign up without being invited or approved.</td></tr>
 <tr><td><code>protocols</code> <span class="required">always</span></td><td>list of string or null</td><td>What it speaks with other servers: <code>activitypub</code>, when it federates.</td></tr>
 <tr><td><code>services</code> <span class="required">always</span></td><td><a href="#schema-auth.nodeInfoServices">auth.nodeInfoServices</a></td><td>What it bridges to: nothing.</td></tr>

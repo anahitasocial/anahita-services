@@ -70,6 +70,9 @@ type User struct {
 	// sign-in to never look at them is not worth the column reads.
 	TermsOfService Consent `json:"-"`
 	PrivacyPolicy  Consent `json:"-"`
+	// The site's rules (site.json), agreed to by ticking each one (roadmap
+	// row 102).
+	SiteRules Consent `json:"-"`
 }
 
 // NewUser creates a new user
