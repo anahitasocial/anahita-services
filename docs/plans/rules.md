@@ -2,8 +2,22 @@
 
 *Roadmap row 102, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** planned, decisions settled 2026-10-19; not started. Branch
+**Status:** part 1 done 2026-10-19: `site.json` and `GET /site`. Branch
 `issues/rules` in both repositories, from `issues/thread-composer`.
+
+**Parts, in order:**
+
+1. `site.json` (package `anahita-libs/about`, `auth-defaults/site.json`) and
+   `GET /site` — done 2026-10-19. The approved rules, the promises and the
+   suggestions in all five languages; read again when it changes.
+2. The site's rules ticked at sign-in, beside the Terms, recorded, and asked
+   again when the version is raised; `SITE_RULES`; the Terms' versions moved
+   into the file.
+3. The promises on the About page.
+4. Remove as spam.
+5. A group's and an event's rules: written, ticked before following or
+   answering, shown in the About card, agreed again after a change.
+6. Reporting against a rule.
 
 ## Context
 

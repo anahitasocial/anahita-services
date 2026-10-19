@@ -201,6 +201,8 @@ services:
       - ./grpc-certs:/run/secrets/grpc:ro
       - ./oauth-signing.pem:/run/secrets/oauth-signing.pem:ro
       - ./auth-defaults/oauth_seed_clients.json:/app/defaults/oauth_seed_clients.json:ro
+      # What the site says about itself: its rules and promises (roadmap row 102).
+      - ./auth-defaults/site.json:/app/defaults/site.json:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.10

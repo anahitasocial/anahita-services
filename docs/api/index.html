@@ -56,7 +56,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#activitypub-service">The fediverse</a> <span class="count">20</span></li>
 <li><a href="#actor-service">Profiles</a> <span class="count">69</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
-<li><a href="#auth-service">Accounts and signing in</a> <span class="count">95</span></li>
+<li><a href="#auth-service">Accounts and signing in</a> <span class="count">96</span></li>
 <li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
 <li><a href="#feed-service">Feeds</a> <span class="count">18</span></li>
 <li><a href="#hashtag-service">Hashtags</a> <span class="count">10</span></li>
@@ -72,7 +72,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">46</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">152</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">155</span></li>
 </ul>
 </nav>
 <main>
@@ -4581,6 +4581,20 @@ who may call it: anyone, signed in or not.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>auth/cmd/api/handlers.(*signupHandler).Resend</code></p>
+</details>
+<details class="route" id="getSite" data-search="get /site what this site says about itself its rules, which everybody agrees to by ticking each one, with the version agreed to; its promises, for its about page; and the rules a new group is offered to start from. every text in every language it is written in, by the web app&#39;s language names. the operator&#39;s, in `site.json` (configuration.md, `site_defaults_path`).
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/site</code> <span class="summary">What this site says about itself</span></summary>
+<div class="description"><p>Its rules, which everybody agrees to by ticking each one, with the version agreed to; its promises, for its About page; and the rules a new group is offered to start from. Every text in every language it is written in, by the web app&#39;s language names. The operator&#39;s, in <code>site.json</code> (<a href="../configuration.md">configuration.md</a>, <code>SITE_DEFAULTS_PATH</code>).</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-auth.SiteAbout">auth.SiteAbout</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>auth/cmd/api/handlers.(*nodeInfoHandler).Site</code></p>
 </details>
 <details class="route" id="getStaticByPath" data-search="get /static/{path} the pages&#39; styles, scripts and pictures who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/static/{path}</code> <span class="summary">The pages&#39; styles, scripts and pictures</span></summary>
@@ -10078,6 +10092,17 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-Item" data-search="item body title">
+<h3>Item</h3>
+<p>One rule, promise or suggestion: a short title, and a line more if it needs one.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>body</code></td><td>map of string</td><td></td></tr>
+<tr><td><code>title</code> <span class="required">always</span></td><td>map of string or null</td><td></td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-LimitedActor" data-search="limitedactor alias allow_follow_request avatar_urls body event id is_follow_requested_by_viewer is_invited name restricted type verified via_host">
 <h3>LimitedActor</h3>
 <p>What somebody is shown of a profile they may not see, when that profile lets people ask to follow it: enough to know whose it is and to ask.</p>
@@ -10536,6 +10561,17 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>description</code></td><td>string</td><td>The same in words, for whoever is building a client.</td></tr>
 <tr><td><code>error</code> <span class="required">always</span></td><td>string</td><td>Why, as a code a client can tell apart: <code>language_invalid</code>, <code>quote_not_allowed</code> and so on. Each route lists its own.</td></tr>
 <tr><td><code>reason</code></td><td>string</td><td>What lies behind it, where one code has several causes: why a post may not be quoted, for one.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-Rules" data-search="rules items version">
+<h3>Rules</h3>
+<p>The site&#39;s rules, with the version agreed to. Raising the version asks everybody to agree again; a correction that leaves it as it is asks nobody.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>items</code> <span class="required">always</span></td><td>list of <a href="#schema-Item">Item</a> or null</td><td></td></tr>
+<tr><td><code>version</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -11403,6 +11439,18 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The username asked for.</td></tr>
 <tr><td><code>username_taken</code> <span class="required">always</span></td><td>boolean</td><td>UsernameTaken says whether the name they asked for is still free.</td></tr>
 <tr><td><code>website_url</code> <span class="required">always</span></td><td>string</td><td>Their website.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-auth.SiteAbout" data-search="auth.siteabout promises rule_suggestions rules">
+<h3>auth.SiteAbout</h3>
+<p>What GET /site answers: every text in every language it is written in, keyed by the web app&#39;s language names (&#34;en-CA&#34;, &#34;fr-FR&#34;), for the reader&#39;s app to choose from.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>promises</code> <span class="required">always</span></td><td>list of <a href="#schema-Item">Item</a> or null</td><td>Shown on the About page, under &#34;Our promises to you&#34;.</td></tr>
+<tr><td><code>rule_suggestions</code> <span class="required">always</span></td><td>list of <a href="#schema-Item">Item</a> or null</td><td>Offered to a group&#39;s administrators when they write its rules.</td></tr>
+<tr><td><code>rules</code> <span class="required">always</span></td><td><a href="#schema-Rules">Rules</a></td><td>The site&#39;s rules, and the version agreed to: everybody ticks each before using the site, and again when the version is raised.</td></tr>
 </tbody>
 </table>
 </div>

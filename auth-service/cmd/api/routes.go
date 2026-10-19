@@ -271,6 +271,14 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Describe("The software, the protocols it speaks, whether it takes registrations, and how many people use it. Its names are NodeInfo's, in camelCase.").
 		Viewer(apidoc.Anyone).
 		Sends(http.StatusOK, handlers.NodeInfoDocument{})
+	// What the installation says about itself to the people who use it:
+	// its rules, its promises, and rules a new group may start from
+	// (roadmap row 102). Public: it is read before signing up.
+	api.GET("/site", h.NodeInfo.Site).
+		Summary("What this site says about itself").
+		Describe("Its rules, which everybody agrees to by ticking each one, with the version agreed to; its promises, for its About page; and the rules a new group is offered to start from. Every text in every language it is written in, by the web app's language names. The operator's, in `site.json` (configuration.md, `SITE_DEFAULTS_PATH`).").
+		Viewer(apidoc.Anyone).
+		Sends(http.StatusOK, handlers.SiteAbout{})
 
 	// ---------------------------------------------------------------
 	// OAuth user-facing endpoints (HTML flows + BFF endpoints).

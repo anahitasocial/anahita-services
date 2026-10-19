@@ -34,6 +34,9 @@ without changing the code.
    [Account cleanup](configuration.md#account-cleanup),
    [Account lifecycle](account-lifecycle.md),
    [Download your data](data-export.md#keeping-and-deleting).
+9. **Its rules and promises.** The rules everybody agrees to, the promises
+   on its About page, and the rules a new group starts from:
+   [Rules and promises](configuration.md#rules-and-promises).
 
 Not written yet: starting configurations for kinds of site (a school, a
 newsroom, a library), planned in [recipes.md](plans/recipes.md).

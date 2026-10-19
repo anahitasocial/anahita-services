@@ -763,6 +763,30 @@
         ],
         "type": "object"
       },
+      "Item": {
+        "description": "Item is one rule, promise or suggestion: a short title, and a line more if it needs one.",
+        "properties": {
+          "body": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
       "LimitedActor": {
         "description": "LimitedActor is what somebody is shown of a profile they may not see, when that profile lets people ask to follow it: enough to know whose it is and to ask.",
         "properties": {
@@ -2179,6 +2203,28 @@
         },
         "required": [
           "error"
+        ],
+        "type": "object"
+      },
+      "Rules": {
+        "description": "Rules is the site's rules, with the version agreed to. Raising the version asks everybody to agree again; a correction that leaves it as it is asks nobody.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "items"
         ],
         "type": "object"
       },
@@ -4514,6 +4560,41 @@
           "created_ip",
           "created_at",
           "username_taken"
+        ],
+        "type": "object"
+      },
+      "auth.SiteAbout": {
+        "description": "SiteAbout is what GET /site answers: every text in every language it is written in, keyed by the web app's language names (\"en-CA\", \"fr-FR\"), for the reader's app to choose from.",
+        "properties": {
+          "promises": {
+            "description": "Shown on the About page, under \"Our promises to you\".",
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "rule_suggestions": {
+            "description": "Offered to a group's administrators when they write its rules.",
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "rules": {
+            "$ref": "#/components/schemas/Rules",
+            "description": "The site's rules, and the version agreed to: everybody ticks each before using the site, and again when the version is raised."
+          }
+        },
+        "required": [
+          "rules",
+          "promises",
+          "rule_suggestions"
         ],
         "type": "object"
       },
@@ -29042,6 +29123,36 @@
           "auth-service"
         ],
         "x-handler": "auth/cmd/api/handlers.(*signupHandler).Resend",
+        "x-viewer": "anyone"
+      }
+    },
+    "/site": {
+      "get": {
+        "description": "Its rules, which everybody agrees to by ticking each one, with the version agreed to; its promises, for its About page; and the rules a new group is offered to start from. Every text in every language it is written in, by the web app's language names. The operator's, in `site.json` (configuration.md, `SITE_DEFAULTS_PATH`).\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getSite",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.SiteAbout"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What this site says about itself",
+        "tags": [
+          "auth-service"
+        ],
+        "x-handler": "auth/cmd/api/handlers.(*nodeInfoHandler).Site",
         "x-viewer": "anyone"
       }
     },
