@@ -245,7 +245,7 @@ is told about.
 | Row 96, part 3: delivery | ✅ 2026-10-19 |
 | Row 96, part 4: the web app | ✅ 2026-10-19 |
 | Row 96, part 5: email | ✅ 2026-10-19 |
-| Row 97, part 1: read when opened, how long they are kept | 🚧 services done |
+| Row 97, part 1: read when opened, how long they are kept | ✅ 2026-10-19 |
 | Row 97, part 2: actions | ⬜ |
 | Row 97, part 3: grouping | ⬜ |
 | Row 97, part 4: the bell's menu | ⬜ |
