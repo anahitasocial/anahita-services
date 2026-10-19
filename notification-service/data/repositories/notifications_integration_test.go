@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"os"
 	"testing"
+	"time"
 
 	an_entities "anahita-libs/data/entities"
 	"notification/data/entities"
@@ -50,7 +51,7 @@ func TestOneNotificationForOneThing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.Exec(`UPDATE notifications SET is_read = 1, created_at = '2026-01-01' WHERE id = ?`, first); err != nil {
+	if _, err := db.Exec(`UPDATE notifications SET read_at = '2026-01-02', created_at = '2026-01-01' WHERE id = ?`, first); err != nil {
 		t.Fatal(err)
 	}
 	again, err := repo.Add(like(100))
@@ -61,7 +62,7 @@ func TestOneNotificationForOneThing(t *testing.T) {
 		t.Errorf("told again: id %d, want the same row, %d", again, first)
 	}
 	var rows, isRead int
-	if err := db.QueryRow(`SELECT COUNT(*), MAX(is_read) FROM notifications`).Scan(&rows, &isRead); err != nil {
+	if err := db.QueryRow(`SELECT COUNT(*), MAX(read_at IS NOT NULL) FROM notifications`).Scan(&rows, &isRead); err != nil {
 		t.Fatal(err)
 	}
 	if rows != 1 || isRead != 0 {
@@ -239,10 +240,10 @@ func TestTheBellsQuestion(t *testing.T) {
 	}
 
 	if _, err := db.Exec(`INSERT INTO notifications
-		(type, service, recipient_id, subject_id, subject_type, object_id, object_type, target_id, target_type, is_read, created_at)
+		(type, service, recipient_id, subject_id, subject_type, object_id, object_type, target_id, target_type, read_at, created_at)
 		VALUES
-		('voteup', 'like-service', 1, 2, 'p', 100, 'n', 1, 'p', 1, '2026-10-01'),
-		('voteup', 'like-service', 1, 3, 'p', 100, 'n', 1, 'p', 0, '2026-10-02')`); err != nil {
+		('voteup', 'like-service', 1, 2, 'p', 100, 'n', 1, 'p', '2026-10-01', '2026-10-01'),
+		('voteup', 'like-service', 1, 3, 'p', 100, 'n', 1, 'p', NULL, '2026-10-02')`); err != nil {
 		t.Fatal(err)
 	}
 	count, before, err := repo.UnreadCount(viewer)
@@ -281,12 +282,12 @@ func TestMarkAllRead(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := db.Exec(`INSERT INTO notifications
-		(type, service, recipient_id, subject_id, subject_type, object_id, object_type, target_id, target_type, is_read)
+		(type, service, recipient_id, subject_id, subject_type, object_id, object_type, target_id, target_type, read_at)
 		VALUES
-		('voteup', 'like-service', 1, 2, 'p', 100, 'n', 1, 'p', 0),
-		('voteup', 'like-service', 1, 3, 'p', 100, 'n', 1, 'p', 0),
-		('voteup', 'like-service', 1, 4, 'p', 100, 'n', 1, 'p', 1),
-		('voteup', 'like-service', 7, 2, 'p', 200, 'n', 7, 'p', 0)`); err != nil {
+		('voteup', 'like-service', 1, 2, 'p', 100, 'n', 1, 'p', NULL),
+		('voteup', 'like-service', 1, 3, 'p', 100, 'n', 1, 'p', NULL),
+		('voteup', 'like-service', 1, 4, 'p', 100, 'n', 1, 'p', NOW()),
+		('voteup', 'like-service', 7, 2, 'p', 200, 'n', 7, 'p', NULL)`); err != nil {
 		t.Fatal(err)
 	}
 	viewer := an_entities.NewViewer()
@@ -297,10 +298,72 @@ func TestMarkAllRead(t *testing.T) {
 		t.Fatalf("marked %d, %v; want 2", marked, err)
 	}
 	var mine, theirs int
-	if err := db.QueryRow(`SELECT SUM(recipient_id = 1 AND is_read = 0), SUM(recipient_id = 7 AND is_read = 0) FROM notifications`).Scan(&mine, &theirs); err != nil {
+	if err := db.QueryRow(`SELECT SUM(recipient_id = 1 AND read_at IS NULL), SUM(recipient_id = 7 AND read_at IS NULL) FROM notifications`).Scan(&mine, &theirs); err != nil {
 		t.Fatal(err)
 	}
 	if mine != 0 || theirs != 1 {
 		t.Errorf("unread: %d of mine, %d of somebody else's; want 0 and 1", mine, theirs)
+	}
+}
+
+// WHAT THIS GUARDS (roadmap row 97, part 1): a notification marked read
+// keeps when it was first read; a read one past keeping goes, a batch at a
+// time; an unread one stays, however old.
+func TestReadOnesPastKeepingGo(t *testing.T) {
+	dsn := os.Getenv("ACCESS_TEST_DSN")
+	if dsn == "" {
+		t.Skip("set ACCESS_TEST_DSN to run against MySQL")
+	}
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`DELETE FROM notifications`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`INSERT INTO notifications
+		(id, type, service, recipient_id, subject_id, subject_type, object_id, object_type, target_id, target_type, read_at, created_at)
+		VALUES
+		(1, 'voteup', 'like-service', 1, 2, 'p', 100, 'n', 1, 'p', '2026-01-01', '2026-01-01'),
+		(2, 'voteup', 'like-service', 1, 3, 'p', 100, 'n', 1, 'p', '2026-01-02', '2026-01-01'),
+		(3, 'voteup', 'like-service', 1, 4, 'p', 100, 'n', 1, 'p', NULL, '2025-01-01'),
+		(4, 'voteup', 'like-service', 1, 5, 'p', 100, 'n', 1, 'p', NOW(), '2026-01-01')`); err != nil {
+		t.Fatal(err)
+	}
+	repo := NewNotification(db)
+
+	// Marking one read again keeps when it was first.
+	again := entities.NewNotification()
+	again.ID = 1
+	again.IsRead = true
+	if err := repo.Edit(again); err != nil {
+		t.Fatal(err)
+	}
+	var first string
+	if err := db.QueryRow(`SELECT DATE_FORMAT(read_at, '%Y-%m-%d') FROM notifications WHERE id = 1`).Scan(&first); err != nil {
+		t.Fatal(err)
+	}
+	if first != "2026-01-01" {
+		t.Errorf("read again: read_at %s, want 2026-01-01 kept", first)
+	}
+
+	cutoff, _ := time.Parse("2006-01-02", "2026-06-01")
+	n, err := repo.DeleteReadBefore(cutoff, 1)
+	if err != nil || n != 1 {
+		t.Fatalf("first batch: %d, %v; want 1", n, err)
+	}
+	if n, _ = repo.DeleteReadBefore(cutoff, 1); n != 1 {
+		t.Errorf("second batch: %d; want 1", n)
+	}
+	if n, _ = repo.DeleteReadBefore(cutoff, 1); n != 0 {
+		t.Errorf("third batch: %d; want nothing left", n)
+	}
+	var left string
+	if err := db.QueryRow(`SELECT GROUP_CONCAT(id ORDER BY id) FROM notifications`).Scan(&left); err != nil {
+		t.Fatal(err)
+	}
+	if left != "3,4" {
+		t.Errorf("left %s; want 3 (unread, however old) and 4 (read today)", left)
 	}
 }

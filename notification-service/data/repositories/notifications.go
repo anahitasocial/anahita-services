@@ -43,6 +43,9 @@ type NotificationInterface interface {
 	// DeleteAbout removes every notification about a node that is gone.
 	DeleteAbout(nodeID int64) error
 
+	// DeleteReadBefore removes, a batch at a time, those read before then.
+	DeleteReadBefore(before time.Time, batch int) (int64, error)
+
 	// DeleteBetween removes what two profiles were told of each other.
 	DeleteBetween(a, b int64) error
 
@@ -75,7 +78,8 @@ func (r *Notification) getBaseSelectQuery() sq.SelectBuilder {
 		"notification.recipient_id",
 		"notification.created_at",
 		"notification.updated_at",
-		"notification.is_read",
+		// Read when read_at is set: NULL while it is unread.
+		"notification.read_at IS NOT NULL AS is_read",
 		// Who, what and where it is about: NULL when there is none, read as 0.
 		"COALESCE(notification.subject_id, 0) AS subject_id",
 		"COALESCE(notification.object_id, 0) AS object_id",
@@ -114,7 +118,7 @@ func (repo *Notification) Count(req *requests.NotificationBrowseRequest, viewer 
 
 const unreadCountAndNewest = `
 SELECT
-    COALESCE(SUM(is_read = 0), 0),
+    COALESCE(SUM(read_at IS NULL), 0),
     MAX(created_at)
 FROM notifications
 WHERE recipient_id = ?`
@@ -200,10 +204,14 @@ func (repo *Notification) Edit(item *entities.Notification) error {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
 
-	query := sq.Update("notifications").SetMap(sq.Eq{
-		"is_read":    item.IsRead,
-		"updated_at": time.Now(),
-	}).Where(sq.Eq{"id": item.ID})
+	// Read now, or unread again. Read once, it keeps the time it was first.
+	values := sq.Eq{"updated_at": time.Now()}
+	if item.IsRead {
+		values["read_at"] = sq.Expr("COALESCE(read_at, NOW())")
+	} else {
+		values["read_at"] = nil
+	}
+	query := sq.Update("notifications").SetMap(values).Where(sq.Eq{"id": item.ID})
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -216,10 +224,10 @@ func (repo *Notification) Edit(item *entities.Notification) error {
 
 const markAllRead = `
 UPDATE notifications
-SET is_read = 1,
+SET read_at = NOW(),
     updated_at = NOW()
 WHERE recipient_id = ?
-    AND is_read = 0`
+    AND read_at IS NULL`
 
 // EditAll marks every one of the viewer's notifications read (Mark all
 // read), and answers how many were unread.
@@ -242,7 +250,7 @@ ON DUPLICATE KEY UPDATE
     id = LAST_INSERT_ID(id),
     created_at = NOW(),
     updated_at = NOW(),
-    is_read = 0`
+    read_at = NULL`
 
 // Add tells somebody something, or tells them again.
 func (repo *Notification) Add(item *entities.Notification) (int64, error) {
@@ -319,6 +327,25 @@ func (repo *Notification) DeleteAbout(nodeID int64) error {
 
 	_, err := repo.db.ExecContext(ctx, deleteNotificationsAbout, nodeID, nodeID, nodeID)
 	return err
+}
+
+const deleteReadBefore = `
+DELETE FROM notifications
+WHERE read_at < ?
+LIMIT ?`
+
+// DeleteReadBefore removes up to a batch of notifications read before the
+// time given (NOTIFICATIONS_KEEP_DAYS): a batch at a time, so the table is
+// never held long. Unread ones stay, however old.
+func (repo *Notification) DeleteReadBefore(before time.Time, batch int) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	result, err := repo.db.ExecContext(ctx, deleteReadBefore, before, batch)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const deleteNotificationsBetween = `

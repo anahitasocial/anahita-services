@@ -89,6 +89,12 @@ spec:
                 configMapKeyRef:
                   name: anahita-config
                   key: OAUTH_JWKS_URL
+            - name: NOTIFICATIONS_KEEP_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: NOTIFICATIONS_KEEP_DAYS
+                  optional: true
             - name: DSN
               valueFrom:
                 secretKeyRef:

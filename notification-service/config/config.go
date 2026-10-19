@@ -33,7 +33,15 @@ type Config struct {
 	GraphServiceAddr string
 	OAuthIssuer      string
 	OAuthJWKSURL     string
+	// How many days a read notification is kept after it was read
+	// (NOTIFICATIONS_KEEP_DAYS): 90 unless set, 0 for forever. Unread ones
+	// are kept until they are read.
+	KeepDays int
 }
+
+// DefaultKeepDays is how long a read notification is kept when the
+// installation does not say.
+const DefaultKeepDays = 90
 
 func NewConfig() *Config {
 	config := &Config{
@@ -48,6 +56,10 @@ func NewConfig() *Config {
 		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
 		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
+		KeepDays:         getIntEnv("NOTIFICATIONS_KEEP_DAYS", DefaultKeepDays),
+	}
+	if config.KeepDays < 0 {
+		config.KeepDays = DefaultKeepDays
 	}
 
 	// If JWKS URL is unset, derive it from the issuer — auth-service is

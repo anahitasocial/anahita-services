@@ -275,6 +275,14 @@ be saved without coordinates. actor-service starts without either, and events
 are then saved with their address and no map. An event's address is sent to
 a geocoder only when "Show a map" is ticked on its form.
 
+## Notifications
+
+Read by notification-service. See [Notifications](notifications.md#how-long-they-are-kept).
+
+| Variable | Value |
+| --- | --- |
+| `NOTIFICATIONS_KEEP_DAYS` | Optional. How many days a notification is kept after it was read. `90` when unset; `0` keeps them for good. An unread one is kept until it is read |
+
 ## Trending
 
 Read by hashtag-service and location-service: over what span of time the

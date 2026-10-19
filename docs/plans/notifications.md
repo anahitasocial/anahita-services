@@ -189,7 +189,21 @@ still, and quicker when it matters.
 
 ## Row 97: notifications worth acting on
 
-Planned with row 96, to be built after it.
+Planned with row 96, begun 2026-10-19. Settled with the user that day:
+
+- **Read when opened or acted on:** clicking a notification, or using one
+  of its actions, marks it read; seeing it in the list does not, so the dot
+  keeps meaning "not looked at yet".
+- **The bell opens a menu** of the latest eight on a desktop, with their
+  actions, Mark all read and See all; on a phone it goes to the full page,
+  as now.
+- **Choices by kind of thing,** about eight switches, all on to begin with.
+- **Read ones are kept 90 days** after they were read, unread ones until
+  they are (`NOTIFICATIONS_KEEP_DAYS`, 0 for forever).
+
+Built in five parts: (1) read when opened, `read_at` and how long they are
+kept; (2) actions; (3) grouping; (4) the bell's menu; (5) choosing what one
+is told about.
 
 1. **Actions inside a notification,** one row of buttons, full width and
    side by side, the declining one on the left. Their state comes from the
@@ -212,12 +226,15 @@ Planned with row 96, to be built after it.
 3. **A notification is read when it is opened.** `read_at` in place of
    `is_read`. Mark all read (`PATCH /notifications/read-all`) was built on
    2026-10-19, with roadmap row 99.
-4. **The bell opens the latest few** in a menu, with the full page a link
-   from it.
-5. **Choosing what one is told about,** for each kind, in a Notifications
-   tab of a person's settings.
+4. **The bell opens the latest eight** in a menu on a desktop, with their
+   actions, Mark all read and See all.
+5. **Choosing what one is told about,** by kind of thing, in a
+   Notifications tab of a person's settings: likes; reposts and quotes;
+   replies; mentions; follows and requests; new posts from what one
+   follows; events; invitations and administration.
 6. **How long notifications are kept** is the operator's choice
-   (`NOTIFICATIONS_KEEP_DAYS`), as how fast the past fades is.
+   (`NOTIFICATIONS_KEEP_DAYS`, 90 unless set, 0 for forever): a read one
+   goes that many days after it was read; an unread one stays.
 
 ## Status
 
@@ -228,4 +245,8 @@ Planned with row 96, to be built after it.
 | Row 96, part 3: delivery | ✅ 2026-10-19 |
 | Row 96, part 4: the web app | ✅ 2026-10-19 |
 | Row 96, part 5: email | ✅ 2026-10-19 |
-| Row 97 | ⬜ planned |
+| Row 97, part 1: read when opened, how long they are kept | 🚧 services done |
+| Row 97, part 2: actions | ⬜ |
+| Row 97, part 3: grouping | ⬜ |
+| Row 97, part 4: the bell's menu | ⬜ |
+| Row 97, part 5: choosing what one is told about | ⬜ |

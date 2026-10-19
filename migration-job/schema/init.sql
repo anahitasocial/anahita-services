@@ -360,7 +360,9 @@ CREATE TABLE notifications (
     `comment_id` bigint unsigned DEFAULT NULL,
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `is_read` tinyint(1) NOT NULL DEFAULT 0,
+    -- When it was read: NULL while it is unread. A read one is kept so many
+    -- days after (NOTIFICATIONS_KEEP_DAYS).
+    `read_at` datetime DEFAULT NULL,
     PRIMARY KEY (`id`),
     -- One notification for one thing: a repeated event makes no second row.
     -- A missing subject, object, target or reply is read as 0, since MySQL
@@ -369,8 +371,10 @@ CREATE TABLE notifications (
         (IFNULL(`subject_id`, 0)), (IFNULL(`object_id`, 0)),
         (IFNULL(`target_id`, 0)), (IFNULL(`comment_id`, 0))),
     -- The unread count, and the list.
-    KEY `recipient_unread` (`recipient_id`, `is_read`),
+    KEY `recipient_unread` (`recipient_id`, `read_at`),
     KEY `recipient_created` (`recipient_id`, `created_at`),
+    -- Read ones past keeping.
+    KEY `read_at` (`read_at`),
     KEY `subject_id` (`subject_id`),
     KEY `subject_type` (`subject_type`),
     KEY `object_id` (`object_id`),

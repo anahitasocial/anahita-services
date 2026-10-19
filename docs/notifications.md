@@ -28,7 +28,7 @@ notification-service when it hears an event on the bus (`anahita_events`).
 | `object_id` | What it was done to or with: a post, for most kinds |
 | `target_id` | Where: the profile it belongs to |
 | `comment_id` | What holds what was done, when that is not the object: a reply, or a repost |
-| `is_read` | Whether the recipient has read it |
+| `read_at` | When the recipient read it: NULL while it is unread |
 
 Nothing is copied into a row: the list fills the nodes in when it is read,
 so a notification always shows a post as it is now.
@@ -110,6 +110,21 @@ of, for everybody who was told, whoever's hand removed it:
 | A block | What the two were told of each other |
 
 Taking one of these back tells nobody.
+
+## Read, and how long they are kept
+
+A notification is read when its reader opens it, by following one of its
+links, or uses one of its actions; or with Mark all read. Seeing it in the
+list does not make it read.
+
+### How long they are kept
+
+A read notification is removed `NOTIFICATIONS_KEEP_DAYS` days after it was
+read: 90 unless the installation sets another number, and never with `0`
+([Configuration](configuration.md#notifications)). An unread one stays until
+it is read. notification-service looks for them when it starts and every six
+hours after, and removes them a thousand at a time
+(`notification-service/cmd/api/keeping.go`).
 
 ## Delivery
 

@@ -37,6 +37,7 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [OAuth signing and encryption](configuration.md#oauth-signing-and-encryption)
    - [Storage](configuration.md#storage)
    - [Locations](configuration.md#locations)
+   - [Notifications](configuration.md#notifications)
    - [Trending](configuration.md#trending)
    - [Mail](configuration.md#mail)
    - [Abuse reports](configuration.md#abuse-reports)
@@ -325,6 +326,7 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [Only what its reader may see](notifications.md#only-what-its-reader-may-see)
    - [Who is never told](notifications.md#who-is-never-told)
    - [When what it tells of goes](notifications.md#when-what-it-tells-of-goes)
+   - [Read, and how long they are kept](notifications.md#read-and-how-long-they-are-kept)
    - [Delivery](notifications.md#delivery)
    - [The API](notifications.md#the-api)
 

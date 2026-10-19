@@ -2206,3 +2206,12 @@ ALTER TABLE notifications
     ADD UNIQUE KEY `one_of_each` (`recipient_id`, `type`,
         (IFNULL(`subject_id`, 0)), (IFNULL(`object_id`, 0)),
         (IFNULL(`target_id`, 0)), (IFNULL(`comment_id`, 0)));
+
+-- 20261019180000_notifications_read_at: when a notification was read, in
+-- place of whether (roadmap row 97). The table is empty here.
+ALTER TABLE notifications
+    ADD COLUMN `read_at` datetime DEFAULT NULL AFTER `updated_at`,
+    DROP INDEX `recipient_unread`,
+    DROP COLUMN `is_read`,
+    ADD KEY `recipient_unread` (`recipient_id`, `read_at`),
+    ADD KEY `read_at` (`read_at`);
