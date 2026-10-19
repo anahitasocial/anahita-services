@@ -2,7 +2,8 @@
 
 *Roadmap row 101, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** parts 1 to 4 done (2026-10-19); part 5, the composer, next. Branch
+**Status:** parts 1 to 4 done (2026-10-19), and part 5 in the composer;
+a thread from the reply form is next. Branch
 `issues/thread-composer` in both repositories, from `issues/network-limits`.
 
 ## Context
@@ -114,6 +115,13 @@ Mastodon server.
 
 "Add to thread" under the text makes the next part; each part shows what
 row 100's lines show; Post sends them all. On a phone, the whole screen.
+
+**In the composer, done 2026-10-19** (anahita-web `Composer/ThreadParts.jsx`):
+a box for each note after the first, joined to the one before by a line,
+with its own Bluesky line, and ✕ to take it out. Only for words alone.
+Tried in headless Chrome at both sizes: a thread of three posted, made in
+order. **Next:** the same in the reply form (`ReplyForm.jsx`), posting with
+`POST /notes/:id/replies/thread`.
 
 ## Checking
 
