@@ -341,7 +341,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | Plan | Roadmap item | Status |
 | --- | --- | --- |
 | [Recommendation service](plans/done/recommendation-service.md) | 3 | built 2026-10-11 |
-| [Notifications: right, then worth acting on](plans/notifications.md) | 79, 80 | planned 2026-10-19; row 96 in progress |
+| [Notifications: right, then worth acting on](plans/notifications.md) | 79, 80 | row 96 done 2026-10-19; row 97 planned |
 | [Sign in with a code; codes instead of links](plans/done/login-code.md) | 6, 6b | done 2026-10-03 (step-up by code left out by decision) |
 | [Notes as replies](plans/done/notes-as-replies.md) | 7 | done 2026-10-05: every comment is a reply, a post's author chooses who can reply, and comment-service is removed |
 | [Federation: ActivityPub and AT Protocol](plans/federation.md) | 8 | phase 0 done 2026-10-12; phase 1, ActivityPub, mostly built 2026-10-13: see [Federation](federation.md). AT Protocol built 2026-10-13 as connected accounts: everybody reads Bluesky, and whoever connects their own account posts, replies, likes, reposts and follows there. Hosting Bluesky identities on a server of the site's own is [plans/atproto-server.md](plans/atproto-server.md), to be decided |
