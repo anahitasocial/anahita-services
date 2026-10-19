@@ -111,7 +111,8 @@ and places.
 - **Account type** for registered, administrator or super administrator,
   never "user type", "person type" or "role"; `person_type` is the code's
   word.
-- **+ Follow**, with no name after it: no "Follow back", no "Follow #tag".
+- **+ Follow**, with no name after it: no "Follow #tag". **+ Follow back**
+  for somebody who follows the viewer already.
 - Action labels name no entity: "Delete", not "Delete reply", unless two
   actions in one menu would otherwise read the same.
 - Releases are **Embryo** (the main branch) and **Birth** (a tagged
