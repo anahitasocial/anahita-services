@@ -179,6 +179,16 @@ The order does not change what is found. A result has the words in its
 name, its handle (matched without a typed `@`), or its body, and is one the
 searcher may see; see [Permissions](permissions.md).
 
+**What may be searched for** (`search_query`, `anahita-libs/validators`):
+letters, marks and numbers in any language ("Montréal", "Zürich", "東京"),
+spaces, and what people type in a name, a handle or an address: `-` `_` `.`
+`,` `+` `#` `@` `"` `'` `’` `:` `/` `?` `&` `=` `~` `!` `(` `)`. Up to 100
+characters. It refused everything but unaccented Latin letters until
+2026-10-19. A search among names (`name_search_query`, the lists of a
+profile's followers) takes the same letters with `-` `_` `.` `+` `"` `'` `’`.
+None of it is written into SQL: the words are bound parameters, `LIKE`'s
+wildcards are taken out, and a regular expression made of them is quoted.
+
 ## Where the code is
 
 - `graph-grpc-service/data/repositories/search.go`: what is found

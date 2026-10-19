@@ -35,22 +35,28 @@ func (cv *RequestValidator) Validate(i interface{}) error {
 	return nil
 }
 
-// validateSearchQuery
-// field only contain characters that are deemed safe for search queries
-func validateSearchQuery(fl validator.FieldLevel) bool {
-	str := fl.Field().String()
-	match, _ := regexp.MatchString(`^[a-zA-Z0-9 \-_\.,\+\#\@"]+$`, str)
+// A search: letters, marks and numbers in any language ("Montréal", "Zürich",
+// "東京"), spaces, and what people type in a name, a handle or the address of
+// a profile on another server ("O'Brien", "@ana@example.org",
+// "https://pixelfed.social/dansup"). It refused everything but unaccented
+// Latin letters, so a search in French or German, or for an address, was
+// answered 400 (the user, 2026-10-19). Nothing here is written into SQL: the
+// words are bound parameters, LIKE's wildcards are taken out
+// (sanitizeSearchString) and a regular expression made of them is quoted
+// (regexp.QuoteMeta).
+var searchQuery = regexp.MustCompile(`^[\p{L}\p{M}\p{N} \-_.,+#@"'’:/?&=~!()]+$`)
 
-	return match
+// A search among names: the same letters, with no address in it.
+var nameSearchQuery = regexp.MustCompile(`^[\p{L}\p{M}\p{N} \-_.+"'’]+$`)
+
+// validateSearchQuery is a search of words, names, handles or addresses.
+func validateSearchQuery(fl validator.FieldLevel) bool {
+	return searchQuery.MatchString(fl.Field().String())
 }
 
-// validateNameSearchQuery
-// field only contain characters that are deemed safe for name search queries
+// validateNameSearchQuery is a search among names.
 func validateNameSearchQuery(fl validator.FieldLevel) bool {
-	str := fl.Field().String()
-	match, _ := regexp.MatchString(`^[a-zA-Z0-9 \-_\.\+"]+$`, str)
-
-	return match
+	return nameSearchQuery.MatchString(fl.Field().String())
 }
 
 // validateUsername
