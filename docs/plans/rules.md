@@ -2,7 +2,7 @@
 
 *Roadmap row 102, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** parts 1 and 2 done 2026-10-19. Branch
+**Status:** parts 1 to 3 done 2026-10-19. Branch
 `issues/rules` in both repositories, from `issues/thread-composer`.
 
 **Parts, in order:**
@@ -19,7 +19,11 @@
    Terms' versions are left in the web app for now: their text is there
    too, and moving one without the other would split a document from its
    version (to settle with the user).
-3. The promises on the About page.
+3. The promises on the About page — done 2026-10-19: first on the page,
+   under "Our promises to you", with "Read our rules" leading to `/rules`
+   (anahita-web `containers/about/Promises.jsx`). The site's rules have a
+   page of their own, `/rules`, after the Terms (the user, the same day),
+   each zooming forward once the one before is ticked.
 4. Remove as spam.
 5. A group's and an event's rules: written, ticked before following or
    answering, shown in the About card, agreed again after a change.
