@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
@@ -159,6 +160,10 @@ func (h *followerHandler) Add(c echo.Context) error {
 	addReq.Target = target
 	addReq.Viewer = viewer
 	if err = h.Srv.SocialgraphFollowGRPC.Add(addReq); err != nil {
+		// Its rules, ticked first (roadmap row 102, part 5b).
+		if an_handlers.IsRulesNotAgreed(err) {
+			return an_handlers.RefuseRulesNotAgreed(c)
+		}
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}

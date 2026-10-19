@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"anahita-libs/constants"
 	"anahita-libs/proto/graphpb"
 	"context"
 	"errors"
@@ -94,4 +95,47 @@ func (h *actorHandler) AgreeRules(ctx context.Context, req *graphpb.RulesAgreeRe
 		return nil, err
 	}
 	return &graphpb.RulesAgreeResponse{}, nil
+}
+
+// RulesNotAgreed is what a follow, a request to follow, an event's answer
+// or an invitation's acceptance is refused with when the group or the event
+// has rules the person has not agreed to, at the version they are at now
+// (roadmap row 102, part 5b). The REST services answer it 409
+// `rules_not_agreed`.
+const RulesNotAgreed = "rules_not_agreed"
+
+// requireRulesAgreed is nil when `personID` may join `profileID`: it has no
+// rules, the person agreed to the version they are at, or the person is one
+// of its administrators, who write them.
+func requireRulesAgreed(env *Env, personID, profileID int64) error {
+	rules, err := env.Repos.ProfileRules.Read(profileID)
+	if err != nil {
+		return err
+	}
+	if rules.Version == 0 || len(rules.Items) == 0 {
+		return nil
+	}
+	agreed, err := env.Repos.ProfileRules.Agreed(personID, profileID)
+	if err != nil {
+		return err
+	}
+	if agreed >= rules.Version {
+		return nil
+	}
+	admins, err := env.Repos.ActorAdmins.Browse(profileID)
+	if err != nil {
+		return err
+	}
+	for _, admin := range admins {
+		if admin.GetId() == personID {
+			return nil
+		}
+	}
+	return status.Error(codes.FailedPrecondition, RulesNotAgreed)
+}
+
+// hasRules says whether a profile is of a kind that has rules: a group or
+// an event.
+func hasRules(nodeType string) bool {
+	return nodeType == constants.NodeActorGroupEntityType || nodeType == constants.NodeActorEventEntityType
 }

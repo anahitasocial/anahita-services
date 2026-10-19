@@ -401,6 +401,13 @@ socialgraph-service asks them.
 Nobody follows, or asks to follow, on somebody else's behalf. The one
 exception is the group setting below.
 
+**A group or an event with rules** (roadmap row 102) is followed, asked to
+follow, answered or joined by an invitation only once its rules are agreed
+to, each ticked, at the version they are at now (`POST /groups|events/:id/rules/agree`).
+Otherwise graph-grpc-service refuses, and the route answers 409
+`rules_not_agreed`. Its administrators, who write the rules, are not asked;
+nor is somebody an administrator adds as a follower, nor leaving.
+
 Asking does not need you to be able to see the profile. A profile you can see,
 you can follow outright; the ones worth asking are the ones you cannot.
 "Others can request to follow" (`allow_follow_request`) is the profile saying

@@ -534,7 +534,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Sends(http.StatusOK, libs_responses.ActorNode{}).
 		Refuses(http.StatusForbidden, "the viewer may not go to it").
 		Refuses(http.StatusNotFound, "there is no such event").
-		Sends(http.StatusConflict, libs_responses.Refusal{}, "`event_full`: every place is taken; maybe is still open").
+		Sends(http.StatusConflict, libs_responses.Refusal{}, "`event_full`: every place is taken; maybe is still open; or `rules_not_agreed`: it is a group or an event with rules the viewer has not agreed to; tick each and agree (`POST /groups|events/:id/rules/agree`), then ask again").
 		Sends(http.StatusGone, libs_responses.Refusal{}, "`event_closed`: it is over or called off")
 	events.DELETE("/:id/rsvp", r.handler.Event.Unrsvp, r.authorize).
 		Summary("Not going after all").

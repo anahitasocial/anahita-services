@@ -3471,7 +3471,7 @@
                 }
               }
             },
-            "description": "`event_full`: every place is taken; maybe is still open"
+            "description": "`event_full`: every place is taken; maybe is still open; or `rules_not_agreed`: it is a group or an event with rules the viewer has not agreed to; tick each and agree (`POST /groups|events/:id/rules/agree`), then ask again"
           },
           "410": {
             "content": {

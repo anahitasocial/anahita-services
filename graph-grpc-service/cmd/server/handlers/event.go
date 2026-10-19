@@ -105,6 +105,14 @@ func (h *eventGrpcHandler) Rsvp(ctx context.Context, req *graphpb.EventRsvpReque
 		return nil, errors.New("an event and a person are required")
 	}
 
+	// Going, or maybe: the event's rules agreed to first (roadmap row 102,
+	// part 5b). Not to leave it.
+	if req.Rsvp != "" {
+		if err := requireRulesAgreed(h.env, req.PersonId, req.EventId); err != nil {
+			return nil, err
+		}
+	}
+
 	result, err := h.env.Repos.Events.Rsvp(req.EventId, req.PersonId, req.Rsvp)
 	if err != nil {
 		log.Println(err)

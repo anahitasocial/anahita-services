@@ -1306,7 +1306,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not go to it</td></tr>
 <tr><td class="status s4">404</td><td>there is no such event</td></tr>
-<tr><td class="status s4">409</td><td><code>event_full</code>: every place is taken; maybe is still open<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td><code>event_full</code>: every place is taken; maybe is still open; or <code>rules_not_agreed</code>: it is a group or an event with rules the viewer has not agreed to; tick each and agree (<code>POST /groups|events/:id/rules/agree</code>), then ask again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">410</td><td><code>event_closed</code>: it is over or called off<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
@@ -7728,6 +7728,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not follow it</td></tr>
 <tr><td class="status s4">404</td><td>the viewer has no invitation to it</td></tr>
+<tr><td class="status s4">409</td><td><code>rules_not_agreed</code>: it is a group or an event with rules the viewer has not agreed to; tick each and agree (<code>POST /groups|events/:id/rules/agree</code>), then ask again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*inviteHandler).Accept</code></p>
@@ -7913,6 +7914,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not ask: the profile does not let people ask, or has blocked them</td></tr>
 <tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+<tr><td class="status s4">409</td><td><code>rules_not_agreed</code>: it is a group or an event with rules the viewer has not agreed to; tick each and agree (<code>POST /groups|events/:id/rules/agree</code>), then ask again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*followRequestHandler).Add</code></p>
@@ -7991,6 +7993,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not make this follow</td></tr>
 <tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+<tr><td class="status s4">409</td><td><code>rules_not_agreed</code>: it is a group or an event with rules the viewer has not agreed to; tick each and agree (<code>POST /groups|events/:id/rules/agree</code>), then ask again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*followerHandler).Add</code></p>

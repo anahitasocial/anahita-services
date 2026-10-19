@@ -72,6 +72,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(sg.Add).
 		Sends(http.StatusCreated, responses.ActorNodeItem{}).
 		Refuses(http.StatusForbidden, "the viewer may not make this follow").
+		Sends(http.StatusConflict, responses.Refusal{}, "`rules_not_agreed`: it is a group or an event with rules the viewer has not agreed to; tick each and agree (`POST /groups|events/:id/rules/agree`), then ask again").
 		Refuses(http.StatusNotFound, "there is no such profile")
 	socialgraph.DELETE("/:target_id/followers/:source_id", r.handler.Follower.Delete, r.authorize).
 		Summary("Stop following, or remove a follower").
@@ -114,6 +115,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(sg.Add).
 		Sends(http.StatusCreated, responses.LimitedActor{}).
 		Refuses(http.StatusForbidden, "the viewer may not ask: the profile does not let people ask, or has blocked them").
+		Sends(http.StatusConflict, responses.Refusal{}, "`rules_not_agreed`: it is a group or an event with rules the viewer has not agreed to; tick each and agree (`POST /groups|events/:id/rules/agree`), then ask again").
 		Refuses(http.StatusNotFound, "there is no such profile")
 	socialgraph.DELETE("/:target_id/follow-requests/:source_id", r.handler.FollowRequest.Delete, r.authorize).
 		Summary("Withdraw a request, or turn one down").
@@ -154,6 +156,7 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Takes(&handlers.InviteActorRequest{}).
 		Sends(http.StatusOK, handlers.InviteAnswer{}).
 		Refuses(http.StatusForbidden, "the viewer may not follow it").
+		Sends(http.StatusConflict, responses.Refusal{}, "`rules_not_agreed`: it is a group or an event with rules the viewer has not agreed to; tick each and agree (`POST /groups|events/:id/rules/agree`), then ask again").
 		Refuses(http.StatusNotFound, "the viewer has no invitation to it")
 	socialgraph.POST("/:actor_id/invites/decline", r.handler.Invite.Decline, r.authorize).
 		Summary("Turn an invitation down").

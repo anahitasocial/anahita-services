@@ -55,7 +55,13 @@
      `POST .../rules/agree`; a Rules tab in the settings, with the site's
      suggestions; the rules in the About card.
    - 5b, ticked before following, asking to follow or answering, one at a
-     time, the server refusing without the current version.
+     time, the server refusing without the current version — done
+     2026-10-19: graph-grpc refuses a follow or a request for oneself, an
+     invitation's acceptance and an event's going or maybe with
+     `rules_not_agreed` (FailedPrecondition; 409 from socialgraph-service
+     and actor-service), administrators excepted; the web app asks first,
+     in a dialog. Tried as Worf on a phone: the follow went through once
+     the four rules were ticked.
    - 5c, agreed again after a change, before the next post there.
 6. Reporting against a rule.
 

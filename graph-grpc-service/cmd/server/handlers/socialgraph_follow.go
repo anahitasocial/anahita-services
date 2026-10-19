@@ -118,6 +118,15 @@ func (h *socialgraphFollowGrpcHandler) Add(ctx context.Context, req *graphpb.Soc
 		return nil, err
 	}
 
+	// Following a group or an event, or asking to, for oneself: its rules,
+	// if it has any, agreed to first (roadmap row 102, part 5b). Not when an
+	// administrator adds somebody, who is not asked.
+	if source.ID == req.Viewer.Id && hasRules(target.Type) {
+		if err := requireRulesAgreed(h.env, source.ID, target.ID); err != nil {
+			return nil, err
+		}
+	}
+
 	if req.IsFollowRequest {
 		// Asking twice is asking once: the edge is unique, and a second
 		// insert would be refused by the database as an error.
