@@ -125,10 +125,12 @@ func TestEveryRouteNamesItsViewer(t *testing.T) {
 			service, strings.Join(routes, "\n  "))
 	}
 
-	// The ways in. Nothing here returns anything a member wrote.
+	// The ways in. Nothing here returns anything a member wrote. /site is
+	// what the site says about itself, its rules among it, which are read
+	// before signing up (roadmap row 102).
 	allowed := []string{
 		"/auth/is/", "/password/", "/invites/accept", "/signup",
-		"/.well-known/", "/nodeinfo/", "/oauth/",
+		"/.well-known/", "/nodeinfo/", "/oauth/", "/site",
 	}
 	for _, route := range open["auth-service"] {
 		path := route[strings.Index(route, " ")+1:]

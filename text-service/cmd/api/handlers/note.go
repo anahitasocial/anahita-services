@@ -179,48 +179,6 @@ func (h *noteHandler) Edit(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// Add creates a new note
-func (h *noteHandler) Add(c echo.Context) error {
-	var (
-		err    error
-		req    = requests.NewNoteRequest().Add
-		viewer = getViewer(c)
-	)
-
-	if err = c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err = c.Validate(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	medium, refuse := h.newNote(c, req, viewer)
-	if refuse != nil {
-		return refuse()
-	}
-
-	medium, err = h.Srv.MediaGRPC.AddWithLocations(medium, viewer, req.LocationIDs)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	if err = h.onAfterFetched(c, medium); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	batchPresignPaths(h.Env, []*entities.AnahitaNode{medium})
-
-	mediaResp := &responses.MediumNodeResponse{}
-	resp := mediaResp.MapMediumNode(medium)
-
-	return c.JSON(http.StatusCreated, resp)
-}
-
 // newNote is a note as `req` describes it, checked: who may post where,
 // with what audience, quoting what. Or, when it may not be made, what to
 // answer instead.
@@ -306,6 +264,48 @@ func (h *noteHandler) newNote(c echo.Context, req *requests.NoteAddRequest, view
 	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body, false)
 
 	return medium, nil
+}
+
+// Add creates a new note
+func (h *noteHandler) Add(c echo.Context) error {
+	var (
+		err    error
+		req    = requests.NewNoteRequest().Add
+		viewer = getViewer(c)
+	)
+
+	if err = c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err = c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	medium, refuse := h.newNote(c, req, viewer)
+	if refuse != nil {
+		return refuse()
+	}
+
+	medium, err = h.Srv.MediaGRPC.AddWithLocations(medium, viewer, req.LocationIDs)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if err = h.onAfterFetched(c, medium); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	batchPresignPaths(h.Env, []*entities.AnahitaNode{medium})
+
+	mediaResp := &responses.MediumNodeResponse{}
+	resp := mediaResp.MapMediumNode(medium)
+
+	return c.JSON(http.StatusCreated, resp)
 }
 
 // withLinkPreview puts the preview of a link into a note's meta, keeps the
