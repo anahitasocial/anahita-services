@@ -53,6 +53,12 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Viewer(apidoc.SignedIn).
 		Scope(read).
 		Sends(http.StatusOK, responses.UnreadCount{})
+	notifications.PATCH("/read-all", r.handler.Notification.EditAll).
+		Summary("Mark all as read").
+		Describe("Every one of the viewer's notifications. Answers how many were unread.").
+		Viewer(apidoc.SignedIn).
+		Scope(write).
+		Sends(http.StatusOK, responses.MarkedRead{})
 	notifications.PATCH("/:id", r.handler.Notification.Edit).
 		Summary("Mark one as read").
 		Describe("It takes nothing else: the one thing that changes is that it is read. Answers with it.").

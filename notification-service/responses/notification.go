@@ -81,6 +81,12 @@ type NotificationItem struct {
 	IsRead bool `json:"is_read"`
 }
 
+// MarkedRead is how many notifications Mark all read marked.
+type MarkedRead struct {
+	// How many were unread, and are read now.
+	Count int64 `json:"count"`
+}
+
 // UnreadCount is how many notifications the viewer has not read.
 type UnreadCount struct {
 	// How many.

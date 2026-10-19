@@ -209,8 +209,9 @@ Planned with row 96, to be built after it.
 2. **Grouped:** "Worf and 3 others liked your post". Each row keeps its
    subject; a `group_key` (such as `voteup:<post id>`) groups them when the
    list is read, for likes, reposts and follows.
-3. **Mark all read,** and a notification is read when it is opened.
-   `read_at` in place of `is_read`.
+3. **A notification is read when it is opened.** `read_at` in place of
+   `is_read`. Mark all read (`PATCH /notifications/read-all`) was built on
+   2026-10-19, with roadmap row 99.
 4. **The bell opens the latest few** in a menu, with the full page a link
    from it.
 5. **Choosing what one is told about,** for each kind, in a Notifications

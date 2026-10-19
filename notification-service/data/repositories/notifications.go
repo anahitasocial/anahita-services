@@ -33,6 +33,10 @@ type NotificationInterface interface {
 	// Edit
 	Edit(notification *entities.Notification) error
 
+	// EditAll marks all of the viewer's notifications read, and answers how
+	// many were not.
+	EditAll(viewer *an_entities.Viewer) (int64, error)
+
 	// Add a new notification
 	Add(notification *entities.Notification) (int64, error)
 
@@ -208,6 +212,26 @@ func (repo *Notification) Edit(item *entities.Notification) error {
 
 	_, err = repo.db.ExecContext(ctx, sql, args...)
 	return err
+}
+
+const markAllRead = `
+UPDATE notifications
+SET is_read = 1,
+    updated_at = NOW()
+WHERE recipient_id = ?
+    AND is_read = 0`
+
+// EditAll marks every one of the viewer's notifications read (Mark all
+// read), and answers how many were unread.
+func (repo *Notification) EditAll(viewer *an_entities.Viewer) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	defer cancel()
+
+	result, err := repo.db.ExecContext(ctx, markAllRead, viewer.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 // addAgain is what telling somebody the same thing again does: one row for

@@ -125,6 +125,7 @@ notification-service at one copy: each copy hears every event.
 | --- | --- |
 | `GET /notifications/?start=&limit=` | The viewer's notifications, newest first |
 | `GET /notifications/unread-count` | How many they have not read (`count`), and when the newest was told (`newest_at`) |
+| `PATCH /notifications/read-all` | Marks all of them read (Mark all read), and answers how many were unread |
 | `PATCH /notifications/:id` | Marks one read |
 | `DELETE /notifications/:id` | Deletes one |
 | `POST /notifications/subscriptions` | Subscribes to a profile or a post |

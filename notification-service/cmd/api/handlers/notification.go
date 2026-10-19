@@ -130,6 +130,24 @@ func (h *notificationHandler) UnreadCount(c echo.Context) error {
 	return c.JSON(http.StatusOK, responses.UnreadCount{Count: count, NewestAt: newest})
 }
 
+// EditAll marks all the viewer's notifications read.
+func (h *notificationHandler) EditAll(c echo.Context) error {
+	viewer := getViewer(c)
+
+	if ok, err := h.Perms.Notifications.CanEditAll(viewer); !ok {
+		log.Println(err)
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	count, err := h.Repos.Notifications.EditAll(viewer)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	return c.JSON(http.StatusOK, responses.MarkedRead{Count: count})
+}
+
 // Edit updates a notification
 func (h *notificationHandler) Edit(c echo.Context) error {
 	var (

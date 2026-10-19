@@ -264,3 +264,43 @@ func TestTheBellsQuestion(t *testing.T) {
 		t.Errorf("told again: %d unread, newest %v (was %v); want 2, and later", count, after, before)
 	}
 }
+
+// WHAT THIS GUARDS: Mark all read marks the viewer's own, all of them, and
+// nobody else's.
+func TestMarkAllRead(t *testing.T) {
+	dsn := os.Getenv("ACCESS_TEST_DSN")
+	if dsn == "" {
+		t.Skip("set ACCESS_TEST_DSN to run against MySQL")
+	}
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`DELETE FROM notifications`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`INSERT INTO notifications
+		(type, service, recipient_id, subject_id, subject_type, object_id, object_type, target_id, target_type, is_read)
+		VALUES
+		('voteup', 'like-service', 1, 2, 'p', 100, 'n', 1, 'p', 0),
+		('voteup', 'like-service', 1, 3, 'p', 100, 'n', 1, 'p', 0),
+		('voteup', 'like-service', 1, 4, 'p', 100, 'n', 1, 'p', 1),
+		('voteup', 'like-service', 7, 2, 'p', 200, 'n', 7, 'p', 0)`); err != nil {
+		t.Fatal(err)
+	}
+	viewer := an_entities.NewViewer()
+	viewer.ID = 1
+
+	marked, err := NewNotification(db).EditAll(viewer)
+	if err != nil || marked != 2 {
+		t.Fatalf("marked %d, %v; want 2", marked, err)
+	}
+	var mine, theirs int
+	if err := db.QueryRow(`SELECT SUM(recipient_id = 1 AND is_read = 0), SUM(recipient_id = 7 AND is_read = 0) FROM notifications`).Scan(&mine, &theirs); err != nil {
+		t.Fatal(err)
+	}
+	if mine != 0 || theirs != 1 {
+		t.Errorf("unread: %d of mine, %d of somebody else's; want 0 and 1", mine, theirs)
+	}
+}
