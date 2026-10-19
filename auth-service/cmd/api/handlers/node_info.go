@@ -162,7 +162,7 @@ type NodeInfoDocument struct {
 	OpenRegistrations bool `json:"openRegistrations"`
 	// How much it is used.
 	Usage nodeInfoUsage `json:"usage"`
-	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
+	// What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.
 	Metadata map[string]any `json:"metadata"`
 }
 
@@ -270,6 +270,11 @@ func (h *nodeInfoHandler) Read(c echo.Context) error {
 			// administrators unless the installation says otherwise.
 			// Website-service enforces it.
 			"websitesFrom": h.Config.GetWebsitesFrom(),
+
+			// The same for adding a location (LOCATIONS_FROM):
+			// administrators unless the installation says otherwise.
+			// location-service enforces it.
+			"locationsFrom": h.Config.GetLocationsFrom(),
 
 			// The widest audience anything new may be given: "public", or
 			// "registered" on an installation that allows no new public

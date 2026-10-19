@@ -8,6 +8,7 @@ hashtags offered to somebody while they write.
 - [How a post gets its hashtags](#how-a-post-gets-its-hashtags)
 - [At most ten hashtags](#at-most-ten-hashtags)
 - [At most five locations](#at-most-five-locations)
+- [Who may add a location](#who-may-add-a-location)
 - [Trending](#trending)
 - [Suggestions while writing](#suggestions-while-writing)
 - [A hashtag's and a location's posts](#a-hashtags-and-a-locations-posts)
@@ -62,6 +63,24 @@ already has is not a sixth.
 The number is `constants.MaxLocationsOfAPost` in anahita-libs, and
 `Medium.MAX_LOCATIONS` in the web app. Five is also how many locations a custom
 feed can filter on (`feeds.MaxLocations`).
+
+## Who may add a location
+
+A hashtag is made by writing it. A location is added by somebody, with a
+name and a point, and who may add one is the installation's choice:
+
+| `LOCATIONS_FROM` | Who may add a location |
+| --- | --- |
+| `administrators` (the default) | Administrators and super administrators |
+| `registered` | Anybody signed in |
+| `super-administrators` | Super administrators |
+
+location-service enforces it, and auth-service publishes it in NodeInfo as
+`locationsFrom`, from which the web app offers Add only to those it lets
+add one; give both services the same value. Editing and deleting a location
+stay with administrators whatever it says. Anybody signed in may tie a post
+of theirs to a location that exists. See
+[Configuration](configuration.md#registration).
 
 ## Trending
 

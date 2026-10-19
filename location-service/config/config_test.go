@@ -140,3 +140,29 @@ func TestConfig_Getters(t *testing.T) {
 func contains(s, substr string) bool {
 	return strings.Contains(s, substr)
 }
+
+func TestLocationsFromIsAdministratorsUnlessSet(t *testing.T) {
+	if got := (&Config{}).GetLocationsFrom(); got != "administrators" {
+		t.Errorf("left out: %q; want administrators, as it always was", got)
+	}
+	if got := (&Config{LocationsFrom: " Registered "}).GetLocationsFrom(); got != "registered" {
+		t.Errorf("set: %q; want registered", got)
+	}
+}
+
+func TestLocationsFromMustBeARoleLevel(t *testing.T) {
+	cfg := &Config{
+		SecureCookieKey:  strings.Repeat("k", 32),
+		FileServiceAddr:  "file:9000",
+		GraphServiceAddr: "graph:9000",
+		OAuthIssuer:      "https://auth.example.com",
+		OAuthJWKSURL:     "https://auth.example.com/.well-known/jwks.json",
+	}
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("a valid config was refused: %v", err)
+	}
+	cfg.LocationsFrom = "members"
+	if err := cfg.Validate(); err == nil || !strings.Contains(err.Error(), "LOCATIONS_FROM") {
+		t.Errorf("LOCATIONS_FROM=members was taken: %v", err)
+	}
+}

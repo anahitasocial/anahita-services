@@ -14,10 +14,13 @@ const (
 	ErrLocationAdministrateNotAllowed = "you are not allowed to administrate this location"
 )
 
-type locationsPermissions struct{}
+type locationsPermissions struct {
+	// The least role that may add a location (LOCATIONS_FROM).
+	addLevel string
+}
 
-func newLocationsPermissions() PermissionsInterface {
-	return &locationsPermissions{}
+func newLocationsPermissions(addLevel string) PermissionsInterface {
+	return &locationsPermissions{addLevel: addLevel}
 }
 
 func (p *locationsPermissions) CanBrowse(viewer *entities.Viewer) (bool, error) {
@@ -45,7 +48,9 @@ func (p *locationsPermissions) CanAdd(viewer *entities.Viewer, entity interface{
 		return false, errors.New(ErrInsufficientScope)
 	}
 
-	if viewer.IsAdmin() || viewer.IsSuperAdmin() {
+	// By rank against the setting, with no administrator shortcut above
+	// it: see constants.MeetsRoleLevel.
+	if libs_constants.MeetsRoleLevel(viewer.PersonType, p.addLevel) {
 		return true, nil
 	}
 

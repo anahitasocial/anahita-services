@@ -214,6 +214,11 @@ type Config struct {
 	// held here only to be published in NodeInfo, like GroupsFrom.
 	WebsitesFrom string
 
+	// LocationsFrom is who may add a location. Enforced by
+	// location-service; held here only to be published in NodeInfo, like
+	// GroupsFrom.
+	LocationsFrom string
+
 	// RegistrationMode is how this installation lets people in — see
 	// constants.RegistrationMode*. Empty means unset, which reads as closed.
 	RegistrationMode string

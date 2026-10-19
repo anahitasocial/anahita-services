@@ -164,6 +164,9 @@ services:
       # Who may connect a website as a website: administrators unless set.
       # Enforced by syndication-service and published by auth-service.
       WEBSITES_FROM: ${WEBSITES_FROM:-}
+      # Who may add a location: administrators unless set. Enforced by
+      # location-service and published by auth-service.
+      LOCATIONS_FROM: ${LOCATIONS_FROM:-}
       # Video: whether it may be posted, and the limits, for the web app.
       # See docs/videos.md.
       VIDEO_UPLOADS: ${VIDEO_UPLOADS:-}
@@ -400,6 +403,9 @@ services:
       # docs/configuration.md, Trending.
       TRENDING_WINDOW: ${TRENDING_WINDOW:-}
       FEDERATION_PROTOCOLS: ${FEDERATION_PROTOCOLS:-}
+      # Who may add a location: administrators unless set. See
+      # docs/configuration.md, Registration.
+      LOCATIONS_FROM: ${LOCATIONS_FROM:-}
       SECURE_COOKIE_KEY: ${SECURE_COOKIE_KEY}
       REDIS_ADDR: ${REDIS_ADDR}
       REDIS_TLS: ${REDIS_TLS:-}

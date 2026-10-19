@@ -870,6 +870,7 @@ checks enforce.
 | Following, and what a stranger is shown | `anahita-libs/cmd/api/permissions/follow.go`, `limited_profile.go` (`CanSeeLimitedProfile`); `graph-grpc-service/cmd/server/handlers/actor_restricted.go` (`restrictUnseen`) |
 | Invitations | `anahita-libs/cmd/api/permissions/invite.go` (`CanInvite`), `graph-grpc-service/data/repositories/invites.go` |
 | Events | `anahita-libs/cmd/api/permissions/event.go` (`CanRsvp`, `CanSeeOnlineURL`); setting `EVENTS_FROM` |
+| Adding a location | `location-service/cmd/api/permissions/locations.go` (`CanAdd`); setting `LOCATIONS_FROM` |
 | Mentions | `anahita-libs/cmd/api/permissions/mention.go` (`CanMention`) |
 | Quotes | `anahita-libs/cmd/api/permissions/quote.go` (`CanQuote`, `CanDetachQuote`), `anahita-libs/constants/quote_policy.go`, `anahita-libs/cmd/api/handlers/quotes.go` (`SetQuotes`) |
 | Pinned posts | `anahita-libs/cmd/api/permissions/pin.go` (`CanPin`, `RunsProfile`) |

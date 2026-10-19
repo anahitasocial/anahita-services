@@ -179,6 +179,18 @@ func (config *Config) GetWebsitesFrom() string {
 	return value
 }
 
+// GetLocationsFrom returns the minimum role that may add a location.
+//
+// Defaults to administrators, matching location-service, which enforces it.
+func (config *Config) GetLocationsFrom() string {
+	value := libs_constants.NormalizeRoleLevel(config.LocationsFrom)
+	if value == "" {
+		return libs_constants.RoleLevelAdministrators
+	}
+
+	return value
+}
+
 // MayInvite reports whether somebody of this person type meets the
 // configured minimum.
 //
@@ -282,6 +294,7 @@ func (config *Config) bootstrapFromEnv() {
 	config.GroupsFrom = os.Getenv("GROUPS_FROM")
 	config.EventsFrom = os.Getenv("EVENTS_FROM")
 	config.WebsitesFrom = os.Getenv("WEBSITES_FROM")
+	config.LocationsFrom = os.Getenv("LOCATIONS_FROM")
 	config.InvitePendingMax = getIntEnv("INVITE_PENDING_MAX", 0)
 	config.InvitePendingMaxAdmin = getIntEnv("INVITE_PENDING_MAX_ADMIN", 0)
 	config.TosURL = os.Getenv("TOS_URL")
@@ -336,6 +349,13 @@ func (config *Config) validateBootstrap(missingFields []string) []string {
 		missingFields = append(missingFields, fmt.Sprintf(
 			"WEBSITES_FROM must be one of %s (got %q)",
 			strings.Join(libs_constants.RoleLevelValues, ", "), config.WebsitesFrom))
+	}
+
+	if config.LocationsFrom != "" &&
+		!libs_constants.IsRoleLevel(config.GetLocationsFrom()) {
+		missingFields = append(missingFields, fmt.Sprintf(
+			"LOCATIONS_FROM must be one of %s (got %q)",
+			strings.Join(libs_constants.RoleLevelValues, ", "), config.LocationsFrom))
 	}
 
 	// Negative is refused rather than read as unlimited. An operator who
