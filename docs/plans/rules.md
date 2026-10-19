@@ -48,7 +48,15 @@
    dev: refused for a registered person (403) and for oneself (409); three
    throwaway accounts removed, one from a case, one from a profile.
 5. A group's and an event's rules: written, ticked before following or
-   answering, shown in the About card, agreed again after a change.
+   answering, shown in the About card, agreed again after a change. In three:
+   - 5a, written and shown — done 2026-10-19: `profile_rules`,
+     `profile_rule_versions`, `profile_rule_agreements`; `ReadRules`,
+     `SetRules`, `AgreeRules`; `GET|PUT /groups|events/:id/rules`,
+     `POST .../rules/agree`; a Rules tab in the settings, with the site's
+     suggestions; the rules in the About card.
+   - 5b, ticked before following, asking to follow or answering, one at a
+     time, the server refusing without the current version.
+   - 5c, agreed again after a change, before the next post there.
 6. Reporting against a rule.
 
 ## Context
