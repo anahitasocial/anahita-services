@@ -2,9 +2,8 @@
 
 *Roadmap row 101, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** parts 1 to 4 done (2026-10-19), and part 5 in the composer;
-a thread from the reply form is next. Branch
-`issues/thread-composer` in both repositories, from `issues/network-limits`.
+**Status:** done 2026-10-19, all five parts. Notes only: pictures in a
+thread's notes are for later.
 
 ## Context
 
@@ -120,8 +119,11 @@ row 100's lines show; Post sends them all. On a phone, the whole screen.
 a box for each note after the first, joined to the one before by a line,
 with its own Bluesky line, and ✕ to take it out. Only for words alone.
 Tried in headless Chrome at both sizes: a thread of three posted, made in
-order. **Next:** the same in the reply form (`ReplyForm.jsx`), posting with
-`POST /notes/:id/replies/thread`.
+order. **In the reply form, done the same day** (`ReplyForm.jsx`, posting
+with `POST /notes/:id/replies/thread`): tried at both sizes, a thread of
+three under a post, shown in order. Its notes are shown as replies are, each
+under the one before, a level further in; showing a writer's own chain flat,
+as Threads does, is a possible change for later.
 
 ## Checking
 
