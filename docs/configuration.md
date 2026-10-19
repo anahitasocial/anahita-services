@@ -20,7 +20,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 - [First super administrator](#first-super-administrator)
 - [OAuth signing and encryption](#oauth-signing-and-encryption)
 - [Storage](#storage)
-- [Places](#places)
+- [Locations](#locations)
 - [Mail](#mail)
 - [Abuse reports](#abuse-reports)
 - [Account cleanup](#account-cleanup)
@@ -134,6 +134,7 @@ Read by auth-service.
 | `INVITES_FROM` | `registered`, `administrators` (default) or `super-administrators` — the minimum role that may invite. Each admits that role and every role above it. In `approval` mode, an invitation from somebody who is not an administrator goes to the approval queue |
 | `GROUPS_FROM` | `registered`, `administrators` (default) or `super-administrators` — the minimum role that may make a group. Read by actor-service, which enforces it, and by auth-service, which publishes it in NodeInfo as `groupsFrom`; give both the same value |
 | `WEBSITES_FROM` | `registered`, `administrators` (default) or `super-administrators` — the minimum role that may connect a website. Read by syndication-service, which enforces it, and by auth-service, which publishes it in NodeInfo as `websitesFrom`; give both the same value. See [Websites](websites.md#settings), with `WEBSITE_HOURLY_CAP` and `WEBSITE_READ_EVERY` |
+| `LOCATIONS_FROM` | `registered`, `administrators` (default) or `super-administrators` — the minimum role that may add a location. Read by location-service, which enforces it, and by auth-service, which publishes it in NodeInfo as `locationsFrom`; give both the same value. Editing and deleting a location stay with administrators. See [Hashtags and locations](hashtags.md#who-may-add-a-location) |
 | `EVENTS_FROM` | `registered` (default), `administrators` or `super-administrators` — the minimum role that may make an event of their own. Read by actor-service, which enforces it, and by auth-service, which publishes it in NodeInfo as `eventsFrom`; give both the same value. An event made for a group is for that group's administrators whatever this says |
 | `INVITE_PENDING_MAX` | Outstanding invitations one person may have at once. Default `5` |
 | `INVITE_PENDING_MAX_ADMIN` | The same for administrators. Default `100` |
@@ -255,7 +256,7 @@ and run the test in `file-grpc-service/data/services`
 cd file-grpc-service && STORAGE_TEST_ENDPOINT=https://… go test ./data/services/ -run Real -v
 ~~~
 
-## Places
+## Locations
 
 Read by location-service, and by actor-service for an event whose maker asked
 for a map of its address. An address is turned into coordinates by Photon
@@ -269,7 +270,7 @@ first, then Nominatim, both open-source geocoders built on OpenStreetMap.
 
 The public instances are shared services with strict limits, and they see every
 address a member types. Both can be self-hosted; point the variables at your
-own. At least one has to stay on for location-service, because a place cannot
+own. At least one has to stay on for location-service, because a location cannot
 be saved without coordinates. actor-service starts without either, and events
 are then saved with their address and no map. An event's address is sent to
 a geocoder only when "Show a map" is ticked on its form.
@@ -277,9 +278,11 @@ a geocoder only when "Show a map" is ticked on its form.
 ## Trending
 
 Read by hashtag-service and location-service: over what span of time the
-hashtags and places trending are counted. A hashtag or a place trends by
-how many people posted with it in that time, each once, in public posts,
-by when the posts were written.
+hashtags and locations trending are counted. A hashtag or a location trends by
+how many profiles used it in that time, each once: the writers of public
+posts carrying it, by when the posts were written, and the public profiles
+tagged with it, by when they were tagged. See
+[Hashtags and locations](hashtags.md#trending).
 
 | Variable | Value |
 | --- | --- |
@@ -289,7 +292,7 @@ Whatever it starts from, a window that holds fewer than ten is widened to
 the next, a week, a month, then a year, so the list is not empty on a quiet
 day; the answer says which window it is of, and the web app shows it. A
 client may still ask for a window (`time_window`). See [Hashtags and
-places](hashtags.md).
+locations](hashtags.md).
 
 ## Mail
 

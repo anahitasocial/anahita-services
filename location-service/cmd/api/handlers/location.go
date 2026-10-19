@@ -6,7 +6,6 @@ import (
 	"anahita-libs/data/services"
 	an_responses "anahita-libs/responses"
 	"anahita-libs/trending"
-	"fmt"
 	"location/constants"
 	"location/data/validators"
 	"location/requests"
@@ -217,7 +216,7 @@ func (h *locationHandler) BrowseTrending(c echo.Context) error {
 	for _, each := range found {
 		mapped := locationResp.MapLocationNodeItems([]*entities.AnahitaNode{each.Node})
 		if len(mapped) == 1 {
-			mapped[0].People = each.People
+			mapped[0].Profiles = each.Profiles
 			resp.Data = append(resp.Data, mapped[0])
 		}
 	}
@@ -300,24 +299,21 @@ func (h *locationHandler) Edit(c echo.Context) error {
 	node.GeoAddress = req.Address
 	node.GeoCity = req.City
 	node.GeoStateProvince = req.StateProvince
+	node.GeoPostalcode = req.PostalCode
 	node.GeoCountry = req.Country
 	node.ModifiedBy = viewer.ID
+
+	// A point placed on the map, or the changed address looked up, or the
+	// point it has: clearing an address keeps it.
+	if err = setPoint(node, req.Latitude, req.Longitude, addrChanged, h.geocode); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
 
 	v := validators.NewLocationValidator()
 	if err = v.ValidateEdit(node); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if addrChanged {
-		addr := fmt.Sprintf("%s, %s, %s, %s", node.GeoAddress, node.GeoCity, node.GeoStateProvince, node.GeoCountry)
-		location, err := h.Srv.Location.GeocodeSimple(addr)
-		if err != nil {
-			log.Println(err)
-			return c.NoContent(http.StatusBadRequest)
-		}
-		node.GeoLatitude = location.Latitude
-		node.GeoLongitude = location.Longitude
 	}
 
 	node, err = h.Srv.GraphNodeGRPC.Edit(node)
@@ -366,24 +362,23 @@ func (h *locationHandler) Add(c echo.Context) error {
 	node.GeoAddress = req.Address
 	node.GeoCity = req.City
 	node.GeoStateProvince = req.StateProvince
+	node.GeoPostalcode = req.PostalCode
 	node.GeoCountry = req.Country
 	node.CreatedBy = viewer.ID
 	node.ModifiedBy = viewer.ID
+
+	// A point placed on the map, or the address looked up: a location
+	// needs one or the other, and not an address (a beach has none).
+	if err = setPoint(node, req.Latitude, req.Longitude, true, h.geocode); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
 
 	v := validators.NewLocationValidator()
 	if err = v.ValidateAdd(node); err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusBadRequest)
 	}
-
-	addr := fmt.Sprintf("%s, %s, %s, %s", node.GeoAddress, node.GeoCity, node.GeoStateProvince, node.GeoCountry)
-	location, err := h.Srv.Location.GeocodeSimple(addr)
-	if err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-	node.GeoLatitude = location.Latitude
-	node.GeoLongitude = location.Longitude
 
 	node, err = h.Srv.GraphNodeGRPC.Add(node)
 	if err != nil {
@@ -443,4 +438,13 @@ func (h *locationHandler) onAfterFetched(c echo.Context, location *entities.Anah
 	location.Authorized.Edit, _ = h.Perms.Locations.CanEdit(viewer, location)
 	location.Authorized.Delete, _ = h.Perms.Locations.CanDelete(viewer, location)
 	location.Authorized.Administration, _ = h.Perms.Locations.CanAdministrate(viewer, location)
+}
+
+// geocode finds an address's point with the installation's geocoders.
+func (h *locationHandler) geocode(address string) (float64, float64, error) {
+	location, err := h.Srv.Location.GeocodeSimple(address)
+	if err != nil {
+		return 0, 0, err
+	}
+	return location.Latitude, location.Longitude, nil
 }

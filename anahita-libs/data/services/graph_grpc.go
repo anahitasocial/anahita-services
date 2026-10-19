@@ -40,7 +40,7 @@ type GraphGRPCInterface interface {
 
 	// Trending
 	Trending(req *GraphTrendingRequest) ([]*entities.AnahitaNode, error)
-	// TrendingItems is Trending with how many people posted with each.
+	// TrendingItems is Trending with how many profiles used each.
 	TrendingItems(req *GraphTrendingRequest) ([]*TrendingItem, error)
 }
 
@@ -321,14 +321,14 @@ func (srv *GraphGRPC) ReadShortestPath(req *GraphReadShortestPathRequest) (*dtos
 	return resp, nil
 }
 
-// TrendingItem is a tag that is trending, and how many people posted with
-// it in the window.
+// TrendingItem is a tag that is trending, and how many profiles used it in
+// the window.
 type TrendingItem struct {
-	Node   *entities.AnahitaNode
-	People uint64
+	Node     *entities.AnahitaNode
+	Profiles uint64
 }
 
-// Trending is what is trending, without how many people.
+// Trending is what is trending, without how many profiles.
 func (srv *GraphGRPC) Trending(req *GraphTrendingRequest) ([]*entities.AnahitaNode, error) {
 	items, err := srv.TrendingItems(req)
 	nodes := make([]*entities.AnahitaNode, 0, len(items))
@@ -371,7 +371,7 @@ func (srv *GraphGRPC) TrendingItems(req *GraphTrendingRequest) ([]*TrendingItem,
 
 	items := []*TrendingItem{}
 	for _, node := range grpcToGraphNodes(r.Nodes) {
-		items = append(items, &TrendingItem{Node: node, People: r.GetPeople()[node.ID]})
+		items = append(items, &TrendingItem{Node: node, Profiles: r.GetProfiles()[node.ID]})
 	}
 	return items, nil
 }

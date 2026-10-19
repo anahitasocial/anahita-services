@@ -112,7 +112,7 @@ longer one is refused with `400`.
 | What a person or a group says of itself | 500 | Mastodon's. Bluesky's is 256, but a profile here is never written there |
 | A post's title | 100 | |
 | What a post says: a note, a reply, an article, a topic, a photo's or a video's description; an event's details | 8,000 | Mastodon shows a post of any length from another server. Bluesky is sent the first 300 characters and, for a note, a link to the rest |
-| A place's name | 100 | |
+| A location's name | 100 | |
 | An image's description, written here | 2,000 | Bluesky's own app. One from another server is kept up to 10,000, Mastodon's |
 
 The numbers are `anahita-libs/constants/limits.go`, mirrored in the web

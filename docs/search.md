@@ -21,8 +21,8 @@ Its route is in the API reference: [search-service](api/index.html#search-servic
 
 The search page offers two: **Most relevant**, the default, and **Most
 recent**, newest first. Most recent is only that. The rest of this page is
-about Most relevant, which also orders a hashtag's and a place's posts
-([hashtags.md](hashtags.md#a-hashtags-and-a-places-posts)), without the
+about Most relevant, which also orders a hashtag's and a location's posts
+([hashtags.md](hashtags.md#a-hashtags-and-a-locations-posts)), without the
 words.
 
 ## Most relevant

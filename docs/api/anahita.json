@@ -3719,7 +3719,7 @@
         "properties": {
           "metadata": {
             "additionalProperties": {},
-            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
+            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
             "type": [
               "object",
               "null"
@@ -5022,8 +5022,8 @@
             "description": "The hashtag as it is shown, without its #.",
             "type": "string"
           },
-          "people": {
-            "description": "In a trending list: how many people posted with it in the window.",
+          "profiles": {
+            "description": "In a trending list: how many profiles used it in the window, each once: the writers of posts carrying it, and the profiles tagged with it.",
             "format": "int64",
             "minimum": 0,
             "type": "integer"
@@ -5167,15 +5167,15 @@
             "description": "What it is called.",
             "type": "string"
           },
-          "people": {
-            "description": "In a trending list: how many people tied a post to it in the window.",
+          "postal_code": {
+            "description": "Its postal or zip code.",
+            "type": "string"
+          },
+          "profiles": {
+            "description": "In a trending list: how many profiles used it in the window, each once: the writers of posts tied to it, and the profiles tagged with it.",
             "format": "int64",
             "minimum": 0,
             "type": "integer"
-          },
-          "postalcode": {
-            "description": "Its postal code.",
-            "type": "string"
           },
           "state_province": {
             "description": "Its state or province.",
@@ -17051,7 +17051,7 @@
     },
     "/hashtags/_browse/trending": {
       "get": {
-        "description": "The hashtags the most people posted with in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The hashtags the most profiles used in a window of time that ends now: the writers of public posts carrying it, by when they were written, and the public profiles (people, groups, events, websites) tagged with it, by when they were tagged; each profile once, whatever its kind, here or elsewhere; `profiles` says how many. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getHashtagsBrowseTrending",
         "parameters": [
           {
@@ -18308,7 +18308,7 @@
     },
     "/locations/": {
       "get": {
-        "description": "Found by words, near a point, or the places one post is tied to.\n\nWho may call it: anyone, signed in or not.",
+        "description": "Found by words, near a point, or the locations one post is tied to.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getLocations",
         "parameters": [
           {
@@ -18452,7 +18452,7 @@
             "bearer": []
           }
         ],
-        "summary": "Places",
+        "summary": "Locations",
         "tags": [
           "location-service"
         ],
@@ -18460,7 +18460,7 @@
         "x-viewer": "anyone"
       },
       "post": {
-        "description": "Its address is found on the map. Answers with the place.\n\nWho may call it: a site administrator, with a token that carries `taxonomy:write`.",
+        "description": "It needs a point: one given (`latitude`, `longitude`), placed on a map, or an address to find it by. The address is optional, since a beach or a trail has none. Answers with the location.\n\nWho may call it: a site administrator, with a token that carries `taxonomy:write`.",
         "operationId": "postLocations",
         "requestBody": {
           "content": {
@@ -18468,7 +18468,7 @@
               "schema": {
                 "properties": {
                   "address": {
-                    "description": "Its street address.",
+                    "description": "Its street address, where it has one: a beach or a trail has none.",
                     "maxLength": 255,
                     "type": "string"
                   },
@@ -18482,9 +18482,23 @@
                     "maxLength": 50,
                     "type": "string"
                   },
+                  "latitude": {
+                    "description": "Its point, where somebody placed it on a map: both, or neither. A point given is kept as it is; without one, the address is looked up.",
+                    "type": "string",
+                    "x-validate": "latitude"
+                  },
+                  "longitude": {
+                    "type": "string",
+                    "x-validate": "longitude"
+                  },
                   "name": {
                     "description": "What it is called.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "postal_code": {
+                    "description": "Its postal or zip code.",
+                    "maxLength": 15,
                     "type": "string"
                   },
                   "source_id": {
@@ -18499,10 +18513,7 @@
                   }
                 },
                 "required": [
-                  "name",
-                  "address",
-                  "city",
-                  "country"
+                  "name"
                 ],
                 "type": "object"
               }
@@ -18511,7 +18522,7 @@
               "schema": {
                 "properties": {
                   "address": {
-                    "description": "Its street address.",
+                    "description": "Its street address, where it has one: a beach or a trail has none.",
                     "maxLength": 255,
                     "type": "string"
                   },
@@ -18525,9 +18536,23 @@
                     "maxLength": 50,
                     "type": "string"
                   },
+                  "latitude": {
+                    "description": "Its point, where somebody placed it on a map: both, or neither. A point given is kept as it is; without one, the address is looked up.",
+                    "type": "string",
+                    "x-validate": "latitude"
+                  },
+                  "longitude": {
+                    "type": "string",
+                    "x-validate": "longitude"
+                  },
                   "name": {
                     "description": "What it is called.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "postal_code": {
+                    "description": "Its postal or zip code.",
+                    "maxLength": 15,
                     "type": "string"
                   },
                   "source_id": {
@@ -18542,10 +18567,7 @@
                   }
                 },
                 "required": [
-                  "name",
-                  "address",
-                  "city",
-                  "country"
+                  "name"
                 ],
                 "type": "object"
               }
@@ -18581,7 +18603,7 @@
             ]
           }
         ],
-        "summary": "Add a place",
+        "summary": "Add a location",
         "tags": [
           "location-service"
         ],
@@ -18657,7 +18679,7 @@
             "bearer": []
           }
         ],
-        "summary": "Places used most of all",
+        "summary": "Locations used most of all",
         "tags": [
           "location-service"
         ],
@@ -18667,7 +18689,7 @@
     },
     "/locations/_browse/trending": {
       "get": {
-        "description": "The places the most people tied a post to in a window of time that ends now: each person once, public posts only, by when they were written. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.\n\nWho may call it: anyone, signed in or not.",
+        "description": "The locations the most profiles used in a window of time that ends now: the writers of public posts tied to it, by when they were written, and the public profiles (people, groups, events, websites) tagged with it, by when they were tagged; each profile once, whatever its kind, here or elsewhere; `profiles` says how many. `time_window` left out, the installation's own (`TRENDING_WINDOW`; daily where it federates, monthly where not), widened while it holds fewer than ten; `window` says which. One page, all there is: up to `limit`.\n\nWho may call it: anyone, signed in or not.",
         "operationId": "getLocationsBrowseTrending",
         "parameters": [
           {
@@ -18741,7 +18763,7 @@
             "bearer": []
           }
         ],
-        "summary": "Places used most lately",
+        "summary": "Locations used most lately",
         "tags": [
           "location-service"
         ],
@@ -18755,7 +18777,7 @@
         "operationId": "deleteLocationsById",
         "parameters": [
           {
-            "description": "The place's id.",
+            "description": "The location's id.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -18779,7 +18801,7 @@
             "description": "the viewer may not do this"
           },
           "404": {
-            "description": "there is no such place"
+            "description": "there is no such location"
           }
         },
         "security": [
@@ -18789,7 +18811,7 @@
             ]
           }
         ],
-        "summary": "Delete a place",
+        "summary": "Delete a location",
         "tags": [
           "location-service"
         ],
@@ -18801,7 +18823,7 @@
         "operationId": "getLocationsById",
         "parameters": [
           {
-            "description": "The place's id.",
+            "description": "The location's id.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -18826,7 +18848,7 @@
             "description": "the request is not well formed, or a value in it is not one it may be"
           },
           "404": {
-            "description": "there is no such place"
+            "description": "there is no such location"
           }
         },
         "security": [
@@ -18835,7 +18857,7 @@
             "bearer": []
           }
         ],
-        "summary": "One place",
+        "summary": "One location",
         "tags": [
           "location-service"
         ],
@@ -18843,11 +18865,11 @@
         "x-viewer": "anyone"
       },
       "patch": {
-        "description": "A changed address is found on the map again. Answers with the place.\n\nWho may call it: a site administrator, with a token that carries `taxonomy:write`.",
+        "description": "A point given (`latitude`, `longitude`) is kept as it is; without one, a changed address is found on the map again, and clearing the address keeps the point. Answers with the location.\n\nWho may call it: a site administrator, with a token that carries `taxonomy:write`.",
         "operationId": "patchLocationsById",
         "parameters": [
           {
-            "description": "The place's id.",
+            "description": "The location's id.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -18863,7 +18885,7 @@
               "schema": {
                 "properties": {
                   "address": {
-                    "description": "Its street address.",
+                    "description": "Its street address, where it has one: a beach or a trail has none.",
                     "maxLength": 255,
                     "type": "string"
                   },
@@ -18877,9 +18899,23 @@
                     "maxLength": 50,
                     "type": "string"
                   },
+                  "latitude": {
+                    "description": "Its point, where somebody placed it on a map: both, or neither. A point given is kept as it is; without one, the address is looked up.",
+                    "type": "string",
+                    "x-validate": "latitude"
+                  },
+                  "longitude": {
+                    "type": "string",
+                    "x-validate": "longitude"
+                  },
                   "name": {
                     "description": "What it is called.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "postal_code": {
+                    "description": "Its postal or zip code.",
+                    "maxLength": 15,
                     "type": "string"
                   },
                   "state_province": {
@@ -18889,10 +18925,7 @@
                   }
                 },
                 "required": [
-                  "name",
-                  "address",
-                  "city",
-                  "country"
+                  "name"
                 ],
                 "type": "object"
               }
@@ -18901,7 +18934,7 @@
               "schema": {
                 "properties": {
                   "address": {
-                    "description": "Its street address.",
+                    "description": "Its street address, where it has one: a beach or a trail has none.",
                     "maxLength": 255,
                     "type": "string"
                   },
@@ -18915,9 +18948,23 @@
                     "maxLength": 50,
                     "type": "string"
                   },
+                  "latitude": {
+                    "description": "Its point, where somebody placed it on a map: both, or neither. A point given is kept as it is; without one, the address is looked up.",
+                    "type": "string",
+                    "x-validate": "latitude"
+                  },
+                  "longitude": {
+                    "type": "string",
+                    "x-validate": "longitude"
+                  },
                   "name": {
                     "description": "What it is called.",
                     "maxLength": 100,
+                    "type": "string"
+                  },
+                  "postal_code": {
+                    "description": "Its postal or zip code.",
+                    "maxLength": 15,
                     "type": "string"
                   },
                   "state_province": {
@@ -18927,10 +18974,7 @@
                   }
                 },
                 "required": [
-                  "name",
-                  "address",
-                  "city",
-                  "country"
+                  "name"
                 ],
                 "type": "object"
               }
@@ -18959,7 +19003,7 @@
             "description": "the viewer may not do this"
           },
           "404": {
-            "description": "there is no such place"
+            "description": "there is no such location"
           }
         },
         "security": [
@@ -18969,7 +19013,7 @@
             ]
           }
         ],
-        "summary": "Change a place",
+        "summary": "Change a location",
         "tags": [
           "location-service"
         ],
@@ -19080,7 +19124,7 @@
             "description": "the request is not well formed, or a value in it is not one it may be"
           },
           "404": {
-            "description": "there is no such place"
+            "description": "there is no such location"
           }
         },
         "security": [
@@ -19089,7 +19133,7 @@
             "bearer": []
           }
         ],
-        "summary": "The posts tied to a place",
+        "summary": "The posts tied to a location",
         "tags": [
           "location-service"
         ],
@@ -19162,7 +19206,7 @@
             "description": "the viewer may not change the post"
           },
           "404": {
-            "description": "there is no such place or post"
+            "description": "there is no such location or post"
           },
           "422": {
             "content": {
@@ -19172,7 +19216,7 @@
                 }
               }
             },
-            "description": "`too_many_locations`: the post is tied to five places already"
+            "description": "`too_many_locations`: the post is tied to five locations already"
           }
         },
         "security": [
@@ -19182,7 +19226,7 @@
             ]
           }
         ],
-        "summary": "Tie a post to a place",
+        "summary": "Tie a post to a location",
         "tags": [
           "location-service"
         ],
@@ -19230,7 +19274,7 @@
             "description": "the viewer may not change the post"
           },
           "404": {
-            "description": "there is no such place or post"
+            "description": "there is no such location or post"
           }
         },
         "security": [
@@ -19240,7 +19284,7 @@
             ]
           }
         ],
-        "summary": "Untie a post from a place",
+        "summary": "Untie a post from a location",
         "tags": [
           "location-service"
         ],
@@ -35213,7 +35257,7 @@
       "name": "link-preview-service"
     },
     {
-      "description": "Places",
+      "description": "Locations",
       "name": "location-service"
     },
     {

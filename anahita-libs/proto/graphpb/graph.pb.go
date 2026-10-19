@@ -1142,8 +1142,9 @@ func (x *TrendingRequest) GetAccessCheck() bool {
 type TrendingResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Nodes []*Node                `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
-	// How many people posted with each, in the window, by its id.
-	People        map[int64]uint64 `protobuf:"bytes,2,rep,name=people,proto3" json:"people,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	// How many profiles used each, in the window, by its id: the writers
+	// of posts carrying it and the profiles tagged with it, each once.
+	Profiles      map[int64]uint64 `protobuf:"bytes,2,rep,name=profiles,proto3" json:"profiles,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1185,9 +1186,9 @@ func (x *TrendingResponse) GetNodes() []*Node {
 	return nil
 }
 
-func (x *TrendingResponse) GetPeople() map[int64]uint64 {
+func (x *TrendingResponse) GetProfiles() map[int64]uint64 {
 	if x != nil {
-		return x.People
+		return x.Profiles
 	}
 	return nil
 }
@@ -1305,11 +1306,11 @@ const file_proto_graphpb_graph_proto_rawDesc = "" +
 	"timeWindow\x12\x14\n" +
 	"\x05limit\x18\x05 \x01(\x04R\x05limit\x12%\n" +
 	"\x06viewer\x18\x06 \x01(\v2\r.graph.ViewerR\x06viewer\x12!\n" +
-	"\faccess_check\x18\a \x01(\bR\vaccessCheck\"\xad\x01\n" +
+	"\faccess_check\x18\a \x01(\bR\vaccessCheck\"\xb5\x01\n" +
 	"\x10TrendingResponse\x12!\n" +
-	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\x12;\n" +
-	"\x06people\x18\x02 \x03(\v2#.graph.TrendingResponse.PeopleEntryR\x06people\x1a9\n" +
-	"\vPeopleEntry\x12\x10\n" +
+	"\x05nodes\x18\x01 \x03(\v2\v.graph.NodeR\x05nodes\x12A\n" +
+	"\bprofiles\x18\x02 \x03(\v2%.graph.TrendingResponse.ProfilesEntryR\bprofiles\x1a;\n" +
+	"\rProfilesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x03R\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x04R\x05value:\x028\x012\xd2\x04\n" +
 	"\fGraphService\x12S\n" +
@@ -1350,7 +1351,7 @@ var file_proto_graphpb_graph_proto_goTypes = []any{
 	(*ReadShortestPathResponse)(nil),      // 11: graph.ReadShortestPathResponse
 	(*TrendingRequest)(nil),               // 12: graph.TrendingRequest
 	(*TrendingResponse)(nil),              // 13: graph.TrendingResponse
-	nil,                                   // 14: graph.TrendingResponse.PeopleEntry
+	nil,                                   // 14: graph.TrendingResponse.ProfilesEntry
 	(*Viewer)(nil),                        // 15: graph.Viewer
 	(*Node)(nil),                          // 16: graph.Node
 	(*Edge)(nil),                          // 17: graph.Edge
@@ -1376,7 +1377,7 @@ var file_proto_graphpb_graph_proto_depIdxs = []int32{
 	18, // 16: graph.ReadShortestPathResponse.created_at:type_name -> google.protobuf.Timestamp
 	15, // 17: graph.TrendingRequest.viewer:type_name -> graph.Viewer
 	16, // 18: graph.TrendingResponse.nodes:type_name -> graph.Node
-	14, // 19: graph.TrendingResponse.people:type_name -> graph.TrendingResponse.PeopleEntry
+	14, // 19: graph.TrendingResponse.profiles:type_name -> graph.TrendingResponse.ProfilesEntry
 	0,  // 20: graph.GraphService.BrowseNeighbours:input_type -> graph.BrowseNeighboursRequest
 	2,  // 21: graph.GraphService.BrowseConnectionNodes:input_type -> graph.BrowseConnectionNodesRequest
 	4,  // 22: graph.GraphService.BrowseOrderedByDegree:input_type -> graph.BrowseOrderedByDegreeRequest

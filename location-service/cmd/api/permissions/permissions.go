@@ -19,9 +19,9 @@ type PermissionsInterface interface {
 	CanAdministrate(viewer *entities.Viewer, entity interface{}) (bool, error)
 }
 
-func NewPermissions() *Permissions {
+func NewPermissions(config *config.Config) *Permissions {
 	return &Permissions{
-		Locations: newLocationsPermissions(),
+		Locations: newLocationsPermissions(config.GetLocationsFrom()),
 		Taggables: permissions.NewTaggablePermissions(),
 	}
 }

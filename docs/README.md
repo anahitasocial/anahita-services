@@ -36,7 +36,7 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [First super administrator](configuration.md#first-super-administrator)
    - [OAuth signing and encryption](configuration.md#oauth-signing-and-encryption)
    - [Storage](configuration.md#storage)
-   - [Places](configuration.md#places)
+   - [Locations](configuration.md#locations)
    - [Trending](configuration.md#trending)
    - [Mail](configuration.md#mail)
    - [Abuse reports](configuration.md#abuse-reports)
@@ -299,12 +299,12 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [What is found at all](search.md#what-is-found-at-all)
    - [Where the code is](search.md#where-the-code-is)
    - [What is not built](search.md#what-is-not-built)
-23. [Hashtags and places](hashtags.md) — how a post gets its hashtags, at most ten hashtags and five places, and the hashtags offered while writing
+23. [Hashtags and locations](hashtags.md) — how a post gets its hashtags, at most ten hashtags and five locations, and the hashtags offered while writing
    - [How a post gets its hashtags](hashtags.md#how-a-post-gets-its-hashtags)
    - [At most ten hashtags](hashtags.md#at-most-ten-hashtags)
-   - [At most five places](hashtags.md#at-most-five-places)
+   - [At most five locations](hashtags.md#at-most-five-locations)
    - [Suggestions while writing](hashtags.md#suggestions-while-writing)
-   - [A hashtag's and a place's posts](hashtags.md#a-hashtags-and-a-places-posts)
+   - [A hashtag's and a location's posts](hashtags.md#a-hashtags-and-a-locations-posts)
    - [What the web app does](hashtags.md#what-the-web-app-does)
    - [Where the code is](hashtags.md#where-the-code-is)
 24. [Websites](websites.md) — a website's feed as a profile to follow: connecting a site, proving its domain, its feed read and posted as notes, replies as the website, and on the fediverse

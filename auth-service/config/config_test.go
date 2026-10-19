@@ -266,3 +266,12 @@ func TestGetMailFromWithoutASiteName(t *testing.T) {
 		t.Errorf("GetMailFrom() = %q, want the bare address", got)
 	}
 }
+
+func TestLocationsFromIsAdministratorsUnlessSet(t *testing.T) {
+	if got := (&Config{}).GetLocationsFrom(); got != "administrators" {
+		t.Errorf("left out: %q; want administrators, as location-service has it", got)
+	}
+	if got := (&Config{LocationsFrom: "Registered"}).GetLocationsFrom(); got != "registered" {
+		t.Errorf("set: %q; want registered", got)
+	}
+}

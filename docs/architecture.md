@@ -221,7 +221,7 @@ A photo or video post can be in its author's media library only
 in an article. It is read by its address with the access any post has, so
 the access gates do not know of it; the listings leave it out, each by
 `listedQuery` (graph-grpc-service `data/repositories/listed.go`): feeds, a
-profile's lists, search, a hashtag's and a place's posts. It cannot be
+profile's lists, search, a hashtag's and a location's posts. It cannot be
 pinned. Nothing announces it: the graph publishes no event for it, so no
 notification, hashtag or mention is made of it, and neither federation
 service sends it, its sweeper included.
@@ -518,13 +518,13 @@ and for nothing else:
 | --- | --- |
 | No other row: a reference with nothing at its end | `owner_id`, `parent_id`, `root_id`, `quote_id`, `created_by`, `modified_by`; a notification's `subject_id`, `object_id`, `target_id` |
 | Made here: no address on another server | `uri`, `origin_domain` |
-| No place | `geo_latitude`, `geo_longitude`, NULL together |
+| No point | `geo_latitude`, `geo_longitude`, NULL together |
 | Not happened, or does not apply | `deleted_at`, `archived_at`, `pinned_at` and the like; `starts_at` and `ends_at`, which only an event has |
 | None, where a unique index would make `''` collide | an account's `email`; the delivery queues' `dedupe_key` |
 
 Everything else is `NOT NULL`: `''` for no text, `0` for no count, false for
 a switch not set, and `created_at` and `updated_at` default to the time of
-insert. A reference is never 0 for none, and a place never 0,0.
+insert. A reference is never 0 for none, and a point never 0,0.
 
 So the code reads a column as it is, and uses `COALESCE` only for:
 

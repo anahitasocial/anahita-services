@@ -109,7 +109,7 @@ The file is a stranger's and nothing has looked at it.
 - ffmpeg is run with nothing of the worker's environment but `PATH`.
 
 **Nothing of the upload is kept.** Every file shown is encoded afresh with
-no metadata copied over, so a title, a place or anything else written into
+no metadata copied over, so a title, a location or anything else written into
 the upload stays in the upload, which is deleted.
 
 What the browser says the file is (`content_type`) only turns away what

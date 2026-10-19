@@ -55,6 +55,14 @@ spec:
                   name: anahita-config
                   key: TRENDING_WINDOW
                   optional: true
+            # Who may add a location; see docs/configuration.md,
+            # Registration.
+            - name: LOCATIONS_FROM
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: LOCATIONS_FROM
+                  optional: true
             - name: FEDERATION_PROTOCOLS
               valueFrom:
                 configMapKeyRef:

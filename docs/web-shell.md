@@ -187,6 +187,6 @@ Without that, nobody here can be found by their handle.
 
 ## What is not built
 
-- A place's name on `/locations/<id>`, and a custom feed's on `/feeds/<id>`.
+- A location's name on `/locations/<id>`, and a custom feed's on `/feeds/<id>`.
 - `og:image:width` and `height`.
 - The `alternate` link to a page's ActivityPub form.

@@ -68,8 +68,16 @@ func (v *LocationValidator) ValidateAdd(node *entities.AnahitaNode) error {
 		return errors.New("invalid creator ID for note creation")
 	}
 
-	if node.GeoAddress == "" && node.GeoCity == "" && node.GeoStateProvince == "" && node.GeoCountry == "" && node.GeoPostalcode == "" {
-		return errors.New("at least one geographic field (address, city, state/province, country, or postal code) is required")
+	// A point, and not an address, is what a location needs: a beach or a
+	// trail has none.
+	if node.GeoLatitude == 0 && node.GeoLongitude == 0 {
+		return errors.New("a location needs a point")
+	}
+	if node.GeoLatitude < -90 || node.GeoLatitude > 90 {
+		return errors.New("latitude must be between -90 and 90 degrees")
+	}
+	if node.GeoLongitude < -180 || node.GeoLongitude > 180 {
+		return errors.New("longitude must be between -180 and 180 degrees")
 	}
 
 	return nil

@@ -122,7 +122,7 @@ public again the moment the setting is `public`.
 
 **`registered`, the members-only site.** Every route that serves content
 answers 401 `members_only` to a visitor: profiles, posts, feeds, replies,
-hashtags, places, followers and search. What stays open is what people need to
+hashtags, locations, followers and search. What stays open is what people need to
 get in: signing in and up, password reset, accepting an invitation, the OAuth
 endpoints and NodeInfo.
 
@@ -176,7 +176,7 @@ bring the rest into line, once: **Site Settings › Privacy › Make everything
 public members-only**.
 
 - It changes every public person, group and post to `registered`. Hashtags and
-  places are left: they are nobody's content.
+  locations are left: they are nobody's content.
 - It asks for the number of things it will change to be typed (`CONVERT 8675`)
   and for a proof of identity.
 - It is refused, with 409 `public_content_allowed`, on an installation that
@@ -239,7 +239,7 @@ and `5` any person's id:
   A choice wider than the profile is greyed out, with the reason.
 - **On a members-only site**, a visitor sees a notice with a Sign in button
   and the home page, in place of whatever they asked for and at the same
-  address. The search box and the People, Groups, Hashtags and Places menu
+  address. The search box and the People, Groups, Hashtags and Locations menu
   entries are not shown. Pages carry `robots: noindex`.
 - **On a preview site**, a visitor sees a notice above each page, "Sign in to
   read more" under a post that was cut, and a sign-in prompt where a post's

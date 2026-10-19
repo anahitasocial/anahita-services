@@ -244,8 +244,9 @@ servers read, and the web app reads it too.
 - `metadata` — `nodeName`, `registrationMode`, `approvalRequired`,
   `invitationsAccepted`, `termsOfServiceUrl`, `privacyPolicyUrl`,
   `supportEmail`, `supportPhone`, `supportWebsite` and `nodeDescription`.
-  Also `invitesFrom`, `groupsFrom` and `eventsFrom`, the least role that may
-  invite, create a group or create an event; `photoMaxFiles`, the most
+  Also `invitesFrom`, `groupsFrom`, `eventsFrom` and `locationsFrom`, the
+  least role that may invite, create a group, create an event or add a
+  location; `photoMaxFiles`, the most
   pictures in one post; `videoUploads`, `videoMaxBytes` and
   `videoMaxSeconds`, whether videos may be posted and how big; and
   `readAccess`, `public`, `preview` or `registered`: what somebody who is not

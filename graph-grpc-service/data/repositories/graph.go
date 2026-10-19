@@ -389,40 +389,31 @@ func (r *graphRepo) ReadShortestPath(req *graphpb.ReadShortestPathRequest, viewe
 	return &graphpb.ReadShortestPathResponse{}, nil
 }
 
-// Trending returns the tags, hashtags or places, that the most people
-// posted with in a window of time that ends now: the people who wrote a
-// public post carrying it in that time, each once. The edge types say
-// which tag; the direction is not read, a tag being node_a of its edges.
+// Trending returns the tags, hashtags or locations, that the most profiles
+// used in a window of time that ends now: the profiles that wrote a public
+// post carrying it in that time, or were tagged with it then, each once.
+// The edge types say which tag; the direction is not read, a tag being
+// node_a of its edges.
 func (r *graphRepo) Trending(req *graphpb.TrendingRequest, viewer *entities.Viewer) ([]*entities.AnahitaNode, error) {
 	// ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
 	// defer cancel()
 
 	cutoff := trendingCutoff(req.TimeWindow)
 
-	// What is trending is what people posted with lately: each person once,
-	// however many of their posts carry it, so that one account cannot
-	// make something trend; by when the post was written, not when it came
-	// here, so that a profile's older posts fetched when it is followed do
-	// not trend that day; and only posts anybody may see, on profiles
-	// anybody may see, so that what trends says nothing of what is kept
-	// from view (the user, 2026-10-17). The tag is node_a of its edges.
+	// See trendingUse and trendingProfile. Ties go to the tag on more
+	// items. The tag is node_a of its edges.
 	query := GetBaseSelectQuery()
 
 	query = query.
 		Join("edges AS edge ON edge.node_a_id = node.id").
-		Join("nodes AS post ON post.id = edge.node_b_id").
-		LeftJoin("nodes AS post_owner ON post_owner.id = post.owner_id").
-		Where(sq.Gt{"post.created_at": cutoff}).
-		Where("post.access = 'public'").
-		Where("post.enabled = 1").
-		Where("post.draft = 0").
-		Where("post.deleted_at IS NULL").
-		Where("(post_owner.id IS NULL OR post_owner.access IS NULL OR post_owner.access = 'public')").
+		Join("nodes AS tagged ON tagged.id = edge.node_b_id").
+		LeftJoin("nodes AS tagged_owner ON tagged_owner.id = tagged.owner_id").
+		Where(sq.Expr(trendingUse, cutoff, cutoff)).
 		Where("node.deleted_at IS NULL").
 		GroupBy("node.id").
 		OrderBy(
-			"COUNT(DISTINCT post.created_by) DESC",
-			"COUNT(DISTINCT post.id) DESC",
+			"COUNT(DISTINCT "+trendingProfile+") DESC",
+			"COUNT(DISTINCT tagged.id) DESC",
 			"node.id DESC",
 		)
 
@@ -473,28 +464,47 @@ func trendingCutoff(window string) time.Time {
 	return cutoff
 }
 
-// The people who posted with each of some tags since a time, each once, in
-// posts Trending counts.
-const trendingPeople = `
+// trendingUse is a use of a tag that counts towards its trending, of the
+// items tagged with it as `tagged` by `edge`: a public post written in the
+// window, on a profile anybody may see; or a public profile (a person, a
+// group, an event, a website) tagged with it in the window. A post is dated
+// by when it was written, not when it came here, so that a profile's older
+// posts fetched when it is followed do not trend that day; and only what
+// anybody may see counts, so that what trends says nothing of what is kept
+// from view (the user, 2026-10-17). Takes the window's start twice.
+const trendingUse = `tagged.enabled = 1
+  AND tagged.deleted_at IS NULL
+  AND tagged.access = 'public'
+  AND (tagged_owner.id IS NULL OR tagged_owner.access IS NULL OR tagged_owner.access = 'public')
+  AND (
+    (tagged.type LIKE 'node.medium.%' AND tagged.draft = 0 AND tagged.created_at > ?)
+    OR (tagged.type LIKE 'node.actor.%' AND edge.created_at > ?)
+  )`
+
+// trendingProfile is the profile a use of a tag counts for: a post's
+// writer, or the profile tagged. Each profile is counted once, however many
+// of its posts carry the tag, so that one profile cannot make a tag trend;
+// and every kind of profile counts, people, groups, events and websites,
+// here and elsewhere (the user, 2026-10-18).
+const trendingProfile = `CASE WHEN tagged.type LIKE 'node.medium.%' THEN tagged.created_by ELSE tagged.id END`
+
+// The profiles that used each of some tags since a time, each once, as
+// Trending counts them.
+var trendingProfiles = `
 SELECT edge.node_a_id,
-       COUNT(DISTINCT post.created_by)
+       COUNT(DISTINCT ` + trendingProfile + `)
 FROM edges AS edge
-JOIN nodes AS post ON post.id = edge.node_b_id
-LEFT JOIN nodes AS post_owner ON post_owner.id = post.owner_id
+JOIN nodes AS tagged ON tagged.id = edge.node_b_id
+LEFT JOIN nodes AS tagged_owner ON tagged_owner.id = tagged.owner_id
 WHERE edge.node_a_id IN ({{ids}})
   AND edge.type IN ({{types}})
-  AND post.created_at > ?
-  AND post.access = 'public'
-  AND post.enabled = 1
-  AND post.draft = 0
-  AND post.deleted_at IS NULL
-  AND (post_owner.id IS NULL OR post_owner.access IS NULL OR post_owner.access = 'public')
+  AND ` + trendingUse + `
 GROUP BY edge.node_a_id`
 
-func (r *graphRepo) TrendingPeople(req *graphpb.TrendingRequest, ids []int64) (map[int64]uint64, error) {
-	people := map[int64]uint64{}
+func (r *graphRepo) TrendingProfiles(req *graphpb.TrendingRequest, ids []int64) (map[int64]uint64, error) {
+	profiles := map[int64]uint64{}
 	if len(ids) == 0 || len(req.EdgeTypes) == 0 {
-		return people, nil
+		return profiles, nil
 	}
 	args := []any{}
 	for _, id := range ids {
@@ -503,11 +513,12 @@ func (r *graphRepo) TrendingPeople(req *graphpb.TrendingRequest, ids []int64) (m
 	for _, each := range req.EdgeTypes {
 		args = append(args, each)
 	}
-	args = append(args, trendingCutoff(req.TimeWindow))
+	cutoff := trendingCutoff(req.TimeWindow)
+	args = append(args, cutoff, cutoff)
 	query := strings.NewReplacer(
 		"{{ids}}", placeholders(len(ids)),
 		"{{types}}", placeholders(len(req.EdgeTypes)),
-	).Replace(trendingPeople)
+	).Replace(trendingProfiles)
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
@@ -520,9 +531,9 @@ func (r *graphRepo) TrendingPeople(req *graphpb.TrendingRequest, ids []int64) (m
 		if err := rows.Scan(&id, &count); err != nil {
 			return nil, err
 		}
-		people[id] = count
+		profiles[id] = count
 	}
-	return people, rows.Err()
+	return profiles, rows.Err()
 }
 
 // setBlockedLikersQuery leaves out, of the people who like something, those

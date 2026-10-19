@@ -183,7 +183,7 @@ A profile somebody turns down is not suggested to them again. It is theirs alone
 
 ## What is not built
 
-- **Places somebody picks.** Only hashtags are offered in signing up and read from followed feeds; places followed as feeds are not used yet.
+- **Locations somebody picks.** Only hashtags are offered in signing up and read from followed feeds; locations followed as feeds are not used yet.
 - **Nearby.** Nothing uses where people are.
 - **A cache.** Each answer is worked out when it is asked for, which on the development data takes under a tenth of a second.
 - **Suggested posts.** The same contract would take a second path for them.

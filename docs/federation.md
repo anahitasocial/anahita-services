@@ -638,7 +638,7 @@ not here yet is made, and the note is found under it with every other post
 that has it. So `#gardening` in a note from elsewhere leads to this
 installation's own page for it, as it does on Mastodon. Only its first ten
 different hashtags are filed, as for a post written here ([Hashtags and
-places](hashtags.md#at-most-ten-hashtags)); the rest stay words. A hashtag in letters this installation does not take for one (see
+locations](hashtags.md#at-most-ten-hashtags)); the rest stay words. A hashtag in letters this installation does not take for one (see
 `entities.HashtagRegexPattern`) is left the link it came as; so is one in
 what somebody says of themselves.
 

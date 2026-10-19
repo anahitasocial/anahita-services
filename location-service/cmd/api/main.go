@@ -55,7 +55,7 @@ func main() {
 	// create handlers
 	hEnv := &handlers.Env{
 		Config: config,
-		Perms:  permissions.NewPermissions(),
+		Perms:  permissions.NewPermissions(config),
 		Srv:    services.NewServices(config),
 	}
 	h := handlers.NewHandlers(hEnv)
