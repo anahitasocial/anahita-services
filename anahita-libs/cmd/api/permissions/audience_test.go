@@ -225,7 +225,12 @@ func TestEveryHandlerThatSetsAnAudienceChecksIt(t *testing.T) {
 		source := read(path)
 		add := strings.Index(source, ".CanAdd(mediumAccessCtx)")
 		check := strings.Index(source, "permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access)")
+		// Saved with its locations, where the composer sends them (roadmap
+		// row 82, part 3b), or without.
 		save := strings.Index(source, "MediaGRPC.Add(")
+		if withLocations := strings.Index(source, "MediaGRPC.AddWithLocations("); save == -1 || withLocations != -1 && withLocations < save {
+			save = withLocations
+		}
 
 		if add == -1 || save == -1 {
 			t.Fatalf("%s: could not find where a post is created; has it been rewritten?", path)
