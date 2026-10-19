@@ -116,3 +116,16 @@ func TestHalfAPointIsRefused(t *testing.T) {
 		t.Error("a latitude without a longitude was taken")
 	}
 }
+
+func TestThePostalCodeIsPartOfTheAddressLookedUp(t *testing.T) {
+	geo := &fakeGeocoder{}
+	node := location("1700 Beach Ave", "Vancouver", "CA", 0, 0)
+	node.GeoPostalcode = "V6G 1Z4"
+
+	if err := setPoint(node, "", "", true, geo.find); err != nil {
+		t.Fatal(err)
+	}
+	if len(geo.asked) != 1 || geo.asked[0] != "1700 Beach Ave, Vancouver, V6G 1Z4, CA" {
+		t.Errorf("asked %v; want the postal code before the country", geo.asked)
+	}
+}

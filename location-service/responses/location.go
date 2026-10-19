@@ -27,8 +27,8 @@ type LocationNodeItem struct {
 	GeoStateProvince string `json:"state_province,omitempty"`
 	// Its country.
 	GeoCountry string `json:"country,omitempty"`
-	// Its postal code.
-	GeoPostalcode string `json:"postalcode,omitempty"`
+	// Its postal or zip code.
+	GeoPostalcode string `json:"postal_code,omitempty"`
 	// What the viewer may do with it.
 	Authorized *responses.NodeAuthorized `json:"authorized,omitempty"`
 	// In a trending list: how many people tied a post to it in the window.

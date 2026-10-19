@@ -91,6 +91,8 @@ type LocationEditRequest struct {
 	City string `form:"city" validate:"max=100"`
 	// Its state or province.
 	StateProvince string `form:"state_province" validate:"max=100"`
+	// Its postal or zip code.
+	PostalCode string `form:"postal_code" validate:"max=15"`
 	// Its country.
 	Country string `form:"country" validate:"max=50"`
 	// Its point, where somebody placed it on a map: both, or neither. A
@@ -108,6 +110,8 @@ type LocationAddRequest struct {
 	City string `form:"city" validate:"max=100"`
 	// Its state or province.
 	StateProvince string `form:"state_province" validate:"max=100"`
+	// Its postal or zip code.
+	PostalCode string `form:"postal_code" validate:"max=15"`
 	// Its country.
 	Country string `form:"country" validate:"max=50"`
 	// Its point, where somebody placed it on a map: both, or neither. A

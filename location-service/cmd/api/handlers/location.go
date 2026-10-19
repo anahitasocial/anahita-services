@@ -299,6 +299,7 @@ func (h *locationHandler) Edit(c echo.Context) error {
 	node.GeoAddress = req.Address
 	node.GeoCity = req.City
 	node.GeoStateProvince = req.StateProvince
+	node.GeoPostalcode = req.PostalCode
 	node.GeoCountry = req.Country
 	node.ModifiedBy = viewer.ID
 
@@ -361,6 +362,7 @@ func (h *locationHandler) Add(c echo.Context) error {
 	node.GeoAddress = req.Address
 	node.GeoCity = req.City
 	node.GeoStateProvince = req.StateProvince
+	node.GeoPostalcode = req.PostalCode
 	node.GeoCountry = req.Country
 	node.CreatedBy = viewer.ID
 	node.ModifiedBy = viewer.ID

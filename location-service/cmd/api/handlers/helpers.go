@@ -70,6 +70,7 @@ func addressChanged(req *requests.LocationEditRequest, node *entities.AnahitaNod
 	return req.Address != node.GeoAddress ||
 		req.City != node.GeoCity ||
 		req.StateProvince != node.GeoStateProvince ||
+		req.PostalCode != node.GeoPostalcode ||
 		req.Country != node.GeoCountry
 }
 
@@ -100,7 +101,7 @@ func givenPoint(latitude, longitude string) (lat, lng float64, given bool, err e
 // parts left out: "" when it has none.
 func addressOf(node *entities.AnahitaNode) string {
 	parts := []string{}
-	for _, part := range []string{node.GeoAddress, node.GeoCity, node.GeoStateProvince, node.GeoCountry} {
+	for _, part := range []string{node.GeoAddress, node.GeoCity, node.GeoStateProvince, node.GeoPostalcode, node.GeoCountry} {
 		if part = strings.TrimSpace(part); part != "" {
 			parts = append(parts, part)
 		}
