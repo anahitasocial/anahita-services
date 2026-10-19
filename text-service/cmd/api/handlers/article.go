@@ -262,6 +262,11 @@ func (h *articleHandler) Add(c echo.Context) error {
 	// and announced when it is published.
 	medium.Draft = req.Draft
 	medium, err = h.Srv.MediaGRPC.AddWithLocations(medium, viewer, req.LocationIDs)
+	// A group's or an event's rules changed since they agreed: agreed to
+	// again first (roadmap row 102, part 5c).
+	if an_handlers.IsRulesNotAgreed(err) {
+		return an_handlers.RefuseRulesNotAgreed(c)
+	}
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

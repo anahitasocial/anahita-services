@@ -54,6 +54,14 @@ func (h *mediumHandler) AddThread(ctx context.Context, req *graphpb.MediumThread
 		parts = append(parts, part)
 	}
 
+	// A thread that begins a post on a group or an event with rules: as a
+	// post, agreed to first (roadmap row 102, part 5c).
+	if parent == nil && hasRules(parts[0].OwnerType) {
+		if err := requireRulesAgreed(h.env, viewer.ID, parts[0].OwnerID); err != nil {
+			return nil, err
+		}
+	}
+
 	made, err := h.env.Repos.Nodes.AddThread(parent, parts)
 	if err != nil {
 		return nil, err

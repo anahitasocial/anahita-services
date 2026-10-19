@@ -338,6 +338,15 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 		return nil, err
 	}
 
+	// A post on a group or an event with rules: they agreed to the version
+	// they are at, asked again after a change (roadmap row 102, part 5c).
+	// Not a reply, which is its writer's.
+	if node.ParentID <= 0 && hasRules(node.OwnerType) {
+		if err := requireRulesAgreed(h.env, viewer.ID, node.OwnerID); err != nil {
+			return nil, err
+		}
+	}
+
 	node, err := h.env.Repos.Nodes.Add(node)
 	if err != nil {
 		return nil, err

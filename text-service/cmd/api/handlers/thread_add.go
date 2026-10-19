@@ -141,6 +141,11 @@ func (h *noteHandler) addThread(c echo.Context, parentID int64, first *entities.
 	}
 
 	made, err := h.Srv.MediaGRPC.AddThread(parentID, parts, viewer, locationIDs)
+	// A group's or an event's rules changed since they agreed: agreed to
+	// again first (roadmap row 102, part 5c).
+	if an_handlers.IsRulesNotAgreed(err) {
+		return an_handlers.RefuseRulesNotAgreed(c)
+	}
 	if err != nil || len(made) != len(parts) {
 		log.Printf("a thread of %d parts by %d was not made: %v", len(parts), viewer.ID, err)
 		return c.NoContent(http.StatusInternalServerError)

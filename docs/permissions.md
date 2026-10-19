@@ -408,6 +408,12 @@ Otherwise graph-grpc-service refuses, and the route answers 409
 `rules_not_agreed`. Its administrators, who write the rules, are not asked;
 nor is somebody an administrator adds as a follower, nor leaving.
 
+**A new post on it** is held to the same: after its rules change, a follower
+agrees to them again before their next post there (409 `rules_not_agreed`
+from text-service and photo-service). A reply is its writer's, and is not.
+A video post is refused when its upload is made into a post, so the web app
+asks before it is sent.
+
 Asking does not need you to be able to see the profile. A profile you can see,
 you can follow outright; the ones worth asking are the ones you cannot.
 "Others can request to follow" (`allow_follow_request`) is the profile saying

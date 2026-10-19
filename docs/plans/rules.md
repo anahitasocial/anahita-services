@@ -62,7 +62,14 @@
      and actor-service), administrators excepted; the web app asks first,
      in a dialog. Tried as Worf on a phone: the follow went through once
      the four rules were ticked.
-   - 5c, agreed again after a change, before the next post there.
+   - 5c, agreed again after a change, before the next post there — done
+     2026-10-19: `Medium.Add` and `Medium.AddThread` refuse a new post on a
+     group or an event with rules not agreed to at their version (not a
+     reply; not its administrators); 409 from text-service and
+     photo-service; both composers ask first, saying the rules changed when
+     they did. A video post from another client is refused by the worker,
+     after its upload: the web app asks before. Tried as Worf: refused,
+     agreed, posted; through the composer in a browser too.
 6. Reporting against a rule.
 
 ## Context
