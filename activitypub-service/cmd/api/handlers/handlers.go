@@ -41,6 +41,9 @@ type Env struct {
 	// Where a post's list of pictures is kept. Nil for none, in tests that
 	// are not of pictures.
 	PhotoFiles PhotoFiles
+	// The locations a post was tagged with, which go out with it. Nil for
+	// none, in tests that are not of locations.
+	Locations Locations
 	// The card for a link in a post from elsewhere. Nil for none: in tests,
 	// and where there is no link-preview-service.
 	Cards Cards

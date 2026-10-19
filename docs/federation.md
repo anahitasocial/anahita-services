@@ -516,6 +516,7 @@ be fetched, at `/ap/notes/<uuid>`.
 | Then | Other servers are sent |
 | --- | --- |
 | The note is changed | An `Update`, with the note as it is now |
+| A location is added to it or taken off, from its page | An `Update`, said to be changed then |
 | It stops being one that goes out (made for followers only, say) | A `Delete`: it is taken back |
 | It is deleted | A `Delete` |
 
@@ -545,6 +546,22 @@ goes out. A video with no size that light goes as its words, linking to
 its page. Mastodon shows a video with no sound as a GIF, silently and on a
 loop, so a clip made of a GIF is one there too, with nothing said to make
 it so.
+
+**A post goes with its locations,** the ones its author chose for it (the
+user, 2026-10-19: choosing one is their consent, for that post), and goes
+no further than the post does:
+
+| Where | What |
+| --- | --- |
+| `location` | The first location chosen, a `Place` with its `name`, `latitude`, `longitude` and its page here as `url`, as Pixelfed sends and reads one: ActivityStreams allows several, but servers that read it expect one |
+| `tag` | Every location, the first included, as a `Place` with its point and its page as `href`, beside the mentions and hashtags |
+
+The composer sends the locations with the post (`location_ids`, up to five,
+on adding a note, a photo post, an article or a topic), and the graph ties
+them as it makes the post, before it is announced, so the `Create` carries
+them. Mastodon shows neither; Bluesky has no field for one, and nothing goes
+there. Nobody's own position is ever sent (roadmap row 94). See
+[Hashtags and locations](hashtags.md).
 
 A **website's notes**, the items of its feed and its replies, go out as a
 person's notes do, the website's, to its followers ([Websites](websites.md)).

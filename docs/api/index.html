@@ -6911,6 +6911,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tbody>
 <tr><td><code>allow_download</code></td><td>boolean</td><td>Whether whoever can see it may download it. Left out, the post starts with what the profile it is on says.</td></tr>
 <tr><td><code>library_only</code></td><td>boolean</td><td>In the author&#39;s media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author&#39;s own profile.</td></tr>
+<tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. At most 64 characters.</td></tr>
 <tr><td><code>uploads</code></td><td>list of <a href="#schema-photo.FileRef">photo.FileRef</a></td><td>The images, in order, each an upload made for this profile.</td></tr>
@@ -6926,6 +6927,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>content</code></td><td>string</td><td>Its words, as Markdown, if it has any. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag: &#34;en&#34;, &#34;fr-CA&#34;. At most 12 characters.</td></tr>
 <tr><td><code>library_only</code></td><td>boolean</td><td>In the author&#39;s media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author&#39;s own profile.</td></tr>
+<tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. At most 64 characters.</td></tr>
 <tr><td><code>title</code></td><td>string</td><td>Its title, if it has one. At most 100 characters.</td></tr>
@@ -8174,6 +8176,7 @@ who may call it: anyone, signed in or not.">
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>draft</code></td><td>boolean</td><td>Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /&lt;kind&gt;/&lt;id&gt;/publish). Not read of anything else.</td></tr>
+<tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
 </tbody>
@@ -8186,6 +8189,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. At most 8000 characters.</td></tr>
 <tr><td><code>draft</code></td><td>boolean</td><td>Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /&lt;kind&gt;/&lt;id&gt;/publish). Not read of anything else.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag: &#34;en&#34;, &#34;fr-CA&#34;. Chosen by the author; left out, the post has none. See package language. At most 12 characters.</td></tr>
+<tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
 <tr><td><code>title</code> <span class="required">always</span></td><td>string</td><td>Its title. At most 100 characters.</td></tr>
@@ -8759,6 +8763,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>link_preview_url</code></td><td>string</td><td>The link whose preview the note carries: one its writer was shown a preview of while writing. Only the address is taken. What the card says is what this installation read off the page, and never what is sent here. At most 2000 characters.</td></tr>
+<tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_id</code></td><td>integer</td><td>The post this note quotes: it is carried under the note&#39;s own words. Checked against that post&#39;s policy. See permissions.CanQuote.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>As on requests.MediumAddRequest. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>As on requests.MediumAddRequest. At most 64 characters.</td></tr>
@@ -8772,6 +8777,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. At most 8000 characters.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag: &#34;en&#34;, &#34;fr-CA&#34;. Chosen by the author; left out, the post has none. See package language. At most 12 characters.</td></tr>
 <tr><td><code>link_preview_url</code></td><td>string</td><td>The link whose preview the note carries: one its writer was shown a preview of while writing. Only the address is taken. What the card says is what this installation read off the page, and never what is sent here. At most 2000 characters.</td></tr>
+<tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_id</code></td><td>integer</td><td>The post this note quotes: it is carried under the note&#39;s own words. Checked against that post&#39;s policy. See permissions.CanQuote.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>As on requests.MediumAddRequest. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>As on requests.MediumAddRequest. At most 64 characters.</td></tr>
@@ -9121,6 +9127,7 @@ who may call it: anyone, signed in or not.">
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>draft</code></td><td>boolean</td><td>Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /&lt;kind&gt;/&lt;id&gt;/publish). Not read of anything else.</td></tr>
+<tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
 </tbody>
@@ -9133,6 +9140,7 @@ who may call it: anyone, signed in or not.">
 <tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td>Its words, as Markdown. At most 8000 characters.</td></tr>
 <tr><td><code>draft</code></td><td>boolean</td><td>Begun as a draft: an article or a topic, seen by its author alone until it is published (POST /&lt;kind&gt;/&lt;id&gt;/publish). Not read of anything else.</td></tr>
 <tr><td><code>language</code></td><td>string</td><td>The language it is written in, as a BCP 47 tag: &#34;en&#34;, &#34;fr-CA&#34;. Chosen by the author; left out, the post has none. See package language. At most 12 characters.</td></tr>
+<tr><td><code>location_ids</code></td><td>list of integer</td><td>The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its <code>location</code>, all as <code>Place</code>s in its <code>tag</code> (roadmap row 82, part 3b). Up to five; what is not a location is passed over. At most 5 of them.</td></tr>
 <tr><td><code>quote_policy</code></td><td>string</td><td>Who may quote it: &#34;anyone&#34;, &#34;followers&#34; or &#34;nobody&#34;. Left out, the author&#39;s own setting applies. See constants.EffectiveQuotePolicy. At most 16 characters.</td></tr>
 <tr><td><code>reply_access</code></td><td>string</td><td>Who may reply: &#34;anyone&#34;, &#34;nobody&#34;, or any of &#34;followers&#34;, &#34;following&#34; and &#34;mentioned&#34; joined by commas. Left out, anyone the profile lets. See constants.NormalizeReplyAccess. At most 64 characters.</td></tr>
 <tr><td><code>title</code> <span class="required">always</span></td><td>string</td><td>Its title. At most 100 characters.</td></tr>
@@ -10616,7 +10624,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-activitypub.Note" data-search="activitypub.note @context attachment attributedto cc content contentmap id image inreplyto name published summary tag to type updated url">
+<div class="route schema" id="schema-activitypub.Note" data-search="activitypub.note @context attachment attributedto cc content contentmap id image inreplyto location name published summary tag to type updated url">
 <h3>activitypub.Note</h3>
 <p>A post, as it is sent to and read from another server.</p>
 <table>
@@ -10631,6 +10639,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>id</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>image</code></td><td><a href="#schema-activitypub.Image">activitypub.Image</a></td><td>An Article&#39;s cover.</td></tr>
 <tr><td><code>inReplyTo</code></td><td>string</td><td>What it answers, by the address that has between servers.</td></tr>
+<tr><td><code>location</code></td><td>map of anything</td><td>Where it is: the first location its author chose for it, a <code>Place</code> (roadmap row 82, part 3b). Every one is also a <code>Place</code> in Tag.</td></tr>
 <tr><td><code>name</code></td><td>string</td><td>An Article&#39;s title, and the opening it is summed up by. A note has neither: Mastodon shows a note&#39;s summary as a warning to click past.</td></tr>
 <tr><td><code>published</code></td><td>string</td><td></td></tr>
 <tr><td><code>summary</code></td><td>string</td><td></td></tr>
@@ -10713,13 +10722,15 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-activitypub.Tag" data-search="activitypub.tag href name type">
+<div class="route schema" id="schema-activitypub.Tag" data-search="activitypub.tag href latitude longitude name type">
 <h3>activitypub.Tag</h3>
-<p>Tag names somebody or a hashtag that a post mentions, beside its text.</p>
+<p>Tag names somebody or a hashtag that a post mentions, beside its text, or a location it was tagged with, a <code>Place</code> with its point.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>href</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>latitude</code></td><td>number</td><td>A Place&#39;s point.</td></tr>
+<tr><td><code>longitude</code></td><td>number</td><td></td></tr>
 <tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 <tr><td><code>type</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 </tbody>

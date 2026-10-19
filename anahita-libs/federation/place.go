@@ -11,15 +11,16 @@ import (
 // Pixelfed sends one with a post its author chose a place for, and Mastodon
 // none.
 //
-// Only the reading and the writing of it, and nothing that calls either
-// (the user, 2026-10-17): nobody's location is taken from what they post,
-// and none is sent, until how people consent to it is decided (roadmap row
-// 82). Devices and animal trackers that post their position are what it is
-// kept for.
+// A location somebody here chose for a post goes out with it, as the post's
+// `location` and in its `tag` (the user, 2026-10-19: choosing it is their
+// consent, for that post; roadmap row 82, part 3b). Nobody's own position is
+// sent (row 94).
 type Place struct {
 	Name      string
 	Latitude  float64
 	Longitude float64
+	// Where it is read on this installation, when it is one of ours.
+	URL string
 }
 
 // The longest name kept of a place.
@@ -79,6 +80,9 @@ func (p Place) AsLocation() map[string]any {
 	}
 	if p.Name != "" {
 		location["name"] = p.Name
+	}
+	if p.URL != "" {
+		location["url"] = p.URL
 	}
 	return location
 }

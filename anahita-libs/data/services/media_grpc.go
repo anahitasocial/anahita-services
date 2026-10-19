@@ -33,6 +33,9 @@ type MediaGRPCInterface interface {
 
 	// Add creates a new media
 	Add(medium *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error)
+	// AddWithLocations adds a medium tied to the locations its author
+	// chose, as it is made.
+	AddWithLocations(medium *entities.AnahitaNode, viewer *entities.Viewer, locationIDs []int64) (*entities.AnahitaNode, error)
 
 	// Delete removes a media
 	Delete(id int64, viewer *entities.Viewer) error
@@ -258,6 +261,13 @@ func (srv *MediaGRPC) Edit(item *entities.AnahitaNode, viewer *entities.Viewer) 
 
 // Add creates a new media
 func (srv *MediaGRPC) Add(item *entities.AnahitaNode, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
+	return srv.AddWithLocations(item, viewer, nil)
+}
+
+// AddWithLocations adds a medium tied to the locations its author chose,
+// as it is made, before it is announced: so it goes to other servers with
+// them (roadmap row 82, part 3b).
+func (srv *MediaGRPC) AddWithLocations(item *entities.AnahitaNode, viewer *entities.Viewer, locationIDs []int64) (*entities.AnahitaNode, error) {
 	client, err := srv.getClient()
 	if err != nil {
 		return nil, err
@@ -274,6 +284,7 @@ func (srv *MediaGRPC) Add(item *entities.AnahitaNode, viewer *entities.Viewer) (
 			Email:      viewer.Email,
 			Username:   viewer.Username,
 		},
+		LocationIds: locationIDs,
 	})
 	if err != nil {
 		return nil, err

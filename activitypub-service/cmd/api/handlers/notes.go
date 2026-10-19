@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -165,6 +166,53 @@ func (h *Handlers) hasPictures(postID int64) bool {
 	return err == nil && len(files) > 0
 }
 
+// Locations reads what a post is tied to in the graph: here, the locations
+// it was tagged with.
+type Locations interface {
+	BrowseConnectionNodes(req *services.GraphBrowseConnectionNodesRequest) ([]*entities.AnahitaNode, uint64, error)
+}
+
+// placesOf is the locations a post was tagged with, the first chosen first,
+// as the Places it goes out with (roadmap row 82, part 3b). Read as a super
+// administrator would, the post having been judged to go out already.
+func (h *Handlers) placesOf(post *entities.AnahitaNode) []federation.Place {
+	if h.Locations == nil {
+		return nil
+	}
+	viewer := entities.NewViewer()
+	viewer.PersonType = constants.PersonTypeSuperAdmin
+	found, _, err := h.Locations.BrowseConnectionNodes(&services.GraphBrowseConnectionNodesRequest{
+		NodeId:      post.ID,
+		EdgeType:    constants.EdgeTagLocationType,
+		Direction:   constants.GraphQueryDirectionInbound,
+		Hops:        1,
+		Limit:       uint64(constants.MaxLocationsOfAPost),
+		Ordering:    constants.OrderingConnected,
+		OrderingDir: constants.DirAsc,
+		Viewer:      viewer,
+	})
+	if err != nil {
+		log.Printf("post %d: reading its locations: %v", post.ID, err)
+		return nil
+	}
+	places := []federation.Place{}
+	for _, location := range found {
+		if location == nil || location.Type != constants.NodeBaseLocationEntityType {
+			continue
+		}
+		if location.GeoLatitude == 0 && location.GeoLongitude == 0 {
+			continue
+		}
+		places = append(places, federation.Place{
+			Name:      location.Name,
+			Latitude:  location.GeoLatitude,
+			Longitude: location.GeoLongitude,
+			URL:       h.addresses.LocationPage(location.ID, location.Alias),
+		})
+	}
+	return places
+}
+
 // described is a note as other servers are sent it, a reply with what it
 // answers.
 func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answer) *ap.Note {
@@ -174,6 +222,11 @@ func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answ
 	}
 	if answering != nil {
 		sent.Answering(answering.ID, answering.Actor, answering.Handle)
+	}
+	// Where it is, as its author chose: the first as its location, all
+	// in its tags.
+	if places := h.placesOf(note); len(places) > 0 {
+		sent.WithPlaces(places)
 	}
 	// A photo post goes with its pictures, each at an address of this
 	// installation's that leads to it for as long as the post goes out.
@@ -384,6 +437,20 @@ func (h *Handlers) toFollowers(ctx context.Context, author *entities.AnahitaNode
 // posted is a post having been made here, or changed: other servers are
 // told, or told to drop it, by what it is now.
 func (h *Handlers) posted(ctx context.Context, nodeID int64) error {
+	return h.tellOf(ctx, nodeID, false)
+}
+
+// relocated is a location added to a post or taken off it, from its page:
+// the post itself says nothing changed, so it is sent again as an Update
+// with the time of this change (roadmap row 82, part 3b). One that never
+// went out is sent as it would have been.
+func (h *Handlers) relocated(ctx context.Context, nodeID int64) error {
+	return h.tellOf(ctx, nodeID, true)
+}
+
+// tellOf tells other servers of a post as it is now: made, changed, or, with
+// `retagged`, given other locations.
+func (h *Handlers) tellOf(ctx context.Context, nodeID int64, retagged bool) error {
 	note, err := h.Nodes.Read(nodeID)
 	if err != nil {
 		return err
@@ -430,12 +497,19 @@ func (h *Handlers) posted(ctx context.Context, nodeID int64) error {
 	}
 
 	// Known already: this is a change to it. Only when it says it was
-	// changed, so that hearing of its making twice sends nothing twice.
+	// changed, so that hearing of its making twice sends nothing twice; or
+	// when its locations changed, which its own dates do not show, said as
+	// changed now and sent once for each such change.
+	key := fmt.Sprintf("update:%s:%s", note.UUID, sent.Updated)
+	if retagged {
+		now := time.Now().UTC()
+		sent.Updated = now.Format(time.RFC3339)
+		key = fmt.Sprintf("update:%s:locations:%d", note.UUID, now.UnixNano())
+	}
 	if sent.Updated == "" {
 		return nil
 	}
-	if err := h.toReaders(ctx, author, replyInbox, ap.NewUpdate(h.addresses.Activity(newUUID()), sent),
-		fmt.Sprintf("update:%s:%s", note.UUID, sent.Updated)); err != nil {
+	if err := h.toReaders(ctx, author, replyInbox, ap.NewUpdate(h.addresses.Activity(newUUID()), sent), key); err != nil {
 		return err
 	}
 	// What other servers now have, so that the sweep can tell a change

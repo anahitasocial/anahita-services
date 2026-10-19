@@ -8,6 +8,7 @@ hashtags offered to somebody while they write.
 - [How a post gets its hashtags](#how-a-post-gets-its-hashtags)
 - [At most ten hashtags](#at-most-ten-hashtags)
 - [At most five locations](#at-most-five-locations)
+- [A post's locations on other servers](#a-posts-locations-on-other-servers)
 - [Who may add a location](#who-may-add-a-location)
 - [Trending](#trending)
 - [Suggestions while writing](#suggestions-while-writing)
@@ -63,6 +64,14 @@ already has is not a sixth.
 The number is `constants.MaxLocationsOfAPost` in anahita-libs, and
 `Medium.MAX_LOCATIONS` in the web app. Five is also how many locations a custom
 feed can filter on (`feeds.MaxLocations`).
+
+## A post's locations on other servers
+
+A location chosen for a post in the composer is tied to it as it is made
+(`location_ids` on adding it, up to five) and goes with it to other servers,
+when the post goes: the first as its `location`, all as `Place`s in its
+`tag`. Adding or taking off a location on its page sends it again. See
+[Federation](federation.md#posts-going-out).
 
 ## Who may add a location
 

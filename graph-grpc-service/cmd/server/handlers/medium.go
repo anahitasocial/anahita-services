@@ -343,6 +343,11 @@ func (h *mediumHandler) Add(ctx context.Context, req *graphpb.MediumAddRequest) 
 		return nil, err
 	}
 
+	// Its locations, before it is announced below.
+	if len(req.LocationIds) > 0 {
+		h.tagLocations(node, req.LocationIds, viewer.ID)
+	}
+
 	if node.RootID > 0 {
 		if err := h.env.Repos.Replies.Recount(node.RootID, node.ParentID); err != nil {
 			log.Printf("counting the replies of %d failed: %v", node.RootID, err)

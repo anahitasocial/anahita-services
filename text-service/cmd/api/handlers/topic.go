@@ -255,7 +255,7 @@ func (h *topicHandler) Add(c echo.Context) error {
 	// Begun as a draft when it is asked to be: seen by its author alone,
 	// and announced when it is published.
 	medium.Draft = req.Draft
-	medium, err = h.Srv.MediaGRPC.Add(medium, viewer)
+	medium, err = h.Srv.MediaGRPC.AddWithLocations(medium, viewer, req.LocationIDs)
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

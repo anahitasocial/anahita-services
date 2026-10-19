@@ -2361,6 +2361,16 @@
                     "description": "In the author's media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author's own profile.",
                     "type": "boolean"
                   },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
+                  },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",
                     "maxLength": 16,
@@ -2421,6 +2431,16 @@
                     "description": "In the author's media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author's own profile.",
                     "type": "boolean"
                   },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
+                  },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",
                     "maxLength": 16,
@@ -2478,6 +2498,16 @@
                   "library_only": {
                     "description": "In the author's media library only: put up from inside the article editor to be shown in an article, and listed and announced nowhere. Only on the author's own profile.",
                     "type": "boolean"
+                  },
+                  "location_ids": {
+                    "description": "The locations its author chose for it, tied to it as it is made, so that it goes to other servers with them: the first as its `location`, all as `Place`s in its `tag` (roadmap row 82, part 3b). Up to five; what is not a location is passed over.",
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
                   },
                   "quote_policy": {
                     "description": "Who may quote it: \"anyone\", \"followers\" or \"nobody\". Left out, the author's own setting applies.",

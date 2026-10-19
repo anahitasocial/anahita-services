@@ -89,6 +89,10 @@ message MediumEditResponse {
 message MediumAddRequest {
     Node medium = 1;
     Viewer viewer = 2;
+    // The locations its author chose for it, tied to it as it is made, so
+    // that it goes to other servers with them (roadmap row 82, part 3b).
+    // Up to five; what is not a location is passed over.
+    repeated int64 location_ids = 3;
 }
 
 message MediumAddResponse {

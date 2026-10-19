@@ -3,6 +3,7 @@ package handlers
 import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/event"
 	"anahita-libs/proto/graphpb"
 	"context"
 	"graph/requests"
@@ -112,6 +113,7 @@ func (h *edgeHandler) Add(ctx context.Context, req *graphpb.EdgeAddRequest) (*gr
 	if err != nil {
 		return nil, err
 	}
+	h.announceLocationTag(result, event.EventFormatEdgeLocationAdded)
 
 	return &graphpb.EdgeAddResponse{
 		Edge: edgeToGrpc(result),
@@ -122,10 +124,14 @@ func (h *edgeHandler) Add(ctx context.Context, req *graphpb.EdgeAddRequest) (*gr
 func (h *edgeHandler) Delete(ctx context.Context, req *graphpb.EdgeDeleteRequest) (*graphpb.EdgeDeleteResponse, error) {
 	log.Printf("Received Delete request: %v", req)
 
+	// What it was, to say so once it is gone when it was a location's tag.
+	gone, _ := h.env.Repos.Edges.Read(req.Id)
+
 	err := h.env.Repos.Edges.Delete(req.Id)
 	if err != nil {
 		return nil, err
 	}
+	h.announceLocationTag(gone, event.EventFormatEdgeLocationDeleted)
 
 	return &graphpb.EdgeDeleteResponse{
 		Success: true,
