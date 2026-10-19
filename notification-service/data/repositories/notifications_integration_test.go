@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	an_entities "anahita-libs/data/entities"
 	"notification/data/entities"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -210,5 +211,56 @@ func TestABlockTakesWhatTheTwoWereToldOfEachOther(t *testing.T) {
 	}
 	if left != "1<3,3<4" {
 		t.Errorf("left %s, want 1<3,3<4: Kira's like and Odo's follow of Bajor", left)
+	}
+}
+
+// WHAT THIS GUARDS (roadmap row 96, part 4): the bell's question answers the
+// unread count and when the newest was told, which moves when something is
+// told again although its row and the count stay the same.
+func TestTheBellsQuestion(t *testing.T) {
+	dsn := os.Getenv("ACCESS_TEST_DSN")
+	if dsn == "" {
+		t.Skip("set ACCESS_TEST_DSN to run against MySQL")
+	}
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`DELETE FROM notifications`); err != nil {
+		t.Fatal(err)
+	}
+	repo := NewNotification(db)
+	viewer := an_entities.NewViewer()
+	viewer.ID = 1
+
+	if count, newest, err := repo.UnreadCount(viewer); err != nil || count != 0 || newest != nil {
+		t.Fatalf("nothing yet: %d, %v, %v", count, newest, err)
+	}
+
+	if _, err := db.Exec(`INSERT INTO notifications
+		(type, service, recipient_id, subject_id, subject_type, object_id, object_type, target_id, target_type, is_read, created_at)
+		VALUES
+		('voteup', 'like-service', 1, 2, 'p', 100, 'n', 1, 'p', 1, '2026-10-01'),
+		('voteup', 'like-service', 1, 3, 'p', 100, 'n', 1, 'p', 0, '2026-10-02')`); err != nil {
+		t.Fatal(err)
+	}
+	count, before, err := repo.UnreadCount(viewer)
+	if err != nil || count != 1 || before == nil || before.Format("2006-01-02") != "2026-10-02" {
+		t.Fatalf("got %d, %v, %v; want 1 unread, newest 2026-10-02", count, before, err)
+	}
+
+	// The read one is told again: unread, and newest.
+	n := entities.NewNotification()
+	n.Type, n.Service, n.RecipientID = "voteup", "like-service", 1
+	n.Subject.ID, n.Subject.Type = 2, "p"
+	n.Object.ID, n.Object.Type = 100, "n"
+	n.Target.ID, n.Target.Type = 1, "p"
+	if _, err := repo.Add(n); err != nil {
+		t.Fatal(err)
+	}
+	count, after, err := repo.UnreadCount(viewer)
+	if err != nil || count != 2 || after == nil || !after.After(*before) {
+		t.Errorf("told again: %d unread, newest %v (was %v); want 2, and later", count, after, before)
 	}
 }

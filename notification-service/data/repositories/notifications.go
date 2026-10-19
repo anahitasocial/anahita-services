@@ -20,8 +20,9 @@ type NotificationInterface interface {
 	// Count returns the number of Notifications
 	Count(req *requests.NotificationBrowseRequest, viewer *an_entities.Viewer) (uint64, error)
 
-	// UnreadCount returns the number of unread Notifications
-	UnreadCount(viewer *an_entities.Viewer) (uint64, error)
+	// UnreadCount returns the number of unread Notifications, and when the
+	// newest of all was told.
+	UnreadCount(viewer *an_entities.Viewer) (uint64, *time.Time, error)
 
 	// Browse returns a list of Notifications
 	Browse(req *requests.NotificationBrowseRequest, viewer *an_entities.Viewer) ([]*entities.Notification, error)
@@ -107,18 +108,32 @@ func (repo *Notification) Count(req *requests.NotificationBrowseRequest, viewer 
 	return count, nil
 }
 
-// UnreadCount returns the number of unread Notifications
-func (repo *Notification) UnreadCount(viewer *an_entities.Viewer) (uint64, error) {
+const unreadCountAndNewest = `
+SELECT
+    COALESCE(SUM(is_read = 0), 0),
+    MAX(created_at)
+FROM notifications
+WHERE recipient_id = ?`
+
+// UnreadCount returns how many of the viewer's notifications are unread, and
+// when the newest of them all, read or not, was told: what the bell asks, and
+// how an open list knows there is something new to fetch although the count
+// is the same. Telling somebody something again moves its row's created_at,
+// not its id, so the time is what says so. Nil when they have none.
+func (repo *Notification) UnreadCount(viewer *an_entities.Viewer) (uint64, *time.Time, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
 	defer cancel()
 
-	var unreadCount uint64
-	err := repo.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM notifications WHERE recipient_id = ? AND is_read = 0", viewer.ID).Scan(&unreadCount)
+	var unread uint64
+	var newest sql.NullTime
+	err := repo.db.QueryRowContext(ctx, unreadCountAndNewest, viewer.ID).Scan(&unread, &newest)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
-
-	return unreadCount, nil
+	if !newest.Valid {
+		return unread, nil, nil
+	}
+	return unread, &newest.Time, nil
 }
 
 // Browse returns a list of Notifications

@@ -5435,6 +5435,11 @@
             "format": "int64",
             "minimum": 0,
             "type": "integer"
+          },
+          "newest_at": {
+            "description": "When the newest of all their notifications, read or not, was told: changed, there is something new to fetch. Left out when they have none.",
+            "format": "date-time",
+            "type": "string"
           }
         },
         "required": [

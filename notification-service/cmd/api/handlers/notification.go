@@ -122,12 +122,12 @@ func (h *notificationHandler) UnreadCount(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	count, err := h.Repos.Notifications.UnreadCount(viewer)
+	count, newest, err := h.Repos.Notifications.UnreadCount(viewer)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, responses.UnreadCount{Count: count})
+	return c.JSON(http.StatusOK, responses.UnreadCount{Count: count, NewestAt: newest})
 }
 
 // Edit updates a notification

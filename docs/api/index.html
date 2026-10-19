@@ -11644,13 +11644,14 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-notification.UnreadCount" data-search="notification.unreadcount count">
+<div class="route schema" id="schema-notification.UnreadCount" data-search="notification.unreadcount count newest_at">
 <h3>notification.UnreadCount</h3>
 <p>How many notifications the viewer has not read.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>count</code> <span class="required">always</span></td><td>integer</td><td>How many. At least 0.</td></tr>
+<tr><td><code>newest_at</code></td><td>time</td><td>When the newest of all their notifications, read or not, was told: changed, there is something new to fetch. Left out when they have none.</td></tr>
 </tbody>
 </table>
 </div>

@@ -123,7 +123,7 @@ notification-service at one copy: each copy hears every event.
 | Route | What it does |
 | --- | --- |
 | `GET /notifications/?start=&limit=` | The viewer's notifications, newest first |
-| `GET /notifications/unread-count` | How many they have not read |
+| `GET /notifications/unread-count` | How many they have not read (`count`), and when the newest was told (`newest_at`) |
 | `PATCH /notifications/:id` | Marks one read |
 | `DELETE /notifications/:id` | Deletes one |
 | `POST /notifications/subscriptions` | Subscribes to a profile or a post |

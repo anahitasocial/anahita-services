@@ -85,6 +85,9 @@ type NotificationItem struct {
 type UnreadCount struct {
 	// How many.
 	Count uint64 `json:"count"`
+	// When the newest of all their notifications, read or not, was told:
+	// changed, there is something new to fetch. Left out when they have none.
+	NewestAt *time.Time `json:"newest_at,omitempty"`
 }
 
 type NotificationResponse struct{}
