@@ -11,6 +11,7 @@ const (
 	ErrAccountInsufficientScope = "insufficient scope"
 	ErrAccountBrowse            = "only super admins can browse the accounts list"
 	ErrAccountMakeRegistered    = "only super admins can make everything public registered-only"
+	ErrAccountPersonType        = "only administrators can change a person's type"
 )
 
 type AccountPerm struct {
@@ -48,6 +49,21 @@ func (prm *AccountPerm) CanMakeRegistered(viewer *entities.Viewer) error {
 	}
 	if !viewer.IsSuperAdmin() {
 		return errors.New(ErrAccountMakeRegistered)
+	}
+	return nil
+}
+
+// CanEditPersonType gates changing a person's type at all: administrators and
+// super administrators. Which change each may make is
+// constants.MayChangePersonType (the user, 2026-10-18), which needs the
+// person's type and is asked by the handler; that nobody changes their own is
+// graph-grpc's to refuse, where every caller meets it.
+func (prm *AccountPerm) CanEditPersonType(viewer *entities.Viewer) error {
+	if !viewer.HasScope(libs_constants.OAuthScopeActorsWrite) {
+		return errors.New(ErrAccountInsufficientScope)
+	}
+	if !viewer.IsAdmin() {
+		return errors.New(ErrAccountPersonType)
 	}
 	return nil
 }

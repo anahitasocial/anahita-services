@@ -397,7 +397,9 @@ func (h *locationHandler) Add(c echo.Context) error {
 // Delete removes a location
 func (h *locationHandler) Delete(c echo.Context) error {
 	var (
-		req    = requests.NewLocationRequest().Edit
+		// Its own request, an id: the edit request it used to bind requires
+		// a name, so every deletion was refused with 400.
+		req    = requests.NewLocationRequest().Delete
 		viewer = getViewer(c)
 	)
 

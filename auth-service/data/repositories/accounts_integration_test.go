@@ -20,6 +20,9 @@ const (
 	accPurged    = 9206 // a tombstone
 	accGroup     = 9210 // has an administrator and a post
 	accLostGroup = 9211 // nobody administers it, nothing in it
+	accEvent     = 9212 // an event, with its administrator
+	accGoneEvent = 9213 // an event deleted, waiting out the thirty days
+	accGoneSite  = 9214 // a website deleted, waiting out the thirty days
 )
 
 func seedAccounts(t *testing.T) *accounts {
@@ -45,6 +48,8 @@ func seedAccounts(t *testing.T) *accounts {
 	const person = "'node.actor.person-service.person.v1','person-service'"
 	const group = "'node.actor.group-service.group.v1','group-service'"
 	const note = "'node.medium.text-service.note.v1','text-service'"
+	const event = "'node.actor.actor-service.event.v1','actor-service'"
+	const website = "'node.actor.actor-service.website.v1','actor-service'"
 
 	for _, stmt := range []string{
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,person_type,follower_count,leader_count,created_at,updated_at,last_visited_at) VALUES
@@ -55,8 +60,11 @@ func seedAccounts(t *testing.T) *accounts {
 		 (9205,` + person + `,'Deleted One','acc-deleted','public',0,'registered',0,0,NOW() - INTERVAL 1 YEAR,NOW(),NULL),
 		 (9206,` + person + `,'','acc-purged','public',0,'registered',0,0,NOW() - INTERVAL 1 YEAR,NOW(),NULL),
 		 (9210,` + group + `,'Kept Group','acc-group','public',1,'',2,0,NOW() - INTERVAL 5 YEAR,NOW(),NULL),
-		 (9211,` + group + `,'Lost Group','acc-lost','public',1,'',1,0,NOW() - INTERVAL 5 YEAR,NOW(),NULL)`,
-		`UPDATE nodes SET deleted_at = NOW() WHERE id IN (9205, 9206)`,
+		 (9211,` + group + `,'Lost Group','acc-lost','public',1,'',1,0,NOW() - INTERVAL 5 YEAR,NOW(),NULL),
+		 (9212,` + event + `,'Kept Event','acc-event','public',1,'',1,0,NOW() - INTERVAL 1 MONTH,NOW(),NULL),
+		 (9213,` + event + `,'Gone Event','acc-gone-event','public',0,'',1,0,NOW() - INTERVAL 1 MONTH,NOW(),NULL),
+		 (9214,` + website + `,'Gone Site','acc-gone-site','public',0,'',1,0,NOW() - INTERVAL 1 MONTH,NOW(),NULL)`,
+		`UPDATE nodes SET deleted_at = NOW() WHERE id IN (9205, 9206, 9213, 9214)`,
 		`UPDATE nodes SET purged_at = NOW() WHERE id = 9206`,
 
 		`INSERT INTO nodes (id,type,service,name,alias,access,enabled,owner_id,created_by,created_at,updated_at) VALUES
@@ -66,7 +74,8 @@ func seedAccounts(t *testing.T) *accounts {
 		 (9223,` + note + `,'in the group','acc-n4','public',1,9210,9203,NOW() - INTERVAL 30 DAY,NOW())`,
 
 		`INSERT INTO edges (type,node_a_id,node_a_type,node_b_id,node_b_type,created_at) VALUES
-		 ('edge.actor.admin.v1',9203,'node.actor.person-service.person.v1',9210,'node.actor.group-service.group.v1',NOW())`,
+		 ('edge.actor.admin.v1',9203,'node.actor.person-service.person.v1',9210,'node.actor.group-service.group.v1',NOW()),
+		 ('edge.actor.admin.v1',9203,'node.actor.person-service.person.v1',9212,'node.actor.actor-service.event.v1',NOW())`,
 
 		`INSERT INTO auth_accounts (node_id,email,email_verified_at,onboarded_at) VALUES
 		 (9201,'acc-empty@example.com',NULL,NULL),
@@ -240,5 +249,67 @@ func TestRealGroupAccounts(t *testing.T) {
 	}
 	if got, want := accountIDs(found), fmt.Sprint([]int64{accLostGroup}); got != want {
 		t.Errorf("groups without an administrator: %s, want %s", got, want)
+	}
+}
+
+// Events are listed too, the deleted among them, so a super administrator can
+// find one that no other list shows to restore it or remove it for good (the
+// user, 2026-10-18).
+func TestRealEventAccounts(t *testing.T) {
+	repo := seedAccounts(t)
+
+	events := func() *AccountFilter {
+		filter := people()
+		filter.Kind = AccountKindEvent
+		return filter
+	}
+
+	found, err := repo.Browse(events())
+	if err != nil {
+		t.Fatalf("browse: %v", err)
+	}
+	if got, want := accountIDs(found), fmt.Sprint([]int64{accEvent, accGoneEvent}); got != want {
+		// Order is least recently active first; both were made a month ago.
+		if got != fmt.Sprint([]int64{accGoneEvent, accEvent}) {
+			t.Fatalf("listed %s, want both events", got)
+		}
+	}
+
+	filter := events()
+	filter.State = AccountStateDeleted
+	found, err = repo.Browse(filter)
+	if err != nil {
+		t.Fatalf("browse: %v", err)
+	}
+	if got, want := accountIDs(found), fmt.Sprint([]int64{accGoneEvent}); got != want {
+		t.Errorf("deleted events: %s, want %s", got, want)
+	}
+
+	filter = events()
+	filter.OnlyWithoutAdmin = true
+	found, err = repo.Browse(filter)
+	if err != nil {
+		t.Fatalf("browse: %v", err)
+	}
+	if got, want := accountIDs(found), fmt.Sprint([]int64{accGoneEvent}); got != want {
+		t.Errorf("events without an administrator: %s, want %s", got, want)
+	}
+}
+
+// Websites are listed too: every kind of profile here can be scheduled for
+// deletion, and a super administrator finds it in this list (the user,
+// 2026-10-18).
+func TestRealWebsiteAccounts(t *testing.T) {
+	repo := seedAccounts(t)
+
+	filter := people()
+	filter.Kind = AccountKindWebsite
+	filter.State = AccountStateDeleted
+	found, err := repo.Browse(filter)
+	if err != nil {
+		t.Fatalf("browse: %v", err)
+	}
+	if got, want := accountIDs(found), fmt.Sprint([]int64{accGoneSite}); got != want {
+		t.Errorf("deleted websites: %s, want %s", got, want)
 	}
 }

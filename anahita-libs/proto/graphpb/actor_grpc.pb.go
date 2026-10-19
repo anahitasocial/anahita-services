@@ -35,6 +35,7 @@ const (
 	ActorService_Archive_FullMethodName              = "/graph.ActorService/Archive"
 	ActorService_SetEnabled_FullMethodName           = "/graph.ActorService/SetEnabled"
 	ActorService_SetFeatured_FullMethodName          = "/graph.ActorService/SetFeatured"
+	ActorService_SetPersonType_FullMethodName        = "/graph.ActorService/SetPersonType"
 	ActorService_TouchLastVisit_FullMethodName       = "/graph.ActorService/TouchLastVisit"
 	ActorService_Ping_FullMethodName                 = "/graph.ActorService/Ping"
 )
@@ -74,6 +75,8 @@ type ActorServiceClient interface {
 	// Features or unfeatures an actor. Super administrators only; the caller
 	// enforces that.
 	SetFeatured(ctx context.Context, in *ActorSetFeaturedRequest, opts ...grpc.CallOption) (*ActorSetFeaturedResponse, error)
+	// A person's type. Super administrators only, enforced by the caller.
+	SetPersonType(ctx context.Context, in *ActorSetPersonTypeRequest, opts ...grpc.CallOption) (*ActorSetPersonTypeResponse, error)
 	// Records that this actor just signed in.
 	TouchLastVisit(ctx context.Context, in *ActorTouchLastVisitRequest, opts ...grpc.CallOption) (*ActorTouchLastVisitResponse, error)
 	Ping(ctx context.Context, in *ActorPingRequest, opts ...grpc.CallOption) (*ActorPingResponse, error)
@@ -247,6 +250,16 @@ func (c *actorServiceClient) SetFeatured(ctx context.Context, in *ActorSetFeatur
 	return out, nil
 }
 
+func (c *actorServiceClient) SetPersonType(ctx context.Context, in *ActorSetPersonTypeRequest, opts ...grpc.CallOption) (*ActorSetPersonTypeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ActorSetPersonTypeResponse)
+	err := c.cc.Invoke(ctx, ActorService_SetPersonType_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *actorServiceClient) TouchLastVisit(ctx context.Context, in *ActorTouchLastVisitRequest, opts ...grpc.CallOption) (*ActorTouchLastVisitResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ActorTouchLastVisitResponse)
@@ -302,6 +315,8 @@ type ActorServiceServer interface {
 	// Features or unfeatures an actor. Super administrators only; the caller
 	// enforces that.
 	SetFeatured(context.Context, *ActorSetFeaturedRequest) (*ActorSetFeaturedResponse, error)
+	// A person's type. Super administrators only, enforced by the caller.
+	SetPersonType(context.Context, *ActorSetPersonTypeRequest) (*ActorSetPersonTypeResponse, error)
 	// Records that this actor just signed in.
 	TouchLastVisit(context.Context, *ActorTouchLastVisitRequest) (*ActorTouchLastVisitResponse, error)
 	Ping(context.Context, *ActorPingRequest) (*ActorPingResponse, error)
@@ -362,6 +377,9 @@ func (UnimplementedActorServiceServer) SetEnabled(context.Context, *ActorSetEnab
 }
 func (UnimplementedActorServiceServer) SetFeatured(context.Context, *ActorSetFeaturedRequest) (*ActorSetFeaturedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetFeatured not implemented")
+}
+func (UnimplementedActorServiceServer) SetPersonType(context.Context, *ActorSetPersonTypeRequest) (*ActorSetPersonTypeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetPersonType not implemented")
 }
 func (UnimplementedActorServiceServer) TouchLastVisit(context.Context, *ActorTouchLastVisitRequest) (*ActorTouchLastVisitResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TouchLastVisit not implemented")
@@ -678,6 +696,24 @@ func _ActorService_SetFeatured_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ActorService_SetPersonType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActorSetPersonTypeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActorServiceServer).SetPersonType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActorService_SetPersonType_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActorServiceServer).SetPersonType(ctx, req.(*ActorSetPersonTypeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ActorService_TouchLastVisit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ActorTouchLastVisitRequest)
 	if err := dec(in); err != nil {
@@ -784,6 +820,10 @@ var ActorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetFeatured",
 			Handler:    _ActorService_SetFeatured_Handler,
+		},
+		{
+			MethodName: "SetPersonType",
+			Handler:    _ActorService_SetPersonType_Handler,
 		},
 		{
 			MethodName: "TouchLastVisit",

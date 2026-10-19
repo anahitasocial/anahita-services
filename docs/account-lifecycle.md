@@ -33,12 +33,24 @@ Deleting, archiving and purging ask the person doing it to prove who they are
 again first, with their password or a passkey.
 
 Nobody can disable, archive, delete or purge the only super administrator. The
-answer is 409, and says to promote somebody else first.
+answer is 409, and says to make somebody else a super administrator first (see
+[Account types](permissions.md#account-types)).
 
 ## Deleting and the 30 days
 
 A deleted account is hidden immediately and its sessions are ended. Nothing it
 owns is touched, so restoring it brings it back whole.
+
+Hidden, except from those with an edge to it (the user, 2026-10-18): its
+followers and its administrators still find it in their lists of who they
+follow and what they look after, and on its profile, labelled **Scheduled for
+deletion** with the days left, so an administrator can get back to it and
+restore it. Super administrators see every one: in those lists too, and all
+together, soonest first, on the **Scheduled for deletion** tab of the web
+app's administration (`GET /accounts?state=deleted` for each kind: `person`,
+`group`, `event`, `website`). Anybody else no longer finds it. Once purged it is gone from every
+list. A disabled account leaves every list until it is enabled again; an
+archived one stays.
 
 - A **person** restores their account by signing in within 30 days. They are
   emailed when the deletion is scheduled, with the date it becomes final.
@@ -117,7 +129,7 @@ The reasons an account stops a request:
 | --- | --- |
 | `not_found` | No such account |
 | `wrong_type` | Not a person, on the people route; not a group, on the groups route |
-| `administrator` | An administrator or super administrator. A batch never removes one: change their role first, or remove them by name with the single route |
+| `administrator` | An administrator or super administrator. A batch never removes one: change their account type first ([Account types](permissions.md#account-types)), or remove them by name with the single route |
 | `yourself` | The account asking |
 | `last_super_administrator` | The only super administrator |
 

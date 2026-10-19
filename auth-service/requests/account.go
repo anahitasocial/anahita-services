@@ -7,8 +7,8 @@ package requests
 // one out means no filter; there is no way to ask for the verified ones only,
 // because nobody cleaning up a site is looking for those.
 type AccountBrowseRequest struct {
-	// `person`, the default, or `group`.
-	Kind string `query:"kind" validate:"omitempty,oneof=person group"`
+	// `person`, the default, `group`, `event` or `website`.
+	Kind string `query:"kind" validate:"omitempty,oneof=person group event website"`
 	// Words in the name or the username.
 	Search string `query:"q" validate:"max=100"`
 	// `empty`, `dormant` or `active`.

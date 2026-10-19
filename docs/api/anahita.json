@@ -3431,7 +3431,7 @@
       "auth.AccountItem": {
         "properties": {
           "admin_count": {
-            "description": "Groups only: how many administrators it has.",
+            "description": "Groups, events and websites only: how many administrators it has.",
             "format": "int64",
             "type": "integer"
           },
@@ -3446,6 +3446,11 @@
           },
           "created_at": {
             "description": "When it was made.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "deleted_at": {
+            "description": "When it was deleted, while it waits out the thirty days before it is purged; absent otherwise.",
             "format": "date-time",
             "type": "string"
           },
@@ -3464,7 +3469,7 @@
             "type": "integer"
           },
           "kind": {
-            "description": "`person` or `group`.",
+            "description": "`person`, `group`, `event` or `website`.",
             "type": "string"
           },
           "last_active_at": {
@@ -4329,6 +4334,34 @@
         },
         "required": [
           "revoked_sessions"
+        ],
+        "type": "object"
+      },
+      "auth.PersonTypeChanged": {
+        "description": "PersonTypeChanged is a person's type, and whether this changed it.",
+        "properties": {
+          "changed": {
+            "description": "False when they already had it.",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "person_type": {
+            "description": "The type they have now.",
+            "type": "string"
+          },
+          "previous": {
+            "description": "The type they had before.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "person_type",
+          "previous",
+          "changed"
         ],
         "type": "object"
       },
@@ -6925,13 +6958,15 @@
         "operationId": "getAccounts",
         "parameters": [
           {
-            "description": "`person`, the default, or `group`.",
+            "description": "`person`, the default, `group`, `event` or `website`.",
             "in": "query",
             "name": "kind",
             "schema": {
               "enum": [
                 "person",
-                "group"
+                "group",
+                "event",
+                "website"
               ],
               "type": "string"
             }
@@ -7127,7 +7162,7 @@
             ]
           }
         ],
-        "summary": "People or groups, for cleaning up a site",
+        "summary": "People, groups, events or websites, for cleaning up a site",
         "tags": [
           "auth-service"
         ],
@@ -7255,6 +7290,111 @@
         ],
         "x-handler": "auth/cmd/api/handlers.(*accountsHandler).PublicContent",
         "x-viewer": "super_admin"
+      }
+    },
+    "/accounts/{id}/person-type": {
+      "patch": {
+        "description": "Registered, administrator or super administrator. An administrator may make somebody registered an administrator; making a super administrator, and taking a type away, are a super administrator's. Nobody changes their own, so the last super administrator cannot be demoted: one who wants to step down makes somebody else a super administrator first. Recorded with who did it (`made-registered`, `made-admin`, `made-super-admin`). It takes effect at the person's next token, within fifteen minutes.\n\nWho may call it: a site administrator, with a token that carries `actors:write`, who has just proved who they are again.",
+        "operationId": "patchAccountsByIdPersonType",
+        "parameters": [
+          {
+            "description": "The person's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "person_type": {
+                    "description": "registered, administrator or super-administrator.",
+                    "enum": [
+                      "registered",
+                      "administrator",
+                      "super-administrator"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "person_type"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.PersonTypeChanged"
+                }
+              }
+            },
+            "description": "the type they have now and had before; `changed` is false when they had it already, and no proof was needed"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`step_up_required`: the viewer must prove who they are again first (`/reauth`); `person_type_not_allowed`: an administrator asked for what is a super administrator's; or, without a body, the viewer is not an administrator"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`not_a_person`: no person here has that id; a group, a profile from another server and a deleted person have no type to change"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`own_person_type`: it is the viewer's own"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "actors:write"
+            ]
+          }
+        ],
+        "summary": "Change a person's type",
+        "tags": [
+          "auth-service"
+        ],
+        "x-handler": "auth/cmd/api/handlers.(*accountsHandler).EditPersonType",
+        "x-step-up": true,
+        "x-viewer": "admin"
       }
     },
     "/activitypub/blocks": {

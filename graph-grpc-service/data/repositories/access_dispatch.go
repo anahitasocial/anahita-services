@@ -93,19 +93,25 @@ func setNeighbourAccessQuery(sb sq.SelectBuilder, viewer *entities.Viewer, edgeT
 		viewer = entities.NewViewer()
 	}
 
-	actorEdges := len(edgeTypes) > 0
-	for _, t := range edgeTypes {
-		if !strings.HasPrefix(t, "edge.actor.") {
-			actorEdges = false
-			break
-		}
-	}
-
-	if actorEdges {
+	if isActorEdges(edgeTypes) {
 		return SetActorAccessQuery(sb, viewer)
 	}
 
 	return SetMediumAccessQuery(sb, viewer)
+}
+
+// isActorEdges reports whether these are edges between profiles only, so the
+// neighbours they lead to are profiles.
+func isActorEdges(edgeTypes []string) bool {
+	if len(edgeTypes) == 0 {
+		return false
+	}
+	for _, t := range edgeTypes {
+		if !strings.HasPrefix(t, "edge.actor.") {
+			return false
+		}
+	}
+	return true
 }
 
 // typeFilter wraps a single optional type as the slice the dispatcher takes.

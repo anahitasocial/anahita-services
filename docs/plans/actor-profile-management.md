@@ -319,7 +319,14 @@ pass. The outcome is recoverable — soft delete, thirty-day window,
 restore-at-login, and both are emailed — so the boundary was judged worth more
 than closing a millisecond race.
 
-### Changing a usertype — decided 2026-09-07, no endpoint yet
+### Changing a usertype — decided 2026-09-07, built 2026-10-18
+
+**Built 2026-10-18** as `PATCH /accounts/:id/person-type` in auth-service and
+`SetPersonType` in graph-grpc-service, which refuses one's own. Widened by the
+user that day: an administrator may make somebody registered an administrator,
+and the rest stays a super administrator's; the 409 below
+now says only to make somebody else a super administrator. See
+[Account types](../permissions.md#account-types).
 
 **A super administrator may not change their own usertype. Only another super
 administrator may change theirs.**

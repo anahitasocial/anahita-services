@@ -27,6 +27,13 @@ const (
 	DeletionActionArchived = "archived"
 	DeletionActionDisabled = "disabled"
 	DeletionActionEnabled  = "enabled"
+
+	// A person's type changed, named by the type they were given: who did it
+	// is deleted_by, and the type before is the row before (the user,
+	// 2026-10-18). Short, the column being 20 characters.
+	DeletionActionMadeRegistered = "made-registered"
+	DeletionActionMadeAdmin      = "made-admin"
+	DeletionActionMadeSuperAdmin = "made-super-admin"
 )
 
 // NodeDeletionLogsRepoInterface records who deleted what, and when.

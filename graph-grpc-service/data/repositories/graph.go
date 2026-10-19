@@ -85,6 +85,7 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 	// which the count query had no alias for. The browse query does —
 	// GetBaseSelectQuery joins it — so only the count needed the join added.
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
+	query = setLiveNeighboursQuery(query, req.EdgeTypes, viewer)
 	// A hashtag's or a place's posts are a listing (listed.go).
 	query = listedQuery(query)
 	query = setBlockedLikersQuery(query, req.EdgeTypes, req.Direction)
@@ -186,6 +187,7 @@ func (r *graphRepo) CountNeighbours(req *graphpb.BrowseNeighboursRequest, viewer
 	// none, and the gate treats a NULL owner as passing.
 	query = query.LeftJoin("nodes AS owner ON owner.id = node.owner_id")
 	query = setNeighbourAccessQuery(query, viewer, req.EdgeTypes)
+	query = setLiveNeighboursQuery(query, req.EdgeTypes, viewer)
 	// A hashtag's or a place's posts are a listing (listed.go).
 	query = listedQuery(query)
 	query = setBlockedLikersQuery(query, req.EdgeTypes, req.Direction)
@@ -227,6 +229,47 @@ func (r *graphRepo) BrowseConnectionNodes(req *graphpb.BrowseConnectionNodesRequ
 		EdgeMetaNot: req.EdgeMetaNot,
 	}
 	return r.BrowseNeighbours(req2, viewer)
+}
+
+// setLiveNeighboursQuery is what a list of neighbours keeps of the deleted
+// and the disabled (the user, 2026-10-18).
+//
+// A profile scheduled for deletion (deleted, not yet purged) stays in a list
+// of profiles (who somebody follows, who follows them, a group's followers,
+// who is going) for those with an edge to it, its followers and its
+// administrators, who see it labelled with the days left, and find their way
+// back to restore it, and for super administrators, who see every one; for
+// anybody else it has gone, as a deletion "disappears at once"
+// (docs/account-lifecycle.md). Any kind of profile. A disabled one,
+// which "cannot be used or seen", leaves every list. An archived one stays:
+// its archive is readable. In a list of posts the deleted are left out.
+func setLiveNeighboursQuery(query sq.SelectBuilder, edgeTypes []string, viewer *entities.Viewer) sq.SelectBuilder {
+	if !isActorEdges(edgeTypes) {
+		return query.Where("node.deleted_at IS NULL")
+	}
+
+	live := sq.Expr("(node.deleted_at IS NULL AND node.enabled = 1)")
+	if viewer == nil || viewer.ID <= 0 {
+		return query.Where(live)
+	}
+	if viewer.IsSuperAdmin() {
+		return query.Where(sq.Or{
+			live,
+			sq.Expr("(node.deleted_at IS NOT NULL AND node.purged_at IS NULL)"),
+		})
+	}
+	return query.Where(sq.Or{
+		live,
+		sq.Expr(`(node.deleted_at IS NOT NULL
+          AND node.purged_at IS NULL
+          AND EXISTS (
+            SELECT 1 FROM edges mine
+            WHERE mine.node_a_id = ?
+              AND mine.node_b_id = node.id
+              AND mine.type IN (?, ?)
+          ))`,
+			viewer.ID, constants.EdgeFollowEntityType, constants.EdgeActorAdminEntityType),
+	})
 }
 
 // setNeighbourSearchQuery keeps the neighbours whose name or alias holds what

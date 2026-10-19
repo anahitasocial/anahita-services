@@ -56,7 +56,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#activitypub-service">The fediverse</a> <span class="count">20</span></li>
 <li><a href="#actor-service">Profiles</a> <span class="count">69</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
-<li><a href="#auth-service">Accounts and signing in</a> <span class="count">94</span></li>
+<li><a href="#auth-service">Accounts and signing in</a> <span class="count">95</span></li>
 <li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
 <li><a href="#feed-service">Feeds</a> <span class="count">18</span></li>
 <li><a href="#hashtag-service">Hashtags</a> <span class="count">10</span></li>
@@ -72,7 +72,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">44</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">146</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">147</span></li>
 </ul>
 </nav>
 <main>
@@ -2916,17 +2916,17 @@ who may call it: anyone, signed in or not.">
 </table>
 <p class="handler">Answered by <code>auth/cmd/api/handlers.(*oauthHandler).Discovery</code></p>
 </details>
-<details class="route" id="getAccounts" data-search="get /accounts people or groups, for cleaning up a site least recently active first, by default; purged ones are not listed. removing them is the purge (`delete /people`, `delete /groups`, account-lifecycle.md).
+<details class="route" id="getAccounts" data-search="get /accounts people, groups, events or websites, for cleaning up a site least recently active first, by default; purged ones are not listed. removing them is the purge (`delete /people`, `delete /groups`, account-lifecycle.md).
 
 who may call it: a super administrator, with a token that carries `actors:read`.">
-<summary><span class="method get">GET</span> <code class="path">/accounts</code> <span class="summary">People or groups, for cleaning up a site</span></summary>
+<summary><span class="method get">GET</span> <code class="path">/accounts</code> <span class="summary">People, groups, events or websites, for cleaning up a site</span></summary>
 <div class="description"><p>Least recently active first, by default; purged ones are not listed. Removing them is the purge (<code>DELETE /people</code>, <code>DELETE /groups</code>, <a href="../account-lifecycle.md">account-lifecycle.md</a>).</p></div>
 <p class="who"><strong>Who:</strong> a super administrator, with <code>actors:read</code></p>
 <h4>Takes</h4>
 <table>
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>kind</code></td><td>query</td><td>string</td><td><code>person</code>, the default, or <code>group</code>. One of <code>person</code>, <code>group</code>.</td></tr>
+<tr><td><code>kind</code></td><td>query</td><td>string</td><td><code>person</code>, the default, <code>group</code>, <code>event</code> or <code>website</code>. One of <code>person</code>, <code>group</code>, <code>event</code>, <code>website</code>.</td></tr>
 <tr><td><code>q</code></td><td>query</td><td>string</td><td>Words in the name or the username. At most 100 characters.</td></tr>
 <tr><td><code>tier</code></td><td>query</td><td>string</td><td><code>empty</code>, <code>dormant</code> or <code>active</code>. One of <code>empty</code>, <code>dormant</code>, <code>active</code>.</td></tr>
 <tr><td><code>state</code></td><td>query</td><td>string</td><td><code>active</code>, <code>disabled</code>, <code>archived</code> or <code>deleted</code>. One of <code>active</code>, <code>disabled</code>, <code>archived</code>, <code>deleted</code>.</td></tr>
@@ -2993,6 +2993,39 @@ who may call it: a super administrator, with a token that carries `actors:read`.
 </tbody>
 </table>
 <p class="handler">Answered by <code>auth/cmd/api/handlers.(*accountsHandler).PublicContent</code></p>
+</details>
+<details class="route" id="patchAccountsByIdPersonType" data-search="patch /accounts/{id}/person-type change a person&#39;s type registered, administrator or super administrator. an administrator may make somebody registered an administrator; making a super administrator, and taking a type away, are a super administrator&#39;s. nobody changes their own, so the last super administrator cannot be demoted: one who wants to step down makes somebody else a super administrator first. recorded with who did it (`made-registered`, `made-admin`, `made-super-admin`). it takes effect at the person&#39;s next token, within fifteen minutes.
+
+who may call it: a site administrator, with a token that carries `actors:write`, who has just proved who they are again.">
+<summary><span class="method patch">PATCH</span> <code class="path">/accounts/{id}/person-type</code> <span class="summary">Change a person&#39;s type</span></summary>
+<div class="description"><p>Registered, administrator or super administrator. An administrator may make somebody registered an administrator; making a super administrator, and taking a type away, are a super administrator&#39;s. Nobody changes their own, so the last super administrator cannot be demoted: one who wants to step down makes somebody else a super administrator first. Recorded with who did it (<code>made-registered</code>, <code>made-admin</code>, <code>made-super-admin</code>). It takes effect at the person&#39;s next token, within fifteen minutes.</p></div>
+<p class="who"><strong>Who:</strong> an administrator, with <code>actors:write</code>, who has just proved who they are again</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The person&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>person_type</code> <span class="required">always</span></td><td>string</td><td>registered, administrator or super-administrator. One of <code>registered</code>, <code>administrator</code>, <code>super-administrator</code>.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>the type they have now and had before; <code>changed</code> is false when they had it already, and no proof was needed<div class="body"><a href="#schema-auth.PersonTypeChanged">auth.PersonTypeChanged</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td><code>step_up_required</code>: the viewer must prove who they are again first (<code>/reauth</code>); <code>person_type_not_allowed</code>: an administrator asked for what is a super administrator&#39;s; or, without a body, the viewer is not an administrator<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">404</td><td><code>not_a_person</code>: no person here has that id; a group, a profile from another server and a deleted person have no type to change<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td><code>own_person_type</code>: it is the viewer&#39;s own<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>auth/cmd/api/handlers.(*accountsHandler).EditPersonType</code></p>
 </details>
 <details class="route" id="patchAgreementsPrivacy" data-search="patch /agreements/privacy accept the privacy policy the viewer&#39;s own acceptance, of the version the web app shows.
 
@@ -10844,19 +10877,20 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-auth.AccountItem" data-search="auth.accountitem admin_count alias content_count created_at email_verified follower_count id kind last_active_at leader_count name onboarded person_type state tier">
+<div class="route schema" id="schema-auth.AccountItem" data-search="auth.accountitem admin_count alias content_count created_at deleted_at email_verified follower_count id kind last_active_at leader_count name onboarded person_type state tier">
 <h3>auth.AccountItem</h3>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>admin_count</code></td><td>integer</td><td>Groups only: how many administrators it has.</td></tr>
+<tr><td><code>admin_count</code></td><td>integer</td><td>Groups, events and websites only: how many administrators it has.</td></tr>
 <tr><td><code>alias</code> <span class="required">always</span></td><td>string</td><td>The username.</td></tr>
 <tr><td><code>content_count</code> <span class="required">always</span></td><td>integer</td><td>How many posts it has written.</td></tr>
 <tr><td><code>created_at</code> <span class="required">always</span></td><td>time</td><td>When it was made.</td></tr>
+<tr><td><code>deleted_at</code></td><td>time</td><td>When it was deleted, while it waits out the thirty days before it is purged; absent otherwise.</td></tr>
 <tr><td><code>email_verified</code></td><td>boolean</td><td>People only: whether they confirmed their address.</td></tr>
 <tr><td><code>follower_count</code> <span class="required">always</span></td><td>integer</td><td>How many follow it.</td></tr>
 <tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>The profile&#39;s id.</td></tr>
-<tr><td><code>kind</code> <span class="required">always</span></td><td>string</td><td><code>person</code> or <code>group</code>.</td></tr>
+<tr><td><code>kind</code> <span class="required">always</span></td><td>string</td><td><code>person</code>, <code>group</code>, <code>event</code> or <code>website</code>.</td></tr>
 <tr><td><code>last_active_at</code> <span class="required">always</span></td><td>time</td><td>When it last did anything.</td></tr>
 <tr><td><code>leader_count</code> <span class="required">always</span></td><td>integer</td><td>How many it follows.</td></tr>
 <tr><td><code>name</code> <span class="required">always</span></td><td>string</td><td>The name shown.</td></tr>
@@ -11160,6 +11194,19 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>revoked_sessions</code> <span class="required">always</span></td><td>integer</td><td>Every one but the one that changed it.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-auth.PersonTypeChanged" data-search="auth.persontypechanged changed id person_type previous">
+<h3>auth.PersonTypeChanged</h3>
+<p>A person&#39;s type, and whether this changed it.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>changed</code> <span class="required">always</span></td><td>boolean</td><td>False when they already had it.</td></tr>
+<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+<tr><td><code>person_type</code> <span class="required">always</span></td><td>string</td><td>The type they have now.</td></tr>
+<tr><td><code>previous</code> <span class="required">always</span></td><td>string</td><td>The type they had before.</td></tr>
 </tbody>
 </table>
 </div>

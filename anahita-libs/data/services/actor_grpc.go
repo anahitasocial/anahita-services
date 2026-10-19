@@ -42,6 +42,10 @@ type ActorsGRPCInterface interface {
 
 	// SetEnabled turns an actor on or off. Reversible.
 	SetEnabled(id int64, enabled bool, viewer *entities.Viewer) (bool, error)
+	// SetPersonType changes a person's type, answering whether it changed
+	// and the type before. Super administrators only, which the caller
+	// enforces; the graph refuses anybody changing their own.
+	SetPersonType(id int64, personType string, viewer *entities.Viewer) (bool, string, error)
 
 	// SetFeatured features or unfeatures an actor.
 	//
@@ -544,6 +548,28 @@ func (srv *ActorsGRPC) SetEnabled(id int64, enabled bool, viewer *entities.Viewe
 	}
 
 	return resp.Changed, nil
+}
+
+// SetPersonType changes a person's type.
+func (srv *ActorsGRPC) SetPersonType(id int64, personType string, viewer *entities.Viewer) (bool, string, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return false, "", err
+	}
+	if client == nil {
+		return false, "", nil
+	}
+
+	resp, err := client.SetPersonType(context.Background(), &graphpb.ActorSetPersonTypeRequest{
+		Id:         id,
+		PersonType: personType,
+		Viewer:     viewerToGrpc(viewer),
+	})
+	if err != nil {
+		return false, "", err
+	}
+
+	return resp.Changed, resp.Previous, nil
 }
 
 // SetFeatured features or unfeatures an actor.
