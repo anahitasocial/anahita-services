@@ -3,7 +3,7 @@
 What people are told, in the app, about what others do: who is told what,
 who never is, how a notification goes when what it tells of goes, and how
 they are delivered. The plan they follow is
-[plans/notifications.md](plans/notifications.md) (roadmap rows 96 and 97).
+[plans/done/notifications.md](plans/done/notifications.md) (roadmap rows 96 and 97).
 
 ## No email
 

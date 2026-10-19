@@ -249,4 +249,4 @@ is told about.
 | Row 97, part 2: actions | ✅ 2026-10-19 |
 | Row 97, part 3: grouping | ✅ 2026-10-19 |
 | Row 97, part 4: the bell's menu | ✅ 2026-10-19 |
-| Row 97, part 5: choosing what one is told about | ⬜ |
+| Row 97, part 5: choosing what one is told about | ✅ 2026-10-19 |
