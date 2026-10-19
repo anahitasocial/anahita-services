@@ -29,16 +29,21 @@ ON DUPLICATE KEY UPDATE
 // ReadPreferences is somebody's own steps: nothing for somebody who has set
 // none, or who is not signed in.
 func (repo *SearchRepo) ReadPreferences(personID int64) (map[string]float64, error) {
+	return readPreferences(repo.db, repo.dbTimeout, personID)
+}
+
+// readPreferences is somebody's own steps, for whichever list ranks by them.
+func readPreferences(db *sql.DB, timeout time.Duration, personID int64) (map[string]float64, error) {
 	steps := map[string]float64{}
 	if personID <= 0 {
 		return steps, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), repo.dbTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	var raw string
-	err := repo.db.QueryRowContext(ctx, readSearchPreferences, personID).Scan(&raw)
+	err := db.QueryRowContext(ctx, readSearchPreferences, personID).Scan(&raw)
 	if err == sql.ErrNoRows || raw == "" {
 		return steps, nil
 	}

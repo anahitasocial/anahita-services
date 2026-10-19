@@ -304,6 +304,7 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [At most ten hashtags](hashtags.md#at-most-ten-hashtags)
    - [At most five places](hashtags.md#at-most-five-places)
    - [Suggestions while writing](hashtags.md#suggestions-while-writing)
+   - [A hashtag's and a place's posts](hashtags.md#a-hashtags-and-a-places-posts)
    - [What the web app does](hashtags.md#what-the-web-app-does)
    - [Where the code is](hashtags.md#where-the-code-is)
 24. [Websites](websites.md) — a website's feed as a profile to follow: connecting a site, proving its domain, its feed read and posted as notes, replies as the website, and on the fediverse

@@ -30,8 +30,9 @@ type InboundBrowseRequest struct {
 	Offset uint64 `query:"start"`
 	// The most to send.
 	Limit uint64 `query:"limit"`
-	// The order they come in.
-	Ordering string `query:"sort" validate:"max=10,omitempty,oneof=created_at updated_at recent popular"`
+	// The order they come in: `recent`, newest first, or `relevant`, what
+	// people have found useful lately, as search's Most relevant ranks it.
+	Ordering string `query:"sort" validate:"max=10,omitempty,oneof=created_at updated_at recent popular relevant"`
 	// Which way the order runs.
 	OrderingDir string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	// Set by the service, not read from the request.

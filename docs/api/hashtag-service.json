@@ -1755,7 +1755,7 @@
             }
           },
           {
-            "description": "The order they come in.",
+            "description": "The order they come in: `recent`, newest first, or `relevant`, what people have found useful lately, as search's Most relevant ranks it.",
             "in": "query",
             "name": "sort",
             "schema": {
@@ -1764,7 +1764,8 @@
                 "created_at",
                 "updated_at",
                 "recent",
-                "popular"
+                "popular",
+                "relevant"
               ],
               "maxLength": 10,
               "type": "string"

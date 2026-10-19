@@ -75,6 +75,9 @@ type MediumNodeItem struct {
 	IsSavedByViewer bool `json:"is_saved_by_viewer,omitempty"`
 	// Whether the viewer has reposted it.
 	IsRepostedByViewer bool `json:"is_reposted_by_viewer"`
+	// What the viewer may do with it, as on the post's own page: reply,
+	// like, quote and the rest. Left out where a list does not say.
+	Authorized *NodeAuthorized `json:"authorized,omitempty"`
 
 	// Related Entities
 	Author *Author `json:"author,omitempty"`
@@ -219,6 +222,12 @@ func (r *MediumNodeResponse) MapMediumNodeItem(node *entities.AnahitaNode) *Medi
 	}
 
 	return &MediumNodeItem{
+		Authorized: func() *NodeAuthorized {
+			if node.Authorized != nil {
+				return NewNodeAuthorized(node)
+			}
+			return nil
+		}(),
 		ID:                 node.ID,
 		URI:                node.URI,
 		OriginDomain:       node.OriginDomain,

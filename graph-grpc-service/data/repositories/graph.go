@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"graph/ranking"
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -16,12 +18,15 @@ func NewGraphRepo(db *sql.DB) GraphRepoInterface {
 	return &graphRepo{
 		db:        db,
 		dbTimeout: constants.DBTimeout,
+		ranking:   ranking.FromEnv(),
 	}
 }
 
 type graphRepo struct {
 	db        *sql.DB
 	dbTimeout time.Duration
+	// The weights Most relevant is ordered by, as search's (package ranking).
+	ranking *ranking.Source
 }
 
 // BrowseNeighbours returns a paginated list of 1-hop neighbors for a given node.
@@ -100,6 +105,18 @@ func (r *graphRepo) BrowseNeighbours(req *graphpb.BrowseNeighboursRequest, viewe
 			query = query.OrderBy("(node.repost_count + node.comment_count + node.vote_up_count + node.subscriber_count + node.follower_count + node.citation_count) DESC")
 		} else if req.Ordering == constants.OrderingRecent {
 			query = query.OrderBy("node.created_at DESC")
+		} else if req.Ordering == constants.OrderingRelevant {
+			// What people have found useful lately, as search's Most
+			// relevant ranks it, with the viewer's own leanings; the newest
+			// first among equals.
+			weights := r.ranking.Weights()
+			if viewer != nil && viewer.ID > 0 {
+				if steps, err := readPreferences(r.db, r.dbTimeout, viewer.ID); err == nil && len(steps) > 0 {
+					weights = weights.Adjusted(steps)
+				}
+			}
+			query = query.OrderByClause(sq.ConcatExpr(Standing(weights, viewer), " DESC")).
+				OrderBy("node.created_at DESC", "node.id DESC")
 		} else if column := safeOrderColumn(req.Ordering); column != "" {
 			// Checked here as well as at the API boundary: ORDER BY is
 			// concatenated, and gRPC callers never passed through that

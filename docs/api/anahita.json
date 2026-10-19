@@ -1133,6 +1133,10 @@
             "$ref": "#/components/schemas/Author",
             "description": "Related Entities"
           },
+          "authorized": {
+            "$ref": "#/components/schemas/NodeAuthorized",
+            "description": "What the viewer may do with it, as on the post's own page: reply, like, quote and the rest. Left out where a list does not say."
+          },
           "comment_count": {
             "description": "How many replies are under it.",
             "format": "int64",
@@ -17373,7 +17377,7 @@
             }
           },
           {
-            "description": "The order they come in.",
+            "description": "The order they come in: `recent`, newest first, or `relevant`, what people have found useful lately, as search's Most relevant ranks it.",
             "in": "query",
             "name": "sort",
             "schema": {
@@ -17382,7 +17386,8 @@
                 "created_at",
                 "updated_at",
                 "recent",
-                "popular"
+                "popular",
+                "relevant"
               ],
               "maxLength": 10,
               "type": "string"
@@ -19009,7 +19014,7 @@
             }
           },
           {
-            "description": "The order they come in.",
+            "description": "The order they come in: `recent`, newest first, or `relevant`, what people have found useful lately, as search's Most relevant ranks it.",
             "in": "query",
             "name": "sort",
             "schema": {
@@ -19018,7 +19023,8 @@
                 "created_at",
                 "updated_at",
                 "recent",
-                "popular"
+                "popular",
+                "relevant"
               ],
               "maxLength": 10,
               "type": "string"

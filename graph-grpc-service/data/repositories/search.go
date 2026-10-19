@@ -200,6 +200,14 @@ func relevance(keywords string, weights ranking.Weights, viewer *entities.Viewer
 		m.BodyContains,
 	)
 
+	return match, Standing(weights, viewer)
+}
+
+// Standing is how useful people have found a node lately, with a bonus for
+// what the viewer follows, as the operator's weights say: search's Most
+// relevant without the words. A hashtag's and a place's posts are ordered
+// by it too (graph.go).
+func Standing(weights ranking.Weights, viewer *entities.Viewer) sq.Sqlizer {
 	following := "0"
 	args := []any{
 		weights.Useful.Scale,
@@ -213,15 +221,14 @@ func relevance(keywords string, weights ranking.Weights, viewer *entities.Viewer
 		following = followedByViewer
 		args = append(args, constants.EdgeFollowEntityType, viewer.ID, weights.Following)
 	}
-	standing = sq.Expr(fmt.Sprintf(relevantStanding,
+	return sq.Expr(fmt.Sprintf(relevantStanding,
 		interest("liked.created_at", weights.HalfLifeDays),
 		interest("saved.created_at", weights.HalfLifeDays),
 		interest("answer.created_at", weights.HalfLifeDays),
 		interest("followed.created_at", weights.HalfLifeDays),
 		following,
 		interest("quoting.created_at", weights.HalfLifeDays),
-	)+" AS standing", args...)
-	return match, standing
+	), args...)
 }
 
 // Count returns the number of Searchs
@@ -350,7 +357,7 @@ func (repo *SearchRepo) browseByRelevance(req *graphpb.SearchBrowseRequest, keyw
 		}
 	}
 	match, standing := relevance(keywords, weights, viewer)
-	ranked = ranked.Column(match).Column(standing)
+	ranked = ranked.Column(match).Column(sq.Alias(standing, "standing"))
 	// "People and groups I follow first": what they follow, or what is on
 	// a profile they follow, before everything else, however it matches.
 	followedFirst := req.FollowedFirst && viewer != nil && viewer.ID > 0
