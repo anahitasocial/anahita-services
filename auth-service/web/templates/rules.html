@@ -19,7 +19,7 @@
     <label class="rule">
         <input type="checkbox" name="rules_ticked" value="{{$index}}" required>
         <span>
-            {{if $.RulesLead}}{{$rule.Title}}{{else}}<strong>{{$rule.Title}}</strong>{{end}}
+            {{if $rule.Number}}<span class="rule-number">{{$rule.Number}}.</span> {{end}}{{if $.RulesLead}}{{$rule.Title}}{{else}}<strong>{{$rule.Title}}</strong>{{end}}
             {{if $rule.Body}}<br><span class="helper-text">{{$rule.Body}}</span>{{end}}
         </span>
     </label>

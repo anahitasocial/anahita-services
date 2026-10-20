@@ -185,7 +185,8 @@ raised (roadmap row 102):
 
 - **Where an account is made:** open sign-up and a sign-up request
   (`/signup`) and an invitation's acceptance (`/invites/accept`). A
-  plain checklist, a box for each rule, and the form refused (`Tick each of
+  plain checklist, a box for each rule, numbered when there are more than
+  three, and the form refused (`Tick each of
   our rules to agree to it.`) unless every box is ticked at the version the
   site has now. The account is made with the agreement recorded; a request
   keeps the version it agreed to (`signup_requests.rules_accepted_version`)

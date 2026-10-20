@@ -20,8 +20,23 @@ import (
 
 // ruleLine is one rule as a page shows it, in the reader's language.
 type ruleLine struct {
-	Title string
-	Body  string
+	// Its place in the list, from 1, or 0 in a list of three or fewer,
+	// which is not numbered (the user, 2026-10-19).
+	Number int
+	Title  string
+	Body   string
+}
+
+// numbered numbers a list longer than three, so that a rule can be
+// pointed to by its number.
+func numbered(lines []ruleLine) []ruleLine {
+	if len(lines) <= 3 {
+		return lines
+	}
+	for index := range lines {
+		lines[index].Number = index + 1
+	}
+	return lines
 }
 
 // languageOf is the first language the browser asks for, "en-CA" when it
@@ -52,7 +67,7 @@ func (env *Env) rulesToTick(c echo.Context, always bool) ([]ruleLine, string) {
 	if len(lines) == 0 {
 		return nil, ""
 	}
-	return lines, rules.Version
+	return numbered(lines), rules.Version
 }
 
 // rulesData is what a page's template is given for the checklist.
@@ -78,7 +93,7 @@ func pledgeData(c echo.Context) map[string]any {
 		lines = append(lines, ruleLine{Title: item.In(language)})
 	}
 	return map[string]any{
-		"Rules":        lines,
+		"Rules":        numbered(lines),
 		"RulesVersion": pledgeFormVersion,
 		"RulesTitle":   "Make a pledge",
 		// The page is their sign-up, not a reset: worded so.
