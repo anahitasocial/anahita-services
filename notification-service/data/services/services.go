@@ -12,16 +12,20 @@ func NewServices(config *config.Config) *Services {
 		FilesGRPC:         services.NewFilesGRPC(config),
 		MediaGRPC:         services.NewMediaGRPC(config),
 		GraphNodeGRPC:     services.NewGraphNodeGRPC(config),
+		GraphEdgeGRPC:     services.NewGraphEdgeGRPC(config),
 		SocialgraphGRPC:   services.NewSocialgraphGRPC(config),
 		SubscriptionsGRPC: services.NewSubscriptionsGRPC(config),
 	}
 }
 
 type Services struct {
-	ActorsGRPC        services.ActorsGRPCInterface
-	ActorAdminsGRPC   services.ActorAdminsGRPCInterface
-	FilesGRPC         services.FilesGRPCInterface
-	MediaGRPC         services.MediaGRPCInterface
+	ActorsGRPC      services.ActorsGRPCInterface
+	ActorAdminsGRPC services.ActorAdminsGRPCInterface
+	FilesGRPC       services.FilesGRPCInterface
+	MediaGRPC       services.MediaGRPCInterface
+	// GraphEdgeGRPC reads whether a tag still waits, for its Accept and
+	// Decline.
+	GraphEdgeGRPC     services.GraphEdgeGRPCInterface
 	GraphNodeGRPC     services.GraphNodeGRPCInterface
 	SocialgraphGRPC   services.SocialgraphGRPCInterface
 	SubscriptionsGRPC services.SubscriptionsGRPCInterface

@@ -3,7 +3,7 @@
 *Roadmap row 103, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
 **Status:** started 2026-10-19, on branch `issues/people-in-media` in both
-repositories. Parts 1 and 2 done: the tag, the choice and the endpoints.
+repositories. Parts 1 to 3 done: the tag, the choice, the endpoints and the notifications.
 
 **Parts, in order:**
 
@@ -20,7 +20,10 @@ repositories. Parts 1 and 2 done: the tag, the choice and the endpoints.
    Found on the way: the graph's edge edit called itself for ever (no edge
    had ever been edited), and three handlers carried on after writing a
    refusal.
-3. Notifications: a tag waiting, with Accept and Decline; a tag made.
+3. Notifications — done 2026-10-19: `actor_tag_request` with
+   `answer_tag` (Accept and Decline) while it waits, `actor_tag` for one
+   made at once, `actor_tag_accept` to the author; all under the `mentions`
+   choice, and all taken back with the tag. Tried with Dax.
 4. Where tags go: a Tagged tab (`?filter=tagged`), the fediverse as a
    Mention, search and recommendations.
 5. The web app: "Who can tag you?", Tag people in the composer and in Edit,

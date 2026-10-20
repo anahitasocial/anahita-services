@@ -26,6 +26,8 @@ func startEventListerner(h *handlers.Handlers, config *config.Config) error {
 		"edge.follow.*.*.v1",
 		// A post naming somebody here.
 		"edge.mention.*.*.v1",
+		// Somebody here in a picture or a video.
+		"edge.tag.*.*.v1",
 		"edge.follow-request.*.*.v1",
 		"edge.invite.*.*.v1",
 		// Events, the kind people go to.
