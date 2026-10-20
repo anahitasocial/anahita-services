@@ -16086,7 +16086,7 @@
             }
           },
           {
-            "description": "Words the name holds.",
+            "description": "Words the name, the handle or the description holds.",
             "in": "query",
             "name": "q",
             "schema": {
@@ -25443,7 +25443,7 @@
             }
           },
           {
-            "description": "Words the name holds.",
+            "description": "Words the name, the handle or the description holds.",
             "in": "query",
             "name": "q",
             "schema": {
@@ -36077,7 +36077,7 @@
             }
           },
           {
-            "description": "Words the name holds.",
+            "description": "Words the name, the handle or the description holds.",
             "in": "query",
             "name": "q",
             "schema": {
