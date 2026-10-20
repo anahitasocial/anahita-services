@@ -1080,13 +1080,14 @@
             }
           },
           {
-            "description": "What is looked among: everything, posts, profiles, or custom feeds.",
+            "description": "What is looked among: everything, posts of every kind, photos and videos alone (media), profiles, or custom feeds.",
             "in": "query",
             "name": "scope",
             "schema": {
               "default": "all",
               "enum": [
                 "all",
+                "posts",
                 "media",
                 "actors",
                 "feeds"

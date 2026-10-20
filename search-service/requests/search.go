@@ -31,8 +31,9 @@ type SearchBrowseRequest struct {
 	OrderingDir string `query:"dir" validate:"max=4,omitempty,oneof=asc desc"`
 	// The words looked for.
 	Keywords string `query:"term" validate:"required,max=100,search_query"`
-	// What is looked among: everything, posts, profiles, or custom feeds.
-	Scope string `query:"scope" validate:"omitempty,max=20,oneof=all media actors feeds"`
+	// What is looked among: everything, posts of every kind, photos and
+	// videos alone (media), profiles, or custom feeds.
+	Scope string `query:"scope" validate:"omitempty,max=20,oneof=all posts media actors feeds"`
 	// How far from coord_lat and coord_lng, in metres, when both are given.
 	CoordRadius int32 `query:"search_range" validate:"number,omitempty"`
 	// Where to search near: longitude.

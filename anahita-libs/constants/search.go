@@ -1,7 +1,11 @@
 package constants
 
 const (
-	SearchScopeActor  = "actors"
+	SearchScopeActor = "actors"
+	// Every kind of post: notes, articles, topics, photos and videos.
+	SearchScopePosts = "posts"
+	// Photos and videos alone (the user, 2026-10-20: as other networks
+	// mean it). Until then "media" was every kind of post, now "posts".
 	SearchScopeMedium = "media"
 	SearchScopeAll    = "all"
 	// Custom feeds people have shared. Among "all" as well.

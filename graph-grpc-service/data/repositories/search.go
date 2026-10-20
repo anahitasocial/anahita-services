@@ -4,6 +4,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/feeds"
 	"anahita-libs/proto/graphpb"
+	"anahita-libs/videos"
 	"fmt"
 	"regexp"
 	"strings"
@@ -471,11 +472,16 @@ func (repo *SearchRepo) getScopeQuery(query sq.SelectBuilder, scope string) sq.S
 		sq.NotEq{"node.access": constants.AnahitaAccessMyself},
 	}
 
+	// Photos and videos alone: what other networks call media.
+	pictureCondition := sq.Eq{"node.type": []string{constants.NodeMediumPhotoEntityType, videos.NodeType}}
+
 	switch scope {
 	case constants.SearchScopeActor:
 		return query.Where(actorCondition)
-	case constants.SearchScopeMedium:
+	case constants.SearchScopePosts:
 		return query.Where(mediumCondition)
+	case constants.SearchScopeMedium:
+		return query.Where(pictureCondition)
 	case constants.SearchScopeFeed:
 		return query.Where(feedCondition)
 	default:
