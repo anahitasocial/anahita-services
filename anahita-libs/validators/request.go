@@ -133,6 +133,12 @@ func validatePersonAddPermissionAccess(fl validator.FieldLevel) bool {
 		// (permissions.CanMention): the same levels.
 		return access == "registered" || access == "followers" || access == "leaders" || access == "mutuals" || access == "admins"
 
+	case "tag":
+		// Who may tag the person in a picture or a video (roadmap row 103):
+		// anybody signed in, each approved first, or nobody. See
+		// permissions.TagDecision.
+		return access == "registered" || access == "approve" || access == "admins"
+
 	case "follower":
 		// Not enforced for people — anybody may follow a person — so the
 		// one value is the one the defaults carry.

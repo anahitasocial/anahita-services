@@ -2,7 +2,8 @@
     {
         "service": "socialgraph-service",
         "add_permissions": [
-            {"entity": "mention", "access": "registered"}
+            {"entity": "mention", "access": "registered"},
+            {"entity": "tag", "access": "approve"}
         ]
     },
     {

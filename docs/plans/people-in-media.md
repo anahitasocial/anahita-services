@@ -3,7 +3,28 @@
 *Roadmap row 103, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
 **Status:** started 2026-10-19, on branch `issues/people-in-media` in both
-repositories.
+repositories. Parts 1 and 2 done: the tag, the choice and the endpoints.
+
+**Parts, in order:**
+
+1. The tag and the choice — done 2026-10-19: `edge.tag.person.v1` from the
+   person to the post, `meta` `pending` or `approved`
+   (`anahita-libs/constants/person_tags.go`); "Who can tag you?", the `tag`
+   permission (`registered`, `approve` the default, `admins`);
+   `permissions.TagDecision`. Only a person here may be tagged: somebody on
+   another server cannot approve it here.
+2. The endpoints — done 2026-10-19, in actor-service:
+   `GET /people/tagged-in/:post_id`, `POST|PUT|DELETE
+   /people/:id/tags/:post_id`, and the events `edge.tag.*.requested|added|
+   deleted.v1`. Tried as the administrator tagging Worf and Dax in a photo.
+   Found on the way: the graph's edge edit called itself for ever (no edge
+   had ever been edited), and three handlers carried on after writing a
+   refusal.
+3. Notifications: a tag waiting, with Accept and Decline; a tag made.
+4. Where tags go: a Tagged tab (`?filter=tagged`), the fediverse as a
+   Mention, search and recommendations.
+5. The web app: "Who can tag you?", Tag people in the composer and in Edit,
+   the names under the picture, the notification.
 
 ## Context
 

@@ -3494,6 +3494,31 @@
         ],
         "type": "object"
       },
+      "actor.TaggedPerson": {
+        "description": "TaggedPerson is one person in a post, as the post's list of them answers.",
+        "properties": {
+          "pending": {
+            "description": "Waiting for their approval: shown only to them and the post's author.",
+            "type": "boolean"
+          },
+          "person": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NodeItem"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Who."
+          }
+        },
+        "required": [
+          "person",
+          "pending"
+        ],
+        "type": "object"
+      },
       "atproto.ImportPreview": {
         "description": "ImportPreview is what following here whoever the viewer follows on Bluesky would do, before it is done.",
         "properties": {
@@ -25680,6 +25705,69 @@
         "x-viewer": "super_admin"
       }
     },
+    "/people/tagged-in/{post_id}": {
+      "get": {
+        "description": "In the order they were tagged. A tag waiting for the person's approval is listed only for them and the post's author, with `pending`.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getPeopleTaggedInByPostId",
+        "parameters": [
+          {
+            "description": "The photo's or the video's id.",
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What there is.",
+                      "items": {
+                        "$ref": "#/components/schemas/actor.TaggedPerson"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "404": {
+            "description": "there is no such photo or video the viewer can see"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Who is in a photo or a video",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).TaggedIn",
+        "x-viewer": "anyone"
+      }
+    },
     "/people/{id}/access": {
       "patch": {
         "description": "And whether people it is not open to may ask to follow it.\n\nWho may call it: somebody signed in.",
@@ -26571,6 +26659,183 @@
         ],
         "x-handler": "actor/cmd/api/handlers.(*personHandler).RemoveAsSpam",
         "x-viewer": "admin"
+      }
+    },
+    "/people/{id}/tags/{post_id}": {
+      "delete": {
+        "description": "For the person, declining or changing their mind, and for the post's author.\n\nWho may call it: somebody signed in.",
+        "operationId": "deletePeopleByIdTagsByPostId",
+        "parameters": [
+          {
+            "description": "The person's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The photo's or the video's id.",
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "removed, or there was nothing to remove"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is neither the person nor the post's author"
+          },
+          "404": {
+            "description": "there is no such photo or video the viewer can see"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Take somebody out of a photo or a video",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).RemoveTag",
+        "x-viewer": "signed_in"
+      },
+      "post": {
+        "description": "For the post's author. Only a person here may be tagged, and as they chose: at once, each approved first (the default), or not at all. Anybody may tag themselves. At most 20 people in one post.\n\nWho may call it: somebody signed in.",
+        "operationId": "postPeopleByIdTagsByPostId",
+        "parameters": [
+          {
+            "description": "The person's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The photo's or the video's id.",
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "tagged"
+          },
+          "202": {
+            "description": "tagged, waiting for their approval"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer did not write the post"
+          },
+          "404": {
+            "description": "no such person, or no such photo or video the viewer can see"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`not_taggable`, they do not allow it or are not here; `too_many`, the post has as many people as it may"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Tag somebody in a photo or a video",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).AddTag",
+        "x-viewer": "signed_in"
+      },
+      "put": {
+        "description": "For the person tagged.\n\nWho may call it: somebody signed in.",
+        "operationId": "putPeopleByIdTagsByPostId",
+        "parameters": [
+          {
+            "description": "The person's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The photo's or the video's id.",
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "approved, or it was already"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not the person tagged"
+          },
+          "404": {
+            "description": "no such tag, or no such photo or video the viewer can see"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Approve being tagged",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).ApproveTag",
+        "x-viewer": "signed_in"
       }
     },
     "/people/{username}": {

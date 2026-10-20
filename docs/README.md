@@ -87,6 +87,7 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [Events](permissions.md#events)
    - [Reposts](permissions.md#reposts)
    - [Mentions](permissions.md#mentions)
+   - [People in pictures and videos](permissions.md#people-in-pictures-and-videos)
    - [Quotes](permissions.md#quotes)
    - [Saved posts](permissions.md#saved-posts)
    - [Pinned posts](permissions.md#pinned-posts)
