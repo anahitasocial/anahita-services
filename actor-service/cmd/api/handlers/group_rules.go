@@ -108,9 +108,9 @@ func (h *groupHandler) SetRules(c echo.Context) error {
 	if err := c.Validate(req); err != nil {
 		return c.JSON(http.StatusBadRequest, responses.Refusal{Error: "rules_invalid"})
 	}
-	actor, refused := h.editableActor(c, req.ID, viewer)
-	if refused != nil {
-		return refused
+	actor, ok := h.editableActor(c, req.ID, viewer)
+	if !ok {
+		return nil
 	}
 
 	items := make([]*graphpb.ProfileRule, 0, len(req.Items))
@@ -154,18 +154,21 @@ func (h *groupHandler) AgreeRules(c echo.Context) error {
 
 // editableActor reads a profile of this handler's kind for whoever may
 // change it, or answers why not.
-func (h *groupHandler) editableActor(c echo.Context, id int64, viewer *entities.Viewer) (*entities.AnahitaNode, error) {
+func (h *groupHandler) editableActor(c echo.Context, id int64, viewer *entities.Viewer) (*entities.AnahitaNode, bool) {
 	actor, err := h.Srv.ActorsGRPC.ReadOfType(id, h.nodeType, viewer)
 	if err != nil {
-		return nil, c.NoContent(http.StatusNotFound)
+		_ = c.NoContent(http.StatusNotFound)
+		return nil, false
 	}
 	accessCtx, err := h.getActorAccessContext(actor, viewer)
 	if err != nil {
 		log.Println(err)
-		return nil, c.NoContent(http.StatusInternalServerError)
+		_ = c.NoContent(http.StatusInternalServerError)
+		return nil, false
 	}
 	if ok, _ := h.Perms.Actors.CanEdit(accessCtx); !ok {
-		return nil, c.NoContent(http.StatusForbidden)
+		_ = c.NoContent(http.StatusForbidden)
+		return nil, false
 	}
-	return actor, nil
+	return actor, true
 }
