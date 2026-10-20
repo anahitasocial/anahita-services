@@ -176,8 +176,21 @@ first; the steps only change the order among results that match alike.
 ## What is found at all
 
 The order does not change what is found. A result has the words in its
-name, its handle (matched without a typed `@`), or its body, and is one the
+name, its handle (matched without a typed `@`), or its body, or is a photo
+or a video with somebody of that name or handle in it, and is one the
 searcher may see; see [Permissions](permissions.md).
+
+**Where it looks** (`scope` on `GET /search/`), each a tab in the web app:
+
+| `scope` | Finds |
+| --- | --- |
+| `all` (the default) | Everything below |
+| `posts` | Every kind of post: notes, articles, topics, photos and videos |
+| `media` | Photos and videos alone, as other networks mean media (the user, 2026-10-20) |
+| `actors` | Profiles: people, groups, events and websites, here and elsewhere |
+| `feeds` | Custom feeds people have shared |
+
+Until 2026-10-20 `media` was every kind of post; it is `posts` now.
 
 **What may be searched for** (`search_query`, `anahita-libs/validators`):
 letters, marks and numbers in any language ("Montréal", "Zürich", "東京"),

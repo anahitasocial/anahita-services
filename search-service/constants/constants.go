@@ -15,6 +15,7 @@ const (
 	SearchNodeTypeMedia = "node.medium."
 
 	SearchScopeActor  = "actors"
+	SearchScopePosts  = "posts"
 	SearchScopeMedium = "media"
 	SearchScopeAll    = "all"
 
