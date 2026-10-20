@@ -357,6 +357,9 @@ func (h *locationHandler) Add(c echo.Context) error {
 	node.Type = an_constants.NodeBaseLocationEntityType
 	node.Service = constants.LocationService
 	node.Enabled = true
+	// A place is for everybody, as a hashtag is. Without it a new location
+	// had no audience, and only administrators saw it on a profile.
+	node.Access = an_constants.AnahitaAccessPublic
 	node.Name = req.Name
 	node.Alias = slug.Make(req.Name)
 	node.GeoAddress = req.Address

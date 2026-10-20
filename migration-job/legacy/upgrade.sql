@@ -2270,3 +2270,10 @@ ALTER TABLE abuse_reports
     ADD COLUMN `rule_title` varchar(100) NOT NULL DEFAULT '' AFTER `details`,
     ADD COLUMN `rule_profile_id` bigint unsigned NOT NULL DEFAULT 0 AFTER `rule_title`,
     ADD KEY `idx_abuse_reports_rule_profile` (`rule_profile_id`, `case_id`);
+
+-- 20261122000007_tags_are_public: every location and hashtag is for
+-- everybody.
+UPDATE nodes
+   SET access = 'public'
+ WHERE type IN ('node.tag.location-service.location.v1', 'node.tag.hashtag-service.hashtag.v1')
+   AND (access IS NULL OR access = '');
