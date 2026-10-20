@@ -622,9 +622,12 @@ for you", but "this person is in it" (roadmap row 103).
   post's author; nothing else reads it as a tag.
 - **Where tags show:** the person's **Tagged** list (`GET
   /feeds/actor/:id/?filter=tagged`), search (a photo or a video is found by
-  the name or handle of somebody in it), and the fediverse, as a `Mention`
-  ([Federation](federation.md)). Recommendations read neither mentions nor
-  tags.
+  the name or handle of somebody in it, and lifts what is pictured with
+  whom the searcher follows), and the fediverse, as a `Mention`
+  ([Federation](federation.md)), and Who to follow: "In photos with you"
+  and "In photos with people you follow" ([Recommendations](recommendations.md#why-somebody-is-suggested)),
+  from public posts only, never naming who or which photo. Recommendations
+  read no mentions.
 - **Events:** `edge.tag.actor-service.requested.v1` for a tag waiting,
   `added.v1` for one made or approved, `deleted.v1` for one taken off; the
   subject is the post's author, the object the post, the target the

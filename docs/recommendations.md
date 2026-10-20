@@ -73,7 +73,9 @@ Each reason adds to a score, up to a most. The score is then kept in full for a 
 | Reason | Found when | Each | Most |
 | --- | --- | --- | --- |
 | `follows_you` | They follow the viewer, who does not follow them. People only | 4 | 4 |
+| `pictured_with_you` | They and the viewer are in the same public photo or video, tagged, or one posted it and the other is tagged in it. Approved tags only. People only | 3 | 6 |
 | `followed_by_leaders` | People the viewer follows, follow them. `ids` are those people | 3 | 15 |
+| `pictured_with_leaders` | They are in public photos or videos with people the viewer follows, or in ones those people posted. Approved tags only. `ids` are those people, and are never named under the suggestion. People only | 2 | 8 |
 | `cited_by_leaders` | People the viewer follows cited a public post of theirs or on their profile, in a published public article or topic of the last year. `ids` are those people | 3 | 9 |
 | `inviter` | They invited the viewer, or the viewer invited them. People only | 3 | 3 |
 | `hosted_by_leader` | A group the viewer follows is hosting it. Events only. `ids` are those groups | 3 | 3 |
@@ -145,7 +147,7 @@ All but the last are one clause every signal's query ends with (`eligibleCandida
 | `suggest_people` | To be suggested people |
 | `suggest_groups` | To be suggested groups |
 | `suggest_events` | To be suggested events |
-| `use_activity` | That what they liked and wrote may be used to choose for them. Off, `you_engaged` and `shared_interest` are not looked for. Who they follow is still used |
+| `use_activity` | That what they liked and wrote, and the photos they are in, may be used to choose for them. Off, `you_engaged`, `shared_interest`, `pictured_with_you` and `pictured_with_leaders` are not looked for. Who they follow is still used |
 | `discoverable` | That they may be suggested to other people |
 
 Every choice is yes until its owner says otherwise. They are theirs to read and change and nobody else's.

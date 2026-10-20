@@ -71,7 +71,11 @@ type Weights struct {
 	// Following is added to the standing of what the searcher follows, or
 	// what is on a profile they follow.
 	Following float64 `json:"following"`
-	Useful    Useful  `json:"useful"`
+	// PicturedWithFollowed is added to the standing of a photo or a video
+	// with somebody the searcher follows in it, and of a person in public
+	// photos or videos with them (roadmap row 104). Approved tags only.
+	PicturedWithFollowed float64 `json:"pictured_with_followed"`
+	Useful               Useful  `json:"useful"`
 	// HalfLifeDays halves the weight of each sign of interest every so
 	// many days after it happened. 0 for never.
 	HalfLifeDays float64 `json:"half_life_days"`
@@ -86,9 +90,10 @@ func Default() Weights {
 			Handle: 100, Name: 90, NameStarts: 70, WordStarts: 60,
 			NameContains: 50, Hashtag: 40, BodyWord: 20, BodyContains: 10,
 		},
-		Following:    15,
-		Useful:       Useful{Scale: 5, Like: 1, Save: 2, Reply: 2, Follow: 1, Cite: 3},
-		HalfLifeDays: 365,
+		Following:            15,
+		PicturedWithFollowed: 8,
+		Useful:               Useful{Scale: 5, Like: 1, Save: 2, Reply: 2, Follow: 1, Cite: 3},
+		HalfLifeDays:         365,
 	}
 }
 
@@ -101,7 +106,7 @@ func (w Weights) valid() bool {
 	values := []float64{
 		w.Match.Handle, w.Match.Name, w.Match.NameStarts, w.Match.WordStarts,
 		w.Match.NameContains, w.Match.Hashtag, w.Match.BodyWord, w.Match.BodyContains,
-		w.Following, w.Useful.Scale, w.Useful.Like, w.Useful.Save, w.Useful.Reply,
+		w.Following, w.PicturedWithFollowed, w.Useful.Scale, w.Useful.Like, w.Useful.Save, w.Useful.Reply,
 		w.Useful.Follow, w.Useful.Cite, w.HalfLifeDays,
 	}
 	for _, value := range values {
@@ -212,7 +217,9 @@ func (w Weights) Adjusted(steps map[string]float64) Weights {
 		case "cite":
 			w.Useful.Cite *= step
 		case "following":
+			// Being pictured with them is a kind of following them.
 			w.Following *= step
+			w.PicturedWithFollowed *= step
 		}
 	}
 	return w

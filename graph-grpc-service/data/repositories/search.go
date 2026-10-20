@@ -187,6 +187,74 @@ const followedByViewer = `(CASE WHEN EXISTS (
           AND mine.node_b_id IN (node.id, node.owner_id)
     ) THEN ? ELSE 0 END)`
 
+// picturedWithFollowed is a bonus for what is close to whom the searcher
+// follows through a photo or a video (roadmap row 104): a photo or a video
+// with somebody they follow in it, or a person in public photos or videos
+// with them, tagged or as the one who posted it. Approved tags only; a
+// person's photos count only when public, as a suggestion's do.
+//
+// Binds: the tag type, approved, the follow type and the viewer, for a
+// post; then the two picture types, the tag type, approved, the follow type
+// and the viewer, the tag type, approved, the follow type and the viewer,
+// for a person; then the points.
+const picturedWithFollowed = `(CASE WHEN EXISTS (
+        SELECT 1
+        FROM edges AS tag
+        JOIN edges AS followed ON followed.node_b_id = tag.node_a_id
+        WHERE tag.type = ?
+          AND tag.meta = ?
+          AND tag.node_b_id = node.id
+          AND followed.type = ?
+          AND followed.node_a_id = ?
+    ) OR (node.type = '` + constants.NodeActorPersonEntityType + `' AND EXISTS (
+        SELECT 1
+        FROM nodes AS pic
+        WHERE pic.type IN (?, ?)
+          AND pic.access = 'public'
+          AND pic.deleted_at IS NULL
+          AND (
+              pic.created_by = node.id
+              OR EXISTS (
+                  SELECT 1
+                  FROM edges AS me
+                  WHERE me.type = ?
+                    AND me.meta = ?
+                    AND me.node_a_id = node.id
+                    AND me.node_b_id = pic.id
+              )
+          )
+          AND (
+              (pic.created_by <> node.id AND pic.created_by IN (
+                  SELECT f.node_b_id
+                  FROM edges AS f
+                  WHERE f.type = ?
+                    AND f.node_a_id = ?
+              ))
+              OR EXISTS (
+                  SELECT 1
+                  FROM edges AS them
+                  JOIN edges AS f ON f.node_b_id = them.node_a_id
+                  WHERE them.type = ?
+                    AND them.meta = ?
+                    AND them.node_b_id = pic.id
+                    AND them.node_a_id <> node.id
+                    AND f.type = ?
+                    AND f.node_a_id = ?
+              )
+          )
+    )) THEN ? ELSE 0 END)`
+
+func picturedArgs(viewerID int64, points float64) []any {
+	return []any{
+		constants.EdgeTagPersonType, constants.TagApproved, constants.EdgeFollowEntityType, viewerID,
+		constants.NodeMediumPhotoEntityType, videos.NodeType,
+		constants.EdgeTagPersonType, constants.TagApproved,
+		constants.EdgeFollowEntityType, viewerID,
+		constants.EdgeTagPersonType, constants.TagApproved, constants.EdgeFollowEntityType, viewerID,
+		points,
+	}
+}
+
 // interest is how much one sign of interest counts, by when it happened:
 // all of it with no half-life, half of it after each half-life.
 func interest(column string, halfLifeDays float64) string {
@@ -242,8 +310,9 @@ func Standing(weights ranking.Weights, viewer *entities.Viewer) sq.Sqlizer {
 		weights.Useful.Cite,
 	}
 	if viewer != nil && viewer.ID > 0 {
-		following = followedByViewer
+		following = followedByViewer + " + " + picturedWithFollowed
 		args = append(args, constants.EdgeFollowEntityType, viewer.ID, weights.Following)
+		args = append(args, picturedArgs(viewer.ID, weights.PicturedWithFollowed)...)
 	}
 	return sq.Expr(fmt.Sprintf(relevantStanding,
 		interest("liked.created_at", weights.HalfLifeDays),
@@ -386,8 +455,10 @@ func (repo *SearchRepo) browseByRelevance(req *graphpb.SearchBrowseRequest, keyw
 	// a profile they follow, before everything else, however it matches.
 	followedFirst := req.FollowedFirst && viewer != nil && viewer.ID > 0
 	if followedFirst {
-		ranked = ranked.Column(sq.Expr(followedByViewer+" AS followed",
-			constants.EdgeFollowEntityType, viewer.ID, 1))
+		// Pictured with whom they follow counts as followed too (roadmap
+		// row 104), after what they follow themselves.
+		followedArgs := append([]any{constants.EdgeFollowEntityType, viewer.ID, 2}, picturedArgs(viewer.ID, 1)...)
+		ranked = ranked.Column(sq.Expr("("+followedByViewer+" + "+picturedWithFollowed+") AS followed", followedArgs...))
 	}
 	ranked = repo.filtered(ranked, req, viewer)
 	if followedFirst {

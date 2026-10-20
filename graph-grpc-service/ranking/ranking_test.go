@@ -64,3 +64,18 @@ func TestAdjusted(t *testing.T) {
 		t.Error("the defaults were changed by adjusting a copy")
 	}
 }
+
+// Being pictured with whom one follows (roadmap row 104) is 8 as it comes,
+// and moves with the searcher's "following" step.
+func TestPicturedWithFollowedMovesWithFollowing(t *testing.T) {
+	w := Default()
+	if w.PicturedWithFollowed != 8 {
+		t.Fatalf("as it comes: %v", w.PicturedWithFollowed)
+	}
+	if got := w.Adjusted(map[string]float64{"following": 0}).PicturedWithFollowed; got != 0 {
+		t.Errorf("following off: %v", got)
+	}
+	if got := w.Adjusted(map[string]float64{"following": 2}).PicturedWithFollowed; got != 16 {
+		t.Errorf("following doubled: %v", got)
+	}
+}

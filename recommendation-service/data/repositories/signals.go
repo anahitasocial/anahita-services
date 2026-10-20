@@ -10,6 +10,7 @@ import (
 
 	an_const "anahita-libs/constants"
 	"anahita-libs/feeds"
+	"anahita-libs/videos"
 
 	"recommendation/constants"
 	"recommendation/scoring"
@@ -191,6 +192,92 @@ JOIN nodes AS c ON c.id = hosted.node_b_id
 WHERE mine.type = ?
   AND mine.node_a_id = ?
   AND hosted.type = ?
+  AND {{eligible}}
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
+LIMIT ?`
+
+// In public photos or videos with the viewer (roadmap row 104): whoever
+// posted one the viewer is tagged in, or is tagged in one the viewer is in
+// or posted. Only approved tags, only public posts: what the viewer could
+// not see shapes nothing, and nobody who lets nobody tag them has a tag.
+const signalPicturedWithYou = `
+WITH mine AS (
+    SELECT p.id, p.created_by
+    FROM nodes AS p
+    WHERE p.created_by = ?
+      AND p.type IN (?, ?)
+      AND p.access = 'public'
+      AND p.deleted_at IS NULL
+    UNION
+    SELECT p.id, p.created_by
+    FROM edges AS me
+    JOIN nodes AS p ON p.id = me.node_b_id
+    WHERE me.type = ?
+      AND me.node_a_id = ?
+      AND me.meta = ?
+      AND p.access = 'public'
+      AND p.deleted_at IS NULL
+),
+together AS (
+    SELECT mine.id AS post_id, mine.created_by AS person_id
+    FROM mine
+    UNION
+    SELECT tag.node_b_id, tag.node_a_id
+    FROM edges AS tag
+    JOIN mine ON mine.id = tag.node_b_id
+    WHERE tag.type = ?
+      AND tag.meta = ?
+)
+SELECT c.id, COUNT(DISTINCT together.post_id), ''
+FROM together
+JOIN nodes AS c ON c.id = together.person_id
+WHERE {{eligible}}
+GROUP BY c.id
+ORDER BY 2 DESC, c.id
+LIMIT ?`
+
+// In public photos or videos with people the viewer follows, or in ones
+// they posted (roadmap row 104). With which of those people.
+const signalPicturedWithLeaders = `
+WITH leaders AS (
+    SELECT mine.node_b_id AS id
+    FROM edges AS mine
+    WHERE mine.type = ?
+      AND mine.node_a_id = ?
+),
+theirs AS (
+    SELECT p.id, p.created_by AS leader
+    FROM nodes AS p
+    JOIN leaders ON leaders.id = p.created_by
+    WHERE p.type IN (?, ?)
+      AND p.access = 'public'
+      AND p.deleted_at IS NULL
+    UNION
+    SELECT p.id, tag.node_a_id
+    FROM edges AS tag
+    JOIN leaders ON leaders.id = tag.node_a_id
+    JOIN nodes AS p ON p.id = tag.node_b_id
+    WHERE tag.type = ?
+      AND tag.meta = ?
+      AND p.access = 'public'
+      AND p.deleted_at IS NULL
+),
+together AS (
+    SELECT theirs.id AS post_id, theirs.leader, p.created_by AS person_id
+    FROM theirs
+    JOIN nodes AS p ON p.id = theirs.id
+    UNION
+    SELECT theirs.id, theirs.leader, tag.node_a_id
+    FROM theirs
+    JOIN edges AS tag ON tag.node_b_id = theirs.id
+    WHERE tag.type = ?
+      AND tag.meta = ?
+)
+SELECT c.id, COUNT(DISTINCT together.leader), GROUP_CONCAT(DISTINCT together.leader ORDER BY together.leader)
+FROM together
+JOIN nodes AS c ON c.id = together.person_id
+WHERE together.person_id <> together.leader
   AND {{eligible}}
 GROUP BY c.id
 ORDER BY 2 DESC, c.id
@@ -537,6 +624,30 @@ func (r *Signals) Find(viewerID int64, kind string, useActivity, onlyColdStart b
 				viewerID,
 			}, limit),
 			needsFollows: true,
+		},
+		{
+			reason: constants.ReasonPicturedWithYou,
+			query:  signalPicturedWithYou,
+			args: with([]any{
+				viewerID, an_const.NodeMediumPhotoEntityType, videos.NodeType,
+				an_const.EdgeTagPersonType, viewerID, an_const.TagApproved,
+				an_const.EdgeTagPersonType, an_const.TagApproved,
+			}, limit),
+			needsActivity: true,
+			peopleOnly:    true,
+		},
+		{
+			reason: constants.ReasonPicturedWithLeaders,
+			query:  signalPicturedWithLeaders,
+			args: with([]any{
+				an_const.EdgeFollowEntityType, viewerID,
+				an_const.NodeMediumPhotoEntityType, videos.NodeType,
+				an_const.EdgeTagPersonType, an_const.TagApproved,
+				an_const.EdgeTagPersonType, an_const.TagApproved,
+			}, limit),
+			needsFollows:  true,
+			needsActivity: true,
+			peopleOnly:    true,
 		},
 		{
 			reason: constants.ReasonFeatured,

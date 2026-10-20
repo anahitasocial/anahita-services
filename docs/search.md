@@ -57,7 +57,16 @@ the second puts level.
                            + follow × followers
                            + cite × citers)
             + following, when the searcher follows it or the profile it is on
+            + pictured_with_followed, when somebody the searcher follows is
+              in it, or it is a person in public photos or videos with them
    ```
+
+   **Pictured with whom the searcher follows** (roadmap row 104): a photo
+   or a video with somebody they follow in it, or a person in public
+   photos or videos with them, tagged or as the one who posted it.
+   Approved tags only. A person's own "following" step moves it with
+   following, and "Profiles I follow first" puts it after what they follow
+   themselves.
 
    The logarithm keeps one post liked a thousand times from burying
    everything: it comes first, not a hundred times first. Each like, save,
@@ -109,6 +118,7 @@ Every number above is the operator's, in
     "name_contains": 50, "hashtag": 40, "body_word": 20, "body_contains": 10
   },
   "following": 15,
+  "pictured_with_followed": 8,
   "useful": { "scale": 5, "like": 1, "save": 2, "reply": 2, "follow": 1, "cite": 3 },
   "half_life_days": 365
 }
