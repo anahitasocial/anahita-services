@@ -47,6 +47,9 @@ type Env struct {
 	// installation takes them (TakesLocations). Nil for none, in tests.
 	Tags           LocationTags
 	TakesLocations bool
+	// Who is in a photo or a video here, their tags approved (roadmap row
+	// 103), named in it as a Mention. Nil for none, in tests.
+	PeopleTags PeopleTags
 	// The card for a link in a post from elsewhere. Nil for none: in tests,
 	// and where there is no link-preview-service.
 	Cards Cards

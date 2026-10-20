@@ -619,6 +619,11 @@ for you", but "this person is in it" (roadmap row 103).
   approve a tag here, and approval comes first.
 - **A tag waiting is seen by the two of them only,** the person and the
   post's author; nothing else reads it as a tag.
+- **Where tags show:** the person's **Tagged** list (`GET
+  /feeds/actor/:id/?filter=tagged`), search (a photo or a video is found by
+  the name or handle of somebody in it), and the fediverse, as a `Mention`
+  ([Federation](federation.md)). Recommendations read neither mentions nor
+  tags.
 - **Events:** `edge.tag.actor-service.requested.v1` for a tag waiting,
   `added.v1` for one made or approved, `deleted.v1` for one taken off; the
   subject is the post's author, the object the post, the target the

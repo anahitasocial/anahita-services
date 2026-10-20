@@ -114,6 +114,7 @@ func main() {
 	env.TakesLocations = config.TakesLocations
 	// The locations a post from elsewhere is tagged with.
 	env.Tags = services.NewGraphEdgeGRPC(config)
+	env.PeopleTags = services.NewGraphEdgeGRPC(config)
 	env.Pictures = client
 	env.Files = services.NewFilesGRPC(config)
 	env.Cards = handlers.NewCards(config.LinkPreviewURL)

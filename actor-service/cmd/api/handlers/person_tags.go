@@ -116,6 +116,7 @@ func (h *personHandler) publishTag(format string, post *entities.AnahitaNode, pe
 		SourceService:    "actor-service",
 		SubjectID:        authorOf(post),
 		ObjectID:         post.ID,
+		ObjectType:       post.Type,
 		TargetID:         personID,
 		ViewerID:         viewer.ID,
 		ViewerPersonType: viewer.PersonType,

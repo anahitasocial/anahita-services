@@ -240,6 +240,24 @@ func (n *Note) Answering(what, actor, handle string) *Note {
 	return n
 }
 
+// WithPeople names who is in a photo or a video as mentioned (roadmap row
+// 103), each once, beside whoever its words name.
+func (n *Note) WithPeople(people []federation.Named) *Note {
+	for _, person := range people {
+		already := false
+		for _, tag := range n.Tag {
+			if tag.Type == "Mention" && tag.Href == person.Href {
+				already = true
+				break
+			}
+		}
+		if !already {
+			n.Tag = append(n.Tag, Tag{Type: "Mention", Href: person.Href, Name: person.Name})
+		}
+	}
+	return n
+}
+
 // WithContext is the note as a document of its own, not inside an activity.
 func (n *Note) WithContext() *Note {
 	alone := *n

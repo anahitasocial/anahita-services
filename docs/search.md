@@ -40,7 +40,7 @@ the second puts level.
    | The name begins with them | 70 |
    | A word in the name begins with them ("Jericho **Bea**ch") | 60 |
    | Somewhere inside the name, or inside the handle (`decaf`**`coffee`**`club`) | 50 |
-   | A hashtag on the post | 40 |
+   | A hashtag on the post, or, on a photo or a video, the name or the handle of somebody in it, their tag approved | 40 |
    | A whole word in the body | 20 |
    | Only inside a word in the body ("**coffee**house") | 10 |
 
