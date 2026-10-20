@@ -25,6 +25,7 @@
 package sweeper
 
 import (
+	"anahita-libs/constants"
 	"context"
 	"database/sql"
 	"fmt"
@@ -45,15 +46,6 @@ const (
 	// outage. A backlog drains over successive runs instead; even at one run
 	// an hour that is 2,400 accounts a day, far past any realistic rate.
 	BatchSize = 100
-
-	// GraceDays must match auth-service's constants.AccountGraceDays, which is
-	// the date the restore page promises the person.
-	//
-	// Duplicated rather than shared because the two services have no common
-	// constants package, and importing auth's would point a data service at an
-	// auth service. If one moves, move both — a sweeper that runs early erases
-	// accounts inside the window somebody was told they had.
-	GraceDays = 30
 
 	// lockName is a MySQL advisory lock held for the duration of a run.
 	//
@@ -113,7 +105,9 @@ func Run(db *sql.DB, repos *repositories.Repositories, publisher *event.Publishe
 	// over, and archiving the ones long finished.
 	Events(repos, publisher)
 
-	cutoff := time.Now().UTC().AddDate(0, 0, -GraceDays)
+	// The days a deleted profile can be brought back: ACCOUNT_GRACE_DAYS,
+	// the number auth-service tells people (anahita-libs/constants).
+	cutoff := time.Now().UTC().AddDate(0, 0, -constants.AccountGraceDays())
 
 	ids, err := repos.Nodes.BrowseDeletedBefore(cutoff, BatchSize)
 	if err != nil {

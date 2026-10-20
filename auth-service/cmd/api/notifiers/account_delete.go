@@ -28,7 +28,7 @@ func newAccountDeleteNotifier(env *Env) *accountDeleteNotifier {
 // disabled, not erased.
 func (h *accountDeleteNotifier) EmailScheduled(person *entities.User, deletedAt time.Time) error {
 	purgeDate := deletedAt.
-		Add(time.Duration(constants.AccountGraceDays) * 24 * time.Hour).
+		Add(time.Duration(constants.AccountGraceDays()) * 24 * time.Hour).
 		Format("2 January 2006")
 
 	body := fmt.Sprintf(

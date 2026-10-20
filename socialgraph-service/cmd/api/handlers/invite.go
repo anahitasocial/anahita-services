@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"log"
 	"net/http"
 	"time"
@@ -255,6 +256,10 @@ func (h *inviteHandler) answer(c echo.Context, accept bool) error {
 	}
 
 	found, err := h.Srv.SocialgraphFollowGRPC.InviteAnswer(req.ActorID, accept, viewer)
+	// Accepting is joining: its rules, ticked first (roadmap row 102).
+	if an_handlers.IsRulesNotAgreed(err) {
+		return an_handlers.RefuseRulesNotAgreed(c)
+	}
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

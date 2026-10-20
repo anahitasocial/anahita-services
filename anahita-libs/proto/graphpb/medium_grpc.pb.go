@@ -25,6 +25,7 @@ const (
 	MediumService_BatchRead_FullMethodName        = "/graph.MediumService/BatchRead"
 	MediumService_Edit_FullMethodName             = "/graph.MediumService/Edit"
 	MediumService_Add_FullMethodName              = "/graph.MediumService/Add"
+	MediumService_AddThread_FullMethodName        = "/graph.MediumService/AddThread"
 	MediumService_Delete_FullMethodName           = "/graph.MediumService/Delete"
 	MediumService_Ping_FullMethodName             = "/graph.MediumService/Ping"
 	MediumService_Thread_FullMethodName           = "/graph.MediumService/Thread"
@@ -52,6 +53,7 @@ type MediumServiceClient interface {
 	BatchRead(ctx context.Context, in *MediumBatchReadRequest, opts ...grpc.CallOption) (*MediumBatchReadResponse, error)
 	Edit(ctx context.Context, in *MediumEditRequest, opts ...grpc.CallOption) (*MediumEditResponse, error)
 	Add(ctx context.Context, in *MediumAddRequest, opts ...grpc.CallOption) (*MediumAddResponse, error)
+	AddThread(ctx context.Context, in *MediumThreadAddRequest, opts ...grpc.CallOption) (*MediumThreadAddResponse, error)
 	Delete(ctx context.Context, in *MediumDeleteRequest, opts ...grpc.CallOption) (*MediumDeleteResponse, error)
 	Ping(ctx context.Context, in *MediumPingRequest, opts ...grpc.CallOption) (*MediumPingResponse, error)
 	// Threads. A reply is a note with a parent, added and edited through
@@ -135,6 +137,16 @@ func (c *mediumServiceClient) Add(ctx context.Context, in *MediumAddRequest, opt
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(MediumAddResponse)
 	err := c.cc.Invoke(ctx, MediumService_Add_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediumServiceClient) AddThread(ctx context.Context, in *MediumThreadAddRequest, opts ...grpc.CallOption) (*MediumThreadAddResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MediumThreadAddResponse)
+	err := c.cc.Invoke(ctx, MediumService_AddThread_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -301,6 +313,7 @@ type MediumServiceServer interface {
 	BatchRead(context.Context, *MediumBatchReadRequest) (*MediumBatchReadResponse, error)
 	Edit(context.Context, *MediumEditRequest) (*MediumEditResponse, error)
 	Add(context.Context, *MediumAddRequest) (*MediumAddResponse, error)
+	AddThread(context.Context, *MediumThreadAddRequest) (*MediumThreadAddResponse, error)
 	Delete(context.Context, *MediumDeleteRequest) (*MediumDeleteResponse, error)
 	Ping(context.Context, *MediumPingRequest) (*MediumPingResponse, error)
 	// Threads. A reply is a note with a parent, added and edited through
@@ -347,6 +360,9 @@ func (UnimplementedMediumServiceServer) Edit(context.Context, *MediumEditRequest
 }
 func (UnimplementedMediumServiceServer) Add(context.Context, *MediumAddRequest) (*MediumAddResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Add not implemented")
+}
+func (UnimplementedMediumServiceServer) AddThread(context.Context, *MediumThreadAddRequest) (*MediumThreadAddResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddThread not implemented")
 }
 func (UnimplementedMediumServiceServer) Delete(context.Context, *MediumDeleteRequest) (*MediumDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
@@ -518,6 +534,24 @@ func _MediumService_Add_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MediumServiceServer).Add(ctx, req.(*MediumAddRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediumService_AddThread_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MediumThreadAddRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediumServiceServer).AddThread(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediumService_AddThread_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediumServiceServer).AddThread(ctx, req.(*MediumThreadAddRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -822,6 +856,10 @@ var MediumService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Add",
 			Handler:    _MediumService_Add_Handler,
+		},
+		{
+			MethodName: "AddThread",
+			Handler:    _MediumService_AddThread_Handler,
 		},
 		{
 			MethodName: "Delete",

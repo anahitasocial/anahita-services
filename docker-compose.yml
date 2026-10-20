@@ -70,8 +70,14 @@ services:
       replicas: 1
     environment:
       ENV: ${ENV}
+      # How long a deleted profile can be brought back: 30 days unless said.
+      ACCOUNT_GRACE_DAYS: ${ACCOUNT_GRACE_DAYS:-}
+      # How new an account must be to be removed as spam: 30 days unless said.
+      SPAM_REMOVAL_MAX_DAYS: ${SPAM_REMOVAL_MAX_DAYS:-}
       # How many images a photo post may hold: 20 unless fewer. See docs/configuration.md.
       PHOTO_MAX_FILES: ${PHOTO_MAX_FILES:-}
+      # Whether everybody ticks the site's rules: on unless off. See docs/configuration.md.
+      SITE_RULES: ${SITE_RULES:-}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
       # What the installation lets people who are not signed in see, and
@@ -201,6 +207,8 @@ services:
       - ./grpc-certs:/run/secrets/grpc:ro
       - ./oauth-signing.pem:/run/secrets/oauth-signing.pem:ro
       - ./auth-defaults/oauth_seed_clients.json:/app/defaults/oauth_seed_clients.json:ro
+      # What the site says about itself: its rules and promises (roadmap row 102).
+      - ./auth-defaults/site.json:/app/defaults/site.json:ro
     networks:
       anahita-network:
         ipv4_address: 172.20.1.10
@@ -1217,6 +1225,8 @@ services:
     restart: "no"
     environment:
       ENV: ${ENV}
+      # How long a deleted profile can be brought back: 30 days unless said.
+      ACCOUNT_GRACE_DAYS: ${ACCOUNT_GRACE_DAYS:-}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
       # What the installation lets people who are not signed in see, and
@@ -1250,6 +1260,10 @@ services:
       # Whether profiles have video at all. See docs/videos.md.
       VIDEO_UPLOADS: ${VIDEO_UPLOADS:-}
       ENV: ${ENV}
+      # How long a deleted profile can be brought back: 30 days unless said.
+      ACCOUNT_GRACE_DAYS: ${ACCOUNT_GRACE_DAYS:-}
+      # How new an account must be to be removed as spam: 30 days unless said.
+      SPAM_REMOVAL_MAX_DAYS: ${SPAM_REMOVAL_MAX_DAYS:-}
       # Mutual TLS between the services. See docs/configuration.md, Internal calls.
       GRPC_TLS: ${GRPC_TLS:-on}
       # What the installation lets people who are not signed in see, and

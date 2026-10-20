@@ -763,6 +763,30 @@
         ],
         "type": "object"
       },
+      "Item": {
+        "description": "Item is one rule, promise or suggestion: a short title, and a line more if it needs one.",
+        "properties": {
+          "body": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
       "LimitedActor": {
         "description": "LimitedActor is what somebody is shown of a profile they may not see, when that profile lets people ask to follow it: enough to know whose it is and to ask.",
         "properties": {
@@ -2182,6 +2206,28 @@
         ],
         "type": "object"
       },
+      "Rules": {
+        "description": "Rules is the site's rules, with the version agreed to. Raising the version asks everybody to agree again; a correction that leaves it as it is asks nobody.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "items"
+        ],
+        "type": "object"
+      },
       "Video": {
         "description": "Video is what a video post plays: its sizes, largest first, and the still shown before it does.",
         "properties": {
@@ -2479,6 +2525,85 @@
         ],
         "type": "object"
       },
+      "abusereport.ProfileCase": {
+        "description": "ProfileCase is a case as a group's or an event's administrators see it (roadmap row 102, part 6b): what was reported and the reports against its rules, never who made them, nor the site's decision notes.",
+        "properties": {
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_reported_at": {
+            "description": "When it was last reported.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "reports": {
+            "description": "The reports against the profile's rules, oldest first.",
+            "items": {
+              "$ref": "#/components/schemas/abusereport.ProfileReport"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "`open`, `actioned` or `dismissed`.",
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "Target is the reported node as it is now, or absent when it is gone."
+          },
+          "target_gone": {
+            "description": "Whether what was reported is gone.",
+            "type": "boolean"
+          },
+          "target_id": {
+            "description": "The id of what was reported.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "target_type": {
+            "description": "What kind of node it is.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "target_id",
+          "target_type",
+          "target_gone",
+          "last_reported_at",
+          "reports"
+        ],
+        "type": "object"
+      },
+      "abusereport.ProfileReport": {
+        "description": "ProfileReport is one report against a profile's rules, with nobody's name.",
+        "properties": {
+          "created_at": {
+            "description": "When it was made.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "details": {
+            "description": "What the reporter added.",
+            "type": "string"
+          },
+          "rule": {
+            "description": "The rule broken, by its title.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "created_at"
+        ],
+        "type": "object"
+      },
       "abusereport.Reason": {
         "description": "Reason is one entry of the list a reporter chooses from, in their language.",
         "properties": {
@@ -2561,6 +2686,18 @@
           },
           "reporter_id": {
             "description": "Their id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "rule": {
+            "description": "With reason_key \"rule\": the rule broken, by its title, and whose rule it is, 0 for the site's.",
+            "type": "string"
+          },
+          "rule_profile": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "The group or event whose rule it is."
+          },
+          "rule_profile_id": {
             "format": "int64",
             "type": "integer"
           },
@@ -3304,6 +3441,59 @@
         ],
         "type": "object"
       },
+      "actor.Rule": {
+        "description": "Rule is one of a profile's rules.",
+        "properties": {
+          "body": {
+            "description": "A line more, if it needs one.",
+            "type": "string"
+          },
+          "title": {
+            "description": "A few words: \"Be kind\".",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "body"
+        ],
+        "type": "object"
+      },
+      "actor.Rules": {
+        "description": "Rules is a profile's rules, as they are now.",
+        "properties": {
+          "agreed_version": {
+            "description": "The version the viewer last agreed to, 0 for none: behind Version, they are asked again.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/actor.Rule"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "updated_at": {
+            "description": "When they last changed, RFC 3339, or empty.",
+            "type": "string"
+          },
+          "version": {
+            "description": "Raised by every change; 0 for a profile that never had any.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "updated_at",
+          "items",
+          "agreed_version"
+        ],
+        "type": "object"
+      },
       "atproto.ImportPreview": {
         "description": "ImportPreview is what following here whoever the viewer follows on Bluesky would do, before it is done.",
         "properties": {
@@ -3545,6 +3735,10 @@
             "$ref": "#/components/schemas/auth.consentItem",
             "description": "The Privacy Policy."
           },
+          "rules": {
+            "$ref": "#/components/schemas/auth.consentItem",
+            "description": "The site's rules (site.json, roadmap row 102)."
+          },
           "tos": {
             "$ref": "#/components/schemas/auth.consentItem",
             "description": "The Terms of Service."
@@ -3552,7 +3746,8 @@
         },
         "required": [
           "tos",
-          "privacy"
+          "privacy",
+          "rules"
         ],
         "type": "object"
       },
@@ -3744,7 +3939,7 @@
         "properties": {
           "metadata": {
             "additionalProperties": {},
-            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
+            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
             "type": [
               "object",
               "null"
@@ -4514,6 +4709,41 @@
           "created_ip",
           "created_at",
           "username_taken"
+        ],
+        "type": "object"
+      },
+      "auth.SiteAbout": {
+        "description": "SiteAbout is what GET /site answers: every text in every language it is written in, keyed by the web app's language names (\"en-CA\", \"fr-FR\"), for the reader's app to choose from.",
+        "properties": {
+          "promises": {
+            "description": "Shown on the About page, under \"Our promises to you\".",
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "rule_suggestions": {
+            "description": "Offered to a group's administrators when they write its rules.",
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "rules": {
+            "$ref": "#/components/schemas/Rules",
+            "description": "The site's rules, and the version agreed to: everybody ticks each before using the site, and again when the version is raised."
+          }
+        },
+        "required": [
+          "rules",
+          "promises",
+          "rule_suggestions"
         ],
         "type": "object"
       },
@@ -6162,6 +6392,44 @@
         ],
         "type": "object"
       },
+      "text.ThreadAdded": {
+        "description": "ThreadAdded is a thread as it was made: its notes, first to last.",
+        "properties": {
+          "parts": {
+            "items": {
+              "$ref": "#/components/schemas/MediumNode"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "parts"
+        ],
+        "type": "object"
+      },
+      "text.ThreadPart": {
+        "description": "ThreadPart is one note of a thread: what it says, in what language, and the link in it to show a card for, as on a note.",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "link_preview_url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "content",
+          "language",
+          "link_preview_url"
+        ],
+        "type": "object"
+      },
       "video.UploadPart": {
         "description": "UploadPart is where one part of an upload is sent.",
         "properties": {
@@ -6453,7 +6721,7 @@
     },
     "/abuse-reports": {
       "post": {
-        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
+        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site's (`rule_profile_id` 0, from `GET /site`) or those of the group or event it is in, or is (its id).\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
         "operationId": "postAbuseReports",
         "requestBody": {
           "content": {
@@ -6469,6 +6737,16 @@
                     "description": "Why, by the reason's key (GET /abuse-reports/reasons).",
                     "maxLength": 64,
                     "type": "string"
+                  },
+                  "rule": {
+                    "description": "With reason_key \"rule\": the rule broken, by its title as the reporter read it, and whose rule it is: 0 for the site's, or the group or event the reported thing belongs to (roadmap row 102, part 6).",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "rule_profile_id": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
                   },
                   "target_id": {
                     "description": "The id of what is reported: a post, a reply, a profile.",
@@ -6502,7 +6780,7 @@
                 }
               }
             },
-            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; or not well formed, without a body"
+            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; `rule_required`, `rule` is empty; `rule_not_applicable`, it is not one of that profile's rules, or the thing is not in that profile; or not well formed, without a body"
           },
           "401": {
             "description": "no token, or one that has expired"
@@ -6534,7 +6812,7 @@
     },
     "/abuse-reports/": {
       "post": {
-        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
+        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site's (`rule_profile_id` 0, from `GET /site`) or those of the group or event it is in, or is (its id).\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
         "operationId": "postAbuseReports2",
         "requestBody": {
           "content": {
@@ -6550,6 +6828,16 @@
                     "description": "Why, by the reason's key (GET /abuse-reports/reasons).",
                     "maxLength": 64,
                     "type": "string"
+                  },
+                  "rule": {
+                    "description": "With reason_key \"rule\": the rule broken, by its title as the reporter read it, and whose rule it is: 0 for the site's, or the group or event the reported thing belongs to (roadmap row 102, part 6).",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "rule_profile_id": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
                   },
                   "target_id": {
                     "description": "The id of what is reported: a post, a reply, a profile.",
@@ -6583,7 +6871,7 @@
                 }
               }
             },
-            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; or not well formed, without a body"
+            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; `rule_required`, `rule` is empty; `rule_not_applicable`, it is not one of that profile's rules, or the thing is not in that profile; or not well formed, without a body"
           },
           "401": {
             "description": "no token, or one that has expired"
@@ -6905,13 +7193,14 @@
               "schema": {
                 "properties": {
                   "action": {
-                    "description": "What was done: `none`, `deleted`, `disabled`, `archived`, `blocked` or `other`.",
+                    "description": "What was done: `none`, `deleted`, `disabled`, `archived`, `blocked`, `removed_as_spam` or `other`.",
                     "enum": [
                       "none",
                       "deleted",
                       "disabled",
                       "archived",
                       "blocked",
+                      "removed_as_spam",
                       "other"
                     ],
                     "type": "string"
@@ -6979,6 +7268,114 @@
         ],
         "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Resolve",
         "x-viewer": "admin"
+      }
+    },
+    "/abuse-reports/profiles/{id}/cases": {
+      "get": {
+        "description": "The cases with a report against a group's or an event's rules, newest first, each with those reports: the rule, the reporter's words and when, never who made them. For its administrators and the site's. They act on what was reported where it is, by deleting or hiding it, which closes its case; deciding the case stays with the site's administrators.\n\nWho may call it: somebody signed in, with a token that carries `actors:read`.",
+        "operationId": "getAbuseReportsProfilesByIdCases",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Which cases: `open` (the default), `actioned` or `dismissed`.",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "open",
+                "actioned",
+                "dismissed"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: 20 unless asked, 100 at most.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/abusereport.ProfileCase"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer administers neither it nor the site"
+          },
+          "404": {
+            "description": "there is no such group or event"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "actors:read"
+            ]
+          }
+        ],
+        "summary": "A group's or an event's reports",
+        "tags": [
+          "abuse-report-service"
+        ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).BrowseForProfile",
+        "x-viewer": "signed_in"
       }
     },
     "/abuse-reports/reasons": {
@@ -8139,6 +8536,120 @@
           "auth-service"
         ],
         "x-handler": "auth/cmd/api/handlers.(*agreementsHandler).EditPrivacy",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/agreements/rules": {
+      "patch": {
+        "description": "The viewer's own agreement, each rule ticked, of the version `GET /site` has now (roadmap row 102).\n\nWho may call it: somebody signed in.",
+        "operationId": "patchAgreementsRules",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "accepted": {
+                    "description": "True.",
+                    "type": "boolean"
+                  },
+                  "version": {
+                    "description": "The version accepted: `1.0`.",
+                    "maxLength": 20,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "accepted": {
+                    "description": "True.",
+                    "type": "boolean"
+                  },
+                  "version": {
+                    "description": "The version accepted: `1.0`.",
+                    "maxLength": 20,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "accepted": {
+                    "description": "True.",
+                    "type": "boolean"
+                  },
+                  "version": {
+                    "description": "The version accepted: `1.0`.",
+                    "maxLength": 20,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.Accepted"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`version_malformed`: the version is not a dotted number; `not_accepted`: `accepted` is false; or, without a body, the request is not well formed"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`version_not_current`: the site's rules are at another version now"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Agree to the site's rules",
+        "tags": [
+          "auth-service"
+        ],
+        "x-handler": "auth/cmd/api/handlers.(*agreementsHandler).EditRules",
         "x-viewer": "signed_in"
       }
     },
@@ -14016,7 +14527,7 @@
                 }
               }
             },
-            "description": "`event_full`: every place is taken; maybe is still open"
+            "description": "`event_full`: every place is taken; maybe is still open; or `rules_not_agreed`: it is a group or an event with rules the viewer has not agreed to; tick each and agree (`POST /groups|events/:id/rules/agree`), then ask again"
           },
           "410": {
             "content": {
@@ -14039,6 +14550,205 @@
           "actor-service"
         ],
         "x-handler": "actor/cmd/api/handlers.(*eventHandler).Rsvp",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/events/{id}/rules": {
+      "get": {
+        "description": "What somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. For whoever may see it, and for whoever it would let ask to follow.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getEventsByIdRules",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.Rules"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "403": {
+            "description": "the viewer may not see it"
+          },
+          "404": {
+            "description": "there is no such event"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The rules of a event",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).ReadRules",
+        "x-viewer": "anyone"
+      },
+      "put": {
+        "description": "The rules as they are to be from now on, in order, at most ten; an empty list takes them away. Every change raises the version, so that whoever agreed before is asked again. For whoever may change it.\n\nWho may call it: somebody signed in.",
+        "operationId": "putEventsByIdRules",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "items": {
+                    "items": {
+                      "$ref": "#/components/schemas/actor.Rule"
+                    },
+                    "maxItems": 10,
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.Rules"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`rules_invalid`: more than ten, or one too long"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such event"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the rules of a event",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetRules",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/events/{id}/rules/agree": {
+      "post": {
+        "description": "The viewer agreeing, each rule ticked, to the version they were shown.\n\nWho may call it: somebody signed in.",
+        "operationId": "postEventsByIdRulesAgree",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "version": {
+                    "exclusiveMinimum": 0,
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "there is no such event"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`rules_not_current`: the rules changed since; read them again"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Agree to the rules of a event",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).AgreeRules",
         "x-viewer": "signed_in"
       }
     },
@@ -16939,6 +17649,275 @@
         ],
         "x-handler": "actor/cmd/api/handlers.(*groupHandler).Restore",
         "x-viewer": "signed_in"
+      }
+    },
+    "/groups/{id}/rules": {
+      "get": {
+        "description": "What somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. For whoever may see it, and for whoever it would let ask to follow.\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getGroupsByIdRules",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.Rules"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "403": {
+            "description": "the viewer may not see it"
+          },
+          "404": {
+            "description": "there is no such group"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The rules of a group",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).ReadRules",
+        "x-viewer": "anyone"
+      },
+      "put": {
+        "description": "The rules as they are to be from now on, in order, at most ten; an empty list takes them away. Every change raises the version, so that whoever agreed before is asked again. For whoever may change it.\n\nWho may call it: somebody signed in.",
+        "operationId": "putGroupsByIdRules",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "items": {
+                    "items": {
+                      "$ref": "#/components/schemas/actor.Rule"
+                    },
+                    "maxItems": 10,
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/actor.Rules"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`rules_invalid`: more than ten, or one too long"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not change it"
+          },
+          "404": {
+            "description": "there is no such group"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the rules of a group",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).SetRules",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/groups/{id}/rules/agree": {
+      "post": {
+        "description": "The viewer agreeing, each rule ticked, to the version they were shown.\n\nWho may call it: somebody signed in.",
+        "operationId": "postGroupsByIdRulesAgree",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "version": {
+                    "exclusiveMinimum": 0,
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "404": {
+            "description": "there is no such group"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`rules_not_current`: the rules changed since; read them again"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Agree to the rules of a group",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).AgreeRules",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/groups/{id}/spam": {
+      "post": {
+        "description": "A moderator's decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. Administrators and super administrators; never an administrator's or a super administrator's account, nor one's own. Queued, and done by the sweeper.\n\nWho may call it: a site administrator.",
+        "operationId": "postGroupsByIdSpam",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "purged or queued already"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "queued"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not an administrator"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeRefused"
+                }
+              }
+            },
+            "description": "it cannot be removed (`administrator`, `yourself`, `not_found`, `wrong_type`); nothing was queued"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a group as spam",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*groupHandler).RemoveAsSpam",
+        "x-viewer": "admin"
       }
     },
     "/hashtags/": {
@@ -20752,6 +21731,95 @@
         "x-viewer": "signed_in"
       }
     },
+    "/notes/{id}/replies/thread": {
+      "post": {
+        "description": "Up to ten notes, made together in order, all or none: the first a reply to the post or the reply `id`, and each after it a reply to the one before. Each is checked as a reply is. They go to other networks in order, and whoever is told of the thread is told of its first note.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "postNotesByIdRepliesThread",
+        "parameters": [
+          {
+            "description": "The id of the post or the reply it answers. Read by the handler from the path itself.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "parts": {
+                    "description": "The notes of the thread, first to last: up to ten.",
+                    "items": {
+                      "$ref": "#/components/schemas/text.ThreadPart"
+                    },
+                    "maxItems": 10,
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "parts"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/text.ThreadAdded"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`language_invalid`; or not well formed, or more than ten notes, without a body"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not reply here"
+          },
+          "404": {
+            "description": "there is no such post the viewer may see"
+          },
+          "410": {
+            "description": "it answers a reply that was removed"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Reply with a thread",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).AddReplyThread",
+        "x-viewer": "signed_in"
+      }
+    },
     "/notes/{id}/reply-access": {
       "patch": {
         "description": "Who may call it: somebody signed in, with a token that carries `media:write`.",
@@ -20936,6 +22004,134 @@
         ],
         "x-handler": "text/cmd/api/handlers.(*mediumHandler).Thread",
         "x-viewer": "anyone"
+      },
+      "post": {
+        "description": "Up to ten notes, made together in order, all or none: the first a post on the profile `owner_id`, with what a post takes, and each after it a reply to the one before, written by the viewer. Each is checked as a note is. They go to other networks in order, and whoever is told of the thread is told of its first note.\n\nWho may call it: somebody signed in, with a token that carries `media:write`.",
+        "operationId": "postNotesByOwnerIdThread",
+        "parameters": [
+          {
+            "description": "Here, the `owner_id`. The profile it is posted on.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "access": {
+                    "description": "As on NoteAddRequest, for the first part: the rest are replies, seen by whoever may see it.",
+                    "enum": [
+                      "public",
+                      "registered",
+                      "followers",
+                      "leaders",
+                      "mutuals",
+                      "admins",
+                      "myself"
+                    ],
+                    "type": "string"
+                  },
+                  "location_ids": {
+                    "items": {
+                      "exclusiveMinimum": 0,
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
+                  },
+                  "parts": {
+                    "description": "The notes of the thread, first to last: up to ten.",
+                    "items": {
+                      "$ref": "#/components/schemas/text.ThreadPart"
+                    },
+                    "maxItems": 10,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "quote_id": {
+                    "format": "int64",
+                    "type": "integer"
+                  },
+                  "quote_policy": {
+                    "maxLength": 16,
+                    "type": "string"
+                  },
+                  "reply_access": {
+                    "maxLength": 64,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "parts"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/text.ThreadAdded"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`language_invalid`, `reply_access_invalid`, `quote_policy_invalid`; or not well formed, or more than ten notes, without a body"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer may not post here"
+          },
+          "404": {
+            "description": "there is no such profile"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudienceRefusal"
+                }
+              }
+            },
+            "description": "`access_not_allowed`, with the audiences it may have"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "media:write"
+            ]
+          }
+        ],
+        "summary": "Post a thread",
+        "tags": [
+          "text-service"
+        ],
+        "x-handler": "text/cmd/api/handlers.(*noteHandler).AddThread",
+        "x-viewer": "signed_in"
       }
     },
     "/notes/{owner_id}/": {
@@ -25307,6 +26503,76 @@
         "x-viewer": "signed_in"
       }
     },
+    "/people/{id}/spam": {
+      "post": {
+        "description": "A moderator's decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. Administrators and super administrators; never an administrator's or a super administrator's account, nor one's own. Queued, and done by the sweeper.\n\nWho may call it: a site administrator.",
+        "operationId": "postPeopleByIdSpam",
+        "parameters": [
+          {
+            "description": "The profile's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "purged or queued already"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeQueued"
+                }
+              }
+            },
+            "description": "queued"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer is not an administrator"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeRefused"
+                }
+              }
+            },
+            "description": "it cannot be removed (`administrator`, `yourself`, `not_found`, `wrong_type`); nothing was queued"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a person as spam",
+        "tags": [
+          "actor-service"
+        ],
+        "x-handler": "actor/cmd/api/handlers.(*personHandler).RemoveAsSpam",
+        "x-viewer": "admin"
+      }
+    },
     "/people/{username}": {
       "delete": {
         "description": "It is out of sight at once and destroyed after thirty days, unless it is restored before then.\n\nWho may call it: somebody signed in, who has just proved who they are again.",
@@ -28790,6 +30056,36 @@
         "x-viewer": "anyone"
       }
     },
+    "/site": {
+      "get": {
+        "description": "Its rules, which everybody agrees to by ticking each one, with the version agreed to; its promises, for its About page; and the rules a new group is offered to start from. Every text in every language it is written in, by the web app's language names. The operator's, in `site.json` (configuration.md, `SITE_DEFAULTS_PATH`).\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getSite",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.SiteAbout"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What this site says about itself",
+        "tags": [
+          "auth-service"
+        ],
+        "x-handler": "auth/cmd/api/handlers.(*nodeInfoHandler).Site",
+        "x-viewer": "anyone"
+      }
+    },
     "/socialgraph/invites/": {
       "get": {
         "description": "To follow a group or an event.\n\nWho may call it: somebody signed in.",
@@ -29509,6 +30805,16 @@
           },
           "404": {
             "description": "the viewer has no invitation to it"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`rules_not_agreed`: it is a group or an event with rules the viewer has not agreed to; tick each and agree (`POST /groups|events/:id/rules/agree`), then ask again"
           }
         },
         "security": [
@@ -30213,6 +31519,16 @@
           },
           "404": {
             "description": "there is no such profile"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`rules_not_agreed`: it is a group or an event with rules the viewer has not agreed to; tick each and agree (`POST /groups|events/:id/rules/agree`), then ask again"
           }
         },
         "security": [
@@ -30337,6 +31653,16 @@
           },
           "404": {
             "description": "there is no such profile"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`rules_not_agreed`: it is a group or an event with rules the viewer has not agreed to; tick each and agree (`POST /groups|events/:id/rules/agree`), then ask again"
           }
         },
         "security": [

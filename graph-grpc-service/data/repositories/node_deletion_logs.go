@@ -21,6 +21,11 @@ const (
 	// destruction, the other records the decision.
 	DeletionActionHardDeleted = "hard-deleted"
 
+	// A moderator removed the account as spam (roadmap row 102): destroyed
+	// at once like a hard delete, written when it is asked for, so the row
+	// says why and who decided.
+	DeletionActionRemovedAsSpam = "removed-as-spam"
+
 	// The other two lifecycle transitions. The table's name is now narrower
 	// than its contents — see the note in docs/plans about renaming it to
 	// node_lifecycle_logs while it is still cheap.

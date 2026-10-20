@@ -250,6 +250,18 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// The site's rules, as the request agreed to them on the form, recorded
+	// on the account with where the request came from (roadmap row 102).
+	if sr.RulesVersion != "" {
+		agreedAt := sr.CreatedAt
+		if err := h.Repos.Users.EditRulesConsent(user.ID, &entities.Consent{
+			Accepted: true, AcceptedAt: &agreedAt, Version: sr.RulesVersion,
+			IP: sr.CreatedIP, UserAgent: sr.CreatedUserAgent,
+		}); err != nil {
+			log.Println("signup requests approve: recording the site's rules:", err)
+		}
+	}
+
 	// Recorded LAST. If this fails the account exists and the request still
 	// says pending, which a second approval attempt turns into a
 	// duplicate-username refusal — visible, and recoverable by rejecting the

@@ -25,6 +25,11 @@ const (
 	// length it is sent; Bluesky is sent the first 300, and a link to the
 	// rest.
 	PostBodyMax = 8000
+
+	// ThreadPartsMax is how many posts a thread written in one go may have
+	// (the user, 2026-10-19; roadmap row 101).
+	ThreadPartsMax = 10
+
 	// A place's name.
 	PlaceNameMax = 100
 	// An image's description, as written here: what Bluesky's own app

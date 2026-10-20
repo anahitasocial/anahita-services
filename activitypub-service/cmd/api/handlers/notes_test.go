@@ -379,3 +379,44 @@ func TestWhatIsNotKept(t *testing.T) {
 		t.Error("something that was not hers was taken away")
 	}
 }
+
+// THE RULE THIS GUARDS (roadmap row 101): a thread written in one go goes
+// out whole and in order, each note answering the one before, however its
+// notes were heard of; not left for the sweep.
+func TestAThreadGoesOutInOrder(t *testing.T) {
+	w := notesWorld()
+	part := func(id, parent int64, uuid string) *entities.AnahitaNode {
+		note := anasNote()
+		note.ID, note.UUID, note.ParentID, note.RootID, note.Access = id, uuid, parent, noteID, ""
+		note.Body = "And more"
+		return note
+	}
+	two := "7429ca90-0252-4e9b-8494-749ddec89513"
+	three := "7429ca90-0252-4e9b-8494-749ddec89514"
+	w.nodes.people = append(w.nodes.people, part(noteID+1, noteID, two), part(noteID+2, noteID+1, three))
+
+	// Heard last note first.
+	for _, id := range []int64{noteID + 2, noteID + 1, noteID} {
+		if err := w.h.HandleEvent(made(id)); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	var order []string
+	for _, each := range w.queue.sent {
+		object, _ := each.payload["object"].(map[string]any)
+		id, _ := object["id"].(string)
+		answers, _ := object["inReplyTo"].(string)
+		if len(order) == 0 || order[len(order)-1] != id+" > "+answers {
+			order = append(order, id+" > "+answers)
+		}
+	}
+	want := []string{
+		noteURL + " > ",
+		"https://api.example.org/ap/notes/" + two + " > " + noteURL,
+		"https://api.example.org/ap/notes/" + three + " > https://api.example.org/ap/notes/" + two,
+	}
+	if strings.Join(order, "\n") != strings.Join(want, "\n") {
+		t.Errorf("sent:\n%s\nwant:\n%s", strings.Join(order, "\n"), strings.Join(want, "\n"))
+	}
+}

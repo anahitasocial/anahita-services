@@ -212,6 +212,14 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		With(accept("Terms of Service"))
 	agreements.PATCH("/privacy", h.Agreements.EditPrivacy).
 		With(accept("Privacy Policy"))
+	agreements.PATCH("/rules", h.Agreements.EditRules).
+		Summary("Agree to the site's rules").
+		Describe("The viewer's own agreement, each rule ticked, of the version `GET /site` has now (roadmap row 102).").
+		Viewer(apidoc.SignedIn).
+		Takes(&requests.AgreementAccept{}).
+		Sends(http.StatusOK, handlers.Accepted{}).
+		Sends(http.StatusBadRequest, refusal, "`version_malformed`: the version is not a dotted number; `not_accepted`: `accepted` is false; or, without a body, the request is not well formed").
+		Sends(http.StatusConflict, refusal, "`version_not_current`: the site's rules are at another version now")
 	// Reading takes a person id where the two writes take none, and the
 	// asymmetry is deliberate: accepting on somebody's behalf is
 	// meaningless and stays unexpressible, while reading an acceptance
@@ -271,6 +279,14 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Describe("The software, the protocols it speaks, whether it takes registrations, and how many people use it. Its names are NodeInfo's, in camelCase.").
 		Viewer(apidoc.Anyone).
 		Sends(http.StatusOK, handlers.NodeInfoDocument{})
+	// What the installation says about itself to the people who use it:
+	// its rules, its promises, and rules a new group may start from
+	// (roadmap row 102). Public: it is read before signing up.
+	api.GET("/site", h.NodeInfo.Site).
+		Summary("What this site says about itself").
+		Describe("Its rules, which everybody agrees to by ticking each one, with the version agreed to; its promises, for its About page; and the rules a new group is offered to start from. Every text in every language it is written in, by the web app's language names. The operator's, in `site.json` (configuration.md, `SITE_DEFAULTS_PATH`).").
+		Viewer(apidoc.Anyone).
+		Sends(http.StatusOK, handlers.SiteAbout{})
 
 	// ---------------------------------------------------------------
 	// OAuth user-facing endpoints (HTML flows + BFF endpoints).

@@ -114,6 +114,8 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [Reporting something](abuse-reports.md#reporting-something)
    - [The reasons list](abuse-reports.md#the-reasons-list)
    - [Using your own reasons](abuse-reports.md#using-your-own-reasons)
+   - [Breaking a rule](abuse-reports.md#breaking-a-rule)
+   - [A group's own reports](abuse-reports.md#a-groups-own-reports)
    - [What administrators do](abuse-reports.md#what-administrators-do)
    - [When the reported thing is deleted](abuse-reports.md#when-the-reported-thing-is-deleted)
    - [Who sees what](abuse-reports.md#who-sees-what)

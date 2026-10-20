@@ -132,6 +132,7 @@ func userRow() *sqlmock.Rows {
 		"email_verified_at", "onboarded_at", "has_bio", "invited_by",
 		"tos_accepted", "tos_accepted_version",
 		"pp_accepted", "pp_accepted_version",
+		"rules_accepted", "rules_accepted_version",
 		"language",
 	}).AddRow(
 		42, "node.actor.person-service.person.v1", true, "Ada Lovelace", "ada",
@@ -141,6 +142,7 @@ func userRow() *sqlmock.Rows {
 		nil,
 		time.Now(), nil, true, 0,
 		true, "1.0", true, "1.0",
+		false, "",
 		"fr",
 	)
 }

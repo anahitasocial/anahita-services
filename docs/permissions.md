@@ -401,6 +401,19 @@ socialgraph-service asks them.
 Nobody follows, or asks to follow, on somebody else's behalf. The one
 exception is the group setting below.
 
+**A group or an event with rules** (roadmap row 102) is followed, asked to
+follow, answered or joined by an invitation only once its rules are agreed
+to, each ticked, at the version they are at now (`POST /groups|events/:id/rules/agree`).
+Otherwise graph-grpc-service refuses, and the route answers 409
+`rules_not_agreed`. Its administrators, who write the rules, are not asked;
+nor is somebody an administrator adds as a follower, nor leaving.
+
+**A new post on it** is held to the same: after its rules change, a follower
+agrees to them again before their next post there (409 `rules_not_agreed`
+from text-service and photo-service). A reply is its writer's, and is not.
+A video post is refused when its upload is made into a post, so the web app
+asks before it is sent.
+
 Asking does not need you to be able to see the profile. A profile you can see,
 you can follow outright; the ones worth asking are the ones you cannot.
 "Others can request to follow" (`allow_follow_request`) is the profile saying
@@ -795,6 +808,7 @@ own rule, set in code and not changeable per profile:
 | Archive | The person themselves, a group's administrators, or a super administrator |
 | Delete, with 30 days to restore | The person themselves, a group's administrators, or a site administrator |
 | Purge, with no way back | Super administrators only |
+| Remove as spam, at once and with no way back | Site administrators and super administrators; never an administrator's or a super administrator's account, nor their own: see [Removing as spam](account-lifecycle.md#removing-as-spam) |
 | See the list of accounts and their activity | Super administrators only |
 | Appoint an administrator to any group | Site administrators and super administrators |
 | Change a person's account type | Administrators make administrators of registered people; the rest is super administrators'; never their own: see [Account types](#account-types) |

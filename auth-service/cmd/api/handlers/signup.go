@@ -155,11 +155,11 @@ func (h *signupHandler) Form(c echo.Context) error {
 		log.Println("signup: could not store the render time:", err)
 	}
 
-	return h.renderTemplate(c, "signup.html", map[string]any{
-		"CSRFToken":     token,
-		"HoneypotField": honeypotField,
-		"NeedsApproval": h.Config.RequiresRegistrationApproval(),
-	})
+	data := h.rulesData(c, false)
+	data["CSRFToken"] = token
+	data["HoneypotField"] = honeypotField
+	data["NeedsApproval"] = h.Config.RequiresRegistrationApproval()
+	return h.renderTemplate(c, "signup.html", data)
 }
 
 // looksAutomated reports whether a submission was not made by a person at the
@@ -307,6 +307,12 @@ func (h *signupHandler) Add(c echo.Context) error {
 		return h.renderSignupError(c, signupValidationMessage(req))
 	}
 
+	// The site's rules, each ticked, at the version they are at now
+	// (roadmap row 102, part 2b).
+	if !h.rulesTicked(c, false) {
+		return h.renderSignupError(c, "Tick each of our rules to agree to it.")
+	}
+
 	// Both taken-checks before anything is created. They are also enforced by
 	// the database and by the graph's handle namespace; these exist to say
 	// which field is the problem rather than surfacing a duplicate-key error.
@@ -390,6 +396,11 @@ func (h *signupHandler) Add(c echo.Context) error {
 			log.Printf("signup: orphaned actor %d after credential write failed: %v (purge also failed: %v)", created.ID, err, purgeErr)
 		}
 		return h.renderSignupError(c, "Could not create your account. Please try again.")
+	}
+
+	// Made with the agreement to the site's rules, as ticked above.
+	if lines, version := h.rulesToTick(c, false); len(lines) > 0 {
+		h.recordRules(c, user.ID, version)
 	}
 
 	// Confirm the address before the account can be used.
@@ -508,12 +519,12 @@ func (h *signupHandler) renderSignupError(c echo.Context, message string) error 
 		log.Println("signup: could not store the render time:", err)
 	}
 
-	return h.renderTemplate(c, "signup.html", map[string]any{
-		"CSRFToken":     token,
-		"HoneypotField": honeypotField,
-		"NeedsApproval": h.Config.RequiresRegistrationApproval(),
-		"Error":         message,
-	})
+	data := h.rulesData(c, false)
+	data["CSRFToken"] = token
+	data["HoneypotField"] = honeypotField
+	data["NeedsApproval"] = h.Config.RequiresRegistrationApproval()
+	data["Error"] = message
+	return h.renderTemplate(c, "signup.html", data)
 }
 
 // Email confirmation is in signup_confirm.go.
@@ -572,6 +583,10 @@ func (h *signupHandler) addSignupRequest(
 
 	source := newConsentSource(c)
 	sr.CreatedIP = source.ip
+	// The site's rules, ticked on the form (roadmap row 102).
+	if lines, version := h.rulesToTick(c, false); len(lines) > 0 {
+		sr.RulesVersion = version
+	}
 	sr.CreatedUserAgent = source.userAgent
 
 	if err := sr.SetPassword(req.Password); err != nil {

@@ -194,7 +194,7 @@ func (h *casesHandler) Read(c echo.Context) error {
 
 	ids := caseNodeIDs(append([]*entities.Case{item}, previous...)...)
 	for _, report := range reports {
-		ids = append(ids, report.ReporterID)
+		ids = append(ids, report.ReporterID, report.RuleProfileID)
 	}
 	mapper := h.mapper(c, ids)
 

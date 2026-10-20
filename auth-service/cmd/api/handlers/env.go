@@ -59,6 +59,7 @@ func (env *Env) renderTemplate(c echo.Context, name string, data map[string]any)
 	tmpl, err := template.ParseFiles(
 		"web/templates/base.html",
 		"web/templates/logo.html",
+		"web/templates/rules.html",
 		"web/templates/"+name,
 	)
 	if err != nil {

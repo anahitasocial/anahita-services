@@ -20,6 +20,20 @@ spec:
             - name: http
               containerPort: 80
           env:
+            # How long a deleted profile can be brought back: 30 days unless said.
+            - name: ACCOUNT_GRACE_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: ACCOUNT_GRACE_DAYS
+                  optional: true
+            # How new an account must be to be removed as spam: 30 days unless said.
+            - name: SPAM_REMOVAL_MAX_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SPAM_REMOVAL_MAX_DAYS
+                  optional: true
             - name: ENV
               valueFrom:
                 configMapKeyRef:
@@ -31,6 +45,13 @@ spec:
                 configMapKeyRef:
                   name: anahita-config
                   key: PHOTO_MAX_FILES
+                  optional: true
+            # Whether everybody ticks the site's rules: on unless off.
+            - name: SITE_RULES
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_RULES
                   optional: true
             # Mutual TLS on the calls to the gRPC services. Unset means on,
             # except with ENV=dev.

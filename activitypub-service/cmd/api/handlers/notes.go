@@ -460,6 +460,22 @@ func (h *Handlers) tellOf(ctx context.Context, nodeID int64, retagged bool) erro
 		return h.removed(ctx, nodeID)
 	}
 
+	// What it answers is the note before it in a thread written in one go,
+	// and not told of yet: the notes of such a thread are heard of in no
+	// set order. That is told of first, if it goes out at all, so the
+	// thread goes out whole and in order, and not at the next sweep
+	// (roadmap row 101). An older note of the writer's that never went out
+	// still does not.
+	if note.ParentID > 0 && !note.IsRemote() {
+		if parent, err := h.Nodes.Read(note.ParentID); err == nil && federation.WrittenTogether(parent, note) {
+			if known, err := h.Objects.Read(parent.ID); err == nil && known == nil {
+				if err := h.posted(ctx, parent.ID); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	author, answering := h.goesOut(note)
 	if author == nil {
 		// Not one that goes out. If it did before (it was open to

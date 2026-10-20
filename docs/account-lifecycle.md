@@ -15,6 +15,7 @@ Its routes are in the API reference: [actor-service](api/index.html#actor-servic
 - [What a purge removes](#what-a-purge-removes)
 - [What a purge leaves](#what-a-purge-leaves)
 - [Purging now](#purging-now)
+- [Removing as spam](#removing-as-spam)
 - [The accounts list](#the-accounts-list)
 - [The sweeper](#the-sweeper)
 - [Groups left without an administrator](#groups-left-without-an-administrator)
@@ -37,6 +38,10 @@ answer is 409, and says to make somebody else a super administrator first (see
 [Account types](permissions.md#account-types)).
 
 ## Deleting and the 30 days
+
+Thirty days unless the installation says otherwise, in `ACCOUNT_GRACE_DAYS`
+([Account cleanup](configuration.md#account-cleanup)); the web app says the
+site's number.
 
 A deleted account is hidden immediately and its sessions are ended. Nothing it
 owns is touched, so restoring it brings it back whole.
@@ -143,6 +148,36 @@ account's state. A purge that fails is tried three times and then marked
 
 Nobody is emailed about a purge.
 
+## Removing as spam
+
+A moderator's decision, not a cleanup (roadmap row 102): an account found to
+be spam is removed at once, as a purge removes it, without the 30 days a
+deleted account waits, since by the time those run out it may be too late.
+
+| Endpoint | What it does |
+| --- | --- |
+| `POST /people/:id/spam` | Removes a person as spam |
+| `POST /groups/:id/spam` | Removes a group as spam |
+
+- **Site administrators and super administrators** may, with no proof of
+  identity: the web app asks once more, saying it cannot be undone, and
+  spam is removed often and in a hurry.
+- **Never an administrator's or a super administrator's account,** nor the
+  viewer's own: refused with 409 `purge_refused`, `administrator` or
+  `yourself`, as a batch purge refuses them.
+- **Only a new account,** made in the last 30 days (`SPAM_REMOVAL_MAX_DAYS`):
+  spam is new, and one here longer is disabled or deleted instead, with the
+  30 days to bring it back (the user, 2026-10-19). An older one is refused
+  with `too_old`, and the web app offers the action only while it may.
+- **Recorded** in `node_deletion_logs` as `removed-as-spam` with who decided,
+  when it is asked for; the purge then writes its own rows (`purged`,
+  `hard-deleted`).
+- The answer, and how far it has got, are as for a purge (202 with a
+  `batch_id`).
+- In the web app: **Remove as spam** in the profile's menu, and on a report's
+  case, which is then closed as `removed_as_spam`
+  ([Abuse reports](abuse-reports.md#what-administrators-do)).
+
 ## The accounts list
 
 `GET /accounts` lists the site's people or groups for cleanup, least recently
@@ -226,4 +261,4 @@ A site administrator can then appoint one of its followers with
 | Purging now | `actor-service/cmd/api/handlers/person_purge.go`, `group_purge.go`; `graph-grpc-service/data/repositories/purge_requests.go` (`PurgeRequestMaxAttempts`), table `purge_requests` |
 | The filed reports of a purged person | `abuse-report-service/cmd/api/handlers/events.go` |
 | The accounts list | `auth-service/cmd/api/handlers/accounts.go`, `auth-service/data/repositories/accounts.go`; `auth-service/config/bootstrap.go` (`GetAccountDormantDays`), setting `ACCOUNT_DORMANT_DAYS` |
-| The sweeper | `graph-grpc-service/sweeper/sweeper.go` (`GraceDays`, `Run`), `graph-grpc-service/cmd/sweeper/main.go`, `k8s/base/jobs/sweeper-cronjob.yml`, `account-sweeper` in `docker-compose.yml`; setting `FILE_SERVICE_ADDR` |
+| The sweeper | `graph-grpc-service/sweeper/sweeper.go` (`Run`; the days are `anahita-libs/constants` `AccountGraceDays()`), `graph-grpc-service/cmd/sweeper/main.go`, `k8s/base/jobs/sweeper-cronjob.yml`, `account-sweeper` in `docker-compose.yml`; settings `FILE_SERVICE_ADDR` and `ACCOUNT_GRACE_DAYS` |

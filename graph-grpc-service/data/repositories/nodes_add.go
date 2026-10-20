@@ -4,6 +4,7 @@ import (
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"time"
 
@@ -19,6 +20,22 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		return nil, err
 	}
 
+	id, err := r.insert(ctx, r.db, node)
+	if err != nil {
+		return nil, err
+	}
+	node.ID = id
+
+	return r.Read(node.ID)
+}
+
+// execer is what an insert is made with: the database, or a transaction.
+type execer interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+}
+
+// insert writes a node's row, and says its id.
+func (r *nodesRepo) insert(ctx context.Context, db execer, node *entities.AnahitaNode) (int64, error) {
 	now := time.Now()
 	created := addedAt(node.CreatedAt, now)
 
@@ -124,24 +141,73 @@ func (r *nodesRepo) Add(node *entities.AnahitaNode) (*entities.AnahitaNode, erro
 		text(node.FeaturesRaw),
 	)
 
-	sql, args, err := query.ToSql()
+	statement, args, err := query.ToSql()
+	if err != nil {
+		return 0, err
+	}
+
+	result, err := db.ExecContext(ctx, statement, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.LastInsertId()
+}
+
+// AddThread makes several posts in one go, all or none (roadmap row 101):
+// each after the first a reply to the one before, the first a post or a
+// reply to what `parent` is. Each is placed in its thread as Add places a
+// reply. They are written in order, in one transaction, and read back in
+// that order.
+func (r *nodesRepo) AddThread(parent *entities.AnahitaNode, parts []*entities.AnahitaNode) ([]*entities.AnahitaNode, error) {
+	if len(parts) == 0 {
+		return nil, nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), r.dbTimeout)
+	defer cancel()
+
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
+	defer tx.Rollback()
 
-	result, err := r.db.ExecContext(ctx, sql, args...)
-	if err != nil {
+	ids := make([]int64, 0, len(parts))
+	before := parent
+	for _, part := range parts {
+		if before != nil {
+			part.ParentID = before.ID
+			part.ParentType = before.Type
+			part.RootID = before.RootID
+			if part.RootID <= 0 {
+				part.RootID = before.ID
+			}
+			part.Access = ""
+		}
+		if err := r.validateAdd(part); err != nil {
+			return nil, err
+		}
+		id, err := r.insert(ctx, tx, part)
+		if err != nil {
+			return nil, err
+		}
+		part.ID = id
+		ids = append(ids, id)
+		before = part
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return nil, err
+	made := make([]*entities.AnahitaNode, 0, len(ids))
+	for _, id := range ids {
+		node, err := r.Read(id)
+		if err != nil {
+			return nil, err
+		}
+		made = append(made, node)
 	}
-
-	node.ID = id
-
-	return r.Read(node.ID)
+	return made, nil
 }
 
 // BatchAdd creates multiple new nodes based on the provided entities.

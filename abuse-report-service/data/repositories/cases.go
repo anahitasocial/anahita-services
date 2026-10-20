@@ -34,6 +34,15 @@ type CasesInterface interface {
 	Count(status, reasonKey string) (uint64, error)
 	Read(id int64) (*entities.Case, error)
 	BrowseReports(caseID int64) ([]*entities.Report, error)
+	// BrowseForProfile is the cases with a report against a group's or an
+	// event's rules, newest first, and CountForProfile how many; for one of
+	// its administrators (roadmap row 102, part 6b). Never the profile
+	// itself, nor what the viewer is answerable for: whoever is reported is
+	// not told.
+	BrowseForProfile(profileID, viewerID int64, status string, limit, offset uint64) ([]*entities.Case, error)
+	CountForProfile(profileID, viewerID int64, status string) (uint64, error)
+	// ProfileReports is those reports, of the given cases, oldest first.
+	ProfileReports(profileID int64, caseIDs []int64) ([]*entities.Report, error)
 	BrowseForTarget(targetID, exceptCaseID int64) ([]*entities.Case, error)
 	ReasonCounts(caseIDs []int64) ([]entities.ReasonCount, error)
 
@@ -114,14 +123,18 @@ const (
 			reporter_id,
 			reason_key,
 			details,
+			rule_title,
+			rule_profile_id,
 			created_at,
 			updated_at,
 			created_ip
-		) VALUES (?, ?, ?, ?, NOW(), NOW(), ?)
+		) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), ?)
 		ON DUPLICATE KEY UPDATE
-			reason_key = VALUES(reason_key),
-			details    = VALUES(details),
-			updated_at = NOW()`
+			reason_key      = VALUES(reason_key),
+			details         = VALUES(details),
+			rule_title      = VALUES(rule_title),
+			rule_profile_id = VALUES(rule_profile_id),
+			updated_at      = NOW()`
 
 	countNewReport = `
 		UPDATE abuse_cases
@@ -156,6 +169,52 @@ const (
 		              AND abuse_reports.reason_key = ?
 		       ))`
 
+	// Cases of one status with a report against one profile's rules.
+	selectCasesForProfile = `
+		SELECT ` + caseColumns + `
+		  FROM abuse_cases
+		 WHERE status = ?
+		   AND target_id <> ?
+		   AND COALESCE(target_owner_id, 0) <> ?
+		   AND EXISTS (
+		           SELECT 1
+		             FROM abuse_reports
+		            WHERE abuse_reports.case_id = abuse_cases.id
+		              AND abuse_reports.rule_profile_id = ?
+		       )
+		 ORDER BY last_reported_at DESC, id DESC
+		 LIMIT ? OFFSET ?`
+
+	countCasesForProfile = `
+		SELECT COUNT(*)
+		  FROM abuse_cases
+		 WHERE status = ?
+		   AND target_id <> ?
+		   AND COALESCE(target_owner_id, 0) <> ?
+		   AND EXISTS (
+		           SELECT 1
+		             FROM abuse_reports
+		            WHERE abuse_reports.case_id = abuse_cases.id
+		              AND abuse_reports.rule_profile_id = ?
+		       )`
+
+	// %s is one placeholder per case id.
+	selectProfileReports = `
+		SELECT id,
+		       case_id,
+		       reporter_id,
+		       reason_key,
+		       details,
+		       rule_title,
+		       rule_profile_id,
+		       created_at,
+		       updated_at,
+		       created_ip
+		  FROM abuse_reports
+		 WHERE rule_profile_id = ?
+		   AND case_id IN (%s)
+		 ORDER BY created_at, id`
+
 	selectCase = `
 		SELECT ` + caseColumns + `
 		  FROM abuse_cases
@@ -167,6 +226,8 @@ const (
 		       reporter_id,
 		       reason_key,
 		       details,
+		       rule_title,
+		       rule_profile_id,
 		       created_at,
 		       updated_at,
 		       created_ip
@@ -349,7 +410,8 @@ func (r *cases) addReport(target entities.Case, report entities.Report) (int64, 
 	// One report per person per case. MySQL reports 1 row for an insert, 2
 	// for a row it changed, and 0 for one it found identical.
 	result, err := tx.ExecContext(ctx, upsertReport,
-		caseID, report.ReporterID, report.ReasonKey, report.Details, report.CreatedIP)
+		caseID, report.ReporterID, report.ReasonKey, report.Details,
+		report.RuleTitle, report.RuleProfileID, report.CreatedIP)
 	if err != nil {
 		return 0, false, err
 	}
@@ -411,6 +473,64 @@ func (r *cases) Count(status, reasonKey string) (uint64, error) {
 	return total, err
 }
 
+func (r *cases) BrowseForProfile(profileID, viewerID int64, status string, limit, offset uint64) ([]*entities.Case, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	rows, err := r.db.QueryContext(ctx, selectCasesForProfile,
+		status, profileID, viewerID, profileID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return scanCases(rows)
+}
+
+func (r *cases) CountForProfile(profileID, viewerID int64, status string) (uint64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	var total uint64
+	err := r.db.QueryRowContext(ctx, countCasesForProfile,
+		status, profileID, viewerID, profileID).Scan(&total)
+	return total, err
+}
+
+func (r *cases) ProfileReports(profileID int64, caseIDs []int64) ([]*entities.Report, error) {
+	list := []*entities.Report{}
+	if len(caseIDs) == 0 {
+		return list, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	args := make([]any, 0, len(caseIDs)+1)
+	args = append(args, profileID)
+	for _, id := range caseIDs {
+		args = append(args, id)
+	}
+	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(caseIDs)), ",")
+
+	rows, err := r.db.QueryContext(ctx, fmt.Sprintf(selectProfileReports, placeholders), args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		report := &entities.Report{}
+		if err := rows.Scan(&report.ID, &report.CaseID, &report.ReporterID, &report.ReasonKey,
+			&report.Details, &report.RuleTitle, &report.RuleProfileID,
+			&report.CreatedAt, &report.UpdatedAt, &report.CreatedIP); err != nil {
+			return nil, err
+		}
+		list = append(list, report)
+	}
+	return list, rows.Err()
+}
+
 func (r *cases) Read(id int64) (*entities.Case, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -433,7 +553,8 @@ func (r *cases) BrowseReports(caseID int64) ([]*entities.Report, error) {
 	for rows.Next() {
 		report := &entities.Report{}
 		if err := rows.Scan(&report.ID, &report.CaseID, &report.ReporterID, &report.ReasonKey,
-			&report.Details, &report.CreatedAt, &report.UpdatedAt, &report.CreatedIP); err != nil {
+			&report.Details, &report.RuleTitle, &report.RuleProfileID,
+			&report.CreatedAt, &report.UpdatedAt, &report.CreatedIP); err != nil {
 			return nil, err
 		}
 		list = append(list, report)

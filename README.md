@@ -53,6 +53,25 @@ deploying and the rest. It also lists the design documents in
 - Anahita nodes and entities examples on the Go playground: https://go.dev/play/p/96bs5YHt84x
 - Website: https://www.anahita.io
 
+## Using Anahita responsibly
+
+Anahita is built to create safe online spaces. The people who join your
+online space will trust you with their words, their pictures and their
+communities. Whoever installs Anahita makes this pledge, item by item, when
+they set their first password:
+
+**I won't use Anahita to:**
+
+- Spread hate or organize hate groups, including against women, LGBTQIA+ people, or marginalized communities.
+- Harm or exploit children.
+- Harass, threaten, or expose the private data (dox) of anyone.
+- Promote violent extremism or terrorism.
+- Spread misinformation about health or science.
+- Abuse the system through spam, malware, financial scams, or data harvesting.
+
+It is a pledge to the people who will trust you, from Anahita's creator,
+Rastin Mehr; not a term of the licence, which is unchanged.
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).

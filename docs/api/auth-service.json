@@ -72,6 +72,30 @@
         ],
         "type": "object"
       },
+      "Item": {
+        "description": "Item is one rule, promise or suggestion: a short title, and a line more if it needs one.",
+        "properties": {
+          "body": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
       "Pagination": {
         "description": "Pagination is where a page is among everything there is to list.",
         "properties": {
@@ -119,6 +143,28 @@
         },
         "required": [
           "error"
+        ],
+        "type": "object"
+      },
+      "Rules": {
+        "description": "Rules is the site's rules, with the version agreed to. Raising the version asks everybody to agree again; a correction that leaves it as it is asks nobody.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "items"
         ],
         "type": "object"
       },
@@ -237,6 +283,10 @@
             "$ref": "#/components/schemas/auth.consentItem",
             "description": "The Privacy Policy."
           },
+          "rules": {
+            "$ref": "#/components/schemas/auth.consentItem",
+            "description": "The site's rules (site.json, roadmap row 102)."
+          },
           "tos": {
             "$ref": "#/components/schemas/auth.consentItem",
             "description": "The Terms of Service."
@@ -244,7 +294,8 @@
         },
         "required": [
           "tos",
-          "privacy"
+          "privacy",
+          "rules"
         ],
         "type": "object"
       },
@@ -436,7 +487,7 @@
         "properties": {
           "metadata": {
             "additionalProperties": {},
-            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
+            "description": "What the web app reads of the installation: `nodeName`, `nodeDescription`, `registrationMode`, `approvalRequired`, `invitationsAccepted`, `invitesFrom`, `groupsFrom`, `eventsFrom`, `websitesFrom`, `locationsFrom`, `minContentAccess`, `readAccess`, `networks`, `photoMaxFiles`, `siteRules`, `spamRemovalMaxDays`, `accountGraceDays`, `videoUploads`, `videoMaxBytes`, `videoMaxSeconds`, `animationMaxBytes`, `animationMaxSeconds`, `termsOfServiceUrl`, `privacyPolicyUrl`, and the support contacts `supportEmail`, `supportPhone` and `supportWebsite`.",
             "type": [
               "object",
               "null"
@@ -1206,6 +1257,41 @@
           "created_ip",
           "created_at",
           "username_taken"
+        ],
+        "type": "object"
+      },
+      "auth.SiteAbout": {
+        "description": "SiteAbout is what GET /site answers: every text in every language it is written in, keyed by the web app's language names (\"en-CA\", \"fr-FR\"), for the reader's app to choose from.",
+        "properties": {
+          "promises": {
+            "description": "Shown on the About page, under \"Our promises to you\".",
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "rule_suggestions": {
+            "description": "Offered to a group's administrators when they write its rules.",
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "rules": {
+            "$ref": "#/components/schemas/Rules",
+            "description": "The site's rules, and the version agreed to: everybody ticks each before using the site, and again when the version is raised."
+          }
+        },
+        "required": [
+          "rules",
+          "promises",
+          "rule_suggestions"
         ],
         "type": "object"
       },
@@ -2093,6 +2179,120 @@
           "auth-service"
         ],
         "x-handler": "auth/cmd/api/handlers.(*agreementsHandler).EditPrivacy",
+        "x-viewer": "signed_in"
+      }
+    },
+    "/agreements/rules": {
+      "patch": {
+        "description": "The viewer's own agreement, each rule ticked, of the version `GET /site` has now (roadmap row 102).\n\nWho may call it: somebody signed in.",
+        "operationId": "patchAgreementsRules",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "accepted": {
+                    "description": "True.",
+                    "type": "boolean"
+                  },
+                  "version": {
+                    "description": "The version accepted: `1.0`.",
+                    "maxLength": 20,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "accepted": {
+                    "description": "True.",
+                    "type": "boolean"
+                  },
+                  "version": {
+                    "description": "The version accepted: `1.0`.",
+                    "maxLength": 20,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "accepted": {
+                    "description": "True.",
+                    "type": "boolean"
+                  },
+                  "version": {
+                    "description": "The version accepted: `1.0`.",
+                    "maxLength": 20,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.Accepted"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`version_malformed`: the version is not a dotted number; `not_accepted`: `accepted` is false; or, without a body, the request is not well formed"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            },
+            "description": "`version_not_current`: the site's rules are at another version now"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Agree to the site's rules",
+        "tags": [
+          "auth-service"
+        ],
+        "x-handler": "auth/cmd/api/handlers.(*agreementsHandler).EditRules",
         "x-viewer": "signed_in"
       }
     },
@@ -6628,6 +6828,36 @@
           "auth-service"
         ],
         "x-handler": "auth/cmd/api/handlers.(*signupHandler).Resend",
+        "x-viewer": "anyone"
+      }
+    },
+    "/site": {
+      "get": {
+        "description": "Its rules, which everybody agrees to by ticking each one, with the version agreed to; its promises, for its About page; and the rules a new group is offered to start from. Every text in every language it is written in, by the web app's language names. The operator's, in `site.json` (configuration.md, `SITE_DEFAULTS_PATH`).\n\nWho may call it: anyone, signed in or not.",
+        "operationId": "getSite",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.SiteAbout"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {},
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What this site says about itself",
+        "tags": [
+          "auth-service"
+        ],
+        "x-handler": "auth/cmd/api/handlers.(*nodeInfoHandler).Site",
         "x-viewer": "anyone"
       }
     },

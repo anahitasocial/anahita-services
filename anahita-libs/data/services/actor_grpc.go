@@ -56,6 +56,12 @@ type ActorsGRPCInterface interface {
 	// SUPER ADMINISTRATORS ONLY, and the caller enforces that — graph-grpc has
 	// no notion of a usertype. Nothing about this is reversible.
 	RequestPurge(req *ActorPurgeRequest, viewer *entities.Viewer) (*graphpb.ActorPurgeBatchResponse, error)
+	// A group's or an event's rules (roadmap row 102, part 5): read, with
+	// the version a person last agreed to when personID is given; set; and
+	// agreed to by the viewer.
+	ReadRules(profileID, personID int64) (*graphpb.RulesReadResponse, error)
+	SetRules(profileID int64, items []*graphpb.ProfileRule, viewer *entities.Viewer) (*graphpb.ProfileRules, error)
+	AgreeRules(profileID, version int64, viewer *entities.Viewer) error
 
 	// ReadPurgeBatch reports how far a RequestPurge has got. A batch id
 	// nobody was given comes back with a total of zero.
@@ -402,6 +408,10 @@ type ActorPurgeRequest struct {
 	// AllowAdministrators is false for a bulk cleanup, which is refused whole
 	// if it names an administrator, and true for removing one named account.
 	AllowAdministrators bool
+
+	// Reason is "spam" for an account removed as spam by a moderator
+	// (roadmap row 102), recorded as such; empty for a cleanup.
+	Reason string
 }
 
 // RequestPurge queues actors to be destroyed now. The authority check belongs
@@ -419,6 +429,7 @@ func (srv *ActorsGRPC) RequestPurge(req *ActorPurgeRequest, viewer *entities.Vie
 		Ids:                 req.IDs,
 		Type:                req.Type,
 		AllowAdministrators: req.AllowAdministrators,
+		Reason:              req.Reason,
 		Viewer: &graphpb.Viewer{
 			Id:         viewer.ID,
 			PersonType: viewer.PersonType,
@@ -426,6 +437,58 @@ func (srv *ActorsGRPC) RequestPurge(req *ActorPurgeRequest, viewer *entities.Vie
 			Username:   viewer.Username,
 		},
 	})
+}
+
+// ReadRules is a profile's rules, and with a person, the version they last
+// agreed to.
+func (srv *ActorsGRPC) ReadRules(profileID, personID int64) (*graphpb.RulesReadResponse, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, errors.New("the graph service is not configured")
+	}
+	return client.ReadRules(context.Background(), &graphpb.RulesReadRequest{ProfileId: profileID, PersonId: personID})
+}
+
+// SetRules replaces a profile's rules. Whether the viewer may is the
+// caller's to ask.
+func (srv *ActorsGRPC) SetRules(profileID int64, items []*graphpb.ProfileRule, viewer *entities.Viewer) (*graphpb.ProfileRules, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, errors.New("the graph service is not configured")
+	}
+	resp, err := client.SetRules(context.Background(), &graphpb.RulesSetRequest{
+		ProfileId: profileID,
+		Items:     items,
+		Viewer:    &graphpb.Viewer{Id: viewer.ID, PersonType: viewer.PersonType},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp.GetRules(), nil
+}
+
+// AgreeRules records the viewer agreeing to the version a profile's rules
+// are at now; any other is refused.
+func (srv *ActorsGRPC) AgreeRules(profileID, version int64, viewer *entities.Viewer) error {
+	client, err := srv.getClient()
+	if err != nil {
+		return err
+	}
+	if client == nil {
+		return errors.New("the graph service is not configured")
+	}
+	_, err = client.AgreeRules(context.Background(), &graphpb.RulesAgreeRequest{
+		ProfileId: profileID,
+		Version:   version,
+		Viewer:    &graphpb.Viewer{Id: viewer.ID, PersonType: viewer.PersonType},
+	})
+	return err
 }
 
 // ReadPurgeBatch reports how far a RequestPurge has got.

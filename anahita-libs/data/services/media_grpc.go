@@ -29,6 +29,10 @@ type MediaGRPCInterface interface {
 	// AddWithLocations adds a medium tied to the locations its author
 	// chose, as it is made.
 	AddWithLocations(medium *entities.AnahitaNode, viewer *entities.Viewer, locationIDs []int64) (*entities.AnahitaNode, error)
+	// AddThread makes several posts in one go, all or none, each after the
+	// first a reply to the one before; the first answers parentID, or is a
+	// post when it is 0 (roadmap row 101).
+	AddThread(parentID int64, parts []*entities.AnahitaNode, viewer *entities.Viewer, locationIDs []int64) ([]*entities.AnahitaNode, error)
 
 	// Delete removes a media
 	Delete(id int64, viewer *entities.Viewer) error
@@ -266,6 +270,41 @@ func (srv *MediaGRPC) AddWithLocations(item *entities.AnahitaNode, viewer *entit
 	}
 
 	return grpcToGraphNode(resp.Medium), nil
+}
+
+// AddThread makes several posts in one go, all or none (roadmap row 101).
+func (srv *MediaGRPC) AddThread(parentID int64, parts []*entities.AnahitaNode, viewer *entities.Viewer, locationIDs []int64) ([]*entities.AnahitaNode, error) {
+	client, err := srv.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, nil
+	}
+
+	req := &graphpb.MediumThreadAddRequest{
+		ParentId: parentID,
+		Viewer: &graphpb.Viewer{
+			Id:         viewer.ID,
+			PersonType: viewer.PersonType,
+			Email:      viewer.Email,
+			Username:   viewer.Username,
+		},
+		LocationIds: locationIDs,
+	}
+	for _, part := range parts {
+		req.Parts = append(req.Parts, graphNodeToGrpc(part))
+	}
+	resp, err := client.AddThread(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	made := make([]*entities.AnahitaNode, 0, len(resp.GetParts()))
+	for _, part := range resp.GetParts() {
+		made = append(made, grpcToGraphNode(part))
+	}
+	return made, nil
 }
 
 // Delete removes a media

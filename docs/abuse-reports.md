@@ -14,6 +14,7 @@ Its routes are in the API reference: [abuse-report-service](api/index.html#abuse
 - [Reporting something](#reporting-something)
 - [The reasons list](#the-reasons-list)
 - [Using your own reasons](#using-your-own-reasons)
+- [Breaking a rule](#breaking-a-rule)
 - [What administrators do](#what-administrators-do)
 - [When the reported thing is deleted](#when-the-reported-thing-is-deleted)
 - [Who sees what](#who-sees-what)
@@ -47,7 +48,7 @@ the thing it was about.
 | --- | --- |
 | 201 | Reported |
 | 200 | You had already reported it. Your report now has the new reason and details |
-| 400 | The reason is not on the list or does not apply to this kind of thing, the reason needs an explanation and none was given, or it is your own |
+| 400 | The reason is not on the list or does not apply to this kind of thing, the reason needs an explanation and none was given, the rule is not one of the rules it is under (`rule_required`, `rule_not_applicable`), or it is your own |
 | 403 | You are not signed in, or the app you use may not write for you (`account:write`) |
 | 404 | There is no such thing that you can see |
 | 429 | More than 20 reports in the last hour |
@@ -120,6 +121,54 @@ reasons, repeats a key or lacks an `en-GB` label, is not applied in part. The
 built-in list is used until it is fixed, and the service's log says what is
 wrong with it.
 
+## Breaking a rule
+
+Besides a reason from the list, a report can say which rule was broken: one
+of the site's rules (`site.json`, [configuration.md](configuration.md)) or
+one of the rules of the group or event it was posted in, or of the group or
+event itself. The rules are the reasons here, so they are not in the reasons
+file.
+
+`POST /abuse-reports` with `{ "target_id": 123, "reason_key": "rule", "rule": "Be kind", "rule_profile_id": 456 }`.
+
+| Field | Value |
+| --- | --- |
+| `reason_key` | `rule` |
+| `rule` | The rule's title as the reporter read it, up to 100 characters |
+| `rule_profile_id` | `0` for the site's rules, or the group's or event's id |
+
+- **A group's or an event's rule is checked:** it must be one of its rules
+  now, and the thing reported must be the group or event, be posted in it,
+  or be a reply in a thread posted in it. Otherwise `rule_not_applicable`.
+- **The site's rules are taken as given.** This service does not read
+  `site.json`; the administrator reading the report has the rules in front
+  of them.
+- **Stored with the report**, in `abuse_reports.rule_title` and
+  `rule_profile_id`. The case answers with `rule`, `rule_profile_id` and the
+  profile itself as `rule_profile`.
+- **Filtered like any reason:** `GET /abuse-reports/cases?reason=rule`.
+
+### A group's own reports
+
+A group's or an event's administrators see the reports against its rules:
+`GET /abuse-reports/profiles/:id/cases` (`?status=open`, the default, and
+`limit`, `start`), in the web app the **Reports** tab of its settings.
+
+| Answer | Meaning |
+| --- | --- |
+| 200 | The cases with a report against its rules, newest first, each with those reports: `rule`, `details` and `created_at` |
+| 403 | You administer neither it nor the site |
+| 404 | There is no such group or event |
+
+- **Nobody's name.** Who reported is shown to the site's administrators
+  only.
+- **Never what is about them.** A report on the group or event itself, or on
+  something the viewer is answerable for, is left out: whoever is reported
+  is not told.
+- **They act where it is.** Deleting a post on its page closes its case, as
+  for any deleted post. Deciding a case (Dismiss, Close) stays with the
+  site's administrators, whose case it is.
+
 ## What administrators do
 
 In the web app, under **Administration › Reports**. The endpoints:
@@ -137,7 +186,9 @@ post, disabling an account or archiving a group is done through the service
 that owns it, under that service's own rules: an administrator who may not
 archive a group cannot do it from here either. The app does the action first,
 then records the case as `actioned` with what was done: `deleted`, `disabled`,
-`archived`, `blocked` or `other`.
+`archived`, `blocked`, `removed_as_spam` or `other`. A person or a group
+reported can be removed as spam from its case, which is then closed as
+`removed_as_spam` ([Removing as spam](account-lifecycle.md#removing-as-spam)).
 
 Two administrators deciding the same case at once get one decision recorded;
 the second is told it was already decided (409). A closed case cannot be

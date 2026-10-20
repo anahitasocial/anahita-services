@@ -52,11 +52,11 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 </header>
 <nav aria-label="Services">
 <ul>
-<li><a href="#abuse-report-service">Abuse reports</a> <span class="count">8</span></li>
+<li><a href="#abuse-report-service">Abuse reports</a> <span class="count">9</span></li>
 <li><a href="#activitypub-service">The fediverse</a> <span class="count">20</span></li>
-<li><a href="#actor-service">Profiles</a> <span class="count">69</span></li>
+<li><a href="#actor-service">Profiles</a> <span class="count">77</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
-<li><a href="#auth-service">Accounts and signing in</a> <span class="count">95</span></li>
+<li><a href="#auth-service">Accounts and signing in</a> <span class="count">97</span></li>
 <li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
 <li><a href="#feed-service">Feeds</a> <span class="count">18</span></li>
 <li><a href="#hashtag-service">Hashtags</a> <span class="count">10</span></li>
@@ -70,20 +70,20 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#search-service">Search</a> <span class="count">3</span></li>
 <li><a href="#socialgraph-service">Following and blocking</a> <span class="count">18</span></li>
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
-<li><a href="#text-service">Notes, articles and topics</a> <span class="count">44</span></li>
+<li><a href="#text-service">Notes, articles and topics</a> <span class="count">46</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">150</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">159</span></li>
 </ul>
 </nav>
 <main>
 <section id="abuse-report-service" class="service">
 <h2>Abuse reports <code>abuse-report-service</code></h2>
 <p>Reporting a post, a reply or a profile, and the administrators&#39; queue of what was reported. Optional: an installation may not run it (<a href="../abuse-reports.md">abuse-reports.md</a>).</p>
-<details class="route" id="postAbuseReports" data-search="post /abuse-reports report something nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. a thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. twenty reports an hour at most.
+<details class="route" id="postAbuseReports" data-search="post /abuse-reports report something nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. a thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. twenty reports an hour at most. with `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site&#39;s (`rule_profile_id` 0, from `get /site`) or those of the group or event it is in, or is (its id).
 
 who may call it: somebody signed in, with a token that carries `account:write`.">
 <summary><span class="method post">POST</span> <code class="path">/abuse-reports</code> <span class="summary">Report something</span></summary>
-<div class="description"><p>Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.</p></div>
+<div class="description"><p>Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With <code>reason_key</code> <code>rule</code>, it breaks one of the rules everybody ticked, named by its title in <code>rule</code>: the site&#39;s (<code>rule_profile_id</code> 0, from <code>GET /site</code>) or those of the group or event it is in, or is (its id).</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>account:write</code></p>
 <h4>Takes, as <code>application/json</code></h4>
 <table>
@@ -91,6 +91,8 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td><code>details</code></td><td>string</td><td>What the reporter adds in their own words. Needed where the reason says so. At most 1000 characters.</td></tr>
 <tr><td><code>reason_key</code> <span class="required">always</span></td><td>string</td><td>Why, by the reason&#39;s key (GET /abuse-reports/reasons). At most 64 characters.</td></tr>
+<tr><td><code>rule</code></td><td>string</td><td>With reason_key &#34;rule&#34;: the rule broken, by its title as the reporter read it, and whose rule it is: 0 for the site&#39;s, or the group or event the reported thing belongs to (roadmap row 102, part 6). At most 100 characters.</td></tr>
+<tr><td><code>rule_profile_id</code></td><td>integer</td><td> At least 0.</td></tr>
 <tr><td><code>target_id</code> <span class="required">always</span></td><td>integer</td><td>The id of what is reported: a post, a reply, a profile. At least 1.</td></tr>
 </tbody>
 </table>
@@ -99,7 +101,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td class="status s2">200</td><td>the viewer had reported it already; their report was updated</td></tr>
 <tr><td class="status s2">201</td><td>reported</td></tr>
-<tr><td class="status s4">400</td><td><code>own_content</code>, it is the viewer&#39;s own; <code>reason_not_applicable</code>, the reason is not for this kind of thing; <code>details_required</code>, the reason needs the reporter&#39;s own words; or not well formed, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>own_content</code>, it is the viewer&#39;s own; <code>reason_not_applicable</code>, the reason is not for this kind of thing; <code>details_required</code>, the reason needs the reporter&#39;s own words; <code>rule_required</code>, <code>rule</code> is empty; <code>rule_not_applicable</code>, it is not one of that profile&#39;s rules, or the thing is not in that profile; or not well formed, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
 <tr><td class="status s4">404</td><td>there is no such thing that the viewer can see</td></tr>
@@ -108,11 +110,11 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </table>
 <p class="handler">Answered by <code>abusereport/cmd/api/handlers.(*reportsHandler).Add</code></p>
 </details>
-<details class="route" id="postAbuseReports2" data-search="post /abuse-reports/ report something nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. a thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. twenty reports an hour at most.
+<details class="route" id="postAbuseReports2" data-search="post /abuse-reports/ report something nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. a thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. twenty reports an hour at most. with `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site&#39;s (`rule_profile_id` 0, from `get /site`) or those of the group or event it is in, or is (its id).
 
 who may call it: somebody signed in, with a token that carries `account:write`.">
 <summary><span class="method post">POST</span> <code class="path">/abuse-reports/</code> <span class="summary">Report something</span></summary>
-<div class="description"><p>Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.</p></div>
+<div class="description"><p>Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With <code>reason_key</code> <code>rule</code>, it breaks one of the rules everybody ticked, named by its title in <code>rule</code>: the site&#39;s (<code>rule_profile_id</code> 0, from <code>GET /site</code>) or those of the group or event it is in, or is (its id).</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>account:write</code></p>
 <h4>Takes, as <code>application/json</code></h4>
 <table>
@@ -120,6 +122,8 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td><code>details</code></td><td>string</td><td>What the reporter adds in their own words. Needed where the reason says so. At most 1000 characters.</td></tr>
 <tr><td><code>reason_key</code> <span class="required">always</span></td><td>string</td><td>Why, by the reason&#39;s key (GET /abuse-reports/reasons). At most 64 characters.</td></tr>
+<tr><td><code>rule</code></td><td>string</td><td>With reason_key &#34;rule&#34;: the rule broken, by its title as the reporter read it, and whose rule it is: 0 for the site&#39;s, or the group or event the reported thing belongs to (roadmap row 102, part 6). At most 100 characters.</td></tr>
+<tr><td><code>rule_profile_id</code></td><td>integer</td><td> At least 0.</td></tr>
 <tr><td><code>target_id</code> <span class="required">always</span></td><td>integer</td><td>The id of what is reported: a post, a reply, a profile. At least 1.</td></tr>
 </tbody>
 </table>
@@ -128,7 +132,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td class="status s2">200</td><td>the viewer had reported it already; their report was updated</td></tr>
 <tr><td class="status s2">201</td><td>reported</td></tr>
-<tr><td class="status s4">400</td><td><code>own_content</code>, it is the viewer&#39;s own; <code>reason_not_applicable</code>, the reason is not for this kind of thing; <code>details_required</code>, the reason needs the reporter&#39;s own words; or not well formed, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>own_content</code>, it is the viewer&#39;s own; <code>reason_not_applicable</code>, the reason is not for this kind of thing; <code>details_required</code>, the reason needs the reporter&#39;s own words; <code>rule_required</code>, <code>rule</code> is empty; <code>rule_not_applicable</code>, it is not one of that profile&#39;s rules, or the thing is not in that profile; or not well formed, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
 <tr><td class="status s4">404</td><td>there is no such thing that the viewer can see</td></tr>
@@ -241,7 +245,7 @@ who may call it: a site administrator, with a token that carries `actors:read`."
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>action</code></td><td>string</td><td>What was done: <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code> or <code>other</code>. One of <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code>, <code>other</code>.</td></tr>
+<tr><td><code>action</code></td><td>string</td><td>What was done: <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code>, <code>removed_as_spam</code> or <code>other</code>. One of <code>none</code>, <code>deleted</code>, <code>disabled</code>, <code>archived</code>, <code>blocked</code>, <code>removed_as_spam</code>, <code>other</code>.</td></tr>
 <tr><td><code>note</code></td><td>string</td><td>What the administrator wants remembered of it. At most 2000 characters.</td></tr>
 <tr><td><code>status</code> <span class="required">always</span></td><td>string</td><td><code>actioned</code>, something was done; or <code>dismissed</code>, nothing needed doing. One of <code>actioned</code>, <code>dismissed</code>.</td></tr>
 </tbody>
@@ -258,6 +262,34 @@ who may call it: a site administrator, with a token that carries `actors:read`."
 </tbody>
 </table>
 <p class="handler">Answered by <code>abusereport/cmd/api/handlers.(*casesHandler).Resolve</code></p>
+</details>
+<details class="route" id="getAbuseReportsProfilesByIdCases" data-search="get /abuse-reports/profiles/{id}/cases a group&#39;s or an event&#39;s reports the cases with a report against a group&#39;s or an event&#39;s rules, newest first, each with those reports: the rule, the reporter&#39;s words and when, never who made them. for its administrators and the site&#39;s. they act on what was reported where it is, by deleting or hiding it, which closes its case; deciding the case stays with the site&#39;s administrators.
+
+who may call it: somebody signed in, with a token that carries `actors:read`.">
+<summary><span class="method get">GET</span> <code class="path">/abuse-reports/profiles/{id}/cases</code> <span class="summary">A group&#39;s or an event&#39;s reports</span></summary>
+<div class="description"><p>The cases with a report against a group&#39;s or an event&#39;s rules, newest first, each with those reports: the rule, the reporter&#39;s words and when, never who made them. For its administrators and the site&#39;s. They act on what was reported where it is, by deleting or hiding it, which closes its case; deciding the case stays with the site&#39;s administrators.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>actors:read</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The group&#39;s or the event&#39;s id.</td></tr>
+<tr><td><code>status</code></td><td>query</td><td>string</td><td>Which cases: <code>open</code> (the default), <code>actioned</code> or <code>dismissed</code>. One of <code>open</code>, <code>actioned</code>, <code>dismissed</code>.</td></tr>
+<tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
+<tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send: 20 unless asked, 100 at most. At least 0.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-abusereport.ProfileCase">abusereport.ProfileCase</a> or null, <code>pagination</code>: <a href="#schema-Pagination">Pagination</a> } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer administers neither it nor the site</td></tr>
+<tr><td class="status s4">404</td><td>there is no such group or event</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>abusereport/cmd/api/handlers.(*casesHandler).BrowseForProfile</code></p>
 </details>
 <details class="route" id="getAbuseReportsReasons" data-search="get /abuse-reports/reasons what a thing may be reported for the installation&#39;s list, worded in the language asked for.
 
@@ -1306,7 +1338,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not go to it</td></tr>
 <tr><td class="status s4">404</td><td>there is no such event</td></tr>
-<tr><td class="status s4">409</td><td><code>event_full</code>: every place is taken; maybe is still open<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">409</td><td><code>event_full</code>: every place is taken; maybe is still open; or <code>rules_not_agreed</code>: it is a group or an event with rules the viewer has not agreed to; tick each and agree (<code>POST /groups|events/:id/rules/agree</code>), then ask again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">410</td><td><code>event_closed</code>: it is over or called off<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
@@ -1333,6 +1365,94 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*eventHandler).Unrsvp</code></p>
+</details>
+<details class="route" id="getEventsByIdRules" data-search="get /events/{id}/rules the rules of a event what somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. for whoever may see it, and for whoever it would let ask to follow.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/events/{id}/rules</code> <span class="summary">The rules of a event</span></summary>
+<div class="description"><p>What somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. For whoever may see it, and for whoever it would let ask to follow.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.Rules">actor.Rules</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not see it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such event</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).ReadRules</code></p>
+</details>
+<details class="route" id="putEventsByIdRules" data-search="put /events/{id}/rules set the rules of a event the rules as they are to be from now on, in order, at most ten; an empty list takes them away. every change raises the version, so that whoever agreed before is asked again. for whoever may change it.
+
+who may call it: somebody signed in.">
+<summary><span class="method put">PUT</span> <code class="path">/events/{id}/rules</code> <span class="summary">Set the rules of a event</span></summary>
+<div class="description"><p>The rules as they are to be from now on, in order, at most ten; an empty list takes them away. Every change raises the version, so that whoever agreed before is asked again. For whoever may change it.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>items</code></td><td>list of <a href="#schema-actor.Rule">actor.Rule</a></td><td> At most 10 of them.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.Rules">actor.Rules</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>rules_invalid</code>: more than ten, or one too long<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such event</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).SetRules</code></p>
+</details>
+<details class="route" id="postEventsByIdRulesAgree" data-search="post /events/{id}/rules/agree agree to the rules of a event the viewer agreeing, each rule ticked, to the version they were shown.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/events/{id}/rules/agree</code> <span class="summary">Agree to the rules of a event</span></summary>
+<div class="description"><p>The viewer agreeing, each rule ticked, to the version they were shown.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>version</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">204</td><td>No Content</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td>there is no such event</td></tr>
+<tr><td class="status s4">409</td><td><code>rules_not_current</code>: the rules changed since; read them again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).AgreeRules</code></p>
 </details>
 <details class="route" id="getGroups" data-search="get /groups/ groups those the viewer may see. each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).
 
@@ -1895,6 +2015,120 @@ who may call it: somebody signed in.">
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).Restore</code></p>
 </details>
+<details class="route" id="getGroupsByIdRules" data-search="get /groups/{id}/rules the rules of a group what somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. for whoever may see it, and for whoever it would let ask to follow.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/groups/{id}/rules</code> <span class="summary">The rules of a group</span></summary>
+<div class="description"><p>What somebody agrees to, each ticked, before following it or answering it: at most ten, in order, with the version they are at and the version the viewer last agreed to. For whoever may see it, and for whoever it would let ask to follow.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.Rules">actor.Rules</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not see it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such group</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).ReadRules</code></p>
+</details>
+<details class="route" id="putGroupsByIdRules" data-search="put /groups/{id}/rules set the rules of a group the rules as they are to be from now on, in order, at most ten; an empty list takes them away. every change raises the version, so that whoever agreed before is asked again. for whoever may change it.
+
+who may call it: somebody signed in.">
+<summary><span class="method put">PUT</span> <code class="path">/groups/{id}/rules</code> <span class="summary">Set the rules of a group</span></summary>
+<div class="description"><p>The rules as they are to be from now on, in order, at most ten; an empty list takes them away. Every change raises the version, so that whoever agreed before is asked again. For whoever may change it.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>items</code></td><td>list of <a href="#schema-actor.Rule">actor.Rule</a></td><td> At most 10 of them.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-actor.Rules">actor.Rules</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>rules_invalid</code>: more than ten, or one too long<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not change it</td></tr>
+<tr><td class="status s4">404</td><td>there is no such group</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).SetRules</code></p>
+</details>
+<details class="route" id="postGroupsByIdRulesAgree" data-search="post /groups/{id}/rules/agree agree to the rules of a group the viewer agreeing, each rule ticked, to the version they were shown.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/groups/{id}/rules/agree</code> <span class="summary">Agree to the rules of a group</span></summary>
+<div class="description"><p>The viewer agreeing, each rule ticked, to the version they were shown.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>version</code> <span class="required">always</span></td><td>integer</td><td></td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">204</td><td>No Content</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">404</td><td>there is no such group</td></tr>
+<tr><td class="status s4">409</td><td><code>rules_not_current</code>: the rules changed since; read them again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).AgreeRules</code></p>
+</details>
+<details class="route" id="postGroupsByIdSpam" data-search="post /groups/{id}/spam remove a group as spam a moderator&#39;s decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. administrators and super administrators; never an administrator&#39;s or a super administrator&#39;s account, nor one&#39;s own. queued, and done by the sweeper.
+
+who may call it: a site administrator.">
+<summary><span class="method post">POST</span> <code class="path">/groups/{id}/spam</code> <span class="summary">Remove a group as spam</span></summary>
+<div class="description"><p>A moderator&#39;s decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as <code>removed-as-spam</code> with who decided. Administrators and super administrators; never an administrator&#39;s or a super administrator&#39;s account, nor one&#39;s own. Queued, and done by the sweeper.</p></div>
+<p class="who"><strong>Who:</strong> an administrator</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>purged or queued already<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">202</td><td>queued<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer is not an administrator</td></tr>
+<tr><td class="status s4">409</td><td>it cannot be removed (<code>administrator</code>, <code>yourself</code>, <code>not_found</code>, <code>wrong_type</code>); nothing was queued<div class="body"><a href="#schema-PurgeRefused">PurgeRefused</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*groupHandler).RemoveAsSpam</code></p>
+</details>
 <details class="route" id="getPeople" data-search="get /people/ people those the viewer may see. each a full profile, or, for one the viewer may only ask to follow, what a stranger is shown of it (`restricted`).
 
 who may call it: anyone, signed in or not.">
@@ -2281,6 +2515,32 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).EditRepostsOnProfile</code></p>
+</details>
+<details class="route" id="postPeopleByIdSpam" data-search="post /people/{id}/spam remove a person as spam a moderator&#39;s decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as `removed-as-spam` with who decided. administrators and super administrators; never an administrator&#39;s or a super administrator&#39;s account, nor one&#39;s own. queued, and done by the sweeper.
+
+who may call it: a site administrator.">
+<summary><span class="method post">POST</span> <code class="path">/people/{id}/spam</code> <span class="summary">Remove a person as spam</span></summary>
+<div class="description"><p>A moderator&#39;s decision (roadmap row 102): everything of it destroyed at once, with no thirty days, and recorded as <code>removed-as-spam</code> with who decided. Administrators and super administrators; never an administrator&#39;s or a super administrator&#39;s account, nor one&#39;s own. Queued, and done by the sweeper.</p></div>
+<p class="who"><strong>Who:</strong> an administrator</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>purged or queued already<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s2">202</td><td>queued<div class="body"><a href="#schema-PurgeQueued">PurgeQueued</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer is not an administrator</td></tr>
+<tr><td class="status s4">409</td><td>it cannot be removed (<code>administrator</code>, <code>yourself</code>, <code>not_found</code>, <code>wrong_type</code>); nothing was queued<div class="body"><a href="#schema-PurgeRefused">PurgeRefused</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).RemoveAsSpam</code></p>
 </details>
 <details class="route" id="getPeopleByUsername" data-search="get /people/{username} one person by their username. to somebody they are not open to, but who may ask to follow them, what a stranger is shown of them.
 
@@ -3050,6 +3310,31 @@ who may call it: somebody signed in.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>auth/cmd/api/handlers.(*agreementsHandler).EditPrivacy</code></p>
+</details>
+<details class="route" id="patchAgreementsRules" data-search="patch /agreements/rules agree to the site&#39;s rules the viewer&#39;s own agreement, each rule ticked, of the version `get /site` has now (roadmap row 102).
+
+who may call it: somebody signed in.">
+<summary><span class="method patch">PATCH</span> <code class="path">/agreements/rules</code> <span class="summary">Agree to the site&#39;s rules</span></summary>
+<div class="description"><p>The viewer&#39;s own agreement, each rule ticked, of the version <code>GET /site</code> has now (roadmap row 102).</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes, as <code>application/json</code> or <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>accepted</code></td><td>boolean</td><td>True.</td></tr>
+<tr><td><code>version</code> <span class="required">always</span></td><td>string</td><td>The version accepted: <code>1.0</code>. At most 20 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-auth.Accepted">auth.Accepted</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>version_malformed</code>: the version is not a dotted number; <code>not_accepted</code>: <code>accepted</code> is false; or, without a body, the request is not well formed<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">409</td><td><code>version_not_current</code>: the site&#39;s rules are at another version now<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>auth/cmd/api/handlers.(*agreementsHandler).EditRules</code></p>
 </details>
 <details class="route" id="patchAgreementsTos" data-search="patch /agreements/tos accept the terms of service the viewer&#39;s own acceptance, of the version the web app shows.
 
@@ -4581,6 +4866,20 @@ who may call it: anyone, signed in or not.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>auth/cmd/api/handlers.(*signupHandler).Resend</code></p>
+</details>
+<details class="route" id="getSite" data-search="get /site what this site says about itself its rules, which everybody agrees to by ticking each one, with the version agreed to; its promises, for its about page; and the rules a new group is offered to start from. every text in every language it is written in, by the web app&#39;s language names. the operator&#39;s, in `site.json` (configuration.md, `site_defaults_path`).
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/site</code> <span class="summary">What this site says about itself</span></summary>
+<div class="description"><p>Its rules, which everybody agrees to by ticking each one, with the version agreed to; its promises, for its About page; and the rules a new group is offered to start from. Every text in every language it is written in, by the web app&#39;s language names. The operator&#39;s, in <code>site.json</code> (<a href="../configuration.md">configuration.md</a>, <code>SITE_DEFAULTS_PATH</code>).</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body"><a href="#schema-auth.SiteAbout">auth.SiteAbout</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>auth/cmd/api/handlers.(*nodeInfoHandler).Site</code></p>
 </details>
 <details class="route" id="getStaticByPath" data-search="get /static/{path} the pages&#39; styles, scripts and pictures who may call it: anyone, signed in or not.">
 <summary><span class="method get">GET</span> <code class="path">/static/{path}</code> <span class="summary">The pages&#39; styles, scripts and pictures</span></summary>
@@ -7461,6 +7760,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not follow it</td></tr>
 <tr><td class="status s4">404</td><td>the viewer has no invitation to it</td></tr>
+<tr><td class="status s4">409</td><td><code>rules_not_agreed</code>: it is a group or an event with rules the viewer has not agreed to; tick each and agree (<code>POST /groups|events/:id/rules/agree</code>), then ask again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*inviteHandler).Accept</code></p>
@@ -7646,6 +7946,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not ask: the profile does not let people ask, or has blocked them</td></tr>
 <tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+<tr><td class="status s4">409</td><td><code>rules_not_agreed</code>: it is a group or an event with rules the viewer has not agreed to; tick each and agree (<code>POST /groups|events/:id/rules/agree</code>), then ask again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*followRequestHandler).Add</code></p>
@@ -7724,6 +8025,7 @@ who may call it: somebody signed in.">
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not make this follow</td></tr>
 <tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+<tr><td class="status s4">409</td><td><code>rules_not_agreed</code>: it is a group or an event with rules the viewer has not agreed to; tick each and agree (<code>POST /groups|events/:id/rules/agree</code>), then ask again<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 </tbody>
 </table>
 <p class="handler">Answered by <code>socialgraph/cmd/api/handlers.(*followerHandler).Add</code></p>
@@ -8716,6 +9018,39 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).AddReply</code></p>
 </details>
+<details class="route" id="postNotesByIdRepliesThread" data-search="post /notes/{id}/replies/thread reply with a thread up to ten notes, made together in order, all or none: the first a reply to the post or the reply `id`, and each after it a reply to the one before. each is checked as a reply is. they go to other networks in order, and whoever is told of the thread is told of its first note.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method post">POST</span> <code class="path">/notes/{id}/replies/thread</code> <span class="summary">Reply with a thread</span></summary>
+<div class="description"><p>Up to ten notes, made together in order, all or none: the first a reply to the post or the reply <code>id</code>, and each after it a reply to the one before. Each is checked as a reply is. They go to other networks in order, and whoever is told of the thread is told of its first note.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The id of the post or the reply it answers. Read by the handler from the path itself.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-text.ThreadPart">text.ThreadPart</a></td><td>The notes of the thread, first to last: up to ten. At least 1 of them. At most 10 of them.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-text.ThreadAdded">text.ThreadAdded</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>language_invalid</code>; or not well formed, or more than ten notes, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not reply here</td></tr>
+<tr><td class="status s4">404</td><td>there is no such post the viewer may see</td></tr>
+<tr><td class="status s4">410</td><td>it answers a reply that was removed</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*noteHandler).AddReplyThread</code></p>
+</details>
 <details class="route" id="patchNotesByIdReplyAccess" data-search="patch /notes/{id}/reply-access change who may reply who may call it: somebody signed in, with a token that carries `media:write`.">
 <summary><span class="method patch">PATCH</span> <code class="path">/notes/{id}/reply-access</code> <span class="summary">Change who may reply</span></summary>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
@@ -8771,6 +9106,44 @@ who may call it: anyone, signed in or not.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>text/cmd/api/handlers.(*mediumHandler).Thread</code></p>
+</details>
+<details class="route" id="postNotesByOwnerIdThread" data-search="post /notes/{id}/thread post a thread up to ten notes, made together in order, all or none: the first a post on the profile `owner_id`, with what a post takes, and each after it a reply to the one before, written by the viewer. each is checked as a note is. they go to other networks in order, and whoever is told of the thread is told of its first note.
+
+who may call it: somebody signed in, with a token that carries `media:write`.">
+<summary><span class="method post">POST</span> <code class="path">/notes/{id}/thread</code> <span class="summary">Post a thread</span></summary>
+<div class="description"><p>Up to ten notes, made together in order, all or none: the first a post on the profile <code>owner_id</code>, with what a post takes, and each after it a reply to the one before, written by the viewer. Each is checked as a note is. They go to other networks in order, and whoever is told of the thread is told of its first note.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in, with <code>media:write</code></p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>Here, the <code>owner_id</code>. The profile it is posted on.</td></tr>
+</tbody>
+</table>
+<h4>Takes, as <code>application/json</code></h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>access</code></td><td>string</td><td>As on NoteAddRequest, for the first part: the rest are replies, seen by whoever may see it. One of <code>public</code>, <code>registered</code>, <code>followers</code>, <code>leaders</code>, <code>mutuals</code>, <code>admins</code>, <code>myself</code>.</td></tr>
+<tr><td><code>location_ids</code></td><td>list of integer</td><td> At most 5 of them.</td></tr>
+<tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-text.ThreadPart">text.ThreadPart</a></td><td>The notes of the thread, first to last: up to ten. At least 1 of them. At most 10 of them.</td></tr>
+<tr><td><code>quote_id</code></td><td>integer</td><td></td></tr>
+<tr><td><code>quote_policy</code></td><td>string</td><td> At most 16 characters.</td></tr>
+<tr><td><code>reply_access</code></td><td>string</td><td> At most 64 characters.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>Created<div class="body"><a href="#schema-text.ThreadAdded">text.ThreadAdded</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>language_invalid</code>, <code>reply_access_invalid</code>, <code>quote_policy_invalid</code>; or not well formed, or more than ten notes, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer may not post here</td></tr>
+<tr><td class="status s4">404</td><td>there is no such profile</td></tr>
+<tr><td class="status s4">422</td><td><code>access_not_allowed</code>, with the audiences it may have<div class="body"><a href="#schema-AudienceRefusal">AudienceRefusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>text/cmd/api/handlers.(*noteHandler).AddThread</code></p>
 </details>
 <details class="route" id="getNotesByOwnerId" data-search="get /notes/{owner_id}/ a profile&#39;s notes those the viewer may see.
 
@@ -10007,6 +10380,17 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-Item" data-search="item body title">
+<h3>Item</h3>
+<p>One rule, promise or suggestion: a short title, and a line more if it needs one.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>body</code></td><td>map of string</td><td></td></tr>
+<tr><td><code>title</code> <span class="required">always</span></td><td>map of string or null</td><td></td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-LimitedActor" data-search="limitedactor alias allow_follow_request avatar_urls body event id is_follow_requested_by_viewer is_invited name restricted type verified via_host">
 <h3>LimitedActor</h3>
 <p>What somebody is shown of a profile they may not see, when that profile lets people ask to follow it: enough to know whose it is and to ask.</p>
@@ -10468,6 +10852,17 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-Rules" data-search="rules items version">
+<h3>Rules</h3>
+<p>The site&#39;s rules, with the version agreed to. Raising the version asks everybody to agree again; a correction that leaves it as it is asks nobody.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>items</code> <span class="required">always</span></td><td>list of <a href="#schema-Item">Item</a> or null</td><td></td></tr>
+<tr><td><code>version</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-Video" data-search="video duration files height loop poster width">
 <h3>Video</h3>
 <p>What a video post plays: its sizes, largest first, and the still shown before it does.</p>
@@ -10558,6 +10953,35 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-abusereport.ProfileCase" data-search="abusereport.profilecase id last_reported_at reports status target target_gone target_id target_type">
+<h3>abusereport.ProfileCase</h3>
+<p>A case as a group&#39;s or an event&#39;s administrators see it (roadmap row 102, part 6b): what was reported and the reports against its rules, never who made them, nor the site&#39;s decision notes.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">always</span></td><td>integer</td><td>Its id.</td></tr>
+<tr><td><code>last_reported_at</code> <span class="required">always</span></td><td>time</td><td>When it was last reported.</td></tr>
+<tr><td><code>reports</code> <span class="required">always</span></td><td>list of <a href="#schema-abusereport.ProfileReport">abusereport.ProfileReport</a> or null</td><td>The reports against the profile&#39;s rules, oldest first.</td></tr>
+<tr><td><code>status</code> <span class="required">always</span></td><td>string</td><td><code>open</code>, <code>actioned</code> or <code>dismissed</code>.</td></tr>
+<tr><td><code>target</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>Target is the reported node as it is now, or absent when it is gone.</td></tr>
+<tr><td><code>target_gone</code> <span class="required">always</span></td><td>boolean</td><td>Whether what was reported is gone.</td></tr>
+<tr><td><code>target_id</code> <span class="required">always</span></td><td>integer</td><td>The id of what was reported.</td></tr>
+<tr><td><code>target_type</code> <span class="required">always</span></td><td>string</td><td>What kind of node it is.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-abusereport.ProfileReport" data-search="abusereport.profilereport created_at details rule">
+<h3>abusereport.ProfileReport</h3>
+<p>One report against a profile&#39;s rules, with nobody&#39;s name.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>created_at</code> <span class="required">always</span></td><td>time</td><td>When it was made.</td></tr>
+<tr><td><code>details</code></td><td>string</td><td>What the reporter added.</td></tr>
+<tr><td><code>rule</code> <span class="required">always</span></td><td>string</td><td>The rule broken, by its title.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-abusereport.Reason" data-search="abusereport.reason description key label requires_details">
 <h3>abusereport.Reason</h3>
 <p>One entry of the list a reporter chooses from, in their language.</p>
@@ -10583,7 +11007,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-abusereport.Report" data-search="abusereport.report created_at details id reason_key reason_label reporter reporter_id updated_at">
+<div class="route schema" id="schema-abusereport.Report" data-search="abusereport.report created_at details id reason_key reason_label reporter reporter_id rule rule_profile rule_profile_id updated_at">
 <h3>abusereport.Report</h3>
 <p>One person&#39;s report, as an administrator sees it.</p>
 <table>
@@ -10596,6 +11020,9 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>reason_label</code> <span class="required">always</span></td><td>string</td><td>What it is called.</td></tr>
 <tr><td><code>reporter</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>Who reported it.</td></tr>
 <tr><td><code>reporter_id</code> <span class="required">always</span></td><td>integer</td><td>Their id.</td></tr>
+<tr><td><code>rule</code></td><td>string</td><td>With reason_key &#34;rule&#34;: the rule broken, by its title, and whose rule it is, 0 for the site&#39;s.</td></tr>
+<tr><td><code>rule_profile</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>The group or event whose rule it is.</td></tr>
+<tr><td><code>rule_profile_id</code></td><td>integer</td><td></td></tr>
 <tr><td><code>updated_at</code> <span class="required">always</span></td><td>time</td><td>When it was last changed: a second report by the same person updates it.</td></tr>
 </tbody>
 </table>
@@ -10882,6 +11309,30 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-actor.Rule" data-search="actor.rule body title">
+<h3>actor.Rule</h3>
+<p>One of a profile&#39;s rules.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>body</code> <span class="required">always</span></td><td>string</td><td>A line more, if it needs one.</td></tr>
+<tr><td><code>title</code> <span class="required">always</span></td><td>string</td><td>A few words: &#34;Be kind&#34;.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-actor.Rules" data-search="actor.rules agreed_version items updated_at version">
+<h3>actor.Rules</h3>
+<p>A profile&#39;s rules, as they are now.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>agreed_version</code> <span class="required">always</span></td><td>integer</td><td>The version the viewer last agreed to, 0 for none: behind Version, they are asked again.</td></tr>
+<tr><td><code>items</code> <span class="required">always</span></td><td>list of <a href="#schema-actor.Rule">actor.Rule</a> or null</td><td></td></tr>
+<tr><td><code>updated_at</code> <span class="required">always</span></td><td>string</td><td>When they last changed, RFC 3339, or empty.</td></tr>
+<tr><td><code>version</code> <span class="required">always</span></td><td>integer</td><td>Raised by every change; 0 for a profile that never had any.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-atproto.ImportPreview" data-search="atproto.importpreview following most posts_of_each">
 <h3>atproto.ImportPreview</h3>
 <p>What following here whoever the viewer follows on Bluesky would do, before it is done.</p>
@@ -10971,13 +11422,14 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-auth.Agreements" data-search="auth.agreements privacy tos">
+<div class="route schema" id="schema-auth.Agreements" data-search="auth.agreements privacy rules tos">
 <h3>auth.Agreements</h3>
 <p>What somebody has accepted of the two documents.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>privacy</code> <span class="required">always</span></td><td><a href="#schema-auth.consentItem">auth.consentItem</a></td><td>The Privacy Policy.</td></tr>
+<tr><td><code>rules</code> <span class="required">always</span></td><td><a href="#schema-auth.consentItem">auth.consentItem</a></td><td>The site&#39;s rules (site.json, roadmap row 102).</td></tr>
 <tr><td><code>tos</code> <span class="required">always</span></td><td><a href="#schema-auth.consentItem">auth.consentItem</a></td><td>The Terms of Service.</td></tr>
 </tbody>
 </table>
@@ -11063,7 +11515,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>websitesFrom</code>, <code>locationsFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
+<tr><td><code>metadata</code> <span class="required">always</span></td><td>map of anything or null</td><td>What the web app reads of the installation: <code>nodeName</code>, <code>nodeDescription</code>, <code>registrationMode</code>, <code>approvalRequired</code>, <code>invitationsAccepted</code>, <code>invitesFrom</code>, <code>groupsFrom</code>, <code>eventsFrom</code>, <code>websitesFrom</code>, <code>locationsFrom</code>, <code>minContentAccess</code>, <code>readAccess</code>, <code>networks</code>, <code>photoMaxFiles</code>, <code>siteRules</code>, <code>spamRemovalMaxDays</code>, <code>accountGraceDays</code>, <code>videoUploads</code>, <code>videoMaxBytes</code>, <code>videoMaxSeconds</code>, <code>animationMaxBytes</code>, <code>animationMaxSeconds</code>, <code>termsOfServiceUrl</code>, <code>privacyPolicyUrl</code>, and the support contacts <code>supportEmail</code>, <code>supportPhone</code> and <code>supportWebsite</code>.</td></tr>
 <tr><td><code>openRegistrations</code> <span class="required">always</span></td><td>boolean</td><td>Whether anybody may sign up without being invited or approved.</td></tr>
 <tr><td><code>protocols</code> <span class="required">always</span></td><td>list of string or null</td><td>What it speaks with other servers: <code>activitypub</code>, when it federates.</td></tr>
 <tr><td><code>services</code> <span class="required">always</span></td><td><a href="#schema-auth.nodeInfoServices">auth.nodeInfoServices</a></td><td>What it bridges to: nothing.</td></tr>
@@ -11332,6 +11784,18 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>username</code> <span class="required">always</span></td><td>string</td><td>The username asked for.</td></tr>
 <tr><td><code>username_taken</code> <span class="required">always</span></td><td>boolean</td><td>UsernameTaken says whether the name they asked for is still free.</td></tr>
 <tr><td><code>website_url</code> <span class="required">always</span></td><td>string</td><td>Their website.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-auth.SiteAbout" data-search="auth.siteabout promises rule_suggestions rules">
+<h3>auth.SiteAbout</h3>
+<p>What GET /site answers: every text in every language it is written in, keyed by the web app&#39;s language names (&#34;en-CA&#34;, &#34;fr-FR&#34;), for the reader&#39;s app to choose from.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>promises</code> <span class="required">always</span></td><td>list of <a href="#schema-Item">Item</a> or null</td><td>Shown on the About page, under &#34;Our promises to you&#34;.</td></tr>
+<tr><td><code>rule_suggestions</code> <span class="required">always</span></td><td>list of <a href="#schema-Item">Item</a> or null</td><td>Offered to a group&#39;s administrators when they write its rules.</td></tr>
+<tr><td><code>rules</code> <span class="required">always</span></td><td><a href="#schema-Rules">Rules</a></td><td>The site&#39;s rules, and the version agreed to: everybody ticks each before using the site, and again when the version is raised.</td></tr>
 </tbody>
 </table>
 </div>
@@ -11990,6 +12454,28 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>hidden_count</code> <span class="required">always</span></td><td>integer</td><td>For whoever looks after the thread: how many of the replies sent are hidden from everybody else.</td></tr>
 <tr><td><code>reply_access</code> <span class="required">always</span></td><td>string</td><td>Who the post&#39;s author lets reply, for saying why not: <code>anyone</code>, <code>nobody</code>, or any of <code>followers</code>, <code>following</code> and <code>mentioned</code>.</td></tr>
 <tr><td><code>truncated</code> <span class="required">always</span></td><td>boolean</td><td>Whether the thread is longer than is sent at once: 500 replies.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-text.ThreadAdded" data-search="text.threadadded parts">
+<h3>text.ThreadAdded</h3>
+<p>A thread as it was made: its notes, first to last.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>parts</code> <span class="required">always</span></td><td>list of <a href="#schema-MediumNode">MediumNode</a> or null</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-text.ThreadPart" data-search="text.threadpart content language link_preview_url">
+<h3>text.ThreadPart</h3>
+<p>One note of a thread: what it says, in what language, and the link in it to show a card for, as on a note.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>content</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>language</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+<tr><td><code>link_preview_url</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 </tbody>
 </table>
 </div>

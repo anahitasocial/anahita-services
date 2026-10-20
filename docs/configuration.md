@@ -15,6 +15,7 @@ On Kubernetes the same variables go in an overlay's `config.env` and
 - [Client addresses](#client-addresses)
 - [Internal calls](#internal-calls)
 - [Site identity](#site-identity)
+- [Rules and promises](#rules-and-promises)
 - [Registration](#registration)
 - [Privacy of the installation](#privacy-of-the-installation)
 - [First super administrator](#first-super-administrator)
@@ -124,6 +125,58 @@ settings are under [Federation](#federation).
 | `TOTP_ISSUER` | Optional. The label authenticator apps show; derived from `DOMAIN_NAME` when unset |
 | `FRONTEND_URL` | Optional, not in `docker-compose.yml`. The web app's URL used in links. Defaults to `http://localhost:3000` in dev and `https://DOMAIN_NAME` in production |
 | `AUTH_URL` | Optional, not in `docker-compose.yml`. auth-service's public URL. Defaults to `http://localhost` in dev and `https://auth.DOMAIN_NAME` in production |
+
+## Rules and promises
+
+What the site says about itself to the people who use it (roadmap row 102):
+its **rules**, which everybody agrees to by ticking each one; its
+**promises**, on its About page under "Our promises to you"; and the
+**rule suggestions** a new group's administrators may start from. They are
+the operator's, in a JSON file read by auth-service and served on
+`GET /site` (package `anahita-libs/about`).
+
+| Variable | Value |
+| --- | --- |
+| `SITE_RULES` | `on` unless `off`. On, everybody ticks the site's rules before using it, and again when their version is raised; off, nobody is asked. Whoever installs Anahita makes its creator's pledge either way ([Registration](registration.md#the-sites-rules)). Read by auth-service and published as `metadata.siteRules` in NodeInfo; see [Registration](registration.md#the-sites-rules) |
+| `SITE_DEFAULTS_PATH` | Where the file is. `/app/defaults/site.json` in the image, which holds `auth-defaults/site.json`; docker-compose mounts the working tree's copy there. On Kubernetes, mount a ConfigMap over that path to change it |
+
+```json
+{
+  "rules": {
+    "version": "1",
+    "items": [
+      { "title": { "en-CA": "No hate.", "fr-FR": "Pas de haine." },
+        "body": { "en-CA": "Don't attack or put down people for …" } }
+    ]
+  },
+  "promises": [
+    { "title": { "en-CA": "Changed your mind?" },
+      "body": { "en-CA": "You have {{days}} days to undo deleting your account. Just sign in again." } }
+  ],
+  "rule_suggestions": [
+    { "title": { "en-CA": "Be kind and respectful" } }
+  ]
+}
+```
+
+- **Every text carries its own translations,** by the web app's language
+  names. A language left out falls back to another of its own (`fr-CA` to
+  `fr-FR`), then to English, so a file may be written in one language.
+- **Raising the rules' `version` asks everybody to agree again.** A
+  correction that leaves it as it is asks nobody. A version is digits and
+  dots, up to three parts.
+- **`{{days}}`** is filled in with the days a deleted account can be brought
+  back (30), so a promise never says what the site does not do.
+- **At most ten rules and ten promises;** `"items": []` is a site with no
+  rules.
+- **It is read again when it changes,** without a restart. What it leaves
+  out is as it comes, and a file that cannot be understood is not taken:
+  the built-in one is used, and auth-service says so in its log. With
+  docker-compose, change the file in place: an editor that writes a new
+  file in its place is not seen through a mount of one file until the
+  container is started again.
+- The built-in file is `anahita-libs/about/default.json`, and
+  `auth-defaults/site.json` is the same; a test keeps them so.
 
 ## Registration
 
@@ -326,6 +379,7 @@ Read by abuse-report-service.
 | Variable | Value |
 | --- | --- |
 | `REASONS_PATH` | An installation's own list of reasons people can give when they report something. Optional: unset, the list built into the service is used. See [Using your own reasons](abuse-reports.md#using-your-own-reasons) |
+| `SPAM_REMOVAL_MAX_DAYS` | How many days after it was made an account may still be removed as spam. 30 unless said. Read by graph-grpc-service, which refuses an older one, and auth-service, which publishes it as `metadata.spamRemovalMaxDays`. See [Removing as spam](account-lifecycle.md#removing-as-spam) |
 
 Somebody may file at most 20 reports an hour. That limit, like the ones on
 signing in, is counted in Redis by the shared limiter in
@@ -339,9 +393,9 @@ a super administrator uses to find accounts nobody uses.
 | Variable | Value |
 | --- | --- |
 | `ACCOUNT_DORMANT_DAYS` | How many days without activity make an account `dormant` in that list. Optional: unset, 730 (two years). It only sorts accounts into tiers; nothing is removed because of it |
+| `ACCOUNT_GRACE_DAYS` | How many days a deleted profile can be brought back before it is purged: a person by signing in again, a group or an event by an administrator. 30 unless said. Read by auth-service (the dates it tells people, `metadata.accountGraceDays` in NodeInfo, the site's promise), graph-grpc-service and the account sweeper (when it purges); all three must have the same. Not kept per profile: changing it moves the date of every profile already waiting |
 
-Three things about purging are fixed in the code and are not settings: an
-account deleted by its owner is purged after 30 days, one purge request names
+Two things about purging are fixed in the code and are not settings: one purge request names
 at most 500 accounts, and a purge works through an account 500 posts at a
 time. How often the sweeper runs is its CronJob's schedule, in
 `k8s/base/jobs/sweeper-cronjob.yml`.

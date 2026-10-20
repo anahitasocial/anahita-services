@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"actor/constants"
+	an_handlers "anahita-libs/cmd/api/handlers"
 	"context"
 	"log"
 	"net/http"
@@ -418,6 +419,10 @@ func (h *eventHandler) Rsvp(c echo.Context) error {
 	}
 
 	result, err := h.Srv.EventsGRPC.Rsvp(actor.ID, viewer.ID, req.Rsvp)
+	// Its rules, ticked first (roadmap row 102, part 5b).
+	if an_handlers.IsRulesNotAgreed(err) {
+		return an_handlers.RefuseRulesNotAgreed(c)
+	}
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

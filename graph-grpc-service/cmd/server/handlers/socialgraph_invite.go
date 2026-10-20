@@ -165,6 +165,12 @@ func (h *socialgraphFollowGrpcHandler) InviteAnswer(ctx context.Context, req *gr
 		return &graphpb.InviteAnswerResponse{Found: true}, nil
 	}
 
+	// Accepting is joining: the group's or the event's rules agreed to
+	// first (roadmap row 102, part 5b).
+	if err := requireRulesAgreed(h.env, req.InviteeId, req.ActorId); err != nil {
+		return nil, err
+	}
+
 	invite, err := h.env.Repos.Invites.Accept(req.ActorId, req.InviteeId)
 	if errors.Is(err, repositories.ErrNoInvite) {
 		return &graphpb.InviteAnswerResponse{Found: false}, nil

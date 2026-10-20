@@ -1,0 +1,29 @@
+{{define "rules"}}
+{{if .Rules}}
+<!-- A checklist ticked before an account is made (roadmap row 102, part 2b):
+     the site's rules where people join, and on the first super
+     administrator's set-password page the pledge Anahita's creator asks of
+     whoever installs it, each item finishing "I won't use Anahita to:".
+     Plain on purpose: a box each, all at once, and the form refused unless
+     every box is ticked, on the server. -->
+<fieldset class="rules">
+    <legend>{{if .RulesTitle}}{{.RulesTitle}}{{else}}Our rules{{end}}</legend>
+    <input type="hidden" name="rules_version" value="{{.RulesVersion}}">
+    {{if .RulesIntro}}<p>{{.RulesIntro}}</p>{{end}}
+    {{if .RulesLead}}
+    <p class="rules-lead">{{.RulesLead}}</p>
+    {{else}}
+    <p class="helper-text">Tick each one to agree to it.</p>
+    {{end}}
+    {{range $index, $rule := .Rules}}
+    <label class="rule">
+        <input type="checkbox" name="rules_ticked" value="{{$index}}" required>
+        <span>
+            {{if $rule.Number}}<span class="rule-number">{{$rule.Number}}.</span> {{end}}{{if $.RulesLead}}{{$rule.Title}}{{else}}<strong>{{$rule.Title}}</strong>{{end}}
+            {{if $rule.Body}}<br><span class="helper-text">{{$rule.Body}}</span>{{end}}
+        </span>
+    </label>
+    {{end}}
+</fieldset>
+{{end}}
+{{end}}

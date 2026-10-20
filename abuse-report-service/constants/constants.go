@@ -19,6 +19,13 @@ const (
 	ActionArchived = "archived"
 	ActionBlocked  = "blocked"
 	ActionOther    = "other"
+	// Removed as spam: destroyed at once, by a moderator (roadmap row 102).
+	ActionRemovedAsSpam = "removed_as_spam"
+
+	// ReasonRule is the reason given for breaking one of the rules: the
+	// site's, or a group's or an event's. Not in the reasons file: the rules
+	// are the reasons (roadmap row 102, part 6).
+	ReasonRule = "rule"
 
 	// DetailsMaxLength is how much a reporter may write. Enough to explain,
 	// short enough that a queue of reports can be read.

@@ -74,6 +74,30 @@ func TestServerRenderedTemplatesParseAndExecute(t *testing.T) {
 			"Token": "abc",
 			"Error": "Your new password must be different from your current password.",
 		}},
+		// Whoever installs Anahita setting their first password, with its
+		// creator's pledge; and whoever signs up or accepts an invitation,
+		// with the site's rules (roadmap row 102).
+		{"password_reset.html", map[string]any{
+			"Token":        "abc",
+			"Rules":        []ruleLine{{Title: "spread hate, or organise hate groups"}, {Title: "harm children"}},
+			"RulesVersion": "pledge-1",
+			"RulesTitle":   "Make a pledge",
+			"Installing":   true,
+			"RulesIntro":   "Anahita is built to create safe online spaces.",
+			"RulesLead":    "I won't use Anahita to:",
+		}},
+		{"signup.html", map[string]any{
+			"CSRFToken":     "t",
+			"HoneypotField": "company_role",
+			"Rules":         []ruleLine{{Title: "No hate."}},
+			"RulesVersion":  "1",
+		}},
+		{"invite_accept.html", map[string]any{
+			"Token":        "t",
+			"Email":        "ada@example.com",
+			"Rules":        []ruleLine{{Title: "No hate."}},
+			"RulesVersion": "1",
+		}},
 		{"password_reset_success.html", map[string]any{}},
 		// error.html is the terminal page for every unusable link in the
 		// service, so it is reached from more flows than any other.
@@ -88,6 +112,7 @@ func TestServerRenderedTemplatesParseAndExecute(t *testing.T) {
 		tmpl, err := template.ParseFiles(
 			"../../../web/templates/base.html",
 			"../../../web/templates/logo.html",
+			"../../../web/templates/rules.html",
 			"../../../web/templates/"+tc.name,
 		)
 		if err != nil {
@@ -121,7 +146,7 @@ func TestEveryServerRenderedTemplateParses(t *testing.T) {
 		}
 		// base and logo are the set every page is parsed with, never on
 		// their own.
-		if name == "base.html" || name == "logo.html" {
+		if name == "base.html" || name == "logo.html" || name == "rules.html" {
 			continue
 		}
 

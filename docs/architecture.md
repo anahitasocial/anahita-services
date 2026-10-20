@@ -300,6 +300,13 @@ A reply read on its own (`GET /notes/<id>`) carries `root` too, with its
 owner, so a page can say what it is a reply to and whose profile it is on. The
 thread is the root's: `GET /notes/<root id>/thread`.
 
+**A thread written in one go** is up to ten notes made together, in order,
+all or none (roadmap row 101): `POST /notes/<owner id>/thread` begins a post,
+`POST /notes/<id>/replies/thread` answers one. Each note after the first is a
+reply to the one before. graph-grpc-service writes them in one transaction
+(`Medium.AddThread`) and announces them in order once all are made, each
+with its place in the thread (`part` in the event).
+
 A photo post holds up to twenty images (`PHOTO_MAX_FILES`), each uploaded in a request of its own
 and kept in `photo_files`, a table beside the post. How that works, and what
 is stored for each image, is in [Photo posts](photos.md).

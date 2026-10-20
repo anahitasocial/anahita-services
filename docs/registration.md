@@ -177,6 +177,45 @@ existing ones alike.
 
 This is enforced by the web app's interface, not the API.
 
+### The site's rules
+
+Everybody ticks the site's rules before their account is made, on the page
+auth-service shows for it, and again in the web app when their version is
+raised (roadmap row 102):
+
+- **Where an account is made:** open sign-up and a sign-up request
+  (`/signup`) and an invitation's acceptance (`/invites/accept`). A
+  plain checklist, a box for each rule, numbered when there are more than
+  three, and the form refused (`Tick each of
+  our rules to agree to it.`) unless every box is ticked at the version the
+  site has now. The account is made with the agreement recorded; a request
+  keeps the version it agreed to (`signup_requests.rules_accepted_version`)
+  until it is approved, and the account gets it then, with where the request
+  came from.
+- **Whoever installs Anahita**, its first super administrator, makes a
+  promise instead, on the set-password page the boot log's link opens,
+  whatever the site's rules and `SITE_RULES` say: "Anahita is built to create
+  safe online spaces…", then "I won't use Anahita to:" and six things, each
+  ticked. A promise to the people who will trust them, not a licence: it
+  binds nobody in law, and Anahita's licences are unchanged. Its words are
+  Anahita's creator's, written in the code (`anahita-libs/about/pledge.go`),
+  not in `site.json`, so no configuration changes them. The boot log prints
+  it beside the link, and auth-service logs who made it, when and from where.
+  The site's own rules come to them afterwards in the web app, as to anybody.
+- **After that,** a raised version sends people to `/rules` in the web app,
+  after the Terms and the Privacy Policy, ticked one at a time.
+
+- **The rules and their version** are the server's, in `site.json`
+  ([Rules and promises](configuration.md#rules-and-promises)), served on
+  `GET /site`.
+- Agreeing calls `PATCH /agreements/rules` with the version `GET /site` has
+  now; any other is refused (409, `version_not_current`). It is recorded as the
+  Terms are, in `auth_accounts.rules_accepted_*`, and the version agreed to is
+  the `rules_agreement` claim of `/oauth/userinfo`.
+- **`SITE_RULES=off`** asks nobody but a super administrator who has never
+  agreed, once: a reminder of what Anahita is not for. NodeInfo says which as
+  `metadata.siteRules`.
+
 ## Onboarding
 
 Signup asks only for a username, an email address and a password. After the

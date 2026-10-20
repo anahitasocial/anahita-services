@@ -179,28 +179,14 @@ func (h *noteHandler) Edit(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// Add creates a new note
-func (h *noteHandler) Add(c echo.Context) error {
-	var (
-		err    error
-		req    = requests.NewNoteRequest().Add
-		viewer = getViewer(c)
-	)
-
-	if err = c.Bind(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	if err = c.Validate(req); err != nil {
-		log.Println(err)
-		return c.NoContent(http.StatusBadRequest)
-	}
-
+// newNote is a note as `req` describes it, checked: who may post where,
+// with what audience, quoting what. Or, when it may not be made, what to
+// answer instead.
+func (h *noteHandler) newNote(c echo.Context, req *requests.NoteAddRequest, viewer *entities.Viewer) (*entities.AnahitaNode, func() error) {
 	owner, err := h.Srv.ActorsGRPC.Read(req.OwnerID, viewer)
 	if err != nil {
 		log.Println(err)
-		return c.NoContent(http.StatusNotFound)
+		return nil, func() error { return c.NoContent(http.StatusNotFound) }
 	}
 
 	medium := entities.NewAnahitaNode()
@@ -212,7 +198,7 @@ func (h *noteHandler) Add(c echo.Context) error {
 	// The language the author says it is written in. Not saying is not an
 	// error; a tag that is not one is.
 	if language, valid := an_handlers.RequestLanguage(req.Language); !valid {
-		return an_handlers.RefuseLanguage(c)
+		return nil, func() error { return an_handlers.RefuseLanguage(c) }
 	} else if language != "" {
 		medium.Language = language
 	}
@@ -231,7 +217,7 @@ func (h *noteHandler) Add(c echo.Context) error {
 	// Who may reply, when the author says. Not saying leaves it to the
 	// profile; a value that is not one is an error.
 	if replyAccess, valid := an_handlers.RequestReplyAccess(req.ReplyAccess); !valid {
-		return an_handlers.RefuseReplyAccess(c)
+		return nil, func() error { return an_handlers.RefuseReplyAccess(c) }
 	} else if replyAccess != "" {
 		an_handlers.SetReplyAccess(medium, replyAccess)
 	}
@@ -239,7 +225,7 @@ func (h *noteHandler) Add(c echo.Context) error {
 	// Who may quote it, when the author says. Not saying leaves it to
 	// their own setting.
 	if quotePolicy, valid := an_handlers.RequestQuotePolicy(req.QuotePolicy); !valid {
-		return an_handlers.RefuseQuotePolicy(c)
+		return nil, func() error { return an_handlers.RefuseQuotePolicy(c) }
 	} else if quotePolicy != "" {
 		medium.QuotePolicy = quotePolicy
 	}
@@ -247,18 +233,18 @@ func (h *noteHandler) Add(c echo.Context) error {
 	mediumAccessCtx, err := h.getMediumAccessContext(medium, viewer)
 	if err != nil {
 		log.Println(err)
-		return c.NoContent(http.StatusInternalServerError)
+		return nil, func() error { return c.NoContent(http.StatusInternalServerError) }
 	}
 	if ok, err := h.Perms.Medium.CanAdd(mediumAccessCtx); !ok {
 		log.Println(err)
-		return c.NoContent(http.StatusForbidden)
+		return nil, func() error { return c.NoContent(http.StatusForbidden) }
 	}
 
 	// The audience has to be one this post can have where it is going: no
 	// "admins" on a person's profile, no "only me" on somebody else's.
 	if !permissions.IsMediumAudienceAllowed(mediumAccessCtx, req.Access) {
 		log.Printf("refused: audience %q is not allowed on this profile", req.Access)
-		return an_handlers.RefuseAudience(c, mediumAccessCtx)
+		return nil, func() error { return an_handlers.RefuseAudience(c, mediumAccessCtx) }
 	}
 
 	// A note that quotes a post. Whether it may is the quoted post's to
@@ -266,10 +252,10 @@ func (h *noteHandler) Add(c echo.Context) error {
 	if req.QuoteID > 0 {
 		if allowed, reason, status := h.mayQuote(req.QuoteID, viewer); !allowed {
 			if status != 0 {
-				return c.NoContent(status)
+				return nil, func() error { return c.NoContent(status) }
 			}
 			log.Printf("refused: %d may not quote %d: %s", viewer.ID, req.QuoteID, reason)
-			return an_handlers.RefuseQuote(c, reason)
+			return nil, func() error { return an_handlers.RefuseQuote(c, reason) }
 		}
 		medium.QuoteID = req.QuoteID
 	}
@@ -277,7 +263,38 @@ func (h *noteHandler) Add(c echo.Context) error {
 	// The preview of a link in it, when its writer kept one.
 	medium.Meta = h.withLinkPreview(medium.Meta, req.LinkPreviewURL, medium.Body, false)
 
+	return medium, nil
+}
+
+// Add creates a new note
+func (h *noteHandler) Add(c echo.Context) error {
+	var (
+		err    error
+		req    = requests.NewNoteRequest().Add
+		viewer = getViewer(c)
+	)
+
+	if err = c.Bind(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err = c.Validate(req); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	medium, refuse := h.newNote(c, req, viewer)
+	if refuse != nil {
+		return refuse()
+	}
+
 	medium, err = h.Srv.MediaGRPC.AddWithLocations(medium, viewer, req.LocationIDs)
+	// A group's or an event's rules changed since they agreed: agreed to
+	// again first (roadmap row 102, part 5c).
+	if an_handlers.IsRulesNotAgreed(err) {
+		return an_handlers.RefuseRulesNotAgreed(c)
+	}
 	if err != nil {
 		log.Println(err)
 		return c.NoContent(http.StatusInternalServerError)

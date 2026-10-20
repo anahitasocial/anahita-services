@@ -245,6 +245,9 @@ type fakeWriter struct {
 	following map[string]bool
 	// What the account was told of, newest first.
 	told []bsky.Notification
+	// The AppView has seen none of the account's posts that its server
+	// does not hold: as a moment after a thread is written.
+	unindexed bool
 }
 
 func (f *fakeWriter) PDSOf(_ context.Context, _, did string) (string, error) { return anaPDS, nil }
@@ -310,7 +313,22 @@ func (f *fakeWriter) RefOf(_ context.Context, uri string) (*bsky.Ref, *bsky.Ref,
 	if strings.Contains(uri, "gone") {
 		return nil, nil, bsky.ErrNobody
 	}
+	if _, rkey, ok := bsky.ParsePostURI(uri); f.unindexed && ok {
+		if _, written := f.records[bsky.PostCollection+"/"+rkey]; !written {
+			return nil, nil, bsky.ErrNobody
+		}
+	}
 	return &bsky.Ref{URI: uri, CID: "cid-of-" + uri[len(uri)-6:]}, &bsky.Ref{URI: "at://root", CID: "cid-root"}, nil
+}
+
+// RecordRefOf reads one of the account's own posts back by name, as its
+// server would: there once it is written, and not before.
+func (f *fakeWriter) RecordRefOf(_ context.Context, pds, uri string) (*bsky.Ref, *bsky.Ref, error) {
+	_, rkey, ok := bsky.ParsePostURI(uri)
+	if _, written := f.records[bsky.PostCollection+"/"+rkey]; !ok || !written {
+		return nil, nil, bsky.ErrNobody
+	}
+	return &bsky.Ref{URI: uri, CID: "cid-" + rkey}, &bsky.Ref{URI: "at://root", CID: "cid-root"}, nil
 }
 
 // GetRecord reads a record back as the server gives it: as JSON.
@@ -675,6 +693,54 @@ func TestANoteOfOnesOwnGoesToBluesky(t *testing.T) {
 	w.heard("node.medium.text-service.note.deleted.v1", note)
 	if failed := w.drain(); len(failed) != 0 || len(w.writer.records) != 0 {
 		t.Errorf("after it was deleted: %v, %d there", failed, len(w.writer.records))
+	}
+}
+
+// THE RULE THIS GUARDS (roadmap row 101): a thread written in one go goes
+// to Bluesky whole and in order, each part answering the one before,
+// however its parts were heard of; and a part written before the one it
+// answers waits for it, and is not given up on.
+func TestAThreadGoesToBlueskyInOrder(t *testing.T) {
+	w, _ := writingWorld(t)
+	w.connect()
+	w.writer.unindexed = true
+
+	w.nodes.kept = append(w.nodes.kept,
+		&entities.AnahitaNode{ID: 120, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID, Access: constants.AnahitaAccessPublic, Body: "One"},
+		&entities.AnahitaNode{ID: 121, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID, ParentID: 120, RootID: 120, Body: "Two"},
+		&entities.AnahitaNode{ID: 122, Type: constants.NodeMediumNoteEntityType, Enabled: true, OwnerID: anaID, CreatedBy: anaID, ParentID: 121, RootID: 120, Body: "Three"},
+	)
+	// Heard last part first.
+	for _, id := range []int64{122, 121, 120} {
+		w.heard("node.medium.text-service.note.added.v1", event.EventPayload{ObjectType: constants.NodeMediumNoteEntityType, ObjectID: id, Part: int(id - 119)})
+	}
+	if len(w.queue.waiting) != 3 {
+		t.Fatalf("%d waiting", len(w.queue.waiting))
+	}
+
+	// Written last part first, as a queue may: neither answer is lost.
+	waiting := append([]federation.Delivery(nil), w.queue.waiting...)
+	w.queue.waiting = nil
+	for i := len(waiting) - 1; i >= 1; i-- {
+		if err := w.h.Write(context.Background(), waiting[i]); !errors.Is(err, errNotWrittenYet) {
+			t.Fatalf("a part written before what it answers: %v", err)
+		}
+	}
+	for _, d := range waiting {
+		if err := w.h.Write(context.Background(), d); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	rkeyOf := map[int64]string{}
+	for _, row := range w.sent.rows {
+		rkeyOf[row.LocalID] = row.RKey
+	}
+	for _, id := range []int64{121, 122} {
+		out, _ := json.Marshal(w.writer.records["app.bsky.feed.post/"+rkeyOf[id]])
+		if want := `"parent":{"uri":"` + bsky.PostURI(anaDID, rkeyOf[id-1]) + `","cid":"cid-` + rkeyOf[id-1] + `"}`; !strings.Contains(string(out), want) {
+			t.Errorf("part %d lacks %s:\n%s", id-119, want, out)
+		}
 	}
 }
 

@@ -294,6 +294,40 @@ func (c *Client) RefOf(ctx context.Context, uri string) (post, root *Ref, err er
 	return nil, nil, ErrNobody
 }
 
+// RecordRefOf reads what one of an account's own posts is named by, from
+// the server that holds it, and the post that began its thread: as RefOf
+// does, without waiting for the AppView to have seen it. So a thread
+// written a moment ago can be answered at once (roadmap row 101).
+// ErrNobody when the post is not there yet.
+func (c *Client) RecordRefOf(ctx context.Context, pds, uri string) (post, root *Ref, err error) {
+	did, rkey, ok := ParsePostURI(uri)
+	if !ok {
+		return nil, nil, ErrNobody
+	}
+	query := url.Values{"repo": {did}, "collection": {PostCollection}, "rkey": {rkey}}
+	var answer struct {
+		URI   string `json:"uri"`
+		CID   string `json:"cid"`
+		Value struct {
+			Reply *struct {
+				Root Ref `json:"root"`
+			} `json:"reply"`
+		} `json:"value"`
+	}
+	if err := c.call(ctx, http.MethodGet, pds+"/xrpc/com.atproto.repo.getRecord?"+query.Encode(), "", nil, &answer); err != nil {
+		return nil, nil, err
+	}
+	if answer.CID == "" {
+		return nil, nil, ErrNobody
+	}
+	post = &Ref{URI: uri, CID: answer.CID}
+	root = post
+	if answer.Value.Reply != nil && answer.Value.Reply.Root.URI != "" && answer.Value.Reply.Root.CID != "" {
+		root = &Ref{URI: answer.Value.Reply.Root.URI, CID: answer.Value.Reply.Root.CID}
+	}
+	return post, root, nil
+}
+
 // call asks a server something as JSON and reads its answer as JSON.
 func (c *Client) call(ctx context.Context, method, address, token string, body, into any) error {
 	var sent io.Reader

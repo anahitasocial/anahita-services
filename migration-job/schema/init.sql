@@ -291,11 +291,21 @@ CREATE TABLE auth_accounts (
     `pp_accepted_user_agent` varchar(255) NOT NULL DEFAULT '',
     `pp_accepted_os` varchar(100) NOT NULL DEFAULT '',
 
+    -- The site's rules (site.json), agreed to by ticking each one, same
+    -- shape (roadmap row 102).
+    `rules_accepted`             tinyint(1) NOT NULL DEFAULT 0,
+    `rules_accepted_at`          datetime     DEFAULT NULL,
+    `rules_accepted_version` varchar(20) NOT NULL DEFAULT '',
+    `rules_accepted_ip` varchar(45) NOT NULL DEFAULT '',
+    `rules_accepted_user_agent` varchar(255) NOT NULL DEFAULT '',
+    `rules_accepted_os` varchar(100) NOT NULL DEFAULT '',
+
     PRIMARY KEY (`node_id`),
     UNIQUE KEY `email` (`email`),
     -- Revising the terms means finding everyone still on an older version.
     KEY `tos_accepted_version` (`tos_accepted_version`),
-    KEY `pp_accepted_version` (`pp_accepted_version`)
+    KEY `pp_accepted_version` (`pp_accepted_version`),
+    KEY `rules_accepted_version` (`rules_accepted_version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
@@ -334,6 +344,9 @@ CREATE TABLE IF NOT EXISTS signup_requests (
     -- recognisable by its source long before its content.
     `created_ip` varchar(45) NOT NULL DEFAULT '',
     `created_user_agent` varchar(255) NOT NULL DEFAULT '',
+    -- The version of the site's rules it agreed to on the form, recorded on
+    -- the account when it is approved (roadmap row 102).
+    `rules_accepted_version` varchar(20) NOT NULL DEFAULT '',
 
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
@@ -394,6 +407,38 @@ CREATE TABLE notifications_off (
     `topic` varchar(32) NOT NULL,
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`recipient_id`, `topic`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- --------------------------------------------------------
+
+-- A group's and an event's rules (roadmap row 102, part 5): ticked one by one
+-- before following it or answering it, and again when they change. Written by
+-- its administrators, at most ten; the version goes up with every change, and
+-- what each person agreed to is kept beside it. The site's own rules are in
+-- site.json, and agreed to in auth_accounts.rules_accepted_*.
+CREATE TABLE profile_rules (
+    `profile_id` bigint unsigned NOT NULL,
+    `position` tinyint unsigned NOT NULL,
+    `title` varchar(100) NOT NULL,
+    `body` varchar(300) NOT NULL DEFAULT '',
+    PRIMARY KEY (`profile_id`, `position`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- --------------------------------------------------------
+
+CREATE TABLE profile_rule_versions (
+    `profile_id` bigint unsigned NOT NULL,
+    `version` int unsigned NOT NULL DEFAULT 0,
+    `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`profile_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- --------------------------------------------------------
+
+CREATE TABLE profile_rule_agreements (
+    `person_id` bigint unsigned NOT NULL,
+    `profile_id` bigint unsigned NOT NULL,
+    `version` int unsigned NOT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`person_id`, `profile_id`),
+    KEY `profile_id` (`profile_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 -- --------------------------------------------------------
 
@@ -924,6 +969,11 @@ CREATE TABLE IF NOT EXISTS abuse_reports (
     -- used it.
     `reason_key` varchar(64) NOT NULL,
     `details` varchar(1000) NOT NULL DEFAULT '',
+    -- With reason_key "rule": the rule broken, its title as the reporter
+    -- read it, and whose rule it is, 0 for the site's or the group or event
+    -- the reported thing belongs to.
+    `rule_title` varchar(100) NOT NULL DEFAULT '',
+    `rule_profile_id` bigint unsigned NOT NULL DEFAULT 0,
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
     `created_ip` varchar(45) NOT NULL DEFAULT '',
@@ -931,7 +981,8 @@ CREATE TABLE IF NOT EXISTS abuse_reports (
     -- One report per person per case. Reporting again changes the reason and
     -- the details of the one they have.
     UNIQUE KEY `idx_abuse_reports_case_reporter` (`case_id`, `reporter_id`),
-    KEY `idx_abuse_reports_reporter` (`reporter_id`, `created_at`)
+    KEY `idx_abuse_reports_reporter` (`reporter_id`, `created_at`),
+    KEY `idx_abuse_reports_rule_profile` (`rule_profile_id`, `case_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- What somebody has chosen about being suggested profiles to follow, and

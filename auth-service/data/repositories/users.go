@@ -25,6 +25,7 @@ type UsersInterface interface {
 	EditEmail(email string, id int64) error
 	EditTosConsent(id int64, consent *entities.Consent) error
 	EditPrivacyConsent(id int64, consent *entities.Consent) error
+	EditRulesConsent(id int64, consent *entities.Consent) error
 	MarkEmailVerified(id int64) error
 	MarkOnboarded(id int64) error
 	Delete(id int64) error
@@ -497,9 +498,15 @@ func (repo *Users) EditPrivacyConsent(id int64, consent *entities.Consent) error
 	return repo.editConsent(id, "pp", consent)
 }
 
+// EditRulesConsent records agreeing to the site's rules (roadmap row 102).
+// See EditTosConsent.
+func (repo *Users) EditRulesConsent(id int64, consent *entities.Consent) error {
+	return repo.editConsent(id, "rules", consent)
+}
+
 // editConsent writes one document's six columns.
 //
-// The prefix is chosen from two constants by the two callers above and is
+// The prefix is chosen from three constants by the three callers above and is
 // never caller-supplied, which is the only reason concatenating it into the
 // statement is safe. Do not export this.
 func (repo *Users) editConsent(id int64, prefix string, consent *entities.Consent) error {

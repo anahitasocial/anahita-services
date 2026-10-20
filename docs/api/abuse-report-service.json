@@ -1175,6 +1175,85 @@
         ],
         "type": "object"
       },
+      "abusereport.ProfileCase": {
+        "description": "ProfileCase is a case as a group's or an event's administrators see it (roadmap row 102, part 6b): what was reported and the reports against its rules, never who made them, nor the site's decision notes.",
+        "properties": {
+          "id": {
+            "description": "Its id.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_reported_at": {
+            "description": "When it was last reported.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "reports": {
+            "description": "The reports against the profile's rules, oldest first.",
+            "items": {
+              "$ref": "#/components/schemas/abusereport.ProfileReport"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "`open`, `actioned` or `dismissed`.",
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "Target is the reported node as it is now, or absent when it is gone."
+          },
+          "target_gone": {
+            "description": "Whether what was reported is gone.",
+            "type": "boolean"
+          },
+          "target_id": {
+            "description": "The id of what was reported.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "target_type": {
+            "description": "What kind of node it is.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "target_id",
+          "target_type",
+          "target_gone",
+          "last_reported_at",
+          "reports"
+        ],
+        "type": "object"
+      },
+      "abusereport.ProfileReport": {
+        "description": "ProfileReport is one report against a profile's rules, with nobody's name.",
+        "properties": {
+          "created_at": {
+            "description": "When it was made.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "details": {
+            "description": "What the reporter added.",
+            "type": "string"
+          },
+          "rule": {
+            "description": "The rule broken, by its title.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "created_at"
+        ],
+        "type": "object"
+      },
       "abusereport.Reason": {
         "description": "Reason is one entry of the list a reporter chooses from, in their language.",
         "properties": {
@@ -1260,6 +1339,18 @@
             "format": "int64",
             "type": "integer"
           },
+          "rule": {
+            "description": "With reason_key \"rule\": the rule broken, by its title, and whose rule it is, 0 for the site's.",
+            "type": "string"
+          },
+          "rule_profile": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "The group or event whose rule it is."
+          },
+          "rule_profile_id": {
+            "format": "int64",
+            "type": "integer"
+          },
           "updated_at": {
             "description": "When it was last changed: a second report by the same person updates it.",
             "format": "date-time",
@@ -1299,7 +1390,7 @@
   "paths": {
     "/abuse-reports": {
       "post": {
-        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
+        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site's (`rule_profile_id` 0, from `GET /site`) or those of the group or event it is in, or is (its id).\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
         "operationId": "postAbuseReports",
         "requestBody": {
           "content": {
@@ -1315,6 +1406,16 @@
                     "description": "Why, by the reason's key (GET /abuse-reports/reasons).",
                     "maxLength": 64,
                     "type": "string"
+                  },
+                  "rule": {
+                    "description": "With reason_key \"rule\": the rule broken, by its title as the reporter read it, and whose rule it is: 0 for the site's, or the group or event the reported thing belongs to (roadmap row 102, part 6).",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "rule_profile_id": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
                   },
                   "target_id": {
                     "description": "The id of what is reported: a post, a reply, a profile.",
@@ -1348,7 +1449,7 @@
                 }
               }
             },
-            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; or not well formed, without a body"
+            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; `rule_required`, `rule` is empty; `rule_not_applicable`, it is not one of that profile's rules, or the thing is not in that profile; or not well formed, without a body"
           },
           "401": {
             "description": "no token, or one that has expired"
@@ -1380,7 +1481,7 @@
     },
     "/abuse-reports/": {
       "post": {
-        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
+        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site's (`rule_profile_id` 0, from `GET /site`) or those of the group or event it is in, or is (its id).\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
         "operationId": "postAbuseReports2",
         "requestBody": {
           "content": {
@@ -1396,6 +1497,16 @@
                     "description": "Why, by the reason's key (GET /abuse-reports/reasons).",
                     "maxLength": 64,
                     "type": "string"
+                  },
+                  "rule": {
+                    "description": "With reason_key \"rule\": the rule broken, by its title as the reporter read it, and whose rule it is: 0 for the site's, or the group or event the reported thing belongs to (roadmap row 102, part 6).",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "rule_profile_id": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
                   },
                   "target_id": {
                     "description": "The id of what is reported: a post, a reply, a profile.",
@@ -1429,7 +1540,7 @@
                 }
               }
             },
-            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; or not well formed, without a body"
+            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; `rule_required`, `rule` is empty; `rule_not_applicable`, it is not one of that profile's rules, or the thing is not in that profile; or not well formed, without a body"
           },
           "401": {
             "description": "no token, or one that has expired"
@@ -1751,13 +1862,14 @@
               "schema": {
                 "properties": {
                   "action": {
-                    "description": "What was done: `none`, `deleted`, `disabled`, `archived`, `blocked` or `other`.",
+                    "description": "What was done: `none`, `deleted`, `disabled`, `archived`, `blocked`, `removed_as_spam` or `other`.",
                     "enum": [
                       "none",
                       "deleted",
                       "disabled",
                       "archived",
                       "blocked",
+                      "removed_as_spam",
                       "other"
                     ],
                     "type": "string"
@@ -1825,6 +1937,114 @@
         ],
         "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).Resolve",
         "x-viewer": "admin"
+      }
+    },
+    "/abuse-reports/profiles/{id}/cases": {
+      "get": {
+        "description": "The cases with a report against a group's or an event's rules, newest first, each with those reports: the rule, the reporter's words and when, never who made them. For its administrators and the site's. They act on what was reported where it is, by deleting or hiding it, which closes its case; deciding the case stays with the site's administrators.\n\nWho may call it: somebody signed in, with a token that carries `actors:read`.",
+        "operationId": "getAbuseReportsProfilesByIdCases",
+        "parameters": [
+          {
+            "description": "The group's or the event's id.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Which cases: `open` (the default), `actioned` or `dismissed`.",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "open",
+                "actioned",
+                "dismissed"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "How many to pass over.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The most to send: 20 unless asked, 100 at most.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "description": "What is on this page.",
+                      "items": {
+                        "$ref": "#/components/schemas/abusereport.ProfileCase"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination",
+                      "description": "Where this page is among everything there is."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "the request is not well formed, or a value in it is not one it may be"
+          },
+          "401": {
+            "description": "no token, or one that has expired"
+          },
+          "403": {
+            "description": "the viewer administers neither it nor the site"
+          },
+          "404": {
+            "description": "there is no such group or event"
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "actors:read"
+            ]
+          }
+        ],
+        "summary": "A group's or an event's reports",
+        "tags": [
+          "abuse-report-service"
+        ],
+        "x-handler": "abusereport/cmd/api/handlers.(*casesHandler).BrowseForProfile",
+        "x-viewer": "signed_in"
       }
     },
     "/abuse-reports/reasons": {

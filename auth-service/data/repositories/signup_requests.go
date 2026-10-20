@@ -45,7 +45,7 @@ func signupRequestColumns() string {
 		status, email_verified_at,
 		COALESCE(invited_by, 0), COALESCE(decided_by, 0), decided_at,
 		decision_note,
-		created_ip, created_user_agent,
+		created_ip, created_user_agent, rules_accepted_version,
 		created_at, updated_at`
 }
 
@@ -60,7 +60,7 @@ func scanSignupRequest(row rowScanner) (*entities.SignupRequest, error) {
 		&sr.Status, &verifiedAt,
 		&sr.InvitedBy, &sr.DecidedBy, &decidedAt,
 		&sr.DecisionNote,
-		&sr.CreatedIP, &sr.CreatedUserAgent,
+		&sr.CreatedIP, &sr.CreatedUserAgent, &sr.RulesVersion,
 		&sr.CreatedAt, &sr.UpdatedAt,
 	); err != nil {
 		return nil, err
@@ -90,15 +90,15 @@ func (repo *signupRequests) Add(
 		INSERT INTO signup_requests (
 			username, email, password, name, body, website_url,
 			status, invited_by, created_ip, created_user_agent,
-			created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			rules_accepted_version, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	result, err := repo.db.ExecContext(ctx, query,
 		sr.Username, sr.Email, sr.Password,
 		sr.Name, sr.Body, sr.WebsiteURL,
 		sr.Status, nullableID(sr.InvitedBy),
 		sr.CreatedIP, sr.CreatedUserAgent,
-		now, now,
+		sr.RulesVersion, now, now,
 	)
 	if err != nil {
 		return nil, err

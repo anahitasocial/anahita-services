@@ -30,9 +30,13 @@ type Report struct {
 	ReporterID int64
 	ReasonKey  string
 	Details    string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	CreatedIP  string
+	// With ReasonKey "rule": the rule broken, and whose rule it is, 0 for
+	// the site's.
+	RuleTitle     string
+	RuleProfileID int64
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	CreatedIP     string
 }
 
 // ReasonCount is how many reports in a case gave one reason.

@@ -1,0 +1,109 @@
+{
+  "rules": {
+    "version": "1",
+    "items": [
+      {
+        "title": {"en-CA": "No hate.", "fr-FR": "Pas de haine.", "de-DE": "Kein Hass.", "es-419": "Nada de odio.", "pt-BR": "Nada de ódio."},
+        "body": {
+          "en-CA": "Don't attack or put down people for their race, ethnicity, religion, gender, sexuality, disability or where they come from. No hate groups.",
+          "fr-FR": "N'attaquez ni ne rabaissez personne pour sa race, son origine ethnique, sa religion, son genre, sa sexualité, son handicap ou son pays d'origine. Pas de groupes haineux.",
+          "de-DE": "Greife niemanden an und setze niemanden herab wegen Herkunft, Ethnie, Religion, Geschlecht, Sexualität oder Behinderung. Keine Hassgruppen.",
+          "es-419": "No ataques ni menosprecies a nadie por su raza, etnia, religión, género, sexualidad, discapacidad o lugar de origen. Nada de grupos de odio.",
+          "pt-BR": "Não ataque nem menospreze ninguém por raça, etnia, religião, gênero, sexualidade, deficiência ou origem. Nada de grupos de ódio."
+        }
+      },
+      {
+        "title": {"en-CA": "Keep children safe.", "fr-FR": "Protégez les enfants.", "de-DE": "Schütze Kinder.", "es-419": "Protege a los niños.", "pt-BR": "Proteja as crianças."},
+        "body": {
+          "en-CA": "Never post or share anything that sexualises or harms a child.",
+          "fr-FR": "Ne publiez ni ne partagez jamais rien qui sexualise ou fasse du mal à un enfant.",
+          "de-DE": "Poste oder teile niemals etwas, das ein Kind sexualisiert oder ihm schadet.",
+          "es-419": "Nunca publiques ni compartas nada que sexualice o dañe a un niño o una niña.",
+          "pt-BR": "Nunca publique nem compartilhe nada que sexualize ou prejudique uma criança."
+        }
+      },
+      {
+        "title": {"en-CA": "No harassment.", "fr-FR": "Pas de harcèlement.", "de-DE": "Keine Belästigung.", "es-419": "Nada de acoso.", "pt-BR": "Nada de assédio."},
+        "body": {
+          "en-CA": "Don't threaten, bully, pile on or stalk anyone. Never share someone's private details or intimate images without their consent.",
+          "fr-FR": "Ne menacez, n'intimidez, ne harcelez en meute ni ne traquez personne. Ne partagez jamais les informations privées ou les images intimes de quelqu'un sans son consentement.",
+          "de-DE": "Bedrohe, mobbe, verfolge niemanden und beteilige dich nicht an Shitstorms. Teile niemals private Daten oder intime Bilder anderer ohne deren Einwilligung.",
+          "es-419": "No amenaces, intimides, acoses en grupo ni persigas a nadie. Nunca compartas datos privados ni imágenes íntimas de alguien sin su consentimiento.",
+          "pt-BR": "Não ameace, intimide, ataque em grupo nem persiga ninguém. Nunca compartilhe dados pessoais ou imagens íntimas de alguém sem consentimento."
+        }
+      },
+      {
+        "title": {"en-CA": "No violent extremism.", "fr-FR": "Pas d'extrémisme violent.", "de-DE": "Kein gewalttätiger Extremismus.", "es-419": "Nada de extremismo violento.", "pt-BR": "Nada de extremismo violento."},
+        "body": {
+          "en-CA": "Don't promote fascism, white supremacy, or any far-right or violent movement.",
+          "fr-FR": "Ne faites pas la promotion du fascisme, du suprémacisme blanc ni d'aucun mouvement d'extrême droite ou violent.",
+          "de-DE": "Werbe nicht für Faschismus, weiße Vorherrschaft oder rechtsextreme oder gewalttätige Bewegungen.",
+          "es-419": "No promuevas el fascismo, el supremacismo blanco ni ningún movimiento de extrema derecha o violento.",
+          "pt-BR": "Não promova o fascismo, a supremacia branca nem nenhum movimento de extrema direita ou violento."
+        }
+      },
+      {
+        "title": {"en-CA": "Stick to the facts on health and science.", "fr-FR": "Tenez-vous-en aux faits sur la santé et la science.", "de-DE": "Bleib bei Gesundheit und Wissenschaft bei den Fakten.", "es-419": "Apégate a los hechos sobre salud y ciencia.", "pt-BR": "Fique nos fatos sobre saúde e ciência."},
+        "body": {
+          "en-CA": "Don't spread anti-vaccine or anti-science misinformation that puts people at risk.",
+          "fr-FR": "Ne propagez pas de désinformation antivaccin ou antiscience qui met des gens en danger.",
+          "de-DE": "Verbreite keine Falschinformationen gegen Impfungen oder die Wissenschaft, die Menschen gefährden.",
+          "es-419": "No difundas desinformación antivacunas o anticientífica que ponga a las personas en riesgo.",
+          "pt-BR": "Não espalhe desinformação antivacina ou anticiência que coloque pessoas em risco."
+        }
+      },
+      {
+        "title": {"en-CA": "Moderators decide.", "fr-FR": "Les modérateurs décident.", "de-DE": "Die Moderation entscheidet.", "es-419": "La moderación decide.", "pt-BR": "A moderação decide."},
+        "body": {
+          "en-CA": "The people who run this site can remove anything that breaks these rules, and things these rules don't list.",
+          "fr-FR": "Les personnes qui gèrent ce site peuvent retirer tout ce qui enfreint ces règles, et ce que ces règles ne mentionnent pas.",
+          "de-DE": "Wer diese Seite betreibt, kann alles entfernen, was gegen diese Regeln verstößt, auch Dinge, die hier nicht aufgeführt sind.",
+          "es-419": "Quienes administran este sitio pueden quitar todo lo que rompa estas reglas, y también lo que estas reglas no mencionan.",
+          "pt-BR": "Quem administra este site pode remover qualquer coisa que quebre estas regras, e também o que elas não mencionam."
+        }
+      }
+    ]
+  },
+  "promises": [
+    {
+      "title": {"en-CA": "Changed your mind?", "fr-FR": "Vous avez changé d'avis ?", "de-DE": "Doch anders entschieden?", "es-419": "¿Cambiaste de opinión?", "pt-BR": "Mudou de ideia?"},
+      "body": {
+        "en-CA": "You have {{days}} days to undo deleting your account. Just sign in again.",
+        "fr-FR": "Vous avez {{days}} jours pour annuler la suppression de votre compte. Il suffit de vous reconnecter.",
+        "de-DE": "Du hast {{days}} Tage Zeit, das Löschen deines Kontos rückgängig zu machen. Melde dich einfach wieder an.",
+        "es-419": "Tienes {{days}} días para deshacer la eliminación de tu cuenta. Solo vuelve a iniciar sesión.",
+        "pt-BR": "Você tem {{days}} dias para desfazer a exclusão da sua conta. É só entrar de novo."
+      }
+    },
+    {
+      "title": {"en-CA": "Your data is yours.", "fr-FR": "Vos données vous appartiennent.", "de-DE": "Deine Daten gehören dir.", "es-419": "Tus datos son tuyos.", "pt-BR": "Seus dados são seus."},
+      "body": {
+        "en-CA": "Download all of it, any time, from your settings.",
+        "fr-FR": "Téléchargez-les en entier, à tout moment, depuis vos paramètres.",
+        "de-DE": "Lade sie jederzeit vollständig in deinen Einstellungen herunter.",
+        "es-419": "Descárgalos todos, cuando quieras, desde tu configuración.",
+        "pt-BR": "Baixe tudo, quando quiser, nas suas configurações."
+      }
+    },
+    {
+      "title": {"en-CA": "Keep your account safe.", "fr-FR": "Protégez votre compte.", "de-DE": "Schütze dein Konto.", "es-419": "Protege tu cuenta.", "pt-BR": "Proteja sua conta."},
+      "body": {
+        "en-CA": "Turn on two-factor sign-in in your settings.",
+        "fr-FR": "Activez la connexion à deux facteurs dans vos paramètres.",
+        "de-DE": "Schalte die Zwei-Faktor-Anmeldung in deinen Einstellungen ein.",
+        "es-419": "Activa el inicio de sesión en dos pasos en tu configuración.",
+        "pt-BR": "Ative o login em duas etapas nas suas configurações."
+      }
+    }
+  ],
+  "rule_suggestions": [
+    {"title": {"en-CA": "Be kind and respectful", "fr-FR": "Soyez bienveillants et respectueux", "de-DE": "Sei freundlich und respektvoll", "es-419": "Sé amable y respetuoso", "pt-BR": "Seja gentil e respeitoso"}},
+    {"title": {"en-CA": "Stay on topic", "fr-FR": "Restez dans le sujet", "de-DE": "Bleib beim Thema", "es-419": "No te salgas del tema", "pt-BR": "Mantenha o assunto"}},
+    {"title": {"en-CA": "No spam or self-promotion", "fr-FR": "Pas de spam ni d'autopromotion", "de-DE": "Kein Spam und keine Eigenwerbung", "es-419": "Nada de spam ni autopromoción", "pt-BR": "Nada de spam ou autopromoção"}},
+    {"title": {"en-CA": "What's shared here stays here", "fr-FR": "Ce qui est partagé ici reste ici", "de-DE": "Was hier geteilt wird, bleibt hier", "es-419": "Lo que se comparte aquí se queda aquí", "pt-BR": "O que é compartilhado aqui fica aqui"}},
+    {"title": {"en-CA": "No hate or bullying", "fr-FR": "Pas de haine ni d'intimidation", "de-DE": "Kein Hass und kein Mobbing", "es-419": "Nada de odio ni acoso", "pt-BR": "Nada de ódio ou bullying"}},
+    {"title": {"en-CA": "Warn before difficult topics", "fr-FR": "Prévenez avant les sujets difficiles", "de-DE": "Warne vor schwierigen Themen", "es-419": "Avisa antes de temas difíciles", "pt-BR": "Avise antes de assuntos difíceis"}},
+    {"title": {"en-CA": "Check facts before you share", "fr-FR": "Vérifiez les faits avant de partager", "de-DE": "Prüfe Fakten, bevor du teilst", "es-419": "Verifica los datos antes de compartir", "pt-BR": "Confira os fatos antes de compartilhar"}},
+    {"title": {"en-CA": "Credit people's work", "fr-FR": "Citez le travail des autres", "de-DE": "Nenne, wessen Arbeit es ist", "es-419": "Da crédito al trabajo de otros", "pt-BR": "Dê crédito ao trabalho dos outros"}}
+  ]
+}

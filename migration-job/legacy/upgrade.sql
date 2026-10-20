@@ -1289,10 +1289,18 @@ CREATE TABLE auth_accounts (
     `pp_accepted_ip`          varchar(45)  DEFAULT NULL,
     `pp_accepted_user_agent`  varchar(255) DEFAULT NULL,
     `pp_accepted_os`          varchar(100) DEFAULT NULL,
+    -- The site's rules (roadmap row 102): nobody has agreed to them yet.
+    `rules_accepted`             tinyint(1) NOT NULL DEFAULT 0,
+    `rules_accepted_at`          datetime     DEFAULT NULL,
+    `rules_accepted_version`     varchar(20)  NOT NULL DEFAULT '',
+    `rules_accepted_ip`          varchar(45)  NOT NULL DEFAULT '',
+    `rules_accepted_user_agent`  varchar(255) NOT NULL DEFAULT '',
+    `rules_accepted_os`          varchar(100) NOT NULL DEFAULT '',
     PRIMARY KEY (`node_id`),
     UNIQUE KEY `email` (`email`),
     KEY `tos_accepted_version` (`tos_accepted_version`),
-    KEY `pp_accepted_version` (`pp_accepted_version`)
+    KEY `pp_accepted_version` (`pp_accepted_version`),
+    KEY `rules_accepted_version` (`rules_accepted_version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Consent columns keep their defaults: nobody has accepted anything yet, and
@@ -2224,3 +2232,41 @@ CREATE TABLE notifications_off (
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`recipient_id`, `topic`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 20261122000004_profile_rules: a group's and an event's rules, and who
+-- agreed to which version (roadmap row 102, part 5).
+CREATE TABLE profile_rules (
+    `profile_id` bigint unsigned NOT NULL,
+    `position` tinyint unsigned NOT NULL,
+    `title` varchar(100) NOT NULL,
+    `body` varchar(300) NOT NULL DEFAULT '',
+    PRIMARY KEY (`profile_id`, `position`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE profile_rule_versions (
+    `profile_id` bigint unsigned NOT NULL,
+    `version` int unsigned NOT NULL DEFAULT 0,
+    `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`profile_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE profile_rule_agreements (
+    `person_id` bigint unsigned NOT NULL,
+    `profile_id` bigint unsigned NOT NULL,
+    `version` int unsigned NOT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`person_id`, `profile_id`),
+    KEY `profile_id` (`profile_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 20261122000005_signup_requests_rules: the version of the site's rules a
+-- sign-up request agreed to (roadmap row 102, part 2b).
+ALTER TABLE signup_requests
+    ADD COLUMN `rules_accepted_version` varchar(20) NOT NULL DEFAULT '' AFTER `created_user_agent`;
+
+-- 20261122000006_abuse_reports_rule: the rule a report says was broken, and
+-- whose rule it is (roadmap row 102, part 6).
+ALTER TABLE abuse_reports
+    ADD COLUMN `rule_title` varchar(100) NOT NULL DEFAULT '' AFTER `details`,
+    ADD COLUMN `rule_profile_id` bigint unsigned NOT NULL DEFAULT 0 AFTER `rule_title`,
+    ADD KEY `idx_abuse_reports_rule_profile` (`rule_profile_id`, `case_id`);

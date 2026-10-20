@@ -99,6 +99,20 @@ message MediumAddResponse {
     Node medium = 1;
 }
 
+// Several posts made in one go, all or none (roadmap row 101): each part
+// after the first a reply to the one before, the first a post, or a reply
+// to `parent_id` when it is given. Its locations are the first part's.
+message MediumThreadAddRequest {
+    int64 parent_id = 1;
+    repeated Node parts = 2;
+    Viewer viewer = 3;
+    repeated int64 location_ids = 4;
+}
+
+message MediumThreadAddResponse {
+    repeated Node parts = 1;
+}
+
 message MediumDeleteRequest {
     int64 id = 1;
     Viewer viewer = 2;
@@ -290,6 +304,7 @@ service MediumService {
     rpc BatchRead(MediumBatchReadRequest) returns (MediumBatchReadResponse) {}
     rpc Edit(MediumEditRequest) returns (MediumEditResponse) {}
     rpc Add(MediumAddRequest) returns (MediumAddResponse) {}
+    rpc AddThread(MediumThreadAddRequest) returns (MediumThreadAddResponse) {}
     rpc Delete(MediumDeleteRequest) returns (MediumDeleteResponse) {}
     rpc Ping(MediumPingRequest) returns (MediumPingResponse) {}
 

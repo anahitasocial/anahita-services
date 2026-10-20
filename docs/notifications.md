@@ -91,6 +91,10 @@ by id through the graph's `FilterVisible`. A test keeps the two in step:
 - **A profile on another server,** of a like, a repost, a reply, a quote, a
   mention or a follow: its own server is told, by federation.
 - **Of a draft.** Nothing is said of a post until it is published.
+- **Of the notes after the first of a thread written in one go**
+  (`POST /notes/…/thread`): whoever is told of the thread is told of its
+  first note, once (`part` in the event; roadmap row 101). A name mentioned
+  in any of its notes is still told, as a mention.
 
 ## When what it tells of goes
 
