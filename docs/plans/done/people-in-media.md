@@ -3,7 +3,7 @@
 *Roadmap row 103, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
 **Status:** started 2026-10-19, on branch `issues/people-in-media` in both
-repositories. Parts 1 to 4 done: the tag, the choice, the endpoints, the notifications, and where tags go.
+repositories. Done 2026-10-19, every part.
 
 **Parts, in order:**
 
@@ -29,8 +29,17 @@ repositories. Parts 1 to 4 done: the tag, the choice, the endpoints, the notific
    in it (the hashtag's points); the fediverse, each person who federates
    as a `Mention`, the post sent again when a tag is approved or taken off.
    Recommendations read no mentions, and read no tags either.
-5. The web app: "Who can tag you?", Tag people in the composer and in Edit,
-   the names under the picture, the notification.
+5. The web app — done 2026-10-19: "Who can tag you in photos and
+   videos?" in Settings › Permissions (and "Nobody" for mentions' narrowest
+   choice); "With Worf and Dax" under a photo or a video on its page and in
+   the theatre, Accept and Decline or Remove me there; Tag people in the
+   composer and in a post's menu; the Tagged tab; the notifications, with
+   Accept and Decline. Profiles are now found by handle in lists too.
+
+**Left for later:** a spot on the picture; tagging somebody on another
+server, who cannot approve it here; tags in the composer for a video, which
+is a post only once its upload is done (tagged from its menu after); names
+on feed cards.
 
 ## Context
 
