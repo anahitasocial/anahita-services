@@ -79,11 +79,11 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <section id="abuse-report-service" class="service">
 <h2>Abuse reports <code>abuse-report-service</code></h2>
 <p>Reporting a post, a reply or a profile, and the administrators&#39; queue of what was reported. Optional: an installation may not run it (<a href="../abuse-reports.md">abuse-reports.md</a>).</p>
-<details class="route" id="postAbuseReports" data-search="post /abuse-reports report something nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. a thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. twenty reports an hour at most.
+<details class="route" id="postAbuseReports" data-search="post /abuse-reports report something nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. a thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. twenty reports an hour at most. with `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site&#39;s (`rule_profile_id` 0, from `get /site`) or those of the group or event it is in, or is (its id).
 
 who may call it: somebody signed in, with a token that carries `account:write`.">
 <summary><span class="method post">POST</span> <code class="path">/abuse-reports</code> <span class="summary">Report something</span></summary>
-<div class="description"><p>Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.</p></div>
+<div class="description"><p>Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With <code>reason_key</code> <code>rule</code>, it breaks one of the rules everybody ticked, named by its title in <code>rule</code>: the site&#39;s (<code>rule_profile_id</code> 0, from <code>GET /site</code>) or those of the group or event it is in, or is (its id).</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>account:write</code></p>
 <h4>Takes, as <code>application/json</code></h4>
 <table>
@@ -91,6 +91,8 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td><code>details</code></td><td>string</td><td>What the reporter adds in their own words. Needed where the reason says so. At most 1000 characters.</td></tr>
 <tr><td><code>reason_key</code> <span class="required">always</span></td><td>string</td><td>Why, by the reason&#39;s key (GET /abuse-reports/reasons). At most 64 characters.</td></tr>
+<tr><td><code>rule</code></td><td>string</td><td>With reason_key &#34;rule&#34;: the rule broken, by its title as the reporter read it, and whose rule it is: 0 for the site&#39;s, or the group or event the reported thing belongs to (roadmap row 102, part 6). At most 100 characters.</td></tr>
+<tr><td><code>rule_profile_id</code></td><td>integer</td><td> At least 0.</td></tr>
 <tr><td><code>target_id</code> <span class="required">always</span></td><td>integer</td><td>The id of what is reported: a post, a reply, a profile. At least 1.</td></tr>
 </tbody>
 </table>
@@ -99,7 +101,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td class="status s2">200</td><td>the viewer had reported it already; their report was updated</td></tr>
 <tr><td class="status s2">201</td><td>reported</td></tr>
-<tr><td class="status s4">400</td><td><code>own_content</code>, it is the viewer&#39;s own; <code>reason_not_applicable</code>, the reason is not for this kind of thing; <code>details_required</code>, the reason needs the reporter&#39;s own words; or not well formed, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>own_content</code>, it is the viewer&#39;s own; <code>reason_not_applicable</code>, the reason is not for this kind of thing; <code>details_required</code>, the reason needs the reporter&#39;s own words; <code>rule_required</code>, <code>rule</code> is empty; <code>rule_not_applicable</code>, it is not one of that profile&#39;s rules, or the thing is not in that profile; or not well formed, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
 <tr><td class="status s4">404</td><td>there is no such thing that the viewer can see</td></tr>
@@ -108,11 +110,11 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 </table>
 <p class="handler">Answered by <code>abusereport/cmd/api/handlers.(*reportsHandler).Add</code></p>
 </details>
-<details class="route" id="postAbuseReports2" data-search="post /abuse-reports/ report something nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. a thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. twenty reports an hour at most.
+<details class="route" id="postAbuseReports2" data-search="post /abuse-reports/ report something nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. a thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. twenty reports an hour at most. with `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site&#39;s (`rule_profile_id` 0, from `get /site`) or those of the group or event it is in, or is (its id).
 
 who may call it: somebody signed in, with a token that carries `account:write`.">
 <summary><span class="method post">POST</span> <code class="path">/abuse-reports/</code> <span class="summary">Report something</span></summary>
-<div class="description"><p>Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.</p></div>
+<div class="description"><p>Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With <code>reason_key</code> <code>rule</code>, it breaks one of the rules everybody ticked, named by its title in <code>rule</code>: the site&#39;s (<code>rule_profile_id</code> 0, from <code>GET /site</code>) or those of the group or event it is in, or is (its id).</p></div>
 <p class="who"><strong>Who:</strong> somebody signed in, with <code>account:write</code></p>
 <h4>Takes, as <code>application/json</code></h4>
 <table>
@@ -120,6 +122,8 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td><code>details</code></td><td>string</td><td>What the reporter adds in their own words. Needed where the reason says so. At most 1000 characters.</td></tr>
 <tr><td><code>reason_key</code> <span class="required">always</span></td><td>string</td><td>Why, by the reason&#39;s key (GET /abuse-reports/reasons). At most 64 characters.</td></tr>
+<tr><td><code>rule</code></td><td>string</td><td>With reason_key &#34;rule&#34;: the rule broken, by its title as the reporter read it, and whose rule it is: 0 for the site&#39;s, or the group or event the reported thing belongs to (roadmap row 102, part 6). At most 100 characters.</td></tr>
+<tr><td><code>rule_profile_id</code></td><td>integer</td><td> At least 0.</td></tr>
 <tr><td><code>target_id</code> <span class="required">always</span></td><td>integer</td><td>The id of what is reported: a post, a reply, a profile. At least 1.</td></tr>
 </tbody>
 </table>
@@ -128,7 +132,7 @@ who may call it: somebody signed in, with a token that carries `account:write`."
 <tbody>
 <tr><td class="status s2">200</td><td>the viewer had reported it already; their report was updated</td></tr>
 <tr><td class="status s2">201</td><td>reported</td></tr>
-<tr><td class="status s4">400</td><td><code>own_content</code>, it is the viewer&#39;s own; <code>reason_not_applicable</code>, the reason is not for this kind of thing; <code>details_required</code>, the reason needs the reporter&#39;s own words; or not well formed, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td><code>own_content</code>, it is the viewer&#39;s own; <code>reason_not_applicable</code>, the reason is not for this kind of thing; <code>details_required</code>, the reason needs the reporter&#39;s own words; <code>rule_required</code>, <code>rule</code> is empty; <code>rule_not_applicable</code>, it is not one of that profile&#39;s rules, or the thing is not in that profile; or not well formed, without a body<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
 <tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
 <tr><td class="status s4">403</td><td>the viewer may not do this</td></tr>
 <tr><td class="status s4">404</td><td>there is no such thing that the viewer can see</td></tr>
@@ -10946,7 +10950,7 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-abusereport.Report" data-search="abusereport.report created_at details id reason_key reason_label reporter reporter_id updated_at">
+<div class="route schema" id="schema-abusereport.Report" data-search="abusereport.report created_at details id reason_key reason_label reporter reporter_id rule rule_profile rule_profile_id updated_at">
 <h3>abusereport.Report</h3>
 <p>One person&#39;s report, as an administrator sees it.</p>
 <table>
@@ -10959,6 +10963,9 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>reason_label</code> <span class="required">always</span></td><td>string</td><td>What it is called.</td></tr>
 <tr><td><code>reporter</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>Who reported it.</td></tr>
 <tr><td><code>reporter_id</code> <span class="required">always</span></td><td>integer</td><td>Their id.</td></tr>
+<tr><td><code>rule</code></td><td>string</td><td>With reason_key &#34;rule&#34;: the rule broken, by its title, and whose rule it is, 0 for the site&#39;s.</td></tr>
+<tr><td><code>rule_profile</code></td><td><a href="#schema-NodeItem">NodeItem</a></td><td>The group or event whose rule it is.</td></tr>
+<tr><td><code>rule_profile_id</code></td><td>integer</td><td></td></tr>
 <tr><td><code>updated_at</code> <span class="required">always</span></td><td>time</td><td>When it was last changed: a second report by the same person updates it.</td></tr>
 </tbody>
 </table>

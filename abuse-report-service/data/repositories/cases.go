@@ -114,14 +114,18 @@ const (
 			reporter_id,
 			reason_key,
 			details,
+			rule_title,
+			rule_profile_id,
 			created_at,
 			updated_at,
 			created_ip
-		) VALUES (?, ?, ?, ?, NOW(), NOW(), ?)
+		) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), ?)
 		ON DUPLICATE KEY UPDATE
-			reason_key = VALUES(reason_key),
-			details    = VALUES(details),
-			updated_at = NOW()`
+			reason_key      = VALUES(reason_key),
+			details         = VALUES(details),
+			rule_title      = VALUES(rule_title),
+			rule_profile_id = VALUES(rule_profile_id),
+			updated_at      = NOW()`
 
 	countNewReport = `
 		UPDATE abuse_cases
@@ -167,6 +171,8 @@ const (
 		       reporter_id,
 		       reason_key,
 		       details,
+		       rule_title,
+		       rule_profile_id,
 		       created_at,
 		       updated_at,
 		       created_ip
@@ -349,7 +355,8 @@ func (r *cases) addReport(target entities.Case, report entities.Report) (int64, 
 	// One report per person per case. MySQL reports 1 row for an insert, 2
 	// for a row it changed, and 0 for one it found identical.
 	result, err := tx.ExecContext(ctx, upsertReport,
-		caseID, report.ReporterID, report.ReasonKey, report.Details, report.CreatedIP)
+		caseID, report.ReporterID, report.ReasonKey, report.Details,
+		report.RuleTitle, report.RuleProfileID, report.CreatedIP)
 	if err != nil {
 		return 0, false, err
 	}
@@ -433,7 +440,8 @@ func (r *cases) BrowseReports(caseID int64) ([]*entities.Report, error) {
 	for rows.Next() {
 		report := &entities.Report{}
 		if err := rows.Scan(&report.ID, &report.CaseID, &report.ReporterID, &report.ReasonKey,
-			&report.Details, &report.CreatedAt, &report.UpdatedAt, &report.CreatedIP); err != nil {
+			&report.Details, &report.RuleTitle, &report.RuleProfileID,
+			&report.CreatedAt, &report.UpdatedAt, &report.CreatedIP); err != nil {
 			return nil, err
 		}
 		list = append(list, report)

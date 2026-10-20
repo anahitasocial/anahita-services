@@ -107,6 +107,12 @@ type Report struct {
 	ReasonLabel string `json:"reason_label"`
 	// What the reporter added.
 	Details string `json:"details,omitempty"`
+	// With reason_key "rule": the rule broken, by its title, and whose rule
+	// it is, 0 for the site's.
+	Rule          string `json:"rule,omitempty"`
+	RuleProfileID int64  `json:"rule_profile_id,omitempty"`
+	// The group or event whose rule it is.
+	RuleProfile *libs_responses.NodeItem `json:"rule_profile,omitempty"`
 	// When it was made.
 	CreatedAt time.Time `json:"created_at"`
 	// When it was last changed: a second report by the same person updates it.
@@ -196,13 +202,16 @@ func (m *Mapper) Case(c *entities.Case, counts []entities.ReasonCount) Case {
 
 func (m *Mapper) Report(report *entities.Report) Report {
 	return Report{
-		ID:          report.ID,
-		Reporter:    m.node(report.ReporterID),
-		ReporterID:  report.ReporterID,
-		ReasonKey:   report.ReasonKey,
-		ReasonLabel: m.label(report.ReasonKey),
-		Details:     report.Details,
-		CreatedAt:   report.CreatedAt,
-		UpdatedAt:   report.UpdatedAt,
+		ID:            report.ID,
+		Reporter:      m.node(report.ReporterID),
+		ReporterID:    report.ReporterID,
+		ReasonKey:     report.ReasonKey,
+		ReasonLabel:   m.label(report.ReasonKey),
+		Details:       report.Details,
+		Rule:          report.RuleTitle,
+		RuleProfileID: report.RuleProfileID,
+		RuleProfile:   m.node(report.RuleProfileID),
+		CreatedAt:     report.CreatedAt,
+		UpdatedAt:     report.UpdatedAt,
 	}
 }

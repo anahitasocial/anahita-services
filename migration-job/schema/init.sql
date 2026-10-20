@@ -969,6 +969,11 @@ CREATE TABLE IF NOT EXISTS abuse_reports (
     -- used it.
     `reason_key` varchar(64) NOT NULL,
     `details` varchar(1000) NOT NULL DEFAULT '',
+    -- With reason_key "rule": the rule broken, its title as the reporter
+    -- read it, and whose rule it is, 0 for the site's or the group or event
+    -- the reported thing belongs to.
+    `rule_title` varchar(100) NOT NULL DEFAULT '',
+    `rule_profile_id` bigint unsigned NOT NULL DEFAULT 0,
     `created_at` datetime NOT NULL,
     `updated_at` datetime NOT NULL,
     `created_ip` varchar(45) NOT NULL DEFAULT '',
@@ -976,7 +981,8 @@ CREATE TABLE IF NOT EXISTS abuse_reports (
     -- One report per person per case. Reporting again changes the reason and
     -- the details of the one they have.
     UNIQUE KEY `idx_abuse_reports_case_reporter` (`case_id`, `reporter_id`),
-    KEY `idx_abuse_reports_reporter` (`reporter_id`, `created_at`)
+    KEY `idx_abuse_reports_reporter` (`reporter_id`, `created_at`),
+    KEY `idx_abuse_reports_rule_profile` (`rule_profile_id`, `case_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- What somebody has chosen about being suggested profiles to follow, and

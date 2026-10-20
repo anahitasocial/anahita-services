@@ -9,6 +9,11 @@ type ReportAdd struct {
 	// What the reporter adds in their own words. Needed where the reason
 	// says so.
 	Details string `json:"details" validate:"max=1000"`
+	// With reason_key "rule": the rule broken, by its title as the reporter
+	// read it, and whose rule it is: 0 for the site's, or the group or event
+	// the reported thing belongs to (roadmap row 102, part 6).
+	RuleTitle     string `json:"rule" validate:"max=100"`
+	RuleProfileID int64  `json:"rule_profile_id" validate:"min=0"`
 }
 
 // CaseResolve closes a case. Status is "actioned" or "dismissed"; Action says

@@ -45,13 +45,13 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	add := func(route *apidoc.Route) {
 		route.
 			Summary("Report something").
-			Describe("Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.").
+			Describe("Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site's (`rule_profile_id` 0, from `GET /site`) or those of the group or event it is in, or is (its id).").
 			Viewer(apidoc.SignedIn).
 			Scope(report).
 			Takes(&requests.ReportAdd{}).
 			SendsNothing(http.StatusCreated, "reported").
 			SendsNothing(http.StatusOK, "the viewer had reported it already; their report was updated").
-			Sends(http.StatusBadRequest, libs_responses.Refusal{}, "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; or not well formed, without a body").
+			Sends(http.StatusBadRequest, libs_responses.Refusal{}, "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; `rule_required`, `rule` is empty; `rule_not_applicable`, it is not one of that profile's rules, or the thing is not in that profile; or not well formed, without a body").
 			Refuses(http.StatusNotFound, "there is no such thing that the viewer can see").
 			Refuses(http.StatusTooManyRequests, "too many reports in the last hour")
 	}

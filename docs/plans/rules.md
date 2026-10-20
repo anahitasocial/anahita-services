@@ -2,7 +2,7 @@
 
 *Roadmap row 102, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** parts 1 to 5 and 2b done 2026-10-19; part 6 next. Branch
+**Status:** parts 1 to 5 and 2b done 2026-10-19, and 6a; 6b next. Branch
 `issues/rules` in both repositories, from `issues/thread-composer`.
 
 **Parts, in order:**
@@ -84,6 +84,15 @@
      after its upload: the web app asks before. Tried as Worf: refused,
      agreed, posted; through the composer in a browser too.
 6. Reporting against a rule.
+   - 6a, reported and shown — done 2026-10-19: `reason_key` `rule`, with
+     the rule's title and `rule_profile_id` (0 for the site's), in
+     `abuse_reports` (migration `20261122000006`). A group's or event's
+     rule is checked against its rules now, and the thing must be in it.
+     The web app's report dialog offers "Breaks a rule" with the site's
+     rules and the group's or event's; a case names the rule and whose it
+     is. Tried as Worf on a post in Ten Forward.
+   - 6b, the group's own queue: its administrators see and decide the
+     reports against its rules.
 
 ## Context
 

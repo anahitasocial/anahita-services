@@ -2263,3 +2263,10 @@ CREATE TABLE profile_rule_agreements (
 -- sign-up request agreed to (roadmap row 102, part 2b).
 ALTER TABLE signup_requests
     ADD COLUMN `rules_accepted_version` varchar(20) NOT NULL DEFAULT '' AFTER `created_user_agent`;
+
+-- 20261122000006_abuse_reports_rule: the rule a report says was broken, and
+-- whose rule it is (roadmap row 102, part 6).
+ALTER TABLE abuse_reports
+    ADD COLUMN `rule_title` varchar(100) NOT NULL DEFAULT '' AFTER `details`,
+    ADD COLUMN `rule_profile_id` bigint unsigned NOT NULL DEFAULT 0 AFTER `rule_title`,
+    ADD KEY `idx_abuse_reports_rule_profile` (`rule_profile_id`, `case_id`);

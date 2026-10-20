@@ -1260,6 +1260,18 @@
             "format": "int64",
             "type": "integer"
           },
+          "rule": {
+            "description": "With reason_key \"rule\": the rule broken, by its title, and whose rule it is, 0 for the site's.",
+            "type": "string"
+          },
+          "rule_profile": {
+            "$ref": "#/components/schemas/NodeItem",
+            "description": "The group or event whose rule it is."
+          },
+          "rule_profile_id": {
+            "format": "int64",
+            "type": "integer"
+          },
           "updated_at": {
             "description": "When it was last changed: a second report by the same person updates it.",
             "format": "date-time",
@@ -1299,7 +1311,7 @@
   "paths": {
     "/abuse-reports": {
       "post": {
-        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
+        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site's (`rule_profile_id` 0, from `GET /site`) or those of the group or event it is in, or is (its id).\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
         "operationId": "postAbuseReports",
         "requestBody": {
           "content": {
@@ -1315,6 +1327,16 @@
                     "description": "Why, by the reason's key (GET /abuse-reports/reasons).",
                     "maxLength": 64,
                     "type": "string"
+                  },
+                  "rule": {
+                    "description": "With reason_key \"rule\": the rule broken, by its title as the reporter read it, and whose rule it is: 0 for the site's, or the group or event the reported thing belongs to (roadmap row 102, part 6).",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "rule_profile_id": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
                   },
                   "target_id": {
                     "description": "The id of what is reported: a post, a reply, a profile.",
@@ -1348,7 +1370,7 @@
                 }
               }
             },
-            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; or not well formed, without a body"
+            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; `rule_required`, `rule` is empty; `rule_not_applicable`, it is not one of that profile's rules, or the thing is not in that profile; or not well formed, without a body"
           },
           "401": {
             "description": "no token, or one that has expired"
@@ -1380,7 +1402,7 @@
     },
     "/abuse-reports/": {
       "post": {
-        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most.\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
+        "description": "Nobody is told: the person reported never learns of the report or who made it, and administrators find it in their queue. A thing the viewer cannot see answers exactly as one that does not exist, so that reporting is no way to find out what is hidden. Twenty reports an hour at most. With `reason_key` `rule`, it breaks one of the rules everybody ticked, named by its title in `rule`: the site's (`rule_profile_id` 0, from `GET /site`) or those of the group or event it is in, or is (its id).\n\nWho may call it: somebody signed in, with a token that carries `account:write`.",
         "operationId": "postAbuseReports2",
         "requestBody": {
           "content": {
@@ -1396,6 +1418,16 @@
                     "description": "Why, by the reason's key (GET /abuse-reports/reasons).",
                     "maxLength": 64,
                     "type": "string"
+                  },
+                  "rule": {
+                    "description": "With reason_key \"rule\": the rule broken, by its title as the reporter read it, and whose rule it is: 0 for the site's, or the group or event the reported thing belongs to (roadmap row 102, part 6).",
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "rule_profile_id": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
                   },
                   "target_id": {
                     "description": "The id of what is reported: a post, a reply, a profile.",
@@ -1429,7 +1461,7 @@
                 }
               }
             },
-            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; or not well formed, without a body"
+            "description": "`own_content`, it is the viewer's own; `reason_not_applicable`, the reason is not for this kind of thing; `details_required`, the reason needs the reporter's own words; `rule_required`, `rule` is empty; `rule_not_applicable`, it is not one of that profile's rules, or the thing is not in that profile; or not well formed, without a body"
           },
           "401": {
             "description": "no token, or one that has expired"
