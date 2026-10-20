@@ -579,7 +579,7 @@ events can be mentioned, here or on another server.
 - **A person chooses who may mention them,** under Settings › Permissions,
   "Who can mention you?": the `mention` permission of `socialgraph-service`,
   one of `registered` (anybody signed in, the default), `followers`,
-  `leaders` (people they follow), `mutuals` or `admins` (nobody but
+  `leaders` (people they follow), `mutuals` or `admins` ("Nobody", but
   themselves). Somebody they block may not mention them either. A mention
   that isn't allowed is no edge at all, and nobody is told; the `@handle`
   stays in the text as written. Groups and events may always be mentioned.
@@ -611,9 +611,10 @@ for you", but "this person is in it" (roadmap row 103).
   person to the post, its `meta` `pending` or `approved`. Only a photo or a
   video, at most 20 people in one.
 - **A person chooses who may tag them,** under Settings › Permissions,
-  "Who can tag you?": the `tag` permission of `socialgraph-service`, one of
-  `registered` (anybody signed in, at once), `approve` (each tag waits for
-  their approval, the default) or `admins` (nobody but themselves). Somebody
+  "Who can tag you in photos and videos?": the `tag` permission of
+  `socialgraph-service`, one of `registered` ("Anyone signed in", at once),
+  `approve` ("Approve each first", the default) or `admins` ("Nobody", but
+  themselves). Somebody
   they block may not tag them. The rule is `permissions.TagDecision`.
 - **Only a person here may be tagged.** Somebody on another server cannot
   approve a tag here, and approval comes first.
