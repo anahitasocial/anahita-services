@@ -2,9 +2,8 @@
 
 *Roadmap row 104, planned 2026-10-20. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** planned, not started. After the static www.anahita.io (row 91)
-and the banu-devops repository for banu.io (rows 92 and 93), by the user's
-order.
+**Status:** started 2026-10-20, before rows 91 to 93 after all (the user
+wanted time to think about anahita.io). Suggestions done; search next.
 
 ## Context
 
@@ -40,8 +39,10 @@ Settled with the user on 2026-10-20:
 
 ### Suggestions (recommendation-service)
 
-Two reasons, for people only, beside those in
-`recommendation-service/data/repositories/signals.go`:
+Done 2026-10-20. Two reasons, for people only, beside those in
+`recommendation-service/data/repositories/signals.go` (tested against
+MySQL in `signals_pictured_integration_test.go`; in `ReasonOrder`, which
+scoring reads):
 
 | Reason | Found when | Each | Most |
 | --- | --- | --- | --- |
@@ -78,11 +79,11 @@ One new weight in `graph-grpc-defaults/search_ranking.json`,
 - Custom feeds filtering by who is in a post.
 - Somebody on another server tagged here (row 103 left it for later).
 
-## Open, to settle when the row begins
+Settled with the user when the row began, 2026-10-20:
 
-1. The two weights: 3 and 2 for suggestions, 8 for search, as proposed?
-2. Whether being tagged by somebody (`pictured_with_you`, one posted the
-   other's photo) counts the same as being tagged together.
+6. **3 and 2** for the two reasons (at most 6 and 8), and **8** for search.
+7. **Posting a photo somebody is in counts as being in it with them,** the
+   same as being tagged together.
 
 ## Docs to change
 

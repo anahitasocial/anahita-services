@@ -38,6 +38,12 @@ const (
 	ReasonYouEngaged        = "you_engaged"
 	ReasonPopular           = "popular"
 	ReasonFeatured          = "featured"
+	// In public photos or videos with the viewer: tagged together, or one
+	// in a photo the other posted (roadmap row 104).
+	ReasonPicturedWithYou = "pictured_with_you"
+	// In public photos or videos with people the viewer follows, or in ones
+	// they posted. `ids` are those people (roadmap row 104).
+	ReasonPicturedWithLeaders = "pictured_with_leaders"
 	// Others have cited them: their profile, or posts of theirs, shown
 	// within an article or a topic (the user, 2026-10-16).
 	ReasonCited = "cited"
@@ -65,6 +71,9 @@ var Weights = map[string]Weight{
 	ReasonCited:             {Each: 1, Most: 4},
 	ReasonCitedByLeaders:    {Each: 3, Most: 9},
 	ReasonFeatured:          {Each: 0.5, Most: 0.5},
+	// As an invitation, and as a shared interest (the user, 2026-10-20).
+	ReasonPicturedWithYou:     {Each: 3, Most: 6},
+	ReasonPicturedWithLeaders: {Each: 2, Most: 8},
 }
 
 // The most somebody may set a reason to count for, each time it is found.
@@ -92,8 +101,10 @@ func WeightsFor(own map[string]float64) map[string]Weight {
 // personal first.
 var ReasonOrder = []string{
 	ReasonFollowsYou,
+	ReasonPicturedWithYou,
 	ReasonFollowedByLeaders,
 	ReasonCitedByLeaders,
+	ReasonPicturedWithLeaders,
 	ReasonInviter,
 	ReasonHostedByLeader,
 	ReasonYouEngaged,
