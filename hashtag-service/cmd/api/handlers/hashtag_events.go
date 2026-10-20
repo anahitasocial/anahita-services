@@ -102,6 +102,8 @@ func (h *hashtagHandler) updateHashtags(payload *event.EventPayload) error {
 			// it. Without it no new hashtag was made at all, whoever
 			// wrote the post.
 			hashtag.CreatedBy = viewer.ID
+			// For everybody, as every tag is.
+			hashtag.Access = an_constants.AnahitaAccessPublic
 			missing = append(missing, hashtag)
 		}
 	}

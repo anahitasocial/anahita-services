@@ -212,6 +212,49 @@ func (h *Handlers) placesOf(post *entities.AnahitaNode) []federation.Place {
 	return places
 }
 
+// PeopleTags reads who is tagged in a post.
+type PeopleTags interface {
+	BatchReadByFilters(req *services.GraphEdgeBatchReadByFiltersRequest) ([]*entities.AnahitaEdge, error)
+}
+
+// peopleIn is who is in a photo or a video, their tags approved (roadmap
+// row 103), as the Mentions it goes out with: only somebody whose profile
+// is on the fediverse (federating), as for a name in a post's words, so a
+// tag tells another server of nobody who has not chosen to be known there.
+func (h *Handlers) peopleIn(post *entities.AnahitaNode) []federation.Named {
+	if h.PeopleTags == nil || (post.Type != constants.NodeMediumPhotoEntityType && post.Type != videos.NodeType) {
+		return nil
+	}
+	req := services.NewGraphEdgeRequest().BatchReadByFilters
+	req.Types = []string{constants.EdgeTagPersonType}
+	req.NodeBID = post.ID
+	req.Ordering = "created_at"
+	req.OrderingDir = "asc"
+	edges, err := h.PeopleTags.BatchReadByFilters(req)
+	if err != nil {
+		log.Printf("post %d: reading who is in it: %v", post.ID, err)
+		return nil
+	}
+	var named []federation.Named
+	for _, edge := range edges {
+		if edge.Meta != constants.TagApproved {
+			continue
+		}
+		person, err := h.Nodes.Read(edge.NodeAID)
+		if err != nil || person == nil {
+			continue
+		}
+		if h.federating(person) == nil {
+			continue
+		}
+		named = append(named, federation.Named{
+			Name: "@" + person.Alias + "@" + h.addresses.Site.Domain,
+			Href: h.addresses.Actor(person.UUID),
+		})
+	}
+	return named
+}
+
 // described is a note as other servers are sent it, a reply with what it
 // answers.
 func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answer) *ap.Note {
@@ -227,6 +270,9 @@ func (h *Handlers) described(note, author *entities.AnahitaNode, answering *answ
 	if places := h.placesOf(note); len(places) > 0 {
 		sent.WithPlaces(places)
 	}
+	// Who is in it, named beside the words as mentioned, which is what has
+	// their followers' servers know whose picture it is.
+	sent.WithPeople(h.peopleIn(note))
 	// A photo post goes with its pictures, each at an address of this
 	// installation's that leads to it for as long as the post goes out.
 	if note.Type == constants.NodeMediumPhotoEntityType && h.PhotoFiles != nil {

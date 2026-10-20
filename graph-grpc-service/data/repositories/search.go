@@ -81,13 +81,24 @@ func handleOf(keywords string) string {
 }
 
 // wordsMatch is the condition that a node has what was searched for: in
-// its name, its handle or its body. The handle is matched without the `@`
-// somebody typed before it, so that `@rastin.example` finds rastin.example.
+// its name, its handle or its body, or, for a photo or a video, as the name
+// or the handle of somebody in it, their tag approved (roadmap row 103). The
+// handle is matched without the `@` somebody typed before it, so that
+// `@rastin.example` finds rastin.example.
 func wordsMatch(keywords string) sq.Or {
 	return sq.Or{
 		sq.Like{"node.name": "%" + keywords + "%"},
 		sq.Like{"node.alias": "%" + handleOf(keywords) + "%"},
 		sq.Like{"node.body": "%" + keywords + "%"},
+		sq.Expr(`EXISTS (
+        SELECT 1
+        FROM edges AS pictured
+        JOIN nodes AS person ON person.id = pictured.node_a_id
+        WHERE pictured.node_b_id = node.id
+          AND pictured.type = ?
+          AND pictured.meta = ?
+          AND (LOWER(person.alias) = ? OR LOWER(person.name) = ?)
+    )`, constants.EdgeTagPersonType, constants.TagApproved, handleOf(keywords), strings.ToLower(keywords)),
 	}
 }
 
@@ -107,6 +118,15 @@ const relevantMatch = `(CASE
         WHERE tagged.node_b_id = node.id
           AND tagged.type = ?
           AND LOWER(hashtag.name) = ?
+    ) THEN ?
+    WHEN EXISTS (
+        SELECT 1
+        FROM edges AS pictured
+        JOIN nodes AS person ON person.id = pictured.node_a_id
+        WHERE pictured.node_b_id = node.id
+          AND pictured.type = ?
+          AND pictured.meta = ?
+          AND (LOWER(person.alias) = ? OR LOWER(person.name) = ?)
     ) THEN ?
     WHEN REGEXP_LIKE(node.body, ?, 'i') THEN ?
     ELSE ?
@@ -196,6 +216,9 @@ func relevance(keywords string, weights ranking.Weights, viewer *entities.Viewer
 		// name.
 		"%"+handleOf(keywords)+"%", m.NameContains,
 		constants.EdgeTagHashtagType, strings.TrimLeft(lower, "#"), m.Hashtag,
+		// A photo or a video with somebody in it by that name or handle,
+		// their tag approved (roadmap row 103), as good as its hashtag.
+		constants.EdgeTagPersonType, constants.TagApproved, handleOf(keywords), lower, m.Hashtag,
 		`\b`+regexp.QuoteMeta(keywords)+`\b`, m.BodyWord,
 		m.BodyContains,
 	)

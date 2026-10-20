@@ -51,8 +51,11 @@ func (r *nodesRepo) Browse(req *requests.NodeBrowseRequest) ([]*entities.Anahita
 	req.Search = sanitizeSearchString(req.Search)
 	if req.Search != "" {
 		likePattern := "%" + req.Search + "%"
+		// By the handle too: somebody may have no name but their handle
+		// (roadmap row 103, found tagging people).
 		query = query.Where(sq.Or{
 			sq.Like{"node.name": likePattern},
+			sq.Like{"node.alias": likePattern},
 			sq.Like{"node.body": likePattern},
 			sq.Like{"owner.name": likePattern},
 		})
@@ -172,8 +175,11 @@ func (r *nodesRepo) Count(req *requests.NodeCountRequest) (uint64, error) {
 	req.Search = sanitizeSearchString(req.Search)
 	if req.Search != "" {
 		likePattern := "%" + req.Search + "%"
+		// By the handle too: somebody may have no name but their handle
+		// (roadmap row 103, found tagging people).
 		query = query.Where(sq.Or{
 			sq.Like{"node.name": likePattern},
+			sq.Like{"node.alias": likePattern},
 			sq.Like{"node.body": likePattern},
 			sq.Like{"owner.name": likePattern},
 		})

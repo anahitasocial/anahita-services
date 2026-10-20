@@ -171,9 +171,9 @@ func (h *signupRequestsHandler) Approve(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	sr, err := h.readPendingSignupRequest(c)
-	if err != nil {
-		return err
+	sr, ok := h.readPendingSignupRequest(c)
+	if !ok {
+		return nil
 	}
 
 	body := &decisionBody{}
@@ -317,9 +317,9 @@ func (h *signupRequestsHandler) Reject(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	sr, err := h.readPendingSignupRequest(c)
-	if err != nil {
-		return err
+	sr, ok := h.readPendingSignupRequest(c)
+	if !ok {
+		return nil
 	}
 
 	body := &decisionBody{}
@@ -348,27 +348,33 @@ func (h *signupRequestsHandler) Reject(c echo.Context) error {
 }
 
 // readPendingSignupRequest loads the request named in the path, or writes the
-// refusal and returns an error for the caller to return.
+// refusal and says so with false. Not an error for the caller to return:
+// c.NoContent's is nil once it has written, so the caller went on with no
+// request at all.
 func (h *signupRequestsHandler) readPendingSignupRequest(
 	c echo.Context,
-) (*entities.SignupRequest, error) {
+) (*entities.SignupRequest, bool) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || id <= 0 {
-		return nil, c.NoContent(http.StatusBadRequest)
+		_ = c.NoContent(http.StatusBadRequest)
+		return nil, false
 	}
 
 	sr, err := h.Repos.SignupRequests.ReadByID(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, c.NoContent(http.StatusNotFound)
+			_ = c.NoContent(http.StatusNotFound)
+			return nil, false
 		}
 		log.Println("signup requests: read failed:", err)
-		return nil, c.NoContent(http.StatusInternalServerError)
+		_ = c.NoContent(http.StatusInternalServerError)
+		return nil, false
 	}
 
 	if sr.IsDecided() {
-		return nil, refuse(c, http.StatusConflict, "already_decided",
+		_ = refuse(c, http.StatusConflict, "already_decided",
 			"This request has already been answered.")
+		return nil, false
 	}
 
 	// An unverified request is not in the queue and must not be decidable from
@@ -376,9 +382,10 @@ func (h *signupRequestsHandler) readPendingSignupRequest(
 	// shown they can receive mail at, which is the whole thing verification is
 	// for.
 	if !sr.IsEmailVerified() {
-		return nil, refuse(c, http.StatusConflict, "not_verified",
+		_ = refuse(c, http.StatusConflict, "not_verified",
 			"This person has not confirmed their email address yet.")
+		return nil, false
 	}
 
-	return sr, nil
+	return sr, true
 }

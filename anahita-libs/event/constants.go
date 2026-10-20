@@ -57,6 +57,14 @@ const (
 	// A post no longer naming a profile, after an edit.
 	EventFormatEdgeMentionDeleted = "edge.mention.%s.deleted.v1"
 
+	// A person in a picture or a video (actor-service, roadmap row 103):
+	// the subject is the post's author, the object the post, the target
+	// the person. Requested is a tag waiting for their approval, added one
+	// made or approved, deleted one taken off by either of them.
+	EventFormatEdgeTagRequested = "edge.tag.%s.requested.v1"
+	EventFormatEdgeTagAdded     = "edge.tag.%s.added.v1"
+	EventFormatEdgeTagDeleted   = "edge.tag.%s.deleted.v1"
+
 	EventFormatEdgeFollowAdded   = "edge.follow.%s.added.v1"
 	EventFormatEdgeFollowDeleted = "edge.follow.%s.deleted.v1"
 

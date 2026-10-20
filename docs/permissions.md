@@ -31,6 +31,7 @@ What each route answers when the viewer may not is in the [API reference](api/in
 - [Events](#events)
 - [Reposts](#reposts)
 - [Mentions](#mentions)
+- [People in pictures and videos](#people-in-pictures-and-videos)
 - [Quotes](#quotes)
 - [Saved posts](#saved-posts)
 - [Pinned posts](#pinned-posts)
@@ -578,7 +579,7 @@ events can be mentioned, here or on another server.
 - **A person chooses who may mention them,** under Settings › Permissions,
   "Who can mention you?": the `mention` permission of `socialgraph-service`,
   one of `registered` (anybody signed in, the default), `followers`,
-  `leaders` (people they follow), `mutuals` or `admins` (nobody but
+  `leaders` (people they follow), `mutuals` or `admins` ("Nobody", but
   themselves). Somebody they block may not mention them either. A mention
   that isn't allowed is no edge at all, and nobody is told; the `@handle`
   stays in the text as written. Groups and events may always be mentioned.
@@ -593,6 +594,41 @@ events can be mentioned, here or on another server.
   (`edge.mention.actor-service.deleted.v1`).
 - **A mention is not a citation.** A post naming a post cites it; naming a
   profile mentions it (the user, 2026-10-17).
+
+## People in pictures and videos
+
+A tag says who is in a photo or a video: not a mention, which says "this is
+for you", but "this person is in it" (roadmap row 103).
+
+| Endpoint | Who | What |
+| --- | --- | --- |
+| `GET /people/tagged-in/:post_id` | whoever may see the post | who is in it, in the order they were tagged |
+| `POST /people/:id/tags/:post_id` | the post's author | tags them: 201 at once, 202 waiting for their approval, 409 `not_taggable` or `too_many` |
+| `PUT /people/:id/tags/:post_id` | the person tagged | approves |
+| `DELETE /people/:id/tags/:post_id` | the person tagged, or the post's author | declines, or takes them out |
+
+- **actor-service keeps the tags,** as `edge.tag.person.v1` from the
+  person to the post, its `meta` `pending` or `approved`. Only a photo or a
+  video, at most 20 people in one.
+- **A person chooses who may tag them,** under Settings › Permissions,
+  "Who can tag you in photos and videos?": the `tag` permission of
+  `socialgraph-service`, one of `registered` ("Anyone signed in", at once),
+  `approve` ("Approve each first", the default) or `admins` ("Nobody", but
+  themselves). Somebody
+  they block may not tag them. The rule is `permissions.TagDecision`.
+- **Only a person here may be tagged.** Somebody on another server cannot
+  approve a tag here, and approval comes first.
+- **A tag waiting is seen by the two of them only,** the person and the
+  post's author; nothing else reads it as a tag.
+- **Where tags show:** the person's **Tagged** list (`GET
+  /feeds/actor/:id/?filter=tagged`), search (a photo or a video is found by
+  the name or handle of somebody in it), and the fediverse, as a `Mention`
+  ([Federation](federation.md)). Recommendations read neither mentions nor
+  tags.
+- **Events:** `edge.tag.actor-service.requested.v1` for a tag waiting,
+  `added.v1` for one made or approved, `deleted.v1` for one taken off; the
+  subject is the post's author, the object the post, the target the
+  person.
 
 ## Quotes
 

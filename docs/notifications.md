@@ -48,6 +48,9 @@ the top of their list, unread: an event moved twice says so once.
 | `repost_add` | A post is reposted | Its author |
 | `voteup` | A post is liked | Its author |
 | `actor_mention`, `actor_mention_reply` | A post or a reply names a person | The person, when they may see it ([Permissions](permissions.md)) |
+| `actor_tag_request` | A person is tagged in a photo or a video, and the tag waits for them | The person, when they may see the post ([Permissions](permissions.md#people-in-pictures-and-videos)) |
+| `actor_tag` | A person is tagged at once, as they chose | The person, likewise |
+| `actor_tag_accept` | A person approves being tagged; its subject is them | The post's author |
 | `actor_follow` | A profile is followed | The person, or a group's or an event's administrators |
 | `actor_follow_request`, `actor_follow_request_accept` | Somebody asks to follow, and is let | The person or the administrators; then the one who asked |
 | `actor_invite`, `actor_invite_accept` | Somebody is invited to follow, and accepts | The one invited; then the one who invited |
@@ -107,6 +110,7 @@ of, for everybody who was told, whoever's hand removed it:
 | A repost, taken back | Its `repost_add`, found by the repost's id in `comment_id` |
 | A like, taken back | Its `voteup` |
 | A name, taken out of a post in an edit | Its `actor_mention` (actor-service says so, `edge.mention.*.deleted.v1`) |
+| A tag, taken off by the person or the author | Its `actor_tag_request`, `actor_tag` and `actor_tag_accept` (`edge.tag.*.deleted.v1`) |
 | A follow | Its `actor_follow`, and the subscription unless they administer the profile |
 | An administrator | Their `admin_add`, and the subscription unless they follow the profile |
 | A note from another server, taken back there | Everything about it |
@@ -128,7 +132,7 @@ none. A purge takes them with the person.
 | `likes` | `voteup` |
 | `reposts` | `repost_add`, `quote_add` |
 | `replies` | `reply_add` |
-| `mentions` | `actor_mention`, `actor_mention_reply` |
+| `mentions` | `actor_mention`, `actor_mention_reply`, `actor_tag_request`, `actor_tag`, `actor_tag_accept` |
 | `follows` | `actor_follow`, `actor_follow_request`, `actor_follow_request_accept` |
 | `posts` | `note_add`, `article_add`, `photo_add`, `topic_add`, `video_add` |
 | `events` | `event_rsvp`, `event_changed`, `event_cancelled`, `event_reminder` |
@@ -154,6 +158,7 @@ stored: `notification-service/cmd/api/handlers/actions.go`):
 | `actions` | On | When |
 | --- | --- | --- |
 | `answer_request` | `actor_follow_request` | The request is still waiting: accept or decline it |
+| `answer_tag` | `actor_tag_request` | The tag is still waiting: accept (`PUT /people/:id/tags/:post_id`) or decline (`DELETE`) |
 | `follow` | `actor_follow` | The reader does not follow whoever followed |
 | `reply` | `reply_add`, `actor_mention`, `actor_mention_reply`, `quote_add` | Always: answer the reply (`comment_id`), or the post |
 

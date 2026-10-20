@@ -52,7 +52,7 @@ type ActorBrowseRequest struct {
 	Offset uint64 `query:"start"`
 	// The most to send.
 	Limit uint64 `query:"limit"`
-	// Words the name holds.
+	// Words the name, the handle or the description holds.
 	Search string `query:"q" validate:"max=100,omitempty,search_query"`
 	// What they are ordered by.
 	Ordering string `query:"ordering" validate:"max=15,omitempty,oneof=created_at updated_at enabled"`

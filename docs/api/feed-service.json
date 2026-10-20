@@ -1450,14 +1450,15 @@
             }
           },
           {
-            "description": "Which of the profile's lists: posts (the default), replies or reposts.",
+            "description": "Which of the profile's lists: posts (the default), replies, reposts, or tagged, the photos and videos a person is in.",
             "in": "query",
             "name": "filter",
             "schema": {
               "enum": [
                 "posts",
                 "replies",
-                "reposts"
+                "reposts",
+                "tagged"
               ],
               "type": "string"
             }

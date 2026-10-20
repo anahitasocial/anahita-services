@@ -93,6 +93,8 @@ func (repo *FeedActorRepo) Browse(req *graphpb.FeedActorBrowseRequest, viewer *e
 //     hidden from its thread: it is hidden for everybody, and a profile is
 //     not a way round that.
 //   - reposts: what the actor reposted, and nothing else.
+//   - tagged: the photos and videos the actor is in, the tag approved
+//     (roadmap row 103), whoever posted them; never one still waiting.
 func actorFeedCondition(actorID int64, filter string, mediumTypes []string, includeReposts bool) sq.Sqlizer {
 	owned := sq.Eq{"node.owner_id": actorID}
 
@@ -116,6 +118,19 @@ func actorFeedCondition(actorID int64, filter string, mediumTypes []string, incl
 		return sq.And{
 			owned,
 			sq.Eq{"node.type": constants.NodeBaseRepostType},
+		}
+
+	case constants.FeedFilterTagged:
+		return sq.And{
+			sq.Expr("node.deleted_at IS NULL"),
+			sq.Expr(`EXISTS (
+        SELECT 1
+        FROM edges tag
+        WHERE tag.type = ?
+          AND tag.node_a_id = ?
+          AND tag.node_b_id = node.id
+          AND tag.meta = ?
+      )`, constants.EdgeTagPersonType, actorID, constants.TagApproved),
 		}
 	}
 

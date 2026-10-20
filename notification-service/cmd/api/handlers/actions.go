@@ -3,7 +3,9 @@ package handlers
 import (
 	"log"
 
+	an_constants "anahita-libs/constants"
 	an_entities "anahita-libs/data/entities"
+	libs_services "anahita-libs/data/services"
 
 	"notification/data/entities"
 )
@@ -19,6 +21,9 @@ const (
 	ActionFollow = "follow"
 	// Answer it: a reply, a mention or a quote.
 	ActionReply = "reply"
+	// Accept or decline being tagged in a post, while the tag waits
+	// (roadmap row 103).
+	ActionAnswerTag = "answer_tag"
 )
 
 // replyable are the kinds a reader can answer from where they read them.
@@ -63,6 +68,10 @@ func (h *notificationHandler) setActions(items []*entities.Notification, viewer 
 			if known && rel != nil && !rel.IsLeading {
 				item.Actions = []string{ActionFollow}
 			}
+		case item.Type == NotificationTypeActorTagRequest:
+			if h.tagWaiting(item.Target.ID, item.Object.ID) {
+				item.Actions = []string{ActionAnswerTag}
+			}
 		case item.Type == NotificationTypeActorFollowRequest:
 			// Still waiting: the asker has asked the profile (the viewer, or
 			// a group or an event they administer) and has no answer yet.
@@ -76,4 +85,26 @@ func (h *notificationHandler) setActions(items []*entities.Notification, viewer 
 			}
 		}
 	}
+}
+
+// tagWaiting is whether a person's tag in a post still waits for them.
+func (h *notificationHandler) tagWaiting(personID, postID int64) bool {
+	if h.Srv.GraphEdgeGRPC == nil {
+		return false
+	}
+	req := libs_services.NewGraphEdgeRequest().BatchReadByFilters
+	req.Types = []string{an_constants.EdgeTagPersonType}
+	req.NodeAID = personID
+	req.NodeBID = postID
+	edges, err := h.Srv.GraphEdgeGRPC.BatchReadByFilters(req)
+	if err != nil {
+		log.Println("notifications: asking whether a tag is waiting:", err)
+		return false
+	}
+	for _, edge := range edges {
+		if edge.Meta == an_constants.TagPending {
+			return true
+		}
+	}
+	return false
 }

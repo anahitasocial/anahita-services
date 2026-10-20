@@ -563,6 +563,14 @@ them. Mastodon shows neither; Bluesky has no field for one, and nothing goes
 there. Nobody's own position is ever sent (roadmap row 94). See
 [Hashtags and locations](hashtags.md).
 
+**A photo or a video goes with who is in it** (roadmap row 103): each
+person here tagged in it, their tag approved, as a `Mention` in its `tag`,
+`@alias@domain` with their address here, beside whoever its words name.
+Only somebody whose profile is on the fediverse, as for a name in the
+words; a tag tells another server of nobody who has not chosen to be known
+there. A tag approved or taken off sends the post again as an `Update`.
+Bluesky has no tags, and nothing goes there.
+
 A **website's notes**, the items of its feed and its replies, go out as a
 person's notes do, the website's, to its followers ([Websites](websites.md)).
 

@@ -54,7 +54,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <ul>
 <li><a href="#abuse-report-service">Abuse reports</a> <span class="count">9</span></li>
 <li><a href="#activitypub-service">The fediverse</a> <span class="count">20</span></li>
-<li><a href="#actor-service">Profiles</a> <span class="count">77</span></li>
+<li><a href="#actor-service">Profiles</a> <span class="count">81</span></li>
 <li><a href="#atproto-service">Bluesky</a> <span class="count">7</span></li>
 <li><a href="#auth-service">Accounts and signing in</a> <span class="count">97</span></li>
 <li><a href="#export-service">Data exports</a> <span class="count">4</span></li>
@@ -72,7 +72,7 @@ h4 { margin: 16px 0 0; font-size: 13px; color: var(--muted); font-weight: normal
 <li><a href="#syndication-service">Websites</a> <span class="count">5</span></li>
 <li><a href="#text-service">Notes, articles and topics</a> <span class="count">46</span></li>
 <li><a href="#video-service">Video posts</a> <span class="count">19</span></li>
-<li><a href="#schemas">Shapes</a> <span class="count">159</span></li>
+<li><a href="#schemas">Shapes</a> <span class="count">160</span></li>
 </ul>
 </nav>
 <main>
@@ -1466,7 +1466,7 @@ who may call it: anyone, signed in or not.">
 <tbody>
 <tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
-<tr><td><code>q</code></td><td>query</td><td>string</td><td>Words the name holds. At most 100 characters.</td></tr>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>Words the name, the handle or the description holds. At most 100 characters.</td></tr>
 <tr><td><code>ordering</code></td><td>query</td><td>string</td><td>What they are ordered by. At most 15 characters. One of <code>created_at</code>, <code>updated_at</code>, <code>enabled</code>. <code>updated_at</code> unless given.</td></tr>
 <tr><td><code>dir</code></td><td>query</td><td>string</td><td>Which way the order runs. At most 4 characters. One of <code>asc</code>, <code>desc</code>. <code>desc</code> unless given.</td></tr>
 <tr><td><code>disabled</code></td><td>query</td><td>boolean</td><td>Disabled ones as well, for whoever may see them.</td></tr>
@@ -2141,7 +2141,7 @@ who may call it: anyone, signed in or not.">
 <tbody>
 <tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
-<tr><td><code>q</code></td><td>query</td><td>string</td><td>Words the name holds. At most 100 characters.</td></tr>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>Words the name, the handle or the description holds. At most 100 characters.</td></tr>
 <tr><td><code>ordering</code></td><td>query</td><td>string</td><td>What they are ordered by. At most 15 characters. One of <code>created_at</code>, <code>updated_at</code>, <code>enabled</code>. <code>updated_at</code> unless given.</td></tr>
 <tr><td><code>dir</code></td><td>query</td><td>string</td><td>Which way the order runs. At most 4 characters. One of <code>asc</code>, <code>desc</code>. <code>desc</code> unless given.</td></tr>
 <tr><td><code>disabled</code></td><td>query</td><td>boolean</td><td>Disabled ones as well, for whoever may see them.</td></tr>
@@ -2209,6 +2209,29 @@ who may call it: a super administrator.">
 </tbody>
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).PurgeProgress</code></p>
+</details>
+<details class="route" id="getPeopleTaggedInByPostId" data-search="get /people/tagged-in/{post_id} who is in a photo or a video in the order they were tagged. a tag waiting for the person&#39;s approval is listed only for them and the post&#39;s author, with `pending`.
+
+who may call it: anyone, signed in or not.">
+<summary><span class="method get">GET</span> <code class="path">/people/tagged-in/{post_id}</code> <span class="summary">Who is in a photo or a video</span></summary>
+<div class="description"><p>In the order they were tagged. A tag waiting for the person&#39;s approval is listed only for them and the post&#39;s author, with <code>pending</code>.</p></div>
+<p class="who"><strong>Who:</strong> anyone, signed in or not</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>post_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The photo&#39;s or the video&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>OK<div class="body">object { <code>data</code>: list of <a href="#schema-actor.TaggedPerson">actor.TaggedPerson</a> or null } <span class="media">application/json</span></div></td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">404</td><td>there is no such photo or video the viewer can see</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).TaggedIn</code></p>
 </details>
 <details class="route" id="patchPeopleByIdAccess" data-search="patch /people/{id}/access change who may see it and whether people it is not open to may ask to follow it.
 
@@ -2542,6 +2565,86 @@ who may call it: a site administrator.">
 </table>
 <p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).RemoveAsSpam</code></p>
 </details>
+<details class="route" id="postPeopleByIdTagsByPostId" data-search="post /people/{id}/tags/{post_id} tag somebody in a photo or a video for the post&#39;s author. only a person here may be tagged, and as they chose: at once, each approved first (the default), or not at all. anybody may tag themselves. at most 20 people in one post.
+
+who may call it: somebody signed in.">
+<summary><span class="method post">POST</span> <code class="path">/people/{id}/tags/{post_id}</code> <span class="summary">Tag somebody in a photo or a video</span></summary>
+<div class="description"><p>For the post&#39;s author. Only a person here may be tagged, and as they chose: at once, each approved first (the default), or not at all. Anybody may tag themselves. At most 20 people in one post.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The person&#39;s id.</td></tr>
+<tr><td><code>post_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The photo&#39;s or the video&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">201</td><td>tagged</td></tr>
+<tr><td class="status s2">202</td><td>tagged, waiting for their approval</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer did not write the post</td></tr>
+<tr><td class="status s4">404</td><td>no such person, or no such photo or video the viewer can see</td></tr>
+<tr><td class="status s4">409</td><td><code>not_taggable</code>, they do not allow it or are not here; <code>too_many</code>, the post has as many people as it may<div class="body"><a href="#schema-Refusal">Refusal</a> <span class="media">application/json</span></div></td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).AddTag</code></p>
+</details>
+<details class="route" id="putPeopleByIdTagsByPostId" data-search="put /people/{id}/tags/{post_id} approve being tagged for the person tagged.
+
+who may call it: somebody signed in.">
+<summary><span class="method put">PUT</span> <code class="path">/people/{id}/tags/{post_id}</code> <span class="summary">Approve being tagged</span></summary>
+<div class="description"><p>For the person tagged.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The person&#39;s id.</td></tr>
+<tr><td><code>post_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The photo&#39;s or the video&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">200</td><td>approved, or it was already</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer is not the person tagged</td></tr>
+<tr><td class="status s4">404</td><td>no such tag, or no such photo or video the viewer can see</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).ApproveTag</code></p>
+</details>
+<details class="route" id="deletePeopleByIdTagsByPostId" data-search="delete /people/{id}/tags/{post_id} take somebody out of a photo or a video for the person, declining or changing their mind, and for the post&#39;s author.
+
+who may call it: somebody signed in.">
+<summary><span class="method delete">DELETE</span> <code class="path">/people/{id}/tags/{post_id}</code> <span class="summary">Take somebody out of a photo or a video</span></summary>
+<div class="description"><p>For the person, declining or changing their mind, and for the post&#39;s author.</p></div>
+<p class="who"><strong>Who:</strong> somebody signed in</p>
+<h4>Takes</h4>
+<table>
+<thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The person&#39;s id.</td></tr>
+<tr><td><code>post_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The photo&#39;s or the video&#39;s id.</td></tr>
+</tbody>
+</table>
+<h4>Answers</h4>
+<table class="answers">
+<tbody>
+<tr><td class="status s2">204</td><td>removed, or there was nothing to remove</td></tr>
+<tr><td class="status s4">400</td><td>the request is not well formed, or a value in it is not one it may be</td></tr>
+<tr><td class="status s4">401</td><td>no token, or one that has expired</td></tr>
+<tr><td class="status s4">403</td><td>the viewer is neither the person nor the post&#39;s author</td></tr>
+<tr><td class="status s4">404</td><td>there is no such photo or video the viewer can see</td></tr>
+</tbody>
+</table>
+<p class="handler">Answered by <code>actor/cmd/api/handlers.(*personHandler).RemoveTag</code></p>
+</details>
 <details class="route" id="getPeopleByUsername" data-search="get /people/{username} one person by their username. to somebody they are not open to, but who may ask to follow them, what a stranger is shown of them.
 
 who may call it: anyone, signed in or not.">
@@ -2636,7 +2739,7 @@ who may call it: anyone, signed in or not.">
 <tbody>
 <tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
-<tr><td><code>q</code></td><td>query</td><td>string</td><td>Words the name holds. At most 100 characters.</td></tr>
+<tr><td><code>q</code></td><td>query</td><td>string</td><td>Words the name, the handle or the description holds. At most 100 characters.</td></tr>
 <tr><td><code>ordering</code></td><td>query</td><td>string</td><td>What they are ordered by. At most 15 characters. One of <code>created_at</code>, <code>updated_at</code>, <code>enabled</code>. <code>updated_at</code> unless given.</td></tr>
 <tr><td><code>dir</code></td><td>query</td><td>string</td><td>Which way the order runs. At most 4 characters. One of <code>asc</code>, <code>desc</code>. <code>desc</code> unless given.</td></tr>
 <tr><td><code>disabled</code></td><td>query</td><td>boolean</td><td>Disabled ones as well, for whoever may see them.</td></tr>
@@ -5374,7 +5477,7 @@ who may call it: anyone, signed in or not.">
 <thead><tr><th>Name</th><th>In</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
 <tr><td><code>actor_id</code> <span class="required">required</span></td><td>path</td><td>integer</td><td>The profile&#39;s id.</td></tr>
-<tr><td><code>filter</code></td><td>query</td><td>string</td><td>Which of the profile&#39;s lists: posts (the default), replies or reposts. One of <code>posts</code>, <code>replies</code>, <code>reposts</code>.</td></tr>
+<tr><td><code>filter</code></td><td>query</td><td>string</td><td>Which of the profile&#39;s lists: posts (the default), replies, reposts, or tagged, the photos and videos a person is in. One of <code>posts</code>, <code>replies</code>, <code>reposts</code>, <code>tagged</code>.</td></tr>
 <tr><td><code>start</code></td><td>query</td><td>integer</td><td>How many to pass over. At least 0.</td></tr>
 <tr><td><code>limit</code></td><td>query</td><td>integer</td><td>The most to send. At least 0. <code>20</code> unless given.</td></tr>
 </tbody>
@@ -11330,6 +11433,17 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>items</code> <span class="required">always</span></td><td>list of <a href="#schema-actor.Rule">actor.Rule</a> or null</td><td></td></tr>
 <tr><td><code>updated_at</code> <span class="required">always</span></td><td>string</td><td>When they last changed, RFC 3339, or empty.</td></tr>
 <tr><td><code>version</code> <span class="required">always</span></td><td>integer</td><td>Raised by every change; 0 for a profile that never had any.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="route schema" id="schema-actor.TaggedPerson" data-search="actor.taggedperson pending person">
+<h3>actor.TaggedPerson</h3>
+<p>One person in a post, as the post&#39;s list of them answers.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>pending</code> <span class="required">always</span></td><td>boolean</td><td>Waiting for their approval: shown only to them and the post&#39;s author.</td></tr>
+<tr><td><code>person</code> <span class="required">always</span></td><td>one of <a href="#schema-NodeItem">NodeItem</a>, null</td><td>Who.</td></tr>
 </tbody>
 </table>
 </div>

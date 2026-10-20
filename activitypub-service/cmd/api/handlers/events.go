@@ -42,6 +42,8 @@ var EventTopics = []string{
 	"node.actor.*.*.*.v1",
 	// A location added to a post, or taken off it, from its page.
 	"edge.location.*.*.v1",
+	// Somebody here tagged in a photo or a video, or taken off it.
+	"edge.tag.*.*.v1",
 }
 
 // HandleEvent is told of something that happened here.
@@ -89,6 +91,13 @@ func (h *Handlers) HandleEvent(payload *event.EventPayload) error {
 	// A location added to a post, or taken off it, from its page: a post
 	// that went out goes again, with its locations as they are now.
 	case strings.HasPrefix(payload.Name, "edge.location.") && goesOutKind(payload.ObjectType):
+		err = h.relocated(ctx, payload.ObjectID)
+
+	// Somebody tagged in a photo or a video, their tag approved, or taken
+	// off it (roadmap row 103): it goes again with who is in it now. A tag
+	// still waiting changes nothing that goes out.
+	case strings.HasPrefix(payload.Name, "edge.tag.") && !strings.HasSuffix(payload.Name, ".requested.v1") &&
+		goesOutKind(payload.ObjectType):
 		err = h.relocated(ctx, payload.ObjectID)
 
 	// A post made, changed or deleted. Notes, photo posts, video posts and

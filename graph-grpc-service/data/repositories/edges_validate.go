@@ -44,9 +44,9 @@ func (r *edgesRepo) validateEdit(edge *entities.AnahitaEdge) error {
 		return errors.New("modified_by is required")
 	}
 
-	if err := r.validateEdit(edge); err != nil {
-		return err
-	}
-
+	// Nothing else: an edit changes neither end of an edge, its type nor who
+	// made it (edges_edit.go). It used to call itself here, and the first
+	// edge ever edited, a tag approved (roadmap row 103), took the service
+	// down.
 	return nil
 }

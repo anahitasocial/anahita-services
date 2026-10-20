@@ -354,6 +354,42 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 	// What their new photos and videos start with, about being downloaded.
 	people.PATCH("/:id/download-default", r.handler.Person.EditDownloadDefault, r.authorize).With(downloads(responses.PersonNode{}))
 
+	// People in a picture or a video (roadmap row 103): tagged by the post's
+	// author, approved by the person unless they chose otherwise.
+	people.GET("/tagged-in/:post_id", r.handler.Person.TaggedIn, r.setViewer).
+		Summary("Who is in a photo or a video").
+		Describe("In the order they were tagged. A tag waiting for the person's approval is listed only for them and the post's author, with `pending`.").
+		Viewer(apidoc.Anyone).
+		Takes(&handlers.TaggedInPath{}).
+		Sends(http.StatusOK, libs_responses.Unpaged[handlers.TaggedPerson]{}).
+		Refuses(http.StatusNotFound, "there is no such photo or video the viewer can see")
+	people.POST("/:id/tags/:post_id", r.handler.Person.AddTag, r.authorize).
+		Summary("Tag somebody in a photo or a video").
+		Describe("For the post's author. Only a person here may be tagged, and as they chose: at once, each approved first (the default), or not at all. Anybody may tag themselves. At most 20 people in one post.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.TagPath{}).
+		SendsNothing(http.StatusCreated, "tagged").
+		SendsNothing(http.StatusAccepted, "tagged, waiting for their approval").
+		Refuses(http.StatusForbidden, "the viewer did not write the post").
+		Refuses(http.StatusNotFound, "no such person, or no such photo or video the viewer can see").
+		Sends(http.StatusConflict, libs_responses.Refusal{}, "`not_taggable`, they do not allow it or are not here; `too_many`, the post has as many people as it may")
+	people.PUT("/:id/tags/:post_id", r.handler.Person.ApproveTag, r.authorize).
+		Summary("Approve being tagged").
+		Describe("For the person tagged.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.TagPath{}).
+		SendsNothing(http.StatusOK, "approved, or it was already").
+		Refuses(http.StatusForbidden, "the viewer is not the person tagged").
+		Refuses(http.StatusNotFound, "no such tag, or no such photo or video the viewer can see")
+	people.DELETE("/:id/tags/:post_id", r.handler.Person.RemoveTag, r.authorize).
+		Summary("Take somebody out of a photo or a video").
+		Describe("For the person, declining or changing their mind, and for the post's author.").
+		Viewer(apidoc.SignedIn).
+		Takes(&handlers.TagPath{}).
+		SendsNothing(http.StatusNoContent, "removed, or there was nothing to remove").
+		Refuses(http.StatusForbidden, "the viewer is neither the person nor the post's author").
+		Refuses(http.StatusNotFound, "there is no such photo or video the viewer can see")
+
 	// Edit features
 	people.PATCH("/:id/features", r.handler.Person.EditFeatures, r.authorize).With(features(personReq.EditFeatures, responses.PersonNode{}))
 

@@ -91,6 +91,19 @@ func (h *eventHandler) HandleEvents(payload *event.EventPayload) error {
 		}
 	}
 
+	// A person in a picture or a video: asked, tagged or approved, and
+	// taken off (roadmap row 103).
+	if strings.HasPrefix(payload.Name, "edge.tag.") {
+		switch {
+		case strings.HasSuffix(payload.Name, ".requested.v1"):
+			err = h.eventFormatEdgeTagRequested(payload)
+		case strings.HasSuffix(payload.Name, ".added.v1"):
+			err = h.eventFormatEdgeTagAdded(payload)
+		case strings.HasSuffix(payload.Name, ".deleted.v1"):
+			err = h.eventFormatEdgeTagDeleted(payload)
+		}
+	}
+
 	// A block: what the two were told of each other goes. The graph has
 	// ended the follows and the subscriptions already.
 	if strings.HasPrefix(payload.Name, "edge.block.") && strings.HasSuffix(payload.Name, ".added.v1") {

@@ -282,6 +282,7 @@ empty.
 | `posts` (the default) | What was posted on the profile. Also what its owner reposted, when they have asked for that. Not replies |
 | `replies` | The replies its owner wrote, wherever the threads are. Each is sent with what it answers as `parent`, and with `root`: the post at the top of its thread and, as `root.owner`, the profile that thread is on |
 | `reposts` | What its owner reposted, and nothing else. Each is sent with the post it reposts as `parent`, with that post's author, owner and date |
+| `tagged` | The photos and videos a person is in, their tag approved, whoever posted them ([Permissions](permissions.md#people-in-pictures-and-videos)) |
 
 - **Reposts are not among the posts unless the profile asks for it.** The
   choice is kept on the actor as `show_reposts_on_profile`, off until somebody
