@@ -2,7 +2,7 @@
 
 *Roadmap row 102, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** parts 1 to 5 and 2b done 2026-10-19, and 6a; 6b next. Branch
+**Status:** done 2026-10-19, every part. Branch
 `issues/rules` in both repositories, from `issues/thread-composer`.
 
 **Parts, in order:**
@@ -91,8 +91,13 @@
      The web app's report dialog offers "Breaks a rule" with the site's
      rules and the group's or event's; a case names the rule and whose it
      is. Tried as Worf on a post in Ten Forward.
-   - 6b, the group's own queue: its administrators see and decide the
-     reports against its rules.
+   - 6b, the group's own reports — done 2026-10-19:
+     `GET /abuse-reports/profiles/:id/cases`, for its administrators and
+     the site's: the cases with a report against its rules, with nobody's
+     name, never a report on the group itself or on what the viewer is
+     answerable for. A Reports tab in the group's and event's settings.
+     They act on the post where it is; deleting it closes its case.
+     Tried as Dax reporting Worf's post in Ten Forward.
 
 ## Context
 

@@ -66,6 +66,17 @@ func (r *Routes) Init(e *echo.Echo) *apidoc.Service {
 		Scope(readCases).
 		Takes(&requests.CasesBrowse{}).
 		Sends(http.StatusOK, libs_responses.List[responses.Case]{})
+	// A group's or an event's own reports, for its administrators: the
+	// reports against its rules, with nobody's name (roadmap row 102).
+	reports.GET("/profiles/:id/cases", r.handler.Cases.BrowseForProfile).
+		Summary("A group's or an event's reports").
+		Describe("The cases with a report against a group's or an event's rules, newest first, each with those reports: the rule, the reporter's words and when, never who made them. For its administrators and the site's. They act on what was reported where it is, by deleting or hiding it, which closes its case; deciding the case stays with the site's administrators.").
+		Viewer(apidoc.SignedIn).
+		Scope(readCases).
+		Takes(&requests.ProfileCasesBrowse{}).
+		Sends(http.StatusOK, libs_responses.List[responses.ProfileCase]{}).
+		Refuses(http.StatusForbidden, "the viewer administers neither it nor the site").
+		Refuses(http.StatusNotFound, "there is no such group or event")
 	reports.GET("/cases/summary", r.handler.Cases.Summary).
 		Summary("How many cases are open").
 		Viewer(apidoc.Admin).

@@ -23,6 +23,7 @@ import (
 	libs_entities "anahita-libs/data/entities"
 	libs_services "anahita-libs/data/services"
 	"anahita-libs/event"
+	"anahita-libs/proto/graphpb"
 	"anahita-libs/validators"
 
 	"github.com/go-playground/validator/v10"
@@ -71,6 +72,7 @@ func (f *fakeCases) AddReport(target entities.Case, report entities.Report) (int
 	for _, existing := range f.reports[open.ID] {
 		if existing.ReporterID == report.ReporterID {
 			existing.ReasonKey, existing.Details = report.ReasonKey, report.Details
+			existing.RuleTitle, existing.RuleProfileID = report.RuleTitle, report.RuleProfileID
 			return open.ID, false, nil
 		}
 	}
@@ -125,6 +127,46 @@ func (f *fakeCases) Read(id int64) (*entities.Case, error) {
 		return c, nil
 	}
 	return nil, sql.ErrNoRows
+}
+
+func (f *fakeCases) BrowseForProfile(profileID, viewerID int64, status string, limit, offset uint64) ([]*entities.Case, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	var list []*entities.Case
+	for id := int64(1); id <= f.nextID; id++ {
+		c := f.cases[id]
+		if c == nil || c.Status != status || c.TargetID == profileID || c.TargetOwnerID == viewerID {
+			continue
+		}
+		for _, report := range f.reports[c.ID] {
+			if report.RuleProfileID == profileID {
+				list = append(list, c)
+				break
+			}
+		}
+	}
+	return list, nil
+}
+
+func (f *fakeCases) CountForProfile(profileID, viewerID int64, status string) (uint64, error) {
+	list, _ := f.BrowseForProfile(profileID, viewerID, status, 0, 0)
+	return uint64(len(list)), nil
+}
+
+func (f *fakeCases) ProfileReports(profileID int64, caseIDs []int64) ([]*entities.Report, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	list := []*entities.Report{}
+	for _, id := range caseIDs {
+		for _, report := range f.reports[id] {
+			if report.RuleProfileID == profileID {
+				list = append(list, report)
+			}
+		}
+	}
+	return list, nil
 }
 
 func (f *fakeCases) BrowseReports(caseID int64) ([]*entities.Report, error) {
@@ -274,7 +316,38 @@ const (
 	noteID      = int64(100)
 	hiddenID    = int64(101) // a note Grace cannot see
 	hashtagID   = int64(30)
+	groupID     = int64(40)  // a group with rules, administered by Ada
+	groupNoteID = int64(102) // a note Grace posted in it
 )
+
+func inGroup(n *libs_entities.AnahitaNode) *libs_entities.AnahitaNode {
+	n.OwnerID = groupID
+	return n
+}
+
+// fakeActors answers a group's rules; nothing else is asked of it here.
+type fakeActors struct {
+	libs_services.ActorsGRPCInterface
+	rules map[int64][]string
+}
+
+func (f *fakeActors) ReadRules(profileID, personID int64) (*graphpb.RulesReadResponse, error) {
+	rules := &graphpb.ProfileRules{ProfileId: profileID}
+	for _, title := range f.rules[profileID] {
+		rules.Items = append(rules.Items, &graphpb.ProfileRule{Title: title})
+	}
+	return &graphpb.RulesReadResponse{Rules: rules}, nil
+}
+
+// fakeSocialgraph answers who administers what: one administrator a group.
+type fakeSocialgraph struct {
+	libs_services.SocialgraphGRPCInterface
+	admins map[int64]int64
+}
+
+func (f *fakeSocialgraph) Read(actorAID, actorBID int64) (*libs_entities.ActorRelation, error) {
+	return &libs_entities.ActorRelation{HasAdmin: f.admins[actorAID] == actorBID}, nil
+}
 
 func node(id int64, nodeType, name string, createdBy int64) *libs_entities.AnahitaNode {
 	n := libs_entities.NewAnahitaNode()
@@ -304,6 +377,8 @@ func newFixture(t *testing.T) *fixture {
 			noteID:      node(noteID, note, "A note", adaID),
 			hiddenID:    node(hiddenID, note, "A private note", adaID),
 			hashtagID:   node(hashtagID, "node.tag.hashtag-service.hashtag.v1", "gardens", 0),
+			groupID:     node(groupID, "node.actor.group-service.group.v1", "Ten Forward", 0),
+			groupNoteID: inGroup(node(groupNoteID, note, "Synthehol only", graceID)),
 		},
 		hidden: map[int64]bool{hiddenID: true},
 	}
@@ -313,10 +388,14 @@ func newFixture(t *testing.T) *fixture {
 	e.Validator = validators.NewRequestValidator(validator.New())
 
 	env := &Env{
-		Config:  &config.Config{},
-		Perms:   permissions.NewPermissions(),
-		Repos:   &repositories.Repositories{Cases: cases},
-		Srv:     &services.Services{GraphNodeGRPC: graph},
+		Config: &config.Config{},
+		Perms:  permissions.NewPermissions(),
+		Repos:  &repositories.Repositories{Cases: cases},
+		Srv: &services.Services{
+			GraphNodeGRPC:   graph,
+			ActorsGRPC:      &fakeActors{rules: map[int64][]string{groupID: {"Be kind", "Tip Guinan"}}},
+			SocialgraphGRPC: &fakeSocialgraph{admins: map[int64]int64{groupID: adaID}},
+		},
 		Reasons: reasons.NewSource(""),
 		Limiter: &memoryCounter{counts: map[string]int64{}},
 	}
@@ -768,5 +847,90 @@ func TestCasesCanBeFilteredByReason(t *testing.T) {
 	summary := f.call(http.MethodGet, "/abuse-reports/cases/summary", "", admin(), nil, f.h.Cases.Summary)
 	if !strings.Contains(summary.Body.String(), `"open":2`) {
 		t.Errorf("summary: %s", summary.Body.String())
+	}
+}
+
+// ---------------------------------------------------------------------
+// Breaking a rule (roadmap row 102, part 6)
+// ---------------------------------------------------------------------
+
+func (f *fixture) reportRule(viewer *libs_entities.Viewer, target int64, rule string, profileID int64) *httptest.ResponseRecorder {
+	f.t.Helper()
+	body, _ := json.Marshal(map[string]any{"target_id": target, "reason_key": "rule", "rule": rule, "rule_profile_id": profileID})
+	return f.call(http.MethodPost, "/abuse-reports", string(body), viewer, nil, f.h.Reports.Add)
+}
+
+func TestAReportNamesARuleOfTheSiteOrOfTheGroupItIsIn(t *testing.T) {
+	f := newFixture(t)
+	ada := member(adaID)
+
+	wantStatus(t, f.reportRule(ada, groupNoteID, "", groupID), http.StatusBadRequest)
+	wantStatus(t, f.reportRule(ada, groupNoteID, "Be rude", groupID), http.StatusBadRequest)
+	// The note Ada wrote is in no group.
+	wantStatus(t, f.reportRule(member(graceID), noteID, "Be kind", groupID), http.StatusBadRequest)
+	wantStatus(t, f.reportRule(ada, groupNoteID, "Be kind", groupID), http.StatusCreated)
+	// The site's rules are taken as given.
+	wantStatus(t, f.reportRule(member(moderatorID), groupNoteID, "No hate.", 0), http.StatusCreated)
+
+	reports, _ := f.cases.BrowseReports(1)
+	if len(reports) != 2 || reports[0].RuleTitle != "Be kind" || reports[0].RuleProfileID != groupID {
+		t.Fatalf("reports: %+v", reports)
+	}
+}
+
+func TestAGroupsAdministratorsSeeTheReportsAgainstItsRulesWithNobodysName(t *testing.T) {
+	f := newFixture(t)
+	f.reportRule(member(3), groupNoteID, "Tip Guinan", groupID)
+	f.report(member(4), groupNoteID, "spam", "")
+	f.reportRule(member(5), groupNoteID, "No hate.", 0)
+	// Reported, but not to them: the group itself.
+	f.reportRule(member(3), groupID, "Be kind", groupID)
+	id := map[string]string{"id": "40"}
+	path := "/abuse-reports/profiles/40/cases"
+
+	// Grace administers neither the group nor the site.
+	wantStatus(t, f.call(http.MethodGet, path, "", member(graceID), id, f.h.Cases.BrowseForProfile), http.StatusForbidden)
+	// A person has no rules.
+	wantStatus(t, f.call(http.MethodGet, "/abuse-reports/profiles/1/cases", "", admin(), map[string]string{"id": "1"}, f.h.Cases.BrowseForProfile), http.StatusNotFound)
+
+	for _, viewer := range []*libs_entities.Viewer{member(adaID), admin()} {
+		rec := f.call(http.MethodGet, path, "", viewer, id, f.h.Cases.BrowseForProfile)
+		wantStatus(t, rec, http.StatusOK)
+		body := rec.Body.String()
+		var list struct {
+			Data []struct {
+				TargetID int64 `json:"target_id"`
+				Reports  []struct {
+					Rule string `json:"rule"`
+				} `json:"reports"`
+			} `json:"data"`
+		}
+		_ = json.Unmarshal(rec.Body.Bytes(), &list)
+		if len(list.Data) != 1 || list.Data[0].TargetID != groupNoteID {
+			t.Fatalf("cases: %s", body)
+		}
+		// Only the report against the group's rules, and nobody's name.
+		if len(list.Data[0].Reports) != 1 || list.Data[0].Reports[0].Rule != "Tip Guinan" {
+			t.Errorf("reports: %s", body)
+		}
+		if strings.Contains(body, "reporter") {
+			t.Errorf("a reporter is named: %s", body)
+		}
+	}
+}
+
+func TestAGroupsAdministratorIsNotToldOfReportsOnTheirOwnPost(t *testing.T) {
+	f := newFixture(t)
+	f.reportRule(member(3), groupNoteID, "Tip Guinan", groupID)
+
+	// Grace wrote it; were she an administrator, she would not see it.
+	f.cases.mu.Lock()
+	f.cases.cases[1].TargetOwnerID = adaID
+	f.cases.mu.Unlock()
+
+	rec := f.call(http.MethodGet, "/abuse-reports/profiles/40/cases", "", member(adaID), map[string]string{"id": "40"}, f.h.Cases.BrowseForProfile)
+	wantStatus(t, rec, http.StatusOK)
+	if !strings.Contains(rec.Body.String(), `"data":[]`) {
+		t.Errorf("told of a report on their own post: %s", rec.Body.String())
 	}
 }

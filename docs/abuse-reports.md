@@ -148,6 +148,27 @@ file.
   profile itself as `rule_profile`.
 - **Filtered like any reason:** `GET /abuse-reports/cases?reason=rule`.
 
+### A group's own reports
+
+A group's or an event's administrators see the reports against its rules:
+`GET /abuse-reports/profiles/:id/cases` (`?status=open`, the default, and
+`limit`, `start`), in the web app the **Reports** tab of its settings.
+
+| Answer | Meaning |
+| --- | --- |
+| 200 | The cases with a report against its rules, newest first, each with those reports: `rule`, `details` and `created_at` |
+| 403 | You administer neither it nor the site |
+| 404 | There is no such group or event |
+
+- **Nobody's name.** Who reported is shown to the site's administrators
+  only.
+- **Never what is about them.** A report on the group or event itself, or on
+  something the viewer is answerable for, is left out: whoever is reported
+  is not told.
+- **They act where it is.** Deleting a post on its page closes its case, as
+  for any deleted post. Deciding a case (Dismiss, Close) stays with the
+  site's administrators, whose case it is.
+
 ## What administrators do
 
 In the web app, under **Administration › Reports**. The endpoints:

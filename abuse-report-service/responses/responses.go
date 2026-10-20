@@ -119,6 +119,62 @@ type Report struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// ProfileCase is a case as a group's or an event's administrators see it
+// (roadmap row 102, part 6b): what was reported and the reports against
+// its rules, never who made them, nor the site's decision notes.
+type ProfileCase struct {
+	// Its id.
+	ID int64 `json:"id"`
+	// `open`, `actioned` or `dismissed`.
+	Status string `json:"status"`
+	// The id of what was reported.
+	TargetID int64 `json:"target_id"`
+	// What kind of node it is.
+	TargetType string `json:"target_type"`
+	// Target is the reported node as it is now, or absent when it is gone.
+	Target *libs_responses.NodeItem `json:"target,omitempty"`
+	// Whether what was reported is gone.
+	TargetGone bool `json:"target_gone"`
+	// When it was last reported.
+	LastReportedAt time.Time `json:"last_reported_at"`
+	// The reports against the profile's rules, oldest first.
+	Reports []ProfileReport `json:"reports"`
+}
+
+// ProfileReport is one report against a profile's rules, with nobody's name.
+type ProfileReport struct {
+	// The rule broken, by its title.
+	Rule string `json:"rule"`
+	// What the reporter added.
+	Details string `json:"details,omitempty"`
+	// When it was made.
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// ProfileCase maps a case and its reports against the profile's rules.
+func (m *Mapper) ProfileCase(c *entities.Case, reports []*entities.Report) ProfileCase {
+	mapped := ProfileCase{
+		ID:             c.ID,
+		Status:         c.Status,
+		TargetID:       c.TargetID,
+		TargetType:     c.TargetType,
+		Target:         m.node(c.TargetID),
+		TargetGone:     m.node(c.TargetID) == nil,
+		LastReportedAt: c.LastReportedAt,
+		Reports:        []ProfileReport{},
+	}
+	for _, report := range reports {
+		if report.CaseID == c.ID {
+			mapped.Reports = append(mapped.Reports, ProfileReport{
+				Rule:      report.RuleTitle,
+				Details:   report.Details,
+				CreatedAt: report.CreatedAt,
+			})
+		}
+	}
+	return mapped
+}
+
 // CaseDetail is a case with its reports and the target's earlier cases.
 type CaseDetail struct {
 	Case

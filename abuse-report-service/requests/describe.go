@@ -27,6 +27,18 @@ type CasesBrowse struct {
 	Lang string `query:"lang"`
 }
 
+// ProfileCasesBrowse names a group or an event, for its own reports.
+type ProfileCasesBrowse struct {
+	// The group's or the event's id.
+	ID int64 `param:"id"`
+	// Which cases: `open` (the default), `actioned` or `dismissed`.
+	Status string `query:"status" validate:"omitempty,oneof=open actioned dismissed"`
+	// How many to pass over.
+	Offset uint64 `query:"start"`
+	// The most to send: 20 unless asked, 100 at most.
+	Limit uint64 `query:"limit"`
+}
+
 // CaseRead names a case.
 type CaseRead struct {
 	// The case's id.
