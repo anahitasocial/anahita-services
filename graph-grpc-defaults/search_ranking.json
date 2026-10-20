@@ -10,6 +10,7 @@
     "body_contains": 10
   },
   "following": 15,
+  "pictured_with_followed": 8,
   "useful": {
     "scale": 5,
     "like": 1,

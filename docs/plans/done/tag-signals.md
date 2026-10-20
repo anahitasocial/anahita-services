@@ -3,16 +3,16 @@
 *Roadmap row 104, planned 2026-10-20. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
 **Status:** started 2026-10-20, before rows 91 to 93 after all (the user
-wanted time to think about anahita.io). Suggestions done; search next.
+wanted time to think about anahita.io). Done 2026-10-20, both parts.
 
 ## Context
 
 Row 103 built tags: who is in a photo or a video, each tag approved by the
-person unless they let anybody tag them ([permissions.md](../permissions.md#people-in-pictures-and-videos)).
+person unless they let anybody tag them ([permissions.md](../../permissions.md#people-in-pictures-and-videos)).
 Search already finds a photo or a video by the name or handle of somebody
 in it. Nothing else reads tags: recommendation-service suggests profiles
 from follows, invitations, citations, hashtags and likes, and reads neither
-mentions nor tags ([recommendations.md](../recommendations.md)).
+mentions nor tags ([recommendations.md](../../recommendations.md)).
 
 The user, 2026-10-20, asked to use approved tags in suggestions and in
 search. An approved tag is a strong signal and a consented one: the person
@@ -62,7 +62,10 @@ scoring reads):
 Already: a photo or a video is found, with a hashtag's points, by the name
 or handle of somebody in it.
 
-New, in its standing (`Standing`), when the viewer is signed in:
+Done 2026-10-20. New, in its standing (`Standing`), when the viewer is
+signed in (the SQL checked against the dev database with Dax following
+Worf: the photo Worf is in and the person who posted it gained 8; Worf, a
+followed profile, kept his following bonus alone):
 
 1. **A post with people the viewer follows in it** earns part of the
    `following` bonus, as a post on a profile the viewer follows does.
