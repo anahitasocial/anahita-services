@@ -2,7 +2,8 @@
 
 *Roadmap row 103, planned 2026-10-19. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** planned, not started. After row 102.
+**Status:** started 2026-10-19, on branch `issues/people-in-media` in both
+repositories.
 
 ## Context
 
@@ -27,12 +28,17 @@ Settled with the user on 2026-10-19:
 3. **"Who can mention you?"**: its narrowest choice is labelled **Nobody**
    (it is `admins` in the code), in every base.
 
-**Open, to settle before building:**
+Settled with the user the same day, when the row began:
 
-1. A spot on the picture, or a list of who is in it? Proposed: a list first.
-2. Do approved tags federate (ActivityPub `tag` of type Mention, Bluesky has
-   none)? Proposed: as a Mention on the fediverse, nothing on Bluesky.
-3. The default choice: proposed "tags wait for my approval".
+4. **A list of who is in it,** not a spot on the picture: "Tag people"
+   picks profiles, and their names show under the picture or the video. A
+   spot can come later.
+5. **Approved tags go to the fediverse** as a Mention in the post's `tag`,
+   so the person's server hears of it; nothing to Bluesky, which has no
+   tags.
+6. **Everybody approves each tag first** until they choose otherwise.
+7. **A Tagged tab** on a person's profile, after Posts: the posts they are
+   approved in.
 
 ## Design
 
