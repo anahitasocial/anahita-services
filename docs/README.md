@@ -9,10 +9,10 @@ order to read them.
 
 | To | Read |
 | --- | --- |
-| Put a site on the web | [Setting up a site](setting-up.md) |
-| Change how it looks, what it says and what it allows | [Making it your own](making-it-your-own.md) |
-| Run it from day to day: upgrades, storage, accounts, reports | [Keeping it running](keeping-it-running.md) |
-| Write an app or a service against it | [Building on it](building-on-it.md) |
+| Put an instance on the web | [Setting up](setting-up.md) |
+| Change how it looks, what it says and what it allows | [Customising](customising.md) |
+| Run it from day to day: upgrades, storage, accounts, reports | [Operating](operating.md) |
+| Write an app or a service against it | [Developing](developing.md) |
 
 Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
 

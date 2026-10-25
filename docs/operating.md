@@ -1,6 +1,6 @@
-# Keeping it running
+# Operating
 
-[Documentation](README.md) › Keeping it running
+[Documentation](README.md) › Operating
 
 The pages for running a live site from day to day.
 
