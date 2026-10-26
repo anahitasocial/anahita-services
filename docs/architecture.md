@@ -522,8 +522,10 @@ migrations as well; they were folded into the two files (roadmap row 27),
 and `migrations/` holds only what is written after. How to change the schema
 is in [`migration-job/migrations/README.md`](../migration-job/migrations/README.md).
 
-What a site's own data needs beyond the upgrade, as anahita.io does on its
-way to banu.io, is a file of its own in `legacy/sites/`, run by hand.
+What a site's own data needs beyond the upgrade (avatars set by hand,
+posts moved between profiles) is that site's, and lives with its own
+deployment, not here: anahita.io's, on its way to banu.io, is in banu.io's
+repository.
 
 ### NULL only where it means something
 
