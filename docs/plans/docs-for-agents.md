@@ -219,9 +219,9 @@ pushed.
    app, `src/containers/StaticPage.jsx`, which nothing used, removed.
 
 8. The four doors: [Setting up a site](../setting-up.md),
-   [Making it your own](../making-it-your-own.md),
-   [Keeping it running](../keeping-it-running.md) and
-   [Building on it](../building-on-it.md), each a numbered list of links in
+   [Customising](../customising.md),
+   [Operating](../operating.md) and
+   [Developing](../developing.md), each a numbered list of links in
    the order to read them, under "Where to begin" in the index. The web
    app's index points to them. Each door ends with the pages found missing
    in filling it: backing up and restoring, and upgrading step by step
