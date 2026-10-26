@@ -75,7 +75,22 @@ Each with a recommendation:
 3. **Backups.** Deploying says nothing backs up the in-cluster MySQL.
    Recommended: a component with a CronJob that dumps the database to the
    bucket nightly and keeps a set number, and the steps to restore one; plus
-   the k3s datastore's own snapshot.
+   the k3s datastore's own snapshot, and the provider's disk snapshots where
+   there are any (on AWS, EBS snapshots through Data Lifecycle Manager). The
+   manual has a restore tried before a site opens, since nothing else proves
+   a backup.
+
+**Settled on 2026-10-26 (the user):** on one server, **MySQL runs in the
+cluster**, not as a managed database. A small site's database is small:
+anahita.io's, after 13 years, was 140 MB, and a hundred active people add
+tens of MB a year, so it stays in memory, and one MySQL handles far more
+than a site that size asks of it. A managed database (RDS: about USD 15 to 20
+a month for the smallest, single-AZ; twice that Multi-AZ) would add a quarter
+or more to the bill for backups the CronJob gives. Lower costs are the point:
+every site run from this manual pays them. The manual says when to move to a
+managed one, in "Growing": thousands of active people, a database of several
+GB that no longer fits in memory, or a database CPU that runs hot for long
+stretches. The move is a dump, a restore and `MYSQL_HOST`.
 4. **Where to try the real server.** Recommended: a small server at a
    provider other than AWS, to prove the "any provider" part, and EKS on
    AWS.
@@ -110,7 +125,7 @@ each in the order of doing it:
 6. Mail, the first administrator, and the web app.
 7. Backups and restoring one.
 8. Upgrading Anahita, k3s and the server.
-9. Growing: a bigger server, a second one, managed MySQL, then a managed
+9. Growing: a bigger server, a second one, managed MySQL (and the signs that it is time: see Backups above), then a managed
    cluster.
 
 **On EKS** (`docs/deploying-eks.md`): what the "On AWS" section says now,
