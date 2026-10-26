@@ -1,6 +1,6 @@
-# Making it your own
+# Customising
 
-[Documentation](README.md) › Making it your own
+[Documentation](README.md) › Customising
 
 The pages for changing how a site looks, what it says and what it allows,
 without changing the code.

@@ -9,10 +9,10 @@ order to read them.
 
 | To | Read |
 | --- | --- |
-| Put a site on the web | [Setting up a site](setting-up.md) |
-| Change how it looks, what it says and what it allows | [Making it your own](making-it-your-own.md) |
-| Run it from day to day: upgrades, storage, accounts, reports | [Keeping it running](keeping-it-running.md) |
-| Write an app or a service against it | [Building on it](building-on-it.md) |
+| Put an instance on the web | [Setting up](setting-up.md) |
+| Change how it looks, what it says and what it allows | [Customising](customising.md) |
+| Run it from day to day: upgrades, storage, accounts, reports | [Operating](operating.md) |
+| Write an app or a service against it | [Developing](developing.md) |
 
 Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
 
@@ -373,6 +373,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [The API reference, made from the code](plans/done/api-reference.md) | 38 | done 2026-10-15: every route described, `docs/api/index.html`, answers checked in the handler tests |
 | [Documentation agents can use, and an MCP server](plans/docs-for-agents.md) | 39 | planned 2026-10-11; place in the order not decided |
 | [Anahita Recipes: a starting configuration for each kind of site](plans/recipes.md) | 40 | planned 2026-10-11; place in the order not decided |
+| [Running Anahita on k3s and on EKS](plans/k3s-and-eks.md) | 76 | planned 2026-10-22: a manual for both, with sizes and costs, tried on k3d, a rented server and EKS |
 | [Animated images: GIF, APNG and animated WebP, through the video service](plans/done/animated-images.md) | 41 | done 2026-10-14: GIFs and animated PNGs (not WebP), and video posts going to other servers and Bluesky |
 | [A command-line client for Anahita](plans/cli-client.md) | 42 | recorded 2026-10-12 for later; waits for the API reference |
 | [Translating posts](plans/translation.md) | 43 | recorded 2026-10-12 for later: LibreTranslate and DeepL behind one interface |

@@ -1,6 +1,6 @@
-# Setting up a site
+# Setting up
 
-[Documentation](README.md) › Setting up a site
+[Documentation](README.md) › Setting up
 
 The pages to read, in order, to put an Anahita site on the web: for a school,
 a newsroom, a library, a research group, a non-profit or any community of
@@ -38,5 +38,5 @@ linked where they come in.
      its own title and picture
    - [Websites](websites.md): a website's feed as a profile to follow
 
-Next: [Making it your own](making-it-your-own.md), then
-[Keeping it running](keeping-it-running.md).
+Next: [Customising](customising.md), then
+[Operating](operating.md).

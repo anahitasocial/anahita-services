@@ -1,6 +1,6 @@
-# Building on it
+# Developing
 
-[Documentation](README.md) › Building on it
+[Documentation](README.md) › Developing
 
 The pages for writing your own app or service against an Anahita site.
 
