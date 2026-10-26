@@ -216,6 +216,49 @@ Two rules on the bucket itself are worth setting:
 - **A lifecycle rule that aborts unfinished multipart uploads** after a few
   days, which catches any upload the video worker could not abort itself.
 
+On AWS, every setting is in the next section.
+
+### A bucket on AWS S3
+
+In the S3 console, in the region the rest of the site runs in, choose
+**Create bucket**:
+
+| Field | Choose | Why |
+| --- | --- | --- |
+| Bucket type | General purpose | Directory buckets (S3 Express One Zone) keep files in one data centre, for speed |
+| Namespace and name | Global, a name with no dots, e.g. `example-org` | AWS's addresses for a bucket, and their certificates, do not take dots. The account regional namespace works too: its names end in the account ID and region, and no other account can ever take them |
+| Copy settings from an existing bucket | No | |
+| Object Ownership | ACLs disabled (recommended) | Then set `STORAGE_SEND_ACL=false`: a bucket with ACLs disabled accepts uploads that carry no ACL, and AWS documents the `private` ACL anahita-services sends by default on AWS as refused |
+| Block Public Access | All four on | The bucket is private; files are read only through addresses file-grpc-service signs for a few minutes |
+| Bucket Versioning | Enable | A file deleted or overwritten by mistake can be brought back, for as long as the lifecycle rule below keeps it |
+| Tags | Optional, e.g. `project` | The bucket's cost shows on its own on the bill |
+| Default encryption | SSE-S3 | file-grpc-service asks for it on every upload (`STORAGE_SSE`) |
+| Object Lock | Off | Deleting a post, and purging a profile, delete its files |
+
+Then, on the bucket:
+
+1. **Permissions → Cross-origin resource sharing (CORS):** `PUT` from the
+   web app's address, as [Videos](videos.md#storage) shows. List both
+   addresses if the app answers at `www.` and without it.
+2. **Management → Create lifecycle rule**, one rule for everything:
+   1. **Name** `tidy-up`; **scope** all objects in the bucket, with its
+      acknowledgement ticked; **object size** empty.
+   2. **Actions:** tick only *Permanently delete noncurrent versions of
+      objects* and *Delete expired object delete markers or incomplete
+      multipart uploads*. Nothing under Transition or *Expire current
+      versions*, which would delete the live files.
+   3. **Noncurrent versions:** `30` days after objects become noncurrent;
+      newer versions to retain empty. A file deleted or replaced can be
+      brought back for 30 days, then it is gone; without this, everything a
+      purge deletes would stay in the bucket as old versions.
+   4. **Delete expired object delete markers** ticked; **delete incomplete
+      multipart uploads** ticked, after `7` days.
+
+No other rule is needed: the export worker deletes each archive itself after
+`EXPORT_KEEP_DAYS`. No keys are needed on AWS either: see
+[On AWS](#on-aws) for the role. Before the first deployment, run the storage
+test against the new bucket ([Tested stores](configuration.md#tested-stores)).
+
 ### Moving a bucket to the v1 layout
 
 Pictures are under `assets/v1/`. A bucket from before the first release has
