@@ -217,6 +217,18 @@ func TestGetSiteNameFallsBackToDomain(t *testing.T) {
 	}
 }
 
+func TestGetSiteLogoURLFallsBackToAnahitasMark(t *testing.T) {
+	cfg := &Config{}
+	if got := cfg.GetSiteLogoURL(); got != "/static/images/logo.svg" {
+		t.Errorf("GetSiteLogoURL() = %q, want Anahita's mark as a fallback", got)
+	}
+
+	cfg.SiteLogoURL = "https://banu.io/logo.png"
+	if got := cfg.GetSiteLogoURL(); got != "https://banu.io/logo.png" {
+		t.Errorf("GetSiteLogoURL() = %q, want SITE_LOGO_URL", got)
+	}
+}
+
 // GetMailFrom output goes into a mail header, so it has to parse as an
 // address — and the SMTP provider parses it back out for the envelope, where
 // a display name is a syntax error.

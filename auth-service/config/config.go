@@ -72,6 +72,15 @@ type Config struct {
 	// sensibly.
 	SiteName string
 
+	// SiteLogoURL is the logo at the top of the sign-in pages, and the one
+	// mail-grpc-service puts in every email, so that both show the same.
+	//
+	// Optional. Unset, the pages show Anahita's mark, which is served from
+	// web/static/images; an installation with a mark of its own points this
+	// at it. An absolute URL to a PNG works in both places: mail clients
+	// drop SVG and relative addresses.
+	SiteLogoURL string
+
 	// InstanceName and InstanceDescription are what this installation
 	// says it is to OTHER SERVERS, published as metadata.nodeName and
 	// metadata.nodeDescription in the NodeInfo document.
@@ -246,6 +255,7 @@ func NewConfig() *Config {
 		DomainName:       os.Getenv("DOMAIN_NAME"),
 		SystemEmail:      os.Getenv("SYSTEM_EMAIL"),
 		SiteName:         os.Getenv("SITE_NAME"),
+		SiteLogoURL:      os.Getenv("SITE_LOGO_URL"),
 
 		InstanceName:        os.Getenv("ANAHITA_INSTANCE_NAME"),
 		InstanceDescription: os.Getenv("ANAHITA_INSTANCE_DESCRIPTION"),
@@ -543,6 +553,19 @@ func (config *Config) GetSiteName() string {
 
 	return config.DomainName
 }
+
+// GetSiteLogoURL returns the logo for the sign-in pages: SITE_LOGO_URL, or
+// Anahita's mark when it is unset.
+func (config *Config) GetSiteLogoURL() string {
+	if config.SiteLogoURL != "" {
+		return config.SiteLogoURL
+	}
+
+	return siteLogoDefault
+}
+
+// siteLogoDefault is Anahita's mark, served by auth-service itself.
+const siteLogoDefault = "/static/images/logo.svg"
 
 // GetInstanceName returns what this installation calls itself to other
 // servers, for metadata.nodeName in the NodeInfo document.

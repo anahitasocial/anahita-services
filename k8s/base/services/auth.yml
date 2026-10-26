@@ -152,6 +152,12 @@ spec:
                   name: anahita-config
                   key: SITE_NAME
                   optional: true
+            - name: SITE_LOGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: SITE_LOGO_URL
+                  optional: true
             # What NodeInfo says the installation speaks to other servers.
             - name: FEDERATION_PROTOCOLS
               valueFrom:

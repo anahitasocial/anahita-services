@@ -1,3 +1,5 @@
+![Anahita](docs/images/anahita-logo.svg)
+
 # anahita-services
 
 Anahita as a microservices architecture — the Go rewrite of the Anahita

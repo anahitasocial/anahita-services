@@ -80,6 +80,9 @@ func (env *Env) renderTemplate(c echo.Context, name string, data map[string]any)
 	if _, ok := data["SiteName"]; !ok {
 		data["SiteName"] = env.Config.GetSiteName()
 	}
+	if _, ok := data["SiteLogoURL"]; !ok {
+		data["SiteLogoURL"] = env.Config.GetSiteLogoURL()
+	}
 
 	// Where the terms live, for the pages that ask somebody to accept them.
 	//

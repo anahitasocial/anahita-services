@@ -103,6 +103,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       DOMAIN_NAME: ${DOMAIN_NAME}
       SITE_NAME: ${SITE_NAME:-}
+      SITE_LOGO_URL: ${SITE_LOGO_URL:-}
       # How this installation introduces itself to OTHER SERVERS, published
       # as nodeName and nodeDescription in NodeInfo. Distinct from SITE_NAME,
       # which is branding read by people who already know where they are.

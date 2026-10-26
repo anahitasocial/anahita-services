@@ -119,7 +119,7 @@ settings are under [Federation](#federation).
 | `SITE_NAME` | Name shown on auth pages and in email |
 | `ANAHITA_INSTANCE_NAME` | How this installation introduces itself to other servers, published as `nodeName` in NodeInfo. Optional — falls back to `SITE_NAME`, then `DOMAIN_NAME` |
 | `ANAHITA_INSTANCE_DESCRIPTION` | A sentence about this installation, published as `nodeDescription`. Optional, and left empty rather than generated when unset |
-| `SITE_LOGO_URL` | Logo at the top of every email (mail-grpc-service) |
+| `SITE_LOGO_URL` | The logo at the top of the sign-in pages and of every email. Optional: unset, the pages show Anahita's mark (`auth-service/web/static/images/logo.svg`) and emails none. An absolute URL to a PNG, since mail clients drop SVG |
 | `SYSTEM_EMAIL` | The From address |
 | `SUPPORT_EMAIL`, `SUPPORT_PHONE`, `SUPPORT_WEBSITE` | Contact details on the web app's public `/support` page, published through NodeInfo. Phone and website are optional |
 | `TOTP_ISSUER` | Optional. The label authenticator apps show; derived from `DOMAIN_NAME` when unset |
