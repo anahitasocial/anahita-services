@@ -74,5 +74,6 @@ Rastin Mehr; not a term of the licence, which is unchanged.
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE).
-Copyright 2025 Rastin Mehr Design Studio Inc. (rmdStudio).
+Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Copyright 2008–2026 Rastin Mehr Design Studio Inc. (rmd studio). Anahita is a
+registered trademark of Rastin Mehr Design Studio Inc. in Canada.
