@@ -19,10 +19,10 @@ order to read them.
 
 Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
 
-Asking an AI agent about Anahita? Add the MCP server
-`https://gitmcp.io/anahitasocial/anahita-services` to it, and
-`https://gitmcp.io/anahitasocial/anahita-web` for the web app.
-[GitMCP](https://gitmcp.io) serves these docs and the code, read-only.
+Asking an AI agent about Anahita? Add
+[anahita-mcp](https://github.com/anahitasocial/anahita-mcp) to it, an MCP
+server that runs on your computer and reads these docs, the web app's and
+the API reference, read-only.
 
 ## Contents
 
@@ -406,7 +406,7 @@ in anahita-web. Finished plans move to [`plans/done/`](plans/done/).
 | [Websites: a site's feed as something to follow](plans/done/website.md) | 30 | done 2026-10-17: syndication-service and syndication-worker, a verified domain's feed posted as notes, replies as the website, an Organization on the fediverse, its own Bluesky account ([Websites](websites.md)) |
 | [One clean schema](plans/done/migration-baseline.md) | 27 | done 2026-10-17: the migrations folded into `init.sql` and `legacy/upgrade.sql`, the PHP upgrade fixed, `make schema_test`, NULL only where it means something ([The database](architecture.md#the-database)) |
 | [The API reference, made from the code](plans/done/api-reference.md) | 38 | done 2026-10-15: every route described, `docs/api/index.html`, answers checked in the handler tests |
-| [Documentation agents can use, and an MCP server](plans/docs-for-agents.md) | 39 | done but for our own MCP server: GitMCP serves the docs (2026-10-27); our own only if it falls short |
+| [Documentation agents can use, and an MCP server](plans/done/docs-for-agents.md) | 39 | done 2026-10-27: the MCP server is anahita-mcp |
 | [Anahita Recipes: a starting configuration for each kind of site](plans/recipes.md) | 40 | planned 2026-10-11; place in the order not decided |
 | [Running Anahita on k3s and on EKS](plans/k3s-and-eks.md) | 76 | planned 2026-10-22: a manual for both, with sizes and costs, tried on k3d, a rented server and EKS |
 | [Animated images: GIF, APNG and animated WebP, through the video service](plans/done/animated-images.md) | 41 | done 2026-10-14: GIFs and animated PNGs (not WebP), and video posts going to other servers and Bluesky |

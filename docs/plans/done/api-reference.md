@@ -70,7 +70,7 @@ One page for what is true of every route, which no generator can know:
 
 - **The files themselves,** for tools and agents.
 - **A page for people,** made from the combined file as static HTML at build time, with its script kept in the repository. Nothing fetched from somebody else's server when the page is opened (item 9's rule).
-- **Through the docs MCP server** ([docs-for-agents.md](../docs-for-agents.md)): asking for one route's shapes without loading three hundred.
+- **Through the docs MCP server** ([docs-for-agents.md](docs-for-agents.md)): asking for one route's shapes without loading three hundred.
 
 ## Considered and not chosen
 
@@ -104,7 +104,7 @@ A and B are worth having alone: they settle the form, and every service after is
 
 - **None hard.** Better after item 27 (the clean schema) is decided, not necessarily done, since neither changes the wire.
 - **Federation (item 8):** `activitypub-service` and `atproto-service` should be described as they are written, which needs phase A first.
-- **[docs-for-agents.md](../docs-for-agents.md)** reads these files for its route lookups.
+- **[docs-for-agents.md](docs-for-agents.md)** reads these files for its route lookups.
 
 ## Documentation
 

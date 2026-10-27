@@ -30,7 +30,7 @@ Most of them will never clone the repositories to change the code, and many will
 | --- | --- |
 | **The working agreements are written nowhere in the repositories.** Migrations go in three places; tests never touch the dev database and how to give them one; `go mod tidy` is not run on `anahita-libs`; what a commit message looks like; a group has followers and never members; the docs are part of the work. They are in the memory of one person's agent on one machine | An agent starting cold breaks each of them once |
 | **anahita-services has no entry file.** anahita-web has a `CLAUDE.md`, about MUI only | Nothing tells an agent to read `docs/README.md` first, or that the roadmap is in the other repository |
-| **What the API takes and sends** ([api-reference.md](done/api-reference.md)) | Today an agent reads handlers to learn a field's name, and guesses |
+| **What the API takes and sends** ([api-reference.md](api-reference.md)) | Today an agent reads handlers to learn a field's name, and guesses |
 | **Not every page says where its code is.** `feeds.md` and `recommendations.md` end with "Where the code is"; most do not | The first thing an agent does with a page is look for the files |
 
 ### Added 2026-10-14: plain language, and keeping the docs true
@@ -100,7 +100,7 @@ A small program in anahita-services, in Go like the rest, on the official SDK (`
 | `read_plan(item or name)` | A plan, with what was built |
 | `list_endpoints(service?)` | Routes and a line on each, from the API reference |
 | `read_endpoint(method, path)` | What one route takes, sends and refuses |
-| `list_recipes`, `read_recipe(name)` | The kinds of site there is a starting configuration for, and what one decides and why ([recipes.md](recipes.md)) |
+| `list_recipes`, `read_recipe(name)` | The kinds of site there is a starting configuration for, and what one decides and why ([recipes.md](../recipes.md)) |
 
 - **Search is by words, in the program.** No embeddings and no outside service: it works offline and sends nothing anywhere.
 - **From a clone:** `.mcp.json` in each repository starts it over stdio (`go run ./tools/docs-mcp`), given where the other repository is. Somebody working on the web app can then ask about the services without knowing their layout, which is the case the two repositories meet daily.
@@ -157,9 +157,9 @@ What ours adds to that shape is the API reference's route lookups and the recipe
 ## Dependencies
 
 - **Part 1: none.** It can be done now.
-- **The route tools** need [api-reference.md](done/api-reference.md), phase A at least.
+- **The route tools** need [api-reference.md](api-reference.md), phase A at least.
 - **Hosting** needs the docs to be public.
-- **The recipe tools** need [recipes.md](recipes.md).
+- **The recipe tools** need [recipes.md](../recipes.md).
 
 ## Documentation
 
@@ -218,10 +218,10 @@ pushed.
    `POST /invites` (`INVITES_FROM`, not `REGISTRATION_MODE`), and in the web
    app, `src/containers/StaticPage.jsx`, which nothing used, removed.
 
-8. The four doors: [Setting up a site](../setting-up.md),
-   [Customising](../customising.md),
-   [Operating](../operating.md) and
-   [Developing](../developing.md), each a numbered list of links in
+8. The four doors: [Setting up a site](../../setting-up.md),
+   [Customising](../../customising.md),
+   [Operating](../../operating.md) and
+   [Developing](../../developing.md), each a numbered list of links in
    the order to read them, under "Where to begin" in the index. The web
    app's index points to them. Each door ends with the pages found missing
    in filling it: backing up and restoring, and upgrading step by step
@@ -247,31 +247,36 @@ then. Publishing also changes the web app's 55 links to
 anybody else; they are left as they are and changed together. The recipe
 tools wait for row 30 as well.
 
-## GitMCP instead, for now (user, 2026-10-27)
+## anahita-mcp, a server of our own (user, 2026-10-27)
 
-With anahita-services public, the docs are served to agents by
-[GitMCP](https://gitmcp.io), a free hosted MCP server for any public GitHub
-repository, instead of `tools/docs-mcp`:
+GitMCP (gitmcp.io) served the docs for a morning, and was dropped the same
+day: its search was rough (a search for the half-life answered with the
+README), its page broke in places we could not mend, and it is a service in
+the United States, as Context7 and DeepWiki are; no European or Canadian
+one was found. What was built instead is Design part 3 in the shape of
+Material UI's server: a program people run themselves, reading the public
+docs.
 
-| Repository | MCP server |
+| Item | What it is |
 | --- | --- |
-| anahita-services | `https://gitmcp.io/anahitasocial/anahita-services` |
-| anahita-web | `https://gitmcp.io/anahitasocial/anahita-web` |
+| Repository | [anahitasocial/anahita-mcp](https://github.com/anahitasocial/anahita-mcp), MIT, TypeScript on the official MCP SDK, not `tools/docs-mcp` in Go: MCP clients start servers with `npx`, and a Go binary downloaded on macOS is blocked until it is signed and notarised |
+| Run with | `npx -y github:anahitasocial/anahita-mcp`, over standard input and output; on npm as `anahita-mcp` once published |
+| Reads | `www.anahita.io/docs/index.json`, every page of both repositories' docs cut into sections, written by the website's build (`src/app/docs/index.json/route.js` in anahita.io), and `www.anahita.io/api/anahita.json` |
+| Keeps | a copy of each in the system's cache folder, asked for again after an hour only if it changed (ETag), and used offline |
+| Tools | `search_docs`, `list_docs`, `read_doc`, `list_endpoints`, `read_endpoint`, `read_shape`; all read-only |
+| Search | by words (BM25), in the program; nothing sent anywhere |
 
-- **Its tools:** fetch the docs, search the docs, search the code, and fetch
-  a page they link to. Read-only, and nothing to run or host.
-- **What it does not do:** the route lookups and the recipe tools of Design
-  part 3, and its search is rough (checked 2026-10-27: a search for the
-  half-life answered with the README). `tools/docs-mcp` is built only if
-  that falls short.
+- **Left out of Design part 3:** `roadmap` and `read_plan`. The plans are
+  work notes, read on GitHub, and are not on the website the server reads.
+  The recipe tools go with [recipes.md](../recipes.md), row 30.
 - **`llms.txt`** is on the website (`www.anahita.io/llms.txt`), written by
   hand, not made from `docs/README.md` by a script as part 4 has it.
-- **Pointed to** from the "MCP server" card on `www.anahita.io/docs/` and
-  from both repositories' `docs/README.md`.
+- **Pointed to** from the "MCP server" card on `www.anahita.io/docs/`, from
+  `llms.txt`, and from both repositories' `docs/README.md`.
 
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11; the plain-language pass and keeping the docs true added 2026-10-14 |
-| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; the plain-language pass decided against; the four doors done, 2026-10-17. The docs served to agents by GitMCP, and `llms.txt` on the website, 2026-10-27 ([GitMCP instead](#gitmcp-instead-for-now-user-2026-10-27)); our own MCP server only if GitMCP falls short |
+| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; the plain-language pass decided against; the four doors done, 2026-10-17. `llms.txt` on the website, and the MCP server, [anahita-mcp](https://github.com/anahitasocial/anahita-mcp), 2026-10-27 ([anahita-mcp](#anahita-mcp-a-server-of-our-own-user-2026-10-27)). **Done** |

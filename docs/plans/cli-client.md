@@ -93,7 +93,7 @@ Tokens are kept in the system's keychain where there is one, and otherwise in a 
 ## Dependencies
 
 - **Hard:** [api-reference.md](done/api-reference.md), item 38, phases A to C.
-- **Soft:** [docs-for-agents.md](docs-for-agents.md): the client is one of the "clients of their own" its *Building on it* door points to, and a worked example for whoever writes another.
+- **Soft:** [docs-for-agents.md](done/docs-for-agents.md): the client is one of the "clients of their own" its *Building on it* door points to, and a worked example for whoever writes another.
 
 ## Documentation
 

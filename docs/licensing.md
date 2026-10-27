@@ -10,6 +10,7 @@ anybody can build on it, in any language, under any licence.
 | The gRPC and protocol buffer definitions in `anahita-libs/proto` (22 `.proto` files), and the code generated from them | Apache License 2.0 (`Apache-2.0`) | [`anahita-libs/proto/LICENSE`](../anahita-libs/proto/LICENSE) |
 | The examples in `examples/`, made to be copied | Apache License 2.0 | [`examples/LICENSE`](../examples/LICENSE) |
 | The web app, [anahita-web](https://github.com/anahitasocial/anahita-web) | MIT | its `LICENSE` |
+| The MCP server for the docs, [anahita-mcp](https://github.com/anahitasocial/anahita-mcp) | MIT | its `LICENSE` |
 
 Copyright 2008–2026 Rastin Mehr Design Studio Inc. (rmd studio). This page
 explains the licences; it is not legal advice, and the licence texts are

@@ -116,7 +116,7 @@ A recipe is mostly the server's. For the web app it may suggest a name and descr
 
 - **None hard:** every setting the first recipes use exists (items 9 and 13).
 - **Item 8 (federation):** each recipe gains its line on federating when the services exist.
-- **[docs-for-agents.md](docs-for-agents.md):** its MCP server lists and reads recipes, so that somebody can ask an agent "which recipe for a school of 300, and what do I change first?"
+- **[docs-for-agents.md](done/docs-for-agents.md):** its MCP server lists and reads recipes, so that somebody can ask an agent "which recipe for a school of 300, and what do I change first?"
 
 ## Documentation
 
