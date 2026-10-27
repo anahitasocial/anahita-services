@@ -247,9 +247,31 @@ then. Publishing also changes the web app's 55 links to
 anybody else; they are left as they are and changed together. The recipe
 tools wait for row 30 as well.
 
+## GitMCP instead, for now (user, 2026-10-27)
+
+With anahita-services public, the docs are served to agents by
+[GitMCP](https://gitmcp.io), a free hosted MCP server for any public GitHub
+repository, instead of `tools/docs-mcp`:
+
+| Repository | MCP server |
+| --- | --- |
+| anahita-services | `https://gitmcp.io/anahitasocial/anahita-services` |
+| anahita-web | `https://gitmcp.io/anahitasocial/anahita-web` |
+
+- **Its tools:** fetch the docs, search the docs, search the code, and fetch
+  a page they link to. Read-only, and nothing to run or host.
+- **What it does not do:** the route lookups and the recipe tools of Design
+  part 3, and its search is rough (checked 2026-10-27: a search for the
+  half-life answered with the README). `tools/docs-mcp` is built only if
+  that falls short.
+- **`llms.txt`** is on the website (`www.anahita.io/llms.txt`), written by
+  hand, not made from `docs/README.md` by a script as part 4 has it.
+- **Pointed to** from the "MCP server" card on `www.anahita.io/docs/` and
+  from both repositories' `docs/README.md`.
+
 ## Status
 
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11; the plain-language pass and keeping the docs true added 2026-10-14 |
-| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; the plain-language pass decided against; the four doors done, 2026-10-17. The MCP server waits for anahita-services to be public ([Where it stands](#where-it-stands-and-what-is-next-2026-10-17)) |
+| Implementation | begun 2026-10-17. Parts 1 (`AGENTS.md`) and 2 (where the code is), and the link check, done; the plain-language pass decided against; the four doors done, 2026-10-17. The docs served to agents by GitMCP, and `llms.txt` on the website, 2026-10-27 ([GitMCP instead](#gitmcp-instead-for-now-user-2026-10-27)); our own MCP server only if GitMCP falls short |
