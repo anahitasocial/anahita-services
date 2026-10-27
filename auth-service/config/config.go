@@ -56,8 +56,8 @@ type Config struct {
 	RedisDB          int
 	DomainName       string
 	SystemEmail      string
-	// SiteName is what this installation calls itself — the "Banu" in
-	// "Your Banu password was changed".
+	// SiteName is what this installation calls itself — the "Example" in
+	// "Your Example password was changed".
 	//
 	// It appears in two places, both of which are trust signals rather
 	// than decoration: the From display name a recipient sees in their
@@ -66,8 +66,8 @@ type Config struct {
 	// mistake for phishing, and phishing that does not know the name is
 	// easier to spot.
 	//
-	// Config rather than a literal because another installation is
-	// Banu.io rather than Anahita. Optional — GetSiteName falls back to
+	// Config rather than a literal because each installation
+	// has its own name, not Anahita. Optional — GetSiteName falls back to
 	// DomainName, so a deployment that never sets it still reads
 	// sensibly.
 	SiteName string
@@ -87,7 +87,7 @@ type Config struct {
 	//
 	// Separate from SiteName, which they used to be taken from, because
 	// the two answer different questions. SiteName is branding: the word
-	// in "Your Banu password was changed", read by people who already
+	// in "Your Example password was changed", read by people who already
 	// know where they are. These are federation identity, read by
 	// software on a server that has never heard of this one. Renaming
 	// the product should not silently rename the installation to the
@@ -544,7 +544,7 @@ func (config *Config) GetDomainName() string {
 // Unlike GetTotpIssuer there is no staging suffix. The issuer needs one
 // because a person with 2FA on both environments otherwise gets two
 // identically-labelled entries in their authenticator; an email already
-// says which environment it came from in its links, and "Banu Staging
+// says which environment it came from in its links, and "Example Staging
 // password changed" reads like the product is called that.
 func (config *Config) GetSiteName() string {
 	if config.SiteName != "" {
@@ -601,7 +601,7 @@ func (config *Config) GetInstanceDescription() string {
 }
 
 // GetMailFrom returns the From header for outbound notifications, with
-// the site name as the display part: `Banu <system@banu.io>`.
+// the site name as the display part: `Example <system@example.com>`.
 //
 // mail.Address.String() does the whole job: it RFC 2047-encodes a name
 // containing non-ASCII, so a site called "Bänu" arrives readable rather
@@ -611,7 +611,7 @@ func (config *Config) GetInstanceDescription() string {
 //
 // Deliberately NOT pre-encoded with mime.QEncoding. Doing both produces
 // an already-ASCII encoded-word that String() then treats as a literal
-// name and quotes, so the recipient reads "=?utf-8?q?B=C3=A4nu?=".
+// name and quotes, so the recipient reads "=?utf-8?q?Ex=C3=A4mple?=".
 //
 // NOTE for whoever touches the mail path: this is a HEADER value and is
 // not a valid SMTP envelope sender. providers/smtp.go parses the

@@ -7,7 +7,6 @@
 ### Context
 - **What we want:** a passwordless sign-in option. The person enters their email or username and gets a 6-digit code by email, which they type in the same browser. It's a code, not a link, so the sign-in completes in the browser where it started, and so the same design carries over to SMS later.
 - **Scope:** this item builds the shared code machinery and sign-in with a code. Signup confirmation, password reset, email change and step-up move to codes in item 6b, which builds on this one.
-- **Reference:** `protect-services/auth-service` (commit `e7d8186`, `cmd/api/handlers/otp.go`, `oauth_login_otp.go`).
 
 ### What exists
 **In Anahita, part of the scaffolding is already committed but unused** (noted in `docs/plans/actor-profile-management.md:650-653`):
@@ -19,7 +18,7 @@
 
 **The login screens are Go templates in auth-service** (`auth-service/web/templates/`, `handlers/oauth_login.go`). The web app only redirects to them (`anahita-web/src/containers/auth/index.jsx`), so **there's no anahita-web work** in this item.
 
-### Port from protect (with its hard-won rules)
+### The rules
 - **Three steps, each POST answered with a redirect** (identifier, then method, then verify), with `pendingOTPState` kept in the server-side session.
 - **The code is looked up by token id, never by code.** The token id lives only in the session, because a `WHERE code = ?` lookup would match *anybody's* live code.
 - **No revealing whether an account exists:**
@@ -33,12 +32,12 @@
 - **Email copy:** "expires in 10 minutes, only works in this browser, we will never ask you for it". The action link goes to the login page, never to anything carrying the code.
 - **Channel abstraction:** the method step and a `loginCodeChannel` type with only `email` for now, where an unknown value folds into email. SMS later adds `SmsSenderInterface` (log sender and SNS sender) and a branch, with no change to the flow.
 
-### Fix rather than port (protect's weaknesses)
+### Where the obvious way goes wrong
 1. **Store an HMAC of the code, not the code.** The key comes from a server secret (new env var `OTP_HMAC_KEY`, falling back to a key derived from an existing secret). Plain SHA-256 of 6 digits can be brute-forced offline.
-2. **Atomic attempt counter:** `UPDATE tokens SET code_attempts = code_attempts + 1 WHERE id = ? AND code_attempts < 5`, then check rows affected. Protect's read-modify-write loses updates when guesses arrive at the same moment.
+2. **Atomic attempt counter:** `UPDATE tokens SET code_attempts = code_attempts + 1 WHERE id = ? AND code_attempts < 5`, then check rows affected. A read-modify-write loses updates when guesses arrive at the same moment.
 3. **Atomic consume:** `UPDATE … SET status = used WHERE id = ? AND status = unused`, requiring exactly one affected row.
 4. **Resend retires earlier codes.** Call the existing `InvalidateOutstanding(TokenTypeLoginOTP, email)` before issuing a new one.
-5. **Rate limits use Anahita's per-scope limiter** (`auth-service/cmd/api/handlers/rate_limit.go`), not protect's single global budget. New scopes: `login_code_email` (5 per hour) and `login_code_ip` (20 per hour). Charge them before the account lookup.
+5. **Rate limits use Anahita's per-scope limiter** (`auth-service/cmd/api/handlers/rate_limit.go`), not a single global budget. New scopes: `login_code_email` (5 per hour) and `login_code_ip` (20 per hour). Charge them before the account lookup.
 
 ### Implementation (auth-service + migration-job)
 1. **Migration** (goose with the guarded-procedure pattern, as in `migrations/20260903000001_tokens_new_email.sql`; mirrored in `schema/init.sql` and `legacy/upgrade.sql`):
@@ -86,7 +85,7 @@
 
 ### Verification
 - **Unit tests:** code generation and HMAC comparison, atomic increment when guesses arrive at the same moment (5 parallel wrong guesses leave exactly 5 attempts spent, and a 6th is refused), atomic consume (the second consume fails), and resend invalidating the previous code.
-- **Handler tests, ported from protect's `oauth_login_ratelimit_test.go` and extended:**
+- **Handler tests:**
   - An unknown address gets the same page and wording, and is locked out after the same 5 attempts.
   - An expired code gives `code_expired`.
   - A disabled account is refused at verify even though the code was sent.
@@ -96,7 +95,7 @@
 - **Manual:** from the SPA, click Sign in, then "Sign in with a code". Mailpit (or the SMTP catcher) shows the email, the code works once in the same browser, and the SPA session is established.
 
 ### Later (SMS, a separate item when wanted)
-- Phone storage on `auth_accounts` (E.164, unique, NULL allowed) and the phone set/verify endpoints from `protect-services/auth-service/cmd/api/handlers/phone.go`, including the check that the phone number hasn't changed between send and confirm.
+- Phone storage on `auth_accounts` (E.164, unique, NULL allowed) and endpoints to set and verify it, including the check that the phone number hasn't changed between send and confirm.
 - The `sms` branch in the method step, with fallback to email when the number isn't verified.
 - `SMS_SENDER=log|sns` config.
 

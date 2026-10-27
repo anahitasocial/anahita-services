@@ -11,7 +11,7 @@ import (
 
 func actionData() map[string]any {
 	return map[string]any{
-		"siteName":    "Banu",
+		"siteName":    "Example",
 		"logoURL":     "",
 		"title":       "Reset your password",
 		"body":        "Someone asked to reset the password on your account.",
@@ -156,22 +156,22 @@ func TestEveryRegisteredTemplateRenders(t *testing.T) {
 // alt text, which is what a reader sees while images are still blocked.
 func TestHeaderRendersTheLogoWhenConfigured(t *testing.T) {
 	data := actionData()
-	data["logoURL"] = "https://auth.banu.io/static/images/logo.png"
+	data["logoURL"] = "https://auth.example.com/static/images/logo.png"
 
 	text, html, err := renderTemplate("message_action", data)
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
 
-	if !strings.Contains(html, `src="https://auth.banu.io/static/images/logo.png"`) {
+	if !strings.Contains(html, `src="https://auth.example.com/static/images/logo.png"`) {
 		t.Error("the logo URL is not in the HTML part")
 	}
-	if !strings.Contains(html, `alt="Banu"`) {
+	if !strings.Contains(html, `alt="Example"`) {
 		t.Error("the site name is not the logo's alt text; a blocked image would say nothing")
 	}
 
 	// The text part has no images, so it always names the site.
-	if !strings.Contains(text, "Banu") {
+	if !strings.Contains(text, "Example") {
 		t.Error("the text part does not name the site")
 	}
 }
@@ -187,7 +187,7 @@ func TestHeaderFallsBackToTheSiteName(t *testing.T) {
 	if strings.Contains(html, "<img") {
 		t.Error("an image was rendered with no logo URL configured")
 	}
-	if !strings.Contains(html, "Banu") {
+	if !strings.Contains(html, "Example") {
 		t.Error("the site name does not appear in the header")
 	}
 }
@@ -198,8 +198,8 @@ func TestHeaderFallsBackToTheSiteName(t *testing.T) {
 // out of the tag.
 func TestSiteNameIsEscapedInTheHeader(t *testing.T) {
 	data := actionData()
-	data["siteName"] = `Banu" onerror="alert(1)`
-	data["logoURL"] = "https://auth.banu.io/logo.png"
+	data["siteName"] = `Example" onerror="alert(1)`
+	data["logoURL"] = "https://auth.example.com/logo.png"
 
 	_, html, err := renderTemplate("message_action", data)
 	if err != nil {

@@ -278,7 +278,7 @@ func TestSendRejectsAMessageWithNoRecipients(t *testing.T) {
 }
 
 // The From header and the SMTP envelope sender are different strings once a
-// display name is involved. `MAIL FROM:<"Banu" <system@banu.io>>` is a syntax
+// display name is involved. `MAIL FROM:<"Example" <system@example.com>>` is a syntax
 // error, so the address has to come back apart for the envelope while the
 // header keeps the readable form.
 func TestEnvelopeSenderStripsTheDisplayName(t *testing.T) {
@@ -286,15 +286,15 @@ func TestEnvelopeSenderStripsTheDisplayName(t *testing.T) {
 		from string
 		want string
 	}{
-		{"Banu <system@banu.io>", "system@banu.io"},
-		{`"Banu" <system@banu.io>`, "system@banu.io"},
+		{"Example <system@example.com>", "system@example.com"},
+		{`"Example" <system@example.com>`, "system@example.com"},
 		// A comma in the display name is why the name must be quoted: unquoted,
 		// the header parses as two addresses.
-		{`"Banu, the site" <system@banu.io>`, "system@banu.io"},
+		{`"Example, the site" <system@example.com>`, "system@example.com"},
 		// RFC 2047-encoded name, as a non-ASCII site produces.
-		{"=?utf-8?q?B=C3=A4nu?= <system@banu.io>", "system@banu.io"},
+		{"=?utf-8?q?Ex=C3=A4mple?= <system@example.com>", "system@example.com"},
 		// The ordinary case: a bare address passes through untouched.
-		{"system@banu.io", "system@banu.io"},
+		{"system@example.com", "system@example.com"},
 		// Unparseable input is handed to the server as-is, so the rejection
 		// comes back with the server's own message rather than a worse one.
 		{"not an address", "not an address"},
@@ -315,7 +315,7 @@ func TestFromHeaderKeepsTheDisplayName(t *testing.T) {
 	s := &SmtpMailer{host: "smtp.example.com", port: 587}
 
 	msg := testMessage()
-	msg.From = "Banu <system@banu.io>"
+	msg.From = "Example <system@example.com>"
 
 	raw, err := s.buildMIME(msg)
 	if err != nil {
@@ -327,16 +327,16 @@ func TestFromHeaderKeepsTheDisplayName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("From header does not parse: %v", err)
 	}
-	if addr.Name != "Banu" {
-		t.Errorf("display name = %q, want Banu", addr.Name)
+	if addr.Name != "Example" {
+		t.Errorf("display name = %q, want Example", addr.Name)
 	}
-	if addr.Address != "system@banu.io" {
-		t.Errorf("address = %q, want system@banu.io", addr.Address)
+	if addr.Address != "system@example.com" {
+		t.Errorf("address = %q, want system@example.com", addr.Address)
 	}
 
 	// Message-ID is derived from the sender, and must pick up the domain
 	// rather than a fragment of the display name.
-	if id := parsed.Header.Get("Message-ID"); !strings.Contains(id, "@banu.io") {
+	if id := parsed.Header.Get("Message-ID"); !strings.Contains(id, "@example.com") {
 		t.Errorf("Message-ID = %q, want the sender's domain", id)
 	}
 }

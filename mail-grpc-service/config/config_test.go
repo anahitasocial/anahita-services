@@ -276,12 +276,12 @@ func TestGetSiteLogoURLRejectsAnythingRelative(t *testing.T) {
 		value string
 		want  string
 	}{
-		{"https://auth.banu.io/static/images/logo.png", "https://auth.banu.io/static/images/logo.png"},
+		{"https://auth.example.com/static/images/logo.png", "https://auth.example.com/static/images/logo.png"},
 		{"http://localhost/static/images/logo.png", "http://localhost/static/images/logo.png"},
 		// Rejected: each of these renders as a broken image in a mail client.
 		{"/static/images/logo.png", ""},
 		{"static/images/logo.png", ""},
-		{"//auth.banu.io/logo.png", ""},
+		{"//auth.example.com/logo.png", ""},
 		// Empty is a supported state — the template renders the site name.
 		{"", ""},
 	}
@@ -304,8 +304,8 @@ func TestGetSiteNameNeverReturnsEmpty(t *testing.T) {
 		t.Error("GetSiteName() returned empty; the message header would be blank")
 	}
 
-	cfg.SiteName = "Banu"
-	if got := cfg.GetSiteName(); got != "Banu" {
-		t.Errorf("GetSiteName() = %q, want Banu", got)
+	cfg.SiteName = "Example"
+	if got := cfg.GetSiteName(); got != "Example" {
+		t.Errorf("GetSiteName() = %q, want Example", got)
 	}
 }

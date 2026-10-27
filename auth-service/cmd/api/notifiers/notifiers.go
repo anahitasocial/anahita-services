@@ -55,7 +55,7 @@ func (env *Env) send(recipient, subject, title, body, actionLabel, actionURL str
 
 	return env.Srv.MailGRPC.SendFromTemplate(
 		// The From header carries the site name as a display part, so mail
-		// arrives from `Banu <system@banu.io>` rather than a bare address.
+		// arrives from `Example <system@example.com>` rather than a bare address.
 		// providers/smtp.go parses the address back out for the envelope.
 		env.Config.GetMailFrom(),
 		[]string{recipient},

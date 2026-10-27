@@ -55,7 +55,7 @@ func (f *fakeUsers) Browse(req *authrequests.UserBrowseRequest) ([]*entities.Use
 // Sprintf, or mismatches an argument list fails here rather than in somebody's
 // inbox.
 
-const testSiteName = "Banu"
+const testSiteName = "Example"
 
 // recordingMail captures what would have gone out.
 type recordingMail struct {
@@ -98,9 +98,9 @@ func newTestNotifiers(t *testing.T) (*Notifiers, *recordingMail) {
 	return NewNotifiers(&Env{
 		Config: &config.Config{
 			Env:         "prod",
-			DomainName:  "banu.io",
+			DomainName:  "example.com",
 			SiteName:    testSiteName,
-			SystemEmail: "system@banu.io",
+			SystemEmail: "system@example.com",
 		},
 		Repos: &repositories.Repositories{
 			Users: &fakeUsers{admins: []*entities.User{admin}},
@@ -319,7 +319,7 @@ func TestEveryNotificationSetsTheFromDisplayName(t *testing.T) {
 				if !strings.Contains(msg.From, testSiteName) {
 					t.Errorf("From = %q, want it to carry the site name", msg.From)
 				}
-				if !strings.Contains(msg.From, "system@banu.io") {
+				if !strings.Contains(msg.From, "system@example.com") {
 					t.Errorf("From = %q, want it to carry the system address", msg.From)
 				}
 			}

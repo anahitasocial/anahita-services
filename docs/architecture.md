@@ -524,8 +524,7 @@ is in [`migration-job/migrations/README.md`](../migration-job/migrations/README.
 
 What a site's own data needs beyond the upgrade (avatars set by hand,
 posts moved between profiles) is that site's, and lives with its own
-deployment, not here: anahita.io's, on its way to banu.io, is in banu.io's
-repository.
+deployment, not here.
 
 ### NULL only where it means something
 

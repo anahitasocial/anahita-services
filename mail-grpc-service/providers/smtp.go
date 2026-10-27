@@ -92,8 +92,8 @@ func (s *SmtpMailer) Send(ctx context.Context, msg Message) (string, error) {
 	}
 
 	// The ENVELOPE sender, which is not the same string as the From
-	// header. A header may carry a display name — `Banu <system@banu.io>`
-	// — and MAIL FROM may not: `MAIL FROM:<"Banu" <system@banu.io>>` is a
+	// header. A header may carry a display name — `Example <system@example.com>`
+	// — and MAIL FROM may not: `MAIL FROM:<"Example" <system@example.com>>` is a
 	// syntax error and the server rejects the message. Callers set a
 	// display name to identify the installation, so this has to come
 	// apart here rather than being pushed back onto them.
@@ -284,7 +284,7 @@ func writeHeader(w *strings.Builder, name, value string) {
 
 // envelopeSender reduces a From header to the bare address SMTP wants.
 //
-// `Banu <system@banu.io>` becomes `system@banu.io`. Falls back to the input
+// `Example <system@example.com>` becomes `system@example.com`. Falls back to the input
 // unchanged when it does not parse, which covers the ordinary case of a plain
 // address and means a malformed one is rejected by the server — with the
 // server's own error message — rather than here with a worse one.

@@ -206,14 +206,14 @@ func contains(s, substr string) bool {
 // The site name appears in every notification and as the From display name,
 // so an installation that never sets SITE_NAME must still read sensibly.
 func TestGetSiteNameFallsBackToDomain(t *testing.T) {
-	cfg := &Config{DomainName: "banu.io"}
-	if got := cfg.GetSiteName(); got != "banu.io" {
+	cfg := &Config{DomainName: "example.com"}
+	if got := cfg.GetSiteName(); got != "example.com" {
 		t.Errorf("GetSiteName() = %q, want the domain as a fallback", got)
 	}
 
-	cfg.SiteName = "Banu"
-	if got := cfg.GetSiteName(); got != "Banu" {
-		t.Errorf("GetSiteName() = %q, want Banu", got)
+	cfg.SiteName = "Example"
+	if got := cfg.GetSiteName(); got != "Example" {
+		t.Errorf("GetSiteName() = %q, want Example", got)
 	}
 }
 
@@ -223,8 +223,8 @@ func TestGetSiteLogoURLFallsBackToAnahitasMark(t *testing.T) {
 		t.Errorf("GetSiteLogoURL() = %q, want Anahita's mark as a fallback", got)
 	}
 
-	cfg.SiteLogoURL = "https://banu.io/logo.png"
-	if got := cfg.GetSiteLogoURL(); got != "https://banu.io/logo.png" {
+	cfg.SiteLogoURL = "https://example.com/logo.png"
+	if got := cfg.GetSiteLogoURL(); got != "https://example.com/logo.png" {
 		t.Errorf("GetSiteLogoURL() = %q, want SITE_LOGO_URL", got)
 	}
 }
@@ -238,26 +238,26 @@ func TestGetMailFromIsAParseableAddress(t *testing.T) {
 		siteName string
 		wantName string
 	}{
-		{"plain", "Banu", "Banu"},
+		{"plain", "Example", "Example"},
 		// Non-ASCII must survive RFC 2047 encoding and decoding.
 		{"non-ascii", "Bänu", "Bänu"},
 		{"cjk", "バヌ", "バヌ"},
 		// A comma is the address separator: unquoted, this would parse as two
 		// addresses and the header would be malformed.
-		{"comma", "Banu, the site", "Banu, the site"},
-		{"quote", `Banu "the site"`, `Banu "the site"`},
+		{"comma", "Example, the site", "Example, the site"},
+		{"quote", `Example "the site"`, `Example "the site"`},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := &Config{DomainName: "banu.io", SiteName: tc.siteName, SystemEmail: "system@banu.io"}
+			cfg := &Config{DomainName: "example.com", SiteName: tc.siteName, SystemEmail: "system@example.com"}
 
 			addr, err := mail.ParseAddress(cfg.GetMailFrom())
 			if err != nil {
 				t.Fatalf("GetMailFrom() = %q, which does not parse: %v", cfg.GetMailFrom(), err)
 			}
-			if addr.Address != "system@banu.io" {
-				t.Errorf("address = %q, want system@banu.io", addr.Address)
+			if addr.Address != "system@example.com" {
+				t.Errorf("address = %q, want system@example.com", addr.Address)
 			}
 
 			// ParseAddress decodes RFC 2047 for us, so the display name should
@@ -272,9 +272,9 @@ func TestGetMailFromIsAParseableAddress(t *testing.T) {
 // With no site name and no domain there is nothing to display, and the bare
 // address is still valid.
 func TestGetMailFromWithoutASiteName(t *testing.T) {
-	cfg := &Config{SystemEmail: "system@banu.io"}
+	cfg := &Config{SystemEmail: "system@example.com"}
 
-	if got := cfg.GetMailFrom(); got != "system@banu.io" {
+	if got := cfg.GetMailFrom(); got != "system@example.com" {
 		t.Errorf("GetMailFrom() = %q, want the bare address", got)
 	}
 }

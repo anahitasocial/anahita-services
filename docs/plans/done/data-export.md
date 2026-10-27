@@ -4,9 +4,7 @@
 
 ## Context
 - **What we want:** people can export everything they created and download it as an archive. It's a right to data portability (GDPR Art. 20, and Canada's PIPEDA principles) and a fediverse norm: Mastodon offers an archive download.
-- **The reference implementation,** `protect-services/dxp-service`, exports a whole **organization** (super admins only):
-  - EventBridge Scheduler (a 24 h delay) puts a message on **SQS**, a worker builds a zip in memory through file-grpc and uploads it to S3, and a cleanup job deletes old packages.
-  - **The flow and its hard-won rules carry over. The content, the permission model and the AWS pieces don't.**
+- **The flow:** a request, a worker that builds the archive through file-grpc and uploads it to the bucket, and a cleanup job that deletes old archives.
 - **Decided 2026-09-28: no scheduler and no delay.** A request starts building right away, and the person is told as soon as the archive is ready.
 - **Anahita has no export code yet.**
 
@@ -22,12 +20,12 @@
 - **Storage:** item 9's S3-compatible storage (MinIO, Garage, OVH, Scaleway…), not AWS-specific.
 
 ## Design
-**Service:** a new `export-service` (API) plus an `export-worker` (a separate Deployment, as in dxp, so a long build never touches the API, and API replicas never add consumers).
+**Service:** a new `export-service` (API) plus an `export-worker` (a separate Deployment, so a long build never touches the API, and API replicas never add consumers).
 
 **Table `data_exports`:**
 - `id` (UUID, public), `person_id`, `status`, `package_key`, `size_bytes`;
 - `created_at`, `started_at`, `ready_at`, `expires_at`, `error`;
-- `ip`, `user_agent` (the audit record; IP taken from the rightmost trusted `X-Forwarded-For` entry, per dxp).
+- `ip`, `user_agent` (the audit record; IP taken from the rightmost trusted `X-Forwarded-For` entry).
 - **States:** `pending → building → ready → expired`, plus `failed` and `cancelled`. Every transition is a compare-and-set: `UPDATE … WHERE id=? AND status=?`, then check rows affected.
 - **One active export per person:** a generated column `active_person = IF(status IN ('pending','building'), person_id, NULL)` with a UNIQUE index. MySQL has no partial indexes.
 
@@ -53,12 +51,12 @@
    - **`data/*.json`:** everything above as JSON (NDJSON for large lists).
    - **ActivityPub-compatible files** (`actor.json`, `outbox.json`, `likes.json`, `media_attachments/`), in the same layout as a Mastodon archive, so fediverse tools and importers can read it.
    - **If the person opted into Bluesky (item 8):** `bluesky/repo.car`, their AT repository from the PDS (`com.atproto.sync.getRepo`).
-4. **Streams the zip, never in memory** (dxp built it in a buffer and is capped at about 1 GB):
+4. **Streams the zip, never in memory** (a zip built in a buffer is capped by the worker's memory):
    - `archive/zip` writes into an `io.Pipe`, which feeds a **multipart upload**.
    - New streaming RPCs on file-grpc: `ReadStream` (server-streaming) for large files, and `WriteStream` (client-streaming into a multipart upload). Today's file-grpc has only whole-message calls with the 4 MB gRPC default. item 16's worker needs the same RPCs, so build them once.
    - Add an abort-incomplete-multipart rule on the bucket.
 5. Uploads to `exports/<person_uuid>/<export_uuid>.zip`, then sets `ready` with `expires_at = ready_at + 7 days`.
-   - If that last update is refused (cancelled meanwhile), it **deletes the package immediately**, as dxp does.
+   - If that last update is refused (cancelled meanwhile), it **deletes the package immediately**.
    - Any error sets `failed` with the reason, so the person can request again.
 6. **Tells the person when it's ready:**
    - an in-app notification (`data_export_ready`, notification-service);
@@ -68,7 +66,7 @@
 **Cleanup CronJob (hourly)**
 - Expires `ready` exports past `expires_at` (delete the object, set `expired`).
 - Deletes orphaned objects under `exports/`, but only when the row is **definitely not found**. Any other error leaves the file.
-- Resets or fails jobs stuck in `building` for more than 2 h (dxp lacks this reaper).
+- Resets or fails jobs stuck in `building` for more than 2 h.
 - Exits non-zero when anything failed.
 
 **Interactions**
@@ -76,7 +74,7 @@
 - **Members-only sites (item 13):** exporting still works; it's the person's own data.
 - **Rate limits:** the shared limiter from item 4b, plus the 7-day rule.
 
-**Security notes from dxp to carry over:**
+**Security notes:**
 - The step-up gate must be real: auth-service must stop stamping `TotpLastVerifiedAt` without a passcode (`auth-service/cmd/api/handlers/totp.go:93`). That fix is roadmap item 0b ([auth-service-hardening.md](../auth-service-hardening.md)).
 - `ENV` must have no silent default.
 - An empty key lookup is refused.

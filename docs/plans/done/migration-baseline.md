@@ -112,7 +112,7 @@ A phase is finished only when these pages match the code.
    that ran them. Tried on a copy of dev and on an empty database.
 5. **Comments that pointed to migration files** say why themselves.
    What anahita.io's own data needed went to `legacy/sites/anahita-io.sql`,
-   run by hand, the start of the move to banu.io.
+   run by hand. It has since moved out of this repository.
 
 ## Different from the plan
 
@@ -134,4 +134,4 @@ A phase is finished only when these pages match the code.
 | --- | --- |
 | Plan | written 2026-10-03 |
 | Implementation | done 2026-10-17 |
-| Left | retiring "portrait" (an API change); the banu.io move's own data changes, in `legacy/sites/anahita-io.sql` |
+| Left | retiring "portrait" (an API change); anahita.io's own data changes, in `legacy/sites/anahita-io.sql` (since moved out) |

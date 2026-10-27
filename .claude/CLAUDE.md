@@ -16,4 +16,4 @@ in AGENTS.md.
 - Before beginning a milestone, check the docs of both repos against the
   code.
 - With minikube, always pass `--context minikube`, and switch back to the
-  `protect-services` EKS context afterwards.
+  context you were using afterwards.

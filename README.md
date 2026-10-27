@@ -11,7 +11,8 @@ the single public entry point; there is no broker service and no etcd —
 service addresses are plain DNS names inside the Docker/Kubernetes network,
 injected as environment variables.
 
-The web app lives in a separate repository, `anahita-web`.
+The web app lives in a separate repository,
+[anahita-web](https://github.com/anahitasocial/anahita-web).
 
 Changing the code, as a person or with an agent: begin with
 [AGENTS.md](AGENTS.md), the project's working rules.
@@ -73,6 +74,11 @@ they set their first password:
 
 It is a pledge to the people who will trust you, from Anahita's creator,
 Rastin Mehr; not a term of the licence, which is unchanged.
+
+## Security
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md). Please don't open
+a public issue.
 
 ## License
 

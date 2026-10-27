@@ -186,7 +186,7 @@ the user chose them from what is built:
 3. **Keep your account safe.** Turn on two-factor sign-in in your settings.
 
 Only what the software keeps by itself: an operator's own promises (such as
-moderation and daily backups on banu.io) are theirs to add. The Mastodon
+moderation and daily backups) are theirs to add. The Mastodon
 Server Covenant's four commitments (active moderation, daily backups, a
 second person with emergency access, three months' notice before closing)
 go in `docs/deploying.md` as good practice for operators, not as a
@@ -246,7 +246,7 @@ the defaults kept when it cannot be read, as `search_ranking.json` is.
 4. **Served on one public route,** `GET /site`, read by the About page, the
    sign-up checklist and the group rules editor; NodeInfo says only whether
    rules are on (`SITE_RULES`).
-5. **An operator's own promises** (banu.io's moderation and daily backups)
+5. **An operator's own promises** (such as moderation and daily backups)
    are added to the file, with no change to the code.
 6. **On the service side** (the user): the web app keeps only its own
    words (the headings, "I agree"); what a site says comes from `GET /site`.
