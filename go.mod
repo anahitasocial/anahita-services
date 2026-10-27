@@ -1,4 +1,4 @@
-module github.com/purplerat/anahita-services
+module github.com/anahitasocial/anahita-services
 
 go 1.25.0
 

@@ -26,6 +26,8 @@
 app-binary
 worker-binary
 scripts/s3-migration/s3-migration
+# go build in auth-service/cmd/api
+auth-service/cmd/api/api
 
 # built by make build_sweeper
 sweeper-binary
