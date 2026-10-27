@@ -260,7 +260,7 @@ docs.
 | Item | What it is |
 | --- | --- |
 | Repository | [anahitasocial/anahita-mcp](https://github.com/anahitasocial/anahita-mcp), MIT, TypeScript on the official MCP SDK, not `tools/docs-mcp` in Go: MCP clients start servers with `npx`, and a Go binary downloaded on macOS is blocked until it is signed and notarised |
-| Run with | `npx -y github:anahitasocial/anahita-mcp`, over standard input and output; on npm as `anahita-mcp` once published |
+| Run with | `npx -y anahita-mcp` (on [npm](https://www.npmjs.com/package/anahita-mcp) from 2026-10-27, published by rmdstudio), over standard input and output |
 | Reads | `www.anahita.io/docs/index.json`, every page of both repositories' docs cut into sections, written by the website's build (`src/app/docs/index.json/route.js` in anahita.io), and `www.anahita.io/api/anahita.json` |
 | Keeps | a copy of each in the system's cache folder, asked for again after an hour only if it changed (ETag), and used offline |
 | Tools | `search_docs`, `list_docs`, `read_doc`, `list_endpoints`, `read_endpoint`, `read_shape`; all read-only |
