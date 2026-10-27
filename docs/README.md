@@ -14,15 +14,11 @@ order to read them.
 | Change how it looks, what it says and what it allows | [Customising](customising.md) |
 | Run it from day to day: upgrades, storage, accounts, reports | [Operating](operating.md) |
 | Write an app or a service against it | [Developing](developing.md) |
+| Ask an AI agent about Anahita, from the docs | [Anahita MCP](ai-agents.md) |
 | Call the services from your own, over gRPC | [Services over gRPC](grpc.md) |
 | Know what the licences allow | [Licensing](licensing.md) |
 
 Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
-
-Asking an AI agent about Anahita? Add
-[anahita-mcp](https://github.com/anahitasocial/anahita-mcp) to it, an MCP
-server that runs on your computer and reads these docs, the web app's and
-the API reference, read-only.
 
 ## Contents
 
@@ -38,6 +34,7 @@ The pages, grouped by what they are about, each group in the order to read it.
    - [Developing](getting-started.md#developing)
    - [Tests](getting-started.md#tests)
    - [Other targets](getting-started.md#other-targets)
+   - [With an AI agent](getting-started.md#with-an-ai-agent)
 2. [Setting up](setting-up.md) — putting an instance on the web, step by step
 3. [Configuration](configuration.md) — every environment variable
    - [Shared](configuration.md#shared)
@@ -73,6 +70,15 @@ The pages, grouped by what they are about, each group in the order to read it.
    - [Trying it on your own machine](deploying.md#trying-it-on-your-own-machine)
    - [One machine without Kubernetes](deploying.md#one-machine-without-kubernetes)
 5. [Licensing](licensing.md) — what the licences allow, for running a site and for building on it
+
+### AI agents
+
+1. [Anahita MCP](ai-agents.md) — the docs and the API reference in Claude, Gemini, Cursor or VS Code, over MCP
+   - [Adding it](ai-agents.md#adding-it)
+   - [What it can do](ai-agents.md#what-it-can-do)
+   - [What it keeps](ai-agents.md#what-it-keeps)
+   - [Without MCP](ai-agents.md#without-mcp)
+   - [Your own copy](ai-agents.md#your-own-copy)
 
 ### Concepts
 

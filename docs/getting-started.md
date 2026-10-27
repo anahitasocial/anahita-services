@@ -13,6 +13,7 @@ Running the whole stack locally with Docker Compose.
 - [Developing](#developing)
 - [Tests](#tests)
 - [Other targets](#other-targets)
+- [With an AI agent](#with-an-ai-agent)
 
 ## Requirements
 
@@ -193,3 +194,16 @@ version is published by a workflow: [Images](deploying.md#images)), Swarm (`swar
 `k3d-deploy`, `k3d-cleanup`). The manifests are in `k8s/`, and
 [Deploying](deploying.md) covers them, for live sites and for trying them
 locally.
+
+## With an AI agent
+
+Anahita's MCP server puts these docs and the API reference in the AI agent
+you use, so that it answers from them, not from memory. In Claude Code,
+either:
+
+```sh
+claude mcp add --transport http anahita https://mcp.anahita.io/mcp   # hosted
+claude mcp add anahita -- npx -y anahita-mcp                          # on your computer
+```
+
+Claude Desktop, Gemini, Cursor, VS Code and the rest: [Anahita MCP](ai-agents.md).
