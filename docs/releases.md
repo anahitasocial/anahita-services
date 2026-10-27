@@ -45,11 +45,35 @@ For whoever maintains anahita-services:
    git tag v1.0.0 && git push origin v1.0.0
    ~~~
 
-2. The tag starts `.github/workflows/images.yml`, which builds every image
-   for amd64 and arm64 and publishes it as
-   `ghcr.io/anahitasocial/<image>:v1.0.0`, and as `latest`.
+2. The tag starts `.github/workflows/images.yml`, which publishes every
+   image for amd64 and arm64 as `ghcr.io/anahitasocial/<image>:v1.0.0`, and
+   as `latest`. It builds only the images that changed since the Birth
+   release before: [What is rebuilt](#what-is-rebuilt).
 3. On GitHub, Releases › Draft a new release, from the tag, named
    "v1.0.0 Birth": what it adds, changes and fixes, and what to do when
    upgrading.
 
 Upgrading a site to it: [Upgrading](deploying.md#upgrading).
+
+## What is rebuilt
+
+A fix to one service should publish one new image, not thirty, yet nothing
+that changed may be left out. So each image carries a hash of everything it
+is made from, as the label `org.anahita.inputs`: its Dockerfile, the image
+it starts from, and every file it copies, the compiled binaries among them
+(`scripts/image-inputs.sh`).
+
+| When an image's hash is | The release |
+| --- | --- |
+| The same as in the Birth release before | Tags that release's image with the new version too. Nothing is built, and the image is the very one that ran before |
+| Different, or there is no release before | Builds it and publishes it |
+
+The hash is taken from what is built, not from which folders a commit
+touched, so a change to `anahita-libs`, to `go.mod` or to a base image
+reaches every image it changes, however many commits lie between the two
+releases. The binaries are built with `GOFLAGS="-buildvcs=false -trimpath"`,
+so that the same code makes the same binary. The run's summary on GitHub
+lists what was built and what was kept.
+
+To build everything regardless: Actions › images › Run workflow, with the
+version and **rebuild_all** ticked.

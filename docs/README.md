@@ -72,6 +72,7 @@ The pages, grouped by what they are about, each group in the order to read it.
 5. [Releases](releases.md) — Embryo and Birth, and what a version number says
    - [Version numbers](releases.md#version-numbers)
    - [Making one](releases.md#making-one)
+   - [What is rebuilt](releases.md#what-is-rebuilt)
 6. [Licensing](licensing.md) — what the licences allow, for running a site and for building on it
 
 ### AI agents

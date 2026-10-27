@@ -1,14 +1,23 @@
-# Builds the 30 images in dockerfiles/ for amd64 and arm64 and publishes
-# them to GitHub's registry, when a version is tagged. A tagged version is
-# a Birth release; main is the Embryo, and is not published:
+# Publishes the 30 images in dockerfiles/ to GitHub's registry, for amd64
+# and arm64, when a version is tagged. A tagged version is a Birth release;
+# main is the Embryo, and is not published:
 #
 #   git tag v1.0.0 && git push origin v1.0.0
 #
 # Each image is ghcr.io/<owner>/<image>:<version>, and :latest, for both
 # architectures under one name; nginx is published as gateway, the name of
 # its Deployment. Each architecture is built on its own runner, natively,
-# and the two are joined into one image at the end. docs/deploying.md,
-# "Images".
+# and the two are joined into one image at the end. docs/releases.md.
+#
+# Only what changed is rebuilt. Each image carries a hash of everything it
+# is made from (scripts/image-inputs.sh, as the label org.anahita.inputs).
+# An image whose hash is the same as in the Birth release before this one is
+# not built again: that release's image is tagged with this version as well.
+# So a fix to one service publishes one new image, every image still has
+# every version, and nothing is missed, whatever the commits between the
+# two releases: a change to anahita-libs, go.mod or a base image changes the
+# hash of every image it reaches. "Run workflow" with rebuild_all builds
+# everything regardless.
 name: images
 
 on:
@@ -19,6 +28,10 @@ on:
       version:
         description: The tag to publish, such as v1.0.0
         required: true
+      rebuild_all:
+        description: Build every image, even those that have not changed
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -27,6 +40,11 @@ permissions:
 env:
   REGISTRY: ghcr.io/${{ github.repository_owner }}
   VERSION: ${{ inputs.version || github.ref_name }}
+  REBUILD_ALL: ${{ inputs.rebuild_all || false }}
+  # The same code makes the same binary: without these, every build stamps
+  # its commit into each binary, and every image would look changed.
+  GOFLAGS: -buildvcs=false -trimpath
+  LABEL: org.anahita.inputs
 
 jobs:
   build:
@@ -42,6 +60,8 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ env.VERSION }}
+          # Every tag, to find the release before this one.
+          fetch-depth: 0
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.work
@@ -52,22 +72,56 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # The Makefile compiles each binary for the runner's own architecture
-      # and builds the images as anahita/<image>:latest.
-      - name: Build
+      # Every binary, for this runner's architecture, as the images copy
+      # them: the Makefile's build targets, without its image builds.
+      - name: Build the binaries
         run: |
-          make build_dockerfiles build_web_shell
-          docker build -f dockerfiles/web-shell.dockerfile -t anahita/web-shell:latest .
+          targets=$(sed -n 's/^build_dockerfiles: check_docker //p' Makefile)
+          make $targets build_web_shell
 
-      - name: Push this architecture
+      - name: Build what changed, re-tag the rest
         run: |
+          set -eu
+          arch=${{ matrix.arch }}
+          previous=$(git describe --tags --abbrev=0 --match 'v*' "$VERSION^" 2>/dev/null || true)
+          echo "Previous Birth release: ${previous:-none}"
+          built="" kept=""
           for file in dockerfiles/*.dockerfile; do
             image=$(basename "$file" .dockerfile)
             name=$image
             [ "$image" = nginx ] && name=gateway
-            docker tag "anahita/$image:latest" "$REGISTRY/$name:$VERSION-${{ matrix.arch }}"
-            docker push --quiet "$REGISTRY/$name:$VERSION-${{ matrix.arch }}"
+            base=$(awk '/^FROM /{print $2; exit}' "$file")
+            BASE_DIGEST=$(docker buildx imagetools inspect "$base" --format '{{json .Manifest.Digest}}' | tr -d '"')
+            inputs=$(BASE_DIGEST=$BASE_DIGEST scripts/image-inputs.sh "$file")
+            target="$REGISTRY/$name:$VERSION-$arch"
+
+            # The previous release's hash, from its label: one image, or an
+            # index of them (with a provenance record) by platform.
+            before=""
+            if [ -n "$previous" ] && [ "$REBUILD_ALL" != true ]; then
+              before=$(docker buildx imagetools inspect "$REGISTRY/$name:$previous-$arch" \
+                --format '{{json .Image}}' 2>/dev/null | jq -r --arg key "$LABEL" '
+                  if has("config") then .config.Labels[$key]
+                  else [to_entries[] | select(.key | startswith("linux/")) | .value.config.Labels[$key]][0]
+                  end // empty' || true)
+            fi
+
+            if [ "$before" = "$inputs" ]; then
+              docker buildx imagetools create -t "$target" "$REGISTRY/$name:$previous-$arch"
+              kept="$kept $name"
+            else
+              docker build --pull -f "$file" --label "$LABEL=$inputs" -t "$target" .
+              docker push --quiet "$target"
+              built="$built $name"
+            fi
           done
+          {
+            echo "### $arch"
+            echo
+            echo "Built:${built:- nothing}"
+            echo
+            echo "Unchanged since ${previous:-the start}, re-tagged:${kept:- nothing}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   join:
     needs: build
@@ -83,6 +137,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: One image for both architectures
         run: |
+          set -eu
           for file in dockerfiles/*.dockerfile; do
             name=$(basename "$file" .dockerfile)
             [ "$name" = nginx ] && name=gateway

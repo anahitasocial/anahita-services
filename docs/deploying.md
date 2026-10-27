@@ -417,7 +417,9 @@ its overlay, so that it changes only when its operator changes it. The tags
 ending in `-amd64` and `-arm64` are the two halves the workflow joins, not
 for use.
 
-To publish a Birth release: `git tag v1.0.0 && git push origin v1.0.0`. The
+To publish a Birth release: `git tag v1.0.0 && git push origin v1.0.0`.
+Only the images that changed since the release before are built; the rest
+are that release's images, tagged again ([What is rebuilt](releases.md#what-is-rebuilt)). The
 workflow builds each architecture natively, on its own runner.
 
 ## Upgrading
