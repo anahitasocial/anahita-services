@@ -265,6 +265,7 @@ docs.
 | Keeps | a copy of each in the system's cache folder, asked for again after an hour only if it changed (ETag), and used offline |
 | Tools | `search_docs`, `list_docs`, `read_doc`, `list_endpoints`, `read_endpoint`, `read_shape`; all read-only |
 | Search | by words (BM25), in the program; nothing sent anywhere |
+| Hosted | also at `https://mcp.anahita.io/mcp` (Streamable HTTP), from 2026-10-27: Lambda behind an API Gateway HTTP API, all in ca-central-1, in the banu.io account; logs Lambda's own lines for a day and nothing of the requests (anahita-mcp `docs/hosting.md`) |
 
 - **Left out of Design part 3:** `roadmap` and `read_plan`. The plans are
   work notes, read on GitHub, and are not on the website the server reads.
