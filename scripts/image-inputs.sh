@@ -23,8 +23,9 @@ sum() {
   echo "dockerfile $(sum <"$file")"
   grep '^FROM ' "$file"
   echo "base ${BASE_DIGEST:-}"
-  # Every source of every COPY: all but its last word, and its options.
-  awk '/^COPY / { for (i = 2; i < NF; i++) if ($i !~ /^--/) print $i }' "$file" |
+  # Every source of every COPY: all but its last word, and its options. A
+  # COPY --from= copies from another stage, which these files already make.
+  awk '/^COPY / && !/--from=/ { for (i = 2; i < NF; i++) if ($i !~ /^--/) print $i }' "$file" |
     while read -r source; do
       find "$source" -type f | LC_ALL=C sort | while read -r path; do
         echo "$path $(sum <"$path")"
