@@ -23,7 +23,7 @@ and the API reference. There are two ways to use it.
 | --- | --- | --- |
 | Claude Code | `claude mcp add --transport http anahita https://mcp.anahita.io/mcp` | `claude mcp add anahita -- npx -y anahita-mcp` |
 | Claude Desktop and claude.ai | Settings › Connectors › Add custom connector, with the address | Settings › Developer › Edit Config: in `mcpServers`, `"anahita": { "command": "npx", "args": ["-y", "anahita-mcp"] }`, then restart |
-| Gemini CLI | `gemini mcp add --transport http anahita https://mcp.anahita.io/mcp` | `gemini mcp add anahita npx -y anahita-mcp` |
+| Gemini CLI | `gemini mcp add --scope user --transport http anahita https://mcp.anahita.io/mcp` | `gemini mcp add --scope user anahita npx -- -y anahita-mcp`: the `--` keeps `-y` for `npx`, as the Gemini CLI has a `-y` of its own |
 | Cursor | In `~/.cursor/mcp.json`, under `mcpServers`: `"anahita": { "url": "https://mcp.anahita.io/mcp" }` | `"anahita": { "command": "npx", "args": ["-y", "anahita-mcp"] }` |
 | VS Code | In `.vscode/mcp.json`, under `servers`: `"anahita": { "type": "http", "url": "https://mcp.anahita.io/mcp" }` | `"anahita": { "type": "stdio", "command": "npx", "args": ["-y", "anahita-mcp"] }` |
 | Any other | The address, as a remote MCP server (Streamable HTTP) | The command, as a local one (standard input and output) |
