@@ -77,7 +77,8 @@ func (s *Service) Document(dir string) ([]byte, error) {
 	return encode(doc)
 }
 
-var license = map[string]any{"name": "Apache 2.0", "identifier": "Apache-2.0"}
+// The services' licence, since the API is theirs (docs/licensing.md).
+var license = map[string]any{"name": "GNU Affero General Public License v3.0 only", "identifier": "AGPL-3.0-only"}
 
 // Every installation has an API of its own, at an address of its own.
 var servers = []any{map[string]any{

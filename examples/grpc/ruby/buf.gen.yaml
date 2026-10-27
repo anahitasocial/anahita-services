@@ -1,0 +1,7 @@
+# Generates the client into gen/: buf generate ../../../anahita-libs --path ../../../anahita-libs/proto/graphpb
+version: v2
+plugins:
+  - remote: buf.build/protocolbuffers/ruby:v36.2
+    out: gen
+  - remote: buf.build/grpc/ruby:v1.84.0
+    out: gen

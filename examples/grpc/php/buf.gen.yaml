@@ -1,0 +1,7 @@
+# Generates the client into gen/: buf generate ../../../anahita-libs --path ../../../anahita-libs/proto/graphpb
+version: v2
+plugins:
+  - remote: buf.build/protocolbuffers/php:v36.2
+    out: gen
+  - remote: buf.build/grpc/php:v1.82.0
+    out: gen

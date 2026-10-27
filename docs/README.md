@@ -13,6 +13,8 @@ order to read them.
 | Change how it looks, what it says and what it allows | [Customising](customising.md) |
 | Run it from day to day: upgrades, storage, accounts, reports | [Operating](operating.md) |
 | Write an app or a service against it | [Developing](developing.md) |
+| Call the services from your own, over gRPC | [Services over gRPC](grpc.md) |
+| Know what the licences allow | [Licensing](licensing.md) |
 
 Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
 

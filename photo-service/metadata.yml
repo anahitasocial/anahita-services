@@ -2,7 +2,7 @@ name: photo-service
 description: Photo Service for managing photos in Anahita Services.
 version: 1.0.0
 copyright: 2025 Rastin Mehr Design Studio Inc. (rmdStudio)
-license: Rastin Mehr Design Studio License
+license: AGPL-3.0-only
 website: https://www.Anahita.io
 author:
   - name: Rastin Mehr

@@ -73,15 +73,21 @@ they set their first password:
 - Abuse the system through spam, malware, financial scams, or data harvesting.
 
 It is a pledge to the people who will trust you, from Anahita's creator,
-Rastin Mehr; not a term of the licence, which is unchanged.
+Rastin Mehr; not a term of the licences.
 
 ## Security
 
 To report a vulnerability, see [SECURITY.md](SECURITY.md). Please don't open
 a public issue.
 
-## License
+## Licences
 
-Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
-Copyright 2008–2026 Rastin Mehr Design Studio Inc. (rmd studio). Anahita is a
-registered trademark of Rastin Mehr Design Studio Inc. in Canada.
+| What | Licence |
+| --- | --- |
+| The services and `anahita-libs` | [GNU AGPL-3.0](LICENSE): anyone may run, change and share them; whoever runs a changed version for others offers those people its source |
+| The gRPC and protocol buffer definitions, `anahita-libs/proto` | [Apache 2.0](anahita-libs/proto/LICENSE): talk to Anahita's services from your own, in any language, under any licence |
+
+[Licensing](docs/licensing.md) says what this means for running a site and
+for building on Anahita. Copyright 2008–2026 Rastin Mehr Design Studio Inc.
+(rmd studio); see [NOTICE](NOTICE). Anahita is a registered trademark of
+Rastin Mehr Design Studio Inc. in Canada.

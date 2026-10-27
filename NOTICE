@@ -1,9 +1,13 @@
 Anahita Services
 Copyright 2008-2026 Rastin Mehr Design Studio Inc. (rmd studio)
 
-Licensed under the Apache License, Version 2.0 (see LICENSE).
+Licensed under the GNU Affero General Public License, version 3 only
+(AGPL-3.0-only; see LICENSE), except the gRPC and protocol buffer
+definitions in anahita-libs/proto and the code generated from them, which
+are licensed under the Apache License, Version 2.0 (Apache-2.0; see
+anahita-libs/proto/LICENSE), as are the examples in examples/ (see
+examples/LICENSE). docs/licensing.md explains which applies where.
 
 Anahita is a registered trademark of Rastin Mehr Design Studio Inc. in
-Canada. The Apache License does not grant permission to use the name, the
-logo or other marks, except as needed to describe where the software comes
-from (see section 6 of the License).
+Canada. Neither licence grants permission to use the name, the logo or other
+marks, except as needed to describe where the software comes from.

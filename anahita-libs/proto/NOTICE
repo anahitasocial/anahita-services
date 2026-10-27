@@ -1,0 +1,13 @@
+Anahita protocol definitions
+Copyright 2008-2026 Rastin Mehr Design Studio Inc. (rmd studio)
+
+The gRPC and protocol buffer definitions in this directory, and the code
+generated from them, are licensed under the Apache License, Version 2.0 (see
+LICENSE), unlike the rest of this repository, which is under the AGPL-3.0:
+see ../../docs/licensing.md. They say how to talk to Anahita's services, so
+that services and clients in any language, under any licence, can.
+
+Anahita is a registered trademark of Rastin Mehr Design Studio Inc. in
+Canada. The Apache License does not grant permission to use the name, the
+logo or other marks, except as needed to describe where the software comes
+from (see section 6 of the License).

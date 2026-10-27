@@ -2,7 +2,7 @@ name: anahita libs
 description: Anahita Libraries for Microservices
 version: 1.0.0
 copyright: 2025 Rastin Mehr Design Studio Inc. (rmdStudio)
-license: Rastin Mehr Design Studio License
+license: AGPL-3.0-only
 website: https://www.Anahita.io
 author:
   - name: Rastin Mehr

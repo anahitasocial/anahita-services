@@ -22,6 +22,14 @@ The pages for writing your own app or service against an Anahita site.
    [its architecture](https://github.com/anahitasocial/anahita-web/blob/main/docs/architecture.md).
 7. **Other networks.** What an Anahita site sends to the fediverse and
    Bluesky, and takes from them: [Federation](federation.md).
+8. **Over gRPC, inside the cluster.** A service of your own, in any
+   language, calling the graph, files and mail services directly:
+   [Services over gRPC](grpc.md), with examples in Go,
+   Node.js, Python, Ruby and PHP.
+9. **The licences.** An app or a service of your own may have any licence:
+   the API is open to any client, and the protocol buffer definitions are
+   Apache 2.0; the services and `anahita-libs` are AGPL-3.0:
+   [Licensing](licensing.md).
 
 Not written yet:
 

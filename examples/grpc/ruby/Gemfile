@@ -1,0 +1,4 @@
+source 'https://rubygems.org'
+
+gem 'google-protobuf', '4.36.2'
+gem 'grpc', '1.84.0'
