@@ -1,8 +1,8 @@
 package permissions
 
 import (
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 	"hashtag/config"
 )
 

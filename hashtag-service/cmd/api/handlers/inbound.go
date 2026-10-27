@@ -76,7 +76,7 @@ func (h *inboundHandler) Browse(c echo.Context) error {
 		return c.JSON(http.StatusOK, resp)
 	}
 
-	batchPresignPaths(h.Env, nodes)
+	services.BatchPresignNodes(h.Env.Srv.FilesGRPC, nodes)
 
 	nodeResp := &responses.NodeResponse{}
 	resp.Data = nodeResp.MapNodeItems(nodes)

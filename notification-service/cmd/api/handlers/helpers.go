@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	an_entities "anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	an_mw "anahita-libs/middleware"
+	"anahita-libs/permissions"
 	"notification/data/entities"
 	"strings"
 

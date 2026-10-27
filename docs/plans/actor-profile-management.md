@@ -193,7 +193,7 @@ one of them turns out to be the answer to the other.
 Deleting a profile is **the only credential-grade action still gated on
 nothing but a session.** Password change, email change, username change and
 2FA-disable all pass through `/reauth/*`; deletion does not. `CanDelete` in
-`anahita-libs/cmd/api/permissions/actor.go:120` checks scope, then admin, then
+`anahita-libs/permissions/actor.go:120` checks scope, then admin, then
 self, then group-admin — and never asks the caller to prove anything.
 
 So a stolen laptop with an unlocked browser deletes a profile today.

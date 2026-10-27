@@ -401,7 +401,10 @@ not squeezed.
 
 ## anahita-libs
 
-The shared module every service imports:
+The shared module every service imports. Like the services it is under the
+AGPL-3.0, except `proto`, the definitions of the calls between services,
+which is under Apache 2.0 so that services of others' own can make them
+([Licensing](licensing.md)):
 
 | Package | Contents |
 | --- | --- |
@@ -420,9 +423,13 @@ The shared module every service imports:
 | `feeds` | What a custom feed is made of, and the rules a definition keeps |
 | `linkpreviews` | What a link's preview is, and the copy of one a note keeps |
 | `videos` | What a video post is: its files and where they are |
-| `data`, `requests`, `responses`, `validators` | Request/response shapes and validation |
-| `middleware`, `cors` | HTTP middleware |
-| `geocoding`, `utils`, `cmd` | Supporting helpers |
+| `data` | Connecting to MySQL (`Open`, with a service's own pool), and the entities and the clients of the gRPC services (`data/entities`, `data/services`, with `BatchPresignNodes` for a list's pictures) |
+| `requests`, `responses`, `validators` | Request/response shapes and validation |
+| `permissions` | Who may do what to which node, the rules every service applies |
+| `handlers` | The HTTP handlers several services share, such as threads and a post's audience and language |
+| `middleware`, `cors` | HTTP middleware, and `ClientIPExtractor`, which every service sets so that the visitor's address is never one a client typed |
+| `getenv` | Reading a setting from the environment, with a fallback |
+| `geocoding`, `utils` | Supporting helpers |
 
 **The calls between services** are made by the clients in
 `data/services` (`GraphNodeGRPC`, `MailGRPC` and the rest). A process

@@ -3,7 +3,7 @@ package handlers
 import (
 	"log"
 
-	"anahita-libs/about"
+	"auth/about"
 	"strings"
 
 	"auth/data/entities"

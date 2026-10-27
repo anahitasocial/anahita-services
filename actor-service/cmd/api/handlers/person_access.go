@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"actor/responses"
-	an_handlers "anahita-libs/cmd/api/handlers"
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	an_handlers "anahita-libs/handlers"
+	"anahita-libs/permissions"
 	"anahita-libs/policy"
 	"anahita-libs/requests"
 	"log"

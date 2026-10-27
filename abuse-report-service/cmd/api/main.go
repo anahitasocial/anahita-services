@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	"anahita-libs/data"
 	"fmt"
 	"log"
 	"net/http"
@@ -30,14 +30,10 @@ const webPort = "80"
 
 func main() {
 	e := echo.New()
+	e.IPExtractor = an_mw.ClientIPExtractor()
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.BodyLimit(constants.RequestBodyMaxSizeLimit))
-
-	// The address a report came from is recorded with it. Taken from
-	// X-Forwarded-For, read from the right and skipping the proxies, so an
-	// entry a client typed is never used.
-	e.IPExtractor = echo.ExtractIPFromXFFHeader()
 
 	e.Validator = validators.NewRequestValidator(validator.New())
 
@@ -50,7 +46,7 @@ func main() {
 		e.Debug = true
 	}
 
-	db, err := connectToDB(config.GetDSN())
+	db, err := data.Open(config.GetDSN(), data.Pool{MaxOpen: 10, MaxIdle: 5})
 	if err != nil {
 		log.Fatalf("could not connect to the database: %v", err)
 	}
@@ -90,30 +86,6 @@ func main() {
 	if err := e.Start(fmt.Sprintf(":%v", webPort)); err != nil {
 		e.Logger.Fatal(err)
 	}
-}
-
-// connectToDB waits for MySQL, which may still be starting when this does.
-func connectToDB(dsn string) (*sql.DB, error) {
-	var lastErr error
-
-	for attempt := 1; attempt <= 15; attempt++ {
-		db, err := sql.Open("mysql", dsn)
-		if err == nil {
-			if err = db.Ping(); err == nil {
-				db.SetMaxOpenConns(10)
-				db.SetMaxIdleConns(5)
-				db.SetConnMaxLifetime(5 * time.Minute)
-				return db, nil
-			}
-			_ = db.Close()
-		}
-
-		lastErr = err
-		log.Printf("database not ready (attempt %d): %v", attempt, err)
-		time.Sleep(2 * time.Second)
-	}
-
-	return nil, lastErr
 }
 
 // forgetOldAddresses blanks the network address on reports older than

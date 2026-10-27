@@ -49,7 +49,7 @@ The feed leak is split out as Item 0. Item 1 doesn't depend on it, but Item 0 sh
 
 **Step 2: close the door on the service side**
 - `access` already rejects id lists. Add a unit test on `text-service/requests/note.go` that asserts `"1,2"` is rejected, so nobody reintroduces them.
-- While there: `owner` is accepted by the validator but `DetermineMediumNodeAccess` (`anahita-libs/cmd/api/handlers/access_helper.go:6-25`) has no case for it and quietly falls back. Either handle it or drop it from `oneof`. It's a small fix.
+- While there: `owner` is accepted by the validator but `DetermineMediumNodeAccess` (`anahita-libs/handlers/access_helper.go:6-25`) has no case for it and quietly falls back. Either handle it or drop it from `oneof`. It's a small fix.
 - Update `docs/permissions.md` with one sentence: access is always a keyword and there are no per-person access lists.
 
 **Step 3: remove the client toggle** (anahita-web)

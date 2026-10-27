@@ -9,7 +9,7 @@ import (
 	"anahita-libs/data/entities"
 	"anahita-libs/responses"
 
-	an_handlers "anahita-libs/cmd/api/handlers"
+	an_handlers "anahita-libs/handlers"
 
 	"text/constants"
 	"text/requests"

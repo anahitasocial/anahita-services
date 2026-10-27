@@ -3,9 +3,9 @@ package handlers
 import (
 	"testing"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 )
 
 func TestAReplyUnderAWebsitesPostIsTheWebsites(t *testing.T) {

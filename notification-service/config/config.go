@@ -2,6 +2,7 @@ package config
 
 import (
 	"anahita-libs/constants"
+	"anahita-libs/getenv"
 	"errors"
 	"log"
 	"os"
@@ -45,18 +46,18 @@ const DefaultKeepDays = 90
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:              getEnv("ENV", constants.ConfigEnvDev),
+		Env:              getenv.String("ENV", constants.ConfigEnvDev),
 		DSN:              os.Getenv("DSN"),
 		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
-		RedisAddr:        getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisAddr:        getenv.String("REDIS_ADDR", "localhost:6379"),
 		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
-		RedisDB:          getIntEnv("REDIS_DB", 0),
+		RedisDB:          getenv.Int("REDIS_DB", 0),
 		AmqpAddr:         os.Getenv("AMQP_ADDR"),
 		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
 		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
 		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
-		KeepDays:         getIntEnv("NOTIFICATIONS_KEEP_DAYS", DefaultKeepDays),
+		KeepDays:         getenv.Int("NOTIFICATIONS_KEEP_DAYS", DefaultKeepDays),
 	}
 	if config.KeepDays < 0 {
 		config.KeepDays = DefaultKeepDays

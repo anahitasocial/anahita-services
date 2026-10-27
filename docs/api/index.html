@@ -10483,17 +10483,6 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
-<div class="route schema" id="schema-Item" data-search="item body title">
-<h3>Item</h3>
-<p>One rule, promise or suggestion: a short title, and a line more if it needs one.</p>
-<table>
-<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
-<tbody>
-<tr><td><code>body</code></td><td>map of string</td><td></td></tr>
-<tr><td><code>title</code> <span class="required">always</span></td><td>map of string or null</td><td></td></tr>
-</tbody>
-</table>
-</div>
 <div class="route schema" id="schema-LimitedActor" data-search="limitedactor alias allow_follow_request avatar_urls body event id is_follow_requested_by_viewer is_invited name restricted type verified via_host">
 <h3>LimitedActor</h3>
 <p>What somebody is shown of a profile they may not see, when that profile lets people ask to follow it: enough to know whose it is and to ask.</p>
@@ -10952,17 +10941,6 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <tr><td><code>description</code></td><td>string</td><td>The same in words, for whoever is building a client.</td></tr>
 <tr><td><code>error</code> <span class="required">always</span></td><td>string</td><td>Why, as a code a client can tell apart: <code>language_invalid</code>, <code>quote_not_allowed</code> and so on. Each route lists its own.</td></tr>
 <tr><td><code>reason</code></td><td>string</td><td>What lies behind it, where one code has several causes: why a post may not be quoted, for one.</td></tr>
-</tbody>
-</table>
-</div>
-<div class="route schema" id="schema-Rules" data-search="rules items version">
-<h3>Rules</h3>
-<p>The site&#39;s rules, with the version agreed to. Raising the version asks everybody to agree again; a correction that leaves it as it is asks nobody.</p>
-<table>
-<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
-<tbody>
-<tr><td><code>items</code> <span class="required">always</span></td><td>list of <a href="#schema-Item">Item</a> or null</td><td></td></tr>
-<tr><td><code>version</code> <span class="required">always</span></td><td>string</td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -11613,6 +11591,17 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-auth.Item" data-search="auth.item body title">
+<h3>auth.Item</h3>
+<p>One rule, promise or suggestion: a short title, and a line more if it needs one.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>body</code></td><td>map of string</td><td></td></tr>
+<tr><td><code>title</code> <span class="required">always</span></td><td>map of string or null</td><td></td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-auth.JWKSet" data-search="auth.jwkset keys">
 <h3>auth.JWKSet</h3>
 <p>The keys a token&#39;s signature is checked with (RFC 7517).</p>
@@ -11860,6 +11849,17 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 </tbody>
 </table>
 </div>
+<div class="route schema" id="schema-auth.Rules" data-search="auth.rules items version">
+<h3>auth.Rules</h3>
+<p>The site&#39;s rules, with the version agreed to. Raising the version asks everybody to agree again; a correction that leaves it as it is asks nobody.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>items</code> <span class="required">always</span></td><td>list of <a href="#schema-auth.Item">auth.Item</a> or null</td><td></td></tr>
+<tr><td><code>version</code> <span class="required">always</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+</div>
 <div class="route schema" id="schema-auth.SessionStarted" data-search="auth.sessionstarted status">
 <h3>auth.SessionStarted</h3>
 <p>SessionStarted says the app&#39;s session holds its tokens now.</p>
@@ -11907,9 +11907,9 @@ who may call it: somebody signed in, with a token that carries `media:write`.">
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>promises</code> <span class="required">always</span></td><td>list of <a href="#schema-Item">Item</a> or null</td><td>Shown on the About page, under &#34;Our promises to you&#34;.</td></tr>
-<tr><td><code>rule_suggestions</code> <span class="required">always</span></td><td>list of <a href="#schema-Item">Item</a> or null</td><td>Offered to a group&#39;s administrators when they write its rules.</td></tr>
-<tr><td><code>rules</code> <span class="required">always</span></td><td><a href="#schema-Rules">Rules</a></td><td>The site&#39;s rules, and the version agreed to: everybody ticks each before using the site, and again when the version is raised.</td></tr>
+<tr><td><code>promises</code> <span class="required">always</span></td><td>list of <a href="#schema-auth.Item">auth.Item</a> or null</td><td>Shown on the About page, under &#34;Our promises to you&#34;.</td></tr>
+<tr><td><code>rule_suggestions</code> <span class="required">always</span></td><td>list of <a href="#schema-auth.Item">auth.Item</a> or null</td><td>Offered to a group&#39;s administrators when they write its rules.</td></tr>
+<tr><td><code>rules</code> <span class="required">always</span></td><td><a href="#schema-auth.Rules">auth.Rules</a></td><td>The site&#39;s rules, and the version agreed to: everybody ticks each before using the site, and again when the version is raised.</td></tr>
 </tbody>
 </table>
 </div>

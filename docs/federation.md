@@ -825,7 +825,7 @@ counted, shown and told to its author like any other.
 
 Somebody from another server, and what they post, are looked at here and
 followed, and little else. The rules are the installation's own, in
-`anahita-libs/cmd/api/permissions`, so every service keeps them:
+`anahita-libs/permissions`, so every service keeps them:
 
 | | Allowed? |
 | --- | --- |
@@ -1517,7 +1517,7 @@ app.
 | Leaving, and profile changes | `cmd/api/handlers/leaving.go`; from the other side, `inbox.go`: `forget`, `refreshed`; the graph's `DeleteRemoteActor` |
 | Servers that are refused | `cmd/api/handlers/blocks.go`, `data/repositories/blocks.go`, table `federation_domain_blocks` |
 | What NodeInfo says is spoken | `auth-service/cmd/api/handlers/node_info.go`: `federationProtocols` (`FEDERATION_PROTOCOLS`) |
-| What may be done with what came from elsewhere | `anahita-libs/cmd/api/permissions` (`remote_test.go` holds the rule); `actor-service/cmd/api/handlers/person.go`: `personTypeOf` |
+| What may be done with what came from elsewhere | `anahita-libs/permissions` (`remote_test.go` holds the rule); `actor-service/cmd/api/handlers/person.go`: `personTypeOf` |
 | What is sent | `cmd/api/handlers/deliver.go`, `ap/activity.go`, table `activitypub_deliveries`, over `anahita-libs/federation` (`queue.go`) |
 | The installation's own actor | `cmd/api/handlers/instance.go` |
 | A person's choice | `cmd/api/handlers/settings.go`, table `activitypub_accounts` |

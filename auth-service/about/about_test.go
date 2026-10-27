@@ -16,7 +16,7 @@ func TestTheDefaultsFileIsTheBuiltInOne(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(theirs, builtIn) {
-		t.Error("auth-defaults/site.json and anahita-libs/about/default.json differ: copy one over the other")
+		t.Error("auth-defaults/site.json and auth-service/about/default.json differ: copy one over the other")
 	}
 }
 

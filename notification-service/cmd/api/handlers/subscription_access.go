@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 )
 
 // getActorAccessContext retrieves the ActorAccessContext for the given Viewer

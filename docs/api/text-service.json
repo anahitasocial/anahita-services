@@ -1149,8 +1149,8 @@
   "info": {
     "description": "Posts of words: notes (short, and every reply), articles and topics; threads of replies; quotes; and the posts a person saves.",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Notes, articles and topics",
     "version": "dev"

@@ -5,10 +5,10 @@ import (
 	"log"
 	"net/http"
 
-	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	an_handlers "anahita-libs/handlers"
 	"anahita-libs/requests"
 
 	"github.com/labstack/echo/v4"

@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 	"anahita-libs/policy"
 
 	"github.com/labstack/echo/v4"
@@ -29,7 +29,7 @@ func refusal(t *testing.T, answer func(c echo.Context) error) (int, map[string]a
 		t.Fatalf("answering: %v", err)
 	}
 	// As posting a note answers it.
-	apidoc.Conforms(t, "../../../../docs/api/text-service.json", "POST /notes/8/", rec)
+	apidoc.Conforms(t, "../../docs/api/text-service.json", "POST /notes/8/", rec)
 
 	var body map[string]any
 	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {

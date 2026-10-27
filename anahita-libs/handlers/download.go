@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 	"anahita-libs/ratelimit"
 
 	"github.com/labstack/echo/v4"

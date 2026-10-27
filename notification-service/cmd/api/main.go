@@ -30,6 +30,7 @@ func main() {
 	var err error
 
 	e := echo.New()
+	e.IPExtractor = an_mw.ClientIPExtractor()
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.BodyLimit(constants.RequestBodyMaxSizeLimit))

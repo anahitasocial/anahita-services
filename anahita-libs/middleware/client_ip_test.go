@@ -1,4 +1,4 @@
-package main
+package middleware
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 )
 
 // c.RealIP() keys the IP-side throttles and is the address recorded on every
-// sign-in. These drive the extractor main() installs, because the choice of
+// sign-in. These drive the extractor every service installs, because the choice of
 // trust set is not obvious from the one line that expresses it, and getting
 // it wrong is silent: the service works either way, it just believes the
 // wrong thing.
@@ -26,7 +26,7 @@ func requestThrough(xff, peer string) *http.Request {
 }
 
 func TestClientIPIsTheRightmostUntrustedAddress(t *testing.T) {
-	extract := clientIPExtractor()
+	extract := ClientIPExtractor()
 
 	const (
 		client  = "203.0.113.9"
@@ -69,7 +69,7 @@ func TestClientIPIsTheRightmostUntrustedAddress(t *testing.T) {
 // private, every entry is trusted, and Echo falls back to the leftmost: the
 // value recorded before, which the location lookup reports as local.
 func TestClientIPInLocalCompose(t *testing.T) {
-	extract := clientIPExtractor()
+	extract := ClientIPExtractor()
 
 	for _, c := range []struct{ what, xff, peer, want string }{
 		{"Docker Desktop's host gateway", "192.168.65.1", "172.20.1.2", "192.168.65.1"},

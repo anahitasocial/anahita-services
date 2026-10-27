@@ -550,8 +550,8 @@
   "info": {
     "description": "This installation on the fediverse, by ActivityPub: what other servers ask of it and send to it, a person's choice to be on it, finding somebody elsewhere, and the servers it refuses (federation.md). Optional: an installation may not run it.",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "The fediverse",
     "version": "dev"

@@ -1,7 +1,7 @@
 package responses
 
 import (
-	an_handlers "anahita-libs/cmd/api/handlers"
+	an_handlers "anahita-libs/handlers"
 	"time"
 
 	"abusereport/data/entities"

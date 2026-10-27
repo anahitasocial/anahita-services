@@ -1,9 +1,9 @@
 package permissions
 
 import (
-	"anahita-libs/cmd/api/permissions"
 	libs_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 	"errors"
 	"fmt"
 )

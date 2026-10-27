@@ -256,7 +256,7 @@ Each rule lives in one place, with tests that run without a database.
 | Rule | Where | Tests |
 | --- | --- | --- |
 | Reading the two settings, and treating a bad value as the strictest | `anahita-libs/policy` | `policy_test.go` |
-| Which audiences a post may have | `permissions.MediumAudiences` in `anahita-libs/cmd/api/permissions/audience.go` | `audience_test.go` |
+| Which audiences a post may have | `permissions.MediumAudiences` in `anahita-libs/permissions/audience.go` | `audience_test.go` |
 | Who can see a post, a profile or a group | `SetMediumAccessQuery` and `SetActorAccessQuery` in `graph-grpc-service/data/repositories/` (`access_medium.go`, `access_actor.go`, `access.go`) | `access_test.go` |
 | Refusing a visitor on a members-only site | `SetViewer` in `anahita-libs/middleware/oauth.go` | `members_only_test.go`, `signed_in_test.go` |
 | Cutting what a visitor is sent on a preview site | `anahita-libs/middleware/preview.go` | `preview_test.go` |

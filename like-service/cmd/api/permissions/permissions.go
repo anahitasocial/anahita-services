@@ -1,7 +1,7 @@
 package permissions
 
 import (
-	"anahita-libs/cmd/api/permissions"
+	"anahita-libs/permissions"
 	"like/config"
 	"like/data/services"
 )

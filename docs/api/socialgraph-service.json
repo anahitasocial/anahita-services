@@ -592,8 +592,8 @@
   "info": {
     "description": "Who follows whom, asking to follow a profile that is not open to all, invitations to follow a group or an event, and blocks (permissions.md).",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Following and blocking",
     "version": "dev"

@@ -3,6 +3,7 @@ package config
 import (
 	"anahita-libs/constants"
 	"anahita-libs/crypt"
+	"anahita-libs/getenv"
 	"crypto/hmac"
 	"crypto/sha256"
 	"errors"
@@ -245,13 +246,13 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:              getEnv("ENV", constants.ConfigEnvDev),
+		Env:              getenv.String("ENV", constants.ConfigEnvDev),
 		DSN:              os.Getenv("DSN"),
-		MaxDBConnections: getIntEnv("MAX_DB_CONNECTIONS", constants.ConfigDefaultDBConnections),
+		MaxDBConnections: getenv.Int("MAX_DB_CONNECTIONS", constants.ConfigDefaultDBConnections),
 		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
-		RedisAddr:        getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisAddr:        getenv.String("REDIS_ADDR", "localhost:6379"),
 		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
-		RedisDB:          getIntEnv("REDIS_DB", 0),
+		RedisDB:          getenv.Int("REDIS_DB", 0),
 		DomainName:       os.Getenv("DOMAIN_NAME"),
 		SystemEmail:      os.Getenv("SYSTEM_EMAIL"),
 		SiteName:         os.Getenv("SITE_NAME"),
@@ -262,7 +263,7 @@ func NewConfig() *Config {
 
 		TotpIssuer:       os.Getenv("TOTP_ISSUER"),
 		SupportEmail:     os.Getenv("SUPPORT_EMAIL"),
-		CryptBackend:     getEnv("CRYPT_BACKEND", constants.CryptBackendLocal),
+		CryptBackend:     getenv.String("CRYPT_BACKEND", constants.CryptBackendLocal),
 		CryptLocalKey:    os.Getenv("CRYPT_LOCAL_KEY"),
 		AwsKmsKeyId:      os.Getenv("AWS_KMS_KEY_ID"),
 		MailServiceAddr:  os.Getenv("MAIL_SERVICE_ADDR"),
@@ -275,10 +276,10 @@ func NewConfig() *Config {
 		// OAuth
 		OAuthIssuer:         os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:        os.Getenv("OAUTH_JWKS_URL"),
-		OAuthSeedClientPath: getEnv("OAUTH_SEED_CLIENT_PATH", defaultOAuthSeedClientPath),
+		OAuthSeedClientPath: getenv.String("OAUTH_SEED_CLIENT_PATH", defaultOAuthSeedClientPath),
 		OAuthPrivateKeyPath: os.Getenv("OAUTH_PRIVATE_KEY_PATH"),
 		OAuthKeyLifetime:    parseKeyLifetime(),
-		OAuthSignerBackend:  getEnv("OAUTH_SIGNER_BACKEND", constants.OAuthSignerBackendLocal),
+		OAuthSignerBackend:  getenv.String("OAUTH_SIGNER_BACKEND", constants.OAuthSignerBackendLocal),
 		OAuthKMSKeyAlias:    os.Getenv("OAUTH_KMS_KEY_ALIAS"),
 	}
 

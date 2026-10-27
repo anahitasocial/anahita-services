@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"anahita-libs/cmd/api/handlers"
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
+	"anahita-libs/handlers"
+	"anahita-libs/permissions"
 	"anahita-libs/videos"
 	"video/constants"
 	"video/data/repositories"

@@ -1236,8 +1236,8 @@
   "info": {
     "description": "What the viewer is told of: who followed them, liked, replied to or reposted what they wrote, and the rest; and what they asked to be told about.",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Notifications",
     "version": "dev"

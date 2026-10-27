@@ -3,8 +3,8 @@
 package main
 
 import (
+	"anahita-libs/data"
 	"context"
-	"database/sql"
 	"log"
 	"os"
 	"os/signal"
@@ -25,7 +25,7 @@ func main() {
 		log.Fatalf("config validation failed: %v", err)
 	}
 
-	db, err := connectToDB(config.GetDSN())
+	db, err := data.Open(config.GetDSN(), data.Pool{MaxOpen: 4})
 	if err != nil {
 		log.Fatalf("could not connect to the database: %v", err)
 	}
@@ -53,27 +53,4 @@ func main() {
 
 	log.Printf("export worker: archives are kept %d days", config.KeepDays)
 	w.Run(ctx)
-}
-
-// connectToDB waits for MySQL, which may still be starting when this does.
-func connectToDB(dsn string) (*sql.DB, error) {
-	var lastErr error
-
-	for attempt := 1; attempt <= 15; attempt++ {
-		db, err := sql.Open("mysql", dsn)
-		if err == nil {
-			if err = db.Ping(); err == nil {
-				db.SetMaxOpenConns(4)
-				db.SetConnMaxLifetime(5 * time.Minute)
-				return db, nil
-			}
-			_ = db.Close()
-		}
-
-		lastErr = err
-		log.Printf("database not ready (attempt %d): %v", attempt, err)
-		time.Sleep(2 * time.Second)
-	}
-
-	return nil, lastErr
 }

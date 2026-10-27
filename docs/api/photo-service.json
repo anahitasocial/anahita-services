@@ -1070,8 +1070,8 @@
   "info": {
     "description": "Posts of up to twenty pictures (PHOTO_MAX_FILES), each with what it shows, and replies with pictures (photos.md).",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Photo posts",
     "version": "dev"

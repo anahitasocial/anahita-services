@@ -2,6 +2,7 @@ package config
 
 import (
 	"anahita-libs/constants"
+	"anahita-libs/getenv"
 	"errors"
 	"fmt"
 	"log"
@@ -86,7 +87,7 @@ func NewConfig() *Config {
 	}
 
 	return &Config{
-		Env: getEnv("ENV", constants.ConfigEnvDev),
+		Env: getenv.String("ENV", constants.ConfigEnvDev),
 		Storage: Storage{
 			Endpoint:       endpoint,
 			PublicEndpoint: os.Getenv("STORAGE_PUBLIC_ENDPOINT"),
@@ -95,7 +96,7 @@ func NewConfig() *Config {
 			AccessKey:      firstEnv("STORAGE_ACCESS_KEY", "AWS_ACCESS_KEY_ID"),
 			SecretKey:      firstEnv("STORAGE_SECRET_KEY", "AWS_SECRET_ACCESS_KEY"),
 			PathStyle:      boolEnv("STORAGE_PATH_STYLE", false),
-			SSE:            getEnv("STORAGE_SSE", sse),
+			SSE:            getenv.String("STORAGE_SSE", sse),
 			SendACL:        boolEnv("STORAGE_SEND_ACL", onAws),
 			AllowedTypes:   listEnv("STORAGE_ALLOWED_TYPES", DefaultAllowedTypes),
 		},

@@ -7,7 +7,7 @@ A person can invite their followers to follow or join a group. The invitee gets 
 
 **What exists:**
 - Membership is a follow edge (person → group). Admins are `edge.actor.admin.v1`. Pending joins are `edge.actor.follow-request.v1`, which becomes a follow when accepted (`graph-grpc-service/cmd/server/handlers/socialgraph_follow.go:40-88`).
-- **Admins can add members with no consent:** `POST /socialgraph/:target/followers/:source` passes `CanAddOthersAsFollowers` (`anahita-libs/cmd/api/permissions/capabilities.go:158-178`, feature `socialgraph-service/follower` default `admins`, `graph-grpc-defaults/actor_features/group.json:1-6`). The added person isn't notified; the group's admins get "X is following G".
+- **Admins can add members with no consent:** `POST /socialgraph/:target/followers/:source` passes `CanAddOthersAsFollowers` (`anahita-libs/permissions/capabilities.go:158-178`, feature `socialgraph-service/follower` default `admins`, `graph-grpc-defaults/actor_features/group.json:1-6`). The added person isn't notified; the group's admins get "X is following G".
 - The auth-service `/invites` are sign-up invites by email. Nothing to reuse except the "pending cap + rate window" idea. Legacy PHP had no group invites.
 - **Notifications** (`notifications` table, `notification-service`) have no status and no actions. `meta` exists but is unused. The web renders by type through i18n (`src/containers/notifications/Browse/NotificationMessage.jsx:31-52`), and `ListItem.jsx` has only mark-as-read and delete.
 - **Existing bugs on this path, fixed as step 0:**
@@ -163,7 +163,7 @@ Follow requests worked through the API after step 0 and nothing in the web app c
 
 Invitations use the same limited view for somebody invited to a profile they cannot see. That part is still to do: an invitation would have to open it even where the profile does not let people ask.
 
-Tests: `anahita-libs/cmd/api/permissions/follow_test.go` and `limited_profile_test.go`, `anahita-libs/responses/actor_limited_test.go`; on a real database, `TestFollowersByName`, `TestAskableProfilesAreListedAndStillNotSeen` and the round trip of `allow_follow_request`.
+Tests: `anahita-libs/permissions/follow_test.go` and `limited_profile_test.go`, `anahita-libs/responses/actor_limited_test.go`; on a real database, `TestFollowersByName`, `TestAskableProfilesAreListedAndStillNotSeen` and the round trip of `allow_follow_request`.
 
 ### Invitations, 2026-10-09 and 10
 

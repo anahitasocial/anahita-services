@@ -327,7 +327,7 @@ Replies exist alongside comments. Nothing was migrated; comments work as before.
 - **Counts are counted, not adjusted.** `comment_count` on a root is recounted from the rows whenever a reply is added, removed or hidden: replies that are neither removed nor hidden, plus the comments there still are. On a reply it is the replies made directly to it.
 - Replies are left out of feeds, and out of a list of notes unless `include_replies` is asked for.
 
-**Rules** (`anahita-libs/cmd/api/permissions/reply.go`): `CanSeeThread`, `CanReply`, `CanEditReply`, `CanDeleteReply`, `CanHideReply`, `CanLikeReply`, `LooksAfterThread`. Functions over a context holding the root, not methods of `MediumPermissions`: handing a reply to that judges it by its author's profile.
+**Rules** (`anahita-libs/permissions/reply.go`): `CanSeeThread`, `CanReply`, `CanEditReply`, `CanDeleteReply`, `CanHideReply`, `CanLikeReply`, `LooksAfterThread`. Functions over a context holding the root, not methods of `MediumPermissions`: handing a reply to that judges it by its author's profile.
 
 **text-service.** `GET /notes/:id/thread`, `POST /notes/:id/replies`, `PATCH /notes/:id/hidden`. `GET`, `PATCH` and `DELETE /notes/:id` follow the thread's rules when the note is a reply. A reply's audience and comment switch cannot be changed (422 `reply_follows_its_thread`).
 

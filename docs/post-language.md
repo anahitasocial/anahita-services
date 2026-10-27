@@ -97,7 +97,7 @@ shown in is a separate thing, chosen in the web app.
 | What | Where |
 | --- | --- |
 | The tags | `anahita-libs/language/language.go` (`Normalize`), tested in `language_test.go` |
-| Reading a request's language, 400 `language_invalid` | `anahita-libs/cmd/api/handlers/language.go` (`RequestLanguage`, `RefuseLanguage`) |
+| Reading a request's language, 400 `language_invalid` | `anahita-libs/handlers/language.go` (`RequestLanguage`, `RefuseLanguage`) |
 | On a post | `text-service/cmd/api/handlers/`, `photo-service/cmd/api/handlers/photo.go`, `video-service/cmd/api/handlers/video.go` |
 | Where it is stored | table `nodes`, column `language`; `graph-grpc-service/data/repositories/nodes_add.go`, `nodes_edit.go` |
 | On a person | `actor-service/cmd/api/handlers/person.go` |

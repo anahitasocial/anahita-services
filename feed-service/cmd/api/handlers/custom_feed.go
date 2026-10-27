@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	an_handlers "anahita-libs/cmd/api/handlers"
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/feeds"
+	an_handlers "anahita-libs/handlers"
+	"anahita-libs/permissions"
 	"anahita-libs/policy"
 	"anahita-libs/responses"
 

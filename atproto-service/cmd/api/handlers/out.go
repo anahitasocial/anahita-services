@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"anahita-libs/cmd/api/permissions"
+	"anahita-libs/permissions"
 	"bytes"
 	"context"
 	"encoding/json"

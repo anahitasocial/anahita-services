@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/permissions"
 
 	"github.com/labstack/echo/v4"
 )

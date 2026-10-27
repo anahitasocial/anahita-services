@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"actor/constants"
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/permissions"
 	"anahita-libs/requests"
 	"anahita-libs/responses"
 	"anahita-libs/validators"

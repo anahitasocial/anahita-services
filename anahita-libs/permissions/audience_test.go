@@ -204,7 +204,7 @@ func TestAPostMayKeepTheAudienceItHas(t *testing.T) {
 // would accept any of the seven levels anywhere, and nothing else would say
 // so.
 func TestEveryHandlerThatSetsAnAudienceChecksIt(t *testing.T) {
-	root := filepath.Join("..", "..", "..", "..")
+	root := filepath.Join("..", "..")
 
 	read := func(path string) string {
 		t.Helper()

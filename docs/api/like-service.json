@@ -1098,8 +1098,8 @@
   "info": {
     "description": "Liking a post or a reply, and who has liked it.",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Likes",
     "version": "dev"

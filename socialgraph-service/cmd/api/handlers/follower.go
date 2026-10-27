@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	an_handlers "anahita-libs/handlers"
 	an_requests "anahita-libs/requests"
 	"anahita-libs/responses"
 	"log"

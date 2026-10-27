@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	an_handlers "anahita-libs/cmd/api/handlers"
+	an_handlers "anahita-libs/handlers"
 	"fmt"
 	"log"
 	"net/http"

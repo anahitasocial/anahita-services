@@ -2,6 +2,7 @@ package config
 
 import (
 	an_constants "anahita-libs/constants"
+	"anahita-libs/getenv"
 	"errors"
 	"log"
 	"os"
@@ -97,7 +98,7 @@ func NewConfig() *Config {
 	smtpSecure, smtpSecureValid := parseBoolEnv("SMTP_SECURE", false)
 
 	config := &Config{
-		Env:            getEnv("ENV", an_constants.ConfigEnvDev),
+		Env:            getenv.String("ENV", an_constants.ConfigEnvDev),
 		DeveloperEmail: os.Getenv("DEVELOPER_EMAIL"),
 		SiteName:       os.Getenv("SITE_NAME"),
 		SiteLogoURL:    os.Getenv("SITE_LOGO_URL"),
@@ -106,7 +107,7 @@ func NewConfig() *Config {
 			SmtpUser:     os.Getenv("SMTP_USER"),
 			SmtpPassword: os.Getenv("SMTP_PASSWORD"),
 			SmtpHost:     os.Getenv("SMTP_HOST"),
-			SmtpPort:     getIntEnv("SMTP_PORT", 587),
+			SmtpPort:     getenv.Int("SMTP_PORT", 587),
 			SmtpSecure:   smtpSecure,
 			// Carried so Validate can refuse an unparseable value rather than
 			// quietly running with the default.

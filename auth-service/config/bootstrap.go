@@ -1,6 +1,7 @@
 package config
 
 import (
+	"anahita-libs/getenv"
 	"fmt"
 	"os"
 	"slices"
@@ -303,8 +304,8 @@ func (config *Config) bootstrapFromEnv() {
 	config.EventsFrom = os.Getenv("EVENTS_FROM")
 	config.WebsitesFrom = os.Getenv("WEBSITES_FROM")
 	config.LocationsFrom = os.Getenv("LOCATIONS_FROM")
-	config.InvitePendingMax = getIntEnv("INVITE_PENDING_MAX", 0)
-	config.InvitePendingMaxAdmin = getIntEnv("INVITE_PENDING_MAX_ADMIN", 0)
+	config.InvitePendingMax = getenv.Int("INVITE_PENDING_MAX", 0)
+	config.InvitePendingMaxAdmin = getenv.Int("INVITE_PENDING_MAX_ADMIN", 0)
 	config.TosURL = os.Getenv("TOS_URL")
 	config.PrivacyURL = os.Getenv("PRIVACY_URL")
 	config.SuperAdminEmail = os.Getenv("SUPER_ADMIN_EMAIL")
@@ -402,7 +403,7 @@ const defaultAccountDormantDays = 730
 // nothing is removed because of it. Unset, unreadable or not positive falls
 // back to two years.
 func (config *Config) GetAccountDormantDays() int {
-	days := getIntEnv("ACCOUNT_DORMANT_DAYS", defaultAccountDormantDays)
+	days := getenv.Int("ACCOUNT_DORMANT_DAYS", defaultAccountDormantDays)
 	if days <= 0 {
 		return defaultAccountDormantDays
 	}

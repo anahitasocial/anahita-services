@@ -7,11 +7,11 @@ import (
 	"sort"
 	"strconv"
 
-	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	libs_services "anahita-libs/data/services"
 	"anahita-libs/event"
+	"anahita-libs/permissions"
 	libs_responses "anahita-libs/responses"
 	"anahita-libs/videos"
 

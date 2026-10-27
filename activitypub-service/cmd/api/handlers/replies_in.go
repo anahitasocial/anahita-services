@@ -9,9 +9,9 @@ import (
 	"activitypub/ap"
 	"activitypub/remote"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 )
 
 // A reply from another server.

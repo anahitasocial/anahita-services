@@ -3,9 +3,9 @@ package handlers
 import (
 	"fmt"
 
-	"anahita-libs/cmd/api/handlers"
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
+	"anahita-libs/handlers"
+	"anahita-libs/permissions"
 
 	"github.com/labstack/echo/v4"
 )

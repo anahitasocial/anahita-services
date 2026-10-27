@@ -25,14 +25,10 @@ const webPort = "80"
 
 func main() {
 	e := echo.New()
+	e.IPExtractor = an_mw.ClientIPExtractor()
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.BodyLimit(constants.RequestBodyMaxSizeLimit))
-
-	// The address a report came from is recorded with it. Taken from
-	// X-Forwarded-For, read from the right and skipping the proxies, so an
-	// entry a client typed is never used.
-	e.IPExtractor = echo.ExtractIPFromXFFHeader()
 
 	e.Validator = validators.NewRequestValidator(validator.New())
 

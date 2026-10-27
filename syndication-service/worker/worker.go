@@ -18,10 +18,10 @@ import (
 	"syndication/data/repositories"
 	"syndication/feeds"
 
-	an_handlers "anahita-libs/cmd/api/handlers"
 	an_const "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/domains"
+	an_handlers "anahita-libs/handlers"
 	"anahita-libs/linkpreviews"
 )
 

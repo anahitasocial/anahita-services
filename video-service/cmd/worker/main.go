@@ -3,8 +3,8 @@
 package main
 
 import (
+	"anahita-libs/data"
 	"context"
-	"database/sql"
 	"log"
 	"os"
 	"os/exec"
@@ -17,8 +17,9 @@ import (
 	"video/data/repositories"
 	"video/worker"
 
-	"anahita-libs/cmd/api/handlers"
 	"anahita-libs/data/entities"
+	"anahita-libs/handlers"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -35,7 +36,7 @@ func main() {
 		}
 	}
 
-	db, err := connectToDB(config.GetDSN())
+	db, err := data.Open(config.GetDSN(), data.Pool{MaxOpen: 4})
 	if err != nil {
 		log.Fatalf("could not connect to the database: %v", err)
 	}
@@ -71,29 +72,6 @@ func main() {
 
 	log.Printf("video worker: sizes %v, up to %d seconds and %d bytes", w.Heights, w.MaxSeconds, w.MaxBytes)
 	w.Run(ctx)
-}
-
-// connectToDB waits for MySQL, which may still be starting when this does.
-func connectToDB(dsn string) (*sql.DB, error) {
-	var lastErr error
-
-	for attempt := 1; attempt <= 15; attempt++ {
-		db, err := sql.Open("mysql", dsn)
-		if err == nil {
-			if err = db.Ping(); err == nil {
-				db.SetMaxOpenConns(4)
-				db.SetConnMaxLifetime(5 * time.Minute)
-				return db, nil
-			}
-			_ = db.Close()
-		}
-
-		lastErr = err
-		log.Printf("database not ready (attempt %d): %v", attempt, err)
-		time.Sleep(2 * time.Second)
-	}
-
-	return nil, lastErr
 }
 
 // replies asks the graph whether somebody may answer a post now.

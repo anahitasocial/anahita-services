@@ -1323,8 +1323,8 @@
   "info": {
     "description": "The home feed and a profile's posts, custom feeds that a person makes and names (feeds.md), and reposts.",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Feeds",
     "version": "dev"

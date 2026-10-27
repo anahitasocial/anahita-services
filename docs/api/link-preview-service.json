@@ -82,8 +82,8 @@
   "info": {
     "description": "The card of a link: what a page says of itself, read by this installation, with its picture kept here. Optional: an installation may not run it (link-previews.md).",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Link previews",
     "version": "dev"

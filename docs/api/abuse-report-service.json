@@ -1380,8 +1380,8 @@
   "info": {
     "description": "Reporting a post, a reply or a profile, and the administrators' queue of what was reported. Optional: an installation may not run it (abuse-reports.md).",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Abuse reports",
     "version": "dev"

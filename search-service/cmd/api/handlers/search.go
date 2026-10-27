@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/data/services"
+	an_handlers "anahita-libs/handlers"
 	"anahita-libs/responses"
 	"log"
 	"net/http"
@@ -74,7 +74,7 @@ func (h *searchHandler) Browse(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	batchPresignPaths(h.Env, nodes)
+	services.BatchPresignNodes(h.Env.Srv.FilesGRPC, nodes)
 
 	// The people and groups among what was found say whether the viewer
 	// follows them, and whether they follow the viewer.

@@ -3,9 +3,9 @@ package handlers
 import (
 	"encoding/json"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 )
 
 // WrittenByMetaKey is where a reply made as a website keeps who wrote it: one

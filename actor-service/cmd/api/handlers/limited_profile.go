@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 	"anahita-libs/responses"
 	"log"
 )

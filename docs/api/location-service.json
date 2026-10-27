@@ -1030,8 +1030,8 @@
   "info": {
     "description": "Locations posts can be tied to: placed on a map, or found from an address, and the posts tied to each.",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Locations",
     "version": "dev"

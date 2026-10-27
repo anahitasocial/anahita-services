@@ -1116,8 +1116,8 @@
   "info": {
     "description": "Posts of a video, a GIF or an animated PNG, sent straight to storage in parts and made ready by a worker in several sizes; and replies with one (videos.md). Optional: off until the installation turns video on.",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Video posts",
     "version": "dev"

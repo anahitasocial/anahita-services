@@ -1,11 +1,10 @@
 package main
 
 import (
-	"database/sql"
+	"anahita-libs/data"
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"export/cmd/api/handlers"
 	"export/config"
@@ -27,14 +26,10 @@ const webPort = "80"
 
 func main() {
 	e := echo.New()
+	e.IPExtractor = an_mw.ClientIPExtractor()
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.BodyLimit(constants.RequestBodyMaxSizeLimit))
-
-	// Where a request came from is kept with it. Taken from
-	// X-Forwarded-For, read from the right and skipping the proxies, so an
-	// entry a client typed is never used.
-	e.IPExtractor = echo.ExtractIPFromXFFHeader()
 
 	e.Validator = validators.NewRequestValidator(validator.New())
 
@@ -49,7 +44,7 @@ func main() {
 	jwks := an_mw.NewJWKSClient(config.GetOAuthJWKSURL())
 	authorize := an_mw.Authorize(config, jwks)
 
-	db, err := connectToDB(config.GetDSN())
+	db, err := data.Open(config.GetDSN(), data.Pool{MaxOpen: 10, MaxIdle: 5})
 	if err != nil {
 		log.Fatalf("could not connect to the database: %v", err)
 	}
@@ -83,28 +78,4 @@ func stepUpStore(cfg *config.Config) sessions.KeyValueInterface {
 		return nil
 	}
 	return store
-}
-
-// connectToDB waits for MySQL, which may still be starting when this does.
-func connectToDB(dsn string) (*sql.DB, error) {
-	var lastErr error
-
-	for attempt := 1; attempt <= 15; attempt++ {
-		db, err := sql.Open("mysql", dsn)
-		if err == nil {
-			if err = db.Ping(); err == nil {
-				db.SetMaxOpenConns(10)
-				db.SetMaxIdleConns(5)
-				db.SetConnMaxLifetime(5 * time.Minute)
-				return db, nil
-			}
-			_ = db.Close()
-		}
-
-		lastErr = err
-		log.Printf("database not ready (attempt %d): %v", attempt, err)
-		time.Sleep(2 * time.Second)
-	}
-
-	return nil, lastErr
 }

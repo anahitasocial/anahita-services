@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 )
 
 // errNoTarget is there being no such node to like, or to read the likes

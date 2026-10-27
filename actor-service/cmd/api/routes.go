@@ -7,7 +7,7 @@ import (
 	"actor/responses"
 
 	"anahita-libs/apidoc"
-	libs_handlers "anahita-libs/cmd/api/handlers"
+	libs_handlers "anahita-libs/handlers"
 	"anahita-libs/requests"
 	libs_responses "anahita-libs/responses"
 

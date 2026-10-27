@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"actor/responses"
-	an_handlers "anahita-libs/cmd/api/handlers"
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/event"
+	an_handlers "anahita-libs/handlers"
+	"anahita-libs/permissions"
 	"anahita-libs/requests"
 	an_responses "anahita-libs/responses"
 	"anahita-libs/validators"

@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"anahita-libs/cmd/api/handlers"
-	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/handlers"
+	"anahita-libs/permissions"
 	"anahita-libs/responses"
 
 	"github.com/labstack/echo/v4"

@@ -1,15 +1,15 @@
 package handlers
 
 import (
-	an_handlers "anahita-libs/cmd/api/handlers"
+	an_handlers "anahita-libs/handlers"
 	"log"
 	"net/http"
 	"time"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/permissions"
 	"anahita-libs/responses"
 
 	"github.com/labstack/echo/v4"

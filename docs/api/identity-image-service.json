@@ -73,8 +73,8 @@
   "info": {
     "description": "The picture that stands for a profile, and the wide picture across the top of a profile or a post.",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Avatars and covers",
     "version": "dev"

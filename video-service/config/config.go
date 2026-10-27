@@ -2,6 +2,7 @@ package config
 
 import (
 	"anahita-libs/constants"
+	"anahita-libs/getenv"
 	"anahita-libs/videos"
 	"errors"
 	"log"
@@ -44,11 +45,11 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:                 getEnv("ENV", constants.ConfigEnvDev),
+		Env:                 getenv.String("ENV", constants.ConfigEnvDev),
 		SecureCookieKey:     os.Getenv("SECURE_COOKIE_KEY"),
-		RedisAddr:           getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisAddr:           getenv.String("REDIS_ADDR", "localhost:6379"),
 		RedisPassword:       os.Getenv("REDIS_PASSWORD"),
-		RedisDB:             getIntEnv("REDIS_DB", 0),
+		RedisDB:             getenv.Int("REDIS_DB", 0),
 		FileServiceAddr:     os.Getenv("FILE_SERVICE_ADDR"),
 		GraphServiceAddr:    os.Getenv("GRAPH_SERVICE_ADDR"),
 		OAuthIssuer:         os.Getenv("OAUTH_ISSUER"),
@@ -58,7 +59,7 @@ func NewConfig() *Config {
 		VideoMaxSeconds:     videos.MaxSeconds(),
 		AnimationMaxBytes:   videos.AnimationMaxBytes(),
 		AnimationMaxSeconds: videos.AnimationMaxSeconds(),
-		VideoDailyUploads:   getIntEnv("VIDEO_DAILY_UPLOADS", 20),
+		VideoDailyUploads:   getenv.Int("VIDEO_DAILY_UPLOADS", 20),
 	}
 
 	// If JWKS URL is unset, derive it from the issuer — auth-service is
@@ -192,7 +193,7 @@ func (config *Config) ValidateWorker() error {
 // in, by height, up to 2160 (4K). A video is never made larger than it is.
 func Heights() []int {
 	var heights []int
-	for _, part := range strings.Split(getEnv("VIDEO_RENDITIONS", "1080,720,360"), ",") {
+	for _, part := range strings.Split(getenv.String("VIDEO_RENDITIONS", "1080,720,360"), ",") {
 		height, err := strconv.Atoi(strings.TrimSpace(part))
 		if err == nil && height >= 144 && height <= 2160 {
 			heights = append(heights, height)

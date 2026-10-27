@@ -175,8 +175,8 @@
   "info": {
     "description": "Finding and following people on Bluesky, and a person's own Bluesky account connected, which what they do here is written as. Optional: an installation may not run it (federation.md, Bluesky).",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Bluesky",
     "version": "dev"

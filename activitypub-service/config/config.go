@@ -1,9 +1,9 @@
 package config
 
 import (
+	"anahita-libs/getenv"
 	"errors"
 	"os"
-	"strconv"
 	"strings"
 
 	"anahita-libs/constants"
@@ -42,7 +42,7 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:              getEnv("ENV", constants.ConfigEnvDev),
+		Env:              getenv.String("ENV", constants.ConfigEnvDev),
 		DSN:              os.Getenv("DSN"),
 		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
 		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
@@ -51,12 +51,12 @@ func NewConfig() *Config {
 		Lab:              os.Getenv("ACTIVITYPUB_LAB") == "on",
 		LinkPreviewURL:   os.Getenv("LINK_PREVIEW_URL"),
 		TakesLocations:   strings.ToLower(strings.TrimSpace(os.Getenv("FEDERATION_LOCATIONS"))) != "off",
-		RedisAddr:        getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisAddr:        getenv.String("REDIS_ADDR", "localhost:6379"),
 		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
-		RedisDB:          getIntEnv("REDIS_DB", 0),
+		RedisDB:          getenv.Int("REDIS_DB", 0),
 		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
-		CryptBackend:     getEnv("CRYPT_BACKEND", constants.CryptBackendLocal),
+		CryptBackend:     getenv.String("CRYPT_BACKEND", constants.CryptBackendLocal),
 		CryptLocalKey:    os.Getenv("CRYPT_LOCAL_KEY"),
 		AwsKmsKeyId:      os.Getenv("AWS_KMS_KEY_ID"),
 	}
@@ -114,17 +114,3 @@ func (config *Config) GetDomainName() string       { return os.Getenv("DOMAIN_NA
 func (config *Config) GetCryptBackend() string     { return config.CryptBackend }
 func (config *Config) GetCryptLocalKey() string    { return config.CryptLocalKey }
 func (config *Config) GetAwsKmsKeyId() string      { return config.AwsKmsKeyId }
-
-func getEnv(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return fallback
-}
-
-func getIntEnv(key string, fallback int) int {
-	if value, err := strconv.Atoi(os.Getenv(key)); err == nil {
-		return value
-	}
-	return fallback
-}

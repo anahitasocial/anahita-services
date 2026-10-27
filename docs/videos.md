@@ -317,7 +317,7 @@ once; each needs processor and working space of its own.
 | Beginning and finishing an upload, and how it is getting on | `video-service/cmd/api/handlers/video_uploads.go` |
 | Video posts: read, edit, delete, audience, replies, pin | `video-service/cmd/api/handlers/` (`video.go`, `video_access.go`, `video_reply.go`, `video_pin.go`) |
 | Sending viewers to a video's files | `video-service/cmd/api/handlers/video_files.go` |
-| Downloading | `video-service/cmd/api/handlers/video_download.go`, over `anahita-libs/cmd/api/permissions/download.go` (`CanDownload`) |
+| Downloading | `video-service/cmd/api/handlers/video_download.go`, over `anahita-libs/permissions/download.go` (`CanDownload`) |
 | The worker | `video-service/worker/worker.go`, `video-service/cmd/worker/main.go`, tested in `worker_test.go` |
 | What a file is, how long it runs, and the sizes made | `video-service/encode/encode.go` (`Container`, `ParseProbe`, `Plan`, `PlanAnimation`), tested in `encode_test.go` and `encode_ffmpeg_test.go` |
 | The uploads | `video-service/data/repositories/uploads.go`, table `video_uploads`, tested in `uploads_integration_test.go` |

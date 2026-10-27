@@ -8,9 +8,9 @@ import (
 	"recommendation/constants"
 	"recommendation/scoring"
 
-	an_handlers "anahita-libs/cmd/api/handlers"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	an_handlers "anahita-libs/handlers"
 	"anahita-libs/responses"
 
 	"github.com/labstack/echo/v4"

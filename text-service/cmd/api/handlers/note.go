@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	an_handlers "anahita-libs/cmd/api/handlers"
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	an_handlers "anahita-libs/handlers"
 	"anahita-libs/linkpreviews"
+	"anahita-libs/permissions"
 	"anahita-libs/responses"
 	"log"
 	"net/http"

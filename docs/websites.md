@@ -243,7 +243,7 @@ The full reference is [`docs/api/`](api/index.html#syndication-service).
 | The worker | `syndication-service/worker`, `syndication-service/cmd/worker` |
 | WebSub | `syndication-service/websub` |
 | The website as a profile | `actor-service/cmd/api/handlers/website.go` |
-| Replies as the website | `anahita-libs/cmd/api/permissions/reply.go` (`RepliesAs`), `anahita-libs/cmd/api/handlers/reply_owner.go` |
+| Replies as the website | `anahita-libs/permissions/reply.go` (`RepliesAs`), `anahita-libs/handlers/reply_owner.go` |
 | On the fediverse | `activitypub-service` (`isWebsite`) |
-| A website's notes follow its site | `anahita-libs/cmd/api/permissions/medium.go` (`IsWebsiteItem`) |
+| A website's notes follow its site | `anahita-libs/permissions/medium.go` (`IsWebsiteItem`) |
 | The web app | `src/containers/websites`, `src/api/websiteConnect.js` (anahita-web) |

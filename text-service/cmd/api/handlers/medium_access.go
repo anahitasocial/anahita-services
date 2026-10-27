@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	an_handlers "anahita-libs/cmd/api/handlers"
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/entities"
+	an_handlers "anahita-libs/handlers"
+	"anahita-libs/permissions"
 	"anahita-libs/requests"
 	"anahita-libs/responses"
 	"log"

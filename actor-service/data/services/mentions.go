@@ -2,10 +2,10 @@ package services
 
 import (
 	"actor/constants"
-	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	libs_services "anahita-libs/data/services"
+	"anahita-libs/permissions"
 )
 
 // MentionsInterface keeps a node's mention edges in step with the profiles

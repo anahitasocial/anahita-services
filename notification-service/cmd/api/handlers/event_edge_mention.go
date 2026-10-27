@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"anahita-libs/cmd/api/permissions"
 	an_entities "anahita-libs/data/entities"
 	"anahita-libs/event"
+	"anahita-libs/permissions"
 	"notification/data/entities"
 )
 

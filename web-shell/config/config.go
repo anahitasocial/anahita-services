@@ -1,6 +1,7 @@
 package config
 
 import (
+	"anahita-libs/getenv"
 	"errors"
 	"os"
 	"strings"
@@ -22,10 +23,10 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		Env:              getEnv("ENV", constants.ConfigEnvDev),
+		Env:              getenv.String("ENV", constants.ConfigEnvDev),
 		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
 		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
-		WebBuildDir:      getEnv("WEB_BUILD_DIR", "/app/web"),
+		WebBuildDir:      getenv.String("WEB_BUILD_DIR", "/app/web"),
 		PublicWebURL:     strings.TrimRight(os.Getenv("PUBLIC_WEB_URL"), "/"),
 	}
 }
@@ -56,11 +57,4 @@ func (config *Config) GetFileServiceAddr() string {
 
 func (config *Config) GetGraphServiceAddr() string {
 	return config.GraphServiceAddr
-}
-
-func getEnv(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return fallback
 }

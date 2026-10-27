@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"anahita-libs/about"
 	libs_constants "anahita-libs/constants"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"auth/about"
 	"auth/constants"
 	"auth/data/entities"
 	"auth/requests"

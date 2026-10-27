@@ -3,9 +3,9 @@ package repositories
 import (
 	"testing"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 )
 
 // The rule for who may read a post is written twice: in Go, as

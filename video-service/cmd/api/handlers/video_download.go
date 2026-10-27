@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"anahita-libs/cmd/api/handlers"
 	"anahita-libs/data/entities"
+	"anahita-libs/handlers"
 	"anahita-libs/responses"
 	"anahita-libs/videos"
 	"log"

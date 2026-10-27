@@ -1,7 +1,6 @@
 package services
 
 import (
-	"anahita-libs/about"
 	"anahita-libs/policy"
 	"errors"
 	"fmt"
@@ -14,6 +13,7 @@ import (
 	libs_entities "anahita-libs/data/entities"
 	libs_services "anahita-libs/data/services"
 
+	"auth/about"
 	"auth/constants"
 	"auth/data/entities"
 	"auth/data/repositories"

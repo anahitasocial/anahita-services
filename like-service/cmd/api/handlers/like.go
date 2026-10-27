@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	an_handlers "anahita-libs/cmd/api/handlers"
-	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
 	"anahita-libs/event"
+	an_handlers "anahita-libs/handlers"
+	"anahita-libs/permissions"
 	"anahita-libs/responses"
 	"errors"
 	"feed/constants"
@@ -87,7 +87,7 @@ func (h *likeHandler) Browse(c echo.Context) error {
 		return c.JSON(http.StatusOK, resp)
 	}
 
-	batchPresignPaths(h.Env, nodes)
+	services.BatchPresignNodes(h.Env.Srv.FilesGRPC, nodes)
 
 	// Whether the viewer follows each of them, and is followed by them.
 	an_handlers.SetViewerRelations(h.Srv.SocialgraphGRPC, nodes, viewer)
@@ -161,7 +161,7 @@ func (h *likeHandler) Add(c echo.Context) error {
 	}
 
 	node.IsLikedByViewer = true
-	batchPresignPaths(h.Env, []*entities.AnahitaNode{node})
+	services.BatchPresignNodes(h.Env.Srv.FilesGRPC, []*entities.AnahitaNode{node})
 
 	// publish event
 	go func() {
@@ -243,7 +243,7 @@ func (h *likeHandler) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	batchPresignPaths(h.Env, []*entities.AnahitaNode{node})
+	services.BatchPresignNodes(h.Env.Srv.FilesGRPC, []*entities.AnahitaNode{node})
 
 	// publish event
 	go func() {

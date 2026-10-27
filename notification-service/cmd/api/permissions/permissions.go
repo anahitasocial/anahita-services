@@ -1,7 +1,7 @@
 package permissions
 
 import (
-	an_perms "anahita-libs/cmd/api/permissions"
+	an_perms "anahita-libs/permissions"
 )
 
 func NewPermissions() *Permissions {

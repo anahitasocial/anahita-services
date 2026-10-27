@@ -13,9 +13,9 @@ import (
 
 	"activitypub/ap"
 	"activitypub/fetch"
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/federation"
+	"anahita-libs/permissions"
 	"anahita-libs/ratelimit"
 
 	"github.com/labstack/echo/v4"

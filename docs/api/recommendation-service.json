@@ -1160,8 +1160,8 @@
   "info": {
     "description": "Who the viewer might follow, with the reasons, worked out from the graph by rules and no model; and the viewer's own choices about it. Optional: an installation may not run it, or may run another service that answers these routes (recommendations.md).",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Recommendations",
     "version": "dev"

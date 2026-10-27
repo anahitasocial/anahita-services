@@ -2,6 +2,7 @@ package config
 
 import (
 	"anahita-libs/constants"
+	"anahita-libs/getenv"
 	"errors"
 	"log"
 	"os"
@@ -36,10 +37,10 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:               getEnv("ENV", constants.ConfigEnvDev),
+		Env:               getenv.String("ENV", constants.ConfigEnvDev),
 		DSN:               os.Getenv("DSN"),
 		AmqpAddr:          os.Getenv("AMQP_ADDR"),
-		ActorFeaturesPath: getEnv("ACTOR_FEATURES_PATH", DefaultActorFeaturesPath),
+		ActorFeaturesPath: getenv.String("ACTOR_FEATURES_PATH", DefaultActorFeaturesPath),
 		FileServiceAddr:   os.Getenv("FILE_SERVICE_ADDR"),
 	}
 

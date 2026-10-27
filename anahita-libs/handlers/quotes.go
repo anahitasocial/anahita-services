@@ -4,10 +4,10 @@ import (
 	"anahita-libs/responses"
 	"net/http"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/data/services"
+	"anahita-libs/permissions"
 
 	"github.com/labstack/echo/v4"
 )

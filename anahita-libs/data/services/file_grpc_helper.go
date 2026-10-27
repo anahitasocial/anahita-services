@@ -235,3 +235,51 @@ func BatchPresignPortrait(srv FilesGRPCInterface, items []entities.AnahitaNodePo
 		}
 	}
 }
+
+// BatchPresignNodes signs, for each node in a list, its avatar if it is an
+// actor, its portrait if it is a medium, its cover, and its owner's and
+// author's avatars. Nil entries are skipped. A service whose lists hold more
+// (a post's parent, notifications, photo files) signs those itself.
+func BatchPresignNodes(srv FilesGRPCInterface, items []*entities.AnahitaNode) {
+	var avatarNodes []entities.AnahitaNodeAvatarInterface
+	var coverNodes []entities.AnahitaNodeCoverInterface
+	var portraitNodes []entities.AnahitaNodePortraitInterface
+	var ownerAvatarNodes []entities.AnahitaNodeAvatarInterface
+	var authorAvatarNodes []entities.AnahitaNodeAvatarInterface
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		if item.AvatarFilename != "" && item.IsActor() {
+			avatarNodes = append(avatarNodes, item)
+		}
+		if item.Filename != "" && item.IsMedium() {
+			portraitNodes = append(portraitNodes, item)
+		}
+		if item.CoverFilename != "" {
+			coverNodes = append(coverNodes, item)
+		}
+		if item.Owner != nil {
+			ownerAvatarNodes = append(ownerAvatarNodes, item.Owner)
+		}
+		if item.Author != nil {
+			authorAvatarNodes = append(authorAvatarNodes, item.Author)
+		}
+	}
+
+	if len(avatarNodes) > 0 {
+		BatchPresignAvatar(srv, avatarNodes)
+	}
+	if len(ownerAvatarNodes) > 0 {
+		BatchPresignAvatar(srv, ownerAvatarNodes)
+	}
+	if len(authorAvatarNodes) > 0 {
+		BatchPresignAvatar(srv, authorAvatarNodes)
+	}
+	if len(coverNodes) > 0 {
+		BatchPresignCover(srv, coverNodes)
+	}
+	if len(portraitNodes) > 0 {
+		BatchPresignPortrait(srv, portraitNodes)
+	}
+}

@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"actor/constants"
-	an_handlers "anahita-libs/cmd/api/handlers"
+	an_handlers "anahita-libs/handlers"
 	"context"
 	"log"
 	"net/http"
@@ -14,9 +14,9 @@ import (
 	// was.
 	_ "time/tzdata"
 
-	"anahita-libs/cmd/api/permissions"
 	an_constants "anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 	"anahita-libs/responses"
 	"anahita-libs/validators"
 

@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"actor/responses"
-	an_handlers "anahita-libs/cmd/api/handlers"
+	an_handlers "anahita-libs/handlers"
 	"anahita-libs/requests"
 	"log"
 	"net/http"

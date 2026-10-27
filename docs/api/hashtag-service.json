@@ -1039,8 +1039,8 @@
   "info": {
     "description": "The hashtags written in posts, and the posts each one is in.",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Hashtags",
     "version": "dev"

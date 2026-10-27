@@ -72,30 +72,6 @@
         ],
         "type": "object"
       },
-      "Item": {
-        "description": "Item is one rule, promise or suggestion: a short title, and a line more if it needs one.",
-        "properties": {
-          "body": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object"
-          },
-          "title": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": [
-              "object",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "title"
-        ],
-        "type": "object"
-      },
       "Pagination": {
         "description": "Pagination is where a page is among everything there is to list.",
         "properties": {
@@ -143,28 +119,6 @@
         },
         "required": [
           "error"
-        ],
-        "type": "object"
-      },
-      "Rules": {
-        "description": "Rules is the site's rules, with the version agreed to. Raising the version asks everybody to agree again; a correction that leaves it as it is asks nobody.",
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/Item"
-            },
-            "type": [
-              "array",
-              "null"
-            ]
-          },
-          "version": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "version",
-          "items"
         ],
         "type": "object"
       },
@@ -459,6 +413,30 @@
           "data",
           "pagination",
           "pending"
+        ],
+        "type": "object"
+      },
+      "auth.Item": {
+        "description": "Item is one rule, promise or suggestion: a short title, and a line more if it needs one.",
+        "properties": {
+          "body": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "title"
         ],
         "type": "object"
       },
@@ -1165,6 +1143,28 @@
         ],
         "type": "object"
       },
+      "auth.Rules": {
+        "description": "Rules is the site's rules, with the version agreed to. Raising the version asks everybody to agree again; a correction that leaves it as it is asks nobody.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/auth.Item"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "items"
+        ],
+        "type": "object"
+      },
       "auth.SessionStarted": {
         "description": "SessionStarted says the app's session holds its tokens now.",
         "properties": {
@@ -1266,7 +1266,7 @@
           "promises": {
             "description": "Shown on the About page, under \"Our promises to you\".",
             "items": {
-              "$ref": "#/components/schemas/Item"
+              "$ref": "#/components/schemas/auth.Item"
             },
             "type": [
               "array",
@@ -1276,7 +1276,7 @@
           "rule_suggestions": {
             "description": "Offered to a group's administrators when they write its rules.",
             "items": {
-              "$ref": "#/components/schemas/Item"
+              "$ref": "#/components/schemas/auth.Item"
             },
             "type": [
               "array",
@@ -1284,7 +1284,7 @@
             ]
           },
           "rules": {
-            "$ref": "#/components/schemas/Rules",
+            "$ref": "#/components/schemas/auth.Rules",
             "description": "The site's rules, and the version agreed to: everybody ticks each before using the site, and again when the version is raised."
           }
         },
@@ -1535,8 +1535,8 @@
   "info": {
     "description": "Signing up, signing in and out, and the OAuth 2.0 and OpenID Connect server every app signs in through (oauth.md); what proves who somebody is (passwords, codes, passkeys, two-factor authentication) and changing it; invitations and the approval queue; and the installation's description of itself (NodeInfo).",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Accounts and signing in",
     "version": "dev"

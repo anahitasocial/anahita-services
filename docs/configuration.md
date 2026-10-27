@@ -133,7 +133,7 @@ its **rules**, which everybody agrees to by ticking each one; its
 **promises**, on its About page under "Our promises to you"; and the
 **rule suggestions** a new group's administrators may start from. They are
 the operator's, in a JSON file read by auth-service and served on
-`GET /site` (package `anahita-libs/about`).
+`GET /site` (package `auth-service/about`).
 
 | Variable | Value |
 | --- | --- |
@@ -175,7 +175,7 @@ the operator's, in a JSON file read by auth-service and served on
   docker-compose, change the file in place: an editor that writes a new
   file in its place is not seen through a mount of one file until the
   container is started again.
-- The built-in file is `anahita-libs/about/default.json`, and
+- The built-in file is `auth-service/about/default.json`, and
   `auth-defaults/site.json` is the same; a test keeps them so.
 
 ## Registration

@@ -198,7 +198,7 @@ raised (roadmap row 102):
   safe online spaces…", then "I won't use Anahita to:" and six things, each
   ticked. A promise to the people who will trust them, not a licence: it
   binds nobody in law, and Anahita's licences are unchanged. Its words are
-  Anahita's creator's, written in the code (`anahita-libs/about/pledge.go`),
+  Anahita's creator's, written in the code (`auth-service/about/pledge.go`),
   not in `site.json`, so no configuration changes them. The boot log prints
   it beside the link, and auth-service logs who made it, when and from where.
   The site's own rules come to them afterwards in the web app, as to anybody.

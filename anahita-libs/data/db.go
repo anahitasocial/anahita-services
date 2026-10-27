@@ -9,43 +9,53 @@ import (
 	"time"
 )
 
-var counts uint32
-
-func ConnectToDB(dsn string) *sql.DB {
-	for {
-		connection, err := openDB(dsn)
-
-		if err != nil {
-			log.Println("Database not ready...")
-			counts++
-		} else {
-			log.Println("Connected to database!")
-			return connection
-		}
-
-		if counts > 10 {
-			log.Println(err)
-			return nil
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(2 * time.Second)
-		continue
-	}
+// Pool is how many connections a service keeps to MySQL. Zero leaves the
+// database/sql default: no limit on open connections, two idle.
+type Pool struct {
+	MaxOpen int
+	MaxIdle int
 }
 
-func openDB(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("mysql", dsn)
-	if err != nil {
-		return nil, err
+// Open connects to MySQL, waiting for it while it may still be starting:
+// fifteen tries, two seconds apart. A connection is recycled after five
+// minutes, before MySQL or a proxy between drops it.
+func Open(dsn string, pool Pool) (*sql.DB, error) {
+	var lastErr error
+
+	for attempt := 1; attempt <= 15; attempt++ {
+		db, err := sql.Open("mysql", dsn)
+		if err == nil {
+			if err = db.Ping(); err == nil {
+				if pool.MaxOpen > 0 {
+					db.SetMaxOpenConns(pool.MaxOpen)
+				}
+				if pool.MaxIdle > 0 {
+					db.SetMaxIdleConns(pool.MaxIdle)
+				}
+				db.SetConnMaxLifetime(5 * time.Minute)
+				return db, nil
+			}
+			_ = db.Close()
+		}
+
+		lastErr = err
+		log.Printf("database not ready (attempt %d): %v", attempt, err)
+		time.Sleep(2 * time.Second)
 	}
 
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
+	return nil, lastErr
+}
 
-	return db, nil
+// ConnectToDB is Open with the default pool, for the services that check for
+// nil rather than an error.
+func ConnectToDB(dsn string) *sql.DB {
+	db, err := Open(dsn, Pool{})
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	log.Println("Connected to database!")
+	return db
 }
 
 // NewMock returns store instance and SqlMock handler for testing

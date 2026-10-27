@@ -42,7 +42,7 @@ func TestARefusedLanguageIsABadRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 	// As posting a note answers it.
-	apidoc.Conforms(t, "../../../../docs/api/text-service.json", "POST /notes/5/", rec)
+	apidoc.Conforms(t, "../../docs/api/text-service.json", "POST /notes/5/", rec)
 	if rec.Code != http.StatusBadRequest || !strings.Contains(rec.Body.String(), ErrLanguageInvalid) {
 		t.Errorf("answered %d %s", rec.Code, rec.Body.String())
 	}
@@ -53,7 +53,7 @@ func TestARefusedLanguageIsABadRequest(t *testing.T) {
 // before it is saved, and a bad one is refused. Read out of the handlers, as
 // the audience check is.
 func TestEveryPostHandlerReadsTheLanguage(t *testing.T) {
-	root := filepath.Join("..", "..", "..", "..")
+	root := filepath.Join("..", "..")
 
 	for path, alias := range map[string]string{
 		"text-service/cmd/api/handlers/note.go":    "an_handlers",

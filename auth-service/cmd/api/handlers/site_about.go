@@ -3,8 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"anahita-libs/about"
-
+	"auth/about"
 	"auth/constants"
 
 	"github.com/labstack/echo/v4"

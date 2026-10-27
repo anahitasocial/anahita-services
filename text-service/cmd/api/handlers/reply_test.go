@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
+	"anahita-libs/permissions"
 )
 
 func threadFixture(viewerID int64) (*permissions.ReplyAccessContext, *entities.AnahitaNode) {

@@ -253,7 +253,7 @@ made small enough before it goes. Every length people write is listed in
 | Limits | `photo-service/constants/constants.go` (`MaxFileSize`, `MaxPixels`, `OriginalMaxSide`); `anahita-libs/constants/photo.go` (`PhotoMaxFiles`), `limits.go` (`AltTextMax`, `AltTextKeptMax`) |
 | The images of each post, and uploads not in a post yet | `graph-grpc-service/data/repositories/photo_files.go`, tables `photo_files` and `photo_uploads` |
 | Removing unused uploads | `graph-grpc-service/sweeper/uploads.go` |
-| Downloading | `photo-service/cmd/api/handlers/photo_download.go` (`EditDownload`, `Download`), over `anahita-libs/cmd/api/permissions/download.go` (`CanDownload`) |
+| Downloading | `photo-service/cmd/api/handlers/photo_download.go` (`EditDownload`, `Download`), over `anahita-libs/permissions/download.go` (`CanDownload`) |
 | In preview mode | `anahita-libs/middleware/preview.go` |
 | `photoMaxFiles` in NodeInfo | `auth-service/cmd/api/handlers/node_info.go` |
 

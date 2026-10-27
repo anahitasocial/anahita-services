@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/data/services"
+	"anahita-libs/permissions"
 	"anahita-libs/videos"
 	"log"
 	"net/http"

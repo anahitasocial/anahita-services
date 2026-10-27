@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"time"
 
-	"anahita-libs/cmd/api/permissions"
 	"anahita-libs/constants"
 	"anahita-libs/data/entities"
 	"anahita-libs/federation"
+	"anahita-libs/permissions"
 	"anahita-libs/ratelimit"
 	"atproto/bsky"
 

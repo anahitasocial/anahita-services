@@ -109,8 +109,8 @@
   "info": {
     "description": "Connecting a website: its feed found, its domain proved, and a Website made of it, a profile whose posts are the feed's items (websites.md). Who may is WEBSITES_FROM, administrators unless the installation says otherwise.",
     "license": {
-      "identifier": "Apache-2.0",
-      "name": "Apache 2.0"
+      "identifier": "AGPL-3.0-only",
+      "name": "GNU Affero General Public License v3.0 only"
     },
     "title": "Websites",
     "version": "dev"

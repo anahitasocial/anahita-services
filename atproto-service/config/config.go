@@ -1,9 +1,9 @@
 package config
 
 import (
+	"anahita-libs/getenv"
 	"errors"
 	"os"
-	"strconv"
 	"strings"
 
 	"anahita-libs/constants"
@@ -59,23 +59,23 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:              getEnv("ENV", constants.ConfigEnvDev),
+		Env:              getenv.String("ENV", constants.ConfigEnvDev),
 		DSN:              os.Getenv("DSN"),
 		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
 		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
 		AmqpAddr:         os.Getenv("AMQP_ADDR"),
 		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
 		LinkPreviewURL:   os.Getenv("LINK_PREVIEW_URL"),
-		RedisAddr:        getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisAddr:        getenv.String("REDIS_ADDR", "localhost:6379"),
 		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
-		RedisDB:          getIntEnv("REDIS_DB", 0),
+		RedisDB:          getenv.Int("REDIS_DB", 0),
 		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
-		AppViewURL:       strings.TrimRight(getEnv("ATPROTO_APPVIEW_URL", defaultAppView), "/"),
-		JetstreamURLs:    list(getEnv("ATPROTO_JETSTREAM_URL", defaultJetstream)),
-		CDNURL:           strings.TrimRight(getEnv("ATPROTO_CDN_URL", defaultCDN), "/"),
-		DirectoryURL:     strings.TrimRight(getEnv("ATPROTO_PLC_URL", defaultDirectory), "/"),
-		CryptBackend:     getEnv("CRYPT_BACKEND", constants.CryptBackendLocal),
+		AppViewURL:       strings.TrimRight(getenv.String("ATPROTO_APPVIEW_URL", defaultAppView), "/"),
+		JetstreamURLs:    list(getenv.String("ATPROTO_JETSTREAM_URL", defaultJetstream)),
+		CDNURL:           strings.TrimRight(getenv.String("ATPROTO_CDN_URL", defaultCDN), "/"),
+		DirectoryURL:     strings.TrimRight(getenv.String("ATPROTO_PLC_URL", defaultDirectory), "/"),
+		CryptBackend:     getenv.String("CRYPT_BACKEND", constants.CryptBackendLocal),
 		CryptLocalKey:    os.Getenv("CRYPT_LOCAL_KEY"),
 		AwsKmsKeyId:      os.Getenv("AWS_KMS_KEY_ID"),
 	}
@@ -154,18 +154,4 @@ func list(value string) []string {
 		}
 	}
 	return items
-}
-
-func getEnv(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return fallback
-}
-
-func getIntEnv(key string, fallback int) int {
-	if value, err := strconv.Atoi(os.Getenv(key)); err == nil {
-		return value
-	}
-	return fallback
 }

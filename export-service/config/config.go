@@ -1,6 +1,7 @@
 package config
 
 import (
+	"anahita-libs/getenv"
 	"errors"
 	"os"
 	"strings"
@@ -31,20 +32,20 @@ type Config struct {
 
 func NewConfig() *Config {
 	config := &Config{
-		Env:              getEnv("ENV", constants.ConfigEnvDev),
+		Env:              getenv.String("ENV", constants.ConfigEnvDev),
 		DSN:              os.Getenv("DSN"),
 		SecureCookieKey:  os.Getenv("SECURE_COOKIE_KEY"),
-		RedisAddr:        getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisAddr:        getenv.String("REDIS_ADDR", "localhost:6379"),
 		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
-		RedisDB:          getIntEnv("REDIS_DB", 0),
+		RedisDB:          getenv.Int("REDIS_DB", 0),
 		FileServiceAddr:  os.Getenv("FILE_SERVICE_ADDR"),
 		GraphServiceAddr: os.Getenv("GRAPH_SERVICE_ADDR"),
 		OAuthIssuer:      os.Getenv("OAUTH_ISSUER"),
 		OAuthJWKSURL:     os.Getenv("OAUTH_JWKS_URL"),
 		PublicWebURL:     strings.TrimRight(os.Getenv("PUBLIC_WEB_URL"), "/"),
-		SiteName:         getEnv("SITE_NAME", "Anahita"),
-		EveryDays:        getIntEnv("EXPORT_EVERY_DAYS", 7),
-		KeepDays:         getIntEnv("EXPORT_KEEP_DAYS", 7),
+		SiteName:         getenv.String("SITE_NAME", "Anahita"),
+		EveryDays:        getenv.Int("EXPORT_EVERY_DAYS", 7),
+		KeepDays:         getenv.Int("EXPORT_KEEP_DAYS", 7),
 	}
 
 	if config.OAuthJWKSURL == "" && config.OAuthIssuer != "" {
