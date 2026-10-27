@@ -83,10 +83,14 @@ type Config struct {
 	// without it — see message_action.html.tmpl, where the site name is text
 	// beside the image rather than inside it.
 	//
-	// Empty means no image at all, which is the safe default: a broken image
-	// is worse branding than none. In production this usually points at the
-	// auth host's own asset, e.g. https://auth.example.com/static/images/logo.png
+	// Unset, the logo is Anahita's own, which auth-service serves at
+	// <OAUTH_ISSUER>/static/images/logo.png; with neither, no image at all,
+	// since a broken image is worse branding than none.
 	SiteLogoURL string
+
+	// OauthIssuer is auth-service's public address, OAUTH_ISSUER, read here
+	// only for the default logo it serves.
+	OauthIssuer string
 }
 
 func NewConfig() *Config {
@@ -97,6 +101,7 @@ func NewConfig() *Config {
 		DeveloperEmail: os.Getenv("DEVELOPER_EMAIL"),
 		SiteName:       os.Getenv("SITE_NAME"),
 		SiteLogoURL:    os.Getenv("SITE_LOGO_URL"),
+		OauthIssuer:    os.Getenv("OAUTH_ISSUER"),
 		Smtp: Smtp{
 			SmtpUser:     os.Getenv("SMTP_USER"),
 			SmtpPassword: os.Getenv("SMTP_PASSWORD"),
@@ -218,15 +223,15 @@ func (config *Config) GetSiteName() string {
 	return "Notifications"
 }
 
-// GetSiteLogoURL returns the logo URL, or empty when none is configured.
+// GetSiteLogoURL returns the logo URL: SITE_LOGO_URL, else Anahita's logo
+// from auth-service, else empty.
 //
 // Empty is a supported state, not a misconfiguration: the template renders the
 // site name as text instead. Anything that is not an absolute http(s) URL is
 // treated as absent, because a relative path in an email resolves against
 // nothing and renders as a broken image in every client.
 func (config *Config) GetSiteLogoURL() string {
-	if strings.HasPrefix(config.SiteLogoURL, "http://") ||
-		strings.HasPrefix(config.SiteLogoURL, "https://") {
+	if isAbsoluteURL(config.SiteLogoURL) {
 		return config.SiteLogoURL
 	}
 
@@ -236,7 +241,19 @@ func (config *Config) GetSiteLogoURL() string {
 			"nothing in a mail client", config.SiteLogoURL)
 	}
 
+	// auth-service's own copy of Anahita's mark, a PNG, since mail clients
+	// drop SVG.
+	if isAbsoluteURL(config.OauthIssuer) {
+		return strings.TrimRight(config.OauthIssuer, "/") + defaultLogoPath
+	}
+
 	return ""
+}
+
+const defaultLogoPath = "/static/images/logo.png"
+
+func isAbsoluteURL(value string) bool {
+	return strings.HasPrefix(value, "http://") || strings.HasPrefix(value, "https://")
 }
 
 // GetDeveloperEmail returns the address every message is redirected to in

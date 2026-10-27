@@ -296,6 +296,30 @@ func TestGetSiteLogoURLRejectsAnythingRelative(t *testing.T) {
 	}
 }
 
+// Unset, the logo is Anahita's own, served by auth-service; SITE_LOGO_URL
+// replaces it, and without an absolute issuer there is none.
+func TestGetSiteLogoURLDefaultsToAuthServicesLogo(t *testing.T) {
+	cases := []struct {
+		name, logo, issuer, want string
+	}{
+		{"unset", "", "https://auth.example.com", "https://auth.example.com/static/images/logo.png"},
+		{"issuer with a slash", "", "https://auth.example.com/", "https://auth.example.com/static/images/logo.png"},
+		{"the site's own", "https://example.com/logo.png", "https://auth.example.com", "https://example.com/logo.png"},
+		{"relative, so the default", "/logo.png", "https://auth.example.com", "https://auth.example.com/static/images/logo.png"},
+		{"no issuer", "", "", ""},
+		{"a relative issuer", "", "auth.example.com", ""},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{SiteLogoURL: tc.logo, OauthIssuer: tc.issuer}
+			if got := cfg.GetSiteLogoURL(); got != tc.want {
+				t.Errorf("GetSiteLogoURL() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
 // A blank header looks broken rather than unbranded, so an unset site name
 // falls back to something neutral.
 func TestGetSiteNameNeverReturnsEmpty(t *testing.T) {

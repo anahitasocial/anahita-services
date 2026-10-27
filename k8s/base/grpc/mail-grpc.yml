@@ -58,6 +58,13 @@ spec:
                   name: anahita-config
                   key: SITE_LOGO_URL
                   optional: true
+            # Only for the default logo, which auth-service serves.
+            - name: OAUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: OAUTH_ISSUER
+                  optional: true
             - name: SMTP_HOST
               valueFrom:
                 configMapKeyRef:

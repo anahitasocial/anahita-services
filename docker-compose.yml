@@ -1128,6 +1128,8 @@ services:
       # gets the same header without having to pass it.
       SITE_NAME: ${SITE_NAME:-}
       SITE_LOGO_URL: ${SITE_LOGO_URL:-}
+      # Only for the default logo, which auth-service serves.
+      OAUTH_ISSUER: ${OAUTH_ISSUER}
       # SMTP is the only transport. Any provider works — point these at
       # Mailgun's relay, SES, Postmark, an internal MTA, or a local sink.
       SMTP_HOST: ${SMTP_HOST}

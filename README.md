@@ -1,4 +1,4 @@
-![Anahita](docs/images/anahita-logo.svg)
+<img src="docs/images/anahita-logo.svg" alt="Anahita" width="33%">
 
 # anahita-services
 
