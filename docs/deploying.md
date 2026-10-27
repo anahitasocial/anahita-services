@@ -402,20 +402,21 @@ account, needs much less: see [Bluesky](federation.md#bluesky).
 
 Each version of anahita-services is published to GitHub's container
 registry, for amd64 and arm64 under one name, when it is tagged
-(`.github/workflows/images.yml`):
+(`.github/workflows/images.yml`). A tagged version is a **Birth** release;
+the main branch is always the **Embryo**, and is not published as images.
 
 ~~~
 ghcr.io/anahitasocial/<image>:<version>
 ~~~
 
 `<image>` is the name of its file in `dockerfiles/`, except `nginx`, which
-is published as `gateway`. Each also has `latest`, the newest version, for
+is published as `gateway`. Each also has `latest`, the newest Birth release, for
 trying Anahita out; a site names the version it runs, in the `images:` of
 its overlay, so that it changes only when its operator changes it. The tags
 ending in `-amd64` and `-arm64` are the two halves the workflow joins, not
 for use.
 
-To publish a version: `git tag v0.1.0 && git push origin v0.1.0`. The
+To publish a Birth release: `git tag v1.0.0 && git push origin v1.0.0`. The
 workflow builds each architecture natively, on its own runner.
 
 ## Upgrading

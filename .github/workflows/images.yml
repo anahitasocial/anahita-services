@@ -1,7 +1,8 @@
 # Builds the 30 images in dockerfiles/ for amd64 and arm64 and publishes
-# them to GitHub's registry, when a version is tagged:
+# them to GitHub's registry, when a version is tagged. A tagged version is
+# a Birth release; main is the Embryo, and is not published:
 #
-#   git tag v0.1.0 && git push origin v0.1.0
+#   git tag v1.0.0 && git push origin v1.0.0
 #
 # Each image is ghcr.io/<owner>/<image>:<version>, and :latest, for both
 # architectures under one name; nginx is published as gateway, the name of
@@ -16,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: The tag to publish, such as v0.1.0
+        description: The tag to publish, such as v1.0.0
         required: true
 
 permissions:
