@@ -158,6 +158,35 @@ func Combine(dir, skip string) ([]byte, error) {
 		}
 	}
 
+	// The services in the order of their groups, and the groups as
+	// x-tagGroups, which readers of OpenAPI (Redoc, Scalar) show as headings.
+	at := places()
+	for _, tag := range tags {
+		name, _ := tag.(map[string]any)["name"].(string)
+		if _, ok := at[name]; !ok {
+			return nil, fmt.Errorf("%s is in none of the reference's groups; put it in one (anahita-libs/apidoc/groups.go)", name)
+		}
+	}
+	sort.SliceStable(tags, func(i, j int) bool {
+		a, _ := tags[i].(map[string]any)["name"].(string)
+		b, _ := tags[j].(map[string]any)["name"].(string)
+		return at[a] < at[b]
+	})
+	var groups []any
+	for _, g := range Groups {
+		var names []any
+		for _, name := range g.Services {
+			for _, tag := range tags {
+				if tag.(map[string]any)["name"] == name {
+					names = append(names, name)
+				}
+			}
+		}
+		if len(names) > 0 {
+			groups = append(groups, map[string]any{"name": g.Name, "tags": names})
+		}
+	}
+
 	return encode(map[string]any{
 		"openapi": "3.1.0",
 		"info": map[string]any{
@@ -166,9 +195,10 @@ func Combine(dir, skip string) ([]byte, error) {
 			"version":     "dev",
 			"license":     license,
 		},
-		"servers": servers,
-		"tags":    tags,
-		"paths":   paths,
+		"servers":     servers,
+		"tags":        tags,
+		"x-tagGroups": groups,
+		"paths":       paths,
 		"components": map[string]any{
 			"schemas":         schemas,
 			"securitySchemes": securitySchemes,

@@ -37369,40 +37369,44 @@
   ],
   "tags": [
     {
-      "description": "Abuse reports",
-      "name": "abuse-report-service"
-    },
-    {
-      "description": "The fediverse",
-      "name": "activitypub-service"
+      "description": "Accounts and signing in",
+      "name": "auth-service"
     },
     {
       "description": "Profiles",
       "name": "actor-service"
     },
     {
-      "description": "Bluesky",
-      "name": "atproto-service"
+      "description": "Following and blocking",
+      "name": "socialgraph-service"
     },
     {
-      "description": "Accounts and signing in",
-      "name": "auth-service"
+      "description": "Avatars and covers",
+      "name": "identity-image-service"
+    },
+    {
+      "description": "Notifications",
+      "name": "notification-service"
+    },
+    {
+      "description": "Recommendations",
+      "name": "recommendation-service"
     },
     {
       "description": "Data exports",
       "name": "export-service"
     },
     {
-      "description": "Feeds",
-      "name": "feed-service"
+      "description": "Notes, articles and topics",
+      "name": "text-service"
     },
     {
-      "description": "Hashtags",
-      "name": "hashtag-service"
+      "description": "Photo posts",
+      "name": "photo-service"
     },
     {
-      "description": "Avatars and covers",
-      "name": "identity-image-service"
+      "description": "Video posts",
+      "name": "video-service"
     },
     {
       "description": "Likes",
@@ -37413,40 +37417,78 @@
       "name": "link-preview-service"
     },
     {
+      "description": "Hashtags",
+      "name": "hashtag-service"
+    },
+    {
       "description": "Locations",
       "name": "location-service"
     },
     {
-      "description": "Notifications",
-      "name": "notification-service"
-    },
-    {
-      "description": "Photo posts",
-      "name": "photo-service"
-    },
-    {
-      "description": "Recommendations",
-      "name": "recommendation-service"
+      "description": "Feeds",
+      "name": "feed-service"
     },
     {
       "description": "Search",
       "name": "search-service"
     },
     {
-      "description": "Following and blocking",
-      "name": "socialgraph-service"
+      "description": "The fediverse",
+      "name": "activitypub-service"
+    },
+    {
+      "description": "Bluesky",
+      "name": "atproto-service"
     },
     {
       "description": "Websites",
       "name": "syndication-service"
     },
     {
-      "description": "Notes, articles and topics",
-      "name": "text-service"
+      "description": "Abuse reports",
+      "name": "abuse-report-service"
+    }
+  ],
+  "x-tagGroups": [
+    {
+      "name": "People",
+      "tags": [
+        "auth-service",
+        "actor-service",
+        "socialgraph-service",
+        "identity-image-service",
+        "notification-service",
+        "recommendation-service",
+        "export-service"
+      ]
     },
     {
-      "description": "Video posts",
-      "name": "video-service"
+      "name": "Posts",
+      "tags": [
+        "text-service",
+        "photo-service",
+        "video-service",
+        "like-service",
+        "link-preview-service",
+        "hashtag-service",
+        "location-service",
+        "feed-service",
+        "search-service"
+      ]
+    },
+    {
+      "name": "Fediverse and Bluesky",
+      "tags": [
+        "activitypub-service",
+        "atproto-service",
+        "syndication-service"
+      ]
+    },
+    {
+      "name": "Run a site",
+      "tags": [
+        "abuse-report-service"
+      ]
     }
   ]
 }

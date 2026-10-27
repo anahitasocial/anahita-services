@@ -24,7 +24,8 @@ reference viewer, a client generator, a test tool, an agent asked to call the
 API. Every service with routes is described.
 
 **For reading, open [`docs/api/index.html`](api/index.html) in a browser.** It
-is the same reference as a page: a section for each service, each route with
+is the same reference as a page: a section for each service, under the same
+groups as these docs (People, Posts, Fediverse and Bluesky, Run a site), each route with
 what it takes and answers, and every shape by name, with a box that filters
 them. It is one file and fetches nothing, so it opens with the network off. A
 route is linked to by its `operationId` (`api/index.html#getHashtagsByAlias`),
@@ -253,4 +254,7 @@ and the page, and the handler tests:
 
 Each operation also says, as `x-handler`, the Go function that answers it.
 
-A service is added to `make api_docs` when its routes are described.
+A service is added to `make api_docs` when its routes are described, and to a
+group in `anahita-libs/apidoc/groups.go`: `anahita.json` carries the groups
+as `x-tagGroups`, which Redoc and Scalar show as headings, and `make test`
+fails while a service is in none.

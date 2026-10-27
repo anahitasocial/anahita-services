@@ -288,6 +288,14 @@ func TestCombiningServices(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// A service in none of the groups is an error.
+	if _, err := Combine(dir, "anahita.json"); err == nil || !strings.Contains(err.Error(), "none of the reference's groups") {
+		t.Errorf("a service in no group: %v", err)
+	}
+	saved := Groups
+	Groups = []Group{{"Things", []string{"thing-service"}}}
+	t.Cleanup(func() { Groups = saved })
+
 	combined, err := Combine(dir, "anahita.json")
 	if err != nil {
 		t.Fatal(err)
@@ -298,6 +306,9 @@ func TestCombiningServices(t *testing.T) {
 	}
 	at(t, doc, "paths", "/things/{alias}", "get")
 	at(t, doc, "components", "schemas", "Thing")
+	if g := doc["x-tagGroups"].([]any)[0].(map[string]any); g["name"] != "Things" {
+		t.Errorf("x-tagGroups: %v", doc["x-tagGroups"])
+	}
 
 	// The same route from a second service is an error.
 	if err := os.WriteFile(filepath.Join(dir, "other-service.json"), one, 0o644); err != nil {

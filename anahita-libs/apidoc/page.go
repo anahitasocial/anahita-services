@@ -40,6 +40,10 @@ type pageDoc struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	} `json:"tags"`
+	TagGroups []struct {
+		Name string   `json:"name"`
+		Tags []string `json:"tags"`
+	} `json:"x-tagGroups"`
 	Paths      map[string]map[string]pageOp `json:"paths"`
 	Components struct {
 		Schemas map[string]map[string]any `json:"schemas"`
@@ -124,19 +128,31 @@ func Page(dir, combined string) ([]byte, error) {
 	w("<p>Every route of every Anahita service. What is true of every route, how lists are paged, how a refusal says why, and how to sign in, is in <a href=\"../api.md\">The API</a>. Made from the code by <code>make api_docs</code>: the same as <a href=\"anahita.json\">anahita.json</a>.</p>\n")
 	w("<input id=\"filter\" type=\"search\" placeholder=\"Filter routes: a path, a word, a field\" aria-label=\"Filter routes\">\n</header>\n")
 
-	w("<nav aria-label=\"Services\">\n<ul>\n")
+	// The services under their groups' headings, in the contents and on the
+	// page.
+	title := map[string]string{}
 	for _, tag := range all.Tags {
-		w("<li><a href=\"#%s\">%s</a> <span class=\"count\">%d</span></li>\n", attr(tag.Name), html.EscapeString(tag.Description), len(byService[tag.Name]))
+		title[tag.Name] = tag.Description
 	}
-	w("<li><a href=\"#schemas\">Shapes</a> <span class=\"count\">%d</span></li>\n</ul>\n</nav>\n<main>\n", len(all.Components.Schemas))
-
-	for _, tag := range all.Tags {
-		w("<section id=\"%s\" class=\"service\">\n<h2>%s <code>%s</code></h2>\n<p>%s</p>\n",
-			attr(tag.Name), html.EscapeString(tag.Description), html.EscapeString(tag.Name), prose(about[tag.Name]))
-		for _, r := range byService[tag.Name] {
-			writeRoute(&b, r.method, r.path, r.op)
+	w("<nav aria-label=\"Services\">\n")
+	for _, g := range all.TagGroups {
+		w("<p class=\"group\">%s</p>\n<ul>\n", html.EscapeString(g.Name))
+		for _, name := range g.Tags {
+			w("<li><a href=\"#%s\">%s</a> <span class=\"count\">%d</span></li>\n", attr(name), html.EscapeString(title[name]), len(byService[name]))
 		}
-		w("</section>\n")
+		w("</ul>\n")
+	}
+	w("<p class=\"group\">Reference</p>\n<ul>\n<li><a href=\"#schemas\">Shapes</a> <span class=\"count\">%d</span></li>\n</ul>\n</nav>\n<main>\n", len(all.Components.Schemas))
+
+	for _, g := range all.TagGroups {
+		for _, name := range g.Tags {
+			w("<section id=\"%s\" class=\"service\">\n<p class=\"group\">%s</p>\n<h2>%s <code>%s</code></h2>\n<p>%s</p>\n",
+				attr(name), html.EscapeString(g.Name), html.EscapeString(title[name]), html.EscapeString(name), prose(about[name]))
+			for _, r := range byService[name] {
+				writeRoute(&b, r.method, r.path, r.op)
+			}
+			w("</section>\n")
+		}
 	}
 
 	w("<section id=\"schemas\" class=\"service\">\n<h2>Shapes</h2>\n<p>What the routes take and send, by name: one of anahita-libs by its own (<code>NodeItem</code>), one of a service with its module (<code>hashtag.HashtagNodeItem</code>).</p>\n")
@@ -494,7 +510,11 @@ header, nav, main { max-width: 960px; margin: 0 auto; padding: 0 16px; }
 header { padding-top: 24px; }
 h1 { margin: 0 0 8px; }
 #filter { width: 100%; padding: 8px 12px; margin: 8px 0 16px; font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
-nav ul { list-style: none; padding: 0; margin: 0 0 24px; display: flex; flex-wrap: wrap; gap: 8px; }
+nav ul { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-wrap: wrap; gap: 8px; }
+nav { padding-bottom: 16px; }
+.group { margin: 0 0 8px; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.service .group { margin: 0; }
+.service h2 { margin-top: 0; }
 nav li a { display: inline-block; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; text-decoration: none; }
 .count { color: var(--muted); font-size: 12px; }
 .service { margin-bottom: 40px; }
