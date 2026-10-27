@@ -1,13 +1,18 @@
 # Why Anahita
 
-Anahita is social software that an organisation runs for its own community:
-a school, a newsroom, a library, a research group, a non-profit. Here are a
-few concepts in Anahita's design philosophy.
+Anahita is a social software platform organizations use to foster community
+engagement in settings such as schools, newsrooms, libraries, university
+research groups, or non-governmental organizations.
+
+Anahita instances communicate with each other and the global network of
+social networks, blogs, and online forums that utilize either ActivityPub or
+the AT Protocol. This enables seamless interaction while keeping your
+original data and files on your server, governed by your privacy and
+moderation policies. Key concepts in Anahita's design philosophy include:
 
 ## Contents
 
 - [The principles](#the-principles)
-- [What Anahita does not do](#what-anahita-does-not-do)
 - [Two networks, not a third](#two-networks-not-a-third)
 - [Everything is a node](#everything-is-a-node)
 - [Further reading](#further-reading)
@@ -43,16 +48,6 @@ Each has a cost. A chronological feed asks people to choose whom to follow
 with care. Without tracking, there is less to tell an operator how the site
 is used. Without ranking by engagement, a lively post does not reach
 strangers on its own. These are costs Anahita chooses to pay.
-
-## What Anahita does not do
-
-| Not built | Why |
-| --- | --- |
-| A site-wide "For You" feed | Somebody else's ranking of what a person sees is the part of social software that is tuned for attention. Anahita's ranking, in search and suggestions, is described in full, and each person can change its weights |
-| View counts, impressions, viewer lists | Each would be a record of what people looked at, which is tracking |
-| Share counts | A share is sent to another app; counting it means watching it leave |
-| Stories | A story tells its author who looked at it, which is a list of viewers; and what vanishes in a day is lost to what a community knows ([No stories](architecture.md#no-stories)) |
-| Advertising, or a profile of interests to sell it by | There is nobody to sell to |
 
 ## Two networks, not a third
 
