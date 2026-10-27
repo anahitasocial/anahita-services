@@ -1,0 +1,100 @@
+# garage-init: readies the store, through Garage's admin API. Safe to run
+# every time: each step checks whether it has already been done.
+#
+# 1. Gives the node a role; without one Garage stores nothing.
+# 2. Imports STORAGE_ACCESS_KEY and STORAGE_SECRET_KEY.
+# 3. Makes STORAGE_BUCKET, readable and writable by that key alone.
+# 4. Lets the web app's address PUT to it (CORS), where videos are posted.
+#
+# A Job cannot be changed once created; delete it before applying again:
+#   kubectl -n anahita delete job garage-init --ignore-not-found
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: garage-init
+spec:
+  backoffLimit: 10
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: garage-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: garage-init
+          image: amazon/aws-cli:2.37.10
+          command: ["bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              # Garage answers in indented JSON: a space may follow each colon.
+              api=http://garage:3903/v2
+              auth="Authorization: Bearer $GARAGE_ADMIN_TOKEN"
+              get() { curl -sf -H "$auth" "$api/$1"; }
+              post() { curl -sf -H "$auth" -H 'Content-Type: application/json' -d "$2" "$api/$1"; }
+
+              until get GetClusterStatus >/dev/null; do sleep 2; done
+
+              node=$(get GetClusterStatus | grep -o '"id": *"[0-9a-f]\{64\}"' | head -1 | cut -d'"' -f4)
+              layout=$(get GetClusterLayout)
+              if ! grep -q "\"id\": *\"$node\"" <<<"$layout"; then
+                version=$(grep -o '"version": *[0-9]*' <<<"$layout" | head -1 | tr -dc '0-9')
+                # One node: its capacity is only a weight, not a limit.
+                post UpdateClusterLayout "{\"roles\":[{\"id\":\"$node\",\"zone\":\"one\",\"capacity\":100000000000,\"tags\":[]}]}" >/dev/null
+                post ApplyClusterLayout "{\"version\":$((version + 1))}" >/dev/null
+                echo "garage-init: gave the node its role."
+              fi
+
+              if ! get "GetKeyInfo?id=$STORAGE_ACCESS_KEY" >/dev/null; then
+                post ImportKey "{\"accessKeyId\":\"$STORAGE_ACCESS_KEY\",\"secretAccessKey\":\"$STORAGE_SECRET_KEY\",\"name\":\"anahita\"}" >/dev/null
+                echo "garage-init: imported the access key."
+              fi
+
+              if ! bucket=$(get "GetBucketInfo?globalAlias=$STORAGE_BUCKET"); then
+                bucket=$(post CreateBucket "{\"globalAlias\":\"$STORAGE_BUCKET\"}")
+                echo "garage-init: made the bucket $STORAGE_BUCKET."
+              fi
+              id=$(grep -o '"id": *"[0-9a-f]\{64\}"' <<<"$bucket" | head -1 | cut -d'"' -f4)
+              post AllowBucketKey "{\"bucketId\":\"$id\",\"accessKeyId\":\"$STORAGE_ACCESS_KEY\",\"permissions\":{\"read\":true,\"write\":true,\"owner\":true}}" >/dev/null
+
+              export AWS_ACCESS_KEY_ID=$STORAGE_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$STORAGE_SECRET_KEY AWS_DEFAULT_REGION=$STORAGE_REGION
+              aws s3api put-bucket-cors --endpoint-url http://garage:3900 --bucket "$STORAGE_BUCKET" \
+                --cors-configuration "{\"CORSRules\":[{\"AllowedOrigins\":[\"$WEB_ORIGIN\"],\"AllowedMethods\":[\"PUT\"],\"AllowedHeaders\":[\"*\"],\"MaxAgeSeconds\":3000}]}"
+
+              echo "garage-init: the store is ready (bucket $STORAGE_BUCKET)."
+          env:
+            - name: GARAGE_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: GARAGE_ADMIN_TOKEN
+            - name: STORAGE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: STORAGE_ACCESS_KEY
+            - name: STORAGE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anahita-secrets
+                  key: STORAGE_SECRET_KEY
+            - name: STORAGE_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: STORAGE_BUCKET
+            - name: STORAGE_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: STORAGE_REGION
+            - name: WEB_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: anahita-config
+                  key: WEB_ORIGIN
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi

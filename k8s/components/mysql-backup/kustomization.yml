@@ -1,0 +1,8 @@
+# A nightly dump of the in-cluster MySQL, kept in the site's own bucket under
+# backups/mysql/. Goes with the mysql component. docs/deploying-k3s.md says
+# how to restore one.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - mysql-backup.yml

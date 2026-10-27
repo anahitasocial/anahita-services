@@ -27,7 +27,7 @@ your own machine, use docker-compose instead: see
 | What | Notes |
 | --- | --- |
 | A Kubernetes cluster | Any provider's, or your own. A default StorageClass, unless the database, Redis and RabbitMQ all run elsewhere |
-| [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) | The manifests ask for the `nginx` ingress class |
+| An ingress controller | A maintained one. The base names the `nginx` class; the `traefik` component changes it to Traefik, which comes with k3s. ingress-nginx itself was retired in March 2026 |
 | [cert-manager](https://cert-manager.io/) | Gets and renews the Let's Encrypt certificate, and issues the certificates the services use between themselves |
 | Two DNS names | `api.` and `auth.` under your domain, both pointing at the ingress controller's address |
 | A bucket | On any S3-compatible object store. Private. See [Object storage](#object-storage) |
@@ -49,11 +49,19 @@ k8s/
     ingress.yml         the way in; sends everything to the gateway
     grpc-tls.yml        certificates for the calls between the services
     config.env          how the services find each other
-  components/           optional: MySQL, Redis and RabbitMQ in the cluster
+  components/           optional, each added by an overlay
+    mysql/ redis/ rabbitmq/   the backing services in the cluster
+    mysql-backup/       a nightly dump of that MySQL to the bucket
+    garage/             an S3-compatible store in the cluster
+    traefik/            the Ingresses through Traefik
   overlays/
     generic/            any cluster, any S3-compatible store
+    k3s/                one server running k3s, at any provider
     aws/                EKS with S3, RDS and ElastiCache
     local/              minikube, for trying the manifests
+    k3d/                k3d, for trying the k3s overlay's components
+  k3s/
+    traefik-config.yml  for a k3s cluster itself: keeps visitors' addresses
 ~~~
 
 It is built with [Kustomize](https://kustomize.io/), which is part of
@@ -138,6 +146,18 @@ instead: turn on PROXY protocol, or `use-forwarded-headers`, in ingress-nginx
 as your provider documents. The sign-in log showing `localhost`,
 `development` for everybody is the sign that it is not set up.
 
+On k3s, its built-in load balancer gives every connection the node's own
+address unless told otherwise. Apply `k8s/k3s/traefik-config.yml` to the
+cluster once, before the overlay:
+
+~~~sh
+kubectl apply -f k8s/k3s/traefik-config.yml
+~~~
+
+It sets Traefik's Service to `externalTrafficPolicy: Local`, which keeps the
+visitor's address. Traefik drops an `X-Forwarded-For` sent by a visitor, so
+it cannot be forged.
+
 ## Certificates between the services
 
 The calls from the HTTP services to graph-grpc, file-grpc and mail-grpc use
@@ -173,7 +193,7 @@ Uploads go to a bucket on any store that speaks the S3 API, set with the
 | Store | `STORAGE_ENDPOINT` | `STORAGE_REGION` | `STORAGE_PATH_STYLE` | Checked |
 | --- | --- | --- | --- | --- |
 | AWS S3 | leave unset | e.g. `ca-central-1` | `false` | In use by the reference installation |
-| Garage 2.1 | your Garage's S3 address | `garage`, or what `s3_region` says | `true` | Passes the storage test |
+| Garage 2.1 | your Garage's S3 address | `garage`, or what `s3_region` says | `true` | Passes the storage test; the `garage` component, on k3d |
 | MinIO | your MinIO's address | `us-east-1` unless configured | `true` | Not tested |
 | OVHcloud | `https://s3.<region>.io.cloud.ovh.net` | e.g. `gra` | `false` | Not tested |
 | Scaleway | `https://s3.<region>.scw.cloud` | e.g. `fr-par` | `false` | Not tested |
@@ -183,6 +203,14 @@ The rows marked not tested follow each provider's documentation. Before
 relying on one, run the storage test against a bucket on it, as
 [Tested stores](configuration.md#tested-stores) shows. It uploads, reads,
 signs a link and deletes, in under a minute.
+
+Where the provider sells no store, the `garage` component runs Garage in the
+cluster, as the `k3s` overlay does. Its `garage-init` Job gives the node its
+role, imports `STORAGE_ACCESS_KEY` and `STORAGE_SECRET_KEY`, makes
+`STORAGE_BUCKET`, and lets `WEB_ORIGIN` `PUT` to it. Browsers fetch uploads
+from it through signed links, so it has a public name of its own, `files.`,
+set as `STORAGE_PUBLIC_ENDPOINT`. Its data is on one volume: back up the
+server's disk.
 
 Set `STORAGE_PUBLIC_ENDPOINT` when browsers reach the store at a different
 address than the cluster does, which is the case for a store running inside
@@ -301,8 +329,19 @@ option.
 
 The `generic` overlay runs all three inside the cluster, from
 `k8s/components`, each with one replica and a volume from the default
-StorageClass. That is enough for a small site. **Nothing backs them up:**
-arrange backups of the MySQL volume yourself.
+StorageClass. That is enough for a small site. **Nothing in `generic`
+backs them up.** The `mysql-backup` component, which the `k3s` overlay has,
+dumps the database at 03:30 UTC to `backups/mysql/` in the site's bucket and
+keeps the newest 14; add it to `components:` in any overlay that runs the
+`mysql` component. To take one now:
+
+~~~sh
+kubectl -n anahita create job --from=cronjob/mysql-backup mysql-backup-now
+~~~
+
+A dump is restored into an empty database with
+`gunzip -c <dump>.sql.gz | mysql <database>`. Try one before a site opens:
+nothing else proves a backup.
 
 To use a managed service instead, remove its line from `components:` in
 `kustomization.yml` and point the settings at it:
@@ -408,10 +447,10 @@ make k8s-deploy    # applies k8s/overlays/local
 kubectl --context minikube -n anahita get pods
 ~~~
 
-`minikube start` makes its cluster the one `kubectl` talks to, and deleting it
-leaves none selected. If you also work with real clusters, switch back with
-`kubectl config use-context` afterwards. The `make k8s-*` targets always name
-the minikube cluster, so they cannot touch another one.
+`make k8s-start` starts minikube with `--keep-context`, so `kubectl` keeps
+talking to the cluster it was, and stops if that changed. The `make k8s-*`
+targets always name the minikube cluster, so they cannot touch another
+one.
 
 Uploads go to the Garage that docker-compose runs, so `make up` first if you
 want them to work. To reach the API, either forward a port:
@@ -423,6 +462,35 @@ curl http://localhost:8080/nodeinfo/2.1
 
 or stop docker-compose, which uses port 80, and run `make k8s-tunnel` to
 serve it at `http://localhost`. `make k8s-cleanup` deletes the cluster.
+
+### With k3d
+
+The `k3d` overlay runs the `k3s` overlay's components (Traefik, MySQL and
+its backup, Redis, RabbitMQ, Garage) on [k3d](https://k3d.io/), which is
+k3s in Docker, with a mailpit that catches every message. It needs k3d and
+nothing else from docker-compose, which can keep running.
+
+~~~sh
+make k3d-start     # the cluster, with traefik-config.yml and cert-manager
+make k3d-build     # builds every image and imports it into the cluster
+make k3d-deploy    # applies k8s/overlays/k3d
+kubectl --kubeconfig ~/.config/k3d/kubeconfig-anahita.yaml -n anahita get pods
+~~~
+
+The cluster's kubeconfig is its own file, `~/.config/k3d/kubeconfig-anahita.yaml`:
+`~/.kube/config` is never written, `kubectl`'s current context is left
+alone, and every target names that file, so none can reach another cluster.
+
+| Address | What is there |
+| --- | --- |
+| `http://api.localhost:8088` | The API |
+| `http://auth.localhost:8088` | The sign-in and sign-up pages |
+| `http://files.localhost:8088` | Garage, where signed links to uploads point |
+
+Sign-up codes and every other message are in mailpit:
+`kubectl --kubeconfig ~/.config/k3d/kubeconfig-anahita.yaml -n anahita port-forward deploy/mailpit 8025`,
+then `http://localhost:8025`. `make k3d-cleanup` deletes the cluster and its
+kubeconfig.
 
 ## One machine without Kubernetes
 

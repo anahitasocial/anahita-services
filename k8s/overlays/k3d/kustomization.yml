@@ -1,0 +1,64 @@
+# The k3s overlay's components on a k3d cluster on your own machine (k3s in
+# Docker), to check them before a real server:
+#
+#   make k3d-start k3d-build k3d-deploy
+#
+# Runs ENV=dev over plain HTTP at http://api.localhost:8088, with the images
+# built on this machine. Its kubeconfig is its own file; nothing here
+# changes kubectl's current context.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: anahita
+
+resources:
+  - namespace.yml
+  - mailpit.yml
+  - ../../base
+
+components:
+  - ../../components/traefik
+  - ../../components/mysql
+  - ../../components/mysql-backup
+  - ../../components/redis
+  - ../../components/rabbitmq
+  - ../../components/garage
+
+configMapGenerator:
+  - name: anahita-config
+    behavior: merge
+    envs:
+      - config.env
+  - name: anahita-oauth-clients
+    files:
+      - oauth_seed_clients.json
+
+secretGenerator:
+  - name: anahita-secrets
+    envs:
+      - secrets.env
+
+patches:
+  - path: ingress.yml
+  # Anahita's images are built on this machine and exist in no registry.
+  - target:
+      kind: Deployment
+      labelSelector: app.kubernetes.io/part-of=anahita
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Never
+  - target:
+      kind: Job
+      name: migration-job
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Never
+  - target:
+      kind: CronJob
+      name: account-sweeper
+    patch: |-
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/imagePullPolicy
+        value: Never

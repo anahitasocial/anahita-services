@@ -1,0 +1,18 @@
+# Routes the Ingresses through Traefik, the controller k3s comes with, in
+# place of the `nginx` class the base asks for.
+#
+# Traefik sets no limit on a request's size; the gateway's own (10 MB, in
+# nginx/nginx.conf) is the one that applies.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - target:
+      kind: Ingress
+      name: anahita
+    patch: |-
+      - op: replace
+        path: /spec/ingressClassName
+        value: traefik
+      - op: remove
+        path: /metadata/annotations/nginx.ingress.kubernetes.io~1proxy-body-size

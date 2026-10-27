@@ -1,0 +1,45 @@
+# Names under localhost, which reach this machine without any DNS. k3d
+# serves port 80 of the cluster at port 8088 here.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: anahita
+spec:
+  rules:
+    - host: api.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  name: http
+    - host: auth.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  name: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: garage
+spec:
+  rules:
+    - host: files.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: garage
+                port:
+                  name: s3

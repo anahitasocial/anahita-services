@@ -1,0 +1,74 @@
+{
+    "clients": [
+        {
+            "client_id": "anahita-web",
+            "name": "Anahita Web App",
+            "redirect_uris": [
+                "http://localhost:3000/oauth/callback"
+            ],
+            "grant_types": [
+                "authorization_code",
+                "refresh_token"
+            ],
+            "scopes": [
+                "openid",
+                "profile",
+                "email",
+                "offline_access",
+                "actors:read",
+                "actors:write",
+                "media:read",
+                "media:write",
+                "likes:write",
+                "socialgraph:read",
+                "socialgraph:write",
+                "notifications:read",
+                "notifications:write",
+                "taxonomy:write",
+                "account:read",
+                "account:write",
+                "oauth:read",
+                "oauth:write"
+            ],
+            "token_expiry": 900,
+            "confidential": false,
+            "skip_consent": true,
+            "first_party": true,
+            "active": true
+        },
+        {
+            "client_id": "anahita-mobile",
+            "name": "Anahita Mobile App",
+            "redirect_uris": [
+                "com.anahita.mobile:/oauth/callback"
+            ],
+            "grant_types": [
+                "authorization_code",
+                "refresh_token"
+            ],
+            "scopes": [
+                "openid",
+                "profile",
+                "email",
+                "offline_access",
+                "actors:read",
+                "actors:write",
+                "media:read",
+                "media:write",
+                "likes:write",
+                "socialgraph:read",
+                "socialgraph:write",
+                "notifications:read",
+                "notifications:write",
+                "taxonomy:write",
+                "account:read",
+                "account:write"
+            ],
+            "token_expiry": 900,
+            "confidential": false,
+            "skip_consent": true,
+            "first_party": true,
+            "active": true
+        }
+    ]
+}

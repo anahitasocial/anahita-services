@@ -1,0 +1,126 @@
+# mysql-backup: at 03:30 UTC, dumps the database, sends it to
+# s3://STORAGE_BUCKET/backups/mysql/, and keeps the newest BACKUP_KEEP.
+#
+# Where STORAGE_ACCESS_KEY is empty (AWS, with a role), the role is used.
+# To take one now:
+#   kubectl -n anahita create job --from=cronjob/mysql-backup mysql-backup-now
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mysql-backup
+spec:
+  schedule: "30 3 * * *"
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: mysql-backup
+        spec:
+          restartPolicy: Never
+          initContainers:
+            # The dump: one transaction, so it is consistent without locking
+            # the site; routines, triggers and events with it.
+            - name: dump
+              image: mysql:9.6
+              command: ["bash", "-c"]
+              args:
+                - |
+                  set -euo pipefail
+                  name="$MYSQL_DATABASE-$(date -u +%Y-%m-%dT%H%MZ).sql.gz"
+                  mysqldump -h "$MYSQL_HOST" -u root --single-transaction --set-gtid-purged=OFF \
+                    --routines --triggers --events "$MYSQL_DATABASE" | gzip > "/backup/$name"
+                  echo "$name" > /backup/name
+                  echo "mysql-backup: dumped $name, $(du -h "/backup/$name" | cut -f1)."
+              env:
+                - name: MYSQL_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: MYSQL_HOST
+                - name: MYSQL_DATABASE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: MYSQL_DATABASE
+                - name: MYSQL_PWD
+                  valueFrom:
+                    secretKeyRef:
+                      name: anahita-secrets
+                      key: MYSQL_ROOT_PASSWORD
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+          containers:
+            - name: upload
+              image: amazon/aws-cli:2.37.10
+              command: ["bash", "-c"]
+              args:
+                - |
+                  set -euo pipefail
+                  if [ -n "${STORAGE_ACCESS_KEY:-}" ]; then
+                    export AWS_ACCESS_KEY_ID=$STORAGE_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$STORAGE_SECRET_KEY
+                  fi
+                  export AWS_DEFAULT_REGION=$STORAGE_REGION
+                  [ "${STORAGE_PATH_STYLE:-}" = true ] && aws configure set default.s3.addressing_style path
+                  s3() { aws s3 ${STORAGE_ENDPOINT:+--endpoint-url "$STORAGE_ENDPOINT"} "$@"; }
+
+                  name=$(cat /backup/name)
+                  s3 cp --only-show-errors "/backup/$name" "s3://$STORAGE_BUCKET/backups/mysql/$name"
+                  echo "mysql-backup: sent $name."
+
+                  # The names sort by date, so the newest are last.
+                  s3 ls "s3://$STORAGE_BUCKET/backups/mysql/" | awk '{print $4}' | grep '\.sql\.gz$' | sort \
+                    | head -n "-$BACKUP_KEEP" | while read -r old; do
+                      s3 rm --only-show-errors "s3://$STORAGE_BUCKET/backups/mysql/$old"
+                      echo "mysql-backup: removed $old."
+                    done
+              env:
+                # How many dumps to keep.
+                - name: BACKUP_KEEP
+                  value: "14"
+                - name: STORAGE_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: STORAGE_ENDPOINT
+                      optional: true
+                - name: STORAGE_REGION
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: STORAGE_REGION
+                - name: STORAGE_BUCKET
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: STORAGE_BUCKET
+                - name: STORAGE_PATH_STYLE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: anahita-config
+                      key: STORAGE_PATH_STYLE
+                      optional: true
+                - name: STORAGE_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: anahita-secrets
+                      key: STORAGE_ACCESS_KEY
+                      optional: true
+                - name: STORAGE_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: anahita-secrets
+                      key: STORAGE_SECRET_KEY
+                      optional: true
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+          volumes:
+            - name: backup
+              emptyDir: {}

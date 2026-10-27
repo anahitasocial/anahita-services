@@ -706,7 +706,9 @@ K8S_IMAGES=${ABUSE_REPORT_SRV} ${RECOMMENDATION_SRV} ${LINK_PREVIEW_SRV} ${SYNDI
 ## k8s-start: starts a local Minikube cluster with the ingress controller and cert-manager
 k8s-start:
 	@echo "Starting kubernetes..."
-	minikube start --cpus 4 --memory 5g
+	@before=$$(kubectl config current-context 2>/dev/null || true); \
+	minikube start --cpus 4 --memory 5g --keep-context && \
+	test "$$(kubectl config current-context 2>/dev/null || true)" = "$$before" || { echo "kubectl's current context changed; set it back before going on." >&2; exit 1; }
 	minikube addons enable ingress
 	${KUBECTL} apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
 	${KUBECTL} -n cert-manager wait --for=condition=Available deployment --all --timeout=180s
@@ -752,6 +754,48 @@ k8s-stop:
 k8s-cleanup:
 	minikube stop
 	minikube delete
+
+K8S_K3D=k8s/overlays/k3d
+K3D_CLUSTER=anahita
+CERT_MANAGER_VERSION=v1.21.2
+# The k3d cluster's own kubeconfig. ~/.kube/config is never written, and
+# every target names this file, so none can reach another cluster whatever
+# kubectl's current context is.
+K3D_KUBECONFIG=${HOME}/.config/k3d/kubeconfig-${K3D_CLUSTER}.yaml
+K3D_KUBECTL=kubectl --kubeconfig ${K3D_KUBECONFIG}
+
+## k3d-start: starts a k3s cluster in Docker, with cert-manager, at http://localhost:8088; kubectl's current context is left alone
+k3d-start:
+	@echo "Starting k3d..."
+	@before=$$(kubectl config current-context 2>/dev/null || true); \
+	k3d cluster create ${K3D_CLUSTER} --agents 0 -p "8088:80@loadbalancer" \
+		--kubeconfig-update-default=false --kubeconfig-switch-context=false && \
+	mkdir -p $$(dirname ${K3D_KUBECONFIG}) && \
+	k3d kubeconfig write ${K3D_CLUSTER} --output ${K3D_KUBECONFIG} && \
+	test "$$(kubectl config current-context 2>/dev/null || true)" = "$$before" || { echo "kubectl's current context changed; set it back before going on." >&2; exit 1; }
+	${K3D_KUBECTL} apply -f k8s/k3s/traefik-config.yml
+	${K3D_KUBECTL} apply -f https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml
+	${K3D_KUBECTL} -n cert-manager wait --for=condition=Available deployment --all --timeout=180s
+	@echo "Done! Its kubeconfig: ${K3D_KUBECONFIG}"
+
+## k3d-build: builds every image and imports it into the k3d cluster
+k3d-build: build_dockerfiles
+	@echo "Importing images into k3d..."
+	k3d image import -c ${K3D_CLUSTER} $(foreach image,${K8S_IMAGES},${REPOSITORY}/${image}:latest)
+	@echo "Images imported!"
+
+## k3d-deploy: applies the k3d overlay: the k3s overlay's components with development settings
+k3d-deploy:
+	@echo "Deploying to k3d..."
+	@test -f ${K8S_K3D}/secrets.env || cp ${K8S_K3D}/secrets.env.example ${K8S_K3D}/secrets.env
+	- ${K3D_KUBECTL} -n anahita delete job migration-job garage-init --ignore-not-found
+	${K3D_KUBECTL} apply -k ${K8S_K3D}
+	@echo "Done! Watch it come up with: ${K3D_KUBECTL} -n anahita get pods"
+
+## k3d-cleanup: deletes the k3d cluster, its data and its kubeconfig
+k3d-cleanup:
+	k3d cluster delete ${K3D_CLUSTER}
+	rm -f ${K3D_KUBECONFIG}
 
 ## api_docs: writes the API reference, docs/api/, from the code: each
 ## described service's file from its routes, then anahita.json of them all.

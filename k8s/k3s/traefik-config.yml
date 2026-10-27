@@ -1,0 +1,17 @@
+# For the cluster, not the site: applied once to a k3s server, before the
+# overlay (docs/deploying-k3s.md), and by `make k3d-start`.
+#
+# Keeps the visitor's address. k3s's load balancer otherwise rewrites the
+# source of every connection to the node's own, so Traefik, and after it
+# the services' per-address limits on sign-ups and password resets, would
+# see one private address for everybody.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    service:
+      spec:
+        externalTrafficPolicy: Local

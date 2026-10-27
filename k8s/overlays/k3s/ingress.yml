@@ -1,0 +1,64 @@
+# The public hostnames, and their certificates.
+#
+# Two names reach the same gateway. auth-service expects to be reached at
+# auth.<DOMAIN_NAME>, where its sign-in pages are; api.<DOMAIN_NAME> is the
+# address the web app is built with (REACT_APP_API_BASE_URL). The web app
+# itself is hosted separately, at <DOMAIN_NAME>.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: anahita
+  annotations:
+    cert-manager.io/issuer: letsencrypt
+spec:
+  tls:
+    - hosts:
+        - api.example.org
+        - auth.example.org
+      secretName: anahita-tls
+  rules:
+    - host: api.example.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  name: http
+    - host: auth.example.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  name: http
+---
+# Garage's public name, STORAGE_PUBLIC_ENDPOINT in config.env. Remove this
+# with the garage component.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: garage
+  annotations:
+    cert-manager.io/issuer: letsencrypt
+spec:
+  tls:
+    - hosts:
+        - files.example.org
+      secretName: garage-tls
+  rules:
+    - host: files.example.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: garage
+                port:
+                  name: s3

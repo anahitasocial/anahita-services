@@ -2,7 +2,7 @@
 
 *Roadmap row 93, planned 2026-10-22. See the [roadmap](https://github.com/anahitasocial/anahita-web/blob/main/docs/plans/roadmap.md) for order and dependencies.*
 
-**Status:** planned 2026-10-22. Not started.
+**Status:** planned 2026-10-22. Phases 1 and 2 done on 2026-10-26; phase 3 next.
 
 ## Context
 
@@ -57,28 +57,34 @@ Settled with the user on 2026-10-22:
    or providers chosen for a particular deployment. A site's own overlay,
    secrets and notes live with that site.
 
-## To decide
+## Settled in phase 1
 
-Each with a recommendation:
+Each as recommended, settled with the user on 2026-10-26 unless said:
 
 1. **Ingress controller.** The manifests ask for ingress-nginx (`nginx`
    class, in `issuer.yml` and `ingress.yml`). k3s comes with Traefik.
    ingress-nginx was announced for retirement in November 2025, with
    maintenance ending in March 2026 (to confirm when this row starts).
-   Recommended: a `k3s` overlay using Traefik; for the other overlays,
-   decide between Traefik and the Gateway API in this row, since `What you
-   need` should not ask for a retired project.
+   Its maintenance did end in March 2026 (Kubernetes' statement, January
+   2026). **Settled:** a `traefik` component, which the `k3s` overlay uses;
+   the manifests keep the standard Ingress, and each overlay names its
+   class: `generic` any maintained controller, Traefik as the example;
+   `aws` the AWS Load Balancer Controller (phase 4). The Gateway API later.
 2. **Object storage on one server.** Recommended: the provider's own
    S3-compatible store where there is one, and a Garage component
    (`k8s/components/garage`) for a server with none, since docker-compose
-   already runs Garage for development.
+   already runs Garage for development. **Settled:** `k8s/components/garage`,
+   in the `k3s` overlay by default, removed by one line where there is a
+   bucket.
 3. **Backups.** Deploying says nothing backs up the in-cluster MySQL.
    Recommended: a component with a CronJob that dumps the database to the
    bucket nightly and keeps a set number, and the steps to restore one; plus
    the k3s datastore's own snapshot, and the provider's disk snapshots where
    there are any (on AWS, EBS snapshots through Data Lifecycle Manager). The
    manual has a restore tried before a site opens, since nothing else proves
-   a backup.
+   a backup. **Settled:** `k8s/components/mysql-backup`, at 03:30 UTC,
+   keeping 14 dumps under `backups/mysql/`. k3s's own datastore on one
+   server is a file on the disk the snapshots cover.
 
 **Settled on 2026-10-26 (the user):** on one server, **MySQL runs in the
 cluster**, not as a managed database. A small site's database is small:
@@ -91,20 +97,30 @@ every site run from this manual pays them. The manual says when to move to a
 managed one, in "Growing": thousands of active people, a database of several
 GB that no longer fits in memory, or a database CPU that runs hot for long
 stretches. The move is a dump, a restore and `MYSQL_HOST`.
-4. **Where to try the real server.** Recommended: a small server at a
-   provider other than AWS, to prove the "any provider" part, and EKS on
-   AWS.
+4. **Where to try the real server.** k3d on a developer's machine first;
+   then the first real site's own server is the trial (the user,
+   2026-10-26), not a second provider.
 5. **Visitors' addresses.** auth-service reads `X-Forwarded-For`. Check that
    Traefik behind k3s's built-in load balancer (ServiceLB) passes the real
-   address, and say how if not.
+   address, and say how if not. Checked in k3d and on the real server.
+6. **No cluster but the one meant** (the user, 2026-10-26): the k3d targets
+   never write `~/.kube/config` and name their own kubeconfig in every
+   call; `make k8s-start` keeps kubectl's context (`--keep-context`); both
+   stop if the current context changed.
 
 ## Design
 
 ### Overlays
 
-- `k8s/overlays/k3s`: `generic` with Traefik's ingress class, the Garage
-  and backup components, and the defaults for one server. k3s's
-  `local-path` StorageClass is the default, so the volumes need nothing.
+- `k8s/overlays/k3s`: `generic`'s files, with the `traefik`, `mysql`,
+  `mysql-backup`, `redis`, `rabbitmq` and `garage` components, and a
+  `files.` name for Garage. k3s's `local-path` StorageClass is the default,
+  so the volumes need nothing.
+- `k8s/overlays/k3d`: the same components with development settings, at
+  `http://api.localhost:8088`, for `make k3d-deploy`.
+- Three new components: `traefik` (the Ingress class), `garage` (Garage,
+  and `garage-init`, which gives the node its role, imports the key, makes
+  the bucket and its CORS rule through the admin API), `mysql-backup`.
 - `k8s/overlays/aws`: as it is, corrected by whatever trying it on EKS turns
   up; prefix delegation, or the node count, said in the manual.
 
@@ -147,11 +163,41 @@ the load balancer, IRSA, RDS and ElastiCache or in the cluster, costs.
   says what a site turns on, this row says where it runs.
 - Any one site's deployment.
 
+## What was built
+
+| Where | What |
+| --- | --- |
+| `k8s/components/traefik` | The `anahita` Ingress's class changed to `traefik`, and ingress-nginx's annotation removed |
+| `k8s/components/garage` | Garage 2.1 as a StatefulSet (one 50 Gi volume), its Service, a `garage` Ingress for `files.`, and `garage-init`, which readies it through the admin API v2 and sets the bucket's CORS rule with the AWS CLI |
+| `k8s/components/mysql-backup` | The CronJob: `mysqldump --single-transaction --set-gtid-purged=OFF`, gzipped, sent with the AWS CLI, the newest 14 kept |
+| `k8s/overlays/k3s` | `generic`'s files with the components, Garage at `files.`, Let's Encrypt through Traefik |
+| `k8s/overlays/k3d` | The same components, development settings, a mailpit, names under `localhost` at port 8088 |
+| `k8s/k3s/traefik-config.yml` | A HelmChartConfig for k3s's Traefik: `externalTrafficPolicy: Local` |
+| `Makefile` | `k3d-start`, `k3d-build`, `k3d-deploy`, `k3d-cleanup`; `k8s-start` with `--keep-context`; both start targets stop if kubectl's current context changed |
+
+## Different from the plan
+
+- **Visitors' addresses** (point 5) needed a change: k3s's load balancer
+  gave every connection the node's address (`10.42.0.1`), which would have
+  made the per-address limits on sign-ups and password resets one limit
+  for everybody. `traefik-config.yml` keeps the source address; k3d showed
+  the connecting peer's after it, and a forged `X-Forwarded-For` dropped by
+  Traefik.
+- **Mail on k3d:** the `k3d` overlay has its own mailpit, so a person can
+  sign up without docker-compose.
+
 ## Phases
 
-1. Decide the five points above.
+1. Settle the points above. Done 2026-10-26.
 2. The `k3s` overlay, the Garage and backup components, the k3d targets;
-   checked with k3d.
+   checked with k3d. **Done 2026-10-26.** On k3d: every pod up; garage-init
+   ran twice, the second time changing nothing; the API, the sign-in pages
+   and Garage reached through Traefik; CORS letting only `WEB_ORIGIN` PUT; a
+   person signed up (the code caught by mailpit), signed in, posted a photo
+   and read it back through its signed `files.` link, while the same address
+   unsigned was refused; a backup sent to the bucket and restored into an
+   empty database, all 47 tables back. `~/.kube/config` was the same, byte
+   for byte, after `make k3d-start`.
 3. The k3s manual; tried on a real server.
 4. The EKS manual; the `aws` overlay tried on EKS and corrected.
 
