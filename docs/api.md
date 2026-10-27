@@ -32,6 +32,11 @@ route is linked to by its `operationId` (`api/index.html#getHashtagsByAlias`),
 a service by its name (`#hashtag-service`), a shape by `#schema-` and its
 name; each prose page links to its routes.
 
+**On [www.anahita.io/api/](https://www.anahita.io/api/)** the same reference
+is pages of the site, made from these files: a page for each service, each
+route beside its request in curl, JavaScript and Python and an example of
+its answer, and the services in a sidebar under their groups.
+
 They are made from the code, not written by hand, and `make test` fails when
 they are out of date (see [Describing a route](#describing-a-route)). Each
 operation says:

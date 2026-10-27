@@ -1,42 +1,20 @@
 # Why Anahita
 
 Anahita is social software that an organisation runs for its own community:
-a school, a newsroom, a library, a research group, a non-profit. This page
-is about the choices behind it, what each one answers, and what it costs.
-The rest of the docs say how each is built.
+a school, a newsroom, a library, a research group, a non-profit. Here are a
+few concepts in Anahita's design philosophy.
 
 ## Contents
 
-- [Software for a community, not a market for attention](#software-for-a-community-not-a-market-for-attention)
 - [The principles](#the-principles)
 - [What Anahita does not do](#what-anahita-does-not-do)
 - [Two networks, not a third](#two-networks-not-a-third)
 - [Everything is a node](#everything-is-a-node)
 - [Further reading](#further-reading)
 
-## Software for a community, not a market for attention
-
-Most social software is paid for by what it learns about the people who use
-it. Every view, pause and scroll is recorded, more than the service needs to
-work: the surplus is what is sold, as predictions of what each person will
-do next. To learn more, the service has to hold attention longer, and so
-what it shows is chosen for whatever keeps people there, which is seldom
-what they came for.
-
-User tracking, surveillance, and the collection of behavioural surplus are
-not a side effect of that kind of software. They are its business. A school
-or a library that puts its community there hands its people to it.
-
-Anahita is paid for by nobody's attention. It is run by the organisation
-whose community it is, on its own servers or on one it chooses, and it
-records only what it needs to do what somebody asked of it: who follows
-whom, what was posted, what somebody liked or saved. Nothing about anybody
-is sold, inferred about them for somebody else, or kept to hold them longer.
-
 ## The principles
 
-Five choices follow from that, and each is a rule for whoever changes the
-code.
+Five choices, each a rule for whoever changes the code.
 
 1. **Federation first, and only with consent.** Anahita speaks ActivityPub
    and the AT Protocol natively, so that a community on it is not a walled
