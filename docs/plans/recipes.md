@@ -16,7 +16,7 @@ A **recipe** is those choices made together, for one kind of site, with the reas
 ## Decisions
 
 - **A recipe says what kind of site; an overlay says where it runs.** The two are chosen separately and any recipe goes with any overlay.
-- **A recipe is a Kustomize component,** `k8s/recipes/<name>/`, added to an overlay in one line. Nothing new to install or learn.
+- **A recipe is a Kustomize component,** `recipes/<name>/` in `anahita-recipes`, added to an overlay in one line. Nothing new to install or learn.
 - **A recipe is a start, not a lock.** The overlay's own `config.env` is read after it, so whatever the operator sets wins.
 - **A recipe invents no setting.** It only chooses among the ones there are. Where a kind of site needs something no setting gives, that is written down as a gap, and becomes a feature to plan or not, on its own.
 - **How big a site is, is a third choice,** apart from what kind: `k8s/sizes/{small,medium,large}` set how many copies of each service run and what each may use. A recipe names the size it expects; the operator may take another.
@@ -26,7 +26,7 @@ A **recipe** is those choices made together, for one kind of site, with the reas
 ### What a recipe is made of
 
 ```
-k8s/recipes/school/
+recipes/school/
   kustomization.yml      kind: Component
   config.env             the settings it chooses, each with a line saying why
   README.md              who it is for, what it decides, what to change first
@@ -106,8 +106,8 @@ A recipe is mostly the server's. For the web app it may suggest a name and descr
 ## Open questions
 
 1. **Are these the right ones,** and the right names? The user's own list (2026-10-11) also has **a company, a non-profit and a niche community**, which are to be added: a company's own staff is close to `school` without the care for minors (members only, by invitation, no federation unless chosen); a non-profit is close to `council` (public, with supporters joining by approval); a niche community is `community` with federation on, since reaching the fediverse is why such a site is made. A conference was considered and left for the asking.
-2. **Should a recipe leave services out, or only turn them off?** Leaving them out costs less to run; turning them off is one setting to change later. The plan assumes out, with the line to put one back in the README.
-3. **Where do recipes live? Not decided; still being thought over (user, 2026-10-11).** Two places were raised:
+2. **Should a recipe leave services out, or only turn them off?** Leaving them out costs less to run; turning them off is one setting to change later. **Out (the user, 2026-10-26),** with the line to put one back in the README.
+3. **Where do recipes live? Settled 2026-10-26 (the user): a repository of their own, `anahita-recipes`,** on anahitasocial, public, made when anahita-services is public and tagged (row 93, phase 3). It holds `recipes/`, `sizes/`, and `site/`: the starting point to copy, made from banu.io's overlay, which fetches anahita-services' manifests by version and names one recipe and one size. A check builds every recipe against the version it names, so that a setting renamed here is caught there. What was weighed:
    - **A repository of its own, `anahita-devops`,** for recipes and whatever else is about running a site and not about the code. For it: people who run a site and never build it clone only that; others can add a recipe without touching the services; it has its own pace of release. Against it: `k8s/base` is in anahita-services, so a recipe would point at a release of another repository, and a setting renamed there breaks a recipe here with nothing to say so until somebody builds it.
    - **In anahita-services, beside `k8s/`,** as this plan is written. For it: the checks above run with every change to a setting. Against it: the services repository grows a part its developers seldom touch.
    - Whichever is chosen, the form of a recipe is the same, so the choice can wait until the first two exist.
@@ -130,4 +130,4 @@ A recipe is mostly the server's. For the web app it may suggest a name and descr
 | Item | State |
 | --- | --- |
 | Plan | written 2026-10-11; `library` and `research` added 2026-10-13 |
-| Implementation | not started, and not before the public release (2026-10-13). A sketch while the idea is talked through: where recipes live, and which ones, are open |
+| Implementation | not started, and not before the public release (2026-10-13). Where they live settled 2026-10-26: `anahita-recipes`; banu.io is the first site made from `site/`, with `household` |
