@@ -1462,8 +1462,11 @@ its own. The card says to use one and where to make it.
   with its pictures and the card of its link. It is a post like any they
   wrote here: it is given its hashtags, and goes to the fediverse if they
   are on it. It is not sent back to Bluesky; a like or an answer given to
-  it here reaches it there; deleted there, it goes from here. Only a post
-  that begins a thread, and only from when the account was connected.
+  it here reaches it there; deleted there, it goes from here. Only from
+  when the account was connected. A reply comes too when what it answers
+  is here, and sits under it: the rest of a thread posted there, or an
+  answer to a post from Bluesky that is kept here. One that answers
+  anything else is left, since it would stand without what it answers.
 - **Disconnecting** forgets the token. What was written stays on Bluesky,
   and can then be removed only there.
 

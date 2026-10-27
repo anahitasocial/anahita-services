@@ -27,8 +27,12 @@ import (
 // like or an answer given to it here reaches it there, and so that it
 // goes from here when it is deleted there.
 //
-// Only a post that begins a thread, and from the time the account was
-// connected on: what they posted before is not gone back for.
+// From the time the account was connected on: what they posted before is
+// not gone back for. A reply is kept when what it answers is here, and is
+// put under it: the rest of a thread they posted there, or their answer to
+// a post from Bluesky that is kept here. One that answers anything else is
+// left, as a reply from somebody followed is (posts.go): it would stand
+// without what it answers.
 
 // Where a post says, in what is kept beside its words, that it came from
 // the person's own account on Bluesky.
@@ -72,12 +76,20 @@ func markOwn(meta []byte, uri string) []byte {
 // ownPosted is somebody here having posted on Bluesky with their own
 // account.
 func (h *Handlers) ownPosted(account *repositories.Account, rkey string, post *bsky.Post) error {
-	if h.Media == nil || !bsky.ValidRkey(rkey) || post == nil || post.IsReply() {
+	if h.Media == nil || !bsky.ValidRkey(rkey) || post == nil {
 		return nil
 	}
 	// Written from here, or kept already.
 	if known, err := h.Sent.ReadByName(account.DID, repositories.SentPost, rkey); err != nil || known != nil {
 		return err
+	}
+	var parentID int64
+	if post.IsReply() {
+		answered, err := h.ownAnswered(account, post.Answers())
+		if err != nil || answered == 0 {
+			return err
+		}
+		parentID = answered
 	}
 	person, err := h.Nodes.Read(account.PersonID)
 	if err != nil || person == nil || person.ID == 0 || person.IsRemote() || !person.Enabled || person.DeletedAt != nil {
@@ -129,6 +141,8 @@ func (h *Handlers) ownPosted(account *repositories.Account, rkey string, post *b
 	node.Enabled = true
 	node.CommentStatus = true
 	node.Access = constants.AnahitaAccessPublic
+	// A reply sits in its thread, where the graph gives it its place.
+	node.ParentID = parentID
 	// Marked as having come from Bluesky before it is made: that it was
 	// made is said at once, and whoever hears it must not send it back.
 	node.Meta = markOwn(federation.CardMeta(h.Cards, body, post.Link()), bsky.PostURI(account.DID, rkey))
@@ -147,6 +161,28 @@ func (h *Handlers) ownPosted(account *repositories.Account, rkey string, post *b
 		h.later(func() { h.Keeper.CopyPostPictures(made, pictures) })
 	}
 	return nil
+}
+
+// ownAnswered is the post here that a reply of somebody's own account
+// answers, or 0: one of theirs, written here or kept from Bluesky, both
+// remembered by their name there; or a post from Bluesky kept here.
+func (h *Handlers) ownAnswered(account *repositories.Account, uri string) (int64, error) {
+	did, rkey, ok := bsky.ParsePostURI(uri)
+	if !ok {
+		return 0, nil
+	}
+	if did == account.DID {
+		sent, err := h.Sent.ReadByName(did, repositories.SentPost, rkey)
+		if err != nil || sent == nil {
+			return 0, err
+		}
+		return sent.LocalID, nil
+	}
+	kept, err := h.Nodes.ReadByURI(uri)
+	if err != nil || kept == nil || kept.ID == 0 {
+		return 0, err
+	}
+	return kept.ID, nil
 }
 
 // ownRemoved is somebody here having deleted, on Bluesky, a post of their
