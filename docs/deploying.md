@@ -17,6 +17,7 @@ your own machine, use docker-compose instead: see
 - [Database, Redis and RabbitMQ](#database-redis-and-rabbitmq)
 - [On AWS](#on-aws)
 - [Joining the fediverse](#joining-the-fediverse)
+- [Images](#images)
 - [Upgrading](#upgrading)
 - [Running more than one copy of a service](#running-more-than-one-copy-of-a-service)
 - [Trying it on your own machine](#trying-it-on-your-own-machine)
@@ -32,7 +33,7 @@ your own machine, use docker-compose instead: see
 | Two DNS names | `api.` and `auth.` under your domain, both pointing at the ingress controller's address |
 | A bucket | On any S3-compatible object store. Private. See [Object storage](#object-storage) |
 | An SMTP account | Any provider |
-| The images | `anahita/*` on Docker Hub, or your own builds: `make build_dockerfiles` builds them all |
+| The images | Published to GitHub's registry for each version: see [Images](#images). Or your own builds: `make build_dockerfiles` builds them all |
 
 Nothing here depends on one cloud. AWS is one option among several, and its
 overlay only differs in how it signs in to S3 and where the database lives.
@@ -396,6 +397,26 @@ setting up, with names that cannot be changed afterwards. It has a page of
 its own, in the order to do it: [Federation](federation.md#setting-it-up).
 Reading Bluesky, and writing to it for people who connect their own
 account, needs much less: see [Bluesky](federation.md#bluesky).
+
+## Images
+
+Each version of anahita-services is published to GitHub's container
+registry, for amd64 and arm64 under one name, when it is tagged
+(`.github/workflows/images.yml`):
+
+~~~
+ghcr.io/anahitasocial/<image>:<version>
+~~~
+
+`<image>` is the name of its file in `dockerfiles/`, except `nginx`, which
+is published as `gateway`. Each also has `latest`, the newest version, for
+trying Anahita out; a site names the version it runs, in the `images:` of
+its overlay, so that it changes only when its operator changes it. The tags
+ending in `-amd64` and `-arm64` are the two halves the workflow joins, not
+for use.
+
+To publish a version: `git tag v0.1.0 && git push origin v0.1.0`. The
+workflow builds each architecture natively, on its own runner.
 
 ## Upgrading
 

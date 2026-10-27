@@ -1,0 +1,91 @@
+# Builds the 30 images in dockerfiles/ for amd64 and arm64 and publishes
+# them to GitHub's registry, when a version is tagged:
+#
+#   git tag v0.1.0 && git push origin v0.1.0
+#
+# Each image is ghcr.io/<owner>/<image>:<version>, and :latest, for both
+# architectures under one name; nginx is published as gateway, the name of
+# its Deployment. Each architecture is built on its own runner, natively,
+# and the two are joined into one image at the end. docs/deploying.md,
+# "Images".
+name: images
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The tag to publish, such as v0.1.0
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+  VERSION: ${{ inputs.version || github.ref_name }}
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.VERSION }}
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.work
+          cache: false
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # The Makefile compiles each binary for the runner's own architecture
+      # and builds the images as anahita/<image>:latest.
+      - name: Build
+        run: |
+          make build_dockerfiles build_web_shell
+          docker build -f dockerfiles/web-shell.dockerfile -t anahita/web-shell:latest .
+
+      - name: Push this architecture
+        run: |
+          for file in dockerfiles/*.dockerfile; do
+            image=$(basename "$file" .dockerfile)
+            name=$image
+            [ "$image" = nginx ] && name=gateway
+            docker tag "anahita/$image:latest" "$REGISTRY/$name:$VERSION-${{ matrix.arch }}"
+            docker push --quiet "$REGISTRY/$name:$VERSION-${{ matrix.arch }}"
+          done
+
+  join:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.VERSION }}
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: One image for both architectures
+        run: |
+          for file in dockerfiles/*.dockerfile; do
+            name=$(basename "$file" .dockerfile)
+            [ "$name" = nginx ] && name=gateway
+            docker buildx imagetools create \
+              -t "$REGISTRY/$name:$VERSION" -t "$REGISTRY/$name:latest" \
+              "$REGISTRY/$name:$VERSION-amd64" "$REGISTRY/$name:$VERSION-arm64"
+          done

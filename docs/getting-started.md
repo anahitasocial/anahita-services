@@ -185,8 +185,9 @@ docker rm -fv anahita-test
 
 ## Other targets
 
-Run `make help` for the full list, which also covers Docker Hub publishing
-(`build_dockerfiles`, `push_dockerfiles`), Swarm (`swarm_up`,
+Run `make help` for the full list, which also covers building and pushing
+the images by hand (`build_dockerfiles`, `push_dockerfiles`; a tagged
+version is published by a workflow: [Images](deploying.md#images)), Swarm (`swarm_up`,
 `swarm_down`), and local Kubernetes clusters: minikube (`k8s-start`,
 `k8s-build`, `k8s-deploy`, `k8s-cleanup`) and k3d (`k3d-start`, `k3d-build`,
 `k3d-deploy`, `k3d-cleanup`). The manifests are in `k8s/`, and

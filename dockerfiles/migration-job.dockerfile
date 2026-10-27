@@ -5,8 +5,12 @@ RUN apt-get update && apt-get install -y bash curl ca-certificates default-mysql
     rm -rf /var/lib/apt/lists/*
 
 # Install Goose
+# goose for the image's own architecture: BuildKit sets TARGETARCH (amd64 or
+# arm64), and goose names the first x86_64.
 ARG GOOSE_VERSION=3.6.1
-RUN curl -L -o /usr/local/bin/goose https://github.com/pressly/goose/releases/download/v${GOOSE_VERSION}/goose_linux_x86_64 && \
+ARG TARGETARCH
+RUN arch=$([ "$TARGETARCH" = arm64 ] && echo arm64 || echo x86_64) && \
+    curl -fL -o /usr/local/bin/goose https://github.com/pressly/goose/releases/download/v${GOOSE_VERSION}/goose_linux_${arch} && \
     chmod +x /usr/local/bin/goose
 
 # Set working directory
