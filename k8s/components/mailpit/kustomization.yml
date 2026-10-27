@@ -1,0 +1,9 @@
+# mailpit, in place of an SMTP server: every message is caught in the
+# cluster and none leaves it. For trying the manifests (the k3d overlay), and
+# for a site before it opens, so that nobody is mailed by mistake. Set
+# SMTP_HOST=mailpit, SMTP_PORT=1025 and SMTP_SECURE=false with it.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - mailpit.yml

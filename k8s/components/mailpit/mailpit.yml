@@ -1,6 +1,7 @@
-# Catches every message the cluster sends, so sign-up codes can be read and
-# nothing leaves this machine. Its web page, for reading them:
-#   kubectl --kubeconfig ~/.config/k3d/kubeconfig-anahita.yaml -n anahita port-forward deploy/mailpit 8025
+# Catches every message the cluster sends, and sends none on. Its web page,
+# for reading them:
+#   kubectl -n anahita port-forward deploy/mailpit 8025
+# then http://localhost:8025. Kept in memory: a restart empties it.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

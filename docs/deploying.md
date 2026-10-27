@@ -54,6 +54,7 @@ k8s/
     mysql-backup/       a nightly dump of that MySQL to the bucket
     garage/             an S3-compatible store in the cluster
     traefik/            the Ingresses through Traefik
+    mailpit/            catches every message, sends none on
   overlays/
     generic/            any cluster, any S3-compatible store
     k3s/                one server running k3s, at any provider
@@ -487,7 +488,9 @@ alone, and every target names that file, so none can reach another cluster.
 | `http://auth.localhost:8088` | The sign-in and sign-up pages |
 | `http://files.localhost:8088` | Garage, where signed links to uploads point |
 
-Sign-up codes and every other message are in mailpit:
+Sign-up codes and every other message are in mailpit (the `mailpit`
+component), which a site can also use before it opens, so that nobody is
+mailed by mistake:
 `kubectl --kubeconfig ~/.config/k3d/kubeconfig-anahita.yaml -n anahita port-forward deploy/mailpit 8025`,
 then `http://localhost:8025`. `make k3d-cleanup` deletes the cluster and its
 kubeconfig.

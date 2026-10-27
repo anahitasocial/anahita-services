@@ -171,7 +171,7 @@ the load balancer, IRSA, RDS and ElastiCache or in the cluster, costs.
 | `k8s/components/garage` | Garage 2.1 as a StatefulSet (one 50 Gi volume), its Service, a `garage` Ingress for `files.`, and `garage-init`, which readies it through the admin API v2 and sets the bucket's CORS rule with the AWS CLI |
 | `k8s/components/mysql-backup` | The CronJob: `mysqldump --single-transaction --set-gtid-purged=OFF`, gzipped, sent with the AWS CLI, the newest 14 kept |
 | `k8s/overlays/k3s` | `generic`'s files with the components, Garage at `files.`, Let's Encrypt through Traefik |
-| `k8s/overlays/k3d` | The same components, development settings, a mailpit, names under `localhost` at port 8088 |
+| `k8s/overlays/k3d` | The same components and `mailpit` (a component, so a site can catch its mail before it opens), development settings, names under `localhost` at port 8088 |
 | `k8s/k3s/traefik-config.yml` | A HelmChartConfig for k3s's Traefik: `externalTrafficPolicy: Local` |
 | `Makefile` | `k3d-start`, `k3d-build`, `k3d-deploy`, `k3d-cleanup`; `k8s-start` with `--keep-context`; both start targets stop if kubectl's current context changed |
 
