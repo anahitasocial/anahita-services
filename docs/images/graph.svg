@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" width="760" height="380" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" role="img" aria-labelledby="title desc">
+  <title id="title">Nodes and edges</title>
+  <desc id="desc">A person follows a group, likes a post on the group's profile, and keeps a feed on their home page. A hashtag and a location are tagged on the post.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#5f6368"/>
+    </marker>
+    <marker id="arrow-light" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#9aa0a6"/>
+    </marker>
+  </defs>
+  <rect width="760" height="380" rx="16" fill="#fafafa"/>
+
+  <!-- Edges: rows of their own, from node_a to node_b. -->
+  <g stroke="#5f6368" stroke-width="1.5" fill="none" marker-end="url(#arrow)">
+    <path d="M178 176 L322 92"/>
+    <path d="M178 200 L322 252"/>
+    <path d="M140 222 L140 300"/>
+    <path d="M584 160 L452 240"/>
+    <path d="M584 318 L452 278"/>
+  </g>
+  <!-- A column of the post, not an edge: the profile it is on. -->
+  <g stroke="#9aa0a6" stroke-width="1.5" stroke-dasharray="5 4" fill="none" marker-end="url(#arrow-light)">
+    <path d="M380 116 L380 222"/>
+  </g>
+
+  <g font-size="12" fill="#3c4043">
+    <text x="252" y="124" text-anchor="end">edge.actor.follow.v1</text>
+    <text x="250" y="212">edge.base.voteup.v1</text>
+    <text x="130" y="266" text-anchor="end">edge.feed.pin.v1</text>
+    <text x="530" y="228">edge.tag.hashtag.v1</text>
+    <text x="576" y="334" text-anchor="end">edge.tag.location.v1</text>
+  </g>
+  <g font-size="12" fill="#80868b">
+    <text x="390" y="172">owner_id</text>
+  </g>
+
+  <!-- Nodes. -->
+  <g font-size="14" fill="#202124" text-anchor="middle">
+    <g>
+      <circle cx="140" cy="190" r="36" fill="#fff" stroke="#202124" stroke-width="1.5"/>
+      <text x="140" y="187">Ana</text>
+      <text x="140" y="204" font-size="11" fill="#5f6368">person</text>
+    </g>
+    <g>
+      <circle cx="380" cy="80" r="36" fill="#fff" stroke="#202124" stroke-width="1.5"/>
+      <text x="380" y="77">Library</text>
+      <text x="380" y="94" font-size="11" fill="#5f6368">group</text>
+    </g>
+    <g>
+      <rect x="324" y="226" width="112" height="56" rx="10" fill="#fff" stroke="#202124" stroke-width="1.5"/>
+      <text x="380" y="251">A note</text>
+      <text x="380" y="268" font-size="11" fill="#5f6368">post</text>
+    </g>
+    <g>
+      <rect x="584" y="132" width="120" height="44" rx="22" fill="#fff" stroke="#202124" stroke-width="1.5"/>
+      <text x="644" y="152">#seeds</text>
+      <text x="644" y="167" font-size="11" fill="#5f6368">hashtag</text>
+    </g>
+    <g>
+      <rect x="584" y="300" width="120" height="44" rx="22" fill="#fff" stroke="#202124" stroke-width="1.5"/>
+      <text x="644" y="320">Jericho Beach</text>
+      <text x="644" y="335" font-size="11" fill="#5f6368">location</text>
+    </g>
+    <g>
+      <rect x="84" y="304" width="112" height="48" rx="10" fill="#fff" stroke="#202124" stroke-width="1.5"/>
+      <text x="140" y="325">Seed saving</text>
+      <text x="140" y="341" font-size="11" fill="#5f6368">custom feed</text>
+    </g>
+  </g>
+</svg>

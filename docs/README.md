@@ -4,11 +4,12 @@ Documentation for anahita-services, the Go microservices behind Anahita.
 
 ## Where to begin
 
-Four ways in, by what you are doing. Each is a short page of links, in the
+Ways in, by what you are doing. Each is a short page of links, in the
 order to read them.
 
 | To | Read |
 | --- | --- |
+| Understand the ideas behind it | [Why Anahita](why-anahita.md) |
 | Put an instance on the web | [Setting up](setting-up.md) |
 | Change how it looks, what it says and what it allows | [Customising](customising.md) |
 | Run it from day to day: upgrades, storage, accounts, reports | [Operating](operating.md) |
@@ -20,6 +21,10 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
 
 ## Contents
 
+The pages, grouped by what they are about, each group in the order to read it.
+
+### Start here
+
 1. [Getting started](getting-started.md) — running the stack locally
    - [Requirements](getting-started.md#requirements)
    - [Configure](getting-started.md#configure)
@@ -28,7 +33,8 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [Developing](getting-started.md#developing)
    - [Tests](getting-started.md#tests)
    - [Other targets](getting-started.md#other-targets)
-2. [Configuration](configuration.md) — every environment variable
+2. [Setting up](setting-up.md) — putting an instance on the web, step by step
+3. [Configuration](configuration.md) — every environment variable
    - [Shared](configuration.md#shared)
    - [Client addresses](configuration.md#client-addresses)
    - [Internal calls](configuration.md#internal-calls)
@@ -47,21 +53,33 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [The web shell](configuration.md#the-web-shell)
    - [Video](configuration.md#video)
    - [Download your data](configuration.md#download-your-data)
-3. [Architecture](architecture.md) — services, routing and the shared library
-   - [Components](architecture.md#components)
-   - [Services](architecture.md#services)
-   - [Routing](architecture.md#routing)
-   - [One service for every kind of actor](architecture.md#one-service-for-every-kind-of-actor)
-   - [Naming images](architecture.md#naming-images)
-   - [anahita-libs](architecture.md#anahita-libs)
-   - [What a node is called elsewhere](architecture.md#what-a-node-is-called-elsewhere)
-   - [Naming dates and times](architecture.md#naming-dates-and-times)
-   - [The API](api.md) — what is true of every route, and the reference made from the code ([`api/`](api/))
-4. [OAuth scopes and clients](oauth.md)
-   - [Scopes](oauth.md#scopes)
-   - [Seeding clients](oauth.md#seeding-clients)
-   - [Where the code is](oauth.md#where-the-code-is)
-5. [Registration and agreements](registration.md) — how people join
+4. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
+   - [What you need](deploying.md#what-you-need)
+   - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
+   - [Hostnames](deploying.md#hostnames)
+   - [First deployment](deploying.md#first-deployment)
+   - [Certificates between the services](deploying.md#certificates-between-the-services)
+   - [Object storage](deploying.md#object-storage)
+   - [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)
+   - [On AWS](deploying.md#on-aws)
+   - [Joining the fediverse](deploying.md#joining-the-fediverse)
+   - [Upgrading](deploying.md#upgrading)
+   - [Running more than one copy of a service](deploying.md#running-more-than-one-copy-of-a-service)
+   - [Trying it on your own machine](deploying.md#trying-it-on-your-own-machine)
+   - [One machine without Kubernetes](deploying.md#one-machine-without-kubernetes)
+5. [Licensing](licensing.md) — what the licences allow, for running a site and for building on it
+
+### Concepts
+
+1. [Why Anahita](why-anahita.md) — the choices behind it: software for a community, the principles, what it does not do, and why two networks
+2. [The graph](the-graph.md) — nodes and edges: how their types are named, every kind there is, and who may see a node
+3. [How things are found](how-things-are-found.md) — the home page, custom feeds, search, suggestions and trending: what each orders by, and what is never used
+
+### Run a site
+
+1. [Operating](operating.md) — from day to day: upgrades, storage, accounts, reports
+2. [Customising](customising.md) — how it looks, what it says and what it allows
+3. [Registration and agreements](registration.md) — how people join
    - [Where it happens](registration.md#where-it-happens)
    - [Registration modes](registration.md#registration-modes)
    - [What signup asks for](registration.md#what-signup-asks-for)
@@ -74,7 +92,51 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [NodeInfo](registration.md#nodeinfo)
    - [The first super administrator](registration.md#the-first-super-administrator)
    - [Where the code is](registration.md#where-the-code-is)
-6. [Permissions](permissions.md) — who can post, reply, like and add followers
+4. [Privacy](privacy.md) — who can see a post, a profile and the site, and the settings an installation makes
+   - [The audiences](privacy.md#the-audiences)
+   - [Who can see a post](privacy.md#who-can-see-a-post)
+   - [Who can see a profile or a group](privacy.md#who-can-see-a-profile-or-a-group)
+   - [What the installation allows](privacy.md#what-the-installation-allows)
+   - [Setting them](privacy.md#setting-them)
+   - [Checking them](privacy.md#checking-them)
+   - [What the web app does](privacy.md#what-the-web-app-does)
+   - [Where it is enforced, and how it is tested](privacy.md#where-it-is-enforced-and-how-it-is-tested)
+   - [Federation](privacy.md#federation)
+5. [Abuse reports](abuse-reports.md) — reporting, the reasons list, and what administrators do
+   - [Reports and cases](abuse-reports.md#reports-and-cases)
+   - [Reporting something](abuse-reports.md#reporting-something)
+   - [The reasons list](abuse-reports.md#the-reasons-list)
+   - [Using your own reasons](abuse-reports.md#using-your-own-reasons)
+   - [Breaking a rule](abuse-reports.md#breaking-a-rule)
+   - [A group's own reports](abuse-reports.md#a-groups-own-reports)
+   - [What administrators do](abuse-reports.md#what-administrators-do)
+   - [When the reported thing is deleted](abuse-reports.md#when-the-reported-thing-is-deleted)
+   - [Who sees what](abuse-reports.md#who-sees-what)
+   - [Where the code is](abuse-reports.md#where-the-code-is)
+6. [Account lifecycle](account-lifecycle.md) — disabling, archiving, deleting, purging, and clearing out unused accounts
+   - [The four states](account-lifecycle.md#the-four-states)
+   - [Deleting and the 30 days](account-lifecycle.md#deleting-and-the-30-days)
+   - [What a purge removes](account-lifecycle.md#what-a-purge-removes)
+   - [What a purge leaves](account-lifecycle.md#what-a-purge-leaves)
+   - [Purging now](account-lifecycle.md#purging-now)
+   - [The accounts list](account-lifecycle.md#the-accounts-list)
+   - [The sweeper](account-lifecycle.md#the-sweeper)
+   - [Groups left without an administrator](account-lifecycle.md#groups-left-without-an-administrator)
+   - [Where the code is](account-lifecycle.md#where-the-code-is)
+
+### People
+
+1. [Signing in](signing-in.md) — passwords, passkeys, emailed codes and their limits
+   - [The ways in](signing-in.md#the-ways-in)
+   - [Signing in with a code](signing-in.md#signing-in-with-a-code)
+   - [What a code can and cannot do](signing-in.md#what-a-code-can-and-cannot-do)
+   - [Limits](signing-in.md#limits)
+   - [How codes are kept](signing-in.md#how-codes-are-kept)
+   - [Resetting a forgotten password](signing-in.md#resetting-a-forgotten-password)
+   - [Changing an email address](signing-in.md#changing-an-email-address)
+   - [Adding text messages later](signing-in.md#adding-text-messages-later)
+   - [Where the code is](signing-in.md#where-the-code-is)
+2. [Permissions](permissions.md) — who can post, reply, like and add followers
    - [Two separate settings](permissions.md#two-separate-settings)
    - [Access levels](permissions.md#access-levels)
    - [A members-only installation](permissions.md#a-members-only-installation)
@@ -102,46 +164,44 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [What profile owners can change](permissions.md#what-profile-owners-can-change)
    - [Accepted values](permissions.md#accepted-values)
    - [Where the code is](permissions.md#where-the-code-is)
-7. [Signing in](signing-in.md) — passwords, passkeys, emailed codes and their limits
-   - [The ways in](signing-in.md#the-ways-in)
-   - [Signing in with a code](signing-in.md#signing-in-with-a-code)
-   - [What a code can and cannot do](signing-in.md#what-a-code-can-and-cannot-do)
-   - [Limits](signing-in.md#limits)
-   - [How codes are kept](signing-in.md#how-codes-are-kept)
-   - [Resetting a forgotten password](signing-in.md#resetting-a-forgotten-password)
-   - [Changing an email address](signing-in.md#changing-an-email-address)
-   - [Adding text messages later](signing-in.md#adding-text-messages-later)
-   - [Where the code is](signing-in.md#where-the-code-is)
-8. [Abuse reports](abuse-reports.md) — reporting, the reasons list, and what administrators do
-   - [Reports and cases](abuse-reports.md#reports-and-cases)
-   - [Reporting something](abuse-reports.md#reporting-something)
-   - [The reasons list](abuse-reports.md#the-reasons-list)
-   - [Using your own reasons](abuse-reports.md#using-your-own-reasons)
-   - [Breaking a rule](abuse-reports.md#breaking-a-rule)
-   - [A group's own reports](abuse-reports.md#a-groups-own-reports)
-   - [What administrators do](abuse-reports.md#what-administrators-do)
-   - [When the reported thing is deleted](abuse-reports.md#when-the-reported-thing-is-deleted)
-   - [Who sees what](abuse-reports.md#who-sees-what)
-   - [Where the code is](abuse-reports.md#where-the-code-is)
-9. [Privacy](privacy.md) — who can see a post, a profile and the site, and the settings an installation makes
-   - [The audiences](privacy.md#the-audiences)
-   - [Who can see a post](privacy.md#who-can-see-a-post)
-   - [Who can see a profile or a group](privacy.md#who-can-see-a-profile-or-a-group)
-   - [What the installation allows](privacy.md#what-the-installation-allows)
-   - [Setting them](privacy.md#setting-them)
-   - [Checking them](privacy.md#checking-them)
-   - [What the web app does](privacy.md#what-the-web-app-does)
-   - [Where it is enforced, and how it is tested](privacy.md#where-it-is-enforced-and-how-it-is-tested)
-   - [Federation](privacy.md#federation)
-10. [The language of a post](post-language.md) — what is stored, how it is chosen, and what uses it
-   - [What it is for](post-language.md#what-it-is-for)
-   - [The tags](post-language.md#the-tags)
-   - [On a post](post-language.md#on-a-post)
-   - [On a person](post-language.md#on-a-person)
-   - [What the web app does](post-language.md#what-the-web-app-does)
-   - [Where the code is](post-language.md#where-the-code-is)
-   - [What is not built](post-language.md#what-is-not-built)
-11. [Photo posts](photos.md) — several images in one post: uploading, storing, changing and removing them
+3. [Notifications](notifications.md) — what people are told in the app, never by email: the kinds, who is told and who never is, and how a notification goes with what it tells of
+   - [No email](notifications.md#no-email)
+   - [What a notification is](notifications.md#what-a-notification-is)
+   - [The kinds](notifications.md#the-kinds)
+   - [Only what its reader may see](notifications.md#only-what-its-reader-may-see)
+   - [Who is never told](notifications.md#who-is-never-told)
+   - [When what it tells of goes](notifications.md#when-what-it-tells-of-goes)
+   - [Choosing what one is told about](notifications.md#choosing-what-one-is-told-about)
+   - [Several as one](notifications.md#several-as-one)
+   - [What can be done from one](notifications.md#what-can-be-done-from-one)
+   - [Read, and how long they are kept](notifications.md#read-and-how-long-they-are-kept)
+   - [Delivery](notifications.md#delivery)
+   - [The API](notifications.md#the-api)
+4. [Recommendations](recommendations.md) — suggestions of who to follow: the contract, the reasons, who is never suggested, and running without it
+   - [The contract](recommendations.md#the-contract)
+   - [Why somebody is suggested](recommendations.md#why-somebody-is-suggested)
+   - [Who is never suggested](recommendations.md#who-is-never-suggested)
+   - [What each person chooses](recommendations.md#what-each-person-chooses)
+   - [Not interested](recommendations.md#not-interested)
+   - [Running it, and not running it](recommendations.md#running-it-and-not-running-it)
+   - [Where the code is](recommendations.md#where-the-code-is)
+   - [What is not built](recommendations.md#what-is-not-built)
+5. [Download your data](data-export.md) — a person's copy of everything they put here: asking for it, what is in it, and how long it is kept
+   - [The parts](data-export.md#the-parts)
+   - [Asking for one](data-export.md#asking-for-one)
+   - [What is in an archive](data-export.md#what-is-in-an-archive)
+   - [What is not](data-export.md#what-is-not)
+   - [How it is made](data-export.md#how-it-is-made)
+   - [Keeping and deleting](data-export.md#keeping-and-deleting)
+   - [Endpoints](data-export.md#endpoints)
+   - [Settings](data-export.md#settings)
+   - [Running it, and not running it](data-export.md#running-it-and-not-running-it)
+   - [Where the code is](data-export.md#where-the-code-is)
+   - [What is not built](data-export.md#what-is-not-built)
+
+### Posts
+
+1. [Photo posts](photos.md) — several images in one post: uploading, storing, changing and removing them
    - [One post, several images](photos.md#one-post-several-images)
    - [Posting](photos.md#posting)
    - [What is stored](photos.md#what-is-stored)
@@ -152,79 +212,7 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [Limits](photos.md#limits)
    - [Where the code is](photos.md#where-the-code-is)
    - [What is not built](photos.md#what-is-not-built)
-12. [Account lifecycle](account-lifecycle.md) — disabling, archiving, deleting, purging, and clearing out unused accounts
-   - [The four states](account-lifecycle.md#the-four-states)
-   - [Deleting and the 30 days](account-lifecycle.md#deleting-and-the-30-days)
-   - [What a purge removes](account-lifecycle.md#what-a-purge-removes)
-   - [What a purge leaves](account-lifecycle.md#what-a-purge-leaves)
-   - [Purging now](account-lifecycle.md#purging-now)
-   - [The accounts list](account-lifecycle.md#the-accounts-list)
-   - [The sweeper](account-lifecycle.md#the-sweeper)
-   - [Groups left without an administrator](account-lifecycle.md#groups-left-without-an-administrator)
-   - [Where the code is](account-lifecycle.md#where-the-code-is)
-13. [Deploying](deploying.md) — a live site on Kubernetes, on any provider
-   - [What you need](deploying.md#what-you-need)
-   - [How the manifests are laid out](deploying.md#how-the-manifests-are-laid-out)
-   - [Hostnames](deploying.md#hostnames)
-   - [First deployment](deploying.md#first-deployment)
-   - [Certificates between the services](deploying.md#certificates-between-the-services)
-   - [Object storage](deploying.md#object-storage)
-     - [What is in the bucket](deploying.md#what-is-in-the-bucket)
-     - [Moving a bucket to the v1 layout](deploying.md#moving-a-bucket-to-the-v1-layout)
-   - [Database, Redis and RabbitMQ](deploying.md#database-redis-and-rabbitmq)
-   - [On AWS](deploying.md#on-aws)
-   - [Joining the fediverse](deploying.md#joining-the-fediverse)
-   - [Upgrading](deploying.md#upgrading)
-   - [Running more than one copy of a service](deploying.md#running-more-than-one-copy-of-a-service)
-   - [Trying it on your own machine](deploying.md#trying-it-on-your-own-machine)
-   - [One machine without Kubernetes](deploying.md#one-machine-without-kubernetes)
-
-14. [Custom feeds](feeds.md) — feeds people build: what one is made of, who sees it, and what they see in it
-   - [The home page](feeds.md#the-home-page)
-   - [A feed is a node](feeds.md#a-feed-is-a-node)
-   - [The definition](feeds.md#the-definition)
-   - [Limits](feeds.md#limits)
-   - [Who sees a feed, and what they see in it](feeds.md#who-sees-a-feed-and-what-they-see-in-it)
-   - [Reading a feed](feeds.md#reading-a-feed)
-   - [Keeping feeds on the home page](feeds.md#keeping-feeds-on-the-home-page)
-   - [In search](feeds.md#in-search)
-   - [Discover](feeds.md#discover)
-   - [Endpoints](feeds.md#endpoints)
-   - [Where the code is](feeds.md#where-the-code-is)
-   - [What is not built](feeds.md#what-is-not-built)
-15. [Recommendations](recommendations.md) — suggestions of who to follow: the contract, the reasons, who is never suggested, and running without it
-   - [The contract](recommendations.md#the-contract)
-   - [Why somebody is suggested](recommendations.md#why-somebody-is-suggested)
-   - [Who is never suggested](recommendations.md#who-is-never-suggested)
-   - [What each person chooses](recommendations.md#what-each-person-chooses)
-   - [Not interested](recommendations.md#not-interested)
-   - [Running it, and not running it](recommendations.md#running-it-and-not-running-it)
-   - [Where the code is](recommendations.md#where-the-code-is)
-   - [What is not built](recommendations.md#what-is-not-built)
-16. [Link previews](link-previews.md) — the card a note carries for a link: fetching a page safely, the picture, and how long a preview is kept
-   - [Two halves](link-previews.md#two-halves)
-   - [Fetching a page safely](link-previews.md#fetching-a-page-safely)
-   - [What is read from the page](link-previews.md#what-is-read-from-the-page)
-   - [The picture](link-previews.md#the-picture)
-   - [How long a preview is kept](link-previews.md#how-long-a-preview-is-kept)
-   - [Endpoints](link-previews.md#endpoints)
-   - [The card on a note](link-previews.md#the-card-on-a-note)
-   - [Running it, and not running it](link-previews.md#running-it-and-not-running-it)
-   - [Cards in long writing](link-previews.md#cards-in-long-writing)
-   - [Where the code is](link-previews.md#where-the-code-is)
-   - [What is not built](link-previews.md#what-is-not-built)
-17. [The web shell](web-shell.md) — sending the web app with each page's own title and picture, for links shared elsewhere
-   - [What it sends](web-shell.md#what-it-sends)
-   - [Which pages are described](web-shell.md#which-pages-are-described)
-   - [What is never described](web-shell.md#what-is-never-described)
-   - [Pictures](web-shell.md#pictures)
-   - [What other servers ask this host](web-shell.md#what-other-servers-ask-this-host)
-   - [Running it](web-shell.md#running-it)
-   - [Settings](web-shell.md#settings)
-   - [Not running it](web-shell.md#not-running-it)
-   - [Where the code is](web-shell.md#where-the-code-is)
-   - [What is not built](web-shell.md#what-is-not-built)
-18. [Videos](videos.md) — a video sent straight to storage, the worker that makes a post of it, and how it is played
+2. [Videos](videos.md) — a video sent straight to storage, the worker that makes a post of it, and how it is played
    - [The parts](videos.md#the-parts)
    - [Sending a video](videos.md#sending-a-video)
    - [What the worker does](videos.md#what-the-worker-does)
@@ -240,19 +228,60 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [Running it, and not running it](videos.md#running-it-and-not-running-it)
    - [Where the code is](videos.md#where-the-code-is)
    - [What is not built](videos.md#what-is-not-built)
-19. [Download your data](data-export.md) — a person's copy of everything they put here: asking for it, what is in it, and how long it is kept
-   - [The parts](data-export.md#the-parts)
-   - [Asking for one](data-export.md#asking-for-one)
-   - [What is in an archive](data-export.md#what-is-in-an-archive)
-   - [What is not](data-export.md#what-is-not)
-   - [How it is made](data-export.md#how-it-is-made)
-   - [Keeping and deleting](data-export.md#keeping-and-deleting)
-   - [Endpoints](data-export.md#endpoints)
-   - [Settings](data-export.md#settings)
-   - [Running it, and not running it](data-export.md#running-it-and-not-running-it)
-   - [Where the code is](data-export.md#where-the-code-is)
-   - [What is not built](data-export.md#what-is-not-built)
-20. [Federation](federation.md) — taking part in the fediverse and in Bluesky: turning it on, who is on the fediverse, what they are called and what is told about them, reading Bluesky and writing to it as a connected account, and who owns what
+3. [Link previews](link-previews.md) — the card a note carries for a link: fetching a page safely, the picture, and how long a preview is kept
+   - [Two halves](link-previews.md#two-halves)
+   - [Fetching a page safely](link-previews.md#fetching-a-page-safely)
+   - [What is read from the page](link-previews.md#what-is-read-from-the-page)
+   - [The picture](link-previews.md#the-picture)
+   - [How long a preview is kept](link-previews.md#how-long-a-preview-is-kept)
+   - [Endpoints](link-previews.md#endpoints)
+   - [The card on a note](link-previews.md#the-card-on-a-note)
+   - [Running it, and not running it](link-previews.md#running-it-and-not-running-it)
+   - [Cards in long writing](link-previews.md#cards-in-long-writing)
+   - [Where the code is](link-previews.md#where-the-code-is)
+   - [What is not built](link-previews.md#what-is-not-built)
+4. [Hashtags and locations](hashtags.md) — how a post gets its hashtags, at most ten hashtags and five locations, and the hashtags offered while writing
+   - [How a post gets its hashtags](hashtags.md#how-a-post-gets-its-hashtags)
+   - [At most ten hashtags](hashtags.md#at-most-ten-hashtags)
+   - [At most five locations](hashtags.md#at-most-five-locations)
+   - [Suggestions while writing](hashtags.md#suggestions-while-writing)
+   - [A hashtag's and a location's posts](hashtags.md#a-hashtags-and-a-locations-posts)
+   - [What the web app does](hashtags.md#what-the-web-app-does)
+   - [Where the code is](hashtags.md#where-the-code-is)
+5. [The language of a post](post-language.md) — what is stored, how it is chosen, and what uses it
+   - [What it is for](post-language.md#what-it-is-for)
+   - [The tags](post-language.md#the-tags)
+   - [On a post](post-language.md#on-a-post)
+   - [On a person](post-language.md#on-a-person)
+   - [What the web app does](post-language.md#what-the-web-app-does)
+   - [Where the code is](post-language.md#where-the-code-is)
+   - [What is not built](post-language.md#what-is-not-built)
+6. [Custom feeds](feeds.md) — feeds people build: what one is made of, who sees it, and what they see in it
+   - [The home page](feeds.md#the-home-page)
+   - [A feed is a node](feeds.md#a-feed-is-a-node)
+   - [The definition](feeds.md#the-definition)
+   - [Limits](feeds.md#limits)
+   - [Who sees a feed, and what they see in it](feeds.md#who-sees-a-feed-and-what-they-see-in-it)
+   - [Reading a feed](feeds.md#reading-a-feed)
+   - [Keeping feeds on the home page](feeds.md#keeping-feeds-on-the-home-page)
+   - [In search](feeds.md#in-search)
+   - [Discover](feeds.md#discover)
+   - [Endpoints](feeds.md#endpoints)
+   - [Where the code is](feeds.md#where-the-code-is)
+   - [What is not built](feeds.md#what-is-not-built)
+7. [Search](search.md) — the order results come in, old and useful counting as much as new, and how an operator tunes it
+   - [Two orders](search.md#two-orders)
+   - [Most relevant](search.md#most-relevant)
+   - [Old and useful counts as much as new](search.md#old-and-useful-counts-as-much-as-new)
+   - [Tuning it](search.md#tuning-it)
+   - [Each person's choices](search.md#each-persons-choices)
+   - [What is found at all](search.md#what-is-found-at-all)
+   - [Where the code is](search.md#where-the-code-is)
+   - [What is not built](search.md#what-is-not-built)
+
+### Fediverse and Bluesky
+
+1. [Federation](federation.md) — taking part in the fediverse and in Bluesky: turning it on, who is on the fediverse, what they are called and what is told about them, reading Bluesky and writing to it as a connected account, and who owns what
    - [What it is](federation.md#what-it-is)
    - [A server on one network, an app on the other](federation.md#a-server-on-one-network-an-app-on-the-other)
    - [Setting it up](federation.md#setting-it-up)
@@ -279,7 +308,18 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [Posts and people that are removed](federation.md#posts-and-people-that-are-removed)
    - [Bluesky](federation.md#bluesky)
    - [Where the code is](federation.md#where-the-code-is)
-21. [The federation lab](federation-lab.md) — trying federation on one machine: names, certificates, and another server to talk to
+2. [Websites](websites.md) — a website's feed as a profile to follow: connecting a site, proving its domain, its feed read and posted as notes, replies as the website, and on the fediverse
+   - [Who does what](websites.md#who-does-what)
+   - [Connecting a website](websites.md#connecting-a-website)
+   - [Proving a domain](websites.md#proving-a-domain)
+   - [Reading the feed](websites.md#reading-the-feed)
+   - [Its posts](websites.md#its-posts)
+   - [Replies as the website](websites.md#replies-as-the-website)
+   - [On the fediverse](websites.md#on-the-fediverse)
+   - [WebSub](websites.md#websub)
+   - [Settings](websites.md#settings)
+   - [Where the code is](websites.md#where-the-code-is)
+3. [The federation lab](federation-lab.md) — trying federation on one machine: names, certificates, and another server to talk to
    - [Why it is needed](federation-lab.md#why-it-is-needed)
    - [What is in it](federation-lab.md#what-is-in-it)
    - [Starting it](federation-lab.md#starting-it)
@@ -296,48 +336,36 @@ Changing Anahita's own code? Begin with [AGENTS.md](../AGENTS.md).
    - [Real servers, from the lab](federation-lab.md#real-servers-from-the-lab)
    - [What it is not](federation-lab.md#what-it-is-not)
    - [Where the code is](federation-lab.md#where-the-code-is)
-22. [Search](search.md) — the order results come in, old and useful counting as much as new, and how an operator tunes it
-   - [Two orders](search.md#two-orders)
-   - [Most relevant](search.md#most-relevant)
-   - [Old and useful counts as much as new](search.md#old-and-useful-counts-as-much-as-new)
-   - [Tuning it](search.md#tuning-it)
-   - [Each person's choices](search.md#each-persons-choices)
-   - [What is found at all](search.md#what-is-found-at-all)
-   - [Where the code is](search.md#where-the-code-is)
-   - [What is not built](search.md#what-is-not-built)
-23. [Hashtags and locations](hashtags.md) — how a post gets its hashtags, at most ten hashtags and five locations, and the hashtags offered while writing
-   - [How a post gets its hashtags](hashtags.md#how-a-post-gets-its-hashtags)
-   - [At most ten hashtags](hashtags.md#at-most-ten-hashtags)
-   - [At most five locations](hashtags.md#at-most-five-locations)
-   - [Suggestions while writing](hashtags.md#suggestions-while-writing)
-   - [A hashtag's and a location's posts](hashtags.md#a-hashtags-and-a-locations-posts)
-   - [What the web app does](hashtags.md#what-the-web-app-does)
-   - [Where the code is](hashtags.md#where-the-code-is)
-24. [Websites](websites.md) — a website's feed as a profile to follow: connecting a site, proving its domain, its feed read and posted as notes, replies as the website, and on the fediverse
-   - [Who does what](websites.md#who-does-what)
-   - [Connecting a website](websites.md#connecting-a-website)
-   - [Proving a domain](websites.md#proving-a-domain)
-   - [Reading the feed](websites.md#reading-the-feed)
-   - [Its posts](websites.md#its-posts)
-   - [Replies as the website](websites.md#replies-as-the-website)
-   - [On the fediverse](websites.md#on-the-fediverse)
-   - [WebSub](websites.md#websub)
-   - [Settings](websites.md#settings)
-   - [Where the code is](websites.md#where-the-code-is)
-25. [Notifications](notifications.md) — what people are told in the app, never by email: the kinds, who is told and who never is, and how a notification goes with what it tells of
-   - [No email](notifications.md#no-email)
-   - [What a notification is](notifications.md#what-a-notification-is)
-   - [The kinds](notifications.md#the-kinds)
-   - [Only what its reader may see](notifications.md#only-what-its-reader-may-see)
-   - [Who is never told](notifications.md#who-is-never-told)
-   - [When what it tells of goes](notifications.md#when-what-it-tells-of-goes)
-   - [Choosing what one is told about](notifications.md#choosing-what-one-is-told-about)
-   - [Several as one](notifications.md#several-as-one)
-   - [What can be done from one](notifications.md#what-can-be-done-from-one)
-   - [Read, and how long they are kept](notifications.md#read-and-how-long-they-are-kept)
-   - [Delivery](notifications.md#delivery)
-   - [The API](notifications.md#the-api)
 
+### Build on Anahita
+
+1. [Developing](developing.md) — writing an app or a service against it
+2. [The API](api.md) — what is true of every route, and the reference made from the code (in [`api/`](api/))
+3. [OAuth scopes and clients](oauth.md)
+   - [Scopes](oauth.md#scopes)
+   - [Seeding clients](oauth.md#seeding-clients)
+   - [Where the code is](oauth.md#where-the-code-is)
+4. [Services over gRPC](grpc.md) — calling the services from your own, in five languages
+5. [Architecture](architecture.md) — services, routing and the shared library
+   - [Components](architecture.md#components)
+   - [Services](architecture.md#services)
+   - [Routing](architecture.md#routing)
+   - [One service for every kind of actor](architecture.md#one-service-for-every-kind-of-actor)
+   - [Naming images](architecture.md#naming-images)
+   - [anahita-libs](architecture.md#anahita-libs)
+   - [What a node is called elsewhere](architecture.md#what-a-node-is-called-elsewhere)
+   - [Naming dates and times](architecture.md#naming-dates-and-times)
+6. [The web shell](web-shell.md) — sending the web app with each page's own title and picture, for links shared elsewhere
+   - [What it sends](web-shell.md#what-it-sends)
+   - [Which pages are described](web-shell.md#which-pages-are-described)
+   - [What is never described](web-shell.md#what-is-never-described)
+   - [Pictures](web-shell.md#pictures)
+   - [What other servers ask this host](web-shell.md#what-other-servers-ask-this-host)
+   - [Running it](web-shell.md#running-it)
+   - [Settings](web-shell.md#settings)
+   - [Not running it](web-shell.md#not-running-it)
+   - [Where the code is](web-shell.md#where-the-code-is)
+   - [What is not built](web-shell.md#what-is-not-built)
 ## Plans
 
 Design documents for work in progress and work already done, in

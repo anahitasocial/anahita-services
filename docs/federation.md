@@ -45,6 +45,7 @@ Bluesky account they already have. See [Bluesky](#bluesky).
 - [Posts and people that are removed](#posts-and-people-that-are-removed)
 - [Bluesky](#bluesky)
 - [Where the code is](#where-the-code-is)
+- [Further reading](#further-reading)
 
 ## What it is
 
@@ -1527,3 +1528,28 @@ app.
 | The gateway's routes | `nginx/nginx.conf`: `/.well-known/webfinger`, `/.well-known/host-meta`, `/inbox`, `/ap/`, `/activitypub/` |
 | `ACTIVITYPUB_LAB` | Lets the service fetch from private addresses. For [the lab](federation-lab.md) only; refused with `ENV=prod` |
 | What it shares with the Bluesky service to come | `anahita-libs/federation`, `anahita-libs/site` |
+
+## Further reading
+
+The standards behind each part, for anybody who wants them from the source.
+
+### ActivityPub and the fediverse
+
+| Read | For |
+| --- | --- |
+| [ActivityPub](https://www.w3.org/TR/activitypub/) | The protocol: actors, inboxes and outboxes, and the activities between them. A W3C recommendation |
+| [Activity Streams 2.0](https://www.w3.org/TR/activitystreams-core/) and [its vocabulary](https://www.w3.org/TR/activitystreams-vocabulary/) | The shape of what is sent: `Note`, `Article`, `Follow`, `Like`, `Place` and the rest |
+| [WebFinger, RFC 7033](https://www.rfc-editor.org/rfc/rfc7033) | How `@ana@example.org` is found ([What a person is called](#what-a-person-is-called)) |
+| [Mastodon's security notes](https://docs.joinmastodon.org/spec/security/) | HTTP signatures as the fediverse signs requests ([Signing keys and signed requests](#signing-keys-and-signed-requests)) |
+| [NodeInfo](https://nodeinfo.diaspora.software/) | How a server says what it is and what it speaks |
+| [Fediverse Enhancement Proposals](https://codeberg.org/fediverse/fep) | What servers agree on beyond the standard, one proposal at a time |
+| [activitypub.rocks](https://activitypub.rocks/) and [SocialHub](https://socialhub.activitypub.rocks/) | Where the people who build the fediverse write and talk |
+
+### The AT Protocol and Bluesky
+
+| Read | For |
+| --- | --- |
+| [The overview](https://atproto.com/guides/overview) | The ideas: identities, repositories, relays and app views |
+| [The specifications](https://atproto.com/specs/atp) | The protocol itself, among them [DIDs](https://atproto.com/specs/did) and [Lexicon](https://atproto.com/specs/lexicon), its schemas |
+| [Bluesky's API docs](https://docs.bsky.app/) | The app's own records and endpoints, which [Bluesky](#bluesky) here reads and writes |
+| [Bluesky and the AT Protocol: Usable Decentralized Social Media](https://arxiv.org/abs/2402.03239) | Why it is designed as it is, by the people who designed it |
