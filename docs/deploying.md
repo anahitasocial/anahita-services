@@ -403,7 +403,8 @@ account, needs much less: see [Bluesky](federation.md#bluesky).
 Each version of anahita-services is published to GitHub's container
 registry, for amd64 and arm64 under one name, when it is tagged
 (`.github/workflows/images.yml`). A tagged version is a **Birth** release;
-the main branch is always the **Embryo**, and is not published as images.
+the main branch is always the **Embryo**, and is not published as images:
+[Releases](releases.md).
 
 ~~~
 ghcr.io/anahitasocial/<image>:<version>

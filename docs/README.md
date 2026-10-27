@@ -69,7 +69,10 @@ The pages, grouped by what they are about, each group in the order to read it.
    - [Running more than one copy of a service](deploying.md#running-more-than-one-copy-of-a-service)
    - [Trying it on your own machine](deploying.md#trying-it-on-your-own-machine)
    - [One machine without Kubernetes](deploying.md#one-machine-without-kubernetes)
-5. [Licensing](licensing.md) — what the licences allow, for running a site and for building on it
+5. [Releases](releases.md) — Embryo and Birth, and what a version number says
+   - [Version numbers](releases.md#version-numbers)
+   - [Making one](releases.md#making-one)
+6. [Licensing](licensing.md) — what the licences allow, for running a site and for building on it
 
 ### AI agents
 
